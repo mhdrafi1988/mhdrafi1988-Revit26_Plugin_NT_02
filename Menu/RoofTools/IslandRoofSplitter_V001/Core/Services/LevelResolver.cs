@@ -1,4 +1,4 @@
-// IslandRoofSplitter V002 — one place that decides which level the new roofs should default to, so the
+// IslandRoofSplitter V001 — one place that decides which level the new roofs should default to, so the
 // launch prompt (LevelTypePromptWindow) and the window (ViewModel.ApplyContext) always agree.
 // Revit-free: it only sees the LevelOption list captured in SplitterContext.
 //
@@ -8,9 +8,9 @@
 using System;
 using System.Collections.Generic;
 
-namespace Revit26_Plugin.IslandRoofSplitter.V002.Core.Services
+namespace Revit26_Plugin_Revised.IslandRoofSplitter.V001.Core.Services
 {
-    using Revit26_Plugin.IslandRoofSplitter.V002.Core.Models;
+    using Revit26_Plugin_Revised.IslandRoofSplitter.V001.Core.Models;
 
     public static class LevelResolver
     {

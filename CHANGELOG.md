@@ -9,6 +9,36 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [4.3.0] — 2026-10-19
+
+### Added
+- **Island Roof Splitter V001 (WIP) 0.2.1 → 0.3.0: level and roof type are confirmed, never assumed.**
+  Ported from the `IslandRoofSplitter_V001_updated` work that sat in `Menu/WIP` (the same behaviour V002
+  already has):
+  - No levels or no roof types in the document → a message and the command stops; it never creates a
+    level.
+  - Level or roof type not readable on the source roof → a small "level & roof type" dialog asks before
+    the window opens; Cancel stops the command.
+  - When the level was not detected, the window pre-selects the level nearest the roof's top and says
+    so in a NEW ROOFS banner. The Level list shows each level's elevation, and a line under the pickers
+    shows the elevation the new roofs will sit at.
+  - Commit stays disabled until both a level and a roof type are picked.
+
+### Removed
+- **The rest of `Menu/WIP`.** Each item was checked against the shipped tool first:
+  - `RoofNameBuilder_V002_UPDATED` (+ `.zip`): the 2.0.0 snapshot of the shipped Roof Name Builder (2.1.1),
+    with the old namespace, and a ribbon snippet that is already wired. Nothing newer.
+  - `ExportDwgToFolder_V003_UPDATED` (+ `.zip`): identical to the shipped
+    `Menu/Setup/Project/DWG/ExportDwgToFolder_V003` apart from the old namespace.
+  - `IslandRoofSplitter_V002` (+ `.zip`): the pre-4.1.0 copy of the shipped V002.
+  - `IslandRoofSplitter_V001_fixed.zip`: older than the shipped V001.
+  - `IslandRoofSplitter_V001_updated.zip`: ported into V001 (above).
+  - `IslandRoofSplitter_V001_diag.zip`: temporary diagnostics that tag roof-creation errors with the
+    failing call. Superseded by V002's `ProfileBuilder` / `CreationVerifier`, so not ported.
+
+**User note:** Island Roof Splitter V001 may now ask for a level and roof type when it opens, if the
+picked roof's own cannot be read; nothing else changes. All other tools are unchanged.
+
 ## [4.2.1] — 2026-10-19
 
 ### Fixed

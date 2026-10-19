@@ -95,13 +95,13 @@ namespace Revit26_Plugin_Revised.IslandRoofSplitter.V001.Infrastructure.External
             var type = doc.GetElement(new ElementId(c.RoofTypeId)) as RoofType;
             string? fatal =
                 doc.GetElement(new ElementId(c.SourceRoofId)) == null ? "Source roof no longer exists — re-pick it and run the preview again" :
-                level == null ? "Selected level no longer exists" :
-                type == null ? "Selected roof type no longer exists" : null;
+                level == null ? "Selected level no longer exists — pick the level for the new roofs again" :
+                type == null ? "Selected roof type no longer exists — pick the type for the new roofs again" : null;
             if (fatal != null || level == null || type == null)
             {
                 foreach (var isl in c.Islands)
                 {
-                    var r = Fail(isl, fatal ?? "Missing level or roof type");
+                    var r = Fail(isl, fatal ?? "No level or roof type selected for the new roofs");
                     results.Add(r);
                     req.IslandDone?.Invoke(r, results.Count, total);
                 }

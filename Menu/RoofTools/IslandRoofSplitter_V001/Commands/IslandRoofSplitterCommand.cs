@@ -10,6 +10,11 @@
 //  * Flat mode arcs: keep true arcs / tessellate — user choice.
 //  * Preview (Run) is pure Core and auto-runs on open; nothing is created until Commit.
 //
+// Update (2026-10-15, per Anas): level and roof type are confirmed before the window opens.
+//  * No levels or no roof types in the document → TaskDialog + Result.Cancelled. The tool never creates a level.
+//  * Level or type not detected on the source roof → modal LevelTypePromptWindow; Cancel aborts the command,
+//    Continue seeds the window's pickers. The window also keeps its own banner + Commit guard (belt and braces).
+//
 // Error handling goes through Shared ToolGuard (cancel → Cancelled, anything else → logged + dialog + Failed),
 // so this file holds no try/catch of its own (refactor, 2026-10-14).
 #nullable enable
@@ -42,7 +47,31 @@ namespace Revit26_Plugin_Revised.IslandRoofSplitter.V001.Commands
             var lines = SelectionHelper.PickDetailCurves(uidoc);
             var context = ContextFactory.Build(uidoc, roof, lines);
 
-            var window = new IslandRoofSplitterWindow(new IslandRoofSplitterViewModel(context));
+            // Nothing to pick from → stop with a clear message rather than opening a window that cannot commit.
+            if (!context.HasLevels || !context.HasRoofTypes)
+            {
+                TaskDialog.Show("Island Roof Splitter",
+                    !context.HasLevels
+                        ? "No levels in this document — create a level in Revit, then run the tool again."
+                        : "No roof types are loaded — load a roof family, then run the tool again.");
+                return Result.Cancelled;
+            }
+
+            long? presetLevelId = null;
+            long? presetRoofTypeId = null;
+
+            // Level or type not detected on the source roof → ask before the window opens.
+            if (!context.LevelDetected || !context.RoofTypeDetected)
+            {
+                var prompt = new LevelTypePromptWindow(context);
+                new WindowInteropHelper(prompt) { Owner = uiapp.MainWindowHandle };
+                if (prompt.ShowDialog() != true) return Result.Cancelled;
+                presetLevelId = prompt.ChosenLevelId;
+                presetRoofTypeId = prompt.ChosenRoofTypeId;
+            }
+
+            var window = new IslandRoofSplitterWindow(
+                new IslandRoofSplitterViewModel(context, presetLevelId, presetRoofTypeId));
             new WindowInteropHelper(window) { Owner = uiapp.MainWindowHandle };
             window.Show();
             return Result.Succeeded;

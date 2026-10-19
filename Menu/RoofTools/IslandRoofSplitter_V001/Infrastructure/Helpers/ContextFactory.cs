@@ -1,5 +1,9 @@
 // IslandRoofSplitter V001 — builds the Revit-free SplitterContext from a picked roof + detail curves.
 // Used by the Command and by the handler's Re-pick requests.
+//
+// Update (2026-10-15, per Anas): the snapshot now reports whether the level and roof type were actually
+// detected on the source roof instead of letting the UI fall back silently, carries each level's elevation
+// (LevelOption) and a reference Z (RoofTopZFt) for the nearest-level pre-selection.
 #nullable enable
 using System.Collections.Generic;
 using System.Linq;
@@ -35,11 +39,18 @@ namespace Revit26_Plugin_Revised.IslandRoofSplitter.V001.Infrastructure.Helpers
             {
                 RoofId = roof.Id.Value,
                 RoofTitle = $"{type?.FamilyName ?? "Roof"} : {type?.Name ?? roof.Name}",
-                RoofDetail = $"ID {roof.Id.Value} · {level?.Name ?? "no level"} · base offset {offset * LengthUnits.MmPerFoot:0} mm · " +
+                RoofDetail = $"ID {roof.Id.Value} · " +
+                             (level != null
+                                 ? $"{level.Name} ({level.Elevation * LengthUnits.MmPerFoot:0} mm)"
+                                 : "level not detected") +
+                             $" · base offset {offset * LengthUnits.MmPerFoot:0} mm · " +
                              $"{slopeEdges} slope-defining edge{(slopeEdges == 1 ? "" : "s")}" +
                              (mesh.Triangles.Count == 0 ? " · no top faces found" : ""),
                 RoofTypeId = roof.GetTypeId().Value,
                 LevelId = roof.LevelId.Value,
+                LevelDetected = level != null,
+                RoofTypeDetected = type != null,
+                RoofTopZFt = TopZ(roof, mesh),
                 BaseOffsetFt = offset,
                 Mesh = mesh,
                 Segments = segments,
@@ -50,9 +61,19 @@ namespace Revit26_Plugin_Revised.IslandRoofSplitter.V001.Infrastructure.Helpers
                     .Select(t => new NamedId(t.Id.Value, $"{t.FamilyName} : {t.Name}")).ToList(),
                 Levels = new FilteredElementCollector(doc).OfClass(typeof(Level)).Cast<Level>()
                     .OrderBy(l => l.Elevation)
-                    .Select(l => new NamedId(l.Id.Value, l.Name)).ToList(),
+                    .Select(l => new LevelOption(l.Id.Value, l.Name, l.Elevation)).ToList(),
                 ShortCurveTolFt = doc.Application.ShortCurveTolerance
             };
+        }
+
+        /// <summary>Lowest Z of the captured top faces; the roof's bounding box when there are none.</summary>
+        private static double? TopZ(FootPrintRoof roof, RoofSurfaceMesh mesh)
+        {
+            if (mesh.Triangles.Count > 0)
+                return mesh.Triangles.Min(t => System.Math.Min(t.A.Z, System.Math.Min(t.B.Z, t.C.Z)));
+
+            BoundingBoxXYZ? bb = roof.get_BoundingBox(null);
+            return bb?.Min.Z;
         }
     }
 }

@@ -1,14 +1,14 @@
-// IslandRoofSplitter V002 — code-behind for the launch prompt. Wiring only: fills the two combo boxes from
+// IslandRoofSplitter V001 — code-behind for the launch prompt. Wiring only: fills the two combo boxes from
 // the SplitterContext, pre-selects through Core LevelResolver, and hands back the chosen ids.
 // Shown by IslandRoofSplitterCommand only when LevelDetected / RoofTypeDetected is false and both lists
 // are non-empty. Creates and changes nothing in the document.
 #nullable enable
 using System.Windows;
 using System.Windows.Controls;
-using Revit26_Plugin.IslandRoofSplitter.V002.Core.Models;
-using Revit26_Plugin.IslandRoofSplitter.V002.Core.Services;
+using Revit26_Plugin_Revised.IslandRoofSplitter.V001.Core.Models;
+using Revit26_Plugin_Revised.IslandRoofSplitter.V001.Core.Services;
 
-namespace Revit26_Plugin.IslandRoofSplitter.V002.UI.Views
+namespace Revit26_Plugin_Revised.IslandRoofSplitter.V001.UI.Views
 {
     public partial class LevelTypePromptWindow : Window
     {

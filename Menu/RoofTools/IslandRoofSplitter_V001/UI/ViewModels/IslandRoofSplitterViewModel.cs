@@ -5,6 +5,13 @@
 // Refactor (2026-10-14): now derives from Shared ToolViewModelBase, which owns IsRunning / Progress / SummaryText
 // (bound by ToolWindowShell), the LogEntries collection, AddLog and the Clear / Copy All / Copy Selected log
 // commands. Settings go through Shared SettingsService; the local SettingsStore and SharedAdapters are gone.
+//
+// Update (2026-10-15, per Anas): level and roof type are never assumed. Levels carry their elevation
+// (LevelOption.Display), the default comes from Core LevelResolver (source roof's level, else nearest to the
+// roof's top Z, flagged as a guess), SetupMessage drives the NEW ROOFS banner and Commit is blocked until both
+// pickers hold a value. The launch prompt (LevelTypePromptWindow) can seed both through the constructor.
+// Re-pick cannot show a modal — it runs on Revit's API thread — so a re-picked roof with no level re-raises
+// the banner and blocks Commit instead.
 #nullable enable
 using System;
 using System.Collections.Generic;
@@ -33,13 +40,20 @@ namespace Revit26_Plugin_Revised.IslandRoofSplitter.V001.UI.ViewModels
         private SplitterContext _ctx;
         private bool _loading;
 
+        /// <summary>Ids confirmed in the launch prompt; they win over the source roof's own values once.</summary>
+        private long? _presetLevelId;
+        private long? _presetRoofTypeId;
+
         public event Action? RequestClose;
         public event Action<bool>? RequestHide; // true = hide for picking, false = show again
 
-        public IslandRoofSplitterViewModel(SplitterContext context)
+        public IslandRoofSplitterViewModel(SplitterContext context,
+                                           long? presetLevelId = null, long? presetRoofTypeId = null)
         {
             _dispatcher = Dispatcher.CurrentDispatcher;
             _ctx = context;
+            _presetLevelId = presetLevelId;
+            _presetRoofTypeId = presetRoofTypeId;
             IslandRoofSplitterEventManager.Init();
 
             IslandsView = CollectionViewSource.GetDefaultView(Islands);
@@ -124,11 +138,32 @@ namespace Revit26_Plugin_Revised.IslandRoofSplitter.V001.UI.ViewModels
 
         // ---------------- new roof outputs ----------------
         public ObservableCollection<NamedId> RoofTypes { get; } = new();
-        public ObservableCollection<NamedId> Levels { get; } = new();
+        public ObservableCollection<LevelOption> Levels { get; } = new();
         [ObservableProperty] private NamedId? _selectedRoofType;
-        [ObservableProperty] private NamedId? _selectedLevel;
+        [ObservableProperty] private LevelOption? _selectedLevel;
         [ObservableProperty] private double _baseOffsetMm;
         [ObservableProperty] [NotifyPropertyChangedFor(nameof(MarkExample))] private string _markPrefix = "";
+
+        /// <summary>NEW ROOFS banner: what was not detected, or which level was guessed. Empty = no banner.</summary>
+        [ObservableProperty] [NotifyPropertyChangedFor(nameof(HasSetupWarning))] private string _setupMessage = "";
+
+        public bool HasSetupWarning => !string.IsNullOrEmpty(SetupMessage);
+
+        /// <summary>Level elevation + base offset — the elevation the new roofs will sit at.</summary>
+        public string NewRoofElevationText => SelectedLevel == null
+            ? "Pick a level to see the new roof elevation."
+            : $"New roofs at {SelectedLevel.ElevationMm + BaseOffsetMm:0} mm " +
+              $"({SelectedLevel.Name} {SelectedLevel.ElevationMm:0} mm + offset {BaseOffsetMm:0} mm)";
+
+        partial void OnSelectedLevelChanged(LevelOption? value)
+        {
+            OnPropertyChanged(nameof(NewRoofElevationText));
+            CommitCommand.NotifyCanExecuteChanged();
+        }
+
+        partial void OnSelectedRoofTypeChanged(NamedId? value) => CommitCommand.NotifyCanExecuteChanged();
+
+        partial void OnBaseOffsetMmChanged(double value) => OnPropertyChanged(nameof(NewRoofElevationText));
 
         public string MarkExample => string.IsNullOrEmpty(MarkPrefix)
             ? "Marks: Island_01, Island_02 … (no prefix — reruns will repeat Marks)"
@@ -283,7 +318,15 @@ namespace Revit26_Plugin_Revised.IslandRoofSplitter.V001.UI.ViewModels
         [RelayCommand(CanExecute = nameof(CanCommit))]
         private void Commit()
         {
-            if (SelectedLevel == null || SelectedRoofType == null) { SummaryText = "Pick a roof type and a level first."; return; }
+            if (SelectedLevel == null || SelectedRoofType == null)
+            {
+                SummaryText = SelectedLevel == null && SelectedRoofType == null
+                    ? "Pick a level and a roof type for the new roofs first."
+                    : SelectedLevel == null
+                        ? "Pick the level for the new roofs first — it was not detected on the source roof."
+                        : "Pick the roof type for the new roofs first — it was not detected on the source roof.";
+                return;
+            }
 
             var ready = Islands.Where(r => r.Status == IslandStatus.Ready).ToList();
             var request = new CommitRequest
@@ -302,7 +345,9 @@ namespace Revit26_Plugin_Revised.IslandRoofSplitter.V001.UI.ViewModels
             IsRunning = true;
             Progress = 0;
             SummaryText = $"Creating {ready.Count} roof(s)…";
-            AddLog(LogLevel.Info, $"Commit: {ready.Count} island(s), mode {Mode}, type {SelectedRoofType.Name}, level {SelectedLevel.Name}, offset {BaseOffsetMm:0} mm");
+            AddLog(LogLevel.Info, $"Commit: {ready.Count} island(s), mode {Mode}, type {SelectedRoofType.Name}, " +
+                                  $"level {SelectedLevel.Display}, offset {BaseOffsetMm:0} mm " +
+                                  $"→ new roofs at {SelectedLevel.ElevationMm + BaseOffsetMm:0} mm");
 
             bool raised = IslandRoofSplitterEventManager.Raise(new SplitterRequest
             {
@@ -318,7 +363,8 @@ namespace Revit26_Plugin_Revised.IslandRoofSplitter.V001.UI.ViewModels
             });
             if (!raised) EndCommit(RunPhase.Preview, "Revit is busy — try Commit again.");
         }
-        private bool CanCommit() => !IsRunning && Phase == RunPhase.Preview && ReadyCount > 0;
+        private bool CanCommit() => !IsRunning && Phase == RunPhase.Preview && ReadyCount > 0
+                                    && SelectedLevel != null && SelectedRoofType != null;
 
         private void OnIslandCommitted(IslandCommitResult r, int done, int total, Dictionary<string, IslandRowViewModel> byName)
         {
@@ -401,10 +447,49 @@ namespace Revit26_Plugin_Revised.IslandRoofSplitter.V001.UI.ViewModels
 
             RoofTypes.Clear(); foreach (var t in ctx.RoofTypes) RoofTypes.Add(t);
             Levels.Clear(); foreach (var l in ctx.Levels) Levels.Add(l);
-            SelectedRoofType = RoofTypes.FirstOrDefault(t => t.Id == ctx.RoofTypeId) ?? RoofTypes.FirstOrDefault();
-            SelectedLevel = Levels.FirstOrDefault(l => l.Id == ctx.LevelId) ?? Levels.FirstOrDefault();
+
+            // A level / type confirmed in the launch prompt wins once; after that the context decides.
+            LevelOption? preset = _presetLevelId is long pl ? Levels.FirstOrDefault(l => l.Id == pl) : null;
+            NamedId? presetType = _presetRoofTypeId is long pt ? RoofTypes.FirstOrDefault(t => t.Id == pt) : null;
+            _presetLevelId = null;
+            _presetRoofTypeId = null;
+
+            bool guessed = false;
+            SelectedLevel = preset
+                ?? LevelResolver.Resolve(ctx.Levels, ctx.LevelId, ctx.LevelDetected, ctx.RoofTopZFt, out guessed);
+            SelectedRoofType = presetType
+                ?? LevelResolver.ResolveType(ctx.RoofTypes, ctx.RoofTypeId, ctx.RoofTypeDetected);
+
+            SetupMessage = BuildSetupMessage(ctx, preset != null, presetType != null, guessed);
+            if (HasSetupWarning) AddLog(LogLevel.Warning, SetupMessage);
+
             BaseOffsetMm = Math.Round(LengthUnits.FtToMm(ctx.BaseOffsetFt), 1);
             MarkPrefix = $"R{ctx.RoofId}_";
+        }
+
+        /// <summary>What the NEW ROOFS banner says. Empty when both came straight off the source roof.</summary>
+        private string BuildSetupMessage(SplitterContext ctx, bool levelConfirmed, bool typeConfirmed, bool guessed)
+        {
+            var parts = new List<string>();
+
+            if (!ctx.HasLevels)
+                parts.Add("No levels in this document — create a level in Revit, then re-run.");
+            else if (SelectedLevel == null)
+                parts.Add("Level not detected on the source roof — pick the level for the new roofs.");
+            else if (levelConfirmed && !ctx.LevelDetected)
+                parts.Add($"Level not detected on the source roof — using {SelectedLevel.Display} as confirmed at launch.");
+            else if (guessed)
+                parts.Add($"Level not detected on the source roof — pre-selected {SelectedLevel.Display}, " +
+                          "the level nearest the roof's top Z. Confirm before Commit.");
+
+            if (!ctx.HasRoofTypes)
+                parts.Add("No roof types are loaded — load a roof family, then re-run.");
+            else if (SelectedRoofType == null)
+                parts.Add("Roof type not detected on the source roof — pick the type for the new roofs.");
+            else if (typeConfirmed && !ctx.RoofTypeDetected)
+                parts.Add($"Roof type not detected on the source roof — using {SelectedRoofType.Name} as confirmed at launch.");
+
+            return string.Join("  ·  ", parts);
         }
 
         // ---------------- close ----------------

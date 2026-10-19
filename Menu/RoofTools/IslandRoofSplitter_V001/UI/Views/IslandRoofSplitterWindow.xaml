@@ -2,6 +2,8 @@
   IslandRoofSplitter V001 — ToolWindowShell (CLAUDE.md v1.1). Header: phase badge + metric tiles. Body: selection,
   mode, options, new-roof outputs, islands grid, log (collapsed, dark). Footer: Copy island log · Run · Commit · Close.
   No inline colours: every brush/style is a Shared/SharedStyles.xaml key (all confirmed against SharedStyles v3.1).
+  Update (2026-10-15): NEW ROOFS gained a setup banner (level / roof type not detected, or a guessed level),
+  the Level combo shows name · elevation, and a line read-outs the resulting new-roof elevation.
   Window Title has no version: Shared ToolGuard appends " — v<ToolCatalog version>" on load.
 -->
 <Window x:Class="Revit26_Plugin_Revised.IslandRoofSplitter.V001.UI.Views.IslandRoofSplitterWindow"
@@ -26,6 +28,8 @@
             <!-- converters live in the consuming window, never in SharedStyles.xaml (Converters.cs header) -->
             <converters:EnumToBoolConverter x:Key="EnumToBoolConverter" />
             <converters:LogLevelToColorConverter x:Key="LogLevelToColorConverter" />
+            <!-- framework converter, used only by the NEW ROOFS setup banner -->
+            <BooleanToVisibilityConverter x:Key="IrsBoolToVis" />
 
             <!-- local layout styles, all BasedOn shared ones -->
             <Style x:Key="IrsCard" TargetType="Border" BasedOn="{StaticResource BaseCard}">
@@ -219,16 +223,26 @@
                 <Border Style="{StaticResource IrsCard}">
                     <StackPanel>
                         <TextBlock Text="NEW ROOFS" Style="{StaticResource IrsSectionHeader}" />
+
+                        <!-- setup banner: level / roof type not detected, or a guessed level awaiting confirmation -->
+                        <Border Background="{DynamicResource BrushSoftWarningBackground}" CornerRadius="8"
+                                Padding="10,8" Margin="0,0,0,10"
+                                Visibility="{Binding HasSetupWarning, Converter={StaticResource IrsBoolToVis}}">
+                            <TextBlock Text="{Binding SetupMessage}" Style="{StaticResource IrsHint}" />
+                        </Border>
+
                         <UniformGrid Columns="4">
                             <StackPanel Margin="0,0,10,0">
                                 <TextBlock Text="Roof type" Style="{StaticResource IrsHint}" />
                                 <ComboBox Style="{StaticResource StandardComboBox}" ItemsSource="{Binding RoofTypes}"
-                                          SelectedItem="{Binding SelectedRoofType}" DisplayMemberPath="Name" />
+                                          SelectedItem="{Binding SelectedRoofType}" DisplayMemberPath="Name"
+                                          ToolTip="Type for every new roof. Defaults to the source roof's type when it could be read." />
                             </StackPanel>
                             <StackPanel Margin="0,0,10,0">
-                                <TextBlock Text="Level" Style="{StaticResource IrsHint}" />
+                                <TextBlock Text="Level (name · elevation)" Style="{StaticResource IrsHint}" />
                                 <ComboBox Style="{StaticResource StandardComboBox}" ItemsSource="{Binding Levels}"
-                                          SelectedItem="{Binding SelectedLevel}" DisplayMemberPath="Name" />
+                                          SelectedItem="{Binding SelectedLevel}" DisplayMemberPath="Display"
+                                          ToolTip="Level for every new roof, with its elevation. Defaults to the source roof's level." />
                             </StackPanel>
                             <StackPanel Margin="0,0,10,0">
                                 <TextBlock Text="Base offset (mm)" Style="{StaticResource IrsHint}" />
@@ -239,7 +253,8 @@
                                 <TextBox Style="{StaticResource BoxedTextInput}" Text="{Binding MarkPrefix, UpdateSourceTrigger=PropertyChanged}" />
                             </StackPanel>
                         </UniformGrid>
-                        <TextBlock Text="{Binding MarkExample}" Style="{StaticResource HintText}" Margin="0,6,0,0" />
+                        <TextBlock Text="{Binding NewRoofElevationText}" Style="{StaticResource HintText}" Margin="0,6,0,0" />
+                        <TextBlock Text="{Binding MarkExample}" Style="{StaticResource HintText}" Margin="0,2,0,0" />
                     </StackPanel>
                 </Border>
 

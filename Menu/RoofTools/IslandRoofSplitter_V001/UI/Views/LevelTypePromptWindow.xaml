@@ -1,10 +1,10 @@
 <!--
-  IslandRoofSplitter V002 — launch prompt, shown by the Command only when the source roof's level or
+  IslandRoofSplitter V001 — launch prompt, shown by the Command only when the source roof's level or
   roof type could not be detected (per Anas, 2026-10-15: ask here AND guard in the window).
   Modal, owned by the Revit main window. Creates nothing: it only returns the two chosen ids.
   No inline colours and no new style keys: every key below is already used by IslandRoofSplitterWindow.xaml.
 -->
-<Window x:Class="Revit26_Plugin.IslandRoofSplitter.V002.UI.Views.LevelTypePromptWindow"
+<Window x:Class="Revit26_Plugin_Revised.IslandRoofSplitter.V001.UI.Views.LevelTypePromptWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Island Roof Splitter — level &amp; roof type"
