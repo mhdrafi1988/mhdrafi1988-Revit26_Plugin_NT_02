@@ -192,6 +192,14 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             RibbonLayoutHelper.WirePulldownButton(roofEditItems, "Pulldown_RoofNameBuilder", nameBuilderV002);
             RibbonLayoutHelper.WirePulldownButton(roofEditItems, "Pulldown_IslandRoofSplitter", islandSplitterV002, islandSplitterV001);
 
+            // Plan View — a second, direct button for Island Roof Splitter V002 (the tool works
+            // from detail lines drawn in a plan view). Same command as the Roof Edit dropdown entry.
+            RibbonPanel planViewPanel = app.CreateRibbonPanel(tabName, "Plan View");
+            var planViewIslandSplitter = Btn(assemblyPath, "Btn_PlanView_IslandRoofSplitter_V002", "Island Splitter", "Revit26_Plugin_Revised.IslandRoofSplitter.V002.Commands.IslandRoofSplitterCommand",
+                "DetailLineIntersect_16.png", "Island Roof Splitter", "V002", "Split a sloped roof into one new roof per closed detail-line island, with a floor fallback. Test on a copy of your model.");
+            planViewIslandSplitter.LargeImage = ImageUtils.Load(Icons + "DetailLineIntersect_32.png");
+            planViewPanel.AddItem(planViewIslandSplitter);
+
             // Compare
             RibbonPanel comparePanel = app.CreateRibbonPanel(tabName, "Compare");
 

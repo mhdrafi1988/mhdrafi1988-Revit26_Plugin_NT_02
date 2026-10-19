@@ -9,6 +9,13 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [4.2.0] — 2026-10-19
+
+### Added
+- **Plan View panel** on the SloperPro-Modelling tab, with a direct **Island Splitter** button that
+  runs Island Roof Splitter V002 (2.0.0). It is the same command as the V002 entry in **Roof Edit ›
+  Island Splitter**, which is unchanged.
+
 ## [4.1.0] — 2026-10-19
 
 ### Added
