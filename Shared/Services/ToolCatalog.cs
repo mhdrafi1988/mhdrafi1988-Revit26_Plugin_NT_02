@@ -85,7 +85,7 @@ namespace Revit26_Plugin_Revised.Shared.Services
         public static readonly ToolInfo CombinedRoofTools = Add("Combined Roof Tools", "3.1.1", "V003", "Revit26_Plugin_Revised.CombinedRoofTools.V003");
         public static readonly ToolInfo RoofTypeManager = Add("Roof Type Manager", "3.1.1", "V003", "Revit26_Plugin_Revised.RoofTypeCreator.V003");
         public static readonly ToolInfo RoofPointElevationSync = Add("Roof Point Elevation Sync", "5.0.1", "V005", "Revit26_Plugin_Revised.RoofPointElevationSync.V005");
-        public static readonly ToolInfo RoofPointComparison = Add("Roof Point Comparison", "3.0.1", "V003", "Revit26_Plugin_Revised.RoofPointComparison.V003");
+        public static readonly ToolInfo RoofPointComparison = Add("Roof Point Comparison", "3.0.2", "V003", "Revit26_Plugin_Revised.RoofPointComparison.V003");
         public static readonly ToolInfo TaperedEpsPattern2D = Add("Tapered EPS 2D Pattern", "6.1.0", "V006", "Revit26_Plugin_Revised.TaperedEpsPattern2D.V006");
         public static readonly ToolInfo BatchDwgFamilyLinker = Add("Batch Link DWG Family", "2.2.0", "V002", "BatchDwgFamilyLinker.V002");
         public static readonly ToolInfo DwgToLines = Add("DWG To Lines", "7.0.1", "V007", "Revit26_Plugin_Revised.DwgToLines.V007");
@@ -94,7 +94,7 @@ namespace Revit26_Plugin_Revised.Shared.Services
         public static readonly ToolInfo DwgManager = Add("DWG Manager", "3.1.1", "V003", "Revit26_Plugin_Revised.DwgManager.V003");
         public static readonly ToolInfo DwgStatistics = Add("DWG Statistics", "5.1.1", "V005", "Revit26_Plugin_Revised.DwgStatistics.V005");
         public static readonly ToolInfo ExportDwgToFolder = Add("Export DWG to Folder", "4.1.1", "V004", "Revit26_Plugin_Revised.ExportDwgToFolder.V004");
-        public static readonly ToolInfo PlanFromScopeBox = Add("Plan From Scope Box", "6.1.1", "V006", "Revit26_Plugin_Revised.PlanFromScopeBox.V006");
+        public static readonly ToolInfo PlanFromScopeBox = Add("Plan From Scope Box", "6.1.2", "V006", "Revit26_Plugin_Revised.PlanFromScopeBox.V006");
         public static readonly ToolInfo SmartViewToSheetPlacer = Add("Smart View To Sheet Placer", "224.1.1", "V224", "Revit26_Plugin_Revised.SmartViewToSheetPlacer.V224");
         public static readonly ToolInfo AutomatedSectionPlacer = Add("Automated Section Placer", "3.1.1", "V003", "Revit26_Plugin_Revised.AutomatedSectionPlacer.V003");
         public static readonly ToolInfo SheetAutoRearrange = Add("Sheet Auto Rearrange", "28.1.1", "V028", "Revit26_Plugin_Revised.SheetAutoRearrange.V028");

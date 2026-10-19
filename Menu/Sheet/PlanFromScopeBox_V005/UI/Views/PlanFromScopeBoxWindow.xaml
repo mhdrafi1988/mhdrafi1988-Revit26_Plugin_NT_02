@@ -22,7 +22,7 @@ Changes vs V004 (layout only, per Revit_Plugin_UI_Standard.md):
         MinHeight="800" MinWidth="960"
         ResizeMode="CanResizeWithGrip"
         WindowStartupLocation="CenterOwner"
-        Background="{StaticResource BrushSystemSecondaryBackground}">
+        Background="{DynamicResource BrushSystemSecondaryBackground}">
 
     <!-- V004 FIX: switched from the absolute pack://application:,,, form to the
          assembly-relative pack syntax below. The absolute "application" authority

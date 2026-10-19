@@ -27,7 +27,7 @@ Changes vs V001 (layout only, per Revit_Plugin_UI_Standard.md):
         MinHeight="820"
         WindowStartupLocation="CenterScreen"
         ResizeMode="CanResizeWithGrip"
-        Background="{StaticResource BrushSystemSecondaryBackground}"
+        Background="{DynamicResource BrushSystemSecondaryBackground}"
         KeyDown="Window_KeyDown">
 
     <Window.Resources>

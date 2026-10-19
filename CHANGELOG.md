@@ -9,6 +9,15 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [4.2.1] — 2026-10-19
+
+### Fixed
+- **Plan From Scope Box v6.1.2 (V006)** and **V005**, **Roof Point Comparison v3.0.2 (V003)** and
+  **V002** — the window no longer stops on open with *"Cannot find resource named
+  'BrushSystemSecondaryBackground'"*. The `<Window>` tag read that brush as a `StaticResource`,
+  which WPF resolves before the window's own resources (where the shared styles are merged) exist;
+  it is now a `DynamicResource`, as in every other tool window. No behaviour change.
+
 ## [4.2.0] — 2026-10-19
 
 ### Added

@@ -29,7 +29,7 @@ Changes vs V002 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
         MinHeight="820"
         WindowStartupLocation="CenterScreen"
         ResizeMode="CanResizeWithGrip"
-        Background="{StaticResource BrushSystemSecondaryBackground}"
+        Background="{DynamicResource BrushSystemSecondaryBackground}"
         KeyDown="Window_KeyDown">
 
     <Window.Resources>
