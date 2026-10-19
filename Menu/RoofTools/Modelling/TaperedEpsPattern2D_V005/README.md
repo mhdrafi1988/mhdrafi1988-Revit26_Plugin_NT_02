@@ -1,7 +1,7 @@
 # Tapered EPS 2D Pattern — V005 (Revit 2026)
 
 Bumped from V004 (V004 stays as it is, with its own button). Folder:
-`Menu/RoofTools/Modelling/TaperedEpsPattern2D_V005`, namespace `Revit26_Plugin.TaperedEpsPattern2D.V005`.
+`Menu/RoofTools/Modelling/TaperedEpsPattern2D_V005`, namespace `Revit26_Plugin_Revised.TaperedEpsPattern2D.V005`.
 
 ## What is new in V005
 
@@ -139,7 +139,7 @@ var eps2dV005 = new PushButtonData(
     "TaperedEpsPattern2D_V005",
     "Tapered EPS\n2D Pattern V005",
     assemblyPath,
-    "Revit26_Plugin.TaperedEpsPattern2D.V005.Commands.TaperedEpsPattern2DCommand")
+    "Revit26_Plugin_Revised.TaperedEpsPattern2D.V005.Commands.TaperedEpsPattern2DCommand")
 {
     ToolTip = "Tapered EPS board pattern as 2D detail lines: rows between thickness contours, " +
               "full boards from the hips, mirrored hip pieces, one filler per row.",

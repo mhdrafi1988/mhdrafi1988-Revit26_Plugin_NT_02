@@ -1,7 +1,7 @@
 # Inner Loop Divider — V012 (Revit 2026)
 
 Bumped from V011 (V011 stays as it is). Folder `Menu/RoofTools/.../InnerLoopDivider_V012`
-(put it next to V011), namespace `Revit26_Plugin.InnerLoopDivider.V012`.
+(put it next to V011), namespace `Revit26_Plugin_Revised.InnerLoopDivider.V012`.
 
 Adds shape-editing points around a roof's openings (drains, rooflights, penetrations) so the
 slope tools have vertices to work with.
@@ -63,7 +63,7 @@ innerLoopDividerPulldown.AddPushButton(new PushButtonData(
     "Btn_InnerLoopDivider_V012",
     "Inner Loop Divider V012",
     assemblyPath,
-    "Revit26_Plugin.InnerLoopDivider.V012.Commands.InnerLoopDividerCommand")
+    "Revit26_Plugin_Revised.InnerLoopDivider.V012.Commands.InnerLoopDividerCommand")
 {
     ToolTip = "V012 — adds shape points around roof openings. Read-only launch (no offset reset), " +
               "points per loop or max spacing, exact new / existing counts."

@@ -1,0 +1,428 @@
+<!--
+  IslandRoofSplitter V002 — ToolWindowShell (CLAUDE.md v1.1). Header: phase badge + metric tiles. Body: selection,
+  output, mode, options, new-element outputs, islands grid, log (collapsed, dark).
+  Footer: Copy island log · Run · Commit · Close.
+  No inline colours: every brush/style is a Shared/SharedStyles.xaml key (all confirmed against SharedStyles v3.1).
+  Update (2026-10-15): NEW ELEMENTS gained a setup banner (level / type not detected, or a guessed level),
+  the Level combo shows name · elevation, and a line read-outs the resulting new-element elevation.
+  V002: OUTPUT chips (Roof only / Roof, floor if it fails / Floor only), a floor type picker that is live only
+  when a floor can be created, and an Element column in the grid showing what each island actually became.
+  Window Title has no version: Shared ToolGuard appends " — v<ToolCatalog version>" on load.
+-->
+<Window x:Class="Revit26_Plugin_Revised.IslandRoofSplitter.V002.UI.Views.IslandRoofSplitterWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:shell="clr-namespace:Revit26_Plugin_Revised.Shared.Controls"
+        xmlns:converters="clr-namespace:Revit26_Plugin_Revised.Shared.Models"
+        Title="Island Roof Splitter"
+        Width="920" Height="960" MinWidth="920" MinHeight="900"
+        MaxWidth="1196" MaxHeight="1170"
+        ResizeMode="CanResizeWithGrip"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False">
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/Revit26_Plugin;component/Shared/SharedStyles.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- converters live in the consuming window, never in SharedStyles.xaml (Converters.cs header) -->
+            <converters:EnumToBoolConverter x:Key="EnumToBoolConverter" />
+            <converters:LogLevelToColorConverter x:Key="LogLevelToColorConverter" />
+            <!-- framework converter, used only by the NEW ROOFS setup banner -->
+            <BooleanToVisibilityConverter x:Key="IrsBoolToVis" />
+
+            <!-- local layout styles, all BasedOn shared ones -->
+            <Style x:Key="IrsCard" TargetType="Border" BasedOn="{StaticResource BaseCard}">
+                <Setter Property="Padding" Value="12,10" />
+                <Setter Property="Margin" Value="0,0,0,10" />
+            </Style>
+            <Style x:Key="IrsSectionHeader" TargetType="TextBlock" BasedOn="{StaticResource SectionTitle}">
+                <Setter Property="Margin" Value="0,0,0,8" />
+            </Style>
+            <Style x:Key="IrsHint" TargetType="TextBlock" BasedOn="{StaticResource FieldLabel}">
+                <Setter Property="TextWrapping" Value="Wrap" />
+            </Style>
+            <Style x:Key="IrsOptionLabel" TargetType="TextBlock" BasedOn="{StaticResource FieldLabel}">
+                <Setter Property="VerticalAlignment" Value="Center" />
+                <Setter Property="Margin" Value="0,4,12,4" />
+            </Style>
+            <Style x:Key="IrsChipRow" TargetType="WrapPanel">
+                <Setter Property="Margin" Value="0,3" />
+            </Style>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <shell:ToolWindowShell Title="Island Roof Splitter"
+                           Subtitle="Split a sloped roof into one new roof per closed detail-line island — with a floor fallback"
+                           Version="V002"
+                           IsRunning="{Binding IsRunning}"
+                           Progress="{Binding Progress}"
+                           SummaryText="{Binding SummaryText}">
+
+        <!-- ===================== HEADER ===================== -->
+        <shell:ToolWindowShell.HeaderContent>
+            <StackPanel>
+                <Border Style="{StaticResource BadgePill}" HorizontalAlignment="Left" Margin="0,0,0,8">
+                    <TextBlock Text="{Binding PhaseText}" Style="{StaticResource BadgeText}" />
+                </Border>
+                <UniformGrid Columns="5">
+                    <Border Style="{StaticResource MetricTileInfo}" Margin="0,0,6,0">
+                        <StackPanel>
+                            <TextBlock Text="ISLANDS DETECTED" Style="{StaticResource MetricTileLabelInfo}" />
+                            <TextBlock Text="{Binding AllCount}" Style="{StaticResource MetricTileNumberInfo}" />
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource MetricTileInfo}" Margin="0,0,6,0">
+                        <StackPanel>
+                            <TextBlock Text="VERTICES TOTAL" Style="{StaticResource MetricTileLabelInfo}" />
+                            <TextBlock Text="{Binding VerticesTotal, StringFormat=N0}" Style="{StaticResource MetricTileNumberInfo}" />
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource MetricTileWarning}" Margin="0,0,6,0">
+                        <StackPanel>
+                            <TextBlock Text="SKIPPED / UNCLOSED" Style="{StaticResource MetricTileLabelWarning}" />
+                            <TextBlock Text="{Binding SkippedCount}" Style="{StaticResource MetricTileNumberWarning}" />
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource MetricTileSuccess}" Margin="0,0,6,0">
+                        <StackPanel>
+                            <TextBlock Text="CREATED" Style="{StaticResource MetricTileLabelSuccess}" />
+                            <TextBlock Text="{Binding CreatedTile}" Style="{StaticResource MetricTileNumberSuccess}" />
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource MetricTileDanger}">
+                        <StackPanel>
+                            <TextBlock Text="FAILED" Style="{StaticResource MetricTileLabelDanger}" />
+                            <TextBlock Text="{Binding FailedTile}" Style="{StaticResource MetricTileNumberDanger}" />
+                        </StackPanel>
+                    </Border>
+                </UniformGrid>
+            </StackPanel>
+        </shell:ToolWindowShell.HeaderContent>
+
+        <!-- ===================== BODY ===================== -->
+        <shell:ToolWindowShell.BodyContent>
+            <StackPanel>
+
+                <!-- Selection -->
+                <Border Style="{StaticResource IrsCard}">
+                    <StackPanel>
+                        <TextBlock Text="SELECTION" Style="{StaticResource IrsSectionHeader}" />
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="16" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Source roof" Style="{StaticResource IrsHint}" />
+                                <TextBlock Text="{Binding RoofTitle}" Style="{StaticResource FieldValue}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                                <TextBlock Text="{Binding RoofDetail}" Style="{StaticResource HintText}" />
+                            </StackPanel>
+                            <Button Grid.Column="1" Content="Re-pick" Command="{Binding RepickRoofCommand}"
+                                    Style="{StaticResource SmallSecondaryButton}" VerticalAlignment="Center" Margin="8,0,0,0" />
+                            <StackPanel Grid.Column="3">
+                                <TextBlock Text="Detail lines" Style="{StaticResource IrsHint}" />
+                                <TextBlock Text="{Binding LinesTitle}" Style="{StaticResource FieldValue}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                                <TextBlock Text="{Binding LinesDetail}" Style="{StaticResource HintText}" />
+                            </StackPanel>
+                            <Button Grid.Column="4" Content="Re-pick" Command="{Binding RepickLinesCommand}"
+                                    Style="{StaticResource SmallSecondaryButton}" VerticalAlignment="Center" Margin="8,0,0,0" />
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Output element (V002) -->
+                <Border Style="{StaticResource IrsCard}">
+                    <StackPanel>
+                        <TextBlock Text="OUTPUT — what each island becomes" Style="{StaticResource IrsSectionHeader}" />
+                        <WrapPanel>
+                            <RadioButton GroupName="IrsOutput" Style="{StaticResource ChipToggle}" Content="Roof only"
+                                         ToolTip="Create a roof per island. An island Revit refuses is reported as Failed."
+                                         IsChecked="{Binding Output, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=Roof, Mode=OneWay}"
+                                         Command="{Binding SetOutputCommand}" CommandParameter="Roof" />
+                            <RadioButton GroupName="IrsOutput" Style="{StaticResource ChipToggle}" Content="Roof, floor if it fails"
+                                         ToolTip="Try the roof (twice — the retry tessellates arcs); only if that fails, create a floor with the same footprint."
+                                         IsChecked="{Binding Output, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=RoofThenFloor, Mode=OneWay}"
+                                         Command="{Binding SetOutputCommand}" CommandParameter="RoofThenFloor" />
+                            <RadioButton GroupName="IrsOutput" Style="{StaticResource ChipToggle}" Content="Floor only"
+                                         ToolTip="Create a floor per island. No roof is attempted."
+                                         IsChecked="{Binding Output, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=Floor, Mode=OneWay}"
+                                         Command="{Binding SetOutputCommand}" CommandParameter="Floor" />
+                        </WrapPanel>
+                        <TextBlock Text="{Binding OutputHint}" Style="{StaticResource HintText}" Margin="0,6,0,0" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Mode -->
+                <Border Style="{StaticResource IrsCard}">
+                    <StackPanel>
+                        <TextBlock Text="MODE — applies to every island this run" Style="{StaticResource IrsSectionHeader}" />
+                        <WrapPanel>
+                            <RadioButton GroupName="IrsMode" Style="{StaticResource ChipToggle}" Content="Flat"
+                                         ToolTip="New roof at the chosen level and offset. No vertex editing."
+                                         IsChecked="{Binding Mode, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=Flat, Mode=OneWay}"
+                                         Command="{Binding SetModeCommand}" CommandParameter="Flat" />
+                            <RadioButton GroupName="IrsMode" Style="{StaticResource ChipToggle}" Content="Sloped (match parent)"
+                                         ToolTip="Same footprint, every vertex pushed to the parent roof's Z (shape editing)."
+                                         IsChecked="{Binding Mode, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=Sloped, Mode=OneWay}"
+                                         Command="{Binding SetModeCommand}" CommandParameter="Sloped" />
+                        </WrapPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Options -->
+                <Border Style="{StaticResource IrsCard}">
+                    <StackPanel>
+                        <TextBlock Text="OPTIONS — changing any option refreshes the preview" Style="{StaticResource IrsSectionHeader}" />
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="150" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Grid.Row="0" Text="Nested regions" Style="{StaticResource IrsOptionLabel}" />
+                            <WrapPanel Grid.Row="0" Grid.Column="1" Style="{StaticResource IrsChipRow}">
+                                <RadioButton GroupName="IrsNest" Style="{StaticResource ChipToggle}" Content="Ring (outer with opening)"
+                                             IsChecked="{Binding Nesting, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=Ring, Mode=OneWay}"
+                                             Command="{Binding SetNestingCommand}" CommandParameter="Ring" />
+                                <RadioButton GroupName="IrsNest" Style="{StaticResource ChipToggle}" Content="Full outer (overlapping)"
+                                             IsChecked="{Binding Nesting, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=Full, Mode=OneWay}"
+                                             Command="{Binding SetNestingCommand}" CommandParameter="Full" />
+                            </WrapPanel>
+
+                            <TextBlock Grid.Row="1" Text="Line crossings" Style="{StaticResource IrsOptionLabel}" />
+                            <WrapPanel Grid.Row="1" Grid.Column="1" Style="{StaticResource IrsChipRow}">
+                                <RadioButton GroupName="IrsCross" Style="{StaticResource ChipToggle}" Content="Split at crossings"
+                                             IsChecked="{Binding Crossings, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=Split, Mode=OneWay}"
+                                             Command="{Binding SetCrossingsCommand}" CommandParameter="Split" />
+                                <RadioButton GroupName="IrsCross" Style="{StaticResource ChipToggle}" Content="Endpoint chains only"
+                                             IsChecked="{Binding Crossings, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=ChainsOnly, Mode=OneWay}"
+                                             Command="{Binding SetCrossingsCommand}" CommandParameter="ChainsOnly" />
+                            </WrapPanel>
+
+                            <TextBlock Grid.Row="2" Text="Arcs (Flat mode)" Style="{StaticResource IrsOptionLabel}" />
+                            <WrapPanel Grid.Row="2" Grid.Column="1" Style="{StaticResource IrsChipRow}" IsEnabled="{Binding IsFlat}">
+                                <RadioButton GroupName="IrsArcs" Style="{StaticResource ChipToggle}" Content="Keep true arcs"
+                                             IsChecked="{Binding Arcs, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=TrueArcs, Mode=OneWay}"
+                                             Command="{Binding SetArcsCommand}" CommandParameter="TrueArcs" />
+                                <RadioButton GroupName="IrsArcs" Style="{StaticResource ChipToggle}" Content="Tessellate"
+                                             IsChecked="{Binding Arcs, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=Tessellate, Mode=OneWay}"
+                                             Command="{Binding SetArcsCommand}" CommandParameter="Tessellate" />
+                            </WrapPanel>
+
+                            <TextBlock Grid.Row="3" Text="Sloped interior" Style="{StaticResource IrsOptionLabel}" />
+                            <WrapPanel Grid.Row="3" Grid.Column="1" Style="{StaticResource IrsChipRow}" IsEnabled="{Binding IsSloped}">
+                                <RadioButton GroupName="IrsInterior" Style="{StaticResource ChipToggle}" Content="Boundary only"
+                                             IsChecked="{Binding Interior, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=BoundaryOnly, Mode=OneWay}"
+                                             Command="{Binding SetInteriorCommand}" CommandParameter="BoundaryOnly" />
+                                <RadioButton GroupName="IrsInterior" Style="{StaticResource ChipToggle}" Content="Add ridge &amp; valley points"
+                                             IsChecked="{Binding Interior, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=RidgeValleyPoints, Mode=OneWay}"
+                                             Command="{Binding SetInteriorCommand}" CommandParameter="RidgeValleyPoints" />
+                            </WrapPanel>
+
+                            <TextBlock Grid.Row="4" Text="Chord tolerance" Style="{StaticResource IrsOptionLabel}" />
+                            <StackPanel Grid.Row="4" Grid.Column="1" Orientation="Horizontal" Margin="0,4">
+                                <TextBox Width="70" Style="{StaticResource StyledTextInput}"
+                                         Text="{Binding ChordToleranceMm, UpdateSourceTrigger=LostFocus}"
+                                         ToolTip="Max distance between a true arc and its chords (1–50 mm)" />
+                                <TextBlock Text="mm (1–50) · gap healing fixed at ≤ 1 mm" Style="{StaticResource UnitLabel}" Margin="8,0,0,0" />
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- New roofs -->
+                <Border Style="{StaticResource IrsCard}">
+                    <StackPanel>
+                        <TextBlock Text="NEW ELEMENTS" Style="{StaticResource IrsSectionHeader}" />
+
+                        <!-- setup banner: level / roof type not detected, or a guessed level awaiting confirmation -->
+                        <Border Background="{DynamicResource BrushSoftWarningBackground}" CornerRadius="8"
+                                Padding="10,8" Margin="0,0,0,10"
+                                Visibility="{Binding HasSetupWarning, Converter={StaticResource IrsBoolToVis}}">
+                            <TextBlock Text="{Binding SetupMessage}" Style="{StaticResource IrsHint}" />
+                        </Border>
+
+                        <UniformGrid Columns="3">
+                            <StackPanel Margin="0,0,10,0">
+                                <TextBlock Text="Roof type" Style="{StaticResource IrsHint}" />
+                                <ComboBox Style="{StaticResource StandardComboBox}" ItemsSource="{Binding RoofTypes}"
+                                          SelectedItem="{Binding SelectedRoofType}" DisplayMemberPath="Name"
+                                          ToolTip="Type for every new roof. Defaults to the source roof's type when it could be read." />
+                            </StackPanel>
+                            <StackPanel Margin="0,0,10,0">
+                                <TextBlock Text="Floor type (fallback / Floor output)" Style="{StaticResource IrsHint}" />
+                                <ComboBox Style="{StaticResource StandardComboBox}" ItemsSource="{Binding FloorTypes}"
+                                          SelectedItem="{Binding SelectedFloorType}" DisplayMemberPath="Name"
+                                          IsEnabled="{Binding NeedsFloorType}"
+                                          ToolTip="Type used when an island falls back to a floor, or for Floor-only output. Defaults to the document's default floor type." />
+                            </StackPanel>
+                            <StackPanel>
+                                <TextBlock Text="Level (name · elevation)" Style="{StaticResource IrsHint}" />
+                                <ComboBox Style="{StaticResource StandardComboBox}" ItemsSource="{Binding Levels}"
+                                          SelectedItem="{Binding SelectedLevel}" DisplayMemberPath="Display"
+                                          ToolTip="Level for every new element, with its elevation. Defaults to the source roof's level." />
+                            </StackPanel>
+                        </UniformGrid>
+                        <UniformGrid Columns="3" Margin="0,8,0,0">
+                            <StackPanel Margin="0,0,10,0">
+                                <TextBlock Text="Base offset (mm)" Style="{StaticResource IrsHint}" />
+                                <TextBox Style="{StaticResource BoxedTextInput}" Text="{Binding BaseOffsetMm, UpdateSourceTrigger=LostFocus}" />
+                            </StackPanel>
+                            <StackPanel Margin="0,0,10,0">
+                                <TextBlock Text="Mark prefix" Style="{StaticResource IrsHint}" />
+                                <TextBox Style="{StaticResource BoxedTextInput}" Text="{Binding MarkPrefix, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+                            <StackPanel />
+                        </UniformGrid>
+                        <TextBlock Text="{Binding NewRoofElevationText}" Style="{StaticResource HintText}" Margin="0,6,0,0" />
+                        <TextBlock Text="{Binding MarkExample}" Style="{StaticResource HintText}" Margin="0,2,0,0" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Islands -->
+                <Border Style="{StaticResource IrsCard}">
+                    <StackPanel>
+                        <TextBlock Text="ISLANDS" Style="{StaticResource IrsSectionHeader}" />
+                        <WrapPanel Margin="0,0,0,8">
+                            <RadioButton GroupName="IrsFilter" Style="{StaticResource ChipToggle}" Content="{Binding AllCount}" ContentStringFormat="All ({0})"
+                                         IsChecked="{Binding ActiveFilter, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=All, Mode=OneWay}"
+                                         Command="{Binding SetFilterCommand}" CommandParameter="All" />
+                            <RadioButton GroupName="IrsFilter" Style="{StaticResource ChipToggle}" Content="{Binding ReadyCount}" ContentStringFormat="Ready ({0})"
+                                         IsChecked="{Binding ActiveFilter, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=Ready, Mode=OneWay}"
+                                         Command="{Binding SetFilterCommand}" CommandParameter="Ready" />
+                            <RadioButton GroupName="IrsFilter" Style="{StaticResource ChipToggle}" Content="{Binding SkippedCount}" ContentStringFormat="Skipped ({0})"
+                                         IsChecked="{Binding ActiveFilter, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=Skipped, Mode=OneWay}"
+                                         Command="{Binding SetFilterCommand}" CommandParameter="Skipped" />
+                            <RadioButton GroupName="IrsFilter" Style="{StaticResource ChipToggle}" Content="{Binding CreatedCount}" ContentStringFormat="Created ({0})"
+                                         IsChecked="{Binding ActiveFilter, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=Created, Mode=OneWay}"
+                                         Command="{Binding SetFilterCommand}" CommandParameter="Created" />
+                            <RadioButton GroupName="IrsFilter" Style="{StaticResource ChipToggle}" Content="{Binding FailedCount}" ContentStringFormat="Failed ({0})"
+                                         IsChecked="{Binding ActiveFilter, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=Failed, Mode=OneWay}"
+                                         Command="{Binding SetFilterCommand}" CommandParameter="Failed" />
+                        </WrapPanel>
+
+                        <DataGrid x:Name="IslandsGrid"
+                                  Style="{StaticResource StandardDataGrid}"
+                                  ColumnHeaderStyle="{StaticResource StandardDataGridColumnHeader}"
+                                  CellStyle="{StaticResource StandardDataGridCell}"
+                                  ItemsSource="{Binding IslandsView}"
+                                  SelectedItem="{Binding SelectedIsland, Mode=TwoWay}"
+                                  SelectionChanged="IslandsGrid_SelectionChanged"
+                                  SelectionMode="Extended" SelectionUnit="FullRow"
+                                  AutoGenerateColumns="False" IsReadOnly="True"
+                                  CanUserAddRows="False" CanUserDeleteRows="False"
+                                  shell:ShellBehaviors.MaxHeightRatio="0.45"
+                                  shell:ShellBehaviors.ForwardMouseWheel="True">
+                            <DataGrid.RowStyle>
+                                <Style TargetType="DataGridRow" BasedOn="{StaticResource StandardDataGridRow}">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Status}" Value="Created">
+                                            <Setter Property="Background" Value="{DynamicResource BrushRowSuccessBackground}" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Status}" Value="Failed">
+                                            <Setter Property="Background" Value="{DynamicResource BrushRowDangerBackground}" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Status}" Value="Skipped">
+                                            <Setter Property="Background" Value="{DynamicResource BrushSoftWarningBackground}" />
+                                        </DataTrigger>
+                                        <!-- re-stated last so a selected row still shows as selected over its status tint -->
+                                        <Trigger Property="IsSelected" Value="True">
+                                            <Setter Property="Background" Value="{DynamicResource BrushAppleBlue}" />
+                                            <Setter Property="Foreground" Value="{DynamicResource BrushTextOnAccent}" />
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </DataGrid.RowStyle>
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Island" Binding="{Binding Name}" Width="90" />
+                                <DataGridTextColumn Header="Vertices" Binding="{Binding VertexCount}" Width="70" />
+                                <DataGridTextColumn Header="Holes" Binding="{Binding HoleCount}" Width="55" />
+                                <DataGridTextColumn Header="Z min (mm)" Binding="{Binding ZMinMm}" Width="85" />
+                                <DataGridTextColumn Header="Z max (mm)" Binding="{Binding ZMaxMm}" Width="85" />
+                                <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="70" />
+                                <DataGridTextColumn Header="Element" Binding="{Binding KindText}" Width="65" />
+                                <DataGridTextColumn Header="Detail" Binding="{Binding Reason}" Width="*">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="TextWrapping" Value="Wrap" />
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn Header="Element ID" Binding="{Binding ElementIdText}" Width="85" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                        <TextBlock Text="Select a row to highlight and zoom to its detail lines in the active view."
+                                   Style="{StaticResource HintText}" Margin="0,6,0,0" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Log: always-dark panel, collapsed by default; header (title + copy/clear) stays visible -->
+                <Border Background="{DynamicResource BrushLogBg}" CornerRadius="10" Padding="10,8">
+                    <StackPanel>
+                        <DockPanel LastChildFill="False">
+                            <ToggleButton x:Name="LogToggle" DockPanel.Dock="Left" Style="{StaticResource LogHeaderToggle}">
+                                <TextBlock Foreground="{DynamicResource BrushLogText}" FontWeight="SemiBold">
+                                    <Run Text="LOG (" /><Run Text="{Binding LogEntries.Count, Mode=OneWay}" /><Run Text=" entries)" />
+                                </TextBlock>
+                            </ToggleButton>
+                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                <Button Content="Copy All" Command="{Binding CopyAllLogCommand}" Style="{StaticResource DarkGhostButton}" Margin="0,0,6,0" />
+                                <Button Content="Copy Selected" Command="{Binding CopySelectedLogCommand}" Style="{StaticResource DarkGhostButton}" Margin="0,0,6,0" />
+                                <Button Content="Clear" Command="{Binding ClearLogCommand}" Style="{StaticResource DarkGhostButton}" />
+                                <Button Content="Export Log" Style="{StaticResource DarkGhostButton}" Margin="6,0,0,0"
+                                        Click="ExportLog_Click" ToolTip="Save the log to a .txt file" />
+                            </StackPanel>
+                        </DockPanel>
+                        <ListBox x:Name="LogList"
+                                 ItemsSource="{Binding LogEntries}"
+                                 SelectionMode="Extended"
+                                 SelectionChanged="LogList_SelectionChanged"
+                                 Visibility="{Binding IsChecked, ElementName=LogToggle, Converter={StaticResource LogToggleVisibility}}"
+                                 Background="{DynamicResource BrushLogBg}"
+                                 BorderThickness="0" Margin="0,6,0,0"
+                                 FontFamily="Consolas" FontSize="11.5"
+                                 shell:ShellBehaviors.MaxHeightRatio="0.25"
+                                 shell:ShellBehaviors.ForwardMouseWheel="True">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding}" TextWrapping="Wrap"
+                                               Foreground="{Binding Level, Converter={StaticResource LogLevelToColorConverter}}" />
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </shell:ToolWindowShell.BodyContent>
+
+        <!-- ===================== FOOTER: secondary left, Primary → Close right ===================== -->
+        <shell:ToolWindowShell.FooterContent>
+            <DockPanel LastChildFill="False">
+                <StackPanel DockPanel.Dock="Left" Orientation="Horizontal">
+                    <Button Content="Copy island log" Command="{Binding CopyIslandLogCommand}" Style="{StaticResource OutlineButton}"
+                            ToolTip="Copy the log lines for the selected island rows" />
+                </StackPanel>
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                    <Button Content="Run (preview)" Command="{Binding RunPreviewCommand}" Style="{StaticResource OutlineButton}"
+                            ToolTip="Detect islands and sample Z. Creates nothing." Margin="0,0,8,0" />
+                    <Button Content="Commit" Command="{Binding CommitCommand}" Style="{StaticResource RunButton}"
+                            ToolTip="Create one element per Ready island (one transaction per attempt)" Margin="0,0,8,0" />
+                    <Button Content="Close" Command="{Binding CloseCommand}" Style="{StaticResource OutlineButton}" IsCancel="True" />
+                </StackPanel>
+            </DockPanel>
+        </shell:ToolWindowShell.FooterContent>
+    </shell:ToolWindowShell>
+</Window>

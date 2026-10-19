@@ -4,8 +4,8 @@ Bulk rename roof **Types** (type name) or **Instances** (a text parameter, `Mark
 by default), building each name as `Base` + `_CODEvalue` for every ticked code
 (INS, SLP, MAT, … — configurable). Values are read from each roof's parameters.
 
-Namespace: `Revit26_Plugin.RoofNameBuilder.V002`
-Command:   `Revit26_Plugin.RoofNameBuilder.V002.Commands.RoofNameBuilderCommand`
+Namespace: `Revit26_Plugin_Revised.RoofNameBuilder.V002`
+Command:   `Revit26_Plugin_Revised.RoofNameBuilder.V002.Commands.RoofNameBuilderCommand`
 
 ## Install
 

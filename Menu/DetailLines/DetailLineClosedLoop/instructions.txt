@@ -1,6 +1,6 @@
 PROJECT: Revit26_Plugin — code/refactor as a senior dev.
 
-STACK: C# • Revit 2026 API • WPF/MVVM (CommunityToolkit.Mvvm) • vertical-slice per tool (/Views /ViewModels /Models /Services). Shared infra only in Revit26_Plugin.Shared (SharedStyles.xaml #1E3A5F navy theme, Converters.cs, LogEntry/LogLevel).
+STACK: C# • Revit 2026 API • WPF/MVVM (CommunityToolkit.Mvvm) • vertical-slice per tool (/Views /ViewModels /Models /Services). Shared infra only in Revit26_Plugin_Revised.Shared (SharedStyles.xaml #1E3A5F navy theme, Converters.cs, LogEntry/LogLevel).
 Namespace: Revit26_Plugin.{FeatureName}.{Version} — I suggest, Rafi confirms.
 
 WORKFLOW: UI mockup (HTML, screenshot-style) first, always. No code/XAML/zip until explicit "GO AHEAD". No .md files without confirmation. Flag assumptions inline, never bake in silently.
