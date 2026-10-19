@@ -5,9 +5,18 @@ using System.Collections.Generic;
 
 namespace Revit26_Plugin_Revised.Menu.Ribbon
 {
+    /// <summary>Builds the DWG Tools and Family Tools panels of the SloperPro Documents tab.</summary>
     public static class SetupRibbon
     {
+        /// <summary>Creates the DWG Tools panel, then the Family Tools panel, on <paramref name="tabName"/>.</summary>
         public static void Build(UIControlledApplication app, string tabName, string assemblyPath)
+        {
+            // DWG Tools first, then Family Tools.
+            BuildDwgToolsPanel(app, tabName, assemblyPath);
+            BuildFamilyToolsPanel(app, tabName, assemblyPath);
+        }
+
+        private static void BuildFamilyToolsPanel(UIControlledApplication app, string tabName, string assemblyPath)
         {
             // Family-editor tools and project DWG tools are split into their own
             // panels — running a Family tool in a Project (or vice versa)
@@ -50,10 +59,13 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             });
             RibbonLayoutHelper.WirePulldownButton(familyItems, "Pulldown_BatchLinkDwg", batchLinkV002, batchLinkWorking);
             RibbonLayoutHelper.WirePulldownButton(familyItems, "Pulldown_DwgToLines", dwgToLinesV007, dwgToLinesV006);
+        }
 
+        private static void BuildDwgToolsPanel(UIControlledApplication app, string tabName, string assemblyPath)
+        {
             // Every button on this panel is a DWG tool, hence the panel name.
             // Project context only — the two family-editor DWG tools stay on
-            // the Family Tools panel above.
+            // the Family Tools panel.
             RibbonPanel projectPanel = app.CreateRibbonPanel(tabName, "DWG Tools");
 
             // Latest two versions of the tool, collected under one pulldown
@@ -81,11 +93,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                 Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SetupTools.DwgToDetailLines_V011_16.png"),
                 ToolTip = RibbonLayoutHelper.VersionTip("Export DWG to Folder", "V003", "Export all embedded CAD links and imports to a folder, organised by source type and view category.")
             };
-            var exportDwgV001 = new PushButtonData("Btn_ExportDwgToFolder_V001", "Export DWG V001", assemblyPath, "Revit26_Plugin_Revised.ExportDwgToFolder.V001.Commands.ExportDwgToFolderCommand")
-            {
-                Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SetupTools.DwgToDetailLines_V011_16.png"),
-                ToolTip = RibbonLayoutHelper.VersionTip("Export DWG to Folder", "V001", "Choose which CAD links / imports and view types to scan, tick the DWGs you want and export them to a folder, organised by source type and view category.")
-            };
+            // V001 removed in plugin 4.2.1: its source is not in the repository.
             var exportDwgPulldownData = RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_ExportDwgToFolder", "Export DWG", exportDwgV004);
 
             var dwgManagerV002 = new PushButtonData("Btn_DwgManager_V002", "DWG Manager V002", assemblyPath, "Revit26_Plugin_Revised.DwgManager.V002.Commands.DwgManagerCommand")
@@ -115,7 +123,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                 dwgStatisticsPulldownData,
             });
             RibbonLayoutHelper.WirePulldownButton(projectItems, "Pulldown_DwgToDetailLines", dwgLinesV014, dwgLinesV013);
-            RibbonLayoutHelper.WirePulldownButton(projectItems, "Pulldown_ExportDwgToFolder", exportDwgV004, exportDwgV003, exportDwgV001);
+            RibbonLayoutHelper.WirePulldownButton(projectItems, "Pulldown_ExportDwgToFolder", exportDwgV004, exportDwgV003);
             RibbonLayoutHelper.WirePulldownButton(projectItems, "Pulldown_DwgManager", dwgManagerV003, dwgManagerV002);
             RibbonLayoutHelper.WirePulldownButton(projectItems, "Pulldown_DwgStatistics", dwgStatisticsV005);
         }
