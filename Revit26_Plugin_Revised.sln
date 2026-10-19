@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.14.36717.8
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Revit26_Plugin_Revised", "Revit26_Plugin_Revised.csproj", "{07F19F1E-093D-431F-A0CA-9FADC8AD3028}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Revit26_Plugin_Revised", "Revit26_Plugin.csproj", "{07F19F1E-093D-431F-A0CA-9FADC8AD3028}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

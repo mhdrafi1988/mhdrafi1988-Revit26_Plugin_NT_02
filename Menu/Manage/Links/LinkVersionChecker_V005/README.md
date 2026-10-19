@@ -162,14 +162,14 @@ Last host, recent hosts (dropdown), last folder, nested/subfolder options, filte
 3. In your `IExternalApplication.OnStartup`, one line registers the logger and adds the three buttons:
    ```csharp
    RibbonPanel panel = application.CreateRibbonPanel("YourTab", "Project Tools"); // or your existing panel
-   Revit26_Plugin.LinkVersionChecker_V005.Commands.LinkCheckStartup.Register(application, panel);
+   Revit26_Plugin_Revised.LinkVersionChecker_V005.Commands.LinkCheckStartup.Register(application, panel);
    ```
    and in `OnShutdown`:
    ```csharp
-   Revit26_Plugin.LinkVersionChecker_V005.Commands.LinkCheckStartup.Unregister(application);
+   Revit26_Plugin_Revised.LinkVersionChecker_V005.Commands.LinkCheckStartup.Unregister(application);
    ```
    (Prefer your own buttons? Register the logger only with `LinkLoadTimeLogger.Register(application.ControlledApplication)` and point buttons at `CmdLinkCheckPreOpen`, `CmdLinkCheckInModel`, `CmdLinkCheckFolder`; use `LinkCheckAlwaysAvailable` as the availability class for Pre-Open and Folder.)
-4. If your project namespace differs, find/replace `Revit26_Plugin.LinkVersionChecker_V005` in the `.cs` files and the `x:Class`/`xmlns:infra` lines in the `.xaml`.
+4. If your project namespace differs, find/replace `Revit26_Plugin_Revised.LinkVersionChecker_V005` in the `.cs` files and the `x:Class`/`xmlns:infra` lines in the `.xaml`.
 
 ## Structure
 

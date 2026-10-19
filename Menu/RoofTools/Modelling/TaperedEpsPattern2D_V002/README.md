@@ -36,7 +36,7 @@ var eps2dV002 = new PushButtonData(
     "TaperedEpsPattern2D_V002",
     "Tapered EPS\n2D Pattern V002",
     assemblyPath,
-    "Revit26_Plugin.TaperedEpsPattern2D.V002.Commands.TaperedEpsPattern2DCommand")
+    "Revit26_Plugin_Revised.TaperedEpsPattern2D.V002.Commands.TaperedEpsPattern2DCommand")
 {
     ToolTip = "Draw the tapered EPS board pattern as 2D detail lines in a plan view. " +
               "V002: align the board grid to any roof edge; output as one group, a group per layer, or loose lines.",

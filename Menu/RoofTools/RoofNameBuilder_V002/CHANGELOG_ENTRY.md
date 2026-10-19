@@ -1,7 +1,7 @@
 ## 2026-10-14 — Roof Name Builder V002
 
 - RoofNameBuilder bumped V001 → V002 (new folder + namespace
-  `Revit26_Plugin.RoofNameBuilder.V002`). V001 kept on disk; it never
+  `Revit26_Plugin_Revised.RoofNameBuilder.V002`). V001 kept on disk; it never
   compiled against the repo (guessed `Shared/` API: `SettingsService.Load<T>`,
   `LogEntry` initializer, `ElementId.IntegerValue`) — retire it with
   `<Compile Remove>` + `<Page Remove>` if it was added to the project.
@@ -22,5 +22,5 @@
 - Handler renames in the document the window was opened on, always reports
   completion, logs (and dismisses) per-row Revit warnings.
 - Ribbon: `Btn_RoofNameBuilder_V002` →
-  `Revit26_Plugin.RoofNameBuilder.V002.Commands.RoofNameBuilderCommand`.
+  `Revit26_Plugin_Revised.RoofNameBuilder.V002.Commands.RoofNameBuilderCommand`.
   `ToolCatalog.RoofNameBuilder` = 2.0.0 / V002.
