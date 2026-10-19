@@ -17,8 +17,8 @@ done until it builds with 0 errors. Running it still needs Revit on Windows.
   `Tool_V004`), and never commit `.zip` backups. Change the tool in place and bump its version.
 - **Folder layout:** `Menu/<Area>/<Group>/<Tool>_V<NNN>/` holding `Commands`, `Core`, `UI`,
   `Infrastructure` directly. No wrapper levels (`Tool_V003/Tool_V003/…`), no spaces, `&`, `(1)`,
-  `_UPDATED` or `_0`/`_01` suffixes in folder names. Unfinished tools go in `Menu/RoofTools/WIP`,
-  which the `.csproj` excludes; nothing else is excluded.
+  `_UPDATED` or `_0`/`_01` suffixes in folder names. Unfinished tools go in `Menu/WIP` (or the older
+  `Menu/RoofTools/WIP`), which the `.csproj` excludes; nothing else is excluded.
 - **Tool versions** live in `Shared/Services/ToolCatalog.cs` (one entry per tool, semantic version).
   The ribbon tooltip, window title and error dialogs read from it. A new tool gets a new entry there.
 - **Plugin version** is `<Version>` in `Revit26_Plugin.csproj`.

@@ -9,6 +9,21 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [4.2.1] — 2026-10-19
+
+### Fixed
+- **The plugin builds again.** Tools parked in the new `Menu/WIP` folder were being compiled, and
+  their pre-4.0.0 `Revit26_Plugin.*` namespaces broke the build. `Menu/WIP` is now excluded from the
+  build, the same as `Menu/RoofTools/WIP`.
+
+### Removed
+- **Stale Bulk Rename copy in `Menu/WIP`** (`BulkRename_V001` folder and its `.zip`). It was an older
+  snapshot of the shipped tool in `Menu/Manage/BulkRename_V001`: same code, but with the old
+  namespace, a hard-coded "V001" badge and brush names that no longer exist. Nothing in it was newer,
+  so the shipped Bulk Rename (1.1.1) is unchanged.
+
+**User note:** no behaviour change; Bulk Rename works exactly as in 4.2.0.
+
 ## [4.2.0] — 2026-10-19
 
 ### Added
