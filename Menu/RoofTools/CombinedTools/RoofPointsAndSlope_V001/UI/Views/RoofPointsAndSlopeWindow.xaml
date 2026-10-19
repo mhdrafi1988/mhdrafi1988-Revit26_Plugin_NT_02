@@ -1,0 +1,384 @@
+<!--
+=======================================================
+File: RoofPointsAndSlopeWindow.xaml
+Location: UI/Views/
+Step pipeline on the shared ToolWindowShell.
+  HEADER  five tiles: new points per point step, drains ticked.
+  BODY    steps 1–5 (each with its own tick and options), the openings
+          grid (per opening: points around it, perpendicular points,
+          drain) and the activity log.
+  FOOTER  Re-read roof · Run Selected Steps · Close.
+=======================================================
+-->
+<Window x:Class="Revit26_Plugin_Revised.RoofPointsAndSlope.V001.UI.Views.RoofPointsAndSlopeWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:svc="clr-namespace:Revit26_Plugin_Revised.Shared.Services"
+        xmlns:conv="clr-namespace:Revit26_Plugin_Revised.Shared.Models"
+        xmlns:shell="clr-namespace:Revit26_Plugin_Revised.Shared.Controls"
+        Title="{Binding Source={x:Static svc:ToolCatalog.RoofPointsAndSlope}, Path=Title}"
+        Height="900" Width="1100"
+        MinHeight="700" MinWidth="980"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="CanResizeWithGrip">
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/Revit26_Plugin;component/Shared/SharedStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+
+            <conv:LogLevelToColorConverter         x:Key="LogLevelToColor"/>
+            <conv:InverseBoolToVisibilityConverter x:Key="InverseBoolToVis"/>
+            <conv:BoolToVisibilityConverter        x:Key="BoolToVisibility"/>
+
+            <Style x:Key="StepTitle" TargetType="CheckBox">
+                <Setter Property="FontSize" Value="13"/>
+                <Setter Property="FontWeight" Value="SemiBold"/>
+                <Setter Property="Foreground" Value="{StaticResource BrushNavyPrimary}"/>
+                <Setter Property="Margin" Value="0,0,0,6"/>
+            </Style>
+            <Style x:Key="NumberBox" TargetType="TextBox" BasedOn="{StaticResource BorderlessTextInput}">
+                <Setter Property="Width" Value="70"/>
+                <Setter Property="Height" Value="28"/>
+                <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                <Setter Property="Margin" Value="0,0,14,0"/>
+            </Style>
+            <Style x:Key="Label" TargetType="TextBlock" BasedOn="{StaticResource FieldLabel}">
+                <Setter Property="VerticalAlignment" Value="Center"/>
+                <Setter Property="Margin" Value="0,0,6,0"/>
+            </Style>
+            <Style x:Key="Opt" TargetType="CheckBox">
+                <Setter Property="VerticalAlignment" Value="Center"/>
+                <Setter Property="Margin" Value="0,0,14,0"/>
+            </Style>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <shell:ToolWindowShell Title="Roof Points &amp; Slope"
+                           Subtitle="{Binding RoofLabel}"
+                           Version="{Binding Source={x:Static svc:ToolCatalog.RoofPointsAndSlope}, Path=Version, StringFormat=v{0}}"
+                           IsRunning="{Binding IsRunning}"
+                           Progress="{Binding Progress}"
+                           SummaryText="{Binding SummaryText}">
+
+        <!-- ═══ HEADER ═══════════════════════════════════════════ -->
+        <shell:ToolWindowShell.HeaderContent>
+            <Grid Margin="0,0,0,8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Border Grid.Column="0" Style="{StaticResource MetricCard}" Margin="0,0,6,0" ToolTip="New points step 1 will add">
+                    <StackPanel>
+                        <TextBlock Text="1 · Opening Points" Style="{StaticResource MetricLabel}"/>
+                        <TextBlock Text="{Binding OpeningPointsNew}" Style="{StaticResource MetricNumberAccent}"/>
+                    </StackPanel>
+                </Border>
+                <Border Grid.Column="1" Style="{StaticResource MetricCard}" Margin="0,0,6,0" ToolTip="New points step 2 will add">
+                    <StackPanel>
+                        <TextBlock Text="2 · Perpendicular" Style="{StaticResource MetricLabel}"/>
+                        <TextBlock Text="{Binding PerpendicularNew}" Style="{StaticResource MetricNumberAccent}"/>
+                    </StackPanel>
+                </Border>
+                <Border Grid.Column="2" Style="{StaticResource MetricCard}" Margin="0,0,6,0" ToolTip="New points step 3 will add">
+                    <StackPanel>
+                        <TextBlock Text="3 · Mid / Quarter" Style="{StaticResource MetricLabel}"/>
+                        <TextBlock Text="{Binding MidQuarterNew}" Style="{StaticResource MetricNumberAccent}"/>
+                    </StackPanel>
+                </Border>
+                <Border Grid.Column="3" Style="{StaticResource MetricCard}" Margin="0,0,6,0" ToolTip="New points step 4 will add">
+                    <StackPanel>
+                        <TextBlock Text="4 · Gap Fill" Style="{StaticResource MetricLabel}"/>
+                        <TextBlock Text="{Binding GapFillNew}" Style="{StaticResource MetricNumberAccent}"/>
+                    </StackPanel>
+                </Border>
+                <Border Grid.Column="4" Style="{StaticResource MetricCard}" ToolTip="Openings ticked as drains for step 5">
+                    <StackPanel>
+                        <TextBlock Text="5 · Drains" Style="{StaticResource MetricLabel}"/>
+                        <TextBlock Text="{Binding DrainCount}" Style="{StaticResource MetricNumberSuccess}"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </shell:ToolWindowShell.HeaderContent>
+
+        <!-- ═══ BODY ═════════════════════════════════════════════ -->
+        <shell:ToolWindowShell.BodyContent>
+            <StackPanel>
+
+                <!-- ─── STEPS 1 + 2 ─── -->
+                <Grid Margin="0,0,0,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Border Grid.Column="0" Style="{StaticResource ContentCard}" Padding="14,10" Margin="0,0,4,0">
+                        <StackPanel>
+                            <CheckBox Style="{StaticResource StepTitle}" Content="1 · Points around openings"
+                                      IsChecked="{Binding InnerPointsEnabled}"/>
+                            <StackPanel IsEnabled="{Binding InnerPointsEnabled}">
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                    <RadioButton GroupName="InnerMode" Content="Points per opening" VerticalAlignment="Center" Margin="0,0,12,0"
+                                                 IsChecked="{Binding UseCount}"/>
+                                    <TextBlock Text="Circles" Style="{StaticResource Label}"/>
+                                    <TextBox Style="{StaticResource NumberBox}" IsEnabled="{Binding UseCount}"
+                                             Text="{Binding CircularPoints, UpdateSourceTrigger=PropertyChanged}"/>
+                                    <TextBlock Text="Others" Style="{StaticResource Label}"/>
+                                    <TextBox Style="{StaticResource NumberBox}" IsEnabled="{Binding UseCount}"
+                                             Text="{Binding CorneredPoints, UpdateSourceTrigger=PropertyChanged}"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                    <RadioButton GroupName="InnerMode" Content="Max spacing" VerticalAlignment="Center" Margin="0,0,12,0"
+                                                 IsChecked="{Binding UseSpacing}"/>
+                                    <TextBlock Text="Gap (m)" Style="{StaticResource Label}"/>
+                                    <TextBox Style="{StaticResource NumberBox}" IsEnabled="{Binding UseSpacing}"
+                                             Text="{Binding InnerSpacingMeters, UpdateSourceTrigger=PropertyChanged}"/>
+                                </StackPanel>
+                                <TextBlock Style="{StaticResource HintText}" TextWrapping="Wrap"
+                                           Text="Corners count towards the total. Per-opening counts and ticks are in the grid below."/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Grid.Column="1" Style="{StaticResource ContentCard}" Padding="14,10" Margin="4,0,0,0">
+                        <StackPanel>
+                            <CheckBox Style="{StaticResource StepTitle}" Content="2 · Perpendicular points to the boundary"
+                                      IsChecked="{Binding PerpendicularEnabled}"/>
+                            <StackPanel IsEnabled="{Binding PerpendicularEnabled}">
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                    <TextBlock Text="Group opening points within (mm)" Style="{StaticResource Label}"/>
+                                    <TextBox Style="{StaticResource NumberBox}"
+                                             Text="{Binding GroupProximityMm, UpdateSourceTrigger=PropertyChanged}"/>
+                                </StackPanel>
+                                <TextBlock Style="{StaticResource HintText}" TextWrapping="Wrap"
+                                           Text="From each group of points on an opening, the nearest boundary point in up to 8 directions (45° apart, aligned with the opening) gets a point."/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+
+                <!-- ─── STEPS 3 + 4 ─── -->
+                <Grid Margin="0,0,0,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Border Grid.Column="0" Style="{StaticResource ContentCard}" Padding="14,10" Margin="0,0,4,0">
+                        <StackPanel>
+                            <CheckBox Style="{StaticResource StepTitle}" Content="3 · Midpoint and quarter points on edges"
+                                      IsChecked="{Binding MidQuarterEnabled}"/>
+                            <StackPanel IsEnabled="{Binding MidQuarterEnabled}">
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                    <CheckBox Style="{StaticResource Opt}" Content="Midpoint (½)" IsChecked="{Binding AddMidpoint}"/>
+                                    <CheckBox Style="{StaticResource Opt}" Content="Quarter points (¼, ¾)" IsChecked="{Binding AddQuarterPoints}"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                    <TextBlock Text="On" Style="{StaticResource Label}"/>
+                                    <CheckBox Style="{StaticResource Opt}" Content="Boundary" IsChecked="{Binding MidBoundary}"/>
+                                    <CheckBox Style="{StaticResource Opt}" Content="Openings" IsChecked="{Binding MidOpenings}"/>
+                                    <TextBlock Text="·" Style="{StaticResource Label}" Margin="0,0,12,0"/>
+                                    <CheckBox Style="{StaticResource Opt}" Content="Lines" IsChecked="{Binding MidLines}"/>
+                                    <CheckBox Style="{StaticResource Opt}" Content="Curves" IsChecked="{Binding MidCurves}"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Grid.Column="1" Style="{StaticResource ContentCard}" Padding="14,10" Margin="4,0,0,0">
+                        <StackPanel>
+                            <CheckBox Style="{StaticResource StepTitle}" Content="4 · Fill gaps along edges"
+                                      IsChecked="{Binding GapFillEnabled}"/>
+                            <StackPanel IsEnabled="{Binding GapFillEnabled}">
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                    <TextBlock Text="Max gap between points (m)" Style="{StaticResource Label}"/>
+                                    <TextBox Style="{StaticResource NumberBox}"
+                                             Text="{Binding GapIntervalMeters, UpdateSourceTrigger=PropertyChanged}"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                    <TextBlock Text="On" Style="{StaticResource Label}"/>
+                                    <CheckBox Style="{StaticResource Opt}" Content="Boundary" IsChecked="{Binding GapBoundary}"/>
+                                    <CheckBox Style="{StaticResource Opt}" Content="Openings" IsChecked="{Binding GapOpenings}"/>
+                                    <TextBlock Text="·" Style="{StaticResource Label}" Margin="0,0,12,0"/>
+                                    <CheckBox Style="{StaticResource Opt}" Content="Lines" IsChecked="{Binding GapLines}"/>
+                                    <CheckBox Style="{StaticResource Opt}" Content="Curves" IsChecked="{Binding GapCurves}"/>
+                                </StackPanel>
+                                <TextBlock Style="{StaticResource HintText}" TextWrapping="Wrap"
+                                           Text="Points are added only where two neighbouring points (existing or from steps 1–3) are further apart than the gap."/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+
+                <!-- ─── STEP 5 ─── -->
+                <Border Style="{StaticResource ContentCard}" Padding="14,10" Margin="0,0,0,8">
+                    <StackPanel>
+                        <CheckBox Style="{StaticResource StepTitle}" Content="5 · Slope by drain (Auto Slope By Drain V013 engine)"
+                                  IsChecked="{Binding SlopeEnabled}"/>
+                        <StackPanel IsEnabled="{Binding SlopeEnabled}">
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                <TextBlock Text="Slope (%)" Style="{StaticResource Label}"/>
+                                <TextBox Style="{StaticResource NumberBox}" Text="{Binding SlopePercent, UpdateSourceTrigger=PropertyChanged}"/>
+                                <TextBlock Text="Max edge (m)" Style="{StaticResource Label}"/>
+                                <TextBox Style="{StaticResource NumberBox}" Text="{Binding MaxEdgeMeters, UpdateSourceTrigger=PropertyChanged}"/>
+                                <TextBlock Text="Max path (m)" Style="{StaticResource Label}"/>
+                                <TextBox Style="{StaticResource NumberBox}" Text="{Binding MaxPathMeters, UpdateSourceTrigger=PropertyChanged}"/>
+                                <TextBlock Text="Path samples" Style="{StaticResource Label}"/>
+                                <TextBox Style="{StaticResource NumberBox}" Text="{Binding PathSamples, UpdateSourceTrigger=PropertyChanged}"/>
+                                <CheckBox Style="{StaticResource Opt}" Content="Insert points at curve crossings"
+                                          IsChecked="{Binding InsertCurveIntersectionPoints}"/>
+                            </StackPanel>
+                            <Grid Margin="0,0,0,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <CheckBox Grid.Column="0" Style="{StaticResource Opt}" Content="Excel report to" IsChecked="{Binding ExportToExcel}"/>
+                                <TextBox Grid.Column="1" Style="{StaticResource BorderlessTextInput}" Height="28" VerticalContentAlignment="Center"
+                                         IsEnabled="{Binding ExportToExcel}"
+                                         Text="{Binding ExportFolder, UpdateSourceTrigger=PropertyChanged}"/>
+                                <Button Grid.Column="2" Content="Browse…" Style="{StaticResource SmallSecondaryButton}" Margin="6,0,0,0"
+                                        IsEnabled="{Binding ExportToExcel}" Click="BrowseFolder_Click"/>
+                            </Grid>
+                            <TextBlock Style="{StaticResource HintText}" TextWrapping="Wrap"
+                                       Text="Resets every shape point to 0, then sets each point's height from its shortest path to a ticked drain, and writes the AutoSlope roof parameters."/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- ─── OPENINGS ─── -->
+                <Grid Margin="0,0,0,6">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Openings" Style="{StaticResource SectionTitle}" VerticalAlignment="Center"/>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <TextBlock Text="Points" Style="{StaticResource Label}"/>
+                        <Button Content="All" Style="{StaticResource SmallSecondaryButton}" Command="{Binding SetColumnCommand}" CommandParameter="Points:1" Margin="0,0,4,0"/>
+                        <Button Content="None" Style="{StaticResource SmallSecondaryButton}" Command="{Binding SetColumnCommand}" CommandParameter="Points:0" Margin="0,0,12,0"/>
+                        <TextBlock Text="Perpendicular" Style="{StaticResource Label}"/>
+                        <Button Content="All" Style="{StaticResource SmallSecondaryButton}" Command="{Binding SetColumnCommand}" CommandParameter="Perpendicular:1" Margin="0,0,4,0"/>
+                        <Button Content="None" Style="{StaticResource SmallSecondaryButton}" Command="{Binding SetColumnCommand}" CommandParameter="Perpendicular:0" Margin="0,0,12,0"/>
+                        <TextBlock Text="Drain" Style="{StaticResource Label}"/>
+                        <Button Content="All" Style="{StaticResource SmallSecondaryButton}" Command="{Binding SetColumnCommand}" CommandParameter="Drain:1" Margin="0,0,4,0"/>
+                        <Button Content="None" Style="{StaticResource SmallSecondaryButton}" Command="{Binding SetColumnCommand}" CommandParameter="Drain:0"/>
+                    </StackPanel>
+                </Grid>
+
+                <Border Style="{StaticResource ContentCard}"
+                        Visibility="{Binding HasOpenings, Converter={StaticResource BoolToVisibility}}">
+                    <DataGrid ItemsSource="{Binding Openings}"
+                              MinHeight="140"
+                              shell:ShellBehaviors.MaxHeightRatio="0.35"
+                              shell:ShellBehaviors.ForwardMouseWheel="True"
+                              AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False"
+                              SelectionMode="Single"
+                              Style="{StaticResource StandardDataGrid}"
+                              ColumnHeaderStyle="{StaticResource StandardDataGridColumnHeader}"
+                              CellStyle="{StaticResource StandardDataGridCell}"
+                              RowStyle="{StaticResource StandardDataGridRow}">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="#" Binding="{Binding Index}" IsReadOnly="True" Width="44"/>
+                            <DataGridTextColumn Header="Shape" Binding="{Binding ShapeName}" IsReadOnly="True" Width="85"/>
+                            <DataGridTextColumn Header="Size (mm)" Binding="{Binding SizeText}" IsReadOnly="True" Width="110"/>
+                            <DataGridTextColumn Header="Source" Binding="{Binding Source}" IsReadOnly="True" Width="90"/>
+                            <DataGridCheckBoxColumn Header="Points" Binding="{Binding AddInnerPoints, UpdateSourceTrigger=PropertyChanged}" Width="60"/>
+                            <DataGridTemplateColumn Header="Count" Width="70">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBox Style="{StaticResource BorderlessTextInput}"
+                                                 Text="{Binding PointCount, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                 IsEnabled="{Binding DataContext.UseCount, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                 MaxLength="3" Width="52" HorizontalContentAlignment="Center" Margin="2"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTextColumn Header="New" Binding="{Binding PlannedInner}" IsReadOnly="True" Width="55"/>
+                            <DataGridCheckBoxColumn Header="Perpendicular" Binding="{Binding AddPerpendicular, UpdateSourceTrigger=PropertyChanged}" Width="100"/>
+                            <DataGridTextColumn Header="New" Binding="{Binding PlannedPerpendicular}" IsReadOnly="True" Width="55"/>
+                            <DataGridTemplateColumn Header="Drain" Width="*">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <CheckBox IsChecked="{Binding IsDrain, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                  IsEnabled="{Binding CanBeDrain}" Margin="6,0,0,0" VerticalAlignment="Center"
+                                                  ToolTip="Only openings the drain detection recognises can be drains"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Border>
+
+                <Border Style="{StaticResource ContentCard}"
+                        Visibility="{Binding HasOpenings, Converter={StaticResource InverseBoolToVis}}">
+                    <TextBlock Margin="0,20" HorizontalAlignment="Center" Style="{StaticResource HintText}"
+                               Text="This roof has no openings: steps 1, 2 and 5 have nothing to work on."/>
+                </Border>
+
+                <!-- ─── ACTIVITY LOG ─── -->
+                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="12,8" Margin="0,8,0,0">
+                    <StackPanel>
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Activity Log" Foreground="{StaticResource BrushLogText}"
+                                       FontSize="11.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                <Button Content="Copy All" Style="{StaticResource DarkGhostButton}" Click="CopyAllLog_Click" Margin="0,0,6,0"/>
+                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Click="CopySelectedLog_Click" Margin="0,0,6,0"/>
+                                <Button Content="Clear" Style="{StaticResource DarkGhostButton}" Command="{Binding ClearLogCommand}"/>
+                            </StackPanel>
+                        </Grid>
+                        <ListBox x:Name="LogList" ItemsSource="{Binding LogEntries}" MinHeight="100"
+                                 shell:ShellBehaviors.MaxHeightRatio="0.2" shell:ShellBehaviors.ForwardMouseWheel="True"
+                                 Background="Transparent" BorderThickness="0" SelectionMode="Extended"
+                                 ScrollViewer.VerticalScrollBarVisibility="Auto">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" Margin="0,1">
+                                        <TextBlock Text="{Binding Time, StringFormat=HH:mm:ss}" Foreground="{StaticResource BrushLogTextDim}"
+                                                   FontFamily="Consolas" FontSize="11.5" Margin="0,0,10,0"/>
+                                        <TextBlock Text="{Binding Level}" Foreground="{Binding Level, Converter={StaticResource LogLevelToColor}}"
+                                                   FontFamily="Consolas" FontSize="11.5" FontWeight="SemiBold" Width="64"/>
+                                        <TextBlock Text="{Binding Message}" Foreground="{StaticResource BrushLogText}"
+                                                   FontFamily="Consolas" FontSize="11.5" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </shell:ToolWindowShell.BodyContent>
+
+        <!-- ═══ FOOTER ═══════════════════════════════════════════ -->
+        <shell:ToolWindowShell.FooterContent>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Button Grid.Column="0" Content="Re-read Roof" Style="{StaticResource OutlineButton}"
+                        Width="120" Height="38" Command="{Binding AnalyzeCommand}"/>
+                <TextBlock Grid.Column="1" Text="{Binding ValidationText}" Foreground="{StaticResource BrushDanger}"
+                           VerticalAlignment="Center" Margin="12,0" TextWrapping="Wrap"/>
+                <StackPanel Grid.Column="2" Orientation="Horizontal">
+                    <Button Content="Run Selected Steps" Style="{StaticResource PrimaryButton}"
+                            Width="200" Margin="0,0,10,0" Command="{Binding RunCommand}"/>
+                    <Button Content="Close" Style="{StaticResource OutlineButton}"
+                            Width="90" Height="38" IsCancel="True" Click="CloseButton_Click"/>
+                </StackPanel>
+            </Grid>
+        </shell:ToolWindowShell.FooterContent>
+    </shell:ToolWindowShell>
+</Window>
