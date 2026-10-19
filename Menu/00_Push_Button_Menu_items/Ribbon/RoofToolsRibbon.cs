@@ -176,19 +176,21 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             RibbonLayoutHelper.WirePulldownButton(utilitiesItems, "Pulldown_RoofRidgeLines", ridgeLinesMultiShapeV070, ridgeLinesMultiShapeV069, ridgeLinesByPointsV059, ridgeLinesByPointsV058);
             RibbonLayoutHelper.WirePulldownButton(utilitiesItems, "Pulldown_RoofTypeManager", typeManagerV003, typeManagerV002);
 
-            // Roof Edit — Roof Name Builder (V002) and Island Roof Splitter (V001, WIP).
+            // Roof Edit — Roof Name Builder (V002) and Island Roof Splitter (V002, V001 WIP).
             RibbonPanel roofEditPanel = app.CreateRibbonPanel(tabName, "Roof Edit");
             var nameBuilderV002 = Btn(assemblyPath, "Btn_RoofNameBuilder_V002", "Name Builder V002", "Revit26_Plugin_Revised.RoofNameBuilder.V002.Commands.RoofNameBuilderCommand",
                 "CreateRoofromLInes_16.png", "Roof Name Builder", "V002", "Bulk rename roof types/instances with configurable INS/SLP/MAT codes; re-runs update existing codes.");
             var islandSplitterV001 = Btn(assemblyPath, "Btn_IslandRoofSplitter_V001", "Island Splitter V001", "Revit26_Plugin_Revised.IslandRoofSplitter.V001.Commands.IslandRoofSplitterCommand",
                 "DetailLineIntersect_16.png", "Island Roof Splitter (WIP)", "V001", "Splits a roof into islands bounded by detail lines. Work in progress - test on a copy of your model.");
+            var islandSplitterV002 = Btn(assemblyPath, "Btn_IslandRoofSplitter_V002", "Island Splitter V002", "Revit26_Plugin_Revised.IslandRoofSplitter.V002.Commands.IslandRoofSplitterCommand",
+                "DetailLineIntersect_16.png", "Island Roof Splitter", "V002", "V001 plus an output choice (roof only / roof, floor if it fails / floor only) and a floor type picker. Test on a copy of your model.");
             var roofEditItems = RibbonLayoutHelper.AddStackedButtons(roofEditPanel, new List<RibbonItemData>
             {
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_RoofNameBuilder", "Name Builder", nameBuilderV002),
-                RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_IslandRoofSplitter", "Island Splitter", islandSplitterV001),
+                RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_IslandRoofSplitter", "Island Splitter", islandSplitterV002),
             });
             RibbonLayoutHelper.WirePulldownButton(roofEditItems, "Pulldown_RoofNameBuilder", nameBuilderV002);
-            RibbonLayoutHelper.WirePulldownButton(roofEditItems, "Pulldown_IslandRoofSplitter", islandSplitterV001);
+            RibbonLayoutHelper.WirePulldownButton(roofEditItems, "Pulldown_IslandRoofSplitter", islandSplitterV002, islandSplitterV001);
 
             // Compare
             RibbonPanel comparePanel = app.CreateRibbonPanel(tabName, "Compare");

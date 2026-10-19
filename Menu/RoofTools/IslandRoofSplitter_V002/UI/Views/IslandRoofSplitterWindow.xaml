@@ -12,9 +12,10 @@
 <Window x:Class="Revit26_Plugin_Revised.IslandRoofSplitter.V002.UI.Views.IslandRoofSplitterWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:svc="clr-namespace:Revit26_Plugin_Revised.Shared.Services"
         xmlns:shell="clr-namespace:Revit26_Plugin_Revised.Shared.Controls"
         xmlns:converters="clr-namespace:Revit26_Plugin_Revised.Shared.Models"
-        Title="Island Roof Splitter"
+        Title="{Binding Source={x:Static svc:ToolCatalog.IslandRoofSplitterV002}, Path=Title}"
         Width="920" Height="960" MinWidth="920" MinHeight="900"
         MaxWidth="1196" MaxHeight="1170"
         ResizeMode="CanResizeWithGrip"
@@ -56,7 +57,7 @@
 
     <shell:ToolWindowShell Title="Island Roof Splitter"
                            Subtitle="Split a sloped roof into one new roof per closed detail-line island — with a floor fallback"
-                           Version="V002"
+                           Version="{Binding Source={x:Static svc:ToolCatalog.IslandRoofSplitterV002}, Path=Version, StringFormat=v{0}}"
                            IsRunning="{Binding IsRunning}"
                            Progress="{Binding Progress}"
                            SummaryText="{Binding SummaryText}">

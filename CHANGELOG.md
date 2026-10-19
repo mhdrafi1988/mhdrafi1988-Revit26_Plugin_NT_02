@@ -9,6 +9,20 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [4.1.0] — 2026-10-19
+
+### Added
+- **Island Roof Splitter V002 (2.0.0) on the ribbon.** Moved out of `Menu/RoofTools/WIP` to
+  `Menu/RoofTools/IslandRoofSplitter_V002`, so it is now built and shipped, under the
+  `Revit26_Plugin_Revised.IslandRoofSplitter.V002` namespace. It sits at the top of the **Roof Edit ›
+  Island Splitter** pulldown, with V001 (WIP) below it. New in V002: an OUTPUT choice (roof only /
+  roof, floor if it fails / floor only), a floor type picker, and an Element column in the islands
+  grid showing what each island became. Its window title and version badge read
+  `ToolCatalog.IslandRoofSplitterV002`.
+
+**User note:** the Island Splitter pulldown button now opens V002; V001 stays in the dropdown and is
+unchanged. Test V002 on a copy of your model first.
+
 ## [4.0.0] — 2026-10-19
 
 ### Changed
