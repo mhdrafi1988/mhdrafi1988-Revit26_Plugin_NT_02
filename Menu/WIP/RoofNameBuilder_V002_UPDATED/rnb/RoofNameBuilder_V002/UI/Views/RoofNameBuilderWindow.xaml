@@ -1,0 +1,338 @@
+<!--
+=======================================================
+Roof Name Builder — V002  (ToolWindowShell, CLAUDE.md v1.1)
+  HEADER  metric tiles: Loaded / Will rename / Conflicts / Selected
+  BODY    scope + mode chips, filters, search
+          Code Definitions expander (collapsed)
+          bulk-action bar (only while rows are ticked for selection)
+          roof grid (code columns are generated in code-behind from the applied definitions)
+          Activity Log (dark, collapsed by default, Copy All / Copy Selected / Clear)
+  FOOTER  status strip (indeterminate while running) · Export Log | Run → Close
+No inline colours: every brush is a SharedStyles token.
+=======================================================
+-->
+<Window x:Class="Revit26_Plugin.RoofNameBuilder.V002.UI.Views.RoofNameBuilderWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:shell="clr-namespace:Revit26_Plugin.Shared.Controls"
+        xmlns:converters="clr-namespace:Revit26_Plugin.Shared.Models"
+        Title="Roof Name Builder — V002"
+        Height="820" Width="1240" MinHeight="820" MinWidth="1240" MaxHeight="1066" MaxWidth="1612" ResizeMode="CanResizeWithGrip"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource BrushSystemBackground}"
+        FontFamily="{DynamicResource SystemFont}">
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/Revit26_Plugin;component/Shared/SharedStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+
+            <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+            <converters:EnumToBoolConverter       x:Key="EnumToBoolConverter"/>
+            <converters:LogLevelToColorConverter  x:Key="LogLevelToColorConverter"/>
+            <converters:InverseBoolConverter      x:Key="InverseBoolConverter"/>
+
+            <!-- Row tints: later triggers win, so conflicts override "will rename". -->
+            <Style x:Key="RoofRowStyle" TargetType="DataGridRow" BasedOn="{StaticResource DataGridRowStyle}">
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding IsPending}" Value="True">
+                        <Setter Property="Background" Value="{StaticResource BrushRowSuccessBackground}"/>
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding IsTooLong}" Value="True">
+                        <Setter Property="Background" Value="{StaticResource BrushSoftWarningBackground}"/>
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding HasBlockingIssue}" Value="True">
+                        <Setter Property="Background" Value="{StaticResource BrushRowDangerBackground}"/>
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+
+            <Style x:Key="SectionLabel" TargetType="TextBlock" BasedOn="{StaticResource FieldLabel}">
+                <Setter Property="VerticalAlignment" Value="Center"/>
+                <Setter Property="Margin" Value="0,0,8,0"/>
+                <Setter Property="FontWeight" Value="SemiBold"/>
+            </Style>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <shell:ToolWindowShell Title="Roof Name Builder"
+                           Subtitle="Bulk rename roof types or instances with configurable codes (INS / SLP / MAT …)"
+                           Version="V002"
+                           IsRunning="{Binding IsRunning}"
+                           Progress="{Binding Progress}"
+                           IsIndeterminate="True"
+                           SummaryText="{Binding SummaryText}">
+
+        <!-- ═══ HEADER ═══ -->
+        <shell:ToolWindowShell.HeaderContent>
+            <StackPanel Orientation="Horizontal">
+                <Border Style="{StaticResource MetricTileInfo}" Margin="0,0,10,0" MinWidth="96">
+                    <StackPanel>
+                        <TextBlock Text="LOADED" Style="{StaticResource MetricTileLabelInfo}"/>
+                        <TextBlock Text="{Binding LoadedCount}" Style="{StaticResource MetricTileNumberInfo}"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource MetricTileSuccess}" Margin="0,0,10,0" MinWidth="96">
+                    <StackPanel>
+                        <TextBlock Text="WILL RENAME" Style="{StaticResource MetricTileLabelSuccess}"/>
+                        <TextBlock Text="{Binding PendingCount}" Style="{StaticResource MetricTileNumberSuccess}"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource MetricTileDanger}" Margin="0,0,10,0" MinWidth="96">
+                    <StackPanel>
+                        <TextBlock Text="CONFLICTS" Style="{StaticResource MetricTileLabelDanger}"/>
+                        <TextBlock Text="{Binding ConflictCount}" Style="{StaticResource MetricTileNumberDanger}"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource MetricTileWarning}" MinWidth="96">
+                    <StackPanel>
+                        <TextBlock Text="SELECTED" Style="{StaticResource MetricTileLabelWarning}"/>
+                        <TextBlock Text="{Binding SelectedCount}" Style="{StaticResource MetricTileNumberWarning}"/>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </shell:ToolWindowShell.HeaderContent>
+
+        <!-- ═══ BODY ═══ -->
+        <shell:ToolWindowShell.BodyContent>
+            <StackPanel IsEnabled="{Binding IsRunning, Converter={StaticResource InverseBoolConverter}}">
+
+                <!-- Scope / Mode chips (one-way + command, per UI_UX_PATTERNS.md) -->
+                <WrapPanel Margin="0,0,0,8">
+                    <TextBlock Text="Scope" Style="{StaticResource SectionLabel}"/>
+                    <RadioButton GroupName="Scope" Content="All in project" Style="{StaticResource ChipToggle}"
+                                 IsChecked="{Binding Scope, Mode=OneWay, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=AllInProject}"
+                                 Command="{Binding SetScopeCommand}" CommandParameter="AllInProject"/>
+                    <RadioButton GroupName="Scope" Content="Active view" Style="{StaticResource ChipToggle}"
+                                 IsChecked="{Binding Scope, Mode=OneWay, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=ActiveView}"
+                                 Command="{Binding SetScopeCommand}" CommandParameter="ActiveView"/>
+                    <RadioButton GroupName="Scope" Content="Used types only" Style="{StaticResource ChipToggle}"
+                                 IsChecked="{Binding Scope, Mode=OneWay, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=UsedTypesOnly}"
+                                 Command="{Binding SetScopeCommand}" CommandParameter="UsedTypesOnly"/>
+                    <RadioButton GroupName="Scope" Content="Current selection" Style="{StaticResource ChipToggle}"
+                                 IsChecked="{Binding Scope, Mode=OneWay, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=CurrentSelection}"
+                                 Command="{Binding SetScopeCommand}" CommandParameter="CurrentSelection"/>
+
+                    <TextBlock Text="Mode" Style="{StaticResource SectionLabel}" Margin="18,0,8,0"/>
+                    <RadioButton GroupName="Mode" Content="Types" Style="{StaticResource ChipToggle}"
+                                 IsChecked="{Binding Mode, Mode=OneWay, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=Types}"
+                                 Command="{Binding SetModeCommand}" CommandParameter="Types"/>
+                    <RadioButton GroupName="Mode" Content="Instances" Style="{StaticResource ChipToggle}"
+                                 IsChecked="{Binding Mode, Mode=OneWay, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=Instances}"
+                                 Command="{Binding SetModeCommand}" CommandParameter="Instances"/>
+
+                    <Button Content="Reload" Style="{StaticResource SmallSecondaryButton}" Margin="12,0,0,0"
+                            Command="{Binding LoadRowsCommand}"/>
+                </WrapPanel>
+
+                <!-- Filters + search -->
+                <DockPanel Margin="0,0,0,8" LastChildFill="False">
+                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center">
+                        <ToggleButton Style="{StaticResource AppleToggleButton}" IsChecked="{Binding PendingOnly}" VerticalAlignment="Center"/>
+                        <TextBlock Text="Will rename only" Style="{StaticResource StatusText}" Margin="6,0,18,0" VerticalAlignment="Center"/>
+                        <ToggleButton Style="{StaticResource AppleToggleButton}" IsChecked="{Binding HideCompliant}" VerticalAlignment="Center"/>
+                        <TextBlock Text="Hide up-to-date" Style="{StaticResource StatusText}" Margin="6,0,18,0" VerticalAlignment="Center"
+                                   ToolTip="Hide rows that already carry codes and whose name matches the current parameter values."/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" VerticalAlignment="Center">
+                        <TextBlock Text="Search" Style="{StaticResource SectionLabel}"/>
+                        <TextBox Width="220" Style="{StaticResource StyledTextInput}"
+                                 Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                                 ToolTip="Matches current, base, new or type name"/>
+                    </StackPanel>
+                </DockPanel>
+
+                <!-- Code definitions (settings) -->
+                <Expander Header="Code Definitions" IsExpanded="{Binding SettingsOpen}" Margin="0,0,0,8">
+                    <Border Style="{StaticResource BaseCard}" Padding="10" Margin="0,6,0,0">
+                        <StackPanel>
+                            <DataGrid x:Name="DefinitionsGrid"
+                                      ItemsSource="{Binding CodeDefinitions}" AutoGenerateColumns="False"
+                                      CanUserAddRows="True" CanUserDeleteRows="True"
+                                      Style="{StaticResource StandardDataGrid}"
+                                      ColumnHeaderStyle="{StaticResource StandardDataGridColumnHeader}"
+                                      CellStyle="{StaticResource DataGridCellStyle}"
+                                      RowStyle="{StaticResource DataGridRowStyle}"
+                                      SelectionMode="Single"
+                                      shell:ShellBehaviors.MaxHeightRatio="0.22"
+                                      shell:ShellBehaviors.ForwardMouseWheel="True">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Order" Binding="{Binding Order}" Width="55"/>
+                                    <DataGridTextColumn Header="Code" Binding="{Binding Code}" Width="70"/>
+                                    <DataGridTextColumn Header="Label" Binding="{Binding Label}" Width="140"/>
+                                    <DataGridTextColumn Header="Source Parameter" Binding="{Binding SourceParameter}" Width="*"/>
+                                    <DataGridTextColumn Header="Unit" Binding="{Binding Unit}" Width="60"/>
+                                    <DataGridCheckBoxColumn Header="Code Prefix" Binding="{Binding IncludeCodePrefix}" Width="90"/>
+                                    <DataGridCheckBoxColumn Header="Upper" Binding="{Binding UppercaseValue}" Width="60"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+
+                            <WrapPanel Margin="0,10,0,0">
+                                <TextBlock Text="Separator" Style="{StaticResource SectionLabel}"/>
+                                <TextBox Width="40" Style="{StaticResource StyledTextInput}" Margin="0,0,18,0"
+                                         Text="{Binding TemplateSeparator, UpdateSourceTrigger=PropertyChanged}"/>
+                                <TextBlock Text="Instances write to" Style="{StaticResource SectionLabel}"/>
+                                <TextBox Width="140" Style="{StaticResource StyledTextInput}" Margin="0,0,18,0"
+                                         Text="{Binding InstanceTargetParameter, UpdateSourceTrigger=PropertyChanged}"/>
+                                <ToggleButton Style="{StaticResource AppleToggleButton}" IsChecked="{Binding ParseExistingCodes}" VerticalAlignment="Center"/>
+                                <TextBlock Text="Recognise codes already in names" Style="{StaticResource StatusText}" Margin="6,0,18,0" VerticalAlignment="Center"/>
+                                <Button Content="Apply &amp; reload" Style="{StaticResource SmallSecondaryButton}"
+                                        Command="{Binding ApplyDefinitionsCommand}"/>
+                            </WrapPanel>
+
+                            <TextBlock Style="{StaticResource HintText}" Margin="0,8,0,0"
+                                       Text="Name = Base + Separator + each ticked code in Order. A code with Code Prefix writes CODE+value (INS50); without it, just the value (SLATE). Codes: letters and digits only. Add a row at the bottom of the grid, delete with the Delete key. Changes take effect on Apply &amp; reload."/>
+                        </StackPanel>
+                    </Border>
+                </Expander>
+
+                <!-- Bulk action bar -->
+                <Border Margin="0,0,0,8" Padding="10,8" CornerRadius="6" BorderThickness="1"
+                        Background="{StaticResource BrushBannerInfoBackground}"
+                        BorderBrush="{StaticResource BrushBannerInfoBorder}"
+                        Visibility="{Binding HasSelection, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <WrapPanel>
+                        <TextBlock VerticalAlignment="Center" Margin="0,0,14,0" FontWeight="SemiBold"
+                                   Foreground="{StaticResource BrushTextPrimary}"
+                                   Text="{Binding SelectedCount, StringFormat='{}{0} selected'}"/>
+
+                        <TextBlock Text="Tick" Style="{StaticResource SectionLabel}"/>
+                        <ItemsControl ItemsSource="{Binding AppliedCodeDefinitions}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate><StackPanel Orientation="Horizontal"/></ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Content="{Binding Code}" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,6,0"
+                                            Command="{Binding DataContext.BulkTickCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                            CommandParameter="{Binding Code}"/>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <TextBlock Text="Untick" Style="{StaticResource SectionLabel}" Margin="12,0,8,0"/>
+                        <ItemsControl ItemsSource="{Binding AppliedCodeDefinitions}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate><StackPanel Orientation="Horizontal"/></ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Content="{Binding Code}" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,6,0"
+                                            Command="{Binding DataContext.BulkUntickCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                            CommandParameter="{Binding Code}"/>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <Button Content="Clear selection" Style="{StaticResource SmallSecondaryButton}" Margin="12,0,0,0"
+                                Command="{Binding ClearSelectionCommand}"/>
+                    </WrapPanel>
+                </Border>
+
+                <!-- Grid toolbar -->
+                <DockPanel Margin="0,0,0,4" LastChildFill="False">
+                    <TextBlock DockPanel.Dock="Left" Text="Roofs" Style="{StaticResource SectionLabel}"/>
+                    <Button DockPanel.Dock="Right" Content="Select shown" Style="{StaticResource SmallSecondaryButton}"
+                            Command="{Binding SelectShownCommand}"/>
+                </DockPanel>
+
+                <!-- Main grid. Code columns (tick + value per code) are inserted before NewNameColumn in code-behind. -->
+                <DataGrid x:Name="RoofGrid"
+                          ItemsSource="{Binding RowsView}" AutoGenerateColumns="False"
+                          CanUserAddRows="False" CanUserDeleteRows="False"
+                          Style="{StaticResource StandardDataGrid}"
+                          ColumnHeaderStyle="{StaticResource StandardDataGridColumnHeader}"
+                          CellStyle="{StaticResource DataGridCellStyle}"
+                          RowStyle="{StaticResource RoofRowStyle}"
+                          SelectionMode="Single"
+                          EnableRowVirtualization="True"
+                          shell:ShellBehaviors.MaxHeightRatio="0.45"
+                          shell:ShellBehaviors.ForwardMouseWheel="True"
+                          Margin="0,0,0,8">
+                    <DataGrid.Columns>
+                        <DataGridTemplateColumn Width="34" CanUserSort="False">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <CheckBox HorizontalAlignment="Center" VerticalAlignment="Center"
+                                              IsChecked="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                              PreviewMouseLeftButtonDown="CheckBoxCell_PreviewMouseLeftButtonDown"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <DataGridTextColumn x:Name="CurrentNameColumn" Header="Current Name" Binding="{Binding CurrentName}" Width="200" IsReadOnly="True"/>
+                        <DataGridTextColumn x:Name="TypeNameColumn" Header="Type" Binding="{Binding TypeName}" Width="150" IsReadOnly="True"/>
+                        <DataGridTextColumn x:Name="InstanceCountColumn" Header="Placed" Binding="{Binding InstanceCount}" Width="60" IsReadOnly="True"/>
+
+                        <DataGridTemplateColumn Header="Base Name" Width="180" SortMemberPath="BaseName">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBox Style="{StaticResource StyledTextInput}"
+                                             Text="{Binding BaseName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <DataGridTextColumn x:Name="NewNameColumn" Header="New Name (preview)" Binding="{Binding NewName}" Width="*" MinWidth="180" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="Status" Binding="{Binding StatusText}" Width="110" IsReadOnly="True"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+
+                <!-- Activity Log — always-dark panel, collapsed by default (2026-10-04 convention) -->
+                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="10,8">
+                    <StackPanel>
+                        <DockPanel LastChildFill="False">
+                            <ToggleButton x:Name="LogToggle" DockPanel.Dock="Left" Style="{StaticResource LogHeaderToggle}">
+                                <TextBlock FontWeight="SemiBold" Foreground="{StaticResource BrushLogText}"
+                                           Text="{Binding LogEntries.Count, StringFormat='Activity Log ({0})'}"/>
+                            </ToggleButton>
+                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                <Button Content="Copy All" Style="{StaticResource DarkGhostButton}" Margin="0,0,6,0"
+                                        Command="{Binding CopyAllLogCommand}"/>
+                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Margin="0,0,6,0"
+                                        Command="{Binding CopySelectedLogCommand}"/>
+                                <Button Content="Clear" Style="{StaticResource DarkGhostButton}"
+                                        Command="{Binding ClearLogCommand}"/>
+                            </StackPanel>
+                        </DockPanel>
+
+                        <ListBox x:Name="LogList" Margin="0,8,0,0"
+                                 ItemsSource="{Binding LogEntries}"
+                                 SelectionMode="Extended"
+                                 Background="{StaticResource BrushLogBg}" BorderThickness="0"
+                                 Foreground="{StaticResource BrushLogText}"
+                                 Visibility="{Binding IsChecked, ElementName=LogToggle, Converter={StaticResource LogToggleVisibility}}"
+                                 SelectionChanged="LogList_SelectionChanged"
+                                 shell:ShellBehaviors.MaxHeightRatio="0.25"
+                                 shell:ShellBehaviors.ForwardMouseWheel="True">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock FontFamily="Consolas" FontSize="12" TextWrapping="Wrap"
+                                               Foreground="{Binding Level, Converter={StaticResource LogLevelToColorConverter}}"
+                                               Text="{Binding}"/>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </StackPanel>
+                </Border>
+
+            </StackPanel>
+        </shell:ToolWindowShell.BodyContent>
+
+        <!-- ═══ FOOTER: secondary left, Primary → Close right ═══ -->
+        <shell:ToolWindowShell.FooterContent>
+            <DockPanel LastChildFill="False">
+                <Button DockPanel.Dock="Left" Content="Export Log" Style="{StaticResource OutlineButton}"
+                        Click="ExportLogButton_Click"/>
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                    <Button Content="Run" Style="{StaticResource RunButton}" MinWidth="110" Margin="0,0,8,0"
+                            Command="{Binding RunCommand}"/>
+                    <Button Content="Close" Style="{StaticResource OutlineButton}" MinWidth="90"
+                            Click="CloseButton_Click"/>
+                </StackPanel>
+            </DockPanel>
+        </shell:ToolWindowShell.FooterContent>
+
+    </shell:ToolWindowShell>
+</Window>
