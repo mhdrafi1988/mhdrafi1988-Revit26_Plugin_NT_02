@@ -22,6 +22,12 @@ done until it builds with 0 errors. Running it still needs Revit on Windows.
 - **Tool versions** live in `Shared/Services/ToolCatalog.cs` (one entry per tool, semantic version).
   The ribbon tooltip, window title and error dialogs read from it. A new tool gets a new entry there.
 - **Plugin version** is `<Version>` in `Revit26_Plugin.csproj`.
+- **Namespace:** the root namespace is `Revit26_Plugin_Revised` (`<RootNamespace>` in the `.csproj`;
+  renamed from `Revit26_Plugin` in 4.0.0). Tool namespaces are `Revit26_Plugin_Revised.<Tool>.V<NNN>`.
+  The assembly is still `Revit26_Plugin.dll`, and pack URIs and the `%AppData%\Revit26_Plugin`
+  folders keep the old name.
+- **Add-in manifest** is `Installer/rf12_Revit_2026.addin` (same file name, `AddInId` and
+  `FullClassName` as the one the `Installer/Output/*.iss` scripts write). Keep them in sync.
 - **Ribbon** files are in `Menu/00_Push_Button_Menu_items/Ribbon`. One button runs one tool; use a
   dropdown only to group different tools. Labels show the tool name, never a version number.
   Tooltips use `ToolCatalog.<Tool>.Tip(...)`.
@@ -57,17 +63,22 @@ done until it builds with 0 errors. Running it still needs Revit on Windows.
 ## Backward compatibility
 
 1. Never change a ribbon button's internal name (first `PushButtonData` argument), an
-   `IExternalCommand` class name or namespace, or an add-in GUID. Change a visible label only when
-   asked.
-2. Never rename or remove shared parameters, parameter GUIDs or schema fields. Create new ones only if
+   `IExternalCommand` class name, or an add-in GUID. Change a visible label only when asked.
+2. Change a namespace only when the owner asks for it (the 4.0.0 rename to `Revit26_Plugin_Revised`
+   was such a request). Then do it in one change: C# and XAML (`x:Class`, `clr-namespace:`), the
+   command class-name strings in the ribbon, `<RootNamespace>` and the embedded-resource names that
+   follow it (`ImageUtils.Load` paths, `Properties.Resources`), and `FullClassName` in
+   `Installer/rf12_Revit_2026.addin` and the installer scripts. It breaks existing installs,
+   keyboard shortcuts and Quick Access Toolbar entries, so bump MAJOR and add a CHANGELOG user note.
+3. Never rename or remove shared parameters, parameter GUIDs or schema fields. Create new ones only if
    missing, and keep working without them.
-3. Add a version field to JSON / Excel / config formats; read old and new, or migrate automatically.
-4. Never change an existing Extensible Storage schema GUID or its fields; create a new schema version
+4. Add a version field to JSON / Excel / config formats; read old and new, or migrate automatically.
+5. Never change an existing Extensible Storage schema GUID or its fields; create a new schema version
    and migrate.
-5. New options default to the old behaviour.
-6. Keep export column names and order unchanged; append new columns at the end.
-7. Keep Revit-version-specific API calls behind one helper so 2026 vs 2027 differences stay isolated.
-8. Deprecate before deleting: keep the old behaviour for one or two releases with a warning, then
+6. New options default to the old behaviour.
+7. Keep export column names and order unchanged; append new columns at the end.
+8. Keep Revit-version-specific API calls behind one helper so 2026 vs 2027 differences stay isolated.
+9. Deprecate before deleting: keep the old behaviour for one or two releases with a warning, then
    remove.
 
 ## Pre-release checklist

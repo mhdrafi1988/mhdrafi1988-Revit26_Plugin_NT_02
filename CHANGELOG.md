@@ -9,6 +9,22 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [4.0.1] — 2026-10-19
+
+### Added
+- **Add-in manifest in the repo: `Installer/rf12_Revit_2026.addin`** — loads
+  `Revit26_Plugin_Revised.App` from `Rf_Revit_2026\Revit26_Plugin.dll` next to it, with the same
+  file name, `AddInId` and `VendorId` as the manifest the installer writes. For a manual install,
+  copy it to `%ProgramData%\Autodesk\Revit\Addins\2026\` and the build output to the
+  `Rf_Revit_2026` subfolder there.
+
+### Changed
+- `CLAUDE.md` now allows a namespace change when the owner asks for it, and lists everything such a
+  change has to update. It also documents the `Revit26_Plugin_Revised` root namespace and the manifest.
+
+**User note:** an existing install that still has a `rf12_Revit_2026.addin` naming
+`Revit26_Plugin.App` can be fixed by replacing that file with this one. No code changes.
+
 ## [4.0.0] — 2026-10-19
 
 ### Changed
