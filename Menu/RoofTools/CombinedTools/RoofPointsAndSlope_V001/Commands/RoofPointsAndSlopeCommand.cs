@@ -86,8 +86,10 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Commands
                 return Result.Cancelled;
             }
 
+            RidgeInput ridgeInput = RoofPointsAndSlopeHandler.ReadRidgeInput(roof, diagnostics.Add);
+
             RoofPointsAndSlopeEventManager.Init();
-            var vm = new RoofPointsAndSlopeViewModel(doc, roof.Id, $"{roof.Name}  ·  Id {roof.Id.Value}", outline);
+            var vm = new RoofPointsAndSlopeViewModel(doc, roof.Id, $"{roof.Name}  ·  Id {roof.Id.Value}", outline, ridgeInput);
             foreach (LogEntry entry in diagnostics)
                 vm.Log(entry.Level, entry.Message);
 

@@ -8,6 +8,7 @@
 
 using Autodesk.Revit.DB;
 using Revit26_Plugin_Revised.MultiRoofSlopeByDrain.V013.Core.Models;
+using Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Core.Engine;
 using Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Core.Geometry;
 using Revit26_Plugin_Revised.Shared.Models;
 using System;
@@ -43,7 +44,13 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Core.Models
         /// <summary>Run: a copy of the window's settings.</summary>
         public PipelineSettings Settings { get; init; }
 
-        /// <summary>Run: the openings to slope towards (step 5).</summary>
+        /// <summary>Run: the roof data the ridge step needs (step 5).</summary>
+        public RidgeInput RidgeInput { get; init; }
+
+        /// <summary>Run: the openings ticked as drains (ridge seeds, step 5).</summary>
+        public List<OpeningModel> DrainOpenings { get; init; }
+
+        /// <summary>Run: the openings to slope towards (step 6).</summary>
         public List<DrainItem> SelectedDrains { get; init; }
 
         /// <summary>Run: number of openings the drain detection found on the roof.</summary>
@@ -70,6 +77,12 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Core.Models
 
         /// <summary>Analyze: the freshly read roof.</summary>
         public RoofOutline Outline { get; set; }
+
+        /// <summary>Analyze: the freshly read ridge input.</summary>
+        public RidgeInput RidgeInput { get; set; }
+
+        /// <summary>Run: ridge detail lines drawn.</summary>
+        public int RidgeLines { get; set; }
 
         /// <summary>Run: points added per step name.</summary>
         public Dictionary<string, int> AddedPerStep { get; } = new Dictionary<string, int>();

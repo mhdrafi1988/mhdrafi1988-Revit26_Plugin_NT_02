@@ -2,8 +2,9 @@
 // File: OpeningModel.cs
 // Location: Core/Models/
 // One roof opening, as a row in the window's grid. Each opening carries
-// its own choices for the three opening steps: points around it,
-// perpendicular points to the boundary, and use as a drain. The planned
+// its own choices for the opening steps: points around it,
+// perpendicular points to the boundary, and use as a drain (a drain
+// seeds the ridge and is a low point of the slope). The planned
 // counts are filled in by the view model after each re-plan.
 // =======================================================
 
@@ -52,7 +53,7 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Core.Models
         /// <summary>Step 2: add perpendicular points from this opening to the boundary.</summary>
         [ObservableProperty] private bool addPerpendicular = true;
 
-        /// <summary>Step 5: slope the roof towards this opening.</summary>
+        /// <summary>Steps 5–6: a ridge seed, and a low point the roof slopes towards.</summary>
         [ObservableProperty] private bool isDrain;
 
         /// <summary>Planned new points around this opening (step 1).</summary>

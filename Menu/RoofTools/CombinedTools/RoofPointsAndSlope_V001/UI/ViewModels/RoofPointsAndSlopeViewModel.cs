@@ -13,10 +13,12 @@ using Autodesk.Revit.UI;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Revit26_Plugin_Revised.MultiRoofSlopeByDrain.V013.Core.Models;
+using Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Core.Engine;
 using Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Core.Geometry;
 using Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Core.Models;
 using Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Core.Planning;
 using Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Infrastructure.ExternalEvents;
+using Revit26_Plugin_Revised.RoofRidgeLines.V070.Models;
 using Revit26_Plugin_Revised.Shared.Models;
 using Revit26_Plugin_Revised.Shared.Services;
 using Revit26_Plugin_Revised.Shared.ViewModels;
@@ -38,6 +40,7 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.UI.ViewModels
         private readonly Document _doc;
         private readonly ElementId _roofId;
         private RoofOutline _outline;
+        private RidgeInput _ridgeInput;
         private bool _suspendPlan;
 
         /// <summary>The roof's openings (grid rows).</summary>
@@ -45,6 +48,9 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.UI.ViewModels
 
         /// <summary>"Roof name · Id 123".</summary>
         public string RoofLabel { get; }
+
+        /// <summary>The document's line styles, for the ridge detail lines.</summary>
+        public ObservableCollection<string> LineStyleOptions { get; } = new();
 
         // ── Step 1 ──────────────────────────────────────────────────────────
         [ObservableProperty] private bool innerPointsEnabled;
@@ -82,6 +88,14 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.UI.ViewModels
         [ObservableProperty] private bool gapCurves;
 
         // ── Step 5 ──────────────────────────────────────────────────────────
+        [ObservableProperty] private bool ridgeEnabled;
+        [ObservableProperty] private double ridgeProximityMm;
+        [ObservableProperty] private double ridgeValidationToleranceMm;
+        [ObservableProperty] private bool ridgeShapePoints;
+        [ObservableProperty] private bool ridgeDetailLines;
+        [ObservableProperty] private string ridgeLineStyle;
+
+        // ── Step 6 ──────────────────────────────────────────────────────────
         [ObservableProperty] private bool slopeEnabled;
         [ObservableProperty] private double slopePercent;
         [ObservableProperty] private double maxEdgeMeters;
@@ -96,6 +110,7 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.UI.ViewModels
         [ObservableProperty] private int perpendicularNew;
         [ObservableProperty] private int midQuarterNew;
         [ObservableProperty] private int gapFillNew;
+        [ObservableProperty] private string ridgeSummary = "—";
         [ObservableProperty] private int drainCount;
 
         /// <summary>Why Run is unavailable, or empty when it can run.</summary>
@@ -105,11 +120,13 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.UI.ViewModels
         public bool HasOpenings => Openings.Count > 0;
 
         /// <summary>Creates the view model for one roof.</summary>
-        public RoofPointsAndSlopeViewModel(Document doc, ElementId roofId, string roofLabel, RoofOutline outline)
+        public RoofPointsAndSlopeViewModel(Document doc, ElementId roofId, string roofLabel, RoofOutline outline, RidgeInput ridgeInput)
         {
             _doc = doc;
             _roofId = roofId;
             RoofLabel = roofLabel;
+            _ridgeInput = ridgeInput ?? new RidgeInput();
+            foreach (string style in _ridgeInput.LineStyles) LineStyleOptions.Add(style);
 
             LoadSettings(SettingsService<PipelineSettings>.Load(SettingsName).Normalize());
             SetOutline(outline);
@@ -141,6 +158,12 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.UI.ViewModels
             GapOpenings = s.GapScope.Openings;
             GapLines = s.GapScope.Lines;
             GapCurves = s.GapScope.Curves;
+            RidgeEnabled = s.RidgeEnabled;
+            RidgeProximityMm = s.RidgeProximityMm;
+            RidgeValidationToleranceMm = s.RidgeValidationToleranceMm;
+            RidgeShapePoints = s.RidgeShapePoints;
+            RidgeDetailLines = s.RidgeDetailLines;
+            RidgeLineStyle = LineStyleOptions.Contains(s.RidgeLineStyle) ? s.RidgeLineStyle : LineStyleOptions.FirstOrDefault() ?? string.Empty;
             SlopeEnabled = s.SlopeEnabled;
             SlopePercent = s.SlopePercent;
             MaxEdgeMeters = s.MaxEdgeMeters;
@@ -171,6 +194,12 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.UI.ViewModels
             GapFillEnabled = GapFillEnabled,
             GapIntervalMeters = GapIntervalMeters,
             GapScope = new EdgeScope { Boundary = GapBoundary, Openings = GapOpenings, Lines = GapLines, Curves = GapCurves },
+            RidgeEnabled = RidgeEnabled,
+            RidgeProximityMm = RidgeProximityMm,
+            RidgeValidationToleranceMm = RidgeValidationToleranceMm,
+            RidgeShapePoints = RidgeShapePoints,
+            RidgeDetailLines = RidgeDetailLines,
+            RidgeLineStyle = RidgeLineStyle ?? string.Empty,
             SlopeEnabled = SlopeEnabled,
             SlopePercent = SlopePercent,
             MaxEdgeMeters = MaxEdgeMeters,
@@ -199,6 +228,7 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.UI.ViewModels
                 case nameof(PerpendicularNew):
                 case nameof(MidQuarterNew):
                 case nameof(GapFillNew):
+                case nameof(RidgeSummary):
                 case nameof(DrainCount):
                 case nameof(ValidationText):
                 case nameof(IsRunning):
@@ -313,11 +343,35 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.UI.ViewModels
             }
 
             DrainCount = Openings.Count(o => o.IsDrain && o.CanBeDrain);
+            RidgeSummary = PlanRidge(out _ridgeError);
             ValidationText = Validate() ?? string.Empty;
             SummaryText = string.IsNullOrEmpty(ValidationText)
-                ? $"Ready: {plan.TotalNew} new point(s)" + (SlopeEnabled ? $", slope to {DrainCount} drain(s)" : string.Empty)
+                ? $"Ready: {plan.TotalNew} new point(s)" + (RidgeEnabled ? $", ridge {RidgeSummary}" : string.Empty) +
+                  (SlopeEnabled ? $", slope to {DrainCount} drain(s)" : string.Empty)
                 : ValidationText;
             RunCommand.NotifyCanExecuteChanged();
+        }
+
+        private string _ridgeError;
+
+        /// <summary>Step 5 preview: "4 lines · 9 pts", or "—" when off or not possible.</summary>
+        private string PlanRidge(out string error)
+        {
+            error = null;
+            if (!RidgeEnabled) return "Off";
+            try
+            {
+                VoronoiRidgeResult ridge = RidgePlanner.Plan(_ridgeInput, Openings.Where(o => o.IsDrain && o.CanBeDrain),
+                                                             CurrentSettings().Normalize(), out error);
+                if (ridge == null) return "—";
+                int points = ridge.ShapePoints.Count + ridge.RidgeEdgeMidPoints.Count;
+                return RidgeShapePoints ? $"{ridge.ClippedEdges.Count} lines · {points} pts" : $"{ridge.ClippedEdges.Count} lines";
+            }
+            catch (Exception ex)
+            {
+                error = $"the ridge could not be worked out ({ex.Message}).";
+                return "—";
+            }
         }
 
         private string Validate()
@@ -328,14 +382,21 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.UI.ViewModels
                 return "Step 1: the spacing must be at least 0.05 m.";
             if (GapFillEnabled && GapIntervalMeters < 0.05)
                 return "Step 4: the interval must be at least 0.05 m.";
+            if (RidgeEnabled)
+            {
+                if (!RidgeShapePoints && !RidgeDetailLines) return "Step 5: tick shape points and/or detail lines.";
+                if (RidgeProximityMm <= 0) return "Step 5: the drain grouping distance must be more than 0 mm.";
+                if (!string.IsNullOrEmpty(_ridgeError)) return "Step 5: " + _ridgeError;
+            }
+
             if (SlopeEnabled)
             {
-                if (SlopePercent < 0.1 || SlopePercent > 10) return "Step 5: the slope must be 0.1–10 %.";
-                if (MaxEdgeMeters < 0.5 || MaxEdgeMeters > 500) return "Step 5: max edge distance must be 0.5–500 m.";
-                if (MaxPathMeters < 0.5 || MaxPathMeters > 500) return "Step 5: max path distance must be 0.5–500 m.";
-                if (PathSamples < 2) return "Step 5: path samples must be at least 2.";
-                if (DrainCount == 0) return "Step 5: tick at least one opening as a drain.";
-                if (ExportToExcel && string.IsNullOrWhiteSpace(ExportFolder)) return "Step 5: choose a folder for the Excel report.";
+                if (SlopePercent < 0.1 || SlopePercent > 10) return "Step 6: the slope must be 0.1–10 %.";
+                if (MaxEdgeMeters < 0.5 || MaxEdgeMeters > 500) return "Step 6: max edge distance must be 0.5–500 m.";
+                if (MaxPathMeters < 0.5 || MaxPathMeters > 500) return "Step 6: max path distance must be 0.5–500 m.";
+                if (PathSamples < 2) return "Step 6: path samples must be at least 2.";
+                if (DrainCount == 0) return "Step 6: tick at least one opening as a drain.";
+                if (ExportToExcel && string.IsNullOrWhiteSpace(ExportFolder)) return "Step 6: choose a folder for the Excel report.";
             }
 
             return null;
@@ -346,7 +407,8 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.UI.ViewModels
         private void Run()
         {
             PipelineSettings settings = CurrentSettings().Normalize();
-            List<DrainItem> drains = Openings.Where(o => o.IsDrain && o.CanBeDrain).Select(o => o.Drain).ToList();
+            List<OpeningModel> drainOpenings = Openings.Where(o => o.IsDrain && o.CanBeDrain).ToList();
+            List<DrainItem> drains = drainOpenings.Select(o => o.Drain).ToList();
 
             if (settings.SlopeEnabled && settings.ExportToExcel)
             {
@@ -360,6 +422,7 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.UI.ViewModels
 
             SaveSettings();
             AddLog(LogLevel.Info, $"Run started: {OpeningPointsNew + PerpendicularNew + MidQuarterNew + GapFillNew} planned point(s)" +
+                                  (settings.RidgeEnabled ? ", then the ridge" : string.Empty) +
                                   (settings.SlopeEnabled ? $", then slope {settings.SlopePercent} % to {drains.Count} drain(s)." : "."));
 
             var payload = new RunPayload
@@ -369,6 +432,8 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.UI.ViewModels
                 Document = _doc,
                 Outline = _outline,
                 Settings = settings,
+                RidgeInput = _ridgeInput,
+                DrainOpenings = drainOpenings,
                 SelectedDrains = drains,
                 DetectedDrainCount = _outline.DetectedDrainCount,
                 Log = entry => AddLog(entry.Level, entry.Message),
@@ -389,8 +454,9 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.UI.ViewModels
             {
                 _outline.ExistingVertices = result.VerticesAfter ?? new List<P2>();
                 Replan();
+                string ridge = result.RidgeLines > 0 ? $" · {result.RidgeLines} ridge line(s)" : string.Empty;
                 string slope = result.Sloped ? $" · sloped, highest point {result.HighestElevationMm:0} mm" : string.Empty;
-                SummaryText = $"Done: {result.TotalAdded} point(s) added{slope}";
+                SummaryText = $"Done: {result.TotalAdded} point(s) added{ridge}{slope}";
                 AddLog(LogLevel.Success, SummaryText + ". One Undo in Revit reverts the whole run.");
             }
             else
@@ -419,6 +485,7 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.UI.ViewModels
                         return;
                     }
 
+                    if (result.RidgeInput != null) _ridgeInput = result.RidgeInput;
                     SetOutline(result.Outline);
                     AddLog(LogLevel.Success, $"Roof re-read: {result.Outline.Openings.Count} opening(s), {result.Outline.ExistingVertices.Count} shape point(s).");
                 }

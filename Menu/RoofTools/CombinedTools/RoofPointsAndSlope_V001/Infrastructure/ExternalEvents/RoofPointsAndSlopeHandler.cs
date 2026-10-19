@@ -17,10 +17,12 @@ using Revit26_Plugin_Revised.MultiRoofSlopeByDrain.V013.Core.Services;
 using Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Core.Engine;
 using Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Core.Models;
 using Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Infrastructure.Revit;
+using Revit26_Plugin_Revised.RoofRidgeLines.V070.Services;
 using Revit26_Plugin_Revised.Shared.Models;
 using Revit26_Plugin_Revised.Shared.Services;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Infrastructure.ExternalEvents
 {
@@ -66,7 +68,12 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Infrastructure.External
                 return new RunResult { Success = false, ErrorMessage = error };
             }
 
-            return new RunResult { Success = true, Outline = ReadOutline(roof, current.Log) };
+            return new RunResult
+            {
+                Success = true,
+                Outline = ReadOutline(roof, current.Log),
+                RidgeInput = ReadRidgeInput(roof, current.Log)
+            };
         }
 
         private static RunResult Run(UIApplication app, RunPayload current)
@@ -112,6 +119,33 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Infrastructure.External
             RoofOutline outline = RoofReader.Read(roof, drains);
             outline.DetectedDrainCount = drains.Count;
             return outline;
+        }
+
+        /// <summary>
+        /// Reads what the ridge step needs with Ridge By Openings V070's own readers (boundary,
+        /// openings) plus the document's line styles. Never throws: a failure is logged and the
+        /// ridge step then reports it can't run.
+        /// </summary>
+        public static RidgeInput ReadRidgeInput(RoofBase roof, Action<LogEntry> log)
+        {
+            List<string> styles;
+            try { styles = RidgeCreationService.GetAvailableLineStyles(roof.Document).Select(s => s.Name).ToList(); }
+            catch { styles = new List<string>(); }
+
+            try
+            {
+                return new RidgeInput
+                {
+                    Boundary = new RoofBoundaryService().ExtractBoundary(roof) ?? new List<XYZ>(),
+                    InnerLoops = new InnerLoopService().ExtractInnerLoops(roof) ?? new List<List<XYZ>>(),
+                    LineStyles = styles
+                };
+            }
+            catch (Exception ex)
+            {
+                log?.Invoke(new LogEntry(LogLevel.Warning, $"The ridge step could not read the roof ({ex.Message}); it can't run on this roof."));
+                return new RidgeInput { LineStyles = styles };
+            }
         }
 
         /// <inheritdoc/>

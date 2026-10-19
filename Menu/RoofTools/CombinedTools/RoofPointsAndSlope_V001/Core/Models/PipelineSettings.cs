@@ -1,12 +1,12 @@
 // =======================================================
 // File: PipelineSettings.cs
 // Location: Core/Models/
-// Every option of the five steps. Saved as JSON to
+// Every option of the six steps. Saved as JSON to
 // %AppData%\Revit26_Plugin\RoofPointsAndSlope\settings.json
 // (Shared/Services/SettingsService). SchemaVersion lets a later version
 // read and migrate this file. Defaults follow the tools each step comes
 // from (Inner Loop Divider V012, Inner Loops + Perpendicular V007,
-// Multiple Points V003, Auto Slope By Drain V013).
+// Multiple Points V003, Ridge By Openings V070, Auto Slope By Drain V013).
 // =======================================================
 
 using Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Core.Geometry;
@@ -39,7 +39,7 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Core.Models
         public EdgeScope Clone() => (EdgeScope)MemberwiseClone();
     }
 
-    /// <summary>All options of the five steps.</summary>
+    /// <summary>All options of the six steps.</summary>
     public sealed class PipelineSettings
     {
         /// <summary>File format version of this settings file.</summary>
@@ -94,8 +94,27 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Core.Models
         /// <summary>Edges step 4 works on.</summary>
         public EdgeScope GapScope { get; set; } = new EdgeScope();
 
-        // ── Step 5: slope by drain (Auto Slope By Drain V013 engine) ─────────
+        // ── Step 5: ridge between drains (Ridge By Openings V070 engine) ─────
         /// <summary>Run step 5.</summary>
+        public bool RidgeEnabled { get; set; } = true;
+
+        /// <summary>Drains closer than this (mm) act as one drain for the ridge.</summary>
+        public double RidgeProximityMm { get; set; } = 50;
+
+        /// <summary>Allowed difference (mm) between a ridge point's distances to its drains.</summary>
+        public double RidgeValidationToleranceMm { get; set; } = 50;
+
+        /// <summary>Add shape points and split lines along the ridges.</summary>
+        public bool RidgeShapePoints { get; set; } = true;
+
+        /// <summary>Draw the ridges as detail lines in the active view.</summary>
+        public bool RidgeDetailLines { get; set; } = true;
+
+        /// <summary>Line style of the ridge detail lines (empty = the first available).</summary>
+        public string RidgeLineStyle { get; set; } = string.Empty;
+
+        // ── Step 6: slope by drain (Auto Slope By Drain V013 engine) ─────────
+        /// <summary>Run step 6.</summary>
         public bool SlopeEnabled { get; set; } = true;
 
         /// <summary>Slope (%).</summary>
@@ -125,6 +144,7 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Core.Models
             MidQuarterScope ??= new EdgeScope();
             GapScope ??= new EdgeScope();
             ExportFolder ??= string.Empty;
+            RidgeLineStyle ??= string.Empty;
             CircularPoints = Math.Max(1, CircularPoints);
             CorneredPoints = Math.Max(1, CorneredPoints);
             PathSamples = Math.Max(2, PathSamples);

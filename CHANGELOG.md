@@ -13,7 +13,7 @@ Each release lists every tool whose version changed, under the plugin version.
 
 ### Added
 - **Roof Points & Slope v1.0.0 (V001)** — new tool in **Roof Slope ▸ Points & Slope**. One window
-  runs up to five steps on one footprint roof, in order, as a single Undo step:
+  runs up to six steps on one footprint roof, in order, as a single Undo step:
   1. **Points around openings** — per opening, N points (circles / others defaults, editable per
      row) or a max spacing. Same rules as Inner Loop Divider V012.
   2. **Perpendicular points** — from each group of points on an opening to the nearest boundary
@@ -21,17 +21,24 @@ Each release lists every tool whose version changed, under the plugin version.
   3. **Midpoint and quarter points** — ½ and/or ¼ + ¾ of each edge, as Multiple Points V003.
   4. **Gap fill** (new) — along each edge, evenly spaced points wherever two neighbouring points
      are further apart than the interval.
-  5. **Slope by drain** — the Auto Slope By Drain V013 engine, unchanged, towards the openings
-     ticked as drains (roof parameters and the optional Excel report included).
+  5. **Ridge between drains** — the Ridge By Openings V070 services, unchanged: ridges midway
+     between the openings ticked as drains (at least two), clipped to the roof, as shape points +
+     split lines and/or detail lines in the active view (line style chosen in the window).
+     Openings that are not drains end the ridges that cross them.
+  6. **Slope by drain** — the Auto Slope By Drain V013 engine, unchanged, towards the same
+     drains, so the ridges become the high lines (roof parameters and the optional Excel report
+     included).
   Steps 3 and 4 each choose their edges: boundary and/or openings, lines and/or curves. The header
-  shows how many points each step will add before anything runs; points already there are skipped.
+  shows how many points each step will add (and the ridge lines) before anything runs; points already there are skipped.
   If any step fails, the whole run is rolled back. Settings are saved to
   `%AppData%\Revit26_Plugin\RoofPointsAndSlope\settings.json` (with a schema version).
   Internal names: `Btn_RoofPointsAndSlope_V001`, `Pulldown_RoofPointsAndSlope`.
 
 **User note:** nothing changes for existing tools. Combined Roof Tools V003 and the separate
 point and slope tools are unchanged and stay on the ribbon. Footprint roofs only (the openings
-are read from the roof's sketch). Not yet tested in Revit: try it on a copy of a model first.
+are read from the roof's sketch). The ridge step adds its points at the roof's base level, as
+Ridge By Openings V070 does, so run it together with step 6. Not yet tested in Revit: try it on a
+copy of a model first.
 
 ## [4.2.1] — 2026-10-19
 

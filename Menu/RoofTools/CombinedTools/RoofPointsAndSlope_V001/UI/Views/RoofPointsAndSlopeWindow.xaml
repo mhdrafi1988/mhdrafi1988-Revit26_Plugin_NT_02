@@ -3,10 +3,10 @@
 File: RoofPointsAndSlopeWindow.xaml
 Location: UI/Views/
 Step pipeline on the shared ToolWindowShell.
-  HEADER  five tiles: new points per point step, drains ticked.
-  BODY    steps 1–5 (each with its own tick and options), the openings
+  HEADER  six tiles: new points per point step, the ridge, drains ticked.
+  BODY    steps 1–6 (each with its own tick and options), the openings
           grid (per opening: points around it, perpendicular points,
-          drain) and the activity log.
+          drain — drains also seed the ridge) and the activity log.
   FOOTER  Re-read roof · Run Selected Steps · Close.
 =======================================================
 -->
@@ -72,6 +72,7 @@ Step pipeline on the shared ToolWindowShell.
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 <Border Grid.Column="0" Style="{StaticResource MetricCard}" Margin="0,0,6,0" ToolTip="New points step 1 will add">
                     <StackPanel>
@@ -97,9 +98,15 @@ Step pipeline on the shared ToolWindowShell.
                         <TextBlock Text="{Binding GapFillNew}" Style="{StaticResource MetricNumberAccent}"/>
                     </StackPanel>
                 </Border>
-                <Border Grid.Column="4" Style="{StaticResource MetricCard}" ToolTip="Openings ticked as drains for step 5">
+                <Border Grid.Column="4" Style="{StaticResource MetricCard}" Margin="0,0,6,0" ToolTip="Ridge lines and points step 5 will create">
                     <StackPanel>
-                        <TextBlock Text="5 · Drains" Style="{StaticResource MetricLabel}"/>
+                        <TextBlock Text="5 · Ridge" Style="{StaticResource MetricLabel}"/>
+                        <TextBlock Text="{Binding RidgeSummary}" Style="{StaticResource MetricNumberAccent}" FontSize="17"/>
+                    </StackPanel>
+                </Border>
+                <Border Grid.Column="5" Style="{StaticResource MetricCard}" ToolTip="Openings ticked as drains (ridge seeds and slope targets)">
+                    <StackPanel>
+                        <TextBlock Text="6 · Drains" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding DrainCount}" Style="{StaticResource MetricNumberSuccess}"/>
                     </StackPanel>
                 </Border>
@@ -218,7 +225,32 @@ Step pipeline on the shared ToolWindowShell.
                 <!-- ─── STEP 5 ─── -->
                 <Border Style="{StaticResource ContentCard}" Padding="14,10" Margin="0,0,0,8">
                     <StackPanel>
-                        <CheckBox Style="{StaticResource StepTitle}" Content="5 · Slope by drain (Auto Slope By Drain V013 engine)"
+                        <CheckBox Style="{StaticResource StepTitle}" Content="5 · Ridge between drains (Ridge By Openings V070 engine)"
+                                  IsChecked="{Binding RidgeEnabled}"/>
+                        <StackPanel IsEnabled="{Binding RidgeEnabled}">
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                <CheckBox Style="{StaticResource Opt}" Content="Shape points + split lines along the ridges" IsChecked="{Binding RidgeShapePoints}"/>
+                                <CheckBox Style="{StaticResource Opt}" Content="Detail lines in the active view" IsChecked="{Binding RidgeDetailLines}"/>
+                                <TextBlock Text="Line style" Style="{StaticResource Label}"/>
+                                <ComboBox Width="180" Height="26" IsEnabled="{Binding RidgeDetailLines}"
+                                          ItemsSource="{Binding LineStyleOptions}" SelectedItem="{Binding RidgeLineStyle}"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                <TextBlock Text="Group drains within (mm)" Style="{StaticResource Label}"/>
+                                <TextBox Style="{StaticResource NumberBox}" Text="{Binding RidgeProximityMm, UpdateSourceTrigger=PropertyChanged}"/>
+                                <TextBlock Text="Equidistance tolerance (mm)" Style="{StaticResource Label}"/>
+                                <TextBox Style="{StaticResource NumberBox}" Text="{Binding RidgeValidationToleranceMm, UpdateSourceTrigger=PropertyChanged}"/>
+                            </StackPanel>
+                            <TextBlock Style="{StaticResource HintText}" TextWrapping="Wrap"
+                                       Text="Ridges run midway between the openings ticked as Drain (at least two). Openings that are not drains end the ridges that cross them. Ridge points are added at the roof's base level; step 6 then makes the ridges the high lines."/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- ─── STEP 6 ─── -->
+                <Border Style="{StaticResource ContentCard}" Padding="14,10" Margin="0,0,0,8">
+                    <StackPanel>
+                        <CheckBox Style="{StaticResource StepTitle}" Content="6 · Slope by drain (Auto Slope By Drain V013 engine)"
                                   IsChecked="{Binding SlopeEnabled}"/>
                         <StackPanel IsEnabled="{Binding SlopeEnabled}">
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
@@ -308,7 +340,7 @@ Step pipeline on the shared ToolWindowShell.
                                     <DataTemplate>
                                         <CheckBox IsChecked="{Binding IsDrain, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                   IsEnabled="{Binding CanBeDrain}" Margin="6,0,0,0" VerticalAlignment="Center"
-                                                  ToolTip="Only openings the drain detection recognises can be drains"/>
+                                                  ToolTip="Drains seed the ridge (step 5) and are the low points of the slope (step 6). Only openings the drain detection recognises can be drains."/>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
@@ -319,7 +351,7 @@ Step pipeline on the shared ToolWindowShell.
                 <Border Style="{StaticResource ContentCard}"
                         Visibility="{Binding HasOpenings, Converter={StaticResource InverseBoolToVis}}">
                     <TextBlock Margin="0,20" HorizontalAlignment="Center" Style="{StaticResource HintText}"
-                               Text="This roof has no openings: steps 1, 2 and 5 have nothing to work on."/>
+                               Text="This roof has no openings: steps 1, 2, 5 and 6 have nothing to work on."/>
                 </Border>
 
                 <!-- ─── ACTIVITY LOG ─── -->
