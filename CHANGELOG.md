@@ -9,6 +9,29 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [4.2.1] — 2026-10-19
+
+### Changed
+- **Panel order** — panels now follow the workflow. SloperPro-MDL: Roof Slope, Shape Points,
+  Roof Tools, Roof Edit, Plan View, Compare, Insulation, Detail Lines, **Utilities** (moved from
+  first to last). SloperPro-DCM: View Create, View Place, View Rename, **Sheet Create**,
+  **DWG Tools**, **Family Tools**, Manage, Worksets. No button was renamed; only panel positions
+  changed.
+- **Link Check** — moved from its own one-button **Links** panel into the **Manage** panel (the
+  Links panel is gone). Same dropdown, same internal name `Pulldown_LinkVersionChecker`.
+
+### Fixed
+- **Buttons that could only raise an error** — removed from the ribbon because their command
+  source is not in the repository:
+  - Roof Slope ▸ By Point: V031, V029, Ridge V002, Multi Copies 29 (V032, V030, Ridge V003 and
+    Multi Copies 30 remain).
+  - DWG Tools ▸ Export DWG: V001 (V004 and V003 remain).
+  - Manage ▸ Overlaps V003, ParaManager V004.
+  - Worksets ▸ WS Renamer V004, WS Renamer XL FX04.
+
+**User note:** Utilities is now at the right-hand end of SloperPro-MDL_NT_02, and Link Check is in
+the Manage panel. The removed entries never worked in this build, so no working tool was lost.
+
 ## [4.2.0] — 2026-10-19
 
 ### Added

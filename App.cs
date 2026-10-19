@@ -44,13 +44,16 @@ namespace Revit26_Plugin_Revised
             string assemblyPath = Assembly.GetExecutingAssembly().Location;
 
             // ── SloperPro-Modelling ──────────────────────────────────────────
+            // Panels appear in the order they are created: workflow order, Utilities last.
             RoofToolsRibbon.Build(application, ModellingTabName, assemblyPath);
             DetailLInesRibbon.Build(application, ModellingTabName, assemblyPath);
+            RoofToolsRibbon.BuildUtilities(application, ModellingTabName, assemblyPath);
 
             // ── SloperPro-Documents ──────────────────────────────────────────
+            // Views, then sheets, then DWG/family setup, then model management.
             ViewToolsRibbon.Build(application, DocumentsTabName, assemblyPath);
-            SetupRibbon.Build(application, DocumentsTabName, assemblyPath);
             SheetToolsRibbon.Build(application, DocumentsTabName, assemblyPath);
+            SetupRibbon.Build(application, DocumentsTabName, assemblyPath);
             ManageRibbon.Build(application, DocumentsTabName, assemblyPath);
         }
     }
