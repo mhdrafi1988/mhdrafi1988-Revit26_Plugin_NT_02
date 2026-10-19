@@ -19,7 +19,7 @@ A template (not a UserControl) so tool content can use x:Name freely.
                     xmlns:local="clr-namespace:Revit26_Plugin_Revised.Shared.Controls">
 
     <ResourceDictionary.MergedDictionaries>
-        <ResourceDictionary Source="pack://application:,,,/Revit26_Plugin;component/Shared/SharedStyles.xaml"/>
+        <ResourceDictionary Source="pack://application:,,,/Revit26_Plugin_Revised;component/Shared/SharedStyles.xaml"/>
     </ResourceDictionary.MergedDictionaries>
 
     <BooleanToVisibilityConverter x:Key="ShellBoolToVisibility"/>

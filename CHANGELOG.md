@@ -9,6 +9,24 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [5.0.0] — 2026-10-19
+
+### Changed
+- **The plugin DLL is now `Revit26_Plugin_Revised.dll`** (was `Revit26_Plugin.dll`):
+  `<AssemblyName>` in the `.csproj` is `Revit26_Plugin_Revised`, so the build writes
+  `Revit26_Plugin_Revised.dll` and `Revit26_Plugin_Revised.deps.json`.
+- All 132 `pack://application:,,,/Revit26_Plugin;component/…` URIs (shared styles, window resources,
+  icons) now name `Revit26_Plugin_Revised`; with the old name the tool windows would fail to load
+  their resources.
+- `Installer/rf12_Revit_2026.addin` loads `Rf_Revit_2026\Revit26_Plugin_Revised.dll`, and the three
+  installer scripts copy and register the new DLL and `.deps.json`.
+- Unchanged: the project file `Revit26_Plugin.csproj`, the add-in `AddInId`, and the
+  `%AppData%\Revit26_Plugin` / `Documents\Revit26_Plugin` settings and log folders.
+
+**User note (breaking):** an `.addin` file whose `<Assembly>` still points at `Revit26_Plugin.dll`
+loads the old build. Reinstall with the updated installer, or point `<Assembly>` at
+`Revit26_Plugin_Revised.dll` and delete the old `Revit26_Plugin.dll` from the add-in folder.
+
 ## [4.0.1] — 2026-10-19
 
 ### Added
@@ -36,7 +54,7 @@ Each release lists every tool whose version changed, under the plugin version.
   and embedded-resource names move with it: icon paths passed to `ImageUtils.Load` now start with
   `Revit26_Plugin_Revised.Resources.…`, and `Properties.Resources` loads
   `Revit26_Plugin_Revised.Properties.Resources`.
-- Unchanged on purpose: the assembly name (`Revit26_Plugin.dll`), `pack://…/Revit26_Plugin;component`
+- Unchanged on purpose: the assembly name (`Revit26_Plugin.dll`), `pack://…/Revit26_Plugin_Revised;component`
   URIs, and the `%AppData%\Revit26_Plugin` / `Documents\Revit26_Plugin` settings and log folders, so
   existing settings and logs still load. No tool versions changed.
 

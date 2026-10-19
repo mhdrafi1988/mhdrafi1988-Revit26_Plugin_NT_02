@@ -24,8 +24,10 @@ done until it builds with 0 errors. Running it still needs Revit on Windows.
 - **Plugin version** is `<Version>` in `Revit26_Plugin.csproj`.
 - **Namespace:** the root namespace is `Revit26_Plugin_Revised` (`<RootNamespace>` in the `.csproj`;
   renamed from `Revit26_Plugin` in 4.0.0). Tool namespaces are `Revit26_Plugin_Revised.<Tool>.V<NNN>`.
-  The assembly is still `Revit26_Plugin.dll`, and pack URIs and the `%AppData%\Revit26_Plugin`
-  folders keep the old name.
+  The assembly is `Revit26_Plugin_Revised.dll` (`<AssemblyName>`, renamed in 5.0.0), so pack URIs
+  read `/Revit26_Plugin_Revised;component/…`. The project file is still `Revit26_Plugin.csproj`, and
+  the `%AppData%\Revit26_Plugin` / `Documents\Revit26_Plugin` folders keep the old name so existing
+  settings and logs still load.
 - **Add-in manifest** is `Installer/rf12_Revit_2026.addin` (same file name, `AddInId` and
   `FullClassName` as the one the `Installer/Output/*.iss` scripts write). Keep them in sync.
 - **Ribbon** files are in `Menu/00_Push_Button_Menu_items/Ribbon`. One button runs one tool; use a
@@ -64,12 +66,15 @@ done until it builds with 0 errors. Running it still needs Revit on Windows.
 
 1. Never change a ribbon button's internal name (first `PushButtonData` argument), an
    `IExternalCommand` class name, or an add-in GUID. Change a visible label only when asked.
-2. Change a namespace only when the owner asks for it (the 4.0.0 rename to `Revit26_Plugin_Revised`
-   was such a request). Then do it in one change: C# and XAML (`x:Class`, `clr-namespace:`), the
-   command class-name strings in the ribbon, `<RootNamespace>` and the embedded-resource names that
-   follow it (`ImageUtils.Load` paths, `Properties.Resources`), and `FullClassName` in
-   `Installer/rf12_Revit_2026.addin` and the installer scripts. It breaks existing installs,
-   keyboard shortcuts and Quick Access Toolbar entries, so bump MAJOR and add a CHANGELOG user note.
+2. Change a namespace or the assembly name only when the owner asks for it (the 4.0.0 namespace
+   and 5.0.0 assembly renames to `Revit26_Plugin_Revised` were such requests). Then do it in one
+   change. A namespace change covers C# and XAML (`x:Class`, `clr-namespace:`), the command
+   class-name strings in the ribbon, `<RootNamespace>` and the embedded-resource names that follow
+   it (`ImageUtils.Load` paths, `Properties.Resources`), and `FullClassName` in
+   `Installer/rf12_Revit_2026.addin` and the installer scripts. An assembly-name change covers
+   `<AssemblyName>`, every `/<Assembly>;component/` pack URI and `assembly=` xmlns, `<Assembly>` in
+   the `.addin`, and the DLL / `.deps.json` names in the installer scripts. Either breaks existing
+   installs, so bump MAJOR and add a CHANGELOG user note.
 3. Never rename or remove shared parameters, parameter GUIDs or schema fields. Create new ones only if
    missing, and keep working without them.
 4. Add a version field to JSON / Excel / config formats; read old and new, or migrate automatically.

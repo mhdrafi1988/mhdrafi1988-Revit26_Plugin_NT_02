@@ -43,7 +43,7 @@ Changes vs VA008 (layout only):
                     and its Build Action is set to "Resource".
                     If the folder or file name differs, adjust the Source path accordingly.
                 -->
-                <ResourceDictionary Source="/Revit26_Plugin;component/Shared/SharedStyles.xaml"/>
+                <ResourceDictionary Source="/Revit26_Plugin_Revised;component/Shared/SharedStyles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
 
             <!-- Converters instantiated locally per suite convention — never in SharedStyles.xaml -->

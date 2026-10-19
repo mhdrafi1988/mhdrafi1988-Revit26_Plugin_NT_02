@@ -36,14 +36,14 @@ Layout: shell header (metric tiles) / body (grid) / footer (Apply, Open).
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="pack://application:,,,/Revit26_Plugin;component/Shared/SharedStyles.xaml"/>
+                <ResourceDictionary Source="pack://application:,,,/Revit26_Plugin_Revised;component/Shared/SharedStyles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
 
             <!-- Converters are instantiated in the consuming window, never in
                  SharedStyles.xaml (see Shared/Converters.cs's own header).
 
                  NOTE on the xmlns declarations above: none of them carry
-                 ";assembly=Revit26_Plugin", matching ExportDwgToFolderWindow.xaml.
+                 ";assembly=Revit26_Plugin_Revised", matching ExportDwgToFolderWindow.xaml.
                  UI_UX_PATTERNS.md documents the assembly-qualified form, but the
                  windows that actually build in this repo do not use it — and
                  naming this project's own assembly sends the file to

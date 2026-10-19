@@ -26,7 +26,7 @@ PrivilegesRequired=admin
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 UninstallDisplayName={#MyAppName}
-UninstallDisplayIcon={app}\Revit26_Plugin.dll
+UninstallDisplayIcon={app}\Revit26_Plugin_Revised.dll
 WizardStyle=modern
 
 [Languages]
@@ -41,8 +41,8 @@ Name: "{#RevitAddinDir}\{#PluginSubDir}";     Permissions: everyone-full
 ; ============================================================
 [Files]
 ; --- Main plugin assembly ---
-Source: "{#SourceBase}\Revit26_Plugin.dll";          DestDir: "{app}"; Flags: ignoreversion
-Source: "{#SourceBase}\Revit26_Plugin.deps.json";    DestDir: "{app}"; Flags: ignoreversion
+Source: "{#SourceBase}\Revit26_Plugin_Revised.dll";          DestDir: "{app}"; Flags: ignoreversion
+Source: "{#SourceBase}\Revit26_Plugin_Revised.deps.json";    DestDir: "{app}"; Flags: ignoreversion
 
 ; --- CommunityToolkit ---
 Source: "{#SourceBase}\CommunityToolkit.Mvvm.dll";   DestDir: "{app}"; Flags: ignoreversion
@@ -136,7 +136,7 @@ end;
 
 function GetDllInstallPath(): String;
 begin
-  Result := ExpandConstant('{commonappdata}\Autodesk\Revit\Addins\2026\{#PluginSubDir}\Revit26_Plugin.dll');
+  Result := ExpandConstant('{commonappdata}\Autodesk\Revit\Addins\2026\{#PluginSubDir}\Revit26_Plugin_Revised.dll');
 end;
 
 procedure WriteAddinManifest();

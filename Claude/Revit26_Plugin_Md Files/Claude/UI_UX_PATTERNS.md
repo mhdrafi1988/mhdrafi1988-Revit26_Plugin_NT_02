@@ -44,7 +44,7 @@ causes "incompatible type" / "does not exist in namespace" errors at
 design time. Reference with the assembly-qualified xmlns:
 
 ```xml
-xmlns:converters="clr-namespace:Revit26_Plugin.Shared.Models;assembly=Revit26_Plugin"
+xmlns:converters="clr-namespace:Revit26_Plugin.Shared.Models;assembly=Revit26_Plugin_Revised"
 ...
 <converters:LogLevelToColorConverter x:Key="LogLevelToColorConverter"/>
 ```
