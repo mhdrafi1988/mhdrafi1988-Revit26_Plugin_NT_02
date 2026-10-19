@@ -42,6 +42,7 @@
 
 using Autodesk.Revit.DB;
 using Revit26_Plugin_Revised.Shared.Models;
+using Revit26_Plugin_Revised.Shared.Services;
 using Revit26_Plugin_Revised.WorksetCreator.V016.Core.Models;
 using System;
 using System.Collections.Generic;
@@ -142,7 +143,8 @@ namespace Revit26_Plugin_Revised.WorksetCreator.V016.Core.Services
                     DisplayName = rawName,
 
                     IsIfc       = isIfc,
-                    LoadState   = MapLoadState(type)
+                    LoadState   = MapLoadState(type),
+                    AccState    = AccLinkStatus.Read(doc, type.Id)
                 };
 
                 if (instancesByType.TryGetValue(record.TypeId, out List<RevitLinkInstance> instances))

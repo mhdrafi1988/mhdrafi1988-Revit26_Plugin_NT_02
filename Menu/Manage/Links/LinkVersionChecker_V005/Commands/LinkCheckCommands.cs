@@ -7,6 +7,7 @@ using Autodesk.Revit.UI;
 using Revit26_Plugin_Revised.LinkVersionChecker_V005.Services;
 using Revit26_Plugin_Revised.LinkVersionChecker_V005.UI.ViewModels;
 using Revit26_Plugin_Revised.LinkVersionChecker_V005.UI.Views;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace Revit26_Plugin_Revised.LinkVersionChecker_V005.Commands
 {
@@ -14,23 +15,29 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker_V005.Commands
     [Transaction(TransactionMode.Manual)]
     public class CmdLinkCheckPreOpen : IExternalCommand
     {
+        /// <summary>Revit entry point — delegates to <see cref="ToolGuard.RunCommand"/>.</summary>
         public Result Execute(ExternalCommandData data, ref string message, ElementSet elements) =>
-            LinkCheckLauncher.Show(data.Application, ScanMode.PreOpen, ref message);
+            ToolGuard.RunCommand(GetType(), data, ref message, elements,
+                (ExternalCommandData d, ref string m, ElementSet e) => LinkCheckLauncher.Show(d.Application, ScanMode.PreOpen));
     }
 
     /// <summary>Check the links of the open project.</summary>
     [Transaction(TransactionMode.Manual)]
     public class CmdLinkCheckInModel : IExternalCommand
     {
-        public Result Execute(ExternalCommandData data, ref string message, ElementSet elements)
+        /// <summary>Revit entry point — delegates to <see cref="ToolGuard.RunCommand"/>.</summary>
+        public Result Execute(ExternalCommandData data, ref string message, ElementSet elements) =>
+            ToolGuard.RunCommand(GetType(), data, ref message, elements, ExecuteUnguarded);
+
+        private Result ExecuteUnguarded(ExternalCommandData data, ref string message, ElementSet elements)
         {
             Document doc = data.Application.ActiveUIDocument?.Document;
             if (doc == null || doc.IsFamilyDocument)
             {
-                TaskDialog.Show("Link Version Checker", "Open a project first, or use Pre-Open / Folder Audit.");
+                TaskDialog.Show(ToolCatalog.LinkVersionCheckerV005.Title, "Open a project first, or use Pre-Open / Folder Audit.");
                 return Result.Cancelled;
             }
-            return LinkCheckLauncher.Show(data.Application, ScanMode.InModel, ref message);
+            return LinkCheckLauncher.Show(data.Application, ScanMode.InModel);
         }
     }
 
@@ -38,8 +45,10 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker_V005.Commands
     [Transaction(TransactionMode.Manual)]
     public class CmdLinkCheckFolder : IExternalCommand
     {
+        /// <summary>Revit entry point — delegates to <see cref="ToolGuard.RunCommand"/>.</summary>
         public Result Execute(ExternalCommandData data, ref string message, ElementSet elements) =>
-            LinkCheckLauncher.Show(data.Application, ScanMode.Folder, ref message);
+            ToolGuard.RunCommand(GetType(), data, ref message, elements,
+                (ExternalCommandData d, ref string m, ElementSet e) => LinkCheckLauncher.Show(d.Application, ScanMode.Folder));
     }
 
     /// <summary>Keeps Pre-Open and Folder Audit buttons enabled with no project open.</summary>
@@ -50,22 +59,15 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker_V005.Commands
 
     internal static class LinkCheckLauncher
     {
-        public static Result Show(UIApplication uiapp, ScanMode mode, ref string message)
+        /// <summary>Opens the checker window modally. Errors propagate to <see cref="ToolGuard"/>.</summary>
+        public static Result Show(UIApplication uiapp, ScanMode mode)
         {
-            try
-            {
-                var vm = new LinkCheckerViewModel(uiapp.Application, uiapp.ActiveUIDocument?.Document, mode);
-                var win = new LinkCheckerWindow(vm);
-                new WindowInteropHelper(win) { Owner = uiapp.MainWindowHandle };
-                // Modal: every handler (and every await continuation) stays in Revit's API context.
-                win.ShowDialog();
-                return Result.Succeeded;
-            }
-            catch (Exception ex)
-            {
-                message = ex.Message;
-                return Result.Failed;
-            }
+            var vm = new LinkCheckerViewModel(uiapp.Application, uiapp.ActiveUIDocument?.Document, mode);
+            var win = new LinkCheckerWindow(vm);
+            new WindowInteropHelper(win) { Owner = uiapp.MainWindowHandle };
+            // Modal: every handler (and every await continuation) stays in Revit's API context.
+            win.ShowDialog();
+            return Result.Succeeded;
         }
     }
 

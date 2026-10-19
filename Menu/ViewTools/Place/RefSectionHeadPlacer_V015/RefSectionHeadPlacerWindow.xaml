@@ -297,6 +297,14 @@ Changes vs V014 (layout only):
                                         <DataGrid.Columns>
                                             <DataGridCheckBoxColumn Binding="{Binding IsSelected}" Width="34"/>
                                             <DataGridTextColumn Header="File" Binding="{Binding Name}" Width="*"/>
+                                            <!-- ACC Docs status: green radio dot (shared AccStatusDot) -->
+                                            <DataGridTemplateColumn Header="ACC" Width="44" SortMemberPath="AccSortOrder" IsReadOnly="True">
+                                                <DataGridTemplateColumn.CellTemplate>
+                                                    <DataTemplate>
+                                                        <shell:AccStatusDot State="{Binding AccState}"/>
+                                                    </DataTemplate>
+                                                </DataGridTemplateColumn.CellTemplate>
+                                            </DataGridTemplateColumn>
                                         </DataGrid.Columns>
                                     </DataGrid>
                                 </StackPanel>

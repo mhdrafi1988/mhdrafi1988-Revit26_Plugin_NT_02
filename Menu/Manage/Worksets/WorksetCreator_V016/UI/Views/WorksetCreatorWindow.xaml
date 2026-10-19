@@ -70,6 +70,11 @@ Added later in V016 — IFC toggle and duplicate prevention:
 
             <Style x:Key="CurrentWorksetCell" TargetType="TextBlock" BasedOn="{StaticResource CellText}"/>
 
+            <!-- ACC Docs status cell — green radio dot (shared AccStatusDot) -->
+            <DataTemplate x:Key="AccDotCell">
+                <shell:AccStatusDot State="{Binding AccState}"/>
+            </DataTemplate>
+
             <!-- Load state cell (V016) — colour comes from the state, no inline colours -->
             <Style x:Key="LoadStateCell" TargetType="TextBlock" BasedOn="{StaticResource CellText}">
                 <Setter Property="Foreground" Value="{StaticResource BrushTextSecondary}"/>
@@ -763,6 +768,8 @@ Added later in V016 — IFC toggle and duplicate prevention:
                                             </DataTemplate>
                                         </DataGridTemplateColumn.CellTemplate>
                                     </DataGridTemplateColumn>
+                                    <DataGridTemplateColumn Header="ACC" Width="44" SortMemberPath="AccSortOrder"
+                                                            CellTemplate="{StaticResource AccDotCell}"/>
                                     <DataGridTemplateColumn Header="Workset" Width="220">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
@@ -971,6 +978,8 @@ Added later in V016 — IFC toggle and duplicate prevention:
                                             </DataTemplate>
                                         </DataGridTemplateColumn.CellTemplate>
                                     </DataGridTemplateColumn>
+                                    <DataGridTemplateColumn Header="ACC" Width="44" SortMemberPath="AccSortOrder"
+                                                            CellTemplate="{StaticResource AccDotCell}"/>
                                     <DataGridTemplateColumn Header="Load State" Width="80" SortMemberPath="LoadStateText">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
@@ -1199,6 +1208,8 @@ Added later in V016 — IFC toggle and duplicate prevention:
                                             </DataTemplate>
                                         </DataGridTemplateColumn.CellTemplate>
                                     </DataGridTemplateColumn>
+                                    <DataGridTemplateColumn Header="ACC" Width="44" SortMemberPath="AccSortOrder"
+                                                            CellTemplate="{StaticResource AccDotCell}"/>
                                     <DataGridTemplateColumn Header="Proposed Workset" Width="220">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>

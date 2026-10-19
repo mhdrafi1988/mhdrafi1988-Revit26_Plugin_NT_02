@@ -255,12 +255,15 @@ Changes vs VA008 (layout only):
                                                     <ColumnDefinition Width="Auto"/>
                                                     <ColumnDefinition Width="*"/>
                                                     <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="Auto"/>
                                                 </Grid.ColumnDefinitions>
                                                 <CheckBox Grid.Column="0" IsChecked="{Binding IsSelected}"
                                                           VerticalAlignment="Center" Margin="0,0,10,0"/>
                                                 <TextBlock Grid.Column="1" Text="{Binding DocumentTitle}" FontSize="12.5" FontWeight="SemiBold"
                                                            Foreground="{StaticResource BrushTextPrimary}" VerticalAlignment="Center"/>
-                                                <Border Grid.Column="2" Style="{StaticResource BadgePill}">
+                                                <!-- ACC Docs status: green radio dot (shared AccStatusDot) -->
+                                                <shell:AccStatusDot Grid.Column="2" State="{Binding AccState}" Margin="8,0"/>
+                                                <Border Grid.Column="3" Style="{StaticResource BadgePill}">
                                                     <TextBlock Text="{Binding StatusDisplay}">
                                                         <TextBlock.Style>
                                                             <Style TargetType="TextBlock" BasedOn="{StaticResource BadgeText}">

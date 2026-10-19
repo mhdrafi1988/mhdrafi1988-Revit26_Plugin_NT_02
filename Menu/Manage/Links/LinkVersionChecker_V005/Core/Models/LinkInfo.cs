@@ -190,6 +190,9 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker_V005.Core.Models
 
         public string SyncDetectedBy => AccSyncInfo.DetectedBy(Sync);
 
+        /// <summary>Radio-dot state for the ACC Docs column (shared <c>AccStatusDot</c>).</summary>
+        public Revit26_Plugin_Revised.Shared.Services.AccLinkState AccDot => AccSyncInfo.ToDot(Sync);
+
         /// <summary>Sort key for the Sync column — problems first, blanks last.</summary>
         public int SyncSortOrder => AccSyncInfo.SortOrder(Sync);
 
@@ -267,7 +270,7 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker_V005.Core.Models
         /// <summary>Refreshes every Sync-derived binding after the state changes.</summary>
         public void NotifySync()
         {
-            Raise(nameof(Sync)); Raise(nameof(SyncText)); Raise(nameof(SyncGlyph));
+            Raise(nameof(Sync)); Raise(nameof(SyncText)); Raise(nameof(SyncGlyph)); Raise(nameof(AccDot));
             Raise(nameof(SyncColour)); Raise(nameof(SyncCellText)); Raise(nameof(SyncTip));
             Raise(nameof(SyncVersionText)); Raise(nameof(SyncCheckedText));
             Raise(nameof(SyncSortOrder)); Raise(nameof(SyncDetectedBy)); Raise(nameof(IsSyncProblem));

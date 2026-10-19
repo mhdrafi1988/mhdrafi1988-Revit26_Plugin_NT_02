@@ -168,6 +168,7 @@ Changes vs V003 (layout only):
                                                     <ColumnDefinition Width="Auto"/>
                                                     <ColumnDefinition Width="*"/>
                                                     <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="Auto"/>
                                                 </Grid.ColumnDefinitions>
                                                 <CheckBox Grid.Column="0" IsChecked="{Binding IsSelected}" IsEnabled="{Binding IsLoaded}"
                                                           VerticalAlignment="Center" Margin="0,0,10,0"/>
@@ -177,7 +178,9 @@ Changes vs V003 (layout only):
                                                         <Run Text="Instance: "/><Run Text="{Binding InstanceName, Mode=OneWay}"/>
                                                     </TextBlock>
                                                 </StackPanel>
-                                                <Border Grid.Column="2" Style="{StaticResource BadgePill}">
+                                                <!-- ACC Docs status: green radio dot (shared AccStatusDot) -->
+                                                <shell:AccStatusDot Grid.Column="2" State="{Binding AccState}" Margin="8,0"/>
+                                                <Border Grid.Column="3" Style="{StaticResource BadgePill}">
                                                     <TextBlock>
                                                         <TextBlock.Style>
                                                             <Style TargetType="TextBlock" BasedOn="{StaticResource BadgeText}">

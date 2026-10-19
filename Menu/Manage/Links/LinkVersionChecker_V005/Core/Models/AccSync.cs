@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace Revit26_Plugin_Revised.LinkVersionChecker_V005.Core.Models
 {
@@ -108,6 +109,25 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker_V005.Core.Models
 
         /// <summary>True for the states that deserve attention before the team opens the host.</summary>
         public static bool IsProblem(AccSyncState s) => Map[s].Problem;
+
+        /// <summary>
+        /// The shared radio-dot state for the ACC Docs column: filled green for Current / Downloaded,
+        /// hollow green for Not downloaded, amber for Out of date, red for Failed, grey ring while
+        /// unanswered, faint empty ring for a non-ACC link.
+        /// </summary>
+        public static AccLinkState ToDot(AccSyncState s)
+        {
+            switch (s)
+            {
+                case AccSyncState.Current: return AccLinkState.Current;
+                case AccSyncState.Downloaded: return AccLinkState.Loaded;
+                case AccSyncState.NotDownloaded: return AccLinkState.NotLoaded;
+                case AccSyncState.OutOfDate: return AccLinkState.OutOfDate;
+                case AccSyncState.Failed: return AccLinkState.Failed;
+                case AccSyncState.NotApplicable: return AccLinkState.NotAcc;
+                default: return AccLinkState.Unknown;
+            }
+        }
 
         /// <summary>True once the state carries a real answer (so "checked" has meaning).</summary>
         public static bool IsResolved(AccSyncState s) =>

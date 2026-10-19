@@ -51,7 +51,7 @@ namespace Revit26_Plugin_Revised.Shared.Services
     {
         private static readonly List<ToolInfo> All = new();
 
-        public static readonly ToolInfo LinkedDetailLineGenerator = Add("Detail Lines From Links", "10.1.1", "VA010", "Revit26_Plugin_Revised.LinkedDetailLineGenerator.VA010");
+        public static readonly ToolInfo LinkedDetailLineGenerator = Add("Detail Lines From Links", "10.2.0", "VA010", "Revit26_Plugin_Revised.LinkedDetailLineGenerator.VA010");
         public static readonly ToolInfo DetailLineClosedLoop = Add("Detail Line Closed Loop", "3.0.1", "V003", "Revit26_Plugin_Revised.DetailLineClosedLoop.V003");
         public static readonly ToolInfo DtlLineDim = Add("Auto Dim Detail Line", "10.1.1", "V010", "Revit26_Plugin_Revised.DtlLineDim.V010");
         public static readonly ToolInfo FloorsAndRoofFromLinkedRooms = Add("Floors And Roof From Linked Rooms", "13.1.1", "V013", "Revit26_Plugin_Revised.FloorsAndRoofFromLinkedRooms.V013");
@@ -100,17 +100,18 @@ namespace Revit26_Plugin_Revised.Shared.Services
         public static readonly ToolInfo SheetAutoRearrange = Add("Sheet Auto Rearrange", "28.1.1", "V028", "Revit26_Plugin_Revised.SheetAutoRearrange.V028");
         public static readonly ToolInfo SheetViewArrange = Add("Sheet View Arrange", "1.2.1", "V001", "Revit26_Plugin_Revised.SheetViewArrange.V001");
         public static readonly ToolInfo RoofEdgeAroundSections = Add("Roof Edge Around Sections", "7.1.1", "V007", "Revit26_Plugin_Revised.RoofEdgeAroundSections.V007");
-        public static readonly ToolInfo RoofEdgeElementSections = Add("Roof Edge Element Sections", "4.1.1", "V004", "Revit26_Plugin_Revised.RoofEdgeElementSections.V004");
+        public static readonly ToolInfo RoofEdgeElementSections = Add("Roof Edge Element Sections", "4.2.0", "V004", "Revit26_Plugin_Revised.RoofEdgeElementSections.V004");
         public static readonly ToolInfo RoofNameBuilder = Add("Roof Name Builder", "2.1.1", "V002", "Revit26_Plugin_Revised.RoofNameBuilder.V002");
         public static readonly ToolInfo IslandRoofSplitter = Add("Island Roof Splitter", "0.2.1", "V001 (WIP)", "Revit26_Plugin_Revised.IslandRoofSplitter.V001");
         public static readonly ToolInfo IslandRoofSplitterV002 = Add("Island Roof Splitter", "2.0.0", "V002", "Revit26_Plugin_Revised.IslandRoofSplitter.V002");
         public static readonly ToolInfo LinkVersionChecker = Add("Link Version Checker", "3.0.1", "V003", "Revit26_Plugin_Revised.LinkVersionChecker_V003");
         public static readonly ToolInfo LinkVersionCheckerV004 = Add("Link Version Checker", "4.2.0", "V004", "Revit26_Plugin_Revised.LinkVersionChecker_V004");
+        public static readonly ToolInfo LinkVersionCheckerV005 = Add("Link Version Checker", "5.0.0", "V005", "Revit26_Plugin_Revised.LinkVersionChecker_V005");
         public static readonly ToolInfo RoofViewFocus = Add("Roof View Focus", "4.1.1", "V004", "Revit26_Plugin_Revised.RoofViewFocus.V004");
         public static readonly ToolInfo CreateSections = Add("Create Sections From Detail Lines", "13.1.1", "V013", "Revit26_Plugin_Revised.CreateSections.V013");
         public static readonly ToolInfo APUS = Add("Auto Place Sections", "324.1.1", "V324", "Revit26_Plugin_Revised.APUS.V324");
         public static readonly ToolInfo CalloutCOP = Add("Callout To Section View Placement", "21.1.1", "V021", "Revit26_Plugin_Revised.CalloutCOP.V021");
-        public static readonly ToolInfo RefSectionHeadPlacer = Add("Reference Section Head Placer", "15.1.1", "V015", "Revit26_Plugin_Revised.RefSectionHeadPlacer.V015");
+        public static readonly ToolInfo RefSectionHeadPlacer = Add("Reference Section Head Placer", "15.2.0", "V015", "Revit26_Plugin_Revised.RefSectionHeadPlacer.V015");
         public static readonly ToolInfo SectionViewAutoTagger = Add("Section View Auto Tagger", "6.1.1", "V006", "Revit26_Plugin_Revised.SectionViewAutoTagger.V006");
         public static readonly ToolInfo ViewAutoRenamer = Add("View Auto Renamer", "6.1.1", "V006", "Revit26_Plugin_Revised.ViewAutoRenamer.V006");
         public static readonly ToolInfo BubbleAutoRenumber = Add("Bubble Auto Renumber", "8.0.1", "V008", "Revit26_Plugin_Revised.BubbleAutoRenumber.V008");
@@ -119,7 +120,7 @@ namespace Revit26_Plugin_Revised.Shared.Services
         public static readonly ToolInfo DeleteWorkset = Add("Delete Workset", "1.2.0", "V001", "Revit26_Plugin_Revised.DeleteWorkset.V001");
         public static readonly ToolInfo DeleteLineStyles = Add("Delete Line Styles", "1.2.0", "V001", "Revit26_Plugin_Revised.DeleteLineStyles.V001");
         public static readonly ToolInfo BulkRename = Add("Bulk Rename", "1.1.1", "V001", "Revit26_Plugin_Revised.BulkRename.V001");
-        public static readonly ToolInfo WorksetCreator = Add("Workset Creator", "16.1.1", "V016", "Revit26_Plugin_Revised.WorksetCreator.V016");
+        public static readonly ToolInfo WorksetCreator = Add("Workset Creator", "16.2.0", "V016", "Revit26_Plugin_Revised.WorksetCreator.V016");
 
         private static ToolInfo Add(string name, string version, string buildTag, string namespacePrefix)
         {

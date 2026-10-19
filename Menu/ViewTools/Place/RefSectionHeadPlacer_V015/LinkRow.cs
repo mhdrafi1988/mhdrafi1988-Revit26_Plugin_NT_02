@@ -1,5 +1,6 @@
 using Autodesk.Revit.DB;
 using CommunityToolkit.Mvvm.ComponentModel;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace Revit26_Plugin_Revised.RefSectionHeadPlacer.V015.Core.Models
 {
@@ -22,11 +23,18 @@ namespace Revit26_Plugin_Revised.RefSectionHeadPlacer.V015.Core.Models
         public RevitLinkInstance Instance { get; }
         public Document LinkDocument { get; }
 
+        /// <summary>ACC Docs status of the link, drawn as the green radio dot in the ACC column.</summary>
+        public AccLinkState AccState { get; }
+
+        /// <summary>Sort key for the ACC column — ACC problems first, non-ACC links last.</summary>
+        public int AccSortOrder => AccLinkStatus.SortOrder(AccState);
+
         public LinkRow(RevitLinkInstance instance)
         {
             Instance = instance;
             LinkDocument = instance.GetLinkDocument();
             Name = instance.Name;
+            AccState = AccLinkStatus.Read(instance);
         }
     }
 }

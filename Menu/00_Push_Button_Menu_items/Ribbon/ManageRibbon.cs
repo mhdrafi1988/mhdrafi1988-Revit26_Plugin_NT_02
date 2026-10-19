@@ -105,16 +105,28 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
 
             // Link Version Checker V004 — same three scan modes, now seeing ACC / cloud links
             // (V003 silently dropped them) plus a Source column and filter.
-            // "#" at the end of a label marks the version added last.
             const string lvc4Ns = "Revit26_Plugin_Revised.LinkVersionChecker_V004.Commands.";
-            var linkPreOpenV004 = Btn(assemblyPath, "Btn_LinkVersionChecker_PreOpen_V004", "Link Check Pre-Open V004 #", lvc4Ns + "CmdLinkCheckPreOpen",
+            var linkPreOpenV004 = Btn(assemblyPath, "Btn_LinkVersionChecker_PreOpen_V004", "Link Check Pre-Open V004", lvc4Ns + "CmdLinkCheckPreOpen",
                 "Manage.ParaManager_16.png", "Link Version Checker - Pre-Open", "V004", "Check a model's linked file versions BEFORE opening it (no model is opened). Sees ACC / cloud links.");
             linkPreOpenV004.AvailabilityClassName = lvc4Ns + "LinkCheckAlwaysAvailable";
-            var linkInModelV004 = Btn(assemblyPath, "Btn_LinkVersionChecker_InModel_V004", "Link Check In-Model V004 #", lvc4Ns + "CmdLinkCheckInModel",
+            var linkInModelV004 = Btn(assemblyPath, "Btn_LinkVersionChecker_InModel_V004", "Link Check In-Model V004", lvc4Ns + "CmdLinkCheckInModel",
                 "Manage.ParaManager_16.png", "Link Version Checker - In-Model", "V004", "Check links, IFC caches, imports and worksets in the open model, ACC / cloud links included.");
-            var linkFolderV004 = Btn(assemblyPath, "Btn_LinkVersionChecker_Folder_V004", "Link Check Folder Audit V004 #", lvc4Ns + "CmdLinkCheckFolder",
+            var linkFolderV004 = Btn(assemblyPath, "Btn_LinkVersionChecker_Folder_V004", "Link Check Folder Audit V004", lvc4Ns + "CmdLinkCheckFolder",
                 "Manage.ParaManager_16.png", "Link Version Checker - Folder Audit", "V004", "Audit every host model in a project folder and export one report.");
             linkFolderV004.AvailabilityClassName = lvc4Ns + "LinkCheckAlwaysAvailable";
+
+            // Link Version Checker V005 — same three scan modes plus an ACC Docs column (green radio
+            // dot: is the ACC copy current / downloaded?) and an on-demand Check Cloud Status button.
+            // "#" at the end of a label marks the version added last.
+            const string lvc5Ns = "Revit26_Plugin_Revised.LinkVersionChecker_V005.Commands.";
+            var linkPreOpenV005 = Btn(assemblyPath, "Btn_LinkVersionChecker_PreOpen_V005", "Link Check Pre-Open V005 #", lvc5Ns + "CmdLinkCheckPreOpen",
+                "Manage.ParaManager_16.png", "Link Version Checker - Pre-Open", "V005", "Check a model's linked file versions BEFORE opening it (no model is opened). Shows whether Desktop Connector files are downloaded.");
+            linkPreOpenV005.AvailabilityClassName = lvc5Ns + "LinkCheckAlwaysAvailable";
+            var linkInModelV005 = Btn(assemblyPath, "Btn_LinkVersionChecker_InModel_V005", "Link Check In-Model V005 #", lvc5Ns + "CmdLinkCheckInModel",
+                "Manage.ParaManager_16.png", "Link Version Checker - In-Model", "V005", "Check links in the open model, with an ACC Docs status column: green dot when the ACC copy is current.");
+            var linkFolderV005 = Btn(assemblyPath, "Btn_LinkVersionChecker_Folder_V005", "Link Check Folder Audit V005 #", lvc5Ns + "CmdLinkCheckFolder",
+                "Manage.ParaManager_16.png", "Link Version Checker - Folder Audit", "V005", "Audit every host model in a project folder and export one report.");
+            linkFolderV005.AvailabilityClassName = lvc5Ns + "LinkCheckAlwaysAvailable";
 
             // ── Manage panel ─────────────────────────────────────────────────
             var manageItems = RibbonLayoutHelper.AddStackedButtons(panel, new List<RibbonItemData>
@@ -151,14 +163,15 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             RibbonLayoutHelper.WirePulldownButton(worksetItems, "Pulldown_DeleteWorkset", deleteWorksetV001);
 
             // ── Links panel ──────────────────────────────────────────────────
-            // Link tools. Link Check lists V004's three scan modes first, then V003's.
+            // Link tools. Link Check lists V005's three scan modes first, then V004's, then V003's.
             RibbonPanel linksPanel = app.CreateRibbonPanel(tabName, "Links");
 
             var linkItems = RibbonLayoutHelper.AddStackedButtons(linksPanel, new List<RibbonItemData>
             {
-                RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_LinkVersionChecker", "Link Check", linkInModelV004),
+                RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_LinkVersionChecker", "Link Check", linkInModelV005),
             });
             RibbonLayoutHelper.WirePulldownButton(linkItems, "Pulldown_LinkVersionChecker",
+                linkInModelV005, linkPreOpenV005, linkFolderV005,
                 linkInModelV004, linkPreOpenV004, linkFolderV004,
                 linkInModelV003, linkPreOpenV003, linkFolderV003);
         }

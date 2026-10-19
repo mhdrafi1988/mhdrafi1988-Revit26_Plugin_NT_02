@@ -31,6 +31,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace Revit26_Plugin_Revised.WorksetCreator.V016.Core.Models
 {
@@ -104,6 +105,14 @@ namespace Revit26_Plugin_Revised.WorksetCreator.V016.Core.Models
 
         /// <summary>Loaded / Unloaded / NotFound — straight from the scan.</summary>
         [ObservableProperty] private LinkLoadState loadState = LinkLoadState.Loaded;
+
+        /// <summary>ACC Docs status of the link — the green radio dot in the ACC column.</summary>
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(AccSortOrder))]
+        private AccLinkState accState = AccLinkState.NotAcc;
+
+        /// <summary>Sort key for the ACC column — ACC problems first, non-ACC links last.</summary>
+        public int AccSortOrder => AccLinkStatus.SortOrder(AccState);
 
         // ── IFC ──────────────────────────────────────────────────────────────
 

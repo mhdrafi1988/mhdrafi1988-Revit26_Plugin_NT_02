@@ -18,6 +18,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace Revit26_Plugin_Revised.WorksetCreator.V016.Core.Models
 {
@@ -50,6 +51,9 @@ namespace Revit26_Plugin_Revised.WorksetCreator.V016.Core.Models
         public bool IsIfc { get; set; }
 
         public LinkLoadState LoadState { get; set; } = LinkLoadState.Loaded;
+
+        /// <summary>ACC Docs status of the link type, shown as the green radio dot in the ACC column.</summary>
+        public AccLinkState AccState { get; set; } = AccLinkState.NotAcc;
 
         /// <summary>RevitLinkInstance elements of this type found in the host, loaded or not.</summary>
         public int InstanceCount { get; set; }

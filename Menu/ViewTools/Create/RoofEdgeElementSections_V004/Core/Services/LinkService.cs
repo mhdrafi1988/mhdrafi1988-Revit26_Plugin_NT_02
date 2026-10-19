@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Autodesk.Revit.DB;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace Revit26_Plugin_Revised.RoofEdgeElementSections.V004
 {
@@ -50,7 +51,8 @@ namespace Revit26_Plugin_Revised.RoofEdgeElementSections.V004
                     LinkInstanceId = li.Id.Value,
                     InstanceName = instanceName,
                     DocumentTitle = docTitle.EndsWith(".rvt") ? docTitle : docTitle + ".rvt",
-                    IsLoaded = linkedDoc != null
+                    IsLoaded = linkedDoc != null,
+                    AccState = AccLinkStatus.Read(li)
                 });
             }
 

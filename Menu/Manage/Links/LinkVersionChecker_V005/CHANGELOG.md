@@ -1,5 +1,15 @@
 # Changelog — Link Version Checker
 
+## V005 (5.0.0) — 2026-10-19 — on the ribbon
+
+### Changed
+- The **Sync** column is now headed **ACC Docs** and draws its state as a radio-button style dot
+  (shared `AccStatusDot`): filled green for Current / Downloaded, hollow green for Not downloaded,
+  amber for Out of date, red for Failed, grey ring while unanswered, faint ring for a non-ACC link.
+  The text beside the dot, its tooltip, its sort order and the report columns are unchanged.
+- Added to the plugin ribbon (Links › Link Check, top three entries) with button ids
+  `Btn_LinkVersionChecker_*_V005`; commands run through `ToolGuard`; window title from `ToolCatalog`.
+
 ## V005 — 2026-10-18
 
 ### New

@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using Autodesk.Revit.DB;
 using Revit26_Plugin_Revised.LinkedDetailLineGenerator.VA010.Core.Models;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace Revit26_Plugin_Revised.LinkedDetailLineGenerator.VA010.Core.Services
 {
@@ -81,7 +82,8 @@ namespace Revit26_Plugin_Revised.LinkedDetailLineGenerator.VA010.Core.Services
                     InstanceName = instanceName,
                     DocumentTitle = docTitle.EndsWith(".rvt") ? docTitle : docTitle + ".rvt",
                     IsLoaded = true,
-                    Status = status
+                    Status = status,
+                    AccState = AccLinkStatus.Read(li)
                 });
             }
 

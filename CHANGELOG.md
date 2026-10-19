@@ -9,6 +9,43 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [4.3.0] — 2026-10-19
+
+### Added
+- **Link Version Checker V005 (5.0.0) on the ribbon.** Its three scan modes (In-Model, Pre-Open,
+  Folder Audit) now sit at the top of **Links › Link Check**, above V004 and V003, and the pulldown
+  button opens V005 In-Model. Its commands now run through `ToolGuard`, and its window title reads
+  `ToolCatalog.LinkVersionCheckerV005`.
+- **ACC Docs status column (green radio dot)** in Link Version Checker V005 — the former "Sync"
+  column, now headed **ACC Docs**. Filled green: the ACC copy is current (In-Model, after **Check
+  Cloud Status**) or downloaded on this PC (Desktop Connector). Hollow green: not downloaded yet.
+  Amber: a newer version is published in ACC. Red: the check failed. Grey ring: not checked yet.
+  Faint empty ring: not an ACC link. The text next to the dot and the Excel / CSV columns are
+  unchanged.
+- **The same ACC dot in every other tool that lists links:**
+  - Detail Lines From Links (10.2.0) — next to each link in **Linked Models & Instances**.
+  - Roof Edge Element Sections (4.2.0) — next to each link in the links list.
+  - Reference Section Head Placer (15.2.0) — new **ACC** column in **Linked Files**.
+  - Workset Creator (16.2.0) — new **ACC** column in the assigned, actionable and no-instance grids.
+
+  These tools only read what is local (is the link from ACC / Autodesk Docs / BIM 360 or a
+  Desktop Connector folder, and is it loaded), so they never wait on the network: filled green =
+  ACC link, loaded; hollow green = ACC link, not loaded; faint empty ring = not an ACC link.
+- `Shared/Services/AccLinkStatus.cs` (detection) and `Shared/Controls/AccStatusDot.cs` (the dot),
+  shared by all of the above.
+
+### Changed
+- Link Version Checker V004 files moved up one level, out of the duplicated
+  `LinkVersionChecker_V004/LinkVersionChecker_V004/` wrapper folder. Namespaces are unchanged.
+- The "#" (added last) marker on the Link Check labels moved from V004 to V005.
+
+### Removed
+- A stray zip backup of V005 (`Menu/Manage/Links/ziUzl4rI`) and a duplicate copy of the V005 preview
+  page that sat in the V004 folder.
+
+**User note:** **Links › Link Check** now opens V005. V004 and V003 are still in the dropdown and
+unchanged. The ACC dot is informational only; no tool changes what it does with a link because of it.
+
 ## [4.2.0] — 2026-10-19
 
 ### Added

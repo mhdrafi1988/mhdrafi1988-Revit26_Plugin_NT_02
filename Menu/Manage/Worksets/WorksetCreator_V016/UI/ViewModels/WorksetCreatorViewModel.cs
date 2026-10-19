@@ -413,6 +413,7 @@ namespace Revit26_Plugin_Revised.WorksetCreator.V016.UI.ViewModels
                                         : record.DisplayName,
                     IsIfc         = record.IsIfc,
                     LoadState     = record.LoadState,
+                    AccState      = record.AccState,
                     HasInstances  = record.HasInstances,
                     InstanceCount = record.InstanceCount
                 };

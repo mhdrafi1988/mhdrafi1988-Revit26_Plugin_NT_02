@@ -1,5 +1,6 @@
 using Autodesk.Revit.DB;
 using CommunityToolkit.Mvvm.ComponentModel;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace Revit26_Plugin_Revised.LinkedDetailLineGenerator.VA010.Core.Models
 {
@@ -31,6 +32,9 @@ namespace Revit26_Plugin_Revised.LinkedDetailLineGenerator.VA010.Core.Models
         /// <summary>Display text for the status chip/column — "Needs Review" reads
         /// clearer than the raw enum name "CanBeUpgraded" for a non-technical user.</summary>
         public string StatusDisplay => Status == LinkedFileStatus.CanBeUpgraded ? "Needs Review" : "Loaded";
+
+        /// <summary>ACC Docs status of the link, drawn as the green radio dot in the links list.</summary>
+        public AccLinkState AccState { get; set; } = AccLinkState.NotAcc;
 
         /// <summary>
         /// Checkbox-bound selection state. Multiple links may be checked simultaneously —

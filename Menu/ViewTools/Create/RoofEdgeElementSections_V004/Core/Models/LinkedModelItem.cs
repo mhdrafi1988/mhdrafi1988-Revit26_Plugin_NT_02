@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace Revit26_Plugin_Revised.RoofEdgeElementSections.V004
 {
@@ -19,6 +20,9 @@ namespace Revit26_Plugin_Revised.RoofEdgeElementSections.V004
 
         /// <summary>True if the link is currently loaded and its document is readable.</summary>
         public bool IsLoaded { get; set; }
+
+        /// <summary>ACC Docs status of the link, drawn as the green radio dot in the links list.</summary>
+        public AccLinkState AccState { get; set; } = AccLinkState.NotAcc;
 
         /// <summary>
         /// Checkbox-bound selection state. Multiple links may be checked simultaneously —

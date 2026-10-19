@@ -2,7 +2,9 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:infra="clr-namespace:Revit26_Plugin_Revised.LinkVersionChecker_V005.UI.Infrastructure"
-        Title="Link Version Checker V005 — Revit26_Plugin"
+        xmlns:svc="clr-namespace:Revit26_Plugin_Revised.Shared.Services"
+        xmlns:shell="clr-namespace:Revit26_Plugin_Revised.Shared.Controls"
+        Title="{Binding Source={x:Static svc:ToolCatalog.LinkVersionCheckerV005}, Path=Title}"
         Width="1280" Height="800" MinWidth="1280" MinHeight="800" MaxWidth="1664" MaxHeight="1040" ResizeMode="CanResizeWithGrip"
         WindowStartupLocation="CenterOwner"
         FontFamily="Segoe UI" FontSize="12.5" Background="White">
@@ -307,13 +309,15 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <!-- V005: ACC sync state — glyph + text, sorted problems-first -->
-                        <DataGridTemplateColumn Header="Sync" Width="Auto" SortMemberPath="SyncSortOrder" IsReadOnly="True">
+                        <!-- V005: ACC Docs status — green radio dot + text, sorted problems-first -->
+                        <DataGridTemplateColumn Width="Auto" SortMemberPath="SyncSortOrder" IsReadOnly="True">
+                            <DataGridTemplateColumn.Header>
+                                <TextBlock Text="ACC Docs" ToolTip="ACC Docs status. Filled green: current / on this PC. Hollow green: not downloaded. Amber: out of date. Red: failed. Grey ring: not checked yet. Faint ring: not an ACC link."/>
+                            </DataGridTemplateColumn.Header>
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center" ToolTip="{Binding SyncTip}">
-                                        <TextBlock Text="{Binding SyncGlyph}" Foreground="{Binding SyncColour}" FontSize="13"
-                                                   Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                        <shell:AccStatusDot State="{Binding AccDot}" AutoToolTip="False" Margin="0,0,5,0"/>
                                         <TextBlock Text="{Binding SyncCellText}" Foreground="{Binding SyncColour}" FontWeight="SemiBold"
                                                    VerticalAlignment="Center"/>
                                     </StackPanel>
@@ -407,9 +411,9 @@
                                         <TextBlock Grid.Row="14" Grid.Column="1" Style="{StaticResource V}" Text="{Binding CloudIdText}"
                                                    TextWrapping="Wrap"/>
                                         <!-- V005 -->
-                                        <TextBlock Grid.Row="15" Style="{StaticResource K}" Text="Sync"/>
+                                        <TextBlock Grid.Row="15" Style="{StaticResource K}" Text="ACC Docs"/>
                                         <StackPanel Grid.Row="15" Grid.Column="1" Orientation="Horizontal" Margin="0,2">
-                                            <TextBlock Text="{Binding SyncGlyph}" Foreground="{Binding SyncColour}" FontSize="13" Margin="0,0,5,0"/>
+                                            <shell:AccStatusDot State="{Binding AccDot}" AutoToolTip="False" Margin="0,0,5,0"/>
                                             <TextBlock Text="{Binding SyncText}" Foreground="{Binding SyncColour}" FontWeight="SemiBold"
                                                        ToolTip="{Binding SyncTip}"/>
                                         </StackPanel>
