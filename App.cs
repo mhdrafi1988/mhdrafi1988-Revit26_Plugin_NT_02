@@ -10,12 +10,14 @@ namespace Revit26_Plugin_Revised
     /// </summary>
     public partial class App : IExternalApplication
     {
-        private const string ModellingTabName  = "SloperPro-MDL_NT_03";
-        private const string DocumentsTabName  = "SloperPro-DCM_NT_02";
+        private const string ModellingTabName  = "SloperPro-MDL_NT_00";
+        private const string DocumentsTabName  = "SloperPro-DCM_NT_00";
 
         public Result OnStartup(UIControlledApplication application)
         {
             ToolGuard.Install();
+            // Tracker ID V002: warn when elements with a Tracker_ID are deleted.
+            TrackerId.V002.Infrastructure.Revit.TrackerDeletionWatcher.Register(application);
             // Once every add-in is loaded, warn if another copy of this one is loaded too: its old
             // styles can break tool windows.
             application.ControlledApplication.ApplicationInitialized += (_, _) => ToolGuard.WarnIfOtherCopiesLoaded();

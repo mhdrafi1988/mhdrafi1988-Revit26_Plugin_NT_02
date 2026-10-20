@@ -72,7 +72,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             // Shape Points — one pulldown per tool (current version, then its rebuild)
             RibbonPanel shapePointsPanel = app.CreateRibbonPanel(tabName, "Shape Points");
 
-            // Oldest versions (V009, V004, V005, V010) restored in plugin 5.2.0: their code was compiled but had no button.
+            // Oldest versions (V009, V004, V005, V010) restored in plugin 5.3.0: their code was compiled but had no button.
             var innerLoopsV009 = Btn(assemblyPath, "Btn_InnerLoopDivider_V009", "Inner Loops V009", "Revit26_Plugin_Revised.InnerLoopDivider.V009.Commands.InnerLoopDividerCommand",
                 "InnerLoopDivider_16.png", "Divide Inner Loops", "V009");
             var innerLoopsV010 = Btn(assemblyPath, "Btn_InnerLoopDivider_V010", "Inner Loops V010", "Revit26_Plugin_Revised.InnerLoopDivider.V010.Commands.InnerLoopDividerCommand",

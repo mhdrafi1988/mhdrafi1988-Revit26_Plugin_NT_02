@@ -123,6 +123,7 @@ namespace Revit26_Plugin_Revised.Shared.Services
         public static readonly ToolInfo BulkRename = Add("Bulk Rename", "1.1.1", "V001", "Revit26_Plugin_Revised.BulkRename.V001");
         public static readonly ToolInfo WorksetCreator = Add("Workset Creator", "17.0.0", "V017", "Revit26_Plugin_Revised.WorksetCreator.V017");
         public static readonly ToolInfo TrackerId = Add("Tracker ID", "1.0.0", "V001", "Revit26_Plugin_Revised.TrackerId.V001");
+        public static readonly ToolInfo TrackerIdV002 = Add("Tracker ID", "2.0.0", "V002", "Revit26_Plugin_Revised.TrackerId.V002");
 
         private static ToolInfo Add(string name, string version, string buildTag, string namespacePrefix)
         {

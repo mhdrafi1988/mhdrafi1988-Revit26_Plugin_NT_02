@@ -27,7 +27,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             // older version below it in descending order.
             // Batch Link DWG's original build has no version number in its code, so the tip
             // says "Working build"; its folder is BatchDwgFamilyLinker_V001 (renamed from
-            // BatchDwgFamilyLinker_Working in plugin 5.2.0). V002 is the newer, higher version.
+            // BatchDwgFamilyLinker_Working in plugin 5.3.0). V002 is the newer, higher version.
             var batchLinkWorking = new PushButtonData("BatchLinkDwgCommand", "Batch Link DWG (Working)", assemblyPath, "BatchDwgFamilyLinker.Command.BatchLinkDwgCommand")
             {
                 Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SetupTools.Linker_16.png"),
