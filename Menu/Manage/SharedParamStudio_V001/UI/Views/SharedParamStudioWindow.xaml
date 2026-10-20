@@ -65,7 +65,17 @@
                                               ItemsSource="{Binding FileGroupNames}" Style="{StaticResource StandardComboBox}" Margin="0,2,0,10"/>
 
                                     <TextBlock Text="Parameter name" Style="{StaticResource FieldLabel}"/>
-                                    <TextBox Text="{Binding ParamName, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BoxedTextInput}" Margin="0,2,0,10"/>
+                                    <TextBox Text="{Binding ParamName, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BoxedTextInput}" Margin="0,2,0,2"/>
+                                    <TextBlock Text="{Binding ParamNameError}" Foreground="{StaticResource BrushDanger}" FontSize="11.5" TextWrapping="Wrap" Margin="0,0,0,8">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                                <Style.Triggers>
+                                                    <Trigger Property="Text" Value=""><Setter Property="Visibility" Value="Collapsed"/></Trigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
 
                                     <TextBlock Text="Data type" Style="{StaticResource FieldLabel}"/>
                                     <ComboBox ItemsSource="{Binding DataTypeOptions}" SelectedItem="{Binding SelectedDataType}"
@@ -187,12 +197,14 @@
                                 <Button Grid.Column="1" Content="Browse…" Style="{StaticResource OutlineButton}" Margin="6,0,0,0" Command="{Binding BrowseDuplicateFileCommand}"/>
                                 <Button Grid.Column="2" Content="Scan" Style="{StaticResource PrimaryButton}" Margin="6,0,0,0" Command="{Binding ScanDuplicatesCommand}"/>
                             </Grid>
-                            <TextBlock DockPanel.Dock="Top" Text="{Binding DuplicateSummary}" Style="{StaticResource BodyText}" Margin="0,0,0,8"/>
+                            <TextBlock DockPanel.Dock="Top" Text="{Binding DuplicateSummary}" Style="{StaticResource BodyText}" Margin="0,0,0,6"/>
+                            <TextBox DockPanel.Dock="Top" Text="{Binding DuplicateFilter, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource BoxedTextInput}" Margin="0,0,0,8" ToolTip="Filter by name, GUID, group or type"/>
                             <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
                                 <Button Content="Export report (CSV)" Style="{StaticResource SecondaryButton}" Command="{Binding ExportDuplicateCsvCommand}" Margin="0,0,8,0"/>
                                 <Button Content="Save copy without duplicates…" Style="{StaticResource PrimaryButton}" Command="{Binding SaveCleanCopyCommand}"/>
                             </StackPanel>
-                            <DataGrid ItemsSource="{Binding DuplicateRows}" IsReadOnly="True"
+                            <DataGrid ItemsSource="{Binding DuplicateView}" IsReadOnly="True" CanUserSortColumns="True"
                                       Style="{StaticResource StandardDataGrid}"
                                       ColumnHeaderStyle="{StaticResource StandardDataGridColumnHeader}"
                                       CellStyle="{StaticResource StandardDataGridCell}"
@@ -221,6 +233,8 @@
                                 <Button Content="Clear" Style="{StaticResource SmallSecondaryButton}" Command="{Binding ClearRetrievedCommand}" Margin="0,0,12,0"/>
                                 <TextBlock Text="{Binding RetrieveSummary}" Style="{StaticResource BodyText}" VerticalAlignment="Center"/>
                             </StackPanel>
+                            <TextBox DockPanel.Dock="Top" Text="{Binding RetrieveFilter, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource BoxedTextInput}" Margin="0,0,0,8" ToolTip="Filter by name, GUID, type, group or category. Click a column header to sort."/>
                             <Grid DockPanel.Dock="Bottom" Margin="0,10,0,0">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="160"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/>
@@ -231,7 +245,7 @@
                                 <Button Grid.Column="3" Content="CSV…" Style="{StaticResource SecondaryButton}" Margin="6,0,0,0" Command="{Binding ExportRetrievedCsvCommand}"/>
                                 <Button Grid.Column="4" Content="Write to file" Style="{StaticResource PrimaryButton}" Margin="6,0,0,0" Command="{Binding WriteRetrievedToFileCommand}"/>
                             </Grid>
-                            <DataGrid ItemsSource="{Binding RetrievedParameters}"
+                            <DataGrid ItemsSource="{Binding RetrievedView}" CanUserSortColumns="True"
                                       Style="{StaticResource StandardDataGrid}"
                                       ColumnHeaderStyle="{StaticResource StandardDataGridColumnHeader}"
                                       CellStyle="{StaticResource StandardDataGridCell}"

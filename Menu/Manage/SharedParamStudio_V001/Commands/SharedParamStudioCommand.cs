@@ -46,7 +46,8 @@ namespace Revit26_Plugin_Revised.SharedParamStudio.V001.Commands
 
             var handler = new StudioExternalEventHandler();
             var externalEvent = ExternalEvent.Create(handler);
-            var viewModel = new SharedParamStudioViewModel(handler, externalEvent, SharedParamStudioService.GetBindableCategories(doc));
+            var viewModel = new SharedParamStudioViewModel(handler, externalEvent, SharedParamStudioService.GetBindableCategories(doc),
+                SharedParamStudioService.GetProjectParameterNames(doc));
 
             _window = new SharedParamStudioWindow(viewModel) { Owner = null };
             _window.Closed += (_, _) => _window = null;

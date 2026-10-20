@@ -34,8 +34,9 @@ namespace Revit26_Plugin_Revised.SharedParamStudio.V001.UI.ViewModels
         [ObservableProperty] private int _selectedTab;
 
         /// <summary>Creates the view model; <paramref name="categories"/> come from the project open at start.</summary>
-        public SharedParamStudioViewModel(StudioExternalEventHandler handler, ExternalEvent externalEvent, IEnumerable<CategoryItem> categories)
+        public SharedParamStudioViewModel(StudioExternalEventHandler handler, ExternalEvent externalEvent, IEnumerable<CategoryItem> categories, IEnumerable<string> projectParameterNames = null)
         {
+            foreach (var n in projectParameterNames ?? Enumerable.Empty<string>()) _projectNames.Add(n);
             _handler = handler;
             _event = externalEvent;
 
@@ -58,6 +59,9 @@ namespace Revit26_Plugin_Revised.SharedParamStudio.V001.UI.ViewModels
             DuplicatePath = s.DuplicatePath;
             RetrieveFilePath = s.RetrieveFilePath;
             RetrieveFileGroup = string.IsNullOrWhiteSpace(s.RetrieveFileGroup) ? "Project parameters" : s.RetrieveFileGroup;
+
+            InitRetrievedView();
+            InitDuplicateView();
 
             SummaryText = "Ready.";
             AddLog(LogLevel.Info, $"{ToolCatalog.SharedParamStudio.Name} ready.");

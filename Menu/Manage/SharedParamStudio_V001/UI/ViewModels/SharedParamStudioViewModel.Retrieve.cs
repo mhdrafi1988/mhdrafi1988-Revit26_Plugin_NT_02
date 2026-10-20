@@ -15,10 +15,26 @@ namespace Revit26_Plugin_Revised.SharedParamStudio.V001.UI.ViewModels
 
         [ObservableProperty] private string _retrieveFilePath = string.Empty;
         [ObservableProperty] private string _retrieveFileGroup = "Project parameters";
+        [ObservableProperty] private string _retrieveFilter = string.Empty;
         [ObservableProperty] private string _retrieveSummary = "Press Refresh to list the shared parameters of the open project.";
 
         /// <summary>Shared parameters found in the project.</summary>
         public ObservableCollection<ProjectSharedParameter> RetrievedParameters { get; } = new();
+
+        /// <summary>The retrieved parameters after the search box filter; header clicks sort it.</summary>
+        public System.ComponentModel.ICollectionView RetrievedView { get; private set; }
+
+        partial void OnRetrieveFilterChanged(string value) => RetrievedView?.Refresh();
+
+        private void InitRetrievedView()
+        {
+            RetrievedView = System.Windows.Data.CollectionViewSource.GetDefaultView(RetrievedParameters);
+            RetrievedView.Filter = o => o is ProjectSharedParameter p && Matches(RetrieveFilter, p.Name, p.Guid.ToString(), p.DataTypeLabel, p.GroupLabel, p.Categories);
+        }
+
+        private static bool Matches(string filter, params string[] fields)
+            => string.IsNullOrWhiteSpace(filter) ||
+               fields.Any(f => (f ?? string.Empty).IndexOf(filter.Trim(), System.StringComparison.CurrentCultureIgnoreCase) >= 0);
 
         [RelayCommand]
         private void BrowseRetrieveFile()
@@ -44,10 +60,10 @@ namespace Revit26_Plugin_Revised.SharedParamStudio.V001.UI.ViewModels
         }
 
         [RelayCommand]
-        private void SelectAllRetrieved() { foreach (var p in RetrievedParameters) p.IsSelected = true; }
+        private void SelectAllRetrieved() { foreach (ProjectSharedParameter p in RetrievedView) p.IsSelected = true; }
 
         [RelayCommand]
-        private void ClearRetrieved() { foreach (var p in RetrievedParameters) p.IsSelected = false; }
+        private void ClearRetrieved() { foreach (ProjectSharedParameter p in RetrievedView) p.IsSelected = false; }
 
         [RelayCommand]
         private void WriteRetrievedToFile()

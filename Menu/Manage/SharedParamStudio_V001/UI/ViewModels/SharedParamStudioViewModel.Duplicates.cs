@@ -17,10 +17,22 @@ namespace Revit26_Plugin_Revised.SharedParamStudio.V001.UI.ViewModels
         private DuplicateReport _dupReport;
 
         [ObservableProperty] private string _duplicatePath = string.Empty;
+        [ObservableProperty] private string _duplicateFilter = string.Empty;
         [ObservableProperty] private string _duplicateSummary = "Pick a file and press Scan.";
 
         /// <summary>Every member of every duplicate set found.</summary>
         public ObservableCollection<DuplicateRow> DuplicateRows { get; } = new();
+
+        /// <summary>The duplicate rows after the search box filter.</summary>
+        public System.ComponentModel.ICollectionView DuplicateView { get; private set; }
+
+        partial void OnDuplicateFilterChanged(string value) => DuplicateView?.Refresh();
+
+        private void InitDuplicateView()
+        {
+            DuplicateView = System.Windows.Data.CollectionViewSource.GetDefaultView(DuplicateRows);
+            DuplicateView.Filter = o => o is DuplicateRow r && Matches(DuplicateFilter, r.Name, r.Guid, r.Group, r.DataType, r.Kind);
+        }
 
         [RelayCommand]
         private void BrowseDuplicateFile() { var p = PickOpen(DuplicatePath); if (p != null) DuplicatePath = p; }

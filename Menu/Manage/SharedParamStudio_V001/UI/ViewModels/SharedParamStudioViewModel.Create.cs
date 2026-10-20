@@ -25,6 +25,10 @@ namespace Revit26_Plugin_Revised.SharedParamStudio.V001.UI.ViewModels
         [ObservableProperty] private DataTypeOption _selectedDataType;
         [ObservableProperty] private GroupOption _selectedPaletteGroup;
         [ObservableProperty] private string _categoryFilter = string.Empty;
+        [ObservableProperty] private string _paramNameError = string.Empty;
+
+        private readonly System.Collections.Generic.HashSet<string> _fileNames = new();
+        private readonly System.Collections.Generic.HashSet<string> _projectNames = new();
 
         /// <summary>Data types to choose from.</summary>
         public System.Collections.Generic.IReadOnlyList<DataTypeOption> DataTypeOptions => DataTypeOption.All;
@@ -46,20 +50,39 @@ namespace Revit26_Plugin_Revised.SharedParamStudio.V001.UI.ViewModels
 
         partial void OnCategoryFilterChanged(string value) => CategoriesView.Refresh();
 
-        partial void OnCreateFilePathChanged(string value) => FillGroupNames(FileGroupNames, value);
+        partial void OnCreateFilePathChanged(string value) => LoadCreateFile(value);
 
-        private void FillGroupNames(ObservableCollection<string> target, string path)
+        partial void OnParamNameChanged(string value) => UpdateNameError();
+
+        /// <summary>Reads the chosen file once for its group names and parameter names (live name check).</summary>
+        private void LoadCreateFile(string path)
         {
-            target.Clear();
+            FileGroupNames.Clear();
+            _fileNames.Clear();
             try
             {
                 if (!string.IsNullOrWhiteSpace(path) && File.Exists(path))
-                    foreach (var g in SpFileReader.Read(path).Groups) target.Add(g);
+                {
+                    var file = SpFileReader.Read(path.Trim());
+                    foreach (var g in file.Groups) FileGroupNames.Add(g);
+                    foreach (var p in file.Params) _fileNames.Add(SpKeys.NameKey(p.Name));
+                }
             }
             catch (Exception ex)
             {
-                AddLog(LogLevel.Warning, $"Could not read groups from {path}: {ex.Message}");
+                AddLog(LogLevel.Warning, $"Could not read {path}: {ex.Message}");
             }
+            UpdateNameError();
+        }
+
+        private void UpdateNameError()
+        {
+            if (string.IsNullOrEmpty(ParamName)) { ParamNameError = string.Empty; return; }
+            string key = SpKeys.NameKey(ParamName);
+            ParamNameError = SpKeys.ValidateName(ParamName)
+                ?? (_fileNames.Contains(key) ? "A parameter with this name is already in the file."
+                : _projectNames.Contains(key) ? "The project already has a parameter with this name."
+                : string.Empty);
         }
 
         [RelayCommand]
@@ -89,8 +112,8 @@ namespace Revit26_Plugin_Revised.SharedParamStudio.V001.UI.ViewModels
         [RelayCommand]
         private void CreateAndAssign()
         {
-            string bad = SpKeys.ValidateName(ParamName);
-            if (bad != null) { Log(LogLevel.Error, bad); return; }
+            if (string.IsNullOrWhiteSpace(ParamName)) { Log(LogLevel.Error, "Enter a parameter name."); return; }
+            if (!string.IsNullOrEmpty(ParamNameError)) { Log(LogLevel.Error, ParamNameError); return; }
             if (string.IsNullOrWhiteSpace(CreateFilePath)) { Log(LogLevel.Error, "Choose the shared parameter file first."); return; }
             if (string.IsNullOrWhiteSpace(CreateFileGroup)) { Log(LogLevel.Error, "Enter or pick a group name for the file."); return; }
             var ids = Categories.Where(c => c.IsSelected).Select(c => c.Id).ToList();
@@ -116,8 +139,12 @@ namespace Revit26_Plugin_Revised.SharedParamStudio.V001.UI.ViewModels
             {
                 if (result == null) return;
                 LogAll(result.Messages);
-                if (result.Success) ParamName = string.Empty;
-                FillGroupNames(FileGroupNames, CreateFilePath);
+                if (result.Success)
+                {
+                    _projectNames.Add(SpKeys.NameKey(request.Name));
+                    ParamName = string.Empty;
+                }
+                LoadCreateFile(CreateFilePath);
             });
         }
     }

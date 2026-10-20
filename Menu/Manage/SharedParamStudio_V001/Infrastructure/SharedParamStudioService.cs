@@ -26,6 +26,15 @@ namespace Revit26_Plugin_Revised.SharedParamStudio.V001.Infrastructure
             return list.OrderBy(c => c.Name, StringComparer.CurrentCultureIgnoreCase).ToList();
         }
 
+        /// <summary>Names of every parameter bound in the project, for live name checks in the window.</summary>
+        public static HashSet<string> GetProjectParameterNames(Document doc)
+        {
+            var names = new HashSet<string>();
+            for (DefinitionBindingMapIterator it = ForwardIterator(doc); it.MoveNext();)
+                names.Add(SpKeys.NameKey(it.Key.Name));
+            return names;
+        }
+
         /// <summary>
         /// Adds a new definition to the shared parameter file and binds it to the chosen categories in
         /// the project. The binding is one transaction, so a failure leaves the project unchanged; the
@@ -115,7 +124,7 @@ namespace Revit26_Plugin_Revised.SharedParamStudio.V001.Infrastructure
             }
 
             result.Success = true;
-            result.Add(LogLevel.Success, $"Bound '{r.Name}' as {(r.IsInstance ? "instance" : "type")} parameter to {categories.Size} categor{(categories.Size == 1 ? "y" : "ies")} (group: {r.PaletteGroup.Name}).");
+            result.Add(LogLevel.Success, $"Bound '{r.Name}' as {(r.IsInstance ? "instance" : "type")} parameter to {categories.Size} categor{(categories.Size == 1 ? "y" : "ies")} (group: {r.PaletteGroup.Name}). Undo with Ctrl+Z.");
             return result;
         }
 

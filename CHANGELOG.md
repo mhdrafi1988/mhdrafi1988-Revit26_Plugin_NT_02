@@ -9,6 +9,15 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [5.3.1] — 2026-10-20
+
+### Changed — Shared Parameter Studio (1.0.1)
+- **Live name check** on Create & Assign: the name box shows a red message as you type when the name
+  is invalid, already in the chosen file, or already in the project.
+- **Search boxes** on Duplicate Check and Retrieve from Project filter the grid by name, GUID, type,
+  group or category. Click a column header to sort. "Tick all" on Retrieve now ticks only the shown rows.
+- After a successful create, the log reminds you that Ctrl+Z undoes the binding.
+
 ## [5.3.0] — 2026-10-20
 
 ### Added — Shared Parameter Studio V001 (1.0.0)
