@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    Unit tests for Roof Points & Slope V001's Revit-free code (plan geometry,
+    point planner, slope reach estimate). The tool's files are linked, not
+    copied; OpeningModel is replaced by a small stub (Stubs/OpeningModel.cs)
+    because the real one pulls in Revit and Auto Slope By Drain types.
+    Run:  dotnet test Tests/RoofPointsAndSlope.Tests
+  -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <ToolDir>..\..\Menu\RoofTools\CombinedTools\RoofPointsAndSlope_V001\</ToolDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="$(ToolDir)Core\Geometry\*.cs" Link="Tool\Geometry\%(Filename)%(Extension)" />
+    <Compile Include="$(ToolDir)Core\Planning\*.cs" Link="Tool\Planning\%(Filename)%(Extension)" />
+    <Compile Include="$(ToolDir)Core\Models\RoofOutline.cs" Link="Tool\Models\RoofOutline.cs" />
+    <Compile Include="$(ToolDir)Core\Models\PipelineSettings.cs" Link="Tool\Models\PipelineSettings.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+  </ItemGroup>
+</Project>

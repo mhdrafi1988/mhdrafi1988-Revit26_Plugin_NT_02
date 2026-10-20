@@ -9,6 +9,138 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [4.4.0] — 2026-10-20
+
+### Added
+- **Roof Points & Slope v1.0.0 (V001)** — new tool in **Roof Slope ▸ Points & Slope**. One window
+  runs up to six steps on one footprint roof, in order, as a single Undo step:
+  1. **Points around openings** — per opening, N points (circles / others defaults, editable per
+     row) or a max spacing. Same rules as Inner Loop Divider V012.
+  2. **Perpendicular points** — from each group of points on an opening to the nearest boundary
+     point in up to 8 directions. Same rules as Inner Loops + Perpendicular V007.
+  3. **Midpoint and quarter points** — ½ and/or ¼ + ¾ of each edge, as Multiple Points V003.
+  4. **Gap fill** (new) — along each edge, evenly spaced points wherever two neighbouring points
+     are further apart than the interval.
+  5. **Ridge between drains** — the Ridge By Openings V070 services, unchanged: ridges midway
+     between the openings ticked as drains (at least two), clipped to the roof, as shape points +
+     split lines and/or detail lines in the active view (line style chosen in the window).
+     Openings that are not drains end the ridges that cross them.
+  6. **Slope by drain** — the Auto Slope By Drain V013 engine, unchanged, towards the same
+     drains, so the ridges become the high lines (roof parameters and the optional Excel report
+     included).
+  Steps 3 and 4 each choose their edges: boundary and/or openings, lines and/or curves. The header
+  shows how many points each step will add (and the ridge lines) before anything runs; points already there are skipped.
+  Before running, the window also:
+  - **Check slope reach** (step 6) — estimates how many points the slope would leave at 0 (dips):
+    no on-roof path to a drain within Max edge hops, or a path longer than Max path.
+  - Shows **ridge problems** — ridge points not midway between their drains, and ridge points that
+    fall within the minimum spacing of another point.
+  - **Min spacing between points** (default 50 mm) — steps 2–4 skip a point closer than this to
+    another point; the skipped count is shown. Step 1 (counts you set per opening) is never thinned.
+  - **Drain checks** — openings the ridge reader and the drain detection don't agree on are listed.
+  - Warns when the roof **already has slope or extra points**, and asks before running on a roof
+    that already has slope. **Clear existing shape points first** (off by default) resets the roof's
+    shape before step 1, inside the same Undo.
+  - **Cancel Run** — stops the run between steps or during the slope; everything is rolled back.
+  - **Show in Revit** — "Show planned points in Revit" puts coloured temporary markers (one colour
+    per step) in the active view; each opening row has a **Show** button that highlights the opening
+    and zooms to it. Markers are Revit in-canvas graphics: not saved, not on the Undo list, cleared
+    on Run or Close (or with **Clear markers**).
+  - **Presets** — save the current options under a name, apply or delete them later
+    (`%AppData%\Revit26_Plugin\RoofPointsAndSlope\presets.json`, with a schema version).
+  - **Several roofs** — select or pick several footprint roofs. A **Roof** list switches between
+    them; each roof keeps its own opening ticks and counts, the step options are shared. **Run on
+    All Roofs** runs them in order as one Undo step; if one fails, all are rolled back. A roof that
+    can't be processed (in a group, owned by another user, no closed sketch) is skipped with the
+    reason in the log.
+  - **Run report** (off by default) — after a successful run, a `.xlsx` in the report folder with a
+    Summary sheet and a Points sheet (Roof, Step, X (m), Y (m), Height (mm)) listing every shape
+    point and the step that added it.
+  If any step fails, the whole run is rolled back. Settings are saved to
+  `%AppData%\Revit26_Plugin\RoofPointsAndSlope\settings.json` (with a schema version).
+  Internal names: `Btn_RoofPointsAndSlope_V001`, `Pulldown_RoofPointsAndSlope`.
+
+Unit tests for the plan geometry, the point planner and the reach estimate are in
+`Tests/RoofPointsAndSlope.Tests` (`dotnet test Tests/RoofPointsAndSlope.Tests`).
+
+**User note:** nothing changes for existing tools. Combined Roof Tools V003 and the separate
+point and slope tools are unchanged and stay on the ribbon. Footprint roofs only (the openings
+are read from the roof's sketch). Not yet tested in Revit: try it on a copy of a model first.
+
+### Fixed
+- **Ridge By Openings v70.1.1 (V070)** — added shape points no longer distort the roof or the slope
+  worked out from them (also used by step 5 of Roof Points & Slope):
+  - Each ridge point is placed on the roof's current surface. It was placed at the most common
+    height of the existing points, which dented or lifted a roof that was already sloped.
+  - A point Revit rejects is nudged at most 60 mm. It was moved up to half way to the roof centre
+    (metres off the ridge), or snapped to the nearest edge.
+  - Split lines now run along each ridge, through its points. They were drawn between each point's
+    nearest left and right vertices, creasing the roof where there is no ridge.
+  - A ridge point that already exists is reused instead of being added again next to it; skipped
+    and rejected points are now reported in the log.
+
+**User note:** ridges made with V070 before this fix may have dents, displaced ridge points or stray
+creases; reset the shape points and run the tool again.
+
+## [4.3.0] — 2026-10-20
+
+### Added
+- **Tracker ID 1.0.0** (`Menu/Manage/TrackerId_V001`, button **Manage ▸ Tracker ID**). Gives every
+  placed element of a chosen category and types one permanent `Tracker_ID`, for progress and
+  material tracking in Power BI. Four steps:
+  1. **Category** — every model category with its types, elements and Tracker_ID coverage; search,
+     discipline chips (Architecture / Structure / MEP) and column filters.
+  2. **Types** — the category's placed types with their existing-ID status; tick the ones to process.
+  3. **Tracker ID** — existing IDs are read and never changed. Missing IDs are built from eight
+     segments the user can switch off and reorder: Model (code of the Revit file, from Project
+     Information ▸ *Model Code*, else the discipline code in the file name such as ARC, STR or MEP),
+     Zone (Zone parameter, else the scope box around the element), Level, Type, Grid (nearest grid
+     crossing to the element's centre point) and three custom segments (fixed text, a parameter value
+     or a running number). Default format: `NT02-ARC-ZA-L01-D09-C04-0001`. New IDs are unique across
+     the whole model, compared without regard to case, and the Model segment keeps them unique across
+     models. Copy-pasted elements, which carry another
+     element's ID, are found and get a new ID; moved elements keep theirs. Written in one
+     transaction, so one Undo reverts it.
+  4. **Export** — a CSV with fixed columns (`Tracker_ID, Category, Family, Type, Type_Mark, Zone,
+     Level, Grid, Count, Length_m, Area_m2, Volume_m3, Revit_ElementId, Revit_UniqueId, Model,
+     Export_Date, Schema_Version, Model_Code`) for Power BI, with an optional dated copy.
+- **Shared parameters** (created only if missing, Text, instance, group *Identity Data*, allowed to
+  vary between group instances): `Tracker_ID` (7afba1b3-3c36-40c4-b622-104fa374d700),
+  `Tracker_Zone` (00d22852-1eff-4137-aadb-5f6b94757db4), `Tracker_Level`
+  (eaa79360-4694-4488-8594-17d487241e99), `Tracker_Grid` (4a010dbe-ac6c-4971-8955-22b12e4a0bea),
+  `Tracker_SourceGuid` (b306dc6d-1058-4ca6-ae0a-5b3e67ed40aa). An existing parameter of the same
+  name is reused and only gets the category added to its binding.
+
+**User note:** give each Revit model its own short code in Project Information ▸ *Model Code*
+(ARC, STR, MEP…) if its file name has no discipline code; the tool warns when it has to guess one.
+The ID format and export path are remembered in
+`%AppData%\Revit26_Plugin\TrackerId\settings.json`. Never edit `Tracker_ID` by hand: Power BI
+history is keyed on it. Keep material and progress status in your Excel table on SharePoint, keyed
+by `Tracker_ID`, and relate it to the exported CSV in Power BI.
+
+## [4.2.1] — 2026-10-19
+
+### Changed
+- **Panel order** — panels now follow the workflow. SloperPro-MDL: Roof Slope, Shape Points,
+  Roof Tools, Roof Edit, Plan View, Compare, Insulation, Detail Lines, **Utilities** (moved from
+  first to last). SloperPro-DCM: View Create, View Place, View Rename, **Sheet Create**,
+  **DWG Tools**, **Family Tools**, Manage, Worksets. No button was renamed; only panel positions
+  changed.
+- **Link Check** — moved from its own one-button **Links** panel into the **Manage** panel (the
+  Links panel is gone). Same dropdown, same internal name `Pulldown_LinkVersionChecker`.
+
+### Fixed
+- **Buttons that could only raise an error** — removed from the ribbon because their command
+  source is not in the repository:
+  - Roof Slope ▸ By Point: V031, V029, Ridge V002, Multi Copies 29 (V032, V030, Ridge V003 and
+    Multi Copies 30 remain).
+  - DWG Tools ▸ Export DWG: V001 (V004 and V003 remain).
+  - Manage ▸ Overlaps V003, ParaManager V004.
+  - Worksets ▸ WS Renamer V004, WS Renamer XL FX04.
+
+**User note:** Utilities is now at the right-hand end of SloperPro-MDL_NT_02, and Link Check is in
+the Manage panel. The removed entries never worked in this build, so no working tool was lost.
+
 ## [4.2.0] — 2026-10-19
 
 ### Added
