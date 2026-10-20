@@ -179,6 +179,13 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Core.Engine
 
                 result.Sloped = true;
                 result.HighestElevationMm = slope.HighestElevation_mm;
+
+                // A point the slope can't reach stays at 0 and becomes a dip in the roof.
+                if (slope.UnreachableVertexCount + slope.OverThresholdVertexCount > 0)
+                    log(new LogEntry(LogLevel.Warning,
+                        $"Step 6 · {slope.UnreachableVertexCount + slope.OverThresholdVertexCount} point(s) were left at 0 and will show as dips: " +
+                        $"{slope.UnreachableVertexCount} with no path to a drain, {slope.OverThresholdVertexCount} farther than the max path " +
+                        $"({settings.MaxPathMeters} m). Raise Max path / Max edge, or tick another drain, and run again."));
             }
 
             result.VerticesAfter = RoofReader.ReadShapePoints(roof);
@@ -225,7 +232,7 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Core.Engine
             result.AddedPerStep["Ridge"] = creation.TotalAdded;
             log(new LogEntry(LogLevel.Success,
                 $"Step 5 · Ridge: {ridge.ClippedEdges.Count} ridge line(s) between {ridge.DrainGroups.Count} drain group(s)" +
-                (settings.RidgeShapePoints ? $", {creation.TotalAdded} of {creation.TotalCalculated} point(s) added with split lines" : string.Empty) +
+                (settings.RidgeShapePoints ? $", {creation.TotalAdded} point(s) added ({creation.AlreadyThere} already there) with split lines along the ridges" : string.Empty) +
                 (lines ? $", {ridge.CreatedDetailLineIds.Count} detail line(s) drawn" : string.Empty) + "."));
             if (creation.TotalFailed > 0)
                 log(new LogEntry(LogLevel.Warning, $"Step 5 · Ridge: {creation.TotalFailed} point(s) could not be added."));

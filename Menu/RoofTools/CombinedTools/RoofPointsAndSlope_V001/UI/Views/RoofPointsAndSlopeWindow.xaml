@@ -242,7 +242,7 @@ Step pipeline on the shared ToolWindowShell.
                                 <TextBox Style="{StaticResource NumberBox}" Text="{Binding RidgeValidationToleranceMm, UpdateSourceTrigger=PropertyChanged}"/>
                             </StackPanel>
                             <TextBlock Style="{StaticResource HintText}" TextWrapping="Wrap"
-                                       Text="Ridges run midway between the openings ticked as Drain (at least two). Openings that are not drains end the ridges that cross them. Ridge points are added at the roof's base level; step 6 then makes the ridges the high lines."/>
+                                       Text="Ridges run midway between the openings ticked as Drain (at least two). Openings that are not drains end the ridges that cross them. Ridge points sit on the roof surface; step 6 then makes the ridges the high lines."/>
                         </StackPanel>
                     </StackPanel>
                 </Border>

@@ -36,9 +36,22 @@ Each release lists every tool whose version changed, under the plugin version.
 
 **User note:** nothing changes for existing tools. Combined Roof Tools V003 and the separate
 point and slope tools are unchanged and stay on the ribbon. Footprint roofs only (the openings
-are read from the roof's sketch). The ridge step adds its points at the roof's base level, as
-Ridge By Openings V070 does, so run it together with step 6. Not yet tested in Revit: try it on a
-copy of a model first.
+are read from the roof's sketch). Not yet tested in Revit: try it on a copy of a model first.
+
+### Fixed
+- **Ridge By Openings v70.1.1 (V070)** — added shape points no longer distort the roof or the slope
+  worked out from them (also used by step 5 of Roof Points & Slope):
+  - Each ridge point is placed on the roof's current surface. It was placed at the most common
+    height of the existing points, which dented or lifted a roof that was already sloped.
+  - A point Revit rejects is nudged at most 60 mm. It was moved up to half way to the roof centre
+    (metres off the ridge), or snapped to the nearest edge.
+  - Split lines now run along each ridge, through its points. They were drawn between each point's
+    nearest left and right vertices, creasing the roof where there is no ridge.
+  - A ridge point that already exists is reused instead of being added again next to it; skipped
+    and rejected points are now reported in the log.
+
+**User note:** ridges made with V070 before this fix may have dents, displaced ridge points or stray
+creases; reset the shape points and run the tool again.
 
 ## [4.2.1] — 2026-10-19
 

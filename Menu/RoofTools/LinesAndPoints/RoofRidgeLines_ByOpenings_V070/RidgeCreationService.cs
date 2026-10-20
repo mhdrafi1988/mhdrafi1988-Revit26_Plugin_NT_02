@@ -13,6 +13,9 @@ namespace Revit26_Plugin_Revised.RoofRidgeLines.V070.Services
         public int TotalAdded { get; private set; }
         public int TotalFailed { get; private set; }
 
+        /// <summary>Ridge points skipped because a shape point was already there (it is used as the ridge point).</summary>
+        public int AlreadyThere { get; private set; }
+
         // ── Callbacks ─────────────────────────────────────────────────────────────
         public Action OnPointsDone { get; set; }
 
@@ -60,6 +63,7 @@ namespace Revit26_Plugin_Revised.RoofRidgeLines.V070.Services
             TotalCalculated = 0;
             TotalAdded = 0;
             TotalFailed = 0;
+            AlreadyThere = 0;
 
             if (shapeDropped > 0 || midDropped > 0)
                 OnSlabWarning?.Invoke(
@@ -159,10 +163,25 @@ namespace Revit26_Plugin_Revised.RoofRidgeLines.V070.Services
             }
         }
 
-        // ── TX-02: AddSplitLine + AddPoint ────────────────────────────────────────
+        // ── TX-02: AddPoint, then split lines along the ridges ────────────────────
         //
         // Accepts deduplicated point lists so the mesh triangulator never receives
         // two points closer than DedupToleranceFt.
+        //
+        // Fixed in 70.1.1 (each of these moved the roof or bent it in the wrong place,
+        // so the slope worked out from these points was wrong):
+        //   • Height: each point is placed ON the current top surface at its XY
+        //     (was: the most common height of the existing points, which dented or
+        //     lifted a roof that was already sloped).
+        //   • Rejected points: nudged at most 60 mm toward the roof centre, and the
+        //     edge inset is used only for a point that sits on the boundary (was: up
+        //     to 50 % of the way to the roof centre — metres off the ridge — or
+        //     snapped to an inset of whichever edge was nearest).
+        //   • Split lines: added along each ridge segment, through the points on it,
+        //     after all points exist (was: before each point, between its nearest
+        //     left and right vertices — lines that neither passed through the point
+        //     nor followed the ridge, creasing the roof in random places).
+        //   • Failures are reported through OnSlabWarning instead of only Debug.
         //
         // A SlabShapePreprocessor is attached to the transaction so that any
         // slab-geometry warnings Revit raises at commit time are:
@@ -198,10 +217,11 @@ namespace Revit26_Plugin_Revised.RoofRidgeLines.V070.Services
                 }
 
                 Face topFace = GetRoofTopFace(roof);
+                var surface = new TopSurface(roof, GetSlabBaseZ(ed));
                 result.CreatedShapePointIds.Clear();
 
-                // ── ShapePoints (Voronoi vertices + inner-loop intersections) ─────
-                foreach (var pt in shapePoints)
+                // Voronoi vertices + inner-loop intersections first, then edge midpoints.
+                foreach (var pt in shapePoints.Concat(midPoints))
                 {
                     try
                     {
@@ -209,64 +229,38 @@ namespace Revit26_Plugin_Revised.RoofRidgeLines.V070.Services
                         if (checkedPt == null)
                         {
                             TotalFailed++;
-                            System.Diagnostics.Debug.WriteLine(
-                                $"[RidgeCreationService] ShapePoint skipped — not on top face " +
-                                $"after 3 snap attempts: X={pt.X * 304.8:F1} Y={pt.Y * 304.8:F1} mm");
+                            OnSlabWarning?.Invoke(
+                                $"[TX-02] Point skipped — not on the roof's top face: X={pt.X * 304.8:F0} Y={pt.Y * 304.8:F0} mm");
                             continue;
                         }
 
-                        TryAddSplitLineThroughPoint(ed, checkedPt);
-                        ed = roof.GetSlabShapeEditor();
-                        if (ed == null || !ed.IsEnabled) { TotalFailed++; continue; }
+                        // A shape point already there (e.g. from an earlier tool) is the ridge point.
+                        if (ed.SlabShapeVertices.Cast<SlabShapeVertex>().Any(v =>
+                                Math.Sqrt(Math.Pow(v.Position.X - checkedPt.X, 2) + Math.Pow(v.Position.Y - checkedPt.Y, 2)) <= OnRidgeToleranceFt))
+                        {
+                            AlreadyThere++;
+                            continue;
+                        }
 
-                        double slabZ = GetSlabBaseZ(ed);
-                        if (TryAddPointWithNudge(ed, checkedPt, slabZ, result.RoofCentroid,
-                                                 result.BoundaryPolygon, roof))
+                        if (TryAddPointWithNudge(ed, checkedPt, surface, result.RoofCentroid, result.BoundaryPolygon))
                             TotalAdded++;
                         else
-                            TotalFailed++;
-                    }
-                    catch (Exception ex)
-                    {
-                        TotalFailed++;
-                        System.Diagnostics.Debug.WriteLine(
-                            $"[RidgeCreationService] TX-02 ShapePoint skipped: {ex.Message}");
-                    }
-                }
-
-                // ── RidgeEdgeMidPoints ────────────────────────────────────────────
-                foreach (var pt in midPoints)
-                {
-                    try
-                    {
-                        XYZ checkedPt = EnsureOnTopFace(pt, topFace, result.BoundaryPolygon);
-                        if (checkedPt == null)
                         {
                             TotalFailed++;
-                            System.Diagnostics.Debug.WriteLine(
-                                $"[RidgeCreationService] MidPoint skipped — not on top face " +
-                                $"after 3 snap attempts: X={pt.X * 304.8:F1} Y={pt.Y * 304.8:F1} mm");
-                            continue;
+                            OnSlabWarning?.Invoke(
+                                $"[TX-02] Revit rejected the point at X={pt.X * 304.8:F0} Y={pt.Y * 304.8:F0} mm, even nudged up to 60 mm.");
                         }
-
-                        TryAddSplitLineThroughPoint(ed, checkedPt);
-                        ed = roof.GetSlabShapeEditor();
-                        if (ed == null || !ed.IsEnabled) { TotalFailed++; continue; }
-
-                        double slabZ = GetSlabBaseZ(ed);
-                        if (TryAddPointWithNudge(ed, checkedPt, slabZ, result.RoofCentroid,
-                                                 result.BoundaryPolygon, roof))
-                            TotalAdded++;
-                        else
-                            TotalFailed++;
                     }
                     catch (Exception ex)
                     {
                         TotalFailed++;
-                        System.Diagnostics.Debug.WriteLine(
-                            $"[RidgeCreationService] TX-02 MidPoint skipped: {ex.Message}");
+                        OnSlabWarning?.Invoke($"[TX-02] Point skipped: {ex.Message}");
                     }
                 }
+
+                int splits = AddRidgeSplitLines(roof, result.ClippedEdges, out int splitFailures);
+                OnSlabWarning?.Invoke($"[TX-02] {splits} split line(s) added along the ridges" +
+                                      (splitFailures > 0 ? $", {splitFailures} refused by Revit." : "."));
 
                 tx.Commit();
 
@@ -277,8 +271,7 @@ namespace Revit26_Plugin_Revised.RoofRidgeLines.V070.Services
             catch (Exception ex)
             {
                 TotalFailed = TotalCalculated - TotalAdded;
-                System.Diagnostics.Debug.WriteLine(
-                    $"[RidgeCreationService] TX-02 outer error: {ex.Message}");
+                OnSlabWarning?.Invoke($"[TX-02] Stopped: {ex.Message}");
             }
         }
 
@@ -401,157 +394,198 @@ namespace Revit26_Plugin_Revised.RoofRidgeLines.V070.Services
             }
         }
 
-        // ── AddSplitLine helper ───────────────────────────────────────────────────
+        // ── Split lines along the ridges ──────────────────────────────────────────
+        //
+        // For each clipped ridge edge, the shape points lying on it (within 5 mm,
+        // its two ends included) are joined in order by split lines, so the roof
+        // creases exactly along the ridge. Vertices are re-read for every line:
+        // AddSplitLine can invalidate SlabShapeVertex objects read before it.
 
-        private static void TryAddSplitLineThroughPoint(SlabShapeEditor ed, XYZ pt)
+        private const double OnRidgeToleranceFt = 5.0 / 304.8;
+
+        private static int AddRidgeSplitLines(RoofBase roof, List<(XYZ Start, XYZ End)> edges, out int failures)
         {
-            var vertices = ed.SlabShapeVertices.Cast<SlabShapeVertex>().ToList();
-            if (vertices.Count < 2) return;
-
-            SlabShapeVertex leftV = null;
-            SlabShapeVertex rightV = null;
-            double bestL = double.MaxValue;
-            double bestR = double.MaxValue;
-
-            foreach (var v in vertices)
+            failures = 0;
+            int added = 0;
+            foreach (var edge in edges)
             {
-                XYZ p = v.Position;
-                if (p == null) continue;
-                double dx = p.X - pt.X;
-                double dy = p.Y - pt.Y;
-                double dist = Math.Sqrt(dx * dx + dy * dy);
-                if (dist < 1e-6) continue;
-                if (Math.Abs(dy) >= Math.Abs(dx)) continue;
-                if (dx < 0 && dist < bestL) { bestL = dist; leftV = v; }
-                if (dx > 0 && dist < bestR) { bestR = dist; rightV = v; }
+                XYZ a = new XYZ(edge.Start.X, edge.Start.Y, 0), b = new XYZ(edge.End.X, edge.End.Y, 0);
+                XYZ d = b - a;
+                double len2 = d.DotProduct(d);
+                if (len2 < 1e-12) continue;
+
+                var ed = roof.GetSlabShapeEditor();
+                if (ed == null || !ed.IsEnabled) return added;
+
+                // Positions (by fraction along the edge) of the vertices on it.
+                var onEdge = new List<(double T, XYZ Position)>();
+                foreach (SlabShapeVertex v in ed.SlabShapeVertices)
+                {
+                    XYZ p = new XYZ(v.Position.X, v.Position.Y, 0);
+                    double t = (p - a).DotProduct(d) / len2;
+                    if (t < -1e-6 || t > 1 + 1e-6) continue;
+                    if ((a + d * t).DistanceTo(p) <= OnRidgeToleranceFt)
+                        onEdge.Add((t, v.Position));
+                }
+
+                // A ridge end Revit only accepted after a nudge sits up to 60 mm off the line.
+                double endReach = 65.0 / 304.8;
+                if (!onEdge.Any(o => o.T * Math.Sqrt(len2) <= OnRidgeToleranceFt))
+                    AddNearest(ed, edge.Start, endReach, 0, onEdge);
+                if (!onEdge.Any(o => (1 - o.T) * Math.Sqrt(len2) <= OnRidgeToleranceFt))
+                    AddNearest(ed, edge.End, endReach, 1, onEdge);
+
+                var ordered = onEdge.OrderBy(o => o.T).ToList();
+                for (int i = 0; i + 1 < ordered.Count; i++)
+                {
+                    if (ordered[i + 1].T - ordered[i].T < 1e-6) continue;
+                    var fresh = roof.GetSlabShapeEditor();
+                    SlabShapeVertex v1 = FindVertex(fresh, ordered[i].Position);
+                    SlabShapeVertex v2 = FindVertex(fresh, ordered[i + 1].Position);
+                    if (v1 == null || v2 == null) { failures++; continue; }
+                    try { fresh.AddSplitLine(v1, v2); added++; }
+                    catch { failures++; }
+                }
             }
 
-            if (leftV == null || rightV == null) return;
+            return added;
+        }
 
-            try { ed.AddSplitLine(leftV, rightV); }
-            catch (Exception ex)
+        private static void AddNearest(SlabShapeEditor ed, XYZ target, double reach, double t, List<(double T, XYZ Position)> into)
+        {
+            SlabShapeVertex best = null;
+            double bestD = reach;
+            foreach (SlabShapeVertex v in ed.SlabShapeVertices)
             {
-                System.Diagnostics.Debug.WriteLine(
-                    $"[RidgeCreationService] AddSplitLine skipped: {ex.Message}");
+                double dd = Math.Sqrt(Math.Pow(v.Position.X - target.X, 2) + Math.Pow(v.Position.Y - target.Y, 2));
+                if (dd <= bestD) { bestD = dd; best = v; }
             }
+            if (best != null) into.Add((t, best.Position));
+        }
+
+        private static SlabShapeVertex FindVertex(SlabShapeEditor ed, XYZ position)
+        {
+            foreach (SlabShapeVertex v in ed.SlabShapeVertices)
+                if (Math.Abs(v.Position.X - position.X) < 1e-6 && Math.Abs(v.Position.Y - position.Y) < 1e-6)
+                    return v;
+            return null;
         }
 
         // ── TryAddPointWithNudge ──────────────────────────────────────────────────
+        //
+        // The point goes on the current surface at its XY. Rejected: moved toward the
+        // roof centre by at most 60 mm (3, 8, 15, 30, 60). A point on the boundary
+        // (within 50 mm of it) may instead be inset 5–50 mm from that edge. Never
+        // further, so a ridge point stays on its ridge.
+
+        private static readonly double[] NudgeMm = { 0, 3, 8, 15, 30, 60 };
 
         private static bool TryAddPointWithNudge(
             SlabShapeEditor ed,
             XYZ pt,
-            double slabZ,
+            TopSurface surface,
             XYZ centroid,
-            List<XYZ> boundary,
-            RoofBase roof)
+            List<XYZ> boundary)
         {
-            // Phase 1: centroid nudge (up to 50% travel in 10 steps of 5%)
-            const int p1Steps = 10;
-            const double p1Fraction = 0.05;
+            XYZ toCentre = new XYZ(centroid.X - pt.X, centroid.Y - pt.Y, 0);
+            XYZ dir = toCentre.GetLength() > 1e-9 ? toCentre.Normalize() : XYZ.Zero;
 
-            for (int step = 0; step <= p1Steps; step++)
+            foreach (double mm in NudgeMm)
             {
-                double t = step * p1Fraction;
-                XYZ candidate = new XYZ(
-                    pt.X + (centroid.X - pt.X) * t,
-                    pt.Y + (centroid.Y - pt.Y) * t,
-                    slabZ);
-                try
-                {
-                    var before = ed.SlabShapeVertices.Cast<SlabShapeVertex>()
-                                   .Select(v => v.Position).ToList();
-                    ed.AddPoint(candidate);
-                    ZeroNewVertexOffset(ed, before, roof);
-                    if (step > 0)
-                        System.Diagnostics.Debug.WriteLine(
-                            $"[RidgeCreationService] Phase-1 accepted after {step} nudge(s) " +
-                            $"({t * 100:F0}% toward centroid)");
+                if (mm > 0 && dir.IsZeroLength()) break;
+                if (TryAdd(ed, surface, pt.X + dir.X * mm / 304.8, pt.Y + dir.Y * mm / 304.8))
                     return true;
-                }
-                catch { /* keep nudging */ }
             }
 
-            // Phase 2: nearest-edge inset (5 mm per step, up to 10 steps)
-            if (boundary == null || boundary.Count < 3)
-            {
-                System.Diagnostics.Debug.WriteLine(
-                    "[RidgeCreationService] Phase-2 skipped — no boundary polygon.");
+            if (boundary == null || boundary.Count < 3 || DistanceToBoundary(pt, boundary) > 50.0 / 304.8)
                 return false;
-            }
 
             XYZ insetOrigin = GetNearestEdgeInsetPoint(pt, boundary, insetMm: 5.0);
-            if (insetOrigin == null)
+            if (insetOrigin == null) return false;
+            XYZ inward = GetNearestEdgeInwardNormal(pt, boundary);
+            for (int step = 0; step < 10; step++)
             {
-                System.Diagnostics.Debug.WriteLine(
-                    "[RidgeCreationService] Phase-2 skipped — could not compute inset point.");
-                return false;
-            }
-
-            const int p2Steps = 10;
-            const double p2StepMm = 5.0;
-
-            for (int step = 0; step < p2Steps; step++)
-            {
-                double extraInset = step * p2StepMm / 304.8;
-                XYZ dir = GetNearestEdgeInwardNormal(pt, boundary);
-                XYZ candidate = new XYZ(
-                    insetOrigin.X + dir.X * extraInset,
-                    insetOrigin.Y + dir.Y * extraInset,
-                    slabZ);
-                try
-                {
-                    var before = ed.SlabShapeVertices.Cast<SlabShapeVertex>()
-                                   .Select(v => v.Position).ToList();
-                    ed.AddPoint(candidate);
-                    ZeroNewVertexOffset(ed, before, roof);
-                    System.Diagnostics.Debug.WriteLine(
-                        $"[RidgeCreationService] Phase-2 accepted at step {step} " +
-                        $"(inset {5 + step * 5} mm from nearest edge)");
+                double extra = step * 5.0 / 304.8;
+                if (TryAdd(ed, surface, insetOrigin.X + inward.X * extra, insetOrigin.Y + inward.Y * extra))
                     return true;
-                }
-                catch { /* keep stepping */ }
             }
 
-            System.Diagnostics.Debug.WriteLine(
-                "[RidgeCreationService] Both phases failed — point skipped.");
             return false;
         }
 
-        // ── Zero offset on newly added vertex ─────────────────────────────────────
-        //
-        // SlabShapeVertex does not expose an Offset property in Revit 2026.
-        // Locates the new vertex by XY diff and logs its position.
-
-        private static void ZeroNewVertexOffset(
-            SlabShapeEditor ed,
-            List<XYZ> positionsBefore,
-            RoofBase roof)
+        private static bool TryAdd(SlabShapeEditor ed, TopSurface surface, double x, double y)
         {
             try
             {
-                var edFresh = roof.GetSlabShapeEditor();
-                if (edFresh == null) return;
-
-                var after = edFresh.SlabShapeVertices.Cast<SlabShapeVertex>().ToList();
-
-                const double tol = 1.0 / 304.8;
-                var newVerts = after.Where(v =>
-                    !positionsBefore.Any(p =>
-                        Math.Abs(p.X - v.Position.X) < tol &&
-                        Math.Abs(p.Y - v.Position.Y) < tol))
-                    .ToList();
-
-                foreach (var v in newVerts)
-                    System.Diagnostics.Debug.WriteLine(
-                        $"[RidgeCreationService] New vertex at " +
-                        $"X={v.Position.X * 304.8:F1} Y={v.Position.Y * 304.8:F1} " +
-                        $"Z={v.Position.Z * 304.8:F1} mm (Offset API not available in 2026)");
+                ed.AddPoint(new XYZ(x, y, surface.ZAt(x, y)));
+                return true;
             }
-            catch (Exception ex)
+            catch
             {
-                System.Diagnostics.Debug.WriteLine(
-                    $"[RidgeCreationService] ZeroNewVertexOffset warning: {ex.Message}");
+                return false;
+            }
+        }
+
+        private static double DistanceToBoundary(XYZ pt, List<XYZ> boundary)
+        {
+            double best = double.MaxValue;
+            for (int i = 0; i < boundary.Count; i++)
+            {
+                XYZ a = boundary[i], b = boundary[(i + 1) % boundary.Count];
+                double ex = b.X - a.X, ey = b.Y - a.Y;
+                double len2 = ex * ex + ey * ey;
+                double t = len2 < 1e-12 ? 0 : Math.Max(0, Math.Min(1, ((pt.X - a.X) * ex + (pt.Y - a.Y) * ey) / len2));
+                double dx = a.X + ex * t - pt.X, dy = a.Y + ey * t - pt.Y;
+                best = Math.Min(best, Math.Sqrt(dx * dx + dy * dy));
+            }
+            return best;
+        }
+
+        /// <summary>Height of the roof's current top surface at a plan point (vertical projection).</summary>
+        private sealed class TopSurface
+        {
+            private readonly List<Face> _faces;
+            private readonly double _fallbackZ;
+
+            public TopSurface(RoofBase roof, double fallbackZ)
+            {
+                _fallbackZ = fallbackZ;
+                try
+                {
+                    _faces = HostObjectUtils.GetTopFaces(roof)
+                        .Select(r => roof.GetGeometryObjectFromReference(r) as Face)
+                        .Where(f => f != null)
+                        .ToList();
+                }
+                catch
+                {
+                    _faces = new List<Face>();
+                }
+            }
+
+            public double ZAt(double x, double y)
+            {
+                foreach (Face f in _faces)
+                {
+                    if (f is PlanarFace pf && Math.Abs(pf.FaceNormal.Z) > 1e-6)
+                    {
+                        XYZ n = pf.FaceNormal, o = pf.Origin;
+                        double z = o.Z - ((x - o.X) * n.X + (y - o.Y) * n.Y) / n.Z;
+                        IntersectionResult hit = pf.Project(new XYZ(x, y, z));
+                        if (hit != null && hit.Distance <= 1e-3) return z;
+                    }
+                }
+
+                // Non-planar faces: nearest face point under the plan point.
+                double bestDist = double.MaxValue, bestZ = _fallbackZ;
+                foreach (Face f in _faces)
+                {
+                    IntersectionResult hit = f.Project(new XYZ(x, y, _fallbackZ));
+                    if (hit == null) continue;
+                    double dxy = Math.Sqrt(Math.Pow(hit.XYZPoint.X - x, 2) + Math.Pow(hit.XYZPoint.Y - y, 2));
+                    if (dxy < bestDist) { bestDist = dxy; bestZ = hit.XYZPoint.Z; }
+                }
+                return bestDist <= 0.05 ? bestZ : _fallbackZ;
             }
         }
 

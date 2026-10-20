@@ -76,7 +76,7 @@ namespace Revit26_Plugin_Revised.Shared.Services
         public static readonly ToolInfo InnerLoopsAndPerpendicular = Add("Inner Loops And Perpendicular", "7.1.1", "V007", "Revit26_Plugin_Revised.InnerLoopsAndPerpendicular.V007");
         public static readonly ToolInfo RoofEdgeVertexReducer = Add("Roof Edge Vertex Reducer", "9.0.1", "V009", "Revit26_Plugin_Revised.RoofEdgeVertexReducer.V009");
         public static readonly ToolInfo MultiplePoints = Add("Multiple Points (1/2–1/4)", "3.0.1", "V003", "Revit26_Plugin_Revised.MultiplePoints.V003");
-        public static readonly ToolInfo RidgeByOpenings = Add("Ridge By Openings", "70.1.0", "V070", "Revit26_Plugin_Revised.RoofRidgeLines.V070");
+        public static readonly ToolInfo RidgeByOpenings = Add("Ridge By Openings", "70.1.1", "V070", "Revit26_Plugin_Revised.RoofRidgeLines.V070");
         public static readonly ToolInfo RidgeByPoints = Add("Ridge By Points", "59.1.0", "V059", "Revit26_Plugin_Revised.RoofTools.LineAndPoints.RoofRidgeLines.V059");
         public static readonly ToolInfo CreaserAdv = Add("Creaser Adv", "12.0.1", "V012", "Revit26_Plugin_Revised.CreaserAdv.V012");
         public static readonly ToolInfo RoofTag = Add("Roof Tag", "18.1.1", "V018", "Revit26_Plugin_Revised.RoofTag.V018");
