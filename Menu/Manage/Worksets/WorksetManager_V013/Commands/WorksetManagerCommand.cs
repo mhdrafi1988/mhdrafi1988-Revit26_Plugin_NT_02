@@ -4,6 +4,7 @@ using Autodesk.Revit.UI;
 using Revit26_Plugin_Revised.WorksetManager.V013.UI.ViewModels;
 using Revit26_Plugin_Revised.WorksetManager.V013.UI.Views;
 using System.Windows.Interop;
+using Revit26_Plugin_Revised.Shared.Services;
 using Revit26_Plugin_Revised.Utilities;
 
 namespace Revit26_Plugin_Revised.WorksetManager.V013.Commands
@@ -12,26 +13,11 @@ namespace Revit26_Plugin_Revised.WorksetManager.V013.Commands
     [Regeneration(RegenerationOption.Manual)]
     public class WorksetManagerCommand : IExternalCommand
     {
-        public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
-        {
-            try
-            {
-                return ExecuteInternal(commandData, ref message, elements);
-            }
-            catch (Autodesk.Revit.Exceptions.OperationCanceledException)
-            {
-                return Result.Cancelled;
-            }
-            catch (System.Exception ex)
-            {
-                Logger.Error("WorksetManagerCommand", ex);
-                message = ex.Message;
-                TaskDialog.Show("Workset Manager", $"An unexpected error occurred: {ex.Message}");
-                return Result.Failed;
-            }
-        }
+        /// <summary>Opens the Workset Manager window; the body runs through ToolGuard.</summary>
+        public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements) =>
+            ToolGuard.RunCommand(GetType(), commandData, ref message, elements, ExecuteInternal);
 
-        private Result ExecuteInternal(ExternalCommandData commandData, ref string message, ElementSet elements)
+        private static Result ExecuteInternal(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
             var doc = commandData.Application.ActiveUIDocument?.Document;
 

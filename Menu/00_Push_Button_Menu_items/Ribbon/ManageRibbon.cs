@@ -39,14 +39,23 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             var wsebV004 = Btn(assemblyPath, "Btn_WorksetsElementsBrowser_WSEB004", "Worksets & Elements WSEB004", "Revit26_Plugin_Revised.WorksetsElementsBrowser.WSEB004.Commands.WorksetsElementsBrowserCommand",
                 "Manage.WorksetsElementsBrowser_16.png", "Worksets & Elements Browser", "WSEB004", "WSEB003 on the shared ToolWindowShell (capped tree).");
 
-            // Workset Manager is intentionally NOT on the ribbon — its commands and code
-            // remain in the project (and in ToolCatalog) so it can be re-added later.
+            // Workset Manager — back on the ribbon in plugin 5.2.0 (Worksets panel).
+            var worksetManagerV013 = Btn(assemblyPath, "Btn_WorksetManager_V013", "Workset Manager V013",
+                "Revit26_Plugin_Revised.WorksetManager.V013.Commands.WorksetManagerCommand",
+                "SetupTools.WorksetManager_16.png", "Workset Manager", "V013");
+            var worksetManagerV014 = Btn(assemblyPath, "Btn_WorksetManager_V014", "Workset Manager V014",
+                "Revit26_Plugin_Revised.WorksetManager.V014.Commands.WorksetManagerCommand",
+                "SetupTools.WorksetManager_16.png", "Workset Manager", "V014");
 
             var worksetRenamerV005 = Btn(assemblyPath, "Btn_WorksetRenamer_V005", "Workset Renamer V005", "Revit26_Plugin_Revised.WorksetRenamer.V005.Command",
                 "SetupTools.WorksetRename_16.png", "Workset Renamer", "V005", "V004 on the shared ToolWindowShell (capped grid).");
 
-            // Newest build first. "#" at the end of the label marks the version added last.
-            var worksetCreatorV016 = Btn(assemblyPath, "Btn_WorksetCreator_V016", "Workset Creator V016 #",
+            // Newest build first.
+            var worksetCreatorV017 = Btn(assemblyPath, "Btn_WorksetCreator_V017", "Workset Creator V017",
+                "Revit26_Plugin_Revised.WorksetCreator.V017.Commands.WorksetCreatorCommand",
+                "SetupTools.WorksetManager_16.png", "Workset Creator", "V017");
+
+            var worksetCreatorV016 = Btn(assemblyPath, "Btn_WorksetCreator_V016", "Workset Creator V016",
                 "Revit26_Plugin_Revised.WorksetCreator.V016.Commands.WorksetCreatorCommand",
                 "SetupTools.WorksetManager_16.png", "Workset Creator", "V016",
                 "V015 with its own tool name/version source (WorksetCreatorTool).");
@@ -112,16 +121,28 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
 
             // Link Version Checker V004 — same three scan modes, now seeing ACC / cloud links
             // (V003 silently dropped them) plus a Source column and filter.
-            // "#" at the end of a label marks the version added last.
             const string lvc4Ns = "Revit26_Plugin_Revised.LinkVersionChecker_V004.Commands.";
-            var linkPreOpenV004 = Btn(assemblyPath, "Btn_LinkVersionChecker_PreOpen_V004", "Link Check Pre-Open V004 #", lvc4Ns + "CmdLinkCheckPreOpen",
+            var linkPreOpenV004 = Btn(assemblyPath, "Btn_LinkVersionChecker_PreOpen_V004", "Link Check Pre-Open V004", lvc4Ns + "CmdLinkCheckPreOpen",
                 "Manage.ParaManager_16.png", "Link Version Checker - Pre-Open", "V004", "Check a model's linked file versions BEFORE opening it (no model is opened). Sees ACC / cloud links.");
             linkPreOpenV004.AvailabilityClassName = lvc4Ns + "LinkCheckAlwaysAvailable";
-            var linkInModelV004 = Btn(assemblyPath, "Btn_LinkVersionChecker_InModel_V004", "Link Check In-Model V004 #", lvc4Ns + "CmdLinkCheckInModel",
+            var linkInModelV004 = Btn(assemblyPath, "Btn_LinkVersionChecker_InModel_V004", "Link Check In-Model V004", lvc4Ns + "CmdLinkCheckInModel",
                 "Manage.ParaManager_16.png", "Link Version Checker - In-Model", "V004", "Check links, IFC caches, imports and worksets in the open model, ACC / cloud links included.");
-            var linkFolderV004 = Btn(assemblyPath, "Btn_LinkVersionChecker_Folder_V004", "Link Check Folder Audit V004 #", lvc4Ns + "CmdLinkCheckFolder",
+            var linkFolderV004 = Btn(assemblyPath, "Btn_LinkVersionChecker_Folder_V004", "Link Check Folder Audit V004", lvc4Ns + "CmdLinkCheckFolder",
                 "Manage.ParaManager_16.png", "Link Version Checker - Folder Audit", "V004", "Audit every host model in a project folder and export one report.");
             linkFolderV004.AvailabilityClassName = lvc4Ns + "LinkCheckAlwaysAvailable";
+
+            // Link Version Checker V005 — adds the ACC Sync column and Desktop Connector download
+            // state. Its own LinkLoadTimeLogger is NOT registered: it writes the same
+            // loadtimes.json as V004's, which is already registered above.
+            const string lvc5Ns = "Revit26_Plugin_Revised.LinkVersionChecker_V005.Commands.";
+            var linkPreOpenV005 = Btn(assemblyPath, "Btn_LinkVersionChecker_PreOpen_V005", "Link Check Pre-Open V005", lvc5Ns + "CmdLinkCheckPreOpen",
+                "Manage.ParaManager_16.png", "Link Version Checker - Pre-Open", "V005", "Check a model's linked file versions BEFORE opening it. Shows whether Desktop Connector files are downloaded.");
+            linkPreOpenV005.AvailabilityClassName = lvc5Ns + "LinkCheckAlwaysAvailable";
+            var linkInModelV005 = Btn(assemblyPath, "Btn_LinkVersionChecker_InModel_V005", "Link Check In-Model V005", lvc5Ns + "CmdLinkCheckInModel",
+                "Manage.ParaManager_16.png", "Link Version Checker - In-Model", "V005", "Check the open model's links, and ask ACC whether each cloud link is the current version.");
+            var linkFolderV005 = Btn(assemblyPath, "Btn_LinkVersionChecker_Folder_V005", "Link Check Folder Audit V005", lvc5Ns + "CmdLinkCheckFolder",
+                "Manage.ParaManager_16.png", "Link Version Checker - Folder Audit", "V005", "Audit every host model in a project folder and export one report.");
+            linkFolderV005.AvailabilityClassName = lvc5Ns + "LinkCheckAlwaysAvailable";
 
             // ── Manage panel ─────────────────────────────────────────────────
             var manageItems = RibbonLayoutHelper.AddStackedButtons(panel, new List<RibbonItemData>
@@ -132,7 +153,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_BulkRename", "Bulk Rename", bulkRenameV001),
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_ScheduleExportImport", "Schedule I/O", scheduleExportImportV007),
                 // Link Check moved here from its own one-button Links panel (plugin 4.2.1).
-                RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_LinkVersionChecker", "Link Check", linkInModelV004),
+                RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_LinkVersionChecker", "Link Check", linkInModelV005),
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_TrackerId", "Tracker ID", trackerIdV001),
             });
             RibbonLayoutHelper.WirePulldownButton(manageItems, "Pulldown_AnnotationOverlapDetection", overlapV004);
@@ -141,8 +162,9 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             RibbonLayoutHelper.WirePulldownButton(manageItems, "Pulldown_BulkRename", bulkRenameV001);
             RibbonLayoutHelper.WirePulldownButton(manageItems, "Pulldown_TrackerId", trackerIdV001);
             RibbonLayoutHelper.WirePulldownButton(manageItems, "Pulldown_ScheduleExportImport", scheduleExportImportV007, scheduleExportImportV006);
-            // Link Check lists V004's three scan modes first, then V003's.
+            // Link Check lists V005's three scan modes first, then V004's, then V003's.
             RibbonLayoutHelper.WirePulldownButton(manageItems, "Pulldown_LinkVersionChecker",
+                linkInModelV005, linkPreOpenV005, linkFolderV005,
                 linkInModelV004, linkPreOpenV004, linkFolderV004,
                 linkInModelV003, linkPreOpenV003, linkFolderV003);
 
@@ -154,13 +176,15 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             var worksetItems = RibbonLayoutHelper.AddStackedButtons(worksetPanel, new List<RibbonItemData>
             {
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_WorksetsElementsBrowser", "WS Browser", wsebV004),
-                RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_WorksetCreator", "WS Creator", worksetCreatorV016),
+                RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_WorksetCreator", "WS Creator", worksetCreatorV017),
+                RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_WorksetManager", "WS Manager", worksetManagerV014),
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_WorksetRenamer", "WS Renamer", worksetRenamerV005),
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_WorksetRenamerFx", "WS Renamer XL", worksetRenamerFx05),
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_DeleteWorkset", "Delete Workset", deleteWorksetV001),
             });
             RibbonLayoutHelper.WirePulldownButton(worksetItems, "Pulldown_WorksetsElementsBrowser", wsebV004, wsebV003);
-            RibbonLayoutHelper.WirePulldownButton(worksetItems, "Pulldown_WorksetCreator", worksetCreatorV016, worksetCreatorV015);
+            RibbonLayoutHelper.WirePulldownButton(worksetItems, "Pulldown_WorksetCreator", worksetCreatorV017, worksetCreatorV016, worksetCreatorV015);
+            RibbonLayoutHelper.WirePulldownButton(worksetItems, "Pulldown_WorksetManager", worksetManagerV014, worksetManagerV013);
             RibbonLayoutHelper.WirePulldownButton(worksetItems, "Pulldown_WorksetRenamer", worksetRenamerV005);
             RibbonLayoutHelper.WirePulldownButton(worksetItems, "Pulldown_WorksetRenamerFx", worksetRenamerFx05);
             RibbonLayoutHelper.WirePulldownButton(worksetItems, "Pulldown_DeleteWorkset", deleteWorksetV001);
