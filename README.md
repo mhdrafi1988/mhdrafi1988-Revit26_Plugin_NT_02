@@ -30,6 +30,7 @@
 - **Edge Around Sections, Edge Element Sections** — add edge elements around section boxes
 - **Callout To Section, Section Head Placer, Section View Tagger** — manage section heads and tags
 - **Roof View Focus** — focus views to roof extents
+- **Isolated Section** — one 3D view of the selected elements, section box turned parallel to their largest side, elements isolated
 - **View Renamer, Section Renamer, Bubble Renumber** — batch rename views and renumber bubbles
 
 ### Sheet Tools
