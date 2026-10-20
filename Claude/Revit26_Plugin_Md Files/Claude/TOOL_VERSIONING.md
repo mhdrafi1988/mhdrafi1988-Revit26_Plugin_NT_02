@@ -52,7 +52,7 @@ groups them as alternates.
    to know if a tool is reachable.
 3. **Explicitly retired** — excluded from the build entirely via a
    `<Compile Remove="Menu\...\FolderName\**" />` block in
-   `Revit26_Plugin_Revised.csproj`. This is the actual mechanism used to kill off
+   `Revit26_Plugin.csproj`. This is the actual mechanism used to kill off
    abandoned early drafts (e.g. the repo's `CreasetoLines\Creaser_V01`
    through `Creaser_V0302a` draft sequence is retired this way — a dozen-plus
    `**` exclusions in a row). Source stays on disk for reference; it simply

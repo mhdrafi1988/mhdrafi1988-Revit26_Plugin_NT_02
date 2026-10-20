@@ -2,8 +2,8 @@
 // File: RoofPointsAndSlopeViewModel.cs
 // Location: UI/ViewModels/
 // The step pipeline window. Every option change re-plans steps 1–4 in
-// plan (Core/Planning, no Revit call), so the header tiles and the
-// opening grid always show exactly what Run will add. Run and Re-analyze
+// plan (Core/Planning, no Revit call), so the step-list badges and
+// the opening grid always show exactly what Run will add. Run and Re-analyze
 // go through the ExternalEvent. Settings are loaded when the window
 // opens and saved when it closes and after each run.
 // =======================================================

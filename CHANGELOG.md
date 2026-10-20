@@ -3,13 +3,13 @@
 All notable changes to SloperPro. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
-- **Plugin version** lives in `Revit26_Plugin_Revised.csproj` (`<Version>`).
+- **Plugin version** lives in `Revit26_Plugin.csproj` (`<Version>`).
 - **Tool versions** live in `Shared/Services/ToolCatalog.cs`. Each tool has its own semantic version;
   the ribbon tooltip, the tool's window title and its error dialogs all read it from there.
 
 Each release lists every tool whose version changed, under the plugin version.
 
-## [5.1.0] — 2026-10-20
+## [5.2.0] — 2026-10-20
 
 ### Added — Tracker ID 1.1.0
 - **Several categories in one run:** step 1 has a tick column; tick any number of categories and
@@ -43,18 +43,29 @@ f33f9a95-3856-4c9c-a56c-f640e5ce5134). The CSV export keeps every existing colum
 order; `Status`, `Progress_Pct` and `Status_Date` are appended at the end and `Schema_Version` is
 now 2 — Power BI queries that pick columns by name keep working. Tracker ID settings move to schema
 version 2; version 1 settings load with the new options at their defaults (whole model, CSV).
+Unit tests: `dotnet test Tests/TrackerId.Tests`.
 
-### Fixed
-- **The plugin did not build** after the unit tests moved to `Menu/Tests-01/`: the plugin project
-  compiled the test files too. `Menu/Tests-01/` is now excluded from the plugin, and the
-  Roof Points & Slope test project finds the tool's source again from its new folder.
-- **One project file:** `Revit26_Plugin_Revised.csproj` is now the only project (it had been a stale
-  4.0.0 copy next to `Revit26_Plugin.csproj`; two SDK projects in one folder share `obj/` and clash).
-  `Revit26_Plugin.csproj` is removed and both `.sln` files open the Revised project. The DLL name,
-  output folder and add-in manifest are unchanged.
+## [5.1.0] — 2026-10-20
 
-**User note:** open either `.sln`; both build `Revit26_Plugin_Revised.csproj`. Build with
-`dotnet build Revit26_Plugin_Revised.csproj -p:EnableWindowsTargeting=true`.
+### Changed
+- **Roof Points & Slope v1.1.0 (V001)** — redesigned window. The options no longer sit in one long
+  page:
+  - **Step list on the left**: Run options and steps 1–6, each with its Run tick, a number (navy
+    when the step will run, grey when it won't), a one-line summary and the points it will add
+    (ridge summary for step 5, drain count for step 6). These badges replace the six header tiles.
+  - **Options of the selected step on the right**, laid out as label · value · unit, with the
+    step's own **Run this step** tick. The **Openings** grid sits right under them, with its
+    count and the Points / Perpendicular / Drain All–None buttons.
+  - **Toolbar** above: roof picker (several roofs), presets, Show planned points / Clear markers.
+  - **Run options** gathers Clear existing shape points first, Min spacing, the report folder and
+    both Excel reports (the Auto Slope By Drain report option moved here from step 6).
+  - **Activity log** is closed by default (click its title to open it), like the other tools.
+  - Built from the shared styles only (`SharedStyles.xaml` v4.0 status and action brushes,
+    26 px inputs, 30 px buttons, 8 px spacing); footer buttons are all the same height.
+
+**User note:** nothing to migrate. Every option, preset and setting is the same as in 1.0.0 and
+your saved `settings.json` and `presets.json` load unchanged; only where the options are shown
+changed. Click a step in the list to find its options.
 
 ## [5.0.1] — 2026-10-20
 

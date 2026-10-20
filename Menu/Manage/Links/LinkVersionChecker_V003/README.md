@@ -63,7 +63,7 @@ Last host, recent hosts (dropdown), last folder, nested/subfolder options, filte
 ## Install
 
 1. Copy the `LinkVersionChecker_V003` folder into the repo, e.g. `Revit26_Plugin\Menu\ProjectTools\LinkVersionChecker_V003\`. V001/V002 can stay; namespaces don't clash. Point your ribbon wiring at V003 (V002 doesn't compile — see CHANGELOG).
-   **If V002 is already in the repo, retire it** — it doesn't compile, and SDK-style projects build every folder. Add next to the other exclusions in `Revit26_Plugin_Revised.csproj` (adjust the path):
+   **If V002 is already in the repo, retire it** — it doesn't compile, and SDK-style projects build every folder. Add next to the other exclusions in `Revit26_Plugin.csproj` (adjust the path):
    ```xml
    <Compile Remove="Menu\ProjectTools\LinkVersionChecker_V002\**" />
    <Page Remove="Menu\ProjectTools\LinkVersionChecker_V002\**" />
