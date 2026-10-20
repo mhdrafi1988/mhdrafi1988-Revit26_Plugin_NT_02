@@ -123,6 +123,7 @@ namespace Revit26_Plugin_Revised.Shared.Services
         public static readonly ToolInfo WorksetCreator = Add("Workset Creator", "16.1.1", "V016", "Revit26_Plugin_Revised.WorksetCreator.V016");
         public static readonly ToolInfo TrackerId = Add("Tracker ID", "1.0.0", "V001", "Revit26_Plugin_Revised.TrackerId.V001");
         public static readonly ToolInfo TrackerIdV002 = Add("Tracker ID", "2.0.0", "V002", "Revit26_Plugin_Revised.TrackerId.V002");
+        public static readonly ToolInfo SharedParamStudio = Add("Shared Parameter Studio", "1.0.0", "V001", "Revit26_Plugin_Revised.SharedParamStudio.V001");
 
         private static ToolInfo Add(string name, string version, string buildTag, string namespacePrefix)
         {

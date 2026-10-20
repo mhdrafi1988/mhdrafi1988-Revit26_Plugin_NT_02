@@ -9,6 +9,29 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [5.3.0] — 2026-10-20
+
+### Added — Shared Parameter Studio V001 (1.0.0)
+A new **Shared Params** button on the Manage tab opens one window with four tabs. Existing tools,
+including ParaManager, are unchanged.
+
+- **Create & Assign.** Define a new shared parameter (name, data type, description, group in the file)
+  and bind it to the categories you tick, as an instance or type parameter under a Properties group,
+  in one step. The definition is written to the shared parameter file you choose (created if missing)
+  and bound in a single undoable transaction. Names already in the file or the project are refused.
+- **Merge Files.** Merge two shared parameter files into a third. GUIDs are never changed. Where both
+  files define the same name or GUID differently, choose: keep the first, use the second, or keep both
+  (the second is renamed). Preview first; new parameters can be added to the merged file in the same step.
+- **Duplicate Check.** Finds repeated GUIDs and repeated names in a file, flags clashes with different
+  data types, exports a CSV report and saves a copy without the later duplicates. The scanned file is
+  never changed unless you pick it as the target (the old file is then kept as `.bak`).
+- **Retrieve from Project.** Lists the shared parameters bound in the open project with GUID, type,
+  binding and categories; write the ticked ones to a shared parameter file (GUIDs kept) or export a CSV.
+  Project parameters that are not shared are counted, not listed.
+
+User note: Revit's own shared parameter file setting is restored after each run. Files the tool
+overwrites keep a `.bak` copy next to them.
+
 ## [5.2.0] — 2026-10-20
 
 ### Added — Tracker ID V002 (2.0.0)
