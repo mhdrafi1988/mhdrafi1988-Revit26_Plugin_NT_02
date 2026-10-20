@@ -9,6 +9,79 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [4.4.0] — 2026-10-20
+
+### Added
+- **Roof Points & Slope v1.0.0 (V001)** — new tool in **Roof Slope ▸ Points & Slope**. One window
+  runs up to six steps on one footprint roof, in order, as a single Undo step:
+  1. **Points around openings** — per opening, N points (circles / others defaults, editable per
+     row) or a max spacing. Same rules as Inner Loop Divider V012.
+  2. **Perpendicular points** — from each group of points on an opening to the nearest boundary
+     point in up to 8 directions. Same rules as Inner Loops + Perpendicular V007.
+  3. **Midpoint and quarter points** — ½ and/or ¼ + ¾ of each edge, as Multiple Points V003.
+  4. **Gap fill** (new) — along each edge, evenly spaced points wherever two neighbouring points
+     are further apart than the interval.
+  5. **Ridge between drains** — the Ridge By Openings V070 services, unchanged: ridges midway
+     between the openings ticked as drains (at least two), clipped to the roof, as shape points +
+     split lines and/or detail lines in the active view (line style chosen in the window).
+     Openings that are not drains end the ridges that cross them.
+  6. **Slope by drain** — the Auto Slope By Drain V013 engine, unchanged, towards the same
+     drains, so the ridges become the high lines (roof parameters and the optional Excel report
+     included).
+  Steps 3 and 4 each choose their edges: boundary and/or openings, lines and/or curves. The header
+  shows how many points each step will add (and the ridge lines) before anything runs; points already there are skipped.
+  Before running, the window also:
+  - **Check slope reach** (step 6) — estimates how many points the slope would leave at 0 (dips):
+    no on-roof path to a drain within Max edge hops, or a path longer than Max path.
+  - Shows **ridge problems** — ridge points not midway between their drains, and ridge points that
+    fall within the minimum spacing of another point.
+  - **Min spacing between points** (default 50 mm) — steps 2–4 skip a point closer than this to
+    another point; the skipped count is shown. Step 1 (counts you set per opening) is never thinned.
+  - **Drain checks** — openings the ridge reader and the drain detection don't agree on are listed.
+  - Warns when the roof **already has slope or extra points**, and asks before running on a roof
+    that already has slope. **Clear existing shape points first** (off by default) resets the roof's
+    shape before step 1, inside the same Undo.
+  - **Cancel Run** — stops the run between steps or during the slope; everything is rolled back.
+  - **Show in Revit** — "Show planned points in Revit" puts coloured temporary markers (one colour
+    per step) in the active view; each opening row has a **Show** button that highlights the opening
+    and zooms to it. Markers are Revit in-canvas graphics: not saved, not on the Undo list, cleared
+    on Run or Close (or with **Clear markers**).
+  - **Presets** — save the current options under a name, apply or delete them later
+    (`%AppData%\Revit26_Plugin\RoofPointsAndSlope\presets.json`, with a schema version).
+  - **Several roofs** — select or pick several footprint roofs. A **Roof** list switches between
+    them; each roof keeps its own opening ticks and counts, the step options are shared. **Run on
+    All Roofs** runs them in order as one Undo step; if one fails, all are rolled back. A roof that
+    can't be processed (in a group, owned by another user, no closed sketch) is skipped with the
+    reason in the log.
+  - **Run report** (off by default) — after a successful run, a `.xlsx` in the report folder with a
+    Summary sheet and a Points sheet (Roof, Step, X (m), Y (m), Height (mm)) listing every shape
+    point and the step that added it.
+  If any step fails, the whole run is rolled back. Settings are saved to
+  `%AppData%\Revit26_Plugin\RoofPointsAndSlope\settings.json` (with a schema version).
+  Internal names: `Btn_RoofPointsAndSlope_V001`, `Pulldown_RoofPointsAndSlope`.
+
+Unit tests for the plan geometry, the point planner and the reach estimate are in
+`Tests/RoofPointsAndSlope.Tests` (`dotnet test Tests/RoofPointsAndSlope.Tests`).
+
+**User note:** nothing changes for existing tools. Combined Roof Tools V003 and the separate
+point and slope tools are unchanged and stay on the ribbon. Footprint roofs only (the openings
+are read from the roof's sketch). Not yet tested in Revit: try it on a copy of a model first.
+
+### Fixed
+- **Ridge By Openings v70.1.1 (V070)** — added shape points no longer distort the roof or the slope
+  worked out from them (also used by step 5 of Roof Points & Slope):
+  - Each ridge point is placed on the roof's current surface. It was placed at the most common
+    height of the existing points, which dented or lifted a roof that was already sloped.
+  - A point Revit rejects is nudged at most 60 mm. It was moved up to half way to the roof centre
+    (metres off the ridge), or snapped to the nearest edge.
+  - Split lines now run along each ridge, through its points. They were drawn between each point's
+    nearest left and right vertices, creasing the roof where there is no ridge.
+  - A ridge point that already exists is reused instead of being added again next to it; skipped
+    and rejected points are now reported in the log.
+
+**User note:** ridges made with V070 before this fix may have dents, displaced ridge points or stray
+creases; reset the shape points and run the tool again.
+
 ## [4.3.0] — 2026-10-20
 
 ### Added

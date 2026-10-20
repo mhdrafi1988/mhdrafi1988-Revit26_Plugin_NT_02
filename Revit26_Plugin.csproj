@@ -9,7 +9,7 @@
 		<AssemblyName>Revit26_Plugin</AssemblyName>
 		<RootNamespace>Revit26_Plugin_Revised</RootNamespace>
 		<!-- Plugin version (SemVer). Per-tool versions live in Shared/Services/ToolCatalog.cs. -->
-		<Version>4.3.0</Version>
+		<Version>4.4.0</Version>
 		<BaseOutputPath>C:\Users\Rafi\source\repos\Revit26_Plugin\bin\51</BaseOutputPath>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -23,6 +23,11 @@
 	  <EmbeddedResource Remove="Menu\RoofTools\WIP\**" />
 	  <None Remove="Menu\RoofTools\WIP\**" />
 	  <Page Remove="Menu\RoofTools\WIP\**" />
+	  <!-- Unit-test projects build on their own (dotnet test Tests/...) -->
+	  <Compile Remove="Tests\**" />
+	  <EmbeddedResource Remove="Tests\**" />
+	  <None Remove="Tests\**" />
+	  <Page Remove="Tests\**" />
 	</ItemGroup>
 	<ItemGroup>
 	  <Compile Remove="IconLoader.cs" />
