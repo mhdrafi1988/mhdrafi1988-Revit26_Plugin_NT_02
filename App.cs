@@ -16,6 +16,9 @@ namespace Revit26_Plugin_Revised
         public Result OnStartup(UIControlledApplication application)
         {
             ToolGuard.Install();
+            // Once every add-in is loaded, warn if another copy of this one is loaded too: its old
+            // styles can break tool windows.
+            application.ControlledApplication.ApplicationInitialized += (_, _) => ToolGuard.WarnIfOtherCopiesLoaded();
             EnsureRibbonTabExists(application, ModellingTabName);
             EnsureRibbonTabExists(application, DocumentsTabName);
             InitializeRibbonPanels(application);
