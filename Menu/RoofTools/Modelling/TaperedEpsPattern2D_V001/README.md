@@ -17,13 +17,13 @@ No 3D elements, DirectShapes, shared parameters or other model changes.
 ## Integration checklist
 
 1. **Copy the V001 Core.** Copy `TaperedEpsLayout_V001/Core/*` into `Core/` here, re-namespaced to
-   `Revit26_Plugin.TaperedEpsPattern2D.V001.Core`. `Core/Pattern` does not depend on it.
+   `Revit26_Plugin_Revised.TaperedEpsPattern2D.V001.Core`. `Core/Pattern` does not depend on it.
    Board pieces and codes are currently produced by two stand-ins:
    `BoardPieceBuilder` (grid cutting) and `BoardCodeAssigner` (codes `F01…` full, `C01…` cut,
    grouped by full/cut + min/max thickness rounded to 1 mm). If board/code counts must match the 3D
    tool exactly, swap these two for `GridCutter` / `PieceGrouper` inside `Pattern2DEngine.Generate`.
 2. **ToolWindowShell / SharedStyles (verify).** The window assumes
-   `Revit26_Plugin.Shared.UI.ToolWindowShell` (a `Window` subclass). Fix the `xmlns:shell` in
+   `Revit26_Plugin_Revised.Shared.UI.ToolWindowShell` (a `Window` subclass). Fix the `xmlns:shell` in
    `Views/TaperedEpsPattern2DWindow.xaml` and the `using` in the code-behind if it lives elsewhere.
    All styles are `DynamicResource` keys, so missing keys fall back to WPF defaults instead of
    crashing. Keys used:

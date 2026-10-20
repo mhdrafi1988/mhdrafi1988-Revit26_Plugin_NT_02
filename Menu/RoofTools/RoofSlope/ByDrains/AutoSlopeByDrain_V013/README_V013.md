@@ -19,12 +19,12 @@ Preview of the window: the "AutoSlope By Drain V013" artifact.
 2. **ToolCatalog** (`Shared/Services/ToolCatalog.cs`). Without this line the code falls back to `13.0.0`.
    (The catalog currently lists the multi-roof tool only at V010; V012 has no entry.)
    ```csharp
-   public static readonly ToolInfo MultiRoofSlopeByDrainV013 = Add("Auto Slope By Drain (Multi-Roof)", "13.0.0", "V013", "Revit26_Plugin.MultiRoofSlopeByDrain.V013");
+   public static readonly ToolInfo MultiRoofSlopeByDrainV013 = Add("Auto Slope By Drain (Multi-Roof)", "13.0.0", "V013", "Revit26_Plugin_Revised.MultiRoofSlopeByDrain.V013");
    ```
 3. **Ribbon** (`RoofToolsRibbon.cs`, By Drain pulldown). The command class keeps V012's name:
    ```csharp
    new PushButtonData("Btn_AutoSlopeByDrain_013", "By Drain V013", assemblyPath,
-       "Revit26_Plugin.MultiRoofSlopeByDrain.V013.Commands.AutoSlopeByDrain")
+       "Revit26_Plugin_Revised.MultiRoofSlopeByDrain.V013.Commands.AutoSlopeByDrain")
    {
        ToolTip = ToolCatalog.MultiRoofSlopeByDrainV013.Tip("Slopes each picked roof towards its selected drain openings.")
    };

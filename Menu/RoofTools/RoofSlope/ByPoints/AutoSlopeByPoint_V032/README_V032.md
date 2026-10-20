@@ -17,12 +17,12 @@ collapsed option sections and a results side panel. Change codes (B1, D1, …) r
    It is an SDK-style project, so no `.csproj` edit is needed.
 2. **ToolCatalog** (`Shared/Services/ToolCatalog.cs`). Without this line the code falls back to `32.0.0`.
    ```csharp
-   public static readonly ToolInfo AutoSlopeByPointV032 = Add("Auto Slope By Point", "32.0.0", "V032", "Revit26_Plugin.AutoSlopeByPoint.V032");
+   public static readonly ToolInfo AutoSlopeByPointV032 = Add("Auto Slope By Point", "32.0.0", "V032", "Revit26_Plugin_Revised.AutoSlopeByPoint.V032");
    ```
 3. **Ribbon** (`RoofToolsRibbon.cs`, "By Point" pulldown):
    ```csharp
    new PushButtonData("Btn_AutoSlopeByPoint_032", "By Point V032", assemblyPath,
-       "Revit26_Plugin.AutoSlopeByPoint.V032.Commands.AutoSlopeCommand")
+       "Revit26_Plugin_Revised.AutoSlopeByPoint.V032.Commands.AutoSlopeCommand")
    {
        ToolTip = ToolCatalog.AutoSlopeByPointV032.Tip("Slopes a roof towards picked drain points.")
    };
