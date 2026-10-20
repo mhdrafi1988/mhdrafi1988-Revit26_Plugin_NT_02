@@ -134,6 +134,25 @@ Step pipeline on the shared ToolWindowShell.
                 <!-- ─── BEFORE STEP 1 ─── -->
                 <Border Style="{StaticResource ContentCard}" Padding="14,10" Margin="0,0,0,8">
                     <StackPanel>
+                        <!-- Presets -->
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                            <TextBlock Text="Preset" Style="{StaticResource Label}"/>
+                            <ComboBox Width="220" Height="28" IsEditable="True" VerticalContentAlignment="Center"
+                                      ItemsSource="{Binding Presets}" DisplayMemberPath="Name"
+                                      SelectedItem="{Binding SelectedPreset}"
+                                      Text="{Binding PresetName, UpdateSourceTrigger=PropertyChanged}"
+                                      ToolTip="Pick a saved set of options, or type a new name and Save."/>
+                            <Button Content="Apply" Style="{StaticResource SmallSecondaryButton}" Margin="6,0,0,0" Command="{Binding ApplyPresetCommand}"
+                                    ToolTip="Load the picked preset's options into the window."/>
+                            <Button Content="Save" Style="{StaticResource SmallSecondaryButton}" Margin="4,0,0,0" Command="{Binding SavePresetCommand}"
+                                    ToolTip="Save the current options under the typed name."/>
+                            <Button Content="Delete" Style="{StaticResource SmallSecondaryButton}" Margin="4,0,0,0" Command="{Binding DeletePresetCommand}"/>
+                            <Button Content="Show planned points in Revit" Style="{StaticResource SmallSecondaryButton}" Margin="18,0,0,0"
+                                    Command="{Binding ShowPlannedPointsCommand}"
+                                    ToolTip="Coloured temporary markers in the active view: blue step 1, purple step 2, green step 3, orange step 4, red ridge. Not saved; cleared on Run or Close."/>
+                            <Button Content="Clear markers" Style="{StaticResource SmallSecondaryButton}" Margin="4,0,0,0"
+                                    Command="{Binding ClearMarkersCommand}"/>
+                        </StackPanel>
                         <StackPanel Orientation="Horizontal">
                             <CheckBox Style="{StaticResource Opt}" Content="Clear existing shape points first"
                                       IsChecked="{Binding ClearExistingFirst}"
@@ -142,6 +161,22 @@ Step pipeline on the shared ToolWindowShell.
                             <TextBox Style="{StaticResource NumberBox}" Text="{Binding MinPointSpacingMm, UpdateSourceTrigger=PropertyChanged}"
                                      ToolTip="Steps 2–4 skip a point closer than this to another point (0 = only skip duplicates within 5 mm)."/>
                         </StackPanel>
+                        <Grid Margin="0,6,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Report folder" Style="{StaticResource Label}"/>
+                            <TextBox Grid.Column="1" Style="{StaticResource BorderlessTextInput}" Height="28" VerticalContentAlignment="Center"
+                                     Text="{Binding ExportFolder, UpdateSourceTrigger=PropertyChanged}"/>
+                            <Button Grid.Column="2" Content="Browse…" Style="{StaticResource SmallSecondaryButton}" Margin="6,0,12,0"
+                                    Click="BrowseFolder_Click"/>
+                            <CheckBox Grid.Column="3" Style="{StaticResource Opt}" Content="Save run report (.xlsx)"
+                                      IsChecked="{Binding SaveRunReport}"
+                                      ToolTip="After a successful run: a Summary sheet and a Points sheet (roof, step, X, Y, height after slope)."/>
+                        </Grid>
                         <TextBlock Style="{StaticResource WarnNote}" Text="{Binding ExistingShapeWarning}"/>
                         <TextBlock Style="{StaticResource WarnNote}" Text="{Binding PlanWarnings}"/>
                     </StackPanel>
@@ -295,19 +330,8 @@ Step pipeline on the shared ToolWindowShell.
                                 <CheckBox Style="{StaticResource Opt}" Content="Insert points at curve crossings"
                                           IsChecked="{Binding InsertCurveIntersectionPoints}"/>
                             </StackPanel>
-                            <Grid Margin="0,0,0,4">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-                                <CheckBox Grid.Column="0" Style="{StaticResource Opt}" Content="Excel report to" IsChecked="{Binding ExportToExcel}"/>
-                                <TextBox Grid.Column="1" Style="{StaticResource BorderlessTextInput}" Height="28" VerticalContentAlignment="Center"
-                                         IsEnabled="{Binding ExportToExcel}"
-                                         Text="{Binding ExportFolder, UpdateSourceTrigger=PropertyChanged}"/>
-                                <Button Grid.Column="2" Content="Browse…" Style="{StaticResource SmallSecondaryButton}" Margin="6,0,0,0"
-                                        IsEnabled="{Binding ExportToExcel}" Click="BrowseFolder_Click"/>
-                            </Grid>
+                            <CheckBox Style="{StaticResource Opt}" Margin="0,0,0,4" Content="Auto Slope By Drain Excel report (to the report folder above)"
+                                      IsChecked="{Binding ExportToExcel}"/>
                             <TextBlock Style="{StaticResource HintText}" TextWrapping="Wrap"
                                        Text="Resets every shape point to 0, then sets each point's height from its shortest path to a ticked drain, and writes the AutoSlope roof parameters."/>
                             <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
@@ -353,6 +377,16 @@ Step pipeline on the shared ToolWindowShell.
                               CellStyle="{StaticResource StandardDataGridCell}"
                               RowStyle="{StaticResource StandardDataGridRow}">
                         <DataGrid.Columns>
+                            <DataGridTemplateColumn Header="" Width="58">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Button Content="Show" Style="{StaticResource SmallSecondaryButton}" Margin="2"
+                                                Command="{Binding DataContext.ShowOpeningCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                CommandParameter="{Binding}"
+                                                ToolTip="Highlight this opening in the active view and zoom to it (temporary markers)."/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
                             <DataGridTextColumn Header="#" Binding="{Binding Index}" IsReadOnly="True" Width="44"/>
                             <DataGridTextColumn Header="Shape" Binding="{Binding ShapeName}" IsReadOnly="True" Width="85"/>
                             <DataGridTextColumn Header="Size (mm)" Binding="{Binding SizeText}" IsReadOnly="True" Width="110"/>

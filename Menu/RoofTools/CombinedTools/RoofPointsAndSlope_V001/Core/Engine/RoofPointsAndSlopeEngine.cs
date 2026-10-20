@@ -23,6 +23,7 @@ using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using Revit26_Plugin_Revised.MultiRoofSlopeByDrain.V013.Core.Engine;
 using Revit26_Plugin_Revised.MultiRoofSlopeByDrain.V013.Core.Models;
+using Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Core.Geometry;
 using Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Core.Models;
 using Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Core.Planning;
 using Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Infrastructure.Revit;
@@ -51,8 +52,10 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Core.Engine
         /// <summary>
         /// Checks the roof can be changed: it exists, is in the active document, is not in a group
         /// and is not owned by another user. Returns the roof, or null with <paramref name="error"/> set.
+        /// <paramref name="checkOwnership"/> false skips the group and checkout checks (read-only use).
         /// </summary>
-        public static FootPrintRoof ValidateRoof(UIApplication app, Document expectedDoc, ElementId roofId, out string error)
+        public static FootPrintRoof ValidateRoof(UIApplication app, Document expectedDoc, ElementId roofId, out string error,
+                                                 bool checkOwnership = true)
         {
             error = null;
             Document doc = app.ActiveUIDocument?.Document;
@@ -73,6 +76,8 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Core.Engine
                 error = "The roof could not be found (it may have been deleted). Close the tool and pick the roof again.";
                 return null;
             }
+
+            if (!checkOwnership) return roof; // read-only use (markers): group and checkout don't matter
 
             if (roof.GroupId != ElementId.InvalidElementId)
             {
@@ -125,7 +130,7 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Core.Engine
             if (settings.ClearExistingFirst)
             {
                 progress(2, "Clearing existing shape points");
-                int before = RoofReader.ReadShapePoints(roof).Count;
+                int countBefore = RoofReader.ReadShapePoints(roof).Count;
                 using (var tx = new Transaction(doc, "Roof Points & Slope – clear shape points"))
                 {
                     tx.Start();
@@ -135,7 +140,7 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Core.Engine
                         return Fail(result, log, "Clearing the existing shape points failed; nothing was changed.");
                 }
 
-                log(new LogEntry(LogLevel.Info, $"Cleared the roof's shape points and split lines ({before} point(s) before)."));
+                log(new LogEntry(LogLevel.Info, $"Cleared the roof's shape points and split lines ({countBefore} point(s) before)."));
                 settings = settings.Clone();
                 settings.ClearExistingFirst = false; // the roof now really has only its corners
             }
@@ -145,6 +150,8 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Core.Engine
             // ── Steps 1–4 ────────────────────────────────────────────────────
             payload.Outline.ExistingVertices = RoofReader.ReadShapePoints(roof);
             PipelinePlan plan = PointPipelinePlanner.Plan(payload.Outline, settings);
+            List<P2> before = payload.Outline.ExistingVertices.ToList();
+            var tags = new List<(P2 Position, string Step)>(); // which step each new point came from (report)
 
             int stepNo = 0;
             foreach (StepPlan step in plan.Steps)
@@ -162,6 +169,7 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Core.Engine
                 if (!w.Success)
                     return Fail(result, log, $"Step {stepNo} ({name}) failed: {w.ErrorMessage}");
 
+                tags.AddRange(step.Points.Select(p => (p.Position, name)));
                 result.AddedPerStep[name] = w.Added;
                 result.TotalAdded += w.Added;
                 result.TotalRejected += w.Rejected;
@@ -184,7 +192,7 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Core.Engine
             if (settings.RidgeEnabled)
             {
                 progress(62, "Step 5: Ridge");
-                if (!RunRidge(app, doc, roof, payload, settings, result, log))
+                if (!RunRidge(app, doc, roof, payload, settings, result, log, tags))
                     return result;
             }
 
@@ -236,6 +244,8 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Core.Engine
             }
 
             result.VerticesAfter = RoofReader.ReadShapePoints(roof);
+            if (settings.SaveRunReport)
+                result.ReportPoints = BuildReportPoints(RoofReader.ReadShapeVertices(roof), before, tags);
             result.Success = true;
             progress(100, "Done");
             return result;
@@ -243,7 +253,8 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Core.Engine
 
         /// <summary>Step 5. Returns false (with the result marked failed) when the ridge can't be made.</summary>
         private static bool RunRidge(UIApplication app, Document doc, RoofBase roof, RunPayload payload,
-                                     PipelineSettings settings, RunResult result, Action<LogEntry> log)
+                                     PipelineSettings settings, RunResult result, Action<LogEntry> log,
+                                     List<(P2 Position, string Step)> tags)
         {
             VoronoiRidgeResult ridge = RidgePlanner.Plan(payload.RidgeInput, payload.DrainOpenings, settings, out string error);
             if (ridge == null)
@@ -274,6 +285,8 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Core.Engine
             ElementId styleId = RidgeCreationService.GetLineStyleIdByName(doc, settings.RidgeLineStyle);
             creation.CreateAll(doc, view, roof, ridge, lines, settings.RidgeShapePoints, styleId);
 
+            if (settings.RidgeShapePoints)
+                tags.AddRange(ridge.ShapePoints.Concat(ridge.RidgeEdgeMidPoints).Select(x => (new P2(x.X, x.Y), "Ridge")));
             result.RidgeLines = ridge.CreatedDetailLineIds.Count;
             result.TotalAdded += creation.TotalAdded;
             result.AddedPerStep["Ridge"] = creation.TotalAdded;
@@ -287,6 +300,47 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Core.Engine
                 log(new LogEntry(LogLevel.Warning,
                     $"Step 5 · Ridge: {ridge.FailCount} of {ridge.ValidationLog.Count} ridge point(s) are not equidistant from their drains within {settings.RidgeValidationToleranceMm:0} mm."));
             return true;
+        }
+
+        /// <summary>
+        /// One report row per shape point: "Existing" when it was there before the steps, else the
+        /// step whose planned point is nearest (within 65 mm, as points may be nudged), else "Slope step".
+        /// </summary>
+        private static List<ReportPoint> BuildReportPoints(List<(P2 Position, double Z)> vertices, List<P2> before,
+                                                          List<(P2 Position, string Step)> tags)
+        {
+            const double nudgeReach = 65.0 / 304.8;
+            double minZ = vertices.Count > 0 ? vertices.Min(v => v.Z) : 0;
+            var rows = new List<ReportPoint>(vertices.Count);
+            foreach (var (pos, z) in vertices)
+            {
+                string step = null;
+                if (before.Any(b => b.DistanceTo(pos) <= PointPipelinePlanner.Tolerance))
+                {
+                    step = "Existing";
+                }
+                else
+                {
+                    double best = double.MaxValue;
+                    foreach (var (tagPos, tagStep) in tags)
+                    {
+                        double d = tagPos.DistanceTo(pos);
+                        if (d <= nudgeReach && d < best) { best = d; step = tagStep; }
+                    }
+                }
+
+                step ??= "Slope step";
+
+                rows.Add(new ReportPoint
+                {
+                    Step = step,
+                    XMeters = pos.X * 0.3048,
+                    YMeters = pos.Y * 0.3048,
+                    HeightMm = (z - minZ) * 304.8
+                });
+            }
+
+            return rows.OrderBy(r => r.Step).ThenBy(r => r.XMeters).ThenBy(r => r.YMeters).ToList();
         }
 
         /// <summary>Plan, section, elevation, detail and drafting views hold detail lines; 3D views, sheets and schedules don't.</summary>

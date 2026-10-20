@@ -17,6 +17,7 @@ using Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Core.Engine;
 using Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Core.Geometry;
 using Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Core.Models;
 using Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Core.Planning;
+using Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Infrastructure.Export;
 using Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Infrastructure.ExternalEvents;
 using Revit26_Plugin_Revised.RoofRidgeLines.V070.Models;
 using Revit26_Plugin_Revised.Shared.Models;
@@ -122,6 +123,21 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.UI.ViewModels
         [ObservableProperty] private bool insertCurveIntersectionPoints;
         [ObservableProperty] private bool exportToExcel;
         [ObservableProperty] private string exportFolder;
+        [ObservableProperty] private bool saveRunReport;
+
+        // ── Presets ─────────────────────────────────────────────────────────
+        /// <summary>Saved option sets.</summary>
+        public ObservableCollection<SettingsPreset> Presets { get; } = new();
+
+        /// <summary>The preset picked in the list.</summary>
+        [ObservableProperty] private SettingsPreset selectedPreset;
+
+        /// <summary>Name typed in the preset box (used by Save).</summary>
+        [ObservableProperty] private string presetName = string.Empty;
+
+        // ── Markers ─────────────────────────────────────────────────────────
+        /// <summary>True while this tool's temporary markers are shown in Revit.</summary>
+        [ObservableProperty] private bool markersShown;
 
         /// <summary>Result of "Check slope reach" (empty until checked; cleared when the plan changes).</summary>
         [ObservableProperty] private string reachText = string.Empty;
@@ -153,6 +169,7 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.UI.ViewModels
             foreach (string style in _ridgeInput.LineStyles) LineStyleOptions.Add(style);
 
             LoadSettings(SettingsService<PipelineSettings>.Load(SettingsName).Normalize());
+            LoadPresets();
             SetOutline(outline);
             AddLog(LogLevel.Success, $"Roof read: {outline.Boundaries.Count} boundary loop(s), {outline.Openings.Count} opening(s), " +
                                      $"{outline.Edges.Count} edge(s), {outline.ExistingVertices.Count} shape point(s).");
@@ -197,6 +214,7 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.UI.ViewModels
             PathSamples = s.PathSamples;
             InsertCurveIntersectionPoints = s.InsertCurveIntersectionPoints;
             ExportToExcel = s.ExportToExcel;
+            SaveRunReport = s.SaveRunReport;
             ExportFolder = string.IsNullOrWhiteSpace(s.ExportFolder)
                 ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "AutoSlope_Reports")
                 : s.ExportFolder;
@@ -235,7 +253,8 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.UI.ViewModels
             PathSamples = PathSamples,
             InsertCurveIntersectionPoints = InsertCurveIntersectionPoints,
             ExportToExcel = ExportToExcel,
-            ExportFolder = ExportFolder ?? string.Empty
+            ExportFolder = ExportFolder ?? string.Empty,
+            SaveRunReport = SaveRunReport
         };
 
         /// <summary>Saves the current options to the settings file.</summary>
@@ -268,6 +287,9 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.UI.ViewModels
                 case nameof(PlanWarnings):
                 case nameof(ReachText):
                 case nameof(IsCheckingReach):
+                case nameof(SelectedPreset):
+                case nameof(PresetName):
+                case nameof(MarkersShown):
                     break;
                 default:
                     Replan();
@@ -281,6 +303,23 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.UI.ViewModels
                 CancelCommand.NotifyCanExecuteChanged();
                 CheckReachCommand.NotifyCanExecuteChanged();
             }
+
+            if (e.PropertyName is nameof(IsRunning) or nameof(MarkersShown))
+            {
+                ShowPlannedPointsCommand.NotifyCanExecuteChanged();
+                ShowOpeningCommand.NotifyCanExecuteChanged();
+                ClearMarkersCommand.NotifyCanExecuteChanged();
+            }
+
+            if (e.PropertyName == nameof(SelectedPreset))
+            {
+                if (SelectedPreset != null) PresetName = SelectedPreset.Name;
+                ApplyPresetCommand.NotifyCanExecuteChanged();
+                DeletePresetCommand.NotifyCanExecuteChanged();
+            }
+
+            if (e.PropertyName == nameof(PresetName))
+                SavePresetCommand.NotifyCanExecuteChanged();
 
             if (e.PropertyName == nameof(IsCheckingReach))
                 CheckReachCommand.NotifyCanExecuteChanged();
@@ -530,6 +569,8 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.UI.ViewModels
                 if (ExportToExcel && string.IsNullOrWhiteSpace(ExportFolder)) return "Step 6: choose a folder for the Excel report.";
             }
 
+            if (SaveRunReport && string.IsNullOrWhiteSpace(ExportFolder)) return "Choose a folder for the run report.";
+
             return null;
         }
 
@@ -541,7 +582,7 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.UI.ViewModels
             List<OpeningModel> drainOpenings = Openings.Where(o => o.IsDrain && o.CanBeDrain).ToList();
             List<DrainItem> drains = drainOpenings.Select(o => o.Drain).ToList();
 
-            if (settings.SlopeEnabled && settings.ExportToExcel)
+            if ((settings.SlopeEnabled && settings.ExportToExcel) || settings.SaveRunReport)
             {
                 try { Directory.CreateDirectory(settings.ExportFolder); }
                 catch (Exception ex)
@@ -562,6 +603,8 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.UI.ViewModels
             }
 
             SaveSettings();
+            MarkersShown = false; // the handler clears them before running
+            _runSettings = settings;
             AddLog(LogLevel.Info, $"Run started: {OpeningPointsNew + PerpendicularNew + MidQuarterNew + GapFillNew} planned point(s)" +
                                   (settings.RidgeEnabled ? ", then the ridge" : string.Empty) +
                                   (settings.SlopeEnabled ? $", then slope {settings.SlopePercent} % to {drains.Count} drain(s)." : "."));
@@ -609,11 +652,204 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.UI.ViewModels
                 string slope = result.Sloped ? $" · sloped, highest point {result.HighestElevationMm:0} mm" : string.Empty;
                 SummaryText = $"Done: {result.TotalAdded} point(s) added{ridge}{slope}";
                 AddLog(LogLevel.Success, SummaryText + ". One Undo in Revit reverts the whole run.");
+                if (_runSettings?.SaveRunReport == true && result.ReportPoints != null)
+                    WriteReport(result, _runSettings);
             }
             else
             {
                 SummaryText = result.WasCancelled ? "Cancelled — nothing changed" : "Run failed — nothing changed (see log)";
             }
+        }
+
+        private PipelineSettings _runSettings;
+
+        /// <summary>Saves the run report; a failure is logged, the run itself stays.</summary>
+        private void WriteReport(RunResult result, PipelineSettings s)
+        {
+            var report = new RunReport { Roof = RoofLabel, Date = DateTime.Now };
+            report.Summary.Add(("Tool version", ToolCatalog.RoofPointsAndSlope.Version));
+            foreach (var kv in result.AddedPerStep) report.Summary.Add(($"Points added · {kv.Key}", kv.Value.ToString()));
+            report.Summary.Add(("Points added · total", result.TotalAdded.ToString()));
+            report.Summary.Add(("Points rejected by Revit", result.TotalRejected.ToString()));
+            report.Summary.Add(("Ridge detail lines", result.RidgeLines.ToString()));
+            report.Summary.Add(("Sloped", result.Sloped ? "Yes" : "No"));
+            if (result.Sloped)
+            {
+                report.Summary.Add(("Slope (%)", s.SlopePercent.ToString("0.###")));
+                report.Summary.Add(("Drains", DrainCount.ToString()));
+                report.Summary.Add(("Highest point (mm)", result.HighestElevationMm.ToString("0")));
+            }
+
+            report.Summary.Add(("Min spacing (mm)", s.MinPointSpacingMm.ToString("0")));
+            report.Summary.Add(("Cleared existing points first", s.ClearExistingFirst ? "Yes" : "No"));
+            report.Summary.Add(("Shape points after the run", result.ReportPoints.Count.ToString()));
+            report.Points.AddRange(result.ReportPoints);
+
+            try
+            {
+                string path = RunReportWriter.Write(report, s.ExportFolder);
+                AddLog(LogLevel.Success, $"Run report saved: {path}");
+            }
+            catch (Exception ex)
+            {
+                AddLog(LogLevel.Error, $"The run report could not be saved ({ex.Message}). The run itself is kept.");
+            }
+        }
+
+        // ── Presets ─────────────────────────────────────────────────────────
+        private void LoadPresets()
+        {
+            PresetStore store = PresetStore.Load(SettingsName, out string error);
+            if (error != null) AddLog(LogLevel.Warning, error);
+            Presets.Clear();
+            foreach (SettingsPreset p in store.Presets) Presets.Add(p);
+        }
+
+        private string SavePresets()
+        {
+            var store = new PresetStore();
+            store.Presets.AddRange(Presets);
+            return store.Save(SettingsName);
+        }
+
+        /// <summary>Loads the picked preset's options into the window.</summary>
+        [RelayCommand(CanExecute = nameof(HasSelectedPreset))]
+        private void ApplyPreset()
+        {
+            if (SelectedPreset == null) return;
+            LoadSettings(SelectedPreset.Settings.Clone().Normalize());
+            ApplyDefaultCounts();
+            Replan();
+            AddLog(LogLevel.Info, $"Preset \"{SelectedPreset.Name}\" applied.");
+        }
+
+        /// <summary>Saves the current options under the typed name (replacing a preset with that name).</summary>
+        [RelayCommand(CanExecute = nameof(CanSavePreset))]
+        private void SavePreset()
+        {
+            string name = (PresetName ?? string.Empty).Trim();
+            if (name.Length == 0) return;
+            SettingsPreset existing = Presets.FirstOrDefault(p => string.Equals(p.Name, name, StringComparison.OrdinalIgnoreCase));
+            if (existing != null &&
+                MessageBox.Show($"Replace the preset \"{existing.Name}\" with the current options?", "Roof Points & Slope",
+                                MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No) != MessageBoxResult.Yes)
+                return;
+
+            var preset = new SettingsPreset { Name = name, Settings = CurrentSettings().Normalize() };
+            if (existing != null) Presets[Presets.IndexOf(existing)] = preset;
+            else Presets.Add(preset);
+            SelectedPreset = preset;
+
+            string error = SavePresets();
+            AddLog(error == null ? LogLevel.Success : LogLevel.Error, error ?? $"Preset \"{name}\" saved.");
+        }
+
+        /// <summary>Deletes the picked preset.</summary>
+        [RelayCommand(CanExecute = nameof(HasSelectedPreset))]
+        private void DeletePreset()
+        {
+            SettingsPreset p = SelectedPreset;
+            if (p == null) return;
+            if (MessageBox.Show($"Delete the preset \"{p.Name}\"?", "Roof Points & Slope",
+                                MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No) != MessageBoxResult.Yes)
+                return;
+            Presets.Remove(p);
+            SelectedPreset = null;
+            PresetName = string.Empty;
+            string error = SavePresets();
+            AddLog(error == null ? LogLevel.Info : LogLevel.Error, error ?? $"Preset \"{p.Name}\" deleted.");
+        }
+
+        private bool HasSelectedPreset() => SelectedPreset != null;
+        private bool CanSavePreset() => !string.IsNullOrWhiteSpace(PresetName);
+
+        // ── Temporary markers in Revit ──────────────────────────────────────
+        /// <summary>Shows every planned new point (steps 1–4, and ridge points) as coloured markers in the active view.</summary>
+        [RelayCommand(CanExecute = nameof(CanShowMarkers))]
+        private void ShowPlannedPoints()
+        {
+            if (_lastPlan == null) return;
+            var markers = new List<MarkerPoint>();
+            var kinds = new Dictionary<PointStep, MarkerKind>
+            {
+                [PointStep.OpeningPoints] = MarkerKind.OpeningPoint,
+                [PointStep.Perpendicular] = MarkerKind.Perpendicular,
+                [PointStep.MidQuarter] = MarkerKind.MidQuarter,
+                [PointStep.GapFill] = MarkerKind.GapFill
+            };
+            foreach (StepPlan step in _lastPlan.Steps)
+                markers.AddRange(step.Points.Select(p => new MarkerPoint(p.Position, kinds[step.Step])));
+            if (RidgeEnabled && RidgeShapePoints)
+                markers.AddRange(RidgePoints().Select(p => new MarkerPoint(p, MarkerKind.Ridge)));
+
+            if (markers.Count == 0)
+            {
+                AddLog(LogLevel.Info, "No new points are planned, so there is nothing to show.");
+                return;
+            }
+
+            RaiseMarkers(markers, null, $"{markers.Count} planned point(s)");
+        }
+
+        /// <summary>Highlights one opening (ring markers round its edge) and zooms to it.</summary>
+        [RelayCommand(CanExecute = nameof(CanShowMarkers))]
+        private void ShowOpening(OpeningModel opening)
+        {
+            if (opening?.Loop == null) return;
+            IReadOnlyList<P2> samples = opening.Loop.Samples;
+            int stride = Math.Max(1, samples.Count / 24);
+            var markers = samples.Where((_, i) => i % stride == 0).Select(p => new MarkerPoint(p, MarkerKind.Opening)).ToList();
+            RaiseMarkers(markers, opening.Loop.Bounds, $"opening {opening.Index}");
+        }
+
+        /// <summary>Removes the markers from the view.</summary>
+        [RelayCommand(CanExecute = nameof(CanClearMarkers))]
+        private void ClearMarkers()
+        {
+            var payload = new RunPayload
+            {
+                Operation = RunOperation.ClearMarkers,
+                RoofId = _roofId,
+                Document = _doc,
+                Log = entry => AddLog(entry.Level, entry.Message),
+                OnCompleted = _ => { IsRunning = false; MarkersShown = false; SummaryText = "Markers cleared"; }
+            };
+            Raise(payload, "Clearing markers…");
+        }
+
+        /// <summary>Called when the window closes: removes the markers without waiting for the result.</summary>
+        public void ClearMarkersOnClose()
+        {
+            if (!MarkersShown || IsRunning) return;
+            MarkersShown = false;
+            RoofPointsAndSlopeHandler.Payload = new RunPayload { Operation = RunOperation.ClearMarkers, RoofId = _roofId, Document = _doc };
+            RoofPointsAndSlopeEventManager.Event?.Raise();
+        }
+
+        private bool CanShowMarkers() => !IsRunning;
+        private bool CanClearMarkers() => !IsRunning && MarkersShown;
+
+        private void RaiseMarkers(List<MarkerPoint> markers, (P2 Min, P2 Max)? zoom, string what)
+        {
+            var payload = new RunPayload
+            {
+                Operation = RunOperation.ShowMarkers,
+                RoofId = _roofId,
+                Document = _doc,
+                Markers = markers,
+                ZoomTo = zoom,
+                Log = entry => AddLog(entry.Level, entry.Message),
+                OnCompleted = result =>
+                {
+                    IsRunning = false;
+                    if (!result.Success) { SummaryText = "Markers not shown — see log"; return; }
+                    MarkersShown = result.MarkersShown > 0;
+                    string capped = result.MarkersShown < markers.Count ? $" (first {result.MarkersShown} of {markers.Count})" : string.Empty;
+                    SummaryText = $"Showing {what}{capped} in the active view";
+                    AddLog(LogLevel.Info, SummaryText + " — temporary markers, not saved; cleared on Run or Close.");
+                }
+            };
+            Raise(payload, "Showing markers…");
         }
 
         /// <summary>Stops the running steps; the whole run is rolled back.</summary>

@@ -45,7 +45,13 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Infrastructure.External
             RunResult result = null;
             try
             {
-                result = current.Operation == RunOperation.Analyze ? Analyze(app, current) : Run(app, current);
+                result = current.Operation switch
+                {
+                    RunOperation.Analyze => Analyze(app, current),
+                    RunOperation.ShowMarkers => ShowMarkers(app, current),
+                    RunOperation.ClearMarkers => ClearMarkers(current),
+                    _ => Run(app, current)
+                };
             }
             catch (Exception ex)
             {
@@ -76,11 +82,52 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Infrastructure.External
             };
         }
 
+        /// <summary>Shows markers in the active view, at the roof's top, and zooms when asked.</summary>
+        private static RunResult ShowMarkers(UIApplication app, RunPayload current)
+        {
+            FootPrintRoof roof = RoofPointsAndSlopeEngine.ValidateRoof(app, current.Document, current.RoofId, out string error, checkOwnership: false);
+            if (roof == null)
+            {
+                current.Log?.Invoke(new LogEntry(LogLevel.Error, error));
+                return new RunResult { Success = false, ErrorMessage = error };
+            }
+
+            UIDocument uidoc = app.ActiveUIDocument;
+            View view = uidoc.ActiveView;
+            if (view == null || view.IsTemplate || view.ViewType is ViewType.Schedule or ViewType.DrawingSheet or ViewType.ProjectBrowser or ViewType.SystemBrowser)
+            {
+                const string msg = "Open a plan or 3D view to see the markers.";
+                current.Log?.Invoke(new LogEntry(LogLevel.Warning, msg));
+                return new RunResult { Success = false, ErrorMessage = msg };
+            }
+
+            BoundingBoxXYZ box = roof.get_BoundingBox(null);
+            double z = box?.Max.Z ?? 0;
+            int shown = MarkerService.Show(roof.Document, view, current.Markers ?? new List<MarkerPoint>(), z);
+
+            if (current.ZoomTo is { } zoom)
+            {
+                UIView uiView = uidoc.GetOpenUIViews().FirstOrDefault(v => v.ViewId == view.Id);
+                double pad = Math.Max(3, Math.Max(zoom.Max.X - zoom.Min.X, zoom.Max.Y - zoom.Min.Y)); // feet
+                uiView?.ZoomAndCenterRectangle(new XYZ(zoom.Min.X - pad, zoom.Min.Y - pad, z), new XYZ(zoom.Max.X + pad, zoom.Max.Y + pad, z));
+            }
+
+            return new RunResult { Success = true, MarkersShown = shown };
+        }
+
+        private static RunResult ClearMarkers(RunPayload current)
+        {
+            MarkerService.Clear(current.Document);
+            return new RunResult { Success = true };
+        }
+
         private static RunResult Run(UIApplication app, RunPayload current)
         {
             Document doc = app.ActiveUIDocument?.Document;
             if (doc == null)
                 return new RunResult { Success = false, ErrorMessage = "No document is open." };
+
+            MarkerService.Clear(current.Document); // markers belong to the plan the run replaces
 
             using (var tg = new TransactionGroup(doc, "Roof Points & Slope"))
             {

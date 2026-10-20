@@ -58,6 +58,7 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.UI.Views
         /// <inheritdoc/>
         protected override void OnClosed(EventArgs e)
         {
+            _vm.ClearMarkersOnClose();
             if (ReferenceEquals(_openWindow, this)) _openWindow = null;
             base.OnClosed(e);
         }

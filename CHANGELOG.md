@@ -42,6 +42,15 @@ Each release lists every tool whose version changed, under the plugin version.
     that already has slope. **Clear existing shape points first** (off by default) resets the roof's
     shape before step 1, inside the same Undo.
   - **Cancel Run** — stops the run between steps or during the slope; everything is rolled back.
+  - **Show in Revit** — "Show planned points in Revit" puts coloured temporary markers (one colour
+    per step) in the active view; each opening row has a **Show** button that highlights the opening
+    and zooms to it. Markers are Revit in-canvas graphics: not saved, not on the Undo list, cleared
+    on Run or Close (or with **Clear markers**).
+  - **Presets** — save the current options under a name, apply or delete them later
+    (`%AppData%\Revit26_Plugin\RoofPointsAndSlope\presets.json`, with a schema version).
+  - **Run report** (off by default) — after a successful run, a `.xlsx` in the report folder with a
+    Summary sheet and a Points sheet (Roof, Step, X (m), Y (m), Height (mm)) listing every shape
+    point and the step that added it.
   If any step fails, the whole run is rolled back. Settings are saved to
   `%AppData%\Revit26_Plugin\RoofPointsAndSlope\settings.json` (with a schema version).
   Internal names: `Btn_RoofPointsAndSlope_V001`, `Pulldown_RoofPointsAndSlope`.

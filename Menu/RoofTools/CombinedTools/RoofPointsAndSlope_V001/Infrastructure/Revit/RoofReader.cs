@@ -154,6 +154,17 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Infrastructure.Revit
             return result;
         }
 
+        /// <summary>Plan position and height (feet) of every shape point (empty when shape editing is off).</summary>
+        public static List<(P2 Position, double Z)> ReadShapeVertices(RoofBase roof)
+        {
+            var result = new List<(P2, double)>();
+            SlabShapeEditor editor = roof?.GetSlabShapeEditor();
+            if (editor == null || !editor.IsEnabled) return result;
+            foreach (SlabShapeVertex v in editor.SlabShapeVertices)
+                result.Add((CurveConverter.ToP2(v.Position), v.Position.Z));
+            return result;
+        }
+
         /// <summary>Highest minus lowest shape point height, in mm (0 when shape editing is off).</summary>
         public static double ReadSlopeMm(RoofBase roof)
         {

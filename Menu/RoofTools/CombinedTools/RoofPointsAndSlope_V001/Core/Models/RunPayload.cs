@@ -24,7 +24,13 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Core.Models
         Analyze,
 
         /// <summary>Run the enabled steps.</summary>
-        Run
+        Run,
+
+        /// <summary>Show temporary markers in the active view (and zoom, when asked).</summary>
+        ShowMarkers,
+
+        /// <summary>Remove this tool's temporary markers.</summary>
+        ClearMarkers
     }
 
     /// <summary>A request for the handler.</summary>
@@ -57,6 +63,12 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Core.Models
         /// <summary>Run: number of openings the drain detection found on the roof.</summary>
         public int DetectedDrainCount { get; init; }
 
+        /// <summary>ShowMarkers: what to show.</summary>
+        public List<MarkerPoint> Markers { get; init; }
+
+        /// <summary>ShowMarkers: zoom the active view to this plan box (optional).</summary>
+        public (P2 Min, P2 Max)? ZoomTo { get; init; }
+
         /// <summary>Run: set by the window's Cancel button.</summary>
         public CancellationToken Cancel { get; init; }
 
@@ -84,6 +96,12 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Core.Models
 
         /// <summary>Analyze: the freshly read ridge input.</summary>
         public RidgeInput RidgeInput { get; set; }
+
+        /// <summary>Run: every shape point after the run, for the report.</summary>
+        public List<ReportPoint> ReportPoints { get; set; }
+
+        /// <summary>ShowMarkers: markers shown.</summary>
+        public int MarkersShown { get; set; }
 
         /// <summary>Run: stopped by the Cancel button (everything was rolled back).</summary>
         public bool WasCancelled { get; set; }

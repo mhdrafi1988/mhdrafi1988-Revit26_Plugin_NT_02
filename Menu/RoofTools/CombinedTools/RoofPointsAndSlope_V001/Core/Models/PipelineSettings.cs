@@ -151,6 +151,10 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Core.Models
         /// <summary>Folder for the Excel report.</summary>
         public string ExportFolder { get; set; } = string.Empty;
 
+        // ── Run report ───────────────────────────────────────────────────────
+        /// <summary>After a successful run, save a .xlsx report (summary + every point) to <see cref="ExportFolder"/>. Off by default.</summary>
+        public bool SaveRunReport { get; set; }
+
         /// <summary>Brings an older or partial file up to date (missing sections get defaults, values are clamped).</summary>
         public PipelineSettings Normalize()
         {
