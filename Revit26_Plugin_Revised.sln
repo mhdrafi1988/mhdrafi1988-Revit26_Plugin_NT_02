@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.14.36717.8
+VisualStudioVersion = 17.14.37806.7 d17.14
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Revit26_Plugin_Revised", "Revit26_Plugin.csproj", "{07F19F1E-093D-431F-A0CA-9FADC8AD3028}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Revit26_Plugin_Revised", "Revit26_Plugin_Revised.csproj", "{1BC5A38D-25B4-05D5-8E82-4C3863354758}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,15 +11,15 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{07F19F1E-093D-431F-A0CA-9FADC8AD3028}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{07F19F1E-093D-431F-A0CA-9FADC8AD3028}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{07F19F1E-093D-431F-A0CA-9FADC8AD3028}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{07F19F1E-093D-431F-A0CA-9FADC8AD3028}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1BC5A38D-25B4-05D5-8E82-4C3863354758}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1BC5A38D-25B4-05D5-8E82-4C3863354758}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1BC5A38D-25B4-05D5-8E82-4C3863354758}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1BC5A38D-25B4-05D5-8E82-4C3863354758}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {9114FF27-732A-456A-8C2B-4AFAE450F13C}
+		SolutionGuid = {7D213651-2A5E-4E76-9E50-41F2AA779F7B}
 	EndGlobalSection
 EndGlobal
