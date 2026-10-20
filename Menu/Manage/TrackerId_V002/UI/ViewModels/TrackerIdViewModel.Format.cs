@@ -110,6 +110,24 @@ namespace Revit26_Plugin_Revised.TrackerId.V002.UI.ViewModels
         /// <summary>New IDs that would repeat one in use.</summary>
         [ObservableProperty] private int _duplicateCount;
 
+        /// <summary>Who owns the elements that can't be written, e.g. "owned by Ahmed (12), Sara (6)". Empty when none.</summary>
+        [ObservableProperty] private string _lockedOwnersText = string.Empty;
+
+        // "owned by Ahmed (12), Sara (6)" plus any read-only elements.
+        private static string OwnersText(IEnumerable<PlanRow> rows)
+        {
+            var locked = rows.Where(r => r.Action == PlanAction.Locked).ToList();
+            var owners = locked.Where(r => !string.IsNullOrEmpty(r.Element.LockOwner))
+                .GroupBy(r => r.Element.LockOwner, StringComparer.OrdinalIgnoreCase)
+                .OrderByDescending(g => g.Count())
+                .Select(g => $"{g.Key} ({g.Count()})").ToList();
+            int other = locked.Count(r => string.IsNullOrEmpty(r.Element.LockOwner));
+            var parts = new List<string>();
+            if (owners.Count > 0) parts.Add("owned by " + string.Join(", ", owners));
+            if (other > 0) parts.Add($"{other} read-only");
+            return string.Join("; ", parts);
+        }
+
         /// <summary>Header of the Result section, e.g. "212 kept · 96 new · 3 copies".</summary>
         public string PlanHeader => _plan == null
             ? "Tick types to see the result"
@@ -275,12 +293,106 @@ namespace Revit26_Plugin_Revised.TrackerId.V002.UI.ViewModels
             var needs = NeededParameterNames();
             var scope = _scope;
 
+            // Large models are read in batches, one Revit call each, so Revit stays responsive, the
+            // window shows progress and the user can cancel between batches.
             Run($"Reading {SelectedElementCount} elements…", app =>
             {
                 var doc = DocumentFor(app);
                 if (doc == null) return;
-                var read = ReadElements(doc, categoryIds, typeIds, needs, scope);
-                OnUi(() => ApplyElements(read, key, logCounts: true));
+                var ids = ModelReader.PlacedElementIds(doc, categoryIds, typeIds, scope);
+                var boxes = ModelReader.ReadScopeBoxes(doc);
+                var model = ModelReader.ReadModelIdentity(doc, needs.Project);
+                var read = new ElementRead
+                {
+                    Grids = ModelReader.ReadGrids(doc),
+                    ScopeBoxCount = boxes.Count,
+                    Snapshots = new List<ElementSnapshot>(ids.Count),
+                    Holders = ModelReader.ReadIdHolders(doc),
+                    Model = model
+                };
+                TrackerDeletionWatcher.Remember(doc, read.Holders.Select(h => (h.ElementId, h.TrackerId)));
+                var zones = new ZoneLocator(boxes);
+
+                if (ids.Count <= ReadBatchSize)
+                {
+                    read.Snapshots.AddRange(Batch(doc, ids, needs, zones, model));
+                    OnUi(() => ApplyElements(read, key, logCounts: true));
+                    return;
+                }
+                OnUi(() =>
+                {
+                    _readCancelled = false;
+                    IsReading = true;
+                    ReadNextBatch(ids, 0, read, needs, zones, key);
+                });
+            });
+        }
+
+        /// <summary>Elements read per Revit call.</summary>
+        private const int ReadBatchSize = 1000;
+
+        private bool _readCancelled;
+
+        /// <summary>True while a large read runs in batches.</summary>
+        [ObservableProperty] private bool _isReading;
+
+        /// <summary>0–100 while reading.</summary>
+        [ObservableProperty] private double _readProgress;
+
+        /// <summary>"Reading elements 3,000 of 52,410…".</summary>
+        [ObservableProperty] private string _readProgressText = string.Empty;
+
+        /// <summary>Stops a large read after the current batch.</summary>
+        [RelayCommand]
+        private void CancelRead() => _readCancelled = true;
+
+        private static List<ElementSnapshot> Batch(Document doc, IEnumerable<long> ids, ParameterNeeds needs, ZoneLocator zones, ModelIdentity model)
+        {
+            var batch = ModelReader.ReadSnapshotBatch(doc, ids, needs.Element, needs.Level, zones);
+            foreach (var s in batch) s.Model = model;
+            return batch;
+        }
+
+        private void ReadNextBatch(List<long> ids, int start, ElementRead read, ParameterNeeds needs, ZoneLocator zones, string key)
+        {
+            // Stop when cancelled, or when the ticks changed meanwhile (a new read is scheduled for those).
+            if (_readCancelled || key != SnapshotKey())
+            {
+                IsReading = false;
+                if (_readCancelled)
+                {
+                    SummaryText = $"Reading cancelled after {start:N0} of {ids.Count:N0} elements. Nothing was changed.";
+                    AddLog(LogLevel.Warning, SummaryText);
+                }
+                return;
+            }
+
+            ReadProgress = 100.0 * start / ids.Count;
+            ReadProgressText = $"Reading elements {start:N0} of {ids.Count:N0}…";
+            var slice = ids.Skip(start).Take(ReadBatchSize).ToList();
+
+            Run(ReadProgressText, app =>
+            {
+                var doc = DocumentFor(app);
+                if (doc == null)
+                {
+                    OnUi(() => IsReading = false);
+                    return;
+                }
+                var batch = Batch(doc, slice, needs, zones, read.Model);
+                OnUi(() =>
+                {
+                    read.Snapshots.AddRange(batch);
+                    int next = start + slice.Count;
+                    if (next < ids.Count)
+                    {
+                        ReadNextBatch(ids, next, read, needs, zones, key);
+                        return;
+                    }
+                    IsReading = false;
+                    ReadProgress = 100;
+                    ApplyElements(read, key, logCounts: true);
+                });
             });
         }
 
@@ -302,12 +414,14 @@ namespace Revit26_Plugin_Revised.TrackerId.V002.UI.ViewModels
             var snapshots = ModelReader.ReadSnapshots(doc, categoryIds, typeIds, needs.Element, needs.Level, new ZoneLocator(boxes), scope);
             foreach (var s in snapshots) s.Model = model;
 
+            var holders = ModelReader.ReadIdHolders(doc);
+            TrackerDeletionWatcher.Remember(doc, holders.Select(h => (h.ElementId, h.TrackerId)));
             return new ElementRead
             {
                 Grids = ModelReader.ReadGrids(doc),
                 ScopeBoxCount = boxes.Count,
                 Snapshots = snapshots,
-                Holders = ModelReader.ReadIdHolders(doc),
+                Holders = holders,
                 Model = model
             };
         }
@@ -366,6 +480,10 @@ namespace Revit26_Plugin_Revised.TrackerId.V002.UI.ViewModels
 
             PlanRows = new ObservableCollection<PlanRowViewModel>(_plan.Select(r => new PlanRowViewModel(r)));
             RefreshNextIds();
+            LockedOwnersText = _plan.Any(r => r.Action == PlanAction.Locked)
+                ? $"{_plan.Count(r => r.Action == PlanAction.Locked)} element(s) can't be written now: {OwnersText(_plan)}. " +
+                  "Ask them to synchronize and relinquish, then click Re-read model. The other elements are written as usual."
+                : string.Empty;
             OnPropertyChanged(nameof(PlanHeader));
             var view = CollectionViewSource.GetDefaultView(PlanRows);
             view.Filter = PassesPlanFilter;
@@ -429,7 +547,7 @@ namespace Revit26_Plugin_Revised.TrackerId.V002.UI.ViewModels
             var question = new StringBuilder($"Write {NewCount} new Tracker ID(s) to {what}?\n\n");
             question.Append($"• {HaveIdCount} element(s) keep their ID\n");
             if (CopyCount > 0) question.Append($"• {CopyCount} copied element(s) get a new ID\n");
-            if (locked > 0) question.Append($"• {locked} locked element(s) are skipped\n");
+            if (locked > 0) question.Append($"• {locked} element(s) are skipped: {OwnersText(rows)}\n");
             if (WriteLocationParameters) question.Append("• Tracker_Zone, Tracker_Level and Tracker_Grid are refreshed\n");
             if (Segments.FirstOrDefault(s => s.Kind == SegmentKind.Model)?.IsEnabled == false)
                 question.Append("\nWARNING: the Model segment is off, so these IDs may repeat IDs in other Revit models.\n");

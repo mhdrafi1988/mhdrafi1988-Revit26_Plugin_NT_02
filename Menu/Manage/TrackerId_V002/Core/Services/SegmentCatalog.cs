@@ -135,6 +135,45 @@ namespace Revit26_Plugin_Revised.TrackerId.V002.Core.Services
             new() { Kind = SegmentKind.Custom3, Source = SegmentSource.RunningNumber, Option = "4" }
         };
 
+        /// <summary>Ready-made naming setups offered on the naming page.</summary>
+        public static IReadOnlyList<NamingTemplate> Templates { get; } = new[]
+        {
+            new NamingTemplate("Standard (default)", "NT02-ARC-ZA-L01-D09-C04-0001", null),
+            new NamingTemplate("Simple: Level-Type-Number", "L01-D09-0001",
+                new[] { SegmentKind.Level, SegmentKind.Type, SegmentKind.Custom3 }),
+            new NamingTemplate("By zone: Zone-Level-Type-Number", "ZA-L01-D09-0001",
+                new[] { SegmentKind.Zone, SegmentKind.Level, SegmentKind.Type, SegmentKind.Custom3 }),
+            new NamingTemplate("By grid: Level-Grid-Type-Number", "L01-C04-D09-0001",
+                new[] { SegmentKind.Level, SegmentKind.Grid, SegmentKind.Type, SegmentKind.Custom3 }),
+            new NamingTemplate("Full: Model-Zone-Level-Type-Grid-Number", "ARC-ZA-L01-D09-C04-0001",
+                new[] { SegmentKind.Model, SegmentKind.Zone, SegmentKind.Level, SegmentKind.Type, SegmentKind.Grid, SegmentKind.Custom3 })
+        };
+
+        /// <summary>
+        /// The segments of <paramref name="template"/>: its parts switched on, in its order, with their
+        /// default sources; every other part follows, switched off.
+        /// </summary>
+        public static List<SegmentDefinition> FromTemplate(NamingTemplate template)
+        {
+            var defaults = DefaultSegments();
+            if (template?.Parts == null) return defaults;
+
+            var result = new List<SegmentDefinition>();
+            foreach (var kind in template.Parts)
+            {
+                var s = defaults.Find(d => d.Kind == kind);
+                if (s == null) continue;
+                s.Enabled = true;
+                result.Add(s);
+            }
+            foreach (var s in defaults.Where(d => !template.Parts.Contains(d.Kind)))
+            {
+                s.Enabled = false;
+                result.Add(s);
+            }
+            return result;
+        }
+
         /// <summary>
         /// Repairs a saved segment list: keeps the saved order, drops repeats and sources a segment does
         /// not offer (falling back to that segment's default), and adds any missing segment. A missing
@@ -172,5 +211,29 @@ namespace Revit26_Plugin_Revised.TrackerId.V002.Core.Services
 
             return result;
         }
+    }
+
+    /// <summary>A ready-made naming setup: which parts are on and in what order.</summary>
+    public sealed class NamingTemplate
+    {
+        /// <summary>Creates the template. <paramref name="parts"/> null = the default format.</summary>
+        public NamingTemplate(string name, string example, IReadOnlyList<SegmentKind> parts)
+        {
+            Name = name;
+            Example = example;
+            Parts = parts;
+        }
+
+        /// <summary>Name shown in the list.</summary>
+        public string Name { get; }
+
+        /// <summary>Example ID.</summary>
+        public string Example { get; }
+
+        /// <summary>Parts switched on, in order; null = the default format.</summary>
+        public IReadOnlyList<SegmentKind> Parts { get; }
+
+        /// <inheritdoc/>
+        public override string ToString() => $"{Name}   e.g. {Example}";
     }
 }

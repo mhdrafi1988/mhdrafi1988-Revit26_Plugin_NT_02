@@ -17,7 +17,7 @@ namespace Revit26_Plugin_Revised.TrackerId.V002.Core.Services
         /// Tracker_ID). <paramref name="statusFile"/> is optional; without it the status checks are skipped.
         /// </summary>
         public static List<HealthIssue> Check(IReadOnlyList<ElementSnapshot> tracked, IReadOnlyList<TrackerIdHolder> holders,
-            TrackerFormat format, GridLocator grids, StatusFileResult statusFile)
+            TrackerFormat format, GridLocator grids, StatusFileResult statusFile, IReadOnlyList<DeletedTrackerId> deleted = null)
         {
             var issues = new List<HealthIssue>();
             var rows = TrackerIdPlanner.Plan(tracked, format, grids, holders);
@@ -67,6 +67,16 @@ namespace Revit26_Plugin_Revised.TrackerId.V002.Core.Services
                         Detail = $"Listed in the status file (row {statusFile.Records[id].Row}) but no element in this model has it. Deleted, or in another model?"
                     });
                 }
+            }
+            foreach (var d in DeletionLog.StillMissing(deleted, (holders ?? Array.Empty<TrackerIdHolder>()).Select(h => h.TrackerId)))
+            {
+                issues.Add(new HealthIssue
+                {
+                    Kind = HealthIssueKind.Deleted,
+                    TrackerId = d.TrackerId,
+                    Detail = $"Element {d.ElementId} was deleted {d.DeletedAt:yyyy-MM-dd HH:mm}" +
+                             (string.IsNullOrEmpty(d.User) ? "." : $" by {d.User}.") + " Remove it from the status file, or restore the element."
+                });
             }
             return issues;
         }

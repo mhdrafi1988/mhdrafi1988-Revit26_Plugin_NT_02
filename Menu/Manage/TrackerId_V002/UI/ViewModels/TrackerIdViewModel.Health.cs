@@ -46,6 +46,9 @@ namespace Revit26_Plugin_Revised.TrackerId.V002.UI.ViewModels
         /// <summary>Chip label "Status (7)".</summary>
         public string HealthStatusChip => $"Status ({Count(HealthIssueKind.NoStatus, HealthIssueKind.IdNotInModel)})";
 
+        /// <summary>Chip label "Deleted (3)".</summary>
+        public string HealthDeletedChip => $"Deleted ({Count(HealthIssueKind.Deleted)})";
+
         /// <summary>Chip label "All (28)".</summary>
         public string HealthAllChip => $"All ({_issues.Count})";
 
@@ -96,7 +99,11 @@ namespace Revit26_Plugin_Revised.TrackerId.V002.UI.ViewModels
                     }
                 }
 
-                var issues = HealthChecker.Check(read.Snapshots, read.Holders, format, new GridLocator(read.Grids), statusFile);
+                List<DeletedTrackerId> deleted;
+                try { deleted = DeletionLog.Read(TrackerDeletionWatcher.LogPath(doc)); }
+                catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException) { deleted = new List<DeletedTrackerId>(); }
+
+                var issues = HealthChecker.Check(read.Snapshots, read.Holders, format, new GridLocator(read.Grids), statusFile, deleted);
                 OnUi(() =>
                 {
                     ShowHealth(issues, read.Snapshots.Count, categoryIds.Count);
@@ -123,7 +130,7 @@ namespace Revit26_Plugin_Revised.TrackerId.V002.UI.ViewModels
             SummaryText = HealthSummaryText;
 
             foreach (string chip in new[] { nameof(HealthAllChip), nameof(HealthDuplicatesChip), nameof(HealthMissingChip),
-                                            nameof(HealthMovedChip), nameof(HealthGridChip), nameof(HealthStatusChip) })
+                                            nameof(HealthMovedChip), nameof(HealthGridChip), nameof(HealthStatusChip), nameof(HealthDeletedChip) })
                 OnPropertyChanged(chip);
             RefreshCommands();
         }
@@ -138,6 +145,7 @@ namespace Revit26_Plugin_Revised.TrackerId.V002.UI.ViewModels
                 "Moved" => r.Kind == HealthIssueKind.Moved,
                 "Grid" => r.Kind == HealthIssueKind.FarFromGrid,
                 "Status" => r.Kind == HealthIssueKind.NoStatus || r.Kind == HealthIssueKind.IdNotInModel,
+                "Deleted" => r.Kind == HealthIssueKind.Deleted,
                 _ => true
             };
         }

@@ -28,8 +28,19 @@ A second Tracker ID tool next to V001. The **Tracker ID** drop-down on the Manag
 - **Export** as CSV or Excel, and an append-only **status template** for SharePoint.
 - **Status from SharePoint:** writes `Tracker_Status`, `Tracker_Progress` and `Tracker_StatusDate`
   into Revit in one undoable step, and colours the active view or a "Tracker - Status" 3D view.
-- **Health check:** duplicates, copies, missing IDs, moved elements, far from grid, status gaps;
-  CSV report and "Fix in Result".
+- **Health check:** duplicates, copies, missing IDs, moved elements, far from grid, status gaps,
+  deleted IDs; CSV report and "Fix in Result".
+- **Deletion warning:** when elements with a Tracker_ID are deleted, Revit shows a warning (Ctrl+Z
+  restores them) and their IDs are logged in `%AppData%\Revit26_Plugin\TrackerId_V002\Deleted`. The
+  health check lists them under **Deleted** until the element is restored or the ID is cleaned up.
+- **Large models:** elements are read in batches of 1,000 with a progress bar and **Cancel**, so Revit
+  stays responsive.
+- **Worksharing check:** before writing, the tool says who owns the elements it can't change, e.g.
+  "owned by Ahmed (12), Sara (6)". Those are skipped; the rest are written.
+- **First-run guide:** three short tips the first time V002 opens, and a **What is a Tracker_ID?**
+  button to show them again.
+- **Naming templates:** start the naming from Standard, Simple (Level-Type-Number), By zone, By grid or
+  Full, then adjust.
 
 **User note:** V001 and V002 read and write the same `Tracker_ID` parameters, so IDs are shared and you
 can use either. V002 keeps its own settings (`%AppData%\Revit26_Plugin\TrackerId_V002`); the first time

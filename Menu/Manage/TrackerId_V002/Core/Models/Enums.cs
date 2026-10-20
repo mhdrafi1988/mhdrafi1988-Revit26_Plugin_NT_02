@@ -129,7 +129,10 @@ namespace Revit26_Plugin_Revised.TrackerId.V002.Core.Models
         NoStatus,
 
         /// <summary>The status file lists a Tracker_ID that no element in the model has.</summary>
-        IdNotInModel
+        IdNotInModel,
+
+        /// <summary>An element with this Tracker_ID was deleted (from the deletion log) and no element has it now.</summary>
+        Deleted
     }
 
     /// <summary>What a status import does to one element.</summary>

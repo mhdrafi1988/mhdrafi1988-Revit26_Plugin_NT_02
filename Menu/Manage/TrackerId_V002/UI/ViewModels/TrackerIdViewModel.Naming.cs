@@ -1,4 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using Revit26_Plugin_Revised.TrackerId.V002.Core.Models;
+using Revit26_Plugin_Revised.TrackerId.V002.Core.Services;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -50,8 +53,51 @@ namespace Revit26_Plugin_Revised.TrackerId.V002.UI.ViewModels
         /// <summary>The next new IDs, as they would be written.</summary>
         public ObservableCollection<string> NextIds { get; } = new();
 
+        /// <summary>Ready-made naming setups.</summary>
+        public IReadOnlyList<NamingTemplate> NamingTemplates => SegmentCatalog.Templates;
+
+        /// <summary>Template picked in the list (applied with <see cref="ApplyTemplateCommand"/>).</summary>
+        [ObservableProperty] private NamingTemplate _selectedTemplate;
+
+        /// <summary>Replaces the parts of the ID with the picked template.</summary>
+        [RelayCommand]
+        private void ApplyTemplate()
+        {
+            var template = SelectedTemplate;
+            if (template == null) return;
+            if (_holders.Count > 0 && !Confirm($"Use the naming '{template.Name}'?\n\nThe model already has {_holders.Count} Tracker_ID(s). " +
+                                               "They are not changed, so new IDs will look different from the existing ones."))
+                return;
+
+            Segments.Clear();
+            foreach (var definition in SegmentCatalog.FromTemplate(template))
+                Segments.Add(new SegmentViewModel(definition, OnSegmentChanged));
+            AddLog(Shared.Models.LogLevel.Info, $"Naming set to '{template.Name}'.");
+            ScheduleReplan();
+        }
+
+        // ── First-run guide ──────────────────────────────────────────────────
+
+        /// <summary>Shows the three-tip guide (first run, or "What is a Tracker_ID?").</summary>
+        [ObservableProperty] private bool _showGuide;
+
+        /// <summary>Opens the guide.</summary>
+        [RelayCommand]
+        private void OpenGuide() => ShowGuide = true;
+
+        /// <summary>Closes the guide and remembers it was seen.</summary>
+        [RelayCommand]
+        private void CloseGuide()
+        {
+            ShowGuide = false;
+            if (_settings.GuideSeen) return;
+            _settings.GuideSeen = true;
+            SaveSettings();
+        }
+
         private void InitNaming()
         {
+            ShowGuide = !_settings.GuideSeen;
             UpperCase = _settings.UpperCase;
             foreach (var pair in _settings.TypeCodes ?? new Dictionary<long, string>())
                 if (!string.IsNullOrWhiteSpace(pair.Value)) _typeCodes[pair.Key] = pair.Value.Trim();
@@ -97,6 +143,7 @@ namespace Revit26_Plugin_Revised.TrackerId.V002.UI.ViewModels
             PlanRows = new ObservableCollection<PlanRowViewModel>();
             PlanView = null;
             NextIds.Clear();
+            LockedOwnersText = string.Empty;
             OnPropertyChanged(nameof(PlanHeader));
         }
     }

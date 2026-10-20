@@ -241,7 +241,27 @@ File: TrackerIdWindow.xaml  (Tracker ID V002 — ToolWindowShell)
                         <Button DockPanel.Dock="Right" Content="Re-read model" Style="{StaticResource SmallSecondaryButton}"
                                 Command="{Binding RefreshCommand}"
                                 ToolTip="Read the categories again, for example after other users synchronised."/>
+                        <Button DockPanel.Dock="Right" Content="What is a Tracker_ID?" Style="{StaticResource SmallSecondaryButton}"
+                                Margin="0,0,6,0" Command="{Binding OpenGuideCommand}"/>
                     </DockPanel>
+
+                    <!-- ══ First-run guide ══ -->
+                    <Border Style="{StaticResource ContentCard}" Margin="0,0,0,8" Background="{StaticResource BrushTileInfoBackground}"
+                            Visibility="{Binding ShowGuide, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <DockPanel Margin="12,10">
+                            <Button DockPanel.Dock="Right" Content="Got it" Style="{StaticResource SmallSecondaryButton}"
+                                    VerticalAlignment="Top" Command="{Binding CloseGuideCommand}"/>
+                            <StackPanel>
+                                <TextBlock Text="Three things to know" Style="{StaticResource SectionTitle}" Margin="0,0,0,6"/>
+                                <TextBlock Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="0,0,0,4"
+                                           Text="1.  A Tracker_ID is one permanent name per element, e.g. NT02-ARC-ZA-L01-D09-C04-0001. Power BI and the site team use it to follow each item from order to installation."/>
+                                <TextBlock Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="0,0,0,4"
+                                           Text="2.  Tick categories and types under Categories &amp; types. The tool reads the existing IDs and only creates IDs for elements without one, and for copies. Existing IDs are never changed."/>
+                                <TextBlock Style="{StaticResource HintText}" TextWrapping="Wrap"
+                                           Text="3.  Decide how new IDs look on page 2 (start from a ready-made naming), then click Write Tracker IDs. Ctrl+Z in Revit undoes the whole write."/>
+                            </StackPanel>
+                        </DockPanel>
+                    </Border>
 
                     <!-- ══ PAGE 1: elements & tracking ══ -->
                     <StackPanel Visibility="{Binding IsPage1, Converter={StaticResource BoolToVisibilityConverter}}">
@@ -633,6 +653,18 @@ File: TrackerIdWindow.xaml  (Tracker ID V002 — ToolWindowShell)
                                         </DataGrid>
 
                                         <TextBlock Text="{Binding PlanSummaryText}" Style="{StaticResource HintText}" Margin="0,6,0,0" TextWrapping="Wrap"/>
+                                        <TextBlock Text="{Binding LockedOwnersText}" TextWrapping="Wrap" Margin="0,4,0,0" FontWeight="SemiBold">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock" BasedOn="{StaticResource HintText}">
+                                                    <Setter Property="Foreground" Value="{StaticResource BrushStatusWarn}"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding LockedOwnersText}" Value="">
+                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
                                     </StackPanel>
                                 </StackPanel>
                             </StackPanel>
@@ -914,6 +946,9 @@ File: TrackerIdWindow.xaml  (Tracker ID V002 — ToolWindowShell)
                                                 <RadioButton GroupName="HealthFilter" Style="{StaticResource ChipToggle}" Content="{Binding HealthGridChip}"
                                                              IsChecked="{Binding HealthFilter, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=Grid, Mode=OneWay}"
                                                              Command="{Binding SetHealthFilterCommand}" CommandParameter="Grid"/>
+                                                <RadioButton GroupName="HealthFilter" Style="{StaticResource ChipToggle}" Content="{Binding HealthDeletedChip}"
+                                                             IsChecked="{Binding HealthFilter, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=Deleted, Mode=OneWay}"
+                                                             Command="{Binding SetHealthFilterCommand}" CommandParameter="Deleted"/>
                                                 <RadioButton GroupName="HealthFilter" Style="{StaticResource ChipToggle}" Content="{Binding HealthStatusChip}"
                                                              IsChecked="{Binding HealthFilter, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=Status, Mode=OneWay}"
                                                              Command="{Binding SetHealthFilterCommand}" CommandParameter="Status"/>
@@ -976,6 +1011,14 @@ File: TrackerIdWindow.xaml  (Tracker ID V002 — ToolWindowShell)
                         <Border Style="{StaticResource ContentCard}" Margin="0,0,0,8">
                                                     <StackPanel Margin="10,8,10,10">
                                                         <TextBlock Text="Tracker ID format" Style="{StaticResource SectionTitle}" Margin="0,0,0,6"/>
+                                                        <DockPanel Margin="0,0,0,8">
+                                                            <TextBlock DockPanel.Dock="Left" Text="Start from" Style="{StaticResource FilterLabel}"/>
+                                                            <Button DockPanel.Dock="Right" Content="Use this naming" Style="{StaticResource SmallSecondaryButton}"
+                                                                    Margin="6,0,0,0" Command="{Binding ApplyTemplateCommand}"/>
+                                                            <ComboBox Style="{StaticResource StandardComboBox}" ItemsSource="{Binding NamingTemplates}"
+                                                                      SelectedItem="{Binding SelectedTemplate}"
+                                                                      ToolTip="A ready-made naming. Its parts replace the ones below; you can still change them afterwards."/>
+                                                        </DockPanel>
 
                                                         <Border Background="{StaticResource BrushSurfaceWindow}" BorderBrush="{StaticResource BrushBorderInput}"
                                                                 BorderThickness="1" CornerRadius="4" Padding="10,6" Margin="0,0,0,8">
@@ -1128,6 +1171,20 @@ File: TrackerIdWindow.xaml  (Tracker ID V002 — ToolWindowShell)
                         </Border>
                     </StackPanel>
                 </StackPanel>
+
+                <!-- ══ Reading progress (large models; stays enabled so Cancel works) ══ -->
+                <Border Style="{StaticResource ContentCard}" Margin="0,8,0,0"
+                        Visibility="{Binding IsReading, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <DockPanel Margin="12,8">
+                        <Button DockPanel.Dock="Right" Content="Cancel" Style="{StaticResource SmallSecondaryButton}" Margin="10,0,0,0"
+                                Command="{Binding CancelReadCommand}"/>
+                        <StackPanel>
+                            <TextBlock Text="{Binding ReadProgressText}" Style="{StaticResource HintText}" Margin="0,0,0,4"/>
+                            <ProgressBar Height="6" Minimum="0" Maximum="100" Value="{Binding ReadProgress, Mode=OneWay}"
+                                         Foreground="{StaticResource BrushNavyPrimary}" Background="{StaticResource BrushSeparatorThin}" BorderThickness="0"/>
+                        </StackPanel>
+                    </DockPanel>
+                </Border>
 
                 <!-- ══ Log ══ -->
                 <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="10,8" Margin="0,8,0,0">

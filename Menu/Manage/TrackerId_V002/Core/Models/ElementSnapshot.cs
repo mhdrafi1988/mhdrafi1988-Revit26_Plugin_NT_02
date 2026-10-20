@@ -89,5 +89,8 @@ namespace Revit26_Plugin_Revised.TrackerId.V002.Core.Models
 
         /// <summary>Why the element cannot be edited, or null when it can.</summary>
         public string LockReason { get; set; }
+
+        /// <summary>The user who owns the element in a workshared model; null when it is free.</summary>
+        public string LockOwner { get; set; }
     }
 }

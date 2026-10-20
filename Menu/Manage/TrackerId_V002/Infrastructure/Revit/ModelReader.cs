@@ -107,14 +107,39 @@ namespace Revit26_Plugin_Revised.TrackerId.V002.Infrastructure.Revit
         /// </summary>
         public static List<ElementSnapshot> ReadSnapshots(Document doc, ISet<long> categoryIds, ISet<long> typeIds,
             IReadOnlyCollection<string> parameterNames, IReadOnlyCollection<string> levelParameterNames, ZoneLocator zones,
-            ReadScope scope = null)
+            ReadScope scope = null) =>
+            ReadElements(doc, PlacedElements(doc, scope, categoryIds), typeIds, parameterNames, levelParameterNames, zones);
+
+        /// <summary>
+        /// Ids of the placed elements of <paramref name="categoryIds"/> within <paramref name="scope"/>,
+        /// limited to <paramref name="typeIds"/> (null = every type). Fast: reads no parameters. Used to read
+        /// a large model in batches (<see cref="ReadSnapshotBatch"/>).
+        /// </summary>
+        public static List<long> PlacedElementIds(Document doc, ISet<long> categoryIds, ISet<long> typeIds, ReadScope scope = null) =>
+            PlacedElements(doc, scope, categoryIds)
+                .Where(e => typeIds == null || typeIds.Contains(e.GetTypeId().Value))
+                .Select(e => e.Id.Value)
+                .ToList();
+
+        /// <summary>
+        /// Snapshots of the elements in <paramref name="elementIds"/> (one batch of
+        /// <see cref="PlacedElementIds"/>). Elements deleted meanwhile are skipped.
+        /// </summary>
+        public static List<ElementSnapshot> ReadSnapshotBatch(Document doc, IEnumerable<long> elementIds,
+            IReadOnlyCollection<string> parameterNames, IReadOnlyCollection<string> levelParameterNames, ZoneLocator zones) =>
+            ReadElements(doc,
+                elementIds.Select(id => doc.GetElement(new ElementId(id))).Where(e => e != null && e.Category != null),
+                null, parameterNames, levelParameterNames, zones);
+
+        private static List<ElementSnapshot> ReadElements(Document doc, IEnumerable<Element> elements, ISet<long> typeIds,
+            IReadOnlyCollection<string> parameterNames, IReadOnlyCollection<string> levelParameterNames, ZoneLocator zones)
         {
             var levels = new FilteredElementCollector(doc).OfClass(typeof(Level)).Cast<Level>()
                 .OrderBy(l => l.Elevation).ToList();
             var typeCache = new Dictionary<long, ElementType>();
             var snapshots = new List<ElementSnapshot>();
 
-            foreach (Element e in PlacedElements(doc, scope, categoryIds))
+            foreach (Element e in elements)
             {
                 long typeId = e.GetTypeId().Value;
                 if (typeIds != null && !typeIds.Contains(typeId)) continue;
@@ -140,8 +165,9 @@ namespace Revit26_Plugin_Revised.TrackerId.V002.Infrastructure.Revit
                     StoredStatus = Text(e, TrackerParameters.Status),
                     StoredProgress = Number(e, TrackerParameters.Progress),
                     StoredStatusDate = Text(e, TrackerParameters.StatusDate),
-                    LockReason = WorksharingGuard.OwnerLock(doc, e.Id)
+                    LockReason = WorksharingGuard.OwnerLock(doc, e.Id, out string owner)
                 };
+                s.LockOwner = owner;
 
                 var idParam = e.LookupParameter(TrackerParameters.TrackerId);
                 if (s.LockReason == null && idParam != null && idParam.IsReadOnly)

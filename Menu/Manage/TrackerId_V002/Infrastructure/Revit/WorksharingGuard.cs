@@ -9,14 +9,22 @@ namespace Revit26_Plugin_Revised.TrackerId.V002.Infrastructure.Revit
         /// Returns why <paramref name="id"/> cannot be edited because another user owns it, or null when
         /// it can (including when the model is not workshared).
         /// </summary>
-        public static string OwnerLock(Document doc, ElementId id)
+        public static string OwnerLock(Document doc, ElementId id) => OwnerLock(doc, id, out _);
+
+        /// <summary>
+        /// As <see cref="OwnerLock(Document, ElementId)"/>; <paramref name="owner"/> is the user who owns the
+        /// element, or null when it is free.
+        /// </summary>
+        public static string OwnerLock(Document doc, ElementId id, out string owner)
         {
+            owner = null;
             if (doc == null || !doc.IsWorkshared) return null;
 
             try
             {
                 if (WorksharingUtils.GetCheckoutStatus(doc, id) != CheckoutStatus.OwnedByOtherUser) return null;
-                return $"Owned by {Owner(doc, id)}. Ask them to synchronize and relinquish.";
+                owner = Owner(doc, id);
+                return $"Owned by {owner}. Ask them to synchronize and relinquish.";
             }
             catch (Autodesk.Revit.Exceptions.ApplicationException)
             {

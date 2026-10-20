@@ -68,6 +68,9 @@ namespace Revit26_Plugin_Revised.TrackerId.V002.Core.Models
         /// <summary>Writes the whole ID in capitals (naming page). Off = the old behaviour.</summary>
         public bool UpperCase { get; set; }
 
+        /// <summary>True once the first-run guide was closed.</summary>
+        public bool GuideSeen { get; set; }
+
         /// <summary>Type codes from the naming page: type element id → code. Empty = the old behaviour.</summary>
         public Dictionary<long, string> TypeCodes { get; set; } = new();
     }

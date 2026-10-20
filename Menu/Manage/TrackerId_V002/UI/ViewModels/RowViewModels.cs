@@ -369,6 +369,7 @@ namespace Revit26_Plugin_Revised.TrackerId.V002.UI.ViewModels
             HealthIssueKind.FarFromGrid => "Far from grid",
             HealthIssueKind.NoStatus => "No status",
             HealthIssueKind.IdNotInModel => "ID not in model",
+            HealthIssueKind.Deleted => "Deleted",
             _ => kind.ToString()
         };
     }
