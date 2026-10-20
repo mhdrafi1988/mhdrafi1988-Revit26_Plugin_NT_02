@@ -40,8 +40,8 @@ No 3D elements, DirectShapes, shared parameters or other model changes.
        TaperedEpsPattern2DToolInfo.CommandClass)
    {
        ToolTip = "Draw the tapered EPS board pattern as 2D detail lines in a plan view.",
-       Image = new BitmapImage(new Uri("pack://application:,,,/Revit26_Plugin;component/Menu/RoofTools/Insulation/TaperedEpsPattern2D_V001/Resources/Icons/TaperedEpsPattern2D_16.png")),
-       LargeImage = new BitmapImage(new Uri("pack://application:,,,/Revit26_Plugin;component/Menu/RoofTools/Insulation/TaperedEpsPattern2D_V001/Resources/Icons/TaperedEpsPattern2D_32.png"))
+       Image = new BitmapImage(new Uri("pack://application:,,,/Revit26_Plugin_Revised;component/Menu/RoofTools/Insulation/TaperedEpsPattern2D_V001/Resources/Icons/TaperedEpsPattern2D_16.png")),
+       LargeImage = new BitmapImage(new Uri("pack://application:,,,/Revit26_Plugin_Revised;component/Menu/RoofTools/Insulation/TaperedEpsPattern2D_V001/Resources/Icons/TaperedEpsPattern2D_32.png"))
    };
    insulationPanel.AddItem(eps2d); // immediately after the Tapered EPS V001 button
    ```

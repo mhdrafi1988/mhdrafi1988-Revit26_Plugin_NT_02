@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Revit 2026 add-in manifest for SloperPro (Revit26_Plugin_Revised.dll), plugin 5.0.0 and later.
+
+  Manual install: copy this file to %ProgramData%\Autodesk\Revit\Addins\2026\ and the build output
+  (Revit26_Plugin_Revised.dll and its dependencies) to %ProgramData%\Autodesk\Revit\Addins\2026\Rf_Revit_2026\.
+  <Assembly> is relative to this file's folder; replace it with an absolute path to load a DLL
+  from somewhere else (e.g. your bin\Debug folder).
+
+  Same file name, AddInId and VendorId as the manifest the installer writes (Installer/Output/*.iss),
+  so it replaces that one instead of loading the plugin twice. Never change the AddInId.
+  FullClassName must match the namespace of App.cs: Revit26_Plugin_Revised.App since 4.0.0
+  (Revit26_Plugin.App before). The DLL is Revit26_Plugin_Revised.dll since 5.0.0
+  (Revit26_Plugin.dll before).
+-->
+<RevitAddIns>
+  <AddIn Type="Application">
+    <Name>Revit26_Plugin</Name>
+    <Assembly>Rf_Revit_2026\Revit26_Plugin_Revised.dll</Assembly>
+    <AddInId>a4e8c4c7-9f8b-4a6a-9d31-532f8c980d41</AddInId>
+    <FullClassName>Revit26_Plugin_Revised.App</FullClassName>
+    <VendorId>RAFI</VendorId>
+    <VendorDescription>By Rafi</VendorDescription>
+  </AddIn>
+</RevitAddIns>

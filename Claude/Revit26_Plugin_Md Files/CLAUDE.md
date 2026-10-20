@@ -126,7 +126,8 @@ Deliberate/accepted per the audit, not oversights to patch reflexively:
   `1.0.0.0`; the `V0xx` in folder/class names tracks tool revision, not
   assembly version.
 - No `SchemaVersion` on settings POCOs — no migration logic exists to need one.
-- No `.addin` file tracked in source control (deployed/generated separately).
+- The `.addin` manifest is `Installer/rf12_Revit_2026.addin` (since 4.0.1); the installer
+  scripts also write their own copy at install time.
 
 ## Decision trail in code
 

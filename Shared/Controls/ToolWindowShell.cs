@@ -16,7 +16,7 @@ namespace Revit26_Plugin_Revised.Shared.Controls
         {
             var dictionary = new ResourceDictionary
             {
-                Source = new Uri("pack://application:,,,/Revit26_Plugin;component/Shared/Controls/ToolWindowShellTemplate.xaml")
+                Source = new Uri("pack://application:,,,/Revit26_Plugin_Revised;component/Shared/Controls/ToolWindowShellTemplate.xaml")
             };
             return (ControlTemplate)dictionary["ToolWindowShellTemplate"];
         });

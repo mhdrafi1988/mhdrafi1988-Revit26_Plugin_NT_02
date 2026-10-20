@@ -32,7 +32,7 @@ Changes vs V007 (per approved mockup):
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="pack://application:,,,/Revit26_Plugin;component/Shared/SharedStyles.xaml"/>
+                <ResourceDictionary Source="pack://application:,,,/Revit26_Plugin_Revised;component/Shared/SharedStyles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
 
             <conv:LogLevelToColorConverter         x:Key="LogLevelToColor"/>

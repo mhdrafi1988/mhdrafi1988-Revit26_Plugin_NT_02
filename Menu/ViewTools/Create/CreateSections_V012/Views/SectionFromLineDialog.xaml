@@ -29,7 +29,7 @@ Changes vs V011 (layout only, per Revit_Plugin_UI_Standard.md):
         <ResourceDictionary>
             <!-- Load shared styles from the embedded resource (Build Action = Resource) -->
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="/Revit26_Plugin;component/Shared/SharedStyles.xaml"/>
+                <ResourceDictionary Source="/Revit26_Plugin_Revised;component/Shared/SharedStyles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
 
             <!-- V009: no converters needed in this dialog — IsEnabled bindings

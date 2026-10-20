@@ -144,9 +144,9 @@ var eps2dV005 = new PushButtonData(
     ToolTip = "Tapered EPS board pattern as 2D detail lines: rows between thickness contours, " +
               "full boards from the hips, mirrored hip pieces, one filler per row.",
     Image = new BitmapImage(new Uri(
-        "pack://application:,,,/Revit26_Plugin;component/Menu/RoofTools/Modelling/TaperedEpsPattern2D_V005/Resources/Icons/TaperedEpsPattern2D_V005_16.png")),
+        "pack://application:,,,/Revit26_Plugin_Revised;component/Menu/RoofTools/Modelling/TaperedEpsPattern2D_V005/Resources/Icons/TaperedEpsPattern2D_V005_16.png")),
     LargeImage = new BitmapImage(new Uri(
-        "pack://application:,,,/Revit26_Plugin;component/Menu/RoofTools/Modelling/TaperedEpsPattern2D_V005/Resources/Icons/TaperedEpsPattern2D_V005_32.png"))
+        "pack://application:,,,/Revit26_Plugin_Revised;component/Menu/RoofTools/Modelling/TaperedEpsPattern2D_V005/Resources/Icons/TaperedEpsPattern2D_V005_32.png"))
 };
 modellingPanel.AddItem(eps2dV005);
 ```

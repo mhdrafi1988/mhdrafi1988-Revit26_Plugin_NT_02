@@ -37,7 +37,7 @@ Changes vs V004 (layout only, per Revit_Plugin_UI_Standard.md):
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="/Revit26_Plugin;component/Shared/SharedStyles.xaml"/>
+                <ResourceDictionary Source="/Revit26_Plugin_Revised;component/Shared/SharedStyles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
 
             <!-- Converters instantiated in the consuming window ONLY (never in SharedStyles). -->

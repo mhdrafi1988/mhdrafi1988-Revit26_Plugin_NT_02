@@ -13,7 +13,7 @@
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="pack://application:,,,/Revit26_Plugin;component/Shared/SharedStyles.xaml"/>
+                <ResourceDictionary Source="pack://application:,,,/Revit26_Plugin_Revised;component/Shared/SharedStyles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
             <converters:EnumToBoolConverter       x:Key="EnumToBoolConverter"/>
             <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>

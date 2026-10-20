@@ -9,6 +9,34 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [5.0.0] — 2026-10-20
+
+### Changed
+- **The plugin DLL is now `Revit26_Plugin_Revised.dll`** (was `Revit26_Plugin.dll`):
+  `<AssemblyName>` in the `.csproj` is `Revit26_Plugin_Revised`, so the build writes
+  `Revit26_Plugin_Revised.dll` and `Revit26_Plugin_Revised.deps.json`.
+- Every `pack://application:,,,/Revit26_Plugin;component/…` URI (shared styles, window resources,
+  icons) now names `Revit26_Plugin_Revised`, including the windows added in 4.1.0–4.4.0 (Island Roof
+  Splitter V002, Roof Points & Slope, Tracker ID…); with the old name the tool windows would fail to
+  load their resources.
+- `CLAUDE.md` now allows a namespace or assembly-name change when the owner asks for it, and lists
+  everything such a change has to update. It also documents the `Revit26_Plugin_Revised` root
+  namespace and the add-in manifest.
+- Unchanged: the project file `Revit26_Plugin.csproj`, the add-in `AddInId`, and the
+  `%AppData%\Revit26_Plugin` / `Documents\Revit26_Plugin` settings and log folders.
+
+### Added
+- **Add-in manifest in the repo: `Installer/rf12_Revit_2026.addin`** — loads
+  `Revit26_Plugin_Revised.App` from `Rf_Revit_2026\Revit26_Plugin_Revised.dll` next to it, with the
+  same file name, `AddInId` and `VendorId` as the manifest the installer writes. For a manual
+  install, copy it to `%ProgramData%\Autodesk\Revit\Addins\2026\` and the build output to the
+  `Rf_Revit_2026` subfolder there. The three installer scripts copy and register the new DLL and
+  `.deps.json`.
+
+**User note (breaking):** an `.addin` file whose `<Assembly>` still points at `Revit26_Plugin.dll`
+loads the old build. Reinstall with the updated installer, or replace the `.addin` with
+`Installer/rf12_Revit_2026.addin` and delete the old `Revit26_Plugin.dll` from the add-in folder.
+
 ## [4.4.0] — 2026-10-20
 
 ### Added

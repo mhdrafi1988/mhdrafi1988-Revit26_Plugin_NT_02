@@ -35,7 +35,7 @@ Changes vs V323 (layout only):
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="pack://application:,,,/Revit26_Plugin;component/Shared/SharedStyles.xaml"/>
+                <ResourceDictionary Source="pack://application:,,,/Revit26_Plugin_Revised;component/Shared/SharedStyles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
 
             <!-- Converter registration: consuming window's own Resources, after

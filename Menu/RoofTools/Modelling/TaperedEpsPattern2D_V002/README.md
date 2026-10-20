@@ -41,9 +41,9 @@ var eps2dV002 = new PushButtonData(
     ToolTip = "Draw the tapered EPS board pattern as 2D detail lines in a plan view. " +
               "V002: align the board grid to any roof edge; output as one group, a group per layer, or loose lines.",
     Image = new BitmapImage(new Uri(
-        "pack://application:,,,/Revit26_Plugin;component/Menu/RoofTools/Modelling/TaperedEpsPattern2D_V002/Resources/Icons/TaperedEpsPattern2D_V002_16.png")),
+        "pack://application:,,,/Revit26_Plugin_Revised;component/Menu/RoofTools/Modelling/TaperedEpsPattern2D_V002/Resources/Icons/TaperedEpsPattern2D_V002_16.png")),
     LargeImage = new BitmapImage(new Uri(
-        "pack://application:,,,/Revit26_Plugin;component/Menu/RoofTools/Modelling/TaperedEpsPattern2D_V002/Resources/Icons/TaperedEpsPattern2D_V002_32.png"))
+        "pack://application:,,,/Revit26_Plugin_Revised;component/Menu/RoofTools/Modelling/TaperedEpsPattern2D_V002/Resources/Icons/TaperedEpsPattern2D_V002_32.png"))
 };
 insulationPanel.AddItem(eps2dV002);
 ```
