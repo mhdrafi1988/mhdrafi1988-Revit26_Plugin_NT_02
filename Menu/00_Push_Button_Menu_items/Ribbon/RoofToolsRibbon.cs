@@ -58,8 +58,8 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             var byDrainPulldownData = RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_AutoSlopeByDrain", "By Drain", byDrainV013);
 
             // Roof Points & Slope — opening, perpendicular, mid/quarter and gap-fill points,
-            // the ridge between drains, then slope by drain, in one window (plugin 4.3.0).
-            var pointsAndSlopeV001 = Btn(assemblyPath, "Btn_RoofPointsAndSlope_V001", "Points & Slope V001", "Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Commands.RoofPointsAndSlopeCommand",
+            // the ridge between drains, then slope by drain, in one window (plugin 4.4.0).
+            var pointsAndSlopeV001 = Btn(assemblyPath, "Btn_RoofPointsAndSlope_V001", "Points & Slope", "Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Commands.RoofPointsAndSlopeCommand",
                 "CombinedTools_16.png", "Roof Points & Slope", "V001",
                 "Adds shape points around openings, perpendicular to the boundary, at mid/quarter points and in long gaps, builds the ridges between the chosen drains, then slopes the roof to them — one window, one Undo. Pick one roof or several.");
             var pointsAndSlopePulldownData = RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_RoofPointsAndSlope", "Points & Slope", pointsAndSlopeV001);

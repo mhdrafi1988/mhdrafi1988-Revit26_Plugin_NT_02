@@ -9,7 +9,7 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
-## [4.3.0] — 2026-10-19
+## [4.4.0] — 2026-10-20
 
 ### Added
 - **Roof Points & Slope v1.0.0 (V001)** — new tool in **Roof Slope ▸ Points & Slope**. One window
@@ -81,6 +81,42 @@ are read from the roof's sketch). Not yet tested in Revit: try it on a copy of a
 
 **User note:** ridges made with V070 before this fix may have dents, displaced ridge points or stray
 creases; reset the shape points and run the tool again.
+
+## [4.3.0] — 2026-10-20
+
+### Added
+- **Tracker ID 1.0.0** (`Menu/Manage/TrackerId_V001`, button **Manage ▸ Tracker ID**). Gives every
+  placed element of a chosen category and types one permanent `Tracker_ID`, for progress and
+  material tracking in Power BI. Four steps:
+  1. **Category** — every model category with its types, elements and Tracker_ID coverage; search,
+     discipline chips (Architecture / Structure / MEP) and column filters.
+  2. **Types** — the category's placed types with their existing-ID status; tick the ones to process.
+  3. **Tracker ID** — existing IDs are read and never changed. Missing IDs are built from eight
+     segments the user can switch off and reorder: Model (code of the Revit file, from Project
+     Information ▸ *Model Code*, else the discipline code in the file name such as ARC, STR or MEP),
+     Zone (Zone parameter, else the scope box around the element), Level, Type, Grid (nearest grid
+     crossing to the element's centre point) and three custom segments (fixed text, a parameter value
+     or a running number). Default format: `NT02-ARC-ZA-L01-D09-C04-0001`. New IDs are unique across
+     the whole model, compared without regard to case, and the Model segment keeps them unique across
+     models. Copy-pasted elements, which carry another
+     element's ID, are found and get a new ID; moved elements keep theirs. Written in one
+     transaction, so one Undo reverts it.
+  4. **Export** — a CSV with fixed columns (`Tracker_ID, Category, Family, Type, Type_Mark, Zone,
+     Level, Grid, Count, Length_m, Area_m2, Volume_m3, Revit_ElementId, Revit_UniqueId, Model,
+     Export_Date, Schema_Version, Model_Code`) for Power BI, with an optional dated copy.
+- **Shared parameters** (created only if missing, Text, instance, group *Identity Data*, allowed to
+  vary between group instances): `Tracker_ID` (7afba1b3-3c36-40c4-b622-104fa374d700),
+  `Tracker_Zone` (00d22852-1eff-4137-aadb-5f6b94757db4), `Tracker_Level`
+  (eaa79360-4694-4488-8594-17d487241e99), `Tracker_Grid` (4a010dbe-ac6c-4971-8955-22b12e4a0bea),
+  `Tracker_SourceGuid` (b306dc6d-1058-4ca6-ae0a-5b3e67ed40aa). An existing parameter of the same
+  name is reused and only gets the category added to its binding.
+
+**User note:** give each Revit model its own short code in Project Information ▸ *Model Code*
+(ARC, STR, MEP…) if its file name has no discipline code; the tool warns when it has to guess one.
+The ID format and export path are remembered in
+`%AppData%\Revit26_Plugin\TrackerId\settings.json`. Never edit `Tracker_ID` by hand: Power BI
+history is keyed on it. Keep material and progress status in your Excel table on SharePoint, keyed
+by `Tracker_ID`, and relate it to the exported CSV in Power BI.
 
 ## [4.2.1] — 2026-10-19
 
