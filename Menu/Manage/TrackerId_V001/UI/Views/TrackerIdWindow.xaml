@@ -1,0 +1,694 @@
+<!--
+=======================================================
+File: TrackerIdWindow.xaml  (Tracker ID V001 — ToolWindowShell)
+  HEADER  metric tiles: in scope / have Tracker_ID / new IDs / copies found / problems
+  BODY    step bar, then one card per step (only the current one shows), then the log
+          1 Category   search + discipline chips + column filters + categories grid
+          2 Types      search + status chips + column filters + types grid with ticks
+          3 Tracker ID format editor (7 segments, order, sources) + result grid
+          4 Export     CSV file for Power BI
+  FOOTER  step hint, Back, Next, Write (step 3), Export (step 4), Close
+  DataContext: TrackerIdViewModel. Everything above the log is disabled while Revit runs a job.
+=======================================================
+-->
+<Window x:Class="Revit26_Plugin_Revised.TrackerId.V001.UI.Views.TrackerIdWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:svc="clr-namespace:Revit26_Plugin_Revised.Shared.Services"
+        xmlns:converters="clr-namespace:Revit26_Plugin_Revised.Shared.Models"
+        xmlns:shell="clr-namespace:Revit26_Plugin_Revised.Shared.Controls"
+        Title="Tracker ID"
+        Width="1080" Height="860"
+        MinWidth="980" MinHeight="760"
+        ResizeMode="CanResizeWithGrip"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource BrushSystemSecondaryBackground}"
+        FontFamily="{DynamicResource SystemFont}">
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/Revit26_Plugin;component/Shared/SharedStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- Converters instantiated locally per suite convention -->
+            <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+            <converters:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter"/>
+            <converters:InverseBoolConverter      x:Key="InverseBoolConverter"/>
+            <converters:IntToVisibilityConverter  x:Key="IntToVisibilityConverter"/>
+            <converters:LogLevelToColorConverter  x:Key="LogLevelToColorConverter"/>
+            <converters:EnumToBoolConverter       x:Key="EnumToBoolConverter"/>
+
+            <Style x:Key="GridCellText" TargetType="TextBlock">
+                <Setter Property="VerticalAlignment" Value="Center"/>
+                <Setter Property="Foreground" Value="{StaticResource BrushTextPrimary}"/>
+                <Setter Property="FontSize" Value="11"/>
+            </Style>
+
+            <Style x:Key="GridCellNumber" TargetType="TextBlock" BasedOn="{StaticResource GridCellText}">
+                <Setter Property="HorizontalAlignment" Value="Right"/>
+                <Setter Property="Margin" Value="0,0,6,0"/>
+            </Style>
+
+            <Style x:Key="GridCellId" TargetType="TextBlock" BasedOn="{StaticResource GridCellText}">
+                <Setter Property="FontFamily" Value="Consolas"/>
+            </Style>
+
+            <Style x:Key="FilterLabel" TargetType="TextBlock" BasedOn="{StaticResource FieldLabel}">
+                <Setter Property="VerticalAlignment" Value="Center"/>
+                <Setter Property="Margin" Value="0,0,6,0"/>
+            </Style>
+
+            <Style x:Key="StepChip" TargetType="RadioButton" BasedOn="{StaticResource ChipToggle}">
+                <Setter Property="Height" Value="28"/>
+                <Setter Property="FontSize" Value="12"/>
+                <Setter Property="Padding" Value="14,0"/>
+                <Setter Property="GroupName" Value="WizardStep"/>
+            </Style>
+
+            <Style x:Key="OptionCheck" TargetType="CheckBox">
+                <Setter Property="VerticalAlignment" Value="Center"/>
+                <Setter Property="FontSize" Value="11"/>
+                <Setter Property="Foreground" Value="{StaticResource BrushTextSecondary}"/>
+                <Setter Property="Margin" Value="0,0,14,0"/>
+            </Style>
+
+            <!-- Colours the Action column by decision -->
+            <Style x:Key="ActionText" TargetType="TextBlock" BasedOn="{StaticResource GridCellText}">
+                <Setter Property="FontWeight" Value="SemiBold"/>
+                <Setter Property="Foreground" Value="{StaticResource BrushStatusOk}"/>
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding Action}" Value="KeepMoved">
+                        <Setter Property="Foreground" Value="{StaticResource BrushStatusWarn}"/>
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding Action}" Value="Create">
+                        <Setter Property="Foreground" Value="{StaticResource BrushAppleBlue}"/>
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding Action}" Value="Copy">
+                        <Setter Property="Foreground" Value="{StaticResource BrushStatusError}"/>
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding Action}" Value="Duplicate">
+                        <Setter Property="Foreground" Value="{StaticResource BrushStatusError}"/>
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding Action}" Value="Locked">
+                        <Setter Property="Foreground" Value="{StaticResource BrushTextDisabled}"/>
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+
+            <!-- Grid value in amber when it is further than the tolerance -->
+            <Style x:Key="GridDistanceText" TargetType="TextBlock" BasedOn="{StaticResource GridCellText}">
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding GridCheck}" Value="True">
+                        <Setter Property="Foreground" Value="{StaticResource BrushStatusWarn}"/>
+                        <Setter Property="FontWeight" Value="SemiBold"/>
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+
+            <Style x:Key="PlanRowStyle" TargetType="DataGridRow" BasedOn="{StaticResource DataGridRowStyle}">
+                <Setter Property="ToolTip" Value="{Binding Note}"/>
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding Action}" Value="Copy">
+                        <Setter Property="Background" Value="{StaticResource BrushRowDangerBackground}"/>
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding Action}" Value="Duplicate">
+                        <Setter Property="Background" Value="{StaticResource BrushRowDangerBackground}"/>
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding Action}" Value="Locked">
+                        <Setter Property="Opacity" Value="0.55"/>
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <shell:ToolWindowShell Title="Tracker ID"
+                           Subtitle="One permanent ID per element, for progress and material tracking in Power BI"
+                           Version="{Binding Source={x:Static svc:ToolCatalog.TrackerId}, Path=Version, StringFormat=v{0}}"
+                           IsRunning="{Binding IsRunning}"
+                           IsIndeterminate="True"
+                           Progress="{Binding Progress}"
+                           SummaryText="{Binding SummaryText}">
+
+        <!-- ═══ HEADER ═══════════════════════════════════════════ -->
+        <shell:ToolWindowShell.HeaderContent>
+            <UniformGrid Columns="5" Margin="0,0,0,8">
+                <Border Style="{StaticResource MetricTileInfo}" Margin="0,0,4,0">
+                    <StackPanel>
+                        <TextBlock Text="ELEMENTS IN SCOPE" Style="{StaticResource MetricTileLabelInfo}"/>
+                        <TextBlock Text="{Binding InScopeCount}" Style="{StaticResource MetricTileNumberInfo}"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource MetricTileSuccess}" Margin="4,0,4,0">
+                    <StackPanel>
+                        <TextBlock Text="HAVE TRACKER_ID" Style="{StaticResource MetricTileLabelSuccess}"/>
+                        <TextBlock Text="{Binding HaveIdCount}" Style="{StaticResource MetricTileNumberSuccess}"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource MetricTileInfo}" Margin="4,0,4,0">
+                    <StackPanel>
+                        <TextBlock Text="NEW IDS" Style="{StaticResource MetricTileLabelInfo}"/>
+                        <TextBlock Text="{Binding NewCount}" Style="{StaticResource MetricTileNumberInfo}"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource MetricTileWarning}" Margin="4,0,4,0">
+                    <StackPanel>
+                        <TextBlock Text="COPIES FOUND" Style="{StaticResource MetricTileLabelWarning}"/>
+                        <TextBlock Text="{Binding CopyCount}" Style="{StaticResource MetricTileNumberWarning}"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource MetricTileDanger}" Margin="4,0,0,0">
+                    <StackPanel>
+                        <TextBlock Text="PROBLEMS" Style="{StaticResource MetricTileLabelDanger}"/>
+                        <TextBlock Text="{Binding ProblemCount}" Style="{StaticResource MetricTileNumberDanger}"/>
+                    </StackPanel>
+                </Border>
+            </UniformGrid>
+        </shell:ToolWindowShell.HeaderContent>
+
+        <!-- ═══ BODY ═════════════════════════════════════════════ -->
+        <shell:ToolWindowShell.BodyContent>
+            <StackPanel>
+                <StackPanel IsEnabled="{Binding IsRunning, Converter={StaticResource InverseBoolConverter}}">
+
+                    <!-- ══ Step bar ══ -->
+                    <DockPanel Margin="0,0,0,8" LastChildFill="False">
+                        <StackPanel DockPanel.Dock="Left" Orientation="Horizontal">
+                            <RadioButton Style="{StaticResource StepChip}" Content="1 · Category"
+                                         IsChecked="{Binding IsStep1, Mode=TwoWay}"/>
+                            <RadioButton Style="{StaticResource StepChip}" Content="2 · Types"
+                                         IsChecked="{Binding IsStep2, Mode=TwoWay}"
+                                         IsEnabled="{Binding CanOpenStep2}"/>
+                            <RadioButton Style="{StaticResource StepChip}" Content="3 · Tracker ID"
+                                         IsChecked="{Binding IsStep3, Mode=TwoWay}"
+                                         IsEnabled="{Binding CanOpenStep3}"/>
+                            <RadioButton Style="{StaticResource StepChip}" Content="4 · Export"
+                                         IsChecked="{Binding IsStep4, Mode=TwoWay}"
+                                         IsEnabled="{Binding CanOpenStep3}"/>
+                        </StackPanel>
+                        <Button DockPanel.Dock="Right" Content="Re-read model" Style="{StaticResource SmallSecondaryButton}"
+                                Command="{Binding RefreshCommand}"
+                                ToolTip="Read the categories again, for example after other users synchronised. Goes back to step 1."/>
+                    </DockPanel>
+
+                    <!-- ══ STEP 1: categories ══ -->
+                    <Border Style="{StaticResource ContentCard}"
+                            Visibility="{Binding IsStep1, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <StackPanel Margin="10,8,10,10">
+                            <TextBlock Text="Model element categories" Style="{StaticResource SectionTitle}" Margin="0,0,0,6"/>
+
+                            <Grid Margin="0,0,0,6">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox Grid.Column="0" Style="{StaticResource StyledTextInput}" Margin="0,0,10,0"
+                                         ToolTip="Search category or discipline names, e.g. door, duct, column."
+                                         Text="{Binding CategorySearch, UpdateSourceTrigger=PropertyChanged}"/>
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <RadioButton GroupName="Discipline" Style="{StaticResource ChipToggle}" Content="{Binding AllChipText}"
+                                                 IsChecked="{Binding DisciplineFilter, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=All, Mode=OneWay}"
+                                                 Command="{Binding SetDisciplineCommand}" CommandParameter="All"/>
+                                    <RadioButton GroupName="Discipline" Style="{StaticResource ChipToggle}" Content="{Binding ArchitectureChipText}"
+                                                 IsChecked="{Binding DisciplineFilter, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=Architecture, Mode=OneWay}"
+                                                 Command="{Binding SetDisciplineCommand}" CommandParameter="Architecture"/>
+                                    <RadioButton GroupName="Discipline" Style="{StaticResource ChipToggle}" Content="{Binding StructureChipText}"
+                                                 IsChecked="{Binding DisciplineFilter, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=Structure, Mode=OneWay}"
+                                                 Command="{Binding SetDisciplineCommand}" CommandParameter="Structure"/>
+                                    <RadioButton GroupName="Discipline" Style="{StaticResource ChipToggle}" Content="{Binding MepChipText}"
+                                                 IsChecked="{Binding DisciplineFilter, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=MEP, Mode=OneWay}"
+                                                 Command="{Binding SetDisciplineCommand}" CommandParameter="MEP"/>
+                                </StackPanel>
+                                <CheckBox Grid.Column="2" Content="Only categories placed in the model" Style="{StaticResource OptionCheck}"
+                                          Margin="8,0,0,0" IsChecked="{Binding HidePlacedNone}"/>
+                            </Grid>
+
+                            <!-- Column filters -->
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                <TextBlock Text="Category" Style="{StaticResource FilterLabel}"/>
+                                <TextBox Width="160" Style="{StaticResource StyledTextInput}" Margin="0,0,14,0"
+                                         Text="{Binding CategoryNameFilter, UpdateSourceTrigger=PropertyChanged}"/>
+                                <TextBlock Text="Types ≥" Style="{StaticResource FilterLabel}"/>
+                                <TextBox Width="50" Style="{StaticResource StyledTextInput}" Margin="0,0,14,0"
+                                         Text="{Binding MinTypesFilter, UpdateSourceTrigger=PropertyChanged}"/>
+                                <TextBlock Text="Elements ≥" Style="{StaticResource FilterLabel}"/>
+                                <TextBox Width="60" Style="{StaticResource StyledTextInput}" Margin="0,0,14,0"
+                                         Text="{Binding MinElementsFilter, UpdateSourceTrigger=PropertyChanged}"/>
+                                <TextBlock Text="Coverage" Style="{StaticResource FilterLabel}"/>
+                                <ComboBox Width="100" Style="{StaticResource StandardComboBox}"
+                                          ItemsSource="{Binding CoverageFilters}" SelectedItem="{Binding CoverageFilter}"/>
+                            </StackPanel>
+
+                            <DataGrid x:Name="CategoriesGrid"
+                                      ItemsSource="{Binding CategoriesView}"
+                                      SelectedItem="{Binding SelectedCategory, Mode=TwoWay}"
+                                      MouseDoubleClick="CategoriesGrid_MouseDoubleClick"
+                                      MinHeight="220"
+                                      shell:ShellBehaviors.MaxHeightRatio="0.5"
+                                      shell:ShellBehaviors.ForwardMouseWheel="True"
+                                      AutoGenerateColumns="False" IsReadOnly="True"
+                                      CanUserAddRows="False" CanUserDeleteRows="False" CanUserResizeRows="False"
+                                      SelectionMode="Single" SelectionUnit="FullRow"
+                                      GridLinesVisibility="Horizontal"
+                                      HorizontalGridLinesBrush="{StaticResource BrushSeparatorThin}"
+                                      RowStyle="{StaticResource DataGridRowStyle}"
+                                      CellStyle="{StaticResource DataGridCellStyle}"
+                                      ColumnHeaderStyle="{StaticResource DataGridColumnHeaderStyle}"
+                                      Background="{StaticResource BrushSurfaceWindow}"
+                                      BorderThickness="0" RowHeight="26"
+                                      VirtualizingStackPanel.IsVirtualizing="True"
+                                      VirtualizingStackPanel.VirtualizationMode="Recycling">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Category" Binding="{Binding Name, Mode=OneWay}" Width="*"
+                                                        ElementStyle="{StaticResource GridCellText}"/>
+                                    <DataGridTextColumn Header="Discipline" Binding="{Binding Discipline, Mode=OneWay}" Width="110"
+                                                        ElementStyle="{StaticResource GridCellText}"/>
+                                    <DataGridTextColumn Header="Types" Binding="{Binding TypeCount, Mode=OneWay}" Width="70"
+                                                        ElementStyle="{StaticResource GridCellNumber}"/>
+                                    <DataGridTextColumn Header="Elements" Binding="{Binding ElementCount, Mode=OneWay}" Width="80"
+                                                        ElementStyle="{StaticResource GridCellNumber}"/>
+                                    <DataGridTemplateColumn Header="Tracker_ID coverage" Width="190" SortMemberPath="CoveragePercent">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                    <ProgressBar Width="80" Height="6" Minimum="0" Maximum="100"
+                                                                 Value="{Binding CoveragePercent, Mode=OneWay}"
+                                                                 Foreground="{StaticResource BrushStatusOk}"
+                                                                 Background="{StaticResource BrushSeparatorThin}"
+                                                                 BorderThickness="0" Margin="0,0,8,0"/>
+                                                    <TextBlock Text="{Binding CoverageText}" Style="{StaticResource GridCellText}"/>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                </DataGrid.Columns>
+                            </DataGrid>
+
+                            <DockPanel Margin="0,6,0,0" LastChildFill="False">
+                                <TextBlock DockPanel.Dock="Left" Text="{Binding CategoriesShownText}" Style="{StaticResource HintText}"/>
+                                <TextBlock DockPanel.Dock="Right" Text="Coverage = placed elements that already have a Tracker_ID. Click a header to sort."
+                                           Style="{StaticResource HintText}"/>
+                            </DockPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- ══ STEP 2: types ══ -->
+                    <Border Style="{StaticResource ContentCard}"
+                            Visibility="{Binding IsStep2, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <StackPanel Margin="10,8,10,10">
+                            <TextBlock Text="{Binding TypesTitle}" Style="{StaticResource SectionTitle}" Margin="0,0,0,6"/>
+
+                            <Grid Margin="0,0,0,6">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox Grid.Column="0" Style="{StaticResource StyledTextInput}" Margin="0,0,10,0"
+                                         ToolTip="Search family, type or type mark."
+                                         Text="{Binding TypeSearch, UpdateSourceTrigger=PropertyChanged}"/>
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <RadioButton GroupName="TypeStatus" Style="{StaticResource ChipToggle}" Content="{Binding TypeAllChipText}"
+                                                 IsChecked="{Binding TypeStatusFilter, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=All, Mode=OneWay}"
+                                                 Command="{Binding SetTypeStatusCommand}" CommandParameter="All"/>
+                                    <RadioButton GroupName="TypeStatus" Style="{StaticResource ChipToggle}" Content="{Binding TypeNoneChipText}"
+                                                 IsChecked="{Binding TypeStatusFilter, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=None, Mode=OneWay}"
+                                                 Command="{Binding SetTypeStatusCommand}" CommandParameter="None"/>
+                                    <RadioButton GroupName="TypeStatus" Style="{StaticResource ChipToggle}" Content="{Binding TypePartialChipText}"
+                                                 IsChecked="{Binding TypeStatusFilter, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=Partial, Mode=OneWay}"
+                                                 Command="{Binding SetTypeStatusCommand}" CommandParameter="Partial"/>
+                                    <RadioButton GroupName="TypeStatus" Style="{StaticResource ChipToggle}" Content="{Binding TypeCompleteChipText}"
+                                                 IsChecked="{Binding TypeStatusFilter, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=Complete, Mode=OneWay}"
+                                                 Command="{Binding SetTypeStatusCommand}" CommandParameter="Complete"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <DockPanel Margin="0,0,0,6" LastChildFill="False">
+                                <StackPanel DockPanel.Dock="Left" Orientation="Horizontal">
+                                    <TextBlock Text="Family" Style="{StaticResource FilterLabel}"/>
+                                    <TextBox Width="150" Style="{StaticResource StyledTextInput}" Margin="0,0,14,0"
+                                             Text="{Binding FamilyFilter, UpdateSourceTrigger=PropertyChanged}"/>
+                                    <TextBlock Text="Type" Style="{StaticResource FilterLabel}"/>
+                                    <TextBox Width="150" Style="{StaticResource StyledTextInput}" Margin="0,0,14,0"
+                                             Text="{Binding TypeNameFilter, UpdateSourceTrigger=PropertyChanged}"/>
+                                    <TextBlock Text="Type Mark" Style="{StaticResource FilterLabel}"/>
+                                    <TextBox Width="80" Style="{StaticResource StyledTextInput}"
+                                             Text="{Binding TypeMarkFilter, UpdateSourceTrigger=PropertyChanged}"/>
+                                </StackPanel>
+                                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                    <Button Content="Select all shown" Style="{StaticResource SmallSecondaryButton}"
+                                            Command="{Binding SelectAllTypesCommand}" Margin="0,0,6,0"/>
+                                    <Button Content="Select none" Style="{StaticResource SmallSecondaryButton}"
+                                            Command="{Binding SelectNoTypesCommand}"/>
+                                </StackPanel>
+                            </DockPanel>
+
+                            <DataGrid ItemsSource="{Binding TypesView}"
+                                      MinHeight="220"
+                                      shell:ShellBehaviors.MaxHeightRatio="0.5"
+                                      shell:ShellBehaviors.ForwardMouseWheel="True"
+                                      AutoGenerateColumns="False"
+                                      CanUserAddRows="False" CanUserDeleteRows="False" CanUserResizeRows="False"
+                                      SelectionMode="Extended" SelectionUnit="FullRow"
+                                      GridLinesVisibility="Horizontal"
+                                      HorizontalGridLinesBrush="{StaticResource BrushSeparatorThin}"
+                                      RowStyle="{StaticResource DataGridRowStyle}"
+                                      CellStyle="{StaticResource DataGridCellStyle}"
+                                      ColumnHeaderStyle="{StaticResource DataGridColumnHeaderStyle}"
+                                      Background="{StaticResource BrushSurfaceWindow}"
+                                      BorderThickness="0" RowHeight="26"
+                                      VirtualizingStackPanel.IsVirtualizing="True"
+                                      VirtualizingStackPanel.VirtualizationMode="Recycling">
+                                <DataGrid.Columns>
+                                    <DataGridTemplateColumn Header="☑" Width="36" SortMemberPath="IsSelected">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                          HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                          PreviewMouseLeftButtonDown="CheckBoxCell_PreviewMouseLeftButtonDown"/>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                    <DataGridTextColumn Header="Family" Binding="{Binding FamilyName, Mode=OneWay}" Width="*" IsReadOnly="True"
+                                                        ElementStyle="{StaticResource GridCellText}"/>
+                                    <DataGridTextColumn Header="Type" Binding="{Binding TypeName, Mode=OneWay}" Width="*" IsReadOnly="True"
+                                                        ElementStyle="{StaticResource GridCellText}"/>
+                                    <DataGridTextColumn Header="Type Mark" Binding="{Binding TypeMark, Mode=OneWay}" Width="90" IsReadOnly="True"
+                                                        ElementStyle="{StaticResource GridCellId}"/>
+                                    <DataGridTextColumn Header="Elements" Binding="{Binding ElementCount, Mode=OneWay}" Width="80" IsReadOnly="True"
+                                                        ElementStyle="{StaticResource GridCellNumber}"/>
+                                    <DataGridTextColumn Header="Existing Tracker_IDs" Binding="{Binding CoverageText, Mode=OneWay}" Width="170" IsReadOnly="True"
+                                                        SortMemberPath="Coverage" ElementStyle="{StaticResource GridCellText}"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+
+                            <DockPanel Margin="0,6,0,0" LastChildFill="False">
+                                <TextBlock DockPanel.Dock="Left" Text="{Binding TypesShownText}" Style="{StaticResource HintText}"/>
+                                <TextBlock DockPanel.Dock="Right" Text="{Binding TypesSelectedText}" Style="{StaticResource HintText}" FontWeight="SemiBold"/>
+                            </DockPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- ══ STEP 3: format ══ -->
+                    <StackPanel Visibility="{Binding IsStep3, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <Border Style="{StaticResource ContentCard}" Margin="0,0,0,8">
+                            <StackPanel Margin="10,8,10,10">
+                                <TextBlock Text="Tracker ID format" Style="{StaticResource SectionTitle}" Margin="0,0,0,6"/>
+
+                                <Border Background="{StaticResource BrushSurfaceWindow}" BorderBrush="{StaticResource BrushBorderInput}"
+                                        BorderThickness="1" CornerRadius="4" Padding="10,6" Margin="0,0,0,8">
+                                    <StackPanel>
+                                        <TextBlock Text="FORMAT PREVIEW · FIRST ELEMENT" Style="{StaticResource MetricTileLabel}"/>
+                                        <TextBlock Text="{Binding SampleId}" FontFamily="Consolas" FontSize="18" FontWeight="SemiBold"
+                                                   Foreground="{StaticResource BrushNavyPrimary}" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Segment header -->
+                                <Grid Margin="0,0,0,2">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="34"/>
+                                        <ColumnDefinition Width="60"/>
+                                        <ColumnDefinition Width="130"/>
+                                        <ColumnDefinition Width="230"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="110"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="Use" Style="{StaticResource HintText}"/>
+                                    <TextBlock Grid.Column="1" Text="Order" Style="{StaticResource HintText}"/>
+                                    <TextBlock Grid.Column="2" Text="Segment" Style="{StaticResource HintText}"/>
+                                    <TextBlock Grid.Column="3" Text="Source" Style="{StaticResource HintText}"/>
+                                    <TextBlock Grid.Column="4" Text="Option" Style="{StaticResource HintText}"/>
+                                    <TextBlock Grid.Column="5" Text="Sample" Style="{StaticResource HintText}" HorizontalAlignment="Right"/>
+                                </Grid>
+                                <Border Style="{StaticResource SeparatorLine}"/>
+
+                                <ItemsControl ItemsSource="{Binding Segments}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel>
+                                                <Grid Margin="0,4">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="34"/>
+                                                        <ColumnDefinition Width="60"/>
+                                                        <ColumnDefinition Width="130"/>
+                                                        <ColumnDefinition Width="230"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="110"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <CheckBox Grid.Column="0" IsChecked="{Binding IsEnabled}" VerticalAlignment="Center"
+                                                              ToolTip="Untick to leave this segment out of the ID."/>
+                                                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                                        <Button Content="▲" Style="{StaticResource SmallSecondaryButton}" Padding="6,0" Margin="0,0,2,0"
+                                                                ToolTip="Move earlier in the ID"
+                                                                Command="{Binding DataContext.MoveSegmentUpCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                CommandParameter="{Binding}"/>
+                                                        <Button Content="▼" Style="{StaticResource SmallSecondaryButton}" Padding="6,0"
+                                                                ToolTip="Move later in the ID"
+                                                                Command="{Binding DataContext.MoveSegmentDownCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                CommandParameter="{Binding}"/>
+                                                    </StackPanel>
+                                                    <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding Label}" FontWeight="SemiBold" FontSize="12"
+                                                                   Foreground="{StaticResource BrushTextPrimary}"/>
+                                                        <TextBlock Text="{Binding Note}" Style="{StaticResource HintText}"/>
+                                                    </StackPanel>
+                                                    <ComboBox Grid.Column="3" Style="{StaticResource StandardComboBox}" Margin="0,0,10,0"
+                                                              ItemsSource="{Binding Sources}" SelectedItem="{Binding SelectedSource, Mode=TwoWay}"
+                                                              DisplayMemberPath="Label" VerticalAlignment="Center"/>
+                                                    <Grid Grid.Column="4" VerticalAlignment="Center">
+                                                        <StackPanel Orientation="Horizontal"
+                                                                    Visibility="{Binding UsesOption, Converter={StaticResource BoolToVisibilityConverter}}">
+                                                            <TextBlock Text="{Binding OptionLabel}" Style="{StaticResource FilterLabel}"/>
+                                                            <TextBox Width="170" Style="{StaticResource StyledTextInput}"
+                                                                     Text="{Binding Option, UpdateSourceTrigger=PropertyChanged}"/>
+                                                        </StackPanel>
+                                                        <TextBlock Text="{Binding OptionPlaceholder}" Style="{StaticResource HintText}" VerticalAlignment="Center"
+                                                                   Visibility="{Binding UsesOption, Converter={StaticResource InverseBoolToVisibilityConverter}}"/>
+                                                    </Grid>
+                                                    <TextBlock Grid.Column="5" Text="{Binding SampleValue}" FontFamily="Consolas" FontSize="12"
+                                                               Foreground="{StaticResource BrushAppleBlue}" HorizontalAlignment="Right"
+                                                               VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                                </Grid>
+                                                <Border Style="{StaticResource SeparatorLine}"/>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+
+                                <!-- Separator and fallbacks -->
+                                <WrapPanel Margin="0,8,0,0">
+                                    <TextBlock Text="Separator" Style="{StaticResource FilterLabel}"/>
+                                    <ComboBox Width="130" Style="{StaticResource StandardComboBox}" Margin="0,0,16,0"
+                                              ItemsSource="{Binding Separators}" SelectedItem="{Binding SelectedSeparator}" DisplayMemberPath="Label"/>
+                                    <TextBlock Text="Grid check over (m)" Style="{StaticResource FilterLabel}"/>
+                                    <TextBox Width="50" Style="{StaticResource StyledTextInput}" Margin="0,0,16,0"
+                                             ToolTip="Elements further than this from their grid crossing are flagged for checking."
+                                             Text="{Binding GridToleranceM, UpdateSourceTrigger=LostFocus}"/>
+                                    <TextBlock Text="No zone" Style="{StaticResource FilterLabel}"/>
+                                    <TextBox Width="50" Style="{StaticResource StyledTextInput}" Margin="0,0,16,0"
+                                             ToolTip="Zone value when neither the zone parameter nor a scope box gives one."
+                                             Text="{Binding NoZoneText, UpdateSourceTrigger=PropertyChanged}"/>
+                                    <TextBlock Text="Missing value" Style="{StaticResource FilterLabel}"/>
+                                    <TextBox Width="50" Style="{StaticResource StyledTextInput}"
+                                             ToolTip="Used for any other segment with nothing to show (no level, no grid, empty parameter)."
+                                             Text="{Binding MissingText, UpdateSourceTrigger=PropertyChanged}"/>
+                                </WrapPanel>
+
+                                <WrapPanel Margin="0,8,0,0">
+                                    <TextBlock Text="Writes  Tracker_ID (once, then kept)" Style="{StaticResource FilterLabel}" Margin="0,0,16,0"/>
+                                    <CheckBox Style="{StaticResource OptionCheck}" IsChecked="{Binding WriteLocationParameters}"
+                                              Content="Tracker_Zone, Tracker_Level, Tracker_Grid (refreshed every run)"/>
+                                    <CheckBox Style="{StaticResource OptionCheck}" IsChecked="{Binding WriteSourceGuid}"
+                                              Content="Tracker_SourceGuid (finds copied elements)"/>
+                                </WrapPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource ContentCard}">
+                            <StackPanel Margin="10,8,10,10">
+                                <DockPanel Margin="0,0,0,6" LastChildFill="False">
+                                    <TextBlock DockPanel.Dock="Left" Text="Result" Style="{StaticResource SectionTitle}" Margin="0,0,12,0"
+                                               VerticalAlignment="Center"/>
+                                    <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center">
+                                        <RadioButton GroupName="PlanFilter" Style="{StaticResource ChipToggle}" Content="All"
+                                                     IsChecked="{Binding PlanFilter, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=All, Mode=OneWay}"
+                                                     Command="{Binding SetPlanFilterCommand}" CommandParameter="All"/>
+                                        <RadioButton GroupName="PlanFilter" Style="{StaticResource ChipToggle}" Content="New IDs"
+                                                     IsChecked="{Binding PlanFilter, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=New, Mode=OneWay}"
+                                                     Command="{Binding SetPlanFilterCommand}" CommandParameter="New"/>
+                                        <RadioButton GroupName="PlanFilter" Style="{StaticResource ChipToggle}" Content="Kept"
+                                                     IsChecked="{Binding PlanFilter, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=Kept, Mode=OneWay}"
+                                                     Command="{Binding SetPlanFilterCommand}" CommandParameter="Kept"/>
+                                        <RadioButton GroupName="PlanFilter" Style="{StaticResource ChipToggle}" Content="Problems"
+                                                     IsChecked="{Binding PlanFilter, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=Problems, Mode=OneWay}"
+                                                     Command="{Binding SetPlanFilterCommand}" CommandParameter="Problems"/>
+                                    </StackPanel>
+                                </DockPanel>
+
+                                <Border Background="{StaticResource BrushBannerWarningBackground}" BorderBrush="{StaticResource BrushBannerWarningBorder}"
+                                        BorderThickness="1" CornerRadius="4" Padding="10,6" Margin="0,0,0,6"
+                                        Visibility="{Binding DuplicateCount, Converter={StaticResource IntToVisibilityConverter}}">
+                                    <TextBlock Text="{Binding DuplicateWarning}" Foreground="{StaticResource BrushBannerWarningText}"
+                                               FontSize="11.5" TextWrapping="Wrap"/>
+                                </Border>
+
+                                <DataGrid ItemsSource="{Binding PlanView}"
+                                          MinHeight="200"
+                                          shell:ShellBehaviors.MaxHeightRatio="0.45"
+                                          shell:ShellBehaviors.ForwardMouseWheel="True"
+                                          AutoGenerateColumns="False" IsReadOnly="True"
+                                          CanUserAddRows="False" CanUserDeleteRows="False" CanUserResizeRows="False"
+                                          SelectionMode="Extended" SelectionUnit="FullRow"
+                                          GridLinesVisibility="Horizontal"
+                                          HorizontalGridLinesBrush="{StaticResource BrushSeparatorThin}"
+                                          RowStyle="{StaticResource PlanRowStyle}"
+                                          CellStyle="{StaticResource DataGridCellStyle}"
+                                          ColumnHeaderStyle="{StaticResource DataGridColumnHeaderStyle}"
+                                          Background="{StaticResource BrushSurfaceWindow}"
+                                          BorderThickness="0" RowHeight="26"
+                                          VirtualizingStackPanel.IsVirtualizing="True"
+                                          VirtualizingStackPanel.VirtualizationMode="Recycling">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Element ID" Binding="{Binding ElementId, Mode=OneWay}" Width="80"
+                                                            ElementStyle="{StaticResource GridCellId}"/>
+                                        <DataGridTextColumn Header="Type" Binding="{Binding TypeText, Mode=OneWay}" Width="*"
+                                                            ElementStyle="{StaticResource GridCellText}"/>
+                                        <DataGridTextColumn Header="Level" Binding="{Binding Level, Mode=OneWay}" Width="60"
+                                                            ElementStyle="{StaticResource GridCellText}"/>
+                                        <DataGridTextColumn Header="Zone" Binding="{Binding Zone, Mode=OneWay}" Width="60"
+                                                            ElementStyle="{StaticResource GridCellText}"/>
+                                        <DataGridTextColumn Header="Nearest grid" Binding="{Binding GridText, Mode=OneWay}" Width="100"
+                                                            ElementStyle="{StaticResource GridDistanceText}"/>
+                                        <DataGridTextColumn Header="Existing Tracker_ID" Binding="{Binding ExistingId, Mode=OneWay}" Width="190"
+                                                            ElementStyle="{StaticResource GridCellId}"/>
+                                        <DataGridTextColumn Header="Result Tracker_ID" Binding="{Binding ResultId, Mode=OneWay}" Width="190"
+                                                            ElementStyle="{StaticResource GridCellId}"/>
+                                        <DataGridTextColumn Header="Action" Binding="{Binding ActionText, Mode=OneWay}" Width="100"
+                                                            SortMemberPath="Action" ElementStyle="{StaticResource ActionText}"/>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+
+                                <TextBlock Text="{Binding PlanSummaryText}" Style="{StaticResource HintText}" Margin="0,6,0,0" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- ══ STEP 4: export ══ -->
+                    <Border Style="{StaticResource ContentCard}"
+                            Visibility="{Binding IsStep4, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <StackPanel Margin="10,8,10,10">
+                            <TextBlock Text="Export for Power BI" Style="{StaticResource SectionTitle}" Margin="0,0,0,6"/>
+                            <TextBlock Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="0,0,0,8"
+                                       Text="Writes one row per element that has a Tracker_ID. Save it in a synced SharePoint folder and point Power BI at it; your Excel status table joins to it on Tracker_ID. Zone, Level and Grid come from the Tracker parameters as last written in step 3."/>
+
+                            <Grid Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="CSV file" Style="{StaticResource FilterLabel}"/>
+                                <TextBox Grid.Column="1" Style="{StaticResource StyledTextInput}" Margin="0,0,8,0"
+                                         Text="{Binding ExportPath, UpdateSourceTrigger=PropertyChanged}"/>
+                                <Button Grid.Column="2" Content="Browse…" Style="{StaticResource SmallSecondaryButton}"
+                                        Command="{Binding BrowseExportCommand}"/>
+                            </Grid>
+
+                            <WrapPanel Margin="0,0,0,8">
+                                <CheckBox Style="{StaticResource OptionCheck}" IsChecked="{Binding ExportWholeModel}"
+                                          Content="Every element in the model with a Tracker_ID (untick: only the chosen types)"/>
+                                <CheckBox Style="{StaticResource OptionCheck}" IsChecked="{Binding ExportDatedCopy}"
+                                          Content="Also save a dated copy (keeps history)"/>
+                            </WrapPanel>
+
+                            <TextBlock Text="Columns (fixed, so Power BI refresh never breaks)" Style="{StaticResource FieldLabel}"/>
+                            <TextBlock Text="{Binding ExportColumnsText}" FontFamily="Consolas" FontSize="11" TextWrapping="Wrap"
+                                       Foreground="{StaticResource BrushTextSecondary}" Margin="0,2,0,8"/>
+
+                            <TextBlock Text="{Binding LastExportText}" Style="{StaticResource HintText}" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <!-- ══ Log ══ -->
+                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="10,8" Margin="0,8,0,0">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Log" FontSize="11.5" FontWeight="SemiBold"
+                                       Foreground="{StaticResource BrushLogText}" VerticalAlignment="Center"/>
+                            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                <Button Content="Copy All" Style="{StaticResource DarkGhostButton}" Click="CopyAllLog_Click"/>
+                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Margin="6,0,0,0" Click="CopySelectedLog_Click"/>
+                                <Button Content="Clear" Style="{StaticResource DarkGhostButton}" Margin="6,0,0,0"
+                                        Command="{Binding ClearLogCommand}"/>
+                                <Button Content="Export Log" Style="{StaticResource DarkGhostButton}" Margin="6,0,0,0"
+                                        Click="ExportLog_Click"/>
+                            </StackPanel>
+                        </Grid>
+                        <ListBox Grid.Row="1" x:Name="LogList" ItemsSource="{Binding LogEntries}"
+                                 MinHeight="80"
+                                 shell:ShellBehaviors.MaxHeightRatio="0.2"
+                                 shell:ShellBehaviors.ForwardMouseWheel="True"
+                                 Background="Transparent" BorderThickness="0" SelectionMode="Extended"
+                                 ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                            <ListBox.ItemContainerStyle>
+                                <Style TargetType="ListBoxItem">
+                                    <Setter Property="Padding" Value="0,1"/>
+                                    <Setter Property="Background" Value="Transparent"/>
+                                </Style>
+                            </ListBox.ItemContainerStyle>
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" Margin="0,1,0,1">
+                                        <TextBlock Text="{Binding Time, StringFormat='HH:mm:ss', Mode=OneWay}"
+                                                   FontFamily="Consolas" FontSize="11"
+                                                   Foreground="{StaticResource BrushLogTextDim}" Margin="0,0,8,0"/>
+                                        <TextBlock Text="{Binding Level, Mode=OneWay}"
+                                                   FontFamily="Consolas" FontSize="11" FontWeight="Bold" Width="60"
+                                                   Foreground="{Binding Level, Converter={StaticResource LogLevelToColorConverter}, Mode=OneWay}"/>
+                                        <TextBlock Text="{Binding Message, Mode=OneWay}"
+                                                   FontFamily="Consolas" FontSize="11"
+                                                   Foreground="{StaticResource BrushLogText}" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </Grid>
+                </Border>
+            </StackPanel>
+        </shell:ToolWindowShell.BodyContent>
+
+        <!-- ═══ FOOTER ═══════════════════════════════════════════ -->
+        <shell:ToolWindowShell.FooterContent>
+            <DockPanel LastChildFill="False">
+                <TextBlock DockPanel.Dock="Left" Style="{StaticResource HintText}" VerticalAlignment="Center"
+                           Text="{Binding StepHint}" TextWrapping="Wrap" MaxWidth="520"/>
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                    <Button Content="Back" Style="{StaticResource OutlineButton}" Width="80" Height="38" Margin="0,0,8,0"
+                            Command="{Binding BackCommand}"/>
+                    <Button Content="Next" Style="{StaticResource OutlineButton}" Width="80" Height="38" Margin="0,0,8,0"
+                            Command="{Binding NextCommand}"/>
+                    <Button Content="Write Tracker IDs" Style="{StaticResource PrimaryButton}" MinWidth="140" Margin="0,0,8,0"
+                            Command="{Binding WriteCommand}"
+                            Visibility="{Binding IsStep3, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                    <Button Content="Export CSV" Style="{StaticResource PrimaryButton}" MinWidth="120" Margin="0,0,8,0"
+                            Command="{Binding ExportCommand}"
+                            Visibility="{Binding IsStep4, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                    <Button Content="Close" Style="{StaticResource OutlineButton}" Width="90" Height="38"
+                            Click="CloseButton_Click"/>
+                </StackPanel>
+            </DockPanel>
+        </shell:ToolWindowShell.FooterContent>
+    </shell:ToolWindowShell>
+</Window>
