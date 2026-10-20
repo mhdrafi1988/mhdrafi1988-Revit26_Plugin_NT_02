@@ -15,6 +15,8 @@ done until it builds with 0 errors. Running it still needs Revit on Windows.
 
 - **Git is the version history.** Never copy a tool folder to make a new version (`Tool_V005` next to
   `Tool_V004`), and never commit `.zip` backups. Change the tool in place and bump its version.
+  The one exception is shareable tool packages: a `.zip` of a tool's source, made with
+  `git archive` from `main`, may go in `Installer/Output/ToolPackages/` (one per tool, replaced in place).
 - **Folder layout:** `Menu/<Area>/<Group>/<Tool>_V<NNN>/` holding `Commands`, `Core`, `UI`,
   `Infrastructure` directly. No wrapper levels (`Tool_V003/Tool_V003/…`), no spaces, `&`, `(1)`,
   `_UPDATED` or `_0`/`_01` suffixes in folder names. Unfinished tools go in `Menu/RoofTools/WIP`,
