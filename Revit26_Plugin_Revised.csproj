@@ -1,0 +1,71 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFramework>net8.0-windows</TargetFramework>
+		<UseWPF>true</UseWPF>
+		<ImplicitUsings>disable</ImplicitUsings>
+		<Nullable>disable</Nullable>
+		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+		<PackageId />
+		<AssemblyName>Revit26_Plugin_Revised</AssemblyName>
+		<RootNamespace>Revit26_Plugin_Revised</RootNamespace>
+		<!-- Plugin version (SemVer). Per-tool versions live in Shared/Services/ToolCatalog.cs. -->
+		<Version>4.0.0</Version>
+		<BaseOutputPath>C:\Users\Rafi\source\repos\Revit26_Plugin\bin\54</BaseOutputPath>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+	  <IsPublishable>False</IsPublishable>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+	  <IsPublishable>False</IsPublishable>
+	</PropertyGroup>
+	<ItemGroup>
+	  <Compile Remove="Menu\RoofTools\WIP\**" />
+	  <EmbeddedResource Remove="Menu\RoofTools\WIP\**" />
+	  <None Remove="Menu\RoofTools\WIP\**" />
+	  <Page Remove="Menu\RoofTools\WIP\**" />
+	</ItemGroup>
+	<ItemGroup>
+	  <Compile Remove="IconLoader.cs" />
+	  <Compile Remove="Resources\App.xaml.cs" />
+	</ItemGroup>
+	<ItemGroup>
+	  <Page Remove="Resources\App.xaml" />
+	  <Page Remove="Shared\SharedStyles.xaml" />
+	</ItemGroup>
+	<ItemGroup>
+	  <PackageReference Include="Autodesk.Revit.SDK" Version="2026.0.0.9999" />
+	  <PackageReference Include="ClosedXML" Version="0.105.0" />
+	  <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+	  <PackageReference Include="EPPlus" Version="5.8.0" />
+	  <PackageReference Include="MahApps.Metro" Version="2.4.11" />
+	  <PackageReference Include="MahApps.Metro.IconPacks" Version="6.2.1" />
+	  <PackageReference Include="MaterialDesignColors" Version="5.3.0" />
+	  <PackageReference Include="MaterialDesignThemes" Version="5.3.0" />
+	  <PackageReference Include="MIConvexHull" Version="1.1.19.1019" />
+	</ItemGroup>
+	<ItemGroup>
+	  <Folder Include="Menu\RoofTools\Lines\Creaser\" />
+	  <Folder Include="Resources\Icons\FloorTools\" />
+	</ItemGroup>
+	<ItemGroup>
+	  <Resource Include="Shared\SharedStyles.xaml" />
+	</ItemGroup>
+	<ItemGroup>
+	  <!-- Ribbon icons, loaded by ImageUtils.Load as "Revit26_Plugin_Revised.Resources.Icons.<Category>.<file>.png". -->
+	  <None Remove="Resources\Icons\**\*.png" />
+	  <EmbeddedResource Include="Resources\Icons\**\*.png" />
+	</ItemGroup>
+	<ItemGroup>
+	  <Compile Update="Properties\Resources.Designer.cs">
+	    <DesignTime>True</DesignTime>
+	    <AutoGen>True</AutoGen>
+	    <DependentUpon>Resources.resx</DependentUpon>
+	  </Compile>
+	</ItemGroup>
+	<ItemGroup>
+	  <EmbeddedResource Update="Properties\Resources.resx">
+	    <Generator>ResXFileCodeGenerator</Generator>
+	    <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+	  </EmbeddedResource>
+	</ItemGroup>
+</Project>
