@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Windows;
@@ -27,6 +29,9 @@ namespace Revit26_Plugin_Revised.Shared.Services
     public static class ToolGuard
     {
         private static readonly Assembly ThisAssembly = typeof(ToolGuard).Assembly;
+
+        // File names this add-in has shipped under: Revit26_Plugin.dll before 5.0.0, Revit26_Plugin_Revised.dll since.
+        private static readonly string[] PluginAssemblyNames = { "Revit26_Plugin", "Revit26_Plugin_Revised" };
         private static readonly Regex BuildSuffix = new(@"\s*[—-]\s*(V|VA|FX|WSEB)\d+\s*$", RegexOptions.Compiled);
         private static bool _installed;
 
@@ -106,7 +111,12 @@ namespace Revit26_Plugin_Revised.Shared.Services
         {
             ToolInfo tool = ToolCatalog.Find(source);
             string toolTitle = tool?.Title ?? "SloperPro";
-            string logPath = WriteLog(toolTitle, source, ex);
+
+            // A second copy of the add-in in Revit is the usual cause of "Cannot find resource" in a
+            // tool window: WPF can load the window's styles from the other, older DLL.
+            var copies = OtherLoadedCopies();
+            string advice = copies.Count == 0 ? null : OtherCopiesAdvice(copies);
+            string logPath = WriteLog(toolTitle, source, ex, advice);
 
             try
             {
@@ -114,7 +124,7 @@ namespace Revit26_Plugin_Revised.Shared.Services
                 {
                     MainIcon = TaskDialogIcon.TaskDialogIconError,
                     MainInstruction = "The tool hit an error and stopped. The change in progress was rolled back.",
-                    MainContent = ex.Message,
+                    MainContent = advice == null ? ex.Message : ex.Message + "\n\n" + advice,
                     ExpandedContent = ex.ToString(),
                     FooterText = logPath == null ? toolTitle : $"{toolTitle} · Log: {logPath}"
                 };
@@ -126,7 +136,76 @@ namespace Revit26_Plugin_Revised.Shared.Services
             }
         }
 
-        private static string WriteLog(string toolTitle, Type source, Exception ex)
+        /// <summary>
+        /// Other copies of this add-in loaded in Revit, as "Name version — path". Empty when this is the
+        /// only one. Never throws.
+        /// </summary>
+        public static IReadOnlyList<string> OtherLoadedCopies()
+        {
+            var copies = new List<string>();
+            try
+            {
+                foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
+                {
+                    if (assembly == ThisAssembly) continue;
+                    AssemblyName name = assembly.GetName();
+                    if (!PluginAssemblyNames.Contains(name.Name, StringComparer.OrdinalIgnoreCase)) continue;
+
+                    string location;
+                    try { location = string.IsNullOrEmpty(assembly.Location) ? "(loaded from memory)" : assembly.Location; }
+                    catch (NotSupportedException) { location = "(unknown location)"; }
+                    copies.Add($"{name.Name} {name.Version} — {location}");
+                }
+            }
+            catch
+            {
+                // Listing loaded assemblies is diagnostics only.
+            }
+            return copies;
+        }
+
+        /// <summary>
+        /// Call once Revit has loaded every add-in (ApplicationInitialized): when another copy of this
+        /// add-in is loaded too, shows which file to remove. Never throws.
+        /// </summary>
+        public static void WarnIfOtherCopiesLoaded()
+        {
+            try
+            {
+                var copies = OtherLoadedCopies();
+                if (copies.Count == 0) return;
+
+                string advice = OtherCopiesAdvice(copies);
+                WriteLog("SloperPro", typeof(ToolGuard), null, advice);
+                new TaskDialog("SloperPro")
+                {
+                    MainIcon = TaskDialogIcon.TaskDialogIconWarning,
+                    MainInstruction = "Two copies of SloperPro are loaded in Revit.",
+                    MainContent = advice,
+                    FooterText = "This copy: " + SafeLocation(ThisAssembly)
+                }.Show();
+            }
+            catch
+            {
+                // The warning is best effort; the error dialogs repeat it if a tool fails.
+            }
+        }
+
+        private static string OtherCopiesAdvice(IReadOnlyList<string> copies) =>
+            "Another copy of SloperPro is loaded in Revit. Tool windows can pick up its old styles and fail " +
+            "to open (\"Cannot find resource …\"). Other copies:\n" +
+            string.Join("\n", copies.Select(c => "• " + c)) +
+            "\n\nClose Revit, delete the .addin file that loads the other copy (in " +
+            "C:\\ProgramData\\Autodesk\\Revit\\Addins\\2026 or %AppData%\\Autodesk\\Revit\\Addins\\2026) and its DLL, keep only " +
+            "rf12_Revit_2026.addin, then start Revit again. This copy: " + SafeLocation(ThisAssembly);
+
+        private static string SafeLocation(Assembly assembly)
+        {
+            try { return string.IsNullOrEmpty(assembly.Location) ? "(loaded from memory)" : assembly.Location; }
+            catch { return "(unknown location)"; }
+        }
+
+        private static string WriteLog(string toolTitle, Type source, Exception ex, string note = null)
         {
             try
             {
@@ -134,7 +213,9 @@ namespace Revit26_Plugin_Revised.Shared.Services
                 string path = Path.Combine(LogFolder, $"errors-{DateTime.Now:yyyy-MM-dd}.log");
                 File.AppendAllText(path,
                     $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {toolTitle} ({source?.FullName}){Environment.NewLine}" +
-                    $"{ex}{Environment.NewLine}{Environment.NewLine}");
+                    (ex == null ? string.Empty : $"{ex}{Environment.NewLine}") +
+                    (note == null ? string.Empty : $"{note}{Environment.NewLine}") +
+                    Environment.NewLine);
                 return path;
             }
             catch
