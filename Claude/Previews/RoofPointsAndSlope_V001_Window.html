@@ -4,302 +4,177 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Roof Points and Slope window</title>
-<!-- Static mock-up of the Roof Points & Slope V001 window (plugin 4.3.0+), for reference.
-     Values are sample data; the real window is UI/Views/RoofPointsAndSlopeWindow.xaml. -->
+<!-- Static mock-up of the Roof Points & Slope V001 window, tool 1.1.0 (plugin 5.1.0), for reference.
+     Values are sample data (two roofs picked, step 6 selected, step 4 not ticked, log open);
+     the real window is UI/Views/RoofPointsAndSlopeWindow.xaml. Colours are the
+     Shared/SharedStyles.xaml v4.0 tokens. -->
 <style>
-body{margin:0}
-a{color:#1F5FBF}a:hover{color:#14283F}
-input[type=checkbox],input[type=radio]{accent-color:#1E3A5F;width:15px;height:15px;margin:0}
-
-body{background:#E9EDF1;padding:16px}
+:root{
+  --surface-window:#F3F5F7; --card:#FFFFFF; --border:#D6DCE3; --border-input:#B5C2CF;
+  --action:#1E3A5F; --navy-light:#2C4A6E; --text:#1A2B3C; --text2:#5B7185; --text3:#8FA3B8;
+  --text-disabled:#C3CFDB; --bg2:#ECEFF3; --bg3:#E1E6EC; --sep-thin:#E6EAEF;
+  --info:#1F5FBF; --info-soft:#E6EEFB; --warn:#9A5B00; --warn-soft:#FDF1E1; --warn-border:#E8B66B;
+  --error:#B23A35; --log-bg:#14283F; --log-text:#EAF1F8; --log-dim:#7E94AA;
+  --log-ok:#4CC18A; --log-warn:#F0AE5C; --on-dark:#EAF1F8;
+}
+*{box-sizing:border-box}
+body{margin:0;background:#E9EDF1;padding:16px;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--text);font-size:12.5px}
+input[type=checkbox],input[type=radio]{accent-color:var(--action);width:14px;height:14px;margin:0 6px 0 0;vertical-align:-2px}
+.win{width:1180px;display:flex;flex-direction:column;background:var(--surface-window);border:1px solid var(--border-input)}
+.titlebar{height:32px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;background:#fff;border-bottom:1px solid var(--border);font-size:12px}
+.titlebar span:last-child{color:var(--text2);letter-spacing:14px}
+.header{background:var(--action);color:#fff;padding:12px 16px;display:flex;align-items:center}
+.header .t{font-size:18px;font-weight:600}.header .s{font-size:11.5px;color:#C9D6E3;margin-top:2px}
+.header .v{margin-left:auto;background:var(--navy-light);border-radius:10px;padding:3px 8px;font-size:11px;font-weight:600;color:var(--on-dark)}
+.pad{padding:8px 12px 0}
+.card{background:var(--card);border:1px solid var(--border);border-radius:4px}
+.toolbar{display:flex;align-items:center;padding:8px 12px;margin-bottom:8px}
+.lbl{font-size:11.5px;color:var(--text2);margin-right:8px}
+.combo{height:26px;border:1px solid var(--border-input);border-radius:2px;background:#fff;display:inline-flex;align-items:center;justify-content:space-between;padding:0 6px;font-size:13px}
+.combo:after{content:"▾";color:var(--text2);font-size:10px;margin-left:8px}
+.sbtn{height:26px;padding:0 9px;font-size:11px;border:1px solid var(--border-input);border-radius:4px;background:#fff;color:var(--text);display:inline-flex;align-items:center;margin-left:4px}
+.pill{background:var(--bg2);border-radius:10px;padding:3px 8px;font-size:11px;font-weight:600;color:var(--action);margin-left:8px}
+.body{display:grid;grid-template-columns:330px 1fr;gap:8px;padding:0 12px}
+.steps{padding:8px}
+.section{font-size:11.5px;font-weight:600;color:var(--action)}
+.hint{font-size:10.5px;color:var(--text3);line-height:1.35}
+.nav{display:flex;align-items:center;padding:8px;border-left:3px solid transparent;border-radius:4px;margin-bottom:2px}
+.nav.sel{background:var(--bg2);border-left-color:var(--action)}
+.circle{width:22px;height:22px;border-radius:11px;background:var(--action);color:var(--on-dark);font-size:11.5px;font-weight:700;display:flex;align-items:center;justify-content:center;margin-right:8px;flex:none}
+.circle.off{background:var(--text-disabled)}
+.nav .tt{font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nav .st{font-size:10.5px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nav .txt{flex:1;min-width:0}
+.badge{background:var(--info-soft);color:var(--info);border-radius:10px;padding:3px 9px;font-size:10.5px;font-weight:600;margin-left:8px;white-space:nowrap}
+.sep{height:1px;background:var(--sep-thin);margin:4px 8px 6px}
+.warn{background:var(--warn-soft);border:1px solid var(--warn-border);border-radius:4px;padding:4px 8px;color:var(--warn);font-size:11.5px;margin-top:8px;line-height:1.35}
+.detail{padding:12px 16px;margin-bottom:8px;min-height:240px}
+.dhead{display:flex;align-items:center;justify-content:space-between}
+.dtitle{font-size:14px;font-weight:600}
+.intro{font-size:11.5px;color:var(--text2);margin:4px 0 16px;line-height:1.4}
+.form{display:grid;grid-template-columns:auto auto 1fr;align-items:center;column-gap:16px;row-gap:8px}
+.form .l{font-size:11.5px;color:var(--text2)}
+.num{width:80px;height:26px;border:1px solid var(--border-input);border-radius:2px;background:#fff;text-align:center;line-height:24px;font-size:13px}
+.unit{font-size:12px;color:var(--text3);margin-left:-8px}
+.grid-card{padding:8px 12px;margin-bottom:8px}
+.ghead{display:flex;align-items:center;margin-bottom:8px}
+.ghead .r{margin-left:auto;display:flex;align-items:center}
+.ghead .r .lbl{margin-left:12px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{background:var(--bg2);color:var(--text2);font-weight:600;text-align:left;padding:6px 6px;border-bottom:1px solid var(--border);font-size:11.5px}
+td{padding:4px 6px;border-bottom:1px solid var(--sep-thin);height:30px}
+td .cnt{width:52px;height:22px;border:1px solid var(--border-input);border-radius:2px;text-align:center;line-height:20px;display:inline-block}
+td .cnt.dis{color:var(--text-disabled)}
+.log{background:var(--log-bg);border-radius:4px;padding:8px 12px;margin:0 12px 8px;font-family:Consolas,monospace;font-size:11.5px;color:var(--log-text)}
+.loghead{display:flex;align-items:center;font-family:'Segoe UI',system-ui,sans-serif}
+.loghead b{font-size:11.5px}.loghead .dim{color:var(--log-dim);font-size:10.5px;margin-left:8px}
+.ghost{height:26px;padding:0 10px;border:1px solid var(--log-dim);border-radius:4px;color:var(--log-text);display:inline-flex;align-items:center;font-size:11.5px;margin-left:8px}
+.logline{margin-top:4px}.logline .tm{color:var(--log-dim);margin-right:8px}.logline .lv{display:inline-block;width:64px;font-weight:600}
+.footer{border-top:1px solid var(--border);padding:8px 12px}
+.status{display:flex;align-items:center;margin-bottom:6px}
+.btn{height:30px;padding:0 12px;border-radius:4px;font-size:12.5px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--action);color:var(--action);background:#fff;margin-left:8px}
+.btn.run{background:var(--action);color:#fff;padding:0 16px;min-width:160px;font-weight:600}
 </style>
 </head>
 <body>
+<div class="win">
+  <div class="titlebar"><span>Roof Points &amp; Slope — v1.1.0</span><span>—□✕</span></div>
 
-<div style="width: 1100px; height: 1420px; box-sizing: border-box; display: flex; flex-direction: column; background: #F3F5F7; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; color: #1A2B3C; font-size: 12.5px; border: 1px solid #B5C2CF">
-
-  <!-- Title bar -->
-  <div style="height: 32px; display: flex; align-items: center; justify-content: space-between; padding: 0 12px; background: #FFFFFF; border-bottom: 1px solid #D6DCE3; font-size: 12px; color: #1A2B3C">
-    <span>Roof Points &amp; Slope — v1.0.0</span>
-    <span style="color: #5B7185; letter-spacing: 14px">—□✕</span>
+  <div class="header">
+    <div><div class="t">Roof Points &amp; Slope</div><div class="s">Basic Roof · Id 345678</div></div>
+    <div class="v">v1.1.0</div>
   </div>
 
-  <!-- Header bar -->
-  <div style="background: #1E3A5F; color: #FFFFFF; padding: 14px 20px; display: flex; align-items: center; gap: 12px">
-    <div style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1">
-      <div style="font-size: 18px; font-weight: 600">Roof Points &amp; Slope</div>
-      <div style="font-size: 12px; color: #C9D6E3">Basic Roof - 300 mm  ·  Id 412233</div>
-    </div>
-    <div style="background: #2E4F78; border-radius: 10px; padding: 2px 10px; font-size: 11px; font-weight: 600">v1.0.0</div>
-  </div>
-
-  <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 8px; padding: 12px 16px; min-height: 0">
-
-    <!-- Tiles -->
-    <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px">
-      
-        <div style="background: #FFFFFF; border: 1px solid #D6DCE3; border-radius: 6px; padding: 10px 12px; display: flex; flex-direction: column; gap: 2px">
-          <div style="font-size: 11px; color: #5B7185; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px">1 · Opening points</div>
-          <div style="font-size: 24px; font-weight: 600; color: #1F5FBF">12</div>
-        </div>
-      
-        <div style="background: #FFFFFF; border: 1px solid #D6DCE3; border-radius: 6px; padding: 10px 12px; display: flex; flex-direction: column; gap: 2px">
-          <div style="font-size: 11px; color: #5B7185; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px">2 · Perpendicular</div>
-          <div style="font-size: 24px; font-weight: 600; color: #1F5FBF">18</div>
-        </div>
-      
-        <div style="background: #FFFFFF; border: 1px solid #D6DCE3; border-radius: 6px; padding: 10px 12px; display: flex; flex-direction: column; gap: 2px">
-          <div style="font-size: 11px; color: #5B7185; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px">3 · Mid / quarter</div>
-          <div style="font-size: 24px; font-weight: 600; color: #1F5FBF">10</div>
-        </div>
-      
-        <div style="background: #FFFFFF; border: 1px solid #D6DCE3; border-radius: 6px; padding: 10px 12px; display: flex; flex-direction: column; gap: 2px">
-          <div style="font-size: 11px; color: #5B7185; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px">4 · Gap fill</div>
-          <div style="font-size: 24px; font-weight: 600; color: #1F5FBF">21</div>
-        </div>
-      
-        <div style="background: #FFFFFF; border: 1px solid #D6DCE3; border-radius: 6px; padding: 10px 12px; display: flex; flex-direction: column; gap: 2px">
-          <div style="font-size: 11px; color: #5B7185; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px">5 · Ridge</div>
-          <div style="font-size: 24px; font-weight: 600; color: #1F5FBF">3 lines · 9 pts</div>
-        </div>
-      
-        <div style="background: #FFFFFF; border: 1px solid #D6DCE3; border-radius: 6px; padding: 10px 12px; display: flex; flex-direction: column; gap: 2px">
-          <div style="font-size: 11px; color: #5B7185; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px">6 · Drains</div>
-          <div style="font-size: 24px; font-weight: 600; color: #2E7D4F">2</div>
-        </div>
-      
-    </div>
-
-    <!-- Before step 1: roofs, presets, markers, spacing, report -->
-    <div style="background: #FFFFFF; border: 1px solid #D6DCE3; border-radius: 6px; padding: 10px 14px; display: flex; flex-direction: column; gap: 8px">
-      <div style="display: flex; align-items: center; gap: 8px">
-        <span style="color: #5B7185; width: 52px">Roof</span>
-        <select aria-label="Roof" style="height: 24px; box-sizing: border-box; border: 1px solid #B5C2CF; border-radius: 4px; font: inherit; width: 340px; color: #1A2B3C; background: #FFFFFF"><option>Basic Roof - 300 mm  ·  Id 412233</option><option>Basic Roof - 300 mm  ·  Id 412590</option></select>
-        <span style="color: #5B7185; font-size: 11.5px">2 roofs picked — Run on All Roofs runs them as one Undo</span>
-      </div>
-      <div style="display: flex; align-items: center; gap: 6px">
-        <span style="color: #5B7185; width: 52px">Preset</span>
-        <select aria-label="Preset" style="height: 24px; box-sizing: border-box; border: 1px solid #B5C2CF; border-radius: 4px; font: inherit; width: 200px; color: #1A2B3C; background: #FFFFFF"><option>Flat roof · 1.5 % · 4 drains</option><option>Podium · 1 %</option></select>
-        <button type="button" style="height: 24px; padding: 0 10px; border: 1px solid #B5C2CF; border-radius: 4px; background: #FFFFFF; color: #1E3A5F; font: inherit; font-size: 11.5px">Apply</button>
-        <button type="button" style="height: 24px; padding: 0 10px; border: 1px solid #B5C2CF; border-radius: 4px; background: #FFFFFF; color: #1E3A5F; font: inherit; font-size: 11.5px">Save</button>
-        <button type="button" style="height: 24px; padding: 0 10px; border: 1px solid #B5C2CF; border-radius: 4px; background: #FFFFFF; color: #1E3A5F; font: inherit; font-size: 11.5px">Delete</button>
-        <span style="flex-grow: 1"></span>
-        <button type="button" style="height: 24px; padding: 0 10px; border: 1px solid #B5C2CF; border-radius: 4px; background: #FFFFFF; color: #1E3A5F; font: inherit; font-size: 11.5px">Show planned points in Revit</button>
-        <button type="button" style="height: 24px; padding: 0 10px; border: 1px solid #B5C2CF; border-radius: 4px; background: #FFFFFF; color: #1E3A5F; font: inherit; font-size: 11.5px">Clear markers</button>
-      </div>
-      <div style="display: flex; align-items: center; gap: 8px">
-        <label style="display: flex; align-items: center; gap: 6px"><input type="checkbox"> Clear existing shape points first</label>
-        <span style="color: #5B7185; margin-left: 14px">Min spacing between points (mm)</span><input type="text" value="50" aria-label="Minimum spacing" style="width: 54px; height: 24px; box-sizing: border-box; border: 1px solid #B5C2CF; border-radius: 4px; font: inherit; text-align: center">
-      </div>
-      <div style="display: flex; align-items: center; gap: 8px">
-        <span style="color: #5B7185; width: 90px">Report folder</span>
-        <input type="text" value="C:\Users\you\Documents\AutoSlope_Reports" aria-label="Report folder" style="flex-grow: 1; height: 24px; box-sizing: border-box; border: 1px solid #B5C2CF; border-radius: 4px; font: inherit; padding: 0 8px">
-        <button type="button" style="height: 24px; padding: 0 10px; border: 1px solid #B5C2CF; border-radius: 4px; background: #FFFFFF; color: #1E3A5F; font: inherit; font-size: 11.5px">Browse…</button>
-        <label style="display: flex; align-items: center; gap: 6px; margin-left: 8px; white-space: nowrap"><input type="checkbox" checked="checked"> Save run report (.xlsx)</label>
-      </div>
-      <div style="color: #B26A00; font-size: 11.5px; display: flex; flex-direction: column; gap: 2px">
-        <span>This roof already has about 4 shape point(s) besides its corners. Tick "Clear existing shape points first" to start clean.</span>
-        <span>3 planned point(s) skipped — closer than 50 mm to another point.</span>
-        <span>Ridge: 1 of 9 point(s) are not midway between their drains (more than 50 mm out).</span>
-      </div>
-    </div>
-
-    <!-- Steps 1 + 2 -->
-    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
-      <div style="background: #FFFFFF; border: 1px solid #D6DCE3; border-radius: 6px; padding: 10px 14px; display: flex; flex-direction: column; gap: 7px">
-        <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: #1E3A5F"><input type="checkbox" checked="checked"> 1 · Points around openings</label>
-        <div style="display: flex; align-items: center; gap: 8px">
-          <label style="display: flex; align-items: center; gap: 6px; width: 140px"><input type="radio" name="mode" checked="checked"> Points per opening</label>
-          <span style="color: #5B7185">Circles</span><input type="text" value="6" aria-label="Points around circles" style="width: 54px; height: 24px; box-sizing: border-box; border: 1px solid #B5C2CF; border-radius: 4px; text-align: center; font: inherit">
-          <span style="color: #5B7185; margin-left: 6px">Others</span><input type="text" value="8" aria-label="Points around other openings" style="width: 54px; height: 24px; box-sizing: border-box; border: 1px solid #B5C2CF; border-radius: 4px; text-align: center; font: inherit">
-        </div>
-        <div style="display: flex; align-items: center; gap: 8px">
-          <label style="display: flex; align-items: center; gap: 6px; width: 140px"><input type="radio" name="mode"> Max spacing</label>
-          <span style="color: #8FA3B8">Gap (m)</span><input type="text" value="0.3" disabled="disabled" aria-label="Max spacing in metres" style="width: 54px; height: 24px; box-sizing: border-box; border: 1px solid #D6DCE3; border-radius: 4px; text-align: center; font: inherit; color: #8FA3B8; background: #F3F5F7">
-        </div>
-        <div style="color: #5B7185; font-size: 11.5px">Corners count towards the total. Per-opening counts and ticks are in the grid below.</div>
-      </div>
-
-      <div style="background: #FFFFFF; border: 1px solid #D6DCE3; border-radius: 6px; padding: 10px 14px; display: flex; flex-direction: column; gap: 7px">
-        <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: #1E3A5F"><input type="checkbox" checked="checked"> 2 · Perpendicular points to the boundary</label>
-        <div style="display: flex; align-items: center; gap: 8px">
-          <span style="color: #5B7185">Group opening points within (mm)</span><input type="text" value="500" aria-label="Group distance in millimetres" style="width: 64px; height: 24px; box-sizing: border-box; border: 1px solid #B5C2CF; border-radius: 4px; text-align: center; font: inherit">
-        </div>
-        <div style="color: #5B7185; font-size: 11.5px">From each group of points on an opening, the nearest boundary point in up to 8 directions (45° apart, aligned with the opening) gets a point.</div>
-      </div>
-    </div>
-
-    <!-- Steps 3 + 4 -->
-    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
-      <div style="background: #FFFFFF; border: 1px solid #D6DCE3; border-radius: 6px; padding: 10px 14px; display: flex; flex-direction: column; gap: 7px">
-        <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: #1E3A5F"><input type="checkbox" checked="checked"> 3 · Midpoint and quarter points on edges</label>
-        <div style="display: flex; align-items: center; gap: 16px">
-          <label style="display: flex; align-items: center; gap: 6px"><input type="checkbox" checked="checked"> Midpoint (½)</label>
-          <label style="display: flex; align-items: center; gap: 6px"><input type="checkbox" checked="checked"> Quarter points (¼, ¾)</label>
-        </div>
-        <div style="display: flex; align-items: center; gap: 14px">
-          <span style="color: #5B7185">On</span>
-          <label style="display: flex; align-items: center; gap: 6px"><input type="checkbox" checked="checked"> Boundary</label>
-          <label style="display: flex; align-items: center; gap: 6px"><input type="checkbox"> Openings</label>
-          <span style="color: #B5C2CF">|</span>
-          <label style="display: flex; align-items: center; gap: 6px"><input type="checkbox" checked="checked"> Lines</label>
-          <label style="display: flex; align-items: center; gap: 6px"><input type="checkbox" checked="checked"> Curves</label>
-        </div>
-      </div>
-
-      <div style="background: #FFFFFF; border: 1px solid #D6DCE3; border-radius: 6px; padding: 10px 14px; display: flex; flex-direction: column; gap: 7px">
-        <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: #1E3A5F"><input type="checkbox" checked="checked"> 4 · Fill gaps along edges</label>
-        <div style="display: flex; align-items: center; gap: 8px">
-          <span style="color: #5B7185">Max gap between points (m)</span><input type="text" value="2" aria-label="Max gap in metres" style="width: 54px; height: 24px; box-sizing: border-box; border: 1px solid #B5C2CF; border-radius: 4px; text-align: center; font: inherit">
-        </div>
-        <div style="display: flex; align-items: center; gap: 14px">
-          <span style="color: #5B7185">On</span>
-          <label style="display: flex; align-items: center; gap: 6px"><input type="checkbox" checked="checked"> Boundary</label>
-          <label style="display: flex; align-items: center; gap: 6px"><input type="checkbox"> Openings</label>
-          <span style="color: #B5C2CF">|</span>
-          <label style="display: flex; align-items: center; gap: 6px"><input type="checkbox" checked="checked"> Lines</label>
-          <label style="display: flex; align-items: center; gap: 6px"><input type="checkbox" checked="checked"> Curves</label>
-        </div>
-        <div style="color: #5B7185; font-size: 11.5px">Points are added only where two neighbouring points (existing or from steps 1–3) are further apart than the gap.</div>
-      </div>
-    </div>
-
-    <!-- Step 5 -->
-    <div style="background: #FFFFFF; border: 1px solid #D6DCE3; border-radius: 6px; padding: 10px 14px; display: flex; flex-direction: column; gap: 7px">
-      <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: #1E3A5F"><input type="checkbox" checked="checked"> 5 · Ridge between drains (Ridge By Openings V070 engine)</label>
-      <div style="display: flex; align-items: center; gap: 14px">
-        <label style="display: flex; align-items: center; gap: 6px"><input type="checkbox" checked="checked"> Shape points + split lines along the ridges</label>
-        <label style="display: flex; align-items: center; gap: 6px"><input type="checkbox" checked="checked"> Detail lines in the active view</label>
-        <label style="display: flex; align-items: center; gap: 6px; color: #5B7185">Line style
-          <select style="height: 24px; width: 180px; border: 1px solid #B5C2CF; border-radius: 4px; font: inherit; color: #1A2B3C; background: #FFFFFF"><option>Ridge Lines</option><option>Medium Lines</option><option>Thin Lines</option></select>
-        </label>
-      </div>
-      <div style="display: flex; align-items: center; gap: 8px">
-        <span style="color: #5B7185">Group drains within (mm)</span><input type="text" value="50" aria-label="Drain grouping distance" style="width: 54px; height: 24px; box-sizing: border-box; border: 1px solid #B5C2CF; border-radius: 4px; text-align: center; font: inherit">
-        <span style="color: #5B7185; margin-left: 8px">Equidistance tolerance (mm)</span><input type="text" value="50" aria-label="Equidistance tolerance" style="width: 54px; height: 24px; box-sizing: border-box; border: 1px solid #B5C2CF; border-radius: 4px; text-align: center; font: inherit">
-      </div>
-      <div style="color: #5B7185; font-size: 11.5px">Ridges run midway between the openings ticked as Drain (at least two). Openings that are not drains end the ridges that cross them. Ridge points sit on the roof surface; step 6 then makes the ridges the high lines.</div>
-    </div>
-
-    <!-- Step 6 -->
-    <div style="background: #FFFFFF; border: 1px solid #D6DCE3; border-radius: 6px; padding: 10px 14px; display: flex; flex-direction: column; gap: 7px">
-      <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: #1E3A5F"><input type="checkbox" checked="checked"> 6 · Slope by drain (Auto Slope By Drain V013 engine)</label>
-      <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap">
-        <span style="color: #5B7185">Slope (%)</span><input type="text" value="1.5" aria-label="Slope percent" style="width: 54px; height: 24px; box-sizing: border-box; border: 1px solid #B5C2CF; border-radius: 4px; text-align: center; font: inherit">
-        <span style="color: #5B7185; margin-left: 8px">Max edge (m)</span><input type="text" value="30" aria-label="Max edge distance" style="width: 54px; height: 24px; box-sizing: border-box; border: 1px solid #B5C2CF; border-radius: 4px; text-align: center; font: inherit">
-        <span style="color: #5B7185; margin-left: 8px">Max path (m)</span><input type="text" value="40" aria-label="Max path distance" style="width: 54px; height: 24px; box-sizing: border-box; border: 1px solid #B5C2CF; border-radius: 4px; text-align: center; font: inherit">
-        <span style="color: #5B7185; margin-left: 8px">Path samples</span><input type="text" value="10" aria-label="Path samples" style="width: 54px; height: 24px; box-sizing: border-box; border: 1px solid #B5C2CF; border-radius: 4px; text-align: center; font: inherit">
-        <label style="display: flex; align-items: center; gap: 6px; margin-left: 12px"><input type="checkbox"> Insert points at curve crossings</label>
-      </div>
-      <label style="display: flex; align-items: center; gap: 6px"><input type="checkbox"> Auto Slope By Drain Excel report (to the report folder above)</label>
-      <div style="color: #5B7185; font-size: 11.5px">Resets every shape point to 0, then sets each point's height from its shortest path to a ticked drain, and writes the AutoSlope roof parameters.</div>
-      <div style="display: flex; align-items: center; gap: 10px">
-        <button type="button" style="height: 24px; padding: 0 10px; border: 1px solid #B5C2CF; border-radius: 4px; background: #FFFFFF; color: #1E3A5F; font: inherit; font-size: 11.5px">Check slope reach</button>
-        <span style="color: #B26A00; font-size: 11.5px">2 of 74 point(s) would stay at 0 (dips): 0 with no path to a drain, 2 beyond Max path. Add points (steps 3–4) or raise Max edge / Max path.</span>
-      </div>
-    </div>
-
-    <!-- Openings header -->
-    <div style="display: flex; align-items: center; gap: 6px; margin-top: 2px">
-      <div style="font-size: 14px; font-weight: 600; color: #1E3A5F; flex-grow: 1">Openings</div>
-      
-        <span style="color: #5B7185; margin-left: 8px">Points</span>
-        <button type="button" style="height: 22px; padding: 0 9px; border: 1px solid #B5C2CF; border-radius: 4px; background: #FFFFFF; color: #1E3A5F; font: inherit; font-size: 11px">All</button>
-        <button type="button" style="height: 22px; padding: 0 9px; border: 1px solid #B5C2CF; border-radius: 4px; background: #FFFFFF; color: #1E3A5F; font: inherit; font-size: 11px">None</button>
-      
-        <span style="color: #5B7185; margin-left: 8px">Perpendicular</span>
-        <button type="button" style="height: 22px; padding: 0 9px; border: 1px solid #B5C2CF; border-radius: 4px; background: #FFFFFF; color: #1E3A5F; font: inherit; font-size: 11px">All</button>
-        <button type="button" style="height: 22px; padding: 0 9px; border: 1px solid #B5C2CF; border-radius: 4px; background: #FFFFFF; color: #1E3A5F; font: inherit; font-size: 11px">None</button>
-      
-        <span style="color: #5B7185; margin-left: 8px">Drain</span>
-        <button type="button" style="height: 22px; padding: 0 9px; border: 1px solid #B5C2CF; border-radius: 4px; background: #FFFFFF; color: #1E3A5F; font: inherit; font-size: 11px">All</button>
-        <button type="button" style="height: 22px; padding: 0 9px; border: 1px solid #B5C2CF; border-radius: 4px; background: #FFFFFF; color: #1E3A5F; font: inherit; font-size: 11px">None</button>
-      
-    </div>
-
-    <!-- Openings grid -->
-    <div style="background: #FFFFFF; border: 1px solid #D6DCE3; border-radius: 6px; overflow: hidden">
-      <div style="display: grid; grid-template-columns: 58px 44px 90px 120px 96px 64px 70px 56px 104px 56px minmax(0, 1fr); background: #E1E6EC; color: #1E3A5F; font-weight: 600; font-size: 11.5px; height: 30px; align-items: center; padding: 0 10px">
-        <span></span><span>#</span><span>Shape</span><span>Size (mm)</span><span>Source</span><span>Points</span><span>Count</span><span>New</span><span>Perpendicular</span><span>New</span><span>Drain</span>
-      </div>
-      
-        <div style="display: grid; grid-template-columns: 58px 44px 90px 120px 96px 64px 70px 56px 104px 56px minmax(0, 1fr); height: 30px; align-items: center; padding: 0 10px; border-top: 1px solid #E1E6EC">
-          <span><button type="button" style="height: 22px; padding: 0 8px; border: 1px solid #B5C2CF; border-radius: 4px; background: #FFFFFF; color: #1E3A5F; font: inherit; font-size: 11px">Show</button></span>
-          <span>1</span><span>Circular</span><span>Ø 150</span><span style="color: #5B7185">Sketch</span>
-          <span><input type="checkbox" checked="checked" aria-label="Points around this opening"></span>
-          <span><input type="text" value="6" aria-label="Point count" style="width: 44px; height: 22px; box-sizing: border-box; border: 1px solid #B5C2CF; border-radius: 4px; text-align: center; font: inherit"></span>
-          <span style="color: #1F5FBF; font-weight: 600">4</span>
-          <span><input type="checkbox" checked="checked" aria-label="Perpendicular points from this opening"></span>
-          <span style="color: #1F5FBF; font-weight: 600">4</span>
-          <span><input type="checkbox" checked="checked" aria-label="Use as drain"></span>
-        </div>
-      
-        <div style="display: grid; grid-template-columns: 58px 44px 90px 120px 96px 64px 70px 56px 104px 56px minmax(0, 1fr); height: 30px; align-items: center; padding: 0 10px; border-top: 1px solid #E1E6EC">
-          <span><button type="button" style="height: 22px; padding: 0 8px; border: 1px solid #B5C2CF; border-radius: 4px; background: #FFFFFF; color: #1E3A5F; font: inherit; font-size: 11px">Show</button></span>
-          <span>2</span><span>Rectangle</span><span>1000 × 1000</span><span style="color: #5B7185">Sketch</span>
-          <span><input type="checkbox" checked="checked" aria-label="Points around this opening"></span>
-          <span><input type="text" value="8" aria-label="Point count" style="width: 44px; height: 22px; box-sizing: border-box; border: 1px solid #B5C2CF; border-radius: 4px; text-align: center; font: inherit"></span>
-          <span style="color: #1F5FBF; font-weight: 600">4</span>
-          <span><input type="checkbox" checked="checked" aria-label="Perpendicular points from this opening"></span>
-          <span style="color: #1F5FBF; font-weight: 600">10</span>
-          <span><input type="checkbox"  aria-label="Use as drain"></span>
-        </div>
-      
-        <div style="display: grid; grid-template-columns: 58px 44px 90px 120px 96px 64px 70px 56px 104px 56px minmax(0, 1fr); height: 30px; align-items: center; padding: 0 10px; border-top: 1px solid #E1E6EC">
-          <span><button type="button" style="height: 22px; padding: 0 8px; border: 1px solid #B5C2CF; border-radius: 4px; background: #FFFFFF; color: #1E3A5F; font: inherit; font-size: 11px">Show</button></span>
-          <span>3</span><span>Circular</span><span>Ø 100</span><span style="color: #5B7185">Sketch</span>
-          <span><input type="checkbox" checked="checked" aria-label="Points around this opening"></span>
-          <span><input type="text" value="6" aria-label="Point count" style="width: 44px; height: 22px; box-sizing: border-box; border: 1px solid #B5C2CF; border-radius: 4px; text-align: center; font: inherit"></span>
-          <span style="color: #1F5FBF; font-weight: 600">4</span>
-          <span><input type="checkbox" checked="checked" aria-label="Perpendicular points from this opening"></span>
-          <span style="color: #1F5FBF; font-weight: 600">4</span>
-          <span><input type="checkbox" checked="checked" aria-label="Use as drain"></span>
-        </div>
-      
-    </div>
-
-    <!-- Log -->
-    <div style="background: #14283F; border-radius: 8px; padding: 8px 12px; display: flex; flex-direction: column; gap: 4px; flex-grow: 1; min-height: 0">
-      <div style="display: flex; align-items: center; gap: 6px">
-        <span style="color: #EAF1F8; font-size: 11.5px; font-weight: 600; flex-grow: 1">Activity Log</span>
-        <button type="button" style="height: 22px; padding: 0 9px; border: 1px solid #2E4F78; border-radius: 4px; background: transparent; color: #EAF1F8; font: inherit; font-size: 11px">Copy All</button>
-        <button type="button" style="height: 22px; padding: 0 9px; border: 1px solid #2E4F78; border-radius: 4px; background: transparent; color: #EAF1F8; font: inherit; font-size: 11px">Copy Selected</button>
-        <button type="button" style="height: 22px; padding: 0 9px; border: 1px solid #2E4F78; border-radius: 4px; background: transparent; color: #EAF1F8; font: inherit; font-size: 11px">Clear</button>
-      </div>
-      
-        <div style="display: flex; gap: 10px; font-family: Consolas, 'Cascadia Mono', monospace; font-size: 11.5px">
-          <span style="color: #7E94AA">18:42:05</span>
-          <span style="color: #4CC18A; font-weight: 600; width: 64px">Success</span>
-          <span style="color: #EAF1F8">Roof read: 1 boundary loop(s), 3 opening(s), 15 edge(s), 13 shape point(s).</span>
-        </div>
-      
-        <div style="display: flex; gap: 10px; font-family: Consolas, 'Cascadia Mono', monospace; font-size: 11.5px">
-          <span style="color: #7E94AA">18:42:05</span>
-          <span style="color: #EAF1F8; font-weight: 600; width: 64px">Info</span>
-          <span style="color: #EAF1F8">Shape editing is off on this roof — it is switched on when the steps run.</span>
-        </div>
-      
-        <div style="display: flex; gap: 10px; font-family: Consolas, 'Cascadia Mono', monospace; font-size: 11.5px">
-          <span style="color: #7E94AA">18:43:12</span>
-          <span style="color: #EAF1F8; font-weight: 600; width: 64px">Info</span>
-          <span style="color: #EAF1F8">Showing 61 planned point(s) in the active view — temporary markers, not saved; cleared on Run or Close.</span>
-        </div>
-      
+  <!-- HEADER: toolbar -->
+  <div class="pad">
+    <div class="card toolbar">
+      <span class="lbl">Roof</span><span class="combo" style="width:280px">Basic Roof · Id 345678</span><span class="pill">2 roofs</span>
+      <span class="lbl" style="margin-left:24px">Preset</span><span class="combo" style="width:200px">Podium 1.5 %</span>
+      <span class="sbtn" style="margin-left:8px">Apply</span><span class="sbtn">Save</span><span class="sbtn">Delete</span>
+      <span style="margin-left:auto"></span><span class="sbtn">Show planned points in Revit</span><span class="sbtn">Clear markers</span>
     </div>
   </div>
 
-  <!-- Footer -->
-  <div style="background: #FFFFFF; border-top: 1px solid #D6DCE3; padding: 10px 16px; display: flex; flex-direction: column; gap: 8px">
-    <div style="display: flex; align-items: center; gap: 10px">
-      <span style="color: #5B7185; font-size: 11.5px; flex-grow: 1">Ready: 61 new point(s), ridge 3 lines · 9 pts, slope to 2 drain(s)</span>
-      <div style="width: 220px; height: 6px; border-radius: 3px; background: #E1E6EC"></div>
+  <!-- BODY -->
+  <div class="body">
+    <div>
+      <div class="card steps">
+        <div class="section" style="margin:4px 8px 0">Steps</div>
+        <div class="hint" style="margin:0 8px 8px">Tick the steps to run; click one to see its options. The numbers are the points each step will add.</div>
+
+        <div class="nav"><span style="width:20px"></span><span class="circle">⚙</span>
+          <div class="txt"><div class="tt">Run options</div><div class="st">Clear first · min spacing · run report</div></div></div>
+        <div class="sep"></div>
+        <div class="nav"><input type="checkbox" checked><span class="circle">1</span>
+          <div class="txt"><div class="tt">Points around openings</div><div class="st">Count or spacing per opening</div></div><span class="badge">+24</span></div>
+        <div class="nav"><input type="checkbox" checked><span class="circle">2</span>
+          <div class="txt"><div class="tt">Perpendicular points</div><div class="st">From openings to the boundary</div></div><span class="badge">+11</span></div>
+        <div class="nav"><input type="checkbox" checked><span class="circle">3</span>
+          <div class="txt"><div class="tt">Mid and quarter points</div><div class="st">On the edges you pick</div></div><span class="badge">+18</span></div>
+        <div class="nav"><input type="checkbox"><span class="circle off">4</span>
+          <div class="txt"><div class="tt">Fill gaps along edges</div><div class="st">Where points are too far apart</div></div><span class="badge">+0</span></div>
+        <div class="nav"><input type="checkbox" checked><span class="circle">5</span>
+          <div class="txt"><div class="tt">Ridge between drains</div><div class="st">Ridge By Openings V070 engine</div></div><span class="badge">3 lines · 9 pts</span></div>
+        <div class="nav sel"><input type="checkbox" checked><span class="circle">6</span>
+          <div class="txt"><div class="tt">Slope by drain</div><div class="st">Auto Slope By Drain V013 engine</div></div><span class="badge">3 drains</span></div>
+      </div>
+      <div class="warn">The roof already has 14 shape points from an earlier run. Tick “Clear existing shape points first” under Run options to start from a flat roof.</div>
     </div>
-    <div style="display: flex; align-items: center; gap: 10px">
-      <button type="button" style="height: 38px; width: 120px; border: 1px solid #1E3A5F; border-radius: 4px; background: #FFFFFF; color: #1E3A5F; font: inherit; font-weight: 600">Re-read Roof</button>
-      <span style="flex-grow: 1"></span>
-      <button type="button" style="height: 38px; width: 200px; border: none; border-radius: 4px; background: #1E3A5F; color: #FFFFFF; font: inherit; font-weight: 600">Run Selected Steps</button>
-      <button type="button" style="height: 38px; width: 150px; border: 1px solid #1E3A5F; border-radius: 4px; background: #FFFFFF; color: #1E3A5F; font: inherit; font-weight: 600">Run on All Roofs</button>
-      <button type="button" style="height: 38px; width: 90px; border: 1px solid #1E3A5F; border-radius: 4px; background: #FFFFFF; color: #1E3A5F; font: inherit; font-weight: 600">Close</button>
+
+    <div>
+      <div class="card detail">
+        <div class="dhead"><span class="dtitle">6 · Slope by drain</span><label><input type="checkbox" checked>Run this step</label></div>
+        <div class="intro">Resets every shape point to 0, then sets each point's height from its shortest path to a ticked drain, and writes the AutoSlope roof parameters. Uses the Auto Slope By Drain V013 engine.</div>
+        <div class="form">
+          <span class="l">Slope</span><span class="num">1.5</span><span class="unit">%</span>
+          <span class="l">Max edge</span><span class="num">30</span><span class="unit">m — longest link between two points</span>
+          <span class="l">Max path</span><span class="num">40</span><span class="unit">m — farther points stay at 0</span>
+          <span class="l">Path samples</span><span class="num">10</span><span class="unit">per path, to check it stays on the roof</span>
+          <span></span><label style="grid-column:2/4"><input type="checkbox">Insert points at curve crossings</label>
+          <span></span><span style="grid-column:2/4"><span class="sbtn" style="margin:0">Check slope reach</span></span>
+        </div>
+        <div class="warn">2 of 87 points would be left at 0 (no path to a drain within 40 m).</div>
+        <div class="hint" style="margin-top:8px">The Auto Slope By Drain Excel report is under Run options.</div>
+      </div>
+
+      <div class="card grid-card">
+        <div class="ghead">
+          <span class="section">Openings</span><span class="pill">4</span>
+          <div class="r">
+            <span class="lbl">Points</span><span class="sbtn">All</span><span class="sbtn">None</span>
+            <span class="lbl" style="margin-left:16px">Perpendicular</span><span class="sbtn">All</span><span class="sbtn">None</span>
+            <span class="lbl" style="margin-left:16px">Drain</span><span class="sbtn">All</span><span class="sbtn">None</span>
+          </div>
+        </div>
+        <table>
+          <tr><th style="width:58px"></th><th style="width:44px">#</th><th style="width:85px">Shape</th><th style="width:110px">Size (mm)</th><th style="width:90px">Source</th><th style="width:60px">Points</th><th style="width:70px">Count</th><th style="width:55px">New</th><th style="width:100px">Perpendicular</th><th style="width:55px">New</th><th>Drain</th></tr>
+          <tr><td><span class="sbtn" style="margin:0;height:22px">Show</span></td><td>1</td><td>Circle</td><td>Ø 150</td><td>Opening</td><td><input type="checkbox" checked></td><td><span class="cnt">6</span></td><td>6</td><td><input type="checkbox" checked></td><td>3</td><td><input type="checkbox" checked></td></tr>
+          <tr><td><span class="sbtn" style="margin:0;height:22px">Show</span></td><td>2</td><td>Circle</td><td>Ø 150</td><td>Opening</td><td><input type="checkbox" checked></td><td><span class="cnt">6</span></td><td>6</td><td><input type="checkbox" checked></td><td>3</td><td><input type="checkbox" checked></td></tr>
+          <tr><td><span class="sbtn" style="margin:0;height:22px">Show</span></td><td>3</td><td>Circle</td><td>Ø 150</td><td>Opening</td><td><input type="checkbox" checked></td><td><span class="cnt">6</span></td><td>6</td><td><input type="checkbox" checked></td><td>3</td><td><input type="checkbox" checked></td></tr>
+          <tr><td><span class="sbtn" style="margin:0;height:22px">Show</span></td><td>4</td><td>Rectangle</td><td>1200 × 800</td><td>Shaft</td><td><input type="checkbox" checked></td><td><span class="cnt">8</span></td><td>6</td><td><input type="checkbox" checked></td><td>2</td><td><input type="checkbox" disabled></td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Activity log (shown open here; closed by default) -->
+  <div class="log">
+    <div class="loghead"><span style="color:var(--log-text);font-size:11px;margin-right:6px">▾</span><b>Activity log</b><span class="dim">3 lines</span>
+      <span style="margin-left:auto"></span><span class="ghost">Copy all</span><span class="ghost">Copy selected</span><span class="ghost">Clear</span></div>
+    <div class="logline"><span class="tm">10:42:07</span><span class="lv" style="color:var(--log-ok)">Success</span>roof read: 1 boundary loop(s), 4 opening(s), 12 edge(s), 14 shape point(s).</div>
+    <div class="logline"><span class="tm">10:42:07</span><span class="lv" style="color:var(--log-warn)">Warning</span>The roof already has 14 shape points from an earlier run.</div>
+    <div class="logline"><span class="tm">10:42:31</span><span class="lv" style="color:var(--log-ok)">Success</span>Slope reach checked: 85 of 87 points reach a drain.</div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <div class="status"><span class="hint" style="font-size:10.5px">Ready · 53 new points planned on Basic Roof</span></div>
+    <div style="display:flex;align-items:center">
+      <span class="btn" style="margin-left:0;min-width:110px">Re-read Roof</span>
+      <span style="flex:1"></span>
+      <span class="btn" style="min-width:140px">Run on All Roofs</span>
+      <span class="btn run">Run Selected Steps</span>
+      <span class="btn" style="width:90px">Close</span>
     </div>
   </div>
 </div>
