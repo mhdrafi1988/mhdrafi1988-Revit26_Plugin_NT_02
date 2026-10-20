@@ -9,6 +9,19 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [5.0.1] — 2026-10-20
+
+### Fixed
+- **Tool windows failing with "Cannot find resource named 'BrushSurfaceWindow'"** (or another
+  style key) are now explained. The cause is a second, older copy of the plugin loaded in Revit:
+  WPF can then load a window's styles from that copy. When Revit finishes starting, SloperPro now
+  warns if another copy is loaded and shows its file path; the tool error dialog and the error log
+  list the other copies too.
+
+**User note:** if you see the warning, close Revit, delete the `.addin` file that loads the other
+copy (in `C:\ProgramData\Autodesk\Revit\Addins\2026` or `%AppData%\Autodesk\Revit\Addins\2026`)
+and its DLL, keep only `rf12_Revit_2026.addin`, and restart Revit.
+
 ## [5.0.0] — 2026-10-20
 
 ### Changed
