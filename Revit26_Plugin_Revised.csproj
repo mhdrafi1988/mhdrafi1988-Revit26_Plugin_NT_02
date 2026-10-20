@@ -9,7 +9,7 @@
 		<AssemblyName>Revit26_Plugin_Revised</AssemblyName>
 		<RootNamespace>Revit26_Plugin_Revised</RootNamespace>
 		<!-- Plugin version (SemVer). Per-tool versions live in Shared/Services/ToolCatalog.cs. -->
-		<Version>4.0.0</Version>
+		<Version>5.1.0</Version>
 		<BaseOutputPath>D:\Plugin\mhdrafi1988\Revit26_Plugin\bin\00</BaseOutputPath>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -20,13 +20,18 @@
 	</PropertyGroup>
 	<ItemGroup>
 	  <Compile Remove="Menu\RoofTools\WIP\**" />
-	  <Compile Remove="Tests\**" />
 	  <EmbeddedResource Remove="Menu\RoofTools\WIP\**" />
-	  <EmbeddedResource Remove="Tests\**" />
 	  <None Remove="Menu\RoofTools\WIP\**" />
-	  <None Remove="Tests\**" />
 	  <Page Remove="Menu\RoofTools\WIP\**" />
+	  <!-- Unit-test projects build on their own (dotnet test Menu/Tests-01/<Project>) -->
+	  <Compile Remove="Tests\**" />
+	  <EmbeddedResource Remove="Tests\**" />
+	  <None Remove="Tests\**" />
 	  <Page Remove="Tests\**" />
+	  <Compile Remove="Menu\Tests-01\**" />
+	  <EmbeddedResource Remove="Menu\Tests-01\**" />
+	  <None Remove="Menu\Tests-01\**" />
+	  <Page Remove="Menu\Tests-01\**" />
 	</ItemGroup>
 	<ItemGroup>
 	  <Compile Remove="IconLoader.cs" />

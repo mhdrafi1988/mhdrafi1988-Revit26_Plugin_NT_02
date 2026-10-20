@@ -9,6 +9,20 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [5.1.0] — 2026-10-20
+
+### Fixed
+- **The plugin did not build** after the unit tests moved to `Menu/Tests-01/`: the plugin project
+  compiled the test files too. `Menu/Tests-01/` is now excluded from the plugin, and the
+  Roof Points & Slope test project finds the tool's source again from its new folder.
+- **One project file:** `Revit26_Plugin_Revised.csproj` is now the only project (it had been a stale
+  4.0.0 copy next to `Revit26_Plugin.csproj`; two SDK projects in one folder share `obj/` and clash).
+  `Revit26_Plugin.csproj` is removed and both `.sln` files open the Revised project. The DLL name,
+  output folder and add-in manifest are unchanged.
+
+**User note:** open either `.sln`; both build `Revit26_Plugin_Revised.csproj`. Build with
+`dotnet build Revit26_Plugin_Revised.csproj -p:EnableWindowsTargeting=true`.
+
 ## [5.0.1] — 2026-10-20
 
 ### Fixed

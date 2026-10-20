@@ -27,7 +27,7 @@ writing, everything a `*Ribbon.cs` file actually references is embedded).
 ## Adding a new icon
 
 Drop the PNG in the right `Resources/Icons/<Category>/` folder. That's it:
-`Revit26_Plugin.csproj` embeds every `Resources\Icons\**\*.png` through one
+`Revit26_Plugin_Revised.csproj` embeds every `Resources\Icons\**\*.png` through one
 wildcard (with a matching `<None Remove>` so the SDK doesn't also include it
 as `None`):
 

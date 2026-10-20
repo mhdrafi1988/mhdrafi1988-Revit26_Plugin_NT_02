@@ -5,7 +5,7 @@ Revit 2026 add-in, .NET 8 / WPF. These rules apply to every change, by people an
 ## Build
 
 ```bash
-dotnet build Revit26_Plugin.csproj -p:EnableWindowsTargeting=true
+dotnet build Revit26_Plugin_Revised.csproj -p:EnableWindowsTargeting=true
 ```
 
 Builds on Linux too (Revit API comes from the `Autodesk.Revit.SDK` NuGet package). A change is not
@@ -18,15 +18,17 @@ done until it builds with 0 errors. Running it still needs Revit on Windows.
 - **Folder layout:** `Menu/<Area>/<Group>/<Tool>_V<NNN>/` holding `Commands`, `Core`, `UI`,
   `Infrastructure` directly. No wrapper levels (`Tool_V003/Tool_V003/…`), no spaces, `&`, `(1)`,
   `_UPDATED` or `_0`/`_01` suffixes in folder names. Unfinished tools go in `Menu/RoofTools/WIP`,
-  which the `.csproj` excludes; the only other exclusion is `Tests/` (unit-test projects, run with
-  `dotnet test Tests/<Project>`).
+  which the `.csproj` excludes; the only other exclusion is `Menu/Tests-01/` (unit-test projects,
+  run with `dotnet test Menu/Tests-01/<Project>`; the old `Tests/` folder stays excluded too).
+- **One project file:** `Revit26_Plugin_Revised.csproj` (both `.sln` files open it). Never add a
+  second `.csproj` to the root folder: SDK projects in one folder share `obj/` and break each other.
 - **Tool versions** live in `Shared/Services/ToolCatalog.cs` (one entry per tool, semantic version).
   The ribbon tooltip, window title and error dialogs read from it. A new tool gets a new entry there.
-- **Plugin version** is `<Version>` in `Revit26_Plugin.csproj`.
+- **Plugin version** is `<Version>` in `Revit26_Plugin_Revised.csproj`.
 - **Namespace:** the root namespace is `Revit26_Plugin_Revised` (`<RootNamespace>` in the `.csproj`;
   renamed from `Revit26_Plugin` in 4.0.0). Tool namespaces are `Revit26_Plugin_Revised.<Tool>.V<NNN>`.
   The assembly is `Revit26_Plugin_Revised.dll` (`<AssemblyName>`, renamed in 5.0.0), so pack URIs
-  read `/Revit26_Plugin_Revised;component/…`. The project file is still `Revit26_Plugin.csproj`, and
+  read `/Revit26_Plugin_Revised;component/…`. The project file is `Revit26_Plugin_Revised.csproj` (since 5.1.0), and
   the `%AppData%\Revit26_Plugin` / `Documents\Revit26_Plugin` folders keep the old name so existing
   settings and logs still load.
 - **Add-in manifest** is `Installer/rf12_Revit_2026.addin` (same file name, `AddInId` and

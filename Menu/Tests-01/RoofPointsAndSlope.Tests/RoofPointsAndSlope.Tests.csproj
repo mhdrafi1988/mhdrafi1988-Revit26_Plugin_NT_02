@@ -15,7 +15,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <ToolDir>..\..\Menu\RoofTools\CombinedTools\RoofPointsAndSlope_V001\</ToolDir>
+    <ToolDir>..\..\RoofTools\CombinedTools\RoofPointsAndSlope_V001\</ToolDir>
   </PropertyGroup>
 
   <ItemGroup>

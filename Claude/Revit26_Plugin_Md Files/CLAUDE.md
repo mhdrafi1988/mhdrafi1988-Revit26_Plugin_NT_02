@@ -3,7 +3,7 @@
 _CLAUDE.md v1.1 — adds the ToolWindowShell UI standard._
 
 Revit add-in ("SloperPro" ribbon tab, see `App.cs`), single monolithic
-`Revit26_Plugin.csproj` (`net8.0-windows`) with ~60 independent tools under `Menu/`.
+`Revit26_Plugin_Revised.csproj` (`net8.0-windows`) with ~60 independent tools under `Menu/`.
 
 ## Build prerequisites
 
