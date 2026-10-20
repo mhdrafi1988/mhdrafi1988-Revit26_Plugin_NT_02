@@ -72,6 +72,15 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             bulkRenameV001.ToolTip = Revit26_Plugin_Revised.Shared.Services.ToolCatalog.BulkRename.Tip(
                 "Renames many line styles, line patterns, arrowheads or fill patterns at once: find/replace, prefix/suffix, case change and numbering.");
 
+            var trackerIdV001 = Btn(assemblyPath, "Btn_TrackerId_V001", "Tracker ID",
+                "Revit26_Plugin_Revised.TrackerId.V001.Commands.TrackerIdCommand",
+                "Manage.TrackerId_16.png", "Tracker ID", "V001");
+            trackerIdV001.LargeImage = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.Manage.TrackerId_32.png");
+            trackerIdV001.ToolTip = Revit26_Plugin_Revised.Shared.Services.ToolCatalog.TrackerId.Tip(
+                "Gives each element of a chosen category and types one permanent Tracker_ID " +
+                "(Zone-Level-Type-Grid + 3 custom segments), detects copied and moved elements, " +
+                "and exports a CSV for Power BI progress and material tracking.");
+
             // Removed in plugin 4.2.1 because their source is not in the repository, so the
             // buttons could only raise an error: Overlap Detection V003, ParaManager V004,
             // Workset Renamer V004 and FX04.
@@ -124,11 +133,13 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_ScheduleExportImport", "Schedule I/O", scheduleExportImportV007),
                 // Link Check moved here from its own one-button Links panel (plugin 4.2.1).
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_LinkVersionChecker", "Link Check", linkInModelV004),
+                RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_TrackerId", "Tracker ID", trackerIdV001),
             });
             RibbonLayoutHelper.WirePulldownButton(manageItems, "Pulldown_AnnotationOverlapDetection", overlapV004);
             RibbonLayoutHelper.WirePulldownButton(manageItems, "Pulldown_ParaManager", paraManagerV005);
             RibbonLayoutHelper.WirePulldownButton(manageItems, "Pulldown_DeleteLineStyles", deleteLineStylesV001);
             RibbonLayoutHelper.WirePulldownButton(manageItems, "Pulldown_BulkRename", bulkRenameV001);
+            RibbonLayoutHelper.WirePulldownButton(manageItems, "Pulldown_TrackerId", trackerIdV001);
             RibbonLayoutHelper.WirePulldownButton(manageItems, "Pulldown_ScheduleExportImport", scheduleExportImportV007, scheduleExportImportV006);
             // Link Check lists V004's three scan modes first, then V003's.
             RibbonLayoutHelper.WirePulldownButton(manageItems, "Pulldown_LinkVersionChecker",
