@@ -9,6 +9,28 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [5.1.0] — 2026-10-20
+
+### Changed
+- **Roof Points & Slope v1.1.0 (V001)** — redesigned window. The options no longer sit in one long
+  page:
+  - **Step list on the left**: Run options and steps 1–6, each with its Run tick, a number (navy
+    when the step will run, grey when it won't), a one-line summary and the points it will add
+    (ridge summary for step 5, drain count for step 6). These badges replace the six header tiles.
+  - **Options of the selected step on the right**, laid out as label · value · unit, with the
+    step's own **Run this step** tick. The **Openings** grid sits right under them, with its
+    count and the Points / Perpendicular / Drain All–None buttons.
+  - **Toolbar** above: roof picker (several roofs), presets, Show planned points / Clear markers.
+  - **Run options** gathers Clear existing shape points first, Min spacing, the report folder and
+    both Excel reports (the Auto Slope By Drain report option moved here from step 6).
+  - **Activity log** is closed by default (click its title to open it), like the other tools.
+  - Built from the shared styles only (`SharedStyles.xaml` v4.0 status and action brushes,
+    26 px inputs, 30 px buttons, 8 px spacing); footer buttons are all the same height.
+
+**User note:** nothing to migrate. Every option, preset and setting is the same as in 1.0.0 and
+your saved `settings.json` and `presets.json` load unchanged; only where the options are shown
+changed. Click a step in the list to find its options.
+
 ## [5.0.1] — 2026-10-20
 
 ### Fixed

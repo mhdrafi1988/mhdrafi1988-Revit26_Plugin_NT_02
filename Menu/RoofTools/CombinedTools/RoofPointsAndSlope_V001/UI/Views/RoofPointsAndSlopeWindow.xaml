@@ -2,12 +2,24 @@
 =======================================================
 File: RoofPointsAndSlopeWindow.xaml
 Location: UI/Views/
-Step pipeline on the shared ToolWindowShell.
-  HEADER  six tiles: new points per point step, the ridge, drains ticked.
-  BODY    steps 1–6 (each with its own tick and options), the openings
-          grid (per opening: points around it, perpendicular points,
-          drain — drains also seed the ridge) and the activity log.
-  FOOTER  Re-read roof · Run Selected Steps · Close.
+Step list + detail layout on the shared ToolWindowShell (tool 1.1.0).
+  HEADER  toolbar: roof picker (several roofs) · presets · temporary markers.
+  BODY    left:  "Run options" and steps 1–6 — each row has its Run tick, a
+                 number (navy when ticked, grey when not), a one-line summary
+                 and the points the step will add. Clicking a row shows its
+                 options on the right. Plan warnings sit under the list.
+          right: the selected step's options, then the openings grid (per
+                 opening: points around it, perpendicular points, drain —
+                 drains also seed the ridge).
+          below: Activity log (closed by default, LogHeaderToggle).
+  FOOTER  Re-read Roof left; Cancel Run · Run on All Roofs · Run Selected
+          Steps · Close right.
+Rules followed (Shared/SharedStyles.xaml v4.0, Shared/Controls/
+ToolWindowShellTemplate.xaml): semantic Status*/Action*/Surface* brushes, no
+inline colours, root brush via DynamicResource, converters declared here, no
+ScrollViewer in tool content (grid and log use ShellBehaviors), 8 px spacing,
+30 px buttons, 26 px inputs. Bindings are the same as tool 1.0.0, so the view
+model and the settings file are unchanged.
 =======================================================
 -->
 <Window x:Class="Revit26_Plugin_Revised.RoofPointsAndSlope.V001.UI.Views.RoofPointsAndSlopeWindow"
@@ -17,10 +29,11 @@ Step pipeline on the shared ToolWindowShell.
         xmlns:conv="clr-namespace:Revit26_Plugin_Revised.Shared.Models"
         xmlns:shell="clr-namespace:Revit26_Plugin_Revised.Shared.Controls"
         Title="{Binding Source={x:Static svc:ToolCatalog.RoofPointsAndSlope}, Path=Title}"
-        Height="900" Width="1100"
-        MinHeight="700" MinWidth="980"
+        Width="1180" Height="860"
+        MinWidth="1000" MinHeight="640"
         WindowStartupLocation="CenterScreen"
-        ResizeMode="CanResizeWithGrip">
+        ResizeMode="CanResizeWithGrip"
+        Background="{DynamicResource BrushSurfaceWindow}">
 
     <Window.Resources>
         <ResourceDictionary>
@@ -28,43 +41,132 @@ Step pipeline on the shared ToolWindowShell.
                 <ResourceDictionary Source="pack://application:,,,/Revit26_Plugin_Revised;component/Shared/SharedStyles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
 
+            <!-- Converters: declared here, never in SharedStyles.xaml -->
             <conv:LogLevelToColorConverter         x:Key="LogLevelToColor"/>
             <conv:InverseBoolToVisibilityConverter x:Key="InverseBoolToVis"/>
             <conv:BoolToVisibilityConverter        x:Key="BoolToVisibility"/>
             <conv:InverseBoolConverter             x:Key="InverseBool"/>
 
-            <Style x:Key="StepTitle" TargetType="CheckBox">
-                <Setter Property="FontSize" Value="13"/>
-                <Setter Property="FontWeight" Value="SemiBold"/>
-                <Setter Property="Foreground" Value="{StaticResource BrushNavyPrimary}"/>
-                <Setter Property="Margin" Value="0,0,0,6"/>
+            <!-- ── Step list ─────────────────────────────────────────── -->
+            <!-- One row of the step list: flat, navy bar on the left when selected -->
+            <Style x:Key="StepNavItem" TargetType="RadioButton">
+                <Setter Property="GroupName" Value="RoofPointsAndSlopeStep"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="Padding" Value="8"/>
+                <Setter Property="Margin" Value="0,0,0,2"/>
+                <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="RadioButton">
+                            <Border x:Name="Bg" Background="Transparent" BorderBrush="Transparent"
+                                    BorderThickness="3,0,0,0" CornerRadius="4" Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="Bg" Property="Background" Value="{StaticResource BrushSystemSecondaryBackground}"/>
+                                </Trigger>
+                                <Trigger Property="IsChecked" Value="True">
+                                    <Setter TargetName="Bg" Property="Background" Value="{StaticResource BrushSystemSecondaryBackground}"/>
+                                    <Setter TargetName="Bg" Property="BorderBrush" Value="{StaticResource BrushActionPrimary}"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
             </Style>
-            <Style x:Key="NumberBox" TargetType="TextBox" BasedOn="{StaticResource BorderlessTextInput}">
-                <Setter Property="Width" Value="70"/>
-                <Setter Property="Height" Value="28"/>
-                <Setter Property="HorizontalContentAlignment" Value="Center"/>
-                <Setter Property="VerticalContentAlignment" Value="Center"/>
-                <Setter Property="Margin" Value="0,0,14,0"/>
-            </Style>
-            <Style x:Key="Label" TargetType="TextBlock" BasedOn="{StaticResource FieldLabel}">
+            <!-- Step number: navy while the step is ticked (IsEnabled bound to the tick), grey when off -->
+            <Style x:Key="StepCircle" TargetType="Border" BasedOn="{StaticResource StageNumberCircleBase}">
+                <Setter Property="Width" Value="22"/>
+                <Setter Property="Height" Value="22"/>
+                <Setter Property="CornerRadius" Value="11"/>
+                <Setter Property="Margin" Value="0,0,8,0"/>
                 <Setter Property="VerticalAlignment" Value="Center"/>
-                <Setter Property="Margin" Value="0,0,6,0"/>
+                <Setter Property="Background" Value="{StaticResource BrushActionPrimary}"/>
+                <Style.Triggers>
+                    <Trigger Property="IsEnabled" Value="False">
+                        <Setter Property="Background" Value="{StaticResource BrushTextDisabled}"/>
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+            <Style x:Key="StepTitle" TargetType="TextBlock" BasedOn="{StaticResource StageTitleText}">
+                <Setter Property="FontSize" Value="12.5"/>
+                <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+            </Style>
+            <Style x:Key="StepSubtitle" TargetType="TextBlock" BasedOn="{StaticResource StageSubtitleText}">
+                <Setter Property="FontSize" Value="10.5"/>
+                <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+            </Style>
+            <Style x:Key="StepBadge" TargetType="Border" BasedOn="{StaticResource StatusBadgeBase}">
+                <Setter Property="VerticalAlignment" Value="Center"/>
+                <Setter Property="Margin" Value="8,0,0,0"/>
+                <Setter Property="Background" Value="{StaticResource BrushStatusInfoSoft}"/>
+            </Style>
+            <Style x:Key="StepBadgeText" TargetType="TextBlock" BasedOn="{StaticResource StatusBadgeTextPending}">
+                <Setter Property="Foreground" Value="{StaticResource BrushStatusInfo}"/>
+            </Style>
+            <Style x:Key="StepTick" TargetType="CheckBox">
+                <Setter Property="VerticalAlignment" Value="Center"/>
+                <Setter Property="Margin" Value="0,0,8,0"/>
+                <Setter Property="ToolTip" Value="Run this step"/>
+            </Style>
+
+            <!-- ── Step options ──────────────────────────────────────── -->
+            <Style x:Key="DetailTitle" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="14"/>
+                <Setter Property="FontWeight" Value="SemiBold"/>
+                <Setter Property="Foreground" Value="{StaticResource BrushTextPrimary}"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+            </Style>
+            <Style x:Key="DetailIntro" TargetType="TextBlock" BasedOn="{StaticResource HintText}">
+                <Setter Property="FontSize" Value="11.5"/>
+                <Setter Property="Foreground" Value="{StaticResource BrushTextSecondary}"/>
+                <Setter Property="Margin" Value="0,4,0,16"/>
+            </Style>
+            <Style x:Key="FormLabel" TargetType="TextBlock" BasedOn="{StaticResource FieldLabel}">
+                <Setter Property="VerticalAlignment" Value="Center"/>
+                <Setter Property="Margin" Value="0,0,16,8"/>
+            </Style>
+            <Style x:Key="NumberBox" TargetType="TextBox" BasedOn="{StaticResource BoxedTextInput}">
+                <Setter Property="Width" Value="80"/>
+                <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                <Setter Property="HorizontalAlignment" Value="Left"/>
+                <Setter Property="Margin" Value="0,0,0,8"/>
+            </Style>
+            <Style x:Key="FormUnit" TargetType="TextBlock" BasedOn="{StaticResource UnitLabel}">
+                <Setter Property="Margin" Value="8,0,0,8"/>
             </Style>
             <Style x:Key="Opt" TargetType="CheckBox">
                 <Setter Property="VerticalAlignment" Value="Center"/>
-                <Setter Property="Margin" Value="0,0,14,0"/>
+                <Setter Property="Margin" Value="0,0,16,8"/>
+            </Style>
+            <Style x:Key="RunToggleRow" TargetType="StackPanel">
+                <Setter Property="Orientation" Value="Horizontal"/>
+                <Setter Property="HorizontalAlignment" Value="Right"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
             </Style>
 
-            <!-- Amber note, hidden while its text is empty -->
-            <Style x:Key="WarnNote" TargetType="TextBlock">
-                <Setter Property="Foreground" Value="{StaticResource BrushWarning}"/>
-                <Setter Property="TextWrapping" Value="Wrap"/>
-                <Setter Property="Margin" Value="0,4,0,0"/>
+            <!-- Amber note; the box is hidden while its text is empty -->
+            <Style x:Key="WarnBanner" TargetType="Border">
+                <Setter Property="Background" Value="{StaticResource BrushStatusWarnSoft}"/>
+                <Setter Property="BorderBrush" Value="{StaticResource BrushStatusWarnBorder}"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="CornerRadius" Value="4"/>
+                <Setter Property="Padding" Value="8,4"/>
+                <Setter Property="Margin" Value="0,8,0,0"/>
                 <Style.Triggers>
-                    <Trigger Property="Text" Value="">
+                    <DataTrigger Binding="{Binding Child.Text, RelativeSource={RelativeSource Self}}" Value="">
                         <Setter Property="Visibility" Value="Collapsed"/>
-                    </Trigger>
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding Child.Text, RelativeSource={RelativeSource Self}}" Value="{x:Null}">
+                        <Setter Property="Visibility" Value="Collapsed"/>
+                    </DataTrigger>
                 </Style.Triggers>
+            </Style>
+            <Style x:Key="WarnText" TargetType="TextBlock">
+                <Setter Property="Foreground" Value="{StaticResource BrushStatusWarn}"/>
+                <Setter Property="FontSize" Value="11.5"/>
+                <Setter Property="TextWrapping" Value="Wrap"/>
             </Style>
         </ResourceDictionary>
     </Window.Resources>
@@ -76,391 +178,646 @@ Step pipeline on the shared ToolWindowShell.
                            Progress="{Binding Progress}"
                            SummaryText="{Binding SummaryText}">
 
-        <!-- ═══ HEADER ═══════════════════════════════════════════ -->
+        <!-- ═══ HEADER: toolbar ═════════════════════════════════ -->
         <shell:ToolWindowShell.HeaderContent>
-            <Grid Margin="0,0,0,8">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <Border Grid.Column="0" Style="{StaticResource MetricCard}" Margin="0,0,6,0" ToolTip="New points step 1 will add">
-                    <StackPanel>
-                        <TextBlock Text="1 · Opening Points" Style="{StaticResource MetricLabel}"/>
-                        <TextBlock Text="{Binding OpeningPointsNew}" Style="{StaticResource MetricNumberAccent}"/>
+            <Border Style="{StaticResource BaseCard}" Padding="12,8" Margin="0,0,0,8"
+                    IsEnabled="{Binding IsRunning, Converter={StaticResource InverseBool}}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Roof (only when several were picked) -->
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" Margin="0,0,24,0"
+                                Visibility="{Binding HasManyRoofs, Converter={StaticResource BoolToVisibility}}">
+                        <TextBlock Text="Roof" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <ComboBox Width="280" Style="{StaticResource StandardComboBox}" VerticalContentAlignment="Center"
+                                  ItemsSource="{Binding Roofs}" DisplayMemberPath="Label"
+                                  SelectedItem="{Binding SelectedRoof}"
+                                  ToolTip="Each roof keeps its own opening ticks. The step options apply to every roof."/>
+                        <Border Style="{StaticResource BadgePill}" Margin="8,0,0,0"
+                                ToolTip="Run on All Roofs runs every picked roof as one Undo.">
+                            <TextBlock Style="{StaticResource BadgeText}" Text="{Binding Roofs.Count, StringFormat={}{0} roofs}"/>
+                        </Border>
                     </StackPanel>
-                </Border>
-                <Border Grid.Column="1" Style="{StaticResource MetricCard}" Margin="0,0,6,0" ToolTip="New points step 2 will add">
-                    <StackPanel>
-                        <TextBlock Text="2 · Perpendicular" Style="{StaticResource MetricLabel}"/>
-                        <TextBlock Text="{Binding PerpendicularNew}" Style="{StaticResource MetricNumberAccent}"/>
+
+                    <!-- Presets -->
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <TextBlock Text="Preset" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <ComboBox Width="200" Style="{StaticResource StandardComboBox}" IsEditable="True" VerticalContentAlignment="Center"
+                                  ItemsSource="{Binding Presets}" DisplayMemberPath="Name"
+                                  SelectedItem="{Binding SelectedPreset}"
+                                  Text="{Binding PresetName, UpdateSourceTrigger=PropertyChanged}"
+                                  ToolTip="Pick a saved set of options, or type a new name and Save."/>
+                        <Button Content="Apply" Style="{StaticResource SmallSecondaryButton}" Margin="8,0,0,0" Command="{Binding ApplyPresetCommand}"
+                                ToolTip="Load the picked preset's options into the window."/>
+                        <Button Content="Save" Style="{StaticResource SmallSecondaryButton}" Margin="4,0,0,0" Command="{Binding SavePresetCommand}"
+                                ToolTip="Save the current options under the typed name."/>
+                        <Button Content="Delete" Style="{StaticResource SmallSecondaryButton}" Margin="4,0,0,0" Command="{Binding DeletePresetCommand}"/>
                     </StackPanel>
-                </Border>
-                <Border Grid.Column="2" Style="{StaticResource MetricCard}" Margin="0,0,6,0" ToolTip="New points step 3 will add">
-                    <StackPanel>
-                        <TextBlock Text="3 · Mid / Quarter" Style="{StaticResource MetricLabel}"/>
-                        <TextBlock Text="{Binding MidQuarterNew}" Style="{StaticResource MetricNumberAccent}"/>
+
+                    <!-- Temporary markers -->
+                    <StackPanel Grid.Column="2" Orientation="Horizontal">
+                        <Button Content="Show planned points in Revit" Style="{StaticResource SmallSecondaryButton}"
+                                Command="{Binding ShowPlannedPointsCommand}"
+                                ToolTip="Coloured temporary markers in the active view: blue step 1, purple step 2, green step 3, orange step 4, red ridge. Not saved; cleared on Run or Close."/>
+                        <Button Content="Clear markers" Style="{StaticResource SmallSecondaryButton}" Margin="4,0,0,0"
+                                Command="{Binding ClearMarkersCommand}"/>
                     </StackPanel>
-                </Border>
-                <Border Grid.Column="3" Style="{StaticResource MetricCard}" Margin="0,0,6,0" ToolTip="New points step 4 will add">
-                    <StackPanel>
-                        <TextBlock Text="4 · Gap Fill" Style="{StaticResource MetricLabel}"/>
-                        <TextBlock Text="{Binding GapFillNew}" Style="{StaticResource MetricNumberAccent}"/>
-                    </StackPanel>
-                </Border>
-                <Border Grid.Column="4" Style="{StaticResource MetricCard}" Margin="0,0,6,0" ToolTip="Ridge lines and points step 5 will create">
-                    <StackPanel>
-                        <TextBlock Text="5 · Ridge" Style="{StaticResource MetricLabel}"/>
-                        <TextBlock Text="{Binding RidgeSummary}" Style="{StaticResource MetricNumberAccent}" FontSize="17"/>
-                    </StackPanel>
-                </Border>
-                <Border Grid.Column="5" Style="{StaticResource MetricCard}" ToolTip="Openings ticked as drains (ridge seeds and slope targets)">
-                    <StackPanel>
-                        <TextBlock Text="6 · Drains" Style="{StaticResource MetricLabel}"/>
-                        <TextBlock Text="{Binding DrainCount}" Style="{StaticResource MetricNumberSuccess}"/>
-                    </StackPanel>
-                </Border>
-            </Grid>
+                </Grid>
+            </Border>
         </shell:ToolWindowShell.HeaderContent>
 
         <!-- ═══ BODY ═════════════════════════════════════════════ -->
         <shell:ToolWindowShell.BodyContent>
-            <!-- Options are locked while a run is in progress (the window stays responsive for Cancel) -->
-            <StackPanel IsEnabled="{Binding IsRunning, Converter={StaticResource InverseBool}}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
 
-                <!-- ─── BEFORE STEP 1 ─── -->
-                <Border Style="{StaticResource ContentCard}" Padding="14,10" Margin="0,0,0,8">
+                <!-- Options are locked while a run is in progress (the log and Cancel stay usable) -->
+                <Grid Grid.Row="0" IsEnabled="{Binding IsRunning, Converter={StaticResource InverseBool}}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="330"/>
+                        <ColumnDefinition Width="8"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- ─── LEFT: step list ─── -->
+                    <StackPanel Grid.Column="0">
+                        <Border Style="{StaticResource ContentCard}" Padding="8">
+                            <StackPanel>
+                                <TextBlock Text="Steps" Style="{StaticResource SectionTitle}" Margin="8,4,8,0"/>
+                                <TextBlock Style="{StaticResource HintText}" Margin="8,0,8,8"
+                                           Text="Tick the steps to run; click one to see its options. The numbers are the points each step will add."/>
+
+                                <RadioButton x:Name="NavRunOptions" Style="{StaticResource StepNavItem}" IsChecked="True">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <!-- Spacer the width of a step's tick, so every number lines up -->
+                                        <Border Grid.Column="0" Width="22" Height="22" CornerRadius="11" Margin="24,0,8,0"
+                                                Style="{StaticResource StepCircle}">
+                                            <TextBlock Text="⚙" Style="{StaticResource StageNumberText}"/>
+                                        </Border>
+                                        <StackPanel Grid.Column="1">
+                                            <TextBlock Text="Run options" Style="{StaticResource StepTitle}"/>
+                                            <TextBlock Text="Clear first · min spacing · run report" Style="{StaticResource StepSubtitle}"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </RadioButton>
+
+                                <Border Style="{StaticResource SeparatorLine}" Margin="8,4,8,6"/>
+
+                                <RadioButton x:Name="NavStep1" Style="{StaticResource StepNavItem}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <CheckBox Grid.Column="0" Style="{StaticResource StepTick}" IsChecked="{Binding InnerPointsEnabled}"/>
+                                        <Border Grid.Column="1" Style="{StaticResource StepCircle}" IsEnabled="{Binding InnerPointsEnabled}">
+                                            <TextBlock Text="1" Style="{StaticResource StageNumberText}"/>
+                                        </Border>
+                                        <StackPanel Grid.Column="2">
+                                            <TextBlock Text="Points around openings" Style="{StaticResource StepTitle}"/>
+                                            <TextBlock Text="Count or spacing per opening" Style="{StaticResource StepSubtitle}"/>
+                                        </StackPanel>
+                                        <Border Grid.Column="3" Style="{StaticResource StepBadge}" ToolTip="New points step 1 will add">
+                                            <TextBlock Style="{StaticResource StepBadgeText}" Text="{Binding OpeningPointsNew, StringFormat=+{0}}"/>
+                                        </Border>
+                                    </Grid>
+                                </RadioButton>
+
+                                <RadioButton x:Name="NavStep2" Style="{StaticResource StepNavItem}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <CheckBox Grid.Column="0" Style="{StaticResource StepTick}" IsChecked="{Binding PerpendicularEnabled}"/>
+                                        <Border Grid.Column="1" Style="{StaticResource StepCircle}" IsEnabled="{Binding PerpendicularEnabled}">
+                                            <TextBlock Text="2" Style="{StaticResource StageNumberText}"/>
+                                        </Border>
+                                        <StackPanel Grid.Column="2">
+                                            <TextBlock Text="Perpendicular points" Style="{StaticResource StepTitle}"/>
+                                            <TextBlock Text="From openings to the boundary" Style="{StaticResource StepSubtitle}"/>
+                                        </StackPanel>
+                                        <Border Grid.Column="3" Style="{StaticResource StepBadge}" ToolTip="New points step 2 will add">
+                                            <TextBlock Style="{StaticResource StepBadgeText}" Text="{Binding PerpendicularNew, StringFormat=+{0}}"/>
+                                        </Border>
+                                    </Grid>
+                                </RadioButton>
+
+                                <RadioButton x:Name="NavStep3" Style="{StaticResource StepNavItem}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <CheckBox Grid.Column="0" Style="{StaticResource StepTick}" IsChecked="{Binding MidQuarterEnabled}"/>
+                                        <Border Grid.Column="1" Style="{StaticResource StepCircle}" IsEnabled="{Binding MidQuarterEnabled}">
+                                            <TextBlock Text="3" Style="{StaticResource StageNumberText}"/>
+                                        </Border>
+                                        <StackPanel Grid.Column="2">
+                                            <TextBlock Text="Mid and quarter points" Style="{StaticResource StepTitle}"/>
+                                            <TextBlock Text="On the edges you pick" Style="{StaticResource StepSubtitle}"/>
+                                        </StackPanel>
+                                        <Border Grid.Column="3" Style="{StaticResource StepBadge}" ToolTip="New points step 3 will add">
+                                            <TextBlock Style="{StaticResource StepBadgeText}" Text="{Binding MidQuarterNew, StringFormat=+{0}}"/>
+                                        </Border>
+                                    </Grid>
+                                </RadioButton>
+
+                                <RadioButton x:Name="NavStep4" Style="{StaticResource StepNavItem}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <CheckBox Grid.Column="0" Style="{StaticResource StepTick}" IsChecked="{Binding GapFillEnabled}"/>
+                                        <Border Grid.Column="1" Style="{StaticResource StepCircle}" IsEnabled="{Binding GapFillEnabled}">
+                                            <TextBlock Text="4" Style="{StaticResource StageNumberText}"/>
+                                        </Border>
+                                        <StackPanel Grid.Column="2">
+                                            <TextBlock Text="Fill gaps along edges" Style="{StaticResource StepTitle}"/>
+                                            <TextBlock Text="Where points are too far apart" Style="{StaticResource StepSubtitle}"/>
+                                        </StackPanel>
+                                        <Border Grid.Column="3" Style="{StaticResource StepBadge}" ToolTip="New points step 4 will add">
+                                            <TextBlock Style="{StaticResource StepBadgeText}" Text="{Binding GapFillNew, StringFormat=+{0}}"/>
+                                        </Border>
+                                    </Grid>
+                                </RadioButton>
+
+                                <RadioButton x:Name="NavStep5" Style="{StaticResource StepNavItem}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <CheckBox Grid.Column="0" Style="{StaticResource StepTick}" IsChecked="{Binding RidgeEnabled}"/>
+                                        <Border Grid.Column="1" Style="{StaticResource StepCircle}" IsEnabled="{Binding RidgeEnabled}">
+                                            <TextBlock Text="5" Style="{StaticResource StageNumberText}"/>
+                                        </Border>
+                                        <StackPanel Grid.Column="2">
+                                            <TextBlock Text="Ridge between drains" Style="{StaticResource StepTitle}"/>
+                                            <TextBlock Text="Ridge By Openings V070 engine" Style="{StaticResource StepSubtitle}"/>
+                                        </StackPanel>
+                                        <Border Grid.Column="3" Style="{StaticResource StepBadge}" ToolTip="Ridge lines and points step 5 will create">
+                                            <TextBlock Style="{StaticResource StepBadgeText}" Text="{Binding RidgeSummary}"/>
+                                        </Border>
+                                    </Grid>
+                                </RadioButton>
+
+                                <RadioButton x:Name="NavStep6" Style="{StaticResource StepNavItem}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <CheckBox Grid.Column="0" Style="{StaticResource StepTick}" IsChecked="{Binding SlopeEnabled}"/>
+                                        <Border Grid.Column="1" Style="{StaticResource StepCircle}" IsEnabled="{Binding SlopeEnabled}">
+                                            <TextBlock Text="6" Style="{StaticResource StageNumberText}"/>
+                                        </Border>
+                                        <StackPanel Grid.Column="2">
+                                            <TextBlock Text="Slope by drain" Style="{StaticResource StepTitle}"/>
+                                            <TextBlock Text="Auto Slope By Drain V013 engine" Style="{StaticResource StepSubtitle}"/>
+                                        </StackPanel>
+                                        <Border Grid.Column="3" Style="{StaticResource StepBadge}" ToolTip="Openings ticked as drains (ridge seeds and slope targets)">
+                                            <TextBlock Style="{StaticResource StepBadgeText}" Text="{Binding DrainCount, StringFormat={}{0} drains}"/>
+                                        </Border>
+                                    </Grid>
+                                </RadioButton>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource WarnBanner}" Margin="0">
+                            <TextBlock Style="{StaticResource WarnText}" Text="{Binding ExistingShapeWarning}"/>
+                        </Border>
+                        <Border Style="{StaticResource WarnBanner}">
+                            <TextBlock Style="{StaticResource WarnText}" Text="{Binding PlanWarnings}"/>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- ─── RIGHT: options of the selected step, then the openings ─── -->
+                    <StackPanel Grid.Column="2">
+                        <Border Style="{StaticResource ContentCard}" Padding="16,12" MinHeight="240">
+                            <Grid>
+
+                                <!-- Run options -->
+                                <StackPanel Visibility="{Binding IsChecked, ElementName=NavRunOptions, Converter={StaticResource BoolToVisibility}}">
+                                    <TextBlock Text="Run options" Style="{StaticResource DetailTitle}"/>
+                                    <TextBlock Style="{StaticResource DetailIntro}"
+                                               Text="Apply to the whole run, before step 1 and after step 6."/>
+                                    <CheckBox Style="{StaticResource Opt}" Content="Clear existing shape points first"
+                                              IsChecked="{Binding ClearExistingFirst}"
+                                              ToolTip="Resets the roof's shape (all added points and split lines) before step 1, so the steps start from a flat roof. Off by default."/>
+                                    <Grid Margin="0,8,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="Min spacing between points" Style="{StaticResource FormLabel}"/>
+                                        <TextBox Grid.Column="1" Style="{StaticResource NumberBox}" Text="{Binding MinPointSpacingMm, UpdateSourceTrigger=PropertyChanged}"
+                                                 ToolTip="Steps 2–4 skip a point closer than this to another point (0 = only skip duplicates within 5 mm)."/>
+                                        <TextBlock Grid.Column="2" Text="mm — steps 2–4 skip closer points; 0 = only duplicates" Style="{StaticResource FormUnit}"/>
+                                    </Grid>
+                                    <TextBlock Text="Reports" Style="{StaticResource SectionTitle}" Margin="0,8,0,8"/>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="Report folder" Style="{StaticResource FormLabel}"/>
+                                        <TextBox Grid.Column="1" Style="{StaticResource BoxedTextInput}" Margin="0,0,0,8"
+                                                 Text="{Binding ExportFolder, UpdateSourceTrigger=PropertyChanged}"/>
+                                        <Button Grid.Column="2" Content="Browse…" Style="{StaticResource SmallSecondaryButton}" Margin="8,0,0,8"
+                                                Click="BrowseFolder_Click"/>
+                                    </Grid>
+                                    <CheckBox Style="{StaticResource Opt}" Content="Save run report (.xlsx)"
+                                              IsChecked="{Binding SaveRunReport}"
+                                              ToolTip="After a successful run: a Summary sheet and a Points sheet (roof, step, X, Y, height after slope)."/>
+                                    <CheckBox Style="{StaticResource Opt}" Content="Auto Slope By Drain Excel report (step 6)"
+                                              IsChecked="{Binding ExportToExcel}"/>
+                                </StackPanel>
+
+                                <!-- Step 1 -->
+                                <StackPanel Visibility="{Binding IsChecked, ElementName=NavStep1, Converter={StaticResource BoolToVisibility}}">
+                                    <Grid>
+                                        <TextBlock Text="1 · Points around openings" Style="{StaticResource DetailTitle}"/>
+                                        <CheckBox Content="Run this step" HorizontalAlignment="Right" VerticalAlignment="Center"
+                                                  IsChecked="{Binding InnerPointsEnabled}"/>
+                                    </Grid>
+                                    <TextBlock Style="{StaticResource DetailIntro}"
+                                               Text="Points on the outline of each opening ticked under Points in the grid. Corners count towards the total."/>
+                                    <Grid IsEnabled="{Binding InnerPointsEnabled}">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <RadioButton Grid.Row="0" Grid.Column="0" GroupName="InnerMode" Content="Points per opening"
+                                                     VerticalAlignment="Center" Margin="0,0,24,8" IsChecked="{Binding UseCount}"/>
+                                        <TextBlock Grid.Row="0" Grid.Column="1" Text="Circles" Style="{StaticResource FormLabel}"/>
+                                        <TextBox Grid.Row="0" Grid.Column="2" Style="{StaticResource NumberBox}" IsEnabled="{Binding UseCount}"
+                                                 Margin="0,0,16,8" Text="{Binding CircularPoints, UpdateSourceTrigger=PropertyChanged}"/>
+                                        <StackPanel Grid.Row="0" Grid.Column="3" Orientation="Horizontal">
+                                            <TextBlock Text="Others" Style="{StaticResource FormLabel}"/>
+                                            <TextBox Style="{StaticResource NumberBox}" IsEnabled="{Binding UseCount}"
+                                                     Text="{Binding CorneredPoints, UpdateSourceTrigger=PropertyChanged}"/>
+                                        </StackPanel>
+
+                                        <RadioButton Grid.Row="1" Grid.Column="0" GroupName="InnerMode" Content="Max spacing"
+                                                     VerticalAlignment="Center" Margin="0,0,24,8" IsChecked="{Binding UseSpacing}"/>
+                                        <TextBlock Grid.Row="1" Grid.Column="1" Text="Gap" Style="{StaticResource FormLabel}"/>
+                                        <TextBox Grid.Row="1" Grid.Column="2" Style="{StaticResource NumberBox}" IsEnabled="{Binding UseSpacing}"
+                                                 Text="{Binding InnerSpacingMeters, UpdateSourceTrigger=PropertyChanged}"/>
+                                        <TextBlock Grid.Row="1" Grid.Column="3" Text="m" Style="{StaticResource FormUnit}"/>
+                                    </Grid>
+                                    <TextBlock Style="{StaticResource HintText}" Text="Per-opening counts and ticks are in the Openings grid below."/>
+                                </StackPanel>
+
+                                <!-- Step 2 -->
+                                <StackPanel Visibility="{Binding IsChecked, ElementName=NavStep2, Converter={StaticResource BoolToVisibility}}">
+                                    <Grid>
+                                        <TextBlock Text="2 · Perpendicular points to the boundary" Style="{StaticResource DetailTitle}"/>
+                                        <CheckBox Content="Run this step" HorizontalAlignment="Right" VerticalAlignment="Center"
+                                                  IsChecked="{Binding PerpendicularEnabled}"/>
+                                    </Grid>
+                                    <TextBlock Style="{StaticResource DetailIntro}"
+                                               Text="From each group of points on an opening, the nearest boundary point in up to 8 directions (45° apart, aligned with the opening) gets a point."/>
+                                    <Grid IsEnabled="{Binding PerpendicularEnabled}">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="Group opening points within" Style="{StaticResource FormLabel}"/>
+                                        <TextBox Grid.Column="1" Style="{StaticResource NumberBox}"
+                                                 Text="{Binding GroupProximityMm, UpdateSourceTrigger=PropertyChanged}"/>
+                                        <TextBlock Grid.Column="2" Text="mm" Style="{StaticResource FormUnit}"/>
+                                    </Grid>
+                                    <TextBlock Style="{StaticResource HintText}" Text="Openings are ticked under Perpendicular in the Openings grid below."/>
+                                </StackPanel>
+
+                                <!-- Step 3 -->
+                                <StackPanel Visibility="{Binding IsChecked, ElementName=NavStep3, Converter={StaticResource BoolToVisibility}}">
+                                    <Grid>
+                                        <TextBlock Text="3 · Midpoint and quarter points on edges" Style="{StaticResource DetailTitle}"/>
+                                        <CheckBox Content="Run this step" HorizontalAlignment="Right" VerticalAlignment="Center"
+                                                  IsChecked="{Binding MidQuarterEnabled}"/>
+                                    </Grid>
+                                    <TextBlock Style="{StaticResource DetailIntro}"
+                                               Text="Points at fixed fractions of each edge's length, on the kinds of edge ticked below."/>
+                                    <Grid IsEnabled="{Binding MidQuarterEnabled}">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <TextBlock Grid.Row="0" Text="Add" Style="{StaticResource FormLabel}"/>
+                                        <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal">
+                                            <CheckBox Style="{StaticResource Opt}" Content="Midpoint (½)" IsChecked="{Binding AddMidpoint}"/>
+                                            <CheckBox Style="{StaticResource Opt}" Content="Quarter points (¼, ¾)" IsChecked="{Binding AddQuarterPoints}"/>
+                                        </StackPanel>
+                                        <TextBlock Grid.Row="1" Text="Location" Style="{StaticResource FormLabel}"/>
+                                        <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal">
+                                            <CheckBox Style="{StaticResource Opt}" Content="Boundary" IsChecked="{Binding MidBoundary}"/>
+                                            <CheckBox Style="{StaticResource Opt}" Content="Openings" IsChecked="{Binding MidOpenings}"/>
+                                        </StackPanel>
+                                        <TextBlock Grid.Row="2" Text="Edge type" Style="{StaticResource FormLabel}"/>
+                                        <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal">
+                                            <CheckBox Style="{StaticResource Opt}" Content="Lines" IsChecked="{Binding MidLines}"/>
+                                            <CheckBox Style="{StaticResource Opt}" Content="Curves" IsChecked="{Binding MidCurves}"/>
+                                        </StackPanel>
+                                    </Grid>
+                                    <TextBlock Style="{StaticResource HintText}" Text="An edge gets points only when both its location and its type are ticked."/>
+                                </StackPanel>
+
+                                <!-- Step 4 -->
+                                <StackPanel Visibility="{Binding IsChecked, ElementName=NavStep4, Converter={StaticResource BoolToVisibility}}">
+                                    <Grid>
+                                        <TextBlock Text="4 · Fill gaps along edges" Style="{StaticResource DetailTitle}"/>
+                                        <CheckBox Content="Run this step" HorizontalAlignment="Right" VerticalAlignment="Center"
+                                                  IsChecked="{Binding GapFillEnabled}"/>
+                                    </Grid>
+                                    <TextBlock Style="{StaticResource DetailIntro}"
+                                               Text="Points are added only where two neighbouring points (existing or from steps 1–3) are further apart than the gap."/>
+                                    <Grid IsEnabled="{Binding GapFillEnabled}">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <TextBlock Grid.Row="0" Text="Max gap between points" Style="{StaticResource FormLabel}"/>
+                                        <TextBox Grid.Row="0" Grid.Column="1" Style="{StaticResource NumberBox}"
+                                                 Text="{Binding GapIntervalMeters, UpdateSourceTrigger=PropertyChanged}"/>
+                                        <TextBlock Grid.Row="0" Grid.Column="2" Text="m" Style="{StaticResource FormUnit}"/>
+                                        <TextBlock Grid.Row="1" Text="Location" Style="{StaticResource FormLabel}"/>
+                                        <StackPanel Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Orientation="Horizontal">
+                                            <CheckBox Style="{StaticResource Opt}" Content="Boundary" IsChecked="{Binding GapBoundary}"/>
+                                            <CheckBox Style="{StaticResource Opt}" Content="Openings" IsChecked="{Binding GapOpenings}"/>
+                                        </StackPanel>
+                                        <TextBlock Grid.Row="2" Text="Edge type" Style="{StaticResource FormLabel}"/>
+                                        <StackPanel Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Orientation="Horizontal">
+                                            <CheckBox Style="{StaticResource Opt}" Content="Lines" IsChecked="{Binding GapLines}"/>
+                                            <CheckBox Style="{StaticResource Opt}" Content="Curves" IsChecked="{Binding GapCurves}"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </StackPanel>
+
+                                <!-- Step 5 -->
+                                <StackPanel Visibility="{Binding IsChecked, ElementName=NavStep5, Converter={StaticResource BoolToVisibility}}">
+                                    <Grid>
+                                        <TextBlock Text="5 · Ridge between drains" Style="{StaticResource DetailTitle}"/>
+                                        <CheckBox Content="Run this step" HorizontalAlignment="Right" VerticalAlignment="Center"
+                                                  IsChecked="{Binding RidgeEnabled}"/>
+                                    </Grid>
+                                    <TextBlock Style="{StaticResource DetailIntro}"
+                                               Text="Ridges run midway between the openings ticked as Drain (at least two). Openings that are not drains end the ridges that cross them. Ridge points sit on the roof surface; step 6 then makes the ridges the high lines. Uses the Ridge By Openings V070 engine."/>
+                                    <Grid IsEnabled="{Binding RidgeEnabled}">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <TextBlock Grid.Row="0" Text="Create" Style="{StaticResource FormLabel}"/>
+                                        <CheckBox Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2" Style="{StaticResource Opt}"
+                                                  Content="Shape points + split lines along the ridges" IsChecked="{Binding RidgeShapePoints}"/>
+                                        <CheckBox Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Style="{StaticResource Opt}"
+                                                  Content="Detail lines in the active view" IsChecked="{Binding RidgeDetailLines}"/>
+                                        <TextBlock Grid.Row="2" Text="Line style" Style="{StaticResource FormLabel}"/>
+                                        <ComboBox Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Width="220" HorizontalAlignment="Left" Margin="0,0,0,8"
+                                                  Style="{StaticResource StandardComboBox}" IsEnabled="{Binding RidgeDetailLines}"
+                                                  ItemsSource="{Binding LineStyleOptions}" SelectedItem="{Binding RidgeLineStyle}"/>
+                                        <TextBlock Grid.Row="3" Text="Group drains within" Style="{StaticResource FormLabel}"/>
+                                        <TextBox Grid.Row="3" Grid.Column="1" Style="{StaticResource NumberBox}"
+                                                 Text="{Binding RidgeProximityMm, UpdateSourceTrigger=PropertyChanged}"/>
+                                        <TextBlock Grid.Row="3" Grid.Column="2" Text="mm" Style="{StaticResource FormUnit}"/>
+                                        <TextBlock Grid.Row="4" Text="Equidistance tolerance" Style="{StaticResource FormLabel}"/>
+                                        <TextBox Grid.Row="4" Grid.Column="1" Style="{StaticResource NumberBox}"
+                                                 Text="{Binding RidgeValidationToleranceMm, UpdateSourceTrigger=PropertyChanged}"/>
+                                        <TextBlock Grid.Row="4" Grid.Column="2" Text="mm" Style="{StaticResource FormUnit}"/>
+                                    </Grid>
+                                </StackPanel>
+
+                                <!-- Step 6 -->
+                                <StackPanel Visibility="{Binding IsChecked, ElementName=NavStep6, Converter={StaticResource BoolToVisibility}}">
+                                    <Grid>
+                                        <TextBlock Text="6 · Slope by drain" Style="{StaticResource DetailTitle}"/>
+                                        <CheckBox Content="Run this step" HorizontalAlignment="Right" VerticalAlignment="Center"
+                                                  IsChecked="{Binding SlopeEnabled}"/>
+                                    </Grid>
+                                    <TextBlock Style="{StaticResource DetailIntro}"
+                                               Text="Resets every shape point to 0, then sets each point's height from its shortest path to a ticked drain, and writes the AutoSlope roof parameters. Uses the Auto Slope By Drain V013 engine."/>
+                                    <Grid IsEnabled="{Binding SlopeEnabled}">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <TextBlock Grid.Row="0" Text="Slope" Style="{StaticResource FormLabel}"/>
+                                        <TextBox Grid.Row="0" Grid.Column="1" Style="{StaticResource NumberBox}"
+                                                 Text="{Binding SlopePercent, UpdateSourceTrigger=PropertyChanged}"/>
+                                        <TextBlock Grid.Row="0" Grid.Column="2" Text="%" Style="{StaticResource FormUnit}"/>
+                                        <TextBlock Grid.Row="1" Text="Max edge" Style="{StaticResource FormLabel}"/>
+                                        <TextBox Grid.Row="1" Grid.Column="1" Style="{StaticResource NumberBox}"
+                                                 Text="{Binding MaxEdgeMeters, UpdateSourceTrigger=PropertyChanged}"/>
+                                        <TextBlock Grid.Row="1" Grid.Column="2" Text="m — longest link between two points" Style="{StaticResource FormUnit}"/>
+                                        <TextBlock Grid.Row="2" Text="Max path" Style="{StaticResource FormLabel}"/>
+                                        <TextBox Grid.Row="2" Grid.Column="1" Style="{StaticResource NumberBox}"
+                                                 Text="{Binding MaxPathMeters, UpdateSourceTrigger=PropertyChanged}"/>
+                                        <TextBlock Grid.Row="2" Grid.Column="2" Text="m — farther points stay at 0" Style="{StaticResource FormUnit}"/>
+                                        <TextBlock Grid.Row="3" Text="Path samples" Style="{StaticResource FormLabel}"/>
+                                        <TextBox Grid.Row="3" Grid.Column="1" Style="{StaticResource NumberBox}"
+                                                 Text="{Binding PathSamples, UpdateSourceTrigger=PropertyChanged}"/>
+                                        <TextBlock Grid.Row="3" Grid.Column="2" Text="per path, to check it stays on the roof" Style="{StaticResource FormUnit}"/>
+                                        <CheckBox Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="2" Style="{StaticResource Opt}"
+                                                  Content="Insert points at curve crossings" IsChecked="{Binding InsertCurveIntersectionPoints}"/>
+                                        <StackPanel Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="2" Orientation="Horizontal">
+                                            <Button Content="Check slope reach" Style="{StaticResource SmallSecondaryButton}"
+                                                    Command="{Binding CheckReachCommand}"
+                                                    ToolTip="Estimates, without changing the roof, how many points the slope would leave at 0 (dips)."/>
+                                        </StackPanel>
+                                    </Grid>
+                                    <Border Style="{StaticResource WarnBanner}">
+                                        <TextBlock Style="{StaticResource WarnText}" Text="{Binding ReachText}"/>
+                                    </Border>
+                                    <TextBlock Style="{StaticResource HintText}" Margin="0,8,0,0"
+                                               Text="The Auto Slope By Drain Excel report is under Run options."/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <!-- ─── OPENINGS ─── -->
+                        <Border Style="{StaticResource ContentCard}" Padding="12,8">
+                            <StackPanel>
+                                <Grid Margin="0,0,0,8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBlock Text="Openings" Style="{StaticResource SectionTitle}" Margin="0"/>
+                                        <Border Style="{StaticResource BadgePill}" Margin="8,0,0,0">
+                                            <TextBlock Style="{StaticResource BadgeText}" Text="{Binding Openings.Count}"/>
+                                        </Border>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2" Orientation="Horizontal"
+                                                Visibility="{Binding HasOpenings, Converter={StaticResource BoolToVisibility}}">
+                                        <TextBlock Text="Points" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                        <Button Content="All" Style="{StaticResource SmallSecondaryButton}" Command="{Binding SetColumnCommand}" CommandParameter="Points:1" Margin="0,0,4,0"/>
+                                        <Button Content="None" Style="{StaticResource SmallSecondaryButton}" Command="{Binding SetColumnCommand}" CommandParameter="Points:0" Margin="0,0,16,0"/>
+                                        <TextBlock Text="Perpendicular" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                        <Button Content="All" Style="{StaticResource SmallSecondaryButton}" Command="{Binding SetColumnCommand}" CommandParameter="Perpendicular:1" Margin="0,0,4,0"/>
+                                        <Button Content="None" Style="{StaticResource SmallSecondaryButton}" Command="{Binding SetColumnCommand}" CommandParameter="Perpendicular:0" Margin="0,0,16,0"/>
+                                        <TextBlock Text="Drain" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                        <Button Content="All" Style="{StaticResource SmallSecondaryButton}" Command="{Binding SetColumnCommand}" CommandParameter="Drain:1" Margin="0,0,4,0"/>
+                                        <Button Content="None" Style="{StaticResource SmallSecondaryButton}" Command="{Binding SetColumnCommand}" CommandParameter="Drain:0"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <DataGrid ItemsSource="{Binding Openings}"
+                                          Visibility="{Binding HasOpenings, Converter={StaticResource BoolToVisibility}}"
+                                          MinHeight="140"
+                                          shell:ShellBehaviors.MaxHeightRatio="0.35"
+                                          shell:ShellBehaviors.ForwardMouseWheel="True"
+                                          AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False"
+                                          SelectionMode="Single"
+                                          Style="{StaticResource StandardDataGrid}"
+                                          ColumnHeaderStyle="{StaticResource StandardDataGridColumnHeader}"
+                                          CellStyle="{StaticResource StandardDataGridCell}"
+                                          RowStyle="{StaticResource StandardDataGridRow}">
+                                    <DataGrid.Columns>
+                                        <DataGridTemplateColumn Header="" Width="58">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <Button Content="Show" Style="{StaticResource SmallSecondaryButton}" Margin="2"
+                                                            Command="{Binding DataContext.ShowOpeningCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                            CommandParameter="{Binding}"
+                                                            ToolTip="Highlight this opening in the active view and zoom to it (temporary markers)."/>
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
+                                        <DataGridTextColumn Header="#" Binding="{Binding Index}" IsReadOnly="True" Width="44"/>
+                                        <DataGridTextColumn Header="Shape" Binding="{Binding ShapeName}" IsReadOnly="True" Width="85"/>
+                                        <DataGridTextColumn Header="Size (mm)" Binding="{Binding SizeText}" IsReadOnly="True" Width="110"/>
+                                        <DataGridTextColumn Header="Source" Binding="{Binding Source}" IsReadOnly="True" Width="90"/>
+                                        <DataGridCheckBoxColumn Header="Points" Binding="{Binding AddInnerPoints, UpdateSourceTrigger=PropertyChanged}" Width="60"/>
+                                        <DataGridTemplateColumn Header="Count" Width="70">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <TextBox Style="{StaticResource BorderlessTextInput}"
+                                                             Text="{Binding PointCount, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                             IsEnabled="{Binding DataContext.UseCount, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                             MaxLength="3" Width="52" HorizontalContentAlignment="Center" Margin="2"/>
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
+                                        <DataGridTextColumn Header="New" Binding="{Binding PlannedInner}" IsReadOnly="True" Width="55"/>
+                                        <DataGridCheckBoxColumn Header="Perpendicular" Binding="{Binding AddPerpendicular, UpdateSourceTrigger=PropertyChanged}" Width="100"/>
+                                        <DataGridTextColumn Header="New" Binding="{Binding PlannedPerpendicular}" IsReadOnly="True" Width="55"/>
+                                        <DataGridTemplateColumn Header="Drain" Width="*">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <CheckBox IsChecked="{Binding IsDrain, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                              IsEnabled="{Binding CanBeDrain}" Margin="8,0,0,0" VerticalAlignment="Center"
+                                                              ToolTip="Drains seed the ridge (step 5) and are the low points of the slope (step 6). Only openings the drain detection recognises can be drains."/>
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+
+                                <TextBlock Margin="0,16" HorizontalAlignment="Center" Style="{StaticResource HintText}"
+                                           Visibility="{Binding HasOpenings, Converter={StaticResource InverseBoolToVis}}"
+                                           Text="This roof has no openings: steps 1, 2, 5 and 6 have nothing to work on."/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Grid>
+
+                <!-- ─── ACTIVITY LOG (closed by default) ─── -->
+                <Border Grid.Row="1" Background="{StaticResource BrushLogBg}" CornerRadius="4" Padding="12,8">
                     <StackPanel>
-                        <!-- Roofs (only when several were picked) -->
-                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8"
-                                    Visibility="{Binding HasManyRoofs, Converter={StaticResource BoolToVisibility}}">
-                            <TextBlock Text="Roof" Style="{StaticResource Label}"/>
-                            <ComboBox Width="360" Height="28" VerticalContentAlignment="Center"
-                                      ItemsSource="{Binding Roofs}" DisplayMemberPath="Label"
-                                      SelectedItem="{Binding SelectedRoof}"
-                                      ToolTip="Each roof keeps its own opening ticks. The step options apply to every roof."/>
-                            <TextBlock Style="{StaticResource HintText}" VerticalAlignment="Center" Margin="10,0,0,0"
-                                       Text="{Binding Roofs.Count, StringFormat={}{0} roofs picked — Run on All Roofs runs them as one Undo}"/>
-                        </StackPanel>
-
-                        <!-- Presets -->
-                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                            <TextBlock Text="Preset" Style="{StaticResource Label}"/>
-                            <ComboBox Width="220" Height="28" IsEditable="True" VerticalContentAlignment="Center"
-                                      ItemsSource="{Binding Presets}" DisplayMemberPath="Name"
-                                      SelectedItem="{Binding SelectedPreset}"
-                                      Text="{Binding PresetName, UpdateSourceTrigger=PropertyChanged}"
-                                      ToolTip="Pick a saved set of options, or type a new name and Save."/>
-                            <Button Content="Apply" Style="{StaticResource SmallSecondaryButton}" Margin="6,0,0,0" Command="{Binding ApplyPresetCommand}"
-                                    ToolTip="Load the picked preset's options into the window."/>
-                            <Button Content="Save" Style="{StaticResource SmallSecondaryButton}" Margin="4,0,0,0" Command="{Binding SavePresetCommand}"
-                                    ToolTip="Save the current options under the typed name."/>
-                            <Button Content="Delete" Style="{StaticResource SmallSecondaryButton}" Margin="4,0,0,0" Command="{Binding DeletePresetCommand}"/>
-                            <Button Content="Show planned points in Revit" Style="{StaticResource SmallSecondaryButton}" Margin="18,0,0,0"
-                                    Command="{Binding ShowPlannedPointsCommand}"
-                                    ToolTip="Coloured temporary markers in the active view: blue step 1, purple step 2, green step 3, orange step 4, red ridge. Not saved; cleared on Run or Close."/>
-                            <Button Content="Clear markers" Style="{StaticResource SmallSecondaryButton}" Margin="4,0,0,0"
-                                    Command="{Binding ClearMarkersCommand}"/>
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal">
-                            <CheckBox Style="{StaticResource Opt}" Content="Clear existing shape points first"
-                                      IsChecked="{Binding ClearExistingFirst}"
-                                      ToolTip="Resets the roof's shape (all added points and split lines) before step 1, so the steps start from a flat roof. Off by default."/>
-                            <TextBlock Text="Min spacing between points (mm)" Style="{StaticResource Label}" Margin="18,0,6,0"/>
-                            <TextBox Style="{StaticResource NumberBox}" Text="{Binding MinPointSpacingMm, UpdateSourceTrigger=PropertyChanged}"
-                                     ToolTip="Steps 2–4 skip a point closer than this to another point (0 = only skip duplicates within 5 mm)."/>
-                        </StackPanel>
-                        <Grid Margin="0,6,0,0">
+                        <Grid>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="Report folder" Style="{StaticResource Label}"/>
-                            <TextBox Grid.Column="1" Style="{StaticResource BorderlessTextInput}" Height="28" VerticalContentAlignment="Center"
-                                     Text="{Binding ExportFolder, UpdateSourceTrigger=PropertyChanged}"/>
-                            <Button Grid.Column="2" Content="Browse…" Style="{StaticResource SmallSecondaryButton}" Margin="6,0,12,0"
-                                    Click="BrowseFolder_Click"/>
-                            <CheckBox Grid.Column="3" Style="{StaticResource Opt}" Content="Save run report (.xlsx)"
-                                      IsChecked="{Binding SaveRunReport}"
-                                      ToolTip="After a successful run: a Summary sheet and a Points sheet (roof, step, X, Y, height after slope)."/>
-                        </Grid>
-                        <TextBlock Style="{StaticResource WarnNote}" Text="{Binding ExistingShapeWarning}"/>
-                        <TextBlock Style="{StaticResource WarnNote}" Text="{Binding PlanWarnings}"/>
-                    </StackPanel>
-                </Border>
-
-                <!-- ─── STEPS 1 + 2 ─── -->
-                <Grid Margin="0,0,0,8">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-
-                    <Border Grid.Column="0" Style="{StaticResource ContentCard}" Padding="14,10" Margin="0,0,4,0">
-                        <StackPanel>
-                            <CheckBox Style="{StaticResource StepTitle}" Content="1 · Points around openings"
-                                      IsChecked="{Binding InnerPointsEnabled}"/>
-                            <StackPanel IsEnabled="{Binding InnerPointsEnabled}">
-                                <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
-                                    <RadioButton GroupName="InnerMode" Content="Points per opening" VerticalAlignment="Center" Margin="0,0,12,0"
-                                                 IsChecked="{Binding UseCount}"/>
-                                    <TextBlock Text="Circles" Style="{StaticResource Label}"/>
-                                    <TextBox Style="{StaticResource NumberBox}" IsEnabled="{Binding UseCount}"
-                                             Text="{Binding CircularPoints, UpdateSourceTrigger=PropertyChanged}"/>
-                                    <TextBlock Text="Others" Style="{StaticResource Label}"/>
-                                    <TextBox Style="{StaticResource NumberBox}" IsEnabled="{Binding UseCount}"
-                                             Text="{Binding CorneredPoints, UpdateSourceTrigger=PropertyChanged}"/>
+                            <ToggleButton x:Name="LogToggle" Style="{StaticResource LogHeaderToggle}" HorizontalAlignment="Left">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="Activity log" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource BrushLogText}"/>
+                                    <TextBlock Text="{Binding LogEntries.Count, StringFormat={}{0} lines}" FontSize="10.5" Margin="8,0,0,0"
+                                               VerticalAlignment="Center" Foreground="{StaticResource BrushLogTextDim}"/>
                                 </StackPanel>
-                                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                    <RadioButton GroupName="InnerMode" Content="Max spacing" VerticalAlignment="Center" Margin="0,0,12,0"
-                                                 IsChecked="{Binding UseSpacing}"/>
-                                    <TextBlock Text="Gap (m)" Style="{StaticResource Label}"/>
-                                    <TextBox Style="{StaticResource NumberBox}" IsEnabled="{Binding UseSpacing}"
-                                             Text="{Binding InnerSpacingMeters, UpdateSourceTrigger=PropertyChanged}"/>
-                                </StackPanel>
-                                <TextBlock Style="{StaticResource HintText}" TextWrapping="Wrap"
-                                           Text="Corners count towards the total. Per-opening counts and ticks are in the grid below."/>
-                            </StackPanel>
-                        </StackPanel>
-                    </Border>
-
-                    <Border Grid.Column="1" Style="{StaticResource ContentCard}" Padding="14,10" Margin="4,0,0,0">
-                        <StackPanel>
-                            <CheckBox Style="{StaticResource StepTitle}" Content="2 · Perpendicular points to the boundary"
-                                      IsChecked="{Binding PerpendicularEnabled}"/>
-                            <StackPanel IsEnabled="{Binding PerpendicularEnabled}">
-                                <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
-                                    <TextBlock Text="Group opening points within (mm)" Style="{StaticResource Label}"/>
-                                    <TextBox Style="{StaticResource NumberBox}"
-                                             Text="{Binding GroupProximityMm, UpdateSourceTrigger=PropertyChanged}"/>
-                                </StackPanel>
-                                <TextBlock Style="{StaticResource HintText}" TextWrapping="Wrap"
-                                           Text="From each group of points on an opening, the nearest boundary point in up to 8 directions (45° apart, aligned with the opening) gets a point."/>
-                            </StackPanel>
-                        </StackPanel>
-                    </Border>
-                </Grid>
-
-                <!-- ─── STEPS 3 + 4 ─── -->
-                <Grid Margin="0,0,0,8">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-
-                    <Border Grid.Column="0" Style="{StaticResource ContentCard}" Padding="14,10" Margin="0,0,4,0">
-                        <StackPanel>
-                            <CheckBox Style="{StaticResource StepTitle}" Content="3 · Midpoint and quarter points on edges"
-                                      IsChecked="{Binding MidQuarterEnabled}"/>
-                            <StackPanel IsEnabled="{Binding MidQuarterEnabled}">
-                                <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
-                                    <CheckBox Style="{StaticResource Opt}" Content="Midpoint (½)" IsChecked="{Binding AddMidpoint}"/>
-                                    <CheckBox Style="{StaticResource Opt}" Content="Quarter points (¼, ¾)" IsChecked="{Binding AddQuarterPoints}"/>
-                                </StackPanel>
-                                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                    <TextBlock Text="On" Style="{StaticResource Label}"/>
-                                    <CheckBox Style="{StaticResource Opt}" Content="Boundary" IsChecked="{Binding MidBoundary}"/>
-                                    <CheckBox Style="{StaticResource Opt}" Content="Openings" IsChecked="{Binding MidOpenings}"/>
-                                    <TextBlock Text="·" Style="{StaticResource Label}" Margin="0,0,12,0"/>
-                                    <CheckBox Style="{StaticResource Opt}" Content="Lines" IsChecked="{Binding MidLines}"/>
-                                    <CheckBox Style="{StaticResource Opt}" Content="Curves" IsChecked="{Binding MidCurves}"/>
-                                </StackPanel>
-                            </StackPanel>
-                        </StackPanel>
-                    </Border>
-
-                    <Border Grid.Column="1" Style="{StaticResource ContentCard}" Padding="14,10" Margin="4,0,0,0">
-                        <StackPanel>
-                            <CheckBox Style="{StaticResource StepTitle}" Content="4 · Fill gaps along edges"
-                                      IsChecked="{Binding GapFillEnabled}"/>
-                            <StackPanel IsEnabled="{Binding GapFillEnabled}">
-                                <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
-                                    <TextBlock Text="Max gap between points (m)" Style="{StaticResource Label}"/>
-                                    <TextBox Style="{StaticResource NumberBox}"
-                                             Text="{Binding GapIntervalMeters, UpdateSourceTrigger=PropertyChanged}"/>
-                                </StackPanel>
-                                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                    <TextBlock Text="On" Style="{StaticResource Label}"/>
-                                    <CheckBox Style="{StaticResource Opt}" Content="Boundary" IsChecked="{Binding GapBoundary}"/>
-                                    <CheckBox Style="{StaticResource Opt}" Content="Openings" IsChecked="{Binding GapOpenings}"/>
-                                    <TextBlock Text="·" Style="{StaticResource Label}" Margin="0,0,12,0"/>
-                                    <CheckBox Style="{StaticResource Opt}" Content="Lines" IsChecked="{Binding GapLines}"/>
-                                    <CheckBox Style="{StaticResource Opt}" Content="Curves" IsChecked="{Binding GapCurves}"/>
-                                </StackPanel>
-                                <TextBlock Style="{StaticResource HintText}" TextWrapping="Wrap"
-                                           Text="Points are added only where two neighbouring points (existing or from steps 1–3) are further apart than the gap."/>
-                            </StackPanel>
-                        </StackPanel>
-                    </Border>
-                </Grid>
-
-                <!-- ─── STEP 5 ─── -->
-                <Border Style="{StaticResource ContentCard}" Padding="14,10" Margin="0,0,0,8">
-                    <StackPanel>
-                        <CheckBox Style="{StaticResource StepTitle}" Content="5 · Ridge between drains (Ridge By Openings V070 engine)"
-                                  IsChecked="{Binding RidgeEnabled}"/>
-                        <StackPanel IsEnabled="{Binding RidgeEnabled}">
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
-                                <CheckBox Style="{StaticResource Opt}" Content="Shape points + split lines along the ridges" IsChecked="{Binding RidgeShapePoints}"/>
-                                <CheckBox Style="{StaticResource Opt}" Content="Detail lines in the active view" IsChecked="{Binding RidgeDetailLines}"/>
-                                <TextBlock Text="Line style" Style="{StaticResource Label}"/>
-                                <ComboBox Width="180" Height="26" IsEnabled="{Binding RidgeDetailLines}"
-                                          ItemsSource="{Binding LineStyleOptions}" SelectedItem="{Binding RidgeLineStyle}"/>
-                            </StackPanel>
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                <TextBlock Text="Group drains within (mm)" Style="{StaticResource Label}"/>
-                                <TextBox Style="{StaticResource NumberBox}" Text="{Binding RidgeProximityMm, UpdateSourceTrigger=PropertyChanged}"/>
-                                <TextBlock Text="Equidistance tolerance (mm)" Style="{StaticResource Label}"/>
-                                <TextBox Style="{StaticResource NumberBox}" Text="{Binding RidgeValidationToleranceMm, UpdateSourceTrigger=PropertyChanged}"/>
-                            </StackPanel>
-                            <TextBlock Style="{StaticResource HintText}" TextWrapping="Wrap"
-                                       Text="Ridges run midway between the openings ticked as Drain (at least two). Openings that are not drains end the ridges that cross them. Ridge points sit on the roof surface; step 6 then makes the ridges the high lines."/>
-                        </StackPanel>
-                    </StackPanel>
-                </Border>
-
-                <!-- ─── STEP 6 ─── -->
-                <Border Style="{StaticResource ContentCard}" Padding="14,10" Margin="0,0,0,8">
-                    <StackPanel>
-                        <CheckBox Style="{StaticResource StepTitle}" Content="6 · Slope by drain (Auto Slope By Drain V013 engine)"
-                                  IsChecked="{Binding SlopeEnabled}"/>
-                        <StackPanel IsEnabled="{Binding SlopeEnabled}">
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
-                                <TextBlock Text="Slope (%)" Style="{StaticResource Label}"/>
-                                <TextBox Style="{StaticResource NumberBox}" Text="{Binding SlopePercent, UpdateSourceTrigger=PropertyChanged}"/>
-                                <TextBlock Text="Max edge (m)" Style="{StaticResource Label}"/>
-                                <TextBox Style="{StaticResource NumberBox}" Text="{Binding MaxEdgeMeters, UpdateSourceTrigger=PropertyChanged}"/>
-                                <TextBlock Text="Max path (m)" Style="{StaticResource Label}"/>
-                                <TextBox Style="{StaticResource NumberBox}" Text="{Binding MaxPathMeters, UpdateSourceTrigger=PropertyChanged}"/>
-                                <TextBlock Text="Path samples" Style="{StaticResource Label}"/>
-                                <TextBox Style="{StaticResource NumberBox}" Text="{Binding PathSamples, UpdateSourceTrigger=PropertyChanged}"/>
-                                <CheckBox Style="{StaticResource Opt}" Content="Insert points at curve crossings"
-                                          IsChecked="{Binding InsertCurveIntersectionPoints}"/>
-                            </StackPanel>
-                            <CheckBox Style="{StaticResource Opt}" Margin="0,0,0,4" Content="Auto Slope By Drain Excel report (to the report folder above)"
-                                      IsChecked="{Binding ExportToExcel}"/>
-                            <TextBlock Style="{StaticResource HintText}" TextWrapping="Wrap"
-                                       Text="Resets every shape point to 0, then sets each point's height from its shortest path to a ticked drain, and writes the AutoSlope roof parameters."/>
-                            <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
-                                <Button Content="Check slope reach" Style="{StaticResource SmallSecondaryButton}"
-                                        Command="{Binding CheckReachCommand}"
-                                        ToolTip="Estimates, without changing the roof, how many points the slope would leave at 0 (dips)."/>
-                            </StackPanel>
-                            <TextBlock Style="{StaticResource WarnNote}" Text="{Binding ReachText}"/>
-                        </StackPanel>
-                    </StackPanel>
-                </Border>
-
-                <!-- ─── OPENINGS ─── -->
-                <Grid Margin="0,0,0,6">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Text="Openings" Style="{StaticResource SectionTitle}" VerticalAlignment="Center"/>
-                    <StackPanel Grid.Column="1" Orientation="Horizontal">
-                        <TextBlock Text="Points" Style="{StaticResource Label}"/>
-                        <Button Content="All" Style="{StaticResource SmallSecondaryButton}" Command="{Binding SetColumnCommand}" CommandParameter="Points:1" Margin="0,0,4,0"/>
-                        <Button Content="None" Style="{StaticResource SmallSecondaryButton}" Command="{Binding SetColumnCommand}" CommandParameter="Points:0" Margin="0,0,12,0"/>
-                        <TextBlock Text="Perpendicular" Style="{StaticResource Label}"/>
-                        <Button Content="All" Style="{StaticResource SmallSecondaryButton}" Command="{Binding SetColumnCommand}" CommandParameter="Perpendicular:1" Margin="0,0,4,0"/>
-                        <Button Content="None" Style="{StaticResource SmallSecondaryButton}" Command="{Binding SetColumnCommand}" CommandParameter="Perpendicular:0" Margin="0,0,12,0"/>
-                        <TextBlock Text="Drain" Style="{StaticResource Label}"/>
-                        <Button Content="All" Style="{StaticResource SmallSecondaryButton}" Command="{Binding SetColumnCommand}" CommandParameter="Drain:1" Margin="0,0,4,0"/>
-                        <Button Content="None" Style="{StaticResource SmallSecondaryButton}" Command="{Binding SetColumnCommand}" CommandParameter="Drain:0"/>
-                    </StackPanel>
-                </Grid>
-
-                <Border Style="{StaticResource ContentCard}"
-                        Visibility="{Binding HasOpenings, Converter={StaticResource BoolToVisibility}}">
-                    <DataGrid ItemsSource="{Binding Openings}"
-                              MinHeight="140"
-                              shell:ShellBehaviors.MaxHeightRatio="0.35"
-                              shell:ShellBehaviors.ForwardMouseWheel="True"
-                              AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False"
-                              SelectionMode="Single"
-                              Style="{StaticResource StandardDataGrid}"
-                              ColumnHeaderStyle="{StaticResource StandardDataGridColumnHeader}"
-                              CellStyle="{StaticResource StandardDataGridCell}"
-                              RowStyle="{StaticResource StandardDataGridRow}">
-                        <DataGrid.Columns>
-                            <DataGridTemplateColumn Header="" Width="58">
-                                <DataGridTemplateColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <Button Content="Show" Style="{StaticResource SmallSecondaryButton}" Margin="2"
-                                                Command="{Binding DataContext.ShowOpeningCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
-                                                CommandParameter="{Binding}"
-                                                ToolTip="Highlight this opening in the active view and zoom to it (temporary markers)."/>
-                                    </DataTemplate>
-                                </DataGridTemplateColumn.CellTemplate>
-                            </DataGridTemplateColumn>
-                            <DataGridTextColumn Header="#" Binding="{Binding Index}" IsReadOnly="True" Width="44"/>
-                            <DataGridTextColumn Header="Shape" Binding="{Binding ShapeName}" IsReadOnly="True" Width="85"/>
-                            <DataGridTextColumn Header="Size (mm)" Binding="{Binding SizeText}" IsReadOnly="True" Width="110"/>
-                            <DataGridTextColumn Header="Source" Binding="{Binding Source}" IsReadOnly="True" Width="90"/>
-                            <DataGridCheckBoxColumn Header="Points" Binding="{Binding AddInnerPoints, UpdateSourceTrigger=PropertyChanged}" Width="60"/>
-                            <DataGridTemplateColumn Header="Count" Width="70">
-                                <DataGridTemplateColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <TextBox Style="{StaticResource BorderlessTextInput}"
-                                                 Text="{Binding PointCount, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                                 IsEnabled="{Binding DataContext.UseCount, RelativeSource={RelativeSource AncestorType=DataGrid}}"
-                                                 MaxLength="3" Width="52" HorizontalContentAlignment="Center" Margin="2"/>
-                                    </DataTemplate>
-                                </DataGridTemplateColumn.CellTemplate>
-                            </DataGridTemplateColumn>
-                            <DataGridTextColumn Header="New" Binding="{Binding PlannedInner}" IsReadOnly="True" Width="55"/>
-                            <DataGridCheckBoxColumn Header="Perpendicular" Binding="{Binding AddPerpendicular, UpdateSourceTrigger=PropertyChanged}" Width="100"/>
-                            <DataGridTextColumn Header="New" Binding="{Binding PlannedPerpendicular}" IsReadOnly="True" Width="55"/>
-                            <DataGridTemplateColumn Header="Drain" Width="*">
-                                <DataGridTemplateColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <CheckBox IsChecked="{Binding IsDrain, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                                  IsEnabled="{Binding CanBeDrain}" Margin="6,0,0,0" VerticalAlignment="Center"
-                                                  ToolTip="Drains seed the ridge (step 5) and are the low points of the slope (step 6). Only openings the drain detection recognises can be drains."/>
-                                    </DataTemplate>
-                                </DataGridTemplateColumn.CellTemplate>
-                            </DataGridTemplateColumn>
-                        </DataGrid.Columns>
-                    </DataGrid>
-                </Border>
-
-                <Border Style="{StaticResource ContentCard}"
-                        Visibility="{Binding HasOpenings, Converter={StaticResource InverseBoolToVis}}">
-                    <TextBlock Margin="0,20" HorizontalAlignment="Center" Style="{StaticResource HintText}"
-                               Text="This roof has no openings: steps 1, 2, 5 and 6 have nothing to work on."/>
-                </Border>
-
-                <!-- ─── ACTIVITY LOG ─── -->
-                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="12,8" Margin="0,8,0,0">
-                    <StackPanel>
-                        <Grid Margin="0,0,0,6">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Text="Activity Log" Foreground="{StaticResource BrushLogText}"
-                                       FontSize="11.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                            </ToggleButton>
                             <StackPanel Grid.Column="1" Orientation="Horizontal">
-                                <Button Content="Copy All" Style="{StaticResource DarkGhostButton}" Click="CopyAllLog_Click" Margin="0,0,6,0"/>
-                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Click="CopySelectedLog_Click" Margin="0,0,6,0"/>
+                                <Button Content="Copy all" Style="{StaticResource DarkGhostButton}" Click="CopyAllLog_Click" Margin="0,0,8,0"/>
+                                <Button Content="Copy selected" Style="{StaticResource DarkGhostButton}" Click="CopySelectedLog_Click" Margin="0,0,8,0"/>
                                 <Button Content="Clear" Style="{StaticResource DarkGhostButton}" Command="{Binding ClearLogCommand}"/>
                             </StackPanel>
                         </Grid>
-                        <ListBox x:Name="LogList" ItemsSource="{Binding LogEntries}" MinHeight="100"
-                                 shell:ShellBehaviors.MaxHeightRatio="0.2" shell:ShellBehaviors.ForwardMouseWheel="True"
+                        <ListBox x:Name="LogList" ItemsSource="{Binding LogEntries}" MinHeight="100" Margin="0,8,0,0"
+                                 Visibility="{Binding IsChecked, ElementName=LogToggle, Converter={StaticResource BoolToVisibility}}"
+                                 shell:ShellBehaviors.MaxHeightRatio="0.25" shell:ShellBehaviors.ForwardMouseWheel="True"
                                  Background="Transparent" BorderThickness="0" SelectionMode="Extended"
                                  ScrollViewer.VerticalScrollBarVisibility="Auto">
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
                                     <StackPanel Orientation="Horizontal" Margin="0,1">
                                         <TextBlock Text="{Binding Time, StringFormat=HH:mm:ss}" Foreground="{StaticResource BrushLogTextDim}"
-                                                   FontFamily="Consolas" FontSize="11.5" Margin="0,0,10,0"/>
+                                                   FontFamily="Consolas" FontSize="11.5" Margin="0,0,8,0"/>
                                         <TextBlock Text="{Binding Level}" Foreground="{Binding Level, Converter={StaticResource LogLevelToColor}}"
                                                    FontFamily="Consolas" FontSize="11.5" FontWeight="SemiBold" Width="64"/>
                                         <TextBlock Text="{Binding Message}" Foreground="{StaticResource BrushLogText}"
@@ -471,7 +828,7 @@ Step pipeline on the shared ToolWindowShell.
                         </ListBox>
                     </StackPanel>
                 </Border>
-            </StackPanel>
+            </Grid>
         </shell:ToolWindowShell.BodyContent>
 
         <!-- ═══ FOOTER ═══════════════════════════════════════════ -->
@@ -482,23 +839,22 @@ Step pipeline on the shared ToolWindowShell.
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <Button Grid.Column="0" Content="Re-read Roof" Style="{StaticResource OutlineButton}"
-                        Width="120" Height="38" Command="{Binding AnalyzeCommand}"/>
-                <TextBlock Grid.Column="1" Text="{Binding ValidationText}" Foreground="{StaticResource BrushDanger}"
-                           VerticalAlignment="Center" Margin="12,0" TextWrapping="Wrap"/>
+                <Button Grid.Column="0" Content="Re-read Roof" Style="{StaticResource OutlineButton}" MinWidth="110"
+                        Command="{Binding AnalyzeCommand}"/>
+                <TextBlock Grid.Column="1" Text="{Binding ValidationText}" Foreground="{StaticResource BrushStatusError}"
+                           VerticalAlignment="Center" Margin="16,0" TextWrapping="Wrap"/>
                 <StackPanel Grid.Column="2" Orientation="Horizontal">
-                    <Button Content="Run Selected Steps" Style="{StaticResource PrimaryButton}"
-                            Width="200" Margin="0,0,10,0" Command="{Binding RunCommand}"/>
-                    <Button Content="Run on All Roofs" Style="{StaticResource OutlineButton}"
-                            Width="150" Height="38" Margin="0,0,10,0" Command="{Binding RunAllCommand}"
-                            Visibility="{Binding HasManyRoofs, Converter={StaticResource BoolToVisibility}}"
-                            ToolTip="Runs the ticked steps on every picked roof, each with its own opening ticks, as one Undo step."/>
-                    <Button Content="Cancel Run" Style="{StaticResource OutlineButton}"
-                            Width="110" Height="38" Margin="0,0,10,0" Command="{Binding CancelCommand}"
+                    <Button Content="Cancel Run" Style="{StaticResource OutlineButton}" Width="100" Margin="0,0,8,0"
+                            Command="{Binding CancelCommand}"
                             Visibility="{Binding IsRunning, Converter={StaticResource BoolToVisibility}}"
                             ToolTip="Stops the run; everything it did is rolled back."/>
-                    <Button Content="Close" Style="{StaticResource OutlineButton}"
-                            Width="90" Height="38" IsCancel="True" Click="CloseButton_Click"/>
+                    <Button Content="Run on All Roofs" Style="{StaticResource OutlineButton}" MinWidth="140" Margin="0,0,8,0"
+                            Command="{Binding RunAllCommand}"
+                            Visibility="{Binding HasManyRoofs, Converter={StaticResource BoolToVisibility}}"
+                            ToolTip="Runs the ticked steps on every picked roof, each with its own opening ticks, as one Undo step."/>
+                    <Button Content="Run Selected Steps" Style="{StaticResource RunButton}" MinWidth="160" Margin="0,0,8,0"
+                            Command="{Binding RunCommand}"/>
+                    <Button Content="Close" Style="{StaticResource OutlineButton}" Width="90" IsCancel="True" Click="CloseButton_Click"/>
                 </StackPanel>
             </Grid>
         </shell:ToolWindowShell.FooterContent>
