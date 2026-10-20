@@ -12,12 +12,13 @@ using System.Windows.Data;
 
 namespace Revit26_Plugin_Revised.TrackerId.V001.UI.ViewModels
 {
-    // Step 2: the types of the chosen category, with search, column filters and status chips.
+    // Step 2: the types of the ticked categories, with search, column filters and status chips.
     public partial class TrackerIdViewModel
     {
-        private readonly Dictionary<long, List<TypeInfo>> _typeCache = new();
+        private readonly Dictionary<string, List<TypeInfo>> _typeCache = new();
+        private Action _afterTypesShown;
 
-        /// <summary>Types of the chosen category.</summary>
+        /// <summary>Types of the ticked categories.</summary>
         public ObservableCollection<TypeRowViewModel> Types { get; } = new();
 
         /// <summary>Filtered, sortable view of <see cref="Types"/> bound to the grid.</summary>
@@ -44,8 +45,20 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.UI.ViewModels
         /// <summary>Elements of the ticked types.</summary>
         public int SelectedElementCount => Types.Where(t => t.IsSelected).Sum(t => t.ElementCount);
 
-        /// <summary>"Doors · 14 types".</summary>
-        public string TypesTitle => SelectedCategory == null ? "Types" : $"{SelectedCategory.Name} · {Types.Count} types";
+        /// <summary>"Doors · 14 types" or "3 categories · 40 types".</summary>
+        public string TypesTitle
+        {
+            get
+            {
+                var ticked = TickedCategories;
+                if (ticked.Count == 0) return "Types";
+                string what = ticked.Count == 1 ? ticked[0].Name : $"{ticked.Count} categories";
+                return $"{what} · {Types.Count} types";
+            }
+        }
+
+        /// <summary>True when more than one category is ticked (shows the Category column).</summary>
+        public bool ShowsSeveralCategories => TickedCategories.Count > 1;
 
         /// <summary>"3 selected · 46 elements".</summary>
         public string TypesSelectedText => $"{SelectedTypeCount} selected · {SelectedElementCount} elements";
@@ -71,39 +84,68 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.UI.ViewModels
             TypesView.Filter = PassesTypeFilters;
         }
 
-        private void LoadTypes(CategoryRowViewModel category)
-        {
-            ShowTypes(new List<TypeInfo>());
-            InvalidateSnapshots();
-            if (category == null || category.ElementCount == 0) return;
+        // Identifies a types list: the scope and the ticked categories.
+        private string TypesKey(IEnumerable<CategoryRowViewModel> categories) =>
+            $"{ScopeKey()}|{string.Join(",", categories.Select(c => c.Info.Id).OrderBy(id => id))}";
 
-            if (_typeCache.TryGetValue(category.Info.Id, out var cached))
+        private string ScopeKey() => _scope.Mode switch
+        {
+            ScopeMode.Selection => "sel:" + string.Join(",", _scope.ElementIds.OrderBy(id => id)),
+            ScopeMode.ActiveView => "view:" + _scope.ViewId,
+            _ => "all"
+        };
+
+        private void LoadTypes(IReadOnlyList<CategoryRowViewModel> categories)
+        {
+            OnPropertyChanged(nameof(ShowsSeveralCategories));
+            InvalidateSnapshots();
+            if (categories == null || categories.Count == 0)
+            {
+                ShowTypes(new List<TypeInfo>());
+                return;
+            }
+
+            string key = TypesKey(categories);
+            if (_typeCache.TryGetValue(key, out var cached))
             {
                 ShowTypes(cached);
                 return;
             }
 
-            long categoryId = category.Info.Id;
-            Run($"Reading {category.Name} types…", app =>
+            var categoryIds = new HashSet<long>(categories.Select(c => c.Info.Id));
+            var scope = _scope;
+            string what = categories.Count == 1 ? categories[0].Name : $"{categories.Count} categories";
+            Run($"Reading {what} types…", app =>
             {
                 var doc = DocumentFor(app);
                 if (doc == null) return;
-                var types = ModelReader.ReadTypes(doc, categoryId);
+                var types = ModelReader.ReadTypes(doc, categoryIds, scope);
                 OnUi(() =>
                 {
-                    _typeCache[categoryId] = types;
-                    if (SelectedCategory?.Info.Id == categoryId) ShowTypes(types);
-                    SummaryText = $"{category.Name}: {types.Count} types.";
+                    _typeCache[key] = types;
+                    if (TypesKey(TickedCategories) == key) ShowTypes(types);
+                    SummaryText = $"{what}: {types.Count} types.";
                 });
             });
         }
 
+        // Keeps the ticks of types that are still listed (adding a category does not untick the others).
         private void ShowTypes(List<TypeInfo> types)
         {
+            var ticked = new HashSet<long>(Types.Where(t => t.IsSelected).Select(t => t.Info.Id));
             Types.Clear();
-            foreach (var t in types) Types.Add(new TypeRowViewModel(t, OnTypeSelectionChanged));
+            foreach (var t in types)
+            {
+                var row = new TypeRowViewModel(t, OnTypeSelectionChanged);
+                if (ticked.Contains(t.Id)) row.IsSelected = true;
+                Types.Add(row);
+            }
             RefreshTypeView();
             OnTypeSelectionChanged();
+
+            var after = _afterTypesShown;
+            _afterTypesShown = null;
+            after?.Invoke();
         }
 
         private void ClearTypeCache() => _typeCache.Clear();
@@ -146,6 +188,7 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.UI.ViewModels
         {
             TypesView?.Refresh();
             OnPropertyChanged(nameof(TypesTitle));
+            OnPropertyChanged(nameof(ShowsSeveralCategories));
             OnPropertyChanged(nameof(TypesShownText));
             OnPropertyChanged(nameof(TypeAllChipText));
             OnPropertyChanged(nameof(TypeNoneChipText));

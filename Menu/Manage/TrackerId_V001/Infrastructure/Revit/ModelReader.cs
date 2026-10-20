@@ -41,11 +41,11 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.Infrastructure.Revit
         /// elements and elements that already have a Tracker_ID. Categories with nothing placed are
         /// included with zero counts.
         /// </summary>
-        public static List<CategoryInfo> ReadCategories(Document doc)
+        public static List<CategoryInfo> ReadCategories(Document doc, ReadScope scope = null)
         {
             var stats = new Dictionary<long, (Category Cat, HashSet<long> Types, int Count, int WithId)>();
 
-            foreach (Element e in PlacedElements(doc))
+            foreach (Element e in PlacedElements(doc, scope))
             {
                 var cat = e.Category;
                 if (!IsTrackable(cat)) continue;
@@ -73,15 +73,15 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.Infrastructure.Revit
 
         // ── Step 2: types ─────────────────────────────────────────────────────
 
-        /// <summary>The placed types of the category <paramref name="categoryId"/>, with element counts.</summary>
-        public static List<TypeInfo> ReadTypes(Document doc, long categoryId)
+        /// <summary>The placed types of the categories <paramref name="categoryIds"/> within <paramref name="scope"/>, with element counts.</summary>
+        public static List<TypeInfo> ReadTypes(Document doc, ISet<long> categoryIds, ReadScope scope = null)
         {
-            var stats = new Dictionary<long, (int Count, int WithId)>();
-            foreach (Element e in PlacedElements(doc, categoryId))
+            var stats = new Dictionary<long, (int Count, int WithId, Category Cat)>();
+            foreach (Element e in PlacedElements(doc, scope, categoryIds))
             {
                 long typeId = e.GetTypeId().Value;
                 stats.TryGetValue(typeId, out var s);
-                stats[typeId] = (s.Count + 1, s.WithId + (HasTrackerId(e) ? 1 : 0));
+                stats[typeId] = (s.Count + 1, s.WithId + (HasTrackerId(e) ? 1 : 0), e.Category);
             }
 
             var types = new List<TypeInfo>();
@@ -89,9 +89,11 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.Infrastructure.Revit
             {
                 var type = doc.GetElement(new ElementId(pair.Key)) as ElementType;
                 types.Add(new TypeInfo(pair.Key, type?.FamilyName ?? string.Empty, type?.Name ?? $"Type {pair.Key}",
-                                       TypeMark(type), pair.Value.Count, pair.Value.WithId));
+                                       TypeMark(type), pair.Value.Count, pair.Value.WithId,
+                                       pair.Value.Cat?.Id.Value ?? 0, pair.Value.Cat?.Name ?? string.Empty));
             }
-            return types.OrderBy(t => t.FamilyName, StringComparer.CurrentCultureIgnoreCase)
+            return types.OrderBy(t => t.CategoryName, StringComparer.CurrentCultureIgnoreCase)
+                        .ThenBy(t => t.FamilyName, StringComparer.CurrentCultureIgnoreCase)
                         .ThenBy(t => t.TypeName, StringComparer.CurrentCultureIgnoreCase)
                         .ToList();
         }
@@ -99,21 +101,23 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.Infrastructure.Revit
         // ── Step 3: elements, grids, scope boxes, IDs in use ──────────────────
 
         /// <summary>
-        /// Snapshots every placed element of the chosen types. <paramref name="parameterNames"/> are read
+        /// Snapshots every placed element of the chosen categories and types within <paramref name="scope"/>
+        /// (all types when <paramref name="typeIds"/> is null). <paramref name="parameterNames"/> are read
         /// from the element (then its type); <paramref name="levelParameterNames"/> from its level.
         /// </summary>
-        public static List<ElementSnapshot> ReadSnapshots(Document doc, long categoryId, ISet<long> typeIds,
-            IReadOnlyCollection<string> parameterNames, IReadOnlyCollection<string> levelParameterNames, ZoneLocator zones)
+        public static List<ElementSnapshot> ReadSnapshots(Document doc, ISet<long> categoryIds, ISet<long> typeIds,
+            IReadOnlyCollection<string> parameterNames, IReadOnlyCollection<string> levelParameterNames, ZoneLocator zones,
+            ReadScope scope = null)
         {
             var levels = new FilteredElementCollector(doc).OfClass(typeof(Level)).Cast<Level>()
                 .OrderBy(l => l.Elevation).ToList();
             var typeCache = new Dictionary<long, ElementType>();
             var snapshots = new List<ElementSnapshot>();
 
-            foreach (Element e in PlacedElements(doc, categoryId))
+            foreach (Element e in PlacedElements(doc, scope, categoryIds))
             {
                 long typeId = e.GetTypeId().Value;
-                if (!typeIds.Contains(typeId)) continue;
+                if (typeIds != null && !typeIds.Contains(typeId)) continue;
 
                 if (!typeCache.TryGetValue(typeId, out var type))
                     typeCache[typeId] = type = doc.GetElement(new ElementId(typeId)) as ElementType;
@@ -122,6 +126,8 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.Infrastructure.Revit
                 {
                     ElementId = e.Id.Value,
                     UniqueId = e.UniqueId,
+                    CategoryId = e.Category.Id.Value,
+                    CategoryName = e.Category.Name,
                     TypeId = typeId,
                     FamilyName = type?.FamilyName ?? string.Empty,
                     TypeName = type?.Name ?? string.Empty,
@@ -131,6 +137,9 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.Infrastructure.Revit
                     StoredZone = Text(e, TrackerParameters.Zone),
                     StoredLevel = Text(e, TrackerParameters.Level),
                     StoredGrid = Text(e, TrackerParameters.Grid),
+                    StoredStatus = Text(e, TrackerParameters.Status),
+                    StoredProgress = Number(e, TrackerParameters.Progress),
+                    StoredStatusDate = Text(e, TrackerParameters.StatusDate),
                     LockReason = WorksharingGuard.OwnerLock(doc, e.Id)
                 };
 
@@ -307,7 +316,10 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.Infrastructure.Revit
                     AreaM2 = Quantity(e, UnitTypeId.SquareMeters, BuiltInParameter.HOST_AREA_COMPUTED),
                     VolumeM3 = Quantity(e, UnitTypeId.CubicMeters, BuiltInParameter.HOST_VOLUME_COMPUTED),
                     ElementId = e.Id.Value,
-                    UniqueId = e.UniqueId
+                    UniqueId = e.UniqueId,
+                    Status = Text(e, TrackerParameters.Status),
+                    ProgressPct = Number(e, TrackerParameters.Progress),
+                    StatusDate = Text(e, TrackerParameters.StatusDate)
                 });
             }
             return rows.OrderBy(r => r.TrackerId, StringComparer.OrdinalIgnoreCase).ToList();
@@ -320,10 +332,40 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.Infrastructure.Revit
             cat != null && cat.CategoryType == CategoryType.Model && cat.AllowsBoundParameters &&
             !cat.IsTagCategory && cat.Parent == null && !Excluded.Contains(cat.BuiltInCategory);
 
-        private static IEnumerable<Element> PlacedElements(Document doc, long? categoryId = null)
+        /// <summary>
+        /// Ids of the trackable categories Tracker_ID is bound to: the health check looks at every placed
+        /// element of these. Empty when the parameter is not in the project yet.
+        /// </summary>
+        public static HashSet<long> TrackedCategoryIds(Document doc) =>
+            new(TrackerParameterService.BoundCategories(doc, TrackerParameters.TrackerId).Where(IsTrackable).Select(c => c.Id.Value));
+
+        // Placed, view-independent elements with a type, within the scope and (when given) the categories.
+        private static IEnumerable<Element> PlacedElements(Document doc, ReadScope scope, ISet<long> categoryIds = null)
         {
-            var collector = new FilteredElementCollector(doc);
-            if (categoryId.HasValue) collector.OfCategoryId(new ElementId(categoryId.Value));
+            scope ??= ReadScope.WholeModel;
+            FilteredElementCollector collector;
+            switch (scope.Mode)
+            {
+                case ScopeMode.Selection:
+                    var ids = scope.ElementIds.Select(id => new ElementId(id)).Where(id => doc.GetElement(id) != null).ToList();
+                    if (ids.Count == 0) return Enumerable.Empty<Element>();
+                    collector = new FilteredElementCollector(doc, ids);
+                    break;
+                case ScopeMode.ActiveView when scope.ViewId != 0 && doc.GetElement(new ElementId(scope.ViewId)) is View:
+                    collector = new FilteredElementCollector(doc, new ElementId(scope.ViewId));
+                    break;
+                default:
+                    collector = new FilteredElementCollector(doc);
+                    break;
+            }
+
+            if (categoryIds != null)
+            {
+                if (categoryIds.Count == 0) return Enumerable.Empty<Element>();
+                if (categoryIds.Count == 1) collector.OfCategoryId(new ElementId(categoryIds.First()));
+                else collector.WherePasses(new ElementMulticategoryFilter(categoryIds.Select(id => new ElementId(id)).ToList()));
+            }
+
             return collector.WhereElementIsNotElementType()
                             .WhereElementIsViewIndependent()
                             .Where(e => e.Category != null && e.GetTypeId() != ElementId.InvalidElementId);
@@ -343,6 +385,16 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.Infrastructure.Revit
         private static bool HasTrackerId(Element e) => Text(e, TrackerParameters.TrackerId).Length > 0;
 
         private static string Text(Element e, string name) => e.LookupParameter(name)?.AsString()?.Trim() ?? string.Empty;
+
+        // A number parameter's value, or a number typed into a Text parameter of that name; null when empty.
+        private static double? Number(Element e, string name)
+        {
+            var p = e.LookupParameter(name);
+            if (p == null || !p.HasValue) return null;
+            if (p.StorageType == StorageType.Double) return p.AsDouble();
+            if (p.StorageType == StorageType.Integer) return p.AsInteger();
+            return double.TryParse(p.AsString(), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out double v) ? v : null;
+        }
 
         // A parameter's value as text: strings as stored, anything else as Revit displays it. Null when there is no parameter.
         private static string ParameterText(Parameter p)

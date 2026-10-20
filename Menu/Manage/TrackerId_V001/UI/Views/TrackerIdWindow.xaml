@@ -3,10 +3,12 @@
 File: TrackerIdWindow.xaml  (Tracker ID V001 — ToolWindowShell)
   HEADER  metric tiles: in scope / have Tracker_ID / new IDs / copies found / problems
   BODY    step bar, then one card per step (only the current one shows), then the log
-          1 Category   search + discipline chips + column filters + categories grid
+          1 Category   scope chips + search + discipline chips + column filters + categories grid with ticks
           2 Types      search + status chips + column filters + types grid with ticks
-          3 Tracker ID format editor (7 segments, order, sources) + result grid
-          4 Export     CSV file for Power BI
+          3 Tracker ID format editor (8 segments, order, sources) + result grid (select / zoom)
+          4 Export     CSV or Excel file for Power BI + status template
+          5 Status     read the status file, write it into Revit, colour views by status
+          6 Health     model-wide audit (duplicates, copies, missing, moved, far from grid, status)
   FOOTER  step hint, Back, Next, Write (step 3), Export (step 4), Close
   DataContext: TrackerIdViewModel. Everything above the log is disabled while Revit runs a job.
 =======================================================
@@ -106,6 +108,19 @@ File: TrackerIdWindow.xaml  (Tracker ID V001 — ToolWindowShell)
                 </Style.Triggers>
             </Style>
 
+            <!-- Copies and duplicates in red; status-only findings dimmed -->
+            <Style x:Key="HealthRowStyle" TargetType="DataGridRow" BasedOn="{StaticResource DataGridRowStyle}">
+                <Setter Property="ToolTip" Value="{Binding Detail}"/>
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding Kind}" Value="Copy">
+                        <Setter Property="Background" Value="{StaticResource BrushRowDangerBackground}"/>
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding Kind}" Value="DuplicateId">
+                        <Setter Property="Background" Value="{StaticResource BrushRowDangerBackground}"/>
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+
             <Style x:Key="PlanRowStyle" TargetType="DataGridRow" BasedOn="{StaticResource DataGridRowStyle}">
                 <Setter Property="ToolTip" Value="{Binding Note}"/>
                 <Style.Triggers>
@@ -186,6 +201,10 @@ File: TrackerIdWindow.xaml  (Tracker ID V001 — ToolWindowShell)
                             <RadioButton Style="{StaticResource StepChip}" Content="4 · Export"
                                          IsChecked="{Binding IsStep4, Mode=TwoWay}"
                                          IsEnabled="{Binding CanOpenStep3}"/>
+                            <RadioButton Style="{StaticResource StepChip}" Content="5 · Status"
+                                         IsChecked="{Binding IsStep5, Mode=TwoWay}"/>
+                            <RadioButton Style="{StaticResource StepChip}" Content="6 · Health"
+                                         IsChecked="{Binding IsStep6, Mode=TwoWay}"/>
                         </StackPanel>
                         <Button DockPanel.Dock="Right" Content="Re-read model" Style="{StaticResource SmallSecondaryButton}"
                                 Command="{Binding RefreshCommand}"
@@ -197,6 +216,24 @@ File: TrackerIdWindow.xaml  (Tracker ID V001 — ToolWindowShell)
                             Visibility="{Binding IsStep1, Converter={StaticResource BoolToVisibilityConverter}}">
                         <StackPanel Margin="10,8,10,10">
                             <TextBlock Text="Model element categories" Style="{StaticResource SectionTitle}" Margin="0,0,0,6"/>
+
+                            <!-- Scope -->
+                            <WrapPanel Margin="0,0,0,8">
+                                <TextBlock Text="Scope" Style="{StaticResource FilterLabel}"/>
+                                <RadioButton GroupName="Scope" Style="{StaticResource ChipToggle}" Content="Whole model"
+                                             IsChecked="{Binding ScopeMode, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=WholeModel, Mode=OneWay}"
+                                             Command="{Binding SetScopeCommand}" CommandParameter="WholeModel"/>
+                                <RadioButton GroupName="Scope" Style="{StaticResource ChipToggle}" Content="Current selection"
+                                             IsChecked="{Binding ScopeMode, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=Selection, Mode=OneWay}"
+                                             Command="{Binding SetScopeCommand}" CommandParameter="Selection"/>
+                                <RadioButton GroupName="Scope" Style="{StaticResource ChipToggle}" Content="Active view"
+                                             IsChecked="{Binding ScopeMode, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=ActiveView, Mode=OneWay}"
+                                             Command="{Binding SetScopeCommand}" CommandParameter="ActiveView"/>
+                                <Button Content="Use current selection" Style="{StaticResource SmallSecondaryButton}" Margin="4,0,10,0"
+                                        Command="{Binding UseCurrentSelectionCommand}"
+                                        ToolTip="Select elements in Revit, then click here to work on just those."/>
+                                <TextBlock Text="{Binding ScopeText}" Style="{StaticResource HintText}" VerticalAlignment="Center"/>
+                            </WrapPanel>
 
                             <Grid Margin="0,0,0,6">
                                 <Grid.ColumnDefinitions>
@@ -243,7 +280,6 @@ File: TrackerIdWindow.xaml  (Tracker ID V001 — ToolWindowShell)
 
                             <DataGrid x:Name="CategoriesGrid"
                                       ItemsSource="{Binding CategoriesView}"
-                                      SelectedItem="{Binding SelectedCategory, Mode=TwoWay}"
                                       MouseDoubleClick="CategoriesGrid_MouseDoubleClick"
                                       MinHeight="220"
                                       shell:ShellBehaviors.MaxHeightRatio="0.5"
@@ -261,6 +297,15 @@ File: TrackerIdWindow.xaml  (Tracker ID V001 — ToolWindowShell)
                                       VirtualizingStackPanel.IsVirtualizing="True"
                                       VirtualizingStackPanel.VirtualizationMode="Recycling">
                                 <DataGrid.Columns>
+                                    <DataGridTemplateColumn Header="☑" Width="36" SortMemberPath="IsSelected">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                          HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                          PreviewMouseLeftButtonDown="CheckBoxCell_PreviewMouseLeftButtonDown"/>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
                                     <DataGridTextColumn Header="Category" Binding="{Binding Name, Mode=OneWay}" Width="*"
                                                         ElementStyle="{StaticResource GridCellText}"/>
                                     <DataGridTextColumn Header="Discipline" Binding="{Binding Discipline, Mode=OneWay}" Width="110"
@@ -287,10 +332,17 @@ File: TrackerIdWindow.xaml  (Tracker ID V001 — ToolWindowShell)
                             </DataGrid>
 
                             <DockPanel Margin="0,6,0,0" LastChildFill="False">
-                                <TextBlock DockPanel.Dock="Left" Text="{Binding CategoriesShownText}" Style="{StaticResource HintText}"/>
-                                <TextBlock DockPanel.Dock="Right" Text="Coverage = placed elements that already have a Tracker_ID. Click a header to sort."
-                                           Style="{StaticResource HintText}"/>
+                                <TextBlock DockPanel.Dock="Left" Text="{Binding CategoriesShownText}" Style="{StaticResource HintText}" VerticalAlignment="Center"/>
+                                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                    <Button Content="Tick all shown" Style="{StaticResource SmallSecondaryButton}"
+                                            Command="{Binding SelectAllCategoriesCommand}" Margin="0,0,6,0"/>
+                                    <Button Content="Untick all" Style="{StaticResource SmallSecondaryButton}"
+                                            Command="{Binding SelectNoCategoriesCommand}"/>
+                                </StackPanel>
                             </DockPanel>
+                            <TextBlock Text="{Binding TickedCategoriesText}" Style="{StaticResource HintText}" FontWeight="SemiBold" Margin="0,4,0,0"/>
+                            <TextBlock Text="Coverage = placed elements that already have a Tracker_ID. Click a header to sort."
+                                       Style="{StaticResource HintText}" Margin="0,2,0,0"/>
                         </StackPanel>
                     </Border>
 
@@ -370,6 +422,8 @@ File: TrackerIdWindow.xaml  (Tracker ID V001 — ToolWindowShell)
                                             </DataTemplate>
                                         </DataGridTemplateColumn.CellTemplate>
                                     </DataGridTemplateColumn>
+                                    <DataGridTextColumn Header="Category" Binding="{Binding CategoryName, Mode=OneWay}" Width="130" IsReadOnly="True"
+                                                        ElementStyle="{StaticResource GridCellText}"/>
                                     <DataGridTextColumn Header="Family" Binding="{Binding FamilyName, Mode=OneWay}" Width="*" IsReadOnly="True"
                                                         ElementStyle="{StaticResource GridCellText}"/>
                                     <DataGridTextColumn Header="Type" Binding="{Binding TypeName, Mode=OneWay}" Width="*" IsReadOnly="True"
@@ -525,6 +579,12 @@ File: TrackerIdWindow.xaml  (Tracker ID V001 — ToolWindowShell)
                                                      IsChecked="{Binding PlanFilter, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=Problems, Mode=OneWay}"
                                                      Command="{Binding SetPlanFilterCommand}" CommandParameter="Problems"/>
                                     </StackPanel>
+                                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                                        <Button Content="Select shown in Revit" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,6,0"
+                                                Command="{Binding SelectShownPlanRowsCommand}"/>
+                                        <Button Content="Zoom to highlighted" Style="{StaticResource SmallSecondaryButton}"
+                                                Command="{Binding ZoomToPlanRowsCommand}"/>
+                                    </StackPanel>
                                 </DockPanel>
 
                                 <Border Background="{StaticResource BrushBannerWarningBackground}" BorderBrush="{StaticResource BrushBannerWarningBorder}"
@@ -535,6 +595,9 @@ File: TrackerIdWindow.xaml  (Tracker ID V001 — ToolWindowShell)
                                 </Border>
 
                                 <DataGrid ItemsSource="{Binding PlanView}"
+                                          x:Name="PlanGrid"
+                                          MouseDoubleClick="ElementGrid_MouseDoubleClick"
+                                          SelectionChanged="PlanGrid_SelectionChanged"
                                           MinHeight="200"
                                           shell:ShellBehaviors.MaxHeightRatio="0.45"
                                           shell:ShellBehaviors.ForwardMouseWheel="True"
@@ -580,6 +643,15 @@ File: TrackerIdWindow.xaml  (Tracker ID V001 — ToolWindowShell)
                             Visibility="{Binding IsStep4, Converter={StaticResource BoolToVisibilityConverter}}">
                         <StackPanel Margin="10,8,10,10">
                             <TextBlock Text="Export for Power BI" Style="{StaticResource SectionTitle}" Margin="0,0,0,6"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                <TextBlock Text="Format" Style="{StaticResource FilterLabel}"/>
+                                <RadioButton GroupName="ExportFormat" Style="{StaticResource ChipToggle}" Content="CSV"
+                                             IsChecked="{Binding ExportFormat, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=Csv, Mode=OneWay}"
+                                             Command="{Binding SetExportFormatCommand}" CommandParameter="Csv"/>
+                                <RadioButton GroupName="ExportFormat" Style="{StaticResource ChipToggle}" Content="Excel (.xlsx)"
+                                             IsChecked="{Binding ExportFormat, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=Excel, Mode=OneWay}"
+                                             Command="{Binding SetExportFormatCommand}" CommandParameter="Excel"/>
+                            </StackPanel>
                             <TextBlock Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="0,0,0,8"
                                        Text="Writes one row per element that has a Tracker_ID. Save it in a synced SharePoint folder and point Power BI at it; your Excel status table joins to it on Tracker_ID. Zone, Level and Grid come from the Tracker parameters as last written in step 3."/>
 
@@ -589,7 +661,7 @@ File: TrackerIdWindow.xaml  (Tracker ID V001 — ToolWindowShell)
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="CSV file" Style="{StaticResource FilterLabel}"/>
+                                <TextBlock Grid.Column="0" Text="File" Style="{StaticResource FilterLabel}"/>
                                 <TextBox Grid.Column="1" Style="{StaticResource StyledTextInput}" Margin="0,0,8,0"
                                          Text="{Binding ExportPath, UpdateSourceTrigger=PropertyChanged}"/>
                                 <Button Grid.Column="2" Content="Browse…" Style="{StaticResource SmallSecondaryButton}"
@@ -608,6 +680,256 @@ File: TrackerIdWindow.xaml  (Tracker ID V001 — ToolWindowShell)
                                        Foreground="{StaticResource BrushTextSecondary}" Margin="0,2,0,8"/>
 
                             <TextBlock Text="{Binding LastExportText}" Style="{StaticResource HintText}" TextWrapping="Wrap"/>
+
+                            <Border Style="{StaticResource SeparatorLine}" Margin="0,10,0,10"/>
+                            <TextBlock Text="Status template for the site team" Style="{StaticResource SectionTitle}" Margin="0,0,0,6"/>
+                            <TextBlock Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="0,0,0,8"
+                                       Text="An Excel file with one row per Tracker_ID and columns Status (drop-down from the colour table in step 5), Progress %, Date and Updated by. Put it on SharePoint. Running it again only adds new Tracker_IDs at the bottom; rows the team filled in are never changed."/>
+                            <Grid Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Template" Style="{StaticResource FilterLabel}"/>
+                                <TextBox Grid.Column="1" Style="{StaticResource StyledTextInput}" Margin="0,0,8,0"
+                                         Text="{Binding StatusTemplatePath, UpdateSourceTrigger=PropertyChanged}"/>
+                                <Button Grid.Column="2" Content="Browse…" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,6,0"
+                                        Command="{Binding BrowseTemplateCommand}"/>
+                                <Button Grid.Column="3" Content="Create / update template" Style="{StaticResource SmallSecondaryButton}"
+                                        Command="{Binding WriteStatusTemplateCommand}"/>
+                            </Grid>
+                            <TextBlock Text="{Binding LastTemplateText}" Style="{StaticResource HintText}" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- ══ STEP 5: status ══ -->
+                    <StackPanel Visibility="{Binding IsStep5, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <Border Style="{StaticResource ContentCard}" Margin="0,0,0,8">
+                            <StackPanel Margin="10,8,10,10">
+                                <TextBlock Text="Status from the team's file" Style="{StaticResource SectionTitle}" Margin="0,0,0,6"/>
+                                <TextBlock Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="0,0,0,8"
+                                           Text="Excel or CSV with a Tracker_ID and a Status column (Progress and Date are optional). When an ID is listed several times, the latest date wins. Elements not in the file keep their status."/>
+                                <Grid Margin="0,0,0,8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="Status file" Style="{StaticResource FilterLabel}"/>
+                                    <TextBox Grid.Column="1" Style="{StaticResource StyledTextInput}" Margin="0,0,8,0"
+                                             Text="{Binding StatusFilePath, UpdateSourceTrigger=PropertyChanged}"/>
+                                    <Button Grid.Column="2" Content="Browse…" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,6,0"
+                                            Command="{Binding BrowseStatusFileCommand}"/>
+                                    <Button Grid.Column="3" Content="Read" Style="{StaticResource SmallSecondaryButton}"
+                                            Command="{Binding ReadStatusCommand}"/>
+                                </Grid>
+
+                                <DockPanel Margin="0,0,0,6" LastChildFill="False">
+                                    <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center">
+                                        <RadioButton GroupName="StatusFilter" Style="{StaticResource ChipToggle}" Content="All"
+                                                     IsChecked="{Binding StatusFilter, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=All, Mode=OneWay}"
+                                                     Command="{Binding SetStatusFilterCommand}" CommandParameter="All"/>
+                                        <RadioButton GroupName="StatusFilter" Style="{StaticResource ChipToggle}" Content="To update"
+                                                     IsChecked="{Binding StatusFilter, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=Set, Mode=OneWay}"
+                                                     Command="{Binding SetStatusFilterCommand}" CommandParameter="Set"/>
+                                        <RadioButton GroupName="StatusFilter" Style="{StaticResource ChipToggle}" Content="Up to date"
+                                                     IsChecked="{Binding StatusFilter, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=Unchanged, Mode=OneWay}"
+                                                     Command="{Binding SetStatusFilterCommand}" CommandParameter="Unchanged"/>
+                                        <RadioButton GroupName="StatusFilter" Style="{StaticResource ChipToggle}" Content="Not in file"
+                                                     IsChecked="{Binding StatusFilter, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=NoRow, Mode=OneWay}"
+                                                     Command="{Binding SetStatusFilterCommand}" CommandParameter="NoRow"/>
+                                    </StackPanel>
+                                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                                        <Button Content="Select shown in Revit" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,6,0"
+                                                Command="{Binding SelectShownStatusRowsCommand}"/>
+                                        <Button Content="Zoom to highlighted" Style="{StaticResource SmallSecondaryButton}"
+                                                Command="{Binding ZoomToStatusRowsCommand}"/>
+                                    </StackPanel>
+                                </DockPanel>
+
+                                <DataGrid ItemsSource="{Binding StatusView}"
+                                          x:Name="StatusGrid"
+                                          MouseDoubleClick="ElementGrid_MouseDoubleClick"
+                                          SelectionChanged="StatusGrid_SelectionChanged"
+                                          MinHeight="160"
+                                          shell:ShellBehaviors.MaxHeightRatio="0.35"
+                                          shell:ShellBehaviors.ForwardMouseWheel="True"
+                                          RowStyle="{StaticResource DataGridRowStyle}"
+                                      AutoGenerateColumns="False" IsReadOnly="True"
+                                      CanUserAddRows="False" CanUserDeleteRows="False" CanUserResizeRows="False"
+                                      SelectionMode="Extended" SelectionUnit="FullRow"
+                                      GridLinesVisibility="Horizontal"
+                                      HorizontalGridLinesBrush="{StaticResource BrushSeparatorThin}"
+                                      CellStyle="{StaticResource DataGridCellStyle}"
+                                      ColumnHeaderStyle="{StaticResource DataGridColumnHeaderStyle}"
+                                      Background="{StaticResource BrushSurfaceWindow}"
+                                      BorderThickness="0" RowHeight="26"
+                                      VirtualizingStackPanel.IsVirtualizing="True"
+                                      VirtualizingStackPanel.VirtualizationMode="Recycling">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Element ID" Binding="{Binding ElementId, Mode=OneWay}" Width="80"
+                                                            ElementStyle="{StaticResource GridCellId}"/>
+                                        <DataGridTextColumn Header="Tracker_ID" Binding="{Binding TrackerId, Mode=OneWay}" Width="*"
+                                                            ElementStyle="{StaticResource GridCellId}"/>
+                                        <DataGridTextColumn Header="Category" Binding="{Binding Category, Mode=OneWay}" Width="110"
+                                                            ElementStyle="{StaticResource GridCellText}"/>
+                                        <DataGridTextColumn Header="Status now" Binding="{Binding CurrentStatus, Mode=OneWay}" Width="100"
+                                                            ElementStyle="{StaticResource GridCellText}"/>
+                                        <DataGridTextColumn Header="Status in file" Binding="{Binding FileStatus, Mode=OneWay}" Width="100"
+                                                            ElementStyle="{StaticResource GridCellText}"/>
+                                        <DataGridTextColumn Header="Progress" Binding="{Binding FileProgress, Mode=OneWay}" Width="70"
+                                                            ElementStyle="{StaticResource GridCellNumber}"/>
+                                        <DataGridTextColumn Header="Date" Binding="{Binding FileDate, Mode=OneWay}" Width="85"
+                                                            ElementStyle="{StaticResource GridCellText}"/>
+                                        <DataGridTextColumn Header="Action" Binding="{Binding ChangeText, Mode=OneWay}" Width="90"
+                                                            SortMemberPath="Change" ElementStyle="{StaticResource GridCellText}"/>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+
+                                <DockPanel Margin="0,6,0,0" LastChildFill="False">
+                                    <TextBlock DockPanel.Dock="Left" Text="{Binding StatusSummaryText}" Style="{StaticResource HintText}"
+                                               TextWrapping="Wrap" MaxWidth="640" VerticalAlignment="Center"/>
+                                    <Button DockPanel.Dock="Right" Content="Write status into Revit" Style="{StaticResource PrimaryButton}" MinWidth="170"
+                                            Command="{Binding ImportStatusCommand}"/>
+                                </DockPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource ContentCard}">
+                            <StackPanel Margin="10,8,10,10">
+                                <TextBlock Text="Colour views by status" Style="{StaticResource SectionTitle}" Margin="0,0,0,6"/>
+                                <TextBlock Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="0,0,0,8"
+                                           Text="One view filter per status (Tracker Status - …) with a solid colour, plus light grey for elements with no status. Colours are #RRGGBB; edit them here."/>
+                                <ItemsControl ItemsSource="{Binding StatusColourRows}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <WrapPanel/>
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="1" CornerRadius="4"
+                                                    Padding="6,4" Margin="0,0,8,6">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Border Width="18" Height="18" CornerRadius="3" Margin="0,0,6,0"
+                                                            Background="{Binding Color}" BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="1"/>
+                                                    <TextBox Width="110" Style="{StaticResource StyledTextInput}" Margin="0,0,4,0"
+                                                             Text="{Binding Status, UpdateSourceTrigger=PropertyChanged}"/>
+                                                    <TextBox Width="72" Style="{StaticResource StyledTextInput}" Margin="0,0,4,0"
+                                                             Text="{Binding Color, UpdateSourceTrigger=PropertyChanged}"/>
+                                                    <Button Content="✕" Style="{StaticResource SmallSecondaryButton}" Padding="6,0"
+                                                            ToolTip="Remove this status"
+                                                            Command="{Binding DataContext.RemoveStatusColourCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                            CommandParameter="{Binding}"/>
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                <DockPanel Margin="0,4,0,0" LastChildFill="False">
+                                    <StackPanel DockPanel.Dock="Left" Orientation="Horizontal">
+                                        <Button Content="Add status" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,6,0"
+                                                Command="{Binding AddStatusColourCommand}"/>
+                                        <Button Content="Default colours" Style="{StaticResource SmallSecondaryButton}"
+                                                Command="{Binding ResetStatusColoursCommand}"/>
+                                    </StackPanel>
+                                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                        <Button Content="Colour active view" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,6,0"
+                                                Command="{Binding ColourActiveViewCommand}"
+                                                ToolTip="Adds the status filters to the view you have open in Revit."/>
+                                        <Button Content="Colour 'Tracker - Status' 3D view" Style="{StaticResource SmallSecondaryButton}"
+                                                Command="{Binding Colour3DViewCommand}"
+                                                ToolTip="Creates the 3D view if needed, colours it and opens it."/>
+                                    </StackPanel>
+                                </DockPanel>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- ══ STEP 6: health ══ -->
+                    <Border Style="{StaticResource ContentCard}"
+                            Visibility="{Binding IsStep6, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <StackPanel Margin="10,8,10,10">
+                            <DockPanel Margin="0,0,0,6" LastChildFill="False">
+                                <TextBlock DockPanel.Dock="Left" Text="Model health check" Style="{StaticResource SectionTitle}" Margin="0,0,12,0"
+                                           VerticalAlignment="Center"/>
+                                <Button DockPanel.Dock="Right" Content="Run health check" Style="{StaticResource PrimaryButton}" MinWidth="150"
+                                        Command="{Binding RunHealthCheckCommand}"/>
+                            </DockPanel>
+                            <TextBlock Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="0,0,0,8"
+                                       Text="Read-only. Looks at every placed element of the categories that have Tracker_ID, in the whole model. Status checks use the status file chosen in step 5."/>
+
+                            <DockPanel Margin="0,0,0,6" LastChildFill="False">
+                                <WrapPanel DockPanel.Dock="Left" VerticalAlignment="Center">
+                                    <RadioButton GroupName="HealthFilter" Style="{StaticResource ChipToggle}" Content="{Binding HealthAllChip}"
+                                                 IsChecked="{Binding HealthFilter, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=All, Mode=OneWay}"
+                                                 Command="{Binding SetHealthFilterCommand}" CommandParameter="All"/>
+                                    <RadioButton GroupName="HealthFilter" Style="{StaticResource ChipToggle}" Content="{Binding HealthDuplicatesChip}"
+                                                 IsChecked="{Binding HealthFilter, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=Duplicates, Mode=OneWay}"
+                                                 Command="{Binding SetHealthFilterCommand}" CommandParameter="Duplicates"/>
+                                    <RadioButton GroupName="HealthFilter" Style="{StaticResource ChipToggle}" Content="{Binding HealthMissingChip}"
+                                                 IsChecked="{Binding HealthFilter, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=Missing, Mode=OneWay}"
+                                                 Command="{Binding SetHealthFilterCommand}" CommandParameter="Missing"/>
+                                    <RadioButton GroupName="HealthFilter" Style="{StaticResource ChipToggle}" Content="{Binding HealthMovedChip}"
+                                                 IsChecked="{Binding HealthFilter, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=Moved, Mode=OneWay}"
+                                                 Command="{Binding SetHealthFilterCommand}" CommandParameter="Moved"/>
+                                    <RadioButton GroupName="HealthFilter" Style="{StaticResource ChipToggle}" Content="{Binding HealthGridChip}"
+                                                 IsChecked="{Binding HealthFilter, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=Grid, Mode=OneWay}"
+                                                 Command="{Binding SetHealthFilterCommand}" CommandParameter="Grid"/>
+                                    <RadioButton GroupName="HealthFilter" Style="{StaticResource ChipToggle}" Content="{Binding HealthStatusChip}"
+                                                 IsChecked="{Binding HealthFilter, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=Status, Mode=OneWay}"
+                                                 Command="{Binding SetHealthFilterCommand}" CommandParameter="Status"/>
+                                </WrapPanel>
+                            </DockPanel>
+
+                            <DataGrid ItemsSource="{Binding HealthView}"
+                                      x:Name="HealthGrid"
+                                      MouseDoubleClick="ElementGrid_MouseDoubleClick"
+                                      SelectionChanged="HealthGrid_SelectionChanged"
+                                      MinHeight="200"
+                                      shell:ShellBehaviors.MaxHeightRatio="0.45"
+                                      shell:ShellBehaviors.ForwardMouseWheel="True"
+                                      RowStyle="{StaticResource HealthRowStyle}"
+                                      AutoGenerateColumns="False" IsReadOnly="True"
+                                      CanUserAddRows="False" CanUserDeleteRows="False" CanUserResizeRows="False"
+                                      SelectionMode="Extended" SelectionUnit="FullRow"
+                                      GridLinesVisibility="Horizontal"
+                                      HorizontalGridLinesBrush="{StaticResource BrushSeparatorThin}"
+                                      CellStyle="{StaticResource DataGridCellStyle}"
+                                      ColumnHeaderStyle="{StaticResource DataGridColumnHeaderStyle}"
+                                      Background="{StaticResource BrushSurfaceWindow}"
+                                      BorderThickness="0" RowHeight="26"
+                                      VirtualizingStackPanel.IsVirtualizing="True"
+                                      VirtualizingStackPanel.VirtualizationMode="Recycling">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Problem" Binding="{Binding KindText, Mode=OneWay}" Width="110"
+                                                        SortMemberPath="Kind" ElementStyle="{StaticResource GridCellText}"/>
+                                    <DataGridTextColumn Header="Element ID" Binding="{Binding ElementIdText, Mode=OneWay}" Width="80"
+                                                        ElementStyle="{StaticResource GridCellId}"/>
+                                    <DataGridTextColumn Header="Tracker_ID" Binding="{Binding TrackerId, Mode=OneWay}" Width="190"
+                                                        ElementStyle="{StaticResource GridCellId}"/>
+                                    <DataGridTextColumn Header="Category" Binding="{Binding Category, Mode=OneWay}" Width="110"
+                                                        ElementStyle="{StaticResource GridCellText}"/>
+                                    <DataGridTextColumn Header="Detail" Binding="{Binding Detail, Mode=OneWay}" Width="*"
+                                                        ElementStyle="{StaticResource GridCellText}"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+
+                            <TextBlock Text="{Binding HealthSummaryText}" Style="{StaticResource HintText}" Margin="0,6,0,6" TextWrapping="Wrap"/>
+                            <WrapPanel>
+                                <Button Content="Select shown in Revit" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,6,0"
+                                        Command="{Binding SelectShownHealthRowsCommand}"/>
+                                <Button Content="Zoom to highlighted" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,6,0"
+                                        Command="{Binding ZoomToHealthRowsCommand}"/>
+                                <Button Content="Export report…" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,6,0"
+                                        Command="{Binding ExportHealthReportCommand}"/>
+                                <Button Content="Fix in step 3" Style="{StaticResource SmallSecondaryButton}"
+                                        Command="{Binding FixInStep3Command}"
+                                        ToolTip="Opens step 3 on the elements that need a Tracker_ID (missing, copies, duplicates, moved). Nothing is written until you click Write."/>
+                            </WrapPanel>
                         </StackPanel>
                     </Border>
                 </StackPanel>
@@ -682,7 +1004,7 @@ File: TrackerIdWindow.xaml  (Tracker ID V001 — ToolWindowShell)
                     <Button Content="Write Tracker IDs" Style="{StaticResource PrimaryButton}" MinWidth="140" Margin="0,0,8,0"
                             Command="{Binding WriteCommand}"
                             Visibility="{Binding IsStep3, Converter={StaticResource BoolToVisibilityConverter}}"/>
-                    <Button Content="Export CSV" Style="{StaticResource PrimaryButton}" MinWidth="120" Margin="0,0,8,0"
+                    <Button Content="Export" Style="{StaticResource PrimaryButton}" MinWidth="120" Margin="0,0,8,0"
                             Command="{Binding ExportCommand}"
                             Visibility="{Binding IsStep4, Converter={StaticResource BoolToVisibilityConverter}}"/>
                     <Button Content="Close" Style="{StaticResource OutlineButton}" Width="90" Height="38"

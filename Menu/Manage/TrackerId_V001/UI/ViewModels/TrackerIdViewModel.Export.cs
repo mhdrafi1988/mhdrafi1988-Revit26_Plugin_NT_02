@@ -11,10 +11,19 @@ using System.Linq;
 
 namespace Revit26_Plugin_Revised.TrackerId.V001.UI.ViewModels
 {
-    // Step 4: the CSV export Power BI reads.
+    // Step 4: the CSV / Excel export Power BI reads, and the status template the team fills in.
     public partial class TrackerIdViewModel
     {
-        /// <summary>CSV file to write.</summary>
+        /// <summary>CSV (default) or Excel.</summary>
+        [ObservableProperty] private ExportFormat _exportFormat = ExportFormat.Csv;
+
+        /// <summary>Status template file (.xlsx) on SharePoint.</summary>
+        [ObservableProperty] private string _statusTemplatePath = string.Empty;
+
+        /// <summary>Result of the last template write.</summary>
+        [ObservableProperty] private string _lastTemplateText = string.Empty;
+
+        /// <summary>File to write (.csv or .xlsx, following <see cref="ExportFormat"/>).</summary>
         [ObservableProperty] private string _exportPath = string.Empty;
 
         /// <summary>True: every element with a Tracker_ID. False: only the chosen types.</summary>
@@ -36,7 +45,89 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.UI.ViewModels
                 : _settings.ExportPath;
             ExportWholeModel = _settings.ExportWholeModel;
             ExportDatedCopy = _settings.ExportDatedCopy;
+            ExportFormat = _settings.ExportFormat;
+            StatusTemplatePath = string.IsNullOrWhiteSpace(_settings.StatusTemplatePath)
+                ? Path.Combine(Path.GetDirectoryName(ExportPath) ?? string.Empty, "Tracker_Status.xlsx")
+                : _settings.StatusTemplatePath;
         }
+
+        /// <summary>Picks a format chip: "Csv" or "Excel".</summary>
+        [RelayCommand]
+        private void SetExportFormat(string format)
+        {
+            if (Enum.TryParse(format, out ExportFormat parsed)) ExportFormat = parsed;
+        }
+
+        // Keeps the file extension in step with the format.
+        partial void OnExportFormatChanged(ExportFormat value)
+        {
+            if (string.IsNullOrWhiteSpace(ExportPath)) return;
+            string wanted = value == ExportFormat.Excel ? ".xlsx" : ".csv";
+            if (!string.Equals(Path.GetExtension(ExportPath), wanted, StringComparison.OrdinalIgnoreCase))
+                ExportPath = Path.ChangeExtension(ExportPath, wanted);
+        }
+
+        /// <summary>Asks where to save the status template.</summary>
+        [RelayCommand]
+        private void BrowseTemplate()
+        {
+            string picked = PickTemplatePath?.Invoke(StatusTemplatePath);
+            if (!string.IsNullOrWhiteSpace(picked)) StatusTemplatePath = picked;
+        }
+
+        partial void OnStatusTemplatePathChanged(string value) => WriteStatusTemplateCommand.NotifyCanExecuteChanged();
+
+        /// <summary>
+        /// Creates the status template, or adds the Tracker_IDs it does not list yet to an existing one.
+        /// Rows the team already filled in are never changed.
+        /// </summary>
+        [RelayCommand(CanExecute = nameof(CanWriteStatusTemplate))]
+        private void WriteStatusTemplate()
+        {
+            string path = StatusTemplatePath?.Trim();
+            var statuses = StatusColourRows.Select(r => r.Status?.Trim()).Where(st => !string.IsNullOrEmpty(st)).ToList();
+
+            Run("Writing the status template…", app =>
+            {
+                var doc = DocumentFor(app);
+                if (doc == null) return;
+
+                var rows = ModelReader.ReadExportRows(doc, null).Select(r => new TemplateRow
+                {
+                    TrackerId = r.TrackerId,
+                    Category = r.Category,
+                    Type = string.IsNullOrEmpty(r.TypeMark) ? r.Type : $"{r.TypeMark} · {r.Type}",
+                    Zone = r.Zone,
+                    Level = r.Level
+                }).ToList();
+
+                try
+                {
+                    var result = ExcelExportService.WriteStatusTemplate(path, rows, statuses);
+                    OnUi(() =>
+                    {
+                        LastTemplateText = result.Created
+                            ? $"Created {result.Path} with {result.Added} Tracker_ID(s)."
+                            : result.Added == 0
+                                ? $"{result.Path} already lists all {result.AlreadyListed} Tracker_ID(s); nothing to add."
+                                : $"Added {result.Added} new Tracker_ID(s) to {result.Path}; {result.AlreadyListed} existing row(s) left as they were.";
+                        AddLog(LogLevel.Success, LastTemplateText);
+                        if (rows.Count == 0) AddLog(LogLevel.Warning, "No element has a Tracker_ID yet. Write IDs in step 3 first.");
+                        SaveSettings();
+                    });
+                }
+                catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException || ex is ArgumentException || ex is InvalidDataException)
+                {
+                    OnUi(() =>
+                    {
+                        LastTemplateText = "Template not written: " + ex.Message;
+                        AddLog(LogLevel.Error, LastTemplateText);
+                    });
+                }
+            });
+        }
+
+        private bool CanWriteStatusTemplate() => !IsRunning && !string.IsNullOrWhiteSpace(StatusTemplatePath);
 
         partial void OnExportPathChanged(string value) => ExportCommand.NotifyCanExecuteChanged();
         partial void OnExportWholeModelChanged(bool value) => ExportCommand.NotifyCanExecuteChanged();
@@ -55,6 +146,7 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.UI.ViewModels
         {
             string path = ExportPath?.Trim();
             bool dated = ExportDatedCopy;
+            var format = ExportFormat;
             var modelSegment = Segments.FirstOrDefault(s => s.Kind == SegmentKind.Model)?.ToDefinition();
             var projectParameters = NeededParameterNames().Project;
             List<long> ids = ExportWholeModel ? null : _snapshots?.Select(s => s.ElementId).ToList();
@@ -73,7 +165,9 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.UI.ViewModels
                 string modelCode = TrackerIdPlanner.ModelCode(modelSegment, ModelReader.ReadModelIdentity(doc, projectParameters), out _);
                 try
                 {
-                    var written = CsvExportService.Write(path, rows, doc.Title, modelCode, DateTime.Now, dated);
+                    var written = format == ExportFormat.Excel
+                        ? ExcelExportService.WriteElements(path, rows, doc.Title, modelCode, DateTime.Now, dated)
+                        : CsvExportService.Write(path, rows, doc.Title, modelCode, DateTime.Now, dated);
                     OnUi(() =>
                     {
                         LastExportText = $"{rows.Count} row(s) written at {DateTime.Now:HH:mm} to {string.Join(" and ", written)}";

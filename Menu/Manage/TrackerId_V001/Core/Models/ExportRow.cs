@@ -41,5 +41,14 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.Core.Models
 
         /// <summary>Revit UniqueId.</summary>
         public string UniqueId { get; set; } = string.Empty;
+
+        /// <summary>Tracker_Status, empty when none.</summary>
+        public string Status { get; set; } = string.Empty;
+
+        /// <summary>Tracker_Progress (0–100), null when empty.</summary>
+        public double? ProgressPct { get; set; }
+
+        /// <summary>Tracker_StatusDate, empty when none.</summary>
+        public string StatusDate { get; set; } = string.Empty;
     }
 }

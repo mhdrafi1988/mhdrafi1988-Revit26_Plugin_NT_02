@@ -5,6 +5,7 @@ using System;
 using System.Collections.Specialized;
 using System.IO;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
 
@@ -12,8 +13,9 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.UI.Views
 {
     /// <summary>
     /// Tracker ID window; everything is bound to <see cref="TrackerIdViewModel"/>. The code-behind only
-    /// closes the window, copies log lines, keeps the newest log line in view, opens the file dialog and
-    /// asks the view model's questions in dialogs owned by this window.
+    /// closes the window, copies log lines, keeps the newest log line in view, opens the file dialogs,
+    /// passes the grids' highlighted rows to the view model, zooms on a row double-click and asks the
+    /// view model's questions in dialogs owned by this window.
     /// </summary>
     public partial class TrackerIdWindow : Window
     {
@@ -32,6 +34,9 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.UI.Views
             _viewModel.Confirm = question =>
                 MessageBox.Show(this, question, Title, MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes;
             _viewModel.PickExportPath = PickExportPath;
+            _viewModel.PickStatusFile = PickStatusFile;
+            _viewModel.PickTemplatePath = PickTemplatePath;
+            _viewModel.PickReportPath = PickReportPath;
 
             _viewModel.LogEntries.CollectionChanged += OnLogChanged;
             Closed += (_, _) =>
@@ -43,16 +48,65 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.UI.Views
 
         private string PickExportPath(string current)
         {
+            bool excel = string.Equals(Path.GetExtension(current ?? string.Empty), ".xlsx", StringComparison.OrdinalIgnoreCase);
             var dialog = new SaveFileDialog
             {
                 Title = "Export Tracker IDs for Power BI",
+                Filter = excel ? "Excel workbook (*.xlsx)|*.xlsx" : "CSV file (*.csv)|*.csv",
+                DefaultExt = excel ? ".xlsx" : ".csv",
+                AddExtension = true,
+                OverwritePrompt = false,
+                FileName = string.IsNullOrWhiteSpace(current) ? (excel ? "Tracker_Elements.xlsx" : "Tracker_Elements.csv") : Path.GetFileName(current)
+            };
+            SetFolder(dialog, current);
+            return dialog.ShowDialog(this) == true ? dialog.FileName : null;
+        }
+
+        private string PickStatusFile(string current)
+        {
+            var dialog = new OpenFileDialog
+            {
+                Title = "Choose the status file",
+                Filter = "Status file (*.xlsx;*.xlsm;*.csv)|*.xlsx;*.xlsm;*.csv|All files (*.*)|*.*",
+                CheckFileExists = true,
+                FileName = string.IsNullOrWhiteSpace(current) ? string.Empty : Path.GetFileName(current)
+            };
+            SetFolder(dialog, current);
+            return dialog.ShowDialog(this) == true ? dialog.FileName : null;
+        }
+
+        // An existing template is extended, never replaced, so there is no overwrite prompt.
+        private string PickTemplatePath(string current)
+        {
+            var dialog = new SaveFileDialog
+            {
+                Title = "Status template (new or existing)",
+                Filter = "Excel workbook (*.xlsx)|*.xlsx",
+                DefaultExt = ".xlsx",
+                AddExtension = true,
+                OverwritePrompt = false,
+                FileName = string.IsNullOrWhiteSpace(current) ? "Tracker_Status.xlsx" : Path.GetFileName(current)
+            };
+            SetFolder(dialog, current);
+            return dialog.ShowDialog(this) == true ? dialog.FileName : null;
+        }
+
+        private string PickReportPath(string suggested)
+        {
+            var dialog = new SaveFileDialog
+            {
+                Title = "Save the health report",
                 Filter = "CSV file (*.csv)|*.csv",
                 DefaultExt = ".csv",
                 AddExtension = true,
-                OverwritePrompt = false,
-                FileName = string.IsNullOrWhiteSpace(current) ? "Tracker_Elements.csv" : Path.GetFileName(current)
+                FileName = string.IsNullOrWhiteSpace(suggested) ? "Tracker_Health.csv" : Path.GetFileName(suggested)
             };
+            SetFolder(dialog, suggested);
+            return dialog.ShowDialog(this) == true ? dialog.FileName : null;
+        }
 
+        private static void SetFolder(FileDialog dialog, string current)
+        {
             try
             {
                 string folder = string.IsNullOrWhiteSpace(current) ? null : Path.GetDirectoryName(current);
@@ -62,8 +116,6 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.UI.Views
             {
                 // A typed path with invalid characters: open the dialog at its default folder.
             }
-
-            return dialog.ShowDialog(this) == true ? dialog.FileName : null;
         }
 
         // Scrolling inside a CollectionChanged handler makes WPF throw "ItemsControl is inconsistent with
@@ -85,6 +137,29 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.UI.Views
         {
             if (_viewModel.NextCommand.CanExecute(null)) _viewModel.NextCommand.Execute(null);
         }
+
+        // Double-click on a result, status or health row selects that element in Revit and zooms to it.
+        private void ElementGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is not DataGrid grid) return;
+            var row = ItemsControl.ContainerFromElement(grid, e.OriginalSource as DependencyObject) as DataGridRow;
+            if (row == null) return;
+
+            long? id = row.Item switch
+            {
+                PlanRowViewModel p => p.ElementId,
+                StatusRowViewModel s => s.ElementId,
+                HealthRowViewModel h => h.Issue.ElementId,
+                _ => null
+            };
+            if (id.HasValue) _viewModel.ZoomToElement(id.Value);
+        }
+
+        private void PlanGrid_SelectionChanged(object sender, SelectionChangedEventArgs e) => _viewModel.SelectedPlanItems = PlanGrid.SelectedItems;
+
+        private void StatusGrid_SelectionChanged(object sender, SelectionChangedEventArgs e) => _viewModel.SelectedStatusItems = StatusGrid.SelectedItems;
+
+        private void HealthGrid_SelectionChanged(object sender, SelectionChangedEventArgs e) => _viewModel.SelectedHealthItems = HealthGrid.SelectedItems;
 
         private void CloseButton_Click(object sender, RoutedEventArgs e) => Close();
 

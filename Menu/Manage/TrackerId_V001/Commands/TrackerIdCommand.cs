@@ -25,7 +25,8 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.Commands
 
         private Result ExecuteUnguarded(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
-            var doc = commandData.Application.ActiveUIDocument?.Document;
+            var uidoc = commandData.Application.ActiveUIDocument;
+            var doc = uidoc?.Document;
             if (doc == null)
             {
                 TaskDialog.Show(ToolCatalog.TrackerId.Title, "Open a project first.");
@@ -46,7 +47,7 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.Commands
 
             // Created here, inside the command: the view model reads the model and creates its external
             // event, and both need a Revit API context.
-            var viewModel = new TrackerIdViewModel(doc);
+            var viewModel = new TrackerIdViewModel(uidoc);
             var window = new TrackerIdWindow(viewModel);
             new WindowInteropHelper(window).Owner = commandData.Application.MainWindowHandle;
             window.Show();

@@ -86,4 +86,65 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.Core.Models
         Partial,
         Complete
     }
+
+    /// <summary>Which elements the tool looks at (step 1).</summary>
+    public enum ScopeMode
+    {
+        /// <summary>Every placed element of the ticked categories (the 1.0.0 behaviour).</summary>
+        WholeModel,
+
+        /// <summary>Only the elements selected in Revit when "Use current selection" was clicked.</summary>
+        Selection,
+
+        /// <summary>Only the elements visible in the active view.</summary>
+        ActiveView
+    }
+
+    /// <summary>File format of the Power BI export.</summary>
+    public enum ExportFormat
+    {
+        Csv,
+        Excel
+    }
+
+    /// <summary>What the model health check found.</summary>
+    public enum HealthIssueKind
+    {
+        /// <summary>Several elements share one Tracker_ID and none of them is clearly the original.</summary>
+        DuplicateId,
+
+        /// <summary>The element carries another element's Tracker_ID (copy-paste).</summary>
+        Copy,
+
+        /// <summary>The element is in a tracked category but has no Tracker_ID.</summary>
+        MissingId,
+
+        /// <summary>Zone, level or grid changed since the ID was written.</summary>
+        Moved,
+
+        /// <summary>The nearest grid crossing is further than the tolerance.</summary>
+        FarFromGrid,
+
+        /// <summary>The element has a Tracker_ID but no status in the status file.</summary>
+        NoStatus,
+
+        /// <summary>The status file lists a Tracker_ID that no element in the model has.</summary>
+        IdNotInModel
+    }
+
+    /// <summary>What a status import does to one element.</summary>
+    public enum StatusChange
+    {
+        /// <summary>Status, progress or date differ from the file; they are written.</summary>
+        Set,
+
+        /// <summary>Already matches the file.</summary>
+        Unchanged,
+
+        /// <summary>The file has no row for this ID; the element's status is left as it is.</summary>
+        NoRow,
+
+        /// <summary>Owned by another user or read-only; skipped.</summary>
+        Locked
+    }
 }

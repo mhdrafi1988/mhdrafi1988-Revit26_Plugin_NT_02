@@ -3,13 +3,46 @@
 All notable changes to SloperPro. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
-- **Plugin version** lives in `Revit26_Plugin.csproj` (`<Version>`).
+- **Plugin version** lives in `Revit26_Plugin_Revised.csproj` (`<Version>`).
 - **Tool versions** live in `Shared/Services/ToolCatalog.cs`. Each tool has its own semantic version;
   the ribbon tooltip, the tool's window title and its error dialogs all read it from there.
 
 Each release lists every tool whose version changed, under the plugin version.
 
 ## [5.1.0] — 2026-10-20
+
+### Added — Tracker ID 1.1.0
+- **Several categories in one run:** step 1 has a tick column; tick any number of categories and
+  step 2 lists all their types, with a Category column. "Tick shown" / "Untick all" act on what the
+  filters show.
+- **Scope:** Whole model (default, as before), Current selection or Active view. "Use current
+  selection" reads Revit's selection again, since the window stays open while you work.
+- **Select & zoom:** double-click a row in the result, status or health grid to select that element
+  in Revit and zoom to it; "Select shown" selects every row the filter shows.
+- **Step 5 · Status:** read the team's status file (Excel or CSV, on SharePoint) and write
+  `Tracker_Status`, `Tracker_Progress` and `Tracker_StatusDate` into Revit in one undoable
+  transaction. Columns are found by header (Tracker_ID / ID, Status, Progress / Progress %,
+  Date / Status Date); when an ID appears on several rows, the latest date wins. Locked elements
+  are skipped and listed.
+- **Colour views by status:** an editable status → colour table. "Colour active view" adds one
+  `Tracker Status - <status>` filter per status (plus "(none)" in light grey) with a solid fill;
+  "Colour 3D view" does the same on a "Tracker - Status" 3D view, created when missing. A view whose
+  template controls filters is reported instead of changing the template.
+- **Excel export:** step 4 can export `.xlsx` (sheet "Elements", same columns as the CSV).
+- **Status template:** creates the Excel file the team fills in (Status drop-down, Progress 0–100,
+  Date). An existing template only gets new Tracker_IDs appended; nobody's entries are changed.
+- **Step 6 · Health:** a read-only audit of every tracked element — duplicate IDs, copies, missing
+  IDs, moved elements, elements far from a grid, elements without a status and status-file IDs not
+  in the model. Filter chips with counts, select & zoom, CSV report, and "Fix in step 3" opens step 3
+  on the elements that need an ID (nothing is written until you click Write).
+
+**User note:** the three new instance parameters are added only when you first import status, with
+fixed GUIDs: `Tracker_Status` (Text, 15cff867-a1c5-4af3-bc47-21ebcde0be7e), `Tracker_Progress`
+(Number, bdfb3eab-54a5-4895-bb1a-a54befce2835) and `Tracker_StatusDate` (Text,
+f33f9a95-3856-4c9c-a56c-f640e5ce5134). The CSV export keeps every existing column in the same
+order; `Status`, `Progress_Pct` and `Status_Date` are appended at the end and `Schema_Version` is
+now 2 — Power BI queries that pick columns by name keep working. Tracker ID settings move to schema
+version 2; version 1 settings load with the new options at their defaults (whole model, CSV).
 
 ### Fixed
 - **The plugin did not build** after the unit tests moved to `Menu/Tests-01/`: the plugin project

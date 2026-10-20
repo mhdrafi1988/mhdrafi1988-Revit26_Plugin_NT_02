@@ -215,7 +215,8 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.UI.ViewModels
         {
             var needs = NeededParameterNames();
             var typeIds = Types.Where(t => t.IsSelected).Select(t => t.Info.Id).OrderBy(id => id);
-            return $"{SelectedCategory?.Info.Id}|{string.Join(",", typeIds)}|{needs.Key}";
+            var categoryIds = TickedCategories.Select(c => c.Info.Id).OrderBy(id => id);
+            return $"{ScopeKey()}|{string.Join(",", categoryIds)}|{string.Join(",", typeIds)}|{needs.Key}";
         }
 
         /// <summary>Parameter names the format reads, by where they live.</summary>
@@ -253,7 +254,7 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.UI.ViewModels
 
         private void EnsureSnapshots()
         {
-            if (SelectedCategory == null || SelectedTypeCount == 0) return;
+            if (TickedCategories.Count == 0 || SelectedTypeCount == 0) return;
 
             string key = SnapshotKey();
             if (key == _loadedKey && _snapshots != null)
@@ -262,15 +263,16 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.UI.ViewModels
                 return;
             }
 
-            long categoryId = SelectedCategory.Info.Id;
+            var categoryIds = new HashSet<long>(TickedCategories.Select(c => c.Info.Id));
             var typeIds = new HashSet<long>(Types.Where(t => t.IsSelected).Select(t => t.Info.Id));
             var needs = NeededParameterNames();
+            var scope = _scope;
 
             Run($"Reading {SelectedElementCount} elements…", app =>
             {
                 var doc = DocumentFor(app);
                 if (doc == null) return;
-                var read = ReadElements(doc, categoryId, typeIds, needs);
+                var read = ReadElements(doc, categoryIds, typeIds, needs, scope);
                 OnUi(() => ApplyElements(read, key, logCounts: true));
             });
         }
@@ -285,11 +287,12 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.UI.ViewModels
         }
 
         // Runs in the Revit API context.
-        private static ElementRead ReadElements(Document doc, long categoryId, ISet<long> typeIds, ParameterNeeds needs)
+        // typeIds null = every type (the health check reads all tracked elements this way).
+        private static ElementRead ReadElements(Document doc, ISet<long> categoryIds, ISet<long> typeIds, ParameterNeeds needs, ReadScope scope)
         {
             var boxes = ModelReader.ReadScopeBoxes(doc);
             var model = ModelReader.ReadModelIdentity(doc, needs.Project);
-            var snapshots = ModelReader.ReadSnapshots(doc, categoryId, typeIds, needs.Element, needs.Level, new ZoneLocator(boxes));
+            var snapshots = ModelReader.ReadSnapshots(doc, categoryIds, typeIds, needs.Element, needs.Level, new ZoneLocator(boxes), scope);
             foreach (var s in snapshots) s.Model = model;
 
             return new ElementRead
@@ -408,11 +411,12 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.UI.ViewModels
         private void Write()
         {
             var rows = _plan?.ToList();
-            var category = SelectedCategory;
-            if (rows == null || category == null) return;
+            var ticked = TickedCategories;
+            if (rows == null || ticked.Count == 0) return;
 
             int locked = rows.Count(r => r.Action == PlanAction.Locked);
-            var question = new StringBuilder($"Write {NewCount} new Tracker ID(s) to {category.Name}?\n\n");
+            string what = ticked.Count == 1 ? ticked[0].Name : $"{ticked.Count} categories ({string.Join(", ", ticked.Select(c => c.Name))})";
+            var question = new StringBuilder($"Write {NewCount} new Tracker ID(s) to {what}?\n\n");
             question.Append($"• {HaveIdCount} element(s) keep their ID\n");
             if (CopyCount > 0) question.Append($"• {CopyCount} copied element(s) get a new ID\n");
             if (locked > 0) question.Append($"• {locked} locked element(s) are skipped\n");
@@ -424,10 +428,12 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.UI.ViewModels
 
             bool writeLocation = WriteLocationParameters;
             bool writeGuid = WriteSourceGuid;
-            long categoryId = category.Info.Id;
+            var categoryIds = new HashSet<long>(ticked.Select(c => c.Info.Id));
             var typeIds = new HashSet<long>(Types.Where(t => t.IsSelected).Select(t => t.Info.Id));
             var needs = NeededParameterNames();
+            var scope = _scope;
             string key = SnapshotKey();
+            string typesKey = TypesKey(ticked);
 
             AddLog(LogLevel.Info, $"Writing: {NewCount} new ID(s), {rows.Count} element(s) in scope…");
             Run("Writing Tracker IDs…", app =>
@@ -435,24 +441,24 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.UI.ViewModels
                 var doc = DocumentFor(app);
                 if (doc == null) return;
 
-                var revitCategory = Category.GetCategory(doc, new ElementId(categoryId));
-                if (revitCategory == null)
+                var revitCategories = categoryIds.Select(id => Category.GetCategory(doc, new ElementId(id))).Where(c => c != null).ToList();
+                if (revitCategories.Count != categoryIds.Count)
                 {
-                    OnUi(() => AddLog(LogLevel.Error, "The category no longer exists in the model."));
+                    OnUi(() => AddLog(LogLevel.Error, "A ticked category no longer exists in the model. Click Re-read model."));
                     return;
                 }
 
-                var result = TrackerWriter.Write(doc, revitCategory, rows, writeLocation, writeGuid);
+                var result = TrackerWriter.Write(doc, revitCategories, rows, writeLocation, writeGuid);
 
                 // Read everything again so the grids and counts show the model as it now is.
-                var categories = ModelReader.ReadCategories(doc);
-                var types = ModelReader.ReadTypes(doc, categoryId);
-                var read = ReadElements(doc, categoryId, typeIds, needs);
+                var categories = ModelReader.ReadCategories(doc, scope);
+                var types = ModelReader.ReadTypes(doc, categoryIds, scope);
+                var read = ReadElements(doc, categoryIds, typeIds, needs, scope);
 
                 OnUi(() =>
                 {
                     ReportWrite(result);
-                    ApplyRefreshedLists(categories, categoryId, types, typeIds);
+                    ApplyRefreshedLists(categories, typesKey, types, typeIds);
                     ApplyElements(read, key, logCounts: false);
                     if (result.Committed) SaveSettings();
                 });
@@ -467,7 +473,7 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.UI.ViewModels
             if (result.Setup != null)
             {
                 if (result.Setup.Created.Count > 0) AddLog(LogLevel.Info, "Added to the project: " + string.Join(", ", result.Setup.Created));
-                if (result.Setup.Extended.Count > 0) AddLog(LogLevel.Info, "Bound to this category: " + string.Join(", ", result.Setup.Extended));
+                if (result.Setup.Extended.Count > 0) AddLog(LogLevel.Info, "Bound to the ticked categories: " + string.Join(", ", result.Setup.Extended));
                 foreach (var w in result.Setup.Warnings) AddLog(LogLevel.Warning, w);
             }
 
@@ -486,13 +492,14 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.UI.ViewModels
         }
 
         // Shows the re-read categories and types without losing the user's category and type choice.
-        private void ApplyRefreshedLists(List<CategoryInfo> categories, long categoryId, List<TypeInfo> types, ISet<long> tickedTypeIds)
+        private void ApplyRefreshedLists(List<CategoryInfo> categories, string typesKey, List<TypeInfo> types, ISet<long> tickedTypeIds)
         {
             _suspendTypeLoad = true;
             try { ShowCategories(categories); }
             finally { _suspendTypeLoad = false; }
 
-            _typeCache[categoryId] = types;
+            _typeCache.Clear();
+            _typeCache[typesKey] = types;
             ShowTypes(types);
             foreach (var t in Types.Where(t => tickedTypeIds.Contains(t.Info.Id))) t.IsSelected = true;
         }

@@ -15,6 +15,12 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.Core.Models
         /// <summary>Revit UniqueId; different for a copy of the element.</summary>
         public string UniqueId { get; set; } = string.Empty;
 
+        /// <summary>Revit category id.</summary>
+        public long CategoryId { get; set; }
+
+        /// <summary>Category name.</summary>
+        public string CategoryName { get; set; } = string.Empty;
+
         /// <summary>Revit type id.</summary>
         public long TypeId { get; set; }
 
@@ -68,6 +74,15 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.Core.Models
 
         /// <summary>Current Tracker_Grid.</summary>
         public string StoredGrid { get; set; } = string.Empty;
+
+        /// <summary>Current Tracker_Status.</summary>
+        public string StoredStatus { get; set; } = string.Empty;
+
+        /// <summary>Current Tracker_Progress (0–100), null when empty.</summary>
+        public double? StoredProgress { get; set; }
+
+        /// <summary>Current Tracker_StatusDate.</summary>
+        public string StoredStatusDate { get; set; } = string.Empty;
 
         /// <summary>The Revit file the element is in; the same object for every element of a run.</summary>
         public ModelIdentity Model { get; set; }

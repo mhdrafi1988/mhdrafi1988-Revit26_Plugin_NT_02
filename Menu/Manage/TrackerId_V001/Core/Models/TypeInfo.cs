@@ -4,8 +4,11 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.Core.Models
     public sealed class TypeInfo
     {
         /// <summary>Creates the row data.</summary>
-        public TypeInfo(long id, string familyName, string typeName, string typeMark, int elementCount, int withIdCount)
+        public TypeInfo(long id, string familyName, string typeName, string typeMark, int elementCount, int withIdCount,
+            long categoryId = 0, string categoryName = "")
         {
+            CategoryId = categoryId;
+            CategoryName = categoryName ?? string.Empty;
             Id = id;
             FamilyName = familyName ?? string.Empty;
             TypeName = typeName ?? string.Empty;
@@ -13,6 +16,12 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.Core.Models
             ElementCount = elementCount;
             WithIdCount = withIdCount;
         }
+
+        /// <summary>Category of the type (<c>ElementId.Value</c>).</summary>
+        public long CategoryId { get; }
+
+        /// <summary>Category name, shown when several categories are ticked.</summary>
+        public string CategoryName { get; }
 
         /// <summary>Revit type id (<c>ElementId.Value</c>).</summary>
         public long Id { get; }

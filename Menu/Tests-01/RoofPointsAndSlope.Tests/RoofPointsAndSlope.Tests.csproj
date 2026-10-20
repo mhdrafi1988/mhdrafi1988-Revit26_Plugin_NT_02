@@ -4,7 +4,7 @@
     point planner, slope reach estimate). The tool's files are linked, not
     copied; OpeningModel is replaced by a small stub (Stubs/OpeningModel.cs)
     because the real one pulls in Revit and Auto Slope By Drain types.
-    Run:  dotnet test Tests/RoofPointsAndSlope.Tests
+    Run:  dotnet test Menu/Tests-01/RoofPointsAndSlope.Tests
   -->
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>

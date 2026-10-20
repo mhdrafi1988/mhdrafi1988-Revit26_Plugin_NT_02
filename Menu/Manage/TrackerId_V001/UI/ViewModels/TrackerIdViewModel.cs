@@ -10,15 +10,18 @@ using Revit26_Plugin_Revised.TrackerId.V001.Core.Services;
 using Revit26_Plugin_Revised.TrackerId.V001.Infrastructure.ExternalEvents;
 using Revit26_Plugin_Revised.TrackerId.V001.Infrastructure.Revit;
 using System;
+using System.Linq;
 using System.Windows;
 using System.Windows.Threading;
 
 namespace Revit26_Plugin_Revised.TrackerId.V001.UI.ViewModels
 {
     /// <summary>
-    /// View model of the Tracker ID window: a four-step wizard. Step 1 picks a category, step 2 its
-    /// types, step 3 reads each element's Tracker_ID and builds the missing ones, step 4 exports the
-    /// Power BI table. The steps live in the partial files next to this one. Every model read and write
+    /// View model of the Tracker ID window: a six-step wizard. Step 1 picks the scope and one or more
+    /// categories, step 2 their types, step 3 reads each element's Tracker_ID and builds the missing
+    /// ones, step 4 exports the Power BI table and the status template, step 5 reads the team's status
+    /// file back into Revit and colours views, step 6 audits the whole model. The steps live in the
+    /// partial files next to this one. Every model read and write
     /// after the window opens goes through a <see cref="RevitJobQueue"/>, so it runs in a Revit API context.
     /// </summary>
     public partial class TrackerIdViewModel : ToolViewModelBase
@@ -39,18 +42,31 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.UI.ViewModels
         /// <summary>Asks for the export file; gets the current path, returns the chosen one or null. Set by the window.</summary>
         public Func<string, string> PickExportPath { get; set; }
 
+        /// <summary>Asks for the status file to read (Excel or CSV); returns the chosen path or null. Set by the window.</summary>
+        public Func<string, string> PickStatusFile { get; set; }
+
+        /// <summary>Asks where to save the status template; returns the chosen path or null. Set by the window.</summary>
+        public Func<string, string> PickTemplatePath { get; set; }
+
+        /// <summary>Asks where to save the health report; returns the chosen path or null. Set by the window.</summary>
+        public Func<string, string> PickReportPath { get; set; }
+
         /// <summary>
-        /// Creates the view model for <paramref name="doc"/> and lists its categories. Must be created in a
-        /// Revit API context (while the command runs): it reads the model and creates the external event.
+        /// Creates the view model for <paramref name="uidoc"/> and lists its categories within the saved
+        /// scope. Must be created in a Revit API context (while the command runs): it reads the model, the
+        /// selection and the active view, and creates the external event.
         /// </summary>
-        public TrackerIdViewModel(Document doc)
+        public TrackerIdViewModel(UIDocument uidoc)
         {
-            _doc = doc ?? throw new ArgumentNullException(nameof(doc));
+            if (uidoc == null) throw new ArgumentNullException(nameof(uidoc));
+            _doc = uidoc.Document;
             _dispatcher = Dispatcher.CurrentDispatcher;
             Confirm = AskWithoutOwner;
 
             _settings = SettingsService<TrackerIdSettings>.Load(SettingsName) ?? new TrackerIdSettings();
             _settings.Segments = SegmentCatalog.Normalize(_settings.Segments);
+            _settings.CategoryIds ??= new System.Collections.Generic.List<long>();
+            _settings.StatusColours ??= new System.Collections.Generic.List<StatusColour>();
 
             _jobs = new RevitJobQueue("Tracker ID V001");
             _jobs.BusyChanged += (_, _) => OnUi(() =>
@@ -63,10 +79,15 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.UI.ViewModels
             InitTypes();
             InitFormat();
             InitExport();
+            InitStatus();
+            InitHealth();
 
             // Safe here: the command is still running, so this is a Revit API context.
-            ShowCategories(ModelReader.ReadCategories(_doc));
-            AddLog(LogLevel.Info, $"Model '{_doc.Title}': {Categories.Count} trackable categories.");
+            ScopeMode = _settings.Scope;
+            _scope = CaptureScope(uidoc, _settings.Scope, out _scopeViewName);
+            _restoreCategoryIds = new System.Collections.Generic.HashSet<long>(_settings.CategoryIds);
+            ShowCategories(ModelReader.ReadCategories(_doc, _scope));
+            AddLog(LogLevel.Info, $"Model '{_doc.Title}': {Categories.Count(c => c.ElementCount > 0)} categories with elements in {ScopeText}.");
         }
 
         // ── Wizard ────────────────────────────────────────────────────────────
@@ -86,7 +107,13 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.UI.ViewModels
         /// <summary>True on step 4. Setting it from the step bar opens the step when allowed.</summary>
         public bool IsStep4 { get => CurrentStep == 4; set => TryOpenStep(4, value); }
 
-        /// <summary>True when step 2 can be opened (a category with elements is chosen).</summary>
+        /// <summary>True on step 5 (status). Always available: it works on the whole model.</summary>
+        public bool IsStep5 { get => CurrentStep == 5; set => TryOpenStep(5, value); }
+
+        /// <summary>True on step 6 (health check). Always available: it works on the whole model.</summary>
+        public bool IsStep6 { get => CurrentStep == 6; set => TryOpenStep(6, value); }
+
+        /// <summary>True when step 2 can be opened (a category with elements is ticked).</summary>
         public bool CanOpenStep2 => CanOpenStep(2);
 
         /// <summary>True when steps 3 and 4 can be opened (at least one type is ticked).</summary>
@@ -95,10 +122,12 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.UI.ViewModels
         /// <summary>Hint shown at the left of the footer for the current step.</summary>
         public string StepHint => CurrentStep switch
         {
-            1 => "Pick the category to track. Double-click a row to go on.",
+            1 => "Pick the scope, then tick one or more categories. Double-click a row to go on.",
             2 => "Tick the types whose elements should get a Tracker ID.",
-            3 => "Existing IDs are never changed. Write saves new IDs in one step; Ctrl+Z in Revit undoes it.",
-            _ => "One row per element. Power BI joins your status list to this file on Tracker_ID."
+            3 => "Existing IDs are never changed. Write saves new IDs in one step; Ctrl+Z in Revit undoes it. Double-click a row to zoom to it.",
+            4 => "One row per element. Power BI joins your status list to this file on Tracker_ID.",
+            5 => "Read the team's status file, write it into Revit, then colour a view by status.",
+            _ => "Checks every tracked element in the model. Double-click a row to zoom to it."
         };
 
         partial void OnCurrentStepChanged(int value)
@@ -114,7 +143,7 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.UI.ViewModels
         [RelayCommand(CanExecute = nameof(CanGoNext))]
         private void Next() => CurrentStep++;
 
-        private bool CanGoNext() => CurrentStep < 4 && CanOpenStep(CurrentStep + 1);
+        private bool CanGoNext() => CurrentStep < 6 && CanOpenStep(CurrentStep + 1);
 
         /// <summary>Goes back one step.</summary>
         [RelayCommand(CanExecute = nameof(CanGoBack))]
@@ -135,8 +164,9 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.UI.ViewModels
             return step switch
             {
                 1 => true,
-                2 => SelectedCategory != null && SelectedCategory.ElementCount > 0,
+                2 => TickedCategories.Count > 0,
                 3 or 4 => SelectedTypeCount > 0,
+                5 or 6 => true,
                 _ => false
             };
         }
@@ -147,6 +177,8 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.UI.ViewModels
             OnPropertyChanged(nameof(IsStep2));
             OnPropertyChanged(nameof(IsStep3));
             OnPropertyChanged(nameof(IsStep4));
+            OnPropertyChanged(nameof(IsStep5));
+            OnPropertyChanged(nameof(IsStep6));
         }
 
         private void RefreshCommands()
@@ -158,27 +190,18 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.UI.ViewModels
             WriteCommand.NotifyCanExecuteChanged();
             ExportCommand.NotifyCanExecuteChanged();
             RefreshCommand.NotifyCanExecuteChanged();
+            WriteStatusTemplateCommand.NotifyCanExecuteChanged();
+            ReadStatusCommand.NotifyCanExecuteChanged();
+            ImportStatusCommand.NotifyCanExecuteChanged();
+            ColourActiveViewCommand.NotifyCanExecuteChanged();
+            Colour3DViewCommand.NotifyCanExecuteChanged();
+            RunHealthCheckCommand.NotifyCanExecuteChanged();
+            FixInStep3Command.NotifyCanExecuteChanged();
         }
 
         /// <summary>Reads the categories again and forgets everything read so far.</summary>
         [RelayCommand(CanExecute = nameof(CanRefresh))]
-        private void Refresh()
-        {
-            Run("Reading categories…", app =>
-            {
-                var doc = DocumentFor(app);
-                if (doc == null) return;
-                var categories = ModelReader.ReadCategories(doc);
-                OnUi(() =>
-                {
-                    ClearTypeCache();
-                    InvalidateSnapshots();
-                    ShowCategories(categories);
-                    CurrentStep = 1;
-                    AddLog(LogLevel.Info, $"Read {categories.Count} categories again.");
-                });
-            });
-        }
+        private void Refresh() => ReloadCategories(captureScope: ScopeMode == ScopeMode.ActiveView, afterShow: () => CurrentStep = 1);
 
         private bool CanRefresh() => !IsRunning;
 
@@ -201,6 +224,13 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.UI.ViewModels
             _settings.ExportPath = ExportPath;
             _settings.ExportWholeModel = ExportWholeModel;
             _settings.ExportDatedCopy = ExportDatedCopy;
+            _settings.ExportFormat = ExportFormat;
+            _settings.Scope = ScopeMode;
+            _settings.CategoryIds = TickedCategories.Select(c => c.Info.Id).ToList();
+            _settings.StatusFilePath = StatusFilePath ?? string.Empty;
+            _settings.StatusTemplatePath = StatusTemplatePath ?? string.Empty;
+            _settings.StatusColours = StatusColourRows.Select(r => r.ToModel()).Where(c => c.Status.Length > 0).ToList();
+            _settings.SchemaVersion = TrackerIdSettings.CurrentSchemaVersion;
             SettingsService<TrackerIdSettings>.Save(SettingsName, _settings);
         }
 

@@ -274,6 +274,14 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.Core.Services
 
         // ── Helpers ───────────────────────────────────────────────────────────
 
+        /// <summary>
+        /// True when the element's stored Tracker_Zone / Level / Grid (written at the last run) differ from
+        /// the location <paramref name="row"/> computed now. Empty stored values never count as moved.
+        /// </summary>
+        public static bool IsMoved(PlanRow row) =>
+            row?.Element != null &&
+            (Moved(row.Element.StoredZone, row.Zone) || Moved(row.Element.StoredLevel, row.Level) || Moved(row.Element.StoredGrid, row.Grid));
+
         private static bool Moved(string stored, string current) =>
             !string.IsNullOrWhiteSpace(stored) && !string.Equals(stored, current, StringComparison.OrdinalIgnoreCase);
 

@@ -8,14 +8,35 @@ using System.Linq;
 
 namespace Revit26_Plugin_Revised.TrackerId.V001.UI.ViewModels
 {
-    /// <summary>One row of the step 1 categories grid.</summary>
-    public sealed class CategoryRowViewModel
+    /// <summary>One row of the step 1 categories grid; ticking it adds the category to the run.</summary>
+    public sealed partial class CategoryRowViewModel : ObservableObject
     {
-        /// <summary>Wraps <paramref name="info"/>.</summary>
-        public CategoryRowViewModel(CategoryInfo info) => Info = info ?? throw new ArgumentNullException(nameof(info));
+        private readonly Action _selectionChanged;
+
+        /// <summary>Wraps <paramref name="info"/>; <paramref name="selectionChanged"/> runs when the tick changes.</summary>
+        public CategoryRowViewModel(CategoryInfo info, Action selectionChanged = null)
+        {
+            Info = info ?? throw new ArgumentNullException(nameof(info));
+            _selectionChanged = selectionChanged;
+        }
 
         /// <summary>The category as read from the model.</summary>
         public CategoryInfo Info { get; }
+
+        /// <summary>True when the category is part of the run.</summary>
+        [ObservableProperty] private bool _isSelected;
+
+        partial void OnIsSelectedChanged(bool value) => _selectionChanged?.Invoke();
+
+        /// <summary>Ticks the row without telling the owner (used when restoring several ticks at once).</summary>
+        public void SetSelectedQuietly(bool value)
+        {
+#pragma warning disable MVVMTK0034 // Deliberately bypasses the change callback; raises PropertyChanged itself.
+            if (_isSelected == value) return;
+            _isSelected = value;
+#pragma warning restore MVVMTK0034
+            OnPropertyChanged(nameof(IsSelected));
+        }
 
         /// <summary>Category name.</summary>
         public string Name => Info.Name;
@@ -65,6 +86,9 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.UI.ViewModels
         [ObservableProperty] private bool _isSelected;
 
         partial void OnIsSelectedChanged(bool value) => _selectionChanged?.Invoke();
+
+        /// <summary>Category name.</summary>
+        public string CategoryName => Info.CategoryName;
 
         /// <summary>Family name.</summary>
         public string FamilyName => Info.FamilyName;
@@ -239,5 +263,113 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.UI.ViewModels
         public string Note => Row.GridCheck
             ? $"{Row.Note} Nearest grid is {Row.GridDistanceM:0.0} m away; check the grid value.".Trim()
             : Row.Note;
+    }
+
+    /// <summary>One row of the step 5 status preview.</summary>
+    public sealed class StatusRowViewModel
+    {
+        /// <summary>Wraps <paramref name="row"/>.</summary>
+        public StatusRowViewModel(StatusPlanRow row) => Row = row ?? throw new ArgumentNullException(nameof(row));
+
+        /// <summary>The merge decision.</summary>
+        public StatusPlanRow Row { get; }
+
+        /// <summary>Revit element id.</summary>
+        public long ElementId => Row.Element.ElementId;
+
+        /// <summary>Tracker_ID.</summary>
+        public string TrackerId => Row.Element.TrackerId;
+
+        /// <summary>Category name.</summary>
+        public string Category => Row.Element.CategoryName;
+
+        /// <summary>Status in Revit now, "—" when none.</summary>
+        public string CurrentStatus => string.IsNullOrEmpty(Row.Element.StoredStatus) ? "—" : Row.Element.StoredStatus;
+
+        /// <summary>Status in the file, "—" when the file has no row.</summary>
+        public string FileStatus => Row.Record == null ? "—" : (string.IsNullOrEmpty(Row.Record.Status) ? "(blank)" : Row.Record.Status);
+
+        /// <summary>Progress in the file, e.g. "75 %".</summary>
+        public string FileProgress => Row.Record?.Progress == null ? string.Empty : Row.Record.Progress.Value.ToString("0.#", CultureInfo.InvariantCulture) + " %";
+
+        /// <summary>Date in the file.</summary>
+        public string FileDate => Row.Record?.DateText ?? string.Empty;
+
+        /// <summary>The decision.</summary>
+        public StatusChange Change => Row.Change;
+
+        /// <summary>Label for the Action column.</summary>
+        public string ChangeText => Row.Change switch
+        {
+            StatusChange.Set => "Update",
+            StatusChange.Unchanged => "Up to date",
+            StatusChange.NoRow => "Not in file",
+            StatusChange.Locked => "Locked",
+            _ => Row.Change.ToString()
+        };
+    }
+
+    /// <summary>One row of the status colour table.</summary>
+    public sealed partial class StatusColourRowViewModel : ObservableObject
+    {
+        /// <summary>Creates the row.</summary>
+        public StatusColourRowViewModel(string status, string color)
+        {
+            _status = status ?? string.Empty;
+            _color = color ?? StatusColours.NoStatusColor;
+        }
+
+        /// <summary>Status text as in the status file.</summary>
+        [ObservableProperty] private string _status;
+
+        /// <summary>Colour as "#RRGGBB"; the swatch binds to it.</summary>
+        [ObservableProperty] private string _color;
+
+        /// <summary>The row as a settings entry.</summary>
+        public StatusColour ToModel() => new() { Status = Status?.Trim() ?? string.Empty, Color = Color?.Trim() ?? string.Empty };
+    }
+
+    /// <summary>One row of the step 6 health check.</summary>
+    public sealed class HealthRowViewModel
+    {
+        /// <summary>Wraps <paramref name="issue"/>.</summary>
+        public HealthRowViewModel(HealthIssue issue) => Issue = issue ?? throw new ArgumentNullException(nameof(issue));
+
+        /// <summary>The finding.</summary>
+        public HealthIssue Issue { get; }
+
+        /// <summary>What was found.</summary>
+        public HealthIssueKind Kind => Issue.Kind;
+
+        /// <summary>Label for the Problem column.</summary>
+        public string KindText => KindLabel(Issue.Kind);
+
+        /// <summary>Element id, "—" for an ID only in the status file.</summary>
+        public string ElementIdText => Issue.ElementId?.ToString(CultureInfo.InvariantCulture) ?? "—";
+
+        /// <summary>Tracker_ID, "—" when none.</summary>
+        public string TrackerId => string.IsNullOrEmpty(Issue.TrackerId) ? "—" : Issue.TrackerId;
+
+        /// <summary>Category name.</summary>
+        public string Category => Issue.Category;
+
+        /// <summary>Type.</summary>
+        public string Type => Issue.Type;
+
+        /// <summary>Explanation.</summary>
+        public string Detail => Issue.Detail;
+
+        /// <summary>Display label of a kind.</summary>
+        public static string KindLabel(HealthIssueKind kind) => kind switch
+        {
+            HealthIssueKind.DuplicateId => "Duplicate ID",
+            HealthIssueKind.Copy => "Copy",
+            HealthIssueKind.MissingId => "Missing ID",
+            HealthIssueKind.Moved => "Moved",
+            HealthIssueKind.FarFromGrid => "Far from grid",
+            HealthIssueKind.NoStatus => "No status",
+            HealthIssueKind.IdNotInModel => "ID not in model",
+            _ => kind.ToString()
+        };
     }
 }

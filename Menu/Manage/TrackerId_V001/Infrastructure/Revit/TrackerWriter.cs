@@ -42,10 +42,10 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.Infrastructure.Revit
     public static class TrackerWriter
     {
         /// <summary>
-        /// Writes <paramref name="rows"/> (elements of <paramref name="category"/>). Locked and duplicate
+        /// Writes <paramref name="rows"/> (elements of <paramref name="categories"/>). Locked and duplicate
         /// rows are skipped. Must run in a Revit API context with no transaction open.
         /// </summary>
-        public static WriteResult Write(Document doc, Category category, IReadOnlyList<PlanRow> rows,
+        public static WriteResult Write(Document doc, IReadOnlyCollection<Category> categories, IReadOnlyList<PlanRow> rows,
             bool writeLocation, bool writeSourceGuid)
         {
             var result = new WriteResult();
@@ -75,7 +75,7 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.Infrastructure.Revit
             using var transaction = new Transaction(doc, "Tracker ID: write IDs");
             transaction.Start();
 
-            result.Setup = TrackerParameterService.Ensure(doc, category, names);
+            result.Setup = TrackerParameterService.Ensure(doc, categories, names);
             if (result.Setup.Errors.Count > 0)
             {
                 result.Errors.AddRange(result.Setup.Errors);
