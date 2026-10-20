@@ -134,6 +134,18 @@ Step pipeline on the shared ToolWindowShell.
                 <!-- ─── BEFORE STEP 1 ─── -->
                 <Border Style="{StaticResource ContentCard}" Padding="14,10" Margin="0,0,0,8">
                     <StackPanel>
+                        <!-- Roofs (only when several were picked) -->
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8"
+                                    Visibility="{Binding HasManyRoofs, Converter={StaticResource BoolToVisibility}}">
+                            <TextBlock Text="Roof" Style="{StaticResource Label}"/>
+                            <ComboBox Width="360" Height="28" VerticalContentAlignment="Center"
+                                      ItemsSource="{Binding Roofs}" DisplayMemberPath="Label"
+                                      SelectedItem="{Binding SelectedRoof}"
+                                      ToolTip="Each roof keeps its own opening ticks. The step options apply to every roof."/>
+                            <TextBlock Style="{StaticResource HintText}" VerticalAlignment="Center" Margin="10,0,0,0"
+                                       Text="{Binding Roofs.Count, StringFormat={}{0} roofs picked — Run on All Roofs runs them as one Undo}"/>
+                        </StackPanel>
+
                         <!-- Presets -->
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
                             <TextBlock Text="Preset" Style="{StaticResource Label}"/>
@@ -477,6 +489,10 @@ Step pipeline on the shared ToolWindowShell.
                 <StackPanel Grid.Column="2" Orientation="Horizontal">
                     <Button Content="Run Selected Steps" Style="{StaticResource PrimaryButton}"
                             Width="200" Margin="0,0,10,0" Command="{Binding RunCommand}"/>
+                    <Button Content="Run on All Roofs" Style="{StaticResource OutlineButton}"
+                            Width="150" Height="38" Margin="0,0,10,0" Command="{Binding RunAllCommand}"
+                            Visibility="{Binding HasManyRoofs, Converter={StaticResource BoolToVisibility}}"
+                            ToolTip="Runs the ticked steps on every picked roof, each with its own opening ticks, as one Undo step."/>
                     <Button Content="Cancel Run" Style="{StaticResource OutlineButton}"
                             Width="110" Height="38" Margin="0,0,10,0" Command="{Binding CancelCommand}"
                             Visibility="{Binding IsRunning, Converter={StaticResource BoolToVisibility}}"

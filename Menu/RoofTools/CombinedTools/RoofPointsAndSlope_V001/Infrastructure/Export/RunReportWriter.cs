@@ -55,7 +55,7 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Infrastructure.Export
             int r = 2;
             foreach (ReportPoint p in report.Points)
             {
-                points.Cell(r, 1).Value = report.Roof;
+                points.Cell(r, 1).Value = string.IsNullOrEmpty(p.Roof) ? report.Roof : p.Roof;
                 points.Cell(r, 2).Value = p.Step;
                 points.Cell(r, 3).Value = Math.Round(p.XMeters, 4);
                 points.Cell(r, 4).Value = Math.Round(p.YMeters, 4);

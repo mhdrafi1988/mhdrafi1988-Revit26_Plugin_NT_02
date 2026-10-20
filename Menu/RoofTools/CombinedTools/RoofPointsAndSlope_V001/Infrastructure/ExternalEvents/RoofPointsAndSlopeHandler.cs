@@ -129,21 +129,46 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Infrastructure.External
 
             MarkerService.Clear(current.Document); // markers belong to the plan the run replaces
 
-            using (var tg = new TransactionGroup(doc, "Roof Points & Slope"))
+            List<RunPayload> roofs = current.Roofs ?? new List<RunPayload> { current };
+            string name = roofs.Count > 1 ? $"Roof Points & Slope ({roofs.Count} roofs)" : "Roof Points & Slope";
+            var total = new RunResult { Success = true };
+
+            using (var tg = new TransactionGroup(doc, name))
             {
                 tg.Start();
-                RunResult result = RoofPointsAndSlopeEngine.Execute(app, current);
-                if (result.Success)
+                foreach (RunPayload roof in roofs)
+                {
+                    RunResult r = RoofPointsAndSlopeEngine.Execute(app, roof);
+                    r.RoofId = roof.RoofId;
+                    total.PerRoof.Add(r);
+                    if (!r.Success)
+                    {
+                        total.Success = false;
+                        total.WasCancelled = r.WasCancelled;
+                        total.ErrorMessage = roofs.Count > 1 ? $"{roof.RoofLabel}: {r.ErrorMessage}" : r.ErrorMessage;
+                        break;
+                    }
+
+                    total.TotalAdded += r.TotalAdded;
+                    total.TotalRejected += r.TotalRejected;
+                    total.RidgeLines += r.RidgeLines;
+                    total.Sloped |= r.Sloped;
+                    total.HighestElevationMm = Math.Max(total.HighestElevationMm, r.HighestElevationMm);
+                }
+
+                if (total.Success)
                 {
                     tg.Assimilate();
                 }
                 else
                 {
                     tg.RollBack();
-                    current.Log?.Invoke(new LogEntry(LogLevel.Info, "Rolled back: the roof is exactly as it was before Run."));
+                    current.Log?.Invoke(new LogEntry(LogLevel.Info, roofs.Count > 1
+                        ? "Rolled back: every roof is exactly as it was before Run."
+                        : "Rolled back: the roof is exactly as it was before Run."));
                 }
 
-                return result;
+                return total;
             }
         }
 

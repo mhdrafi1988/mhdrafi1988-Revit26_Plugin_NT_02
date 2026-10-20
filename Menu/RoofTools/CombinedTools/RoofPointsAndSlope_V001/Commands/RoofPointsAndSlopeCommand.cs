@@ -2,9 +2,10 @@
 // File: RoofPointsAndSlopeCommand.cs
 // Location: Commands/
 // Ribbon string: "Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Commands.RoofPointsAndSlopeCommand"
-// Picks one footprint roof (a selected one is used without asking),
-// checks it can be changed, reads it (read-only — nothing changes until
-// Run) and opens the window. Body runs through ToolGuard.RunCommand.
+// Uses the selected footprint roofs, or asks to pick one or more; checks
+// each can be changed (a roof that can't is skipped with the reason),
+// reads them (read-only — nothing changes until Run) and opens the window.
+// Body runs through ToolGuard.RunCommand.
 // =======================================================
 
 using Autodesk.Revit.Attributes;
@@ -23,7 +24,7 @@ using System.Linq;
 
 namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Commands
 {
-    /// <summary>Opens the Roof Points &amp; Slope window for one footprint roof.</summary>
+    /// <summary>Opens the Roof Points &amp; Slope window for one or more footprint roofs.</summary>
     [Transaction(TransactionMode.Manual)]
     [Regeneration(RegenerationOption.Manual)]
     public class RoofPointsAndSlopeCommand : IExternalCommand
@@ -54,42 +55,59 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Commands
                 return Result.Cancelled;
             }
 
-            // ── Roof: the selected footprint roof, or pick one ───────────────
-            FootPrintRoof roof = uidoc.Selection.GetElementIds()
+            // ── Roofs: the selected footprint roofs, or pick one or more ─────
+            List<FootPrintRoof> picked = uidoc.Selection.GetElementIds()
                 .Select(id => doc.GetElement(id))
                 .OfType<FootPrintRoof>()
-                .FirstOrDefault();
-            if (roof == null)
+                .ToList();
+            if (picked.Count == 0)
             {
                 // Esc throws OperationCanceledException; ToolGuard returns Cancelled.
-                Reference picked = uidoc.Selection.PickObject(ObjectType.Element, new FootPrintRoofFilter(),
-                    "Select a footprint roof (sketch-based, so its openings can be read)");
-                roof = doc.GetElement(picked) as FootPrintRoof;
+                IList<Reference> refs = uidoc.Selection.PickObjects(ObjectType.Element, new FootPrintRoofFilter(),
+                    "Select one or more footprint roofs (sketch-based, so their openings can be read), then Finish");
+                picked = refs.Select(r => doc.GetElement(r)).OfType<FootPrintRoof>().ToList();
             }
 
-            if (roof == null)
+            if (picked.Count == 0)
                 return Result.Cancelled;
 
-            // ── Checks: group, worksharing ───────────────────────────────────
-            if (RoofPointsAndSlopeEngine.ValidateRoof(uiApp, doc, roof.Id, out string error) == null)
-            {
-                TaskDialog.Show(Title, error);
-                return Result.Cancelled;
-            }
-
-            // ── Read (no model change) and open ──────────────────────────────
+            // ── Check and read each roof (no model change) ───────────────────
             var diagnostics = new List<LogEntry>();
-            RoofOutline outline = RoofPointsAndSlopeHandler.ReadOutline(roof, diagnostics.Add);
-            if (outline.Boundaries.Count == 0)
+            var skipped = new List<string>();
+            var roofs = new List<RoofEntry>();
+            foreach (FootPrintRoof roof in picked.OrderBy(r => r.Name).ThenBy(r => r.Id.Value))
             {
-                TaskDialog.Show(Title, "The roof's sketch has no closed boundary loop, so it can't be processed.");
-                return Result.Cancelled;
+                string label = $"{roof.Name}  ·  Id {roof.Id.Value}";
+                if (RoofPointsAndSlopeEngine.ValidateRoof(uiApp, doc, roof.Id, out string error) == null)
+                {
+                    skipped.Add($"{label}: {error}");
+                    continue;
+                }
+
+                string prefix = picked.Count > 1 ? label + ": " : string.Empty;
+                var roofLog = new List<LogEntry>();
+                RoofOutline outline = RoofPointsAndSlopeHandler.ReadOutline(roof, roofLog.Add);
+                if (outline.Boundaries.Count == 0)
+                {
+                    skipped.Add($"{label}: the sketch has no closed boundary loop.");
+                    continue;
+                }
+
+                RidgeInput ridgeInput = RoofPointsAndSlopeHandler.ReadRidgeInput(roof, roofLog.Add);
+                diagnostics.AddRange(roofLog.Select(e => new LogEntry(e.Level, prefix + e.Message)));
+                roofs.Add(new RoofEntry { Id = roof.Id, Label = label, Outline = outline, RidgeInput = ridgeInput });
             }
 
-            RidgeInput ridgeInput = RoofPointsAndSlopeHandler.ReadRidgeInput(roof, diagnostics.Add);
+            if (roofs.Count == 0)
+            {
+                TaskDialog.Show(Title, "No roof can be processed:\n\n" + string.Join("\n", skipped));
+                return Result.Cancelled;
+            }
 
             RoofPointsAndSlopeEventManager.Init();
-            var vm = new RoofPointsAndSlopeViewModel(doc, roof.Id, $"{roof.Name}  ·  Id {roof.Id.Value}", outline, ridgeInput);
+            var vm = new RoofPointsAndSlopeViewModel(doc, roofs);
+            foreach (string s in skipped)
+                vm.Log(LogLevel.Warning, "Skipped " + s);
             foreach (LogEntry entry in diagnostics)
                 vm.Log(entry.Level, entry.Message);
 

@@ -13,6 +13,9 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Core.Models
     /// <summary>One shape point after the run.</summary>
     public sealed class ReportPoint
     {
+        /// <summary>The roof ("Roof name · Id 123"); empty means the report's roof.</summary>
+        public string Roof { get; init; } = string.Empty;
+
         /// <summary>The step that added it, "Existing" (there before the run) or "Slope step" (added by step 6).</summary>
         public string Step { get; init; } = string.Empty;
 
@@ -32,7 +35,7 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Core.Models
         /// <summary>Report format version (written on the summary sheet).</summary>
         public const int FormatVersion = 1;
 
-        /// <summary>"Roof name · Id 123".</summary>
+        /// <summary>"Roof name · Id 123", or "3 roofs".</summary>
         public string Roof { get; init; } = string.Empty;
 
         /// <summary>When the run finished.</summary>

@@ -48,6 +48,11 @@ Each release lists every tool whose version changed, under the plugin version.
     on Run or Close (or with **Clear markers**).
   - **Presets** — save the current options under a name, apply or delete them later
     (`%AppData%\Revit26_Plugin\RoofPointsAndSlope\presets.json`, with a schema version).
+  - **Several roofs** — select or pick several footprint roofs. A **Roof** list switches between
+    them; each roof keeps its own opening ticks and counts, the step options are shared. **Run on
+    All Roofs** runs them in order as one Undo step; if one fails, all are rolled back. A roof that
+    can't be processed (in a group, owned by another user, no closed sketch) is skipped with the
+    reason in the log.
   - **Run report** (off by default) — after a successful run, a `.xlsx` in the report folder with a
     Summary sheet and a Points sheet (Roof, Step, X (m), Y (m), Height (mm)) listing every shape
     point and the step that added it.

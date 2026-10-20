@@ -43,7 +43,7 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.UI.ViewModels
         public const string SettingsName = "RoofPointsAndSlope";
 
         private readonly Document _doc;
-        private readonly ElementId _roofId;
+        private ElementId _roofId => SelectedRoof?.Id ?? ElementId.InvalidElementId;
         private RoofOutline _outline;
         private RidgeInput _ridgeInput;
         private bool _suspendPlan;
@@ -55,8 +55,17 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.UI.ViewModels
         /// <summary>The roof's openings (grid rows).</summary>
         public ObservableCollection<OpeningModel> Openings { get; } = new();
 
-        /// <summary>"Roof name · Id 123".</summary>
-        public string RoofLabel { get; }
+        /// <summary>The roofs picked in Revit (the window works on one at a time; Run on All Roofs runs them all).</summary>
+        public ObservableCollection<RoofEntry> Roofs { get; } = new();
+
+        /// <summary>The roof shown in the window.</summary>
+        [ObservableProperty] private RoofEntry selectedRoof;
+
+        /// <summary>True when more than one roof was picked.</summary>
+        public bool HasManyRoofs => Roofs.Count > 1;
+
+        /// <summary>"Roof name · Id 123" of the roof shown.</summary>
+        public string RoofLabel => SelectedRoof?.Label ?? string.Empty;
 
         /// <summary>The document's line styles, for the ridge detail lines.</summary>
         public ObservableCollection<string> LineStyleOptions { get; } = new();
@@ -159,20 +168,46 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.UI.ViewModels
         /// <summary>True when the roof has openings.</summary>
         public bool HasOpenings => Openings.Count > 0;
 
-        /// <summary>Creates the view model for one roof.</summary>
-        public RoofPointsAndSlopeViewModel(Document doc, ElementId roofId, string roofLabel, RoofOutline outline, RidgeInput ridgeInput)
+        /// <summary>Creates the view model for one or more roofs (the first is shown).</summary>
+        public RoofPointsAndSlopeViewModel(Document doc, IReadOnlyList<RoofEntry> roofs)
         {
+            if (roofs == null || roofs.Count == 0) throw new ArgumentException("At least one roof is needed.", nameof(roofs));
             _doc = doc;
-            _roofId = roofId;
-            RoofLabel = roofLabel;
-            _ridgeInput = ridgeInput ?? new RidgeInput();
-            foreach (string style in _ridgeInput.LineStyles) LineStyleOptions.Add(style);
+            foreach (RoofEntry r in roofs) r.RidgeInput ??= new RidgeInput();
+            foreach (string style in roofs[0].RidgeInput.LineStyles) LineStyleOptions.Add(style);
 
             LoadSettings(SettingsService<PipelineSettings>.Load(SettingsName).Normalize());
             LoadPresets();
-            SetOutline(outline);
-            AddLog(LogLevel.Success, $"Roof read: {outline.Boundaries.Count} boundary loop(s), {outline.Openings.Count} opening(s), " +
-                                     $"{outline.Edges.Count} edge(s), {outline.ExistingVertices.Count} shape point(s).");
+
+            foreach (RoofEntry r in roofs)
+            {
+                Roofs.Add(r);
+                InitialiseRoof(r, roofs.Count > 1);
+            }
+
+            OnPropertyChanged(nameof(HasManyRoofs));
+            SelectedRoof = Roofs[0];
+        }
+
+        /// <summary>Default counts and the read summary for a newly read roof.</summary>
+        private void InitialiseRoof(RoofEntry r, bool many)
+        {
+            foreach (OpeningModel o in r.Outline.Openings) o.PointCount = DefaultCount(o);
+            string prefix = many ? r.Label + ": " : string.Empty;
+            AddLog(LogLevel.Success, $"{prefix}roof read: {r.Outline.Boundaries.Count} boundary loop(s), {r.Outline.Openings.Count} opening(s), " +
+                                     $"{r.Outline.Edges.Count} edge(s), {r.Outline.ExistingVertices.Count} shape point(s).");
+            foreach (string note in r.Outline.Notes) AddLog(LogLevel.Info, prefix + note);
+            string warning = ExistingShapeText(r.Outline);
+            if (!string.IsNullOrEmpty(warning)) AddLog(LogLevel.Warning, prefix + warning);
+        }
+
+        partial void OnSelectedRoofChanged(RoofEntry value)
+        {
+            if (value == null) return;
+            _ridgeInput = value.RidgeInput ?? new RidgeInput();
+            OnPropertyChanged(nameof(RoofLabel));
+            if (MarkersShown) AddLog(LogLevel.Info, "The markers shown belong to the previous roof — Clear markers or show them again.");
+            SetOutline(value.Outline);
         }
 
         // ── Settings ↔ properties ───────────────────────────────────────────
@@ -290,6 +325,9 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.UI.ViewModels
                 case nameof(SelectedPreset):
                 case nameof(PresetName):
                 case nameof(MarkersShown):
+                case nameof(SelectedRoof):
+                case nameof(RoofLabel):
+                case nameof(HasManyRoofs):
                     break;
                 default:
                     Replan();
@@ -299,6 +337,7 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.UI.ViewModels
             if (e.PropertyName == nameof(IsRunning))
             {
                 RunCommand.NotifyCanExecuteChanged();
+                RunAllCommand.NotifyCanExecuteChanged();
                 AnalyzeCommand.NotifyCanExecuteChanged();
                 CancelCommand.NotifyCanExecuteChanged();
                 CheckReachCommand.NotifyCanExecuteChanged();
@@ -335,16 +374,11 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.UI.ViewModels
             _outline = outline;
             foreach (OpeningModel o in outline.Openings)
             {
-                o.PointCount = DefaultCount(o);
                 o.PropertyChanged += OnOpeningChanged;
                 Openings.Add(o);
             }
 
-            foreach (string note in outline.Notes)
-                AddLog(LogLevel.Info, note);
-
             ExistingShapeWarning = ExistingShapeText(outline);
-            if (!string.IsNullOrEmpty(ExistingShapeWarning)) AddLog(LogLevel.Warning, ExistingShapeWarning);
 
             _suspendPlan = false;
             OnPropertyChanged(nameof(HasOpenings));
@@ -369,7 +403,7 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.UI.ViewModels
         {
             bool was = _suspendPlan;
             _suspendPlan = true;
-            foreach (OpeningModel o in Openings) o.PointCount = DefaultCount(o);
+            foreach (OpeningModel o in Roofs.SelectMany(r => r.Outline.Openings)) o.PointCount = DefaultCount(o);
             _suspendPlan = was;
         }
 
@@ -445,6 +479,7 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.UI.ViewModels
                   (SlopeEnabled ? $", slope to {DrainCount} drain(s)" : string.Empty)
                 : ValidationText;
             RunCommand.NotifyCanExecuteChanged();
+            RunAllCommand.NotifyCanExecuteChanged();
             CheckReachCommand.NotifyCanExecuteChanged();
         }
 
@@ -575,12 +610,47 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.UI.ViewModels
         }
 
         // ── Run ─────────────────────────────────────────────────────────────
+        /// <summary>Runs the ticked steps on the roof shown.</summary>
         [RelayCommand(CanExecute = nameof(CanRun))]
-        private void Run()
+        private void Run() => StartRun(new List<RoofEntry> { SelectedRoof });
+
+        /// <summary>Runs the ticked steps on every roof, each with its own opening ticks, as one Undo step.</summary>
+        [RelayCommand(CanExecute = nameof(CanRunAll))]
+        private void RunAll() => StartRun(Roofs.ToList());
+
+        private bool CanRunAll() => HasManyRoofs && CanRun();
+
+        private static List<OpeningModel> DrainsOf(RoofEntry r) => r.Outline.Openings.Where(o => o.IsDrain && o.CanBeDrain).ToList();
+
+        private void StartRun(List<RoofEntry> roofs)
         {
+            if (roofs.Count == 0 || roofs.Any(r => r == null)) return;
             PipelineSettings settings = CurrentSettings().Normalize();
-            List<OpeningModel> drainOpenings = Openings.Where(o => o.IsDrain && o.CanBeDrain).ToList();
-            List<DrainItem> drains = drainOpenings.Select(o => o.Drain).ToList();
+            bool many = roofs.Count > 1;
+
+            // Each roof must pass the checks the window shows for the roof on screen.
+            if (many)
+            {
+                var problems = new List<string>();
+                foreach (RoofEntry r in roofs)
+                {
+                    List<OpeningModel> d = DrainsOf(r);
+                    if (settings.SlopeEnabled && d.Count == 0)
+                        problems.Add($"{r.Label}: no opening is ticked as a drain (step 6).");
+                    else if (settings.RidgeEnabled && RidgePlanner.Plan(r.RidgeInput, d, settings, out string ridgeError) == null)
+                        problems.Add($"{r.Label}: step 5 — {ridgeError}");
+                }
+
+                if (problems.Count > 0)
+                {
+                    foreach (string p in problems) AddLog(LogLevel.Error, p);
+                    SummaryText = "Not run — fix the roofs listed in the log";
+                    MessageBox.Show("Some roofs can't run with these settings:\n\n" + string.Join("\n", problems) +
+                                    "\n\nPick each roof in the list to fix its openings, or turn the step off.",
+                                    "Roof Points & Slope", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+            }
 
             if ((settings.SlopeEnabled && settings.ExportToExcel) || settings.SaveRunReport)
             {
@@ -592,10 +662,14 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.UI.ViewModels
                 }
             }
 
-            if (!settings.ClearExistingFirst && _outline.ExistingSlopeMm > 1)
+            List<RoofEntry> sloped = roofs.Where(r => r.Outline.ExistingSlopeMm > 1).ToList();
+            if (!settings.ClearExistingFirst && sloped.Count > 0)
             {
+                string which = many
+                    ? $"{sloped.Count} of the roofs already have slope ({string.Join(", ", sloped.Select(r => r.Label))})."
+                    : $"This roof already has slope ({sloped[0].Outline.ExistingSlopeMm:0} mm high to low).";
                 MessageBoxResult answer = MessageBox.Show(
-                    $"This roof already has slope ({_outline.ExistingSlopeMm:0} mm high to low).\n\n" +
+                    which + "\n\n" +
                     "Running again builds on the current shape. To start from a flat roof, choose No and tick " +
                     "\"Clear existing shape points first\".\n\nRun anyway?",
                     "Roof Points & Slope", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
@@ -605,34 +679,60 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.UI.ViewModels
             SaveSettings();
             MarkersShown = false; // the handler clears them before running
             _runSettings = settings;
-            AddLog(LogLevel.Info, $"Run started: {OpeningPointsNew + PerpendicularNew + MidQuarterNew + GapFillNew} planned point(s)" +
-                                  (settings.RidgeEnabled ? ", then the ridge" : string.Empty) +
-                                  (settings.SlopeEnabled ? $", then slope {settings.SlopePercent} % to {drains.Count} drain(s)." : "."));
+            _runRoofs = roofs;
+            AddLog(LogLevel.Info, many
+                ? $"Run started on {roofs.Count} roofs, one Undo step" +
+                  (settings.RidgeEnabled ? ", with the ridge" : string.Empty) +
+                  (settings.SlopeEnabled ? $", slope {settings.SlopePercent} %." : ".")
+                : $"Run started: {OpeningPointsNew + PerpendicularNew + MidQuarterNew + GapFillNew} planned point(s)" +
+                  (settings.RidgeEnabled ? ", then the ridge" : string.Empty) +
+                  (settings.SlopeEnabled ? $", then slope {settings.SlopePercent} % to {DrainsOf(roofs[0]).Count} drain(s)." : "."));
+
+            CancellationToken token = (_runCts = new CancellationTokenSource()).Token;
+            var perRoof = new List<RunPayload>();
+            for (int i = 0; i < roofs.Count; i++)
+            {
+                RoofEntry r = roofs[i];
+                int index = i;
+                string prefix = many ? r.Label + " · " : string.Empty;
+                List<OpeningModel> drainOpenings = DrainsOf(r);
+                perRoof.Add(new RunPayload
+                {
+                    Operation = RunOperation.Run,
+                    RoofId = r.Id,
+                    RoofLabel = r.Label,
+                    Document = _doc,
+                    Outline = r.Outline,
+                    Settings = settings.Clone(),
+                    RidgeInput = r.RidgeInput,
+                    DrainOpenings = drainOpenings,
+                    SelectedDrains = drainOpenings.Select(o => o.Drain).ToList(),
+                    DetectedDrainCount = r.Outline.DetectedDrainCount,
+                    Cancel = token,
+                    Log = entry => AddLog(entry.Level, prefix + entry.Message),
+                    Progress = (pct, text) =>
+                    {
+                        Progress = (index * 100 + pct) / roofs.Count;
+                        SummaryText = prefix + text;
+                        UiPumpHelper.DoEvents(); // repaint + let a Cancel click through
+                    }
+                });
+            }
 
             var payload = new RunPayload
             {
                 Operation = RunOperation.Run,
-                RoofId = _roofId,
+                RoofId = roofs[0].Id,
                 Document = _doc,
-                Outline = _outline,
-                Settings = settings,
-                RidgeInput = _ridgeInput,
-                DrainOpenings = drainOpenings,
-                SelectedDrains = drains,
-                DetectedDrainCount = _outline.DetectedDrainCount,
-                Cancel = (_runCts = new CancellationTokenSource()).Token,
+                Roofs = perRoof,
                 Log = entry => AddLog(entry.Level, entry.Message),
-                Progress = (pct, text) =>
-                {
-                    Progress = pct;
-                    SummaryText = text;
-                    UiPumpHelper.DoEvents(); // repaint + let a Cancel click through
-                },
                 OnCompleted = OnRunCompleted
             };
 
-            Raise(payload, "Running…");
+            Raise(payload, many ? $"Running on {roofs.Count} roofs…" : "Running…");
         }
+
+        private List<RoofEntry> _runRoofs = new();
 
         private bool CanRun() => !IsRunning && string.IsNullOrEmpty(ValidationText);
 
@@ -644,16 +744,25 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.UI.ViewModels
             _runCts = null;
             if (result.Success)
             {
-                _outline.ExistingVertices = result.VerticesAfter ?? new List<P2>();
-                if (result.Sloped) _outline.ExistingSlopeMm = result.HighestElevationMm;
+                var done = new List<(RoofEntry Roof, RunResult Result)>();
+                foreach (RunResult r in result.PerRoof)
+                {
+                    RoofEntry roof = _runRoofs.FirstOrDefault(x => x.Id == r.RoofId);
+                    if (roof == null) continue;
+                    roof.Outline.ExistingVertices = r.VerticesAfter ?? new List<P2>();
+                    if (r.Sloped) roof.Outline.ExistingSlopeMm = r.HighestElevationMm;
+                    done.Add((roof, r));
+                }
+
                 ExistingShapeWarning = ExistingShapeText(_outline);
                 Replan();
+                string roofs = done.Count > 1 ? $" on {done.Count} roofs" : string.Empty;
                 string ridge = result.RidgeLines > 0 ? $" · {result.RidgeLines} ridge line(s)" : string.Empty;
                 string slope = result.Sloped ? $" · sloped, highest point {result.HighestElevationMm:0} mm" : string.Empty;
-                SummaryText = $"Done: {result.TotalAdded} point(s) added{ridge}{slope}";
+                SummaryText = $"Done: {result.TotalAdded} point(s) added{roofs}{ridge}{slope}";
                 AddLog(LogLevel.Success, SummaryText + ". One Undo in Revit reverts the whole run.");
-                if (_runSettings?.SaveRunReport == true && result.ReportPoints != null)
-                    WriteReport(result, _runSettings);
+                if (_runSettings?.SaveRunReport == true)
+                    WriteReport(done, _runSettings);
             }
             else
             {
@@ -664,26 +773,37 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.UI.ViewModels
         private PipelineSettings _runSettings;
 
         /// <summary>Saves the run report; a failure is logged, the run itself stays.</summary>
-        private void WriteReport(RunResult result, PipelineSettings s)
+        private void WriteReport(List<(RoofEntry Roof, RunResult Result)> done, PipelineSettings s)
         {
-            var report = new RunReport { Roof = RoofLabel, Date = DateTime.Now };
+            if (done.Count == 0) return;
+            var report = new RunReport { Roof = done.Count == 1 ? done[0].Roof.Label : $"{done.Count} roofs", Date = DateTime.Now };
             report.Summary.Add(("Tool version", ToolCatalog.RoofPointsAndSlope.Version));
-            foreach (var kv in result.AddedPerStep) report.Summary.Add(($"Points added · {kv.Key}", kv.Value.ToString()));
-            report.Summary.Add(("Points added · total", result.TotalAdded.ToString()));
-            report.Summary.Add(("Points rejected by Revit", result.TotalRejected.ToString()));
-            report.Summary.Add(("Ridge detail lines", result.RidgeLines.ToString()));
-            report.Summary.Add(("Sloped", result.Sloped ? "Yes" : "No"));
-            if (result.Sloped)
-            {
-                report.Summary.Add(("Slope (%)", s.SlopePercent.ToString("0.###")));
-                report.Summary.Add(("Drains", DrainCount.ToString()));
-                report.Summary.Add(("Highest point (mm)", result.HighestElevationMm.ToString("0")));
-            }
-
+            if (s.SlopeEnabled) report.Summary.Add(("Slope (%)", s.SlopePercent.ToString("0.###")));
             report.Summary.Add(("Min spacing (mm)", s.MinPointSpacingMm.ToString("0")));
             report.Summary.Add(("Cleared existing points first", s.ClearExistingFirst ? "Yes" : "No"));
-            report.Summary.Add(("Shape points after the run", result.ReportPoints.Count.ToString()));
-            report.Points.AddRange(result.ReportPoints);
+
+            foreach (var (roof, result) in done)
+            {
+                string p = done.Count > 1 ? roof.Label + " · " : string.Empty;
+                if (done.Count > 1) report.Summary.Add((string.Empty, string.Empty));
+                foreach (var kv in result.AddedPerStep) report.Summary.Add(($"{p}Points added · {kv.Key}", kv.Value.ToString()));
+                report.Summary.Add(($"{p}Points added · total", result.TotalAdded.ToString()));
+                report.Summary.Add(($"{p}Points rejected by Revit", result.TotalRejected.ToString()));
+                report.Summary.Add(($"{p}Ridge detail lines", result.RidgeLines.ToString()));
+                report.Summary.Add(($"{p}Sloped", result.Sloped ? "Yes" : "No"));
+                if (result.Sloped)
+                {
+                    report.Summary.Add(($"{p}Drains", DrainsOf(roof).Count.ToString()));
+                    report.Summary.Add(($"{p}Highest point (mm)", result.HighestElevationMm.ToString("0")));
+                }
+
+                List<ReportPoint> points = result.ReportPoints ?? new List<ReportPoint>();
+                report.Summary.Add(($"{p}Shape points after the run", points.Count.ToString()));
+                report.Points.AddRange(points.Select(x => new ReportPoint
+                {
+                    Roof = roof.Label, Step = x.Step, XMeters = x.XMeters, YMeters = x.YMeters, HeightMm = x.HeightMm
+                }));
+            }
 
             try
             {
@@ -953,9 +1073,12 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.UI.ViewModels
                         return;
                     }
 
-                    if (result.RidgeInput != null) _ridgeInput = result.RidgeInput;
-                    SetOutline(result.Outline);
-                    AddLog(LogLevel.Success, $"Roof re-read: {result.Outline.Openings.Count} opening(s), {result.Outline.ExistingVertices.Count} shape point(s).");
+                    RoofEntry roof = SelectedRoof;
+                    if (roof == null) return;
+                    if (result.RidgeInput != null) roof.RidgeInput = _ridgeInput = result.RidgeInput;
+                    roof.Outline = result.Outline;
+                    InitialiseRoof(roof, HasManyRoofs);
+                    SetOutline(roof.Outline);
                 }
             };
             Raise(payload, "Reading roof…");

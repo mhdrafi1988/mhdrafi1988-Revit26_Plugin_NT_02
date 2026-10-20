@@ -63,6 +63,12 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Core.Models
         /// <summary>Run: number of openings the drain detection found on the roof.</summary>
         public int DetectedDrainCount { get; init; }
 
+        /// <summary>Run: one payload per roof, run in order inside one Undo step (null = this payload's roof only).</summary>
+        public List<RunPayload> Roofs { get; init; }
+
+        /// <summary>Run: "Roof name · Id 123", used in log lines when several roofs run.</summary>
+        public string RoofLabel { get; init; }
+
         /// <summary>ShowMarkers: what to show.</summary>
         public List<MarkerPoint> Markers { get; init; }
 
@@ -96,6 +102,12 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Core.Models
 
         /// <summary>Analyze: the freshly read ridge input.</summary>
         public RidgeInput RidgeInput { get; set; }
+
+        /// <summary>Run: the roof this result is for.</summary>
+        public ElementId RoofId { get; set; }
+
+        /// <summary>Run: one result per roof, in run order (the last one is the failure, when it failed).</summary>
+        public List<RunResult> PerRoof { get; } = new List<RunResult>();
 
         /// <summary>Run: every shape point after the run, for the report.</summary>
         public List<ReportPoint> ReportPoints { get; set; }
