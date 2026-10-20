@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <!--
     Unit tests for Roof Points & Slope V001's Revit-free code (plan geometry,
-    point planner, slope reach estimate). The tool's files are linked, not
+    point planner, slope reach estimate, settings loading). The tool's files are linked, not
     copied; OpeningModel is replaced by a small stub (Stubs/OpeningModel.cs)
     because the real one pulls in Revit and Auto Slope By Drain types.
     Run:  dotnet test Tests/RoofPointsAndSlope.Tests
