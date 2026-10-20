@@ -22,7 +22,11 @@
 //                        evenly spaced points are added so no gap is
 //                        longer than the interval.
 // A planned point within the tolerance of a known point is counted as
-// "already there" and not added.
+// "already there" and not added. Steps 2–4 also skip a point closer than
+// the minimum spacing to any known point ("too close"), so Revit isn't
+// given thin triangles; step 1 is exempt. With "clear existing points
+// first" the roof's current points are ignored and only the sketch
+// corners (which Revit keeps after a reset) count as existing.
 // =======================================================
 
 using Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Core.Geometry;
@@ -60,6 +64,9 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Core.Planning
 
         /// <summary>Planned positions that are already shape points (or planned by an earlier step).</summary>
         public int AlreadyThere { get; set; }
+
+        /// <summary>Planned positions skipped for being closer than the minimum spacing to another point.</summary>
+        public int TooClose { get; set; }
     }
 
     /// <summary>The planned points of all enabled point steps.</summary>
@@ -90,7 +97,7 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Core.Planning
             if (settings == null) throw new ArgumentNullException(nameof(settings));
 
             var plan = new PipelinePlan();
-            var known = new KnownPoints(outline.ExistingVertices);
+            var known = new KnownPoints(StartingPoints(outline, settings), Math.Max(0, settings.MinPointSpacingMm) / 304.8);
 
             var inner = new StepPlan { Step = PointStep.OpeningPoints };
             var perp = new StepPlan { Step = PointStep.Perpendicular };
@@ -110,6 +117,15 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Core.Planning
             return plan;
         }
 
+        /// <summary>
+        /// The points the roof has when step 1 starts: its current shape points, or — when they are
+        /// cleared first — the sketch corners (every edge's start), which Revit keeps after a reset.
+        /// </summary>
+        public static List<P2> StartingPoints(RoofOutline outline, PipelineSettings settings) =>
+            settings.ClearExistingFirst
+                ? outline.Edges.Select(e => e.Segment.Start).ToList()
+                : outline.ExistingVertices.ToList();
+
         // ── Step 1 ────────────────────────────────────────────────────────────
         private static void PlanOpeningPoints(RoofOutline outline, PipelineSettings s, KnownPoints known, StepPlan step)
         {
@@ -121,7 +137,7 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Core.Planning
                 foreach (PlannedPoint p in dp.Points)
                 {
                     P2 inward = InwardOnOpening(o.Loop, o.Loop.Segments[p.Segment], p.Fraction);
-                    known.TryAdd(step, new NewPoint { Position = p.Position, Inward = inward, OpeningIndex = o.Index });
+                    known.TryAdd(step, new NewPoint { Position = p.Position, Inward = inward, OpeningIndex = o.Index }, enforceSpacing: false);
                 }
             }
         }
@@ -267,17 +283,32 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Core.Planning
         private sealed class KnownPoints
         {
             private readonly List<P2> _all;
+            private readonly double _minSpacing;
 
-            public KnownPoints(IEnumerable<P2> existing) => _all = (existing ?? Enumerable.Empty<P2>()).ToList();
+            public KnownPoints(IEnumerable<P2> existing, double minSpacingFeet)
+            {
+                _all = (existing ?? Enumerable.Empty<P2>()).ToList();
+                _minSpacing = minSpacingFeet;
+            }
 
             public IReadOnlyList<P2> All => _all;
 
-            /// <summary>Adds the point to the step, unless a known point is already there.</summary>
-            public void TryAdd(StepPlan step, NewPoint p)
+            /// <summary>
+            /// Adds the point to the step, unless a known point is already there, or (when
+            /// <paramref name="enforceSpacing"/>) one is closer than the minimum spacing.
+            /// </summary>
+            public void TryAdd(StepPlan step, NewPoint p, bool enforceSpacing = true)
             {
-                if (_all.Any(q => q.DistanceTo(p.Position) <= Tolerance))
+                double nearest = _all.Count == 0 ? double.MaxValue : _all.Min(q => q.DistanceTo(p.Position));
+                if (nearest <= Tolerance)
                 {
                     step.AlreadyThere++;
+                    return;
+                }
+
+                if (enforceSpacing && nearest < _minSpacing)
+                {
+                    step.TooClose++;
                     return;
                 }
 

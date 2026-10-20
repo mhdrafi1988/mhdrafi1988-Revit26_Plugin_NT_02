@@ -13,6 +13,7 @@ using Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Core.Geometry;
 using Revit26_Plugin_Revised.Shared.Models;
 using System;
 using System.Collections.Generic;
+using System.Threading;
 
 namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Core.Models
 {
@@ -56,6 +57,9 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Core.Models
         /// <summary>Run: number of openings the drain detection found on the roof.</summary>
         public int DetectedDrainCount { get; init; }
 
+        /// <summary>Run: set by the window's Cancel button.</summary>
+        public CancellationToken Cancel { get; init; }
+
         /// <summary>Called for each log line (on Revit's thread, which is also the window's thread).</summary>
         public Action<LogEntry> Log { get; init; }
 
@@ -80,6 +84,9 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Core.Models
 
         /// <summary>Analyze: the freshly read ridge input.</summary>
         public RidgeInput RidgeInput { get; set; }
+
+        /// <summary>Run: stopped by the Cancel button (everything was rolled back).</summary>
+        public bool WasCancelled { get; set; }
 
         /// <summary>Run: ridge detail lines drawn.</summary>
         public int RidgeLines { get; set; }

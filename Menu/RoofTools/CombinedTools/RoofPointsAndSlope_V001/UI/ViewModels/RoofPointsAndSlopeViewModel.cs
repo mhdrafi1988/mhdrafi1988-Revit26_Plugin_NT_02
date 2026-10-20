@@ -28,6 +28,10 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Windows;
+using Revit26_Plugin_Revised.MultiRoofSlopeByDrain.V013.Infrastructure.Helpers;
 
 namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.UI.ViewModels
 {
@@ -42,6 +46,10 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.UI.ViewModels
         private RoofOutline _outline;
         private RidgeInput _ridgeInput;
         private bool _suspendPlan;
+        private PipelinePlan _lastPlan;
+        private VoronoiRidgeResult _lastRidge;
+        private CancellationTokenSource _runCts;
+        private CancellationTokenSource _reachCts;
 
         /// <summary>The roof's openings (grid rows).</summary>
         public ObservableCollection<OpeningModel> Openings { get; } = new();
@@ -51,6 +59,16 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.UI.ViewModels
 
         /// <summary>The document's line styles, for the ridge detail lines.</summary>
         public ObservableCollection<string> LineStyleOptions { get; } = new();
+
+        // ── Before step 1 ───────────────────────────────────────────────────
+        [ObservableProperty] private bool clearExistingFirst;
+        [ObservableProperty] private double minPointSpacingMm;
+
+        /// <summary>Shown when the roof already has slope or extra points (empty otherwise).</summary>
+        [ObservableProperty] private string existingShapeWarning = string.Empty;
+
+        /// <summary>Plan warnings: points skipped for spacing, ridge problems, drain mismatches (empty when none).</summary>
+        [ObservableProperty] private string planWarnings = string.Empty;
 
         // ── Step 1 ──────────────────────────────────────────────────────────
         [ObservableProperty] private bool innerPointsEnabled;
@@ -105,6 +123,12 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.UI.ViewModels
         [ObservableProperty] private bool exportToExcel;
         [ObservableProperty] private string exportFolder;
 
+        /// <summary>Result of "Check slope reach" (empty until checked; cleared when the plan changes).</summary>
+        [ObservableProperty] private string reachText = string.Empty;
+
+        /// <summary>True while the reach check runs.</summary>
+        [ObservableProperty] private bool isCheckingReach;
+
         // ── Header tiles ────────────────────────────────────────────────────
         [ObservableProperty] private int openingPointsNew;
         [ObservableProperty] private int perpendicularNew;
@@ -138,6 +162,8 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.UI.ViewModels
         private void LoadSettings(PipelineSettings s)
         {
             _suspendPlan = true;
+            ClearExistingFirst = s.ClearExistingFirst;
+            MinPointSpacingMm = s.MinPointSpacingMm;
             InnerPointsEnabled = s.InnerPointsEnabled;
             UseSpacing = s.InnerMode == DivisionMode.Spacing;
             CircularPoints = s.CircularPoints;
@@ -180,6 +206,8 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.UI.ViewModels
         /// <summary>The current options as a settings object.</summary>
         public PipelineSettings CurrentSettings() => new PipelineSettings
         {
+            ClearExistingFirst = ClearExistingFirst,
+            MinPointSpacingMm = MinPointSpacingMm,
             InnerPointsEnabled = InnerPointsEnabled,
             InnerMode = UseSpacing ? DivisionMode.Spacing : DivisionMode.Count,
             CircularPoints = CircularPoints,
@@ -236,6 +264,10 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.UI.ViewModels
                 case nameof(SummaryText):
                 case nameof(UseCount):
                 case nameof(HasOpenings):
+                case nameof(ExistingShapeWarning):
+                case nameof(PlanWarnings):
+                case nameof(ReachText):
+                case nameof(IsCheckingReach):
                     break;
                 default:
                     Replan();
@@ -246,7 +278,12 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.UI.ViewModels
             {
                 RunCommand.NotifyCanExecuteChanged();
                 AnalyzeCommand.NotifyCanExecuteChanged();
+                CancelCommand.NotifyCanExecuteChanged();
+                CheckReachCommand.NotifyCanExecuteChanged();
             }
+
+            if (e.PropertyName == nameof(IsCheckingReach))
+                CheckReachCommand.NotifyCanExecuteChanged();
         }
 
         // ── Openings ────────────────────────────────────────────────────────
@@ -267,9 +304,23 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.UI.ViewModels
             foreach (string note in outline.Notes)
                 AddLog(LogLevel.Info, note);
 
+            ExistingShapeWarning = ExistingShapeText(outline);
+            if (!string.IsNullOrEmpty(ExistingShapeWarning)) AddLog(LogLevel.Warning, ExistingShapeWarning);
+
             _suspendPlan = false;
             OnPropertyChanged(nameof(HasOpenings));
             Replan();
+        }
+
+        /// <summary>"This roof already has …" when it has slope or more points than corners.</summary>
+        private static string ExistingShapeText(RoofOutline outline)
+        {
+            int extra = outline.ExistingVertices.Count - outline.Edges.Count;
+            if (outline.ExistingSlopeMm > 1)
+                return $"This roof already has slope ({outline.ExistingSlopeMm:0} mm high to low). Running again builds on it — tick \"Clear existing shape points first\" to start from a flat roof.";
+            if (extra > 0)
+                return $"This roof already has about {extra} shape point(s) besides its corners. Tick \"Clear existing shape points first\" to start clean.";
+            return string.Empty;
         }
 
         private int DefaultCount(OpeningModel o) =>
@@ -342,28 +393,106 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.UI.ViewModels
                 o.PlannedPerpendicular = perpBy.TryGetValue(o.Index, out int b) ? b : 0;
             }
 
+            _lastPlan = plan;
+            CancelReachCheck();
+            ReachText = string.Empty;
+
             DrainCount = Openings.Count(o => o.IsDrain && o.CanBeDrain);
             RidgeSummary = PlanRidge(out _ridgeError);
+            PlanWarnings = BuildPlanWarnings(plan);
             ValidationText = Validate() ?? string.Empty;
             SummaryText = string.IsNullOrEmpty(ValidationText)
                 ? $"Ready: {plan.TotalNew} new point(s)" + (RidgeEnabled ? $", ridge {RidgeSummary}" : string.Empty) +
                   (SlopeEnabled ? $", slope to {DrainCount} drain(s)" : string.Empty)
                 : ValidationText;
             RunCommand.NotifyCanExecuteChanged();
+            CheckReachCommand.NotifyCanExecuteChanged();
         }
 
         private string _ridgeError;
+
+        /// <summary>Warnings the preview can show before running (items 3, 4 and 11 of the review).</summary>
+        private string BuildPlanWarnings(PipelinePlan plan)
+        {
+            var lines = new List<string>();
+            PipelineSettings settings = CurrentSettings().Normalize();
+
+            int tooClose = plan.Steps.Sum(s => s.TooClose);
+            if (tooClose > 0)
+                lines.Add($"{tooClose} planned point(s) skipped — closer than {settings.MinPointSpacingMm:0} mm to another point.");
+
+            if (RidgeEnabled && _lastRidge != null)
+            {
+                if (_lastRidge.FailCount > 0)
+                    lines.Add($"Ridge: {_lastRidge.FailCount} of {_lastRidge.PassCount + _lastRidge.FailCount} point(s) are not midway between their drains (more than {settings.RidgeValidationToleranceMm:0} mm out).");
+
+                if (RidgeShapePoints && settings.MinPointSpacingMm > 0)
+                {
+                    double spacing = settings.MinPointSpacingMm / 304.8;
+                    List<P2> known = AllPlannedPoints(plan, settings, includeRidge: false);
+                    int near = RidgePoints().Count(r => known.Any(k =>
+                    {
+                        double d = k.DistanceTo(r);
+                        return d > PointPipelinePlanner.Tolerance && d < spacing;
+                    }));
+                    if (near > 0)
+                        lines.Add($"Ridge: {near} point(s) fall within {settings.MinPointSpacingMm:0} mm of another point — they can make small bumps.");
+                }
+            }
+
+            // Drain consistency: every drain must be an opening the ridge and slope steps both know.
+            if (RidgeEnabled || SlopeEnabled)
+            {
+                int unknownToRidge = _ridgeInput.InnerLoops.Count(loop => !Openings.Any(o => SameCentre(o.Loop, loop)));
+                if (unknownToRidge > 0)
+                    lines.Add($"{unknownToRidge} opening(s) read for the ridge match no opening in the list — the ridge treats them as obstacles.");
+                int drainsNotForRidge = Openings.Count(o => o.IsDrain && o.CanBeDrain && !_ridgeInput.InnerLoops.Any(loop => SameCentre(o.Loop, loop)));
+                if (RidgeEnabled && drainsNotForRidge > 0)
+                    lines.Add($"{drainsNotForRidge} drain(s) were not found by the ridge reader — check those openings in Revit.");
+                int notDrainable = Openings.Count(o => !o.CanBeDrain);
+                if (SlopeEnabled && notDrainable > 0 && DrainCount < Openings.Count)
+                    lines.Add($"{notDrainable} opening(s) were not detected as possible drains by Auto Slope By Drain and can't be ticked.");
+            }
+
+            return string.Join(Environment.NewLine, lines);
+        }
+
+        private static bool SameCentre(Loop2D loop, List<XYZ> polygon)
+        {
+            if (loop == null || polygon == null || polygon.Count == 0) return false;
+            var (min, max) = loop.Bounds;
+            double cx = (min.X + max.X) / 2, cy = (min.Y + max.Y) / 2;
+            double px = (polygon.Min(p => p.X) + polygon.Max(p => p.X)) / 2, py = (polygon.Min(p => p.Y) + polygon.Max(p => p.Y)) / 2;
+            return Math.Abs(cx - px) <= 10.0 / 304.8 && Math.Abs(cy - py) <= 10.0 / 304.8;
+        }
+
+        private IEnumerable<P2> RidgePoints() =>
+            _lastRidge == null
+                ? Enumerable.Empty<P2>()
+                : _lastRidge.ShapePoints.Concat(_lastRidge.RidgeEdgeMidPoints).Select(x => new P2(x.X, x.Y));
+
+        /// <summary>Every point the roof will have after steps 1–4 (and the ridge, when asked).</summary>
+        private List<P2> AllPlannedPoints(PipelinePlan plan, PipelineSettings settings, bool includeRidge)
+        {
+            var all = new List<P2>(PointPipelinePlanner.StartingPoints(_outline, settings));
+            foreach (StepPlan step in plan.Steps) all.AddRange(step.Points.Select(p => p.Position));
+            if (includeRidge && RidgeEnabled && RidgeShapePoints) all.AddRange(RidgePoints());
+            return all;
+        }
 
         /// <summary>Step 5 preview: "4 lines · 9 pts", or "—" when off or not possible.</summary>
         private string PlanRidge(out string error)
         {
             error = null;
+            _lastRidge = null;
             if (!RidgeEnabled) return "Off";
             try
             {
+                _lastRidge = null;
                 VoronoiRidgeResult ridge = RidgePlanner.Plan(_ridgeInput, Openings.Where(o => o.IsDrain && o.CanBeDrain),
                                                              CurrentSettings().Normalize(), out error);
                 if (ridge == null) return "—";
+                _lastRidge = ridge;
                 int points = ridge.ShapePoints.Count + ridge.RidgeEdgeMidPoints.Count;
                 return RidgeShapePoints ? $"{ridge.ClippedEdges.Count} lines · {points} pts" : $"{ridge.ClippedEdges.Count} lines";
             }
@@ -382,6 +511,8 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.UI.ViewModels
                 return "Step 1: the spacing must be at least 0.05 m.";
             if (GapFillEnabled && GapIntervalMeters < 0.05)
                 return "Step 4: the interval must be at least 0.05 m.";
+            if (MinPointSpacingMm < 0 || MinPointSpacingMm > 5000)
+                return "Minimum point spacing must be 0–5000 mm.";
             if (RidgeEnabled)
             {
                 if (!RidgeShapePoints && !RidgeDetailLines) return "Step 5: tick shape points and/or detail lines.";
@@ -420,6 +551,16 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.UI.ViewModels
                 }
             }
 
+            if (!settings.ClearExistingFirst && _outline.ExistingSlopeMm > 1)
+            {
+                MessageBoxResult answer = MessageBox.Show(
+                    $"This roof already has slope ({_outline.ExistingSlopeMm:0} mm high to low).\n\n" +
+                    "Running again builds on the current shape. To start from a flat roof, choose No and tick " +
+                    "\"Clear existing shape points first\".\n\nRun anyway?",
+                    "Roof Points & Slope", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
+                if (answer != MessageBoxResult.Yes) return;
+            }
+
             SaveSettings();
             AddLog(LogLevel.Info, $"Run started: {OpeningPointsNew + PerpendicularNew + MidQuarterNew + GapFillNew} planned point(s)" +
                                   (settings.RidgeEnabled ? ", then the ridge" : string.Empty) +
@@ -436,8 +577,14 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.UI.ViewModels
                 DrainOpenings = drainOpenings,
                 SelectedDrains = drains,
                 DetectedDrainCount = _outline.DetectedDrainCount,
+                Cancel = (_runCts = new CancellationTokenSource()).Token,
                 Log = entry => AddLog(entry.Level, entry.Message),
-                Progress = (pct, text) => { Progress = pct; SummaryText = text; },
+                Progress = (pct, text) =>
+                {
+                    Progress = pct;
+                    SummaryText = text;
+                    UiPumpHelper.DoEvents(); // repaint + let a Cancel click through
+                },
                 OnCompleted = OnRunCompleted
             };
 
@@ -450,9 +597,13 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.UI.ViewModels
         {
             IsRunning = false;
             Progress = 0;
+            _runCts?.Dispose();
+            _runCts = null;
             if (result.Success)
             {
                 _outline.ExistingVertices = result.VerticesAfter ?? new List<P2>();
+                if (result.Sloped) _outline.ExistingSlopeMm = result.HighestElevationMm;
+                ExistingShapeWarning = ExistingShapeText(_outline);
                 Replan();
                 string ridge = result.RidgeLines > 0 ? $" · {result.RidgeLines} ridge line(s)" : string.Empty;
                 string slope = result.Sloped ? $" · sloped, highest point {result.HighestElevationMm:0} mm" : string.Empty;
@@ -461,8 +612,89 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.UI.ViewModels
             }
             else
             {
-                SummaryText = "Run failed — nothing changed (see log)";
+                SummaryText = result.WasCancelled ? "Cancelled — nothing changed" : "Run failed — nothing changed (see log)";
             }
+        }
+
+        /// <summary>Stops the running steps; the whole run is rolled back.</summary>
+        [RelayCommand(CanExecute = nameof(CanCancel))]
+        private void Cancel()
+        {
+            if (_runCts == null || _runCts.IsCancellationRequested) return;
+            _runCts.Cancel();
+            SummaryText = "Cancelling…";
+            AddLog(LogLevel.Warning, "Cancel requested — stopping and rolling back.");
+            CancelCommand.NotifyCanExecuteChanged();
+        }
+
+        private bool CanCancel() => IsRunning && _runCts != null && !_runCts.IsCancellationRequested;
+
+        // ── Slope reach estimate ────────────────────────────────────────────
+        /// <summary>
+        /// Estimates, before running, how many points the slope step would leave at 0 (dips):
+        /// points with no on-roof path to a drain within Max edge hops, or a path longer than Max path.
+        /// </summary>
+        [RelayCommand(CanExecute = nameof(CanCheckReach))]
+        private async Task CheckReach()
+        {
+            if (_outline == null || _lastPlan == null) return;
+            PipelineSettings settings = CurrentSettings().Normalize();
+            List<P2> points = AllPlannedPoints(_lastPlan, settings, includeRidge: true);
+            if (points.Count > ReachEstimator.MaxPoints)
+            {
+                ReachText = $"Too many points to check ({points.Count}; the limit is {ReachEstimator.MaxPoints}).";
+                return;
+            }
+
+            var drains = Openings.Where(o => o.IsDrain && o.CanBeDrain).Select(o => o.Loop).ToList();
+            var openings = Openings.Select(o => o.Loop).ToList();
+            var boundaries = _outline.Boundaries.ToList();
+            double maxEdge = settings.MaxEdgeMeters / 0.3048, maxPath = settings.MaxPathMeters / 0.3048;
+
+            CancelReachCheck();
+            var cts = _reachCts = new CancellationTokenSource();
+            IsCheckingReach = true;
+            ReachText = $"Checking {points.Count} point(s)…";
+            try
+            {
+                ReachEstimate est = await Task.Run(() =>
+                    ReachEstimator.Estimate(points, drains, openings, boundaries, maxEdge, maxPath, cts.Token), cts.Token);
+                if (cts.IsCancellationRequested) return;
+
+                if (est.DrainPointCount == 0)
+                    ReachText = "No point lies on a drain's edge — the slope step would leave every point at 0.";
+                else if (est.LeftAtZero == 0)
+                    ReachText = $"All {est.PointCount} point(s) reach a drain — no dips expected.";
+                else
+                    ReachText = $"{est.LeftAtZero} of {est.PointCount} point(s) would stay at 0 (dips): " +
+                                $"{est.NoPath.Count} with no path to a drain, {est.BeyondMaxPath.Count} beyond Max path. " +
+                                "Add points (steps 3–4) or raise Max edge / Max path.";
+                AddLog(est.LeftAtZero == 0 ? LogLevel.Success : LogLevel.Warning, "Slope reach check: " + ReachText);
+            }
+            catch (OperationCanceledException)
+            {
+                // the plan changed; the text was already cleared
+            }
+            catch (Exception ex)
+            {
+                ReachText = "The reach check failed: " + ex.Message;
+                AddLog(LogLevel.Error, ReachText);
+            }
+            finally
+            {
+                if (ReferenceEquals(_reachCts, cts)) { _reachCts = null; IsCheckingReach = false; }
+                cts.Dispose();
+            }
+        }
+
+        private bool CanCheckReach() => !IsRunning && !IsCheckingReach && SlopeEnabled && DrainCount > 0;
+
+        private void CancelReachCheck()
+        {
+            if (_reachCts == null) return;
+            _reachCts.Cancel();
+            _reachCts = null;
+            IsCheckingReach = false;
         }
 
         // ── Re-analyze ──────────────────────────────────────────────────────

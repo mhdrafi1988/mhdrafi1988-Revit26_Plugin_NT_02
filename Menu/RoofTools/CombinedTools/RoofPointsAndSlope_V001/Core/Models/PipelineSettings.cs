@@ -48,6 +48,19 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Core.Models
         /// <summary>Settings file format version.</summary>
         public int SchemaVersion { get; set; } = CurrentSchemaVersion;
 
+        // ── Whole run ────────────────────────────────────────────────────────
+        /// <summary>
+        /// Remove every shape point and split line on the roof before step 1 (Revit's Reset
+        /// Shape — also removes points made by other tools). Off by default.
+        /// </summary>
+        public bool ClearExistingFirst { get; set; }
+
+        /// <summary>
+        /// Steps 2–4 skip a point closer than this (mm) to another point, so Revit isn't given
+        /// thin triangles. Step 1 is exempt (its count is the user's choice). 0 = off.
+        /// </summary>
+        public double MinPointSpacingMm { get; set; } = 50;
+
         // ── Step 1: points around openings ──────────────────────────────────
         /// <summary>Run step 1.</summary>
         public bool InnerPointsEnabled { get; set; } = true;
@@ -148,6 +161,7 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Core.Models
             CircularPoints = Math.Max(1, CircularPoints);
             CorneredPoints = Math.Max(1, CorneredPoints);
             PathSamples = Math.Max(2, PathSamples);
+            MinPointSpacingMm = Math.Max(0, MinPointSpacingMm);
             SchemaVersion = CurrentSchemaVersion;
             return this;
         }

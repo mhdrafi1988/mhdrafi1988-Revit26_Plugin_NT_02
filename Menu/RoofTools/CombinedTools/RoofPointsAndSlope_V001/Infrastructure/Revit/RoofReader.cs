@@ -136,6 +136,7 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Infrastructure.Revit
 
             // 4 — existing shape points
             outline.ExistingVertices = ReadShapePoints(roof);
+            outline.ExistingSlopeMm = ReadSlopeMm(roof);
             if (!IsShapeEditingOn(roof))
                 outline.Notes.Add("Shape editing is off on this roof — it is switched on when the steps run.");
 
@@ -151,6 +152,20 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Infrastructure.Revit
             foreach (SlabShapeVertex v in editor.SlabShapeVertices)
                 result.Add(CurveConverter.ToP2(v.Position));
             return result;
+        }
+
+        /// <summary>Highest minus lowest shape point height, in mm (0 when shape editing is off).</summary>
+        public static double ReadSlopeMm(RoofBase roof)
+        {
+            SlabShapeEditor editor = roof?.GetSlabShapeEditor();
+            if (editor == null || !editor.IsEnabled) return 0;
+            double min = double.MaxValue, max = double.MinValue;
+            foreach (SlabShapeVertex v in editor.SlabShapeVertices)
+            {
+                min = Math.Min(min, v.Position.Z);
+                max = Math.Max(max, v.Position.Z);
+            }
+            return max > min ? (max - min) * 304.8 : 0;
         }
 
         private static bool IsShapeEditingOn(RoofBase roof)

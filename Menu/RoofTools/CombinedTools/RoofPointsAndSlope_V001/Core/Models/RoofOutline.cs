@@ -46,6 +46,9 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Core.Models
         /// <summary>Plan positions of the roof's shape points (empty when shape editing is off).</summary>
         public List<P2> ExistingVertices { get; set; } = new List<P2>();
 
+        /// <summary>Height difference between the highest and lowest shape point, in mm (0 = flat).</summary>
+        public double ExistingSlopeMm { get; set; }
+
         /// <summary>Number of openings Auto Slope By Drain V013's detection found (its drain report counts them).</summary>
         public int DetectedDrainCount { get; set; }
 

@@ -31,6 +31,7 @@ Step pipeline on the shared ToolWindowShell.
             <conv:LogLevelToColorConverter         x:Key="LogLevelToColor"/>
             <conv:InverseBoolToVisibilityConverter x:Key="InverseBoolToVis"/>
             <conv:BoolToVisibilityConverter        x:Key="BoolToVisibility"/>
+            <conv:InverseBoolConverter             x:Key="InverseBool"/>
 
             <Style x:Key="StepTitle" TargetType="CheckBox">
                 <Setter Property="FontSize" Value="13"/>
@@ -52,6 +53,18 @@ Step pipeline on the shared ToolWindowShell.
             <Style x:Key="Opt" TargetType="CheckBox">
                 <Setter Property="VerticalAlignment" Value="Center"/>
                 <Setter Property="Margin" Value="0,0,14,0"/>
+            </Style>
+
+            <!-- Amber note, hidden while its text is empty -->
+            <Style x:Key="WarnNote" TargetType="TextBlock">
+                <Setter Property="Foreground" Value="{StaticResource BrushWarning}"/>
+                <Setter Property="TextWrapping" Value="Wrap"/>
+                <Setter Property="Margin" Value="0,4,0,0"/>
+                <Style.Triggers>
+                    <Trigger Property="Text" Value="">
+                        <Setter Property="Visibility" Value="Collapsed"/>
+                    </Trigger>
+                </Style.Triggers>
             </Style>
         </ResourceDictionary>
     </Window.Resources>
@@ -115,7 +128,24 @@ Step pipeline on the shared ToolWindowShell.
 
         <!-- ═══ BODY ═════════════════════════════════════════════ -->
         <shell:ToolWindowShell.BodyContent>
-            <StackPanel>
+            <!-- Options are locked while a run is in progress (the window stays responsive for Cancel) -->
+            <StackPanel IsEnabled="{Binding IsRunning, Converter={StaticResource InverseBool}}">
+
+                <!-- ─── BEFORE STEP 1 ─── -->
+                <Border Style="{StaticResource ContentCard}" Padding="14,10" Margin="0,0,0,8">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <CheckBox Style="{StaticResource Opt}" Content="Clear existing shape points first"
+                                      IsChecked="{Binding ClearExistingFirst}"
+                                      ToolTip="Resets the roof's shape (all added points and split lines) before step 1, so the steps start from a flat roof. Off by default."/>
+                            <TextBlock Text="Min spacing between points (mm)" Style="{StaticResource Label}" Margin="18,0,6,0"/>
+                            <TextBox Style="{StaticResource NumberBox}" Text="{Binding MinPointSpacingMm, UpdateSourceTrigger=PropertyChanged}"
+                                     ToolTip="Steps 2–4 skip a point closer than this to another point (0 = only skip duplicates within 5 mm)."/>
+                        </StackPanel>
+                        <TextBlock Style="{StaticResource WarnNote}" Text="{Binding ExistingShapeWarning}"/>
+                        <TextBlock Style="{StaticResource WarnNote}" Text="{Binding PlanWarnings}"/>
+                    </StackPanel>
+                </Border>
 
                 <!-- ─── STEPS 1 + 2 ─── -->
                 <Grid Margin="0,0,0,8">
@@ -280,6 +310,12 @@ Step pipeline on the shared ToolWindowShell.
                             </Grid>
                             <TextBlock Style="{StaticResource HintText}" TextWrapping="Wrap"
                                        Text="Resets every shape point to 0, then sets each point's height from its shortest path to a ticked drain, and writes the AutoSlope roof parameters."/>
+                            <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                <Button Content="Check slope reach" Style="{StaticResource SmallSecondaryButton}"
+                                        Command="{Binding CheckReachCommand}"
+                                        ToolTip="Estimates, without changing the roof, how many points the slope would leave at 0 (dips)."/>
+                            </StackPanel>
+                            <TextBlock Style="{StaticResource WarnNote}" Text="{Binding ReachText}"/>
                         </StackPanel>
                     </StackPanel>
                 </Border>
@@ -407,6 +443,10 @@ Step pipeline on the shared ToolWindowShell.
                 <StackPanel Grid.Column="2" Orientation="Horizontal">
                     <Button Content="Run Selected Steps" Style="{StaticResource PrimaryButton}"
                             Width="200" Margin="0,0,10,0" Command="{Binding RunCommand}"/>
+                    <Button Content="Cancel Run" Style="{StaticResource OutlineButton}"
+                            Width="110" Height="38" Margin="0,0,10,0" Command="{Binding CancelCommand}"
+                            Visibility="{Binding IsRunning, Converter={StaticResource BoolToVisibility}}"
+                            ToolTip="Stops the run; everything it did is rolled back."/>
                     <Button Content="Close" Style="{StaticResource OutlineButton}"
                             Width="90" Height="38" IsCancel="True" Click="CloseButton_Click"/>
                 </StackPanel>

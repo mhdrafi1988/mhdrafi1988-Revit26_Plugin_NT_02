@@ -23,6 +23,11 @@
 	  <EmbeddedResource Remove="Menu\RoofTools\WIP\**" />
 	  <None Remove="Menu\RoofTools\WIP\**" />
 	  <Page Remove="Menu\RoofTools\WIP\**" />
+	  <!-- Unit-test projects build on their own (dotnet test Tests/...) -->
+	  <Compile Remove="Tests\**" />
+	  <EmbeddedResource Remove="Tests\**" />
+	  <None Remove="Tests\**" />
+	  <Page Remove="Tests\**" />
 	</ItemGroup>
 	<ItemGroup>
 	  <Compile Remove="IconLoader.cs" />

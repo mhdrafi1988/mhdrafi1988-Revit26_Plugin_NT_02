@@ -30,9 +30,24 @@ Each release lists every tool whose version changed, under the plugin version.
      included).
   Steps 3 and 4 each choose their edges: boundary and/or openings, lines and/or curves. The header
   shows how many points each step will add (and the ridge lines) before anything runs; points already there are skipped.
+  Before running, the window also:
+  - **Check slope reach** (step 6) — estimates how many points the slope would leave at 0 (dips):
+    no on-roof path to a drain within Max edge hops, or a path longer than Max path.
+  - Shows **ridge problems** — ridge points not midway between their drains, and ridge points that
+    fall within the minimum spacing of another point.
+  - **Min spacing between points** (default 50 mm) — steps 2–4 skip a point closer than this to
+    another point; the skipped count is shown. Step 1 (counts you set per opening) is never thinned.
+  - **Drain checks** — openings the ridge reader and the drain detection don't agree on are listed.
+  - Warns when the roof **already has slope or extra points**, and asks before running on a roof
+    that already has slope. **Clear existing shape points first** (off by default) resets the roof's
+    shape before step 1, inside the same Undo.
+  - **Cancel Run** — stops the run between steps or during the slope; everything is rolled back.
   If any step fails, the whole run is rolled back. Settings are saved to
   `%AppData%\Revit26_Plugin\RoofPointsAndSlope\settings.json` (with a schema version).
   Internal names: `Btn_RoofPointsAndSlope_V001`, `Pulldown_RoofPointsAndSlope`.
+
+Unit tests for the plan geometry, the point planner and the reach estimate are in
+`Tests/RoofPointsAndSlope.Tests` (`dotnet test Tests/RoofPointsAndSlope.Tests`).
 
 **User note:** nothing changes for existing tools. Combined Roof Tools V003 and the separate
 point and slope tools are unchanged and stay on the ribbon. Footprint roofs only (the openings

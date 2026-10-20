@@ -90,17 +90,57 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Core.Engine
             return roof;
         }
 
-        /// <summary>Runs the enabled steps. Call inside a TransactionGroup; keep it only on Success.</summary>
+        /// <summary>
+        /// Runs the enabled steps. Call inside a TransactionGroup; keep it only on Success.
+        /// Cancel (payload.Cancel) is checked between steps and inside the slope step; a cancelled
+        /// run returns a failed result, so the caller rolls everything back.
+        /// </summary>
         public static RunResult Execute(UIApplication app, RunPayload payload)
         {
             var log = payload.Log ?? (_ => { });
-            var progress = payload.Progress ?? ((_, __) => { });
             var result = new RunResult();
+            try
+            {
+                return ExecuteSteps(app, payload, result);
+            }
+            catch (OperationCanceledException)
+            {
+                result.WasCancelled = true;
+                return Fail(result, log, "Cancelled — nothing was changed.");
+            }
+        }
+
+        private static RunResult ExecuteSteps(UIApplication app, RunPayload payload, RunResult result)
+        {
+            var log = payload.Log ?? (_ => { });
+            var progress = payload.Progress ?? ((_, __) => { });
+            CancellationToken cancel = payload.Cancel;
 
             FootPrintRoof roof = ValidateRoof(app, payload.Document, payload.RoofId, out string error);
             if (roof == null) return Fail(result, log, error);
             Document doc = roof.Document;
             PipelineSettings settings = payload.Settings;
+
+            // ── Optional: clear every shape point first ──────────────────────
+            if (settings.ClearExistingFirst)
+            {
+                progress(2, "Clearing existing shape points");
+                int before = RoofReader.ReadShapePoints(roof).Count;
+                using (var tx = new Transaction(doc, "Roof Points & Slope – clear shape points"))
+                {
+                    tx.Start();
+                    SlabShapeEditor editor = roof.GetSlabShapeEditor();
+                    if (editor != null && editor.IsEnabled) editor.ResetSlabShape();
+                    if (tx.Commit() != TransactionStatus.Committed)
+                        return Fail(result, log, "Clearing the existing shape points failed; nothing was changed.");
+                }
+
+                log(new LogEntry(LogLevel.Info, $"Cleared the roof's shape points and split lines ({before} point(s) before)."));
+                settings = settings.Clone();
+                settings.ClearExistingFirst = false; // the roof now really has only its corners
+            }
+
+            cancel.ThrowIfCancellationRequested();
 
             // ── Steps 1–4 ────────────────────────────────────────────────────
             payload.Outline.ExistingVertices = RoofReader.ReadShapePoints(roof);
@@ -110,6 +150,10 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Core.Engine
             foreach (StepPlan step in plan.Steps)
             {
                 stepNo++;
+                cancel.ThrowIfCancellationRequested();
+                if (step.TooClose > 0)
+                    log(new LogEntry(LogLevel.Info,
+                        $"Step {stepNo} · {StepNames[step.Step]}: {step.TooClose} point(s) skipped, closer than {settings.MinPointSpacingMm:0} mm to another point."));
                 if (step.Points.Count == 0) continue;
 
                 string name = StepNames[step.Step];
@@ -136,6 +180,7 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Core.Engine
                 log(new LogEntry(LogLevel.Info, "Point steps: nothing new to add — every planned point is already there."));
 
             // ── Step 5: ridge ────────────────────────────────────────────────
+            cancel.ThrowIfCancellationRequested();
             if (settings.RidgeEnabled)
             {
                 progress(62, "Step 5: Ridge");
@@ -144,6 +189,7 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Core.Engine
             }
 
             // ── Step 6: slope ────────────────────────────────────────────────
+            cancel.ThrowIfCancellationRequested();
             if (settings.SlopeEnabled)
             {
                 progress(70, "Step 6: Slope by drain");
@@ -168,12 +214,13 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Core.Engine
                         ? new ExportConfig { ExportPath = settings.ExportFolder, ExportToExcel = true }
                         : null,
                     ProjectTitle = doc.Title,
-                    CancelToken = CancellationToken.None,
+                    CancelToken = cancel,
                     Log = entry => log(new LogEntry(entry.Level, "Step 6 · " + entry.Message)),
                     Progress = info => progress(70 + 0.25 * (info?.PercentWithinPhase ?? 50), "Step 6: " + info?.PhaseLabel)
                 };
 
                 AutoSlopeDrainResult slope = AutoSlopeDrainEngine.Execute(app, slopePayload);
+                if (slope.WasCancelled) throw new OperationCanceledException();
                 if (!slope.Success)
                     return Fail(result, log, "Step 6 (Slope by drain) failed: " + (slope.ErrorMessage ?? "see the log above."));
 
