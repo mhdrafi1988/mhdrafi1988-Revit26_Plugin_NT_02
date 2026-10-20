@@ -23,24 +23,25 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.Core.Services
         {
             "Tracker_ID", "Category", "Family", "Type", "Type_Mark", "Zone", "Level", "Grid",
             "Count", "Length_m", "Area_m2", "Volume_m3",
-            "Revit_ElementId", "Revit_UniqueId", "Model", "Export_Date", "Schema_Version"
+            "Revit_ElementId", "Revit_UniqueId", "Model", "Export_Date", "Schema_Version", "Model_Code"
         };
 
         /// <summary>
         /// Writes <paramref name="rows"/> to <paramref name="path"/> (UTF-8 with BOM, so Excel opens it
         /// correctly), replacing the file in one step so Power BI never reads a half-written file.
         /// When <paramref name="datedCopy"/> is set, also writes "name_yyyy-MM-dd.csv" next to it.
-        /// Returns the paths written. Throws <see cref="IOException"/> when the file is open elsewhere.
+        /// <paramref name="modelCode"/> fills the Model_Code column. Returns the paths written.
+        /// Throws <see cref="IOException"/> when the file is open elsewhere.
         /// </summary>
         public static IReadOnlyList<string> Write(string path, IEnumerable<ExportRow> rows, string modelName,
-            DateTime exportTime, bool datedCopy)
+            string modelCode, DateTime exportTime, bool datedCopy)
         {
             if (string.IsNullOrWhiteSpace(path)) throw new ArgumentException("Choose a file to export to.", nameof(path));
 
             string folder = Path.GetDirectoryName(Path.GetFullPath(path));
             if (!string.IsNullOrEmpty(folder)) Directory.CreateDirectory(folder);
 
-            string text = Build(rows, modelName, exportTime);
+            string text = Build(rows, modelName, modelCode, exportTime);
             var written = new List<string> { WriteAtomically(path, text) };
 
             if (datedCopy)
@@ -53,7 +54,7 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.Core.Services
         }
 
         /// <summary>The CSV text for <paramref name="rows"/>, header included.</summary>
-        public static string Build(IEnumerable<ExportRow> rows, string modelName, DateTime exportTime)
+        public static string Build(IEnumerable<ExportRow> rows, string modelName, string modelCode, DateTime exportTime)
         {
             var sb = new StringBuilder();
             sb.AppendLine(string.Join(",", Columns));
@@ -67,7 +68,7 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.Core.Services
                     Quote(r.Zone), Quote(r.Level), Quote(r.Grid),
                     "1", Number(r.LengthM), Number(r.AreaM2), Number(r.VolumeM3),
                     r.ElementId.ToString(CultureInfo.InvariantCulture), Quote(r.UniqueId), Quote(modelName),
-                    date, SchemaVersion.ToString(CultureInfo.InvariantCulture)
+                    date, SchemaVersion.ToString(CultureInfo.InvariantCulture), Quote(modelCode)
                 }));
             }
             return sb.ToString();

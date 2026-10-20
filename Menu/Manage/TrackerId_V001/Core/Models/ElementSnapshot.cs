@@ -69,6 +69,9 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.Core.Models
         /// <summary>Current Tracker_Grid.</summary>
         public string StoredGrid { get; set; } = string.Empty;
 
+        /// <summary>The Revit file the element is in; the same object for every element of a run.</summary>
+        public ModelIdentity Model { get; set; }
+
         /// <summary>Why the element cannot be edited, or null when it can.</summary>
         public string LockReason { get; set; }
     }

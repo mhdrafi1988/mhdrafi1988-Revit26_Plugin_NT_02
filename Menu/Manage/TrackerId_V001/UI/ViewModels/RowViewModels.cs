@@ -151,7 +151,12 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.UI.ViewModels
         public string OptionLabel => SelectedSource == null ? string.Empty : SegmentCatalog.OptionLabel(SelectedSource.Value);
 
         /// <summary>Text shown instead of the Option box when the source needs none.</summary>
-        public string OptionPlaceholder => Kind == SegmentKind.Grid ? "Centre point → grid crossings" : "From the model";
+        public string OptionPlaceholder => Kind switch
+        {
+            SegmentKind.Grid => "Centre point → grid crossings",
+            SegmentKind.Model => "ARC, STR, MEP… found in the file name",
+            _ => "From the model"
+        };
 
         partial void OnIsEnabledChanged(bool value) => _changed?.Invoke(this, false);
 

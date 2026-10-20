@@ -1,6 +1,6 @@
 namespace Revit26_Plugin_Revised.TrackerId.V001.Core.Models
 {
-    /// <summary>The seven building blocks of a Tracker ID. Their order in the ID is set by the user.</summary>
+    /// <summary>The eight building blocks of a Tracker ID. Their order in the ID is set by the user.</summary>
     public enum SegmentKind
     {
         Zone,
@@ -9,7 +9,10 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.Core.Models
         Grid,
         Custom1,
         Custom2,
-        Custom3
+        Custom3,
+
+        /// <summary>Code of the Revit model the element is in (ARC, STR, MEP…), so IDs never clash across models.</summary>
+        Model
     }
 
     /// <summary>
@@ -43,7 +46,12 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.Core.Models
         // Custom 1-3
         FixedText,
         ParameterValue,
-        RunningNumber
+        RunningNumber,
+
+        // Model
+        ModelAuto,
+        ModelProjectParameter,
+        ModelFileName
     }
 
     /// <summary>What the tool does with one element when IDs are written.</summary>

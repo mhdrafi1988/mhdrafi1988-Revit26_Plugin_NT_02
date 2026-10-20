@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -72,6 +73,51 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.Core.Services
             if (structure.Any(s => n.Contains(s, StringComparison.OrdinalIgnoreCase))) return "Structure";
             if (mep.Any(s => n.Contains(s, StringComparison.OrdinalIgnoreCase))) return "MEP";
             return "Architecture";
+        }
+
+        // Discipline / model codes commonly put in Revit file names.
+        private static readonly HashSet<string> KnownModelCodes = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "ARC", "ARCH", "AR", "STR", "STRUC", "ST", "MEP", "MECH", "ME", "ELE", "ELEC", "EL", "ELV",
+            "PLB", "PLU", "PL", "FP", "FPS", "FF", "HVAC", "CIV", "CV", "LND", "LAN", "LS", "INT", "ID",
+            "FAC", "SITE", "ICT", "LV", "MV", "DRN", "SAN", "TEL", "SEC", "LIG", "LGT"
+        };
+
+        // Words in file names that say nothing about which model it is.
+        private static readonly HashSet<string> FileNameNoise = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "CENTRAL", "LOCAL", "DETACHED", "BACKUP", "MODEL", "RVT", "COPY", "FINAL", "WIP", "NEW", "OLD"
+        };
+
+        /// <summary>
+        /// Finds the model code in a Revit file name: the first word that is a known discipline code
+        /// ("NT_02_ARC_Central" gives "ARC", "NT02-MEP-L01" gives "MEP"). When there is none, returns the
+        /// file name's meaningful words joined (at most 12 characters) and sets
+        /// <paramref name="recognised"/> to false, so the caller can suggest setting a Model Code.
+        /// </summary>
+        public static string ModelCodeFromTitle(string title, out bool recognised)
+        {
+            recognised = false;
+            if (string.IsNullOrWhiteSpace(title)) return string.Empty;
+
+            string name = title.Trim();
+            if (name.EndsWith(".rvt", StringComparison.OrdinalIgnoreCase)) name = name.Substring(0, name.Length - 4);
+
+            string[] words = name.Split(new[] { '_', '-', ' ', '.', '(', ')' }, StringSplitOptions.RemoveEmptyEntries);
+            string known = words.FirstOrDefault(w => KnownModelCodes.Contains(w));
+            if (known != null)
+            {
+                recognised = true;
+                return known.ToUpperInvariant();
+            }
+
+            // Revit adds "_<username>" to local copies, so the last word after "Central"/"Local" is dropped.
+            int cut = Array.FindIndex(words, w => w.Equals("CENTRAL", StringComparison.OrdinalIgnoreCase) ||
+                                                   w.Equals("LOCAL", StringComparison.OrdinalIgnoreCase));
+            var kept = (cut >= 0 ? words.Take(cut) : words)
+                .Where(w => !FileNameNoise.Contains(w) && !Regex.IsMatch(w, @"^(R|V)?\d{2,4}$", RegexOptions.IgnoreCase));
+            string joined = string.Concat(kept).ToUpperInvariant();
+            return joined.Length <= 12 ? joined : joined.Substring(0, 12);
         }
 
         /// <summary>Pads a one-digit grid name to two digits ("4" gives "04"); anything else is returned unchanged.</summary>

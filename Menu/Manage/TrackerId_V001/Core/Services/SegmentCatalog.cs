@@ -19,7 +19,8 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.Core.Services
             [SegmentKind.Grid] = new[] { SegmentSource.GridCrossing, SegmentSource.GridLetter, SegmentSource.GridNumber },
             [SegmentKind.Custom1] = CustomSources(),
             [SegmentKind.Custom2] = CustomSources(),
-            [SegmentKind.Custom3] = CustomSources()
+            [SegmentKind.Custom3] = CustomSources(),
+            [SegmentKind.Model] = new[] { SegmentSource.ModelAuto, SegmentSource.ModelProjectParameter, SegmentSource.ModelFileName }
         };
 
         private static SegmentSource[] CustomSources() =>
@@ -41,6 +42,7 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.Core.Services
             SegmentKind.Level => "host or reference level",
             SegmentKind.Type => "element type",
             SegmentKind.Grid => "from centre point",
+            SegmentKind.Model => "this Revit file",
             _ => "your choice"
         };
 
@@ -66,6 +68,9 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.Core.Services
             SegmentSource.FixedText => "Fixed text",
             SegmentSource.ParameterValue => "Parameter value",
             SegmentSource.RunningNumber => "Running number",
+            SegmentSource.ModelAuto => "Auto: Project Info, else file name",
+            SegmentSource.ModelProjectParameter => "Project Information parameter",
+            SegmentSource.ModelFileName => "Code in the file name",
             _ => source.ToString()
         };
 
@@ -73,12 +78,18 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.Core.Services
         public static bool UsesOption(SegmentSource source) =>
             source == SegmentSource.ZoneParameterThenScopeBox || source == SegmentSource.ZoneParameter ||
             source == SegmentSource.LevelParameter || source == SegmentSource.FixedText ||
-            source == SegmentSource.ParameterValue || source == SegmentSource.RunningNumber;
+            source == SegmentSource.ParameterValue || source == SegmentSource.RunningNumber ||
+            source == SegmentSource.ModelAuto || source == SegmentSource.ModelProjectParameter;
 
         /// <summary>True when the Option text is the name of a parameter the model must be read for.</summary>
         public static bool OptionIsParameterName(SegmentSource source) =>
             source == SegmentSource.ZoneParameterThenScopeBox || source == SegmentSource.ZoneParameter ||
-            source == SegmentSource.LevelParameter || source == SegmentSource.ParameterValue;
+            source == SegmentSource.LevelParameter || source == SegmentSource.ParameterValue ||
+            source == SegmentSource.ModelAuto || source == SegmentSource.ModelProjectParameter;
+
+        /// <summary>True when the Option text names a Project Information parameter.</summary>
+        public static bool OptionIsProjectParameter(SegmentSource source) =>
+            source == SegmentSource.ModelAuto || source == SegmentSource.ModelProjectParameter;
 
         /// <summary>Label shown before the Option box.</summary>
         public static string OptionLabel(SegmentSource source) => source switch
@@ -88,6 +99,7 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.Core.Services
             SegmentSource.FixedText => "Text",
             SegmentSource.ParameterValue => "Parameter",
             SegmentSource.RunningNumber => "Digits",
+            SegmentSource.ModelAuto or SegmentSource.ModelProjectParameter => "Project Info",
             _ => string.Empty
         };
 
@@ -99,6 +111,7 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.Core.Services
             SegmentSource.FixedText => "NT02",
             SegmentSource.ParameterValue => "Workset",
             SegmentSource.RunningNumber => "4",
+            SegmentSource.ModelAuto or SegmentSource.ModelProjectParameter => "Model Code",
             _ => string.Empty
         };
 
@@ -106,21 +119,27 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.Core.Services
         public static int Digits(string option) =>
             int.TryParse(option, out int d) ? Math.Clamp(d, 1, 9) : 4;
 
-        /// <summary>The format the tool starts with: Zone-Level-Type-Grid-NT02-Workset-0001.</summary>
+        /// <summary>
+        /// The format the tool starts with: Project-Model-Zone-Level-Type-Grid-Number,
+        /// e.g. NT02-ARC-ZA-L01-D09-C04-0001. Custom 2 starts switched off.
+        /// </summary>
         public static List<SegmentDefinition> DefaultSegments() => new()
         {
+            new() { Kind = SegmentKind.Custom1, Source = SegmentSource.FixedText, Option = "NT02" },
+            new() { Kind = SegmentKind.Model, Source = SegmentSource.ModelAuto, Option = "Model Code" },
             new() { Kind = SegmentKind.Zone, Source = SegmentSource.ZoneParameterThenScopeBox, Option = "Zone" },
             new() { Kind = SegmentKind.Level, Source = SegmentSource.LevelShortCode },
             new() { Kind = SegmentKind.Type, Source = SegmentSource.TypeMark },
             new() { Kind = SegmentKind.Grid, Source = SegmentSource.GridCrossing },
-            new() { Kind = SegmentKind.Custom1, Source = SegmentSource.FixedText, Option = "NT02" },
-            new() { Kind = SegmentKind.Custom2, Source = SegmentSource.ParameterValue, Option = "Workset" },
+            new() { Kind = SegmentKind.Custom2, Enabled = false, Source = SegmentSource.ParameterValue, Option = "Workset" },
             new() { Kind = SegmentKind.Custom3, Source = SegmentSource.RunningNumber, Option = "4" }
         };
 
         /// <summary>
         /// Repairs a saved segment list: keeps the saved order, drops repeats and sources a segment does
-        /// not offer (falling back to that segment's default), and appends any missing segment.
+        /// not offer (falling back to that segment's default), and adds any missing segment. A missing
+        /// Model segment goes right after Custom 1 (or first), switched on, so IDs from a format saved
+        /// before it existed become unique across models too.
         /// </summary>
         public static List<SegmentDefinition> Normalize(IEnumerable<SegmentDefinition> saved)
         {
@@ -144,7 +163,12 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.Core.Services
             }
 
             foreach (var missing in defaults.Where(d => result.All(r => r.Kind != d.Kind)))
-                result.Add(missing);
+            {
+                if (missing.Kind == SegmentKind.Model)
+                    result.Insert(result.FindIndex(r => r.Kind == SegmentKind.Custom1) + 1, missing);
+                else
+                    result.Add(missing);
+            }
 
             return result;
         }

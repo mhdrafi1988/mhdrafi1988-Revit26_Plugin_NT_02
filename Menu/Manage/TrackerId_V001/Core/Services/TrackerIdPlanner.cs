@@ -76,6 +76,9 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.Core.Services
                 case SegmentKind.Grid:
                     raw = element.HasCenter ? grids?.Find(element.CenterX, element.CenterY, segment.Source)?.Label : null;
                     break;
+                case SegmentKind.Model:
+                    raw = ModelCode(segment, element.Model, out _);
+                    break;
                 default:
                     raw = segment.Source switch
                     {
@@ -94,6 +97,26 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.Core.Services
         public static string BuildId(ElementSnapshot element, TrackerFormat format, GridLocator grids, int? runningNumber) =>
             string.Join(format.Separator ?? string.Empty,
                 format.Segments.Where(s => s.Enabled).Select(s => SegmentValue(s, element, format, grids, runningNumber)));
+
+        /// <summary>
+        /// The model code under <paramref name="segment"/>'s source: the Project Information parameter
+        /// named in its Option, the discipline code found in the file name, or (Auto) the first of the two
+        /// that gives a value. <paramref name="fromFileNameGuess"/> is true when the code is the file
+        /// name's words because no known discipline code was found; such a code may not be unique.
+        /// </summary>
+        public static string ModelCode(SegmentDefinition segment, ModelIdentity model, out bool fromFileNameGuess)
+        {
+            fromFileNameGuess = false;
+            if (model == null || segment == null) return string.Empty;
+
+            string fromProject = Lookup(model.ProjectParameterValues, segment.Option);
+            if (segment.Source == SegmentSource.ModelProjectParameter) return fromProject ?? string.Empty;
+            if (segment.Source == SegmentSource.ModelAuto && !string.IsNullOrWhiteSpace(fromProject)) return fromProject;
+
+            string fromName = NameRules.ModelCodeFromTitle(model.Title, out bool recognised);
+            fromFileNameGuess = !recognised;
+            return fromName;
+        }
 
         // ── Location ──────────────────────────────────────────────────────────
 

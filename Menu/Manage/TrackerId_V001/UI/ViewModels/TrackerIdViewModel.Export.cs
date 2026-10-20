@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Revit26_Plugin_Revised.Shared.Models;
+using Revit26_Plugin_Revised.TrackerId.V001.Core.Models;
 using Revit26_Plugin_Revised.TrackerId.V001.Core.Services;
 using Revit26_Plugin_Revised.TrackerId.V001.Infrastructure.Revit;
 using System;
@@ -54,6 +55,8 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.UI.ViewModels
         {
             string path = ExportPath?.Trim();
             bool dated = ExportDatedCopy;
+            var modelSegment = Segments.FirstOrDefault(s => s.Kind == SegmentKind.Model)?.ToDefinition();
+            var projectParameters = NeededParameterNames().Project;
             List<long> ids = ExportWholeModel ? null : _snapshots?.Select(s => s.ElementId).ToList();
             if (!ExportWholeModel && ids == null)
             {
@@ -67,9 +70,10 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.UI.ViewModels
                 if (doc == null) return;
 
                 var rows = ModelReader.ReadExportRows(doc, ids);
+                string modelCode = TrackerIdPlanner.ModelCode(modelSegment, ModelReader.ReadModelIdentity(doc, projectParameters), out _);
                 try
                 {
-                    var written = CsvExportService.Write(path, rows, doc.Title, DateTime.Now, dated);
+                    var written = CsvExportService.Write(path, rows, doc.Title, modelCode, DateTime.Now, dated);
                     OnUi(() =>
                     {
                         LastExportText = $"{rows.Count} row(s) written at {DateTime.Now:HH:mm} to {string.Join(" and ", written)}";

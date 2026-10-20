@@ -42,6 +42,7 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.UI.ViewModels
         private List<ElementSnapshot> _snapshots;
         private List<TrackerIdHolder> _holders = new();
         private GridLocator _grids = new(Array.Empty<GridLine2D>());
+        private ModelIdentity _model;
         private List<PlanRow> _plan;
         private string _loadedKey;
         private bool _suspendTypeLoad;
@@ -212,28 +213,42 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.UI.ViewModels
         // Identifies what the snapshot was read for: the types and every parameter name the format reads.
         private string SnapshotKey()
         {
-            var (parameters, levelParameters) = NeededParameterNames();
+            var needs = NeededParameterNames();
             var typeIds = Types.Where(t => t.IsSelected).Select(t => t.Info.Id).OrderBy(id => id);
-            return $"{SelectedCategory?.Info.Id}|{string.Join(",", typeIds)}|{string.Join(",", parameters)}|{string.Join(",", levelParameters)}";
+            return $"{SelectedCategory?.Info.Id}|{string.Join(",", typeIds)}|{needs.Key}";
         }
 
-        // Disabled segments count too: the zone parameter also feeds Tracker_Zone.
-        private (List<string> Parameters, List<string> LevelParameters) NeededParameterNames()
+        /// <summary>Parameter names the format reads, by where they live.</summary>
+        private sealed class ParameterNeeds
         {
-            var parameters = new List<string>();
-            var levelParameters = new List<string>();
+            public List<string> Element { get; } = new();
+            public List<string> Level { get; } = new();
+            public List<string> Project { get; } = new();
+
+            public string Key => $"{string.Join(",", Element)}|{string.Join(",", Level)}|{string.Join(",", Project)}";
+        }
+
+        // Disabled segments count too: the zone parameter also feeds Tracker_Zone, and the model code
+        // also fills the export's Model_Code column.
+        private ParameterNeeds NeededParameterNames()
+        {
+            var needs = new ParameterNeeds();
             foreach (var s in Segments)
             {
                 if (s.SelectedSource == null || string.IsNullOrWhiteSpace(s.Option)) continue;
-                if (!SegmentCatalog.OptionIsParameterName(s.SelectedSource.Value)) continue;
+                var source = s.SelectedSource.Value;
+                if (!SegmentCatalog.OptionIsParameterName(source)) continue;
 
-                var list = s.SelectedSource.Value == SegmentSource.LevelParameter ? levelParameters : parameters;
+                var list = source == SegmentSource.LevelParameter ? needs.Level
+                         : SegmentCatalog.OptionIsProjectParameter(source) ? needs.Project
+                         : needs.Element;
                 string name = s.Option.Trim();
                 if (!list.Contains(name)) list.Add(name);
             }
-            parameters.Sort(StringComparer.Ordinal);
-            levelParameters.Sort(StringComparer.Ordinal);
-            return (parameters, levelParameters);
+            needs.Element.Sort(StringComparer.Ordinal);
+            needs.Level.Sort(StringComparer.Ordinal);
+            needs.Project.Sort(StringComparer.Ordinal);
+            return needs;
         }
 
         private void EnsureSnapshots()
@@ -249,13 +264,13 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.UI.ViewModels
 
             long categoryId = SelectedCategory.Info.Id;
             var typeIds = new HashSet<long>(Types.Where(t => t.IsSelected).Select(t => t.Info.Id));
-            var (parameters, levelParameters) = NeededParameterNames();
+            var needs = NeededParameterNames();
 
             Run($"Reading {SelectedElementCount} elements…", app =>
             {
                 var doc = DocumentFor(app);
                 if (doc == null) return;
-                var read = ReadElements(doc, categoryId, typeIds, parameters, levelParameters);
+                var read = ReadElements(doc, categoryId, typeIds, needs);
                 OnUi(() => ApplyElements(read, key, logCounts: true));
             });
         }
@@ -266,19 +281,24 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.UI.ViewModels
             public List<GridLine2D> Grids;
             public int ScopeBoxCount;
             public List<TrackerIdHolder> Holders;
+            public ModelIdentity Model;
         }
 
         // Runs in the Revit API context.
-        private static ElementRead ReadElements(Document doc, long categoryId, ISet<long> typeIds,
-            List<string> parameters, List<string> levelParameters)
+        private static ElementRead ReadElements(Document doc, long categoryId, ISet<long> typeIds, ParameterNeeds needs)
         {
             var boxes = ModelReader.ReadScopeBoxes(doc);
+            var model = ModelReader.ReadModelIdentity(doc, needs.Project);
+            var snapshots = ModelReader.ReadSnapshots(doc, categoryId, typeIds, needs.Element, needs.Level, new ZoneLocator(boxes));
+            foreach (var s in snapshots) s.Model = model;
+
             return new ElementRead
             {
                 Grids = ModelReader.ReadGrids(doc),
                 ScopeBoxCount = boxes.Count,
-                Snapshots = ModelReader.ReadSnapshots(doc, categoryId, typeIds, parameters, levelParameters, new ZoneLocator(boxes)),
-                Holders = ModelReader.ReadIdHolders(doc)
+                Snapshots = snapshots,
+                Holders = ModelReader.ReadIdHolders(doc),
+                Model = model
             };
         }
 
@@ -287,6 +307,7 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.UI.ViewModels
             _snapshots = read.Snapshots;
             _holders = read.Holders;
             _grids = new GridLocator(read.Grids);
+            _model = read.Model;
             _loadedKey = key;
 
             if (logCounts)
@@ -297,8 +318,31 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.UI.ViewModels
                 var zone = Segments.FirstOrDefault(s => s.Kind == SegmentKind.Zone)?.SelectedSource?.Value;
                 if (read.ScopeBoxCount == 0 && zone != SegmentSource.ZoneParameter)
                     AddLog(LogLevel.Warning, "No scope boxes found. Zone comes from the Zone parameter only.");
+                LogModelCode();
             }
             Replan();
+        }
+
+        // Says which model code this file gets and warns when it may not be unique across models.
+        private void LogModelCode()
+        {
+            var segment = Segments.FirstOrDefault(s => s.Kind == SegmentKind.Model);
+            if (segment == null || _model == null) return;
+
+            var definition = segment.ToDefinition();
+            string code = TrackerIdPlanner.ModelCode(definition, _model, out bool guessed);
+            if (!segment.IsEnabled)
+            {
+                AddLog(LogLevel.Warning, "The Model segment is off. IDs may repeat IDs in other Revit models; turn it on before writing.");
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(code))
+                AddLog(LogLevel.Warning, $"No model code found for '{_model.Title}'. Fill Project Information ▸ '{definition.Option}' (e.g. ARC, STR, MEP); until then the Model segment shows '{MissingText}'.");
+            else if (guessed)
+                AddLog(LogLevel.Warning, $"Model code '{code}' was made from the file name '{_model.Title}', which has no discipline code. Set Project Information ▸ '{definition.Option}' (e.g. ARC) so every model has its own short code.");
+            else
+                AddLog(LogLevel.Info, $"Model code for this file: {code}.");
         }
 
         // ── Planning ──────────────────────────────────────────────────────────
@@ -373,6 +417,8 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.UI.ViewModels
             if (CopyCount > 0) question.Append($"• {CopyCount} copied element(s) get a new ID\n");
             if (locked > 0) question.Append($"• {locked} locked element(s) are skipped\n");
             if (WriteLocationParameters) question.Append("• Tracker_Zone, Tracker_Level and Tracker_Grid are refreshed\n");
+            if (Segments.FirstOrDefault(s => s.Kind == SegmentKind.Model)?.IsEnabled == false)
+                question.Append("\nWARNING: the Model segment is off, so these IDs may repeat IDs in other Revit models.\n");
             question.Append("\nMissing Tracker parameters are added to the project. Ctrl+Z in Revit undoes the whole run.");
             if (!Confirm(question.ToString())) return;
 
@@ -380,7 +426,7 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.UI.ViewModels
             bool writeGuid = WriteSourceGuid;
             long categoryId = category.Info.Id;
             var typeIds = new HashSet<long>(Types.Where(t => t.IsSelected).Select(t => t.Info.Id));
-            var (parameters, levelParameters) = NeededParameterNames();
+            var needs = NeededParameterNames();
             string key = SnapshotKey();
 
             AddLog(LogLevel.Info, $"Writing: {NewCount} new ID(s), {rows.Count} element(s) in scope…");
@@ -401,7 +447,7 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.UI.ViewModels
                 // Read everything again so the grids and counts show the model as it now is.
                 var categories = ModelReader.ReadCategories(doc);
                 var types = ModelReader.ReadTypes(doc, categoryId);
-                var read = ReadElements(doc, categoryId, typeIds, parameters, levelParameters);
+                var read = ReadElements(doc, categoryId, typeIds, needs);
 
                 OnUi(() =>
                 {

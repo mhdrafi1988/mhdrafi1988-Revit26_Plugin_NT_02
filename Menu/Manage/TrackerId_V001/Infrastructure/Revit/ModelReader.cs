@@ -170,6 +170,24 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.Infrastructure.Revit
             return snapshots;
         }
 
+        /// <summary>
+        /// The open file's title and the values of the Project Information parameters named in
+        /// <paramref name="projectParameterNames"/> (missing parameters are left out).
+        /// </summary>
+        public static ModelIdentity ReadModelIdentity(Document doc, IReadOnlyCollection<string> projectParameterNames)
+        {
+            var identity = new ModelIdentity { Title = doc.Title ?? string.Empty };
+            var info = doc.ProjectInformation;
+            if (info == null) return identity;
+
+            foreach (string name in projectParameterNames)
+            {
+                string v = ParameterText(info.LookupParameter(name));
+                if (v != null) identity.ProjectParameterValues[name] = v;
+            }
+            return identity;
+        }
+
         /// <summary>Every grid of the host model, in plan.</summary>
         public static List<GridLine2D> ReadGrids(Document doc)
         {
