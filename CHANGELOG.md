@@ -9,6 +9,13 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [5.7.0] — 2026-10-21
+
+### Changed
+- **Roof Shape From Link v1.2.0** — Apply now turns shape editing on for a roof that does not have it
+  yet, then updates its shape points (before, such roofs were skipped). The roof's shape editing stays on
+  afterwards. If it cannot be enabled, that roof is rolled back and logged.
+
 ## [5.6.0] — 2026-10-21
 
 ### Added
