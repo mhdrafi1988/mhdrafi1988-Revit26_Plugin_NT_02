@@ -9,6 +9,13 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [5.7.1] — 2026-10-21
+
+### Fixed
+- **Roof Shape From Link v1.2.1** — "Read elevations" failed with "Cannot change or check the contents or
+  Current position of CollectionView while Refresh is being deferred". The grid rows are now replaced
+  without deferring the view refresh.
+
 ## [5.7.0] — 2026-10-21
 
 ### Changed
