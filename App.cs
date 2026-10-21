@@ -16,6 +16,8 @@ namespace Revit26_Plugin_Revised
         public Result OnStartup(UIControlledApplication application)
         {
             ToolGuard.Install();
+            // Tracker ID V002: warn when elements with a Tracker_ID are deleted.
+            TrackerId.V002.Infrastructure.Revit.TrackerDeletionWatcher.Register(application);
             // Once every add-in is loaded, warn if another copy of this one is loaded too: its old
             // styles can break tool windows.
             application.ControlledApplication.ApplicationInitialized += (_, _) => ToolGuard.WarnIfOtherCopiesLoaded();
