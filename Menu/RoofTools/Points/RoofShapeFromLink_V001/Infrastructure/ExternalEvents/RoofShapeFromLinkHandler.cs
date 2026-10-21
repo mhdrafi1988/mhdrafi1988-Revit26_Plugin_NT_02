@@ -235,19 +235,23 @@ namespace Revit26_Plugin_Revised.RoofShapeFromLink.V001.Infrastructure.ExternalE
                         continue;
                     }
 
-                    SlabShapeEditor editor = roof.GetSlabShapeEditor();
-                    if (editor == null || !editor.IsEnabled)
-                    {
-                        _vm.Log(LogLevel.Error, $"{HostRoofService.Label(roof)} skipped: shape editing is not on.");
-                        pointsFailed += group.Count();
-                        continue;
-                    }
-
                     using (var tx = new Transaction(doc, "Set roof shape points"))
                     {
                         tx.Start();
                         try
                         {
+                            SlabShapeEditor editor = roof.GetSlabShapeEditor();
+                            if (editor == null) throw new InvalidOperationException("shape editing is not available for this roof");
+                            if (!editor.IsEnabled)
+                            {
+                                editor.Enable();
+                                doc.Regenerate();
+                                editor = roof.GetSlabShapeEditor();
+                                if (editor == null || !editor.IsEnabled)
+                                    throw new InvalidOperationException("shape editing could not be enabled");
+                                _vm.Log(LogLevel.Info, $"{HostRoofService.Label(roof)}: shape editing enabled.");
+                            }
+
                             int ok = ApplyRoof(doc, roof, editor, group.ToList(), out int failed);
                             tx.Commit();
                             pointsDone += ok;

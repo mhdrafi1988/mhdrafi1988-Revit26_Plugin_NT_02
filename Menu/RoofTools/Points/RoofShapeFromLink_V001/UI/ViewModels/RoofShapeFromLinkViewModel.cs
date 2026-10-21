@@ -188,8 +188,10 @@ namespace Revit26_Plugin_Revised.RoofShapeFromLink.V001.UI.ViewModels
         public void SetRows(IEnumerable<ShapePointRow> rows)
         {
             _loading = true;
-            using (RowsView.DeferRefresh())
+            try
             {
+                // No DeferRefresh here: with grouping on, adding items while the refresh is deferred throws
+                // "Cannot change or check the contents … while Refresh is being deferred".
                 foreach (ShapePointRow old in Rows) old.PropertyChanged -= OnRowChanged;
                 Rows.Clear();
                 foreach (ShapePointRow r in rows)
@@ -198,7 +200,7 @@ namespace Revit26_Plugin_Revised.RoofShapeFromLink.V001.UI.ViewModels
                     Rows.Add(r);
                 }
             }
-            _loading = false;
+            finally { _loading = false; }
             UpdateCounts();
         }
 
