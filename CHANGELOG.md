@@ -26,6 +26,7 @@ The Shape points grid now has the advanced-grid features.
 - **Bulk bar** sets Source or Subtract, or ticks and unticks, for the rows that pass the filters.
   It replaces **Tick all** / **Tick none**, which now act on the visible rows.
 - A summary line under the grid shows counts and the smallest, average and largest change.
+- **Shape From Link** now also has a button in the **Roof Tools** panel (same tool, as in Shape Points).
 
 User note: the old Tick all / Tick none buttons are now Tick / Untick in the bulk bar and only affect the
 rows you can see. Clear the filters first to affect every row.
