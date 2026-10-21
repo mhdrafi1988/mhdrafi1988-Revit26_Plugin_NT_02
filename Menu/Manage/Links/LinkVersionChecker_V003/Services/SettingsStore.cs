@@ -28,7 +28,7 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker_V003.Services
         }
     }
 
-    /// <summary>Remembers the user's choices in %AppData%\Revit26_Plugin\LinkVersionChecker\settings.json.</summary>
+    /// <summary>Remembers the user's choices in %AppData%\Revit26_Plugin_Revised\LinkVersionChecker\settings.json.</summary>
     public static class SettingsStore
     {
         private static string FilePath => Path.Combine(LoadTimeStore.Folder, "settings.json");

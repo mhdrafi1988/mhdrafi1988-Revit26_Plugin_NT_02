@@ -26,7 +26,7 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker_V004.Services
 
     /// <summary>
     /// Real measured load times, written by <see cref="LinkLoadTimeLogger"/> while you work
-    /// and read by the checker window. Stored in %AppData%\Revit26_Plugin\LinkVersionChecker\loadtimes.json.
+    /// and read by the checker window. Stored in %AppData%\Revit26_Plugin_Revised\LinkVersionChecker\loadtimes.json.
     /// </summary>
     public sealed class LoadTimeStore
     {
@@ -40,7 +40,7 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker_V004.Services
         }
 
         public static string Folder => System.IO.Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Revit26_Plugin", "LinkVersionChecker");
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Revit26_Plugin_Revised", "LinkVersionChecker");
 
         private static string FilePath => System.IO.Path.Combine(Folder, "loadtimes.json");
 

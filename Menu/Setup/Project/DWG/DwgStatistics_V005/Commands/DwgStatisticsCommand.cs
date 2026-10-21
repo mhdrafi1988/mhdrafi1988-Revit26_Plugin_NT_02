@@ -35,7 +35,7 @@ namespace Revit26_Plugin_Revised.DwgStatistics.V005.Commands
     //     Excel gains "Issues & Fixes" and "Changes" sheets.
     //   • Views tab: Hide / Unhide in Ticked Views (scan now records "Hidden here" views) and
     //     Delete in Ticked Views (from DWG Manager; 'Current view only' instances only, optional purge).
-    //   • Compare with last scan: per-project JSON snapshot in %AppData%\Revit26_Plugin\DwgStatistics;
+    //   • Compare with last scan: per-project JSON snapshot in %AppData%\Revit26_Plugin_Revised\DwgStatistics;
     //     Changed tile/chip/column and a "Changes since last scan" card.
     //   • Remembers filter chip, detail tab and open/delete options between sessions.
     // V002 (2026-10-13) — bumped from V001, per Anas's request:

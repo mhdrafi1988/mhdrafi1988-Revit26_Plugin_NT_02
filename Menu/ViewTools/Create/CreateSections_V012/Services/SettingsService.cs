@@ -7,14 +7,14 @@ namespace Revit26_Plugin_Revised.CreateSections.V012.Services
 {
     /// <summary>
     /// V008: new. Loads/saves SectionCreationSettings to
-    /// %AppData%\Revit26_Plugin\CreateSectionsFromDetailLines\settings.json,
+    /// %AppData%\Revit26_Plugin_Revised\CreateSectionsFromDetailLines\settings.json,
     /// per suite convention.
     /// </summary>
     public static class SettingsService
     {
         private static readonly string SettingsPath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "Revit26_Plugin",
+            "Revit26_Plugin_Revised",
             "CreateSectionsFromDetailLines",
             "settings.json");
 

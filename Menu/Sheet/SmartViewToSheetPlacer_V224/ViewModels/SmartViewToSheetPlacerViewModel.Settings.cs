@@ -7,14 +7,14 @@ using Revit26_Plugin_Revised.SmartViewToSheetPlacer.V224.Models;
 
 namespace Revit26_Plugin_Revised.SmartViewToSheetPlacer.V224.ViewModels
 {
-    /// <summary>Settings persistence: %AppData%\Revit26_Plugin\SmartViewToSheetPlacer\settings.json,
+    /// <summary>Settings persistence: %AppData%\Revit26_Plugin_Revised\SmartViewToSheetPlacer\settings.json,
     /// via System.Text.Json. Loaded once in the ctor; saved from NextToStage1→2
     /// transition and from Window.Closing (V213 — new, see OnWindowClosing).</summary>
     public partial class SmartViewToSheetPlacerViewModel
     {
         private static string SettingsPath =>
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "Revit26_Plugin", ToolName, "settings.json");
+                "Revit26_Plugin_Revised", ToolName, "settings.json");
 
         private void LoadSettings()
         {

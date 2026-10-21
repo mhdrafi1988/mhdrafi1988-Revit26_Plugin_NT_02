@@ -3,7 +3,7 @@ using Revit26_Plugin_Revised.SheetViewArrange.V001.Core.Layout;
 namespace Revit26_Plugin_Revised.SheetViewArrange.V001.Core.Models
 {
     /// <summary>
-    /// Persisted to %AppData%\Revit26_Plugin\SheetViewArrange\settings.json.
+    /// Persisted to %AppData%\Revit26_Plugin_Revised\SheetViewArrange\settings.json.
     /// Margins are measured inward from the title block's bounding box; gaps are minimums
     /// (rows and columns are spread wider to fill the area).
     /// </summary>

@@ -3,7 +3,7 @@
 // Namespace: Revit26_Plugin_Revised.MultiRoofSlopeByDrain.V013.Infrastructure.Helpers
 // Changes vs V012 (SettingsService.cs):
 //   - Renamed so it cannot clash with Shared.Services.SettingsService.
-//   - New file: %AppData%\Revit26_Plugin\AutoSlopeByDrain\settings.v013.json
+//   - New file: %AppData%\Revit26_Plugin_Revised\AutoSlopeByDrain\settings.v013.json
 //     (V012 wrote to an "AutoSlopeByDrain_V010" folder).
 //   - Adds AskToOpenAfterExport and which option sections were left open.
 //   - Read-back after the run (VerifyElevationsAfterCommit) is on by default:
@@ -55,7 +55,7 @@ namespace Revit26_Plugin_Revised.MultiRoofSlopeByDrain.V013.Infrastructure.Helpe
     {
         public static string SettingsPath => Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "Revit26_Plugin", "AutoSlopeByDrain", "settings.v013.json");
+            "Revit26_Plugin_Revised", "AutoSlopeByDrain", "settings.v013.json");
 
         /// <summary>Never throws: a missing or unreadable file gives the defaults.</summary>
         public static AutoSlopeDrainSettings Load(Action<string> logAction = null)

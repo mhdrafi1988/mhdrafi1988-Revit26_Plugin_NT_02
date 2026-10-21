@@ -16,7 +16,7 @@
 //   - New: AskToOpenAfterExport (bool, default false) — governs the
 //     new "Ask to open file after export" checkbox.
 // Purpose: Plain POCO persisted to
-//          %AppData%\Revit26_Plugin\AutoSlopeByPoint\settings.json
+//          %AppData%\Revit26_Plugin_Revised\AutoSlopeByPoint\settings.json
 //          via System.Text.Json.
 // Scope: Line Style is persisted by NAME (not ElementId) since the Id
 //        is project-specific and not portable across documents — the

@@ -16,13 +16,13 @@ namespace Revit26_Plugin_Revised.PlanFromScopeBox.V006.Infrastructure.Settings
 
         private static readonly JsonSerializerOptions JsonOpts = new() { WriteIndented = true };
 
-        /// <summary>%AppData%\Revit26_Plugin\PlanFromScopeBox\ — created if missing.</summary>
+        /// <summary>%AppData%\Revit26_Plugin_Revised\PlanFromScopeBox\ — created if missing.</summary>
         public string ToolDataDirectory
         {
             get
             {
                 string root = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-                string dir = Path.Combine(root, "Revit26_Plugin", ToolFolder);
+                string dir = Path.Combine(root, "Revit26_Plugin_Revised", ToolFolder);
                 Directory.CreateDirectory(dir);
                 return dir;
             }

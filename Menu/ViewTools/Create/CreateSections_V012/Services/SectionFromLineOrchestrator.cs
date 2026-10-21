@@ -49,7 +49,7 @@ namespace Revit26_Plugin_Revised.CreateSections.V012.Services
     /// - ExportLog() no longer opens OpenFolderDialog automatically. It
     ///   silently writes to LogSaveFolder if the user already picked one
     ///   (via the new Browse button), otherwise falls back to a default
-    ///   folder under My Documents\Revit26_Plugin\CreateSectionsFromDetailLines\Logs.
+    ///   folder under My Documents\Revit26_Plugin_Revised\CreateSectionsFromDetailLines\Logs.
     ///   No dialog is ever shown from here.
     /// </summary>
     public class SectionFromLineOrchestrator
@@ -57,7 +57,7 @@ namespace Revit26_Plugin_Revised.CreateSections.V012.Services
         /// <summary>Default log folder used when the user has never picked one via Browse.</summary>
         private static readonly string DefaultLogFolder = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-            "Revit26_Plugin", "CreateSectionsFromDetailLines", "Logs");
+            "Revit26_Plugin_Revised", "CreateSectionsFromDetailLines", "Logs");
 
         /// <summary>Marshals a VM mutation onto the UI thread so bound controls (metric cards) repaint immediately.</summary>
         private static void UpdateUi(Action action) => System.Windows.Application.Current.Dispatcher.Invoke(action);

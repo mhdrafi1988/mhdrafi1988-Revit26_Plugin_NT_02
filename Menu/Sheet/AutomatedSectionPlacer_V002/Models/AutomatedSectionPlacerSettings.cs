@@ -2,7 +2,7 @@ namespace Revit26_Plugin_Revised.AutomatedSectionPlacer.V002.Models
 {
     /// <summary>
     /// Persisted per-tool settings, stored at
-    /// %AppData%\Revit26_Plugin\AutomatedSectionPlacer\settings.json
+    /// %AppData%\Revit26_Plugin_Revised\AutomatedSectionPlacer\settings.json
     /// via System.Text.Json. Loaded on window open, saved on window close.
     /// Last-used Titleblock name, per-side Margins, and the global H/V gap
     /// are remembered.

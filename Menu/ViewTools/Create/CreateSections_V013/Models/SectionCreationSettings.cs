@@ -2,7 +2,7 @@ namespace Revit26_Plugin_Revised.CreateSections.V013.Models
 {
     /// <summary>
     /// V008: new. Persisted user options, per suite convention
-    /// (%AppData%\Revit26_Plugin\CreateSectionsFromDetailLines\settings.json).
+    /// (%AppData%\Revit26_Plugin_Revised\CreateSectionsFromDetailLines\settings.json).
     /// Deliberately excludes SectionType/Template (ElementId references —
     /// not safely portable across documents/sessions) and SaveFolder for
     /// log export (stored in the same settings file, see SaveFolder below).

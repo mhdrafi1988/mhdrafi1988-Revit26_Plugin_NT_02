@@ -6,7 +6,7 @@ namespace Revit26_Plugin_Revised.Shared.Services
 {
     /// <summary>
     /// Generic settings load/save helper, per suite convention:
-    /// %AppData%\Revit26_Plugin\[ToolName]\settings.json (System.Text.Json POCO).
+    /// %AppData%\Revit26_Plugin_Revised\[ToolName]\settings.json (System.Text.Json POCO).
     /// Load on window open, save on window close and after each Run.
     /// </summary>
     public static class SettingsService<T> where T : class, new()
@@ -19,7 +19,7 @@ namespace Revit26_Plugin_Revised.Shared.Services
         private static string GetSettingsPath(string toolName)
         {
             string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            string folder = Path.Combine(appData, "Revit26_Plugin", toolName);
+            string folder = Path.Combine(appData, "Revit26_Plugin_Revised", toolName);
             Directory.CreateDirectory(folder);
             return Path.Combine(folder, "settings.json");
         }

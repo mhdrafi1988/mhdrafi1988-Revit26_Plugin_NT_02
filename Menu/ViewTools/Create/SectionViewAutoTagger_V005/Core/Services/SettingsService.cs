@@ -6,7 +6,7 @@ namespace Revit26_Plugin_Revised.SectionViewAutoTagger.V005
 {
     /// <summary>
     /// Loads/saves TagPlacementSettings to
-    /// %AppData%\Revit26_Plugin\SectionViewAutoTagger\settings.json.
+    /// %AppData%\Revit26_Plugin_Revised\SectionViewAutoTagger\settings.json.
     /// Tool-name-scoped (not version-scoped) per suite convention. Worklist
     /// contents are session-only and NOT persisted here.
     /// </summary>
@@ -14,7 +14,7 @@ namespace Revit26_Plugin_Revised.SectionViewAutoTagger.V005
     {
         private static readonly string SettingsDir =
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "Revit26_Plugin", "SectionViewAutoTagger");
+                "Revit26_Plugin_Revised", "SectionViewAutoTagger");
 
         private static readonly string SettingsPath = Path.Combine(SettingsDir, "settings.json");
 

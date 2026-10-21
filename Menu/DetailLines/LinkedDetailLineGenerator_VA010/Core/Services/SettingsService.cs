@@ -7,7 +7,7 @@ namespace Revit26_Plugin_Revised.LinkedDetailLineGenerator.VA010.Core.Services
 {
     /// <summary>
     /// Loads/saves ToolSettings as JSON at
-    /// %AppData%\Revit26_Plugin\LinkedDetailLineGenerator\settings.json
+    /// %AppData%\Revit26_Plugin_Revised\LinkedDetailLineGenerator\settings.json
     /// (no version segment, per suite convention).
     ///
     /// All failures are swallowed and logged via the onLog callback rather than thrown —
@@ -20,7 +20,7 @@ namespace Revit26_Plugin_Revised.LinkedDetailLineGenerator.VA010.Core.Services
         // must not read/write the same settings.json.
         private static readonly string SettingsDir =
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                         "Revit26_Plugin", "LinkedDetailLineGenerator_VA007");
+                         "Revit26_Plugin_Revised", "LinkedDetailLineGenerator_VA007");
 
         private static readonly string SettingsPath = Path.Combine(SettingsDir, "settings.json");
 

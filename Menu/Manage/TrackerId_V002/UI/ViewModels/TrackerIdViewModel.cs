@@ -34,7 +34,7 @@ namespace Revit26_Plugin_Revised.TrackerId.V002.UI.ViewModels
         private static TrackerIdSettings LoadSettings()
         {
             string own = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                                                "Revit26_Plugin", SettingsName, "settings.json");
+                                                "Revit26_Plugin_Revised", SettingsName, "settings.json");
             string name = System.IO.File.Exists(own) ? SettingsName : V001SettingsName;
             return SettingsService<TrackerIdSettings>.Load(name) ?? new TrackerIdSettings();
         }

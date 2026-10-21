@@ -3,7 +3,7 @@
 // Namespace: Revit26_Plugin_Revised.AutoSlopeByPoint.V030
 // New in V026.
 // Purpose: Load/save AutoSlopeSettings as JSON at
-//          %AppData%\Revit26_Plugin\AutoSlopeByPoint\settings.json
+//          %AppData%\Revit26_Plugin_Revised\AutoSlopeByPoint\settings.json
 //          per this suite's shared settings-path convention.
 // =======================================================
 
@@ -18,7 +18,7 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V030.Infrastructure.Helpers
     {
         private static readonly string SettingsPath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "Revit26_Plugin", "AutoSlopeByPoint", "settings.json");
+            "Revit26_Plugin_Revised", "AutoSlopeByPoint", "settings.json");
 
         /// <summary>
         /// Loads settings from disk. Returns a fresh default instance (never null)

@@ -7,7 +7,7 @@ using Revit26_Plugin_Revised.IsolatedSection.V001.Core.Models;
 namespace Revit26_Plugin_Revised.IsolatedSection.V001.Core.Services
 {
     /// <summary>
-    /// Load/save of %AppData%\Revit26_Plugin\IsolatedSection\settings.json.
+    /// Load/save of %AppData%\Revit26_Plugin_Revised\IsolatedSection\settings.json.
     /// Never throws: falls back to defaults and reports a warning string.
     /// </summary>
     public static class IsolatedSectionSettingsService
@@ -21,7 +21,7 @@ namespace Revit26_Plugin_Revised.IsolatedSection.V001.Core.Services
         /// <summary>Full path of the settings file.</summary>
         public static string SettingsPath => Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "Revit26_Plugin", "IsolatedSection", "settings.json");
+            "Revit26_Plugin_Revised", "IsolatedSection", "settings.json");
 
         /// <summary>Reads the settings, or defaults when the file is missing or unreadable.</summary>
         public static IsolatedSectionSettings Load(out string warning)

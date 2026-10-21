@@ -76,7 +76,7 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Infrastructure.Revit
 
         private static string ImagePath(MarkerKind kind)
         {
-            string folder = Path.Combine(Path.GetTempPath(), "Revit26_Plugin", "RoofPointsAndSlope");
+            string folder = Path.Combine(Path.GetTempPath(), "Revit26_Plugin_Revised", "RoofPointsAndSlope");
             Directory.CreateDirectory(folder);
             string path = Path.Combine(folder, $"marker_{kind}_v1.bmp");
             if (!File.Exists(path))

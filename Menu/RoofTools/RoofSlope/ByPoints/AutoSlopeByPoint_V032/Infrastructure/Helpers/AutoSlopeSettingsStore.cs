@@ -6,7 +6,7 @@
 // Load/save AutoSlopeSettings as JSON (try/catch, defaults on failure —
 // CLAUDE.md convention). V032 uses its own file name so V030, kept as the
 // fallback, never reads a file with a different shape:
-//   %AppData%\Revit26_Plugin\AutoSlopeByPoint\settings.v032.json
+//   %AppData%\Revit26_Plugin_Revised\AutoSlopeByPoint\settings.v032.json
 // =======================================================
 
 using System;
@@ -20,7 +20,7 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V032.Infrastructure.Helpers
     {
         public static string SettingsPath { get; } = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "Revit26_Plugin", "AutoSlopeByPoint", "settings.v032.json");
+            "Revit26_Plugin_Revised", "AutoSlopeByPoint", "settings.v032.json");
 
         public static AutoSlopeSettings Load()
         {

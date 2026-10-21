@@ -4,7 +4,7 @@ namespace Revit26_Plugin_Revised.RoofEdgeElementSections.V003
 {
     /// <summary>
     /// Persisted user settings for RoofEdgeElementSections V002.
-    /// Serialized to %AppData%\Revit26_Plugin\RoofEdgeElementSections_V002\settings.json
+    /// Serialized to %AppData%\Revit26_Plugin_Revised\RoofEdgeElementSections_V002\settings.json
     /// via System.Text.Json. Loaded on window open, saved on window close and after Run.
     ///
     /// Unlike RoofEdgeAroundSections_V004's fixed proximity-merge threshold, this tool

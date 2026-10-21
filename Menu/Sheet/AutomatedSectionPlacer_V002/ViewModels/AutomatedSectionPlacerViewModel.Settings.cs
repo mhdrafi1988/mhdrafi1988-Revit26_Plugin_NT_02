@@ -7,14 +7,14 @@ using Revit26_Plugin_Revised.AutomatedSectionPlacer.V002.Models;
 
 namespace Revit26_Plugin_Revised.AutomatedSectionPlacer.V002.ViewModels
 {
-    /// <summary>Settings persistence: %AppData%\Revit26_Plugin\AutomatedSectionPlacer\settings.json,
+    /// <summary>Settings persistence: %AppData%\Revit26_Plugin_Revised\AutomatedSectionPlacer\settings.json,
     /// via System.Text.Json. Loaded once in the ctor; saved from NextToStage1→2
     /// transition and from Window.Closing (V213 — new, see OnWindowClosing).</summary>
     public partial class AutomatedSectionPlacerViewModel
     {
         private static string SettingsPath =>
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "Revit26_Plugin", ToolName, "settings.json");
+                "Revit26_Plugin_Revised", ToolName, "settings.json");
 
         private void LoadSettings()
         {
