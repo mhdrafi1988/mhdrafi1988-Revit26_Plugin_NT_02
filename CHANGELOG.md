@@ -9,6 +9,27 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [5.4.0] — 2026-10-21
+
+### Changed — Roof Shape From Link V001 (1.1.0)
+The Shape points grid now has the advanced-grid features.
+
+- **Sort and resize.** Click a header to sort; drag a header edge to resize; reorder columns by dragging.
+  The tick, Roof and Pt columns stay in place when you scroll sideways.
+- **Search and filters.** A search box, a roof filter, and Status and Source filters. **Ticked only** hides
+  unticked rows.
+- **Group by roof** (on by default) with collapsible roof headers and a point count.
+- **Status** column: OK, Snapped, Below or No link.
+- **Δ vs current** column: the change each point will make, with a bar scaled to the largest change.
+- A typed-in New Z is outlined so it stands out from calculated ones.
+- **Columns** menu hides any column. **Compact rows** and **Reset view** are new.
+- **Bulk bar** sets Source or Subtract, or ticks and unticks, for the rows that pass the filters.
+  It replaces **Tick all** / **Tick none**, which now act on the visible rows.
+- A summary line under the grid shows counts and the smallest, average and largest change.
+
+User note: the old Tick all / Tick none buttons are now Tick / Untick in the bulk bar and only affect the
+rows you can see. Clear the filters first to affect every row.
+
 ## [5.3.0] — 2026-10-21
 
 ### Added — Roof Shape From Link V001 (1.0.0)

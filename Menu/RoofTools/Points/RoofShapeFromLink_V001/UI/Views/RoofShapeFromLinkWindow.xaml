@@ -150,28 +150,94 @@ File: RoofShapeFromLinkWindow.xaml  (V001, ToolWindowShell)
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <TextBlock Text="Shape points" Style="{StaticResource SectionTitle}" Margin="0,0,10,0" VerticalAlignment="Center"/>
-                        <Button Content="Tick all"  Style="{StaticResource SmallSecondaryButton}" Width="76" Command="{Binding IncludeAllRowsCommand}"/>
-                        <Button Content="Tick none" Style="{StaticResource SmallSecondaryButton}" Width="76" Margin="6,0,0,0" Command="{Binding IncludeNoRowsCommand}"/>
-                    </StackPanel>
-                    <TextBlock Grid.Column="1" Text="{Binding UnitLabel, StringFormat='Elevations in {0}'}"
+                    <TextBlock Text="Shape points" Style="{StaticResource SectionTitle}" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Column="1" Text="{Binding UnitLabel, StringFormat='Elevations in {0}  ·  click a header to sort, drag its edge to resize'}"
                                Style="{StaticResource HintText}" VerticalAlignment="Center" HorizontalAlignment="Right"/>
                 </Grid>
 
-                <DataGrid Margin="0,6,0,0" MinHeight="220"
+                <!-- View bar: search, filters, grouping, columns -->
+                <Border Style="{StaticResource ContentCard}" Padding="10,8" Margin="0,6,0,0">
+                    <WrapPanel>
+                        <TextBox Style="{StaticResource BoxedTextInput}" Height="26" Padding="6,2" Width="170" Margin="0,0,8,4"
+                                 ToolTip="Search roof, linked roof, note, status and source"
+                                 Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"/>
+                        <TextBlock Text="Roof" VerticalAlignment="Center" Margin="0,0,4,4"/>
+                        <TextBox Style="{StaticResource BoxedTextInput}" Height="26" Padding="6,2" Width="110" Margin="0,0,10,4"
+                                 Text="{Binding RoofFilter, UpdateSourceTrigger=PropertyChanged}"/>
+                        <TextBlock Text="Status" VerticalAlignment="Center" Margin="0,0,4,4"/>
+                        <ComboBox Style="{StaticResource StandardComboBox}" Width="96" Margin="0,0,10,4"
+                                  ItemsSource="{Binding StatusChoices}" SelectedItem="{Binding StatusFilter}"/>
+                        <TextBlock Text="Source" VerticalAlignment="Center" Margin="0,0,4,4"/>
+                        <ComboBox Style="{StaticResource StandardComboBox}" Width="96" Margin="0,0,14,4"
+                                  ItemsSource="{Binding SourceFilterChoices}" SelectedItem="{Binding SourceFilter}"/>
+                        <CheckBox Content="Group by roof" IsChecked="{Binding GroupByRoof}" VerticalAlignment="Center" Margin="0,0,12,4"/>
+                        <CheckBox Content="Ticked only" IsChecked="{Binding TickedOnly}" VerticalAlignment="Center" Margin="0,0,12,4"/>
+                        <CheckBox Content="Compact rows" IsChecked="{Binding CompactRows}" VerticalAlignment="Center" Margin="0,0,12,4"/>
+                        <Button x:Name="ColumnsButton" Content="Columns ▾" Style="{StaticResource SmallSecondaryButton}" Width="86" Margin="0,0,6,4"
+                                Click="Columns_Click"/>
+                        <Button Content="Reset view" Style="{StaticResource SmallSecondaryButton}" Width="86" Margin="0,0,0,4"
+                                Command="{Binding ResetViewCommand}"/>
+                    </WrapPanel>
+                </Border>
+
+                <!-- Bulk bar: acts on the rows that pass the filters -->
+                <Border Background="{StaticResource BrushStatusInfoSoft}" CornerRadius="6" Padding="10,6" Margin="0,6,0,0">
+                    <WrapPanel>
+                        <TextBlock Text="{Binding VisibleCount, StringFormat='Visible rows ({0}):'}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <TextBlock Text="Source" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                        <ComboBox Style="{StaticResource StandardComboBox}" Width="96"
+                                  ItemsSource="{Binding GlobalSourceChoices}" SelectedItem="{Binding BulkSource}"/>
+                        <Button Content="Set" Style="{StaticResource SmallSecondaryButton}" Width="46" Margin="4,0,14,0" Command="{Binding SetVisibleSourceCommand}"/>
+                        <TextBlock Text="Subtract" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                        <TextBox Style="{StaticResource BoxedTextInput}" Height="26" Padding="6,2" Width="76"
+                                 Text="{Binding BulkOffset, StringFormat=F3, UpdateSourceTrigger=LostFocus}"/>
+                        <TextBlock Text="{Binding UnitLabel}" Style="{StaticResource UnitLabel}"/>
+                        <Button Content="Set" Style="{StaticResource SmallSecondaryButton}" Width="46" Margin="4,0,14,0" Command="{Binding SetVisibleOffsetCommand}"/>
+                        <Button Content="Tick" Style="{StaticResource SmallSecondaryButton}" Width="56" Command="{Binding TickVisibleCommand}"/>
+                        <Button Content="Untick" Style="{StaticResource SmallSecondaryButton}" Width="56" Margin="6,0,0,0" Command="{Binding UntickVisibleCommand}"/>
+                    </WrapPanel>
+                </Border>
+
+                <DataGrid x:Name="PointsGrid" Margin="0,6,0,0" MinHeight="260"
                           shell:ShellBehaviors.MaxHeightRatio="0.5"
                           shell:ShellBehaviors.ForwardMouseWheel="True"
                           VirtualizingStackPanel.IsVirtualizing="True" VirtualizingStackPanel.VirtualizationMode="Recycling"
-                          ItemsSource="{Binding Rows}"
+                          ItemsSource="{Binding RowsView}"
                           Style="{StaticResource StandardDataGrid}"
                           ColumnHeaderStyle="{StaticResource DataGridColumnHeaderStyle}"
                           CellStyle="{StaticResource DataGridCellStyle}"
                           RowStyle="{StaticResource DataGridRowStyle}"
                           AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False"
-                          RowHeight="34">
+                          CanUserSortColumns="True" CanUserResizeColumns="True" CanUserReorderColumns="True"
+                          FrozenColumnCount="3"
+                          RowHeight="{Binding RowHeight}">
+
+                    <DataGrid.GroupStyle>
+                        <GroupStyle>
+                            <GroupStyle.ContainerStyle>
+                                <Style TargetType="GroupItem">
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="GroupItem">
+                                                <Expander IsExpanded="True" Background="{StaticResource BrushSurfaceHeader}">
+                                                    <Expander.Header>
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
+                                                            <TextBlock Text="{Binding ItemCount, StringFormat='  ·  {0} point(s)'}" Style="{StaticResource HintText}"/>
+                                                        </StackPanel>
+                                                    </Expander.Header>
+                                                    <ItemsPresenter/>
+                                                </Expander>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </GroupStyle.ContainerStyle>
+                        </GroupStyle>
+                    </DataGrid.GroupStyle>
+
                     <DataGrid.Columns>
-                        <DataGridTemplateColumn Header="✓" Width="40">
+                        <DataGridTemplateColumn Header="✓" Width="40" CanUserSort="False">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <CheckBox IsChecked="{Binding Include, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -180,12 +246,38 @@ File: RoofShapeFromLinkWindow.xaml  (V001, ToolWindowShell)
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
                         <DataGridTextColumn Header="Roof"        Binding="{Binding RoofLabel}"                          Width="150" IsReadOnly="True"/>
-                        <DataGridTextColumn Header="Pt"          Binding="{Binding Index}"                              Width="40"  IsReadOnly="True"/>
+                        <DataGridTextColumn Header="Pt"          Binding="{Binding Index}"                              Width="44"  IsReadOnly="True"/>
                         <DataGridTextColumn Header="Current Z"   Binding="{Binding CurrentZ, StringFormat=F3}"          Width="90"  IsReadOnly="True"/>
                         <DataGridTextColumn Header="Surface Z"   Binding="{Binding SurfaceZ, StringFormat=F3}"          Width="90"  IsReadOnly="True"/>
                         <DataGridTextColumn Header="Nearest Z"   Binding="{Binding NearestZ, StringFormat=F3}"          Width="90"  IsReadOnly="True"/>
                         <DataGridTextColumn Header="Nearest dist." Binding="{Binding NearestDistance, StringFormat=F3}" Width="90"  IsReadOnly="True"/>
-                        <DataGridTemplateColumn Header="Source" Width="110">
+                        <DataGridTemplateColumn Header="Status" Width="90" SortMemberPath="Status">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Border CornerRadius="9" Padding="8,1" HorizontalAlignment="Left" VerticalAlignment="Center"
+                                            Background="{StaticResource BrushStatusOkSoft}">
+                                        <TextBlock Text="{Binding Status}" FontSize="11" FontWeight="SemiBold"
+                                                   Foreground="{StaticResource BrushStatusOk}"/>
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Status}" Value="No link">
+                                                        <Setter Property="Background" Value="{StaticResource BrushStatusErrorSoft}"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Status}" Value="Snapped">
+                                                        <Setter Property="Background" Value="{StaticResource BrushStatusWarnSoft}"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Status}" Value="Below">
+                                                        <Setter Property="Background" Value="{StaticResource BrushStatusWarnSoft}"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                    </Border>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="Source" Width="110" SortMemberPath="Source">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <ComboBox Style="{StaticResource StandardComboBox}" Margin="2"
@@ -195,11 +287,46 @@ File: RoofShapeFromLinkWindow.xaml  (V001, ToolWindowShell)
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
                         <DataGridTextColumn Header="Subtract"    Binding="{Binding Offset, StringFormat=F3, UpdateSourceTrigger=LostFocus}" Width="80"/>
-                        <DataGridTextColumn Header="New Z"       Binding="{Binding NewZ, StringFormat=F3, UpdateSourceTrigger=LostFocus}"   Width="90"/>
+                        <DataGridTextColumn Header="New Z"       Binding="{Binding NewZ, StringFormat=F3, UpdateSourceTrigger=LostFocus}"   Width="90">
+                            <DataGridTextColumn.CellStyle>
+                                <!-- A typed-in value (Source = Manual) is outlined so it stands out from calculated ones. -->
+                                <Style TargetType="DataGridCell" BasedOn="{StaticResource DataGridCellStyle}">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Source}" Value="Manual">
+                                            <Setter Property="BorderBrush" Value="{StaticResource BrushStatusWarn}"/>
+                                            <Setter Property="BorderThickness" Value="2"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </DataGridTextColumn.CellStyle>
+                        </DataGridTextColumn>
+                        <DataGridTemplateColumn Header="Δ vs current" Width="130" SortMemberPath="Delta" IsReadOnly="True">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                        <Border Height="6" CornerRadius="3" Margin="0,0,6,0" Width="{Binding DeltaBar}">
+                                            <Border.Style>
+                                                <Style TargetType="Border">
+                                                    <Setter Property="Background" Value="{StaticResource BrushStatusInfo}"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding DeltaIsUp}" Value="False">
+                                                            <Setter Property="Background" Value="{StaticResource BrushStatusWarn}"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Border.Style>
+                                        </Border>
+                                        <TextBlock Text="{Binding DeltaText}" FontFamily="Consolas"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
                         <DataGridTextColumn Header="Linked roof" Binding="{Binding LinkedRoof}"                         Width="170" IsReadOnly="True"/>
                         <DataGridTextColumn Header="Note"        Binding="{Binding Note}"                               Width="*"   IsReadOnly="True"/>
                     </DataGrid.Columns>
                 </DataGrid>
+
+                <TextBlock Text="{Binding GridSummary}" Style="{StaticResource HintText}" Margin="2,6,0,0" TextWrapping="Wrap"/>
 
                 <!-- Activity log -->
                 <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="10,8" Margin="0,10,0,0">
