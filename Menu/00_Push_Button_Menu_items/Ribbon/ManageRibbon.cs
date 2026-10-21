@@ -34,6 +34,9 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             var paraManagerV005 = Btn(assemblyPath, "Btn_ParaManager_V005", "ParaManager V005", "Revit26_Plugin_Revised.ParaManager.V005.ParaManagerCommand",
                 "Manage.ParaManager_16.png", "ParaManager", "V005", "V004 on the shared ToolWindowShell (log in body, capped queue grid).");
 
+            var sharedParamStudioV001 = Btn(assemblyPath, "Btn_SharedParamStudio_V001", "Shared Params", "Revit26_Plugin_Revised.SharedParamStudio.V001.Commands.SharedParamStudioCommand",
+                "Manage.ParaManager_16.png", "Shared Parameter Studio", "V001", "Create and assign shared parameters on the go, merge two shared parameter files, check a file for duplicates, retrieve the project's shared parameters.");
+
             var wsebV003 = Btn(assemblyPath, "Btn_WorksetsElementsBrowser_WSEB003", "Worksets & Elements WSEB003", "Revit26_Plugin_Revised.WorksetsElementsBrowser.WSEB003.Commands.WorksetsElementsBrowserCommand",
                 "Manage.WorksetsElementsBrowser_16.png", "Worksets & Elements Browser", "WSEB003", "WSEB002" + Rebuilt);
             var wsebV004 = Btn(assemblyPath, "Btn_WorksetsElementsBrowser_WSEB004", "Worksets & Elements WSEB004", "Revit26_Plugin_Revised.WorksetsElementsBrowser.WSEB004.Commands.WorksetsElementsBrowserCommand",
@@ -72,7 +75,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             bulkRenameV001.ToolTip = Revit26_Plugin_Revised.Shared.Services.ToolCatalog.BulkRename.Tip(
                 "Renames many line styles, line patterns, arrowheads or fill patterns at once: find/replace, prefix/suffix, case change and numbering.");
 
-            var trackerIdV001 = Btn(assemblyPath, "Btn_TrackerId_V001", "Tracker ID",
+            var trackerIdV001 = Btn(assemblyPath, "Btn_TrackerId_V001", "Tracker ID V001",
                 "Revit26_Plugin_Revised.TrackerId.V001.Commands.TrackerIdCommand",
                 "Manage.TrackerId_16.png", "Tracker ID", "V001");
             trackerIdV001.LargeImage = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.Manage.TrackerId_32.png");
@@ -80,6 +83,16 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                 "Gives each element of a chosen category and types one permanent Tracker_ID " +
                 "(Zone-Level-Type-Grid + 3 custom segments), detects copied and moved elements, " +
                 "and exports a CSV for Power BI progress and material tracking.");
+
+            // V002 coexists with V001 (same Tracker_ID parameters, its own settings).
+            var trackerIdV002 = Btn(assemblyPath, "Btn_TrackerId_V002", "Tracker ID V002",
+                "Revit26_Plugin_Revised.TrackerId.V002.Commands.TrackerIdCommand",
+                "Manage.TrackerId_16.png", "Tracker ID", "V002");
+            trackerIdV002.LargeImage = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.Manage.TrackerId_32.png");
+            trackerIdV002.ToolTip = Revit26_Plugin_Revised.Shared.Services.ToolCatalog.TrackerIdV002.Tip(
+                "Tracker IDs for several categories at once (whole model, selection or active view), " +
+                "a separate naming page, status from SharePoint written into Revit and coloured views, " +
+                "a model health check, and CSV or Excel export for Power BI.");
 
             // Removed in plugin 4.2.1 because their source is not in the repository, so the
             // buttons could only raise an error: Overlap Detection V003, ParaManager V004,
@@ -128,18 +141,19 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             {
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_AnnotationOverlapDetection", "Overlaps", overlapV004),
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_ParaManager", "ParaManager", paraManagerV005),
+                sharedParamStudioV001,
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_DeleteLineStyles", "Del. Line Styles", deleteLineStylesV001),
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_BulkRename", "Bulk Rename", bulkRenameV001),
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_ScheduleExportImport", "Schedule I/O", scheduleExportImportV007),
                 // Link Check moved here from its own one-button Links panel (plugin 4.2.1).
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_LinkVersionChecker", "Link Check", linkInModelV004),
-                RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_TrackerId", "Tracker ID", trackerIdV001),
+                RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_TrackerId", "Tracker ID", trackerIdV002),
             });
             RibbonLayoutHelper.WirePulldownButton(manageItems, "Pulldown_AnnotationOverlapDetection", overlapV004);
             RibbonLayoutHelper.WirePulldownButton(manageItems, "Pulldown_ParaManager", paraManagerV005);
             RibbonLayoutHelper.WirePulldownButton(manageItems, "Pulldown_DeleteLineStyles", deleteLineStylesV001);
             RibbonLayoutHelper.WirePulldownButton(manageItems, "Pulldown_BulkRename", bulkRenameV001);
-            RibbonLayoutHelper.WirePulldownButton(manageItems, "Pulldown_TrackerId", trackerIdV001);
+            RibbonLayoutHelper.WirePulldownButton(manageItems, "Pulldown_TrackerId", trackerIdV002, trackerIdV001);
             RibbonLayoutHelper.WirePulldownButton(manageItems, "Pulldown_ScheduleExportImport", scheduleExportImportV007, scheduleExportImportV006);
             // Link Check lists V004's three scan modes first, then V003's.
             RibbonLayoutHelper.WirePulldownButton(manageItems, "Pulldown_LinkVersionChecker",
