@@ -1,0 +1,301 @@
+<Window x:Class="Revit26_Plugin_Revised.SharedParamStudio.V001.UI.Views.SharedParamStudioWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:svc="clr-namespace:Revit26_Plugin_Revised.Shared.Services"
+        xmlns:converters="clr-namespace:Revit26_Plugin_Revised.Shared.Models"
+        xmlns:shell="clr-namespace:Revit26_Plugin_Revised.Shared.Controls"
+        Title="{Binding Source={x:Static svc:ToolCatalog.SharedParamStudio}, Path=Title}"
+        Height="760" Width="900" MinHeight="620" MinWidth="780"
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource BrushSurfaceWindow}"
+        Closing="Window_Closing">
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/Revit26_Plugin_Revised;component/Shared/SharedStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+            <converters:LogLevelToColorConverter x:Key="LogLevelToColorConverter"/>
+            <Style x:Key="Field" TargetType="FrameworkElement">
+                <Setter Property="Margin" Value="0,0,0,10"/>
+            </Style>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <shell:ToolWindowShell Title="Shared Parameter Studio"
+                           Subtitle="Create · Merge · Check · Retrieve"
+                           Version="{Binding Source={x:Static svc:ToolCatalog.SharedParamStudio}, Path=Version, StringFormat=v{0}}"
+                           IsRunning="{Binding IsRunning}"
+                           IsIndeterminate="True"
+                           Progress="{Binding Progress}"
+                           SummaryText="{Binding SummaryText}">
+
+        <shell:ToolWindowShell.BodyContent>
+            <Grid Margin="12">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <TabControl Grid.Row="0" SelectedIndex="{Binding SelectedTab, Mode=TwoWay}" MinHeight="380">
+
+                    <!-- ═══ 1. CREATE & ASSIGN ═══ -->
+                    <TabItem Header="Create &amp; Assign">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <Grid Margin="12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="16"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Shared parameter file" Style="{StaticResource FieldLabel}"/>
+                                    <Grid Style="{x:Null}" Margin="0,2,0,10">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBox Text="{Binding CreateFilePath, UpdateSourceTrigger=LostFocus}" Style="{StaticResource BoxedTextInput}"/>
+                                        <Button Grid.Column="1" Content="Browse…" Style="{StaticResource OutlineButton}" Margin="6,0,0,0" Command="{Binding BrowseCreateFileCommand}"/>
+                                    </Grid>
+
+                                    <TextBlock Text="Group inside the file" Style="{StaticResource FieldLabel}"/>
+                                    <ComboBox IsEditable="True" Text="{Binding CreateFileGroup, UpdateSourceTrigger=PropertyChanged}"
+                                              ItemsSource="{Binding FileGroupNames}" Style="{StaticResource StandardComboBox}" Margin="0,2,0,10"/>
+
+                                    <TextBlock Text="Parameter name" Style="{StaticResource FieldLabel}"/>
+                                    <TextBox Text="{Binding ParamName, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BoxedTextInput}" Margin="0,2,0,2"/>
+                                    <TextBlock Text="{Binding ParamNameError}" Foreground="{StaticResource BrushDanger}" FontSize="11.5" TextWrapping="Wrap" Margin="0,0,0,8">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                                <Style.Triggers>
+                                                    <Trigger Property="Text" Value=""><Setter Property="Visibility" Value="Collapsed"/></Trigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+
+                                    <TextBlock Text="Data type" Style="{StaticResource FieldLabel}"/>
+                                    <ComboBox ItemsSource="{Binding DataTypeOptions}" SelectedItem="{Binding SelectedDataType}"
+                                              DisplayMemberPath="Name" Style="{StaticResource StandardComboBox}" Margin="0,2,0,10"/>
+
+                                    <TextBlock Text="Description (tooltip in Revit)" Style="{StaticResource FieldLabel}"/>
+                                    <TextBox Text="{Binding ParamDescription, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BoxedTextInput}" Margin="0,2,0,10"/>
+
+                                    <TextBlock Text="Binding" Style="{StaticResource FieldLabel}"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,4,0,10">
+                                        <RadioButton Content="Instance" IsChecked="{Binding IsInstance, Mode=TwoWay}" Margin="0,0,16,0"/>
+                                        <RadioButton Content="Type"/>
+                                    </StackPanel>
+
+                                    <TextBlock Text="Properties group" Style="{StaticResource FieldLabel}"/>
+                                    <ComboBox ItemsSource="{Binding PaletteGroups}" SelectedItem="{Binding SelectedPaletteGroup}"
+                                              DisplayMemberPath="Name" Style="{StaticResource StandardComboBox}" Margin="0,2,0,10"/>
+
+                                    <CheckBox Content="Users can edit the value" IsChecked="{Binding UserModifiable}" Margin="0,0,0,4"/>
+                                    <CheckBox Content="Show in the Properties palette" IsChecked="{Binding ShowInProperties}"/>
+                                </StackPanel>
+
+                                <DockPanel Grid.Column="2">
+                                    <TextBlock DockPanel.Dock="Top" Text="Categories to bind to" Style="{StaticResource FieldLabel}"/>
+                                    <TextBox DockPanel.Dock="Top" Text="{Binding CategoryFilter, UpdateSourceTrigger=PropertyChanged}"
+                                             Style="{StaticResource BoxedTextInput}" Margin="0,2,0,6" ToolTip="Type to filter the list"/>
+                                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,6">
+                                        <Button Content="Tick shown" Style="{StaticResource SmallSecondaryButton}" Command="{Binding SelectVisibleCategoriesCommand}" Margin="0,0,6,0"/>
+                                        <Button Content="Clear" Style="{StaticResource SmallSecondaryButton}" Command="{Binding ClearCategoriesCommand}" Margin="0,0,10,0"/>
+                                        <TextBlock Text="{Binding SelectedCategoryCount, StringFormat='{}{0} ticked'}" Style="{StaticResource HintText}" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                    <Button DockPanel.Dock="Bottom" Content="Create and assign" Style="{StaticResource PrimaryButton}"
+                                            Command="{Binding CreateAndAssignCommand}" HorizontalAlignment="Right" Margin="0,10,0,0"/>
+                                    <ListBox ItemsSource="{Binding CategoriesView}" MinHeight="260" Margin="0">
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <CheckBox Content="{Binding Name}" IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                                          Click="CategoryCheckBox_Click"/>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+                                </DockPanel>
+                            </Grid>
+                        </ScrollViewer>
+                    </TabItem>
+
+                    <!-- ═══ 2. MERGE FILES ═══ -->
+                    <TabItem Header="Merge Files">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <StackPanel Margin="12">
+                                <TextBlock Text="First file" Style="{StaticResource FieldLabel}"/>
+                                <Grid Margin="0,2,0,10">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                    <TextBox Text="{Binding MergeFirstPath, UpdateSourceTrigger=LostFocus}" Style="{StaticResource BoxedTextInput}"/>
+                                    <Button Grid.Column="1" Content="Browse…" Style="{StaticResource OutlineButton}" Margin="6,0,0,0" Command="{Binding BrowseMergeFirstCommand}"/>
+                                </Grid>
+                                <TextBlock Text="Second file" Style="{StaticResource FieldLabel}"/>
+                                <Grid Margin="0,2,0,10">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                    <TextBox Text="{Binding MergeSecondPath, UpdateSourceTrigger=LostFocus}" Style="{StaticResource BoxedTextInput}"/>
+                                    <Button Grid.Column="1" Content="Browse…" Style="{StaticResource OutlineButton}" Margin="6,0,0,0" Command="{Binding BrowseMergeSecondCommand}"/>
+                                </Grid>
+                                <TextBlock Text="Save merged file as" Style="{StaticResource FieldLabel}"/>
+                                <Grid Margin="0,2,0,10">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                    <TextBox Text="{Binding MergeOutputPath, UpdateSourceTrigger=LostFocus}" Style="{StaticResource BoxedTextInput}"/>
+                                    <Button Grid.Column="1" Content="Browse…" Style="{StaticResource OutlineButton}" Margin="6,0,0,0" Command="{Binding BrowseMergeOutputCommand}"/>
+                                </Grid>
+
+                                <TextBlock Text="When both files define the same parameter differently" Style="{StaticResource FieldLabel}"/>
+                                <ComboBox ItemsSource="{Binding PolicyOptions}" SelectedItem="{Binding SelectedPolicy}"
+                                          Style="{StaticResource StandardComboBox}" Margin="0,2,0,14"/>
+
+                                <TextBlock Text="New parameters to add to the merged file (GUIDs are generated)" Style="{StaticResource FieldLabel}"/>
+                                <DataGrid ItemsSource="{Binding NewParams}" SelectedItem="{Binding SelectedNewParam}"
+                                          Style="{StaticResource StandardDataGrid}"
+                                          ColumnHeaderStyle="{StaticResource StandardDataGridColumnHeader}"
+                                          CellStyle="{StaticResource StandardDataGridCell}"
+                                          RowStyle="{StaticResource StandardDataGridRow}"
+                                          AutoGenerateColumns="False" CanUserAddRows="False" MinHeight="90" MaxHeight="180" Margin="0,4,0,6">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Name" Binding="{Binding Name, UpdateSourceTrigger=LostFocus}" Width="2*"/>
+                                        <DataGridComboBoxColumn Header="Data type" SelectedItemBinding="{Binding DataType, UpdateSourceTrigger=PropertyChanged}"
+                                                                Width="*">
+                                            <DataGridComboBoxColumn.ElementStyle>
+                                                <Style TargetType="ComboBox"><Setter Property="ItemsSource" Value="{Binding DataContext.DataTypeTokens, RelativeSource={RelativeSource AncestorType=Window}}"/></Style>
+                                            </DataGridComboBoxColumn.ElementStyle>
+                                            <DataGridComboBoxColumn.EditingElementStyle>
+                                                <Style TargetType="ComboBox"><Setter Property="ItemsSource" Value="{Binding DataContext.DataTypeTokens, RelativeSource={RelativeSource AncestorType=Window}}"/></Style>
+                                            </DataGridComboBoxColumn.EditingElementStyle>
+                                        </DataGridComboBoxColumn>
+                                        <DataGridTextColumn Header="Group" Binding="{Binding Group, UpdateSourceTrigger=LostFocus}" Width="*"/>
+                                        <DataGridTextColumn Header="Description" Binding="{Binding Description, UpdateSourceTrigger=LostFocus}" Width="2*"/>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                                    <Button Content="Add row" Style="{StaticResource SmallSecondaryButton}" Command="{Binding AddNewParamRowCommand}" Margin="0,0,6,0"/>
+                                    <Button Content="Remove row" Style="{StaticResource SmallSecondaryButton}" Command="{Binding RemoveNewParamRowCommand}"/>
+                                </StackPanel>
+
+                                <Border Style="{StaticResource ContentCard}" Padding="10" Margin="0,0,0,10">
+                                    <TextBlock Text="{Binding MergePreviewText}" Style="{StaticResource BodyText}" TextWrapping="Wrap"/>
+                                </Border>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                    <Button Content="Preview" Style="{StaticResource SecondaryButton}" Command="{Binding PreviewMergeCommand}" Margin="0,0,8,0"/>
+                                    <Button Content="Merge and save" Style="{StaticResource PrimaryButton}" Command="{Binding RunMergeCommand}"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </TabItem>
+
+                    <!-- ═══ 3. DUPLICATE CHECK ═══ -->
+                    <TabItem Header="Duplicate Check">
+                        <DockPanel Margin="12">
+                            <TextBlock DockPanel.Dock="Top" Text="Shared parameter file" Style="{StaticResource FieldLabel}"/>
+                            <Grid DockPanel.Dock="Top" Margin="0,2,0,10">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <TextBox Text="{Binding DuplicatePath, UpdateSourceTrigger=LostFocus}" Style="{StaticResource BoxedTextInput}"/>
+                                <Button Grid.Column="1" Content="Browse…" Style="{StaticResource OutlineButton}" Margin="6,0,0,0" Command="{Binding BrowseDuplicateFileCommand}"/>
+                                <Button Grid.Column="2" Content="Scan" Style="{StaticResource PrimaryButton}" Margin="6,0,0,0" Command="{Binding ScanDuplicatesCommand}"/>
+                            </Grid>
+                            <TextBlock DockPanel.Dock="Top" Text="{Binding DuplicateSummary}" Style="{StaticResource BodyText}" Margin="0,0,0,6"/>
+                            <TextBox DockPanel.Dock="Top" Text="{Binding DuplicateFilter, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource BoxedTextInput}" Margin="0,0,0,8" ToolTip="Filter by name, GUID, group or type"/>
+                            <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+                                <Button Content="Export report (CSV)" Style="{StaticResource SecondaryButton}" Command="{Binding ExportDuplicateCsvCommand}" Margin="0,0,8,0"/>
+                                <Button Content="Save copy without duplicates…" Style="{StaticResource PrimaryButton}" Command="{Binding SaveCleanCopyCommand}"/>
+                            </StackPanel>
+                            <DataGrid ItemsSource="{Binding DuplicateView}" IsReadOnly="True" CanUserSortColumns="True"
+                                      Style="{StaticResource StandardDataGrid}"
+                                      ColumnHeaderStyle="{StaticResource StandardDataGridColumnHeader}"
+                                      CellStyle="{StaticResource StandardDataGridCell}"
+                                      RowStyle="{StaticResource StandardDataGridRow}"
+                                      AutoGenerateColumns="False" CanUserAddRows="False" MinHeight="200">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Kind" Binding="{Binding Kind}" Width="90"/>
+                                    <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="2*"/>
+                                    <DataGridTextColumn Header="GUID" Binding="{Binding Guid}" Width="2*"/>
+                                    <DataGridTextColumn Header="Type" Binding="{Binding DataType}" Width="90"/>
+                                    <DataGridTextColumn Header="Group" Binding="{Binding Group}" Width="*"/>
+                                    <DataGridTextColumn Header="Line" Binding="{Binding Line}" Width="50"/>
+                                    <DataGridTextColumn Header="Action" Binding="{Binding Action}" Width="70"/>
+                                    <DataGridTextColumn Header="Note" Binding="{Binding Note}" Width="*"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </DockPanel>
+                    </TabItem>
+
+                    <!-- ═══ 4. RETRIEVE FROM PROJECT ═══ -->
+                    <TabItem Header="Retrieve from Project">
+                        <DockPanel Margin="12">
+                            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,8">
+                                <Button Content="Refresh" Style="{StaticResource PrimaryButton}" Command="{Binding RefreshRetrievedCommand}" Margin="0,0,8,0"/>
+                                <Button Content="Tick all" Style="{StaticResource SmallSecondaryButton}" Command="{Binding SelectAllRetrievedCommand}" Margin="0,0,6,0"/>
+                                <Button Content="Clear" Style="{StaticResource SmallSecondaryButton}" Command="{Binding ClearRetrievedCommand}" Margin="0,0,12,0"/>
+                                <TextBlock Text="{Binding RetrieveSummary}" Style="{StaticResource BodyText}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <TextBox DockPanel.Dock="Top" Text="{Binding RetrieveFilter, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource BoxedTextInput}" Margin="0,0,0,8" ToolTip="Filter by name, GUID, type, group or category. Click a column header to sort."/>
+                            <Grid DockPanel.Dock="Bottom" Margin="0,10,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="160"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox Text="{Binding RetrieveFilePath, UpdateSourceTrigger=LostFocus}" Style="{StaticResource BoxedTextInput}" ToolTip="Shared parameter file to write to"/>
+                                <Button Grid.Column="1" Content="Browse…" Style="{StaticResource OutlineButton}" Margin="6,0,0,0" Command="{Binding BrowseRetrieveFileCommand}"/>
+                                <TextBox Grid.Column="2" Text="{Binding RetrieveFileGroup, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BoxedTextInput}" Margin="6,0,0,0" ToolTip="Group name inside the file"/>
+                                <Button Grid.Column="3" Content="CSV…" Style="{StaticResource SecondaryButton}" Margin="6,0,0,0" Command="{Binding ExportRetrievedCsvCommand}"/>
+                                <Button Grid.Column="4" Content="Write to file" Style="{StaticResource PrimaryButton}" Margin="6,0,0,0" Command="{Binding WriteRetrievedToFileCommand}"/>
+                            </Grid>
+                            <DataGrid ItemsSource="{Binding RetrievedView}" CanUserSortColumns="True"
+                                      Style="{StaticResource StandardDataGrid}"
+                                      ColumnHeaderStyle="{StaticResource StandardDataGridColumnHeader}"
+                                      CellStyle="{StaticResource StandardDataGridCell}"
+                                      RowStyle="{StaticResource StandardDataGridRow}"
+                                      AutoGenerateColumns="False" CanUserAddRows="False" MinHeight="200">
+                                <DataGrid.Columns>
+                                    <DataGridCheckBoxColumn Header="" Binding="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}" Width="36"/>
+                                    <DataGridTextColumn Header="Name" Binding="{Binding Name}" IsReadOnly="True" Width="2*"/>
+                                    <DataGridTextColumn Header="GUID" Binding="{Binding Guid}" IsReadOnly="True" Width="2*"/>
+                                    <DataGridTextColumn Header="Type" Binding="{Binding DataTypeLabel}" IsReadOnly="True" Width="*"/>
+                                    <DataGridTextColumn Header="Binding" Binding="{Binding BindingKind}" IsReadOnly="True" Width="70"/>
+                                    <DataGridTextColumn Header="Group" Binding="{Binding GroupLabel}" IsReadOnly="True" Width="*"/>
+                                    <DataGridTextColumn Header="Categories" Binding="{Binding Categories}" IsReadOnly="True" Width="2*"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </DockPanel>
+                    </TabItem>
+                </TabControl>
+
+                <!-- ═══ ACTIVITY LOG ═══ -->
+                <Border Grid.Row="1" Background="{StaticResource BrushLogBg}" CornerRadius="6" Margin="0,10,0,0" Padding="10,6">
+                    <StackPanel>
+                        <TextBlock Text="Activity Log" Foreground="{StaticResource BrushLogText}" FontFamily="Consolas" FontSize="11" Margin="0,0,0,4"/>
+                        <ListBox ItemsSource="{Binding LogEntries}" Height="120" Background="Transparent" BorderThickness="0"
+                                 SelectionMode="Extended" ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                 SelectionChanged="LogListBox_SelectionChanged">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="{Binding Time, StringFormat='HH:mm:ss'}" Foreground="{StaticResource BrushLogTextDim}" FontFamily="Consolas" FontSize="11"/>
+                                        <TextBlock Text="{Binding Level}" Margin="8,0" Foreground="{Binding Level, Converter={StaticResource LogLevelToColorConverter}}" FontFamily="Consolas" FontWeight="Bold" FontSize="11"/>
+                                        <TextBlock Text="{Binding Message}" Foreground="{StaticResource BrushLogText}" FontFamily="Consolas" FontSize="11" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,6,0,0">
+                            <Button Content="Copy Selected" Style="{StaticResource SecondaryButton}" Command="{Binding CopySelectedLogCommand}" Margin="0,0,8,0"/>
+                            <Button Content="Copy All" Style="{StaticResource SecondaryButton}" Command="{Binding CopyAllLogCommand}" Margin="0,0,8,0"/>
+                            <Button Content="Clear" Style="{StaticResource SecondaryButton}" Command="{Binding ClearLogCommand}"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </shell:ToolWindowShell.BodyContent>
+
+        <shell:ToolWindowShell.FooterContent>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="Close" Style="{StaticResource OutlineButton}" Height="38" Width="90" Click="CloseButton_Click"/>
+            </StackPanel>
+        </shell:ToolWindowShell.FooterContent>
+    </shell:ToolWindowShell>
+</Window>

@@ -34,6 +34,9 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             var paraManagerV005 = Btn(assemblyPath, "Btn_ParaManager_V005", "ParaManager V005", "Revit26_Plugin_Revised.ParaManager.V005.ParaManagerCommand",
                 "Manage.ParaManager_16.png", "ParaManager", "V005", "V004 on the shared ToolWindowShell (log in body, capped queue grid).");
 
+            var sharedParamStudioV001 = Btn(assemblyPath, "Btn_SharedParamStudio_V001", "Shared Params", "Revit26_Plugin_Revised.SharedParamStudio.V001.Commands.SharedParamStudioCommand",
+                "Manage.ParaManager_16.png", "Shared Parameter Studio", "V001", "Create and assign shared parameters on the go, merge two shared parameter files, check a file for duplicates, retrieve the project's shared parameters.");
+
             var wsebV003 = Btn(assemblyPath, "Btn_WorksetsElementsBrowser_WSEB003", "Worksets & Elements WSEB003", "Revit26_Plugin_Revised.WorksetsElementsBrowser.WSEB003.Commands.WorksetsElementsBrowserCommand",
                 "Manage.WorksetsElementsBrowser_16.png", "Worksets & Elements Browser", "WSEB003", "WSEB002" + Rebuilt);
             var wsebV004 = Btn(assemblyPath, "Btn_WorksetsElementsBrowser_WSEB004", "Worksets & Elements WSEB004", "Revit26_Plugin_Revised.WorksetsElementsBrowser.WSEB004.Commands.WorksetsElementsBrowserCommand",
@@ -138,6 +141,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             {
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_AnnotationOverlapDetection", "Overlaps", overlapV004),
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_ParaManager", "ParaManager", paraManagerV005),
+                sharedParamStudioV001,
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_DeleteLineStyles", "Del. Line Styles", deleteLineStylesV001),
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_BulkRename", "Bulk Rename", bulkRenameV001),
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_ScheduleExportImport", "Schedule I/O", scheduleExportImportV007),
