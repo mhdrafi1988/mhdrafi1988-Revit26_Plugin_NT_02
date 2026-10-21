@@ -9,6 +9,30 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [5.3.0] — 2026-10-21
+
+### Added — Roof Shape From Link V001 (1.0.0)
+A new tool in the **Shape Points** panel (button **Shape From Link**). It sets the shape-editing points of
+footprint roofs from the roofs in a linked model.
+
+- **Entry checks.** Works in a plan view only, and needs one or more footprint roofs selected before you run
+  it (extrusion roofs and other elements are ignored). If either is missing, or the project has no loaded
+  link, it warns and exits.
+- **Linked files.** A searchable tick list of the loaded Revit links. Tick one or more.
+- **Elevations.** For every shape-editing point of each selected roof the tool finds the linked roof above it
+  and reads two elevations: the Z of its top (sky-facing) surface at the same X,Y (snapped to the face edge
+  if the point sits within 0.5 m outside it), and the Z of its nearest shape-editing point. An option limits
+  "nearest" to corner and edge points.
+- **Editable grid.** Per point: Surface Z, Nearest Z, a Source choice (Surface by default), a Subtract value
+  and the New Z, all editable. A global **Take elevation from** switch sets every row, and a global
+  **Subtract** number (New Z = linked Z − number) fills every row's Subtract. Typing a New Z marks the row
+  Manual. Points with no linked roof above start unticked so you can type a value or leave them out.
+- **Change selection** lets you pick other footprint roofs without closing the window.
+- **Apply** writes the ticked rows, one undo step, one transaction per roof (a roof that fails is rolled back
+  on its own). Roofs owned by another user, or without shape editing on, are skipped and listed in the log.
+
+User note: the tool never turns shape editing on; a roof needs existing shape-editing points.
+
 ## [5.2.0] — 2026-10-20
 
 ### Added — Tracker ID V002 (2.0.0)
