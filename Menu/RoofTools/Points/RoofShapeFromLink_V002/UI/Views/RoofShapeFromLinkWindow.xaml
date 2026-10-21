@@ -1,13 +1,13 @@
 <!--
 =======================================================
-File: RoofShapeFromLinkWindow.xaml  (V001, ToolWindowShell)
+File: RoofShapeFromLinkWindow.xaml  (V002, ToolWindowShell)
   HEADER  4 metric tiles (roofs, points, matched, to apply)
   BODY    Roofs · Linked files (searchable tick list) · Options (global source, offset)
           · editable Shape points grid · Activity log
   FOOTER  shell status strip; Apply -> Close
 =======================================================
 -->
-<Window x:Class="Revit26_Plugin_Revised.RoofShapeFromLink.V001.UI.Views.RoofShapeFromLinkWindow"
+<Window x:Class="Revit26_Plugin_Revised.RoofShapeFromLink.V002.UI.Views.RoofShapeFromLinkWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:svc="clr-namespace:Revit26_Plugin_Revised.Shared.Services"
@@ -133,7 +133,12 @@ File: RoofShapeFromLinkWindow.xaml  (V001, ToolWindowShell)
                             <TextBox Style="{StaticResource BoxedTextInput}" Height="26" Padding="6,2" Width="80" Margin="8,0,0,0"
                                      Text="{Binding GlobalOffset, StringFormat=F3, UpdateSourceTrigger=LostFocus}"/>
                             <TextBlock Text="{Binding UnitLabel}" Style="{StaticResource UnitLabel}"/>
-                            <TextBlock Text="(New Z = linked Z − this number; editable per row)" Style="{StaticResource HintText}" Margin="10,0,0,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="(New Z = linked Z − thickness − this number; editable per row)" Style="{StaticResource HintText}" Margin="10,0,0,0" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                            <CheckBox Content="Subtract host roof thickness" VerticalAlignment="Center"
+                                      IsChecked="{Binding SubtractThickness}"/>
+                            <TextBlock Text="(New Z = linked Z − roof type thickness − Subtract; the point is then set from the roof base surface)" Style="{StaticResource HintText}" Margin="10,0,0,0" VerticalAlignment="Center"/>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal">
                             <CheckBox Content="Nearest point: corner and edge points only" VerticalAlignment="Center"
@@ -251,6 +256,8 @@ File: RoofShapeFromLinkWindow.xaml  (V001, ToolWindowShell)
                         <DataGridTextColumn Header="Surface Z"   Binding="{Binding SurfaceZ, StringFormat=F3}"          Width="90"  IsReadOnly="True"/>
                         <DataGridTextColumn Header="Nearest Z"   Binding="{Binding NearestZ, StringFormat=F3}"          Width="90"  IsReadOnly="True"/>
                         <DataGridTextColumn Header="Nearest dist." Binding="{Binding NearestDistance, StringFormat=F3}" Width="90"  IsReadOnly="True"/>
+                        <DataGridTextColumn Header="Base Z"      Binding="{Binding BaseZ, StringFormat=F3}"             Width="90"  IsReadOnly="True"/>
+                        <DataGridTextColumn Header="Thickness"   Binding="{Binding Thickness, StringFormat=F3}"         Width="80"  IsReadOnly="True"/>
                         <DataGridTemplateColumn Header="Status" Width="90" SortMemberPath="Status">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
@@ -300,6 +307,7 @@ File: RoofShapeFromLinkWindow.xaml  (V001, ToolWindowShell)
                                 </Style>
                             </DataGridTextColumn.CellStyle>
                         </DataGridTextColumn>
+                        <DataGridTextColumn Header="Offset from base" Binding="{Binding VertexOffset, StringFormat=F3}" Width="110" IsReadOnly="True"/>
                         <DataGridTemplateColumn Header="Δ vs current" Width="130" SortMemberPath="Delta" IsReadOnly="True">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>

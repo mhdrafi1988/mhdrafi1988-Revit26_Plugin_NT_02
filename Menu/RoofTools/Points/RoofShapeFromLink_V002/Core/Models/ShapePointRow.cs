@@ -1,6 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace Revit26_Plugin_Revised.RoofShapeFromLink.V001.Core.Models
+namespace Revit26_Plugin_Revised.RoofShapeFromLink.V002.Core.Models
 {
     /// <summary>
     /// One shape-editing point of a host roof, with the two candidate elevations read from the
@@ -41,6 +41,12 @@ namespace Revit26_Plugin_Revised.RoofShapeFromLink.V001.Core.Models
         /// <summary>Point Y in the project length unit.</summary>
         public double Y { get; init; }
 
+        /// <summary>Host roof base surface elevation (base level + Base Offset From Level) in the project length unit.</summary>
+        public double BaseZ { get; init; }
+
+        /// <summary>Total thickness of the host roof type in the project length unit.</summary>
+        public double Thickness { get; init; }
+
         /// <summary>Linked roof the candidates came from, "Link name · roof id"; empty when none was found.</summary>
         public string LinkedRoof { get; init; } = "";
 
@@ -73,13 +79,22 @@ namespace Revit26_Plugin_Revised.RoofShapeFromLink.V001.Core.Models
         /// <summary>Surface, Nearest or Manual.</summary>
         [ObservableProperty] private string _source = SourceSurface;
 
-        /// <summary>Fixed number subtracted from the chosen candidate; starts at the global value.</summary>
+        /// <summary>True when <see cref="Thickness"/> is subtracted from the chosen candidate.</summary>
+        [ObservableProperty] private bool _useThickness = true;
+
+        /// <summary>Fixed number subtracted from the chosen candidate (after the thickness); starts at the global value.</summary>
         [ObservableProperty] private double _offset;
 
         /// <summary>Elevation that Apply will set; editable.</summary>
         [ObservableProperty]
-        [NotifyPropertyChangedFor(nameof(Delta), nameof(DeltaText), nameof(DeltaIsUp), nameof(DeltaBar))]
+        [NotifyPropertyChangedFor(nameof(Delta), nameof(DeltaText), nameof(DeltaIsUp), nameof(DeltaBar), nameof(VertexOffset))]
         private double? _newZ;
+
+        /// <summary>
+        /// Offset from the host roof base surface that Apply gives the point (New Z minus Base Z), or null when
+        /// there is no New Z. On a roof with a sloped base the tool measures the base at each point instead.
+        /// </summary>
+        public double? VertexOffset => NewZ.HasValue ? NewZ.Value - BaseZ : null;
 
         /// <summary>OK, Snapped (edge of the linked face), Below (linked roof lower than the point) or No link.</summary>
         public string Status =>
@@ -113,18 +128,23 @@ namespace Revit26_Plugin_Revised.RoofShapeFromLink.V001.Core.Models
             if (HasCandidate(source)) Source = source;
         }
 
-        /// <summary>Recalculates New Z from the current source and offset (Manual rows keep their typed value).</summary>
+        /// <summary>
+        /// Recalculates New Z = linked elevation − roof thickness (when on) − offset.
+        /// Manual rows keep their typed value.
+        /// </summary>
         public void Recalculate()
         {
             if (Source == SourceManual) return;
             double? basis = Source == SourceSurface ? SurfaceZ : NearestZ;
-            Set(() => NewZ = basis.HasValue ? basis.Value - Offset : null);
+            Set(() => NewZ = basis.HasValue ? basis.Value - (UseThickness ? Thickness : 0) - Offset : null);
             if (!NewZ.HasValue) Include = false;
         }
 
         partial void OnSourceChanged(string value) => Recalculate();
 
         partial void OnOffsetChanged(double value) => Recalculate();
+
+        partial void OnUseThicknessChanged(bool value) => Recalculate();
 
         partial void OnNewZChanged(double? value)
         {

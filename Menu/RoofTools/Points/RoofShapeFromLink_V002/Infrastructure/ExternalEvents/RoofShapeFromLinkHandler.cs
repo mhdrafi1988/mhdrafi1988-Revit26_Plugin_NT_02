@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
-using Revit26_Plugin_Revised.RoofShapeFromLink.V001.Core.Models;
-using Revit26_Plugin_Revised.RoofShapeFromLink.V001.Core.Services;
-using Revit26_Plugin_Revised.RoofShapeFromLink.V001.Infrastructure.Helpers;
-using Revit26_Plugin_Revised.RoofShapeFromLink.V001.UI.ViewModels;
+using Revit26_Plugin_Revised.RoofShapeFromLink.V002.Core.Models;
+using Revit26_Plugin_Revised.RoofShapeFromLink.V002.Core.Services;
+using Revit26_Plugin_Revised.RoofShapeFromLink.V002.Infrastructure.Helpers;
+using Revit26_Plugin_Revised.RoofShapeFromLink.V002.UI.ViewModels;
 using Revit26_Plugin_Revised.Shared.Models;
 using Revit26_Plugin_Revised.Shared.Services;
 
-namespace Revit26_Plugin_Revised.RoofShapeFromLink.V001.Infrastructure.ExternalEvents
+namespace Revit26_Plugin_Revised.RoofShapeFromLink.V002.Infrastructure.ExternalEvents
 {
     /// <summary>
     /// Runs the tool's Revit work (read links, pick roofs, write elevations) inside a valid API context.
@@ -128,6 +128,8 @@ namespace Revit26_Plugin_Revised.RoofShapeFromLink.V001.Infrastructure.ExternalE
                 List<HostPoint> points = HostRoofService.ReadPoints(roof, out string reason);
                 if (points.Count == 0)
                     _vm.Log(LogLevel.Warning, $"{HostRoofService.Label(roof)}: skipped, {reason}.");
+                else if (!string.IsNullOrEmpty(points[0].Base.Note))
+                    _vm.Log(LogLevel.Warning, $"{HostRoofService.Label(roof)}: {points[0].Base.Note}.");
 
                 foreach (HostPoint p in points)
                 {
@@ -162,7 +164,10 @@ namespace Revit26_Plugin_Revised.RoofShapeFromLink.V001.Infrastructure.ExternalE
                 NearestDistance = c.NearestDistanceFt.HasValue ? _vm.ToDisplay(c.NearestDistanceFt.Value) : null,
                 Note = c.Note,
                 CurrentZ = _vm.ToDisplay(p.Position.Z),
-                Offset = _vm.GlobalOffset
+                BaseZ = _vm.ToDisplay(p.Base.BaseZFt),
+                Thickness = _vm.ToDisplay(p.Base.ThicknessFt),
+                Offset = _vm.GlobalOffset,
+                UseThickness = _vm.SubtractThickness
             };
             row.Source = row.HasCandidate(_vm.GlobalSource)
                 ? _vm.GlobalSource
@@ -277,8 +282,10 @@ namespace Revit26_Plugin_Revised.RoofShapeFromLink.V001.Infrastructure.ExternalE
         }
 
         /// <summary>
-        /// Sets each row's point to its New Z. <c>ModifySubElement</c> takes an offset from the roof's base
-        /// surface, so each point is first set to 0 to read that base elevation, then set to target minus base.
+        /// Sets each row's point to its New Z (linked elevation − roof thickness − subtract). <c>ModifySubElement</c>
+        /// takes an offset from the roof's base surface, so each point is first set to 0 to read that base
+        /// elevation, then set to target minus base. On a flat base this equals the row's Base Z (base level +
+        /// Base Offset From Level); where it differs (sloped base) the measured value is used and a warning logged.
         /// </summary>
         private int ApplyRoof(Document doc, FootPrintRoof roof, SlabShapeEditor editor, List<ShapePointRow> rows, out int failed)
         {
@@ -292,9 +299,12 @@ namespace Revit26_Plugin_Revised.RoofShapeFromLink.V001.Infrastructure.ExternalE
             // Handles from before the regenerate may be stale: look the points up again.
             var fresh = Match(roof.GetSlabShapeEditor(), matched.Select(m => m.Row).ToList(), out int lost);
             failed += lost;
+            var warnedBase = new HashSet<long>();
             foreach (var (vertex, row) in fresh)
             {
                 double baseZ = vertex.Position.Z;
+                if (Math.Abs(baseZ - _vm.ToFeet(row.BaseZ)) > ReadbackToleranceFt && warnedBase.Add(row.RoofId))
+                    _vm.Log(LogLevel.Warning, $"{row.RoofLabel}: base surface at a point differs from base level + offset (sloped base); the measured base was used, so the final elevations are still exact.");
                 editor.ModifySubElement(vertex, _vm.ToFeet(row.NewZ.Value) - baseZ);
             }
             return fresh.Count;
