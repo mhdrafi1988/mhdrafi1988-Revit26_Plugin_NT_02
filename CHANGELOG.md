@@ -9,6 +9,20 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [5.7.0] — 2026-10-21
+
+### Changed
+- **Roof Shape From Link v2.0.0 (V002)** — the final elevation now subtracts the host roof's thickness:
+  `New Z = linked elevation − host roof type thickness − Subtract`. The point is then written as an
+  offset from the host roof's base surface (base level elevation + Base Offset From Level), shown as
+  **Offset from base**. New grid columns **Base Z**, **Thickness** and **Offset from base**, and a
+  **Subtract host roof thickness** option (on by default). Thickness is the total of all layers of the
+  roof type. Where a roof's base surface is sloped at a point, the measured base is used (a warning is
+  logged) so the final elevations stay exact.
+  - **User note:** results are lower than in V001 by the roof thickness. Untick **Subtract host roof
+    thickness** to get the V001 result. Namespace is now `…RoofShapeFromLink.V002`; the ribbon button's
+    internal name and the command class name are unchanged.
+
 ## [5.6.1] — 2026-10-21
 
 ### Fixed

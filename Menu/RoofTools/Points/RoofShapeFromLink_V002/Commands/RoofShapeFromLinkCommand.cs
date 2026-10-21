@@ -4,14 +4,14 @@ using System.Windows.Interop;
 using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
-using Revit26_Plugin_Revised.RoofShapeFromLink.V001.Core.Models;
-using Revit26_Plugin_Revised.RoofShapeFromLink.V001.Core.Services;
-using Revit26_Plugin_Revised.RoofShapeFromLink.V001.Infrastructure.ExternalEvents;
-using Revit26_Plugin_Revised.RoofShapeFromLink.V001.UI.ViewModels;
-using Revit26_Plugin_Revised.RoofShapeFromLink.V001.UI.Views;
+using Revit26_Plugin_Revised.RoofShapeFromLink.V002.Core.Models;
+using Revit26_Plugin_Revised.RoofShapeFromLink.V002.Core.Services;
+using Revit26_Plugin_Revised.RoofShapeFromLink.V002.Infrastructure.ExternalEvents;
+using Revit26_Plugin_Revised.RoofShapeFromLink.V002.UI.ViewModels;
+using Revit26_Plugin_Revised.RoofShapeFromLink.V002.UI.Views;
 using Revit26_Plugin_Revised.Shared.Services;
 
-namespace Revit26_Plugin_Revised.RoofShapeFromLink.V001.Commands
+namespace Revit26_Plugin_Revised.RoofShapeFromLink.V002.Commands
 {
     /// <summary>
     /// Ribbon entry point. Needs a plan view, one or more footprint roofs selected beforehand and at least

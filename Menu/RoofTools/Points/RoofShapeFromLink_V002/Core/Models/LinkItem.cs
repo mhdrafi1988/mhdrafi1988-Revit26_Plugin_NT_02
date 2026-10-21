@@ -1,6 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace Revit26_Plugin_Revised.RoofShapeFromLink.V001.Core.Models
+namespace Revit26_Plugin_Revised.RoofShapeFromLink.V002.Core.Models
 {
     /// <summary>A loaded Revit link instance the user can tick as an elevation source.</summary>
     public partial class LinkItem : ObservableObject

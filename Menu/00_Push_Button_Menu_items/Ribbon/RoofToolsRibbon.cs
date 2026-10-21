@@ -99,8 +99,10 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             var multiPointsV003 = Btn(assemblyPath, "Btn_MultiplePoints_V003", "Multi Points V003", "Revit26_Plugin_Revised.MultiplePoints.V003.Commands.MultiplePointsCommand",
                 "MultiplePoints_16.png", "Multiple Points (1/2–1/4)", "V003", "V002 on the shared ToolWindowShell (log in body, capped grid).");
 
-            var shapeFromLinkV001 = Btn(assemblyPath, "Btn_RoofShapeFromLink_V001", "Shape From Link", "Revit26_Plugin_Revised.RoofShapeFromLink.V001.Commands.RoofShapeFromLinkCommand",
-                "ElevationSync_16.png", "Roof Shape From Link", "V001", "Select footprint roofs in a plan view, tick the linked files, and set each shape-editing point to the linked roof's top-surface (or nearest point) elevation minus a fixed number. Test on a copy of your model.");
+            var shapeFromLinkV001 = Btn(assemblyPath, "Btn_RoofShapeFromLink_V001", "Shape From Link", "Revit26_Plugin_Revised.RoofShapeFromLink.V002.Commands.RoofShapeFromLinkCommand",
+                "ElevationSync_16.png", "Roof Shape From Link", "V002");
+            shapeFromLinkV001.ToolTip = Revit26_Plugin_Revised.Shared.Services.ToolCatalog.RoofShapeFromLink.Tip(
+                "Select footprint roofs in a plan view, tick the linked files, and set each shape-editing point to the linked roof's top-surface (or nearest point) elevation minus the host roof thickness and a fixed number. Test on a copy of your model.");
 
             var shapePointsItems = RibbonLayoutHelper.AddStackedButtons(shapePointsPanel, new List<RibbonItemData>
             {
@@ -135,8 +137,10 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
 
             // Roof Shape From Link also sits in Shape Points; this is a second button for the same command,
             // so it needs its own internal name.
-            var shapeFromLinkRoofPanelV001 = Btn(assemblyPath, "Btn_RoofToolsPanel_RoofShapeFromLink_V001", "Shape From Link", "Revit26_Plugin_Revised.RoofShapeFromLink.V001.Commands.RoofShapeFromLinkCommand",
-                "ElevationSync_16.png", "Roof Shape From Link", "V001", "Select footprint roofs in a plan view, tick the linked files, and set each shape-editing point to the linked roof's top-surface (or nearest point) elevation minus a fixed number. Test on a copy of your model.");
+            var shapeFromLinkRoofPanelV001 = Btn(assemblyPath, "Btn_RoofToolsPanel_RoofShapeFromLink_V001", "Shape From Link", "Revit26_Plugin_Revised.RoofShapeFromLink.V002.Commands.RoofShapeFromLinkCommand",
+                "ElevationSync_16.png", "Roof Shape From Link", "V002");
+            shapeFromLinkRoofPanelV001.ToolTip = Revit26_Plugin_Revised.Shared.Services.ToolCatalog.RoofShapeFromLink.Tip(
+                "Select footprint roofs in a plan view, tick the linked files, and set each shape-editing point to the linked roof's top-surface (or nearest point) elevation minus the host roof thickness and a fixed number. Test on a copy of your model.");
 
             // Roof From Detail Lines (V008/V009) removed in plugin 3.10.0: its source
             // is not in the repository, so the buttons could only raise an error.

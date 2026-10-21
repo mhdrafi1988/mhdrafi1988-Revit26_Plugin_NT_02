@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Autodesk.Revit.DB;
-using Revit26_Plugin_Revised.RoofShapeFromLink.V001.Core.Models;
+using Revit26_Plugin_Revised.RoofShapeFromLink.V002.Core.Models;
 
-namespace Revit26_Plugin_Revised.RoofShapeFromLink.V001.Core.Services
+namespace Revit26_Plugin_Revised.RoofShapeFromLink.V002.Core.Services
 {
     /// <summary>
     /// Finds, for a host point, the roof above it in the chosen links: the Z of its top (sky-facing)

@@ -4,10 +4,10 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
-using Revit26_Plugin_Revised.RoofShapeFromLink.V001.UI.ViewModels;
+using Revit26_Plugin_Revised.RoofShapeFromLink.V002.UI.ViewModels;
 using Revit26_Plugin_Revised.Shared.Services;
 
-namespace Revit26_Plugin_Revised.RoofShapeFromLink.V001.UI.Views
+namespace Revit26_Plugin_Revised.RoofShapeFromLink.V002.UI.Views
 {
     /// <summary>Modeless window of the Roof Shape From Link tool. One window at a time.</summary>
     public partial class RoofShapeFromLinkWindow : Window

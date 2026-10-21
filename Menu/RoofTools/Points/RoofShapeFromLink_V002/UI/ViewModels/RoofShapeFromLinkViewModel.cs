@@ -10,14 +10,14 @@ using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Revit26_Plugin_Revised.RoofShapeFromLink.V001.Core.Models;
-using Revit26_Plugin_Revised.RoofShapeFromLink.V001.Core.Services;
-using Revit26_Plugin_Revised.RoofShapeFromLink.V001.Infrastructure.ExternalEvents;
+using Revit26_Plugin_Revised.RoofShapeFromLink.V002.Core.Models;
+using Revit26_Plugin_Revised.RoofShapeFromLink.V002.Core.Services;
+using Revit26_Plugin_Revised.RoofShapeFromLink.V002.Infrastructure.ExternalEvents;
 using Revit26_Plugin_Revised.Shared.Models;
 using Revit26_Plugin_Revised.Shared.Services;
 using Revit26_Plugin_Revised.Shared.ViewModels;
 
-namespace Revit26_Plugin_Revised.RoofShapeFromLink.V001.UI.ViewModels
+namespace Revit26_Plugin_Revised.RoofShapeFromLink.V002.UI.ViewModels
 {
     /// <summary>
     /// State of the Roof Shape From Link window. It never calls the Revit API itself: every action
@@ -130,6 +130,9 @@ namespace Revit26_Plugin_Revised.RoofShapeFromLink.V001.UI.ViewModels
 
         /// <summary>Source applied to every row: Surface or Nearest.</summary>
         [ObservableProperty] private string _globalSource = ShapePointRow.SourceSurface;
+
+        /// <summary>When on (default), the host roof type's thickness is subtracted from every linked elevation.</summary>
+        [ObservableProperty] private bool _subtractThickness = true;
 
         /// <summary>When on, "nearest point" only uses corner and edge points of the linked roof.</summary>
         [ObservableProperty] private bool _boundaryPointsOnly;
@@ -301,6 +304,11 @@ namespace Revit26_Plugin_Revised.RoofShapeFromLink.V001.UI.ViewModels
         partial void OnGlobalOffsetChanged(double value)
         {
             foreach (ShapePointRow r in Rows) r.Offset = value;
+        }
+
+        partial void OnSubtractThicknessChanged(bool value)
+        {
+            foreach (ShapePointRow r in Rows) r.UseThickness = value;
         }
 
         partial void OnGlobalSourceChanged(string value)
