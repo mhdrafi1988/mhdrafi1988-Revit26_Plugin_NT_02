@@ -72,7 +72,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             // Shape Points — one pulldown per tool (current version, then its rebuild)
             RibbonPanel shapePointsPanel = app.CreateRibbonPanel(tabName, "Shape Points");
 
-            // Oldest versions (V009, V004, V005, V010) restored in plugin 5.3.0: their code was compiled but had no button.
+            // Oldest versions (V009, V004, V005, V010) restored in plugin 5.6.0: their code was compiled but had no button.
             var innerLoopsV009 = Btn(assemblyPath, "Btn_InnerLoopDivider_V009", "Inner Loops V009", "Revit26_Plugin_Revised.InnerLoopDivider.V009.Commands.InnerLoopDividerCommand",
                 "InnerLoopDivider_16.png", "Divide Inner Loops", "V009");
             var innerLoopsV010 = Btn(assemblyPath, "Btn_InnerLoopDivider_V010", "Inner Loops V010", "Revit26_Plugin_Revised.InnerLoopDivider.V010.Commands.InnerLoopDividerCommand",
@@ -106,6 +106,9 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             var multiPointsV003 = Btn(assemblyPath, "Btn_MultiplePoints_V003", "Multi Points V003", "Revit26_Plugin_Revised.MultiplePoints.V003.Commands.MultiplePointsCommand",
                 "MultiplePoints_16.png", "Multiple Points (1/2–1/4)", "V003", "V002 on the shared ToolWindowShell (log in body, capped grid).");
 
+            var shapeFromLinkV001 = Btn(assemblyPath, "Btn_RoofShapeFromLink_V001", "Shape From Link", "Revit26_Plugin_Revised.RoofShapeFromLink.V001.Commands.RoofShapeFromLinkCommand",
+                "ElevationSync_16.png", "Roof Shape From Link", "V001", "Select footprint roofs in a plan view, tick the linked files, and set each shape-editing point to the linked roof's top-surface (or nearest point) elevation minus a fixed number. Test on a copy of your model.");
+
             var shapePointsItems = RibbonLayoutHelper.AddStackedButtons(shapePointsPanel, new List<RibbonItemData>
             {
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_InnerLoopDivider", "Inner Loops", innerLoopsV012),
@@ -114,6 +117,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_InnerLoopsAndPerpendicular", "Loops + Perp.", loopsPerpV007),
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_VertexReducer", "Vertex Reducer", vertexReducerV009),
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_MultiplePoints", "Multi Points", multiPointsV003),
+                RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_RoofShapeFromLink", "Shape From Link", shapeFromLinkV001),
             });
             RibbonLayoutHelper.WirePulldownButton(shapePointsItems, "Pulldown_InnerLoopDivider", innerLoopsV012, innerLoopsV011, innerLoopsV010, innerLoopsV009);
             RibbonLayoutHelper.WirePulldownButton(shapePointsItems, "Pulldown_OuterCurveDivider", outerCurveV006, outerCurveV005, outerCurveV004);
@@ -121,6 +125,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             RibbonLayoutHelper.WirePulldownButton(shapePointsItems, "Pulldown_InnerLoopsAndPerpendicular", loopsPerpV007, loopsPerpV006, loopsPerpV005);
             RibbonLayoutHelper.WirePulldownButton(shapePointsItems, "Pulldown_VertexReducer", vertexReducerV009, vertexReducerV008);
             RibbonLayoutHelper.WirePulldownButton(shapePointsItems, "Pulldown_MultiplePoints", multiPointsV003, multiPointsV002);
+            RibbonLayoutHelper.WirePulldownButton(shapePointsItems, "Pulldown_RoofShapeFromLink", shapeFromLinkV001);
 
             // Slope Liner + Tag + Floor From Rooms in one stack
             // (Revit's stacked-item limit is exactly 3 per column).
@@ -137,6 +142,11 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             var roofTagV018 = Btn(assemblyPath, "Btn_RoofTagCommand_V018", "Roof Tag V018", "Revit26_Plugin_Revised.RoofTag.V018.RoofTagCommand",
                 "RoofTag_16.png", "Roof Tag", "V018", "V017 on the shared ToolWindowShell (log in body).");
 
+            // Roof Shape From Link also sits in Shape Points; this is a second button for the same command,
+            // so it needs its own internal name.
+            var shapeFromLinkRoofPanelV001 = Btn(assemblyPath, "Btn_RoofToolsPanel_RoofShapeFromLink_V001", "Shape From Link", "Revit26_Plugin_Revised.RoofShapeFromLink.V001.Commands.RoofShapeFromLinkCommand",
+                "ElevationSync_16.png", "Roof Shape From Link", "V001", "Select footprint roofs in a plan view, tick the linked files, and set each shape-editing point to the linked roof's top-surface (or nearest point) elevation minus a fixed number. Test on a copy of your model.");
+
             // Roof From Detail Lines (V008/V009) removed in plugin 3.10.0: its source
             // is not in the repository, so the buttons could only raise an error.
             var roofToolsItems = RibbonLayoutHelper.AddStackedButtons(roofToolsPanel, new List<RibbonItemData>
@@ -145,10 +155,12 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_RoofTag", "Roof Tag", roofTagV018),
                 // Moved here from the removed Floor Tools panel (plugin 2.4.0).
                 FloorToolsRibbon.CreateFromRoomsPulldown(assemblyPath, out var fromRoomsVersions),
+                RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_RoofToolsPanel_RoofShapeFromLink", "Shape From Link", shapeFromLinkRoofPanelV001),
             });
             RibbonLayoutHelper.WirePulldownButton(roofToolsItems, "Pulldown_CreaserAdv", creaserV012, creaserV011, creaserV010);
             RibbonLayoutHelper.WirePulldownButton(roofToolsItems, "Pulldown_RoofTag", roofTagV018, roofTagV017);
             RibbonLayoutHelper.WirePulldownButton(roofToolsItems, FloorToolsRibbon.FromRoomsPulldownName, fromRoomsVersions);
+            RibbonLayoutHelper.WirePulldownButton(roofToolsItems, "Pulldown_RoofToolsPanel_RoofShapeFromLink", shapeFromLinkRoofPanelV001);
 
             BuildEditComparePanels(app, tabName, assemblyPath);
         }

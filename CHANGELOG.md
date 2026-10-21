@@ -9,7 +9,7 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
-## [5.3.0] — 2026-10-20
+## [5.6.0] — 2026-10-21
 
 ### Added
 - **Ribbon: every compiled tool now has a button.** Checked every tool folder against the ribbon. These had
@@ -37,6 +37,79 @@ Each release lists every tool whose version changed, under the plugin version.
 
 **User note:** new buttons only; existing buttons keep their internal names, so Quick Access Toolbar entries
 and keyboard shortcuts still work.
+
+## [5.5.0] — 2026-10-21
+
+### Added — Shared Parameter Studio V001 (1.0.1)
+A new **Shared Params** button on the Manage tab opens one window with four tabs. Existing tools,
+including ParaManager, are unchanged.
+
+- **Create & Assign.** Define a new shared parameter (name, data type, description, group in the file)
+  and bind it to the categories you tick, as an instance or type parameter under a Properties group,
+  in one step. The definition is written to the shared parameter file you choose (created if missing)
+  and bound in a single undoable transaction. Names already in the file or the project are refused.
+- **Merge Files.** Merge two shared parameter files into a third. GUIDs are never changed. Where both
+  files define the same name or GUID differently, choose: keep the first, use the second, or keep both
+  (the second is renamed). Preview first; new parameters can be added to the merged file in the same step.
+- **Duplicate Check.** Finds repeated GUIDs and repeated names in a file, flags clashes with different
+  data types, exports a CSV report and saves a copy without the later duplicates. The scanned file is
+  never changed unless you pick it as the target (the old file is then kept as `.bak`).
+- **Retrieve from Project.** Lists the shared parameters bound in the open project with GUID, type,
+  binding and categories; write the ticked ones to a shared parameter file (GUIDs kept) or export a CSV.
+  Project parameters that are not shared are counted, not listed.
+
+User note: Revit's own shared parameter file setting is restored after each run. Files the tool
+overwrites keep a `.bak` copy next to them.
+
+Also in this release: a live name check on Create & Assign (red message as you type when the name is
+invalid or already used), search boxes and sortable columns on Duplicate Check and Retrieve from Project
+("Tick all" ticks only the shown rows), and an "Undo with Ctrl+Z" reminder after a successful create.
+
+## [5.4.0] — 2026-10-21
+
+### Changed — Roof Shape From Link V001 (1.1.0)
+The Shape points grid now has the advanced-grid features.
+
+- **Sort and resize.** Click a header to sort; drag a header edge to resize; reorder columns by dragging.
+  The tick, Roof and Pt columns stay in place when you scroll sideways.
+- **Search and filters.** A search box, a roof filter, and Status and Source filters. **Ticked only** hides
+  unticked rows.
+- **Group by roof** (on by default) with collapsible roof headers and a point count.
+- **Status** column: OK, Snapped, Below or No link.
+- **Δ vs current** column: the change each point will make, with a bar scaled to the largest change.
+- A typed-in New Z is outlined so it stands out from calculated ones.
+- **Columns** menu hides any column. **Compact rows** and **Reset view** are new.
+- **Bulk bar** sets Source or Subtract, or ticks and unticks, for the rows that pass the filters.
+  It replaces **Tick all** / **Tick none**, which now act on the visible rows.
+- A summary line under the grid shows counts and the smallest, average and largest change.
+- **Shape From Link** now also has a button in the **Roof Tools** panel (same tool, as in Shape Points).
+
+User note: the old Tick all / Tick none buttons are now Tick / Untick in the bulk bar and only affect the
+rows you can see. Clear the filters first to affect every row.
+
+## [5.3.0] — 2026-10-21
+
+### Added — Roof Shape From Link V001 (1.0.0)
+A new tool in the **Shape Points** panel (button **Shape From Link**). It sets the shape-editing points of
+footprint roofs from the roofs in a linked model.
+
+- **Entry checks.** Works in a plan view only, and needs one or more footprint roofs selected before you run
+  it (extrusion roofs and other elements are ignored). If either is missing, or the project has no loaded
+  link, it warns and exits.
+- **Linked files.** A searchable tick list of the loaded Revit links. Tick one or more.
+- **Elevations.** For every shape-editing point of each selected roof the tool finds the linked roof above it
+  and reads two elevations: the Z of its top (sky-facing) surface at the same X,Y (snapped to the face edge
+  if the point sits within 0.5 m outside it), and the Z of its nearest shape-editing point. An option limits
+  "nearest" to corner and edge points.
+- **Editable grid.** Per point: Surface Z, Nearest Z, a Source choice (Surface by default), a Subtract value
+  and the New Z, all editable. A global **Take elevation from** switch sets every row, and a global
+  **Subtract** number (New Z = linked Z − number) fills every row's Subtract. Typing a New Z marks the row
+  Manual. Points with no linked roof above start unticked so you can type a value or leave them out.
+- **Change selection** lets you pick other footprint roofs without closing the window.
+- **Apply** writes the ticked rows, one undo step, one transaction per roof (a roof that fails is rolled back
+  on its own). Roofs owned by another user, or without shape editing on, are skipped and listed in the log.
+
+User note: the tool never turns shape editing on; a roof needs existing shape-editing points.
 
 ## [5.2.0] — 2026-10-20
 
