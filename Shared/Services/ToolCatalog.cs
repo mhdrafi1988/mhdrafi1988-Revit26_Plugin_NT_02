@@ -108,6 +108,7 @@ namespace Revit26_Plugin_Revised.Shared.Services
         public static readonly ToolInfo RoofPointsAndSlope = Add("Roof Points & Slope", "1.1.0", "V001", "Revit26_Plugin_Revised.RoofPointsAndSlope.V001");
         public static readonly ToolInfo LinkVersionChecker = Add("Link Version Checker", "3.0.1", "V003", "Revit26_Plugin_Revised.LinkVersionChecker_V003");
         public static readonly ToolInfo LinkVersionCheckerV004 = Add("Link Version Checker", "4.2.0", "V004", "Revit26_Plugin_Revised.LinkVersionChecker_V004");
+        public static readonly ToolInfo LinkVersionCheckerV005 = Add("Link Version Checker", "5.0.0", "V005", "Revit26_Plugin_Revised.LinkVersionChecker_V005");
         public static readonly ToolInfo RoofViewFocus = Add("Roof View Focus", "4.1.1", "V004", "Revit26_Plugin_Revised.RoofViewFocus.V004");
         public static readonly ToolInfo CreateSections = Add("Create Sections From Detail Lines", "13.1.1", "V013", "Revit26_Plugin_Revised.CreateSections.V013");
         public static readonly ToolInfo APUS = Add("Auto Place Sections", "324.1.1", "V324", "Revit26_Plugin_Revised.APUS.V324");
@@ -122,7 +123,7 @@ namespace Revit26_Plugin_Revised.Shared.Services
         public static readonly ToolInfo DeleteWorkset = Add("Delete Workset", "1.2.0", "V001", "Revit26_Plugin_Revised.DeleteWorkset.V001");
         public static readonly ToolInfo DeleteLineStyles = Add("Delete Line Styles", "1.2.0", "V001", "Revit26_Plugin_Revised.DeleteLineStyles.V001");
         public static readonly ToolInfo BulkRename = Add("Bulk Rename", "1.1.1", "V001", "Revit26_Plugin_Revised.BulkRename.V001");
-        public static readonly ToolInfo WorksetCreator = Add("Workset Creator", "16.1.1", "V016", "Revit26_Plugin_Revised.WorksetCreator.V016");
+        public static readonly ToolInfo WorksetCreator = Add("Workset Creator", "17.0.0", "V017", "Revit26_Plugin_Revised.WorksetCreator.V017");
         public static readonly ToolInfo TrackerId = Add("Tracker ID", "1.0.0", "V001", "Revit26_Plugin_Revised.TrackerId.V001");
         public static readonly ToolInfo TrackerIdV002 = Add("Tracker ID", "2.0.0", "V002", "Revit26_Plugin_Revised.TrackerId.V002");
         public static readonly ToolInfo SharedParamStudio = Add("Shared Parameter Studio", "1.0.1", "V001", "Revit26_Plugin_Revised.SharedParamStudio.V001");

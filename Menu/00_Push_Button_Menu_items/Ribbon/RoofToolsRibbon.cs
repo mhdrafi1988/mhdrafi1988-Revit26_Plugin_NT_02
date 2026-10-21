@@ -72,12 +72,17 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             // Shape Points — one pulldown per tool (current version, then its rebuild)
             RibbonPanel shapePointsPanel = app.CreateRibbonPanel(tabName, "Shape Points");
 
+            // Oldest versions (V009, V004, V005, V010) restored in plugin 5.8.0: their code was compiled but had no button.
+            var innerLoopsV009 = Btn(assemblyPath, "Btn_InnerLoopDivider_V009", "Inner Loops V009", "Revit26_Plugin_Revised.InnerLoopDivider.V009.Commands.InnerLoopDividerCommand",
+                "InnerLoopDivider_16.png", "Divide Inner Loops", "V009");
             var innerLoopsV010 = Btn(assemblyPath, "Btn_InnerLoopDivider_V010", "Inner Loops V010", "Revit26_Plugin_Revised.InnerLoopDivider.V010.Commands.InnerLoopDividerCommand",
                 "InnerLoopDivider_16.png", "Divide Inner Loops", "V010", "V009 with the standard three-zone window layout.");
             var innerLoopsV011 = Btn(assemblyPath, "Btn_InnerLoopDivider_V011", "Inner Loops V011", "Revit26_Plugin_Revised.InnerLoopDivider.V011.Commands.InnerLoopDividerCommand",
                 "InnerLoopDivider_16.png", "Divide Inner Loops", "V011", "V010 on the shared ToolWindowShell (log in body, capped grid).");
             var innerLoopsV012 = Btn(assemblyPath, "Btn_InnerLoopDivider_V012", "Inner Loops V012", "Revit26_Plugin_Revised.InnerLoopDivider.V012.Commands.InnerLoopDividerCommand",
                 "InnerLoopDivider_16.png", "Divide Inner Loops", "V012", "V011 improvements.");
+            var outerCurveV004 = Btn(assemblyPath, "Btn_OuterCurveDivider_V004", "Outer Curve V004", "Revit26_Plugin_Revised.OuterCurveDivider.V004.Commands.CurveDividerCommand",
+                "OuterCurveDivider_16.png", "Outer Curve Divider", "V004");
             var outerCurveV005 = Btn(assemblyPath, "Btn_OuterCurveDivider_V005", "Outer Curve V005", "Revit26_Plugin_Revised.OuterCurveDivider.V005.Commands.CurveDividerCommand",
                 "OuterCurveDivider_16.png", "Outer Curve Divider", "V005", "V004 with the standard three-zone window layout.");
             var outerCurveV006 = Btn(assemblyPath, "Btn_OuterCurveDivider_V006", "Outer Curve V006", "Revit26_Plugin_Revised.OuterCurveDivider.V006.Commands.CurveDividerCommand",
@@ -86,6 +91,8 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                 "DetailLineIntersect_16.png", "Roof Detail Line Intersect", "V013", "V012 with the standard three-zone window layout.");
             var lineIntersectV014 = Btn(assemblyPath, "Btn_RoofDetailLineIntersect_V014", "Line Intersect V014", "Revit26_Plugin_Revised.RoofDetailLineIntersect.V014.Commands.RoofDetailLineIntersectCommand",
                 "DetailLineIntersect_16.png", "Roof Detail Line Intersect", "V014", "V013 on the shared ToolWindowShell (log in body).");
+            var loopsPerpV005 = Btn(assemblyPath, "Btn_InnerLoopsAndPerpendicular_V005", "Loops + Perp. V005", "Revit26_Plugin_Revised.InnerLoopsAndPerpendicular.V005.Commands.InnerLoopsAndPerpendicularCommand",
+                "InnerLoopsPerpendicular_16.png", "Inner Loops And Perpendicular", "V005");
             var loopsPerpV006 = Btn(assemblyPath, "Btn_InnerLoopsAndPerpendicular_V006", "Loops + Perp. V006", "Revit26_Plugin_Revised.InnerLoopsAndPerpendicular.V006.Commands.InnerLoopsAndPerpendicularCommand",
                 "InnerLoopsPerpendicular_16.png", "Inner Loops And Perpendicular", "V006", "V005 with the standard three-zone window layout.");
             var loopsPerpV007 = Btn(assemblyPath, "Btn_InnerLoopsAndPerpendicular_V007", "Loops + Perp. V007", "Revit26_Plugin_Revised.InnerLoopsAndPerpendicular.V007.Commands.InnerLoopsAndPerpendicularCommand",
@@ -114,10 +121,10 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_MultiplePoints", "Multi Points", multiPointsV003),
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_RoofShapeFromLink", "Shape From Link", shapeFromLinkV001),
             });
-            RibbonLayoutHelper.WirePulldownButton(shapePointsItems, "Pulldown_InnerLoopDivider", innerLoopsV012, innerLoopsV011, innerLoopsV010);
-            RibbonLayoutHelper.WirePulldownButton(shapePointsItems, "Pulldown_OuterCurveDivider", outerCurveV006, outerCurveV005);
+            RibbonLayoutHelper.WirePulldownButton(shapePointsItems, "Pulldown_InnerLoopDivider", innerLoopsV012, innerLoopsV011, innerLoopsV010, innerLoopsV009);
+            RibbonLayoutHelper.WirePulldownButton(shapePointsItems, "Pulldown_OuterCurveDivider", outerCurveV006, outerCurveV005, outerCurveV004);
             RibbonLayoutHelper.WirePulldownButton(shapePointsItems, "Pulldown_RoofDetailLineIntersect", lineIntersectV014, lineIntersectV013);
-            RibbonLayoutHelper.WirePulldownButton(shapePointsItems, "Pulldown_InnerLoopsAndPerpendicular", loopsPerpV007, loopsPerpV006);
+            RibbonLayoutHelper.WirePulldownButton(shapePointsItems, "Pulldown_InnerLoopsAndPerpendicular", loopsPerpV007, loopsPerpV006, loopsPerpV005);
             RibbonLayoutHelper.WirePulldownButton(shapePointsItems, "Pulldown_VertexReducer", vertexReducerV009, vertexReducerV008);
             RibbonLayoutHelper.WirePulldownButton(shapePointsItems, "Pulldown_MultiplePoints", multiPointsV003, multiPointsV002);
             RibbonLayoutHelper.WirePulldownButton(shapePointsItems, "Pulldown_RoofShapeFromLink", shapeFromLinkV001);
@@ -126,6 +133,8 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             // (Revit's stacked-item limit is exactly 3 per column).
             RibbonPanel roofToolsPanel = app.CreateRibbonPanel(tabName, "Roof Tools");
 
+            var creaserV010 = Btn(assemblyPath, "Btn_CreaserAdvCommand_V010", "Creaser Adv V010", "Revit26_Plugin_Revised.CreaserAdv.V010.Commands.CreaserAdvCommand",
+                "CreaserAdv_16.png", "Creaser Adv", "V010");
             var creaserV011 = Btn(assemblyPath, "Btn_CreaserAdvCommand_V011", "Creaser Adv V011", "Revit26_Plugin_Revised.CreaserAdv.V011.Commands.CreaserAdvCommand",
                 "CreaserAdv_16.png", "Creaser Adv", "V011", "V010 with the standard three-zone window layout.");
             var creaserV012 = Btn(assemblyPath, "Btn_CreaserAdvCommand_V012", "Creaser Adv V012", "Revit26_Plugin_Revised.CreaserAdv.V012.Commands.CreaserAdvCommand",
@@ -152,7 +161,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                 FloorToolsRibbon.CreateFromRoomsPulldown(assemblyPath, out var fromRoomsVersions),
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_RoofToolsPanel_RoofShapeFromLink", "Shape From Link", shapeFromLinkRoofPanelV001),
             });
-            RibbonLayoutHelper.WirePulldownButton(roofToolsItems, "Pulldown_CreaserAdv", creaserV012, creaserV011);
+            RibbonLayoutHelper.WirePulldownButton(roofToolsItems, "Pulldown_CreaserAdv", creaserV012, creaserV011, creaserV010);
             RibbonLayoutHelper.WirePulldownButton(roofToolsItems, "Pulldown_RoofTag", roofTagV018, roofTagV017);
             RibbonLayoutHelper.WirePulldownButton(roofToolsItems, FloorToolsRibbon.FromRoomsPulldownName, fromRoomsVersions);
             RibbonLayoutHelper.WirePulldownButton(roofToolsItems, "Pulldown_RoofToolsPanel_RoofShapeFromLink", shapeFromLinkRoofPanelV001);

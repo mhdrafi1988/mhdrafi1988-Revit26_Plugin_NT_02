@@ -25,9 +25,9 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
 
             // Every tool is a pulldown: highest version number first, every
             // older version below it in descending order.
-            // Batch Link DWG's original build has no version number anywhere in
-            // its source (folder "BatchDwgFamilyLinker_WOrking"), so the tip says
-            // so rather than inventing one; V002 is the newer, higher version.
+            // Batch Link DWG's original build has no version number in its code, so the tip
+            // says "Working build"; its folder is BatchDwgFamilyLinker_V001 (renamed from
+            // BatchDwgFamilyLinker_Working in plugin 5.8.0). V002 is the newer, higher version.
             var batchLinkWorking = new PushButtonData("BatchLinkDwgCommand", "Batch Link DWG (Working)", assemblyPath, "BatchDwgFamilyLinker.Command.BatchLinkDwgCommand")
             {
                 Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SetupTools.Linker_16.png"),
@@ -82,8 +82,8 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             };
             var dwgLinesPulldownData = RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_DwgToDetailLines", "DWG To DL(P)", dwgLinesV014);
 
-            // Newest build first. "#" at the end of the label marks the version added last.
-            var exportDwgV004 = new PushButtonData("Btn_ExportDwgToFolder_V004", "Export DWG V004 #", assemblyPath, "Revit26_Plugin_Revised.ExportDwgToFolder.V004.Commands.ExportDwgToFolderCommand")
+            // Newest build first.
+            var exportDwgV004 = new PushButtonData("Btn_ExportDwgToFolder_V004", "Export DWG V004", assemblyPath, "Revit26_Plugin_Revised.ExportDwgToFolder.V004.Commands.ExportDwgToFolderCommand")
             {
                 Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SetupTools.DwgToDetailLines_V011_16.png"),
                 ToolTip = ToolCatalog.ExportDwgToFolder.Tip("Export embedded CAD links and imports to a folder, with layer-property and post-export review options, plus an export manifest.")

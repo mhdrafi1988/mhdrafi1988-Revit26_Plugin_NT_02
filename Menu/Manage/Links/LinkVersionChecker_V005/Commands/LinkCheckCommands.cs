@@ -5,6 +5,7 @@ using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using Revit26_Plugin_Revised.LinkVersionChecker_V005.Services;
+using Revit26_Plugin_Revised.Shared.Services;
 using Revit26_Plugin_Revised.LinkVersionChecker_V005.UI.ViewModels;
 using Revit26_Plugin_Revised.LinkVersionChecker_V005.UI.Views;
 
@@ -14,15 +15,21 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker_V005.Commands
     [Transaction(TransactionMode.Manual)]
     public class CmdLinkCheckPreOpen : IExternalCommand
     {
+        /// <inheritdoc/>
         public Result Execute(ExternalCommandData data, ref string message, ElementSet elements) =>
-            LinkCheckLauncher.Show(data.Application, ScanMode.PreOpen, ref message);
+            ToolGuard.RunCommand(GetType(), data, ref message, elements,
+                (ExternalCommandData d, ref string m, ElementSet e) => LinkCheckLauncher.Show(d.Application, ScanMode.PreOpen, ref m));
     }
 
     /// <summary>Check the links of the open project.</summary>
     [Transaction(TransactionMode.Manual)]
     public class CmdLinkCheckInModel : IExternalCommand
     {
-        public Result Execute(ExternalCommandData data, ref string message, ElementSet elements)
+        /// <inheritdoc/>
+        public Result Execute(ExternalCommandData data, ref string message, ElementSet elements) =>
+            ToolGuard.RunCommand(GetType(), data, ref message, elements, ExecuteCore);
+
+        private static Result ExecuteCore(ExternalCommandData data, ref string message, ElementSet elements)
         {
             Document doc = data.Application.ActiveUIDocument?.Document;
             if (doc == null || doc.IsFamilyDocument)
@@ -38,8 +45,10 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker_V005.Commands
     [Transaction(TransactionMode.Manual)]
     public class CmdLinkCheckFolder : IExternalCommand
     {
+        /// <inheritdoc/>
         public Result Execute(ExternalCommandData data, ref string message, ElementSet elements) =>
-            LinkCheckLauncher.Show(data.Application, ScanMode.Folder, ref message);
+            ToolGuard.RunCommand(GetType(), data, ref message, elements,
+                (ExternalCommandData d, ref string m, ElementSet e) => LinkCheckLauncher.Show(d.Application, ScanMode.Folder, ref m));
     }
 
     /// <summary>Keeps Pre-Open and Folder Audit buttons enabled with no project open.</summary>
@@ -52,20 +61,13 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker_V005.Commands
     {
         public static Result Show(UIApplication uiapp, ScanMode mode, ref string message)
         {
-            try
-            {
-                var vm = new LinkCheckerViewModel(uiapp.Application, uiapp.ActiveUIDocument?.Document, mode);
-                var win = new LinkCheckerWindow(vm);
-                new WindowInteropHelper(win) { Owner = uiapp.MainWindowHandle };
-                // Modal: every handler (and every await continuation) stays in Revit's API context.
-                win.ShowDialog();
-                return Result.Succeeded;
-            }
-            catch (Exception ex)
-            {
-                message = ex.Message;
-                return Result.Failed;
-            }
+            // Errors propagate to ToolGuard.RunCommand, which logs and shows them.
+            var vm = new LinkCheckerViewModel(uiapp.Application, uiapp.ActiveUIDocument?.Document, mode);
+            var win = new LinkCheckerWindow(vm);
+            new WindowInteropHelper(win) { Owner = uiapp.MainWindowHandle };
+            // Modal: every handler (and every await continuation) stays in Revit's API context.
+            win.ShowDialog();
+            return Result.Succeeded;
         }
     }
 

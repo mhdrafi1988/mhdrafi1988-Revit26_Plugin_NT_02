@@ -9,6 +9,35 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [5.8.0] — 2026-10-21
+
+### Added
+- **Ribbon: every compiled tool now has a button.** Checked every tool folder against the ribbon. These had
+  code in the build but no button:
+  - **Link Version Checker v5.0.0 (V005)**: Manage ▸ Link Check, listed first (Pre-Open, In-Model,
+    Folder Audit), above V004 and V003.
+  - **Workset Creator v17.0.0 (V017)**: Worksets ▸ WS Creator, listed first, above V016 and V015.
+  - **Workset Manager (V014, V013)**: new **WS Manager** dropdown in the Worksets panel.
+  - Older versions added at the bottom of their existing dropdowns: Inner Loops V009, Outer Curve V004,
+    Loops + Perp. V005, Creaser Adv V010.
+
+### Changed
+- Labels no longer end in " #": Workset Creator V016, Link Check V004 (three buttons) and Export DWG V004.
+  Only the visible labels changed; internal names are the same.
+- Folder layout, per CLAUDE.md. Only folders moved; namespaces and class names are unchanged:
+  - `LinkVersionChecker_V004/LinkVersionChecker_V004` → `LinkVersionChecker_V004`. A duplicate copy of the
+    V005 preview HTML was removed from the old wrapper folder.
+  - `Worksets/WorksetManager/WorksetManager_V01x` → `Worksets/WorksetManager_V01x`.
+  - `BatchDwgFamilyLinker_Working` → `BatchDwgFamilyLinker_V001`.
+
+### Fixed
+- **Link Version Checker V005** and **Workset Manager V013 / V014**: their commands (and the Workset Manager
+  event handlers) now run through `ToolGuard`. Errors are logged to `%AppData%\Revit26_Plugin\Logs` and shown,
+  instead of being swallowed or reaching Revit.
+
+**User note:** new buttons only; existing buttons keep their internal names, so Quick Access Toolbar entries
+and keyboard shortcuts still work.
+
 ## [5.7.0] — 2026-10-21
 
 ### Changed
