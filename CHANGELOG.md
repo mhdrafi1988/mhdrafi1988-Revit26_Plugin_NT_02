@@ -9,7 +9,7 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
-## [5.6.0] — 2026-10-21
+## [5.8.0] — 2026-10-21
 
 ### Added
 - **Ribbon: every compiled tool now has a button.** Checked every tool folder against the ribbon. These had
@@ -37,6 +37,53 @@ Each release lists every tool whose version changed, under the plugin version.
 
 **User note:** new buttons only; existing buttons keep their internal names, so Quick Access Toolbar entries
 and keyboard shortcuts still work.
+
+## [5.7.0] — 2026-10-21
+
+### Changed
+- **Roof Shape From Link v2.0.0 (V002)** — the final elevation now subtracts the host roof's thickness:
+  `New Z = linked elevation − host roof type thickness − Subtract`. The point is then written as an
+  offset from the host roof's base surface (base level elevation + Base Offset From Level), shown as
+  **Offset from base**. New grid columns **Base Z**, **Thickness** and **Offset from base**, and a
+  **Subtract host roof thickness** option (on by default). Thickness is the total of all layers of the
+  roof type. Where a roof's base surface is sloped at a point, the measured base is used (a warning is
+  logged) so the final elevations stay exact.
+  - **User note:** results are lower than in V001 by the roof thickness. Untick **Subtract host roof
+    thickness** to get the V001 result. Namespace is now `…RoofShapeFromLink.V002`; the ribbon button's
+    internal name and the command class name are unchanged.
+
+## [5.6.1] — 2026-10-21
+
+### Fixed
+- **Roof Shape From Link v1.1.1** — Compute no longer stops with "Cannot change or check the contents
+  or Current position of CollectionView while Refresh is being deferred". The grid rows are now
+  replaced without a deferred refresh.
+
+## [5.6.0] — 2026-10-21
+
+### Added
+- **Isolated Section v1.0.0 (V001)** — new button **View Tools ▸ View Create ▸ Isolated Section**.
+  Select model elements (or pick them from the window) and it makes **one 3D view** of them:
+  - **Aligned to the largest side.** Each element's footprint is fitted with its smallest plan
+    rectangle; the largest side is the biggest long side (length × height) of *any* selected element.
+    The section box is turned in plan to be parallel to that side and holds every selected element.
+  - **Or the side you choose:** long side A / B (back), short side C / D — each labelled with the
+    compass direction it faces — or **Pick face…** to look straight at a face you click.
+  - **Camera:** facing the side, level (default), or angled 3D (30° to the right, 35° above).
+  - **Isolation:** temporary isolate (default — Revit resets it when the view is closed), permanent
+    "hide everything else", or none (section box only).
+  - **Linked elements:** **Pick in link…** picks elements inside loaded Revit links (the link
+    transform is applied). Revit cannot isolate a single linked element, so the link instance is
+    isolated and the section box hides the rest of it; the log says so.
+  - 3D view type, view template, detail level, visual style, box margins (sides, top/bottom,
+    front/back) and a view-name pattern (`{Category} {Id} {Count} {Side} {Date}`; a number is added
+    when the name is taken). A plan preview in the window shows the elements, the box and the side.
+  - One Undo step; anything that fails rolls the whole view back. Options are saved in
+    `%AppData%\Revit26_Plugin\IsolatedSection\settings.json` (with a schema version).
+- Unit tests for the tool's geometry (`dotnet test Tests/IsolatedSection.Tests`).
+
+**User note:** temporary isolation lasts until the view is closed. Choose "Hide everything else
+(permanent)" for a view you will put on a sheet.
 
 ## [5.5.0] — 2026-10-21
 

@@ -42,7 +42,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             var wsebV004 = Btn(assemblyPath, "Btn_WorksetsElementsBrowser_WSEB004", "Worksets & Elements WSEB004", "Revit26_Plugin_Revised.WorksetsElementsBrowser.WSEB004.Commands.WorksetsElementsBrowserCommand",
                 "Manage.WorksetsElementsBrowser_16.png", "Worksets & Elements Browser", "WSEB004", "WSEB003 on the shared ToolWindowShell (capped tree).");
 
-            // Workset Manager — back on the ribbon in plugin 5.6.0 (Worksets panel).
+            // Workset Manager — back on the ribbon in plugin 5.8.0 (Worksets panel).
             var worksetManagerV013 = Btn(assemblyPath, "Btn_WorksetManager_V013", "Workset Manager V013",
                 "Revit26_Plugin_Revised.WorksetManager.V013.Commands.WorksetManagerCommand",
                 "SetupTools.WorksetManager_16.png", "Workset Manager", "V013");

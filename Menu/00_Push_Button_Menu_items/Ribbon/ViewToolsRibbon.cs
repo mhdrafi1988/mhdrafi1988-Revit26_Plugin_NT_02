@@ -61,6 +61,16 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             RibbonLayoutHelper.WirePulldownButton(createItems, "Pulldown_RoofEdgeElementSections", edgeElementV004, edgeElementV003);
             RibbonLayoutHelper.WirePulldownButton(createItems, "Pulldown_RoofViewFocus", roofViewFocusV004, roofViewFocusV003);
 
+            // One version only, so a plain large button (not a pulldown).
+            var isolatedSectionV001 = Btn(assemblyPath, "Btn_IsolatedSection_V001", "Isolated\nSection", "Revit26_Plugin_Revised.IsolatedSection.V001.Commands.IsolatedSectionCommand",
+                "IsolatedSection_16.png", "Isolated Section", "V001");
+            isolatedSectionV001.LargeImage = ImageUtils.Load(Icons + "IsolatedSection_32.png");
+            isolatedSectionV001.ToolTip = Revit26_Plugin_Revised.Shared.Services.ToolCatalog.IsolatedSection.Tip(
+                "Makes one 3D view of the selected elements (host or linked): the section box is turned to be " +
+                "parallel to the largest side of any of them (or a side or face you choose), the camera faces " +
+                "that side, and the elements are isolated (temporary by default).");
+            createPanel.AddItem(isolatedSectionV001);
+
             RibbonPanel placePanel = app.CreateRibbonPanel(tabName, "View Place");
 
             var placeSectionsV323 = Btn(assemblyPath, "Btn_AutoPlaceSectionsCommand_V323", "Place Sections V323", "Revit26_Plugin_Revised.APUS.V323.Commands.AutoPlaceSectionsCommand",

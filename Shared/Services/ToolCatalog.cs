@@ -104,7 +104,7 @@ namespace Revit26_Plugin_Revised.Shared.Services
         public static readonly ToolInfo RoofNameBuilder = Add("Roof Name Builder", "2.1.1", "V002", "Revit26_Plugin_Revised.RoofNameBuilder.V002");
         public static readonly ToolInfo IslandRoofSplitter = Add("Island Roof Splitter", "0.2.1", "V001 (WIP)", "Revit26_Plugin_Revised.IslandRoofSplitter.V001");
         public static readonly ToolInfo IslandRoofSplitterV002 = Add("Island Roof Splitter", "2.0.0", "V002", "Revit26_Plugin_Revised.IslandRoofSplitter.V002");
-        public static readonly ToolInfo RoofShapeFromLink = Add("Roof Shape From Link", "1.1.0", "V001", "Revit26_Plugin_Revised.RoofShapeFromLink.V001");
+        public static readonly ToolInfo RoofShapeFromLink = Add("Roof Shape From Link", "2.0.0", "V002", "Revit26_Plugin_Revised.RoofShapeFromLink.V002");
         public static readonly ToolInfo RoofPointsAndSlope = Add("Roof Points & Slope", "1.1.0", "V001", "Revit26_Plugin_Revised.RoofPointsAndSlope.V001");
         public static readonly ToolInfo LinkVersionChecker = Add("Link Version Checker", "3.0.1", "V003", "Revit26_Plugin_Revised.LinkVersionChecker_V003");
         public static readonly ToolInfo LinkVersionCheckerV004 = Add("Link Version Checker", "4.2.0", "V004", "Revit26_Plugin_Revised.LinkVersionChecker_V004");
@@ -114,6 +114,7 @@ namespace Revit26_Plugin_Revised.Shared.Services
         public static readonly ToolInfo APUS = Add("Auto Place Sections", "324.1.1", "V324", "Revit26_Plugin_Revised.APUS.V324");
         public static readonly ToolInfo CalloutCOP = Add("Callout To Section View Placement", "21.1.1", "V021", "Revit26_Plugin_Revised.CalloutCOP.V021");
         public static readonly ToolInfo RefSectionHeadPlacer = Add("Reference Section Head Placer", "15.1.1", "V015", "Revit26_Plugin_Revised.RefSectionHeadPlacer.V015");
+        public static readonly ToolInfo IsolatedSection = Add("Isolated Section", "1.0.0", "V001", "Revit26_Plugin_Revised.IsolatedSection.V001");
         public static readonly ToolInfo SectionViewAutoTagger = Add("Section View Auto Tagger", "6.1.1", "V006", "Revit26_Plugin_Revised.SectionViewAutoTagger.V006");
         public static readonly ToolInfo ViewAutoRenamer = Add("View Auto Renamer", "6.1.1", "V006", "Revit26_Plugin_Revised.ViewAutoRenamer.V006");
         public static readonly ToolInfo BubbleAutoRenumber = Add("Bubble Auto Renumber", "8.0.1", "V008", "Revit26_Plugin_Revised.BubbleAutoRenumber.V008");
