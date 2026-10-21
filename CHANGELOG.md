@@ -9,6 +9,15 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [5.7.1] — 2026-10-21
+
+### Changed
+- **Auto Slope By Drain (Multi-Roof) v13.1.2** — the Longest 10 / Skipped results now sit below the
+  Detected drains grid instead of beside it. Both are expanders: Detected drains is open and the
+  results are closed by default.
+  - **User note:** click the results header to open it. The drains grid now uses the full width right
+    of the options column.
+
 ## [5.7.0] — 2026-10-21
 
 ### Changed
