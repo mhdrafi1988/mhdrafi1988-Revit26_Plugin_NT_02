@@ -9,18 +9,9 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
-## [5.3.1] — 2026-10-20
+## [5.5.0] — 2026-10-21
 
-### Changed — Shared Parameter Studio (1.0.1)
-- **Live name check** on Create & Assign: the name box shows a red message as you type when the name
-  is invalid, already in the chosen file, or already in the project.
-- **Search boxes** on Duplicate Check and Retrieve from Project filter the grid by name, GUID, type,
-  group or category. Click a column header to sort. "Tick all" on Retrieve now ticks only the shown rows.
-- After a successful create, the log reminds you that Ctrl+Z undoes the binding.
-
-## [5.3.0] — 2026-10-20
-
-### Added — Shared Parameter Studio V001 (1.0.0)
+### Added — Shared Parameter Studio V001 (1.0.1)
 A new **Shared Params** button on the Manage tab opens one window with four tabs. Existing tools,
 including ParaManager, are unchanged.
 
@@ -40,6 +31,56 @@ including ParaManager, are unchanged.
 
 User note: Revit's own shared parameter file setting is restored after each run. Files the tool
 overwrites keep a `.bak` copy next to them.
+
+Also in this release: a live name check on Create & Assign (red message as you type when the name is
+invalid or already used), search boxes and sortable columns on Duplicate Check and Retrieve from Project
+("Tick all" ticks only the shown rows), and an "Undo with Ctrl+Z" reminder after a successful create.
+
+## [5.4.0] — 2026-10-21
+
+### Changed — Roof Shape From Link V001 (1.1.0)
+The Shape points grid now has the advanced-grid features.
+
+- **Sort and resize.** Click a header to sort; drag a header edge to resize; reorder columns by dragging.
+  The tick, Roof and Pt columns stay in place when you scroll sideways.
+- **Search and filters.** A search box, a roof filter, and Status and Source filters. **Ticked only** hides
+  unticked rows.
+- **Group by roof** (on by default) with collapsible roof headers and a point count.
+- **Status** column: OK, Snapped, Below or No link.
+- **Δ vs current** column: the change each point will make, with a bar scaled to the largest change.
+- A typed-in New Z is outlined so it stands out from calculated ones.
+- **Columns** menu hides any column. **Compact rows** and **Reset view** are new.
+- **Bulk bar** sets Source or Subtract, or ticks and unticks, for the rows that pass the filters.
+  It replaces **Tick all** / **Tick none**, which now act on the visible rows.
+- A summary line under the grid shows counts and the smallest, average and largest change.
+- **Shape From Link** now also has a button in the **Roof Tools** panel (same tool, as in Shape Points).
+
+User note: the old Tick all / Tick none buttons are now Tick / Untick in the bulk bar and only affect the
+rows you can see. Clear the filters first to affect every row.
+
+## [5.3.0] — 2026-10-21
+
+### Added — Roof Shape From Link V001 (1.0.0)
+A new tool in the **Shape Points** panel (button **Shape From Link**). It sets the shape-editing points of
+footprint roofs from the roofs in a linked model.
+
+- **Entry checks.** Works in a plan view only, and needs one or more footprint roofs selected before you run
+  it (extrusion roofs and other elements are ignored). If either is missing, or the project has no loaded
+  link, it warns and exits.
+- **Linked files.** A searchable tick list of the loaded Revit links. Tick one or more.
+- **Elevations.** For every shape-editing point of each selected roof the tool finds the linked roof above it
+  and reads two elevations: the Z of its top (sky-facing) surface at the same X,Y (snapped to the face edge
+  if the point sits within 0.5 m outside it), and the Z of its nearest shape-editing point. An option limits
+  "nearest" to corner and edge points.
+- **Editable grid.** Per point: Surface Z, Nearest Z, a Source choice (Surface by default), a Subtract value
+  and the New Z, all editable. A global **Take elevation from** switch sets every row, and a global
+  **Subtract** number (New Z = linked Z − number) fills every row's Subtract. Typing a New Z marks the row
+  Manual. Points with no linked roof above start unticked so you can type a value or leave them out.
+- **Change selection** lets you pick other footprint roofs without closing the window.
+- **Apply** writes the ticked rows, one undo step, one transaction per roof (a roof that fails is rolled back
+  on its own). Roofs owned by another user, or without shape editing on, are skipped and listed in the log.
+
+User note: the tool never turns shape editing on; a roof needs existing shape-editing points.
 
 ## [5.2.0] — 2026-10-20
 
