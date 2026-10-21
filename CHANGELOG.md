@@ -9,6 +9,13 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [5.6.1] — 2026-10-21
+
+### Fixed
+- **Roof Shape From Link v1.1.1** — Compute no longer stops with "Cannot change or check the contents
+  or Current position of CollectionView while Refresh is being deferred". The grid rows are now
+  replaced without a deferred refresh.
+
 ## [5.6.0] — 2026-10-21
 
 ### Added
