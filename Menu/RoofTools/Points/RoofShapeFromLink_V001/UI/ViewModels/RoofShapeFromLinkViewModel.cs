@@ -14,6 +14,7 @@ using Revit26_Plugin_Revised.RoofShapeFromLink.V001.Core.Models;
 using Revit26_Plugin_Revised.RoofShapeFromLink.V001.Core.Services;
 using Revit26_Plugin_Revised.RoofShapeFromLink.V001.Infrastructure.ExternalEvents;
 using Revit26_Plugin_Revised.Shared.Models;
+using Revit26_Plugin_Revised.Shared.Services;
 using Revit26_Plugin_Revised.Shared.ViewModels;
 
 namespace Revit26_Plugin_Revised.RoofShapeFromLink.V001.UI.ViewModels
