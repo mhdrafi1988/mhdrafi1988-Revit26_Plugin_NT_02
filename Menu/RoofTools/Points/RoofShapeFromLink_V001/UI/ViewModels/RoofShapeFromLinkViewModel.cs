@@ -188,7 +188,9 @@ namespace Revit26_Plugin_Revised.RoofShapeFromLink.V001.UI.ViewModels
         public void SetRows(IEnumerable<ShapePointRow> rows)
         {
             _loading = true;
-            using (RowsView.DeferRefresh())
+            // No DeferRefresh here: the view is grouped, and a deferred ListCollectionView throws
+            // InvalidOperationException on every CollectionChanged raised by Clear()/Add().
+            try
             {
                 foreach (ShapePointRow old in Rows) old.PropertyChanged -= OnRowChanged;
                 Rows.Clear();
@@ -198,7 +200,7 @@ namespace Revit26_Plugin_Revised.RoofShapeFromLink.V001.UI.ViewModels
                     Rows.Add(r);
                 }
             }
-            _loading = false;
+            finally { _loading = false; }
             UpdateCounts();
         }
 
