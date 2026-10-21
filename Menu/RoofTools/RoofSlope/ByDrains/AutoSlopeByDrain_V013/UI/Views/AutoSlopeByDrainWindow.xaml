@@ -8,8 +8,9 @@ Layout follows AutoSlopeByPoint V032, adapted to several roofs:
   BODY    left:   "Every run" card (slope · max path distance) + three option
                   sections, closed by default, each header showing its values
                   and a "Custom" tag: Path & curves · Circle markers · Export
-          middle: roof tabs (status pill per tab) with the detected-drains grid
-          right:  results side panel for the selected roof — Longest 10
+          right:  two stacked expanders. "Detected drains" (open): roof tabs
+                  (status pill per tab) with the drains grid. Below it, results for
+                  the selected roof (closed by default): Longest 10
                   (PathLength_m · SlopePercent · ElevCalc_mm) / Skipped
           below:  Processing log (closed by default, LogHeaderToggle)
   FOOTER  shell status strip; Open export folder left; Cancel · Run · Close right
@@ -457,9 +458,7 @@ Changes vs V012: window 1280×820 (min 1100×640; V012's minimum height of
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="300"/>
                         <ColumnDefinition Width="8"/>
-                        <ColumnDefinition Width="1.05*"/>
-                        <ColumnDefinition Width="8"/>
-                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
 
                     <!-- ── LEFT: inputs (locked while running) ── -->
@@ -753,8 +752,16 @@ Changes vs V012: window 1280×820 (min 1100×640; V012's minimum height of
                         </Border>
                     </StackPanel>
 
-                    <!-- ── MIDDLE: roof tabs with the detected-drains grid ── -->
-                    <TabControl Grid.Column="2" VerticalAlignment="Top"
+                    <!-- ── RIGHT: two stacked sections. Detected drains (open) above Longest 10 / Skipped (closed) ── -->
+                    <StackPanel Grid.Column="2">
+
+                    <!-- Area 1: roof tabs with the detected-drains grid -->
+                    <Border Style="{StaticResource ContentCard}">
+                    <Expander Style="{StaticResource CardExpander}" IsExpanded="True">
+                    <Expander.Header>
+                        <TextBlock Text="Detected drains" Style="{StaticResource SectionHeaderText}"/>
+                    </Expander.Header>
+                    <TabControl VerticalAlignment="Top"
                                 ItemsSource="{Binding RoofTabs}"
                                 SelectedItem="{Binding SelectedRoofTab}"
                                 Padding="0" Background="Transparent"
@@ -858,19 +865,24 @@ Changes vs V012: window 1280×820 (min 1100×640; V012's minimum height of
                             </DataTemplate>
                         </TabControl.ContentTemplate>
                     </TabControl>
+                    </Expander>
+                    </Border>
 
-                    <!-- ── RIGHT: results side panel for the selected roof ── -->
-                    <Border Grid.Column="4" Style="{StaticResource ContentCard}" VerticalAlignment="Top">
-                        <StackPanel Margin="12,0,12,10">
-                            <Grid Margin="0,8,0,8">
+                    <!-- Area 2: results for the selected roof (closed by default) -->
+                    <Border Style="{StaticResource ContentCard}" Margin="0,8,0,0">
+                    <Expander Style="{StaticResource CardExpander}" IsExpanded="False">
+                    <Expander.Header>
+                        <TextBlock VerticalAlignment="Center">
+                            <Run Text="{Binding ResultsTitle, Mode=OneWay}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource BrushNavyPrimary}"/>
+                            <Run Text="{Binding ResultsForText, Mode=OneWay}" FontSize="10.5" Foreground="{StaticResource BrushTextSecondary}"/>
+                        </TextBlock>
+                    </Expander.Header>
+                        <StackPanel Margin="12,8,12,10">
+                            <Grid Margin="0,0,0,8">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock VerticalAlignment="Center">
-                                    <Run Text="{Binding ResultsTitle, Mode=OneWay}" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource BrushNavyPrimary}"/>
-                                    <Run Text="{Binding ResultsForText, Mode=OneWay}" FontSize="10.5" Foreground="{StaticResource BrushTextSecondary}"/>
-                                </TextBlock>
                                 <StackPanel Grid.Column="1" Orientation="Horizontal">
                                     <RadioButton GroupName="ResultsTab" Style="{StaticResource ChipToggle}" Content="Longest 10"
                                                  IsChecked="{Binding ActiveResultsTab, Converter={StaticResource EnumToBool}, ConverterParameter=Longest, Mode=OneWay}"
@@ -937,7 +949,9 @@ Changes vs V012: window 1280×820 (min 1100×640; V012's minimum height of
                                 </StackPanel>
                             </Grid>
                         </StackPanel>
+                    </Expander>
                     </Border>
+                    </StackPanel>
                 </Grid>
 
                 <!-- Processing log: always dark, closed by default -->
