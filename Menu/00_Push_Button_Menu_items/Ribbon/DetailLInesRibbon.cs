@@ -1,11 +1,13 @@
 using Autodesk.Revit.UI;
 using Revit26_Plugin_Revised.Resources.Icons;
+using Revit26_Plugin_Revised.Shared.Services;
 using System.Collections.Generic;
 
 namespace Revit26_Plugin_Revised.Menu.Ribbon
 {
     /// <summary>
-    /// Builds the Detail Lines panel: From Links, Closed Loop and Line Dims stacked in one column.
+    /// Builds the Detail Lines panel: From Links, Closed Loop and Line Dims stacked in one column,
+    /// then Line Manager as a large button beside the stack (a stack holds at most three items).
     /// Replaces the one-button Detail Line Create, Detail Line Process and Dimensions panels
     /// (plugin 2.4.0) so Revit has room to show every button name.
     /// </summary>
@@ -53,6 +55,15 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             RibbonLayoutHelper.WirePulldownButton(items, "Pulldown_DetailLinesFromLinks", linesVA010, linesVA009);
             RibbonLayoutHelper.WirePulldownButton(items, "Pulldown_DetailLineClosedLoop", closedLoopV003, closedLoopV002);
             RibbonLayoutHelper.WirePulldownButton(items, DimensionsRibbon.DetailLineDimPulldownName, lineDimsVersions);
+
+            var lineManagerV001 = new PushButtonData("Btn_DetailLineManager_V001", "Line Manager", assemblyPath, "Revit26_Plugin_Revised.DetailLineManager.V001.Commands.DetailLineManagerCommand")
+            {
+                Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.DetailLiner.CreateDetailLines_16.png"),
+                LargeImage = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.DetailLiner.CreateDetailLines_32.png"),
+                ToolTip = ToolCatalog.DetailLineManager.Tip(
+                    "Find detail lines by scope, style, view, weight and length; delete duplicates, short lines and unused line styles; assign styles or change line weights.")
+            };
+            panel.AddItem(lineManagerV001);
         }
     }
 }
