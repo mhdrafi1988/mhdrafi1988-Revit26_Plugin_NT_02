@@ -9,6 +9,16 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.5.2] — 2026-10-22
+
+### Changed
+- **Section Auto Renamer v26.1.3** (and V025) — the Section Manager command and its rename handler now run through the
+  plugin's standard error handling. A failure while opening the window or renaming now shows the full cause and is written
+  to `%AppData%\Revit26_Plugin_Revised\Logs`, instead of a one-line "An unexpected error occurred" dialog. Running it with
+  no project open now shows "Open a project before running Section Auto Renamer."
+
+**User note:** no change to renaming; only error reporting differs.
+
 ## [6.5.1] — 2026-10-22
 
 ### Fixed
