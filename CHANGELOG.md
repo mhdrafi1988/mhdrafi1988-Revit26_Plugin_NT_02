@@ -9,6 +9,16 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.3.1] — 2026-10-22
+
+### Fixed
+- **Detail Line Manager v1.0.1** — after a Line thickness change (assign style, change style line weight or per-view override),
+  the active view is now redrawn straight away. Revit could leave it showing the old weights after a line-style weight change.
+  The log also says whether Revit's **Thin Lines** mode is on: while it is, every line is drawn at weight 1 and the new
+  weights do not show on screen.
+
+**User note:** no change to what is saved in the model or to settings; only the redraw and the extra log lines are new.
+
 ## [6.3.0] — 2026-10-22
 
 ### Added
