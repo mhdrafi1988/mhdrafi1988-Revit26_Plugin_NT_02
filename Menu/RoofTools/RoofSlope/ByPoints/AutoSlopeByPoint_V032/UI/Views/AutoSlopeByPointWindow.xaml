@@ -462,44 +462,56 @@ converters declared here.
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
                                     <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto"/>
                                         <RowDefinition Height="28"/>
                                         <RowDefinition Height="Auto"/>
                                     </Grid.RowDefinitions>
 
-                                    <!-- Row 0: labels · Row 1: controls (same height, centred) · Row 2: hints / errors -->
-                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Drains" Style="{StaticResource FieldLabel}"/>
-                                    <TextBlock Grid.Row="0" Grid.Column="2" Text="Slope (%)" Style="{StaticResource FieldLabel}"/>
-                                    <TextBlock Grid.Row="0" Grid.Column="4" Text="Drainage Distance (m)" Style="{StaticResource FieldLabel}"/>
-
-                                    <Grid Grid.Row="1" Grid.Column="0" VerticalAlignment="Center">
+                                    <!-- Row 0: label + control side by side · Row 1: hints / errors -->
+                                    <Grid Grid.Row="0" Grid.Column="0">
                                         <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Text="{Binding DrainCountText}" Style="{StaticResource FieldValue}" FontWeight="SemiBold"
+                                        <TextBlock Text="Drains" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                        <TextBlock Grid.Column="1" Text="{Binding DrainCountText}" Style="{StaticResource FieldValue}" FontWeight="SemiBold"
                                                    TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
-                                        <Button Grid.Column="1" Content="Re-pick" Style="{StaticResource SmallSecondaryButton}" Margin="6,0,0,0"
+                                        <Button Grid.Column="2" Content="Re-pick" Style="{StaticResource SmallSecondaryButton}" Margin="6,0,0,0"
                                                 VerticalAlignment="Center"
                                                 Command="{Binding RepickDrainsCommand}"
                                                 ToolTip="Pick new drain points in the Revit view without closing this window."/>
                                     </Grid>
-                                    <ComboBox Grid.Row="1" Grid.Column="2" VerticalAlignment="Center"
-                                              ItemsSource="{Binding SlopeOptions}" IsEditable="True" IsTextSearchEnabled="False"
-                                              Text="{Binding SlopeText, UpdateSourceTrigger=PropertyChanged}"
-                                              ToolTip="Pick a preset or type any value between 0.1 and 10 %."/>
-                                    <TextBox Grid.Row="1" Grid.Column="4" Style="{StaticResource BorderlessTextInput}" MaxLength="8"
-                                             VerticalAlignment="Center"
-                                             Text="{Binding MaxDrainDistanceText, UpdateSourceTrigger=PropertyChanged}"/>
 
-                                    <StackPanel Grid.Row="2" Grid.Column="0">
+                                    <Grid Grid.Row="0" Grid.Column="2">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="Slope (%)" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                        <ComboBox Grid.Column="1" VerticalAlignment="Center"
+                                                  ItemsSource="{Binding SlopeOptions}" IsEditable="True" IsTextSearchEnabled="False"
+                                                  Text="{Binding SlopeText, UpdateSourceTrigger=PropertyChanged}"
+                                                  ToolTip="Pick a preset or type any value between 0.1 and 10 %."/>
+                                    </Grid>
+
+                                    <Grid Grid.Row="0" Grid.Column="4">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="Drainage Distance (m)" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                        <TextBox Grid.Column="1" Style="{StaticResource BorderlessTextInput}" MaxLength="8" VerticalAlignment="Center"
+                                                 Text="{Binding MaxDrainDistanceText, UpdateSourceTrigger=PropertyChanged}"/>
+                                    </Grid>
+
+                                    <StackPanel Grid.Row="1" Grid.Column="0">
                                         <TextBlock Text="{Binding RoofLevelText}" Style="{StaticResource HintText}"/>
                                     </StackPanel>
-                                    <StackPanel Grid.Row="2" Grid.Column="2">
+                                    <StackPanel Grid.Row="1" Grid.Column="2">
                                         <TextBlock Text="{Binding SlopeHint}" Style="{StaticResource CalcHint}"/>
                                         <TextBlock Text="{Binding SlopeError}" Style="{StaticResource FieldError}"/>
                                     </StackPanel>
-                                    <StackPanel Grid.Row="2" Grid.Column="4">
+                                    <StackPanel Grid.Row="1" Grid.Column="4">
                                         <TextBlock Text="Points further from every drain stay at 0." Style="{StaticResource HintText}"/>
                                         <TextBlock Text="{Binding MaxDrainDistanceError}" Style="{StaticResource FieldError}"/>
                                     </StackPanel>
