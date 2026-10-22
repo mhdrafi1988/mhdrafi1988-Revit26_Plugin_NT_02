@@ -1,5 +1,6 @@
 using System;
 using Autodesk.Revit.DB;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace Revit26_Plugin_Revised.LinkVersionChecker.V006.Core.Models
 {
@@ -59,8 +60,10 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V006.Core.Models
     }
 
     /// <summary>One top-level Revit link that lives under the Desktop Connector folder.</summary>
-    public sealed class LinkStatusRow
+    public sealed class LinkStatusRow : ObservableObject
     {
+        private string _folderShown = "";
+
         /// <summary>The link's RevitLinkType id.</summary>
         public ElementId TypeId { get; init; }
 
@@ -72,6 +75,13 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V006.Core.Models
 
         /// <summary>Folder inside the ACC project ("02_ARC\Models"), or the parent folder when no project root is found.</summary>
         public string AccFolder { get; init; } = "";
+
+        /// <summary><see cref="AccFolder"/> shortened by the window's Folder setting; the grid shows this.</summary>
+        public string FolderShown
+        {
+            get => _folderShown;
+            set => SetProperty(ref _folderShown, value ?? "");
+        }
 
         /// <summary>Load state in the open model.</summary>
         public ModelLoadState Model { get; init; }
