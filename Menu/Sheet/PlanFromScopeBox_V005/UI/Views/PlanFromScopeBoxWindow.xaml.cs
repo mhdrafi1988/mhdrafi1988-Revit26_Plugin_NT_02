@@ -80,7 +80,10 @@ namespace Revit26_Plugin_Revised.PlanFromScopeBox.V005.UI.Views
         {
             if (e.Action != NotifyCollectionChangedAction.Add) return;
             if (LogList.Items.Count == 0) return;
-            FindScrollViewer(LogList)?.ScrollToBottom();
+            // Deferred: scrolling inside CollectionChanged can make WPF throw
+            // "ItemsControl is inconsistent with its items source".
+            Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Background,
+                new System.Action(() => FindScrollViewer(LogList)?.ScrollToBottom()));
         }
 
         private void LogList_SelectionChanged(object sender, SelectionChangedEventArgs e)

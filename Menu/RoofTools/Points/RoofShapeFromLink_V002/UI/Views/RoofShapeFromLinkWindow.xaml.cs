@@ -58,8 +58,13 @@ namespace Revit26_Plugin_Revised.RoofShapeFromLink.V002.UI.Views
 
         private void OnLogChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            if (LogList.Items.Count > 0)
-                LogList.ScrollIntoView(LogList.Items[LogList.Items.Count - 1]);
+            // Deferred: scrolling inside CollectionChanged makes WPF throw
+            // "ItemsControl is inconsistent with its items source".
+            Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Background, new System.Action(() =>
+            {
+                if (LogList.Items.Count > 0)
+                    LogList.ScrollIntoView(LogList.Items[LogList.Items.Count - 1]);
+            }));
         }
 
         /// <summary>Clears the sort arrows and shows every column again.</summary>

@@ -22,11 +22,14 @@ public partial class SectionsListWindow : Window
         DataContext = vm;
 
         // Auto-scroll log panel to latest entry
+        // Deferred: scrolling inside CollectionChanged makes WPF throw "ItemsControl is
+        // inconsistent with its items source" when many lines arrive at once.
         vm.Logs.CollectionChanged += (_, _) =>
-        {
-            if (LogList.Items.Count > 0)
-                LogList.ScrollIntoView(LogList.Items[^1]);
-        };
+            Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Background, new System.Action(() =>
+            {
+                if (LogList.Items.Count > 0)
+                    LogList.ScrollIntoView(LogList.Items[^1]);
+            }));
     }
 
     // ── "Set selected" — commit on Enter without needing focus loss ─────────

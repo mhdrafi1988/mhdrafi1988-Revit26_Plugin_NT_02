@@ -100,8 +100,13 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V032.UI.Views
         private void OnLogChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
             if (e.Action != NotifyCollectionChangedAction.Add || !LogListBox.IsVisible) return;
-            int count = LogListBox.Items.Count;
-            if (count > 0) LogListBox.ScrollIntoView(LogListBox.Items[count - 1]);
+            // Deferred: scrolling inside CollectionChanged makes WPF throw
+            // "ItemsControl is inconsistent with its items source".
+            Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Background, new System.Action(() =>
+            {
+                int count = LogListBox.Items.Count;
+                if (count > 0) LogListBox.ScrollIntoView(LogListBox.Items[count - 1]);
+            }));
         }
     }
 }
