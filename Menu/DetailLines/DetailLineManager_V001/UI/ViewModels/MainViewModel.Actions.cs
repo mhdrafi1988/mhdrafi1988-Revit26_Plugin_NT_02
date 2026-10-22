@@ -204,7 +204,7 @@ namespace Revit26_Plugin_Revised.DetailLineManager.V001.UI.ViewModels
                     Run("Assigning line style…", app =>
                     {
                         if (new DetailLineActions(app.ActiveUIDocument.Document, Log).AssignStyle(ids, style.GraphicsStyleId) > 0)
-                            RefreshAfterChange(app);
+                            RefreshAfterThicknessChange(app);
                     });
                     break;
                 }
@@ -214,7 +214,7 @@ namespace Revit26_Plugin_Revised.DetailLineManager.V001.UI.ViewModels
                     Run("Changing line style weight…", app =>
                     {
                         if (new DetailLineActions(app.ActiveUIDocument.Document, Log).SetStyleWeight(styleIds, weight) > 0)
-                            RefreshAfterChange(app);
+                            RefreshAfterThicknessChange(app);
                     });
                     break;
                 }
@@ -224,7 +224,7 @@ namespace Revit26_Plugin_Revised.DetailLineManager.V001.UI.ViewModels
                     Run(ClearOverrides ? "Clearing overrides…" : "Setting overrides…", app =>
                     {
                         if (new DetailLineActions(app.ActiveUIDocument.Document, Log).SetViewOverride(ids, pen) > 0)
-                            RefreshAfterChange(app);
+                            RefreshAfterThicknessChange(app);
                     });
                     break;
                 }
@@ -256,6 +256,35 @@ namespace Revit26_Plugin_Revised.DetailLineManager.V001.UI.ViewModels
             foreach (var r in result.Rows) r.IsChecked = checkedIds.Contains(r.IdValue);
             _dispatcher.Invoke(() => ApplyScan(result));
             Log(LogLevel.Info, $"Grid refreshed: {result.Rows.Count} line(s) in scope.");
+        }
+
+        // After a committed line-thickness change: refresh the grid, redraw the active view (Revit can
+        // leave it stale after an Object Styles change made through the API) and warn when Thin Lines
+        // mode hides the new weights.
+        private void RefreshAfterThicknessChange(Autodesk.Revit.UI.UIApplication app)
+        {
+            RefreshAfterChange(app);
+
+            var uiDoc = app.ActiveUIDocument;
+            try
+            {
+                uiDoc.RefreshActiveView();
+                Log(LogLevel.Info, $"Active view '{uiDoc.ActiveView?.Name}' redrawn. Other views update when you open them.");
+            }
+            catch (Autodesk.Revit.Exceptions.ApplicationException ex)
+            {
+                Log(LogLevel.Warning, $"The change is saved, but the active view could not be redrawn ({ex.Message}). Pan or zoom to redraw it.");
+            }
+
+            bool thinLines;
+            try { thinLines = Autodesk.Revit.UI.ThinLinesOptions.AreThinLinesEnabled; }
+            catch (Autodesk.Revit.Exceptions.ApplicationException) { return; }
+
+            if (thinLines)
+                Log(LogLevel.Warning, "Thin Lines is on (View tab → Thin Lines, or TL), so Revit draws every line at weight 1 "
+                    + "and the new weights do not show on screen. They are saved; turn Thin Lines off to see them.");
+            else
+                Log(LogLevel.Info, "Thin Lines is off, so the new weights show on screen.");
         }
     }
 }
