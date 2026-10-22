@@ -3,7 +3,7 @@
 All notable changes to SloperPro. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
-- **Plugin version** lives in `Revit26_Plugin.csproj` (`<Version>`).
+- **Plugin version** lives in `Revit26_Plugin_Revised.csproj` (`<Version>`).
 - **Tool versions** live in `Shared/Services/ToolCatalog.cs`. Each tool has its own semantic version;
   the ribbon tooltip, the tool's window title and its error dialogs all read it from there.
 
