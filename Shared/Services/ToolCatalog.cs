@@ -64,7 +64,7 @@ namespace Revit26_Plugin_Revised.Shared.Services
         public static readonly ToolInfo WorksetRenamer = Add("Workset Renamer", "5.1.1", "V005", "Revit26_Plugin_Revised.WorksetRenamer.V005");
         public static readonly ToolInfo WorksetRenamerExcel = Add("Workset Renamer (From Excel)", "5.1.1", "FX05", "Revit26_Plugin_Revised.WorksetRenamer.FX05");
         public static readonly ToolInfo AutoSlopeByPoint = Add("Auto Slope By Point", "30.0.1", "V030", "Revit26_Plugin_Revised.AutoSlopeByPoint.V030");
-        public static readonly ToolInfo AutoSlopeByPointV032 = Add("Auto Slope By Point", "32.2.0", "V032", "Revit26_Plugin_Revised.AutoSlopeByPoint.V032");
+        public static readonly ToolInfo AutoSlopeByPointV032 = Add("Auto Slope By Point", "32.2.1", "V032", "Revit26_Plugin_Revised.AutoSlopeByPoint.V032");
         public static readonly ToolInfo AutoSlopeByPointRidge = Add("Auto Slope By Point (Ridge)", "3.1.1", "V003", "Revit26_Plugin_Revised.AutoSlopeByPointRidge.V003");
         public static readonly ToolInfo AutoSlopeByPointMultiCopies = Add("Auto Slope By Point (Multi Copies)", "30.1.1", "MultiCopies30", "Revit26_Plugin_Revised.AutoSlopeByPoint.MultiCopies30");
         public static readonly ToolInfo AutoSlopeByDrain = Add("Auto Slope By Drain", "7.2.0", "V007", "Revit26_Plugin_Revised.AutoSlopeByDrain.V007");
