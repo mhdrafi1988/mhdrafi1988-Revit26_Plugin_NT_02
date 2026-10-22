@@ -9,6 +9,13 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.1.1] — 2026-10-22
+
+### Changed
+- **Auto Slope By Point v32.2.1** — the Circle markers section is more compact: each marker group is one row (on/off, line style, colour, radius) under a single column heading, with its note and options on the lines below.
+
+**User note:** layout only; marker settings are unchanged.
+
 ## [6.1.0] — 2026-10-22
 
 ### Added

@@ -214,66 +214,66 @@ converters declared here.
 
             <!-- One template for all three marker groups -->
             <DataTemplate x:Key="MarkerGroupTemplate">
-                <StackPanel Margin="0,1,0,3">
-                    <StackPanel Orientation="Horizontal">
+                <!-- One compact row per group; column headings sit once above the list (same 110 / 1.3* / 1* / 0.8* columns) -->
+                <Grid Margin="0,2,0,4">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="110"/>
+                        <ColumnDefinition Width="1.3*"/>
+                        <ColumnDefinition Width="6"/>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="6"/>
+                        <ColumnDefinition Width="0.8*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="26"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
                         <CheckBox IsChecked="{Binding IsEnabled}" VerticalAlignment="Center"/>
                         <TextBlock Text="{Binding Label}" Style="{StaticResource FieldValue}" FontWeight="SemiBold"
-                                   Margin="6,0,0,0" VerticalAlignment="Center"/>
+                                   Margin="6,0,0,0" VerticalAlignment="Center" ToolTip="{Binding Description}"/>
                     </StackPanel>
-                    <TextBlock Text="{Binding Description}" Style="{StaticResource HintText}" Margin="22,1,0,4"/>
+                    <ComboBox Grid.Row="0" Grid.Column="1" IsEnabled="{Binding IsEnabled}" VerticalContentAlignment="Center" Padding="3,1"
+                              ItemsSource="{Binding LineStyleOptions}" SelectedItem="{Binding SelectedLineStyle}" DisplayMemberPath="Name"/>
+                    <ComboBox Grid.Row="0" Grid.Column="3" IsEnabled="{Binding IsEnabled}" VerticalContentAlignment="Center" Padding="3,1"
+                              ItemsSource="{Binding ColorPalette}" SelectedItem="{Binding ColorName}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <Border Width="12" Height="12" CornerRadius="2" Margin="0,0,6,0"
+                                            BorderBrush="{StaticResource BrushBorderDefault}" BorderThickness="1"
+                                            Background="{Binding Converter={StaticResource ColorNameToBrush}}"/>
+                                    <TextBlock Text="{Binding}"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <TextBox Grid.Row="0" Grid.Column="5" IsEnabled="{Binding IsEnabled}" Style="{StaticResource BorderlessTextInput}"
+                             VerticalContentAlignment="Center" MaxLength="8"
+                             Text="{Binding RadiusText, UpdateSourceTrigger=PropertyChanged}"/>
 
-                    <Grid IsEnabled="{Binding IsEnabled}" Margin="22,0,0,0">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="1.3*"/>
-                            <ColumnDefinition Width="6"/>
-                            <ColumnDefinition Width="1*"/>
-                            <ColumnDefinition Width="6"/>
-                            <ColumnDefinition Width="0.8*"/>
-                        </Grid.ColumnDefinitions>
-                        <StackPanel Grid.Column="0">
-                            <TextBlock Text="Line style" Style="{StaticResource FieldLabel}"/>
-                            <ComboBox ItemsSource="{Binding LineStyleOptions}" SelectedItem="{Binding SelectedLineStyle}"
-                                      DisplayMemberPath="Name" Padding="3,2"/>
-                        </StackPanel>
-                        <StackPanel Grid.Column="2">
-                            <TextBlock Text="Colour" Style="{StaticResource FieldLabel}"/>
-                            <ComboBox ItemsSource="{Binding ColorPalette}" SelectedItem="{Binding ColorName}" Padding="3,2">
-                                <ComboBox.ItemTemplate>
-                                    <DataTemplate>
-                                        <StackPanel Orientation="Horizontal">
-                                            <Border Width="12" Height="12" CornerRadius="2" Margin="0,0,6,0"
-                                                    BorderBrush="{StaticResource BrushBorderDefault}" BorderThickness="1"
-                                                    Background="{Binding Converter={StaticResource ColorNameToBrush}}"/>
-                                            <TextBlock Text="{Binding}"/>
-                                        </StackPanel>
-                                    </DataTemplate>
-                                </ComboBox.ItemTemplate>
-                            </ComboBox>
-                        </StackPanel>
-                        <StackPanel Grid.Column="4">
-                            <TextBlock Text="Radius (mm)" Style="{StaticResource FieldLabel}"/>
-                            <TextBox Style="{StaticResource BorderlessTextInput}"
-                                     Text="{Binding RadiusText, UpdateSourceTrigger=PropertyChanged}" MaxLength="8"/>
-                        </StackPanel>
-                    </Grid>
-                    <TextBlock Text="{Binding RadiusError}" Style="{StaticResource FieldError}" Margin="22,2,0,0"/>
+                    <TextBlock Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="5" Text="{Binding Description}" Style="{StaticResource HintText}"
+                               Margin="0,1,0,0" TextTrimming="CharacterEllipsis"/>
+                    <TextBlock Grid.Row="1" Grid.Column="5" Text="{Binding RadiusError}" Style="{StaticResource FieldError}" HorizontalAlignment="Right" Margin="0"/>
 
-                    <CheckBox Margin="22,6,0,0" IsEnabled="{Binding IsEnabled}" IsChecked="{Binding ShowOffsetText}"
-                              Visibility="{Binding HasOffsetTextOption, Converter={StaticResource BoolToVisibility}}">
-                        <TextBlock Text="Add an “Offset: X mm” text note with a leader" Style="{StaticResource FieldValue}" FontSize="12.5"/>
-                    </CheckBox>
-
-                    <StackPanel Margin="22,6,0,0" IsEnabled="{Binding IsEnabled}"
-                                Visibility="{Binding HasThresholdOption, Converter={StaticResource BoolToVisibility}}">
-                        <StackPanel Orientation="Horizontal">
+                    <!-- Options on one line, under the controls -->
+                    <StackPanel Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="5" Orientation="Horizontal" IsEnabled="{Binding IsEnabled}">
+                        <CheckBox Margin="0,2,16,0" VerticalAlignment="Center" IsChecked="{Binding ShowOffsetText}"
+                                  Visibility="{Binding HasOffsetTextOption, Converter={StaticResource BoolToVisibility}}">
+                            <TextBlock Text="Add an “Offset: X mm” text note with a leader" Style="{StaticResource FieldValue}" FontSize="11.5"/>
+                        </CheckBox>
+                        <StackPanel Orientation="Horizontal" Margin="0,2,0,0" VerticalAlignment="Center"
+                                    Visibility="{Binding HasThresholdOption, Converter={StaticResource BoolToVisibility}}">
                             <TextBlock Text="Circle points with offset ≥" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                            <TextBox Style="{StaticResource BorderlessTextInput}" Width="70"
+                            <TextBox Style="{StaticResource BorderlessTextInput}" Width="60"
                                      Text="{Binding ThresholdText, UpdateSourceTrigger=PropertyChanged}" MaxLength="8"/>
                             <TextBlock Text="mm" Style="{StaticResource UnitLabel}"/>
+                            <TextBlock Text="{Binding ThresholdError}" Style="{StaticResource FieldError}" Margin="8,0,0,0" VerticalAlignment="Center"/>
                         </StackPanel>
-                        <TextBlock Text="{Binding ThresholdError}" Style="{StaticResource FieldError}"/>
                     </StackPanel>
-                </StackPanel>
+                </Grid>
             </DataTemplate>
 
             <!-- ── Results grid: Excel-like (mirrors the "Vertex Data" sheet) ── -->
@@ -631,6 +631,19 @@ converters declared here.
                                     </Grid>
                                 </Expander.Header>
                                 <StackPanel Margin="7,3,7,4">
+                                    <Grid Margin="0,0,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="110"/>
+                                            <ColumnDefinition Width="1.3*"/>
+                                            <ColumnDefinition Width="6"/>
+                                            <ColumnDefinition Width="1*"/>
+                                            <ColumnDefinition Width="6"/>
+                                            <ColumnDefinition Width="0.8*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="1" Text="Line style" Style="{StaticResource FieldLabel}"/>
+                                        <TextBlock Grid.Column="3" Text="Colour" Style="{StaticResource FieldLabel}"/>
+                                        <TextBlock Grid.Column="5" Text="Radius (mm)" Style="{StaticResource FieldLabel}"/>
+                                    </Grid>
                                     <ItemsControl ItemsSource="{Binding MarkerGroups}" ItemTemplate="{StaticResource MarkerGroupTemplate}"/>
                                     <Button Content="Reset to defaults" Style="{StaticResource LinkButton}" Command="{Binding ResetMarkersCommand}"/>
                                 </StackPanel>
