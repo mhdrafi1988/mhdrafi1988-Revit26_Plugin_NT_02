@@ -53,7 +53,13 @@ namespace Revit26_Plugin_Revised.CreateSections.V013.Views.SectionFromLineDialog
             {
                 if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add)
                 {
-                    LogListBox.ScrollIntoView(ViewModel.LiveLog.LastOrDefault());
+                    // Deferred: scrolling inside CollectionChanged makes WPF throw
+                    // "ItemsControl is inconsistent with its items source".
+                    Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Background, new System.Action(() =>
+                    {
+                        var last = ViewModel.LiveLog.LastOrDefault();
+                        if (last != null) LogListBox.ScrollIntoView(last);
+                    }));
                 }
             };
 

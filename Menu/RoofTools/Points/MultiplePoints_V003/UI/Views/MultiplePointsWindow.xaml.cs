@@ -23,8 +23,13 @@ namespace Revit26_Plugin_Revised.MultiplePoints.V003.UI.Views
 
         private void ScrollLogToEnd()
         {
-            if (LogList.Items.Count > 0)
-                LogList.ScrollIntoView(LogList.Items[LogList.Items.Count - 1]);
+            // Deferred: scrolling inside CollectionChanged makes WPF throw
+            // "ItemsControl is inconsistent with its items source".
+            Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Background, new System.Action(() =>
+            {
+                if (LogList.Items.Count > 0)
+                    LogList.ScrollIntoView(LogList.Items[LogList.Items.Count - 1]);
+            }));
         }
 
         private void CopyAllLog_Click(object sender, System.Windows.RoutedEventArgs e) => LogClipboardService.CopyAll(LogList.Items);

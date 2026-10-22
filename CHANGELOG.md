@@ -9,6 +9,19 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.5.1] — 2026-10-22
+
+### Fixed
+- **"An ItemsControl is inconsistent with its items source" in log lists.** Windows scrolled their log from inside the
+  list-changed event, which made WPF throw when several lines arrived at once. The log now scrolls after the list has
+  updated. Tools bumped: **Section Auto Renamer v26.1.2**, **Auto Slope By Point v32.3.1**,
+  **Auto Slope By Drain (Multi-Roof) v13.1.3**, **Outer Curve Divider v6.0.2**, **Multiple Points v3.0.2**,
+  **Creaser Adv v12.0.2**, **Combined Roof Tools v3.1.2**, **Roof Type Manager v3.1.2**, **Plan From Scope Box v6.1.2**,
+  **Roof Shape From Link v2.0.1**, **Create Sections From Detail Lines v13.1.2**, **View Auto Renamer v6.1.2** (V006) and **v7.0.1** (V007).
+  Older coexisting versions (e.g. Section Auto Renamer V025, View Auto Renamer V005) got the same fix without a version entry.
+
+**User note:** no behaviour change beyond the fix.
+
 ## [6.5.0] — 2026-10-22
 
 ### Added

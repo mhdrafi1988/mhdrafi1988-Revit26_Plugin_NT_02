@@ -29,7 +29,13 @@ namespace Revit26_Plugin_Revised.RoofTypeCreator.V003.UI.Views
                     if (args.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add
                         && LogListBox.Items.Count > 0)
                     {
-                        LogListBox.ScrollIntoView(LogListBox.Items[LogListBox.Items.Count - 1]);
+                        // Deferred: scrolling inside CollectionChanged makes WPF throw
+                        // "ItemsControl is inconsistent with its items source".
+                        Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Background, new System.Action(() =>
+                        {
+                            if (LogListBox.Items.Count > 0)
+                                LogListBox.ScrollIntoView(LogListBox.Items[LogListBox.Items.Count - 1]);
+                        }));
                     }
                 };
             }

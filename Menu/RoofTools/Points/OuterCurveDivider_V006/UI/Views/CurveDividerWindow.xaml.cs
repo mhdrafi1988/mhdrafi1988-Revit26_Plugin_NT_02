@@ -18,8 +18,13 @@ namespace Revit26_Plugin_Revised.OuterCurveDivider.V006.UI.Views
             if (DataContext is CurveDividerViewModel vm)
                 vm.LogEntries.CollectionChanged += (s, a) =>
                 {
-                    if (LogList.Items.Count > 0)
-                        LogList.ScrollIntoView(LogList.Items[LogList.Items.Count - 1]);
+                    // Deferred: scrolling inside CollectionChanged makes WPF throw
+                    // "ItemsControl is inconsistent with its items source".
+                    Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Background, new System.Action(() =>
+                    {
+                        if (LogList.Items.Count > 0)
+                            LogList.ScrollIntoView(LogList.Items[LogList.Items.Count - 1]);
+                    }));
                 };
         }
 
