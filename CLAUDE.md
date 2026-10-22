@@ -5,7 +5,7 @@ Revit 2026 add-in, .NET 8 / WPF. These rules apply to every change, by people an
 ## Build
 
 ```bash
-dotnet build Revit26_Plugin.csproj -p:EnableWindowsTargeting=true
+dotnet build Revit26_Plugin_Revised.csproj -p:EnableWindowsTargeting=true
 ```
 
 Builds on Linux too (Revit API comes from the `Autodesk.Revit.SDK` NuGet package). A change is not
@@ -24,13 +24,13 @@ done until it builds with 0 errors. Running it still needs Revit on Windows.
   `dotnet test Tests/<Project>`).
 - **Tool versions** live in `Shared/Services/ToolCatalog.cs` (one entry per tool, semantic version).
   The ribbon tooltip, window title and error dialogs read from it. A new tool gets a new entry there.
-- **Plugin version** is `<Version>` in `Revit26_Plugin.csproj`.
+- **Plugin version** is `<Version>` in `Revit26_Plugin_Revised.csproj`.
 - **Namespace:** the root namespace is `Revit26_Plugin_Revised` (`<RootNamespace>` in the `.csproj`;
   renamed from `Revit26_Plugin` in 4.0.0). Tool namespaces are `Revit26_Plugin_Revised.<Tool>.V<NNN>`.
   The assembly is `Revit26_Plugin_Revised.dll` (`<AssemblyName>`, renamed in 5.0.0), so pack URIs
-  read `/Revit26_Plugin_Revised;component/…`. The project file is still `Revit26_Plugin.csproj`, and
-  the `%AppData%\Revit26_Plugin` / `Documents\Revit26_Plugin` folders keep the old name so existing
-  settings and logs still load.
+  read `/Revit26_Plugin_Revised;component/…`. The project file is `Revit26_Plugin_Revised.csproj`.
+  Settings and logs live under `%AppData%\Revit26_Plugin_Revised` (`<Tool>\settings*.json`, `Logs\`);
+  keep using that folder for new tools.
 - **Add-in manifest** is `Installer/rf12_Revit_2026.addin` (same file name, `AddInId` and
   `FullClassName` as the one the `Installer/Output/*.iss` scripts write). Keep them in sync.
 - **Ribbon** files are in `Menu/00_Push_Button_Menu_items/Ribbon`. One button runs one tool; use a
@@ -55,7 +55,7 @@ done until it builds with 0 errors. Running it still needs Revit on Windows.
 4. Handle edge cases: linked models, groups, in-place families, elements owned by other users (ACC /
    worksharing — check `WorksharingUtils.GetCheckoutStatus`).
 5. Report errors in the tool's UI or log; never fail silently. Unexpected errors go to
-   `%AppData%\Revit26_Plugin\Logs` through `ToolGuard.Report`.
+   `%AppData%\Revit26_Plugin_Revised\Logs` through `ToolGuard.Report`.
 
 ## Documentation
 
