@@ -470,7 +470,7 @@ converters declared here.
                                     <!-- Row 0: labels · Row 1: controls (same height, centred) · Row 2: hints / errors -->
                                     <TextBlock Grid.Row="0" Grid.Column="0" Text="Drains" Style="{StaticResource FieldLabel}"/>
                                     <TextBlock Grid.Row="0" Grid.Column="2" Text="Slope (%)" Style="{StaticResource FieldLabel}"/>
-                                    <TextBlock Grid.Row="0" Grid.Column="4" Text="Max drainage distance (m)" Style="{StaticResource FieldLabel}"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="4" Text="Drainage Distance (m)" Style="{StaticResource FieldLabel}"/>
 
                                     <Grid Grid.Row="1" Grid.Column="0" VerticalAlignment="Center">
                                         <Grid.ColumnDefinitions>
@@ -551,7 +551,7 @@ converters declared here.
                                                     <ColumnDefinition Width="*"/>
                                                     <ColumnDefinition Width="Auto"/>
                                                 </Grid.ColumnDefinitions>
-                                                <TextBlock Text="Also use shape points nearby (same edge or opening)" Style="{StaticResource FieldLabel}"
+                                                <TextBlock Text="Also use shape points nearby" Style="{StaticResource FieldLabel}"
                                                            TextWrapping="Wrap" VerticalAlignment="Center"/>
                                                 <ToggleButton Grid.Column="1" Style="{StaticResource AppleToggleButton}" Margin="8,0,0,0"
                                                               IsChecked="{Binding IncludeNearbyPoints}"/>
