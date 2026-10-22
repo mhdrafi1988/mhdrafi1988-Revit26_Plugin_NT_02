@@ -87,14 +87,25 @@ namespace Revit26_Plugin_Revised.RoofShapeFromLink.V002.Core.Models
 
         /// <summary>Elevation that Apply will set; editable.</summary>
         [ObservableProperty]
-        [NotifyPropertyChangedFor(nameof(Delta), nameof(DeltaText), nameof(DeltaIsUp), nameof(DeltaBar), nameof(VertexOffset))]
+        [NotifyPropertyChangedFor(nameof(Delta), nameof(DeltaText), nameof(DeltaIsUp), nameof(DeltaBar), nameof(ValueToWrite))]
         private double? _newZ;
 
         /// <summary>
-        /// Offset from the host roof base surface that Apply gives the point (New Z minus Base Z), or null when
-        /// there is no New Z. On a roof with a sloped base the tool measures the base at each point instead.
+        /// Host base: base level + Base Offset From Level (<see cref="BaseZ"/>) plus the roof thickness when
+        /// <see cref="UseThickness"/> is on. Computed from values read once per run.
         /// </summary>
-        public double? VertexOffset => NewZ.HasValue ? NewZ.Value - BaseZ : null;
+        public double HostBase => BaseZ + (UseThickness ? Thickness : 0);
+
+        /// <summary>
+        /// Value Apply gives the point: linked elevation − <see cref="HostBase"/> − Subtract, an offset from the
+        /// roof base surface (New Z minus Base Z). Null when there is no value. Typing one makes the row Manual.
+        /// On a roof with a sloped base the tool measures the base at each point instead.
+        /// </summary>
+        public double? ValueToWrite
+        {
+            get => NewZ.HasValue ? NewZ.Value - BaseZ : null;
+            set => NewZ = value.HasValue ? BaseZ + value.Value : null;
+        }
 
         /// <summary>OK, Snapped (edge of the linked face), Below (linked roof lower than the point) or No link.</summary>
         public string Status =>
@@ -129,7 +140,7 @@ namespace Revit26_Plugin_Revised.RoofShapeFromLink.V002.Core.Models
         }
 
         /// <summary>
-        /// Recalculates New Z = linked elevation − roof thickness (when on) − offset.
+        /// Recalculates New Z = linked elevation − roof thickness (when on) − offset, i.e. Value to write = linked − Host Base − offset.
         /// Manual rows keep their typed value.
         /// </summary>
         public void Recalculate()
@@ -144,7 +155,11 @@ namespace Revit26_Plugin_Revised.RoofShapeFromLink.V002.Core.Models
 
         partial void OnOffsetChanged(double value) => Recalculate();
 
-        partial void OnUseThicknessChanged(bool value) => Recalculate();
+        partial void OnUseThicknessChanged(bool value)
+        {
+            OnPropertyChanged(nameof(HostBase));
+            Recalculate();
+        }
 
         partial void OnNewZChanged(double? value)
         {

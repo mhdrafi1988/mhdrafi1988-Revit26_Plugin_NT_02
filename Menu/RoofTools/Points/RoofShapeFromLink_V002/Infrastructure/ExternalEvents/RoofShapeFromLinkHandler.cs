@@ -144,7 +144,7 @@ namespace Revit26_Plugin_Revised.RoofShapeFromLink.V002.Infrastructure.ExternalE
             _vm.SummaryText = $"{rows.Count} point(s) on {roofs.Count} roof(s); {matched} with a linked elevation.";
             _vm.Log(LogLevel.Info, _vm.SummaryText);
             if (rows.Count > matched)
-                _vm.Log(LogLevel.Warning, $"{rows.Count - matched} point(s) have no linked roof above them: type a New Z by hand or leave them out.");
+                _vm.Log(LogLevel.Warning, $"{rows.Count - matched} point(s) have no linked roof above them: type a Value to write by hand or leave them out.");
         }
 
         private ShapePointRow BuildRow(HostPoint p, LinkedCandidate c)

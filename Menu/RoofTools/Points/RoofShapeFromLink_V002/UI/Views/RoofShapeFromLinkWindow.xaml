@@ -133,12 +133,12 @@ File: RoofShapeFromLinkWindow.xaml  (V002, ToolWindowShell)
                             <TextBox Style="{StaticResource BoxedTextInput}" Height="26" Padding="6,2" Width="80" Margin="8,0,0,0"
                                      Text="{Binding GlobalOffset, StringFormat=F3, UpdateSourceTrigger=LostFocus}"/>
                             <TextBlock Text="{Binding UnitLabel}" Style="{StaticResource UnitLabel}"/>
-                            <TextBlock Text="(New Z = linked Z − thickness − this number; editable per row)" Style="{StaticResource HintText}" Margin="10,0,0,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="(Value to write = linked Z − Host Base − this number; editable per row)" Style="{StaticResource HintText}" Margin="10,0,0,0" VerticalAlignment="Center"/>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
                             <CheckBox Content="Subtract host roof thickness" VerticalAlignment="Center"
                                       IsChecked="{Binding SubtractThickness}"/>
-                            <TextBlock Text="(New Z = linked Z − roof type thickness − Subtract; the point is then set from the roof base surface)" Style="{StaticResource HintText}" Margin="10,0,0,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="(Host Base = base level + offset + thickness; Value to write = linked Z − Host Base − Subtract)" Style="{StaticResource HintText}" Margin="10,0,0,0" VerticalAlignment="Center"/>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal">
                             <CheckBox Content="Nearest point: corner and edge points only" VerticalAlignment="Center"
@@ -258,6 +258,7 @@ File: RoofShapeFromLinkWindow.xaml  (V002, ToolWindowShell)
                         <DataGridTextColumn Header="Nearest dist." Binding="{Binding NearestDistance, StringFormat=F3}" Width="90"  IsReadOnly="True"/>
                         <DataGridTextColumn Header="Base Z"      Binding="{Binding BaseZ, StringFormat=F3}"             Width="90"  IsReadOnly="True"/>
                         <DataGridTextColumn Header="Thickness"   Binding="{Binding Thickness, StringFormat=F3}"         Width="80"  IsReadOnly="True"/>
+                        <DataGridTextColumn Header="Host Base"   Binding="{Binding HostBase, StringFormat=F3}"          Width="90"  IsReadOnly="True"/>
                         <DataGridTemplateColumn Header="Status" Width="90" SortMemberPath="Status">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
@@ -294,7 +295,7 @@ File: RoofShapeFromLinkWindow.xaml  (V002, ToolWindowShell)
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
                         <DataGridTextColumn Header="Subtract"    Binding="{Binding Offset, StringFormat=F3, UpdateSourceTrigger=LostFocus}" Width="80"/>
-                        <DataGridTextColumn Header="New Z"       Binding="{Binding NewZ, StringFormat=F3, UpdateSourceTrigger=LostFocus}"   Width="90">
+                        <DataGridTextColumn Header="Value to write" Binding="{Binding ValueToWrite, StringFormat=F3, UpdateSourceTrigger=LostFocus}"   Width="110">
                             <DataGridTextColumn.CellStyle>
                                 <!-- A typed-in value (Source = Manual) is outlined so it stands out from calculated ones. -->
                                 <Style TargetType="DataGridCell" BasedOn="{StaticResource DataGridCellStyle}">
@@ -307,7 +308,6 @@ File: RoofShapeFromLinkWindow.xaml  (V002, ToolWindowShell)
                                 </Style>
                             </DataGridTextColumn.CellStyle>
                         </DataGridTextColumn>
-                        <DataGridTextColumn Header="Offset from base" Binding="{Binding VertexOffset, StringFormat=F3}" Width="110" IsReadOnly="True"/>
                         <DataGridTemplateColumn Header="Δ vs current" Width="130" SortMemberPath="Delta" IsReadOnly="True">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>

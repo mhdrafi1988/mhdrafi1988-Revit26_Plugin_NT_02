@@ -341,7 +341,7 @@ namespace Revit26_Plugin_Revised.RoofShapeFromLink.V002.UI.ViewModels
         {
             if (IncludedCount == 0)
             {
-                AddLog(LogLevel.Warning, "Nothing to apply: tick at least one row that has a New Z.");
+                AddLog(LogLevel.Warning, "Nothing to apply: tick at least one row that has a Value to write.");
                 return;
             }
             Raise(RoofShapeFromLinkHandler.Job.Apply);
@@ -361,7 +361,7 @@ namespace Revit26_Plugin_Revised.RoofShapeFromLink.V002.UI.ViewModels
             foreach (LinkItem l in Links) l.IsSelected = false;
         }
 
-        /// <summary>Ticks every visible row that has a New Z.</summary>
+        /// <summary>Ticks every visible row that has a Value to write.</summary>
         [RelayCommand]
         private void TickVisible()
         {

@@ -9,6 +9,16 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.1.0] — 2026-10-22
+
+### Changed
+- **Roof Shape From Link v2.1.0** — the grid now has a **Host Base** column (base level + Base Offset From
+  Level + thickness, read once per run) and an editable **Value to write** column = linked Z − Host Base −
+  Subtract. It replaces the **New Z** and **Offset from base** columns. Apply still sets each point from the
+  measured roof base, so results are unchanged.
+
+**User note:** typing in the grid now sets the offset from the roof base, not an absolute Z.
+
 ## [6.0.0] — 2026-10-21
 
 ### Changed
