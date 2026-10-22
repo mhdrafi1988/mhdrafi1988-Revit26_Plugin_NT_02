@@ -291,7 +291,7 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V032.UI.ViewModels
         [ObservableProperty] private bool askToOpenAfterExport;
         public bool CanAskToOpen => ExportToExcel;
 
-        public string DrainCountText => _picks.Count == 1 ? "1 drain point picked" : $"{_picks.Count} drain points picked";
+        public string DrainCountText => _picks.Count == 1 ? "1 Drain Picked" : $"{_picks.Count} Drains Picked";
 
         [ObservableProperty]
         [NotifyCanExecuteChangedFor(nameof(RunCommand))]
