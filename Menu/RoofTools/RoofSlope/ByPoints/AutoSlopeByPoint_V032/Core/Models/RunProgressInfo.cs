@@ -18,8 +18,17 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V032.Core.Models
         /// <summary>0–100 inside the current phase, or null when not measured.</summary>
         public double? PercentWithinPhase { get; }
 
-        public RunProgressInfo(string phaseLabel, double overallPercent, double? percentWithinPhase = null)
+        /// <summary>Points handled so far in this phase, or null when not counted.</summary>
+        public int? ItemsDone { get; }
+
+        /// <summary>Total points in this phase, or null when not counted.</summary>
+        public int? ItemsTotal { get; }
+
+        public RunProgressInfo(string phaseLabel, double overallPercent, double? percentWithinPhase = null,
+            int? itemsDone = null, int? itemsTotal = null)
         {
+            ItemsDone = itemsDone;
+            ItemsTotal = itemsTotal;
             PhaseLabel = phaseLabel;
             OverallPercent = overallPercent;
             PercentWithinPhase = percentWithinPhase;

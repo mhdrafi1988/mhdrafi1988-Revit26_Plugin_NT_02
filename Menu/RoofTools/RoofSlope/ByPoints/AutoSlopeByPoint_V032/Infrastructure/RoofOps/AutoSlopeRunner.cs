@@ -104,7 +104,7 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V032.Infrastructure.RoofOps
             var graphClock = Stopwatch.StartNew();
             var builder = new PathGraphBuilder(
                 prep.Positions, prep.TopFace, maxEdgeFt, prep.Arcs, curveTolFt,
-                pct => progress(RunPhases.Report(RunPhase.BuildingGraph, pct)),
+                pct => progress(RunPhases.Report(RunPhase.BuildingGraph, pct, prep.Positions.Count)),
                 cancel);
             PathGraph graph = builder.Build();
             log(LogLevel.Info, $"Path graph: {graph.VertexCount} points, {graph.EdgeCount} links (max link {request.EffectiveMaxEdgeLengthM:0.##} m), built in {graphClock.Elapsed.TotalSeconds:0.0} s.");
@@ -122,7 +122,7 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V032.Infrastructure.RoofOps
                 tx.Start();
                 applied = ElevationApplier.Apply(
                     prep.Editor, prep.Vertices, prep.Positions, paths, drains.DrainVertices, request,
-                    pct => progress(RunPhases.Report(RunPhase.ApplyingElevations, pct)),
+                    pct => progress(RunPhases.Report(RunPhase.ApplyingElevations, pct, prep.Positions.Count)),
                     cancel);
 
                 progress(RunPhases.Report(RunPhase.PlacingMarkers));

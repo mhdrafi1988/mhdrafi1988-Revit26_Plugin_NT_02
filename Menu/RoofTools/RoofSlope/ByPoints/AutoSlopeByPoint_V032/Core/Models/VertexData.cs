@@ -19,6 +19,9 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V032.Core.Models
         public int VertexIndex { get; set; }
         public Point3 Position { get; set; }
         public bool IsDrain { get; set; }
+
+        /// <summary>True for a roof boundary corner (Revit <c>SlabShapeVertexType.Corner</c>).</summary>
+        public bool IsCorner { get; set; }
         public VertexOutcome Outcome { get; set; }
         public bool WasProcessed => Outcome == VertexOutcome.Processed;
 

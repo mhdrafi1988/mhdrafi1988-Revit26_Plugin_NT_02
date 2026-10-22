@@ -23,6 +23,8 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V032.Core.Models
         public string ColorName { get; set; }
         public double RadiusMm { get; set; } = AutoSlopeConstants.DefaultMarkerRadiusMm;
         public bool ShowOffsetText { get; set; } = true;
+        public bool LabelCornerPoints { get; set; }
+        public bool LabelAllPoints { get; set; }
     }
 
     public class AutoSlopeSettings
