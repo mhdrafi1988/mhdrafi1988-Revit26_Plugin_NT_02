@@ -9,6 +9,13 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.0.1] — 2026-10-22
+
+### Fixed
+- **Roof Tag v18.1.2 and Roof Tag V017** — clicking OK or Cancel in the settings window threw
+  "DialogResult can be set only after Window is created and shown as dialog" and rolled the tool back.
+  The window is modeless, so the buttons now just close it.
+
 ## [6.0.0] — 2026-10-21
 
 ### Changed

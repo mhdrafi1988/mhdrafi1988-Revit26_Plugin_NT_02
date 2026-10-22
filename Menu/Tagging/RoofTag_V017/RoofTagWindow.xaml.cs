@@ -12,17 +12,10 @@ namespace Revit26_Plugin_Revised.RoofTag.V017
             DataContext = new RoofTagViewModel(uiApp);
         }
 
-        private void OnOK(object sender, RoutedEventArgs e)
-        {
-            DialogResult = true;
-            Close();
-        }
+        // Shown modeless (Show), so DialogResult must not be set; just close.
+        private void OnOK(object sender, RoutedEventArgs e) => Close();
 
-        private void OnCancel(object sender, RoutedEventArgs e)
-        {
-            DialogResult = false;
-            Close();
-        }
+        private void OnCancel(object sender, RoutedEventArgs e) => Close();
 
         private void CopySelectedLog_Click(object sender, System.Windows.RoutedEventArgs e) => LogClipboardService.CopySelected(LogList.SelectedItems);
     }
