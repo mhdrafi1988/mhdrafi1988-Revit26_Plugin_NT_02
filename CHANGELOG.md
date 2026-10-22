@@ -9,12 +9,17 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
-## [6.0.2] — 2026-10-22
+## [6.1.0] — 2026-10-22
+
+### Added
+- **Auto Slope By Point v32.2.0** — "Longest 10 paths" now shows the elevation each path gives at 1 %, 1.5 % and 2 % slope (path length × slope, in mm).
 
 ### Changed
-- **Auto Slope By Point v32.1.1** — the window is more compact: smaller default size (1000 × 640), tighter spacing in the option sections and results grid, and the "Every run", options and log area is about 30 % shorter.
+- **Auto Slope By Point v32.2.0** — the Longest 10 table drops VertexIndex, DrainIndex, ElevCalc_mm and ElevDiff_mm (narrower grid); "Copy rows" follows the same columns. The Excel workbook and the Skipped points table are unchanged.
+- The Drains, Slope (%) and Max drainage distance fields in "Every run" now line up on one row.
+- The window is more compact: smaller default size (1000 × 640), tighter spacing, and the "Every run", options and log area is about 30 % shorter.
 
-**User note:** layout only; no settings or behaviour changed.
+**User note:** display only; the slope calculation and the Excel export are unchanged.
 
 ## [6.0.1] — 2026-10-22
 

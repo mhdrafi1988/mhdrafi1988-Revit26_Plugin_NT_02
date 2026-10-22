@@ -461,36 +461,45 @@ converters declared here.
                                         <ColumnDefinition Width="12"/>
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="28"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
 
-                                    <StackPanel Grid.Column="0">
-                                        <TextBlock Text="Drains" Style="{StaticResource FieldLabel}"/>
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto"/>
-                                            </Grid.ColumnDefinitions>
-                                            <TextBlock Text="{Binding DrainCountText}" Style="{StaticResource FieldValue}" FontWeight="SemiBold"
-                                                       TextWrapping="Wrap" VerticalAlignment="Center"/>
-                                            <Button Grid.Column="1" Content="Re-pick" Style="{StaticResource SmallSecondaryButton}" Margin="6,0,0,0"
-                                                    Command="{Binding RepickDrainsCommand}"
-                                                    ToolTip="Pick new drain points in the Revit view without closing this window."/>
-                                        </Grid>
+                                    <!-- Row 0: labels · Row 1: controls (same height, centred) · Row 2: hints / errors -->
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Drains" Style="{StaticResource FieldLabel}"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="2" Text="Slope (%)" Style="{StaticResource FieldLabel}"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="4" Text="Max drainage distance (m)" Style="{StaticResource FieldLabel}"/>
+
+                                    <Grid Grid.Row="1" Grid.Column="0" VerticalAlignment="Center">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="{Binding DrainCountText}" Style="{StaticResource FieldValue}" FontWeight="SemiBold"
+                                                   TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                                        <Button Grid.Column="1" Content="Re-pick" Style="{StaticResource SmallSecondaryButton}" Margin="6,0,0,0"
+                                                VerticalAlignment="Center"
+                                                Command="{Binding RepickDrainsCommand}"
+                                                ToolTip="Pick new drain points in the Revit view without closing this window."/>
+                                    </Grid>
+                                    <ComboBox Grid.Row="1" Grid.Column="2" VerticalAlignment="Center"
+                                              ItemsSource="{Binding SlopeOptions}" IsEditable="True" IsTextSearchEnabled="False"
+                                              Text="{Binding SlopeText, UpdateSourceTrigger=PropertyChanged}"
+                                              ToolTip="Pick a preset or type any value between 0.1 and 10 %."/>
+                                    <TextBox Grid.Row="1" Grid.Column="4" Style="{StaticResource BorderlessTextInput}" MaxLength="8"
+                                             VerticalAlignment="Center"
+                                             Text="{Binding MaxDrainDistanceText, UpdateSourceTrigger=PropertyChanged}"/>
+
+                                    <StackPanel Grid.Row="2" Grid.Column="0">
                                         <TextBlock Text="{Binding RoofLevelText}" Style="{StaticResource HintText}"/>
                                     </StackPanel>
-
-                                    <StackPanel Grid.Column="2">
-                                        <TextBlock Text="Slope (%)" Style="{StaticResource FieldLabel}"/>
-                                        <ComboBox ItemsSource="{Binding SlopeOptions}" IsEditable="True" IsTextSearchEnabled="False"
-                                                  Text="{Binding SlopeText, UpdateSourceTrigger=PropertyChanged}"
-                                                  ToolTip="Pick a preset or type any value between 0.1 and 10 %."/>
+                                    <StackPanel Grid.Row="2" Grid.Column="2">
                                         <TextBlock Text="{Binding SlopeHint}" Style="{StaticResource CalcHint}"/>
                                         <TextBlock Text="{Binding SlopeError}" Style="{StaticResource FieldError}"/>
                                     </StackPanel>
-
-                                    <StackPanel Grid.Column="4">
-                                        <TextBlock Text="Max drainage distance (m)" Style="{StaticResource FieldLabel}"/>
-                                        <TextBox Style="{StaticResource BorderlessTextInput}" MaxLength="8"
-                                                 Text="{Binding MaxDrainDistanceText, UpdateSourceTrigger=PropertyChanged}"/>
+                                    <StackPanel Grid.Row="2" Grid.Column="4">
                                         <TextBlock Text="Points further from every drain stay at 0." Style="{StaticResource HintText}"/>
                                         <TextBlock Text="{Binding MaxDrainDistanceError}" Style="{StaticResource FieldError}"/>
                                     </StackPanel>
@@ -730,16 +739,15 @@ converters declared here.
                                           shell:ShellBehaviors.ForwardMouseWheel="True">
                                     <DataGrid.Columns>
                                         <DataGridTextColumn Header="#" Binding="{Binding RowNumber}" Width="28" ElementStyle="{StaticResource RowNumText}"/>
-                                        <DataGridTextColumn Header="VertexIndex" Binding="{Binding VertexIndex}" Width="Auto" ElementStyle="{StaticResource NumText}"/>
-                                        <DataGridTextColumn Header="DrainIndex" Binding="{Binding DrainIndexText}" Width="Auto" ElementStyle="{StaticResource NumText}"/>
                                         <DataGridTextColumn Header="PathLength_m" Binding="{Binding PathLengthText}" Width="Auto" ElementStyle="{StaticResource NumText}"/>
-                                        <DataGridTextColumn Header="ElevCalc_mm" Binding="{Binding ElevCalcText}" Width="Auto"
-                                                            HeaderStyle="{StaticResource CalcHeader}" ElementStyle="{StaticResource NumText}"/>
                                         <DataGridTextColumn Header="ElevModel_mm" Binding="{Binding ElevModelText}" Width="Auto"
                                                             HeaderStyle="{StaticResource ModelHeader}" ElementStyle="{StaticResource NumText}"/>
-                                        <DataGridTextColumn Header="ElevDiff_mm" Binding="{Binding ElevDiffText}" Width="*"
-                                                            HeaderStyle="{StaticResource DiffHeader}" CellStyle="{StaticResource DiffCell}"
-                                                            ElementStyle="{StaticResource NumText}"/>
+                                        <DataGridTextColumn Header="1 % (mm)" Binding="{Binding Elev1Text}" Width="Auto"
+                                                            HeaderStyle="{StaticResource CalcHeader}" ElementStyle="{StaticResource NumText}"/>
+                                        <DataGridTextColumn Header="1.5 % (mm)" Binding="{Binding Elev15Text}" Width="Auto"
+                                                            HeaderStyle="{StaticResource CalcHeader}" ElementStyle="{StaticResource NumText}"/>
+                                        <DataGridTextColumn Header="2 % (mm)" Binding="{Binding Elev2Text}" Width="*"
+                                                            HeaderStyle="{StaticResource CalcHeader}" ElementStyle="{StaticResource NumText}"/>
                                     </DataGrid.Columns>
                                 </DataGrid>
 

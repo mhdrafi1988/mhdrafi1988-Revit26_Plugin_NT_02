@@ -27,6 +27,9 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V032.UI.ViewModels
         public string ElevCalcText { get; init; }
         public string ElevModelText { get; init; }
         public string ElevDiffText { get; init; }
+        public string Elev1Text { get; init; }
+        public string Elev15Text { get; init; }
+        public string Elev2Text { get; init; }
         public bool IsAdjusted { get; init; }
         public bool IsTop { get; init; }
         public string Status { get; init; }
@@ -47,11 +50,18 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V032.UI.ViewModels
                 ElevCalcText = Math.Round(v.ElevationCalcMm).ToString("0", Inv),
                 ElevModelText = v.HasModelValue ? Math.Round(v.ElevationModelMm).ToString("0", Inv) : "—",
                 ElevDiffText = !v.HasModelValue ? "—" : diff > 0 ? "+" + diff.ToString("0", Inv) : diff.ToString("0", Inv),
+                Elev1Text = ElevAt(v.PathLengthMeters, 1.0),
+                Elev15Text = ElevAt(v.PathLengthMeters, 1.5),
+                Elev2Text = ElevAt(v.PathLengthMeters, 2.0),
                 IsAdjusted = v.HasModelValue && diff != 0,
                 IsTop = rowNumber == 1,
                 Position = v.Position
             };
         }
+
+        /// <summary>Elevation (mm) a path of <paramref name="pathMeters"/> gives at <paramref name="slopePercent"/> %.</summary>
+        private static string ElevAt(double pathMeters, double slopePercent)
+            => Math.Round(pathMeters * 1000.0 * slopePercent / 100.0).ToString("0", Inv);
 
         public static ResultRow FromSkipped(VertexData v, int rowNumber)
         {
@@ -68,12 +78,12 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V032.UI.ViewModels
         }
 
         public static string Header(ResultsTab tab) => tab == ResultsTab.Longest
-            ? "#\tVertexIndex\tDrainIndex\tPathLength_m\tElevCalc_mm\tElevModel_mm\tElevDiff_mm"
+            ? "#\tPathLength_m\tElevModel_mm\tElev_1%_mm\tElev_1.5%_mm\tElev_2%_mm"
             : "#\tVertexIndex\tStatus\tPathLength_m\tSuggested fix";
 
         /// <summary>Tab-separated, so a paste into Excel lands in columns.</summary>
         public string ToTsv(ResultsTab tab) => tab == ResultsTab.Longest
-            ? $"{RowNumber}\t{VertexIndex}\t{DrainIndexText}\t{PathLengthText}\t{ElevCalcText}\t{ElevModelText}\t{ElevDiffText}"
+            ? $"{RowNumber}\t{PathLengthText}\t{ElevModelText}\t{Elev1Text}\t{Elev15Text}\t{Elev2Text}"
             : $"{RowNumber}\t{VertexIndex}\t{Status}\t{PathLengthText}\t{Fix}";
     }
 }
