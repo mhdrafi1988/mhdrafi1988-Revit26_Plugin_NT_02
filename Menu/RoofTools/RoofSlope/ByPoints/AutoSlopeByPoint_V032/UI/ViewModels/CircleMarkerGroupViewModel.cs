@@ -42,7 +42,7 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V032.UI.ViewModels
             && ColorName == _defaultColor
             && ReferenceEquals(SelectedLineStyle, _defaultLineStyle)
             && Same(RadiusText, AutoSlopeConstants.DefaultMarkerRadiusMm)
-            && (!HasOffsetTextOption || ShowOffsetText)
+            && (!HasOffsetTextOption || (ShowOffsetText && !LabelCornerPoints && !LabelAllPoints))
             && (!HasThresholdOption || Same(ThresholdText, AutoSlopeConstants.DefaultAllowedOffsetThresholdMm));
 
         public void ResetToDefaults()
@@ -53,6 +53,8 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V032.UI.ViewModels
             RadiusText = InputParsing.Format(AutoSlopeConstants.DefaultMarkerRadiusMm);
             ThresholdText = InputParsing.Format(AutoSlopeConstants.DefaultAllowedOffsetThresholdMm);
             ShowOffsetText = true;
+            LabelCornerPoints = false;
+            LabelAllPoints = false;
         }
 
         private static bool Same(string text, double expected) =>
@@ -85,6 +87,16 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V032.UI.ViewModels
 
         [ObservableProperty]
         private bool showOffsetText = true;
+
+        [ObservableProperty]
+        private bool labelCornerPoints;
+
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(CanLabelCorners))]
+        private bool labelAllPoints;
+
+        /// <summary>The corner tick is redundant (and disabled) while "all points" is ticked.</summary>
+        public bool CanLabelCorners => !LabelAllPoints;
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(ChipText))]
@@ -131,7 +143,9 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V032.UI.ViewModels
                 SelectedLineStyle?.Name,
                 ColorName,
                 radius,
-                HasOffsetTextOption && ShowOffsetText);
+                HasOffsetTextOption && ShowOffsetText,
+                HasOffsetTextOption && LabelCornerPoints,
+                HasOffsetTextOption && LabelAllPoints);
         }
 
         public void Apply(CircleMarkerGroupSettings saved)
@@ -141,6 +155,8 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V032.UI.ViewModels
             if (NamedColors.IsKnown(saved.ColorName)) ColorName = saved.ColorName;
             if (saved.RadiusMm > 0) RadiusText = InputParsing.Format(saved.RadiusMm);
             ShowOffsetText = saved.ShowOffsetText;
+            LabelCornerPoints = saved.LabelCornerPoints;
+            LabelAllPoints = saved.LabelAllPoints;
 
             if (!string.IsNullOrWhiteSpace(saved.LineStyleName))
             {
@@ -158,7 +174,9 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V032.UI.ViewModels
                 LineStyleName = SelectedLineStyle?.Name,
                 ColorName = ColorName,
                 RadiusMm = radius > 0 ? radius : AutoSlopeConstants.DefaultMarkerRadiusMm,
-                ShowOffsetText = ShowOffsetText
+                ShowOffsetText = ShowOffsetText,
+                LabelCornerPoints = LabelCornerPoints,
+                LabelAllPoints = LabelAllPoints
             };
         }
     }

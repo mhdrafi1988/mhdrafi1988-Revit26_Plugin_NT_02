@@ -435,9 +435,12 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V032.UI.ViewModels
             IsIndeterminate = false;
             Progress = Math.Max(Progress, info.OverallPercent);
             string within = info.PercentWithinPhase.HasValue ? $" · {info.PercentWithinPhase.Value:0} %" : string.Empty;
+            string items = info.ItemsTotal.HasValue
+                ? $" · {info.ItemsDone} done / {info.ItemsTotal - info.ItemsDone} remaining of {info.ItemsTotal} points"
+                : string.Empty;
             SummaryText = _cts?.IsCancellationRequested == true
                 ? "Cancelling…"
-                : $"Started {_runStart:HH:mm:ss} · {info.PhaseLabel}{within}";
+                : $"Started {_runStart:HH:mm:ss} · {Progress:0} % · {info.PhaseLabel}{within}{items}";
 
             if ((DateTime.Now - _lastPump).TotalMilliseconds >= PumpIntervalMs)
             {

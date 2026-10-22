@@ -65,7 +65,8 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V032.Infrastructure.RoofOps
                 {
                     VertexIndex = i,
                     Position = positions[i].ToPoint3(),
-                    IsDrain = drainOrdinal.ContainsKey(i)
+                    IsDrain = drainOrdinal.ContainsKey(i),
+                    IsCorner = vertices[i].VertexType == SlabShapeVertexType.Corner
                 };
 
                 if (double.IsInfinity(pathFt))

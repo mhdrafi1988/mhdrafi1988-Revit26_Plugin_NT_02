@@ -9,6 +9,17 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.1.0] — 2026-10-22
+
+### Added
+- **Auto Slope By Point v32.2.0** — two new ticks under the Highest Point text-note option:
+  "Write the offset on all corner points" and "Write the offset on all points". Each adds a red
+  "Offset: X mm" note with a leader showing that point's own offset.
+- **Auto Slope By Point v32.2.0** — the status bar now shows overall % plus points done and remaining
+  while graph building and elevations are applied.
+
+**User note:** both options are off by default; existing behaviour and saved settings are unchanged.
+
 ## [6.0.0] — 2026-10-21
 
 ### Changed

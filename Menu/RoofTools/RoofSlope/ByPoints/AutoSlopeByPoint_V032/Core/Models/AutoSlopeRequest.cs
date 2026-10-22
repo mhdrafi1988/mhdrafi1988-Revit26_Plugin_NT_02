@@ -20,7 +20,9 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V032.Core.Models
         string LineStyleName,
         string ColorName,
         double RadiusMm,
-        bool ShowOffsetText);
+        bool ShowOffsetText,
+        bool LabelCornerPoints = false,
+        bool LabelAllPoints = false);
 
     public sealed record AutoSlopeRequest
     {

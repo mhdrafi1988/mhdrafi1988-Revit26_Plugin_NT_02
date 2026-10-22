@@ -86,9 +86,21 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V032.Infrastructure.RoofOps
                 foreach (Point3 c in centres)
                 {
                     if (PlaceOneCircle(doc, plan, c, viewElevFt, highStyle, log)) counts.Highest++;
-                    if (highStyle.ShowOffsetText) PlaceHighestPointLabel(doc, plan, c, viewElevFt, maxMm, log);
+                    if (highStyle.ShowOffsetText) PlaceOffsetLabel(doc, plan, c, viewElevFt, maxMm, log);
                 }
                 log(LogLevel.Success, $"Circle markers: {counts.Highest} highest-point circle(s) at {maxMm:0} mm.");
+            }
+
+            // ── Offset text on every corner / every point (no circles) ────
+            if (highStyle?.IsEnabled == true && (highStyle.LabelAllPoints || highStyle.LabelCornerPoints))
+            {
+                var labelRows = processed
+                    .Where(r => !highestIndices.Contains(r.VertexIndex) && (highStyle.LabelAllPoints || r.IsCorner))
+                    .ToList();
+                int labelled = 0;
+                foreach (VertexData r in labelRows)
+                    if (PlaceOffsetLabel(doc, plan, r.Position, viewElevFt, Math.Round(r.ElevationCalcMm), log)) labelled++;
+                log(LogLevel.Success, $"Circle markers: {labelled} offset label(s) on {(highStyle.LabelAllPoints ? "all" : "corner")} points.");
             }
 
             // ── Allowed offset (excluding points already marked highest) ──
@@ -173,7 +185,8 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V032.Infrastructure.RoofOps
             }
         }
 
-        private static void PlaceHighestPointLabel(Document doc, View view, Point3 centrePt, double viewElevFt, double offsetMm, Action<LogLevel, string> log)
+        /// <summary>Places a red "Offset: X mm" text note with a leader at the point; false when it could not be placed.</summary>
+        private static bool PlaceOffsetLabel(Document doc, View view, Point3 centrePt, double viewElevFt, double offsetMm, Action<LogLevel, string> log)
         {
             try
             {
@@ -181,7 +194,7 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V032.Infrastructure.RoofOps
                 if (typeId == null || typeId == ElementId.InvalidElementId)
                 {
                     log(LogLevel.Warning, "Circle markers: no text note type available; highest-point label skipped.");
-                    return;
+                    return false;
                 }
 
                 double gapFt = RevitConvert.MmToFt(AutoSlopeConstants.HighestPointLabelOffsetMm);
@@ -191,10 +204,12 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V032.Infrastructure.RoofOps
                 TextNote note = TextNote.Create(doc, view.Id, textPos, $"Offset: {offsetMm:0} mm", typeId);
                 Leader leader = note.AddLeader(TextNoteLeaderTypes.TNLT_STRAIGHT_L);
                 leader.End = point;
+                return true;
             }
             catch (Exception ex)
             {
                 log(LogLevel.Warning, $"Circle markers: highest-point label could not be placed ({ex.Message}).");
+                return false;
             }
         }
 

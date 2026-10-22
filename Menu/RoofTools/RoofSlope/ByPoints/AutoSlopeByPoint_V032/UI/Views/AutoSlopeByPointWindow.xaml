@@ -262,6 +262,16 @@ converters declared here.
                               Visibility="{Binding HasOffsetTextOption, Converter={StaticResource BoolToVisibility}}">
                         <TextBlock Text="Add an “Offset: X mm” text note with a leader" Style="{StaticResource FieldValue}" FontSize="12.5"/>
                     </CheckBox>
+                    <CheckBox Margin="22,4,0,0" IsEnabled="{Binding CanLabelCorners}" IsChecked="{Binding LabelCornerPoints}"
+                              Visibility="{Binding HasOffsetTextOption, Converter={StaticResource BoolToVisibility}}"
+                              ToolTip="Also writes an &quot;Offset: X mm&quot; note with a leader at every roof corner point.">
+                        <TextBlock Text="Write the offset on all corner points" Style="{StaticResource FieldValue}" FontSize="12.5"/>
+                    </CheckBox>
+                    <CheckBox Margin="22,4,0,0" IsEnabled="{Binding IsEnabled}" IsChecked="{Binding LabelAllPoints}"
+                              Visibility="{Binding HasOffsetTextOption, Converter={StaticResource BoolToVisibility}}"
+                              ToolTip="Also writes an &quot;Offset: X mm&quot; note with a leader at every processed point (includes corners).">
+                        <TextBlock Text="Write the offset on all points" Style="{StaticResource FieldValue}" FontSize="12.5"/>
+                    </CheckBox>
 
                     <StackPanel Margin="22,6,0,0" IsEnabled="{Binding IsEnabled}"
                                 Visibility="{Binding HasThresholdOption, Converter={StaticResource BoolToVisibility}}">

@@ -46,14 +46,15 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V032.Core.Services
         };
 
         /// <summary>Progress snapshot for a phase, optionally part-way through it (0–100).</summary>
-        public static RunProgressInfo Report(RunPhase phase, double? percentWithinPhase = null)
+        public static RunProgressInfo Report(RunPhase phase, double? percentWithinPhase = null, int? itemsTotal = null)
         {
             foreach (var row in Table)
             {
                 if (row.Phase != phase) continue;
                 double within = Math.Max(0, Math.Min(100, percentWithinPhase ?? 0));
                 double overall = row.Start + (row.End - row.Start) * within / 100.0;
-                return new RunProgressInfo(row.Label, overall, percentWithinPhase);
+                int? done = itemsTotal.HasValue ? (int)Math.Round(within * itemsTotal.Value / 100.0) : null;
+                return new RunProgressInfo(row.Label, overall, percentWithinPhase, done, itemsTotal);
             }
             return new RunProgressInfo(phase.ToString(), 0, percentWithinPhase);
         }
