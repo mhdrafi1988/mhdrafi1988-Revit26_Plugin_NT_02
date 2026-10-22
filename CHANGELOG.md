@@ -9,6 +9,29 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.3.0] — 2026-10-22
+
+### Added
+- **Detail Line Manager v1.0.0** (new tool, Detail Lines panel → **Line Manager**). A modeless window to find and
+  clean up detail lines (lines, arcs, splines and ellipses; linked models and filled-region / sketch boundaries are left out):
+  - **Scope:** Selected · Active view (default) · Views on sheets · Whole project.
+  - **Advanced search:** text over line style, view name, element ID and comment (optional regular expression),
+    line-style checklist, view type, line weight 1–16, length min/max (mm), curve type and workset.
+  - **Show only:** duplicates / overlapping, shorter than a tolerance (default 5 mm), in groups, owned by other users.
+  - **Results grid** (sortable): ID, line style, weight ("ovr" when a view override is set), view, view type, length (mm),
+    curve, workset and flags, with live found / checked / duplicate / short / unused-style counts.
+    **Select in Revit** and **Show element**.
+  - **Delete unused:** unused line styles (checked against every curve in the project; built-in styles are never listed),
+    duplicate / overlapping lines (keep oldest ID, newest ID or heaviest weight) and short lines. **Preview** is a dry run;
+    **Delete checked** and **Delete all found** ask for confirmation in the window first.
+  - **Line thickness:** assign a line style, change the line weight of the styles the lines use (project-wide, with a warning),
+    or set / clear a per-view line weight override.
+  - Lines in groups and elements owned by other users are skipped and logged. Each action is one Revit undo step and rolls
+    back completely on any error. Filters and options are remembered in
+    `%AppData%\Revit26_Plugin_Revised\DetailLineManager\settings.json` (with a `Version` field).
+
+**User note:** new button only; existing tools and buttons are unchanged.
+
 ## [6.2.0] — 2026-10-22
 
 ### Added
