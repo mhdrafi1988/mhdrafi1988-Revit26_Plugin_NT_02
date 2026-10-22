@@ -9,27 +9,29 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
-## [6.4.3] — 2026-10-22
+## [6.5.1] — 2026-10-22
 
 ### Fixed
-- **"An ItemsControl is inconsistent with its items source" in log lists.** Same fix as Section Auto Renamer v26.1.2, applied to
-  every remaining window that scrolled its log from inside the list-changed event (the log now scrolls after the list has
-  updated). Tools bumped: **Auto Slope By Point v32.3.1**, **Auto Slope By Drain (Multi-Roof) v13.1.3**,
-  **Outer Curve Divider v6.0.2**, **Multiple Points v3.0.2**, **Creaser Adv v12.0.2**, **Combined Roof Tools v3.1.2**,
-  **Roof Type Manager v3.1.2**, **Plan From Scope Box v6.1.2**, **Roof Shape From Link v2.0.1**,
-  **Create Sections From Detail Lines v13.1.2**, **View Auto Renamer v6.1.2**. Older coexisting versions of these tools and
-  Section Auto Renamer V025 got the same fix (they have no separate version entry).
+- **"An ItemsControl is inconsistent with its items source" in log lists.** Windows scrolled their log from inside the
+  list-changed event, which made WPF throw when several lines arrived at once. The log now scrolls after the list has
+  updated. Tools bumped: **Section Auto Renamer v26.1.2**, **Auto Slope By Point v32.3.1**,
+  **Auto Slope By Drain (Multi-Roof) v13.1.3**, **Outer Curve Divider v6.0.2**, **Multiple Points v3.0.2**,
+  **Creaser Adv v12.0.2**, **Combined Roof Tools v3.1.2**, **Roof Type Manager v3.1.2**, **Plan From Scope Box v6.1.2**,
+  **Roof Shape From Link v2.0.1**, **Create Sections From Detail Lines v13.1.2**, **View Auto Renamer v6.1.2** (V006) and **v7.0.1** (V007).
+  Older coexisting versions (e.g. Section Auto Renamer V025, View Auto Renamer V005) got the same fix without a version entry.
 
 **User note:** no behaviour change beyond the fix.
 
-## [6.4.2] — 2026-10-22
+## [6.5.0] — 2026-10-22
 
-### Fixed
-- **Section Auto Renamer v26.1.2** — the window no longer crashes with "An ItemsControl is inconsistent with its items
-  source" when several log lines arrive at once (e.g. during a rename). The log now scrolls to the newest line after
-  the list has updated.
+### Added
+- **View Auto Renamer v7.0.0 (V007)** — opens much faster on large projects. It is the top entry in the **Auto Renamer**
+  dropdown; V006 and V005 stay below it, unchanged.
+  - Sheet placements for legends and schedules are found with two project-wide searches instead of two searches per sheet.
+  - The views grid only builds the rows it shows when the window opens, instead of a row for every view in the project.
+  - Errors now go through the plugin's standard error dialog and log (`%AppData%\Revit26_Plugin_Revised\Logs`).
 
-**User note:** no behaviour change beyond the fix.
+**User note:** renaming, filters and settings work the same as V006 and share its settings file.
 
 ## [6.4.1] — 2026-10-22
 
