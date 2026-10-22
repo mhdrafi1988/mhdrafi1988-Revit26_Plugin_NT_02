@@ -9,6 +9,38 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.4.0] — 2026-10-22
+
+### Added
+- **Detail Line Manager v1.1.0**
+  - **Overlapping straight lines:** the search now also finds straight lines of the same style in the same view that lie on
+    top of each other without being exact copies (flag "Overlaps", or "Covered by &lt;id&gt;" when a longer line covers one
+    fully). Delete unused has a new option for them: **Delete covered lines** or **Join into one line** (the longest line is
+    extended over the others, which are then deleted). "Show only duplicates / overlapping" includes them.
+  - **Attached dimensions and tags are shown before deleting.** Delete checked / Delete all found first check the delete in
+    Revit (rolled back, nothing changes) and the confirmation bar says what Revit would remove with the lines, e.g.
+    "12 Dimensions, 3 Generic Annotations". Preview reports the same.
+  - **Keep styles matching** (e.g. `A-*;S-*`): unused styles whose name matches are never deleted. A warning explains that
+    Revit does not report styles used only by the Linework tool.
+  - **Weight column shows the view's Visibility/Graphics weight** ("vg") for the line style (or Lines), read from the view
+    template when it controls V/G. The tooltip shows style, V/G and element-override weights. View filters are not read.
+  - **Group name** in the Flags column and a **Select groups** button.
+  - **Borrow up front:** in workshared models each change first borrows all the elements it needs in one call and logs
+    how many were borrowed and which are owned by other users (those are skipped), before anything changes.
+  - **Progress and Cancel:** searches run in short steps with a progress count in the status strip and a **Cancel search**
+    button; Revit stays usable during a long whole-project search. Cancelling keeps the previous results.
+  - **Search when the window opens** setting (on by default).
+
+### Changed
+- **Detail Line Manager v1.1.0** — line-style usage across the project is counted only while the **Delete unused** tab is
+  open (switching to it counts it), which makes searches from the Line thickness tab faster. The settings file is now
+  format version 2; version 1 files load unchanged.
+- Plugin `<Version>` set to 6.4.0 (the 6.3.1 bump had not reached the project file).
+
+**User note:** existing options behave as before; the overlap option is off by default and searching on open stays on.
+Before each change in a workshared model the tool now borrows the elements first, so elements owned by others are
+listed and skipped before the change instead of during it.
+
 ## [6.3.1] — 2026-10-22
 
 ### Fixed

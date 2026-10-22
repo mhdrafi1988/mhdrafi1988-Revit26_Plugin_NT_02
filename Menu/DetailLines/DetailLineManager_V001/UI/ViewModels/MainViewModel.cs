@@ -9,6 +9,7 @@ using Revit26_Plugin_Revised.Shared.Models;
 using Revit26_Plugin_Revised.Shared.Services;
 using Revit26_Plugin_Revised.Shared.ViewModels;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
@@ -36,6 +37,12 @@ namespace Revit26_Plugin_Revised.DetailLineManager.V001.UI.ViewModels
         private readonly Dispatcher _dispatcher;
         private bool _loadingSettings;
         private bool _suspendRefresh;
+        private bool _closed;
+        private ScanJob _scan;
+        private HashSet<long> _keepChecked;
+
+        // Work done per external-event call while searching; Revit is idle between calls.
+        private static readonly TimeSpan StepBudget = TimeSpan.FromMilliseconds(150);
 
         /// <summary>Detail lines from the last Find lines run.</summary>
         public ObservableCollection<DetailLineRow> Rows { get; } = new();
@@ -64,7 +71,22 @@ namespace Revit26_Plugin_Revised.DetailLineManager.V001.UI.ViewModels
         /// <summary>Scope text of the last search.</summary>
         [ObservableProperty] private string lastScopeText = "Not searched yet";
 
-        /// <summary>Creates the view model for the active document and starts the first search.</summary>
+        /// <summary>True while a search or usage count is running (shows Cancel search).</summary>
+        [ObservableProperty] private bool isSearching;
+
+        /// <summary>True while the current step has no known total (the progress bar then just moves).</summary>
+        [ObservableProperty] private bool isProgressIndeterminate = true;
+
+        /// <summary>True when line-style usage was counted for the current styles (needed by Delete unused).</summary>
+        [ObservableProperty] private bool usageCounted;
+
+        /// <summary>Selected action tab: 0 Delete unused, 1 Line thickness. Usage is counted only on tab 0.</summary>
+        [ObservableProperty] private int selectedTabIndex;
+
+        /// <summary>Search the scope as soon as the window opens.</summary>
+        [ObservableProperty] private bool searchOnOpen = true;
+
+        /// <summary>Creates the view model for the active document and, unless turned off, starts the first search.</summary>
         public MainViewModel(UIApplication uiApp)
         {
             _doc = uiApp.ActiveUIDocument.Document;
@@ -77,7 +99,10 @@ namespace Revit26_Plugin_Revised.DetailLineManager.V001.UI.ViewModels
             LoadSettings();
             SummaryText = "Ready";
             Log(LogLevel.Info, $"{ToolCatalog.DetailLineManager.Title} opened on '{_doc.Title}'.");
-            FindLines();
+            if (SearchOnOpen)
+                FindLines();
+            else
+                Log(LogLevel.Info, "Searching when the window opens is off. Choose a scope and click Find lines.");
         }
 
         /// <summary>Document this window works on.</summary>
@@ -108,15 +133,35 @@ namespace Revit26_Plugin_Revised.DetailLineManager.V001.UI.ViewModels
         [RelayCommand(CanExecute = nameof(CanRun))]
         private void FindLines()
         {
-            var scope = Scope;
-            double tol = ToleranceMm;
             SaveSettings();
             HideConfirm();
-            Run($"Searching ({scope})…", app =>
+            StartScan(usageOnly: false, keepChecked: null);
+        }
+
+        /// <summary>Stops the running search at its next step; the grid keeps the previous results.</summary>
+        [RelayCommand]
+        private void Cancel()
+        {
+            if (_scan == null || _scan.IsCancelled) return;
+            _scan.Cancel();
+            Log(LogLevel.Info, "Cancelling…");
+        }
+
+        /// <summary>Selects, in Revit, the groups of the checked lines (or of the highlighted row).</summary>
+        [RelayCommand(CanExecute = nameof(CanRun))]
+        private void SelectGroups()
+        {
+            var rows = CheckedVisibleRows().ToList();
+            if (rows.Count == 0 && SelectedRow != null) rows.Add(SelectedRow);
+            var groupIds = rows.Where(r => r.InGroup).Select(r => r.GroupId).Distinct().ToList();
+            if (groupIds.Count == 0) { Log(LogLevel.Warning, "None of the checked or highlighted lines is in a group."); return; }
+
+            Run("Selecting groups…", app =>
             {
-                var uiDoc = app.ActiveUIDocument;
-                var result = DetailLineScanner.Scan(uiDoc, scope, tol, Log);
-                _dispatcher.Invoke(() => ApplyScan(result));
+                var existing = groupIds.Where(id => _doc.GetElement(id) != null).ToList();
+                app.ActiveUIDocument.Selection.SetElementIds(existing);
+                Log(LogLevel.Success, $"Selected {existing.Count} group(s) in Revit: "
+                    + string.Join(", ", rows.Where(r => r.InGroup).Select(r => r.GroupName).Distinct().Take(10)) + ".");
             });
         }
 
@@ -156,47 +201,22 @@ namespace Revit26_Plugin_Revised.DetailLineManager.V001.UI.ViewModels
 
         // ── Scan result ──────────────────────────────────────────────────
 
-        private void ApplyScan(ScanResult result)
+        private void ApplyScan(ScanResult result, HashSet<long> keepChecked)
         {
             _suspendRefresh = true;
             try
             {
-                foreach (var s in Styles) s.PropertyChanged -= OnStyleCheckedChanged;
-                foreach (var r in Rows) r.PropertyChanged -= OnRowChanged;
+                ApplyStyles(result);
+                if (result.UsageOnly) return;
 
+                foreach (var r in Rows) r.PropertyChanged -= OnRowChanged;
                 Rows.Clear();
                 foreach (var r in result.Rows)
                 {
+                    if (keepChecked != null) r.IsChecked = keepChecked.Contains(r.IdValue);
                     r.PropertyChanged += OnRowChanged;
                     Rows.Add(r);
                 }
-
-                var keepAssign = SelectedAssignStyle?.Name ?? _pendingAssignStyleName;
-                Styles.Clear();
-                foreach (var s in result.Styles)
-                {
-                    s.IsChecked = !_excludedStyles.Contains(s.Name);
-                    s.PropertyChanged += OnStyleCheckedChanged;
-                    Styles.Add(s);
-                }
-
-                UnusedStyles.Clear();
-                foreach (var s in result.Styles.Where(s => s.IsUnused))
-                {
-                    UnusedStyles.Add(new LineStyleItem
-                    {
-                        CategoryId = s.CategoryId,
-                        GraphicsStyleId = s.GraphicsStyleId,
-                        Name = s.Name,
-                        Weight = s.Weight,
-                        UseCount = s.UseCount,
-                        IsBuiltIn = s.IsBuiltIn
-                    });
-                }
-
-                SelectedAssignStyle = Styles.FirstOrDefault(s => s.Name == keepAssign && s.GraphicsStyleId != ElementId.InvalidElementId)
-                    ?? Styles.FirstOrDefault(s => s.Name == "Thin Lines")
-                    ?? Styles.FirstOrDefault();
 
                 ResetOptions(ViewTypeOptions, AllViewTypes, Rows.Select(r => r.ViewTypeName), SelectedViewType, v => SelectedViewType = v);
                 ResetOptions(WorksetOptions, AllWorksets, Rows.Select(r => r.WorksetName), SelectedWorkset, v => SelectedWorkset = v);
@@ -206,11 +226,45 @@ namespace Revit26_Plugin_Revised.DetailLineManager.V001.UI.ViewModels
             finally
             {
                 _suspendRefresh = false;
+                RebuildFilter();
             }
-            RebuildFilter();
         }
 
-        private void ResetOptions(ObservableCollection<string> options, string all, System.Collections.Generic.IEnumerable<string> values,
+        // Replaces the style lists, keeping each style's search tick (by name) and the Assign choice.
+        private void ApplyStyles(ScanResult result)
+        {
+            var excluded = Styles.Count > 0
+                ? new HashSet<string>(Styles.Where(s => !s.IsChecked).Select(s => s.Name), StringComparer.CurrentCultureIgnoreCase)
+                : _excludedStyles;
+            var unticked = new HashSet<string>(UnusedStyles.Where(s => !s.IsChecked && !s.IsKeptByPattern).Select(s => s.Name),
+                                               StringComparer.CurrentCultureIgnoreCase);
+
+            foreach (var s in Styles) s.PropertyChanged -= OnStyleCheckedChanged;
+            var keepAssign = SelectedAssignStyle?.Name ?? _pendingAssignStyleName;
+            Styles.Clear();
+            foreach (var s in result.Styles)
+            {
+                s.IsChecked = !excluded.Contains(s.Name);
+                s.PropertyChanged += OnStyleCheckedChanged;
+                Styles.Add(s);
+            }
+
+            UnusedStyles.Clear();
+            foreach (var s in result.Styles.Where(s => s.IsUnused))
+            {
+                var copy = s.Clone();
+                copy.IsChecked = !unticked.Contains(s.Name);
+                UnusedStyles.Add(copy);
+            }
+            UsageCounted = result.UsageCounted;
+            ApplyKeepPatterns();
+
+            SelectedAssignStyle = Styles.FirstOrDefault(s => s.Name == keepAssign && s.GraphicsStyleId != ElementId.InvalidElementId)
+                ?? Styles.FirstOrDefault(s => s.Name == "Thin Lines")
+                ?? Styles.FirstOrDefault();
+        }
+
+        private void ResetOptions(ObservableCollection<string> options, string all, IEnumerable<string> values,
                                   string current, Action<string> restore)
         {
             options.Clear();
@@ -232,6 +286,7 @@ namespace Revit26_Plugin_Revised.DetailLineManager.V001.UI.ViewModels
             IsRunning = busy;
             FindLinesCommand.NotifyCanExecuteChanged();
             SelectInRevitCommand.NotifyCanExecuteChanged();
+            SelectGroupsCommand.NotifyCanExecuteChanged();
             ShowElementCommand.NotifyCanExecuteChanged();
             PreviewDeleteCommand.NotifyCanExecuteChanged();
             DeleteCheckedCommand.NotifyCanExecuteChanged();
@@ -287,6 +342,119 @@ namespace Revit26_Plugin_Revised.DetailLineManager.V001.UI.ViewModels
             }
         }
 
+        // ── Searching in steps ───────────────────────────────────────────
+
+        // Starts a search (or a usage-only count). Each step runs in one external-event call and the
+        // next is raised once Revit is idle again, so the window and Revit stay responsive.
+        private void StartScan(bool usageOnly, HashSet<long> keepChecked)
+        {
+            if (IsRunning || _closed) return;
+            var job = new ScanJob(Scope, ToleranceMm, countUsage: usageOnly || SelectedTabIndex == 0, usageOnly, Log);
+            _scan = job;
+            _keepChecked = keepChecked;
+            IsSearching = true;
+            SetBusy(true);
+            Progress = 0;
+            IsProgressIndeterminate = true;
+            SummaryText = usageOnly ? "Counting line style usage…" : $"Searching ({Scope})…";
+            QueueScanStep(job);
+        }
+
+        private void QueueScanStep(ScanJob job)
+        {
+            _handler.Queue(app => ScanStep(app, job));
+            if (_externalEvent.Raise() is ExternalEventRequest.Denied or ExternalEventRequest.TimedOut)
+            {
+                Log(LogLevel.Error, "Revit is busy (a dialog or edit mode is open). Finish it and click Find lines again.");
+                EndScan(job);
+            }
+        }
+
+        // Runs in the Revit API context.
+        private void ScanStep(UIApplication app, ScanJob job)
+        {
+            bool finished = true;
+            try
+            {
+                if (job.IsCancelled || _closed) return;
+                var doc = app.ActiveUIDocument?.Document;
+                if (doc == null || !doc.Equals(_doc))
+                {
+                    Log(LogLevel.Error, $"The active document is not '{_doc.Title}'. The search stopped; switch back and click Find lines.");
+                    job.Cancel();
+                    return;
+                }
+
+                finished = job.Step(app.ActiveUIDocument, StepBudget);
+                if (!finished)
+                {
+                    _dispatcher.Invoke(() => ShowProgress(job));
+                }
+                else if (!job.IsCancelled)
+                {
+                    var keep = _keepChecked;
+                    _dispatcher.Invoke(() => ApplyScan(job.Result, keep));
+                }
+            }
+            catch (Exception ex)
+            {
+                finished = true;
+                Log(LogLevel.Error, $"Search stopped: {ex.Message} Nothing in the model was changed.");
+                ToolGuard.Report(GetType(), ex);
+            }
+            finally
+            {
+                if (finished)
+                {
+                    _dispatcher.Invoke(() => EndScan(job));
+                }
+                else
+                {
+                    // Raise the next step after this call returns, so Revit gets an idle moment in between.
+                    _dispatcher.BeginInvoke(new Action(() =>
+                    {
+                        if (_closed || job.IsCancelled) EndScan(job);
+                        else QueueScanStep(job);
+                    }));
+                }
+            }
+        }
+
+        private void ShowProgress(ScanJob job)
+        {
+            IsProgressIndeterminate = job.Total <= 0;
+            Progress = job.Total > 0 ? 100.0 * job.Done / job.Total : 0;
+            SummaryText = job.Total > 0 ? $"{job.Phase}… {job.Done:N0} of {job.Total:N0}" : $"{job.Phase}…";
+        }
+
+        private void EndScan(ScanJob job)
+        {
+            if (!ReferenceEquals(_scan, job)) return;
+            _scan = null;
+            _keepChecked = null;
+            IsSearching = false;
+            if (job.IsCancelled && !_closed)
+                Log(LogLevel.Info, job.Result.UsageOnly
+                    ? "Usage count cancelled; unused line styles are not listed."
+                    : "Search cancelled; the grid still shows the previous results.");
+
+            SetBusy(false);
+            Progress = 0;
+            IsProgressIndeterminate = true;
+            UpdateCounts();
+
+            // Tab switched to Delete unused during a search that did not count usage: count it now.
+            if (!_closed && !job.IsCancelled && !job.Result.UsageOnly && SelectedTabIndex == 0 && !UsageCounted)
+                _dispatcher.BeginInvoke(new Action(() => StartScan(usageOnly: true, keepChecked: null)));
+        }
+
+        private void OnTabChanged()
+        {
+            if (SelectedTabIndex == 0 && !UsageCounted && !IsRunning && !_closed && Styles.Count > 0)
+                StartScan(usageOnly: true, keepChecked: null);
+            UpdateCounts();
+        }
+
         // ── Settings ──────────────────────────────────────────────────────
 
         private void LoadSettings()
@@ -324,6 +492,11 @@ namespace Revit26_Plugin_Revised.DetailLineManager.V001.UI.ViewModels
                 DeleteShort = s.DeleteShort;
                 SkipBlocked = s.SkipBlocked;
                 KeepRule = s.KeepRule;
+                DeleteOverlaps = s.DeleteOverlaps;
+                OverlapMode = s.OverlapMode;
+                KeepStylePatterns = s.KeepStylePatterns;
+                SearchOnOpen = s.SearchOnOpen;
+                SelectedTabIndex = s.LastTab;
                 ThicknessMode = s.ThicknessMode;
                 Weight = s.Weight;
                 ClearOverrides = s.ClearOverrides;
@@ -368,6 +541,11 @@ namespace Revit26_Plugin_Revised.DetailLineManager.V001.UI.ViewModels
                 DeleteShort = DeleteShort,
                 SkipBlocked = SkipBlocked,
                 KeepRule = KeepRule,
+                DeleteOverlaps = DeleteOverlaps,
+                OverlapMode = OverlapMode,
+                KeepStylePatterns = KeepStylePatterns ?? string.Empty,
+                SearchOnOpen = SearchOnOpen,
+                LastTab = SelectedTabIndex,
                 ThicknessMode = ThicknessMode,
                 Weight = Weight,
                 AssignStyleName = SelectedAssignStyle?.Name ?? _pendingAssignStyleName ?? string.Empty,
@@ -379,6 +557,8 @@ namespace Revit26_Plugin_Revised.DetailLineManager.V001.UI.ViewModels
         /// <summary>Saves settings and releases the external event. Called when the window closes.</summary>
         public void OnWindowClosed()
         {
+            _closed = true;
+            _scan?.Cancel();
             SaveSettings();
             _externalEvent.Dispose();
         }

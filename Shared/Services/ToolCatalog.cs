@@ -53,7 +53,7 @@ namespace Revit26_Plugin_Revised.Shared.Services
 
         public static readonly ToolInfo LinkedDetailLineGenerator = Add("Detail Lines From Links", "10.1.1", "VA010", "Revit26_Plugin_Revised.LinkedDetailLineGenerator.VA010");
         public static readonly ToolInfo DetailLineClosedLoop = Add("Detail Line Closed Loop", "3.0.1", "V003", "Revit26_Plugin_Revised.DetailLineClosedLoop.V003");
-        public static readonly ToolInfo DetailLineManager = Add("Detail Line Manager", "1.0.1", "V001", "Revit26_Plugin_Revised.DetailLineManager.V001");
+        public static readonly ToolInfo DetailLineManager = Add("Detail Line Manager", "1.1.0", "V001", "Revit26_Plugin_Revised.DetailLineManager.V001");
         public static readonly ToolInfo DtlLineDim = Add("Auto Dim Detail Line", "10.1.1", "V010", "Revit26_Plugin_Revised.DtlLineDim.V010");
         public static readonly ToolInfo FloorsAndRoofFromLinkedRooms = Add("Floors And Roof From Linked Rooms", "13.1.1", "V013", "Revit26_Plugin_Revised.FloorsAndRoofFromLinkedRooms.V013");
         public static readonly ToolInfo FloorsAndRoofFromLinkedRoomsViaPlanView = Add("Floors And Roof From Linked Rooms (Via Plan View)", "6.1.1", "V006", "Revit26_Plugin_Revised.FloorsAndRoofFromLinkedRoomsViaPlanView.V006");

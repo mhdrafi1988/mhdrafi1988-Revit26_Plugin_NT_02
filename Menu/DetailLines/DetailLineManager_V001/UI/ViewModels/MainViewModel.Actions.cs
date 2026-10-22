@@ -4,8 +4,10 @@ using CommunityToolkit.Mvvm.Input;
 using Revit26_Plugin_Revised.DetailLineManager.V001.Core.Models;
 using Revit26_Plugin_Revised.DetailLineManager.V001.Core.Services;
 using Revit26_Plugin_Revised.Shared.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace Revit26_Plugin_Revised.DetailLineManager.V001.UI.ViewModels
 {
@@ -42,6 +44,29 @@ namespace Revit26_Plugin_Revised.DetailLineManager.V001.UI.ViewModels
         /// <summary>Keep the heaviest weight; bound to its radio button.</summary>
         public bool KeepHeaviest { get => KeepRule == DuplicateKeepRule.HeaviestWeight; set { if (value) KeepRule = DuplicateKeepRule.HeaviestWeight; } }
 
+        /// <summary>Handle overlapping straight lines of the same style (off by default).</summary>
+        [ObservableProperty] private bool deleteOverlaps;
+
+        /// <summary>Delete covered lines or join overlapping ones.</summary>
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(OverlapDeleteCovered), nameof(OverlapJoin))]
+        private OverlapMode overlapMode = OverlapMode.DeleteCovered;
+
+        /// <summary>Overlap mode = delete covered lines; bound to its radio button.</summary>
+        public bool OverlapDeleteCovered { get => OverlapMode == OverlapMode.DeleteCovered; set { if (value) OverlapMode = OverlapMode.DeleteCovered; } }
+
+        /// <summary>Overlap mode = join into one line; bound to its radio button.</summary>
+        public bool OverlapJoin { get => OverlapMode == OverlapMode.Join; set { if (value) OverlapMode = OverlapMode.Join; } }
+
+        /// <summary>
+        /// Line style name patterns that are never deleted, separated by ';' with * and ? wildcards
+        /// (e.g. "A-*;S-*"). Use it for styles applied with the Linework tool, which Revit does not report.
+        /// </summary>
+        [ObservableProperty] private string keepStylePatterns = string.Empty;
+
+        /// <summary>Note under the unused-style list (not counted yet / none), or empty.</summary>
+        [ObservableProperty] private string unusedStylesHint = string.Empty;
+
         /// <summary>True while the inline delete confirmation is shown.</summary>
         [ObservableProperty] private bool isConfirmVisible;
 
@@ -58,7 +83,7 @@ namespace Revit26_Plugin_Revised.DetailLineManager.V001.UI.ViewModels
             Run("Preview…", app => new DetailLineActions(app.ActiveUIDocument.Document, Log).DeleteUnused(plan, dryRun: true));
         }
 
-        /// <summary>Asks to delete the checked lines (and the ticked unused styles).</summary>
+        /// <summary>Asks to delete the checked lines (and the ticked unused styles), after checking what goes.</summary>
         [RelayCommand(CanExecute = nameof(CanRun))]
         private void DeleteChecked() => AskDelete(CheckedVisibleRows().ToList(), "checked");
 
@@ -75,8 +100,8 @@ namespace Revit26_Plugin_Revised.DetailLineManager.V001.UI.ViewModels
             if (plan == null) return;
             Run("Deleting…", app =>
             {
-                int deleted = new DetailLineActions(app.ActiveUIDocument.Document, Log).DeleteUnused(plan, dryRun: false);
-                if (deleted > 0) RefreshAfterChange(app);
+                var summary = new DetailLineActions(app.ActiveUIDocument.Document, Log).DeleteUnused(plan, dryRun: false);
+                if (!summary.IsEmpty) RefreshAfterChange();
             });
         }
 
@@ -88,21 +113,34 @@ namespace Revit26_Plugin_Revised.DetailLineManager.V001.UI.ViewModels
             HideConfirm();
         }
 
+        // Checks the plan in Revit first (a dry run that also measures the dimensions and tags that
+        // would go with the lines), then shows the confirmation bar with those numbers.
         private void AskDelete(List<DetailLineRow> targets, string which)
         {
             HideConfirm();
             var plan = BuildDeletePlan(targets);
             if (plan == null) return;
 
-            int lines = plan.Duplicates.Union(plan.ShortLines).Count();
-            var byId = targets.ToDictionary(r => r.Id);
-            int blocked = plan.Duplicates.Union(plan.ShortLines)
-                .Count(id => byId.TryGetValue(id, out var r) && (r.IsOwnedByOther || (SkipBlocked && r.InGroup)));
+            Run("Checking what would be deleted…", app =>
+            {
+                var summary = new DetailLineActions(app.ActiveUIDocument.Document, Log).DeleteUnused(plan, dryRun: true);
+                _dispatcher.Invoke(() => ShowConfirm(plan, summary, which));
+            });
+        }
+
+        private void ShowConfirm(DeletePlan plan, DeleteSummary summary, string which)
+        {
+            if (summary.IsEmpty)
+            {
+                Log(LogLevel.Warning, $"Nothing to delete among the {which} lines after checking ({summary.Skipped} skipped; see above).");
+                return;
+            }
 
             _pendingPlan = plan;
-            ConfirmText = $"Delete {lines - blocked} {which} line(s) ({plan.Duplicates.Count} duplicate, {plan.ShortLines.Count} short) "
-                + $"and {plan.Styles.Count} unused line style(s)? "
-                + (blocked > 0 ? $"{blocked} line(s) in groups or owned by other users will be skipped. " : string.Empty)
+            ConfirmText = $"Delete {summary.CountsText} from the {which} lines? "
+                + (summary.DependentCount > 0 ? $"Revit will also remove {summary.DependentsText} attached to them. " : string.Empty)
+                + (summary.DependentsMeasured ? string.Empty : "Attached dimensions and tags could not be counted. ")
+                + (summary.Skipped > 0 ? $"{summary.Skipped} item(s) will be skipped (see the log). " : string.Empty)
                 + "Ctrl+Z in Revit undoes it.";
             IsConfirmVisible = true;
         }
@@ -110,7 +148,7 @@ namespace Revit26_Plugin_Revised.DetailLineManager.V001.UI.ViewModels
         // Null (logged) when nothing is selected for deletion.
         private DeletePlan BuildDeletePlan(List<DetailLineRow> targets)
         {
-            var plan = new DeletePlan { SkipGroups = SkipBlocked };
+            var plan = new DeletePlan { SkipGroups = SkipBlocked, ToleranceFeet = Math.Max(ToleranceMm, 0.001) / 304.8 };
 
             if (DeleteDuplicates)
             {
@@ -119,14 +157,28 @@ namespace Revit26_Plugin_Revised.DetailLineManager.V001.UI.ViewModels
                     .ToDictionary(g => g.Key, g => DuplicateDetector.Keeper(g, KeepRule));
                 plan.Duplicates.AddRange(targets.Where(r => r.IsDuplicate && !ReferenceEquals(keepers[r.DuplicateCluster], r)).Select(r => r.Id));
             }
+            if (DeleteOverlaps && OverlapMode == OverlapMode.DeleteCovered)
+                plan.Covered.AddRange(targets.Where(r => r.IsCovered).Select(r => r.Id));
+            if (DeleteOverlaps && OverlapMode == OverlapMode.Join)
+            {
+                // A set is joined when any of its lines is a target; the whole set takes part.
+                var targetGroups = new HashSet<int>(targets.Where(r => r.IsOverlapping).Select(r => r.OverlapGroup));
+                foreach (var g in Rows.Where(r => targetGroups.Contains(r.OverlapGroup)).GroupBy(r => r.OverlapGroup))
+                    plan.JoinGroups.Add(g.Select(r => r.Id).ToList());
+            }
             if (DeleteShort)
                 plan.ShortLines.AddRange(targets.Where(r => r.IsShort).Select(r => r.Id));
             if (DeleteUnusedStyles)
-                plan.Styles.AddRange(UnusedStyles.Where(s => s.IsChecked).Select(s => s.CategoryId));
-
-            if (plan.Duplicates.Count == 0 && plan.ShortLines.Count == 0 && plan.Styles.Count == 0)
             {
-                Log(LogLevel.Warning, "Nothing to delete: no duplicates, short lines or ticked unused styles match the options"
+                if (!UsageCounted)
+                    Log(LogLevel.Warning, "Line style usage has not been counted yet, so no unused style is included. Wait for the count to finish.");
+                plan.Styles.AddRange(UnusedStyles.Where(s => s.IsChecked && !s.IsKeptByPattern).Select(s => s.CategoryId));
+            }
+
+            if (plan.Duplicates.Count == 0 && plan.Covered.Count == 0 && plan.JoinGroups.Count == 0
+                && plan.ShortLines.Count == 0 && plan.Styles.Count == 0)
+            {
+                Log(LogLevel.Warning, "Nothing to delete: no duplicates, overlaps, short lines or ticked unused styles match the options"
                     + (targets.Count == 0 ? " (no line is checked or found)." : "."));
                 return null;
             }
@@ -246,16 +298,39 @@ namespace Revit26_Plugin_Revised.DetailLineManager.V001.UI.ViewModels
                 + $"Apply to checked changes {checkedStyles}.";
         }
 
-        // Re-runs the search with the same scope after a successful change, inside the same API call.
-        private void RefreshAfterChange(Autodesk.Revit.UI.UIApplication app)
+        // After a successful change: search the same scope again (in steps, cancellable) once the
+        // current external-event call has finished, keeping the lines that were checked.
+        private void RefreshAfterChange()
         {
-            var scope = Scope;
-            double tol = ToleranceMm;
             var checkedIds = new HashSet<long>(Rows.Where(r => r.IsChecked).Select(r => r.IdValue));
-            var result = DetailLineScanner.Scan(app.ActiveUIDocument, scope, tol, (_, _) => { });
-            foreach (var r in result.Rows) r.IsChecked = checkedIds.Contains(r.IdValue);
-            _dispatcher.Invoke(() => ApplyScan(result));
-            Log(LogLevel.Info, $"Grid refreshed: {result.Rows.Count} line(s) in scope.");
+            Log(LogLevel.Info, "Refreshing the grid…");
+            _dispatcher.BeginInvoke(new Action(() => StartScan(usageOnly: false, keepChecked: checkedIds)));
+        }
+
+        // Marks unused styles that match a keep pattern; they are unticked and never deleted.
+        private void ApplyKeepPatterns()
+        {
+            var patterns = (KeepStylePatterns ?? string.Empty)
+                .Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Select(p => new Regex("^" + Regex.Escape(p).Replace("\\*", ".*").Replace("\\?", ".") + "$",
+                                       RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+                .ToList();
+
+            foreach (var s in UnusedStyles)
+            {
+                bool kept = patterns.Any(r => r.IsMatch(s.Name));
+                if (kept && !s.IsKeptByPattern) s.IsChecked = false;
+                else if (!kept && s.IsKeptByPattern) s.IsChecked = true;
+                s.IsKeptByPattern = kept;
+            }
+            UpdateUnusedHint();
+        }
+
+        private void UpdateUnusedHint()
+        {
+            UnusedStylesHint = !UsageCounted
+                ? (IsRunning ? "Counting line style usage…" : "Line style usage is counted while this tab is open.")
+                : UnusedStyles.Count == 0 ? "No unused line styles." : string.Empty;
         }
 
         // After a committed line-thickness change: refresh the grid, redraw the active view (Revit can
@@ -263,7 +338,7 @@ namespace Revit26_Plugin_Revised.DetailLineManager.V001.UI.ViewModels
         // mode hides the new weights.
         private void RefreshAfterThicknessChange(Autodesk.Revit.UI.UIApplication app)
         {
-            RefreshAfterChange(app);
+            RefreshAfterChange();
 
             var uiDoc = app.ActiveUIDocument;
             try

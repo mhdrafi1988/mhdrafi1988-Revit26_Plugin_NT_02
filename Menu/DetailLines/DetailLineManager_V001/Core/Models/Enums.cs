@@ -29,6 +29,16 @@ namespace Revit26_Plugin_Revised.DetailLineManager.V001.Core.Models
         HeaviestWeight
     }
 
+    /// <summary>What Delete unused does with overlapping straight lines of the same style.</summary>
+    public enum OverlapMode
+    {
+        /// <summary>Delete lines that a longer line of the same style fully covers.</summary>
+        DeleteCovered,
+
+        /// <summary>Join each set of overlapping lines into one line (the longest is kept and extended).</summary>
+        Join
+    }
+
     /// <summary>How the Line thickness tab changes lines.</summary>
     public enum ThicknessMode
     {

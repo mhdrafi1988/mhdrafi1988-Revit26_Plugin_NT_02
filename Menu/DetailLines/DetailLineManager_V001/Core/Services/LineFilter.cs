@@ -50,7 +50,7 @@ namespace Revit26_Plugin_Revised.DetailLineManager.V001.Core.Services
         /// <summary>Workset to show, or empty for all.</summary>
         public string Workset { get; init; } = string.Empty;
 
-        /// <summary>Show only duplicates.</summary>
+        /// <summary>Show only duplicates and overlapping lines.</summary>
         public bool OnlyDuplicates { get; init; }
 
         /// <summary>Show only short lines.</summary>
@@ -85,7 +85,7 @@ namespace Revit26_Plugin_Revised.DetailLineManager.V001.Core.Services
         public bool Matches(DetailLineRow row)
         {
             if (row == null) return false;
-            if (OnlyDuplicates && !row.IsDuplicate) return false;
+            if (OnlyDuplicates && !row.IsDuplicate && !row.IsOverlapping) return false;
             if (OnlyShort && !row.IsShort) return false;
             if (OnlyInGroups && !row.InGroup) return false;
             if (OnlyOwnedByOthers && !row.IsOwnedByOther) return false;

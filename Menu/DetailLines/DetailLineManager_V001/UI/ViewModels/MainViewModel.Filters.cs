@@ -63,7 +63,7 @@ namespace Revit26_Plugin_Revised.DetailLineManager.V001.UI.ViewModels
         /// <summary>Workset filter ("All worksets" for all).</summary>
         [ObservableProperty] private string selectedWorkset;
 
-        /// <summary>Show only duplicate / overlapping lines.</summary>
+        /// <summary>Show only duplicate or overlapping lines.</summary>
         [ObservableProperty] private bool onlyDuplicates;
 
         /// <summary>Show only lines shorter than the tolerance.</summary>
@@ -86,7 +86,7 @@ namespace Revit26_Plugin_Revised.DetailLineManager.V001.UI.ViewModels
         /// <summary>Checked lines among those found.</summary>
         [ObservableProperty] private int checkedCount;
 
-        /// <summary>Duplicate lines among those found.</summary>
+        /// <summary>Duplicate or overlapping lines among those found.</summary>
         [ObservableProperty] private int duplicateCount;
 
         /// <summary>Short lines among those found.</summary>
@@ -159,7 +159,15 @@ namespace Revit26_Plugin_Revised.DetailLineManager.V001.UI.ViewModels
             base.OnPropertyChanged(e);
             if (_loadingSettings) return;
 
-            if (e.PropertyName == nameof(ToleranceMm))
+            if (e.PropertyName == nameof(KeepStylePatterns))
+            {
+                ApplyKeepPatterns();
+            }
+            else if (e.PropertyName == nameof(SelectedTabIndex))
+            {
+                OnTabChanged();
+            }
+            else if (e.PropertyName == nameof(ToleranceMm))
             {
                 double tol = Math.Max(0, ToleranceMm);
                 foreach (var r in Rows) r.ApplyTolerance(tol);
@@ -225,11 +233,12 @@ namespace Revit26_Plugin_Revised.DetailLineManager.V001.UI.ViewModels
             var visible = VisibleRows().ToList();
             FoundCount = visible.Count;
             CheckedCount = visible.Count(r => r.IsChecked);
-            DuplicateCount = visible.Count(r => r.IsDuplicate);
+            DuplicateCount = visible.Count(r => r.IsDuplicate || r.IsOverlapping);
             ShortCount = visible.Count(r => r.IsShort);
             UnusedStyleCount = UnusedStyles.Count;
             OnPropertyChanged(nameof(AllFoundChecked));
             UpdateThicknessWarning();
+            UpdateUnusedHint();
             if (!IsRunning)
                 SummaryText = $"{FoundCount} of {Rows.Count} detail line(s) shown · {CheckedCount} checked · {LastScopeText}";
         }
