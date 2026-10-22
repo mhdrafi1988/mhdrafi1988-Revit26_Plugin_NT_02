@@ -61,7 +61,9 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                 Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.DetailLiner.CreateDetailLines_16.png"),
                 LargeImage = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.DetailLiner.CreateDetailLines_32.png"),
                 ToolTip = ToolCatalog.DetailLineManager.Tip(
-                    "Find detail lines by scope, style, view, weight and length; delete duplicates, short lines and unused line styles; assign styles or change line weights.")
+                    "Find detail lines by scope, style, view, weight and length. Delete duplicates, short lines and unused line styles, "
+                    + "and delete or join overlapping lines; attached dimensions and tags are shown before you confirm. "
+                    + "Assign styles or change line weights (style, per-view override).")
             };
             panel.AddItem(lineManagerV001);
         }

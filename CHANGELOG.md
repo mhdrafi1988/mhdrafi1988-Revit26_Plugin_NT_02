@@ -9,6 +9,14 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.4.1] — 2026-10-22
+
+### Changed
+- **Detail Line Manager v1.1.1** — the **Line Manager** ribbon tooltip now describes the 1.1 features: deleting or joining
+  overlapping lines, and seeing attached dimensions and tags before confirming a delete.
+
+**User note:** tooltip text only; the button, its name and the tool's behaviour are unchanged.
+
 ## [6.4.0] — 2026-10-22
 
 ### Added
