@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Revit26_Plugin_Revised.Menu.Ribbon
 {
-    /// <summary>Builds the Manage and Worksets panels of the SloperPro Documents tab.</summary>
+    /// <summary>Builds the Manage, Worksets and Memory panels of the SloperPro Documents tab.</summary>
     public static class ManageRibbon
     {
         // Every Manage button is a pulldown: highest version number first,
@@ -22,10 +22,11 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             };
         }
 
-        /// <summary>Creates the Manage panel, then the Worksets panel, on <paramref name="tabName"/>.</summary>
+        /// <summary>Creates the Manage panel, then the Worksets panel, then the Memory panel, on <paramref name="tabName"/>.</summary>
         public static void Build(UIControlledApplication app, string tabName, string assemblyPath)
         {
-            // Two panels: general model-management tools (Link Check included), and a Worksets panel of its own.
+            // Three panels: general model-management tools (Link Check included), a Worksets panel of its own,
+            // and a Memory panel for the remember-and-restore tools.
             RibbonPanel panel = app.CreateRibbonPanel(tabName, "Manage");
 
             var overlapV004 = Btn(assemblyPath, "Btn_AnnotationOverlapDetection_V004", "Overlap Detection V004", "Revit26_Plugin_Revised.AnnotationOverlapDetection.V004.Command",
@@ -144,6 +145,24 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                 "Manage.ParaManager_16.png", "Link Version Checker", "V006",
                 "Status of RVT links from ACC Desktop Connector: loaded or unloaded, synced on this PC, latest version loaded.");
 
+            var linkMemoryV001 = Btn(assemblyPath, "Btn_LinkMemory_V001", "Link Memory",
+                "Revit26_Plugin_Revised.LinkMemory.V001.Commands.LinkMemoryCommand",
+                "SetupTools.Linker_16.png", "Link Memory", "V001");
+            linkMemoryV001.LargeImage = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SetupTools.Linker_32.png");
+            linkMemoryV001.ToolTip = Revit26_Plugin_Revised.Shared.Services.ToolCatalog.LinkMemory.Tip(
+                "Remember which Revit links are loaded as named sets, then load and unload the links " +
+                "back to a set in one click.");
+
+            var worksetMemoryV001 = Btn(assemblyPath, "Btn_WorksetMemory_V001", "WS Memory",
+                "Revit26_Plugin_Revised.WorksetMemory.V001.Commands.WorksetMemoryCommand",
+                "SetupTools.WorksetManager_16.png", "Workset Memory", "V001");
+            worksetMemoryV001.LargeImage = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SetupTools.WorksetManager_32.png");
+            worksetMemoryV001.ToolTip = Revit26_Plugin_Revised.Shared.Services.ToolCatalog.WorksetMemory.Tip(
+                "Remember which worksets are open as named sets, then reopen the model with exactly " +
+                "those worksets open. Works with no model open too.");
+            // Enabled with no model open: a remembered model can be opened straight with its worksets.
+            worksetMemoryV001.AvailabilityClassName = "Revit26_Plugin_Revised.WorksetMemory.V001.Commands.WorksetMemoryAvailability";
+
             // ── Manage panel ─────────────────────────────────────────────────
             var manageItems = RibbonLayoutHelper.AddStackedButtons(panel, new List<RibbonItemData>
             {
@@ -187,6 +206,12 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             RibbonLayoutHelper.WirePulldownButton(worksetItems, "Pulldown_WorksetRenamer", worksetRenamerV005);
             RibbonLayoutHelper.WirePulldownButton(worksetItems, "Pulldown_WorksetRenamerFx", worksetRenamerFx05);
             RibbonLayoutHelper.WirePulldownButton(worksetItems, "Pulldown_DeleteWorkset", deleteWorksetV001);
+
+            // ── Memory panel ─────────────────────────────────────────────────
+            // Remember-and-restore tools, side by side as two large buttons.
+            RibbonPanel memoryPanel = app.CreateRibbonPanel(tabName, "Memory");
+            memoryPanel.AddItem(worksetMemoryV001);
+            memoryPanel.AddItem(linkMemoryV001);
         }
     }
 }

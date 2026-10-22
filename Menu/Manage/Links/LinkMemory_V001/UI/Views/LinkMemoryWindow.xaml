@@ -1,0 +1,321 @@
+<Window
+    x:Class="Revit26_Plugin_Revised.LinkMemory.V001.UI.Views.LinkMemoryWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:converters="clr-namespace:Revit26_Plugin_Revised.Shared.Models"
+    xmlns:shell="clr-namespace:Revit26_Plugin_Revised.Shared.Controls"
+    xmlns:svc="clr-namespace:Revit26_Plugin_Revised.Shared.Services"
+    xmlns:vm="clr-namespace:Revit26_Plugin_Revised.LinkMemory.V001.UI.ViewModels"
+    Title="{Binding Source={x:Static svc:ToolCatalog.LinkMemory}, Path=Title}"
+    Background="{DynamicResource BrushSurfaceWindow}"
+    Height="760"
+    Width="760"
+    MinHeight="560"
+    MinWidth="600"
+    WindowStartupLocation="CenterOwner"
+    ResizeMode="CanResize">
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Revit26_Plugin_Revised;component/Shared/SharedStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+
+            <converters:InverseBoolConverter     x:Key="InverseBool"/>
+            <converters:LogLevelToColorConverter x:Key="LogLevelToColor"/>
+            <BooleanToVisibilityConverter        x:Key="NativeBoolToVis"/>
+
+            <Style x:Key="CellText" TargetType="TextBlock">
+                <Setter Property="VerticalAlignment" Value="Center"/>
+                <Setter Property="Padding"           Value="8,0"/>
+                <Setter Property="Foreground"        Value="{StaticResource BrushTextPrimary}"/>
+                <Setter Property="FontSize"          Value="11"/>
+            </Style>
+
+            <!-- Open / Closed text: green when open -->
+            <Style x:Key="StateText" TargetType="TextBlock" BasedOn="{StaticResource CellText}">
+                <Setter Property="Foreground" Value="{StaticResource BrushTextSecondary}"/>
+                <Style.Triggers>
+                    <Trigger Property="Text" Value="Loaded">
+                        <Setter Property="Foreground" Value="{StaticResource BrushStatusOk}"/>
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+
+            <Style x:Key="LinkRowStyle" TargetType="DataGridRow" BasedOn="{StaticResource DataGridRowStyle}">
+                <Setter Property="ToolTip" Value="{Binding Path}"/>
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding Change}" Value="Skipped">
+                        <Setter Property="Opacity" Value="0.7"/>
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+
+            <!-- Saved-set row: name / date / count -->
+            <DataTemplate x:Key="SetTemplate" DataType="{x:Type vm:LinkSetRow}">
+                <Grid Margin="2,3">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="190"/>
+                        <ColumnDefinition Width="100"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="{Binding Name}" FontSize="12" FontWeight="Medium" TextTrimming="CharacterEllipsis"
+                               Foreground="{StaticResource BrushTextPrimary}"/>
+                    <TextBlock Grid.Column="1" Text="{Binding SavedText}" FontSize="11" TextTrimming="CharacterEllipsis"
+                               Foreground="{StaticResource BrushTextSecondary}"/>
+                    <TextBlock Grid.Column="2" Text="{Binding CountText}" FontSize="11"
+                               Foreground="{StaticResource BrushTextSecondary}"/>
+                </Grid>
+            </DataTemplate>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <!-- UI standard v4.0: shared ToolWindowShell.
+         HEADER  title / subtitle / version + three metric tiles
+         BODY    saved sets card, comparison grid, options, run log
+         FOOTER  status strip (what a reload changes) · Reload links → Close -->
+    <shell:ToolWindowShell Title="Link Memory"
+                           Subtitle="Remember which Revit links are loaded, then load and unload them back to that state in one click."
+                           Version="{Binding Source={x:Static svc:ToolCatalog.LinkMemory}, Path=Version, StringFormat=v{0}}"
+                           IsRunning="{Binding IsRunning}"
+                           IsIndeterminate="True"
+                           SummaryText="{Binding SummaryText}">
+
+        <!-- ═══ HEADER ═══ -->
+        <shell:ToolWindowShell.HeaderContent>
+            <UniformGrid Columns="3">
+                <Border Style="{StaticResource MetricTile}" Margin="0,0,6,0">
+                    <StackPanel>
+                        <TextBlock Text="REVIT LINKS" Style="{StaticResource MetricTileLabel}"
+                                   Foreground="{StaticResource BrushTextSecondary}"/>
+                        <TextBlock Text="{Binding LinkCount}" Style="{StaticResource MetricTileNumber}"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource MetricTileSuccess}" Margin="3,0">
+                    <StackPanel>
+                        <TextBlock Text="LOADED NOW" Style="{StaticResource MetricTileLabel}"
+                                   Foreground="{StaticResource BrushStatusOk}"/>
+                        <TextBlock Text="{Binding LoadedNowCount}" Style="{StaticResource MetricTileNumberSuccess}"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource MetricTileInfo}" Margin="6,0,0,0">
+                    <StackPanel>
+                        <TextBlock Text="SAVED SETS" Style="{StaticResource MetricTileLabelInfo}"/>
+                        <TextBlock Text="{Binding SavedSetCount}" Style="{StaticResource MetricTileNumberInfo}"/>
+                    </StackPanel>
+                </Border>
+            </UniformGrid>
+        </shell:ToolWindowShell.HeaderContent>
+
+        <!-- ═══ BODY ═══ -->
+        <shell:ToolWindowShell.BodyContent>
+            <StackPanel>
+                <!-- Saved sets -->
+                <Border Margin="0,0,0,8" Padding="12,10" Background="{StaticResource BrushSurfaceCard}"
+                        BorderBrush="{StaticResource BrushBorderDefault}" BorderThickness="1" CornerRadius="4">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                            <TextBlock Text="Saved sets" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource BrushTextPrimary}"/>
+                            <TextBlock Text="{Binding ModelLocation}" FontSize="11" Margin="8,0,0,0" TextTrimming="CharacterEllipsis"
+                                       Foreground="{StaticResource BrushTextSecondary}" VerticalAlignment="Bottom"/>
+                        </StackPanel>
+                        <ListBox ItemsSource="{Binding Sets}" SelectedItem="{Binding SelectedSet}"
+                                 ItemTemplate="{StaticResource SetTemplate}"
+                                 HorizontalContentAlignment="Stretch"
+                                 MinHeight="70" MaxHeight="130"
+                                 BorderBrush="{StaticResource BrushBorderDefault}" BorderThickness="1"
+                                 shell:ShellBehaviors.ForwardMouseWheel="True"/>
+                        <Grid Margin="0,8,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Name" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                            <TextBox Grid.Column="1" Text="{Binding NewSetName, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource StyledTextInput}" FontSize="11" Margin="0,0,8,0"/>
+                            <Button Grid.Column="2" Content="Remember current" Command="{Binding RememberCommand}"
+                                    Style="{StaticResource PrimaryButton}" Margin="0,0,4,0"
+                                    ToolTip="Save which links are loaded now as a set"/>
+                            <Button Grid.Column="3" Content="Overwrite" Command="{Binding OverwriteCommand}"
+                                    Style="{StaticResource SmallSecondaryButton}" Margin="0,0,4,0"
+                                    ToolTip="Replace the selected set with the links loaded now"/>
+                            <Button Grid.Column="4" Content="Delete" Command="{Binding DeleteCommand}"
+                                    Style="{StaticResource SmallSecondaryButton}"
+                                    ToolTip="Delete the selected set"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Comparison grid -->
+                <DataGrid MinHeight="160"
+                          shell:ShellBehaviors.MaxHeightRatio="0.45"
+                          shell:ShellBehaviors.ForwardMouseWheel="True"
+                          ItemsSource="{Binding Rows}"
+                          AutoGenerateColumns="False"
+                          CanUserAddRows="False"
+                          CanUserDeleteRows="False"
+                          IsReadOnly="True"
+                          SelectionMode="Single"
+                          RowStyle="{StaticResource LinkRowStyle}"
+                          ColumnHeaderStyle="{StaticResource DataGridColumnHeaderStyle}"
+                          CellStyle="{StaticResource DataGridCellStyle}"
+                          GridLinesVisibility="Horizontal"
+                          HorizontalGridLinesBrush="{StaticResource BrushSeparatorThin}"
+                          BorderThickness="1"
+                          BorderBrush="{StaticResource BrushBorderDefault}">
+                    <DataGrid.Columns>
+                        <DataGridTemplateColumn Header="Revit link" Width="*" MinWidth="180" SortMemberPath="Name">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Display}" Style="{StaticResource CellText}" TextTrimming="CharacterEllipsis"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="Now" Width="100" SortMemberPath="Now">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Now}" Style="{StaticResource StateText}"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="In set" Width="90" SortMemberPath="InSet">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding InSet}" Style="{StaticResource StateText}"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="On reload" Width="110" SortMemberPath="Change">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Border CornerRadius="9" Padding="8,1" Margin="6,0" HorizontalAlignment="Left">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="Background" Value="Transparent"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Change}" Value="Loads">
+                                                        <Setter Property="Background" Value="{StaticResource BrushPillInfoBackground}"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Change}" Value="Unloads">
+                                                        <Setter Property="Background" Value="{StaticResource BrushBannerWarningBackground}"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Change}" Value="Reloads">
+                                                        <Setter Property="Background" Value="{StaticResource BrushPillSuccessBackground}"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Change}" Value="Skipped">
+                                                        <Setter Property="Background" Value="{StaticResource BrushPillMutedBackground}"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <TextBlock Text="{Binding ChangeText}" FontSize="10.5" FontWeight="SemiBold">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Foreground" Value="{StaticResource BrushTextSecondary}"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding Change}" Value="Loads">
+                                                            <Setter Property="Foreground" Value="{StaticResource BrushPillInfoText}"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding Change}" Value="Unloads">
+                                                            <Setter Property="Foreground" Value="{StaticResource BrushBannerWarningText}"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding Change}" Value="Reloads">
+                                                            <Setter Property="Foreground" Value="{StaticResource BrushPillSuccessText}"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding Change}" Value="Skipped">
+                                                            <Setter Property="Foreground" Value="{StaticResource BrushPillMutedText}"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                    </Border>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+
+                <StackPanel Margin="0,10,0,0" IsEnabled="{Binding IsRunning, Converter={StaticResource InverseBool}}">
+                    <CheckBox IsChecked="{Binding UnloadUnloaded}" Margin="0,0,0,4">
+                        <TextBlock Text="Unload links the set had unloaded" FontSize="11.5"
+                                   Foreground="{StaticResource BrushTextPrimary}"/>
+                    </CheckBox>
+                    <CheckBox IsChecked="{Binding ReloadLoaded}">
+                        <TextBlock Text="Also reload links that are already loaded (pick up the latest file)" FontSize="11.5"
+                                   Foreground="{StaticResource BrushTextPrimary}"/>
+                    </CheckBox>
+                    <TextBlock Margin="0,6,0,0" TextWrapping="Wrap" FontSize="10.5" Foreground="{StaticResource BrushTextSecondary}"
+                               Text="In a workshared local copy, links are unloaded for you only (like Manage Links › Unload for me). Links added after the set was saved are left as they are."/>
+                </StackPanel>
+
+                <!-- Log -->
+                <Border Margin="0,10,0,0" Background="{StaticResource BrushLogBg}" CornerRadius="4">
+                    <DockPanel>
+                        <Border DockPanel.Dock="Top" Background="{StaticResource BrushLogTitleBar}"
+                                CornerRadius="4,4,0,0" Padding="10,6">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="RUN LOG" FontSize="10" FontWeight="SemiBold"
+                                           Foreground="{StaticResource BrushTextOnDark}" VerticalAlignment="Center"/>
+                                <Button Grid.Column="1" Content="Copy Log" Command="{Binding CopyLogCommand}"
+                                        Style="{StaticResource DarkGhostButton}" Margin="0,0,4,0"/>
+                                <ToggleButton Grid.Column="2" IsChecked="{Binding IsLogExpanded}"
+                                              Style="{StaticResource LogHeaderToggle}"/>
+                            </Grid>
+                        </Border>
+                        <ListBox Visibility="{Binding IsLogExpanded, Converter={StaticResource NativeBoolToVis}}"
+                                 ItemsSource="{Binding Log}"
+                                 Background="{StaticResource BrushLogBg}"
+                                 BorderThickness="0" Height="110"
+                                 shell:ShellBehaviors.ForwardMouseWheel="True"
+                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                            <ListBox.ItemContainerStyle>
+                                <Style TargetType="ListBoxItem">
+                                    <Setter Property="Padding" Value="0"/>
+                                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                    <Setter Property="Background" Value="Transparent"/>
+                                    <Setter Property="BorderThickness" Value="0"/>
+                                </Style>
+                            </ListBox.ItemContainerStyle>
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Margin="10,1">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="60"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="{Binding Time, StringFormat=HH:mm:ss}"
+                                                   FontFamily="Consolas, Courier New" FontSize="10"
+                                                   Foreground="{StaticResource BrushLogTextDim}"/>
+                                        <TextBlock Grid.Column="1" Text="{Binding Message}"
+                                                   FontFamily="Consolas, Courier New" FontSize="10"
+                                                   Foreground="{Binding Level, Converter={StaticResource LogLevelToColor}}"
+                                                   TextWrapping="Wrap"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </DockPanel>
+                </Border>
+            </StackPanel>
+        </shell:ToolWindowShell.BodyContent>
+
+        <!-- ═══ FOOTER ═══ -->
+        <shell:ToolWindowShell.FooterContent>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="Reload links" Command="{Binding ReloadCommand}"
+                        Style="{StaticResource PrimaryButton}" Margin="0,0,8,0"/>
+                <Button Content="Close" Style="{StaticResource OutlineButton}" Width="90" Click="CloseButton_Click"/>
+            </StackPanel>
+        </shell:ToolWindowShell.FooterContent>
+    </shell:ToolWindowShell>
+
+</Window>
