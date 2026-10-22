@@ -61,13 +61,13 @@ converters declared here.
                 <Setter Property="FontWeight" Value="SemiBold"/>
             </Style>
             <Style x:Key="SectionHeaderText" TargetType="TextBlock">
-                <Setter Property="FontSize" Value="12"/>
+                <Setter Property="FontSize" Value="11"/>
                 <Setter Property="FontWeight" Value="SemiBold"/>
                 <Setter Property="Foreground" Value="{StaticResource BrushNavyPrimary}"/>
                 <Setter Property="VerticalAlignment" Value="Center"/>
             </Style>
             <Style x:Key="SectionSummaryText" TargetType="TextBlock">
-                <Setter Property="FontSize" Value="11"/>
+                <Setter Property="FontSize" Value="10"/>
                 <Setter Property="Foreground" Value="{StaticResource BrushTextSecondary}"/>
                 <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
                 <Setter Property="VerticalAlignment" Value="Center"/>
@@ -96,10 +96,10 @@ converters declared here.
 
             <!-- Small text button ("Reset to defaults") -->
             <Style x:Key="LinkButton" TargetType="Button" BasedOn="{StaticResource SecondaryButton}">
-                <Setter Property="Height" Value="24"/>
+                <Setter Property="Height" Value="20"/>
                 <Setter Property="FontSize" Value="11"/>
                 <Setter Property="HorizontalAlignment" Value="Right"/>
-                <Setter Property="Margin" Value="0,6,0,0"/>
+                <Setter Property="Margin" Value="0,4,0,0"/>
             </Style>
 
             <!-- ── Badges ─────────────────────────────────────────── -->
@@ -176,7 +176,7 @@ converters declared here.
                             <DockPanel LastChildFill="True">
                                 <ToggleButton DockPanel.Dock="Top"
                                               IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
-                                              Background="Transparent" BorderThickness="0" Padding="10,5" Cursor="Hand"
+                                              Background="Transparent" BorderThickness="0" Padding="7,3" Cursor="Hand"
                                               HorizontalContentAlignment="Stretch">
                                     <ToggleButton.Template>
                                         <ControlTemplate TargetType="ToggleButton">
@@ -214,7 +214,7 @@ converters declared here.
 
             <!-- One template for all three marker groups -->
             <DataTemplate x:Key="MarkerGroupTemplate">
-                <StackPanel Margin="0,2,0,4">
+                <StackPanel Margin="0,1,0,3">
                     <StackPanel Orientation="Horizontal">
                         <CheckBox IsChecked="{Binding IsEnabled}" VerticalAlignment="Center"/>
                         <TextBlock Text="{Binding Label}" Style="{StaticResource FieldValue}" FontWeight="SemiBold"
@@ -451,8 +451,8 @@ converters declared here.
 
                         <!-- Every run -->
                         <Border Style="{StaticResource ContentCard}">
-                            <StackPanel Margin="10,0,10,6">
-                                <TextBlock Text="Every run" Style="{StaticResource SectionTitle}" Margin="0,6,0,4"/>
+                            <StackPanel Margin="7,0,7,4">
+                                <TextBlock Text="Every run" Style="{StaticResource SectionTitle}" Margin="0,4,0,3"/>
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
@@ -496,7 +496,7 @@ converters declared here.
                                     </StackPanel>
                                 </Grid>
 
-                                <Border Style="{StaticResource WarnLine}" Margin="0,6,0,0">
+                                <Border Style="{StaticResource WarnLine}" Margin="0,4,0,0">
                                     <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="{StaticResource BrushStatusWarn}"
                                                Text="⚠ Run resets every existing shape-point elevation on this roof. Ctrl+Z undoes the whole run in one step."/>
                                 </Border>
@@ -523,7 +523,7 @@ converters declared here.
                                         </Border>
                                     </Grid>
                                 </Expander.Header>
-                                <StackPanel Margin="10,4,10,6">
+                                <StackPanel Margin="7,3,7,4">
                                     <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
@@ -547,7 +547,7 @@ converters declared here.
                                                 <ToggleButton Grid.Column="1" Style="{StaticResource AppleToggleButton}" Margin="8,0,0,0"
                                                               IsChecked="{Binding IncludeNearbyPoints}"/>
                                             </Grid>
-                                            <StackPanel Orientation="Horizontal" Margin="0,6,0,0" IsEnabled="{Binding IncludeNearbyPoints}">
+                                            <StackPanel Orientation="Horizontal" Margin="0,4,0,0" IsEnabled="{Binding IncludeNearbyPoints}">
                                                 <TextBox Style="{StaticResource BorderlessTextInput}" Width="90" MaxLength="8"
                                                          Text="{Binding SnapRadiusText, UpdateSourceTrigger=PropertyChanged}"/>
                                                 <TextBlock Text="mm radius" Style="{StaticResource UnitLabel}"/>
@@ -578,7 +578,7 @@ converters declared here.
                                         </Border>
                                     </Grid>
                                 </Expander.Header>
-                                <StackPanel Margin="10,4,10,6">
+                                <StackPanel Margin="7,3,7,4">
                                     <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
@@ -631,7 +631,7 @@ converters declared here.
                                         </Border>
                                     </Grid>
                                 </Expander.Header>
-                                <StackPanel Margin="10,4,10,6">
+                                <StackPanel Margin="7,3,7,4">
                                     <ItemsControl ItemsSource="{Binding MarkerGroups}" ItemTemplate="{StaticResource MarkerGroupTemplate}"/>
                                     <Button Content="Reset to defaults" Style="{StaticResource LinkButton}" Command="{Binding ResetMarkersCommand}"/>
                                 </StackPanel>
@@ -656,7 +656,7 @@ converters declared here.
                                         </Border>
                                     </Grid>
                                 </Expander.Header>
-                                <StackPanel Margin="10,4,10,6">
+                                <StackPanel Margin="7,3,7,4">
                                     <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
@@ -673,7 +673,7 @@ converters declared here.
                                                 <ToggleButton Grid.Column="1" Style="{StaticResource AppleToggleButton}" Margin="8,0,0,0"
                                                               IsChecked="{Binding ExportToExcel}"/>
                                             </Grid>
-                                            <Grid Margin="0,6,0,0">
+                                            <Grid Margin="0,4,0,0">
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="*"/>
                                                     <ColumnDefinition Width="6"/>
@@ -786,7 +786,7 @@ converters declared here.
                 </Grid>
 
                 <!-- Processing log: always dark, closed by default -->
-                <Border Grid.Row="1" Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="8,5" Margin="0,0,0,0">
+                <Border Grid.Row="1" Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="6,3" Margin="0,0,0,0">
                     <StackPanel>
                         <Grid>
                             <Grid.ColumnDefinitions>
@@ -836,7 +836,7 @@ converters declared here.
                                    Visibility="{Binding IsChecked, ElementName=LogToggle, Converter={StaticResource InverseBoolToVisibility}}"/>
 
                         <!-- Open: full list -->
-                        <ListBox x:Name="LogListBox" Margin="0,6,0,0"
+                        <ListBox x:Name="LogListBox" Margin="0,4,0,0"
                                  ItemsSource="{Binding LogView}"
                                  SelectionMode="Extended"
                                  SelectionChanged="LogListBox_SelectionChanged"

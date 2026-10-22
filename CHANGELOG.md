@@ -12,7 +12,7 @@ Each release lists every tool whose version changed, under the plugin version.
 ## [6.0.2] — 2026-10-22
 
 ### Changed
-- **Auto Slope By Point v32.1.1** — the window is more compact: smaller default size (1000 × 640), tighter spacing in the option sections and results grid.
+- **Auto Slope By Point v32.1.1** — the window is more compact: smaller default size (1000 × 640), tighter spacing in the option sections and results grid, and the "Every run", options and log area is about 30 % shorter.
 
 **User note:** layout only; no settings or behaviour changed.
 
