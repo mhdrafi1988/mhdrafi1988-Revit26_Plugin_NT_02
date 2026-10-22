@@ -5,7 +5,7 @@ using Revit26_Plugin_Revised.SectionAutoRenamer.V025.Services;
 using Revit26_Plugin_Revised.SectionAutoRenamer.V025.ViewModels;
 using Revit26_Plugin_Revised.SectionAutoRenamer.V025.Views;
 using System.Linq;
-using Revit26_Plugin_Revised.Utilities;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace Revit26_Plugin_Revised.SectionAutoRenamer.V025.Commands;
 
@@ -13,31 +13,22 @@ namespace Revit26_Plugin_Revised.SectionAutoRenamer.V025.Commands;
 [Regeneration(RegenerationOption.Manual)]
 public class OpenSectionManagerCommand : IExternalCommand
 {
-    public Result Execute(ExternalCommandData c, ref string m, ElementSet e)
+    /// <summary>Ribbon entry point; runs through ToolGuard so no exception reaches Revit.</summary>
+    public Result Execute(ExternalCommandData c, ref string m, ElementSet e) =>
+        ToolGuard.RunCommand(typeof(OpenSectionManagerCommand), c, ref m, e, ExecuteInternal);
+
+    private static Result ExecuteInternal(ExternalCommandData c, ref string m, ElementSet e)
     {
-        try
+        var uidoc = c.Application.ActiveUIDocument;
+        if (uidoc?.Document == null)
         {
-            return ExecuteInternal(c, ref m, e);
-        }
-        catch (Autodesk.Revit.Exceptions.OperationCanceledException)
-        {
+            m = "Open a project before running Section Auto Renamer.";
+            TaskDialog.Show("Section Auto Renamer", m);
             return Result.Cancelled;
         }
-        catch (System.Exception ex)
-        {
-            Logger.Error("OpenSectionManagerCommand", ex);
-            m = ex.Message;
-            TaskDialog.Show("Section Manager", $"An unexpected error occurred: {ex.Message}");
-            return Result.Failed;
-        }
-    }
 
-    private Result ExecuteInternal(ExternalCommandData c, ref string m, ElementSet e)
-    {
         RevitEventManager.Initialize();
-
-        var uidoc = c.Application.ActiveUIDocument;
-        var doc   = uidoc.Document;
+        var doc = uidoc.Document;
 
         var activeSheet       = uidoc.ActiveView as ViewSheet;
         string activeSheetNum = activeSheet?.SheetNumber ?? "";

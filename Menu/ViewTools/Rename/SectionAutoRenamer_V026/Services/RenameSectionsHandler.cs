@@ -2,6 +2,7 @@ using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using Revit26_Plugin_Revised.SectionAutoRenamer.V026.Models;
 using Revit26_Plugin_Revised.SectionAutoRenamer.V026.ViewModels;
+using Revit26_Plugin_Revised.Shared.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,7 +15,11 @@ public class RenameSectionsHandler : IExternalEventHandler
     public List<SectionItemViewModel> Payload { get; set; } = new();
     public SectionsListViewModel      Vm      { get; set; } = null!;
 
-    public void Execute(UIApplication app)
+    /// <summary>External-event entry point; runs through ToolGuard so no exception reaches Revit.</summary>
+    public void Execute(UIApplication app) =>
+        ToolGuard.RunHandler(typeof(RenameSectionsHandler), app, ExecuteInternal);
+
+    private void ExecuteInternal(UIApplication app)
     {
         var doc = app.ActiveUIDocument.Document;
 
