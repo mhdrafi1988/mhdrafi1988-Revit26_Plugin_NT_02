@@ -9,6 +9,17 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.2.0] — 2026-10-22
+
+### Added
+- **Auto Slope By Point v32.3.0** — Circle markers → Highest point has a new option under the "Offset: X mm" text note:
+  **Also add it at every roof boundary corner**. When ticked, each corner of the roof's outer boundary gets the same
+  red "Offset: X mm" note with a leader, showing that corner's calculated elevation. Openings are not included,
+  and no circle is drawn at the corners. A corner that already has the highest-point note is not labelled twice.
+  The option is only available while the text note is ticked, and it needs a plan view like the other markers.
+
+**User note:** the new option is off by default, so runs behave as before until you tick it. Existing settings load unchanged.
+
 ## [6.1.1] — 2026-10-22
 
 ### Changed

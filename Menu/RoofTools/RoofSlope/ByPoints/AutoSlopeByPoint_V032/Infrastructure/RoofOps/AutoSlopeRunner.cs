@@ -117,6 +117,27 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V032.Infrastructure.RoofOps
             ApplyOutcome applied;
             MarkerCounts markers;
             var drainPoints = drains.DrainVertices.Select(i => prep.Positions[i].ToPoint3()).ToList();
+
+            // Outer boundary corners for the corner Offset notes (32.3.0), read before the roof changes.
+            MarkerStyle highStyle = request.Markers?.FirstOrDefault(m => m.Kind == MarkerGroupKind.HighestPoint);
+            if (highStyle is { IsEnabled: true, ShowOffsetText: true, ShowCornerOffsetText: true })
+            {
+                try
+                {
+                    request = request with
+                    {
+                        BoundaryCorners = AutoSlopeGeometry
+                            .GetOuterBoundaryCorners(prep.TopFace, AutoSlopeConstants.CornerMinAngleDeg)
+                            .Select(p => p.ToPoint3())
+                            .ToList()
+                    };
+                }
+                catch (Exception ex) when (ex is not OperationCanceledException)
+                {
+                    // Not fatal: the marker step logs that the corner notes were skipped.
+                    log(LogLevel.Warning, $"Offset notes: the roof's outer boundary could not be read ({ex.Message}).");
+                }
+            }
             using (var tx = new Transaction(doc, "Apply AutoSlope"))
             {
                 tx.Start();

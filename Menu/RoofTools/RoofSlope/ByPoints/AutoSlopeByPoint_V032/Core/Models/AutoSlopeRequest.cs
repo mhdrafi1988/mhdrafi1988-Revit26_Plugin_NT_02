@@ -12,6 +12,8 @@ using System.Collections.Generic;
 namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V032.Core.Models
 {
     /// <summary>Marker style snapshot for one circle-marker group.</summary>
+    /// <remarks>ShowCornerOffsetText (32.3.0, Highest point only): also place the Offset text note
+    /// at every outer roof boundary corner. Applies only when ShowOffsetText is on.</remarks>
     public sealed record MarkerStyle(
         MarkerGroupKind Kind,
         string Label,
@@ -20,7 +22,8 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V032.Core.Models
         string LineStyleName,
         string ColorName,
         double RadiusMm,
-        bool ShowOffsetText);
+        bool ShowOffsetText,
+        bool ShowCornerOffsetText = false);
 
     public sealed record AutoSlopeRequest
     {
@@ -53,6 +56,10 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V032.Core.Models
         public double AllowedOffsetThresholdMm { get; init; }
 
         public string ProjectTitle { get; init; }
+
+        /// <summary>Outer roof boundary corners in plan (feet), read before the run's transaction.
+        /// Filled by the runner only when the corner Offset notes are on.</summary>
+        public IReadOnlyList<Point3> BoundaryCorners { get; init; } = new List<Point3>();
 
         public double EffectiveMaxEdgeLengthM => MaxEdgeLengthM > 0 ? MaxEdgeLengthM : MaxDrainDistanceM;
 

@@ -7,9 +7,12 @@
 //     each curve's own height, so a pick taken on the old (sloped) surface
 //     is not pushed towards whichever loop happens to sit higher (D3).
 //   - IsPointOnFace removed (unused in V030).
+//   - 32.3.0: GetOuterBoundaryCorners for the corner Offset notes.
 // =======================================================
 
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using Autodesk.Revit.DB;
 
 namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V032.Infrastructure.RoofOps
@@ -59,6 +62,67 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V032.Infrastructure.RoofOps
                 if (curves.Count > 0) loops.Add(curves);
             }
             return loops;
+        }
+
+        /// <summary>
+        /// Corners of the roof's outer boundary (the top-face loop with the largest plan extent; openings
+        /// are ignored). A corner is a loop vertex where the direction turns by more than
+        /// <paramref name="minAngleDeg"/>, so points that only split a straight edge, and smooth
+        /// line-to-arc joins, are left out. Returns an empty list when the face or its loops can't be read.
+        /// </summary>
+        public static List<XYZ> GetOuterBoundaryCorners(Face topFace, double minAngleDeg)
+        {
+            var corners = new List<XYZ>();
+            if (topFace == null) return corners;
+
+            List<Curve> outer = null;
+            double bestExtent = -1;
+            foreach (EdgeArray loop in topFace.EdgeLoops)
+            {
+                var curves = new List<Curve>();
+                foreach (Edge edge in loop)
+                {
+                    Curve c = edge.AsCurveFollowingFace(topFace);
+                    if (c != null) curves.Add(c);
+                }
+                if (curves.Count == 0) continue;
+
+                var pts = curves.SelectMany(c => c.Tessellate()).ToList();
+                double extent = (pts.Max(p => p.X) - pts.Min(p => p.X)) * (pts.Max(p => p.Y) - pts.Min(p => p.Y));
+                if (extent > bestExtent)
+                {
+                    bestExtent = extent;
+                    outer = curves;
+                }
+            }
+            if (outer == null) return corners;
+
+            double minAngleRad = minAngleDeg * Math.PI / 180.0;
+            for (int i = 0; i < outer.Count; i++)
+            {
+                Curve prev = outer[(i - 1 + outer.Count) % outer.Count];
+                Curve cur = outer[i];
+                XYZ dirIn = FlatTangent(prev, 1.0);
+                XYZ dirOut = FlatTangent(cur, 0.0);
+                if (dirIn == null || dirOut == null || dirIn.AngleTo(dirOut) > minAngleRad)
+                    corners.Add(cur.GetEndPoint(0));
+            }
+            return corners;
+        }
+
+        /// <summary>Unit tangent in plan at a normalized parameter, or null for a vertical or degenerate tangent.</summary>
+        private static XYZ FlatTangent(Curve curve, double normalizedParam)
+        {
+            try
+            {
+                XYZ t = curve.ComputeDerivatives(normalizedParam, true).BasisX;
+                var flat = new XYZ(t.X, t.Y, 0);
+                return flat.GetLength() < 1e-9 ? null : flat.Normalize();
+            }
+            catch (Autodesk.Revit.Exceptions.ApplicationException)
+            {
+                return null;
+            }
         }
 
         /// <summary>Index of the loop closest to the point in plan, or -1.</summary>

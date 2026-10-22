@@ -6,6 +6,7 @@
 // immutable MarkerStyle snapshot (B7). One class drives one DataTemplate
 // for all three groups (plan 2.4); group-only extras are flags.
 // V032: IsAtDefaults (drives the section's "Custom" tag) and ResetToDefaults.
+// 32.3.0: ShowCornerOffsetText (Highest point only, default off).
 // =======================================================
 
 using System;
@@ -43,6 +44,7 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V032.UI.ViewModels
             && ReferenceEquals(SelectedLineStyle, _defaultLineStyle)
             && Same(RadiusText, AutoSlopeConstants.DefaultMarkerRadiusMm)
             && (!HasOffsetTextOption || ShowOffsetText)
+            && (!HasOffsetTextOption || !ShowCornerOffsetText)
             && (!HasThresholdOption || Same(ThresholdText, AutoSlopeConstants.DefaultAllowedOffsetThresholdMm));
 
         public void ResetToDefaults()
@@ -53,6 +55,7 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V032.UI.ViewModels
             RadiusText = InputParsing.Format(AutoSlopeConstants.DefaultMarkerRadiusMm);
             ThresholdText = InputParsing.Format(AutoSlopeConstants.DefaultAllowedOffsetThresholdMm);
             ShowOffsetText = true;
+            ShowCornerOffsetText = false;
         }
 
         private static bool Same(string text, double expected) =>
@@ -85,6 +88,10 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V032.UI.ViewModels
 
         [ObservableProperty]
         private bool showOffsetText = true;
+
+        /// <summary>Also place the Offset text note at every outer roof boundary corner (off by default).</summary>
+        [ObservableProperty]
+        private bool showCornerOffsetText;
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(ChipText))]
@@ -122,6 +129,7 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V032.UI.ViewModels
         public double ThresholdMm =>
             InputParsing.TryParse(ThresholdText, out double v) ? v : AutoSlopeConstants.DefaultAllowedOffsetThresholdMm;
 
+        /// <summary>Immutable snapshot of this group for a run (corner notes only with the Offset note on).</summary>
         public MarkerStyle ToStyle()
         {
             InputParsing.TryParse(RadiusText, out double radius);
@@ -131,9 +139,11 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V032.UI.ViewModels
                 SelectedLineStyle?.Name,
                 ColorName,
                 radius,
-                HasOffsetTextOption && ShowOffsetText);
+                HasOffsetTextOption && ShowOffsetText,
+                HasOffsetTextOption && ShowOffsetText && ShowCornerOffsetText);
         }
 
+        /// <summary>Loads saved values; settings files without the corner option read it as off.</summary>
         public void Apply(CircleMarkerGroupSettings saved)
         {
             if (saved == null) return;
@@ -141,6 +151,7 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V032.UI.ViewModels
             if (NamedColors.IsKnown(saved.ColorName)) ColorName = saved.ColorName;
             if (saved.RadiusMm > 0) RadiusText = InputParsing.Format(saved.RadiusMm);
             ShowOffsetText = saved.ShowOffsetText;
+            ShowCornerOffsetText = saved.ShowCornerOffsetText;
 
             if (!string.IsNullOrWhiteSpace(saved.LineStyleName))
             {
@@ -149,6 +160,7 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V032.UI.ViewModels
             }
         }
 
+        /// <summary>Values to save between sessions, including the corner Offset note option.</summary>
         public CircleMarkerGroupSettings ToSettings()
         {
             InputParsing.TryParse(RadiusText, out double radius);
@@ -158,7 +170,8 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V032.UI.ViewModels
                 LineStyleName = SelectedLineStyle?.Name,
                 ColorName = ColorName,
                 RadiusMm = radius > 0 ? radius : AutoSlopeConstants.DefaultMarkerRadiusMm,
-                ShowOffsetText = ShowOffsetText
+                ShowOffsetText = ShowOffsetText,
+                ShowCornerOffsetText = ShowCornerOffsetText
             };
         }
     }
