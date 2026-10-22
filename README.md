@@ -50,6 +50,10 @@
 - **Annotation Overlap Detection** — detect overlapping annotations
 - **Worksets & Elements Browser** — browse worksets and their element counts
 
+### Memory
+- **WS Memory** — remember which worksets are open as named sets, then reopen the model with exactly those worksets
+- **Link Memory** — remember which Revit links are loaded as named sets, then load and unload links back to a set
+
 ## Installation
 
 1. Download the latest release from the [Autodesk App Store](https://apps.autodesk.com).

@@ -12,7 +12,7 @@ Each release lists every tool whose version changed, under the plugin version.
 ## [6.6.0] — 2026-10-22
 
 ### Added
-- **Workset Memory v1.0.0** — new **WS Memory** button in the Worksets panel. Saves which worksets are open (and the
+- **Workset Memory v1.0.0** — new **WS Memory** button in the new **Memory** panel. Saves which worksets are open (and the
   active workset) as named sets per model, then reopens the model with exactly those worksets open.
   - The window lists the model's saved sets (Remember current, Overwrite, Delete) and a table showing, for each workset,
     whether it is open now, open in the set, and whether a reload opens or closes it.
@@ -24,8 +24,8 @@ Each release lists every tool whose version changed, under the plugin version.
   - The button also works with no model open: pick a remembered model and set, and it opens straight with those worksets.
   - Sets are kept per central model (every local copy shares them) in
     `%AppData%\Revit26_Plugin_Revised\WorksetMemory\memory.json`. Cloud (Autodesk Docs) models are supported.
-- **Link Memory v1.0.0** — new **Link Memory** button in the Manage panel. Saves which Revit links are loaded as named
-  sets per model, then loads and unloads links back to a set in one click, in the open model.
+- **Link Memory v1.0.0** — new **Link Memory** button in the **Memory** panel, next to WS Memory. Saves which Revit
+  links are loaded as named sets per model, then loads and unloads links back to a set in one click, in the open model.
   - Same saved-set list and comparison table as Workset Memory, plus a run log.
   - Options: unload links the set had unloaded (on by default); also reload links already loaded, to pick up the
     latest file (off by default).
@@ -36,7 +36,7 @@ Each release lists every tool whose version changed, under the plugin version.
     the other links still load.
   - Sets are kept in `%AppData%\Revit26_Plugin_Revised\LinkMemory\memory.json`.
 
-**User note:** two new buttons; no existing tool changed. Revit clears the Undo list when a link loads.
+**User note:** a new **Memory** panel (after Worksets) holds the two new buttons as large buttons; no existing tool changed. Revit clears the Undo list when a link loads.
 
 ## [6.5.2] — 2026-10-22
 

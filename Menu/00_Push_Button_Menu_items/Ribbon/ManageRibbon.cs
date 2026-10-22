@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Revit26_Plugin_Revised.Menu.Ribbon
 {
-    /// <summary>Builds the Manage and Worksets panels of the SloperPro Documents tab.</summary>
+    /// <summary>Builds the Manage, Worksets and Memory panels of the SloperPro Documents tab.</summary>
     public static class ManageRibbon
     {
         // Every Manage button is a pulldown: highest version number first,
@@ -22,10 +22,11 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             };
         }
 
-        /// <summary>Creates the Manage panel, then the Worksets panel, on <paramref name="tabName"/>.</summary>
+        /// <summary>Creates the Manage panel, then the Worksets panel, then the Memory panel, on <paramref name="tabName"/>.</summary>
         public static void Build(UIControlledApplication app, string tabName, string assemblyPath)
         {
-            // Two panels: general model-management tools (Link Check included), and a Worksets panel of its own.
+            // Three panels: general model-management tools (Link Check included), a Worksets panel of its own,
+            // and a Memory panel for the remember-and-restore tools.
             RibbonPanel panel = app.CreateRibbonPanel(tabName, "Manage");
 
             var overlapV004 = Btn(assemblyPath, "Btn_AnnotationOverlapDetection_V004", "Overlap Detection V004", "Revit26_Plugin_Revised.AnnotationOverlapDetection.V004.Command",
@@ -166,7 +167,6 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                 // Link Check moved here from its own one-button Links panel (plugin 4.2.1).
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_LinkVersionChecker", "Link Check", linkInModelV004),
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_TrackerId", "Tracker ID", trackerIdV002),
-                linkMemoryV001,
             });
             RibbonLayoutHelper.WirePulldownButton(manageItems, "Pulldown_AnnotationOverlapDetection", overlapV004);
             RibbonLayoutHelper.WirePulldownButton(manageItems, "Pulldown_ParaManager", paraManagerV005);
@@ -191,13 +191,18 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_WorksetRenamer", "WS Renamer", worksetRenamerV005),
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_WorksetRenamerFx", "WS Renamer XL", worksetRenamerFx05),
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_DeleteWorkset", "Delete Workset", deleteWorksetV001),
-                worksetMemoryV001,
             });
             RibbonLayoutHelper.WirePulldownButton(worksetItems, "Pulldown_WorksetsElementsBrowser", wsebV004, wsebV003);
             RibbonLayoutHelper.WirePulldownButton(worksetItems, "Pulldown_WorksetCreator", worksetCreatorV016, worksetCreatorV015);
             RibbonLayoutHelper.WirePulldownButton(worksetItems, "Pulldown_WorksetRenamer", worksetRenamerV005);
             RibbonLayoutHelper.WirePulldownButton(worksetItems, "Pulldown_WorksetRenamerFx", worksetRenamerFx05);
             RibbonLayoutHelper.WirePulldownButton(worksetItems, "Pulldown_DeleteWorkset", deleteWorksetV001);
+
+            // ── Memory panel ─────────────────────────────────────────────────
+            // Remember-and-restore tools, side by side as two large buttons.
+            RibbonPanel memoryPanel = app.CreateRibbonPanel(tabName, "Memory");
+            memoryPanel.AddItem(worksetMemoryV001);
+            memoryPanel.AddItem(linkMemoryV001);
         }
     }
 }
