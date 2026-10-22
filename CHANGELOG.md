@@ -9,6 +9,17 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.5.0] — 2026-10-22
+
+### Added
+- **View Auto Renamer v7.0.0 (V007)** — opens much faster on large projects. It is the top entry in the **Auto Renamer**
+  dropdown; V006 and V005 stay below it, unchanged.
+  - Sheet placements for legends and schedules are found with two project-wide searches instead of two searches per sheet.
+  - The views grid only builds the rows it shows when the window opens, instead of a row for every view in the project.
+  - Errors now go through the plugin's standard error dialog and log (`%AppData%\Revit26_Plugin_Revised\Logs`).
+
+**User note:** renaming, filters and settings work the same as V006 and share its settings file.
+
 ## [6.4.1] — 2026-10-22
 
 ### Changed
