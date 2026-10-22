@@ -9,11 +9,12 @@ namespace Revit26_Plugin_Revised.DetailLineManager.V001.Core.Models
     public sealed class ToolSettings
     {
         /// <summary>Settings format this build writes.</summary>
-        public const int CurrentVersion = 1;
+        public const int CurrentVersion = 2;
 
         /// <summary>
         /// Format version of the file. 0 means a file without the field; it is read as version 1.
-        /// Files from a newer build are read field by field; unknown fields are ignored.
+        /// Version 1 (tool 1.0.x) has no overlap, keep-pattern, search-on-open or tab fields; they load
+        /// with their defaults. Files from a newer build are read field by field; unknown fields are ignored.
         /// </summary>
         public int Version { get; set; } = CurrentVersion;
 
@@ -92,6 +93,18 @@ namespace Revit26_Plugin_Revised.DetailLineManager.V001.Core.Models
         /// <summary>Which duplicate survives.</summary>
         public DuplicateKeepRule KeepRule { get; set; } = DuplicateKeepRule.OldestId;
 
+        /// <summary>Handle overlapping straight lines of the same style (version 2; off by default).</summary>
+        public bool DeleteOverlaps { get; set; }
+
+        /// <summary>Delete covered lines or join overlapping ones (version 2).</summary>
+        public OverlapMode OverlapMode { get; set; } = OverlapMode.DeleteCovered;
+
+        /// <summary>
+        /// Line style name patterns that are never deleted, separated by ';' (* and ? wildcards),
+        /// e.g. "A-*;S-*" (version 2).
+        /// </summary>
+        public string KeepStylePatterns { get; set; } = string.Empty;
+
         // ── Line thickness ────────────────────────────────────────────────
         /// <summary>Line thickness mode.</summary>
         public ThicknessMode ThicknessMode { get; set; } = ThicknessMode.AssignStyle;
@@ -105,11 +118,22 @@ namespace Revit26_Plugin_Revised.DetailLineManager.V001.Core.Models
         /// <summary>Per-view override mode: clear existing overrides instead of setting one.</summary>
         public bool ClearOverrides { get; set; }
 
+        // ── Window ────────────────────────────────────────────────────────
+        /// <summary>Search the active scope as soon as the window opens (version 2; on by default as before).</summary>
+        public bool SearchOnOpen { get; set; } = true;
+
+        /// <summary>Action tab shown last: 0 Delete unused, 1 Line thickness (version 2).</summary>
+        public int LastTab { get; set; }
+
         /// <summary>Brings a file from an older or newer build to a usable state.</summary>
         public void Migrate()
         {
             if (Version <= 0) Version = 1;
+            // 1 → 2: new fields already hold their defaults (same behaviour as 1.0.x).
+            if (Version < CurrentVersion) Version = CurrentVersion;
             ExcludedStyles ??= new List<string>();
+            KeepStylePatterns ??= string.Empty;
+            if (LastTab is < 0 or > 1) LastTab = 0;
             SearchText ??= string.Empty;
             ViewType ??= string.Empty;
             Workset ??= string.Empty;

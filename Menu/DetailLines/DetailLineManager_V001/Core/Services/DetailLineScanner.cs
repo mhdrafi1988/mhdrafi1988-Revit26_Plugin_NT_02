@@ -9,76 +9,13 @@ using System.Linq;
 namespace Revit26_Plugin_Revised.DetailLineManager.V001.Core.Services
 {
     /// <summary>
-    /// Collects detail lines for a scope and builds the grid rows, duplicate clusters and line-style
-    /// usage. Only detail lines of the host model are read (<c>CurveElementType.DetailCurve</c>:
-    /// lines, arcs, splines, ellipses); linked models and sketch boundaries are left out.
+    /// Collects detail lines for a scope and builds grid rows; <see cref="ScanJob"/> runs it in steps.
+    /// Only detail lines of the host model are read (<c>CurveElementType.DetailCurve</c>: lines,
+    /// arcs, splines, ellipses); linked models and sketch boundaries are left out.
     /// Call only in the Revit API context.
     /// </summary>
     public static class DetailLineScanner
     {
-        /// <summary>Runs one search.</summary>
-        /// <param name="uiDoc">Active document.</param>
-        /// <param name="scope">Which lines to collect.</param>
-        /// <param name="toleranceMm">Short-line and duplicate tolerance in mm.</param>
-        /// <param name="log">Receives progress, skips and warnings.</param>
-        public static ScanResult Scan(UIDocument uiDoc, SearchScope scope, double toleranceMm, Action<LogLevel, string> log)
-        {
-            var doc = uiDoc.Document;
-            var result = new ScanResult();
-
-            var sketchMembers = CollectSketchMembers(doc);
-            var curves = Collect(uiDoc, scope, sketchMembers, log, out string scopeText, out int sketchSkipped);
-            result.ScopeText = scopeText;
-
-            int links = new FilteredElementCollector(doc).OfClass(typeof(RevitLinkInstance)).GetElementCount();
-            log(LogLevel.Info, $"Scope: {scopeText} · {curves.Count} detail line(s) collected"
-                + (links > 0 ? $" · {links} linked model instance(s) not searched" : string.Empty)
-                + (sketchSkipped > 0 ? $" · {sketchSkipped} sketch boundary line(s) left out" : string.Empty) + ".");
-
-            var editability = new EditabilityService(doc);
-            var styleCache = new Dictionary<ElementId, (string Name, int Weight)>();
-            var viewCache = new Dictionary<ElementId, View>();
-            var candidates = new List<DuplicateDetector.Candidate>(curves.Count);
-            int unreadable = 0;
-
-            foreach (var curve in curves)
-            {
-                try
-                {
-                    var row = BuildRow(doc, curve, editability, styleCache, viewCache, out Curve geometry);
-                    candidates.Add(DuplicateDetector.Describe(result.Rows.Count, row.ViewId, row.Curve, geometry));
-                    result.Rows.Add(row);
-                }
-                catch (Autodesk.Revit.Exceptions.ApplicationException ex)
-                {
-                    unreadable++;
-                    if (unreadable <= 20)
-                        log(LogLevel.Warning, $"Skipped line {curve.Id.Value}: could not read it ({ex.Message}).");
-                }
-            }
-            if (unreadable > 20)
-                log(LogLevel.Warning, $"… {unreadable - 20} more unreadable line(s) skipped.");
-
-            double tolFeet = UnitUtils.ConvertToInternalUnits(Math.Max(toleranceMm, 0.001), UnitTypeId.Millimeters);
-            var clusters = DuplicateDetector.FindClusters(candidates, tolFeet);
-            foreach (var pair in clusters)
-                result.Rows[pair.Key].DuplicateCluster = pair.Value;
-            result.DuplicateClusters = clusters.Values.Distinct().Count();
-
-            foreach (var row in result.Rows)
-                row.ApplyTolerance(toleranceMm);
-
-            var usage = LineStyleService.CollectUsage(doc);
-            result.Styles.AddRange(LineStyleService.LoadStyles(doc, usage));
-
-            log(LogLevel.Success,
-                $"Found {result.Rows.Count} line(s): {clusters.Count} in {result.DuplicateClusters} duplicate cluster(s), "
-                + $"{result.Rows.Count(r => r.IsShort)} shorter than {toleranceMm:0.##} mm, "
-                + $"{result.Rows.Count(r => r.InGroup)} in groups, {result.Rows.Count(r => r.IsOwnedByOther)} owned by other users. "
-                + $"Line styles: {result.Styles.Count} ({result.Styles.Count(s => s.IsUnused)} unused, built-in styles excluded).");
-            return result;
-        }
-
         /// <summary>Maps a Revit curve to its <see cref="CurveKind"/>.</summary>
         public static CurveKind KindOf(Curve curve) => curve switch
         {
@@ -93,8 +30,9 @@ namespace Revit26_Plugin_Revised.DetailLineManager.V001.Core.Services
         public static bool IsDetailLine(Element element)
             => element is CurveElement c && c.CurveElementType == CurveElementType.DetailCurve;
 
-        private static List<CurveElement> Collect(UIDocument uiDoc, SearchScope scope, HashSet<ElementId> sketchMembers,
-                                                  Action<LogLevel, string> log, out string scopeText, out int sketchSkipped)
+        /// <summary>Ids of the detail lines in <paramref name="scope"/>, sketch boundary lines left out.</summary>
+        public static List<ElementId> CollectIds(UIDocument uiDoc, SearchScope scope, HashSet<ElementId> sketchMembers,
+                                                 Action<LogLevel, string> log, out string scopeText, out int sketchSkipped)
         {
             var doc = uiDoc.Document;
             IEnumerable<Element> source;
@@ -158,20 +96,22 @@ namespace Revit26_Plugin_Revised.DetailLineManager.V001.Core.Services
                 }
             }
 
-            var list = new List<CurveElement>();
+            var list = new List<ElementId>();
             sketchSkipped = 0;
             foreach (var e in source)
             {
                 if (!IsDetailLine(e)) continue;
                 if (sketchMembers.Contains(e.Id)) { sketchSkipped++; continue; }
-                list.Add((CurveElement)e);
+                list.Add(e.Id);
             }
             return list;
         }
 
-        // Boundary lines of filled regions, masking regions and other sketches are detail curves too,
-        // but deleting or restyling them would break their sketch.
-        private static HashSet<ElementId> CollectSketchMembers(Document doc)
+        /// <summary>
+        /// Boundary lines of filled regions, masking regions and other sketches. They are detail curves
+        /// too, but deleting or restyling them would break their sketch.
+        /// </summary>
+        public static HashSet<ElementId> CollectSketchMembers(Document doc)
         {
             var set = new HashSet<ElementId>();
             foreach (Sketch sketch in new FilteredElementCollector(doc).OfClass(typeof(Sketch)))
@@ -189,10 +129,23 @@ namespace Revit26_Plugin_Revised.DetailLineManager.V001.Core.Services
             return set;
         }
 
-        private static DetailLineRow BuildRow(Document doc, CurveElement curve, EditabilityService editability,
-                                              Dictionary<ElementId, (string Name, int Weight)> styleCache,
-                                              Dictionary<ElementId, View> viewCache, out Curve geometry)
+        /// <summary>Lookups shared by every <see cref="BuildRow"/> call of one search.</summary>
+        public sealed class RowCache
         {
+            internal Dictionary<ElementId, (string Name, int Weight)> Styles { get; } = new();
+            internal Dictionary<ElementId, View> Views { get; } = new();
+            internal Dictionary<(long View, long Category), int> VgWeights { get; } = new();
+            internal Dictionary<ElementId, string> GroupNames { get; } = new();
+            internal ElementId LinesCategoryId { get; set; }
+            internal bool LinesCategoryRead { get; set; }
+        }
+
+        /// <summary>Builds the grid row of <paramref name="curve"/>; <paramref name="geometry"/> is its curve.</summary>
+        public static DetailLineRow BuildRow(Document doc, CurveElement curve, EditabilityService editability,
+                                             RowCache cache, out Curve geometry)
+        {
+            var styleCache = cache.Styles;
+            var viewCache = cache.Views;
             geometry = curve.GeometryCurve;
 
             string styleName = string.Empty;
@@ -224,6 +177,13 @@ namespace Revit26_Plugin_Revised.DetailLineManager.V001.Core.Services
                 }
             }
 
+            int vgWeight = view == null || styleCatId == null ? 0 : VgWeight(doc, view, styleCatId, cache);
+
+            ElementId groupId = EditabilityService.InGroup(curve) ? curve.GroupId : null;
+            string groupName = string.Empty;
+            if (groupId != null && !cache.GroupNames.TryGetValue(groupId, out groupName))
+                cache.GroupNames[groupId] = groupName = doc.GetElement(groupId)?.Name ?? string.Empty;
+
             return new DetailLineRow
             {
                 Id = curve.Id,
@@ -231,6 +191,7 @@ namespace Revit26_Plugin_Revised.DetailLineManager.V001.Core.Services
                 StyleCategoryId = styleCatId,
                 StyleWeight = styleWeight,
                 OverrideWeight = overrideWeight,
+                VgWeight = vgWeight,
                 ViewId = viewId,
                 ViewName = view?.Name ?? string.Empty,
                 ViewTypeName = view == null ? string.Empty : ViewTypeLabel(view.ViewType),
@@ -238,9 +199,58 @@ namespace Revit26_Plugin_Revised.DetailLineManager.V001.Core.Services
                 Curve = KindOf(geometry),
                 WorksetName = editability.WorksetName(curve),
                 Comment = curve.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS)?.AsString() ?? string.Empty,
-                InGroup = EditabilityService.InGroup(curve),
+                GroupId = groupId,
+                GroupName = groupName,
                 OwnedBy = editability.OwnedByOther(curve)
             };
+        }
+
+        // Weight the view's Visibility/Graphics sets for the line style, falling back to the Lines
+        // category it belongs to. When a view template controls V/G, the template's settings apply.
+        private static int VgWeight(Document doc, View view, ElementId styleCatId, RowCache cache)
+        {
+            View source = view;
+            try
+            {
+                if (view.ViewTemplateId != null && view.ViewTemplateId != ElementId.InvalidElementId
+                    && doc.GetElement(view.ViewTemplateId) is View template)
+                {
+                    var notControlled = template.GetNonControlledTemplateParameterIds();
+                    var vgParam = new ElementId(BuiltInParameter.VIS_GRAPHICS_MODEL);
+                    if (notControlled == null || !notControlled.Contains(vgParam)) source = template;
+                }
+            }
+            catch (Autodesk.Revit.Exceptions.ApplicationException)
+            {
+                source = view;
+            }
+
+            var key = (source.Id.Value, styleCatId.Value);
+            if (cache.VgWeights.TryGetValue(key, out int weight)) return weight;
+
+            if (!cache.LinesCategoryRead)
+            {
+                cache.LinesCategoryId = LineStyleService.GetLinesCategory(doc)?.Id;
+                cache.LinesCategoryRead = true;
+            }
+
+            weight = ReadVgPen(source, styleCatId);
+            if (weight == 0 && cache.LinesCategoryId != null) weight = ReadVgPen(source, cache.LinesCategoryId);
+            cache.VgWeights[key] = weight;
+            return weight;
+        }
+
+        private static int ReadVgPen(View view, ElementId categoryId)
+        {
+            try
+            {
+                int pen = view.GetCategoryOverrides(categoryId).ProjectionLineWeight;
+                return pen != OverrideGraphicSettings.InvalidPenNumber && pen > 0 ? pen : 0;
+            }
+            catch (Autodesk.Revit.Exceptions.ApplicationException)
+            {
+                return 0; // view without category overrides (legends, schedules)
+            }
         }
 
         private static string ViewTypeLabel(ViewType type) => type switch

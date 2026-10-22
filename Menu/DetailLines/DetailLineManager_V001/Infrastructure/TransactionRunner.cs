@@ -66,6 +66,29 @@ namespace Revit26_Plugin_Revised.DetailLineManager.V001.Infrastructure
         }
 
         /// <summary>
+        /// Runs <paramref name="body"/> in a transaction that is always rolled back, to measure what a
+        /// change would do (for example which elements a delete removes) without changing the model.
+        /// Returns <paramref name="body"/>'s result, or default when Revit refuses to start the transaction.
+        /// </summary>
+        public static T RunAndRollBack<T>(Document doc, string name, Func<T> body)
+        {
+            using var t = new Transaction(doc, name);
+            var options = t.GetFailureHandlingOptions();
+            options.SetFailuresPreprocessor(new FailurePolicy());
+            options.SetClearAfterRollback(true);
+            t.SetFailureHandlingOptions(options);
+            if (t.Start() != TransactionStatus.Started) return default;
+            try
+            {
+                return body();
+            }
+            finally
+            {
+                if (t.HasStarted() && !t.HasEnded()) t.RollBack();
+            }
+        }
+
+        /// <summary>
         /// Dismisses warnings (collected for the log) and turns any error into a full rollback.
         /// </summary>
         private sealed class FailurePolicy : IFailuresPreprocessor

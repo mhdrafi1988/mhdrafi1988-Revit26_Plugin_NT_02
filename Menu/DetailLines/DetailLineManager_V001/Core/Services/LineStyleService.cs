@@ -54,53 +54,20 @@ namespace Revit26_Plugin_Revised.DetailLineManager.V001.Core.Services
         }
 
         /// <summary>
-        /// Line style subcategory id → number of curve elements using it, across the whole project:
-        /// every <see cref="CurveElement"/> (model, detail, symbolic and room/area separation lines),
-        /// every <see cref="ModelCurve"/> in the Lines category, and sketch lines (filled-region and
-        /// other sketch boundaries), including lines in groups.
+        /// Line style subcategory id → number of curve elements using it, across the whole project
+        /// (see <see cref="UsageCounter"/>), counted in one go.
         /// </summary>
         public static Dictionary<ElementId, int> CollectUsage(Document doc)
         {
-            var usage = new Dictionary<ElementId, int>();
-            var seen = new HashSet<ElementId>();
-
-            void Add(Element element)
-            {
-                if (element is not CurveElement curve || !seen.Add(curve.Id)) return;
-                ElementId catId;
-                try { catId = (curve.LineStyle as GraphicsStyle)?.GraphicsStyleCategory?.Id; }
-                catch (Autodesk.Revit.Exceptions.ApplicationException) { return; }
-                if (catId == null) return;
-                usage[catId] = usage.TryGetValue(catId, out int n) ? n + 1 : 1;
-            }
-
-            foreach (var e in new FilteredElementCollector(doc).OfClass(typeof(CurveElement)))
-                Add(e);
-
-            // ModelCurves are CurveElements, but collect the Lines category as well in case the
-            // class filter leaves some out.
-            foreach (var e in new FilteredElementCollector(doc).OfCategory(BuiltInCategory.OST_Lines).WhereElementIsNotElementType())
-                Add(e);
-
-            foreach (Sketch sketch in new FilteredElementCollector(doc).OfClass(typeof(Sketch)))
-            {
-                IList<ElementId> members;
-                try { members = sketch.GetAllElements(); }
-                catch (Autodesk.Revit.Exceptions.ApplicationException) { continue; }
-                foreach (var id in members) Add(doc.GetElement(id));
-            }
-
-            var curveFilter = new ElementClassFilter(typeof(CurveElement));
-            foreach (var region in new FilteredElementCollector(doc).OfClass(typeof(FilledRegion)))
-            {
-                foreach (var id in region.GetDependentElements(curveFilter))
-                    Add(doc.GetElement(id));
-            }
-
-            return usage;
+            var counter = new UsageCounter(doc);
+            while (!counter.Step(System.TimeSpan.MaxValue)) { }
+            return counter.Usage;
         }
 
-        /// <summary>Every line style with its usage, built-in styles first, then by name.</summary>
+        /// <summary>
+        /// Every line style, built-in styles first, then by name. With <paramref name="usage"/> null
+        /// the use counts are unknown and no style is reported as unused.
+        /// </summary>
         public static List<LineStyleItem> LoadStyles(Document doc, Dictionary<ElementId, int> usage)
         {
             var list = new List<LineStyleItem>();
@@ -111,7 +78,8 @@ namespace Revit26_Plugin_Revised.DetailLineManager.V001.Core.Services
             {
                 if (sub == null) continue;
                 var gs = sub.GetGraphicsStyle(GraphicsStyleType.Projection);
-                usage.TryGetValue(sub.Id, out int count);
+                int count = 0;
+                usage?.TryGetValue(sub.Id, out count);
                 list.Add(new LineStyleItem
                 {
                     CategoryId = sub.Id,
@@ -119,6 +87,7 @@ namespace Revit26_Plugin_Revised.DetailLineManager.V001.Core.Services
                     Name = sub.Name,
                     Weight = GetWeight(sub),
                     UseCount = count,
+                    IsUsageKnown = usage != null,
                     IsBuiltIn = IsBuiltIn(sub)
                 });
             }
