@@ -9,6 +9,15 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.4.2] — 2026-10-22
+
+### Fixed
+- **Section Auto Renamer v26.1.2** — the window no longer crashes with "An ItemsControl is inconsistent with its items
+  source" when several log lines arrive at once (e.g. during a rename). The log now scrolls to the newest line after
+  the list has updated.
+
+**User note:** no behaviour change beyond the fix.
+
 ## [6.4.1] — 2026-10-22
 
 ### Changed

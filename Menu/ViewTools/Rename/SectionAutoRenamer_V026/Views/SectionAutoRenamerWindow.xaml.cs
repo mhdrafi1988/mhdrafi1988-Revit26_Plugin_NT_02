@@ -4,6 +4,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
+using System.Windows.Threading;
 using System.Linq;
 using Revit26_Plugin_Revised.Shared.Services;
 
@@ -21,12 +22,16 @@ public partial class SectionsListWindow : Window
         InitializeComponent();
         DataContext = vm;
 
-        // Auto-scroll log panel to latest entry
+        // Auto-scroll log panel to latest entry. This handler can run before the
+        // ListBox has processed the same change, so scrolling right away makes WPF
+        // lay out against a stale count ("ItemsControl is inconsistent with its items
+        // source"). Defer it until the ListBox has caught up.
         vm.Logs.CollectionChanged += (_, _) =>
-        {
-            if (LogList.Items.Count > 0)
-                LogList.ScrollIntoView(LogList.Items[^1]);
-        };
+            Dispatcher.BeginInvoke(DispatcherPriority.Background, new Action(() =>
+            {
+                if (LogList.Items.Count > 0)
+                    LogList.ScrollIntoView(LogList.Items[^1]);
+            }));
     }
 
     // ── "Set selected" — commit on Enter without needing focus loss ─────────
