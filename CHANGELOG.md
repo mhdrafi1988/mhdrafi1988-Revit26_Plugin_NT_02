@@ -9,7 +9,7 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
-## [6.6.0] — 2026-10-22
+## [6.7.0] — 2026-10-22
 
 ### Added
 - **Workset Memory v1.0.0** — new **WS Memory** button in the new **Memory** panel. Saves which worksets are open (and the
@@ -37,6 +37,24 @@ Each release lists every tool whose version changed, under the plugin version.
   - Sets are kept in `%AppData%\Revit26_Plugin_Revised\LinkMemory\memory.json`.
 
 **User note:** a new **Memory** panel (after Worksets) holds the two new buttons as large buttons; no existing tool changed. Revit clears the Undo list when a link loads.
+
+## [6.6.0] — 2026-10-22
+
+### Added
+- **Link Version Checker v6.0.0 (V006)** — new top entry in the **Link Check** dropdown (V004 and V003 stay below it,
+  unchanged). One window for the open model that lists only the **.rvt links stored in an ACC Desktop Connector folder**
+  (a path containing `\ACCDocs\`) and shows, for each:
+  - **In model** — Loaded, Unloaded, Unloaded (for me), Closed workset or Not found.
+  - **On this PC (Desktop Connector)** — Always kept (full green), Available locally (green outline), Online only (cloud),
+    Sync pending, or Missing / other. Read from the Windows cloud-file state behind Explorer's icons; nothing is downloaded.
+  - **Latest from ACC?** — Yes, Reload needed or Unknown. Compares the save stamp of the copy loaded in the model with the
+    file on this PC. Online-only files are not compared, because reading them would download them.
+  - Count tiles that filter the list, a name search, "Problems only", and Export to Excel.
+  - Actions on the selected link: **Reload**, **Unload** (for you only in a workshared model), **Always keep on this
+    device**, **Open folder**. Reload / Unload are refused, with the user's name, when another user owns the link.
+
+**User note:** nested links, cloud-only (non-Desktop-Connector) ACC links, CAD and IFC links are not listed; the status bar
+says how many other RVT links were hidden. V004 / V003 still cover those.
 
 ## [6.5.2] — 2026-10-22
 

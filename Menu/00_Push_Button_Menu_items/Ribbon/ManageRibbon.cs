@@ -137,6 +137,14 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                 "Manage.ParaManager_16.png", "Link Version Checker - Folder Audit", "V004", "Audit every host model in a project folder and export one report.");
             linkFolderV004.AvailabilityClassName = lvc4Ns + "LinkCheckAlwaysAvailable";
 
+            // Link Version Checker V006 — one In-Model window for the RVT links that come from
+            // ACC through Desktop Connector: loaded / unloaded, sync state on this PC, and whether
+            // the loaded copy is the latest. Highest version, so it is first in the pulldown.
+            var linkStatusV006 = Btn(assemblyPath, "Btn_LinkVersionChecker_AccStatus_V006", "Link Version Checker (ACC)",
+                "Revit26_Plugin_Revised.LinkVersionChecker.V006.Commands.CmdLinkStatus",
+                "Manage.ParaManager_16.png", "Link Version Checker", "V006",
+                "Status of RVT links from ACC Desktop Connector: loaded or unloaded, synced on this PC, latest version loaded.");
+
             var linkMemoryV001 = Btn(assemblyPath, "Btn_LinkMemory_V001", "Link Memory",
                 "Revit26_Plugin_Revised.LinkMemory.V001.Commands.LinkMemoryCommand",
                 "SetupTools.Linker_16.png", "Link Memory", "V001");
@@ -165,7 +173,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_BulkRename", "Bulk Rename", bulkRenameV001),
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_ScheduleExportImport", "Schedule I/O", scheduleExportImportV007),
                 // Link Check moved here from its own one-button Links panel (plugin 4.2.1).
-                RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_LinkVersionChecker", "Link Check", linkInModelV004),
+                RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_LinkVersionChecker", "Link Check", linkStatusV006),
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_TrackerId", "Tracker ID", trackerIdV002),
             });
             RibbonLayoutHelper.WirePulldownButton(manageItems, "Pulldown_AnnotationOverlapDetection", overlapV004);
@@ -174,8 +182,9 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             RibbonLayoutHelper.WirePulldownButton(manageItems, "Pulldown_BulkRename", bulkRenameV001);
             RibbonLayoutHelper.WirePulldownButton(manageItems, "Pulldown_TrackerId", trackerIdV002, trackerIdV001);
             RibbonLayoutHelper.WirePulldownButton(manageItems, "Pulldown_ScheduleExportImport", scheduleExportImportV007, scheduleExportImportV006);
-            // Link Check lists V004's three scan modes first, then V003's.
+            // Link Check lists V006 first, then V004's three scan modes, then V003's.
             RibbonLayoutHelper.WirePulldownButton(manageItems, "Pulldown_LinkVersionChecker",
+                linkStatusV006,
                 linkInModelV004, linkPreOpenV004, linkFolderV004,
                 linkInModelV003, linkPreOpenV003, linkFolderV003);
 
