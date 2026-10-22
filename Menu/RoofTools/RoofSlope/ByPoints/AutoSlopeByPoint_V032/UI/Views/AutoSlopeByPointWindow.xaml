@@ -27,8 +27,8 @@ converters declared here.
         xmlns:local="clr-namespace:Revit26_Plugin_Revised.AutoSlopeByPoint.V032.UI.Views"
         mc:Ignorable="d"
         Title="{Binding WindowTitle}"
-        Width="1120" Height="800"
-        MinWidth="960" MinHeight="620"
+        Width="1000" Height="640"
+        MinWidth="880" MinHeight="520"
         WindowStartupLocation="CenterScreen"
         ResizeMode="CanResizeWithGrip"
         Background="{DynamicResource BrushSurfaceWindow}"
@@ -176,7 +176,7 @@ converters declared here.
                             <DockPanel LastChildFill="True">
                                 <ToggleButton DockPanel.Dock="Top"
                                               IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
-                                              Background="Transparent" BorderThickness="0" Padding="12,9" Cursor="Hand"
+                                              Background="Transparent" BorderThickness="0" Padding="10,5" Cursor="Hand"
                                               HorizontalContentAlignment="Stretch">
                                     <ToggleButton.Template>
                                         <ControlTemplate TargetType="ToggleButton">
@@ -214,7 +214,7 @@ converters declared here.
 
             <!-- One template for all three marker groups -->
             <DataTemplate x:Key="MarkerGroupTemplate">
-                <StackPanel Margin="0,4,0,8">
+                <StackPanel Margin="0,2,0,4">
                     <StackPanel Orientation="Horizontal">
                         <CheckBox IsChecked="{Binding IsEnabled}" VerticalAlignment="Center"/>
                         <TextBlock Text="{Binding Label}" Style="{StaticResource FieldValue}" FontWeight="SemiBold"
@@ -353,8 +353,8 @@ converters declared here.
                 <Setter Property="Background" Value="{StaticResource BrushSurfaceCard}"/>
                 <Setter Property="BorderBrush" Value="{StaticResource BrushBorderDefault}"/>
                 <Setter Property="BorderThickness" Value="1"/>
-                <Setter Property="RowHeight" Value="24"/>
-                <Setter Property="FontSize" Value="11.5"/>
+                <Setter Property="RowHeight" Value="20"/>
+                <Setter Property="FontSize" Value="11"/>
                 <Setter Property="ColumnHeaderStyle" Value="{StaticResource DataGridColumnHeaderStyle}"/>
                 <Setter Property="CellStyle" Value="{StaticResource ResultsCell}"/>
                 <Setter Property="RowStyle" Value="{StaticResource ResultsRow}"/>
@@ -451,8 +451,8 @@ converters declared here.
 
                         <!-- Every run -->
                         <Border Style="{StaticResource ContentCard}">
-                            <StackPanel Margin="12,0,12,10">
-                                <TextBlock Text="Every run" Style="{StaticResource SectionTitle}" Margin="0,10,0,6"/>
+                            <StackPanel Margin="10,0,10,6">
+                                <TextBlock Text="Every run" Style="{StaticResource SectionTitle}" Margin="0,6,0,4"/>
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
@@ -496,7 +496,7 @@ converters declared here.
                                     </StackPanel>
                                 </Grid>
 
-                                <Border Style="{StaticResource WarnLine}" Margin="0,10,0,0">
+                                <Border Style="{StaticResource WarnLine}" Margin="0,6,0,0">
                                     <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="{StaticResource BrushStatusWarn}"
                                                Text="⚠ Run resets every existing shape-point elevation on this roof. Ctrl+Z undoes the whole run in one step."/>
                                 </Border>
@@ -523,7 +523,7 @@ converters declared here.
                                         </Border>
                                     </Grid>
                                 </Expander.Header>
-                                <StackPanel Margin="12,8,12,10">
+                                <StackPanel Margin="10,4,10,6">
                                     <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
@@ -578,7 +578,7 @@ converters declared here.
                                         </Border>
                                     </Grid>
                                 </Expander.Header>
-                                <StackPanel Margin="12,8,12,10">
+                                <StackPanel Margin="10,4,10,6">
                                     <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
@@ -631,7 +631,7 @@ converters declared here.
                                         </Border>
                                     </Grid>
                                 </Expander.Header>
-                                <StackPanel Margin="12,8,12,10">
+                                <StackPanel Margin="10,4,10,6">
                                     <ItemsControl ItemsSource="{Binding MarkerGroups}" ItemTemplate="{StaticResource MarkerGroupTemplate}"/>
                                     <Button Content="Reset to defaults" Style="{StaticResource LinkButton}" Command="{Binding ResetMarkersCommand}"/>
                                 </StackPanel>
@@ -656,7 +656,7 @@ converters declared here.
                                         </Border>
                                     </Grid>
                                 </Expander.Header>
-                                <StackPanel Margin="12,8,12,10">
+                                <StackPanel Margin="10,4,10,6">
                                     <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
@@ -703,8 +703,8 @@ converters declared here.
 
                     <!-- ── RIGHT: results side panel (Excel-like) ── -->
                     <Border Grid.Column="2" Style="{StaticResource ContentCard}" VerticalAlignment="Top">
-                        <StackPanel Margin="12,0,12,10">
-                            <Grid Margin="0,8,0,8">
+                        <StackPanel Margin="10,0,10,6">
+                            <Grid Margin="0,4,0,4">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
@@ -725,7 +725,7 @@ converters declared here.
                                 <DataGrid Style="{StaticResource ResultsGrid}" ItemsSource="{Binding LongestRows}"
                                           SelectionChanged="ResultsGrid_SelectionChanged"
                                           Visibility="{Binding IsLongestTab, Converter={StaticResource BoolToVisibility}}"
-                                          MinHeight="120"
+                                          MinHeight="90"
                                           shell:ShellBehaviors.MaxHeightRatio="0.45"
                                           shell:ShellBehaviors.ForwardMouseWheel="True">
                                     <DataGrid.Columns>
@@ -747,7 +747,7 @@ converters declared here.
                                 <DataGrid Style="{StaticResource ResultsGrid}" ItemsSource="{Binding SkippedRows}"
                                           SelectionChanged="ResultsGrid_SelectionChanged"
                                           Visibility="{Binding IsSkippedTab, Converter={StaticResource BoolToVisibility}}"
-                                          MinHeight="120"
+                                          MinHeight="90"
                                           shell:ShellBehaviors.MaxHeightRatio="0.45"
                                           shell:ShellBehaviors.ForwardMouseWheel="True">
                                     <DataGrid.Columns>
@@ -766,7 +766,7 @@ converters declared here.
                                            Visibility="{Binding ShowResultsEmpty, Converter={StaticResource BoolToVisibility}}"/>
                             </Grid>
 
-                            <Grid Margin="0,8,0,0">
+                            <Grid Margin="0,4,0,0">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
@@ -786,7 +786,7 @@ converters declared here.
                 </Grid>
 
                 <!-- Processing log: always dark, closed by default -->
-                <Border Grid.Row="1" Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="10,8" Margin="0,0,0,0">
+                <Border Grid.Row="1" Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="8,5" Margin="0,0,0,0">
                     <StackPanel>
                         <Grid>
                             <Grid.ColumnDefinitions>
@@ -844,7 +844,7 @@ converters declared here.
                                  ScrollViewer.VerticalScrollBarVisibility="Auto"
                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                                  FontFamily="Cascadia Mono, Consolas, Courier New" FontSize="10.5"
-                                 MinHeight="110"
+                                 MinHeight="80"
                                  shell:ShellBehaviors.MaxHeightRatio="0.25"
                                  shell:ShellBehaviors.ForwardMouseWheel="True"
                                  Visibility="{Binding IsChecked, ElementName=LogToggle, Converter={StaticResource BoolToVisibility}}">
