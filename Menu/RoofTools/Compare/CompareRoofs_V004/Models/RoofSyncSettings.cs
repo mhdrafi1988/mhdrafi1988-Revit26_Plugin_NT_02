@@ -1,6 +1,6 @@
 namespace Revit26_Plugin_Revised.RoofPointElevationSync.V004
 {
-    /// <summary>Persisted to %AppData%\Revit26_Plugin\RoofPointElevationSync\settings.json</summary>
+    /// <summary>Persisted to %AppData%\Revit26_Plugin_Revised\RoofPointElevationSync\settings.json</summary>
     public class RoofSyncSettings
     {
         public double XyToleranceMm { get; set; } = 10.0;

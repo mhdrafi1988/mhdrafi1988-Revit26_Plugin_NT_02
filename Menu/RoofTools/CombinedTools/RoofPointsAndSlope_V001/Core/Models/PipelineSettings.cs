@@ -2,7 +2,7 @@
 // File: PipelineSettings.cs
 // Location: Core/Models/
 // Every option of the six steps. Saved as JSON to
-// %AppData%\Revit26_Plugin\RoofPointsAndSlope\settings.json
+// %AppData%\Revit26_Plugin_Revised\RoofPointsAndSlope\settings.json
 // (Shared/Services/SettingsService). SchemaVersion lets a later version
 // read and migrate this file. Defaults follow the tools each step comes
 // from (Inner Loop Divider V012, Inner Loops + Perpendicular V007,

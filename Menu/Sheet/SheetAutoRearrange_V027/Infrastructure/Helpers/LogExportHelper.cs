@@ -14,10 +14,10 @@ namespace Revit26_Plugin_Revised.SheetAutoRearrange.V027.Infrastructure.Helpers
     /// request ("ONE DIALOGUE IS OPENING TO SAVE SOMETHING, REMOVE IT. JUST
     /// KEEP THE FILE IN A DEFAULT LOCATION"). Logs now always save silently
     /// to the suite-standard default location:
-    ///   My Documents\Revit26_Plugin\SheetAutoRearrange\Logs\
+    ///   My Documents\Revit26_Plugin_Revised\SheetAutoRearrange\Logs\
     /// matching the convention used elsewhere in the suite
-    /// (%AppData%\Revit26_Plugin\[ToolName]\settings.json for settings,
-    /// My Documents\Revit26_Plugin\[ToolName]\Logs\ for logs). The folder
+    /// (%AppData%\Revit26_Plugin_Revised\[ToolName]\settings.json for settings,
+    /// My Documents\Revit26_Plugin_Revised\[ToolName]\Logs\ for logs). The folder
     /// is created automatically if it doesn't exist. No dialog, no per-
     /// session prompt — both auto-save-on-completion and manual Export Log
     /// now write here directly.
@@ -34,7 +34,7 @@ namespace Revit26_Plugin_Revised.SheetAutoRearrange.V027.Infrastructure.Helpers
         public static string GetDefaultLogFolder()
         {
             string myDocs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-            string folder = Path.Combine(myDocs, "Revit26_Plugin", "SheetAutoRearrange", "Logs");
+            string folder = Path.Combine(myDocs, "Revit26_Plugin_Revised", "SheetAutoRearrange", "Logs");
             Directory.CreateDirectory(folder);
             return folder;
         }

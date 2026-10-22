@@ -2,7 +2,7 @@ namespace Revit26_Plugin_Revised.SectionViewAutoTagger.V005
 {
     /// <summary>
     /// Global tag placement settings, persisted to
-    /// %AppData%\Revit26_Plugin\SectionViewAutoTagger\settings.json.
+    /// %AppData%\Revit26_Plugin_Revised\SectionViewAutoTagger\settings.json.
     /// Applies uniformly to every view in the worklist (confirmed: global,
     /// not per-view). Plain POCO for System.Text.Json.
     ///

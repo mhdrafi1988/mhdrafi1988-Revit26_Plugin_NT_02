@@ -35,7 +35,7 @@ namespace Revit26_Plugin_Revised.TrackerId.V001.Infrastructure.Revit
         /// <summary>Path of the shared parameter file the tool creates definitions in.</summary>
         public static string SharedParameterFilePath { get; } = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "Revit26_Plugin", "TrackerId", "Tracker_SharedParameters.txt");
+            "Revit26_Plugin_Revised", "TrackerId", "Tracker_SharedParameters.txt");
 
         /// <summary>Ensures each parameter in <paramref name="names"/> is usable on <paramref name="category"/>.</summary>
         public static ParameterSetupResult Ensure(Document doc, Category category, IEnumerable<string> names)

@@ -2,7 +2,7 @@
 // File: PresetStore.cs
 // Location: Core/Models/
 // Named sets of the window's options, saved next to settings.json in
-// %AppData%\Revit26_Plugin\RoofPointsAndSlope\presets.json (with a schema
+// %AppData%\Revit26_Plugin_Revised\RoofPointsAndSlope\presets.json (with a schema
 // version). A missing or unreadable file gives an empty list.
 // =======================================================
 
@@ -43,7 +43,7 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Core.Models
 
         /// <summary>Full path of presets.json for <paramref name="toolFolder"/>.</summary>
         public static string FilePath(string toolFolder) =>
-            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Revit26_Plugin", toolFolder, "presets.json");
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Revit26_Plugin_Revised", toolFolder, "presets.json");
 
         /// <summary>Loads the presets (empty when there is no file). <paramref name="error"/> is set when the file can't be read.</summary>
         public static PresetStore Load(string toolFolder, out string error)

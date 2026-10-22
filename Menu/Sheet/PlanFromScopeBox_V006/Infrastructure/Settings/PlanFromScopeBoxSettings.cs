@@ -2,7 +2,7 @@ namespace Revit26_Plugin_Revised.PlanFromScopeBox.V006.Infrastructure.Settings
 {
     /// <summary>
     /// Plain POCO of user-tunable defaults persisted between sessions (H2). Serialized to
-    /// %AppData%\Revit26_Plugin\PlanFromScopeBox\settings.json via System.Text.Json.
+    /// %AppData%\Revit26_Plugin_Revised\PlanFromScopeBox\settings.json via System.Text.Json.
     /// Personal defaults only — nothing project-specific (that would use ExtensibleStorage).
     /// </summary>
     public sealed class PlanFromScopeBoxSettings

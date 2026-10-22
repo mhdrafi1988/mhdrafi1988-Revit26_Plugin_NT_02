@@ -39,7 +39,7 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.UI.ViewModels
     /// <summary>View model of the Roof Points &amp; Slope window.</summary>
     public partial class RoofPointsAndSlopeViewModel : ToolViewModelBase
     {
-        /// <summary>Settings folder name under %AppData%\Revit26_Plugin.</summary>
+        /// <summary>Settings folder name under %AppData%\Revit26_Plugin_Revised.</summary>
         public const string SettingsName = "RoofPointsAndSlope";
 
         private readonly Document _doc;

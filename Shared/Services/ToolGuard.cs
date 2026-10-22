@@ -30,14 +30,14 @@ namespace Revit26_Plugin_Revised.Shared.Services
     {
         private static readonly Assembly ThisAssembly = typeof(ToolGuard).Assembly;
 
-        // File names this add-in has shipped under: Revit26_Plugin.dll before 5.0.0, Revit26_Plugin_Revised.dll since.
-        private static readonly string[] PluginAssemblyNames = { "Revit26_Plugin", "Revit26_Plugin_Revised" };
+        // File names this add-in has shipped under: Revit26_Plugin_Revised.dll. The old Revit26_Plugin is a separate plugin and is not treated as a copy.
+        private static readonly string[] PluginAssemblyNames = { "Revit26_Plugin_Revised" };
         private static readonly Regex BuildSuffix = new(@"\s*[—-]\s*(V|VA|FX|WSEB)\d+\s*$", RegexOptions.Compiled);
         private static bool _installed;
 
-        /// <summary>Folder holding the daily error logs: %AppData%\Revit26_Plugin\Logs.</summary>
+        /// <summary>Folder holding the daily error logs: %AppData%\Revit26_Plugin_Revised\Logs.</summary>
         public static string LogFolder { get; } = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Revit26_Plugin", "Logs");
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Revit26_Plugin_Revised", "Logs");
 
         /// <summary>
         /// Runs a command body. Cancellation returns <see cref="Result.Cancelled"/>; any other

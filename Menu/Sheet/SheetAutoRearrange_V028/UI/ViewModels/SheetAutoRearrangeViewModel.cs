@@ -20,7 +20,7 @@ namespace Revit26_Plugin_Revised.SheetAutoRearrange.V028.UI.ViewModels
     /// <summary>
     /// V011 CHANGES (all per explicit request):
     ///  - Settings persistence: loads from and saves to
-    ///    %AppData%\Revit26_Plugin\SheetAutoRearrange\settings.json on
+    ///    %AppData%\Revit26_Plugin_Revised\SheetAutoRearrange\settings.json on
     ///    construct / window close / after each Run, per suite convention.
     ///    Previously this tool had NO persistence at all — every setting
     ///    reset to its hardcoded default on every open.

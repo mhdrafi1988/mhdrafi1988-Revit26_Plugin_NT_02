@@ -9,7 +9,7 @@ public static class ViewAutoRenamerSettingsService
 {
     private static readonly string SettingsPath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        "Revit26_Plugin", "ViewAutoRenamer", "settings.json");
+        "Revit26_Plugin_Revised", "ViewAutoRenamer", "settings.json");
 
     private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
 

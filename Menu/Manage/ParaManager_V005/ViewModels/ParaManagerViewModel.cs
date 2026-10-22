@@ -591,7 +591,7 @@ namespace Revit26_Plugin_Revised.ParaManager.V005.ViewModels
             {
                 string folder = string.IsNullOrWhiteSpace(_settings.LastLogExportFolder)
                     ? System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                        "Revit26_Plugin", "ParaManager", "Logs")
+                        "Revit26_Plugin_Revised", "ParaManager", "Logs")
                     : _settings.LastLogExportFolder;
 
                 LogExportService.Export(ToolFolderName, LogEntries, folder);

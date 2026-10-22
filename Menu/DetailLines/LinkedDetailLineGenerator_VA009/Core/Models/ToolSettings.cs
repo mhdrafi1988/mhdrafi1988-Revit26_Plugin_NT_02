@@ -4,7 +4,7 @@ namespace Revit26_Plugin_Revised.LinkedDetailLineGenerator.VA009.Core.Models
 {
     /// <summary>
     /// Plain POCO persisted via System.Text.Json to
-    /// %AppData%\Revit26_Plugin\LinkedDetailLineGenerator\settings.json
+    /// %AppData%\Revit26_Plugin_Revised\LinkedDetailLineGenerator\settings.json
     /// (no version segment in path, per suite convention).
     ///
     /// Loaded on window open, saved on window close and after a successful Run.

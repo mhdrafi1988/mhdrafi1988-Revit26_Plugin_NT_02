@@ -9,14 +9,14 @@ namespace Revit26_Plugin_Revised.SectionViewAutoTagger.V005
     /// <summary>
     /// Auto-saves the run log to a fixed location on every completed Run —
     /// no folder-picker, no per-session prompt. Confirmed: always
-    /// My Documents\Revit26_Plugin\SectionViewAutoTagger\Logs\.
+    /// My Documents\Revit26_Plugin_Revised\SectionViewAutoTagger\Logs\.
     /// Filename: SectionViewAutoTagger_Logs_{yyyy-MM-dd}_{HH-mm}.txt
     /// </summary>
     public class LogExportHelper
     {
         private static readonly string LogDir = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-            "Revit26_Plugin", "SectionViewAutoTagger", "Logs");
+            "Revit26_Plugin_Revised", "SectionViewAutoTagger", "Logs");
 
         /// <summary>
         /// Writes all log entries to a timestamped .txt file in the fixed

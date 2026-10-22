@@ -4,7 +4,7 @@
 // Workset Creator V017 — this file was introduced in V016.
 //
 // Loads and saves WorksetCreatorSettings as JSON at
-//   %AppData%\Revit26_Plugin\WorksetCreator\settings.json
+//   %AppData%\Revit26_Plugin_Revised\WorksetCreator\settings.json
 //
 // Both directions are wrapped: a missing file, a corrupt file, a locked file or
 // a denied folder all fall back to defaults and log a Warning. Settings are a
@@ -22,7 +22,7 @@ namespace Revit26_Plugin_Revised.WorksetCreator.V017.Core.Services
 {
     public sealed class WorksetSettingsService
     {
-        private const string VendorFolder = "Revit26_Plugin";
+        private const string VendorFolder = "Revit26_Plugin_Revised";
         private const string ToolFolder   = "WorksetCreator";
         private const string FileName     = "settings.json";
 

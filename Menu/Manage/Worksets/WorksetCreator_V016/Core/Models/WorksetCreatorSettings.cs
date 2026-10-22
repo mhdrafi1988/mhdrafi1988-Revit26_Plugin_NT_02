@@ -4,7 +4,7 @@
 // NEW in Workset Creator V016.
 //
 // Per-tool persisted settings, serialised by WorksetSettingsService to
-//   %AppData%\Revit26_Plugin\WorksetCreator\settings.json
+//   %AppData%\Revit26_Plugin_Revised\WorksetCreator\settings.json
 // A plain System.Text.Json POCO: public get/set, parameterless ctor, no
 // attributes, no behaviour. Every member carries the value the tool uses when
 // no file exists yet, so a fresh install and a corrupt file land on the same

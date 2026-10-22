@@ -11,7 +11,7 @@ namespace Revit26_Plugin_Revised.ScheduleExportImport.V006.Core.Models
         public HashSet<string> TypeHeaders { get; set; } = new HashSet<string>();
     }
 
-    /// <summary>Persisted per user in %AppData%\Revit26_Plugin\ScheduleExportImport\settings.json.</summary>
+    /// <summary>Persisted per user in %AppData%\Revit26_Plugin_Revised\ScheduleExportImport\settings.json.</summary>
     public class ScheduleExportImportSettings
     {
         public string LastFolder { get; set; } = string.Empty;

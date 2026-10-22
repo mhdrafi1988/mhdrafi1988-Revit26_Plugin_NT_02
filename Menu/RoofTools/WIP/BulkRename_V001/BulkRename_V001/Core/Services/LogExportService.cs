@@ -12,7 +12,7 @@ namespace Revit26_Plugin_Revised.BulkRename.V001
     /// </summary>
     public static class LogExportService
     {
-        /// <summary>Silently saves the log under %AppData%\Revit26_Plugin\Logs. Never throws; returns the path or null.</summary>
+        /// <summary>Silently saves the log under %AppData%\Revit26_Plugin_Revised\Logs. Never throws; returns the path or null.</summary>
         public static string AutoSave(IEnumerable<LogEntry> log, string toolName)
             => Shared.Services.LogExportService.AutoSave(log, toolName);
 

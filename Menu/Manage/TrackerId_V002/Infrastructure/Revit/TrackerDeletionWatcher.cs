@@ -27,9 +27,9 @@ namespace Revit26_Plugin_Revised.TrackerId.V002.Infrastructure.Revit
         private static readonly Dictionary<string, Dictionary<long, string>> Known = new();
         private static readonly object Gate = new();
 
-        /// <summary>Folder of the deletion logs: %AppData%\Revit26_Plugin\TrackerId_V002\Deleted.</summary>
+        /// <summary>Folder of the deletion logs: %AppData%\Revit26_Plugin_Revised\TrackerId_V002\Deleted.</summary>
         public static string LogFolder => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                                                       "Revit26_Plugin", "TrackerId_V002", "Deleted");
+                                                       "Revit26_Plugin_Revised", "TrackerId_V002", "Deleted");
 
         /// <summary>The deletion log of <paramref name="doc"/>.</summary>
         public static string LogPath(Document doc) => DeletionLog.PathFor(LogFolder, doc?.Title);

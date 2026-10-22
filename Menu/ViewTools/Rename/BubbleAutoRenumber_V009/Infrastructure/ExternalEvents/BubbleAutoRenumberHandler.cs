@@ -14,7 +14,7 @@ namespace Revit26_Plugin_Revised.BubbleAutoRenumber.V009.Infrastructure.External
     ///
     /// CHANGED in V009:
     /// - Routes through ToolGuard.RunHandler, so a failure is logged to
-    ///   %AppData%\Revit26_Plugin\Logs and shown in the standard error dialog instead
+    ///   %AppData%\Revit26_Plugin_Revised\Logs and shown in the standard error dialog instead
     ///   of being folded into a log line, as V008's own try/catch did.
     /// - Re-reads the sheet here rather than trusting what the window displayed. The
     ///   preview can be minutes old; the plan that gets written is built from the model

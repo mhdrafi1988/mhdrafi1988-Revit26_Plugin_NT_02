@@ -9,6 +9,15 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.0.0] — 2026-10-21
+
+### Changed
+- **Settings and logs now live in `%AppData%\Revit26_Plugin_Revised`** (and `Documents\Revit26_Plugin_Revised`), including `Logs`, instead of `Revit26_Plugin`.
+- **Ribbon tabs renamed** to `SloperPro_Rev_88-MDL` and `SloperPro_Rev_88-DCM` (were `SloperPro-MDL_NT_88` and `SloperPro-DCM_NT_88`), so the Revised add-in sits beside the old one.
+- **ToolGuard** treats the old `Revit26_Plugin` add-in as a separate plugin: it no longer reports it as a duplicate copy.
+
+**User note:** existing settings and logs in the old `Revit26_Plugin` folder are not read. Tools start with default settings; copy the old tool folders across to keep them.
+
 ## [5.7.1] — 2026-10-21
 
 ### Changed

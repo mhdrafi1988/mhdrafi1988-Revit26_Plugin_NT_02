@@ -6,7 +6,7 @@ namespace Revit26_Plugin_Revised.RoofEdgeAroundSections.V007
 {
     /// <summary>
     /// Loads/saves RoofEdgeSectionsSettings to
-    /// %AppData%\Revit26_Plugin\RoofEdgeSections\settings.json
+    /// %AppData%\Revit26_Plugin_Revised\RoofEdgeSections\settings.json
     /// per the shared per-tool settings convention.
     /// </summary>
     public static class SettingsService
@@ -16,7 +16,7 @@ namespace Revit26_Plugin_Revised.RoofEdgeAroundSections.V007
         // must never read or overwrite each other's settings.json.
         private static readonly string SettingsFolder = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "Revit26_Plugin", "RoofEdgeSections_V005");
+            "Revit26_Plugin_Revised", "RoofEdgeSections_V005");
 
         private static readonly string SettingsPath = Path.Combine(SettingsFolder, "settings.json");
 

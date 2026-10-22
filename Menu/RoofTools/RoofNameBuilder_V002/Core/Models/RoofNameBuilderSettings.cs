@@ -4,7 +4,7 @@ namespace Revit26_Plugin_Revised.RoofNameBuilder.V002.Core.Models
 {
     /// <summary>
     /// Persisted via Shared/Services/SettingsService&lt;RoofNameBuilderSettings&gt; to
-    /// %AppData%\Revit26_Plugin\RoofNameBuilder\settings.json. Load never throws — a missing or
+    /// %AppData%\Revit26_Plugin_Revised\RoofNameBuilder\settings.json. Load never throws — a missing or
     /// corrupt file falls back to these defaults (CLAUDE.md "Established architecture pattern").
     /// Every property has a default, so a V001 settings file loads cleanly into V002.
     /// </summary>

@@ -110,7 +110,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             // Link Version Checker — one tool, three scan modes per version. Pre-Open and Folder
             // Audit stay enabled with no project open. The load-time logger the checker reads is
             // registered once, from V004: both versions share
-            // %AppData%\Revit26_Plugin\LinkVersionChecker\loadtimes.json, so registering both
+            // %AppData%\Revit26_Plugin_Revised\LinkVersionChecker\loadtimes.json, so registering both
             // would double-handle Revit's link-load events and write the same file twice.
             Revit26_Plugin_Revised.LinkVersionChecker_V004.Services.LinkLoadTimeLogger.Register(app.ControlledApplication);
             const string lvcNs = "Revit26_Plugin_Revised.LinkVersionChecker_V003.Commands.";

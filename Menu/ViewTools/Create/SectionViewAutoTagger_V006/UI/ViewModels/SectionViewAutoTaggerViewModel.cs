@@ -469,7 +469,7 @@ namespace Revit26_Plugin_Revised.SectionViewAutoTagger.V006
                 }
                 else
                 {
-                    AppendLog(LogLevel.Warning, "Log auto-save failed — could not write to Documents\\Revit26_Plugin\\SectionViewAutoTagger\\Logs\\.");
+                    AppendLog(LogLevel.Warning, "Log auto-save failed — could not write to Documents\\Revit26_Plugin_Revised\\SectionViewAutoTagger\\Logs\\.");
                 }
 
                 // Persist current global settings after a completed run.

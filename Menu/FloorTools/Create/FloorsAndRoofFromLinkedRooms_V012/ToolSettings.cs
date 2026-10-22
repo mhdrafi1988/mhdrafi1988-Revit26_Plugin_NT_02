@@ -2,7 +2,7 @@ namespace Revit26_Plugin_Revised.FloorsAndRoofFromLinkedRooms.V012
 {
     /// <summary>
     /// Per-tool persisted settings (System.Text.Json POCO), stored at
-    /// %AppData%\Revit26_Plugin\FloorsAndRoofFromLinkedRooms\settings.json.
+    /// %AppData%\Revit26_Plugin_Revised\FloorsAndRoofFromLinkedRooms\settings.json.
     /// Loaded on window open, saved on window close and after each run.
     /// Fields per confirmed spec: last link, last floor type, last roof type —
     /// matched by name on restore and silently skipped if no longer present in the model.

@@ -46,7 +46,7 @@ namespace Revit26_Plugin_Revised.AutoSlopeByDrain.V007.Infrastructure.Helpers
             get
             {
                 string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-                string folder = Path.Combine(appData, "Revit26_Plugin", ToolFolderName);
+                string folder = Path.Combine(appData, "Revit26_Plugin_Revised", ToolFolderName);
                 Directory.CreateDirectory(folder);
                 return Path.Combine(folder, "settings.json");
             }

@@ -8,7 +8,7 @@
 //     on load is padded with disabled default rows so old or
 //     corrupt settings never crash the window.
 // Purpose: Plain POCO persisted to
-//          %AppData%\Revit26_Plugin\AutoSlopeByPoint_MultiCopies28\settings.json
+//          %AppData%\Revit26_Plugin_Revised\AutoSlopeByPoint_MultiCopies28\settings.json
 //          via System.Text.Json. Kept in a separate file/folder from
 //          V028's settings.json since the schema is incompatible.
 // Scope: Line Style is persisted by NAME (not ElementId) since the Id

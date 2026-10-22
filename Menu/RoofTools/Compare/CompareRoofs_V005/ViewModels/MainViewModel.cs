@@ -62,7 +62,7 @@ namespace Revit26_Plugin_Revised.RoofPointElevationSync.V005
 
             _settingsPath = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "Revit26_Plugin", "RoofPointElevationSync", "settings.json");
+                "Revit26_Plugin_Revised", "RoofPointElevationSync", "settings.json");
 
             LoadSettings();
 

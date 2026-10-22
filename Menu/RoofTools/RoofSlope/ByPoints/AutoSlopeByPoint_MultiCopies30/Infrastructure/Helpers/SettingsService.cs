@@ -2,7 +2,7 @@
 // File: SettingsService.cs
 // Namespace: Revit26_Plugin_Revised.AutoSlopeByPoint.MultiCopies30
 // Purpose: Load/save AutoSlopeSettings as JSON at
-//          %AppData%\Revit26_Plugin\AutoSlopeByPoint_MultiCopies28\settings.json
+//          %AppData%\Revit26_Plugin_Revised\AutoSlopeByPoint_MultiCopies28\settings.json
 //          — a separate file/folder from V028's settings.json, since
 //          the schema (SlopeRows list vs single SlopePercent) is
 //          incompatible and sharing the file would corrupt either
@@ -20,7 +20,7 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.MultiCopies30.Infrastructure.H
     {
         private static readonly string SettingsPath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "Revit26_Plugin", "AutoSlopeByPoint_MultiCopies28", "settings.json");
+            "Revit26_Plugin_Revised", "AutoSlopeByPoint_MultiCopies28", "settings.json");
 
         /// <summary>
         /// Loads settings from disk. Returns a fresh default instance (never null)
