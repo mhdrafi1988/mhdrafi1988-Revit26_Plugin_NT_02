@@ -9,6 +9,7 @@
 //     (double) — V030 B3.
 //   - New: DrainMode, IncludeNearbyPoints (V032 D2).
 //   - V032: remembers which option sections were left open.
+//   - 32.3.0: ShowCornerOffsetText on the marker group (default off).
 //   - Saved to settings.v032.json so V030 (kept as fallback) and V032 never
 //     read each other's file.
 // Line styles are persisted by NAME (ElementIds are per project).
@@ -23,6 +24,10 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V032.Core.Models
         public string ColorName { get; set; }
         public double RadiusMm { get; set; } = AutoSlopeConstants.DefaultMarkerRadiusMm;
         public bool ShowOffsetText { get; set; } = true;
+
+        /// <summary>32.3.0: also place the Offset text note at every outer roof boundary corner.
+        /// Missing in older settings files, so it reads as false (old behaviour).</summary>
+        public bool ShowCornerOffsetText { get; set; }
     }
 
     public class AutoSlopeSettings

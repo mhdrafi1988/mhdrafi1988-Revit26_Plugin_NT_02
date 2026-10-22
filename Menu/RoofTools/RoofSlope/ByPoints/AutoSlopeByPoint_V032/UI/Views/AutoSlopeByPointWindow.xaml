@@ -228,6 +228,7 @@ converters declared here.
                         <RowDefinition Height="26"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
                     <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
@@ -272,6 +273,16 @@ converters declared here.
                             <TextBlock Text="mm" Style="{StaticResource UnitLabel}"/>
                             <TextBlock Text="{Binding ThresholdError}" Style="{StaticResource FieldError}" Margin="8,0,0,0" VerticalAlignment="Center"/>
                         </StackPanel>
+                    </StackPanel>
+
+                    <!-- 32.3.0: Offset notes at the outer boundary corners too; left-aligned under the note option -->
+                    <StackPanel Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="5" IsEnabled="{Binding IsEnabled}"
+                                Visibility="{Binding HasOffsetTextOption, Converter={StaticResource BoolToVisibility}}">
+                        <CheckBox Margin="0,2,0,0" VerticalAlignment="Center" IsChecked="{Binding ShowCornerOffsetText}"
+                                  IsEnabled="{Binding ShowOffsetText}"
+                                  ToolTip="Also places the Offset text note, with a leader, at every corner of the roof's outer boundary, using that corner's elevation.">
+                            <TextBlock Text="Also add it at every roof boundary corner" Style="{StaticResource FieldValue}" FontSize="11.5"/>
+                        </CheckBox>
                     </StackPanel>
                 </Grid>
             </DataTemplate>

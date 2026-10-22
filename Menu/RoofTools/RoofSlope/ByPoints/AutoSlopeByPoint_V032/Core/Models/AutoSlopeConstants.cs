@@ -76,5 +76,9 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V032.Core.Models
 
         public const string RedHighestPointTextTypeName = "AutoSlope Highest Point (Red)";
         public const double HighestPointLabelOffsetMm   = 250;
+        /// <summary>A boundary corner takes the elevation of the shape point within this plan distance (32.3.0).</summary>
+        public const double CornerLabelMatchMm          = 50;
+        /// <summary>Direction change, in degrees, that counts as a corner on the outer boundary (32.3.0).</summary>
+        public const double CornerMinAngleDeg           = 1.0;
     }
 }

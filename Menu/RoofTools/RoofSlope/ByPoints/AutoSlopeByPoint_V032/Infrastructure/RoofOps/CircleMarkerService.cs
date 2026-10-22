@@ -14,6 +14,8 @@
 //   - Works on MarkerStyle snapshots (immutable) — B7.
 //   - Drain circles sit on the resolved drain shape points (D1/D2).
 //   - Clustering is in plan (XY) via Core.Services.PointClustering — D3.
+//   - 32.3.0: optional Offset text notes at the outer boundary corners
+//     (request.BoundaryCorners), using each corner's calculated elevation.
 // =======================================================
 
 using System;
@@ -31,6 +33,7 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V032.Infrastructure.RoofOps
         public int Drain { get; set; }
         public int Highest { get; set; }
         public int Offset { get; set; }
+        public int CornerLabels { get; set; }
     }
 
     internal static class CircleMarkerService
@@ -76,6 +79,7 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V032.Infrastructure.RoofOps
 
             // ── Highest point (every point tied at the max, to the whole mm) ──
             var highestIndices = new HashSet<int>();
+            var highestCentres = new List<Point3>();
             if (highStyle?.IsEnabled == true && processed.Count > 0)
             {
                 double maxMm = processed.Max(r => Math.Round(r.ElevationCalcMm));
@@ -85,10 +89,15 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V032.Infrastructure.RoofOps
                 var centres = PointClustering.ClusterXY(highest.Select(r => r.Position), clusterFt);
                 foreach (Point3 c in centres)
                 {
+                    highestCentres.Add(c);
                     if (PlaceOneCircle(doc, plan, c, viewElevFt, highStyle, log)) counts.Highest++;
-                    if (highStyle.ShowOffsetText) PlaceHighestPointLabel(doc, plan, c, viewElevFt, maxMm, log);
+                    if (highStyle.ShowOffsetText) PlaceOffsetLabel(doc, plan, c, viewElevFt, maxMm, "highest-point", log);
                 }
                 log(LogLevel.Success, $"Circle markers: {counts.Highest} highest-point circle(s) at {maxMm:0} mm.");
+
+                // ── Offset notes at the outer boundary corners (32.3.0, off by default) ──
+                if (highStyle.ShowOffsetText && highStyle.ShowCornerOffsetText)
+                    counts.CornerLabels = PlaceCornerLabels(doc, plan, viewElevFt, rows, highestCentres, clusterFt, request, log);
             }
 
             // ── Allowed offset (excluding points already marked highest) ──
@@ -173,15 +182,69 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V032.Infrastructure.RoofOps
             }
         }
 
-        private static void PlaceHighestPointLabel(Document doc, View view, Point3 centrePt, double viewElevFt, double offsetMm, Action<LogLevel, string> log)
+        /// <summary>
+        /// One Offset note per outer boundary corner, at the elevation of the shape point at that corner.
+        /// Corners that already carry the highest-point note, or that have no shape point within
+        /// <see cref="AutoSlopeConstants.CornerLabelMatchMm"/>, are skipped. Returns the notes placed.
+        /// </summary>
+        private static int PlaceCornerLabels(
+            Document doc, View view, double viewElevFt,
+            IReadOnlyList<VertexData> rows, IReadOnlyList<Point3> highestCentres, double clusterFt,
+            AutoSlopeRequest request, Action<LogLevel, string> log)
+        {
+            IReadOnlyList<Point3> corners = request.BoundaryCorners ?? new List<Point3>();
+            if (corners.Count == 0)
+            {
+                log(LogLevel.Warning, "Offset notes: the roof's outer boundary corners could not be read; corner notes skipped.");
+                return 0;
+            }
+
+            double matchFt = RevitConvert.MmToFt(AutoSlopeConstants.CornerLabelMatchMm);
+            double sameSpotFt = Math.Max(clusterFt, matchFt);
+            int placed = 0, unmatched = 0, shared = 0;
+
+            foreach (Point3 corner in corners)
+            {
+                if (highestCentres.Any(h => h.DistanceXY(corner) <= sameSpotFt))
+                {
+                    shared++; // already has the highest-point note
+                    continue;
+                }
+
+                VertexData nearest = null;
+                double best = double.MaxValue;
+                foreach (VertexData r in rows)
+                {
+                    double d = r.Position.DistanceXY(corner);
+                    if (d < best) { best = d; nearest = r; }
+                }
+                if (nearest == null || best > matchFt)
+                {
+                    unmatched++;
+                    continue;
+                }
+
+                if (PlaceOffsetLabel(doc, view, corner, viewElevFt, Math.Round(nearest.ElevationCalcMm), "corner", log))
+                    placed++;
+            }
+
+            string extra = (shared > 0 ? $", {shared} already marked as highest" : string.Empty)
+                         + (unmatched > 0 ? $", {unmatched} without a shape point at the corner" : string.Empty);
+            log(LogLevel.Success, $"Offset notes: {placed} of {corners.Count} outer boundary corner(s){extra}.");
+            if (unmatched > 0)
+                log(LogLevel.Warning, $"Offset notes: {unmatched} corner(s) had no shape point within {AutoSlopeConstants.CornerLabelMatchMm:0} mm and got no note.");
+            return placed;
+        }
+
+        private static bool PlaceOffsetLabel(Document doc, View view, Point3 centrePt, double viewElevFt, double offsetMm, string what, Action<LogLevel, string> log)
         {
             try
             {
                 ElementId typeId = GetOrCreateRedTextNoteType(doc, log);
                 if (typeId == null || typeId == ElementId.InvalidElementId)
                 {
-                    log(LogLevel.Warning, "Circle markers: no text note type available; highest-point label skipped.");
-                    return;
+                    log(LogLevel.Warning, $"Circle markers: no text note type available; {what} label skipped.");
+                    return false;
                 }
 
                 double gapFt = RevitConvert.MmToFt(AutoSlopeConstants.HighestPointLabelOffsetMm);
@@ -191,10 +254,12 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V032.Infrastructure.RoofOps
                 TextNote note = TextNote.Create(doc, view.Id, textPos, $"Offset: {offsetMm:0} mm", typeId);
                 Leader leader = note.AddLeader(TextNoteLeaderTypes.TNLT_STRAIGHT_L);
                 leader.End = point;
+                return true;
             }
             catch (Exception ex)
             {
-                log(LogLevel.Warning, $"Circle markers: highest-point label could not be placed ({ex.Message}).");
+                log(LogLevel.Warning, $"Circle markers: a {what} label could not be placed ({ex.Message}).");
+                return false;
             }
         }
 
