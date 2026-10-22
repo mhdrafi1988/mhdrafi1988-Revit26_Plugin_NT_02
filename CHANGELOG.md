@@ -9,6 +9,35 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.6.0] — 2026-10-22
+
+### Added
+- **Workset Memory v1.0.0** — new **WS Memory** button in the Worksets panel. Saves which worksets are open (and the
+  active workset) as named sets per model, then reopens the model with exactly those worksets open.
+  - The window lists the model's saved sets (Remember current, Overwrite, Delete) and a table showing, for each workset,
+    whether it is open now, open in the set, and whether a reload opens or closes it.
+  - **Reload worksets** closes the model and reopens it with the set's worksets open: Revit can't open or close
+    worksets in a model that is already open. It is blocked while the model has unsaved changes. While the model
+    closes, a blank placeholder project (`%AppData%\Revit26_Plugin_Revised\WorksetMemory\WorksetMemory_Placeholder.rvt`)
+    is briefly active, because Revit can't close the active model; it is closed again afterwards.
+  - Option (on by default): make the set's active workset current again after reopening.
+  - The button also works with no model open: pick a remembered model and set, and it opens straight with those worksets.
+  - Sets are kept per central model (every local copy shares them) in
+    `%AppData%\Revit26_Plugin_Revised\WorksetMemory\memory.json`. Cloud (Autodesk Docs) models are supported.
+- **Link Memory v1.0.0** — new **Link Memory** button in the Manage panel. Saves which Revit links are loaded as named
+  sets per model, then loads and unloads links back to a set in one click, in the open model.
+  - Same saved-set list and comparison table as Workset Memory, plus a run log.
+  - Options: unload links the set had unloaded (on by default); also reload links already loaded, to pick up the
+    latest file (off by default).
+  - In a workshared local copy, links are unloaded for the current user only (Manage Links' "Unload for me"), and a
+    link unloaded that way is restored without affecting other users. Loading or unloading for all users skips a link
+    whose type another user has checked out, and names that user in the log.
+  - Links in a closed workset, links whose file is missing and links no longer in the model are skipped and reported;
+    the other links still load.
+  - Sets are kept in `%AppData%\Revit26_Plugin_Revised\LinkMemory\memory.json`.
+
+**User note:** two new buttons; no existing tool changed. Revit clears the Undo list when a link loads.
+
 ## [6.5.2] — 2026-10-22
 
 ### Changed

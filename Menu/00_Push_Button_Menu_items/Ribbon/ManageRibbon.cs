@@ -136,6 +136,24 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                 "Manage.ParaManager_16.png", "Link Version Checker - Folder Audit", "V004", "Audit every host model in a project folder and export one report.");
             linkFolderV004.AvailabilityClassName = lvc4Ns + "LinkCheckAlwaysAvailable";
 
+            var linkMemoryV001 = Btn(assemblyPath, "Btn_LinkMemory_V001", "Link Memory",
+                "Revit26_Plugin_Revised.LinkMemory.V001.Commands.LinkMemoryCommand",
+                "SetupTools.Linker_16.png", "Link Memory", "V001");
+            linkMemoryV001.LargeImage = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SetupTools.Linker_32.png");
+            linkMemoryV001.ToolTip = Revit26_Plugin_Revised.Shared.Services.ToolCatalog.LinkMemory.Tip(
+                "Remember which Revit links are loaded as named sets, then load and unload the links " +
+                "back to a set in one click.");
+
+            var worksetMemoryV001 = Btn(assemblyPath, "Btn_WorksetMemory_V001", "WS Memory",
+                "Revit26_Plugin_Revised.WorksetMemory.V001.Commands.WorksetMemoryCommand",
+                "SetupTools.WorksetManager_16.png", "Workset Memory", "V001");
+            worksetMemoryV001.LargeImage = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SetupTools.WorksetManager_32.png");
+            worksetMemoryV001.ToolTip = Revit26_Plugin_Revised.Shared.Services.ToolCatalog.WorksetMemory.Tip(
+                "Remember which worksets are open as named sets, then reopen the model with exactly " +
+                "those worksets open. Works with no model open too.");
+            // Enabled with no model open: a remembered model can be opened straight with its worksets.
+            worksetMemoryV001.AvailabilityClassName = "Revit26_Plugin_Revised.WorksetMemory.V001.Commands.WorksetMemoryAvailability";
+
             // ── Manage panel ─────────────────────────────────────────────────
             var manageItems = RibbonLayoutHelper.AddStackedButtons(panel, new List<RibbonItemData>
             {
@@ -148,6 +166,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                 // Link Check moved here from its own one-button Links panel (plugin 4.2.1).
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_LinkVersionChecker", "Link Check", linkInModelV004),
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_TrackerId", "Tracker ID", trackerIdV002),
+                linkMemoryV001,
             });
             RibbonLayoutHelper.WirePulldownButton(manageItems, "Pulldown_AnnotationOverlapDetection", overlapV004);
             RibbonLayoutHelper.WirePulldownButton(manageItems, "Pulldown_ParaManager", paraManagerV005);
@@ -172,6 +191,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_WorksetRenamer", "WS Renamer", worksetRenamerV005),
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_WorksetRenamerFx", "WS Renamer XL", worksetRenamerFx05),
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_DeleteWorkset", "Delete Workset", deleteWorksetV001),
+                worksetMemoryV001,
             });
             RibbonLayoutHelper.WirePulldownButton(worksetItems, "Pulldown_WorksetsElementsBrowser", wsebV004, wsebV003);
             RibbonLayoutHelper.WirePulldownButton(worksetItems, "Pulldown_WorksetCreator", worksetCreatorV016, worksetCreatorV015);
