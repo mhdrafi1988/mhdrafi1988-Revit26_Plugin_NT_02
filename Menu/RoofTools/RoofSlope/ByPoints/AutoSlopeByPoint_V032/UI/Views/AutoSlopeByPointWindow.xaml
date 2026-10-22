@@ -462,56 +462,44 @@ converters declared here.
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
                                     <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
                                         <RowDefinition Height="28"/>
                                         <RowDefinition Height="Auto"/>
                                     </Grid.RowDefinitions>
 
-                                    <!-- Row 0: label + control side by side · Row 1: hints / errors -->
-                                    <Grid Grid.Row="0" Grid.Column="0">
+                                    <!-- Row 0 labels · Row 1 controls (all 28 high) · Row 2 hints / errors: one shared baseline per row -->
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Drains" Style="{StaticResource FieldLabel}"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="2" Text="Slope (%)" Style="{StaticResource FieldLabel}"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="4" Text="Drainage Distance (m)" Style="{StaticResource FieldLabel}"/>
+
+                                    <Grid Grid.Row="1" Grid.Column="0">
                                         <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Text="Drains" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                                        <TextBlock Grid.Column="1" Text="{Binding DrainCountText}" Style="{StaticResource FieldValue}" FontWeight="SemiBold"
-                                                   TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
-                                        <Button Grid.Column="2" Content="Re-pick" Style="{StaticResource SmallSecondaryButton}" Margin="6,0,0,0"
-                                                VerticalAlignment="Center"
+                                        <Border BorderBrush="{StaticResource BrushBorderDefault}" BorderThickness="1" CornerRadius="5"
+                                                Background="{StaticResource BrushSurfaceWindow}" Padding="8,0">
+                                            <TextBlock Text="{Binding DrainCountText}" Style="{StaticResource FieldValue}" FontWeight="SemiBold"
+                                                       TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <Button Grid.Column="1" Content="Re-pick" Style="{StaticResource SmallSecondaryButton}" Margin="6,0,0,0"
                                                 Command="{Binding RepickDrainsCommand}"
                                                 ToolTip="Pick new drain points in the Revit view without closing this window."/>
                                     </Grid>
+                                    <ComboBox Grid.Row="1" Grid.Column="2" VerticalContentAlignment="Center"
+                                              ItemsSource="{Binding SlopeOptions}" IsEditable="True" IsTextSearchEnabled="False"
+                                              Text="{Binding SlopeText, UpdateSourceTrigger=PropertyChanged}"
+                                              ToolTip="Pick a preset or type any value between 0.1 and 10 %."/>
+                                    <TextBox Grid.Row="1" Grid.Column="4" Style="{StaticResource BorderlessTextInput}" MaxLength="8"
+                                             VerticalContentAlignment="Center"
+                                             Text="{Binding MaxDrainDistanceText, UpdateSourceTrigger=PropertyChanged}"/>
 
-                                    <Grid Grid.Row="0" Grid.Column="2">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto"/>
-                                            <ColumnDefinition Width="*"/>
-                                        </Grid.ColumnDefinitions>
-                                        <TextBlock Text="Slope (%)" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                                        <ComboBox Grid.Column="1" VerticalAlignment="Center"
-                                                  ItemsSource="{Binding SlopeOptions}" IsEditable="True" IsTextSearchEnabled="False"
-                                                  Text="{Binding SlopeText, UpdateSourceTrigger=PropertyChanged}"
-                                                  ToolTip="Pick a preset or type any value between 0.1 and 10 %."/>
-                                    </Grid>
-
-                                    <Grid Grid.Row="0" Grid.Column="4">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto"/>
-                                            <ColumnDefinition Width="*"/>
-                                        </Grid.ColumnDefinitions>
-                                        <TextBlock Text="Drainage Distance (m)" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                                        <TextBox Grid.Column="1" Style="{StaticResource BorderlessTextInput}" MaxLength="8" VerticalAlignment="Center"
-                                                 Text="{Binding MaxDrainDistanceText, UpdateSourceTrigger=PropertyChanged}"/>
-                                    </Grid>
-
-                                    <StackPanel Grid.Row="1" Grid.Column="0">
-                                        <TextBlock Text="{Binding RoofLevelText}" Style="{StaticResource HintText}"/>
-                                    </StackPanel>
-                                    <StackPanel Grid.Row="1" Grid.Column="2">
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="{Binding RoofLevelText}" Style="{StaticResource HintText}"/>
+                                    <StackPanel Grid.Row="2" Grid.Column="2">
                                         <TextBlock Text="{Binding SlopeHint}" Style="{StaticResource CalcHint}"/>
                                         <TextBlock Text="{Binding SlopeError}" Style="{StaticResource FieldError}"/>
                                     </StackPanel>
-                                    <StackPanel Grid.Row="1" Grid.Column="4">
+                                    <StackPanel Grid.Row="2" Grid.Column="4">
                                         <TextBlock Text="Points further from every drain stay at 0." Style="{StaticResource HintText}"/>
                                         <TextBlock Text="{Binding MaxDrainDistanceError}" Style="{StaticResource FieldError}"/>
                                     </StackPanel>
@@ -532,7 +520,7 @@ converters declared here.
                                 <Expander.Header>
                                     <Grid>
                                         <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="110"/>
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
@@ -547,33 +535,27 @@ converters declared here.
                                 <StackPanel Margin="7,3,7,4">
                                     <Grid>
                                         <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="14"/>
+                                            <ColumnDefinition Width="110"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0">
-                                            <TextBlock Text="Drain mode" Style="{StaticResource FieldLabel}"/>
-                                            <ComboBox ItemsSource="{Binding DrainModeOptions}" SelectedItem="{Binding SelectedDrainMode}"
-                                                      DisplayMemberPath="Label" Style="{StaticResource StandardComboBox}"/>
-                                            <TextBlock Text="{Binding SelectedDrainMode.Hint}" Style="{StaticResource HintText}"/>
-                                        </StackPanel>
-                                        <StackPanel Grid.Column="2">
-                                            <Grid>
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="*"/>
-                                                    <ColumnDefinition Width="Auto"/>
-                                                </Grid.ColumnDefinitions>
-                                                <TextBlock Text="Also use shape points nearby" Style="{StaticResource FieldLabel}"
-                                                           TextWrapping="Wrap" VerticalAlignment="Center"/>
-                                                <ToggleButton Grid.Column="1" Style="{StaticResource AppleToggleButton}" Margin="8,0,0,0"
-                                                              IsChecked="{Binding IncludeNearbyPoints}"/>
-                                            </Grid>
-                                            <StackPanel Orientation="Horizontal" Margin="0,4,0,0" IsEnabled="{Binding IncludeNearbyPoints}">
-                                                <TextBox Style="{StaticResource BorderlessTextInput}" Width="90" MaxLength="8"
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <TextBlock Grid.Row="0" Text="Drain mode" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,3,0,3"/>
+                                        <ComboBox Grid.Row="0" Grid.Column="1" Margin="0,3" ItemsSource="{Binding DrainModeOptions}" SelectedItem="{Binding SelectedDrainMode}"
+                                                  DisplayMemberPath="Label" Style="{StaticResource StandardComboBox}"/>
+                                        <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding SelectedDrainMode.Hint}" Style="{StaticResource HintText}" Margin="0,0,0,4"/>
+                                        <TextBlock Grid.Row="2" Text="Use nearby shape points" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,3,0,3"/>
+                                        <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Margin="0,3">
+                                            <ToggleButton Style="{StaticResource AppleToggleButton}" IsChecked="{Binding IncludeNearbyPoints}" VerticalAlignment="Center"/>
+                                            <StackPanel Orientation="Horizontal" Margin="14,0,0,0" IsEnabled="{Binding IncludeNearbyPoints}" VerticalAlignment="Center">
+                                                <TextBox Style="{StaticResource BorderlessTextInput}" Width="80" MaxLength="8"
                                                          Text="{Binding SnapRadiusText, UpdateSourceTrigger=PropertyChanged}"/>
                                                 <TextBlock Text="mm radius" Style="{StaticResource UnitLabel}"/>
                                             </StackPanel>
-                                            <TextBlock Text="{Binding SnapRadiusError}" Style="{StaticResource FieldError}"/>
+                                            <TextBlock Text="{Binding SnapRadiusError}" Style="{StaticResource FieldError}" Margin="8,0,0,0" VerticalAlignment="Center"/>
                                         </StackPanel>
                                     </Grid>
                                     <Button Content="Reset to defaults" Style="{StaticResource LinkButton}" Command="{Binding ResetDrainOptionsCommand}"/>
@@ -587,7 +569,7 @@ converters declared here.
                                 <Expander.Header>
                                     <Grid>
                                         <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="110"/>
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
@@ -602,31 +584,27 @@ converters declared here.
                                 <StackPanel Margin="7,3,7,4">
                                     <Grid>
                                         <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="14"/>
+                                            <ColumnDefinition Width="110"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0">
-                                            <TextBlock Text="Max link length (m)" Style="{StaticResource FieldLabel}"/>
-                                            <TextBox Style="{StaticResource BorderlessTextInput}" Width="90" HorizontalAlignment="Left" MaxLength="8"
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <TextBlock Grid.Row="0" Text="Max link length (m)" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,3,0,3"/>
+                                        <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Margin="0,3">
+                                            <TextBox Style="{StaticResource BorderlessTextInput}" Width="80" MaxLength="8"
                                                      Text="{Binding MaxEdgeLengthText, UpdateSourceTrigger=PropertyChanged}"/>
-                                            <TextBlock Text="{Binding MaxEdgeLengthError}" Style="{StaticResource FieldError}"/>
-                                            <TextBlock Style="{StaticResource HintText}"
-                                                       Text="0 = same as the drainage distance (V030 behaviour). Shorter is faster on large roofs, but points further apart than this are not linked directly."/>
+                                            <TextBlock Text="{Binding MaxEdgeLengthError}" Style="{StaticResource FieldError}" Margin="8,0,0,0" VerticalAlignment="Center"/>
                                         </StackPanel>
-                                        <StackPanel Grid.Column="2">
-                                            <Grid>
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="*"/>
-                                                    <ColumnDefinition Width="Auto"/>
-                                                </Grid.ColumnDefinitions>
-                                                <TextBlock Text="Insert points where edges meet arcs" Style="{StaticResource FieldLabel}"
-                                                           TextWrapping="Wrap" VerticalAlignment="Center"/>
-                                                <ToggleButton Grid.Column="1" Style="{StaticResource AppleToggleButton}" Margin="8,0,0,0"
-                                                              IsChecked="{Binding InsertCurveIntersectionPoints}"/>
-                                            </Grid>
-                                            <TextBlock Style="{StaticResource HintText}"
-                                                       Text="Path lengths follow the arc (boundary or opening) instead of its chord."/>
+                                        <TextBlock Grid.Row="1" Grid.Column="1" Style="{StaticResource HintText}" Margin="0,0,0,4"
+                                                   Text="0 = same as the drainage distance (V030 behaviour). Shorter is faster on large roofs, but points further apart than this are not linked directly."/>
+                                        <TextBlock Grid.Row="2" Text="Insert arc points" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,3,0,3"/>
+                                        <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Margin="0,3">
+                                            <ToggleButton Style="{StaticResource AppleToggleButton}" IsChecked="{Binding InsertCurveIntersectionPoints}" VerticalAlignment="Center"/>
+                                            <TextBlock Style="{StaticResource HintText}" Margin="14,0,0,0" VerticalAlignment="Center"
+                                                       Text="Path lengths follow the arc instead of its chord."/>
                                         </StackPanel>
                                     </Grid>
                                     <Button Content="Reset to defaults" Style="{StaticResource LinkButton}" Command="{Binding ResetPathOptionsCommand}"/>
@@ -640,7 +618,7 @@ converters declared here.
                                 <Expander.Header>
                                     <Grid>
                                         <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="110"/>
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
@@ -665,7 +643,7 @@ converters declared here.
                                 <Expander.Header>
                                     <Grid>
                                         <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="110"/>
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
@@ -680,41 +658,38 @@ converters declared here.
                                 <StackPanel Margin="7,3,7,4">
                                     <Grid>
                                         <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="14"/>
+                                            <ColumnDefinition Width="110"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0">
-                                            <Grid>
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="*"/>
-                                                    <ColumnDefinition Width="Auto"/>
-                                                </Grid.ColumnDefinitions>
-                                                <TextBlock Text="Export to Excel after each run" Style="{StaticResource FieldLabel}" VerticalAlignment="Center"/>
-                                                <ToggleButton Grid.Column="1" Style="{StaticResource AppleToggleButton}" Margin="8,0,0,0"
-                                                              IsChecked="{Binding ExportToExcel}"/>
-                                            </Grid>
-                                            <Grid Margin="0,4,0,0">
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="*"/>
-                                                    <ColumnDefinition Width="6"/>
-                                                    <ColumnDefinition Width="Auto"/>
-                                                </Grid.ColumnDefinitions>
-                                                <TextBox Style="{StaticResource BorderlessTextInput}" IsReadOnly="True"
-                                                         Text="{Binding ExportFolderPath, Mode=OneWay}" Foreground="{StaticResource BrushAppleBlue}"
-                                                         ToolTip="{Binding ExportFolderPath}"/>
-                                                <Button Grid.Column="2" Content="Browse…" Style="{StaticResource OutlineButton}"
-                                                        Command="{Binding BrowseFolderCommand}"/>
-                                            </Grid>
-                                            <CheckBox Margin="0,8,0,0" IsChecked="{Binding AskToOpenAfterExport}" IsEnabled="{Binding CanAskToOpen}">
-                                                <TextBlock Text="Ask before opening the exported file" Style="{StaticResource FieldValue}" FontSize="12.5"/>
-                                            </CheckBox>
-                                        </StackPanel>
-                                        <StackPanel Grid.Column="2">
-                                            <TextBlock Text="Roof parameters" Style="{StaticResource FieldLabel}"/>
-                                            <TextBlock Style="{StaticResource HintText}" Margin="0"
-                                                       Text="Each run writes the AutoSlope_* parameters to the roof (slope, drainage distance, drains, highest point, status, tool version) when the roof type has them."/>
-                                        </StackPanel>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <TextBlock Grid.Row="0" Text="Export to Excel" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,3,0,3"/>
+                                        <ToggleButton Grid.Row="0" Grid.Column="1" Style="{StaticResource AppleToggleButton}" HorizontalAlignment="Left" Margin="0,3"
+                                                      IsChecked="{Binding ExportToExcel}"/>
+                                        <TextBlock Grid.Row="1" Text="Export folder" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,3,0,3"/>
+                                        <Grid Grid.Row="1" Grid.Column="1" Margin="0,3">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="6"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox Style="{StaticResource BorderlessTextInput}" IsReadOnly="True"
+                                                     Text="{Binding ExportFolderPath, Mode=OneWay}" Foreground="{StaticResource BrushAppleBlue}"
+                                                     ToolTip="{Binding ExportFolderPath}"/>
+                                            <Button Grid.Column="2" Content="Browse…" Style="{StaticResource OutlineButton}"
+                                                    Command="{Binding BrowseFolderCommand}"/>
+                                        </Grid>
+                                        <TextBlock Grid.Row="2" Text="After export" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,3,0,3"/>
+                                        <CheckBox Grid.Row="2" Grid.Column="1" Margin="0,3" IsChecked="{Binding AskToOpenAfterExport}" IsEnabled="{Binding CanAskToOpen}">
+                                            <TextBlock Text="Ask before opening the exported file" Style="{StaticResource FieldValue}" FontSize="12"/>
+                                        </CheckBox>
+                                        <TextBlock Grid.Row="3" Text="Roof parameters" Style="{StaticResource FieldLabel}" Margin="0,3"/>
+                                        <TextBlock Grid.Row="3" Grid.Column="1" Style="{StaticResource HintText}" Margin="0,3"
+                                                   Text="Each run writes the AutoSlope_* parameters to the roof (slope, drainage distance, drains, highest point, status, tool version) when the roof type has them."/>
                                     </Grid>
                                     <Button Content="Reset to defaults" Style="{StaticResource LinkButton}" Command="{Binding ResetExportCommand}"/>
                                 </StackPanel>

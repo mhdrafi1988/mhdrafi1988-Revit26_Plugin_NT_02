@@ -17,7 +17,7 @@ Each release lists every tool whose version changed, under the plugin version.
 ### Changed
 - **Auto Slope By Point v32.2.0** — the Longest 10 table drops VertexIndex, DrainIndex, ElevCalc_mm and ElevDiff_mm (narrower grid); "Copy rows" follows the same columns. The Excel workbook and the Skipped points table are unchanged.
 - Labels: "N Drains Picked", "Drainage Distance (m)" (was "Max drainage distance (m)"), "Also use shape points nearby". The Drains, Slope (%) and drainage distance fields in "Every run" now sit on one row (label beside field), with their hints on a second row.
-- The window is more compact: smaller default size (1000 × 640), tighter spacing, and the "Every run", options and log area is about 30 % shorter.
+- The Every run fields and the four option sections are re-aligned on a fixed grid (labels in one column, controls at one height, hints below). The window is more compact: smaller default size (1000 × 640), tighter spacing, and the "Every run", options and log area is about 30 % shorter.
 
 **User note:** display only; the slope calculation and the Excel export are unchanged.
 
