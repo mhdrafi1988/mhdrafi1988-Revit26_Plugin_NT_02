@@ -6,7 +6,7 @@ using Revit26_Plugin_Revised.RoofViewFocus.V003.Core.Models;
 namespace Revit26_Plugin_Revised.RoofViewFocus.V003.Core.Services
 {
     /// <summary>
-    /// Load/save of %AppData%\Revit26_Plugin\RoofViewFocus\settings.json.
+    /// Load/save of %AppData%\Revit26_Plugin_Revised\RoofViewFocus\settings.json.
     /// Never throws — falls back to defaults and reports a warning string.
     /// </summary>
     public static class RoofViewFocusSettingsService
@@ -15,7 +15,7 @@ namespace Revit26_Plugin_Revised.RoofViewFocus.V003.Core.Services
 
         public static string SettingsPath => Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "Revit26_Plugin", RoofViewFocusDefaults.ToolName, "settings.json");
+            "Revit26_Plugin_Revised", RoofViewFocusDefaults.ToolName, "settings.json");
 
         public static RoofViewFocusSettings Load(out string? warning)
         {

@@ -14,7 +14,7 @@ namespace Revit26_Plugin_Revised.FloorsAndRoofFromLinkedRooms.V013
     {
         private static readonly string Folder = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "Revit26_Plugin", "FloorsAndRoofFromLinkedRooms");
+            "Revit26_Plugin_Revised", "FloorsAndRoofFromLinkedRooms");
 
         private static readonly string FilePath = Path.Combine(Folder, "settings.json");
 

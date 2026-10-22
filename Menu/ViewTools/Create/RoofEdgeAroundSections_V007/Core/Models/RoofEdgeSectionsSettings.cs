@@ -4,7 +4,7 @@ namespace Revit26_Plugin_Revised.RoofEdgeAroundSections.V007
 {
     /// <summary>
     /// Persisted user settings for RoofEdgeSections V005.
-    /// Serialized to %AppData%\Revit26_Plugin\RoofEdgeSections\settings.json via System.Text.Json.
+    /// Serialized to %AppData%\Revit26_Plugin_Revised\RoofEdgeSections\settings.json via System.Text.Json.
     /// Loaded on window open, saved on window close and after Run.
     ///
     /// V003 → V004 schema change: the dynamic wall-search crop model (OffsetMm,

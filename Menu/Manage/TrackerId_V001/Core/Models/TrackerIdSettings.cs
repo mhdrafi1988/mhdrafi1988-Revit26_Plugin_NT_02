@@ -3,7 +3,7 @@ using System.Collections.Generic;
 namespace Revit26_Plugin_Revised.TrackerId.V001.Core.Models
 {
     /// <summary>
-    /// Saved between sessions in %AppData%\Revit26_Plugin\TrackerId\settings.json, so every run in a
+    /// Saved between sessions in %AppData%\Revit26_Plugin_Revised\TrackerId\settings.json, so every run in a
     /// project uses the same ID rule. <see cref="SchemaVersion"/> lets a later version migrate the file.
     /// </summary>
     public sealed class TrackerIdSettings

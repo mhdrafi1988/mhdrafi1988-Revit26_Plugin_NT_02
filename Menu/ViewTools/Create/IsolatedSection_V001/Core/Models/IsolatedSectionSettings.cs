@@ -1,7 +1,7 @@
 namespace Revit26_Plugin_Revised.IsolatedSection.V001.Core.Models
 {
     /// <summary>
-    /// Window options saved to %AppData%\Revit26_Plugin\IsolatedSection\settings.json.
+    /// Window options saved to %AppData%\Revit26_Plugin_Revised\IsolatedSection\settings.json.
     /// <see cref="SchemaVersion"/> lets later versions read or migrate older files.
     /// </summary>
     public sealed class IsolatedSectionSettings

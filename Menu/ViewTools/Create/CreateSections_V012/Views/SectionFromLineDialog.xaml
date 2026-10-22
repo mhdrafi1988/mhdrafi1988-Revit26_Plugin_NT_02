@@ -419,7 +419,7 @@ Changes vs V011 (layout only, per Revit_Plugin_UI_Standard.md):
                                             ToolTip="Choose a custom folder for saved logs."/>
                                 </Grid>
                                 <TextBlock Style="{StaticResource HintText}" Margin="0,4,0,0"
-                                           Text="Blank = default folder under My Documents\Revit26_Plugin\CreateSectionsFromDetailLines\Logs. No dialog opens automatically."/>
+                                           Text="Blank = default folder under My Documents\Revit26_Plugin_Revised\CreateSectionsFromDetailLines\Logs. No dialog opens automatically."/>
                             </StackPanel>
                         </StackPanel>
                     </Border>

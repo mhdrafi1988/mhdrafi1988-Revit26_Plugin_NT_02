@@ -3,7 +3,7 @@ using System.Collections.Generic;
 namespace Revit26_Plugin_Revised.ViewAutoRenamer.V005.Models
 {
     /// <summary>
-    /// Persisted at %AppData%\Revit26_Plugin\ViewAutoRenamer\settings.json
+    /// Persisted at %AppData%\Revit26_Plugin_Revised\ViewAutoRenamer\settings.json
     /// via System.Text.Json. Loaded on window open, saved on window close
     /// and after Run, per project convention.
     /// </summary>

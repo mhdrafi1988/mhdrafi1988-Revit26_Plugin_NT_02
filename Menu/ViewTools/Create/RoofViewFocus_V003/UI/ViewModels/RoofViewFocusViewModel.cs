@@ -25,7 +25,7 @@ namespace Revit26_Plugin_Revised.RoofViewFocus.V003.UI.ViewModels
         /// <summary>Fixed log folder â€” no folder picker; both auto-save and Export write here silently.</summary>
         private static readonly string LogFolder = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "Revit26_Plugin", RoofViewFocusDefaults.ToolName, "Logs");
+            "Revit26_Plugin_Revised", RoofViewFocusDefaults.ToolName, "Logs");
 
         private readonly string _viewUniqueId;
         private readonly int _ignoredCount;

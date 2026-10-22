@@ -32,9 +32,9 @@ namespace Revit26_Plugin_Revised.DwgStatistics.V005.Core.Models
         /// <summary>V005: newest scans kept in the history log.</summary>
         public const int HistoryLength = 50;
 
-        /// <summary>V004: %AppData%\Revit26_Plugin\DwgStatistics (settings + last-scan snapshots).</summary>
+        /// <summary>V004: %AppData%\Revit26_Plugin_Revised\DwgStatistics (settings + last-scan snapshots).</summary>
         public static string DataFolder =>
             global::System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "Revit26_Plugin", "DwgStatistics");
+                "Revit26_Plugin_Revised", "DwgStatistics");
     }
 }

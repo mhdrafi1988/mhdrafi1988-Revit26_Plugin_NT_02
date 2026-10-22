@@ -3,7 +3,7 @@
 // Namespace: Revit26_Plugin_Revised.AutoSlopeByPointRidge.V003
 // New in V026.
 // Purpose: Load/save AutoSlopeSettings as JSON at
-//          %AppData%\Revit26_Plugin\AutoSlopeByPointRidge\settings.json
+//          %AppData%\Revit26_Plugin_Revised\AutoSlopeByPointRidge\settings.json
 //          per this suite's shared settings-path convention.
 // =======================================================
 
@@ -18,7 +18,7 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPointRidge.V003.Infrastructure.Helpe
     {
         private static readonly string SettingsPath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "Revit26_Plugin", "AutoSlopeByPointRidge", "settings.json");
+            "Revit26_Plugin_Revised", "AutoSlopeByPointRidge", "settings.json");
 
         /// <summary>
         /// Loads settings from disk. Returns a fresh default instance (never null)

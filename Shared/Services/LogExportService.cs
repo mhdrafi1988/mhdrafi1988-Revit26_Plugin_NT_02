@@ -26,7 +26,7 @@ namespace Revit26_Plugin_Revised.Shared.Services
         }
 
         /// <summary>
-        /// Silently writes the log to %AppData%\Revit26_Plugin\Logs\{toolName}. Never throws.
+        /// Silently writes the log to %AppData%\Revit26_Plugin_Revised\Logs\{toolName}. Never throws.
         /// Returns the written path, or null when the log is empty or the write failed.
         /// </summary>
         public static string AutoSave(IEnumerable<LogEntry> log, string toolName)
@@ -36,7 +36,7 @@ namespace Revit26_Plugin_Revised.Shared.Services
                 if (log == null || !log.Any()) return null;
                 string folder = Path.Combine(
                     Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                    "Revit26_Plugin", "Logs", toolName);
+                    "Revit26_Plugin_Revised", "Logs", toolName);
                 return Export(toolName, new ObservableCollection<LogEntry>(log), folder);
             }
             catch (Exception) { return null; } // auto-save is best effort; must never break the tool

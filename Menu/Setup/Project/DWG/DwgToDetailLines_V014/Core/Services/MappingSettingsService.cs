@@ -36,7 +36,7 @@ namespace Revit26_Plugin_Revised.DwgToDetailLines.V014.Core.Services
         public Dictionary<string, string> HatchOverrides { get; set; } = new();
     }
 
-    /// <summary>Loads and saves <see cref="MappingSettings"/> under %AppData%\Revit26_Plugin.</summary>
+    /// <summary>Loads and saves <see cref="MappingSettings"/> under %AppData%\Revit26_Plugin_Revised.</summary>
     public static class MappingSettingsService
     {
         private const int CurrentVersion = 1;
@@ -45,7 +45,7 @@ namespace Revit26_Plugin_Revised.DwgToDetailLines.V014.Core.Services
 
         private static string FilePath => Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "Revit26_Plugin", "DwgToDlp", "mapping.json");
+            "Revit26_Plugin_Revised", "DwgToDlp", "mapping.json");
 
         /// <summary>Returns the saved settings, or defaults (Single mode, match layer name) when none can be read.</summary>
         public static MappingSettings Load()

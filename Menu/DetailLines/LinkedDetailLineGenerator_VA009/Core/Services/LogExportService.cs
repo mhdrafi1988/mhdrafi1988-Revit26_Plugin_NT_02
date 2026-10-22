@@ -9,7 +9,7 @@ namespace Revit26_Plugin_Revised.LinkedDetailLineGenerator.VA009.Core.Services
     /// <summary>
     /// Handles log file writes: silent auto-save on run completion, and manual
     /// Export (.txt) triggered by the user. Auto-save always goes to
-    /// My Documents\Revit26_Plugin\LinkedDetailLineGenerator\Logs\ (no version segment,
+    /// My Documents\Revit26_Plugin_Revised\LinkedDetailLineGenerator\Logs\ (no version segment,
     /// no folder picker). Manual export asks for a save folder once per session and
     /// reuses it (folder path is session-only; not persisted across sessions in Phase 1 —
     /// confirm if this should also be remembered in settings.json).
@@ -18,7 +18,7 @@ namespace Revit26_Plugin_Revised.LinkedDetailLineGenerator.VA009.Core.Services
     {
         private static readonly string AutoSaveDir =
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-                         "Revit26_Plugin", "LinkedDetailLineGenerator", "Logs");
+                         "Revit26_Plugin_Revised", "LinkedDetailLineGenerator", "Logs");
 
         private const string ToolName = "LinkedDetailLineGenerator";
 

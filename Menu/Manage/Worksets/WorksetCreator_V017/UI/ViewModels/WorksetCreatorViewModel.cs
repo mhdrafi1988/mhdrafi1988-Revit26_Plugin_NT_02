@@ -30,7 +30,7 @@
 //        committed. This is what makes "one workset per link" a guarantee
 //        rather than a hope.
 //   NEW  Settings — pattern, the IFC box, the two matcher thresholds and the log
-//        state persist to %AppData%\Revit26_Plugin\WorksetCreator\settings.json.
+//        state persist to %AppData%\Revit26_Plugin_Revised\WorksetCreator\settings.json.
 // Everything else — the three grids, the pattern engine, duplicate handling,
 // every command guard, Create and all three Resync paths, the single
 // ExternalEvent, the run summary — is V015 behaviour.

@@ -26,7 +26,7 @@ namespace Revit26_Plugin_Revised.IslandRoofSplitter.V001.UI.ViewModels
 {
     public partial class IslandRoofSplitterViewModel : ToolViewModelBase
     {
-        /// <summary>Settings folder name: %AppData%\Revit26_Plugin\IslandRoofSplitter\settings.json.</summary>
+        /// <summary>Settings folder name: %AppData%\Revit26_Plugin_Revised\IslandRoofSplitter\settings.json.</summary>
         private const string SettingsKey = "IslandRoofSplitter";
 
         private readonly Dispatcher _dispatcher;
@@ -343,7 +343,7 @@ namespace Revit26_Plugin_Revised.IslandRoofSplitter.V001.UI.ViewModels
             {
                 string folder = System.IO.Path.Combine(
                     System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments),
-                    "Revit26_Plugin", "Logs");
+                    "Revit26_Plugin_Revised", "Logs");
                 string path = LogExportService.Export("IslandRoofSplitter", LogEntries, folder);
                 AddLog(LogLevel.Info, $"Log saved: {path}");
             }
