@@ -156,13 +156,24 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                 "synced on this PC (cloud links through their Desktop Connector copy), latest version loaded and its date " +
                 "(Check cloud versions asks ACC). Filter by source, ACC project, folder, load state and latest state.");
 
-            var linkMemoryV001 = Btn(assemblyPath, "Btn_LinkMemory_V001", "Link Memory",
+            var linkMemoryV001 = Btn(assemblyPath, "Btn_LinkMemory_V001", "Link Memory (classic)",
                 "Revit26_Plugin_Revised.LinkMemory.V001.Commands.LinkMemoryCommand",
                 "SetupTools.Linker_16.png", "Link Memory", "V001");
             linkMemoryV001.LargeImage = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SetupTools.Linker_32.png");
             linkMemoryV001.ToolTip = Revit26_Plugin_Revised.Shared.Services.ToolCatalog.LinkMemory.Tip(
                 "Remember which Revit links are loaded as named sets, then load and unload the links " +
                 "back to a set in one click.");
+
+            // Link Memory V002 — memories per active view (and its related views) or print set,
+            // with Excel export. Highest version, so it is first in the pulldown and supplies its icon.
+            var linkMemoryV002 = Btn(assemblyPath, "Btn_LinkMemory_V002", "Link Memory",
+                "Revit26_Plugin_Revised.LinkMemory.V002.Commands.LinkMemoryCommand",
+                "SetupTools.Linker_16.png", "Link Memory", "V002");
+            linkMemoryV002.LargeImage = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SetupTools.Linker_32.png");
+            linkMemoryV002.ToolTip = Revit26_Plugin_Revised.Shared.Services.ToolCatalog.LinkMemoryV002.Tip(
+                "Remember which links the active view and its related views (plan, sections, elevations, " +
+                "callouts, drafting views), or a print set, show. Load them back in one click and export the " +
+                "list to Excel.");
 
             var worksetMemoryV001 = Btn(assemblyPath, "Btn_WorksetMemory_V001", "WS Memory",
                 "Revit26_Plugin_Revised.WorksetMemory.V001.Commands.WorksetMemoryCommand",
@@ -222,7 +233,12 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             // Remember-and-restore tools, side by side as two large buttons.
             RibbonPanel memoryPanel = app.CreateRibbonPanel(tabName, "Memory");
             memoryPanel.AddItem(worksetMemoryV001);
-            memoryPanel.AddItem(linkMemoryV001);
+            // Link Memory lists V002 first, then V001.
+            PulldownButtonData linkMemoryPulldown = RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_LinkMemory", "Link Memory", linkMemoryV002);
+            linkMemoryPulldown.LargeImage = linkMemoryV002.LargeImage;
+            var linkMemoryItem = memoryPanel.AddItem(linkMemoryPulldown);
+            RibbonLayoutHelper.WirePulldownButton(new List<RibbonItem> { linkMemoryItem }, "Pulldown_LinkMemory",
+                linkMemoryV002, linkMemoryV001);
         }
     }
 }

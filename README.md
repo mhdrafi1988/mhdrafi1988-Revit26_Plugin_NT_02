@@ -52,7 +52,9 @@
 
 ### Memory
 - **WS Memory** — remember which worksets are open as named sets, then reopen the model with exactly those worksets
-- **Link Memory** — remember which Revit links are loaded as named sets, then load and unload links back to a set
+- **Link Memory** (dropdown) — V002: remember which links (Revit, IFC, CAD, point clouds, images/PDF) the active view
+  and its related views, or a print set, show; load them back in one click and export the list to Excel.
+  *Link Memory (classic)* (V001): remember which Revit links are loaded as named sets, then load and unload links back to a set
 
 ## Installation
 
