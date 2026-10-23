@@ -110,7 +110,7 @@ namespace Revit26_Plugin_Revised.Shared.Services
         public static readonly ToolInfo LinkVersionChecker = Add("Link Version Checker", "3.0.1", "V003", "Revit26_Plugin_Revised.LinkVersionChecker_V003");
         public static readonly ToolInfo LinkVersionCheckerV004 = Add("Link Version Checker", "4.2.0", "V004", "Revit26_Plugin_Revised.LinkVersionChecker_V004");
         public static readonly ToolInfo LinkVersionCheckerV006 = Add("Link Version Checker", "6.1.0", "V006", "Revit26_Plugin_Revised.LinkVersionChecker.V006");
-        public static readonly ToolInfo LinkVersionCheckerV007 = Add("Link Version Checker", "7.1.0", "V007", "Revit26_Plugin_Revised.LinkVersionChecker.V007");
+        public static readonly ToolInfo LinkVersionCheckerV007 = Add("Link Version Checker", "7.1.1", "V007", "Revit26_Plugin_Revised.LinkVersionChecker.V007");
         public static readonly ToolInfo RoofViewFocus = Add("Roof View Focus", "4.1.1", "V004", "Revit26_Plugin_Revised.RoofViewFocus.V004");
         public static readonly ToolInfo CreateSections = Add("Create Sections From Detail Lines", "13.1.2", "V013", "Revit26_Plugin_Revised.CreateSections.V013");
         public static readonly ToolInfo APUS = Add("Auto Place Sections", "324.1.1", "V324", "Revit26_Plugin_Revised.APUS.V324");
@@ -132,6 +132,7 @@ namespace Revit26_Plugin_Revised.Shared.Services
         public static readonly ToolInfo SharedParamStudio = Add("Shared Parameter Studio", "1.0.1", "V001", "Revit26_Plugin_Revised.SharedParamStudio.V001");
         public static readonly ToolInfo WorksetMemory = Add("Workset Memory", "1.0.0", "V001", "Revit26_Plugin_Revised.WorksetMemory.V001");
         public static readonly ToolInfo LinkMemory = Add("Link Memory", "1.0.0", "V001", "Revit26_Plugin_Revised.LinkMemory.V001");
+        public static readonly ToolInfo LinkMemoryV002 = Add("Link Memory", "2.0.0", "V002", "Revit26_Plugin_Revised.LinkMemory.V002");
 
         private static ToolInfo Add(string name, string version, string buildTag, string namespacePrefix)
         {

@@ -9,6 +9,49 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.11.0] — 2026-10-23
+
+### Added
+- **Link Memory v2.0.0 (V002)** — new top entry in a **Link Memory** dropdown in the **Memory** panel. V001 stays below
+  it, unchanged, now labelled *Link Memory (classic)*. V002 remembers which links a set of views uses:
+  - **Active view + related**: the active view, plus the sections, elevations, callouts and drafting views whose marks
+    (or reference marks) show in it. For an active section, elevation, callout or drafting view it also collects the
+    plans that show its mark (callouts and drafting views: any plan, section or elevation). For an active sheet it
+    collects every view on the sheet and their related views. Each kind of mark can be switched off.
+  - **Print set**: every sheet and view in a saved View/Sheet Set, plus the views placed on its sheets (option).
+  - Lists **Revit, IFC, CAD links and imports, point clouds and images / PDFs**, each with the number of collected
+    views it is **visible** in (Visibility/Graphics, hidden in view, view range and crop are respected).
+  - **Save new**, **Update** (collect the same view or print set again and overwrite), **Rename** and **Delete**.
+    A new memory is named after the print set, or after the active view.
+  - **Reload links** loads the Revit, IFC and CAD links the memory uses and, if chosen (on by default), unloads the
+    Revit and IFC links it doesn't use. Workshared local copies unload for the current user only; links checked out
+    by someone else or in a closed workset are skipped and reported.
+  - **Export to Excel**: one .xlsx with *Links*, *Views*, *Link × View* and *Info* sheets.
+  - The sets saved in Link Memory V001 are imported once, as whole-model memories that reload exactly as in V001.
+    The V001 file is not changed.
+  - Memories are kept in `%AppData%\Revit26_Plugin_Revised\LinkMemory\memory_v002.json` (format 2).
+
+**User note:** the Memory panel's *Link Memory* button is now a dropdown; V002 is on top and V001 (*Link Memory
+(classic)*) works as before. Two limits come from Revit: CAD links can be loaded but not unloaded by an add-in, so
+unused CAD links are marked *Can't unload*; and an unloaded link draws nothing, so its visibility can't be checked —
+it shows as *Unknown* and is left as it is until it is loaded and the views are collected again.
+
+## [6.10.1] — 2026-10-23
+
+### Fixed
+- **Link Version Checker v7.1.1 (V007)** — files that Explorer shows with a green tick showed **Not a cloud file** in
+  *On this PC (DC)*. By default Windows can hide Desktop Connector's cloud-file state from programs such as Revit, and
+  7.1.0 then gave up without looking at the file's own flags. Now:
+  - while it reads a file, the tool asks Windows to show the cloud-file state to that one check, then switches back;
+  - if Windows still gives none, the file's own flags decide: *Always keep* → **Always kept** (filled green tick),
+    space freed or still downloading → **Online only**, neither → **Available locally** (green outline tick);
+  - **Not a cloud file** appears only for a file Windows confirms is a plain file with no cloud flags;
+  - hovering the status says how it was read (Windows cloud-file state, or the file's own flags).
+  Still nothing is downloaded: only the folder entry is read.
+- The status icons turn white on the selected row, so they stay visible on the selection, as the text already does.
+
+**User note:** links that showed *Not a cloud file* now count under *Always kept* or *Available locally*, matching Explorer.
+
 ## [6.10.0] — 2026-10-23
 
 ### Changed
