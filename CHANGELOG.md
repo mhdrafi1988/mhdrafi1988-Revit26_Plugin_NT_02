@@ -9,6 +9,38 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.9.0] — 2026-10-23
+
+### Added
+- **Link Version Checker v7.0.0 (V007)**: new top entry in the **Link Check** dropdown, labelled
+  *Link Version Checker (ACC + Cloud)*. V006 stays below it, unchanged. It's V006 plus:
+  - **Cloud links are listed.** Links saved as `Autodesk Docs://<Account>/<Project>/…` (or `BIM 360://…`) get their own
+    rows. V006 left them out and only counted them as "other links hidden". A link counts as a cloud link when Revit
+    reports a cloud `ModelPath` or the saved path starts with `Autodesk Docs://` / `BIM 360://`. Cloud links that are not
+    file references are read through their external resource reference.
+  - **Source** column and count tiles: *Desktop Connector*, *Cloud link*, *Other path* (network share or local file, not
+    in ACC). Other paths are hidden until you tick **Show other links**, which is remembered per user.
+  - **ACC project** column: the project is read from the Desktop Connector folder (`ACCDocs\<Account>\<Project>\…`) or
+    from the cloud path. It is flagged *other project* when it is not the open model's ACC project (compared by cloud
+    project id when both have one, otherwise by name).
+  - **Check cloud versions** button: asks ACC (`ExternalResourceReference.GetResourceVersionStatus()`) whether each loaded
+    cloud link is current, and fills **Latest from ACC?** with *Yes*, *Newer in ACC* or *Unknown*. It only runs when
+    pressed, so Refresh stays fast and works offline. Until then cloud links show *Not checked*, which has its own tile.
+  - **Filters**: Source, ACC project, Folder (a folder and everything below it), In model and Latest drop-downs. Search now
+    matches the full path as well as the name. **Clear filters** clears them all, and each active filter appears as a chip
+    you can remove on its own. The count tiles now count what the other filters leave, so a tile's number is what clicking
+    it shows.
+  - Right-click menu: **Filter to this folder** and **Filter to this ACC project**.
+  - Detail panel for a cloud link: account, ACC project (and whether it is the open model's), and project / model id.
+  - Excel export: same columns in the same order, plus **Source**, **ACC project** and **Same ACC project** at the end
+    (report format 2).
+  - Settings: `%AppData%\Revit26_Plugin_Revised\LinkVersionChecker\settings_v007.json`. On the first run it takes the
+    folder display setting from V006's `settings_v006.json`.
+- Unit tests for V007's path parsing: `dotnet test Tests/LinkVersionChecker.Tests`.
+
+**User note:** the **Link Check** button now opens V007. V006 is still in the dropdown, below it. In V007,
+*Always keep on this device* and *Open folder* skip cloud links, which have no file or folder on this PC.
+
 ## [6.8.0] — 2026-10-22
 
 ### Added
