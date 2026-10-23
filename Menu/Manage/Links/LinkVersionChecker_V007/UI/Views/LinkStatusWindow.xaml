@@ -102,12 +102,6 @@
                       Stroke="#0B6BCB" StrokeThickness="1.3"/>
             </Grid>
         </DataTemplate>
-        <DataTemplate x:Key="IconCloudModel">
-            <Grid Width="14" Height="14">
-                <Path Data="M3.8,11.5 L10.4,11.5 A2.4,2.4 0 0 0 10.7,6.7 A3.7,3.7 0 0 0 3.7,6 A2.75,2.75 0 0 0 3.8,11.5 Z"
-                      Fill="#6D28D9"/>
-            </Grid>
-        </DataTemplate>
         <DataTemplate x:Key="IconOther">
             <Grid Width="14" Height="14">
                 <Ellipse Stroke="#9CA3AF" StrokeThickness="1.3" StrokeDashArray="1.5 1.5"/>
@@ -131,9 +125,6 @@
                 <DataTrigger Binding="{Binding DcText}" Value="Sync pending">
                     <Setter Property="ContentTemplate" Value="{StaticResource IconSync}"/>
                 </DataTrigger>
-                <DataTrigger Binding="{Binding DcText}" Value="Cloud model">
-                    <Setter Property="ContentTemplate" Value="{StaticResource IconCloudModel}"/>
-                </DataTrigger>
             </Style.Triggers>
         </Style>
 
@@ -150,6 +141,9 @@
                 <DataTrigger Binding="{Binding ModelText}" Value="Not found">
                     <Setter Property="Background" Value="#FDECEA"/>
                 </DataTrigger>
+                <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=DataGridRow}}" Value="True">
+                    <Setter Property="Background" Value="#33FFFFFF"/>
+                </DataTrigger>
             </Style.Triggers>
         </Style>
         <Style x:Key="ModelPillText" TargetType="TextBlock">
@@ -161,6 +155,10 @@
                 </DataTrigger>
                 <DataTrigger Binding="{Binding ModelText}" Value="Not found">
                     <Setter Property="Foreground" Value="#B71C1C"/>
+                </DataTrigger>
+                <!-- Selected row: white text on the selection highlight (last, so it wins) -->
+                <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=DataGridRow}}" Value="True">
+                    <Setter Property="Foreground" Value="White"/>
                 </DataTrigger>
             </Style.Triggers>
         </Style>
@@ -178,6 +176,9 @@
                 <DataTrigger Binding="{Binding Source}" Value="Cloud">
                     <Setter Property="Background" Value="#EDE9FE"/>
                 </DataTrigger>
+                <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=DataGridRow}}" Value="True">
+                    <Setter Property="Background" Value="#33FFFFFF"/>
+                </DataTrigger>
             </Style.Triggers>
         </Style>
         <Style x:Key="SourceBadgeText" TargetType="TextBlock">
@@ -191,17 +192,9 @@
                 <DataTrigger Binding="{Binding Source}" Value="Cloud">
                     <Setter Property="Foreground" Value="#6D28D9"/>
                 </DataTrigger>
-            </Style.Triggers>
-        </Style>
-
-        <!-- "ACC project" column: amber when it is another project than the open model's -->
-        <Style x:Key="ProjectText" TargetType="TextBlock">
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
-            <Style.Triggers>
-                <DataTrigger Binding="{Binding SameProject}" Value="False">
-                    <Setter Property="Foreground" Value="#8A4B00"/>
-                    <Setter Property="FontWeight" Value="SemiBold"/>
+                <!-- Selected row: white text on the selection highlight (last, so it wins) -->
+                <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=DataGridRow}}" Value="True">
+                    <Setter Property="Foreground" Value="White"/>
                 </DataTrigger>
             </Style.Triggers>
         </Style>
@@ -241,6 +234,21 @@
                 <DataTrigger Binding="{Binding LatestText}" Value="Newer in ACC">
                     <Setter Property="Foreground" Value="#8A4B00"/>
                     <Setter Property="FontWeight" Value="SemiBold"/>
+                </DataTrigger>
+                <!-- Selected row: white text on the selection highlight (last, so it wins) -->
+                <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=DataGridRow}}" Value="True">
+                    <Setter Property="Foreground" Value="White"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <!-- Date part of "Latest from ACC?" -->
+        <Style x:Key="LatestDate" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#4B5563"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Style.Triggers>
+                <!-- Selected row: white text on the selection highlight (last, so it wins) -->
+                <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=DataGridRow}}" Value="True">
+                    <Setter Property="Foreground" Value="White"/>
                 </DataTrigger>
             </Style.Triggers>
         </Style>
@@ -336,10 +344,10 @@
                                 <StackPanel><TextBlock Style="{StaticResource TileNum}" Text="{Binding SyncPendingCount}"/><TextBlock Text="Sync pending"/></StackPanel>
                             </StackPanel>
                         </Button>
-                        <Button Style="{StaticResource Tile}" Tag="OtherDc" ToolTip="Not on this PC, not a cloud file, or Windows did not say">
+                        <Button Style="{StaticResource Tile}" Tag="OtherDc" ToolTip="Not on this PC, not a cloud file, a cloud link with no Desktop Connector copy, or Windows did not say">
                             <StackPanel Orientation="Horizontal">
                                 <ContentControl ContentTemplate="{StaticResource IconOther}" Margin="0,0,8,0" VerticalAlignment="Center" Focusable="False"/>
-                                <StackPanel><TextBlock Style="{StaticResource TileNum}" Text="{Binding OtherDcCount}"/><TextBlock Text="Missing / other"/></StackPanel>
+                                <StackPanel><TextBlock Style="{StaticResource TileNum}" Text="{Binding OtherDcCount}"/><TextBlock Text="Missing / no DC copy"/></StackPanel>
                             </StackPanel>
                         </Button>
                     </StackPanel>
@@ -506,24 +514,27 @@
                     <DataGridTemplateColumn Header="On this PC (DC)" Width="160" SortMemberPath="DcSort">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" ToolTip="{Binding DcExplain}">
                                     <ContentControl Style="{StaticResource DcIcon}" Content="{Binding}" Margin="0,0,6,0"/>
                                     <TextBlock Text="{Binding DcText}"/>
                                 </StackPanel>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTemplateColumn Header="Latest from ACC?" Width="130" SortMemberPath="LatestText">
-                        <DataGridTemplateColumn.CellTemplate>
+                    <DataGridTemplateColumn Width="230" SortMemberPath="LatestText">
+                        <DataGridTemplateColumn.HeaderTemplate>
                             <DataTemplate>
-                                <TextBlock Style="{StaticResource LatestText}" Text="{Binding LatestText}" ToolTip="{Binding LatestReason}"/>
+                                <TextBlock ToolTip="Status of the loaded copy, then the date and time of the latest version (Date modified of the Desktop Connector file)">
+                                    <Run Text="Latest from ACC?"/> <Run Text="status · latest version" Foreground="#6B7280"/>
+                                </TextBlock>
                             </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
-                    <DataGridTemplateColumn Header="ACC project" Width="1.1*" SortMemberPath="AccProject">
+                        </DataGridTemplateColumn.HeaderTemplate>
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <TextBlock Style="{StaticResource ProjectText}" Text="{Binding ProjectText}" ToolTip="{Binding AccAccount}"/>
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock Style="{StaticResource LatestText}" Text="{Binding LatestText}" ToolTip="{Binding LatestReason}" MinWidth="96"/>
+                                    <TextBlock Style="{StaticResource LatestDate}" Text="{Binding FileDateText}" ToolTip="{Binding LatestDateTip}" Margin="6,0,0,0"/>
+                                </StackPanel>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
@@ -539,7 +550,6 @@
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTextColumn Header="Local file date" Binding="{Binding FileDateText}" SortMemberPath="FileDate" Width="120"/>
                     <DataGridTextColumn Header="Size" Binding="{Binding SizeText}" SortMemberPath="SizeMb" Width="80"/>
                     <DataGridTextColumn Header="Instances" Binding="{Binding Instances}" Width="80"/>
                 </DataGrid.Columns>
@@ -607,6 +617,7 @@
                         </TextBlock>
                         <TextBlock TextWrapping="Wrap" Foreground="{StaticResource Grey}">
                             <Run Text="Latest from ACC:"/> <Run Text="{Binding LatestText, Mode=OneWay}" FontWeight="SemiBold"/>
+                            <Run Text=" · latest version"/> <Run Text="{Binding FileDateText, Mode=OneWay}" FontWeight="SemiBold"/>
                             <Run Text="—"/> <Run Text="{Binding LatestReason, Mode=OneWay}"/>
                         </TextBlock>
                         <TextBlock Foreground="{StaticResource Grey}" TextWrapping="Wrap" Text="{Binding CloudDetail}">
@@ -614,6 +625,17 @@
                                 <Style TargetType="TextBlock">
                                     <Style.Triggers>
                                         <DataTrigger Binding="{Binding CloudDetail}" Value="">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                        <TextBlock Foreground="{StaticResource Grey}" TextTrimming="CharacterEllipsis" ToolTip="{Binding DcCopyText}" Text="{Binding DcCopyText}">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding DcCopyText}" Value="">
                                             <Setter Property="Visibility" Value="Collapsed"/>
                                         </DataTrigger>
                                     </Style.Triggers>

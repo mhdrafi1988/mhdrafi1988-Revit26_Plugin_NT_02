@@ -3,89 +3,63 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Link Version Checker V007 Preview</title>
+<title>Link Version Checker 7.1 Preview</title>
 <style>
-  :root{
-    --blue:#0B6BCB; --green:#2E7D32; --dgreen:#1B5E20; --amber:#8A4B00; --red:#B71C1C;
-    --grey:#4B5563; --line:#E5E7EB; --soft:#F9FAFB; --text:#1F2937; --purple:#6D28D9;
-  }
+  :root{--blue:#0B6BCB;--dgreen:#1B5E20;--amber:#8A4B00;--red:#B71C1C;--grey:#4B5563;--line:#E5E7EB;--soft:#F9FAFB;--text:#1F2937;--purple:#6D28D9}
   *{box-sizing:border-box}
   body{margin:0;background:#E9ECEF;font:12.5px "Segoe UI",system-ui,sans-serif;color:var(--text)}
-  .page{max-width:1320px;margin:0 auto;padding:18px 16px 40px}
+  .page{max-width:1360px;margin:0 auto;padding:18px 16px 40px}
   .note{background:#fff;border:1px solid #D1D5DB;border-left:4px solid var(--blue);border-radius:6px;padding:12px 16px;margin-bottom:16px}
-  .note h1{font-size:16px;margin:0 0 6px}
-  .note ul{margin:6px 0 0 18px;padding:0}
-  .note li{margin:2px 0}
+  .note h1{font-size:16px;margin:0 0 6px}.note ul{margin:6px 0 0 18px;padding:0}.note li{margin:3px 0}
   .new{display:inline-block;background:#EDE9FE;color:var(--purple);font-size:10px;font-weight:700;border-radius:3px;padding:0 4px;margin-left:4px;vertical-align:1px}
+  .chg{display:inline-block;background:#FEF3C7;color:#92400E;font-size:10px;font-weight:700;border-radius:3px;padding:0 4px;margin-left:4px;vertical-align:1px}
   .win{background:#fff;border:1px solid #9CA3AF;box-shadow:0 8px 30px rgba(0,0,0,.18);overflow:hidden}
-  .titlebar{display:flex;align-items:center;justify-content:space-between;height:32px;padding:0 0 0 12px;border-bottom:1px solid var(--line);font-size:12px}
-  .titlebar .wc{display:flex}.titlebar .wc span{width:46px;text-align:center;line-height:32px;color:#555}
+  .titlebar{display:flex;justify-content:space-between;align-items:center;height:32px;padding-left:12px;border-bottom:1px solid var(--line);font-size:12px}
+  .titlebar .wc span{display:inline-block;width:46px;text-align:center;line-height:32px;color:#555}
   .sect{border-bottom:1px solid var(--line);padding:10px 16px}
-  .hdr{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 16px}
-  .hdr .t{font-size:15px;font-weight:600}
-  .hdr .s{color:var(--grey);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .hdr{display:flex;justify-content:space-between;align-items:center;gap:12px}
+  .hdr .t{font-size:15px;font-weight:600}.hdr .s{color:var(--grey);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .btn{height:32px;padding:0 14px;background:#fff;border:1px solid #9CA3AF;border-radius:2px;cursor:pointer;font:inherit;white-space:nowrap}
-  .btn:hover{background:#F3F4F6}
-  .btn.p{background:var(--blue);border-color:var(--blue);color:#fff;font-weight:600}
-  .btn[disabled]{opacity:.45;cursor:default}
-  .btn.sm{height:26px;padding:0 10px}
+  .btn:hover{background:#F3F4F6}.btn.p{background:var(--blue);border-color:var(--blue);color:#fff;font-weight:600}
+  .btn[disabled]{opacity:.45;cursor:default}.btn.sm{height:26px;padding:0 10px}
   .tiles{display:flex;flex-wrap:wrap;gap:6px 20px}
-  .grp .gl{font-size:11px;font-weight:600;color:var(--grey);margin-bottom:6px}
-  .grp .row{display:flex;gap:8px;flex-wrap:wrap}
-  .tile{min-width:96px;border:1px solid #D1D5DB;border-radius:4px;padding:6px 10px;background:#fff;cursor:pointer;display:flex;gap:8px;align-items:center;text-align:left;font:inherit}
-  .tile:hover{background:#F3F4F6}
-  .tile.on{background:#E6F0FB;border:2px solid var(--blue);padding:5px 9px}
+  .gl{font-size:11px;font-weight:600;color:var(--grey);margin-bottom:6px}
+  .row{display:flex;gap:8px;flex-wrap:wrap}
+  .tile{position:relative;min-width:96px;border:1px solid #D1D5DB;border-radius:4px;padding:6px 10px;background:#fff;cursor:pointer;display:flex;gap:8px;align-items:center;text-align:left;font:inherit}
+  .tile:hover{background:#F3F4F6}.tile.on{background:#E6F0FB;border:2px solid var(--blue);padding:5px 9px}
   .tile b{display:block;font-size:18px}
-  .tile.isnew{position:relative}
-  .tile.isnew::after{content:"NEW";position:absolute;top:-7px;right:-6px;background:var(--purple);color:#fff;font-size:8.5px;font-weight:700;border-radius:3px;padding:0 3px}
   .filters{background:var(--soft);display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center}
   .filters label{display:flex;align-items:center;gap:6px}
   .filters select,.filters input[type=text]{height:26px;border:1px solid #9CA3AF;border-radius:2px;font:inherit;padding:0 4px;background:#fff}
-  .filters input[type=text]{width:220px}
   .fbox{border:1px solid #D1D5DB;border-radius:4px;background:#fff;padding:2px 8px;display:flex;gap:6px;align-items:center}
-  .fbox.nw{border-color:#C4B5FD}
   .showing{margin-left:auto;color:var(--grey)}
-  .chips{display:flex;flex-wrap:wrap;gap:6px;padding:6px 16px;border-bottom:1px solid var(--line);min-height:0}
-  .chips:empty{display:none}
-  .chip{background:#E6F0FB;color:var(--blue);border-radius:10px;padding:1px 4px 1px 9px;display:flex;gap:4px;align-items:center;font-size:12px}
-  .chip button{border:0;background:none;color:var(--blue);cursor:pointer;font-size:13px;line-height:1}
-  .gridwrap{height:360px;overflow:auto}
-  table{border-collapse:collapse;width:100%;min-width:1180px}
-  th{position:sticky;top:0;background:#fff;text-align:left;font-weight:600;padding:6px 8px;border-bottom:1px solid #D1D5DB;cursor:pointer;white-space:nowrap;user-select:none}
-  th:hover{background:#F3F4F6}
-  td{padding:0 8px;height:28px;border-bottom:1px solid #F0F1F3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px}
-  tr.sel td{background:#CCE4F7}
+  .gridwrap{height:420px;overflow:auto}
+  table{border-collapse:collapse;width:100%;min-width:1240px}
+  th{position:sticky;top:0;background:#fff;text-align:left;font-weight:600;padding:6px 8px;border-bottom:1px solid #D1D5DB;white-space:nowrap;cursor:pointer}
+  td{padding:0 8px;height:30px;border-bottom:1px solid #F0F1F3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:360px}
   tbody tr:hover td{background:#F3F8FD}
-  tbody tr.sel:hover td{background:#CCE4F7}
+  tr.sel td,tbody tr.sel:hover td{background:#0B6BCB;color:#fff}
+  tr.sel td *{color:#fff!important}
+  tr.sel .pill,tr.sel .src{background:rgba(255,255,255,.22)!important}
   .pill{display:inline-block;border-radius:9px;padding:1px 8px;font-weight:600;background:#F3F4F6;color:#374151}
   .pill.ok{background:#E8F5E9;color:var(--dgreen)}.pill.bad{background:#FDECEA;color:var(--red)}
-  .src{display:inline-flex;gap:5px;align-items:center;border-radius:3px;padding:0 6px;font-size:11.5px;font-weight:600}
-  .src.dc{background:#E6F0FB;color:var(--blue)}
-  .src.cl{background:#EDE9FE;color:var(--purple)}
-  .src.ot{background:#F3F4F6;color:var(--grey)}
+  .src{display:inline-block;border-radius:3px;padding:0 6px;font-size:11.5px;font-weight:600}
+  .src.dc{background:#E6F0FB;color:var(--blue)}.src.cl{background:#EDE9FE;color:var(--purple)}.src.ot{background:#F3F4F6;color:var(--grey)}
   .ico{display:inline-flex;vertical-align:-3px;margin-right:6px}
-  .lat-yes{color:var(--dgreen);font-weight:600}.lat-rl{color:var(--amber);font-weight:600}.lat-sp{color:var(--blue)}.lat-u{color:var(--grey)}
-  .muted{color:var(--grey)}
-  .empty{padding:60px 20px;text-align:center;color:var(--grey);font-size:14px}
-  .detail{display:flex;gap:24px;background:var(--soft);border-top:1px solid #D1D5DB;padding:10px 16px;min-height:118px}
-  .detail .info{flex:1;min-width:0}
-  .detail .info .n{font-weight:600;font-size:14px}
-  .detail .info div{margin:1px 0}
-  .detail .info .path{font-family:Consolas,monospace;font-size:12px;color:var(--grey);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .kv{display:grid;grid-template-columns:auto 1fr;gap:0 10px;color:var(--grey);margin-top:3px}
-  .kv b{color:var(--text);font-weight:600}
+  .lat{display:flex;gap:8px;align-items:baseline}
+  .lat .st{font-weight:600;min-width:92px}
+  .lat .dt{color:var(--grey);font-variant-numeric:tabular-nums}
+  .yes{color:var(--dgreen)}.rl{color:var(--amber)}.sp{color:var(--blue)}.un{color:var(--grey);font-weight:400!important}
+  .detail{display:flex;gap:24px;background:var(--soft);border-top:1px solid #D1D5DB;padding:10px 16px;min-height:130px}
+  .detail .info{flex:1;min-width:0}.detail .n{font-weight:600;font-size:14px}
+  .detail .info>div{margin:1px 0;color:var(--grey)}.detail b{color:var(--text)}
+  .mono{font-family:Consolas,monospace;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .act{width:520px;flex:none}
-  .act .gl{font-size:11px;font-weight:600;color:var(--grey);margin-bottom:6px}
-  .act .row{display:flex;flex-wrap:wrap;gap:6px 8px}
-  .status{display:flex;justify-content:space-between;align-items:center;gap:12px;border-top:1px solid #D1D5DB;padding:6px 16px;font-size:12px}
-  .status .r{display:flex;gap:12px;align-items:center;color:var(--grey)}
-  .ctx{position:fixed;background:#fff;border:1px solid #9CA3AF;box-shadow:2px 2px 6px rgba(0,0,0,.2);padding:2px 0;display:none;z-index:5;min-width:220px}
-  .ctx div{padding:4px 24px;cursor:default}.ctx div:hover{background:#CCE4F7}.ctx div.dis{color:#9CA3AF}.ctx div.dis:hover{background:none}
-  .ctx hr{border:0;border-top:1px solid var(--line);margin:2px 0}
+  .status{display:flex;justify-content:space-between;gap:12px;border-top:1px solid #D1D5DB;padding:6px 16px;font-size:12px}
   .legend{margin-top:16px;background:#fff;border:1px solid #D1D5DB;border-radius:6px;padding:12px 16px}
-  .legend h2{font-size:13px;margin:0 0 6px}
-  .legend table{min-width:0}
-  .legend td,.legend th{position:static;white-space:normal;max-width:none;height:auto;padding:4px 8px;cursor:default}
+  .legend h2{font-size:13px;margin:12px 0 6px}.legend h2:first-child{margin-top:0}
+  .legend table{min-width:0}.legend td,.legend th{position:static;white-space:normal;max-width:none;height:auto;padding:5px 8px;cursor:default;vertical-align:top}
+  code{font-family:Consolas,monospace;font-size:12px;background:#F3F4F6;padding:0 3px;border-radius:2px}
   @media (max-width:760px){.act{width:100%}.detail{flex-direction:column}.hdr{flex-wrap:wrap}}
 </style>
 </head>
@@ -93,29 +67,28 @@
 <div class="page">
 
   <div class="note">
-    <h1>Link Version Checker v7.0.0 (V007): design preview</h1>
-    <div>The data is made up and every control works. Click the tiles, change the filters, click a row, right-click a row, or press <b>Check cloud versions</b>. Things marked <span class="new">NEW</span> are not in V006.</div>
+    <h1>Link Version Checker v7.1.0 (V007): design preview</h1>
+    <div>The data is made up and modelled on your screenshots; every control works. <span class="new">NEW</span> marks something new, <span class="chg">CHANGED</span> marks something that works differently from 7.0.0.</div>
     <ul>
-      <li><b>Cloud links are listed.</b> Links saved as <code>Autodesk Docs://Account/Project/…</code> (and <code>BIM 360://…</code>) get their own rows. V006 left them out, so they only showed up in the "other links hidden" count.</li>
-      <li><b>New Source column and tiles:</b> Desktop Connector, Cloud link, and Other path (network or local, hidden until you turn on <i>Show other links</i>).</li>
-      <li><b>Latest from ACC? for cloud links:</b> <b>Check cloud versions</b> asks ACC (<code>GetResourceVersionStatus</code>) and shows <i>Yes</i>, <i>Newer in ACC</i> or <i>Unknown</i>. It only runs when you press the button, so Refresh stays fast and works offline.</li>
-      <li><b>New ACC project column:</b> shows the project name and whether it is the same ACC project as the open model.</li>
-      <li><b>New filters:</b> Source, ACC project, Folder, In model and Latest dropdowns, a search that also matches the path, <i>Show other links</i>, and a <i>Clear filters</i> button. Active filters show as chips you can remove one at a time. The filters and the tiles work together.</li>
-      <li><b>Unchanged from V006:</b> Desktop Connector state, Always keep, Open folder, Reload/Unload, Excel export (new columns added at the end), and the Folder display setting. V006 stays in the <b>Link Check</b> dropdown under V007.</li>
+      <li><b>The fix for your screenshot:</b> a cloud link like <code>Autodesk Docs://ALEC Engineering and Contracting LLC/Wynn Marjan Island/Project Files/02 - SHARED/ALEC - DESIGN/…rvt</code> is now matched to the copy Desktop Connector keeps on your PC (the one Explorer shows in <i>Autodesk Docs › ALEC… › Wynn Marjan Island › Project Files › 02 - SHARED › ALEC - DESIGN</i>). Its Explorer status (green tick, green outline, cloud, sync arrows) now shows in <b>On this PC (DC)</b> and in the tiles, the same as for Desktop Connector links. In 7.0.0 every cloud link showed "Cloud model" and the tiles stayed at 0.</li>
+      <li><b>Always keep on this device</b> and <b>Open folder</b> now also work on cloud links that have a Desktop Connector copy. They act on that copy.</li>
+      <li><b>Latest from ACC?</b> now shows the status plus the date and time of the latest version, e.g. <i>Yes · 06-10-2026 09:36</i>. The date is the Desktop Connector file's "Date modified", the same date Explorer shows. It is read without downloading the file, so it works for online-only files too.</li>
+      <li><b>Columns removed:</b> <i>ACC project</i>, as you asked. <i>Local file date</i> also goes, because its date now sits in <i>Latest from ACC?</i>. The ACC project filter and the "other project" warning in the detail panel stay. The Excel export keeps every column it has now.</li>
+      <li><b>Selected row is readable:</b> in 7.0.0 the <i>Latest</i> text went dark on the blue selection (your screenshot). The selected row's text is now white.</li>
     </ul>
   </div>
 
   <div class="win">
-    <div class="titlebar"><span>Link Version Checker v7.0.0 (V007) — ACC links (Desktop Connector + Cloud)</span><div class="wc"><span>—</span><span>☐</span><span>✕</span></div></div>
+    <div class="titlebar"><span>Link Version Checker — ACC links (Desktop Connector + Cloud) — v7.1.0</span><span class="wc"><span>—</span><span>☐</span><span>✕</span></span></div>
 
-    <div class="hdr sect" style="padding:12px 16px">
+    <div class="sect hdr" style="padding:12px 16px">
       <div style="min-width:0">
-        <div class="t">WMI_ARC_Central_R26</div>
-        <div class="s">ACC project: <b>Wynn Marjan Island</b> (ALEC Engineering and Contracting LLC) · Desktop Connector folder: C:\Users\Rafi\ACCDocs\ALEC Engineering and Contracting LLC\Wynn Marjan Island\Project Files</div>
+        <div class="t">IKK_Model</div>
+        <div class="s">ACC project: <b>this model is not in ACC</b> · Desktop Connector folder: C:\Users\Rafi\DC\ACCDocs <span class="new">NEW: found automatically</span></div>
       </div>
       <div style="display:flex;gap:8px">
         <button class="btn p" id="refresh">Refresh</button>
-        <button class="btn" id="checkCloud" title="Ask ACC whether each cloud link is the latest version. Needs a connection; one request per cloud link.">Check cloud versions <span class="new">NEW</span></button>
+        <button class="btn" id="checkCloud">Check cloud versions</button>
         <button class="btn" id="export">Export to Excel</button>
       </div>
     </div>
@@ -123,351 +96,181 @@
     <div class="sect"><div class="tiles" id="tiles"></div></div>
 
     <div class="sect filters">
-      <label>Search <input type="text" id="q" placeholder="name or path"></label>
-      <span class="fbox nw"><b>Source</b><span class="new">NEW</span>
-        <select id="fSource"><option value="">All</option><option value="dc">Desktop Connector</option><option value="cloud">Cloud link</option><option value="other">Other path</option></select></span>
-      <span class="fbox nw"><b>ACC project</b><span class="new">NEW</span><select id="fProject"></select></span>
-      <span class="fbox nw"><b>Folder</b><span class="new">NEW</span><select id="fFolder"></select></span>
-      <span class="fbox nw"><b>In model</b><span class="new">NEW</span>
-        <select id="fModel"><option value="">All</option><option>Loaded</option><option>Unloaded</option><option>Unloaded (for me)</option><option>Closed workset</option><option>Not found</option></select></span>
-      <span class="fbox nw"><b>Latest</b><span class="new">NEW</span>
-        <select id="fLatest"><option value="">All</option><option>Yes</option><option>Reload needed</option><option>Newer in ACC</option><option>Sync pending</option><option>Unknown</option><option>Not checked</option><option>—</option></select></span>
-      <label title="Not loaded, not kept on this PC, sync pending, reload needed or newer in ACC"><input type="checkbox" id="fProblems"> Problems only</label>
-      <label title="Also list .rvt links that are on a network drive or this PC, not in ACC"><input type="checkbox" id="fOther"> Show other links <span class="new">NEW</span></label>
-      <span class="fbox" title="How the Folder in ACC column is shortened"><b>Folder display</b>
-        <select id="fMode"><option value="0">Last N folders</option><option value="1">First N folders</option><option value="2">Full folder</option></select>
-        <span id="depthBox"><button class="btn sm" id="less">−</button> <b id="depth">2</b> <button class="btn sm" id="more">+</button></span></span>
-      <button class="btn sm" id="clear">Clear filters <span class="new">NEW</span></button>
+      <label>Search <input type="text" id="q" placeholder="name or path" style="width:200px"></label>
+      <span class="fbox"><b>Source</b><select id="fSource"><option value="">All</option><option value="dc">Desktop Connector</option><option value="cloud">Cloud link</option><option value="other">Other path</option></select></span>
+      <span class="fbox"><b>ACC project</b><select id="fProject"><option value="">All projects</option><option>Wynn Marjan Island</option></select></span>
+      <span class="fbox"><b>Folder</b><select id="fFolder"></select></span>
+      <span class="fbox"><b>In model</b><select id="fModel"><option value="">All</option><option>Loaded</option><option>Unloaded</option><option>Not found</option></select></span>
+      <span class="fbox"><b>Latest</b><select id="fLatest"><option value="">All</option><option>Yes</option><option>Reload needed</option><option>Newer in ACC</option><option>Sync pending</option><option>Unknown</option><option>Not checked</option></select></span>
+      <label><input type="checkbox" id="fProblems"> Problems only</label>
+      <label><input type="checkbox" id="fOther"> Show other links</label>
+      <span class="fbox"><b>Folder display</b><select id="fMode"><option value="2">Full folder</option><option value="0">Last N folders</option><option value="1">First N folders</option></select></span>
+      <button class="btn sm" id="clear">Clear filters</button>
       <span class="showing" id="showing"></span>
     </div>
-    <div class="chips" id="chips"></div>
 
-    <div class="gridwrap"><table><thead><tr id="head"></tr></thead><tbody id="body"></tbody></table><div class="empty" id="empty" style="display:none"></div></div>
+    <div class="gridwrap"><table><thead><tr id="head"></tr></thead><tbody id="body"></tbody></table></div>
 
     <div class="detail">
-      <div class="info" id="info"><div class="muted">Select a link to see its details.</div></div>
+      <div class="info" id="info"><div>Select a link to see its details.</div></div>
       <div class="act">
         <div class="gl">ACTIONS ON THE SELECTED LINKS</div>
         <div class="row">
           <button class="btn" data-a="Reload">Reload</button>
           <button class="btn" data-a="Unload">Unload</button>
-          <button class="btn" data-a="Always keep" data-dc="1" title="Desktop Connector files only">Always keep on this device</button>
-          <button class="btn" data-a="Open folder" data-dc="1" title="Desktop Connector and other file links; a cloud link has no folder on this PC">Open folder</button>
+          <button class="btn" data-a="Always keep on this device">Always keep on this device</button>
+          <button class="btn" data-a="Open folder">Open folder</button>
           <button class="btn" data-a="Copy full path">Copy full path</button>
         </div>
       </div>
     </div>
-
-    <div class="status">
-      <span id="status">Ready. 15 Revit links read.</span>
-      <span class="r"><span id="footer"></span><button class="btn sm">Close</button></span>
-    </div>
+    <div class="status"><span id="status">Ready. Press Check cloud versions to ask ACC about the cloud links.</span><span id="footer" style="color:var(--grey)"></span></div>
   </div>
 
   <div class="legend">
-    <h2>How each link is sorted (code: <code>LinkStatusCollector</code> → new <code>LinkSourceClassifier</code>)</h2>
+    <h2>How a cloud link finds its Desktop Connector copy</h2>
     <table>
-      <tr><th>Source</th><th>Detected by</th><th>On this PC</th><th>Latest from ACC?</th></tr>
-      <tr><td><span class="src dc">Desktop Connector</span></td><td>The saved file path contains <code>\ACCDocs\</code>, same test as V006</td><td>Windows Cloud Files state, as in V006</td><td>Loaded copy compared with the file on this PC, as in V006</td></tr>
-      <tr><td><span class="src cl">Cloud link</span> <span class="new">NEW</span></td><td><code>ModelPath.CloudPath</code> is true, or the saved path starts with <code>Autodesk Docs://</code> / <code>BIM 360://</code>. The account and project are read from the path, and the project and model GUIDs from the <code>ModelPath</code>.</td><td>"Cloud model": Revit streams it from ACC, there is no file to sync</td><td>"Not checked" until <b>Check cloud versions</b> runs, then <code>ExternalResourceReference.GetResourceVersionStatus()</code>: Current → <i>Yes</i>, OutOfDate → <i>Newer in ACC</i>, anything else → <i>Unknown</i></td></tr>
-      <tr><td><span class="src ot">Other path</span> <span class="new">NEW</span></td><td>Anything else (UNC, mapped or local drive). Hidden unless <i>Show other links</i> is on.</td><td>"Not ACC"</td><td>—</td></tr>
+      <tr><th>Step</th><th>What happens</th></tr>
+      <tr><td>1</td><td>Take the cloud path after <code>Autodesk Docs://</code>: <code>ALEC Engineering and Contracting LLC/Wynn Marjan Island/Project Files/02 - SHARED/ALEC - DESIGN/…rvt</code></td></tr>
+      <tr><td>2</td><td>Put each Desktop Connector root in front of it, turning <code>/</code> into <code>\</code>. The roots tried are <code>%USERPROFILE%\DC\ACCDocs</code> (Desktop Connector 16+), then <code>%USERPROFILE%\ACCDocs</code> (older versions), then any root set in <code>settings_v007.json</code>. The first root that has the file wins.</td></tr>
+      <tr><td>3</td><td>Read the file's Windows cloud-file state and "Date modified" from the folder listing, the same way V006 does for Desktop Connector links. <b>Nothing is downloaded.</b></td></tr>
+      <tr><td>4</td><td>No copy found: <b>On this PC</b> shows <i>No DC copy</i> (dotted icon, counted under <i>Missing / other</i>) and the date shows "—". The link is still listed.</td></tr>
     </table>
+    <h2>What "Latest from ACC?" shows</h2>
+    <table>
+      <tr><th>Link</th><th>Status part</th><th>Date and time part</th></tr>
+      <tr><td><span class="src dc">Desktop Connector</span></td><td>Same as 7.0.0: the loaded copy's save stamp compared with the file on this PC. <i>Yes</i>, <i>Reload needed</i>, <i>Sync pending</i> or <i>Unknown</i>.</td><td>"Date modified" of the file on this PC, which is the latest version Desktop Connector has synced from ACC.</td></tr>
+      <tr><td><span class="src cl">Cloud link</span></td><td><i>Not checked</i> until you press <b>Check cloud versions</b>. Then ACC answers <i>Yes</i>, <i>Newer in ACC</i> or <i>Unknown</i>, the same as 7.0.0.</td><td>"Date modified" of its Desktop Connector copy, i.e. when the latest version was published to ACC. "—" when there is no copy. The Revit API gives no date for a cloud link by itself.</td></tr>
+    </table>
+    <p style="color:var(--grey);margin:8px 0 0">The hover text on the date says where it came from, e.g. "Latest version in ACC: 06-10-2026 09:36 (Date modified of the Desktop Connector copy, C:\Users\Rafi\DC\ACCDocs\…)".</p>
   </div>
 </div>
 
-<div class="ctx" id="ctx"></div>
-
 <script>
-const DC_ROOT = "C:\\Users\\Rafi\\ACCDocs\\ALEC Engineering and Contracting LLC\\Wynn Marjan Island\\Project Files\\";
-const CL_ROOT = "Autodesk Docs://ALEC Engineering and Contracting LLC/Wynn Marjan Island/Project Files/";
-const HOST_PROJECT = "Wynn Marjan Island";
-
+const ACC = "ALEC Engineering and Contracting LLC/Wynn Marjan Island/Project Files/";
+const DCROOT = "C:\\Users\\Rafi\\DC\\ACCDocs\\";
+// [source, folder, name, inModel, dc, latest, date, sizeMB, instances, cloudAnswer]
 const raw = [
-  ["dc","02_ARC\\Models\\Podium","WMI_ARC_Podium_R26.rvt","Loaded","Always kept","Yes","14-10-2026 09:12",412,3],
-  ["dc","02_ARC\\Models\\Tower","WMI_ARC_Tower-A_R26.rvt","Loaded","Available locally","Reload needed","22-10-2026 17:40",688,1],
-  ["dc","03_STR\\Models","WMI_STR_Podium_R26.rvt","Loaded","Always kept","Yes","19-10-2026 11:03",255,1],
-  ["dc","04_MEP\\Models\\Mechanical","WMI_MEC_Level-B1_R26.rvt","Unloaded","Online only","—","20-10-2026 08:55",301,1],
-  ["dc","04_MEP\\Models\\Electrical","WMI_ELE_Podium_R26.rvt","Loaded","Sync pending","Sync pending","23-10-2026 07:21",190,1],
-  ["dc","05_LAN\\WIP","WMI_LAN_Site_R26.rvt","Not found","Not on this PC","—","—",null,1],
-  ["cloud","02_ARC\\Models\\Tower","WMI_ARC_Tower-B_R26.rvt","Loaded","Cloud model","Not checked","—",null,1,"Yes"],
-  ["cloud","02_ARC\\Models\\Facade","WMI_ARC_Facade_R26.rvt","Loaded","Cloud model","Not checked","—",null,2,"Newer in ACC"],
-  ["cloud","03_STR\\Models","WMI_STR_Tower-B_R26.rvt","Unloaded (for me)","Cloud model","—","—",null,1,"Yes"],
-  ["cloud","04_MEP\\Models\\Plumbing","WMI_PLU_Tower-B_R26.rvt","Loaded","Cloud model","Not checked","—",null,1,"Yes"],
-  ["cloudx","Shared\\Survey","WYNN_Survey_Site-Grid_R26.rvt","Loaded","Cloud model","Not checked","—",null,1,"Unknown","Wynn Resorts — Survey Hub"],
-  ["cloud","06_INT\\Models","WMI_INT_Lobby_R26.rvt","Closed workset","Cloud model","—","—",null,1,"Yes"],
-  ["other","","Old_Concept_Massing.rvt","Loaded","Not ACC","—","02-03-2025 10:00",44,1],
-  ["other","","Vendor_Escalators.rvt","Not found","Not ACC","—","—",null,1],
-  ["dc","02_ARC\\Models\\Podium","WMI_ARC_Podium-Retail_R26.rvt","Loaded","Available locally","Yes","21-10-2026 13:30",140,1],
+  ["cloud","02 - SHARED/ALEC - DESIGN","WAMI-0000-ALE-MDL-AR-MY-TWVL-00-70002_ARCHITECTURE_BLOCKWORK_TOWER L23-RF.rvt","Loaded","Always kept","Not checked","21-10-2026 08:45",387,1,"Yes"],
+  ["cloud","02 - SHARED/ALEC - DESIGN","WAMI-0000-ALE-MDL-AR-MY-TWVL-00-70001_ARCHITECTURE_BLOCKWORK_TOWER LB2-L22.rvt","Loaded","Always kept","Not checked","06-10-2026 09:36",1024,1,"Newer in ACC"],
+  ["cloud","02 - SHARED/ALEC - DESIGN","WAMI-0000-ALE-MDL-AR-MY-PDVL-00-70006_ARCHITECTURE_SCREED_PODIUM ZONE 1 & 2.rvt","Loaded","Online only","Not checked","06-10-2026 09:36",116,1,"Yes"],
+  ["cloud","02 - SHARED/ALEC - DESIGN","WAMI-0000-ALE-MDL-AR-MY-PDVL-00-70008_ARCHITECTURE_SCREED_PODIUM ZONE 5,6,7.rvt","Unloaded","Online only","—","25-08-2026 09:11",69,1,"Yes"],
+  ["cloud","02 - SHARED/ALEC - DESIGN","WAMI-0000-ALE-MDL-ST-CD-PDVL-00-70002_STRUCTURE_CONCRETE_PODIUM ZONE 3 & 4.rvt","Loaded","Available locally","Not checked","17-10-2026 14:22",1606,1,"Yes"],
+  ["cloud","02 - SHARED/ALEC - DESIGN","WAMI-0000-ALE-MDL-ID-MY-TWVL-00-70001_TOWER_ID_COORDINATION_MODEL.rvt","Loaded","Sync pending","Not checked","08-12-2025 08:27",829,1,"Unknown"],
+  ["cloud","04 - MEP/Models","WAMI-0000-ALE-MDL-ME-MY-TWVL-00-70001_MECHANICAL_TOWER.rvt","Loaded","No DC copy","Not checked","—",null,1,"Yes"],
+  ["dc","02 - SHARED/ALEC - DESIGN","WAMI-0000-ALE-MDL-AR-MY-ALVL-00-70001_EXTERNAL_ARCHITECTURE_WORKS.rvt","Loaded","Always kept","Yes","21-10-2026 08:45",130,1],
+  ["dc","02 - SHARED/ALEC - DESIGN","WAMI-0000-ALE-MDL-AR-MY-MVVL-00-70001_ ARCHITECTURE_BLOCKWORK_MARINA SIDE (4B-2B).rvt","Loaded","Always kept","Reload needed","22-10-2026 13:48",177,1],
+  ["dc","02 - SHARED/ALEC - DESIGN","JANU-0000-ALE-MDL-ST-MY-ALVL-00-70001_EXTERNAL_STRUCTURE_CONCRETE_WORKS.rvt","Loaded","Online only","Unknown","06-10-2026 09:36",28,1],
+  ["dc","02 - SHARED/ALEC - DESIGN","WAMI-0000-ALE-MDL-ST-CD-PDVL-00-70001_STRUCTURE_CONCRETE_PODIUM ZONE 1 & 2.rvt","Loaded","Always kept","Yes","20-10-2026 08:20",749,2],
+  ["other","","Old_Concept_Massing.rvt","Loaded","Not ACC","—","—",null,1],
 ];
-
 const rows = raw.map((r,i)=>{
-  const [kind,folder,name,model,dc,latest,date,size,inst,cloudTruth,otherProj] = r;
-  const src = kind==="cloudx" ? "cloud" : kind;
-  let path, project="", same=null;
-  if (src==="dc"){ path = DC_ROOT+folder+"\\"+name; project=HOST_PROJECT; same=true; }
-  else if (src==="cloud"){
-    const proj = otherProj || HOST_PROJECT;
-    path = (otherProj ? "Autodesk Docs://Wynn Resorts/"+proj+"/Project Files/" : CL_ROOT)+folder.replace(/\\/g,"/")+"/"+name;
-    project = proj; same = !otherProj;
-  } else path = i===12 ? "\\\\alec-fs01\\Projects\\WMI\\Archive\\"+name : "D:\\Downloads\\"+name;
-  return {id:i,src,folder:src==="other"?"(not ACC)":folder,name,model,dc,latest,date,size,inst,cloudTruth,path,project,same,
-          owner: i===1 ? "ahmed.k" : ""};
+  const [src,folder,name,model,dc,latest,date,size,inst,answer]=r;
+  const cloudPath = "Autodesk Docs://"+ACC+folder+"/"+name;
+  const dcPath = DCROOT+(ACC+folder+"/"+name).replace(/\//g,"\\");
+  return {id:i,src,folder:folder.replace(/\//g,"\\"),name,model,dc,latest,date,size,inst,answer,
+    path: src==="cloud"?cloudPath: src==="dc"?dcPath:"\\\\alec-fs01\\Archive\\"+name,
+    dcCopy: src==="cloud" && dc!=="No DC copy" ? dcPath : (src==="dc"?dcPath:"")};
 });
-
-const state = {tile:"",q:"",source:"",project:"",folder:"",model:"",latest:"",problems:false,other:false,mode:0,depth:2,sel:new Set(),sortKey:"name",sortDir:1,checked:false};
-
-const isProblem = r => r.model!=="Loaded" || ["Online only","Sync pending","Not on this PC"].includes(r.dc) ||
-                       ["Reload needed","Sync pending","Newer in ACC"].includes(r.latest);
-
-const TILES = [
-  {g:"SOURCE",isNew:true,items:[
-    ["src:dc","Desktop Connector",r=>r.src==="dc",null,"Saved path is inside an ACCDocs folder"],
-    ["src:cloud","Cloud link",r=>r.src==="cloud","#6D28D9","Saved as Autodesk Docs:// or BIM 360://"],
-    ["src:other","Other path",r=>r.src==="other",null,"Network or local file, not ACC (turn on Show other links)"]]},
-  {g:"IN THE MODEL",items:[
-    ["Loaded","Loaded",r=>r.model==="Loaded","#1B5E20"],
-    ["Unloaded","Unloaded",r=>["Unloaded","Unloaded (for me)","Closed workset"].includes(r.model)],
-    ["NotFound","Not found",r=>r.model==="Not found","#B71C1C"]]},
-  {g:"ON THIS PC (DESKTOP CONNECTOR)",items:[
-    ["AlwaysKept","Always kept",r=>r.dc==="Always kept",null,null,"kept"],
-    ["Available","Available locally",r=>r.dc==="Available locally",null,null,"avail"],
-    ["OnlineOnly","Online only",r=>r.dc==="Online only",null,null,"online"],
-    ["SyncPending","Sync pending",r=>r.dc==="Sync pending",null,null,"sync"],
-    ["OtherDc","Missing / other",r=>r.src==="dc" && ["Not on this PC","Not a cloud file","Unknown"].includes(r.dc),null,null,"other"]]},
-  {g:"LATEST FROM ACC?",items:[
-    ["UpToDate","Up to date",r=>r.latest==="Yes","#1B5E20"],
-    ["ReloadNeeded","Reload needed",r=>["Reload needed","Newer in ACC"].includes(r.latest),"#8A4B00","Newer file on this PC, or a newer version published in ACC"],
-    ["LatestUnknown","Unknown",r=>r.latest==="Unknown" || r.latest==="Sync pending"],
-    ["NotChecked","Not checked",r=>r.latest==="Not checked",null,"Cloud links: press Check cloud versions",null,true]]},
-];
-const tileFn = {}; TILES.forEach(g=>g.items.forEach(t=>tileFn[t[0]]=t[2]));
-
-const ICONS = {
+const S={tile:"",q:"",source:"",project:"",folder:"",model:"",latest:"",problems:false,other:false,mode:2,sel:new Set([0])};
+const ICONS={
   kept:'<svg width="14" height="14"><circle cx="7" cy="7" r="7" fill="#2E7D32"/><path d="M3.6 7.2L6 9.6l4.5-5" stroke="#fff" stroke-width="1.8" fill="none"/></svg>',
   avail:'<svg width="14" height="14"><circle cx="7" cy="7" r="6.3" fill="#fff" stroke="#2E7D32" stroke-width="1.3"/><path d="M3.6 7.2L6 9.6l4.5-5" stroke="#2E7D32" stroke-width="1.8" fill="none"/></svg>',
   online:'<svg width="14" height="14"><path d="M3.8 11.5h6.6a2.4 2.4 0 0 0 .3-4.8 3.7 3.7 0 0 0-7-.7 2.75 2.75 0 0 0 .1 5.5z" stroke="#0B6BCB" stroke-width="1.3" fill="none"/></svg>',
   sync:'<svg width="14" height="14"><path d="M11.6 6A4.8 4.8 0 0 0 3 4.6M2.4 8a4.8 4.8 0 0 0 8.6 1.4M11.8 2.4V6H8.2M2.2 11.6V8h3.6" stroke="#0B6BCB" stroke-width="1.3" fill="none"/></svg>',
-  other:'<svg width="14" height="14"><circle cx="7" cy="7" r="6.3" stroke="#9CA3AF" stroke-width="1.3" stroke-dasharray="1.5 1.5" fill="none"/></svg>',
-  cloud:'<svg width="14" height="14"><path d="M3.8 11.5h6.6a2.4 2.4 0 0 0 .3-4.8 3.7 3.7 0 0 0-7-.7 2.75 2.75 0 0 0 .1 5.5z" fill="#6D28D9"/></svg>',
-};
-const dcIcon = d => ({"Always kept":"kept","Available locally":"avail","Online only":"online","Sync pending":"sync","Cloud model":"cloud"})[d] || "other";
+  other:'<svg width="14" height="14"><circle cx="7" cy="7" r="6.3" stroke="#9CA3AF" stroke-width="1.3" stroke-dasharray="1.5 1.5" fill="none"/></svg>'};
+const icon=d=>({"Always kept":"kept","Available locally":"avail","Online only":"online","Sync pending":"sync"})[d]||"other";
+const isProblem=r=>r.model!=="Loaded"||["Online only","Sync pending","No DC copy"].includes(r.dc)||["Reload needed","Sync pending","Newer in ACC"].includes(r.latest);
 
-function folderShown(f){
-  if (!f || f.startsWith("(") || state.mode===2) return f;
-  const p = f.split("\\"); if (p.length<=state.depth) return f;
-  return state.mode===0 ? "…\\"+p.slice(-state.depth).join("\\") : p.slice(0,state.depth).join("\\")+"\\…";
+const TILES=[
+ ["SOURCE",[["src:dc","Desktop Connector",r=>r.src==="dc","#0B6BCB"],["src:cloud","Cloud link",r=>r.src==="cloud","#6D28D9"],["src:other","Other path",r=>r.src==="other"]]],
+ ["IN THE MODEL",[["Loaded","Loaded",r=>r.model==="Loaded","#1B5E20"],["Unloaded","Unloaded",r=>r.model==="Unloaded"],["NotFound","Not found",r=>r.model==="Not found","#B71C1C"]]],
+ ["ON THIS PC (DESKTOP CONNECTOR) — cloud links included",[["kept","Always kept",r=>r.dc==="Always kept",null,"kept"],["avail","Available locally",r=>r.dc==="Available locally",null,"avail"],["online","Online only",r=>r.dc==="Online only",null,"online"],["sync","Sync pending",r=>r.dc==="Sync pending",null,"sync"],["miss","Missing / no DC copy",r=>["No DC copy","Not on this PC"].includes(r.dc),null,"other"]]],
+ ["LATEST FROM ACC?",[["yes","Up to date",r=>r.latest==="Yes","#1B5E20"],["rl","Reload needed",r=>["Reload needed","Newer in ACC"].includes(r.latest),"#8A4B00"],["un","Unknown",r=>["Unknown","Sync pending"].includes(r.latest)],["nc","Not checked",r=>r.latest==="Not checked"]]]];
+const tileFn={};TILES.forEach(g=>g[1].forEach(t=>tileFn[t[0]]=t[2]));
+
+function base(skipTile){const q=S.q.toLowerCase();return rows.filter(r=>{
+  if(!S.other&&r.src==="other"&&S.source!=="other"&&S.tile!=="src:other")return false;
+  if(q&&!(r.name.toLowerCase().includes(q)||r.path.toLowerCase().includes(q)))return false;
+  if(S.source&&r.src!==S.source)return false;
+  if(S.project&&r.src==="other")return false;
+  if(S.folder&&!(r.folder===S.folder||r.folder.startsWith(S.folder+"\\")))return false;
+  if(S.model&&r.model!==S.model)return false;
+  if(S.latest&&r.latest!==S.latest)return false;
+  if(S.problems&&!isProblem(r))return false;
+  if(!skipTile&&S.tile&&!tileFn[S.tile](r))return false;return true;});}
+function folderShown(f){if(!f||S.mode===2)return f;const p=f.split("\\");if(p.length<=2)return f;return S.mode===0?"…\\"+p.slice(-2).join("\\"):p.slice(0,2).join("\\")+"\\…";}
+function latestCls(l){return l==="Yes"?"yes":["Reload needed","Newer in ACC"].includes(l)?"rl":l==="Sync pending"?"sp":"un";}
+function dateTip(r){ if(r.date==="—") return r.src==="cloud"?"No Desktop Connector copy on this PC, so no date. The Revit API gives no date for a cloud link by itself.":"";
+  return `Latest version in ACC: ${r.date} (Date modified of the Desktop Connector copy, ${r.dcCopy})`; }
+
+function render(){
+  const b=base(true),T=document.getElementById("tiles");T.innerHTML="";
+  TILES.forEach(([g,items])=>{const d=document.createElement("div");
+    d.innerHTML=`<div class="gl">${g}${g.startsWith("ON THIS PC")?' <span class="chg">CHANGED</span>':''}</div><div class="row"></div>`;
+    items.forEach(([k,l,fn,c,ic])=>{const t=document.createElement("button");t.className="tile"+(S.tile===k?" on":"");
+      t.innerHTML=(ic?`<span>${ICONS[ic]}</span>`:"")+`<span><b style="${c?'color:'+c:''}">${b.filter(fn).length}</b>${l}</span>`;
+      t.onclick=()=>{S.tile=S.tile===k?"":k;render();};d.querySelector(".row").appendChild(t);});T.appendChild(d);});
+  const list=base(false);
+  document.getElementById("head").innerHTML=["Link name","Source","In model","On this PC (DC) <span class='chg'>CHANGED</span>","Latest from ACC? <span class='chg'>CHANGED</span> <span style='font-weight:400;color:#4B5563'>status · latest version date</span>",S.mode===2?"Folder in ACC (full)":"Folder in ACC","Size","Instances"].map(h=>`<th>${h}</th>`).join("");
+  document.getElementById("body").innerHTML=list.map(r=>{
+    const pill=r.model==="Loaded"?"ok":r.model==="Not found"?"bad":"";
+    const src=r.src==="dc"?'<span class="src dc">Desktop Connector</span>':r.src==="cloud"?'<span class="src cl">Cloud link</span>':'<span class="src ot">Other path</span>';
+    return `<tr data-id="${r.id}" class="${S.sel.has(r.id)?"sel":""}">
+      <td title="${r.path}">${r.name}</td><td>${src}</td><td><span class="pill ${pill}">${r.model}</span></td>
+      <td title="${r.dcCopy||'No Desktop Connector copy'}"><span class="ico">${ICONS[icon(r.dc)]}</span>${r.dc}</td>
+      <td title="${dateTip(r)}"><span class="lat"><span class="st ${latestCls(r.latest)}">${r.latest}</span><span class="dt">${r.date}</span></span></td>
+      <td title="${r.folder}">${folderShown(r.folder)||'<span style="color:#9CA3AF">—</span>'}</td>
+      <td>${r.size!=null?r.size+" MB":"—"}</td><td>${r.inst}</td></tr>`;}).join("");
+  document.querySelectorAll("#body tr").forEach(tr=>tr.onclick=e=>{const id=+tr.dataset.id;
+    if(e.ctrlKey||e.metaKey){S.sel.has(id)?S.sel.delete(id):S.sel.add(id);}else S.sel=new Set([id]);render();});
+  const total=rows.filter(r=>S.other||r.src!=="other").length;
+  document.getElementById("showing").textContent=`Showing ${list.length} of ${total} RVT links`;
+  document.getElementById("footer").textContent=`${rows.filter(r=>r.src==="dc").length} from Desktop Connector · ${rows.filter(r=>r.src==="cloud").length} cloud links (${rows.filter(r=>r.src==="cloud"&&r.dcCopy).length} with a DC copy) · Last refresh 09:28`;
+  detail();
 }
-
-// Every filter except the tile, so tile counts show what a click would give.
-function baseFiltered(skipTile){
-  const q = state.q.toLowerCase();
-  return rows.filter(r=>{
-    if (!state.other && r.src==="other" && state.source!=="other" && state.tile!=="src:other") return false;
-    if (q && !(r.name.toLowerCase().includes(q) || r.path.toLowerCase().includes(q))) return false;
-    if (state.source && r.src!==state.source) return false;
-    if (state.project && r.project!==state.project) return false;
-    if (state.folder && !(r.folder===state.folder || r.folder.startsWith(state.folder+"\\"))) return false;
-    if (state.model && r.model!==state.model) return false;
-    if (state.latest && r.latest!==state.latest) return false;
-    if (state.problems && !isProblem(r)) return false;
-    if (!skipTile && state.tile && !tileFn[state.tile](r)) return false;
-    return true;
-  });
+function detail(){
+  const sel=rows.filter(r=>S.sel.has(r.id)),el=document.getElementById("info");
+  document.querySelectorAll(".act button").forEach(b=>{const a=b.dataset.a;let ok=sel.length>0;
+    if((a==="Reload"||a==="Unload")&&sel.length!==1)ok=false;
+    if(a==="Always keep on this device"&&!sel.some(r=>r.dcCopy&&r.dc!=="Always kept"))ok=false;
+    if(a==="Open folder"&&!sel.some(r=>r.dcCopy||r.src==="other"))ok=false;b.disabled=!ok;});
+  if(!sel.length){el.innerHTML="<div>Select a link to see its details.</div>";return;}
+  if(sel.length>1){el.innerHTML=`<div class="n">${sel.length} links selected</div>`+sel.map(r=>`<div class="mono">${r.path}</div>`).join("");return;}
+  const r=sel[0];
+  el.innerHTML=`<div class="n" style="color:var(--text)">${r.name}</div>
+   <div>In model: <b>${r.model}</b> · Source: <b>${r.src==="dc"?"Desktop Connector":r.src==="cloud"?"Cloud link":"Other path"}</b> · On this PC: <b>${r.dc}</b>${r.src==="cloud"&&r.dcCopy?" (Desktop Connector copy)":""}</div>
+   <div>Latest from ACC: <b>${r.latest}</b>${r.date!=="—"?` · latest version <b>${r.date}</b>`:""} — ${reason(r)}</div>
+   ${r.src!=="other"?`<div>Account: ALEC Engineering and Contracting LLC · ACC project: <b>Wynn Marjan Island</b></div>`:""}
+   <div class="mono" title="${r.path}">${r.path}</div>
+   ${r.src==="cloud"?`<div class="mono" title="${r.dcCopy}">${r.dcCopy?"Desktop Connector copy: "+r.dcCopy:"Desktop Connector copy: none found under C:\\Users\\Rafi\\DC\\ACCDocs or C:\\Users\\Rafi\\ACCDocs"}</div>`:""}`;
 }
-
-function renderTiles(){
-  const base = baseFiltered(true);
-  const el = document.getElementById("tiles"); el.innerHTML="";
-  TILES.forEach(g=>{
-    const d = document.createElement("div"); d.className="grp";
-    d.innerHTML = `<div class="gl">${g.g}${g.isNew?' <span class="new">NEW</span>':''}</div><div class="row"></div>`;
-    g.items.forEach(([tag,label,fn,color,tip,icon,isNew])=>{
-      const b = document.createElement("button");
-      b.className = "tile"+(state.tile===tag?" on":"")+(isNew?" isnew":"");
-      b.title = tip || ("Show "+label.toLowerCase());
-      b.innerHTML = (icon?`<span>${ICONS[icon]}</span>`:"")+`<span><b style="${color?'color:'+color:''}">${base.filter(fn).length}</b>${label}</span>`;
-      b.onclick = ()=>{ state.tile = state.tile===tag ? "" : tag; render(); };
-      d.querySelector(".row").appendChild(b);
-    });
-    el.appendChild(d);
-  });
-}
-
-function fillSelect(id, values, allLabel){
-  const s = document.getElementById(id), cur = s.value;
-  s.innerHTML = `<option value="">${allLabel}</option>` + values.map(v=>`<option value="${v.v}">${v.t}</option>`).join("");
-  s.value = values.some(v=>v.v===cur) ? cur : "";
-}
-function fillDynamic(){
-  const projects = [...new Set(rows.filter(r=>r.project).map(r=>r.project))];
-  fillSelect("fProject", projects.map(p=>({v:p,t:p+(p===HOST_PROJECT?" (this model)":"")})), "All projects");
-  const folders = new Set();
-  rows.filter(r=>r.src!=="other").forEach(r=>{ const p=r.folder.split("\\"); for(let i=1;i<=p.length;i++) folders.add(p.slice(0,i).join("\\")); });
-  fillSelect("fFolder", [...folders].sort().map(f=>({v:f,t:"\u2003".repeat(f.split("\\").length-1)+f.split("\\").pop()})), "All folders");
-}
-
-const COLS = [
-  ["name","Link name"],["src","Source",1],["model","In model"],["dc","On this PC (DC)"],["latest","Latest from ACC?"],
-  ["project","ACC project",1],["folder","Folder in ACC"],["date","Local file date"],["size","Size"],["inst","Instances"]];
-
-function renderGrid(){
-  const list = baseFiltered(false).sort((a,b)=>{
-    const k=state.sortKey; let x=a[k]??"", y=b[k]??"";
-    return (typeof x==="number"&&typeof y==="number" ? x-y : String(x).localeCompare(String(y)))*state.sortDir;
-  });
-  document.getElementById("head").innerHTML = COLS.map(([k,t,n])=>
-    `<th data-k="${k}">${k==="folder"?folderHeader():t}${n?' <span class="new">NEW</span>':''}${state.sortKey===k?(state.sortDir>0?" ▲":" ▼"):""}</th>`).join("");
-  document.querySelectorAll("#head th").forEach(th=>th.onclick=()=>{
-    const k=th.dataset.k; state.sortDir = state.sortKey===k ? -state.sortDir : 1; state.sortKey=k; renderGrid(); });
-
-  const body = document.getElementById("body");
-  body.innerHTML = list.map(r=>{
-    const pill = r.model==="Loaded"?"ok":r.model==="Not found"?"bad":"";
-    const src = r.src==="dc"?'<span class="src dc">Desktop Connector</span>':r.src==="cloud"?'<span class="src cl">'+ICONS.cloud.replace('width="14" height="14"','width="12" height="12"')+'Cloud link</span>':'<span class="src ot">Other path</span>';
-    const lc = r.latest==="Yes"?"lat-yes":["Reload needed","Newer in ACC"].includes(r.latest)?"lat-rl":r.latest==="Sync pending"?"lat-sp":"lat-u";
-    const proj = r.project ? r.project+(r.same===false?' <span style="color:#8A4B00;font-weight:600" title="Not the ACC project of the open model">· other project</span>':"") : '<span class="muted">—</span>';
-    return `<tr data-id="${r.id}" class="${state.sel.has(r.id)?"sel":""}">
-      <td title="${r.path}">${r.name}</td><td>${src}</td>
-      <td><span class="pill ${pill}">${r.model}</span></td>
-      <td><span class="ico">${ICONS[dcIcon(r.dc)]}</span>${r.dc}</td>
-      <td class="${lc}" title="${reason(r)}">${r.latest}</td>
-      <td>${proj}</td>
-      <td title="${r.folder}">${folderShown(r.folder)}</td>
-      <td>${r.date}</td><td>${r.size!=null?r.size+" MB":"—"}</td><td>${r.inst}</td></tr>`;
-  }).join("");
-  body.querySelectorAll("tr").forEach(tr=>{
-    tr.onclick = e=>{ const id=+tr.dataset.id;
-      if (e.ctrlKey||e.metaKey){ state.sel.has(id)?state.sel.delete(id):state.sel.add(id); } else state.sel=new Set([id]);
-      renderGrid(); renderDetail(); };
-    tr.oncontextmenu = e=>{ e.preventDefault(); const id=+tr.dataset.id; if(!state.sel.has(id)){state.sel=new Set([id]);renderGrid();renderDetail();} showCtx(e.clientX,e.clientY); };
-  });
-
-  const empty = document.getElementById("empty");
-  empty.style.display = list.length?"none":"block";
-  empty.textContent = "No links match the filters. Clear a filter above, or press Clear filters.";
-  const total = rows.filter(r=>state.other||r.src!=="other").length;
-  document.getElementById("showing").textContent = `Showing ${list.length} of ${total} links`;
-  const hidden = rows.filter(r=>r.src==="other").length;
-  document.getElementById("footer").textContent =
-    `${rows.filter(r=>r.src==="dc").length} Desktop Connector · ${rows.filter(r=>r.src==="cloud").length} cloud` +
-    (state.other ? ` · ${hidden} other` : ` · ${hidden} other RVT links hidden (not ACC)`);
-}
-const folderHeader = ()=> state.mode===2 ? "Folder in ACC" : `Folder in ACC (${state.mode===0?"last":"first"} ${state.depth})`;
-
 function reason(r){
-  if (r.src==="cloud"){
-    if (r.latest==="Not checked") return "Press Check cloud versions to ask ACC.";
-    if (r.latest==="—") return "The link is not loaded, so there is nothing to compare.";
-    if (r.latest==="Yes") return "ACC says this is the current version (ResourceVersionStatus.Current).";
-    if (r.latest==="Newer in ACC") return "A newer version is published in ACC. Reload the link to get it.";
-    return "ACC could not answer (offline, signed out, or no access to that project).";
-  }
-  if (r.src==="other") return "Not an ACC link.";
-  return {"Yes":"The loaded copy matches the file on this PC and Desktop Connector is in sync.",
-          "Reload needed":"The file on this PC was saved after the copy loaded in the model.",
-          "Sync pending":"Desktop Connector is still syncing; check again in a moment.",
-          "—":"The link is not loaded, so there is nothing to compare."}[r.latest] || "Could not compare.";
+  if(r.latest==="Not checked")return"Press Check cloud versions to ask ACC whether the loaded copy is the latest.";
+  if(r.latest==="Newer in ACC")return"A newer version is published in ACC than the loaded copy. Reload the link.";
+  if(r.latest==="Yes")return r.src==="cloud"?"ACC says the loaded copy is the current version.":"The loaded copy is the file Desktop Connector has.";
+  if(r.latest==="Reload needed")return"The file on this PC is a newer save than the copy loaded in the model.";
+  if(r.latest==="—")return r.src==="other"?"Not an ACC link.":"The link is not loaded.";
+  return r.src==="cloud"?"ACC could not answer (offline or signed out).":"The file is online only; reading its save stamp would download it.";
 }
-
-function renderDetail(){
-  const el = document.getElementById("info");
-  const sel = rows.filter(r=>state.sel.has(r.id));
-  document.querySelectorAll(".act button").forEach(b=>{
-    const a=b.dataset.a;
-    let ok = sel.length>0;
-    if ((a==="Reload"||a==="Unload") && sel.length!==1) ok=false;
-    if (a==="Always keep" && !sel.some(r=>r.src==="dc")) ok=false;
-    if (a==="Open folder" && !sel.some(r=>r.src!=="cloud")) ok=false;
-    b.disabled=!ok;
-  });
-  if (!sel.length){ el.innerHTML='<div class="muted">Select a link to see its details.</div>'; return; }
-  if (sel.length>1){
-    el.innerHTML = `<div class="n">${sel.length} links selected</div>`+sel.map(r=>`<div class="path" title="${r.path}">${r.path}</div>`).join(""); return; }
-  const r = sel[0];
-  let html = `<div class="n">${r.name}</div>
-    <div class="muted">In model: <b>${r.model}</b> · Source: <b>${r.src==="dc"?"Desktop Connector":r.src==="cloud"?"Cloud link":"Other path"}</b> · On this PC: <b>${r.dc}</b></div>
-    <div class="muted">Latest from ACC: <b>${r.latest}</b> — ${reason(r)}</div>`;
-  if (r.src==="cloud"){
-    const parts = r.path.replace("Autodesk Docs://","").split("/");
-    html += `<div class="kv"><span>Account</span><b>${parts[0]}</b><span>ACC project</span><b>${parts[1]} ${r.same?'<span style="color:#1B5E20">(same project as this model)</span>':'<span style="color:#8A4B00">(a different ACC project)</span>'}</b>
-      <span>Project / model id</span><span style="font-family:Consolas,monospace">b.7f3c…e21a / 9d04…41bc</span></div>`;
-  }
-  if (r.owner) html += `<div style="color:#B71C1C">Being edited by ${r.owner} — Reload / Unload for everyone is blocked until they relinquish it.</div>`;
-  html += `<div class="path" title="${r.path}">${r.path}</div>`;
-  el.innerHTML = html;
-}
-
-function renderChips(){
-  const c=[];
-  const sel = id => { const s=document.getElementById(id); return s.options[s.selectedIndex].text.trim(); };
-  if (state.tile) c.push(["tile","Tile: "+document.querySelector(".tile.on span:last-child")?.lastChild.textContent]);
-  if (state.q) c.push(["q",`Search: "${state.q}"`]);
-  if (state.source) c.push(["source","Source: "+sel("fSource")]);
-  if (state.project) c.push(["project","Project: "+state.project]);
-  if (state.folder) c.push(["folder","Folder: "+state.folder]);
-  if (state.model) c.push(["model","In model: "+state.model]);
-  if (state.latest) c.push(["latest","Latest: "+state.latest]);
-  if (state.problems) c.push(["problems","Problems only"]);
-  if (state.other) c.push(["other","Showing other links"]);
-  document.getElementById("chips").innerHTML = c.map(([k,t])=>`<span class="chip">${t}<button data-k="${k}" title="Remove">✕</button></span>`).join("");
-  document.querySelectorAll(".chip button").forEach(b=>b.onclick=()=>{ clearOne(b.dataset.k); render(); });
-}
-function clearOne(k){
-  if (k==="tile") state.tile="";
-  else if (k==="problems"||k==="other") state[k]=false;
-  else state[k]="";
-  syncInputs();
-}
-function syncInputs(){
-  document.getElementById("q").value=state.q;
-  ["source","project","folder","model","latest"].forEach(k=>document.getElementById("f"+k[0].toUpperCase()+k.slice(1)).value=state[k]);
-  document.getElementById("fProblems").checked=state.problems;
-  document.getElementById("fOther").checked=state.other;
-}
-
-function render(){ renderTiles(); renderChips(); renderGrid(); renderDetail();
-  document.getElementById("depthBox").style.display = state.mode===2?"none":"inline"; document.getElementById("depth").textContent=state.depth; }
-
-// wiring
-document.getElementById("q").oninput = e=>{state.q=e.target.value;render();};
-[["fSource","source"],["fProject","project"],["fFolder","folder"],["fModel","model"],["fLatest","latest"]].forEach(([id,k])=>
-  document.getElementById(id).onchange=e=>{state[k]=e.target.value;render();});
-document.getElementById("fProblems").onchange=e=>{state.problems=e.target.checked;render();};
-document.getElementById("fOther").onchange=e=>{state.other=e.target.checked;render();};
-document.getElementById("fMode").onchange=e=>{state.mode=+e.target.value;render();};
-document.getElementById("less").onclick=()=>{state.depth=Math.max(1,state.depth-1);render();};
-document.getElementById("more").onclick=()=>{state.depth=Math.min(9,state.depth+1);render();};
-document.getElementById("clear").onclick=()=>{Object.assign(state,{tile:"",q:"",source:"",project:"",folder:"",model:"",latest:"",problems:false,other:false});syncInputs();render();};
-const setStatus = t=>document.getElementById("status").textContent=t;
-document.getElementById("refresh").onclick=()=>{rows.forEach(r=>{if(r.src==="cloud"&&r.model==="Loaded")r.latest="Not checked";});state.checked=false;render();setStatus("Refreshed. 15 Revit links read; cloud versions not checked.");};
-document.getElementById("export").onclick=()=>setStatus("Preview only: Export to Excel would add the Source, ACC project and Same project columns after Instances.");
-document.getElementById("checkCloud").onclick=()=>{
-  const b=document.getElementById("checkCloud"); const todo=rows.filter(r=>r.src==="cloud"&&r.model==="Loaded");
-  b.disabled=true; let i=0;
-  const step=()=>{ if(i>=todo.length){b.disabled=false;setStatus(`Checked ${todo.length} cloud links with ACC: ${todo.filter(r=>r.latest==="Yes").length} current, ${todo.filter(r=>r.latest==="Newer in ACC").length} newer in ACC, ${todo.filter(r=>r.latest==="Unknown").length} unknown.`);render();return;}
-    setStatus(`Checking cloud versions… ${i+1} of ${todo.length} (${todo[i].name})  [Cancel]`); todo[i].latest=todo[i].cloudTruth; i++; render(); setTimeout(step,350); };
-  step();
-};
-document.querySelectorAll(".act button").forEach(b=>b.onclick=()=>{
-  const sel=rows.filter(r=>state.sel.has(r.id)); const a=b.dataset.a;
-  if (a==="Always keep"){ const skip=sel.filter(r=>r.src!=="dc").length; setStatus(`Preview: would pin ${sel.length-skip} Desktop Connector file(s)`+(skip?`; ${skip} cloud/other link(s) skipped (no file to pin).`:"."));}
-  else setStatus(`Preview: ${a} on ${sel.map(r=>r.name).join(", ")}`);
-});
-
-const ctx=document.getElementById("ctx");
-function showCtx(x,y){
-  const sel=rows.filter(r=>state.sel.has(r.id));
-  const dc=sel.some(r=>r.src==="dc"), file=sel.some(r=>r.src!=="cloud"), one=sel.length===1;
-  ctx.innerHTML = `<div>Copy full path</div><div class="${file?"":"dis"}">Open folder</div><div class="${dc?"":"dis"}">Always keep on this device</div>
-    <div>Filter to this folder <span class="new">NEW</span></div><div>Filter to this ACC project <span class="new">NEW</span></div><hr>
-    <div class="${one?"":"dis"}">Reload (one link)</div><div class="${one?"":"dis"}">Unload (one link)</div>`;
-  ctx.style.left=x+"px"; ctx.style.top=y+"px"; ctx.style.display="block";
-  ctx.children[3].onclick=()=>{ state.folder=sel[0].src==="other"?"":sel[0].folder; syncInputs(); render(); };
-  ctx.children[4].onclick=()=>{ state.project=sel[0].project; syncInputs(); render(); };
-}
-document.addEventListener("click",()=>ctx.style.display="none");
-
-fillDynamic(); syncInputs(); render();
+function folders(){const s=new Set();rows.filter(r=>r.src!=="other").forEach(r=>{const p=r.folder.split("\\");for(let i=1;i<=p.length;i++)s.add(p.slice(0,i).join("\\"));});
+  document.getElementById("fFolder").innerHTML='<option value="">All folders</option>'+[...s].sort().map(f=>`<option value="${f}">${"\u2003".repeat(f.split("\\").length-1)+f.split("\\").pop()}</option>`).join("");}
+const on=(id,ev,fn)=>document.getElementById(id).addEventListener(ev,fn);
+on("q","input",e=>{S.q=e.target.value;render();});
+[["fSource","source"],["fProject","project"],["fFolder","folder"],["fModel","model"],["fLatest","latest"]].forEach(([id,k])=>on(id,"change",e=>{S[k]=e.target.value;render();}));
+on("fProblems","change",e=>{S.problems=e.target.checked;render();});
+on("fOther","change",e=>{S.other=e.target.checked;render();});
+on("fMode","change",e=>{S.mode=+e.target.value;render();});
+on("clear","click",()=>{Object.assign(S,{tile:"",q:"",source:"",project:"",folder:"",model:"",latest:"",problems:false});
+  ["q","fSource","fProject","fFolder","fModel","fLatest"].forEach(i=>document.getElementById(i).value="");document.getElementById("fProblems").checked=false;render();});
+const status=t=>document.getElementById("status").textContent=t;
+on("checkCloud","click",()=>{const todo=rows.filter(r=>r.src==="cloud"&&r.model==="Loaded");todo.forEach(r=>r.latest=r.answer);render();
+  status(`Checked ${todo.length} cloud links with ACC: ${todo.filter(r=>r.latest==="Yes").length} current, ${todo.filter(r=>r.latest==="Newer in ACC").length} newer in ACC, ${todo.filter(r=>r.latest==="Unknown").length} unknown.`);});
+on("refresh","click",()=>{rows.forEach(r=>{if(r.src==="cloud"&&r.model==="Loaded")r.latest="Not checked";});render();status("Refreshed.");});
+on("export","click",()=>status("Preview only: the Excel export keeps all its current columns."));
+document.querySelectorAll(".act button").forEach(b=>b.onclick=()=>{const sel=rows.filter(r=>S.sel.has(r.id));
+  status(b.dataset.a==="Always keep on this device"?`Preview: would pin ${sel.filter(r=>r.dcCopy&&r.dc!=="Always kept").length} Desktop Connector file(s), cloud links' copies included.`:`Preview: ${b.dataset.a} on ${sel.map(r=>r.name).join(", ")}`);});
+folders();render();
 </script>
 </body>
 </html>

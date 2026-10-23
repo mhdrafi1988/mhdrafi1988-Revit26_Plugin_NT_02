@@ -92,6 +92,22 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V007.Core.Services
             };
         }
 
+        /// <summary>
+        /// The part of a cloud path after <c>Autodesk Docs://</c> as a relative Windows path,
+        /// e.g. <c>ALEC\Wynn Marjan Island\Project Files\02 - SHARED\ARC.rvt</c>. Desktop
+        /// Connector mirrors that same tree under its ACCDocs folder. Empty for anything that is
+        /// not an <c>Autodesk Docs://</c> path or would climb out of the folder ("..").  [7.1.0]
+        /// </summary>
+        public static string CloudRelativePath(string path)
+        {
+            if (string.IsNullOrEmpty(path)) return "";
+            string p = path.Trim();
+            if (!p.StartsWith(CloudSchemes[0], StringComparison.OrdinalIgnoreCase)) return "";
+            string[] seg = Split(p.Substring(CloudSchemes[0].Length));
+            if (seg.Length < 2 || seg.Any(s => s == "." || s == "..")) return "";
+            return string.Join("\\", seg);
+        }
+
         /// <summary>Account and project of a Desktop Connector path (the two folders after "ACCDocs"); empty parts otherwise.</summary>
         public static AccPathParts ParseDesktopConnector(string path)
         {

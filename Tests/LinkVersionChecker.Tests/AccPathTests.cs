@@ -75,6 +75,19 @@ namespace LinkVersionChecker.Tests
         public void SameId(string a, string b, bool expected) => Assert.Equal(expected, AccPath.SameId(a, b));
 
         [Fact]
+        public void CloudRelativePath_MirrorsDesktopConnectorTree() =>
+            Assert.Equal(@"ALEC Engineering and Contracting LLC\Wynn Marjan Island\Project Files\02 - SHARED\ALEC - DESIGN\ARC L23-RF.rvt",
+                AccPath.CloudRelativePath("Autodesk Docs://ALEC Engineering and Contracting LLC/Wynn Marjan Island/Project Files/02 - SHARED/ALEC - DESIGN/ARC L23-RF.rvt"));
+
+        [Theory]
+        [InlineData("BIM 360://Project/ARC.rvt")]
+        [InlineData(@"C:\Users\Rafi\DC\ACCDocs\ALEC\ARC.rvt")]
+        [InlineData("Autodesk Docs://ARC.rvt")]
+        [InlineData("Autodesk Docs://ALEC/../../Windows/ARC.rvt")]
+        [InlineData("")]
+        public void CloudRelativePath_EmptyWhenNotMappable(string path) => Assert.Equal("", AccPath.CloudRelativePath(path));
+
+        [Fact]
         public void FolderDisplay_TrimsCloudFolder() =>
             Assert.Equal(@"…\Models\Tower", FolderDisplay.Trim(@"02_ARC\Models\Tower", FolderDisplayMode.LastN, 2));
     }
