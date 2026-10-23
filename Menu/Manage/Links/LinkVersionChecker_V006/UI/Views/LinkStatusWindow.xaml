@@ -280,6 +280,22 @@
                     <TextBox Width="220" Height="26" VerticalContentAlignment="Center" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" ToolTip="Filter by link name"/>
                     <CheckBox Content="Problems only" IsChecked="{Binding ProblemsOnly}" VerticalAlignment="Center" Margin="16,0,0,0"
                               ToolTip="Not loaded, not kept on this PC, sync pending, or reload needed"/>
+                    <Border Margin="16,0,0,0" Padding="8,2" BorderBrush="#D1D5DB" BorderThickness="1" CornerRadius="4" Background="White"
+                            ToolTip="How the Folder in ACC column is shortened. Hover a folder, or right-click → Copy full path, for the full path.">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="Folder" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                            <ComboBox Width="130" Height="26" VerticalContentAlignment="Center" SelectedIndex="{Binding FolderModeIndex, Mode=TwoWay}">
+                                <ComboBoxItem Content="Last N folders"/>
+                                <ComboBoxItem Content="First N folders"/>
+                                <ComboBoxItem Content="Full folder"/>
+                            </ComboBox>
+                            <StackPanel Orientation="Horizontal" Margin="6,0,0,0" Visibility="{Binding ShowFolderDepth, Converter={StaticResource BoolToVis}}">
+                                <Button Width="26" Height="26" Content="−" Command="{Binding FolderLessCommand}" ToolTip="Fewer folder names"/>
+                                <TextBlock Text="{Binding FolderDepth}" MinWidth="22" TextAlignment="Center" FontWeight="Bold" VerticalAlignment="Center"/>
+                                <Button Width="26" Height="26" Content="+" Command="{Binding FolderMoreCommand}" ToolTip="More folder names"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
                     <TextBlock Text="Click a count above to filter; click it again to clear." Foreground="{StaticResource Grey}" VerticalAlignment="Center" Margin="16,0,0,0"/>
                 </StackPanel>
             </DockPanel>
@@ -287,11 +303,22 @@
 
         <!-- Grid -->
         <Grid Grid.Row="3">
-            <DataGrid ItemsSource="{Binding RowsView}" SelectedItem="{Binding Selected, Mode=TwoWay}"
-                      SelectionMode="Single" SelectionUnit="FullRow" IsReadOnly="True"
+            <DataGrid x:Name="LinkGrid" ItemsSource="{Binding RowsView}" SelectedItem="{Binding Selected, Mode=TwoWay}"
+                      SelectionChanged="LinkGrid_SelectionChanged"
+                      SelectionMode="Extended" SelectionUnit="FullRow" IsReadOnly="True"
                       AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False"
                       HeadersVisibility="Column" GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#F0F1F3"
                       BorderThickness="0" RowHeight="28" Background="White">
+                <DataGrid.ContextMenu>
+                    <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+                        <MenuItem Header="Copy full path" Command="{Binding CopyPathCommand}"/>
+                        <MenuItem Header="Open folder" Command="{Binding OpenFolderCommand}"/>
+                        <MenuItem Header="Always keep on this device" Command="{Binding AlwaysKeepCommand}"/>
+                        <Separator/>
+                        <MenuItem Header="Reload (one link)" Command="{Binding ReloadCommand}"/>
+                        <MenuItem Header="Unload (one link)" Command="{Binding UnloadCommand}"/>
+                    </ContextMenu>
+                </DataGrid.ContextMenu>
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Link name" Binding="{Binding Name}" Width="2*"/>
                     <DataGridTemplateColumn Header="In model" Width="130" SortMemberPath="ModelText">
@@ -320,7 +347,18 @@
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTextColumn Header="Folder in ACC" Binding="{Binding AccFolder}" Width="1.3*"/>
+                    <DataGridTemplateColumn Width="1.3*" SortMemberPath="AccFolder">
+                        <DataGridTemplateColumn.HeaderTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding DataContext.FolderHeader, RelativeSource={RelativeSource AncestorType=DataGrid}}"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.HeaderTemplate>
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding FolderShown}" ToolTip="{Binding AccFolder}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
                     <DataGridTextColumn Header="Local file date" Binding="{Binding FileDateText}" SortMemberPath="FileDate" Width="120"/>
                     <DataGridTextColumn Header="Size" Binding="{Binding SizeText}" SortMemberPath="SizeMb" Width="80"/>
                     <DataGridTextColumn Header="Instances" Binding="{Binding Instances}" Width="80"/>
@@ -336,15 +374,18 @@
         <Border Grid.Row="4" Background="#F9FAFB" BorderBrush="#D1D5DB" BorderThickness="0,1,0,0" Padding="16,10">
             <DockPanel>
                 <StackPanel DockPanel.Dock="Right" Width="520" Margin="24,0,0,0">
-                    <TextBlock Style="{StaticResource GroupLabel}" Text="ACTIONS ON THE SELECTED LINK"/>
+                    <TextBlock Style="{StaticResource GroupLabel}" Text="ACTIONS ON THE SELECTED LINKS"/>
                     <WrapPanel>
-                        <Button Style="{StaticResource Btn}" Content="Reload" Command="{Binding ReloadCommand}"
-                                ToolTip="Reload the link from its file. A link unloaded only for you is restored."/>
-                        <Button Style="{StaticResource Btn}" Content="Unload" Command="{Binding UnloadCommand}"
-                                ToolTip="Workshared model: unloads for you only. Otherwise unloads for everyone."/>
-                        <Button Style="{StaticResource Btn}" Content="Always keep on this device" Command="{Binding AlwaysKeepCommand}"
-                                ToolTip="Pin the file so Desktop Connector downloads it and keeps it current."/>
-                        <Button Style="{StaticResource Btn}" Content="Open folder" Command="{Binding OpenFolderCommand}"/>
+                        <Button Style="{StaticResource Btn}" Content="Reload" Command="{Binding ReloadCommand}" Margin="0,0,8,6"
+                                ToolTip="One link only. Reload the link from its file; a link unloaded only for you is restored."/>
+                        <Button Style="{StaticResource Btn}" Content="Unload" Command="{Binding UnloadCommand}" Margin="0,0,8,6"
+                                ToolTip="One link only. Workshared model: unloads for you only. Otherwise unloads for everyone."/>
+                        <Button Style="{StaticResource Btn}" Content="Always keep on this device" Command="{Binding AlwaysKeepCommand}" Margin="0,0,8,6"
+                                ToolTip="Every selected file: pin it so Desktop Connector downloads it and keeps it current."/>
+                        <Button Style="{StaticResource Btn}" Content="Open folder" Command="{Binding OpenFolderCommand}" Margin="0,0,8,6"
+                                ToolTip="One Explorer window per folder, with the selected files highlighted."/>
+                        <Button Style="{StaticResource Btn}" Content="Copy full path" Command="{Binding CopyPathCommand}" Margin="0,0,8,6"
+                                ToolTip="Copy the full path of every selected link, one per line."/>
                     </WrapPanel>
                 </StackPanel>
 
@@ -354,12 +395,28 @@
                             <Style TargetType="TextBlock">
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding HasSelection}" Value="True">
-                                        <Setter Property="Opacity" Value="0"/>
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding IsMultiSelection}" Value="True">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>
                         </TextBlock.Style>
                     </TextBlock>
+                    <StackPanel Visibility="{Binding IsMultiSelection, Converter={StaticResource BoolToVis}}">
+                        <TextBlock Text="{Binding SelectionTitle}" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                        <ScrollViewer MaxHeight="90" VerticalScrollBarVisibility="Auto" Margin="0,4,0,0">
+                            <ItemsControl ItemsSource="{Binding Selection}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding FullPath}" Foreground="{StaticResource Grey}" FontFamily="Consolas" FontSize="12"
+                                                   TextTrimming="CharacterEllipsis" ToolTip="{Binding FullPath}"/>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </StackPanel>
                     <StackPanel DataContext="{Binding Selected}" Visibility="{Binding DataContext.HasSelection, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BoolToVis}}">
                         <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="14"/>
                         <TextBlock TextWrapping="Wrap" Foreground="{StaticResource Grey}">

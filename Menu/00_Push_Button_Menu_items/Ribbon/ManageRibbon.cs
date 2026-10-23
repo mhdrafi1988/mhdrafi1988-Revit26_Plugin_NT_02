@@ -143,7 +143,8 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             var linkStatusV006 = Btn(assemblyPath, "Btn_LinkVersionChecker_AccStatus_V006", "Link Version Checker (ACC)",
                 "Revit26_Plugin_Revised.LinkVersionChecker.V006.Commands.CmdLinkStatus",
                 "Manage.ParaManager_16.png", "Link Version Checker", "V006",
-                "Status of RVT links from ACC Desktop Connector: loaded or unloaded, synced on this PC, latest version loaded.");
+                "Status of RVT links from ACC Desktop Connector: loaded or unloaded, synced on this PC, latest version loaded. " +
+                "Pick several links to open their folders, copy paths or keep them on this device; shorten the folder column to the last or first N folders.");
 
             var linkMemoryV001 = Btn(assemblyPath, "Btn_LinkMemory_V001", "Link Memory",
                 "Revit26_Plugin_Revised.LinkMemory.V001.Commands.LinkMemoryCommand",

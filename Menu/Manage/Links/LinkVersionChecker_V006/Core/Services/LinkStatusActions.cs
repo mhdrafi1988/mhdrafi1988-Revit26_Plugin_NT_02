@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using Autodesk.Revit.DB;
 using Revit26_Plugin_Revised.LinkVersionChecker.V006.Core.Models;
 
@@ -69,40 +71,88 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V006.Core.Services
             }
         }
 
-        /// <summary>Marks the file "Always keep on this device".</summary>
-        public static string AlwaysKeep(LinkStatusRow row)
+        /// <summary>
+        /// Marks every file in <paramref name="rows"/> "Always keep on this device". Files already
+        /// kept or not on this PC are skipped. Returns one status-bar line.
+        /// </summary>
+        public static string AlwaysKeep(IReadOnlyList<LinkStatusRow> rows)
         {
-            if (row == null) return "Select a link first.";
-            if (row.Dc == DcFileState.AlwaysKept) return $"{row.Name} is already kept on this device.";
-            string err = DesktopConnectorProbe.Pin(row.FullPath);
-            return err == null
-                ? $"{row.Name}: set to always keep on this device. Desktop Connector downloads it in the background — Refresh to see progress."
-                : $"{row.Name}: could not set always keep — {err}";
+            if (rows == null || rows.Count == 0) return "Select a link first.";
+
+            int done = 0, skipped = 0;
+            var failed = new List<string>();
+            foreach (LinkStatusRow row in rows)
+            {
+                if (row.Dc is DcFileState.AlwaysKept or DcFileState.Missing) { skipped++; continue; }
+                string err = DesktopConnectorProbe.Pin(row.FullPath);
+                if (err == null) done++;
+                else failed.Add($"{row.Name} ({err})");
+            }
+
+            string msg = done == 1 && rows.Count == 1
+                ? $"{rows[0].Name}: set to always keep on this device."
+                : $"{done} file(s) set to always keep on this device.";
+            if (skipped > 0) msg += $" {skipped} skipped (already kept or not on this PC).";
+            if (failed.Count > 0) msg += $" Failed: {string.Join("; ", failed.Take(3))}{(failed.Count > 3 ? " …" : "")}.";
+            if (done > 0) msg += " Desktop Connector downloads them in the background — Refresh to see progress.";
+            return msg;
         }
 
-        /// <summary>Opens Explorer with the file selected (or its folder when the file is missing).</summary>
-        public static string OpenFolder(LinkStatusRow row)
+        /// <summary>Distinct folders of <paramref name="rows"/>, so the caller can confirm before opening many windows.</summary>
+        public static int FolderCount(IEnumerable<LinkStatusRow> rows) =>
+            rows?.Select(r => Path.GetDirectoryName(r.FullPath) ?? "")
+                 .Where(d => d.Length > 0)
+                 .Distinct(StringComparer.OrdinalIgnoreCase)
+                 .Count() ?? 0;
+
+        /// <summary>
+        /// Opens one Explorer window per distinct folder of <paramref name="rows"/>, with the
+        /// selected files in that folder highlighted. A folder whose files are all missing opens
+        /// without a selection; a folder that does not exist is reported.
+        /// </summary>
+        public static string OpenFolders(IReadOnlyList<LinkStatusRow> rows)
         {
-            if (row == null) return "Select a link first.";
+            if (rows == null || rows.Count == 0) return "Select a link first.";
+
+            int opened = 0;
+            var missing = new List<string>();
+            foreach (var group in rows.GroupBy(r => Path.GetDirectoryName(r.FullPath) ?? "", StringComparer.OrdinalIgnoreCase))
+            {
+                string dir = group.Key;
+                if (dir.Length == 0 || !Directory.Exists(dir)) { missing.Add(dir.Length == 0 ? group.First().Name : dir); continue; }
+
+                var files = group.Select(r => r.FullPath).Where(File.Exists).ToList();
+                try
+                {
+                    if (files.Count == 0)
+                        Process.Start(new ProcessStartInfo("explorer.exe", $"\"{dir}\"") { UseShellExecute = true });
+                    else
+                        ExplorerSelect.Open(dir, files);
+                    opened++;
+                }
+                catch (Exception ex)
+                {
+                    missing.Add($"{dir} ({ex.Message})");
+                }
+            }
+
+            string msg = $"Opened {opened} folder{(opened == 1 ? "" : "s")}.";
+            if (missing.Count > 0) msg += $" Not opened: {string.Join("; ", missing.Take(3))}{(missing.Count > 3 ? " …" : "")}.";
+            return msg;
+        }
+
+        /// <summary>Copies the full path of every row to the clipboard, one per line.</summary>
+        public static string CopyPaths(IReadOnlyList<LinkStatusRow> rows)
+        {
+            if (rows == null || rows.Count == 0) return "Select a link first.";
             try
             {
-                if (File.Exists(row.FullPath))
-                {
-                    Process.Start(new ProcessStartInfo("explorer.exe", $"/select,\"{row.FullPath}\"") { UseShellExecute = true });
-                    return $"Opened the folder of {row.Name}.";
-                }
-
-                string dir = Path.GetDirectoryName(row.FullPath);
-                if (!string.IsNullOrEmpty(dir) && Directory.Exists(dir))
-                {
-                    Process.Start(new ProcessStartInfo("explorer.exe", $"\"{dir}\"") { UseShellExecute = true });
-                    return $"{row.Name} is not in its folder; opened the folder.";
-                }
-                return $"The folder of {row.Name} does not exist on this PC.";
+                System.Windows.Clipboard.SetText(string.Join(Environment.NewLine, rows.Select(r => r.FullPath)));
+                return rows.Count == 1 ? $"Copied the path of {rows[0].Name}." : $"Copied {rows.Count} paths.";
             }
             catch (Exception ex)
             {
-                return $"Could not open the folder — {ex.Message}";
+                return "Could not copy to the clipboard — " + ex.Message;
             }
         }
 

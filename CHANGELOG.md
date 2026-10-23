@@ -9,6 +9,26 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.8.0] — 2026-10-22
+
+### Added
+- **Link Version Checker v6.1.0 (V006)**
+  - **Folder display setting** in the filter bar: *Last N folders* (default, N = 2), *First N folders* or *Full folder*,
+    with − / + for N (1–9). `02_ARC\Models\Building A\WIP` shows as `…\Building A\WIP` by default. The column header
+    names the setting; hovering a folder shows it in full. The choice is remembered per user in
+    `%AppData%\Revit26_Plugin_Revised\LinkVersionChecker\settings_v006.json`.
+  - **Select several links** (Ctrl / Shift-click). **Open folder** opens one Explorer window per folder with the selected
+    files highlighted, and asks first when that is more than 10 windows. **Always keep on this device** works on every
+    selected file.
+  - **Copy full path** (button and right-click menu): copies the full path of each selected link, one per line.
+  - Right-click menu on the grid with all actions.
+
+### Changed
+- **Link Version Checker v6.1.0** — Reload and Unload stay one-link actions; they are disabled while several links are selected.
+
+**User note:** the Folder column now starts shortened to the last 2 folders; choose *Full folder* for the previous view.
+The Excel export still writes the full folder.
+
 ## [6.7.0] — 2026-10-22
 
 ### Added

@@ -1,8 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Windows;
 using System.Windows.Data;
 using System.Windows.Input;
 using Autodesk.Revit.DB;
@@ -15,25 +17,37 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V006.UI.ViewModels
 {
     /// <summary>
     /// View model of the Link Version Checker V006 window: the status of every Revit link that
-    /// comes from Desktop Connector, count tiles that double as filters, and actions on the
-    /// one selected link.
+    /// comes from Desktop Connector, count tiles that double as filters, a folder display
+    /// setting, and actions on the selected links (Reload / Unload need exactly one).
     /// </summary>
     public sealed class LinkStatusViewModel : ObservableObject
     {
+        /// <summary>Above this many Explorer windows, Open folder asks first.</summary>
+        public const int OpenFolderConfirmAbove = 10;
+
         private readonly Document _doc;
+        private readonly LinkStatusSettings _settings;
         private string _tile = "";
         private string _search = "";
         private bool _problemsOnly;
         private LinkStatusRow _selected;
+        private IReadOnlyList<LinkStatusRow> _selection = Array.Empty<LinkStatusRow>();
         private string _status = "";
         private string _projectRoot = "";
         private int _otherLinks;
         private DateTime _lastRefresh;
 
+        /// <summary>
+        /// Raised after a refresh with the rows that should be selected again (the grid's
+        /// multi-selection cannot be bound, so the window applies it).
+        /// </summary>
+        public event Action<IReadOnlyList<LinkStatusRow>> RestoreSelection;
+
         /// <summary>Creates the view model and runs the first scan.</summary>
         public LinkStatusViewModel(Document doc)
         {
             _doc = doc ?? throw new ArgumentNullException(nameof(doc));
+            _settings = LinkStatusSettings.Load();
             HostName = string.IsNullOrEmpty(doc.Title) ? "(unsaved model)" : doc.Title;
 
             RowsView = CollectionViewSource.GetDefaultView(Rows);
@@ -42,10 +56,13 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V006.UI.ViewModels
             RefreshCommand = new RelayCommand(() => Refresh());
             ExportCommand = new RelayCommand(Export, () => Rows.Count > 0);
             SetTileCommand = new RelayCommand<string>(t => ActiveTile = ActiveTile == t ? "" : t ?? "");
-            ReloadCommand = new RelayCommand(() => RunOnSelected(r => LinkStatusActions.Reload(_doc, r), rescan: true), () => Selected != null);
-            UnloadCommand = new RelayCommand(() => RunOnSelected(r => LinkStatusActions.Unload(_doc, r), rescan: true), () => Selected != null && Selected.IsLoaded);
-            AlwaysKeepCommand = new RelayCommand(() => RunOnSelected(LinkStatusActions.AlwaysKeep, rescan: true), () => Selected != null && Selected.Dc != DcFileState.AlwaysKept && Selected.Dc != DcFileState.Missing);
-            OpenFolderCommand = new RelayCommand(() => RunOnSelected(LinkStatusActions.OpenFolder, rescan: false), () => Selected != null);
+            ReloadCommand = new RelayCommand(() => RunOnSingle(r => LinkStatusActions.Reload(_doc, r)), () => _selection.Count == 1);
+            UnloadCommand = new RelayCommand(() => RunOnSingle(r => LinkStatusActions.Unload(_doc, r)), () => _selection.Count == 1 && _selection[0].IsLoaded);
+            AlwaysKeepCommand = new RelayCommand(AlwaysKeep, () => _selection.Any(r => r.Dc is not (DcFileState.AlwaysKept or DcFileState.Missing)));
+            OpenFolderCommand = new RelayCommand(OpenFolders, () => _selection.Count > 0);
+            CopyPathCommand = new RelayCommand(() => Status = LinkStatusActions.CopyPaths(_selection), () => _selection.Count > 0);
+            FolderLessCommand = new RelayCommand(() => FolderDepth--, () => FolderDepth > FolderDisplay.MinDepth);
+            FolderMoreCommand = new RelayCommand(() => FolderDepth++, () => FolderDepth < FolderDisplay.MaxDepth);
 
             Refresh();
         }
@@ -68,20 +85,37 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V006.UI.ViewModels
             private set => SetProperty(ref _projectRoot, value);
         }
 
-        /// <summary>The link the actions apply to.</summary>
+        /// <summary>The grid's current row (bound to SelectedItem); the detail panel shows it when one link is selected.</summary>
         public LinkStatusRow Selected
         {
             get => _selected;
+            set => SetProperty(ref _selected, value);
+        }
+
+        /// <summary>All selected rows; set by the window from the grid's SelectedItems.</summary>
+        public IReadOnlyList<LinkStatusRow> Selection
+        {
+            get => _selection;
             set
             {
-                if (!SetProperty(ref _selected, value)) return;
+                _selection = value ?? Array.Empty<LinkStatusRow>();
+                OnPropertyChanged();
                 OnPropertyChanged(nameof(HasSelection));
+                OnPropertyChanged(nameof(IsMultiSelection));
+                OnPropertyChanged(nameof(SelectionTitle));
+                OnPropertyChanged(nameof(ShowingText));
                 NotifyCommands();
             }
         }
 
-        /// <summary>True when a link is selected.</summary>
-        public bool HasSelection => _selected != null;
+        /// <summary>True when exactly one link is selected (shows its details).</summary>
+        public bool HasSelection => _selection.Count == 1;
+
+        /// <summary>True when more than one link is selected (shows the list of paths).</summary>
+        public bool IsMultiSelection => _selection.Count > 1;
+
+        /// <summary>"3 links selected".</summary>
+        public string SelectionTitle => $"{_selection.Count} links selected — Reload and Unload work on one link at a time.";
 
         /// <summary>Status-bar message from the last scan or action.</summary>
         public string Status
@@ -96,8 +130,10 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V006.UI.ViewModels
             (_otherLinks > 0 ? $" · {_otherLinks} other RVT link{(_otherLinks == 1 ? "" : "s")} hidden (not in an ACCDocs folder)" : "") +
             $" · Last refresh {_lastRefresh:HH:mm}";
 
-        /// <summary>"Showing 5 of 13 RVT links".</summary>
-        public string ShowingText => $"Showing {RowsView.Cast<object>().Count()} of {Rows.Count} RVT links";
+        /// <summary>"Showing 5 of 13 RVT links · 2 selected".</summary>
+        public string ShowingText =>
+            $"Showing {RowsView.Cast<object>().Count()} of {Rows.Count} RVT links" +
+            (_selection.Count > 1 ? $" · {_selection.Count} selected" : "");
 
         /// <summary>True when the model has no Desktop Connector links; shows the empty-state message.</summary>
         public bool IsEmpty => Rows.Count == 0;
@@ -126,6 +162,64 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V006.UI.ViewModels
         public int ReloadNeededCount => Rows.Count(r => r.Latest == LatestState.ReloadNeeded);
         /// <summary>Loaded links whose latest state is unknown or pending.</summary>
         public int LatestUnknownCount => Rows.Count(r => r.Latest is LatestState.Unknown or LatestState.SyncPending);
+
+        // ---------------------------------------------------------------- folder display
+
+        /// <summary>Folder display mode as a combo-box index (0 last N, 1 first N, 2 full). Saved per user.</summary>
+        public int FolderModeIndex
+        {
+            get => (int)_settings.FolderMode;
+            set
+            {
+                var mode = Enum.IsDefined(typeof(FolderDisplayMode), value) ? (FolderDisplayMode)value : FolderDisplayMode.LastN;
+                if (mode == _settings.FolderMode) return;
+                _settings.FolderMode = mode;
+                FolderSettingChanged();
+            }
+        }
+
+        /// <summary>N for the folder display. Saved per user.</summary>
+        public int FolderDepth
+        {
+            get => _settings.FolderDepth;
+            set
+            {
+                int n = Math.Clamp(value, FolderDisplay.MinDepth, FolderDisplay.MaxDepth);
+                if (n == _settings.FolderDepth) return;
+                _settings.FolderDepth = n;
+                FolderSettingChanged();
+            }
+        }
+
+        /// <summary>True unless the mode is Full (shows the − N + control).</summary>
+        public bool ShowFolderDepth => _settings.FolderMode != FolderDisplayMode.Full;
+
+        /// <summary>Column header, e.g. "Folder in ACC (last 2)".</summary>
+        public string FolderHeader => _settings.FolderMode switch
+        {
+            FolderDisplayMode.Full => "Folder in ACC (full)",
+            FolderDisplayMode.FirstN => $"Folder in ACC (first {_settings.FolderDepth})",
+            _ => $"Folder in ACC (last {_settings.FolderDepth})"
+        };
+
+        private void FolderSettingChanged()
+        {
+            ApplyFolderDisplay();
+            OnPropertyChanged(nameof(FolderModeIndex));
+            OnPropertyChanged(nameof(FolderDepth));
+            OnPropertyChanged(nameof(ShowFolderDepth));
+            OnPropertyChanged(nameof(FolderHeader));
+            FolderLessCommand.NotifyCanExecuteChanged();
+            FolderMoreCommand.NotifyCanExecuteChanged();
+            string err = _settings.Save();
+            if (err != null) Status = "Folder setting not saved — " + err;
+        }
+
+        private void ApplyFolderDisplay()
+        {
+            foreach (LinkStatusRow r in Rows)
+                r.FolderShown = FolderDisplay.Trim(r.AccFolder, _settings.FolderMode, _settings.FolderDepth);
+        }
 
         // ---------------------------------------------------------------- filters
 
@@ -197,18 +291,24 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V006.UI.ViewModels
         public IRelayCommand ExportCommand { get; }
         /// <summary>Toggles a count tile filter (parameter: tile key).</summary>
         public IRelayCommand<string> SetTileCommand { get; }
-        /// <summary>Reloads the selected link.</summary>
+        /// <summary>Reloads the one selected link.</summary>
         public IRelayCommand ReloadCommand { get; }
-        /// <summary>Unloads the selected link.</summary>
+        /// <summary>Unloads the one selected link.</summary>
         public IRelayCommand UnloadCommand { get; }
-        /// <summary>Marks the selected file "Always keep on this device".</summary>
+        /// <summary>Marks every selected file "Always keep on this device".</summary>
         public IRelayCommand AlwaysKeepCommand { get; }
-        /// <summary>Opens the selected file's folder.</summary>
+        /// <summary>Opens one Explorer window per folder of the selected links.</summary>
         public IRelayCommand OpenFolderCommand { get; }
+        /// <summary>Copies the full paths of the selected links.</summary>
+        public IRelayCommand CopyPathCommand { get; }
+        /// <summary>Shows one folder name fewer.</summary>
+        public IRelayCommand FolderLessCommand { get; }
+        /// <summary>Shows one folder name more.</summary>
+        public IRelayCommand FolderMoreCommand { get; }
 
         private void Refresh(string keepStatus = null)
         {
-            ElementId keep = _selected?.TypeId;
+            var keepIds = new HashSet<ElementId>(_selection.Select(r => r.TypeId));
             LinkStatusScan scan;
             Mouse.OverrideCursor = Cursors.Wait;
             try { scan = LinkStatusCollector.Scan(_doc); }
@@ -216,12 +316,11 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V006.UI.ViewModels
 
             Rows.Clear();
             foreach (LinkStatusRow r in scan.Rows) Rows.Add(r);
+            ApplyFolderDisplay();
 
             ProjectRoot = scan.ProjectRoot.Length > 0 ? scan.ProjectRoot : "No Desktop Connector (ACCDocs) folder found in this model's links";
             _otherLinks = scan.OtherLinks;
             _lastRefresh = DateTime.Now;
-
-            Selected = keep == null ? null : Rows.FirstOrDefault(r => r.TypeId == keep);
 
             string scanNote = scan.Skipped.Count == 0
                 ? "Ready."
@@ -235,19 +334,39 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V006.UI.ViewModels
                 nameof(AlwaysKeptCount), nameof(AvailableCount), nameof(OnlineOnlyCount), nameof(SyncPendingCount),
                 nameof(OtherDcCount), nameof(UpToDateCount), nameof(ReloadNeededCount), nameof(LatestUnknownCount)
             }) OnPropertyChanged(p);
-            NotifyCommands();
+
+            var reselect = Rows.Where(r => keepIds.Contains(r.TypeId)).ToList();
+            Selection = reselect;
+            RestoreSelection?.Invoke(reselect);
         }
 
-        private void RunOnSelected(Func<LinkStatusRow, string> action, bool rescan)
+        private void RunOnSingle(Func<LinkStatusRow, string> action)
         {
-            if (_selected == null) { Status = "Select a link first."; return; }
+            if (_selection.Count != 1) { Status = "Select one link for this action."; return; }
             string msg;
             Mouse.OverrideCursor = Cursors.Wait;
-            try { msg = action(_selected); }
+            try { msg = action(_selection[0]); }
             finally { Mouse.OverrideCursor = null; }
+            Refresh(msg);
+        }
 
-            if (rescan) Refresh(msg);
-            else Status = msg;
+        private void AlwaysKeep()
+        {
+            string msg = LinkStatusActions.AlwaysKeep(_selection);
+            Refresh(msg);
+        }
+
+        private void OpenFolders()
+        {
+            int folders = LinkStatusActions.FolderCount(_selection);
+            if (folders > OpenFolderConfirmAbove &&
+                MessageBox.Show($"This opens {folders} Explorer windows. Continue?", "Open folder",
+                                MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+            {
+                Status = "Open folder cancelled.";
+                return;
+            }
+            Status = LinkStatusActions.OpenFolders(_selection);
         }
 
         private void Export()
@@ -278,6 +397,7 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V006.UI.ViewModels
             UnloadCommand?.NotifyCanExecuteChanged();
             AlwaysKeepCommand?.NotifyCanExecuteChanged();
             OpenFolderCommand?.NotifyCanExecuteChanged();
+            CopyPathCommand?.NotifyCanExecuteChanged();
         }
     }
 }
