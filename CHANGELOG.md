@@ -9,6 +9,13 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.12.0] — 2026-10-23
+
+### Added
+- **Plan Region Manager v1.1.0 (V001)** — new **Delete All Hidden** button. It deletes every hidden plan region in
+  the current scope (this view, or all plan views) after a confirmation that lists them; Ctrl+Z undoes it.
+  User note: it ignores the ticks, and regions owned by another user are skipped.
+
 ## [6.11.0] — 2026-10-23
 
 ### Added

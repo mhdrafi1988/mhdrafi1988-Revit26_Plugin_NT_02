@@ -196,6 +196,32 @@ namespace Revit26_Plugin_Revised.PlanRegionManager.V001.UI.ViewModels
             RunAction("Deleting", selected, (doc, svc) => svc.Delete(doc, selected));
         }
 
+        /// <summary>
+        /// Confirms and deletes every hidden region in the current scope, whatever is ticked.
+        /// Regions owned by another user are skipped.
+        /// </summary>
+        [RelayCommand(CanExecute = nameof(HasHidden))]
+        private void DeleteAllHidden()
+        {
+            var hidden = Rows.Where(r => r.IsHidden && !r.IsBlocked).ToList();
+            if (hidden.Count == 0) return;
+
+            var sb = new StringBuilder();
+            sb.AppendLine($"Delete ALL {hidden.Count} hidden plan region(s) in {(AllViews ? "every plan view" : $"'{ViewName}'")}?\n");
+            foreach (var r in hidden.Take(20))
+                sb.AppendLine($"  • {r.Id}  in '{r.ViewName}'  ({r.Status})");
+            if (hidden.Count > 20) sb.AppendLine($"  … and {hidden.Count - 20} more");
+            sb.AppendLine("\nYou can undo this with Ctrl+Z in Revit.");
+
+            if (MessageBox.Show(sb.ToString(), ToolCatalog.PlanRegionManager.Title,
+                    MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
+                return;
+
+            RunAction("Deleting hidden", hidden, (doc, svc) => svc.Delete(doc, hidden));
+        }
+
+        private bool HasHidden() => !IsRunning && Rows.Any(r => r.IsHidden && !r.IsBlocked);
+
         /// <summary>Opens the view of the first ticked region and selects the ticked regions that belong to it.</summary>
         [RelayCommand(CanExecute = nameof(HasSelection))]
         private void ShowInRevit()
@@ -314,6 +340,7 @@ namespace Revit26_Plugin_Revised.PlanRegionManager.V001.UI.ViewModels
             HideCommand.NotifyCanExecuteChanged();
             UnhideCommand.NotifyCanExecuteChanged();
             DeleteCommand.NotifyCanExecuteChanged();
+            DeleteAllHiddenCommand.NotifyCanExecuteChanged();
             ShowInRevitCommand.NotifyCanExecuteChanged();
         }
 

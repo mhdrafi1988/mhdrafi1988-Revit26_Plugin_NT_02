@@ -296,6 +296,9 @@
                         Style="{StaticResource OutlineButton}" Margin="0,0,8,0"/>
                 <Button Content="Unhide" Command="{Binding UnhideCommand}"
                         Style="{StaticResource OutlineButton}" Margin="0,0,8,0"/>
+                <Button Content="Delete All Hidden" Command="{Binding DeleteAllHiddenCommand}"
+                        Style="{StaticResource DangerButton}" Margin="0,0,8,0"
+                        ToolTip="Deletes every hidden plan region in the current scope, whatever is ticked."/>
                 <Button Content="Delete" Command="{Binding DeleteCommand}"
                         Style="{StaticResource DangerButton}" Margin="0,0,8,0"/>
                 <Button Content="Close" Style="{StaticResource OutlineButton}" Width="90" Click="CloseButton_Click"/>
