@@ -77,35 +77,66 @@
             <Setter Property="Margin" Value="0,0,0,6"/>
         </Style>
 
-        <!-- Desktop Connector icons, 14 x 14 -->
+        <!-- Desktop Connector icons, 14 x 14, as in Explorer. On a selected grid row they turn white
+             so they stay visible on the selection (in the tiles there is no row, so they keep their colours). -->
         <DataTemplate x:Key="IconAlwaysKept">
             <Grid Width="14" Height="14">
-                <Ellipse Fill="#2E7D32"/>
-                <Path Data="M3.6,7.2 L6,9.6 L10.5,4.6" Stroke="White" StrokeThickness="1.8"/>
+                <Ellipse x:Name="Disc" Fill="#2E7D32"/>
+                <Path x:Name="Tick" Data="M3.6,7.2 L6,9.6 L10.5,4.6" Stroke="White" StrokeThickness="1.8"
+                      StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
             </Grid>
+            <DataTemplate.Triggers>
+                <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=DataGridRow}}" Value="True">
+                    <Setter TargetName="Disc" Property="Fill" Value="White"/>
+                    <Setter TargetName="Tick" Property="Stroke" Value="#0B6BCB"/>
+                </DataTrigger>
+            </DataTemplate.Triggers>
         </DataTemplate>
         <DataTemplate x:Key="IconAvailable">
             <Grid Width="14" Height="14">
-                <Ellipse Fill="White" Stroke="#2E7D32" StrokeThickness="1.3"/>
-                <Path Data="M3.6,7.2 L6,9.6 L10.5,4.6" Stroke="#2E7D32" StrokeThickness="1.8"/>
+                <Ellipse x:Name="Ring" Fill="White" Stroke="#2E7D32" StrokeThickness="1.3"/>
+                <Path x:Name="Tick" Data="M3.6,7.2 L6,9.6 L10.5,4.6" Stroke="#2E7D32" StrokeThickness="1.8"
+                      StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
             </Grid>
+            <DataTemplate.Triggers>
+                <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=DataGridRow}}" Value="True">
+                    <Setter TargetName="Ring" Property="Fill" Value="Transparent"/>
+                    <Setter TargetName="Ring" Property="Stroke" Value="White"/>
+                    <Setter TargetName="Tick" Property="Stroke" Value="White"/>
+                </DataTrigger>
+            </DataTemplate.Triggers>
         </DataTemplate>
         <DataTemplate x:Key="IconOnline">
             <Grid Width="14" Height="14">
-                <Path Data="M3.8,11.5 L10.4,11.5 A2.4,2.4 0 0 0 10.7,6.7 A3.7,3.7 0 0 0 3.7,6 A2.75,2.75 0 0 0 3.8,11.5 Z"
+                <Path x:Name="Cloud" Data="M3.8,11.5 L10.4,11.5 A2.4,2.4 0 0 0 10.7,6.7 A3.7,3.7 0 0 0 3.7,6 A2.75,2.75 0 0 0 3.8,11.5 Z"
                       Stroke="#0B6BCB" StrokeThickness="1.3"/>
             </Grid>
+            <DataTemplate.Triggers>
+                <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=DataGridRow}}" Value="True">
+                    <Setter TargetName="Cloud" Property="Stroke" Value="White"/>
+                </DataTrigger>
+            </DataTemplate.Triggers>
         </DataTemplate>
         <DataTemplate x:Key="IconSync">
             <Grid Width="14" Height="14">
-                <Path Data="M11.6,6 A4.8,4.8 0 0 0 3,4.6 M2.4,8 A4.8,4.8 0 0 0 11,9.4 M11.8,2.4 L11.8,6 L8.2,6 M2.2,11.6 L2.2,8 L5.8,8"
+                <Path x:Name="Arrows" Data="M11.6,6 A4.8,4.8 0 0 0 3,4.6 M2.4,8 A4.8,4.8 0 0 0 11,9.4 M11.8,2.4 L11.8,6 L8.2,6 M2.2,11.6 L2.2,8 L5.8,8"
                       Stroke="#0B6BCB" StrokeThickness="1.3"/>
             </Grid>
+            <DataTemplate.Triggers>
+                <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=DataGridRow}}" Value="True">
+                    <Setter TargetName="Arrows" Property="Stroke" Value="White"/>
+                </DataTrigger>
+            </DataTemplate.Triggers>
         </DataTemplate>
         <DataTemplate x:Key="IconOther">
             <Grid Width="14" Height="14">
-                <Ellipse Stroke="#9CA3AF" StrokeThickness="1.3" StrokeDashArray="1.5 1.5"/>
+                <Ellipse x:Name="Dots" Stroke="#9CA3AF" StrokeThickness="1.3" StrokeDashArray="1.5 1.5"/>
             </Grid>
+            <DataTemplate.Triggers>
+                <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=DataGridRow}}" Value="True">
+                    <Setter TargetName="Dots" Property="Stroke" Value="White"/>
+                </DataTrigger>
+            </DataTemplate.Triggers>
         </DataTemplate>
 
         <!-- Picks the icon from the row's DcText -->
@@ -514,7 +545,7 @@
                     <DataGridTemplateColumn Header="On this PC (DC)" Width="160" SortMemberPath="DcSort">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" ToolTip="{Binding DcExplain}">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" ToolTip="{Binding DcTip}">
                                     <ContentControl Style="{StaticResource DcIcon}" Content="{Binding}" Margin="0,0,6,0"/>
                                     <TextBlock Text="{Binding DcText}"/>
                                 </StackPanel>
