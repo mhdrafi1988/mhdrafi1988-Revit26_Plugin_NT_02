@@ -117,6 +117,7 @@ namespace Revit26_Plugin_Revised.Shared.Services
         public static readonly ToolInfo CalloutCOP = Add("Callout To Section View Placement", "21.1.1", "V021", "Revit26_Plugin_Revised.CalloutCOP.V021");
         public static readonly ToolInfo RefSectionHeadPlacer = Add("Reference Section Head Placer", "15.1.1", "V015", "Revit26_Plugin_Revised.RefSectionHeadPlacer.V015");
         public static readonly ToolInfo IsolatedSection = Add("Isolated Section", "1.0.0", "V001", "Revit26_Plugin_Revised.IsolatedSection.V001");
+        public static readonly ToolInfo PlanRegionManager = Add("Plan Region Manager", "1.0.0", "V001", "Revit26_Plugin_Revised.PlanRegionManager.V001");
         public static readonly ToolInfo SectionViewAutoTagger = Add("Section View Auto Tagger", "6.1.1", "V006", "Revit26_Plugin_Revised.SectionViewAutoTagger.V006");
         public static readonly ToolInfo ViewAutoRenamer = Add("View Auto Renamer", "6.1.2", "V006", "Revit26_Plugin_Revised.ViewAutoRenamer.V006");
         public static readonly ToolInfo ViewAutoRenamerV007 = Add("View Auto Renamer", "7.0.1", "V007", "Revit26_Plugin_Revised.ViewAutoRenamer.V007");

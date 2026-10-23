@@ -1,0 +1,306 @@
+<Window
+    x:Class="Revit26_Plugin_Revised.PlanRegionManager.V001.UI.Views.PlanRegionManagerWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:converters="clr-namespace:Revit26_Plugin_Revised.Shared.Models"
+    xmlns:shell="clr-namespace:Revit26_Plugin_Revised.Shared.Controls"
+    xmlns:svc="clr-namespace:Revit26_Plugin_Revised.Shared.Services"
+    Title="{Binding Source={x:Static svc:ToolCatalog.PlanRegionManager}, Path=Title}"
+    Background="{DynamicResource BrushSurfaceWindow}"
+    Height="720"
+    Width="780"
+    MinHeight="540"
+    MinWidth="620"
+    WindowStartupLocation="CenterOwner"
+    ResizeMode="CanResize">
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Revit26_Plugin_Revised;component/Shared/SharedStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+
+            <converters:InverseBoolConverter     x:Key="InverseBool"/>
+            <converters:LogLevelToColorConverter x:Key="LogLevelToColor"/>
+            <BooleanToVisibilityConverter        x:Key="NativeBoolToVis"/>
+
+            <Style x:Key="CellText" TargetType="TextBlock">
+                <Setter Property="VerticalAlignment" Value="Center"/>
+                <Setter Property="Padding"           Value="8,0"/>
+                <Setter Property="Foreground"        Value="{StaticResource BrushTextPrimary}"/>
+                <Setter Property="FontSize"          Value="11"/>
+            </Style>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <!-- UI standard v4.0: shared ToolWindowShell.
+         HEADER  title / subtitle / version + three metric tiles
+         BODY    scope card, filter toolbar + grouped plan-region grid, run log
+         FOOTER  status strip (selected count, busy bar) · Show / Hide / Unhide / Delete · Close -->
+    <shell:ToolWindowShell Title="Plan Region Manager"
+                           Subtitle="{Binding ViewName, StringFormat=Opened in: {0}}"
+                           Version="{Binding Source={x:Static svc:ToolCatalog.PlanRegionManager}, Path=Version, StringFormat=v{0}}"
+                           IsRunning="{Binding IsRunning}"
+                           IsIndeterminate="True"
+                           SummaryText="{Binding SelectedCount, StringFormat={}{0} selected}">
+
+        <!-- HEADER -->
+        <shell:ToolWindowShell.HeaderContent>
+            <UniformGrid Columns="3">
+                <Border Style="{StaticResource MetricTile}" Margin="0,0,6,0">
+                    <StackPanel>
+                        <TextBlock Text="PLAN REGIONS" Style="{StaticResource MetricTileLabel}"
+                                   Foreground="{StaticResource BrushTextSecondary}"/>
+                        <TextBlock Text="{Binding TotalCount}" Style="{StaticResource MetricTileNumber}"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource MetricTileSuccess}" Margin="3,0">
+                    <StackPanel>
+                        <TextBlock Text="VISIBLE" Style="{StaticResource MetricTileLabel}"
+                                   Foreground="{StaticResource BrushStatusOk}"/>
+                        <TextBlock Text="{Binding VisibleCount}" Style="{StaticResource MetricTileNumberSuccess}"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource MetricTileDanger}" Margin="6,0,0,0">
+                    <StackPanel>
+                        <TextBlock Text="HIDDEN" Style="{StaticResource MetricTileLabel}"
+                                   Foreground="{StaticResource BrushStatusError}"/>
+                        <TextBlock Text="{Binding HiddenCount}" Style="{StaticResource MetricTileNumberDanger}"/>
+                    </StackPanel>
+                </Border>
+            </UniformGrid>
+        </shell:ToolWindowShell.HeaderContent>
+
+        <!-- BODY -->
+        <shell:ToolWindowShell.BodyContent>
+            <StackPanel>
+                <Border Margin="0,0,0,8" Padding="12" Background="{StaticResource BrushSurfaceCard}"
+                        BorderBrush="{StaticResource BrushBorderDefault}" BorderThickness="1" CornerRadius="4"
+                        IsEnabled="{Binding IsRunning, Converter={StaticResource InverseBool}}">
+                    <StackPanel>
+                        <RadioButton GroupName="Scope" IsChecked="{Binding ThisViewOnly}" Margin="0,0,0,6">
+                            <StackPanel>
+                                <TextBlock Text="This view only" FontSize="12" FontWeight="Medium"
+                                           Foreground="{StaticResource BrushTextPrimary}"/>
+                                <TextBlock Text="Plan regions of the view the tool was opened in (plan regions belong to one view each)."
+                                           FontSize="10" Foreground="{StaticResource BrushTextSecondary}"/>
+                            </StackPanel>
+                        </RadioButton>
+                        <RadioButton GroupName="Scope" IsChecked="{Binding AllViews}">
+                            <StackPanel>
+                                <TextBlock Text="All plan views" FontSize="12" FontWeight="Medium"
+                                           Foreground="{StaticResource BrushTextPrimary}"/>
+                                <TextBlock Text="Every plan region in the project, with the view that owns it."
+                                           FontSize="10" Foreground="{StaticResource BrushTextSecondary}"/>
+                            </StackPanel>
+                        </RadioButton>
+                    </StackPanel>
+                </Border>
+
+                <Border Background="{StaticResource BrushSystemSecondaryBackground}" BorderBrush="{StaticResource BrushBorderDefault}" BorderThickness="1,1,1,0" CornerRadius="4,4,0,0" Padding="8,6">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox Grid.Column="0"
+                                 Text="{Binding FilterText, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource StyledTextInput}"
+                                 ToolTip="Filter by view name, level or element id"
+                                 Margin="0,0,8,0" FontSize="11"/>
+                        <Button Grid.Column="1" Content="Select All" Command="{Binding SelectAllCommand}"
+                                Style="{StaticResource SmallSecondaryButton}" Margin="0,0,4,0"/>
+                        <Button Grid.Column="2" Content="Select Hidden" Command="{Binding SelectHiddenCommand}"
+                                Style="{StaticResource SmallSecondaryButton}" Margin="0,0,4,0"/>
+                        <Button Grid.Column="3" Content="Clear" Command="{Binding ClearSelectionCommand}"
+                                Style="{StaticResource SmallSecondaryButton}" Margin="0,0,4,0"/>
+                        <Button Grid.Column="4" Content="&#x21BA; Refresh" Command="{Binding RefreshCommand}"
+                                Style="{StaticResource SmallSecondaryButton}"/>
+                    </Grid>
+                </Border>
+                <DataGrid MinHeight="180"
+                          shell:ShellBehaviors.MaxHeightRatio="0.45"
+                          shell:ShellBehaviors.ForwardMouseWheel="True"
+                          ItemsSource="{Binding RowsView}"
+                          AutoGenerateColumns="False"
+                          CanUserAddRows="False"
+                          CanUserDeleteRows="False"
+                          IsReadOnly="False"
+                          SelectionMode="Extended"
+                          SelectionUnit="FullRow"
+                          RowStyle="{StaticResource DataGridRowStyle}"
+                          ColumnHeaderStyle="{StaticResource DataGridColumnHeaderStyle}"
+                          CellStyle="{StaticResource DataGridCellStyle}"
+                          GridLinesVisibility="Horizontal"
+                          HorizontalGridLinesBrush="{StaticResource BrushSeparatorThin}"
+                          BorderThickness="1"
+                          BorderBrush="{StaticResource BrushBorderDefault}">
+                    <DataGrid.GroupStyle>
+                        <GroupStyle>
+                            <GroupStyle.ContainerStyle>
+                                <Style TargetType="GroupItem">
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="GroupItem">
+                                                <Expander IsExpanded="True" Background="{StaticResource BrushSystemSecondaryBackground}">
+                                                    <Expander.Header>
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="11"
+                                                                       Foreground="{StaticResource BrushTextPrimary}"/>
+                                                            <TextBlock Text="{Binding ItemCount, StringFormat=  ({0})}" FontSize="11"
+                                                                       Foreground="{StaticResource BrushTextSecondary}"/>
+                                                        </StackPanel>
+                                                    </Expander.Header>
+                                                    <ItemsPresenter/>
+                                                </Expander>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </GroupStyle.ContainerStyle>
+                        </GroupStyle>
+                    </DataGrid.GroupStyle>
+                    <DataGrid.Columns>
+                        <DataGridTemplateColumn Header="" Width="36" CanUserResize="False">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <CheckBox IsChecked="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                              IsEnabled="{Binding IsBlocked, Converter={StaticResource InverseBool}}"
+                                              HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="View" Width="*" MinWidth="140" SortMemberPath="ViewName">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding ViewName}" Style="{StaticResource CellText}" FontWeight="Medium"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="Level" Width="110" SortMemberPath="LevelName">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding LevelName}" Style="{StaticResource CellText}"
+                                               Foreground="{StaticResource BrushTextSecondary}"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="View range" Width="1.2*" MinWidth="120">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding ViewRange}" ToolTip="{Binding ViewRange}" Style="{StaticResource CellText}"
+                                               TextTrimming="CharacterEllipsis" Foreground="{StaticResource BrushTextSecondary}"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="Id" Width="90" SortMemberPath="Id">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Id}" Style="{StaticResource CellText}"
+                                               FontFamily="Consolas, Courier New" TextAlignment="Right"
+                                               Foreground="{StaticResource BrushTextSecondary}"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="Status" Width="110" SortMemberPath="Status">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Border CornerRadius="10" Padding="8,2" Margin="6,0" HorizontalAlignment="Left"
+                                            ToolTip="{Binding StatusTip}">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="Background" Value="{StaticResource BrushStatusOk}"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsHidden}" Value="True">
+                                                        <Setter Property="Background" Value="{StaticResource BrushStatusError}"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding IsBlocked}" Value="True">
+                                                        <Setter Property="Background" Value="{StaticResource BrushTextSecondary}"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <TextBlock Text="{Binding Status}" FontSize="10" FontWeight="SemiBold" Foreground="White"/>
+                                    </Border>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+
+                <!-- Log -->
+                <Border Margin="0,8,0,0" Background="{StaticResource BrushLogBg}" CornerRadius="4">
+                    <DockPanel>
+                        <Border DockPanel.Dock="Top" Background="{StaticResource BrushLogTitleBar}"
+                                CornerRadius="4,4,0,0" Padding="10,6">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="RUN LOG" FontSize="10" FontWeight="SemiBold"
+                                           Foreground="{StaticResource BrushTextOnDark}" VerticalAlignment="Center"/>
+                                <Button Grid.Column="1" Content="Copy Log" Command="{Binding CopyLogCommand}"
+                                        Style="{StaticResource DarkGhostButton}" Margin="0,0,4,0"/>
+                                <ToggleButton Grid.Column="2" IsChecked="{Binding IsLogExpanded}"
+                                              Style="{StaticResource LogHeaderToggle}"/>
+                            </Grid>
+                        </Border>
+                        <ListBox Visibility="{Binding IsLogExpanded, Converter={StaticResource NativeBoolToVis}}"
+                                 ItemsSource="{Binding Log}"
+                                 Background="{StaticResource BrushLogBg}"
+                                 BorderThickness="0" Height="110"
+                                 shell:ShellBehaviors.ForwardMouseWheel="True"
+                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                            <ListBox.ItemContainerStyle>
+                                <Style TargetType="ListBoxItem">
+                                    <Setter Property="Padding" Value="0"/>
+                                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                    <Setter Property="Background" Value="Transparent"/>
+                                    <Setter Property="BorderThickness" Value="0"/>
+                                </Style>
+                            </ListBox.ItemContainerStyle>
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Margin="10,1">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="60"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="{Binding Time, StringFormat=HH:mm:ss}"
+                                                   FontFamily="Consolas, Courier New" FontSize="10"
+                                                   Foreground="{StaticResource BrushLogTextDim}"/>
+                                        <TextBlock Grid.Column="1" Text="{Binding Message}"
+                                                   FontFamily="Consolas, Courier New" FontSize="10"
+                                                   Foreground="{Binding Level, Converter={StaticResource LogLevelToColor}}"
+                                                   TextWrapping="Wrap"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </DockPanel>
+                </Border>
+            </StackPanel>
+        </shell:ToolWindowShell.BodyContent>
+
+        <!-- FOOTER -->
+        <shell:ToolWindowShell.FooterContent>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="Show in Revit" Command="{Binding ShowInRevitCommand}"
+                        Style="{StaticResource OutlineButton}" Margin="0,0,8,0"/>
+                <Button Content="Hide" Command="{Binding HideCommand}"
+                        Style="{StaticResource OutlineButton}" Margin="0,0,8,0"/>
+                <Button Content="Unhide" Command="{Binding UnhideCommand}"
+                        Style="{StaticResource OutlineButton}" Margin="0,0,8,0"/>
+                <Button Content="Delete" Command="{Binding DeleteCommand}"
+                        Style="{StaticResource DangerButton}" Margin="0,0,8,0"/>
+                <Button Content="Close" Style="{StaticResource OutlineButton}" Width="90" Click="CloseButton_Click"/>
+            </StackPanel>
+        </shell:ToolWindowShell.FooterContent>
+    </shell:ToolWindowShell>
+
+</Window>

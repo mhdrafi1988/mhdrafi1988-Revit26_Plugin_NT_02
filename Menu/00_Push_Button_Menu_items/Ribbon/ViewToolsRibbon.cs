@@ -102,6 +102,17 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             RibbonLayoutHelper.WirePulldownButton(placeItems, "Pulldown_RefSectionHeadPlacer", headPlacerV015, headPlacerV014);
             RibbonLayoutHelper.WirePulldownButton(placeItems, "Pulldown_SectionViewAutoTagger", taggerV006, taggerV005);
 
+            RibbonPanel managePanel = app.CreateRibbonPanel(tabName, "View Manage");
+
+            // One version only, so a plain large button (not a pulldown).
+            var planRegionManagerV001 = Btn(assemblyPath, "Btn_PlanRegionManager_V001", "Plan Region\nManager", "Revit26_Plugin_Revised.PlanRegionManager.V001.Commands.PlanRegionManagerCommand",
+                "PlanRegionManager_16.png", "Plan Region Manager", "V001");
+            planRegionManagerV001.LargeImage = ImageUtils.Load(Icons + "PlanRegionManager_32.png");
+            planRegionManagerV001.ToolTip = Revit26_Plugin_Revised.Shared.Services.ToolCatalog.PlanRegionManager.Tip(
+                "Open it in a floor, ceiling or structural plan. Lists the plan regions grouped Visible and Hidden, " +
+                "and lets you hide, unhide, select or delete them (this view or all plan views).");
+            managePanel.AddItem(planRegionManagerV001);
+
             RibbonPanel renamePanel = app.CreateRibbonPanel(tabName, "View Rename");
 
             var bubbleV007 = Btn(assemblyPath, "Btn_BubbleAutoRenumber_V007", "Bubble Renumber V007", "Revit26_Plugin_Revised.BubbleAutoRenumber.V007.Commands.SectionAutoRenumberCommand",

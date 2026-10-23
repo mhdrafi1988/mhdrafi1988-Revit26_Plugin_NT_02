@@ -9,6 +9,19 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.11.0] — 2026-10-23
+
+### Added
+- **Plan Region Manager v1.0.0 (V001)** — new button **View Tools ▸ View Manage ▸ Plan Region Manager**.
+  Open it in a floor, ceiling or structural plan (other views show a message). It lists the plan regions
+  grouped **Visible** and **Hidden** (hidden individually, or because the Plan Region category is hidden), with
+  view, level, view range and element id, and lets you:
+  - **Hide** / **Unhide** the ticked regions in their views;
+  - **Delete** them (confirmation first; Ctrl+Z undoes it; regions owned by another user in a workshared model are blocked);
+  - **Show in Revit** (opens the region's view and selects the regions);
+  - switch the scope between *This view only* and *All plan views*, filter, and copy the run log.
+  User note: a plan region belongs to one view, so *This view only* lists the regions of the view you opened the tool in.
+
 ## [6.10.1] — 2026-10-23
 
 ### Fixed
