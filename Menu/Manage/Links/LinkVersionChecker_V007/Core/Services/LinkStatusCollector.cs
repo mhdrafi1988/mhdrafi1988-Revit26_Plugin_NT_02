@@ -127,11 +127,12 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V007.Core.Services
                         // Explorer state and date stand for the latest version in ACC.
                         string copy = DesktopConnectorProbe.FindLocalCopy(lr.Path, dcRoots);
                         DcFileState copyState = DcFileState.NoDcCopy;
+                        string copyVia = "";
                         DateTime? copyDate = null;
                         double? copySize = null;
                         if (copy.Length > 0)
                         {
-                            copyState = DesktopConnectorProbe.GetState(copy);
+                            copyState = DesktopConnectorProbe.GetState(copy, out copyVia);
                             var cfi = new FileInfo(copy);
                             if (cfi.Exists) { copyDate = cfi.LastWriteTime; copySize = cfi.Length / 1048576.0; }
                             string usedRoot = dcRoots.FirstOrDefault(r => copy.StartsWith(r + "\\", StringComparison.OrdinalIgnoreCase)) ?? "";
@@ -156,6 +157,7 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V007.Core.Services
                             SizeMb = copySize,
                             Model = model,
                             Dc = copyState,
+                            DcReadVia = copyVia,
                             Latest = model == ModelLoadState.Loaded ? LatestState.NotChecked : LatestState.NotLoaded,
                             LatestReason = model == ModelLoadState.Loaded
                                 ? "Press Check cloud versions to ask ACC whether this is the current version."
@@ -192,7 +194,7 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V007.Core.Services
                     string root = DesktopConnectorProbe.ProjectRoot(path);
                     roots[root] = roots.TryGetValue(root, out int c) ? c + 1 : 1;
 
-                    DcFileState dc = DesktopConnectorProbe.GetState(path);
+                    DcFileState dc = DesktopConnectorProbe.GetState(path, out string dcVia);
 
                     DateTime? date = null;
                     double? size = null;
@@ -216,6 +218,7 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V007.Core.Services
                         AccFolder = DesktopConnectorProbe.FolderInProject(path),
                         Model = model,
                         Dc = dc,
+                        DcReadVia = dcVia,
                         Latest = latest,
                         LatestReason = reason,
                         FileDate = date,

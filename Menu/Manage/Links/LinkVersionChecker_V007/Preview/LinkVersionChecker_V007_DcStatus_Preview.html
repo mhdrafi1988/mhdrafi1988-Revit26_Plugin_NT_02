@@ -1,0 +1,161 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="margin:0">
+<title>Desktop Connector Status Icons</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: one reading column; a before/after grid mock you can toggle, then the full status key, then the proposed fix. */
+:root{
+  --bg:#EEF1F4; --surface:#FFFFFF; --soft:#F6F8FA; --line:#E1E5EA; --line2:#C9D0D8;
+  --text:#1D2530; --muted:#4F5B68; --faint:#97A1AC;
+  --blue:#0B6BCB; --blue-soft:#E3EEFA; --sel:#0B6BCB; --on-sel:#FFFFFF;
+  --green:#2E7D32; --green-soft:#E5F3E6; --warn:#8A4B00; --warn-soft:#FCEFD6; --bad:#B42318; --bad-soft:#FBE6E4;
+  --ui:"Segoe UI",system-ui,-apple-system,sans-serif; --mono:Consolas,"Cascadia Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0F1317; --surface:#171C22; --soft:#1C2229; --line:#29313A; --line2:#38424D;
+  --text:#E4E8EC; --muted:#A4AEB9; --faint:#6C7681;
+  --blue:#59A6F0; --blue-soft:#1B2B3E; --sel:#1F6FBF; --on-sel:#FFFFFF;
+  --green:#5CC468; --green-soft:#17301B; --warn:#F0B35A; --warn-soft:#3A2A12; --bad:#F2857C; --bad-soft:#3A1C1A; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0F1317; --surface:#171C22; --soft:#1C2229; --line:#29313A; --line2:#38424D;
+  --text:#E4E8EC; --muted:#A4AEB9; --faint:#6C7681;
+  --blue:#59A6F0; --blue-soft:#1B2B3E; --sel:#1F6FBF; --on-sel:#FFFFFF;
+  --green:#5CC468; --green-soft:#17301B; --warn:#F0B35A; --warn-soft:#3A2A12; --bad:#F2857C; --bad-soft:#3A1C1A; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font:14px/1.5 var(--ui)}
+.wrap{max-width:1040px;margin:0 auto;padding-block:24px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:20px}
+h1{font-size:22px;margin:0;text-wrap:balance}
+h2{font-size:16px;margin:0 0 10px;text-wrap:balance}
+p{margin:0 0 10px;max-width:72ch}
+.eyebrow{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.card{background:var(--surface);border:1px solid var(--line2);border-radius:6px;padding:16px 18px;min-width:0}
+.answer{border-left:4px solid var(--blue)}
+.answer p:last-child{margin-bottom:0}
+code{font-family:var(--mono);font-size:12.5px;background:var(--soft);border:1px solid var(--line);border-radius:3px;padding:0 4px;overflow-wrap:anywhere}
+.seg{display:inline-flex;border:1px solid var(--line2);border-radius:4px;overflow:hidden;margin-bottom:12px}
+.seg button{font:inherit;font-size:13px;border:0;background:var(--surface);color:var(--text);padding:6px 14px;cursor:pointer}
+.seg button+button{border-left:1px solid var(--line2)}
+.seg button[aria-pressed="true"]{background:var(--blue-soft);color:var(--blue);font-weight:600}
+.seg button:focus-visible,.row:focus-visible{outline:2px solid var(--blue);outline-offset:-2px}
+.scroll{overflow-x:auto}
+.mock{border:1px solid var(--line2);border-collapse:collapse;width:100%;min-width:620px;font-size:12.5px;background:var(--surface)}
+.mock th{text-align:left;font-weight:600;padding:6px 10px;background:var(--soft);border-bottom:1px solid var(--line2);white-space:nowrap}
+.mock td{padding:0 10px;height:30px;border-bottom:1px solid var(--line);white-space:nowrap}
+.mock tr.sel td{background:var(--sel);color:var(--on-sel)}
+.mock tr.sel td .muted{color:var(--on-sel)}
+.st{display:inline-flex;align-items:center;gap:7px}
+.muted{color:var(--muted)}
+.tag{font-size:11px;font-weight:600;border-radius:3px;padding:1px 6px;white-space:nowrap}
+.tag.bad{background:var(--bad-soft);color:var(--bad)}.tag.ok{background:var(--green-soft);color:var(--green)}
+.key{width:100%;border-collapse:collapse;min-width:640px}
+.key th{text-align:left;font-size:12px;font-weight:600;color:var(--muted);padding:6px 10px;border-bottom:1px solid var(--line2)}
+.key td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+.key td:first-child{white-space:nowrap}
+.key .name{font-weight:600}
+.key tr.hl td{background:var(--warn-soft)}
+.steps{margin:0;padding-left:20px;display:grid;gap:8px;max-width:80ch}
+.q{display:grid;gap:8px;margin:0;padding-left:20px}
+.foot{color:var(--muted);font-size:12.5px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <div>
+    <div class="eyebrow">Link Version Checker · On this PC (DC) column · design preview, nothing changed yet</div>
+    <h1>"Not a cloud file" and the green tick icons</h1>
+  </div>
+
+  <section class="card answer">
+    <h2>What "Not a cloud file" means</h2>
+    <p>The tool asked Windows about the file, and Windows answered that it is a normal file, not a Desktop Connector cloud file. For your files that answer is very likely wrong: Explorer shows the same files with a filled green tick, which means <b>Always keep on this device</b>.</p>
+    <p><b>Most likely cause:</b> by default, Windows can hide cloud-file details from ordinary programs like Revit, while Explorer always sees them. When Windows hides them, the tool's main check comes back empty, and 7.1.0 stops at "Not a cloud file". The "Always keep" flag, which is an ordinary file setting, is never looked at.</p>
+    <p><b>The icons you want already exist</b> in the tool (filled green tick, green outline tick). They don't show because the status was read wrong. The fix is in how the status is read.</p>
+  </section>
+
+  <section class="card">
+    <h2>Your two links, now and after the fix</h2>
+    <div class="seg" role="group" aria-label="Version">
+      <button type="button" id="vNow" aria-pressed="false">7.1.0 (now)</button>
+      <button type="button" id="vFix" aria-pressed="true">7.1.1 (proposed)</button>
+    </div>
+    <div class="scroll">
+      <table class="mock">
+        <thead><tr><th>Link name</th><th>Source</th><th>On this PC (DC)</th><th>Explorer shows</th><th></th></tr></thead>
+        <tbody id="mockBody"></tbody>
+      </table>
+    </div>
+    <p class="foot" style="margin-top:8px">I can't tell from the screenshots which of your two files has which tick, so the preview shows one of each. The icon is drawn white on the selected row so it stays visible on the blue, the same as the text.</p>
+  </section>
+
+  <section class="card">
+    <h2>Every status in the column</h2>
+    <div class="scroll">
+      <table class="key">
+        <thead><tr><th>Icon and text</th><th>What it means</th><th>Explorer shows</th><th>Counts in tile</th></tr></thead>
+        <tbody id="keyBody"></tbody>
+      </table>
+    </div>
+    <p class="foot" style="margin-top:8px">Highlighted: "Not a cloud file" stays as a status, but after the fix it should only appear for a file that really isn't managed by Desktop Connector, e.g. one copied into the ACCDocs folder by hand.</p>
+  </section>
+
+  <section class="card">
+    <h2>Proposed fix (7.1.1, a bug fix)</h2>
+    <ol class="steps">
+      <li><b>Ask Windows to show the cloud-file details</b> for the moment the tool reads each file, then switch back. Windows offers this to programs for exactly this purpose. It affects only that one check, not Revit.</li>
+      <li><b>If Windows still gives no answer, read the file's own flags</b>, which ordinary programs can see: "Always keep" set gives <i>Always kept</i>. Space freed or still downloading gives <i>Online only</i>. Neither, with the file fully on disk, gives <i>Available locally</i>, since every file under ACCDocs belongs to Desktop Connector.</li>
+      <li><b>Nothing is downloaded</b>, as now: the tool only reads the folder entry, never the file's contents.</li>
+      <li>The hover text on the status says which way it was read, e.g. "Read from Windows cloud-file state" or "Read from the file's Always-keep flag", so a wrong answer is easy to spot.</li>
+    </ol>
+  </section>
+
+  <section class="card">
+    <h2>To confirm before I code</h2>
+    <ol class="q">
+      <li>Keep the icons as drawn here: filled green circle with white tick for <i>Always kept</i>, white circle with green ring and green tick for <i>Available locally</i>. They match your Explorer screenshots.</li>
+      <li>Ship it as <b>7.1.1</b> (plugin 6.10.1), a fix with no new options.</li>
+      <li>Optional: on the selected row, draw the icons white (as in this preview) or keep them green on the blue.</li>
+    </ol>
+  </section>
+</div>
+
+<script>
+const G="var(--green)";
+const ICON={
+  kept:(s)=>`<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7.5" style="fill:${s?'var(--on-sel)':G}"/><path d="M4.4 8.3l2.4 2.4 4.8-5.2" fill="none" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="stroke:${s?'var(--sel)':'#fff'}"/></svg>`,
+  avail:(s)=>`<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.9" stroke-width="1.3" style="fill:${s?'transparent':'var(--surface)'};stroke:${s?'var(--on-sel)':G}"/><path d="M4.6 8.3l2.3 2.3 4.6-5" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="stroke:${s?'var(--on-sel)':G}"/></svg>`,
+  online:(s)=>`<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4.3 13h7.6a2.8 2.8 0 0 0 .3-5.5 4.2 4.2 0 0 0-8-.8 3.1 3.1 0 0 0 .1 6.3z" fill="none" stroke-width="1.3" style="stroke:${s?'var(--on-sel)':'var(--blue)'}"/></svg>`,
+  sync:(s)=>`<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M13.2 6.8A5.4 5.4 0 0 0 3.4 5.2M2.8 9.2a5.4 5.4 0 0 0 9.8 1.6M13.4 2.8v4h-4M2.6 13.2v-4h4" fill="none" stroke-width="1.3" style="stroke:${s?'var(--on-sel)':'var(--blue)'}"/></svg>`,
+  other:(s)=>`<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.9" fill="none" stroke-width="1.3" stroke-dasharray="1.6 1.6" style="stroke:${s?'var(--on-sel)':'var(--faint)'}"/></svg>`,
+};
+const ROWS=[
+  {name:"WAMI-0000-ALE-MDL-AR-MY-TWVL-00-70001_ARCHITECTURE_BLOCKWORK_TOWER LB2-L22.rvt",src:"Cloud link",now:["other","Not a cloud file"],fix:["kept","Always kept"],exp:"kept",expText:"Always keep on this device"},
+  {name:"WAMI-0000-ALE-MDL-AR-MY-TWVL-00-70002_ARCHITECTURE_BLOCKWORK_TOWER L23-RF.rvt",src:"Cloud link",now:["other","Not a cloud file"],fix:["avail","Available locally"],exp:"avail",expText:"Available on this device",sel:true},
+];
+const KEY=[
+  ["kept","Always kept","Pinned with Always keep on this device. Desktop Connector keeps the latest version downloaded.","Filled green tick","Always kept"],
+  ["avail","Available locally","Downloaded, but not pinned. Windows may free up the space and turn it back into online only.","Green outline tick","Available locally"],
+  ["online","Online only","Only a placeholder is on this PC. Revit downloads the file the next time the link loads.","Cloud outline","Online only"],
+  ["sync","Sync pending","Desktop Connector is still uploading or downloading this file.","Blue arrows","Sync pending"],
+  ["other","Not a cloud file","The file is in the ACCDocs folder, but Windows says Desktop Connector doesn't manage it.","No status icon","Missing / no DC copy",true],
+  ["other","Not on this PC","No file at the link's path.","(file not listed)","Missing / no DC copy"],
+  ["other","No DC copy","A cloud link whose Desktop Connector copy wasn't found on this PC.","(file not listed)","Missing / no DC copy"],
+  ["other","Unknown","Windows gave no answer at all, e.g. access denied.","Any","Missing / no DC copy"],
+];
+let fixed=true;
+function render(){
+  document.getElementById("vNow").setAttribute("aria-pressed",String(!fixed));
+  document.getElementById("vFix").setAttribute("aria-pressed",String(fixed));
+  document.getElementById("mockBody").innerHTML=ROWS.map(r=>{
+    const [ic,txt]=fixed?r.fix:r.now, s=!!r.sel;
+    const ok=fixed;
+    return `<tr class="${s?'sel':''}"><td>${r.name}</td><td>${r.src}</td>
+      <td><span class="st">${ICON[ic](s)}${txt}</span></td>
+      <td><span class="st">${ICON[r.exp](s)}<span class="${s?'':'muted'}">${r.expText}</span></span></td>
+      <td><span class="tag ${ok?'ok':'bad'}">${ok?'matches Explorer':'wrong'}</span></td></tr>`;}).join("");
+}
+document.getElementById("keyBody").innerHTML=KEY.map(([ic,n,m,e,t,hl])=>
+  `<tr class="${hl?'hl':''}"><td><span class="st">${ICON[ic](false)}<span class="name">${n}</span></span></td><td>${m}</td><td>${e}</td><td>${t}</td></tr>`).join("");
+document.getElementById("vNow").onclick=()=>{fixed=false;render();};
+document.getElementById("vFix").onclick=()=>{fixed=true;render();};
+render();
+</script>
+</body></html>

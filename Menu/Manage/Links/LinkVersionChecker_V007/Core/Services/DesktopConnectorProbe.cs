@@ -24,7 +24,10 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V007.Core.Services
         private const uint AttrReadOnly = 0x1, AttrHidden = 0x2, AttrSystem = 0x4, AttrArchive = 0x20;
         private const uint AttrTemporary = 0x100, AttrOffline = 0x1000, AttrNotContentIndexed = 0x2000;
         private const uint AttrRecallOnOpen = 0x40000, AttrPinned = 0x80000, AttrUnpinned = 0x100000;
-        private const uint AttrRecallOnDataAccess = 0x400000;
+        private const uint AttrRecallOnDataAccess = 0x400000, AttrReparsePoint = 0x400;
+
+        // Placeholder compatibility mode (ntifs.h): expose placeholders to this thread.
+        private const sbyte PhcmExposePlaceholders = 2;
 
         // CF_PLACEHOLDER_STATE (cfapi.h)
         private const uint CfPlaceholder = 0x1, CfInSync = 0x8, CfPartial = 0x10, CfInvalid = 0xFFFFFFFF;
@@ -124,34 +127,75 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V007.Core.Services
             catch { return ""; }
         }
 
+        /// <summary>How <see cref="GetState(string, out string)"/> read a file's state, for the hover text.  [7.1.1]</summary>
+        public const string ViaCloudState = "Read from the Windows cloud-file state, the same state behind Explorer's status icon.";
+
+        /// <summary>Hover text when the state came from the file's own flags because Windows gave no cloud-file state.  [7.1.1]</summary>
+        public const string ViaFileFlags = "Read from the file's own flags (Always keep, online only): Windows did not give Revit the file's cloud-file state.";
+
         /// <summary>
         /// Desktop Connector state of one file. Reads directory metadata only, so an online-only
         /// file is not downloaded.
         /// </summary>
-        public static DcFileState GetState(string path)
+        public static DcFileState GetState(string path) => GetState(path, out _);
+
+        /// <summary>
+        /// Desktop Connector state of one file, and how it was read (<see cref="ViaCloudState"/> or
+        /// <see cref="ViaFileFlags"/>; empty when the file is missing).
+        ///
+        /// By default Windows may disguise cloud placeholders from programs such as Revit, so the
+        /// folder entry looks like a plain file. For the length of the read the calling thread is
+        /// switched to see placeholders, then switched back. When Windows still reports no cloud
+        /// state, the file's own pin / online-only flags decide; a file under ACCDocs with neither
+        /// is downloaded but not pinned.  [7.1.1]
+        /// </summary>
+        public static DcFileState GetState(string path, out string via)
         {
+            via = "";
             try
             {
-                IntPtr h = FindFirstFileW(path, out Win32FindData fd);
-                if (h == InvalidHandle) return DcFileState.Missing;
-                FindClose(h);
+                Win32FindData fd;
+                sbyte previous = ExposePlaceholders(out bool exposed);
+                try
+                {
+                    IntPtr h = FindFirstFileW(path, out fd);
+                    if (h == InvalidHandle) return DcFileState.Missing;
+                    FindClose(h);
+                }
+                finally
+                {
+                    RestorePlaceholders(previous, exposed);
+                }
 
                 uint attrs = fd.dwFileAttributes;
-                uint cf;
+                uint cf = CfInvalid;
                 try { cf = CfGetPlaceholderStateFromFindData(ref fd); }
-                catch (DllNotFoundException) { return FromAttributesOnly(attrs); }        // Windows older than 1709
-                catch (EntryPointNotFoundException) { return FromAttributesOnly(attrs); }
+                catch (DllNotFoundException) { /* Windows older than 1709: flags only */ }
+                catch (EntryPointNotFoundException) { /* same */ }
 
-                if (cf == CfInvalid) return FromAttributesOnly(attrs);
-                if ((cf & CfPlaceholder) == 0) return DcFileState.NotCloudFile;
-                if ((cf & CfInSync) == 0) return DcFileState.SyncPending;
+                if (cf != CfInvalid && (cf & CfPlaceholder) != 0)
+                {
+                    via = ViaCloudState;
+                    if ((cf & CfInSync) == 0) return DcFileState.SyncPending;
 
-                bool notOnDisk = (cf & CfPartial) != 0 ||
-                                 (attrs & (AttrRecallOnDataAccess | AttrRecallOnOpen | AttrOffline)) != 0;
-                bool pinned = (attrs & AttrPinned) != 0;
+                    bool notOnDisk = (cf & CfPartial) != 0 ||
+                                     (attrs & (AttrRecallOnDataAccess | AttrRecallOnOpen | AttrOffline)) != 0;
+                    bool pinned = (attrs & AttrPinned) != 0;
 
-                if (notOnDisk) return pinned ? DcFileState.SyncPending : DcFileState.OnlineOnly; // pinned + not here = downloading
-                return pinned ? DcFileState.AlwaysKept : DcFileState.AvailableLocally;
+                    if (notOnDisk) return pinned ? DcFileState.SyncPending : DcFileState.OnlineOnly; // pinned + not here = downloading
+                    return pinned ? DcFileState.AlwaysKept : DcFileState.AvailableLocally;
+                }
+
+                // Placeholders were visible and this is a plain file with no cloud flags:
+                // it really is not managed by Desktop Connector.
+                if (exposed && cf != CfInvalid && (attrs & (AttrReparsePoint | CloudFlags)) == 0)
+                {
+                    via = ViaCloudState;
+                    return DcFileState.NotCloudFile;
+                }
+
+                via = ViaFileFlags;
+                return FromAttributesOnly(attrs);
             }
             catch
             {
@@ -159,11 +203,36 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V007.Core.Services
             }
         }
 
+        // Pinned, unpinned and online-only flags: set only on cloud files.
+        private const uint CloudFlags = AttrPinned | AttrUnpinned | AttrRecallOnDataAccess | AttrRecallOnOpen | AttrOffline;
+
+        /// <summary>State from the file's own flags. A file under ACCDocs with no flag is downloaded but not pinned.</summary>
         private static DcFileState FromAttributesOnly(uint attrs)
         {
-            if ((attrs & (AttrRecallOnDataAccess | AttrRecallOnOpen | AttrOffline)) != 0) return DcFileState.OnlineOnly;
-            if ((attrs & AttrPinned) != 0) return DcFileState.AlwaysKept;
-            return DcFileState.Unknown;
+            bool pinned = (attrs & AttrPinned) != 0;
+            if ((attrs & (AttrRecallOnDataAccess | AttrRecallOnOpen | AttrOffline)) != 0)
+                return pinned ? DcFileState.SyncPending : DcFileState.OnlineOnly;
+            return pinned ? DcFileState.AlwaysKept : DcFileState.AvailableLocally;
+        }
+
+        /// <summary>Lets this thread see cloud placeholders as they are. Returns the previous mode; <paramref name="ok"/> is false when Windows does not offer the switch.</summary>
+        private static sbyte ExposePlaceholders(out bool ok)
+        {
+            ok = false;
+            try
+            {
+                sbyte previous = RtlSetThreadPlaceholderCompatibilityMode(PhcmExposePlaceholders);
+                ok = previous >= 0;
+                return previous;
+            }
+            catch (DllNotFoundException) { return -1; }
+            catch (EntryPointNotFoundException) { return -1; }         // Windows older than 1803
+        }
+
+        private static void RestorePlaceholders(sbyte previous, bool exposed)
+        {
+            if (!exposed || previous == PhcmExposePlaceholders) return;
+            try { RtlSetThreadPlaceholderCompatibilityMode(previous); } catch { /* best effort */ }
         }
 
         /// <summary>
@@ -217,6 +286,9 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V007.Core.Services
 
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         private static extern bool SetFileAttributesW(string lpFileName, uint dwFileAttributes);
+
+        [DllImport("ntdll.dll")]
+        private static extern sbyte RtlSetThreadPlaceholderCompatibilityMode(sbyte mode);
 
         [DllImport("cldapi.dll", CharSet = CharSet.Unicode)]
         private static extern uint CfGetPlaceholderStateFromFindData(ref Win32FindData findData);

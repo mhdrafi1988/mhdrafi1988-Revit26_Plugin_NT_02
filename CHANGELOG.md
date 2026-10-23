@@ -9,6 +9,22 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.10.1] — 2026-10-23
+
+### Fixed
+- **Link Version Checker v7.1.1 (V007)** — files that Explorer shows with a green tick showed **Not a cloud file** in
+  *On this PC (DC)*. By default Windows can hide Desktop Connector's cloud-file state from programs such as Revit, and
+  7.1.0 then gave up without looking at the file's own flags. Now:
+  - while it reads a file, the tool asks Windows to show the cloud-file state to that one check, then switches back;
+  - if Windows still gives none, the file's own flags decide: *Always keep* → **Always kept** (filled green tick),
+    space freed or still downloading → **Online only**, neither → **Available locally** (green outline tick);
+  - **Not a cloud file** appears only for a file Windows confirms is a plain file with no cloud flags;
+  - hovering the status says how it was read (Windows cloud-file state, or the file's own flags).
+  Still nothing is downloaded: only the folder entry is read.
+- The status icons turn white on the selected row, so they stay visible on the selection, as the text already does.
+
+**User note:** links that showed *Not a cloud file* now count under *Always kept* or *Available locally*, matching Explorer.
+
 ## [6.10.0] — 2026-10-23
 
 ### Changed

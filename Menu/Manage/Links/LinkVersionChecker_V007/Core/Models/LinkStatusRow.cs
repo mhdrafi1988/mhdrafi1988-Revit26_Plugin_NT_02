@@ -123,6 +123,9 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V007.Core.Models
         /// </summary>
         public string LocalPath { get; init; } = "";
 
+        /// <summary>How <see cref="Dc"/> was read: from Windows' cloud-file state or from the file's own flags. Empty when there is no file.  [7.1.1]</summary>
+        public string DcReadVia { get; init; } = "";
+
         /// <summary>For a cloud link without a copy: where it was looked for (detail panel).  [7.1.0]</summary>
         public string DcCopyNote { get; init; } = "";
 
@@ -264,6 +267,9 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V007.Core.Models
                 return text;
             }
         }
+
+        /// <summary>Hover text for the "On this PC" column: what the state means and how it was read.  [7.1.1]</summary>
+        public string DcTip => DcReadVia.Length > 0 ? DcExplain + Environment.NewLine + DcReadVia : DcExplain;
 
         /// <summary>Local file date for the grid.</summary>
         public string FileDateText => FileDate?.ToString("dd-MM-yyyy HH:mm") ?? "—";
