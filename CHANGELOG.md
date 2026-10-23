@@ -9,6 +9,14 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.13.0] — 2026-10-23
+
+### Added
+- **Plan Region Manager v1.2.0 (V001)** — new **Restore Hidden** button. It unhides every plan region that was hidden
+  in the current scope (this view, or all plan views) in one step; Ctrl+Z undoes it.
+  User note: it ignores the ticks. Regions hidden only because the Plan Region category is hidden stay hidden;
+  turn the category back on in Visibility/Graphics.
+
 ## [6.12.0] — 2026-10-23
 
 ### Added

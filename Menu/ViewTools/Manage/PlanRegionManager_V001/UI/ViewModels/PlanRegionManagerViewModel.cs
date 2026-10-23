@@ -222,6 +222,20 @@ namespace Revit26_Plugin_Revised.PlanRegionManager.V001.UI.ViewModels
 
         private bool HasHidden() => !IsRunning && Rows.Any(r => r.IsHidden && !r.IsBlocked);
 
+        /// <summary>
+        /// Unhides every individually hidden region in the current scope, whatever is ticked.
+        /// Regions hidden only because their category is hidden are left alone.
+        /// </summary>
+        [RelayCommand(CanExecute = nameof(HasRestorable))]
+        private void RestoreHidden()
+        {
+            var hidden = Rows.Where(r => r.IsElementHidden && !r.IsBlocked).ToList();
+            if (hidden.Count == 0) return;
+            RunAction("Restoring", hidden, (doc, svc) => svc.Unhide(doc, hidden));
+        }
+
+        private bool HasRestorable() => !IsRunning && Rows.Any(r => r.IsElementHidden && !r.IsBlocked);
+
         /// <summary>Opens the view of the first ticked region and selects the ticked regions that belong to it.</summary>
         [RelayCommand(CanExecute = nameof(HasSelection))]
         private void ShowInRevit()
@@ -341,6 +355,7 @@ namespace Revit26_Plugin_Revised.PlanRegionManager.V001.UI.ViewModels
             UnhideCommand.NotifyCanExecuteChanged();
             DeleteCommand.NotifyCanExecuteChanged();
             DeleteAllHiddenCommand.NotifyCanExecuteChanged();
+            RestoreHiddenCommand.NotifyCanExecuteChanged();
             ShowInRevitCommand.NotifyCanExecuteChanged();
         }
 
