@@ -139,12 +139,22 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
 
             // Link Version Checker V006 — one In-Model window for the RVT links that come from
             // ACC through Desktop Connector: loaded / unloaded, sync state on this PC, and whether
-            // the loaded copy is the latest. Highest version, so it is first in the pulldown.
+            // the loaded copy is the latest.
             var linkStatusV006 = Btn(assemblyPath, "Btn_LinkVersionChecker_AccStatus_V006", "Link Version Checker (ACC)",
                 "Revit26_Plugin_Revised.LinkVersionChecker.V006.Commands.CmdLinkStatus",
                 "Manage.ParaManager_16.png", "Link Version Checker", "V006",
                 "Status of RVT links from ACC Desktop Connector: loaded or unloaded, synced on this PC, latest version loaded. " +
                 "Pick several links to open their folders, copy paths or keep them on this device; shorten the folder column to the last or first N folders.");
+
+            // Link Version Checker V007 — V006 plus Autodesk Docs:// cloud links, a Source and an
+            // ACC project column, filter drop-downs and Check cloud versions. Highest version, so
+            // it is first in the pulldown and supplies its icon.
+            var linkStatusV007 = Btn(assemblyPath, "Btn_LinkVersionChecker_AccStatus_V007", "Link Version Checker (ACC + Cloud)",
+                "Revit26_Plugin_Revised.LinkVersionChecker.V007.Commands.CmdLinkStatus",
+                "Manage.ParaManager_16.png", "Link Version Checker", "V007",
+                "Status of RVT links from ACC, both Desktop Connector files and Autodesk Docs cloud links: loaded or unloaded, " +
+                "synced on this PC, latest version loaded (Check cloud versions asks ACC). Filter by source, ACC project, folder, " +
+                "load state and latest state.");
 
             var linkMemoryV001 = Btn(assemblyPath, "Btn_LinkMemory_V001", "Link Memory",
                 "Revit26_Plugin_Revised.LinkMemory.V001.Commands.LinkMemoryCommand",
@@ -174,7 +184,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_BulkRename", "Bulk Rename", bulkRenameV001),
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_ScheduleExportImport", "Schedule I/O", scheduleExportImportV007),
                 // Link Check moved here from its own one-button Links panel (plugin 4.2.1).
-                RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_LinkVersionChecker", "Link Check", linkStatusV006),
+                RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_LinkVersionChecker", "Link Check", linkStatusV007),
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_TrackerId", "Tracker ID", trackerIdV002),
             });
             RibbonLayoutHelper.WirePulldownButton(manageItems, "Pulldown_AnnotationOverlapDetection", overlapV004);
@@ -183,9 +193,9 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             RibbonLayoutHelper.WirePulldownButton(manageItems, "Pulldown_BulkRename", bulkRenameV001);
             RibbonLayoutHelper.WirePulldownButton(manageItems, "Pulldown_TrackerId", trackerIdV002, trackerIdV001);
             RibbonLayoutHelper.WirePulldownButton(manageItems, "Pulldown_ScheduleExportImport", scheduleExportImportV007, scheduleExportImportV006);
-            // Link Check lists V006 first, then V004's three scan modes, then V003's.
+            // Link Check lists V007 first, then V006, then V004's three scan modes, then V003's.
             RibbonLayoutHelper.WirePulldownButton(manageItems, "Pulldown_LinkVersionChecker",
-                linkStatusV006,
+                linkStatusV007, linkStatusV006,
                 linkInModelV004, linkPreOpenV004, linkFolderV004,
                 linkInModelV003, linkPreOpenV003, linkFolderV003);
 
