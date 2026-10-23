@@ -58,8 +58,9 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V006.UI.ViewModels
             SetTileCommand = new RelayCommand<string>(t => ActiveTile = ActiveTile == t ? "" : t ?? "");
             ReloadCommand = new RelayCommand(() => RunOnSingle(r => LinkStatusActions.Reload(_doc, r)), () => _selection.Count == 1);
             UnloadCommand = new RelayCommand(() => RunOnSingle(r => LinkStatusActions.Unload(_doc, r)), () => _selection.Count == 1 && _selection[0].IsLoaded);
-            AlwaysKeepCommand = new RelayCommand(AlwaysKeep, () => _selection.Any(r => r.Dc is not (DcFileState.AlwaysKept or DcFileState.Missing)));
-            OpenFolderCommand = new RelayCommand(OpenFolders, () => _selection.Count > 0);
+            AlwaysKeepCommand = new RelayCommand(AlwaysKeep, () => _selection.Any(r => !r.IsCloud && r.Dc is not (DcFileState.AlwaysKept or DcFileState.Missing)));
+            OpenFolderCommand = new RelayCommand(OpenFolders, () => _selection.Any(r => !r.IsCloud));
+            CheckCloudCommand = new RelayCommand(CheckCloud, () => Rows.Any(r => r.IsCloud && r.IsLoaded));
             CopyPathCommand = new RelayCommand(() => Status = LinkStatusActions.CopyPaths(_selection), () => _selection.Count > 0);
             FolderLessCommand = new RelayCommand(() => FolderDepth--, () => FolderDepth > FolderDisplay.MinDepth);
             FolderMoreCommand = new RelayCommand(() => FolderDepth++, () => FolderDepth < FolderDisplay.MaxDepth);
@@ -124,10 +125,10 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V006.UI.ViewModels
             private set => SetProperty(ref _status, value);
         }
 
-        /// <summary>"13 RVT links from Desktop Connector · 4 other RVT links hidden".</summary>
+        /// <summary>"13 RVT links from ACC · 4 other RVT links hidden".</summary>
         public string FooterText =>
-            $"{Rows.Count} RVT link{(Rows.Count == 1 ? "" : "s")} from Desktop Connector" +
-            (_otherLinks > 0 ? $" · {_otherLinks} other RVT link{(_otherLinks == 1 ? "" : "s")} hidden (not in an ACCDocs folder)" : "") +
+            $"{Rows.Count} RVT link{(Rows.Count == 1 ? "" : "s")} from ACC" +
+            (_otherLinks > 0 ? $" · {_otherLinks} other RVT link{(_otherLinks == 1 ? "" : "s")} hidden (not from ACC)" : "") +
             $" · Last refresh {_lastRefresh:HH:mm}";
 
         /// <summary>"Showing 5 of 13 RVT links · 2 selected".</summary>
@@ -161,7 +162,11 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V006.UI.ViewModels
         /// <summary>Loaded links with a newer file on this PC.</summary>
         public int ReloadNeededCount => Rows.Count(r => r.Latest == LatestState.ReloadNeeded);
         /// <summary>Loaded links whose latest state is unknown or pending.</summary>
-        public int LatestUnknownCount => Rows.Count(r => r.Latest is LatestState.Unknown or LatestState.SyncPending);
+        public int LatestUnknownCount => Rows.Count(r => r.Latest is LatestState.Unknown or LatestState.SyncPending or LatestState.NotChecked);
+        /// <summary>Links that are files under a Desktop Connector folder.</summary>
+        public int DesktopConnectorCount => Rows.Count(r => !r.IsCloud);
+        /// <summary>ACC / BIM 360 cloud links (no local file).</summary>
+        public int CloudCount => Rows.Count(r => r.IsCloud);
 
         // ---------------------------------------------------------------- folder display
 
@@ -272,7 +277,9 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V006.UI.ViewModels
                 "OtherDc" => r.Dc is DcFileState.Missing or DcFileState.NotCloudFile or DcFileState.Unknown,
                 "UpToDate" => r.Latest == LatestState.UpToDate,
                 "ReloadNeeded" => r.Latest == LatestState.ReloadNeeded,
-                "LatestUnknown" => r.Latest is LatestState.Unknown or LatestState.SyncPending,
+                "LatestUnknown" => r.Latest is LatestState.Unknown or LatestState.SyncPending or LatestState.NotChecked,
+                "SrcDc" => !r.IsCloud,
+                "SrcCloud" => r.IsCloud,
                 _ => true
             };
         }
@@ -295,6 +302,8 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V006.UI.ViewModels
         public IRelayCommand ReloadCommand { get; }
         /// <summary>Unloads the one selected link.</summary>
         public IRelayCommand UnloadCommand { get; }
+        /// <summary>Asks ACC whether each loaded cloud link is the current version.</summary>
+        public IRelayCommand CheckCloudCommand { get; }
         /// <summary>Marks every selected file "Always keep on this device".</summary>
         public IRelayCommand AlwaysKeepCommand { get; }
         /// <summary>Opens one Explorer window per folder of the selected links.</summary>
@@ -318,7 +327,9 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V006.UI.ViewModels
             foreach (LinkStatusRow r in scan.Rows) Rows.Add(r);
             ApplyFolderDisplay();
 
-            ProjectRoot = scan.ProjectRoot.Length > 0 ? scan.ProjectRoot : "No Desktop Connector (ACCDocs) folder found in this model's links";
+            ProjectRoot = scan.ProjectRoot.Length > 0
+                ? scan.ProjectRoot
+                : scan.Rows.Any(r => r.IsCloud) ? "none — the links are ACC cloud links" : "none found in this model's links";
             _otherLinks = scan.OtherLinks;
             _lastRefresh = DateTime.Now;
 
@@ -332,7 +343,8 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V006.UI.ViewModels
             {
                 nameof(FooterText), nameof(IsEmpty), nameof(LoadedCount), nameof(UnloadedCount), nameof(NotFoundCount),
                 nameof(AlwaysKeptCount), nameof(AvailableCount), nameof(OnlineOnlyCount), nameof(SyncPendingCount),
-                nameof(OtherDcCount), nameof(UpToDateCount), nameof(ReloadNeededCount), nameof(LatestUnknownCount)
+                nameof(OtherDcCount), nameof(UpToDateCount), nameof(ReloadNeededCount), nameof(LatestUnknownCount),
+                nameof(DesktopConnectorCount), nameof(CloudCount)
             }) OnPropertyChanged(p);
 
             var reselect = Rows.Where(r => keepIds.Contains(r.TypeId)).ToList();
@@ -348,6 +360,30 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V006.UI.ViewModels
             try { msg = action(_selection[0]); }
             finally { Mouse.OverrideCursor = null; }
             Refresh(msg);
+        }
+
+        private void CheckCloud()
+        {
+            var targets = Rows.Where(r => r.IsCloud && r.IsLoaded).ToList();
+            if (targets.Count == 0) { Status = "No loaded ACC cloud links to check."; return; }
+
+            Mouse.OverrideCursor = Cursors.Wait;
+            try
+            {
+                foreach (LinkStatusRow r in targets) AccCloudProbe.CheckLatest(_doc, r);
+            }
+            finally
+            {
+                Mouse.OverrideCursor = null;
+            }
+
+            int current = targets.Count(r => r.Latest == LatestState.UpToDate);
+            int old = targets.Count(r => r.Latest == LatestState.ReloadNeeded);
+            Status = $"Checked {targets.Count} ACC cloud link{(targets.Count == 1 ? "" : "s")}: {current} current, {old} out of date, " +
+                     $"{targets.Count - current - old} unknown.";
+
+            foreach (string p in new[] { nameof(UpToDateCount), nameof(ReloadNeededCount), nameof(LatestUnknownCount) }) OnPropertyChanged(p);
+            ApplyFilter();
         }
 
         private void AlwaysKeep()
@@ -398,6 +434,7 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V006.UI.ViewModels
             AlwaysKeepCommand?.NotifyCanExecuteChanged();
             OpenFolderCommand?.NotifyCanExecuteChanged();
             CopyPathCommand?.NotifyCanExecuteChanged();
+            CheckCloudCommand?.NotifyCanExecuteChanged();
         }
     }
 }

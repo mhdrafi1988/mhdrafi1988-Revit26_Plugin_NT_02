@@ -83,7 +83,7 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V006.Core.Services
             var failed = new List<string>();
             foreach (LinkStatusRow row in rows)
             {
-                if (row.Dc is DcFileState.AlwaysKept or DcFileState.Missing) { skipped++; continue; }
+                if (row.IsCloud || row.Dc is DcFileState.AlwaysKept or DcFileState.Missing) { skipped++; continue; }
                 string err = DesktopConnectorProbe.Pin(row.FullPath);
                 if (err == null) done++;
                 else failed.Add($"{row.Name} ({err})");
@@ -92,7 +92,7 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V006.Core.Services
             string msg = done == 1 && rows.Count == 1
                 ? $"{rows[0].Name}: set to always keep on this device."
                 : $"{done} file(s) set to always keep on this device.";
-            if (skipped > 0) msg += $" {skipped} skipped (already kept or not on this PC).";
+            if (skipped > 0) msg += $" {skipped} skipped (already kept, cloud link, or not on this PC).";
             if (failed.Count > 0) msg += $" Failed: {string.Join("; ", failed.Take(3))}{(failed.Count > 3 ? " …" : "")}.";
             if (done > 0) msg += " Desktop Connector downloads them in the background — Refresh to see progress.";
             return msg;
@@ -100,7 +100,7 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V006.Core.Services
 
         /// <summary>Distinct folders of <paramref name="rows"/>, so the caller can confirm before opening many windows.</summary>
         public static int FolderCount(IEnumerable<LinkStatusRow> rows) =>
-            rows?.Select(r => Path.GetDirectoryName(r.FullPath) ?? "")
+            rows?.Where(r => !r.IsCloud).Select(r => Path.GetDirectoryName(r.FullPath) ?? "")
                  .Where(d => d.Length > 0)
                  .Distinct(StringComparer.OrdinalIgnoreCase)
                  .Count() ?? 0;
@@ -113,10 +113,11 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V006.Core.Services
         public static string OpenFolders(IReadOnlyList<LinkStatusRow> rows)
         {
             if (rows == null || rows.Count == 0) return "Select a link first.";
+            if (rows.All(r => r.IsCloud)) return "ACC cloud links have no folder on this PC.";
 
             int opened = 0;
             var missing = new List<string>();
-            foreach (var group in rows.GroupBy(r => Path.GetDirectoryName(r.FullPath) ?? "", StringComparer.OrdinalIgnoreCase))
+            foreach (var group in rows.Where(r => !r.IsCloud).GroupBy(r => Path.GetDirectoryName(r.FullPath) ?? "", StringComparer.OrdinalIgnoreCase))
             {
                 string dir = group.Key;
                 if (dir.Length == 0 || !Directory.Exists(dir)) { missing.Add(dir.Length == 0 ? group.First().Name : dir); continue; }
@@ -137,6 +138,8 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V006.Core.Services
             }
 
             string msg = $"Opened {opened} folder{(opened == 1 ? "" : "s")}.";
+            int cloud = rows.Count(r => r.IsCloud);
+            if (cloud > 0) msg += $" {cloud} cloud link(s) have no folder on this PC.";
             if (missing.Count > 0) msg += $" Not opened: {string.Join("; ", missing.Take(3))}{(missing.Count > 3 ? " …" : "")}.";
             return msg;
         }

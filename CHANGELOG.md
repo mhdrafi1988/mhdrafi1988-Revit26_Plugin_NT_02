@@ -9,6 +9,25 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.9.0] — 2026-10-23
+
+### Added
+- **Link Version Checker v6.2.0 (V006)** now lists **ACC cloud links** too — links added from ACC (Autodesk Docs) in Revit,
+  which have no file on the PC and were hidden before.
+  - New **Source** column and **Source** tiles (Desktop Connector / ACC cloud). The ACC cloud row shows the file name and
+    the ACC folder from its cloud path, and *Cloud link* in "On this PC".
+  - **Check ACC status** button: asks ACC whether each loaded cloud link is the current version (*Yes* / *Reload needed* /
+    *Unknown*). It needs a network connection and an Autodesk sign-in, so it only runs when pressed; until then the
+    column reads *Not checked*.
+  - Reload and Unload work on cloud links like any other; Always keep on this device and Open folder skip them
+    (the status bar says how many were skipped).
+  - Excel export: new **Source** column at the end (report format 2); the other columns are unchanged.
+
+### Changed
+- The status bar and empty-list message now say "from ACC" instead of "from Desktop Connector".
+
+**User note:** a model whose links are all ACC cloud links previously showed an empty list; it now lists them.
+
 ## [6.8.0] — 2026-10-22
 
 ### Added

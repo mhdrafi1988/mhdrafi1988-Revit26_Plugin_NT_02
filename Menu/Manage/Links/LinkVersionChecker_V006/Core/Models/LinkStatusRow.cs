@@ -40,6 +40,8 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V006.Core.Models
         NotCloudFile,
         /// <summary>No file at the link's path.</summary>
         Missing,
+        /// <summary>A pure ACC cloud link: there is no local file; Revit fetches it from ACC when it loads.</summary>
+        CloudOnly,
         /// <summary>Windows would not say (old Windows, access denied).</summary>
         Unknown
     }
@@ -49,6 +51,8 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V006.Core.Models
     {
         /// <summary>The link is not loaded, so there is nothing to compare.</summary>
         NotLoaded,
+        /// <summary>ACC cloud link not asked yet: the check needs the network, so it runs on demand.</summary>
+        NotChecked,
         /// <summary>Loaded copy matches the file on this PC, and Desktop Connector is in sync.</summary>
         UpToDate,
         /// <summary>The file on this PC is a newer save than the copy loaded in the model.</summary>
@@ -59,7 +63,20 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V006.Core.Models
         Unknown
     }
 
-    /// <summary>One top-level Revit link that lives under the Desktop Connector folder.</summary>
+    /// <summary>Where a link comes from.</summary>
+    public enum LinkOrigin
+    {
+        /// <summary>A file under an ACCDocs (Desktop Connector) folder.</summary>
+        DesktopConnector,
+        /// <summary>An ACC / Autodesk Docs cloud link of the same project as the open model.</summary>
+        AccCloud,
+        /// <summary>An ACC cloud link to a different project (or hub).</summary>
+        AccCloudOtherProject,
+        /// <summary>A legacy BIM 360 cloud link.</summary>
+        Bim360
+    }
+
+    /// <summary>One top-level Revit link that comes from ACC: a Desktop Connector file or a cloud link.</summary>
     public sealed class LinkStatusRow : ObservableObject
     {
         private string _folderShown = "";
@@ -89,11 +106,45 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V006.Core.Models
         /// <summary>Desktop Connector state of the file on this PC.</summary>
         public DcFileState Dc { get; init; }
 
-        /// <summary>Whether the loaded copy is the latest.</summary>
-        public LatestState Latest { get; init; }
+        /// <summary>Where the link comes from.</summary>
+        public LinkOrigin Origin { get; init; }
+
+        private LatestState _latest;
+        private string _latestReason = "";
+
+        /// <summary>Whether the loaded copy is the latest. Cloud rows change it when the cloud check runs.</summary>
+        public LatestState Latest
+        {
+            get => _latest;
+            set
+            {
+                if (!SetProperty(ref _latest, value)) return;
+                OnPropertyChanged(nameof(LatestText));
+                OnPropertyChanged(nameof(IsProblem));
+            }
+        }
 
         /// <summary>Why <see cref="Latest"/> has its value, shown in the detail panel.</summary>
-        public string LatestReason { get; init; } = "";
+        public string LatestReason
+        {
+            get => _latestReason;
+            set => SetProperty(ref _latestReason, value ?? "");
+        }
+
+        /// <summary>True for a link that is not a file on this PC (ACC cloud or BIM 360).</summary>
+        public bool IsCloud => Origin != LinkOrigin.DesktopConnector;
+
+        /// <summary>True when a file exists on this PC to pin, open or compare.</summary>
+        public bool HasLocalFile => !IsCloud && Dc != DcFileState.Missing;
+
+        /// <summary>Text for the "Source" column.</summary>
+        public string SourceText => Origin switch
+        {
+            LinkOrigin.DesktopConnector => "Desktop Connector",
+            LinkOrigin.AccCloud => "ACC cloud",
+            LinkOrigin.AccCloudOtherProject => "ACC cloud (other project)",
+            _ => "BIM 360 (legacy)"
+        };
 
         /// <summary>Local file's last-modified time, or null when there is no file.</summary>
         public DateTime? FileDate { get; init; }
@@ -129,6 +180,7 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V006.Core.Models
             DcFileState.SyncPending => "Sync pending",
             DcFileState.NotCloudFile => "Not a cloud file",
             DcFileState.Missing => "Not on this PC",
+            DcFileState.CloudOnly => "Cloud link",
             _ => "Unknown"
         };
 
@@ -139,6 +191,7 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V006.Core.Models
             LatestState.ReloadNeeded => "Reload needed",
             LatestState.SyncPending => "Sync pending",
             LatestState.NotLoaded => "—",
+            LatestState.NotChecked => "Not checked",
             _ => "Unknown"
         };
 
@@ -151,6 +204,7 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V006.Core.Models
             DcFileState.SyncPending => "Desktop Connector has not finished syncing this file.",
             DcFileState.NotCloudFile => "The file is in the Desktop Connector folder but Windows does not report it as a cloud file.",
             DcFileState.Missing => "There is no file at this path on this PC.",
+            DcFileState.CloudOnly => "An ACC cloud link: there is no file on this PC; Revit fetches it from ACC when the link loads.",
             _ => "Windows did not report a sync state for this file."
         };
 
@@ -168,8 +222,9 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V006.Core.Models
             DcFileState.OnlineOnly => 2,
             DcFileState.NotCloudFile => 3,
             DcFileState.Unknown => 4,
-            DcFileState.AvailableLocally => 5,
-            _ => 6
+            DcFileState.CloudOnly => 5,
+            DcFileState.AvailableLocally => 6,
+            _ => 7
         };
 
         /// <summary>True for loaded links in a normal state.</summary>
