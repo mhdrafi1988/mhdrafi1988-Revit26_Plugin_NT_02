@@ -8,13 +8,13 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V006.Core.Services
     public static class LinkStatusExporter
     {
         /// <summary>Report format version, written to the "Info" sheet. Bump when columns change (append only).</summary>
-        public const int FormatVersion = 1;
+        public const int FormatVersion = 2;   // 2: appended "Source" column
 
         /// <summary>Column headers, in order. New columns go at the end.</summary>
         public static readonly string[] Columns =
         {
             "Link name", "In model", "On this PC (Desktop Connector)", "Latest from ACC?", "Folder in ACC",
-            "Local file date", "Size (MB)", "Instances", "Edited by", "Full path", "Note"
+            "Local file date", "Size (MB)", "Instances", "Edited by", "Full path", "Note", "Source"
         };
 
         /// <summary>Saves <paramref name="rows"/> to <paramref name="path"/>. Throws on I/O failure (caller reports it).</summary>
@@ -40,6 +40,7 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V006.Core.Services
                 ws.Cell(r, 9).Value = row.OwnedBy;
                 ws.Cell(r, 10).Value = row.FullPath;
                 ws.Cell(r, 11).Value = row.LatestReason;
+                ws.Cell(r, 12).Value = row.SourceText;
                 r++;
             }
 

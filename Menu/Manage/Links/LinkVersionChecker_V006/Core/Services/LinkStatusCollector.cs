@@ -13,7 +13,7 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V006.Core.Services
         /// <summary>Top-level Revit links stored under the Desktop Connector folder.</summary>
         public List<LinkStatusRow> Rows { get; } = new();
 
-        /// <summary>Top-level Revit links that are not in the Desktop Connector folder (hidden from the grid).</summary>
+        /// <summary>Top-level Revit links that do not come from ACC (hidden from the grid).</summary>
         public int OtherLinks { get; set; }
 
         /// <summary>The Desktop Connector project folder of the links (most common one), or empty.</summary>
@@ -51,6 +51,7 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V006.Core.Services
             }
 
             var roots = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            string hostProjectId = AccCloudProbe.HostProjectId(doc);
 
             foreach (RevitLinkType type in new FilteredElementCollector(doc).OfClass(typeof(RevitLinkType)))
             {
@@ -62,7 +63,27 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V006.Core.Services
                     string path = LinkPath(doc, type);
                     if (!DesktopConnectorProbe.IsDesktopConnectorPath(path))
                     {
-                        scan.OtherLinks++;
+                        // Not a Desktop Connector file: an ACC cloud link has no file path at all.
+                        CloudLinkInfo cloud = path.Length == 0 ? AccCloudProbe.Read(doc, type, hostProjectId) : null;
+                        if (cloud == null) { scan.OtherLinks++; continue; }
+
+                        ModelLoadState cmodel = MapStatus(type);
+                        scan.Rows.Add(new LinkStatusRow
+                        {
+                            TypeId = type.Id,
+                            Name = cloud.FileName,
+                            FullPath = cloud.InSessionPath,
+                            AccFolder = cloud.Folder,
+                            Origin = cloud.Origin,
+                            Model = cmodel,
+                            Dc = DcFileState.CloudOnly,
+                            Latest = cmodel == ModelLoadState.Loaded ? LatestState.NotChecked : LatestState.NotLoaded,
+                            LatestReason = cmodel == ModelLoadState.Loaded
+                                ? "Press Check ACC status to ask ACC whether the loaded copy is the current version."
+                                : "The link is not loaded, so there is no loaded copy to compare.",
+                            Instances = instanceCount.TryGetValue(type.Id, out int ck) ? ck : 0,
+                            OwnedBy = OwnerIfOther(doc, type.Id)
+                        });
                         continue;
                     }
 

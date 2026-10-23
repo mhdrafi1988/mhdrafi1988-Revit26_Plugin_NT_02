@@ -2,7 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:v="clr-namespace:Revit26_Plugin_Revised.LinkVersionChecker.V006.UI.Views"
-        Title="Link Version Checker — ACC Desktop Connector links"
+        Title="Link Version Checker — ACC links"
         Width="1240" Height="800" MinWidth="900" MinHeight="560"
         WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
         FontFamily="Segoe UI" FontSize="12.5" Background="White" Foreground="#1F2937">
@@ -121,6 +121,9 @@
                 <DataTrigger Binding="{Binding DcText}" Value="Online only">
                     <Setter Property="ContentTemplate" Value="{StaticResource IconOnline}"/>
                 </DataTrigger>
+                <DataTrigger Binding="{Binding DcText}" Value="Cloud link">
+                    <Setter Property="ContentTemplate" Value="{StaticResource IconOnline}"/>
+                </DataTrigger>
                 <DataTrigger Binding="{Binding DcText}" Value="Sync pending">
                     <Setter Property="ContentTemplate" Value="{StaticResource IconSync}"/>
                 </DataTrigger>
@@ -189,11 +192,13 @@
         <Border Grid.Row="0" BorderBrush="{StaticResource Line}" BorderThickness="0,0,0,1" Padding="16,12">
             <DockPanel>
                 <Button DockPanel.Dock="Right" Style="{StaticResource Btn}" Margin="0" Content="Export to Excel" Command="{Binding ExportCommand}"/>
+                <Button DockPanel.Dock="Right" Style="{StaticResource Btn}" Content="Check ACC status" Command="{Binding CheckCloudCommand}"
+                        ToolTip="Ask ACC whether each loaded ACC cloud link is the current version. Needs a network connection and an Autodesk sign-in."/>
                 <Button DockPanel.Dock="Right" Style="{StaticResource BtnPrimary}" Content="Refresh" Command="{Binding RefreshCommand}"/>
                 <StackPanel>
                     <TextBlock Text="{Binding HostName}" FontSize="15" FontWeight="SemiBold"/>
                     <TextBlock Foreground="{StaticResource Grey}" TextTrimming="CharacterEllipsis">
-                        <Run Text="Desktop Connector project folder:"/>
+                        <Run Text="Desktop Connector folder:"/>
                         <Run Text="{Binding ProjectRoot, Mode=OneWay}"/>
                     </TextBlock>
                 </StackPanel>
@@ -203,6 +208,18 @@
         <!-- Count tiles (each one is a filter) -->
         <Border Grid.Row="1" BorderBrush="{StaticResource Line}" BorderThickness="0,0,0,1" Padding="16,10">
             <WrapPanel>
+                <StackPanel Margin="0,0,20,0">
+                    <TextBlock Style="{StaticResource GroupLabel}" Text="SOURCE"/>
+                    <StackPanel Orientation="Horizontal">
+                        <Button Style="{StaticResource Tile}" Tag="SrcDc" ToolTip="Files in an ACCDocs (Desktop Connector) folder">
+                            <StackPanel><TextBlock Style="{StaticResource TileNum}" Text="{Binding DesktopConnectorCount}"/><TextBlock Text="Desktop Connector"/></StackPanel>
+                        </Button>
+                        <Button Style="{StaticResource Tile}" Tag="SrcCloud" ToolTip="Links added from ACC (Autodesk Docs): no file on this PC">
+                            <StackPanel><TextBlock Style="{StaticResource TileNum}" Text="{Binding CloudCount}"/><TextBlock Text="ACC cloud"/></StackPanel>
+                        </Button>
+                    </StackPanel>
+                </StackPanel>
+
                 <StackPanel Margin="0,0,20,0">
                     <TextBlock Style="{StaticResource GroupLabel}" Text="IN THE MODEL"/>
                     <StackPanel Orientation="Horizontal">
@@ -321,6 +338,7 @@
                 </DataGrid.ContextMenu>
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Link name" Binding="{Binding Name}" Width="2*"/>
+                    <DataGridTextColumn Header="Source" Binding="{Binding SourceText}" Width="130"/>
                     <DataGridTemplateColumn Header="In model" Width="130" SortMemberPath="ModelText">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
@@ -367,7 +385,7 @@
             <TextBlock Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVis}}"
                        HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center"
                        Foreground="{StaticResource Grey}" FontSize="14" TextWrapping="Wrap" MaxWidth="520"
-                       Text="This model has no Revit links from Desktop Connector. Only .rvt links stored under an ACCDocs folder are listed."/>
+                       Text="This model has no Revit links from ACC. Listed: .rvt links in an ACCDocs (Desktop Connector) folder, and ACC cloud links."/>
         </Grid>
 
         <!-- Selected link: details and actions -->
