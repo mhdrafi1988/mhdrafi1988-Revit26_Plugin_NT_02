@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using Revit26_Plugin_Revised.LinkVersionChecker.V007.Core.Models;
@@ -25,6 +26,13 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V007.Core.Services
         /// <summary>List links that are not in ACC as well. Default off (V006 never listed them).  [V007]</summary>
         public bool ShowOtherLinks { get; set; }
 
+        /// <summary>
+        /// Extra Desktop Connector ACCDocs folders to look in for the local copy of a cloud link,
+        /// tried after <c>%USERPROFILE%\DC\ACCDocs</c> and <c>%USERPROFILE%\ACCDocs</c>.
+        /// Environment variables are expanded. Default empty.  [7.1.0]
+        /// </summary>
+        public List<string> DesktopConnectorRoots { get; set; } = new();
+
         private static string Folder => Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             "Revit26_Plugin_Revised", "LinkVersionChecker");
@@ -44,6 +52,7 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V007.Core.Services
                 var s = JsonSerializer.Deserialize<LinkStatusSettings>(File.ReadAllText(file)) ?? new LinkStatusSettings();
                 s.Version = 1;
                 if (!Enum.IsDefined(typeof(FolderDisplayMode), s.FolderMode)) s.FolderMode = FolderDisplayMode.LastN;
+                s.DesktopConnectorRoots ??= new List<string>();
                 s.FolderDepth = Math.Clamp(s.FolderDepth, FolderDisplay.MinDepth, FolderDisplay.MaxDepth);
                 return s;
             }

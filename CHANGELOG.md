@@ -9,6 +9,31 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.10.0] — 2026-10-23
+
+### Changed
+- **Link Version Checker v7.1.0 (V007)**
+  - **Cloud links show their Desktop Connector status.** A link saved as `Autodesk Docs://<Account>/<Project>/…` is
+    matched to the copy Desktop Connector keeps on this PC, under `%USERPROFILE%\DC\ACCDocs` (Desktop Connector 16+)
+    or `%USERPROFILE%\ACCDocs`. Extra folders can be listed in `DesktopConnectorRoots` in `settings_v007.json`. That
+    copy's Explorer state (Always kept, Available locally, Online only, Sync pending) now fills **On this PC (DC)** and
+    the count tiles; in 7.0.0 every cloud link showed "Cloud model". A cloud link with no copy shows **No DC copy** and
+    counts under the renamed **Missing / no DC copy** tile. Nothing is downloaded: only the folder entry is read.
+  - **Latest from ACC?** shows the status and then the date and time of the latest version, e.g. *Yes · 06-10-2026 09:36*.
+    The date is the Desktop Connector file's "Date modified", the same as Explorer's; hover it to see which file it came
+    from. While a file is still syncing, the date can lag behind ACC.
+  - **Always keep on this device** and **Open folder** also work on cloud links that have a Desktop Connector copy, and
+    act on that copy.
+  - The selected row's text is white, so *Latest from ACC?*, *In model* and *Source* stay readable on the selection.
+
+### Removed
+- **Link Version Checker v7.1.0** — the **ACC project** and **Local file date** grid columns. The date now sits in
+  *Latest from ACC?*. The ACC project filter, the "other project" note in the detail panel and every Excel export column
+  stay; the export's *Local file date* now also has a date for cloud links with a Desktop Connector copy.
+
+**User note:** cloud links now count in the *On this PC* tiles. The plugin version goes from 6.8.0 (where `main` had it)
+to 6.10.0, after the 6.9.0 in this changelog.
+
 ## [6.9.0] — 2026-10-23
 
 ### Added

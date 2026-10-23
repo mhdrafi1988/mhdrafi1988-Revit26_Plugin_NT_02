@@ -19,6 +19,12 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V007.Core.Services
         /// <summary>The Desktop Connector project folder of the links (most common one), or empty.</summary>
         public string ProjectRoot { get; set; } = "";
 
+        /// <summary>The Desktop Connector ACCDocs folder the cloud links' copies were found in (most common), or empty.  [7.1.0]</summary>
+        public string DcRoot { get; set; } = "";
+
+        /// <summary>Cloud links that have a Desktop Connector copy on this PC.  [7.1.0]</summary>
+        public int CloudWithCopy => Rows.Count(r => r.HasDcCopy);
+
         /// <summary>ACC project of the open model, or empty when the model is not in ACC.  [V007]</summary>
         public string HostProject { get; set; } = "";
 
@@ -44,8 +50,12 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V007.Core.Services
             public string ModelId = "";
         }
 
-        /// <summary>Scans <paramref name="doc"/>. Never throws for one bad link; skips it with a reason.</summary>
-        public static LinkStatusScan Scan(Document doc)
+        /// <summary>
+        /// Scans <paramref name="doc"/>. Cloud links are matched to their Desktop Connector copy
+        /// under the default ACCDocs folders and <paramref name="extraDcRoots"/>. Never throws for
+        /// one bad link; skips it with a reason.
+        /// </summary>
+        public static LinkStatusScan Scan(Document doc, IEnumerable<string> extraDcRoots = null)
         {
             var scan = new LinkStatusScan();
             if (doc == null) return scan;
@@ -94,6 +104,12 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V007.Core.Services
             scan.HostAccount = host.Account;
 
             var roots = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            var dcRootsUsed = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            List<string> dcRoots = DesktopConnectorProbe.ExistingRoots(extraDcRoots);
+            string lookedIn = dcRoots.Count > 0
+                ? "Desktop Connector copy: none found under " + string.Join(" or ", dcRoots)
+                : "Desktop Connector copy: no ACCDocs folder on this PC (looked for " +
+                  string.Join(" and ", DesktopConnectorProbe.DefaultRoots) + ")";
 
             foreach (var (type, lr) in refs)
             {
@@ -106,6 +122,22 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V007.Core.Services
                     if (lr.Cloud)
                     {
                         AccPathParts parts = AccPath.ParseCloud(lr.Path, knownProjects.Contains);
+
+                        // The same file synced by Desktop Connector, if this PC has it: its
+                        // Explorer state and date stand for the latest version in ACC.
+                        string copy = DesktopConnectorProbe.FindLocalCopy(lr.Path, dcRoots);
+                        DcFileState copyState = DcFileState.NoDcCopy;
+                        DateTime? copyDate = null;
+                        double? copySize = null;
+                        if (copy.Length > 0)
+                        {
+                            copyState = DesktopConnectorProbe.GetState(copy);
+                            var cfi = new FileInfo(copy);
+                            if (cfi.Exists) { copyDate = cfi.LastWriteTime; copySize = cfi.Length / 1048576.0; }
+                            string usedRoot = dcRoots.FirstOrDefault(r => copy.StartsWith(r + "\\", StringComparison.OrdinalIgnoreCase)) ?? "";
+                            if (usedRoot.Length > 0) dcRootsUsed[usedRoot] = dcRootsUsed.TryGetValue(usedRoot, out int u) ? u + 1 : 1;
+                        }
+
                         scan.Rows.Add(new LinkStatusRow
                         {
                             TypeId = type.Id,
@@ -118,8 +150,12 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V007.Core.Services
                             CloudProjectId = lr.ProjectId,
                             CloudModelId = lr.ModelId,
                             AccFolder = parts.Folder,
+                            LocalPath = copy,
+                            DcCopyNote = copy.Length > 0 ? "" : lookedIn,
+                            FileDate = copyDate,
+                            SizeMb = copySize,
                             Model = model,
-                            Dc = DcFileState.CloudModel,
+                            Dc = copyState,
                             Latest = model == ModelLoadState.Loaded ? LatestState.NotChecked : LatestState.NotLoaded,
                             LatestReason = model == ModelLoadState.Loaded
                                 ? "Press Check cloud versions to ask ACC whether this is the current version."
@@ -140,6 +176,7 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V007.Core.Services
                             TypeId = type.Id,
                             Name = path.Length > 0 ? Path.GetFileName(path) : SafeName(type),
                             FullPath = path,
+                            LocalPath = path,
                             Source = LinkSourceKind.Other,
                             AccFolder = SafeDirectory(path),
                             Model = model,
@@ -171,6 +208,7 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V007.Core.Services
                         TypeId = type.Id,
                         Name = Path.GetFileName(path),
                         FullPath = path,
+                        LocalPath = path,
                         Source = LinkSourceKind.DesktopConnector,
                         AccAccount = dcParts.Account,
                         AccProject = dcParts.Project,
@@ -193,6 +231,8 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V007.Core.Services
             }
 
             scan.ProjectRoot = roots.OrderByDescending(r => r.Value).Select(r => r.Key).FirstOrDefault() ?? "";
+            scan.DcRoot = dcRootsUsed.OrderByDescending(r => r.Value).Select(r => r.Key).FirstOrDefault()
+                          ?? dcRoots.FirstOrDefault() ?? "";
             scan.Rows.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase));
             return scan;
         }

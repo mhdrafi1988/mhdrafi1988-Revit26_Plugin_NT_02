@@ -153,8 +153,8 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                 "Revit26_Plugin_Revised.LinkVersionChecker.V007.Commands.CmdLinkStatus",
                 "Manage.ParaManager_16.png", "Link Version Checker", "V007",
                 "Status of RVT links from ACC, both Desktop Connector files and Autodesk Docs cloud links: loaded or unloaded, " +
-                "synced on this PC, latest version loaded (Check cloud versions asks ACC). Filter by source, ACC project, folder, " +
-                "load state and latest state.");
+                "synced on this PC (cloud links through their Desktop Connector copy), latest version loaded and its date " +
+                "(Check cloud versions asks ACC). Filter by source, ACC project, folder, load state and latest state.");
 
             var linkMemoryV001 = Btn(assemblyPath, "Btn_LinkMemory_V001", "Link Memory",
                 "Revit26_Plugin_Revised.LinkMemory.V001.Commands.LinkMemoryCommand",

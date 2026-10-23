@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using Revit26_Plugin_Revised.LinkVersionChecker.V007.Core.Models;
 
@@ -26,6 +28,70 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V007.Core.Services
 
         // CF_PLACEHOLDER_STATE (cfapi.h)
         private const uint CfPlaceholder = 0x1, CfInSync = 0x8, CfPartial = 0x10, CfInvalid = 0xFFFFFFFF;
+
+        /// <summary>
+        /// Where Desktop Connector keeps its ACCDocs folder, in the order tried: Desktop Connector
+        /// 16+ first, then older versions. Extra roots from the settings file are tried after these.  [7.1.0]
+        /// </summary>
+        public static readonly string[] DefaultRoots =
+        {
+            @"%USERPROFILE%\DC\ACCDocs",
+            @"%USERPROFILE%\ACCDocs"
+        };
+
+        /// <summary>
+        /// The Desktop Connector roots that exist on this PC: <see cref="DefaultRoots"/>, then
+        /// <paramref name="extraRoots"/>, with environment variables expanded and duplicates removed.  [7.1.0]
+        /// </summary>
+        public static List<string> ExistingRoots(IEnumerable<string> extraRoots)
+        {
+            var roots = new List<string>();
+            foreach (string r in DefaultRoots.Concat(extraRoots ?? Enumerable.Empty<string>()))
+            {
+                if (string.IsNullOrWhiteSpace(r)) continue;
+                string e;
+                try { e = Environment.ExpandEnvironmentVariables(r.Trim()).TrimEnd('\\', '/'); } catch { continue; }
+                if (e.IndexOf('%') >= 0 || roots.Contains(e, StringComparer.OrdinalIgnoreCase)) continue;
+                try { if (Directory.Exists(e)) roots.Add(e); } catch { /* unreadable root */ }
+            }
+            return roots;
+        }
+
+        /// <summary>
+        /// The Desktop Connector copy of a cloud link on this PC, or empty when there is none.
+        /// Desktop Connector mirrors <c>Autodesk Docs://&lt;Account&gt;/&lt;Project&gt;/…</c> as
+        /// <c>&lt;root&gt;\&lt;Account&gt;\&lt;Project&gt;\…</c>; for a path saved without the account,
+        /// each account folder under the root is tried too. Reads folder entries only, so an
+        /// online-only copy is not downloaded. Never throws.  [7.1.0]
+        /// </summary>
+        public static string FindLocalCopy(string cloudPath, IReadOnlyList<string> roots)
+        {
+            string rel = AccPath.CloudRelativePath(cloudPath);
+            if (rel.Length == 0 || roots == null) return "";
+            foreach (string root in roots)
+            {
+                try
+                {
+                    string direct = Path.Combine(root, rel);
+                    if (Exists(direct)) return direct;
+                    foreach (string account in Directory.EnumerateDirectories(root))
+                    {
+                        string nested = Path.Combine(account, rel);
+                        if (Exists(nested)) return nested;
+                    }
+                }
+                catch { /* unreadable root: try the next one */ }
+            }
+            return "";
+        }
+
+        private static bool Exists(string path)
+        {
+            IntPtr h = FindFirstFileW(path, out _);
+            if (h == InvalidHandle) return false;
+            FindClose(h);
+            return true;
+        }
 
         /// <summary>True when <paramref name="path"/> is inside a Desktop Connector "ACCDocs" folder.</summary>
         public static bool IsDesktopConnectorPath(string path) =>

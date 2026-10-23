@@ -57,7 +57,7 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V007.UI.ViewModels
             ["SrcDc"] = "Desktop Connector", ["SrcCloud"] = "Cloud link", ["SrcOther"] = "Other path",
             ["Loaded"] = "Loaded", ["Unloaded"] = "Unloaded", ["NotFound"] = "Not found",
             ["AlwaysKept"] = "Always kept", ["Available"] = "Available locally", ["OnlineOnly"] = "Online only",
-            ["SyncPending"] = "Sync pending", ["OtherDc"] = "Missing / other",
+            ["SyncPending"] = "Sync pending", ["OtherDc"] = "Missing / no DC copy",
             ["UpToDate"] = "Up to date", ["ReloadNeeded"] = "Reload needed", ["LatestUnknown"] = "Unknown",
             ["NotChecked"] = "Not checked"
         };
@@ -76,6 +76,7 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V007.UI.ViewModels
         private IReadOnlyList<LinkStatusRow> _selection = Array.Empty<LinkStatusRow>();
         private string _status = "";
         private string _projectRoot = "";
+        private int _cloudWithCopy;
         private string _hostProject = "";
         private string _hostAccount = "";
         private DateTime _lastRefresh;
@@ -104,8 +105,8 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V007.UI.ViewModels
             ReloadCommand = new RelayCommand(() => RunOnSingle(r => LinkStatusActions.Reload(_doc, r)), () => _selection.Count == 1);
             UnloadCommand = new RelayCommand(() => RunOnSingle(r => LinkStatusActions.Unload(_doc, r)), () => _selection.Count == 1 && _selection[0].IsLoaded);
             AlwaysKeepCommand = new RelayCommand(AlwaysKeep,
-                () => _selection.Any(r => r.IsDesktopConnector && r.Dc is not (DcFileState.AlwaysKept or DcFileState.Missing)));
-            OpenFolderCommand = new RelayCommand(OpenFolders, () => _selection.Any(r => !r.IsCloud));
+                () => _selection.Any(r => r.IsDcManaged && r.Dc is not (DcFileState.AlwaysKept or DcFileState.Missing)));
+            OpenFolderCommand = new RelayCommand(OpenFolders, () => _selection.Any(r => r.HasLocalFile));
             CopyPathCommand = new RelayCommand(() => Status = LinkStatusActions.CopyPaths(_selection), () => _selection.Count > 0);
             FolderLessCommand = new RelayCommand(() => FolderDepth--, () => FolderDepth > FolderDisplay.MinDepth);
             FolderMoreCommand = new RelayCommand(() => FolderDepth++, () => FolderDepth < FolderDisplay.MaxDepth);
@@ -190,9 +191,10 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V007.UI.ViewModels
         /// <summary>Rows the grid can show at all: ACC links, plus other links when they are shown.</summary>
         private int ListedCount => Rows.Count(r => ShowOtherLinks || r.Source != LinkSourceKind.Other);
 
-        /// <summary>"9 from Desktop Connector · 5 cloud links · 2 other RVT links hidden (not ACC)".</summary>
+        /// <summary>"9 from Desktop Connector · 5 cloud links (4 with a DC copy) · 2 other RVT links hidden (not ACC)".</summary>
         public string FooterText =>
             $"{DcLinks} from Desktop Connector · {CloudLinks} cloud link{(CloudLinks == 1 ? "" : "s")}" +
+            (CloudLinks > 0 ? $" ({_cloudWithCopy} with a DC copy)" : "") +
             (OtherLinks == 0 ? "" :
              ShowOtherLinks ? $" · {OtherLinks} other" :
              $" · {OtherLinks} other RVT link{(OtherLinks == 1 ? "" : "s")} hidden (not ACC)") +
@@ -236,7 +238,7 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V007.UI.ViewModels
         public int OnlineOnlyCount => Base.Count(r => r.Dc == DcFileState.OnlineOnly);
         /// <summary>Files Desktop Connector is still syncing.</summary>
         public int SyncPendingCount => Base.Count(r => r.Dc == DcFileState.SyncPending);
-        /// <summary>Desktop Connector files missing, not a cloud file, or of unknown state.</summary>
+        /// <summary>ACC links whose file is missing, not a cloud file, of unknown state, or (cloud links) have no Desktop Connector copy.</summary>
         public int OtherDcCount => Base.Count(IsOtherDc);
         /// <summary>Loaded links that are the latest.</summary>
         public int UpToDateCount => Base.Count(r => r.Latest == LatestState.UpToDate);
@@ -248,7 +250,8 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V007.UI.ViewModels
         public int NotCheckedCount => Base.Count(r => r.Latest == LatestState.NotChecked);
 
         private static bool IsOtherDc(LinkStatusRow r) =>
-            r.IsDesktopConnector && r.Dc is DcFileState.Missing or DcFileState.NotCloudFile or DcFileState.Unknown;
+            r.Source != LinkSourceKind.Other &&
+            r.Dc is DcFileState.Missing or DcFileState.NotCloudFile or DcFileState.Unknown or DcFileState.NoDcCopy;
 
         // ---------------------------------------------------------------- folder display
 
@@ -599,14 +602,17 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V007.UI.ViewModels
             var keepIds = new HashSet<ElementId>(_selection.Select(r => r.TypeId));
             LinkStatusScan scan;
             Mouse.OverrideCursor = Cursors.Wait;
-            try { scan = LinkStatusCollector.Scan(_doc); }
+            try { scan = LinkStatusCollector.Scan(_doc, _settings.DesktopConnectorRoots); }
             finally { Mouse.OverrideCursor = null; }
 
             Rows.Clear();
             foreach (LinkStatusRow r in scan.Rows) Rows.Add(r);
             ApplyFolderDisplay();
 
-            ProjectRoot = scan.ProjectRoot.Length > 0 ? scan.ProjectRoot : "none of this model's links are in an ACCDocs folder";
+            ProjectRoot = scan.DcRoot.Length > 0 ? scan.DcRoot
+                        : scan.ProjectRoot.Length > 0 ? scan.ProjectRoot
+                        : "no ACCDocs folder found on this PC";
+            _cloudWithCopy = scan.CloudWithCopy;
             _hostProject = scan.HostProject;
             _hostAccount = scan.HostAccount;
             OnPropertyChanged(nameof(HostProjectText));

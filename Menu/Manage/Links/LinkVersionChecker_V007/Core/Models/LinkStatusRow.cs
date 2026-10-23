@@ -53,8 +53,8 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V007.Core.Models
         Missing,
         /// <summary>Windows would not say (old Windows, access denied).</summary>
         Unknown,
-        /// <summary>A cloud link: Revit opens it from ACC, there is no file to sync.  [V007]</summary>
-        CloudModel,
+        /// <summary>A cloud link with no Desktop Connector copy on this PC.  [7.1.0]</summary>
+        NoDcCopy,
         /// <summary>A link that is not in ACC at all.  [V007]</summary>
         NotAcc
     }
@@ -117,6 +117,15 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V007.Core.Models
         /// <summary>Cloud model GUID of a cloud link, when Revit reports it.  [V007]</summary>
         public string CloudModelId { get; init; } = "";
 
+        /// <summary>
+        /// The file on this PC: the link's own path, or for a cloud link its Desktop Connector
+        /// copy. Empty for a cloud link without a copy.  [7.1.0]
+        /// </summary>
+        public string LocalPath { get; init; } = "";
+
+        /// <summary>For a cloud link without a copy: where it was looked for (detail panel).  [7.1.0]</summary>
+        public string DcCopyNote { get; init; } = "";
+
         /// <summary>Folder inside the ACC project ("02_ARC\Models"), or the parent folder when no project root is found.</summary>
         public string AccFolder { get; init; } = "";
 
@@ -152,7 +161,11 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V007.Core.Models
             set => SetProperty(ref _latestReason, value ?? "");
         }
 
-        /// <summary>Local file's last-modified time, or null when there is no file.</summary>
+        /// <summary>
+        /// Last-modified time of the file on this PC (for a cloud link, of its Desktop Connector
+        /// copy): the date of the latest version Desktop Connector has from ACC. Null when there
+        /// is no file. Read from the folder entry, so nothing is downloaded.
+        /// </summary>
         public DateTime? FileDate { get; init; }
 
         /// <summary>File size in MB (logical size; an online-only file still reports its full size).</summary>
@@ -194,7 +207,7 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V007.Core.Models
             DcFileState.SyncPending => "Sync pending",
             DcFileState.NotCloudFile => "Not a cloud file",
             DcFileState.Missing => "Not on this PC",
-            DcFileState.CloudModel => "Cloud model",
+            DcFileState.NoDcCopy => "No DC copy",
             DcFileState.NotAcc => "Not ACC",
             _ => "Unknown"
         };
@@ -219,7 +232,7 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V007.Core.Models
         public string SameProjectText => SameProject switch { true => "Yes", false => "No", _ => "" };
 
         /// <summary>One line explaining the Desktop Connector state, for the detail panel.</summary>
-        public string DcExplain => Dc switch
+        public string DcExplain => (HasDcCopy ? "Desktop Connector copy of this cloud link: " : "") + Dc switch
         {
             DcFileState.AlwaysKept => "Always kept on this device — Desktop Connector keeps the latest version downloaded.",
             DcFileState.AvailableLocally => "Downloaded, but not set to always keep — Windows may turn it back into an online-only file.",
@@ -227,7 +240,7 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V007.Core.Models
             DcFileState.SyncPending => "Desktop Connector has not finished syncing this file.",
             DcFileState.NotCloudFile => "The file is in the Desktop Connector folder but Windows does not report it as a cloud file.",
             DcFileState.Missing => "There is no file at this path on this PC.",
-            DcFileState.CloudModel => "A cloud link — Revit opens it straight from ACC, so there is no Desktop Connector file to sync.",
+            DcFileState.NoDcCopy => "No Desktop Connector copy of this cloud link was found on this PC — Revit opens it straight from ACC.",
             DcFileState.NotAcc => "Not an ACC link — the file is on a network share or this PC.",
             _ => "Windows did not report a sync state for this file."
         };
@@ -255,6 +268,26 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V007.Core.Models
         /// <summary>Local file date for the grid.</summary>
         public string FileDateText => FileDate?.ToString("dd-MM-yyyy HH:mm") ?? "—";
 
+        /// <summary>True when the link has a file on this PC (a cloud link: its Desktop Connector copy).  [7.1.0]</summary>
+        public bool HasLocalFile => LocalPath.Length > 0;
+
+        /// <summary>True when a cloud link has a Desktop Connector copy on this PC.  [7.1.0]</summary>
+        public bool HasDcCopy => IsCloud && HasLocalFile;
+
+        /// <summary>True when the file is managed by Desktop Connector: a Desktop Connector link, or a cloud link's copy.  [7.1.0]</summary>
+        public bool IsDcManaged => IsDesktopConnector || HasDcCopy;
+
+        /// <summary>Hover text for the date in "Latest from ACC?": what the date is and where it came from.  [7.1.0]</summary>
+        public string LatestDateTip =>
+            FileDate.HasValue
+                ? $"Latest version in ACC: {FileDateText} (Date modified of the Desktop Connector file, {LocalPath})"
+                : IsCloud ? "No Desktop Connector copy on this PC, so no date. The Revit API gives no date for a cloud link by itself."
+                : Source == LinkSourceKind.Other ? "Not an ACC link." : "There is no file on this PC.";
+
+        /// <summary>For a cloud link: its Desktop Connector copy, or where it was looked for. Empty for other links.  [7.1.0]</summary>
+        public string DcCopyText =>
+            !IsCloud ? "" : HasLocalFile ? "Desktop Connector copy: " + LocalPath : DcCopyNote;
+
         /// <summary>Size for the grid.</summary>
         public string SizeText => SizeMb.HasValue ? $"{SizeMb.Value:0} MB" : "—";
 
@@ -268,14 +301,14 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V007.Core.Models
             DcFileState.Unknown => 4,
             DcFileState.AvailableLocally => 5,
             DcFileState.AlwaysKept => 6,
-            DcFileState.CloudModel => 7,
+            DcFileState.NoDcCopy => 7,
             _ => 8
         };
 
         /// <summary>True for a link from Desktop Connector (has a file to pin).  [V007]</summary>
         public bool IsDesktopConnector => Source == LinkSourceKind.DesktopConnector;
 
-        /// <summary>True for a cloud link (no file or folder on this PC).  [V007]</summary>
+        /// <summary>True for a cloud link (its file on this PC, if any, is the Desktop Connector copy).  [V007]</summary>
         public bool IsCloud => Source == LinkSourceKind.Cloud;
 
         /// <summary>True for loaded links in a normal state.</summary>
@@ -291,7 +324,7 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V007.Core.Models
         /// <summary>True when something needs attention: not loaded, not kept on this PC, or not the latest.</summary>
         public bool IsProblem =>
             !IsLoaded ||
-            Dc is DcFileState.OnlineOnly or DcFileState.SyncPending or DcFileState.Missing ||
+            Dc is DcFileState.OnlineOnly or DcFileState.SyncPending or DcFileState.Missing or DcFileState.NoDcCopy ||
             Latest is LatestState.ReloadNeeded or LatestState.SyncPending or LatestState.NewerInAcc;
     }
 }

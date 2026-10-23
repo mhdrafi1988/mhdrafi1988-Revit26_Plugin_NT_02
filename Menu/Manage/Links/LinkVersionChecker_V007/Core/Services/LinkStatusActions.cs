@@ -73,8 +73,9 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V007.Core.Services
         }
 
         /// <summary>
-        /// Marks every Desktop Connector file in <paramref name="rows"/> "Always keep on this device".
-        /// Files already kept or not on this PC, cloud links and other links are skipped.
+        /// Marks every Desktop Connector file in <paramref name="rows"/> "Always keep on this device",
+        /// including the Desktop Connector copy of a cloud link. Files already kept or not on this
+        /// PC, cloud links without a copy and other links are skipped.
         /// Returns one status-bar line.
         /// </summary>
         public static string AlwaysKeep(IReadOnlyList<LinkStatusRow> rows)
@@ -85,8 +86,8 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V007.Core.Services
             var failed = new List<string>();
             foreach (LinkStatusRow row in rows)
             {
-                if (!row.IsDesktopConnector || row.Dc is DcFileState.AlwaysKept or DcFileState.Missing) { skipped++; continue; }
-                string err = DesktopConnectorProbe.Pin(row.FullPath);
+                if (!row.IsDcManaged || row.Dc is DcFileState.AlwaysKept or DcFileState.Missing) { skipped++; continue; }
+                string err = DesktopConnectorProbe.Pin(row.LocalPath);
                 if (err == null) done++;
                 else failed.Add($"{row.Name} ({err})");
             }
@@ -102,8 +103,8 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V007.Core.Services
 
         /// <summary>Distinct folders of <paramref name="rows"/>, so the caller can confirm before opening many windows.</summary>
         public static int FolderCount(IEnumerable<LinkStatusRow> rows) =>
-            rows?.Where(r => !r.IsCloud)
-                 .Select(r => SafeDirectory(r.FullPath))
+            rows?.Where(r => r.HasLocalFile)
+                 .Select(r => SafeDirectory(r.LocalPath))
                  .Where(d => d.Length > 0)
                  .Distinct(StringComparer.OrdinalIgnoreCase)
                  .Count() ?? 0;
@@ -111,21 +112,21 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V007.Core.Services
         /// <summary>
         /// Opens one Explorer window per distinct folder of <paramref name="rows"/>, with the
         /// selected files in that folder highlighted. A folder whose files are all missing opens
-        /// without a selection; a folder that does not exist is reported. Cloud links have no
-        /// folder on this PC and are skipped.
+        /// without a selection; a folder that does not exist is reported. A cloud link opens the
+        /// folder of its Desktop Connector copy; one without a copy is skipped.
         /// </summary>
         public static string OpenFolders(IReadOnlyList<LinkStatusRow> rows)
         {
             if (rows == null || rows.Count == 0) return "Select a link first.";
 
-            int opened = 0, cloud = rows.Count(r => r.IsCloud);
+            int opened = 0, cloud = rows.Count(r => !r.HasLocalFile);
             var missing = new List<string>();
-            foreach (var group in rows.Where(r => !r.IsCloud).GroupBy(r => SafeDirectory(r.FullPath), StringComparer.OrdinalIgnoreCase))
+            foreach (var group in rows.Where(r => r.HasLocalFile).GroupBy(r => SafeDirectory(r.LocalPath), StringComparer.OrdinalIgnoreCase))
             {
                 string dir = group.Key;
                 if (dir.Length == 0 || !Directory.Exists(dir)) { missing.Add(dir.Length == 0 ? group.First().Name : dir); continue; }
 
-                var files = group.Select(r => r.FullPath).Where(File.Exists).ToList();
+                var files = group.Select(r => r.LocalPath).Where(File.Exists).ToList();
                 try
                 {
                     if (files.Count == 0)
@@ -142,7 +143,7 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V007.Core.Services
 
             string msg = $"Opened {opened} folder{(opened == 1 ? "" : "s")}.";
             if (missing.Count > 0) msg += $" Not opened: {string.Join("; ", missing.Take(3))}{(missing.Count > 3 ? " …" : "")}.";
-            if (cloud > 0) msg += $" {cloud} cloud link{(cloud == 1 ? "" : "s")} skipped (no folder on this PC).";
+            if (cloud > 0) msg += $" {cloud} cloud link{(cloud == 1 ? "" : "s")} skipped (no Desktop Connector copy on this PC).";
             return msg;
         }
 
