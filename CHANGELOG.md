@@ -9,6 +9,31 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.12.0] — 2026-10-23
+
+### Added
+- **Detail Line Manager v2.0.0 (V002)** — new top entry in a **Line Manager** dropdown in the **Detail Lines** panel.
+  V001 stays below it, unchanged, now labelled *Line Manager (classic)*. V002 has everything V001 has, plus a
+  **Rename styles** tab:
+  - Lists the line styles used by the found lines, the styles ticked in the *Line styles* list, or every
+    non-built-in style.
+  - Rules, applied in order: **Find / Replace** (plain text or regular expression, match case), **Prefix**,
+    **Suffix**, **Case** (UPPER, lower, Title) and **Trim and collapse spaces**.
+  - A live preview shows the current and new name of each style, its line count and its status.
+  - **Duplicate check**: a new name already used by another style, or given to two styles, is flagged (names are
+    compared ignoring case, as Revit does). Choose **Skip it** (default) or **Add a number** — " (2)", " (3)" ….
+    Names with `` \ : { } [ ] | ; < > ? ` ~ ``, empty names and built-in styles are refused.
+  - Everything is checked again in Revit before the change (style renamed meanwhile, owned by another user,
+    name taken); swaps and case-only changes work.
+  - **Rename checked** / **Rename all valid** run as one transaction (one Ctrl+Z). If Revit refuses any rename,
+    every rename is rolled back and the reason is shown in a red banner on the tab and in the log.
+  - Settings are kept in `%AppData%\Revit26_Plugin_Revised\DetailLineManager_V002\settings.json` (format 3).
+    On first use V002 starts from the options saved by V001; the V001 file is not changed.
+- Unit tests for the rename rules and duplicate check: `dotnet test Tests/DetailLineManager.Tests`.
+
+**User note:** the Detail Lines panel's *Line Manager* button is now a dropdown; V002 is on top and V001
+(*Line Manager (classic)*) works as before.
+
 ## [6.11.0] — 2026-10-23
 
 ### Added

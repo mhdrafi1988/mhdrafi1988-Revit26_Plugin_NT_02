@@ -7,7 +7,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
 {
     /// <summary>
     /// Builds the Detail Lines panel: From Links, Closed Loop and Line Dims stacked in one column,
-    /// then Line Manager as a large button beside the stack (a stack holds at most three items).
+    /// then Line Manager as a large dropdown (V002, then V001) beside the stack (a stack holds at most three items).
     /// Replaces the one-button Detail Line Create, Detail Line Process and Dimensions panels
     /// (plugin 2.4.0) so Revit has room to show every button name.
     /// </summary>
@@ -56,7 +56,16 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             RibbonLayoutHelper.WirePulldownButton(items, "Pulldown_DetailLineClosedLoop", closedLoopV003, closedLoopV002);
             RibbonLayoutHelper.WirePulldownButton(items, DimensionsRibbon.DetailLineDimPulldownName, lineDimsVersions);
 
-            var lineManagerV001 = new PushButtonData("Btn_DetailLineManager_V001", "Line Manager", assemblyPath, "Revit26_Plugin_Revised.DetailLineManager.V001.Commands.DetailLineManagerCommand")
+            // Line Manager lists V002 first (it supplies the dropdown's icon), then V001.
+            var lineManagerV002 = new PushButtonData("Btn_DetailLineManager_V002", "Line Manager", assemblyPath, "Revit26_Plugin_Revised.DetailLineManager.V002.Commands.DetailLineManagerCommand")
+            {
+                Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.DetailLiner.CreateDetailLines_16.png"),
+                LargeImage = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.DetailLiner.CreateDetailLines_32.png"),
+                ToolTip = ToolCatalog.DetailLineManagerV002.Tip(
+                    "Everything in V001, plus a Rename styles tab: find/replace (regex), prefix, suffix and case for line styles, "
+                    + "with a preview that flags duplicate and invalid names before anything changes.")
+            };
+            var lineManagerV001 = new PushButtonData("Btn_DetailLineManager_V001", "Line Manager (classic)", assemblyPath, "Revit26_Plugin_Revised.DetailLineManager.V001.Commands.DetailLineManagerCommand")
             {
                 Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.DetailLiner.CreateDetailLines_16.png"),
                 LargeImage = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.DetailLiner.CreateDetailLines_32.png"),
@@ -65,7 +74,11 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                     + "and delete or join overlapping lines; attached dimensions and tags are shown before you confirm. "
                     + "Assign styles or change line weights (style, per-view override).")
             };
-            panel.AddItem(lineManagerV001);
+            PulldownButtonData lineManagerPulldown = RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_DetailLineManager", "Line Manager", lineManagerV002);
+            lineManagerPulldown.LargeImage = lineManagerV002.LargeImage;
+            var lineManagerItem = panel.AddItem(lineManagerPulldown);
+            RibbonLayoutHelper.WirePulldownButton(new List<RibbonItem> { lineManagerItem }, "Pulldown_DetailLineManager",
+                lineManagerV002, lineManagerV001);
         }
     }
 }
