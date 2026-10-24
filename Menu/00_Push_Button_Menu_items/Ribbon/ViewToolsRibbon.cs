@@ -47,19 +47,6 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             var roofViewFocusV004 = Btn(assemblyPath, "Btn_RoofViewFocus_V004", "Roof View Focus V004", "Revit26_Plugin_Revised.RoofViewFocus.V004.Commands.RoofViewFocusCommand",
                 "RoofViewFocus_16.png", "Roof View Focus", "V004", "V003" + OnShell);
 
-            // Pulldown buttons, unlike split buttons, are fine in a 4-item
-            // stack — so this is one call instead of a stack-of-2 + stack-of-2.
-            var createItems = RibbonLayoutHelper.AddStackedButtons(createPanel, new List<RibbonItemData>
-            {
-                RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_SectionsFromDetailLines", "From Lines", sectionsFromLinesV013),
-                RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_RoofEdgeAroundSections", "Around Edges", edgeAroundV007),
-                RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_RoofEdgeElementSections", "Edge Element", edgeElementV004),
-                RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_RoofViewFocus", "Roof Focus", roofViewFocusV004),
-            });
-            RibbonLayoutHelper.WirePulldownButton(createItems, "Pulldown_SectionsFromDetailLines", sectionsFromLinesV013, sectionsFromLinesV012);
-            RibbonLayoutHelper.WirePulldownButton(createItems, "Pulldown_RoofEdgeAroundSections", edgeAroundV007, edgeAroundV006);
-            RibbonLayoutHelper.WirePulldownButton(createItems, "Pulldown_RoofEdgeElementSections", edgeElementV004, edgeElementV003);
-            RibbonLayoutHelper.WirePulldownButton(createItems, "Pulldown_RoofViewFocus", roofViewFocusV004, roofViewFocusV003);
 
             // One version only, so a plain large button (not a pulldown).
             var isolatedSectionV001 = Btn(assemblyPath, "Btn_IsolatedSection_V001", "Isolated\nSection", "Revit26_Plugin_Revised.IsolatedSection.V001.Commands.IsolatedSectionCommand",
@@ -69,7 +56,22 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                 "Makes one 3D view of the selected elements (host or linked): the section box is turned to be " +
                 "parallel to the largest side of any of them (or a side or face you choose), the camera faces " +
                 "that side, and the elements are isolated (temporary by default).");
-            createPanel.AddItem(isolatedSectionV001);
+            // Slide-out (plugin 6.13.0): Roof Focus and Isolated Section sit inside the panel's arrow.
+            // This call comes after isolatedSectionV001 is defined above it.
+            var createItems = RibbonLayoutHelper.AddStackedButtonsWithSlideOut(createPanel, new List<RibbonItemData>
+            {
+                RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_SectionsFromDetailLines", "From Lines", sectionsFromLinesV013),
+                RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_RoofEdgeAroundSections", "Around Edges", edgeAroundV007),
+                RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_RoofEdgeElementSections", "Edge Element", edgeElementV004),
+            }, new List<RibbonItemData>
+            {
+                RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_RoofViewFocus", "Roof Focus", roofViewFocusV004),
+                isolatedSectionV001,
+            });
+            RibbonLayoutHelper.WirePulldownButton(createItems, "Pulldown_SectionsFromDetailLines", sectionsFromLinesV013, sectionsFromLinesV012);
+            RibbonLayoutHelper.WirePulldownButton(createItems, "Pulldown_RoofEdgeAroundSections", edgeAroundV007, edgeAroundV006);
+            RibbonLayoutHelper.WirePulldownButton(createItems, "Pulldown_RoofEdgeElementSections", edgeElementV004, edgeElementV003);
+            RibbonLayoutHelper.WirePulldownButton(createItems, "Pulldown_RoofViewFocus", roofViewFocusV004, roofViewFocusV003);
 
             RibbonPanel placePanel = app.CreateRibbonPanel(tabName, "View Place");
 

@@ -41,6 +41,11 @@ done until it builds with 0 errors. Running it still needs Revit on Windows.
   number first, every older version below it in descending order — never "current version first".
   The highest version is also the one that supplies the pulldown button's own icon (the `primary`
   argument to `CreatePulldownButtonData`).
+- **Slide-out:** a panel gets a slide-out (`panel.AddSlideOut()`, the arrow on the panel title bar)
+  wherever one is needed and possible, for example for rarely used, advanced, settings or help
+  tools that would crowd the visible panel. Never add one on your own: discuss it with the owner
+  first (which panel, which tools go inside), then add it. A panel has at most one slide-out, and
+  everything added after `AddSlideOut()` goes inside it.
 - **Entry points:** every `IExternalCommand.Execute` and `IExternalEventHandler.Execute` delegates to
   `ToolGuard.RunCommand` / `ToolGuard.RunHandler` (see any existing command). New ones must too.
 
