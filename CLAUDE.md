@@ -22,6 +22,12 @@ done until it builds with 0 errors. Running it still needs Revit on Windows.
   `_UPDATED` or `_0`/`_01` suffixes in folder names. Unfinished tools go in `Menu/RoofTools/WIP`,
   which the `.csproj` excludes; the only other exclusion is `Tests/` (unit-test projects, run with
   `dotnet test Tests/<Project>`).
+- **View model naming:** a tool's view model class and file are named `ViewModel_<ToolName>`
+  (e.g. `ViewModel_DetailLineManager` in `ViewModel_DetailLineManager.cs`), never a bare
+  `MainViewModel`, so it is identifiable in searches, stack traces and `using` lists. Partial
+  files add a suffix: `ViewModel_DetailLineManager.Actions.cs`. `<ToolName>` is the tool name
+  without the version. Applies to new tools; do not rename existing view models unless the owner
+  asks (a rename must also update the XAML `DataContext` and any `x:Class`/`clr-namespace` use).
 - **Tool versions** live in `Shared/Services/ToolCatalog.cs` (one entry per tool, semantic version).
   The ribbon tooltip, window title and error dialogs read from it. A new tool gets a new entry there.
 - **Plugin version** is `<Version>` in `Revit26_Plugin_Revised.csproj`.
