@@ -186,16 +186,19 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             worksetMemoryV001.AvailabilityClassName = "Revit26_Plugin_Revised.WorksetMemory.V001.Commands.WorksetMemoryAvailability";
 
             // ── Manage panel ─────────────────────────────────────────────────
-            var manageItems = RibbonLayoutHelper.AddStackedButtons(panel, new List<RibbonItemData>
+            // Slide-out (plugin 6.13.0): cleanup and rename tools that change many elements sit inside the arrow.
+            var manageItems = RibbonLayoutHelper.AddStackedButtonsWithSlideOut(panel, new List<RibbonItemData>
             {
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_AnnotationOverlapDetection", "Overlaps", overlapV004),
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_ParaManager", "ParaManager", paraManagerV005),
                 sharedParamStudioV001,
-                RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_DeleteLineStyles", "Del. Line Styles", deleteLineStylesV001),
-                RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_BulkRename", "Bulk Rename", bulkRenameV001),
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_ScheduleExportImport", "Schedule I/O", scheduleExportImportV007),
                 // Link Check moved here from its own one-button Links panel (plugin 4.2.1).
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_LinkVersionChecker", "Link Check", linkStatusV007),
+            }, new List<RibbonItemData>
+            {
+                RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_DeleteLineStyles", "Del. Line Styles", deleteLineStylesV001),
+                RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_BulkRename", "Bulk Rename", bulkRenameV001),
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_TrackerId", "Tracker ID", trackerIdV002),
             });
             RibbonLayoutHelper.WirePulldownButton(manageItems, "Pulldown_AnnotationOverlapDetection", overlapV004);
@@ -215,11 +218,14 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             // mixed into Manage.
             RibbonPanel worksetPanel = app.CreateRibbonPanel(tabName, "Worksets");
 
-            var worksetItems = RibbonLayoutHelper.AddStackedButtons(worksetPanel, new List<RibbonItemData>
+            // Slide-out (plugin 6.13.0): the bulk rename and delete tools sit one click further away.
+            var worksetItems = RibbonLayoutHelper.AddStackedButtonsWithSlideOut(worksetPanel, new List<RibbonItemData>
             {
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_WorksetsElementsBrowser", "WS Browser", wsebV004),
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_WorksetCreator", "WS Creator", worksetCreatorV016),
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_WorksetRenamer", "WS Renamer", worksetRenamerV005),
+            }, new List<RibbonItemData>
+            {
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_WorksetRenamerFx", "WS Renamer XL", worksetRenamerFx05),
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_DeleteWorkset", "Delete Workset", deleteWorksetV001),
             });

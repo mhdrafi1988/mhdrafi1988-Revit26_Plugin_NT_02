@@ -9,6 +9,27 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.13.0] — 2026-10-24
+
+### Changed
+- **Slide-outs on five crowded panels.** Each panel now has the arrow on its title bar; click it to open a
+  second row of tools. No tool, button name, command or version list changed; only where the button sits.
+  - **Shape Points**: Inner Loops, Outer Curve, Line Intersect and Loops + Perp. stay on the panel;
+    **Vertex Reducer**, **Multi Points** and **Shape From Link** are in the slide-out.
+  - **View Create**: From Lines, Around Edges and Edge Element stay; **Roof Focus** and **Isolated Section**
+    are in the slide-out.
+  - **Sheet Create**: Scope Box, Sheet Placer and Section Placer stay; **Rearrange** and **Arrange Views**
+    are in the slide-out.
+  - **Manage**: Overlaps, ParaManager, Shared Params, Schedule I/O and Link Check stay; **Del. Line Styles**,
+    **Bulk Rename** and **Tracker ID** are in the slide-out.
+  - **Worksets**: WS Browser, WS Creator and WS Renamer stay; **WS Renamer XL** and **Delete Workset** are in
+    the slide-out.
+- **User note:** the moved tools are one click further away. If you pinned one to the Quick Access Toolbar it
+  still works. On the Manage panel, Schedule I/O and Link Check now sit before the slide-out tools.
+
+### Added
+- `RibbonLayoutHelper.AddStackedButtonsWithSlideOut`: stacks the visible tools, then adds the slide-out.
+
 ## [6.12.0] — 2026-10-23
 
 ### Added
