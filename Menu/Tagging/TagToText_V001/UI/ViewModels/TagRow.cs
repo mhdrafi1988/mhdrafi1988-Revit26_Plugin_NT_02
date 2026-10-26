@@ -12,7 +12,7 @@ namespace Revit26_Plugin_Revised.TagToText.V001.UI.ViewModels
         {
             Snapshot = snapshot;
             text = string.Join("\n", snapshot.Lines);
-            isSelected = snapshot.Problem == null;
+            isSelected = IsCopyable;
         }
 
         /// <summary>The tag as read.</summary>
@@ -40,16 +40,36 @@ namespace Revit26_Plugin_Revised.TagToText.V001.UI.ViewModels
         /// <summary>"Yes" / "No".</summary>
         public string LeaderText => Snapshot.HasLeader ? "Yes" : "No";
 
-        /// <summary>True when the tag can be copied.</summary>
-        public bool IsCopyable => Snapshot.Problem == null;
+        /// <summary>
+        /// True when the tag can be copied: it was read without error, has a position, and the row has
+        /// text (read from the tag, or typed by the user when Revit gave none).
+        /// </summary>
+        public bool IsCopyable => Snapshot.Problem == null && Snapshot.TextPoint != null && Lines.Length > 0;
+
+        /// <summary>True when Revit gave no text for the tag and none has been typed yet.</summary>
+        public bool NeedsText => Snapshot.Problem == null && Lines.Length == 0;
+
+        partial void OnTextChanging(string value) => _wasCopyable = IsCopyable;
+
+        private bool _wasCopyable;
+
+        partial void OnTextChanged(string value)
+        {
+            OnPropertyChanged(nameof(IsCopyable));
+            OnPropertyChanged(nameof(NeedsText));
+            OnPropertyChanged(nameof(Status));
+            OnPropertyChanged(nameof(HasWarning));
+            if (!IsCopyable) IsSelected = false;
+            else if (!_wasCopyable) IsSelected = true;   // text typed into an empty row: tick it
+        }
 
         /// <summary>Status shown in the table.</summary>
         public string Status =>
-            Snapshot.Problem ?? (Snapshot.OwnedBy != null ? $"OK · owned by {Snapshot.OwnedBy}"
+            Snapshot.Problem ?? (NeedsText ? "No text read · double-click Text to type it" : Snapshot.OwnedBy != null ? $"OK · owned by {Snapshot.OwnedBy}"
                 : Snapshot.InGroup ? "OK · in a group" : "OK");
 
         /// <summary>True when the status needs attention (problem, other owner or group).</summary>
-        public bool HasWarning => Snapshot.Problem != null || Snapshot.OwnedBy != null || Snapshot.InGroup;
+        public bool HasWarning => Snapshot.Problem != null || NeedsText || Snapshot.OwnedBy != null || Snapshot.InGroup;
 
         /// <summary>The lines to write.</summary>
         public string[] Lines => TextRules.SplitLines(Text);

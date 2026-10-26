@@ -9,6 +9,16 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.14.1] — 2026-10-26
+
+### Fixed
+- **Tag To Text v1.0.1** — Spot Elevations (and Spot Coordinates) showed "The tag shows no text." and could not
+  be copied, because Revit returned an empty displayed value for them. The text is now built from the spot's
+  own values ("Single/Upper Value" and "Lower Value"; "Top/Bottom Coordinate"), in the spot type's units, with
+  its prefixes, suffixes and indicators.
+- **User note:** if a tag still has no readable text, its row says "No text read · double-click Text to type
+  it". Type the text and the row is ticked and copied like the others.
+
 ## [6.14.0] — 2026-10-26
 
 ### Added

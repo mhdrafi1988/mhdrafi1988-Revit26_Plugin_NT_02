@@ -6,7 +6,7 @@ UI mock-up: [`UI_Mockup.html`](UI_Mockup.html) (open it in a browser).
 
 | Item | Value |
 |---|---|
-| Tool name | Tag To Text, v1.0.0 (plugin 6.14.0) |
+| Tool name | Tag To Text, v1.0.1 (plugin 6.14.1) |
 | Folder | `Menu/Tagging/TagToText_V001/` |
 | Namespace | `Revit26_Plugin_Revised.TagToText.V001` |
 | Command | `Revit26_Plugin_Revised.TagToText.V001.Commands.TagToTextCommand` (via `ToolGuard.RunCommand`) |
@@ -31,13 +31,13 @@ UI mock-up: [`UI_Mockup.html`](UI_Mockup.html) (open it in a browser).
 
 | Tag type | Text read | Text position / leader |
 |---|---|---|
-| Spot Elevation | `ValueString`, plus the type's Elevation Indicator and the prefix/suffix if missing | Text position; leader to the spotted point, bend at the shoulder |
-| Spot Coordinate | `ValueString` lines, plus N/S and E/W indicators if missing | **Two notes**: N at the text position, E one line below; both lead to the spotted point |
+| Spot Elevation | `ValueString`; when Revit returns it empty, "Single/Upper Value" (+ "Lower Value") in the type's units. Indicator, prefix and suffix added if missing | Text position; leader to the spotted point, bend at the shoulder |
+| Spot Coordinate | `ValueString` lines; when empty, "Top Coordinate" / "Bottom Coordinate". N/S and E/W indicators, prefixes and suffixes added if missing | **Two notes**: N at the text position, E one line below; both lead to the spotted point |
 | Spot Slope | `ValueString` | Just above the slope arrow, leader to the spotted point (the API gives no text position) |
 | Element tags | `TagText` | Tag head; free leader end, or the tagged element's location for attached leaders (linked elements too) |
 | Room / Area / Space tags | `TagText` | Tag head, leader end and bend |
 
-Every text can be edited in the table before it is written. Supported views: plan, ceiling, structural,
+Every text can be edited in the table before it is written. A tag with no readable text shows "No text read · double-click Text to type it"; typing text ticks it. Supported views: plan, ceiling, structural,
 area, section, elevation, detail and drafting.
 
 ## UI
