@@ -109,10 +109,16 @@ namespace Revit26_Plugin_Revised.TagToText.V001.Core.Services
         private static TagSnapshot ReadSpot(Document doc, View view, SpotDimension spot, TagKind kind,
             string label, bool inGroup, string owner)
         {
-            string[] lines = TextRules.SplitLines(spot.ValueString);
+            string[] lines = TextRules.SplitLines(TryString(() => spot.ValueString));
             Element type = doc.GetElement(spot.GetTypeId());
 
-            if (kind == TagKind.SpotElevation && lines.Length > 0)
+            // Revit 2026 can return an empty ValueString for spot elevations and coordinates. Build the
+            // text from the spot's own value parameters instead (already prefixed and suffixed).
+            if (lines.Length == 0 && kind != TagKind.SpotSlope)
+            {
+                lines = SpotLinesFromParameters(doc, spot, type, kind);
+            }
+            else if (kind == TagKind.SpotElevation && lines.Length > 0)
             {
                 // The type's "Elevation Indicator" and the instance prefix/suffix are not always part of
                 // ValueString; add them only when missing.
@@ -158,7 +164,7 @@ namespace Revit26_Plugin_Revised.TagToText.V001.Core.Services
                 TagId = spot.Id, Kind = kind, TypeLabel = label, Lines = lines,
                 TextPoint = textPoint, LeaderEnd = end, LeaderElbow = elbow, Rotation = 0,
                 InGroup = inGroup, OwnedBy = owner,
-                Problem = lines.Length == 0 ? "The tag shows no text." : null
+                Problem = null
             };
         }
 
@@ -191,7 +197,7 @@ namespace Revit26_Plugin_Revised.TagToText.V001.Core.Services
                 TextPoint = head, LeaderEnd = end, LeaderElbow = elbow,
                 Rotation = TryDouble(() => tag.RotationAngle),
                 InGroup = inGroup, OwnedBy = owner,
-                Problem = lines.Length == 0 ? "The tag shows no text." : null
+                Problem = null
             };
         }
 
@@ -211,8 +217,95 @@ namespace Revit26_Plugin_Revised.TagToText.V001.Core.Services
                 TextPoint = OnViewPlane(view, tag.TagHeadPosition), LeaderEnd = end, LeaderElbow = elbow,
                 Rotation = TryDouble(() => tag.RotationAngle),
                 InGroup = inGroup, OwnedBy = owner,
-                Problem = lines.Length == 0 ? "The tag shows no text." : null
+                Problem = null
             };
+        }
+
+        // Text of a spot from its value parameters, formatted with the spot type's units:
+        // elevation = "Single/Upper Value" (+ "Lower Value" when it differs), coordinate =
+        // "Top Coordinate" and "Bottom Coordinate". Prefixes, suffixes and indicators are added.
+        private static string[] SpotLinesFromParameters(Document doc, SpotDimension spot, Element type, TagKind kind)
+        {
+            var lines = new List<string>();
+            if (kind == TagKind.SpotElevation)
+            {
+                double? upper = LengthValue(spot, BuiltInParameter.SPOT_ELEV_SINGLE_OR_UPPER_VALUE);
+                double? lower = LengthValue(spot, BuiltInParameter.SPOT_ELEV_LOWER_VALUE);
+                bool two = upper != null && lower != null && Math.Abs(upper.Value - lower.Value) > 1e-9;
+                if (upper != null)
+                    lines.Add(Compose(
+                        AnyString(spot, type, BuiltInParameter.SPOT_ELEV_SINGLE_OR_UPPER_PREFIX),
+                        TypeString(type, two ? BuiltInParameter.SPOT_ELEV_IND_TOP : BuiltInParameter.SPOT_ELEV_IND_ELEVATION),
+                        Format(doc, type, upper.Value),
+                        AnyString(spot, type, BuiltInParameter.SPOT_ELEV_SINGLE_OR_UPPER_SUFFIX)));
+                if (two)
+                    lines.Add(Compose(
+                        AnyString(spot, type, BuiltInParameter.SPOT_ELEV_LOWER_PREFIX),
+                        TypeString(type, BuiltInParameter.SPOT_ELEV_IND_BOTTOM),
+                        Format(doc, type, lower.Value),
+                        AnyString(spot, type, BuiltInParameter.SPOT_ELEV_LOWER_SUFFIX)));
+            }
+            else if (kind == TagKind.SpotCoordinate)
+            {
+                double? top = LengthValue(spot, BuiltInParameter.SPOT_ELEV_TOP_VALUE);
+                double? bottom = LengthValue(spot, BuiltInParameter.SPOT_ELEV_BOT_VALUE);
+                if (top != null)
+                    lines.Add(Compose(
+                        AnyString(spot, type, BuiltInParameter.SPOT_COORDINATE_TOP_PREFIX),
+                        TypeString(type, BuiltInParameter.SPOT_ELEV_IND_NS),
+                        Format(doc, type, top.Value),
+                        AnyString(spot, type, BuiltInParameter.SPOT_COORDINATE_TOP_SUFFIX)));
+                if (bottom != null)
+                    lines.Add(Compose(
+                        AnyString(spot, type, BuiltInParameter.SPOT_COORDINATE_BOTTOM_PREFIX),
+                        TypeString(type, BuiltInParameter.SPOT_ELEV_IND_EW),
+                        Format(doc, type, bottom.Value),
+                        AnyString(spot, type, BuiltInParameter.SPOT_COORDINATE_BOTTOM_SUFFIX)));
+            }
+            return lines.Where(l => !string.IsNullOrWhiteSpace(l)).ToArray();
+        }
+
+        private static string Compose(string prefix, string indicator, string value, string suffix)
+        {
+            if (string.IsNullOrWhiteSpace(value)) return null;
+            return TextRules.SuffixOnce(TextRules.PrefixOnce(prefix, TextRules.PrefixOnce(indicator, value)), suffix);
+        }
+
+        private static double? LengthValue(Element e, BuiltInParameter bip)
+        {
+            try
+            {
+                Parameter p = e.get_Parameter(bip);
+                return p != null && p.HasValue && p.StorageType == StorageType.Double ? p.AsDouble() : null;
+            }
+            catch (Autodesk.Revit.Exceptions.ApplicationException) { return null; }
+        }
+
+        // Formats a length like the spot shows it: the spot type's own units if it has them, else the project's.
+        private static string Format(Document doc, Element type, double value)
+        {
+            try
+            {
+                var options = new FormatValueOptions();
+                if (type is DimensionType dt)
+                {
+                    FormatOptions fo = dt.GetUnitsFormatOptions();
+                    if (fo != null && !fo.UseDefault) options.SetFormatOptions(fo);
+                }
+                return UnitFormatUtils.Format(doc.GetUnits(), SpecTypeId.Length, value, false, options);
+            }
+            catch (Autodesk.Revit.Exceptions.ApplicationException)
+            {
+                return UnitFormatUtils.Format(doc.GetUnits(), SpecTypeId.Length, value, false);
+            }
+        }
+
+        // A text parameter from the instance, or from its type when the instance doesn't have it.
+        private static string AnyString(Element instance, Element type, BuiltInParameter bip)
+        {
+            string v = null;
+            try { v = instance.get_Parameter(bip)?.AsString(); } catch (Autodesk.Revit.Exceptions.ApplicationException) { }
+            return string.IsNullOrEmpty(v) ? TypeString(type, bip) : v;
         }
 
         // An attached leader ends on the tagged element; the API gives no point for it, so use the
