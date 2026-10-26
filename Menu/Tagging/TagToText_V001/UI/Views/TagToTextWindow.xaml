@@ -1,0 +1,396 @@
+<Window
+    x:Class="Revit26_Plugin_Revised.TagToText.V001.UI.Views.TagToTextWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:converters="clr-namespace:Revit26_Plugin_Revised.Shared.Models"
+    xmlns:shell="clr-namespace:Revit26_Plugin_Revised.Shared.Controls"
+    xmlns:svc="clr-namespace:Revit26_Plugin_Revised.Shared.Services"
+    Title="{Binding Source={x:Static svc:ToolCatalog.TagToText}, Path=Title}"
+    Background="{DynamicResource BrushSurfaceWindow}"
+    Height="860"
+    Width="780"
+    MinHeight="560"
+    MinWidth="620"
+    WindowStartupLocation="CenterOwner"
+    ResizeMode="CanResize">
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Revit26_Plugin_Revised;component/Shared/SharedStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+
+            <converters:LogLevelToColorConverter x:Key="LogLevelToColor"/>
+            <BooleanToVisibilityConverter        x:Key="NativeBoolToVis"/>
+
+            <Style x:Key="TagRowStyle" TargetType="DataGridRow" BasedOn="{StaticResource DataGridRowStyle}">
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding IsCopyable}" Value="False">
+                        <Setter Property="Opacity" Value="0.5"/>
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+
+            <Style x:Key="CellText" TargetType="TextBlock">
+                <Setter Property="VerticalAlignment" Value="Center"/>
+                <Setter Property="Padding"           Value="8,2"/>
+                <Setter Property="Foreground"        Value="{StaticResource BrushTextPrimary}"/>
+                <Setter Property="FontSize"          Value="11"/>
+            </Style>
+
+            <Style x:Key="Card" TargetType="Border">
+                <Setter Property="Margin"          Value="0,0,0,8"/>
+                <Setter Property="Padding"         Value="12,10"/>
+                <Setter Property="Background"      Value="{StaticResource BrushSurfaceCard}"/>
+                <Setter Property="BorderBrush"     Value="{StaticResource BrushBorderDefault}"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="CornerRadius"    Value="4"/>
+            </Style>
+
+            <Style x:Key="CardTitle" TargetType="TextBlock">
+                <Setter Property="FontSize"   Value="11"/>
+                <Setter Property="FontWeight" Value="SemiBold"/>
+                <Setter Property="Foreground" Value="{StaticResource BrushTextPrimary}"/>
+                <Setter Property="Margin"     Value="0,0,0,6"/>
+            </Style>
+
+            <Style x:Key="Opt" TargetType="Control">
+                <Setter Property="Margin"            Value="0,2,18,2"/>
+                <Setter Property="FontSize"          Value="11"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+            </Style>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <!-- UI standard: shared ToolWindowShell.
+         HEADER  three metric tiles (found / ticked / view)
+         BODY    source card, tag table, text output, original tags, place text in, progress, run log
+         FOOTER  status strip · Create Text → Cancel → Close -->
+    <shell:ToolWindowShell Title="Tag To Text"
+                           Subtitle="Copy spot elevations, coordinates, slopes and tags into text notes with leaders, in this view or a new duplicate of it."
+                           Version="{Binding Source={x:Static svc:ToolCatalog.TagToText}, Path=Version, StringFormat=v{0}}"
+                           IsRunning="{Binding IsRunning}"
+                           IsIndeterminate="False"
+                           Progress="{Binding ProgressPercent}"
+                           SummaryText="{Binding SelectedCount, StringFormat={}{0} ticked}">
+
+        <!-- ═══ HEADER ═══ -->
+        <shell:ToolWindowShell.HeaderContent>
+            <UniformGrid Columns="3">
+                <Border Style="{StaticResource MetricTile}" Margin="0,0,6,0">
+                    <StackPanel>
+                        <TextBlock Text="FOUND" Style="{StaticResource MetricTileLabel}" Foreground="{StaticResource BrushTextSecondary}"/>
+                        <TextBlock Text="{Binding FoundCount}" Style="{StaticResource MetricTileNumber}"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource MetricTileSuccess}" Margin="3,0">
+                    <StackPanel>
+                        <TextBlock Text="TICKED" Style="{StaticResource MetricTileLabel}" Foreground="{StaticResource BrushStatusOk}"/>
+                        <TextBlock Text="{Binding SelectedCount}" Style="{StaticResource MetricTileNumberSuccess}"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource MetricTile}" Margin="6,0,0,0">
+                    <StackPanel>
+                        <TextBlock Text="VIEW" Style="{StaticResource MetricTileLabel}" Foreground="{StaticResource BrushTextSecondary}"/>
+                        <TextBlock Text="{Binding ViewName}" FontSize="13" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
+                                   Foreground="{StaticResource BrushTextPrimary}" ToolTip="{Binding ViewName}"/>
+                    </StackPanel>
+                </Border>
+            </UniformGrid>
+        </shell:ToolWindowShell.HeaderContent>
+
+        <!-- ═══ BODY ═══ -->
+        <shell:ToolWindowShell.BodyContent>
+            <StackPanel>
+
+                <!-- Source -->
+                <Border Style="{StaticResource Card}" IsEnabled="{Binding IsIdle}">
+                    <StackPanel>
+                        <TextBlock Text="Source" Style="{StaticResource CardTitle}"/>
+                        <DockPanel LastChildFill="False">
+                            <RadioButton GroupName="Source" Content="Selected tags" IsChecked="{Binding SourceIsSelection}" Style="{StaticResource Opt}"/>
+                            <RadioButton GroupName="Source" Content="All tags in active view" IsChecked="{Binding SourceIsView}" Style="{StaticResource Opt}"/>
+                            <Button DockPanel.Dock="Right" Content="↺ Refresh List" Command="{Binding ScanCommand}"
+                                    Style="{StaticResource SmallSecondaryButton}"/>
+                            <Button DockPanel.Dock="Right" Content="Pick Tags…" Command="{Binding PickTagsCommand}"
+                                    Style="{StaticResource SmallSecondaryButton}" Margin="0,0,4,0"/>
+                        </DockPanel>
+                        <WrapPanel Margin="0,6,0,0">
+                            <CheckBox Content="Spot Elevation"   IsChecked="{Binding IncludeSpotElevation}"  Style="{StaticResource Opt}"/>
+                            <CheckBox Content="Spot Coordinate"  IsChecked="{Binding IncludeSpotCoordinate}" Style="{StaticResource Opt}"/>
+                            <CheckBox Content="Spot Slope"       IsChecked="{Binding IncludeSpotSlope}"      Style="{StaticResource Opt}"/>
+                            <CheckBox Content="Element Tags"     IsChecked="{Binding IncludeElementTags}"    Style="{StaticResource Opt}"/>
+                            <CheckBox Content="Room / Area Tags" IsChecked="{Binding IncludeSpatialTags}"    Style="{StaticResource Opt}"/>
+                        </WrapPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Tag table -->
+                <Border Background="{StaticResource BrushSystemSecondaryBackground}" BorderBrush="{StaticResource BrushBorderDefault}"
+                        BorderThickness="1,1,1,0" CornerRadius="4,4,0,0" Padding="8,6">
+                    <DockPanel LastChildFill="False">
+                        <TextBlock VerticalAlignment="Center" FontSize="11" Foreground="{StaticResource BrushTextSecondary}">
+                            <Run Text="Found:"/> <Run Text="{Binding FoundCount, Mode=OneWay}"/>
+                            <Run Text="tags ·"/> <Run Text="{Binding SelectedCount, Mode=OneWay}"/>
+                            <Run Text="ticked · double-click a text to edit it"/>
+                        </TextBlock>
+                        <Button DockPanel.Dock="Right" Content="Clear" Command="{Binding ClearSelectionCommand}"
+                                Style="{StaticResource SmallSecondaryButton}"/>
+                        <Button DockPanel.Dock="Right" Content="Select All" Command="{Binding SelectAllCommand}"
+                                Style="{StaticResource SmallSecondaryButton}" Margin="0,0,4,0"/>
+                    </DockPanel>
+                </Border>
+                <DataGrid MinHeight="140"
+                          shell:ShellBehaviors.MaxHeightRatio="0.35"
+                          shell:ShellBehaviors.ForwardMouseWheel="True"
+                          ItemsSource="{Binding RowsView}"
+                          IsEnabled="{Binding IsIdle}"
+                          AutoGenerateColumns="False"
+                          CanUserAddRows="False"
+                          CanUserDeleteRows="False"
+                          SelectionMode="Extended"
+                          SelectionUnit="FullRow"
+                          RowStyle="{StaticResource TagRowStyle}"
+                          ColumnHeaderStyle="{StaticResource DataGridColumnHeaderStyle}"
+                          CellStyle="{StaticResource DataGridCellStyle}"
+                          GridLinesVisibility="Horizontal"
+                          HorizontalGridLinesBrush="{StaticResource BrushSeparatorThin}"
+                          BorderThickness="1"
+                          BorderBrush="{StaticResource BrushBorderDefault}">
+                    <DataGrid.Columns>
+                        <DataGridTemplateColumn Header="" Width="36" CanUserResize="False">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <CheckBox IsChecked="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                              IsEnabled="{Binding IsCopyable}"
+                                              HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="Type" Width="140" SortMemberPath="KindLabel">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding KindLabel}" ToolTip="{Binding IdText}" Style="{StaticResource CellText}"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="Text" Width="*" MinWidth="160" SortMemberPath="Text">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Text}" Style="{StaticResource CellText}"
+                                               FontFamily="Consolas, Courier New" TextWrapping="Wrap"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                            <DataGridTemplateColumn.CellEditingTemplate>
+                                <DataTemplate>
+                                    <TextBox Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True"
+                                             FontFamily="Consolas, Courier New" FontSize="11" TextWrapping="Wrap"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellEditingTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="Leader" Width="60" SortMemberPath="LeaderText">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding LeaderText}" Style="{StaticResource CellText}"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="Status" Width="170" SortMemberPath="Status">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Status}" ToolTip="{Binding Status}" TextTrimming="CharacterEllipsis">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock" BasedOn="{StaticResource CellText}">
+                                                <Setter Property="Foreground" Value="{StaticResource BrushStatusOk}"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding HasWarning}" Value="True">
+                                                        <Setter Property="Foreground" Value="{StaticResource BrushStatusWarn}"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+
+                <!-- Text output -->
+                <Border Style="{StaticResource Card}" Margin="0,8,0,8" IsEnabled="{Binding IsIdle}">
+                    <StackPanel>
+                        <TextBlock Text="Text Output" Style="{StaticResource CardTitle}"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="80"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Text="Text type" Style="{StaticResource FieldLabel}" VerticalAlignment="Center"/>
+                            <ComboBox Grid.Column="1" ItemsSource="{Binding TextTypes}" SelectedItem="{Binding SelectedTextType}"
+                                      DisplayMemberPath="Name" Style="{StaticResource StandardComboBox}"
+                                      ToolTip="The arrowhead comes from this text type's Leader Arrowhead."/>
+                            <TextBlock Grid.Row="1" Text="Prefix" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,6,0,0"/>
+                            <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,6,0,0">
+                                <TextBox Width="130" Text="{Binding Prefix, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource StyledTextInput}"
+                                         ToolTip="Added before every line, exactly as typed (include a space if you want one)."/>
+                                <TextBlock Text="Suffix" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="16,0,8,0"/>
+                                <TextBox Width="130" Text="{Binding Suffix, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource StyledTextInput}"
+                                         ToolTip="Added after every line, exactly as typed."/>
+                            </StackPanel>
+                        </Grid>
+                        <WrapPanel Margin="0,8,0,0">
+                            <CheckBox Content="Keep leader / arrow"            IsChecked="{Binding KeepLeader}"    Style="{StaticResource Opt}"/>
+                            <CheckBox Content="Match tag rotation"             IsChecked="{Binding MatchRotation}" Style="{StaticResource Opt}"/>
+                            <CheckBox Content="Add source note (tag Id + date)" IsChecked="{Binding AddSourceNote}" Style="{StaticResource Opt}"
+                                      ToolTip="Writes 'From tag &lt;Id&gt; · &lt;date&gt;' into each new text note's Comments."/>
+                        </WrapPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Place text in -->
+                <Border Style="{StaticResource Card}" IsEnabled="{Binding IsIdle}">
+                    <StackPanel>
+                        <TextBlock Text="Place Text In" Style="{StaticResource CardTitle}"/>
+                        <WrapPanel>
+                            <RadioButton GroupName="Target" Content="Same view (current)" IsChecked="{Binding TargetSameView}" Style="{StaticResource Opt}"/>
+                            <RadioButton GroupName="Target" Content="New view (duplicate current view)" IsChecked="{Binding TargetNewView}" Style="{StaticResource Opt}"/>
+                        </WrapPanel>
+                        <Border Margin="22,6,0,0" Padding="10,8" Background="{StaticResource BrushSystemSecondaryBackground}"
+                                BorderBrush="{StaticResource BrushBorderDefault}" BorderThickness="1" CornerRadius="4"
+                                IsEnabled="{Binding TargetNewView}">
+                            <StackPanel>
+                                <WrapPanel>
+                                    <TextBlock Text="Duplicate" Width="80" Style="{StaticResource FieldLabel}" VerticalAlignment="Center"/>
+                                    <RadioButton GroupName="Duplicate" Content="Without detailing" IsChecked="{Binding DuplicateWithoutDetailing}" Style="{StaticResource Opt}"/>
+                                    <RadioButton GroupName="Duplicate" Content="With detailing" IsChecked="{Binding DuplicateWithDetailing}" Style="{StaticResource Opt}"
+                                                 ToolTip="Copies the view's annotation too, so the tags appear in the new view as well."/>
+                                </WrapPanel>
+                                <DockPanel Margin="0,6,0,0">
+                                    <TextBlock Text="View name" Width="80" Style="{StaticResource FieldLabel}" VerticalAlignment="Center"/>
+                                    <TextBox Text="{Binding NewViewName, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource StyledTextInput}"
+                                             ToolTip="If the name is taken, (2), (3)… is added."/>
+                                </DockPanel>
+                                <CheckBox Content="Open the new view when done" IsChecked="{Binding OpenNewView}" Style="{StaticResource Opt}" Margin="0,6,0,0"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Border>
+
+                <!-- Original tags -->
+                <Border Style="{StaticResource Card}" IsEnabled="{Binding CanChangeOriginals}"
+                        ToolTip="Only when the text goes in the same view. With a new view the original tags are not changed.">
+                    <StackPanel>
+                        <TextBlock Text="Original Tags (same view only)" Style="{StaticResource CardTitle}"/>
+                        <WrapPanel>
+                            <RadioButton GroupName="Originals" Content="Keep"         IsChecked="{Binding KeepOriginals}"   Style="{StaticResource Opt}"/>
+                            <RadioButton GroupName="Originals" Content="Hide in view" IsChecked="{Binding HideOriginals}"   Style="{StaticResource Opt}"/>
+                            <RadioButton GroupName="Originals" Content="Delete"       IsChecked="{Binding DeleteOriginals}" Style="{StaticResource Opt}"
+                                         ToolTip="Tags in groups or owned by another user are kept."/>
+                        </WrapPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Static-text warning -->
+                <Border Margin="0,0,0,8" Padding="10,6" CornerRadius="4" BorderThickness="1"
+                        Background="{StaticResource BrushBannerWarningBackground}" BorderBrush="{StaticResource BrushBannerWarningBorder}">
+                    <TextBlock Text="⚠ The new text is static. It won't update if the model changes."
+                               FontSize="11" Foreground="{StaticResource BrushBannerWarningText}" TextWrapping="Wrap"/>
+                </Border>
+
+                <!-- Progress -->
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <DockPanel>
+                            <TextBlock Text="Progress" Style="{StaticResource CardTitle}"/>
+                            <TextBlock Text="{Binding ProgressText}" HorizontalAlignment="Right" FontSize="11"
+                                       Foreground="{StaticResource BrushTextSecondary}"/>
+                        </DockPanel>
+                        <ProgressBar Height="12" Minimum="0" Maximum="100" Value="{Binding ProgressPercent, Mode=OneWay}"/>
+                        <DockPanel Margin="0,6,0,0">
+                            <TextBlock Text="{Binding StepText}" FontSize="11" Foreground="{StaticResource BrushTextSecondary}"
+                                       TextTrimming="CharacterEllipsis"/>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                <TextBlock FontSize="11" Foreground="{StaticResource BrushStatusOk}" Margin="12,0,0,0">
+                                    <Run Text="Created"/> <Run Text="{Binding CreatedCount, Mode=OneWay}"/>
+                                </TextBlock>
+                                <TextBlock FontSize="11" Foreground="{StaticResource BrushStatusWarn}" Margin="12,0,0,0">
+                                    <Run Text="Skipped"/> <Run Text="{Binding SkippedCount, Mode=OneWay}"/>
+                                </TextBlock>
+                                <TextBlock FontSize="11" Foreground="{StaticResource BrushStatusError}" Margin="12,0,0,0">
+                                    <Run Text="Failed"/> <Run Text="{Binding FailedCount, Mode=OneWay}"/>
+                                </TextBlock>
+                            </StackPanel>
+                        </DockPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Log -->
+                <Border Background="{StaticResource BrushLogBg}" CornerRadius="4">
+                    <DockPanel>
+                        <Border DockPanel.Dock="Top" Background="{StaticResource BrushLogTitleBar}" CornerRadius="4,4,0,0" Padding="10,6">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="RUN LOG" FontSize="10" FontWeight="SemiBold"
+                                           Foreground="{StaticResource BrushTextOnDark}" VerticalAlignment="Center"/>
+                                <Button Grid.Column="1" Content="Open Log Folder" Command="{Binding OpenLogFolderCommand}"
+                                        Style="{StaticResource DarkGhostButton}" Margin="0,0,4,0"/>
+                                <Button Grid.Column="2" Content="Copy Log" Command="{Binding CopyLogCommand}"
+                                        Style="{StaticResource DarkGhostButton}" Margin="0,0,4,0"/>
+                                <ToggleButton Grid.Column="3" IsChecked="{Binding IsLogExpanded}" Style="{StaticResource LogHeaderToggle}"/>
+                            </Grid>
+                        </Border>
+                        <ListBox Visibility="{Binding IsLogExpanded, Converter={StaticResource NativeBoolToVis}}"
+                                 ItemsSource="{Binding Log}"
+                                 Background="{StaticResource BrushLogBg}"
+                                 BorderThickness="0" Height="100"
+                                 shell:ShellBehaviors.ForwardMouseWheel="True"
+                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                            <ListBox.ItemContainerStyle>
+                                <Style TargetType="ListBoxItem">
+                                    <Setter Property="Padding" Value="0"/>
+                                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                    <Setter Property="Background" Value="Transparent"/>
+                                    <Setter Property="BorderThickness" Value="0"/>
+                                </Style>
+                            </ListBox.ItemContainerStyle>
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Margin="10,1">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="60"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="{Binding Time, StringFormat=HH:mm:ss}" FontFamily="Consolas, Courier New" FontSize="10"
+                                                   Foreground="{StaticResource BrushLogTextDim}"/>
+                                        <TextBlock Grid.Column="1" Text="{Binding Message}" FontFamily="Consolas, Courier New" FontSize="10"
+                                                   Foreground="{Binding Level, Converter={StaticResource LogLevelToColor}}" TextWrapping="Wrap"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </DockPanel>
+                </Border>
+            </StackPanel>
+        </shell:ToolWindowShell.BodyContent>
+
+        <!-- ═══ FOOTER ═══ -->
+        <shell:ToolWindowShell.FooterContent>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="Create Text" Command="{Binding CreateTextCommand}" Style="{StaticResource PrimaryButton}" Margin="0,0,8,0"/>
+                <Button Content="Cancel" Command="{Binding CancelRunCommand}" Style="{StaticResource OutlineButton}" Width="90" Margin="0,0,8,0"
+                        ToolTip="Stops the run and rolls back everything it did."/>
+                <Button Content="Close" Style="{StaticResource OutlineButton}" Width="90" Click="CloseButton_Click"/>
+            </StackPanel>
+        </shell:ToolWindowShell.FooterContent>
+    </shell:ToolWindowShell>
+
+</Window>
