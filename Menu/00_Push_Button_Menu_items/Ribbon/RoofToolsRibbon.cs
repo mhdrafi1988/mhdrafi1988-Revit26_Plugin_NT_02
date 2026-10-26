@@ -104,12 +104,15 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             shapeFromLinkV001.ToolTip = Revit26_Plugin_Revised.Shared.Services.ToolCatalog.RoofShapeFromLink.Tip(
                 "Select footprint roofs in a plan view, tick the linked files, and set each shape-editing point to the linked roof's top-surface (or nearest point) elevation minus the host roof thickness and a fixed number. Test on a copy of your model.");
 
-            var shapePointsItems = RibbonLayoutHelper.AddStackedButtons(shapePointsPanel, new List<RibbonItemData>
+            // Slide-out (plugin 6.13.0): the helper tools sit inside the panel's arrow.
+            var shapePointsItems = RibbonLayoutHelper.AddStackedButtonsWithSlideOut(shapePointsPanel, new List<RibbonItemData>
             {
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_InnerLoopDivider", "Inner Loops", innerLoopsV012),
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_OuterCurveDivider", "Outer Curve", outerCurveV006),
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_RoofDetailLineIntersect", "Line Intersect", lineIntersectV014),
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_InnerLoopsAndPerpendicular", "Loops + Perp.", loopsPerpV007),
+            }, new List<RibbonItemData>
+            {
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_VertexReducer", "Vertex Reducer", vertexReducerV009),
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_MultiplePoints", "Multi Points", multiPointsV003),
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_RoofShapeFromLink", "Shape From Link", shapeFromLinkV001),

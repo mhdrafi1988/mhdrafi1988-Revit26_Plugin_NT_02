@@ -80,11 +80,10 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                     "left to right, rows top to bottom, evenly spread and bottom-aligned so titles line up.")
             };
 
-            var sheetCreateItems = RibbonLayoutHelper.AddStackedButtons(createPanel, new List<RibbonItemData>
-            {
-                scopeBoxPulldownData, sheetPlacerPulldownData, autoSectionPlacerPulldownData,
-                rearrangePulldownData, viewArrangeV001,
-            });
+            // Slide-out (plugin 6.13.0): Rearrange and Arrange Views come after creating and placing views.
+            var sheetCreateItems = RibbonLayoutHelper.AddStackedButtonsWithSlideOut(createPanel,
+                new List<RibbonItemData> { scopeBoxPulldownData, sheetPlacerPulldownData, autoSectionPlacerPulldownData },
+                new List<RibbonItemData> { rearrangePulldownData, viewArrangeV001 });
             RibbonLayoutHelper.WirePulldownButton(sheetCreateItems, "Pulldown_PlanFromScopeBox", scopeBoxV006, scopeBoxV005);
             RibbonLayoutHelper.WirePulldownButton(sheetCreateItems, "Pulldown_SmartViewToSheetPlacer", sheetPlacerV224, sheetPlacerV223);
             RibbonLayoutHelper.WirePulldownButton(sheetCreateItems, "Pulldown_AutomatedSectionPlacer", autoSectionPlacerV003, autoSectionPlacerV002);

@@ -62,6 +62,21 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
         }
 
         /// <summary>
+        /// Adds <paramref name="visible"/> as stacks on the panel, then a slide-out (the arrow on the
+        /// panel title bar) holding <paramref name="slideOut"/>. A panel has one slide-out only, so call
+        /// this once per panel. Returns every created item, so existing
+        /// <see cref="WirePulldownButton"/> calls work unchanged.
+        /// </summary>
+        public static IList<RibbonItem> AddStackedButtonsWithSlideOut(
+            RibbonPanel panel, IList<RibbonItemData> visible, IList<RibbonItemData> slideOut)
+        {
+            var created = new List<RibbonItem>(AddStackedButtons(panel, visible));
+            panel.AddSlideOut();
+            created.AddRange(AddStackedButtons(panel, slideOut));
+            return created;
+        }
+
+        /// <summary>
         /// Works around a Revit ribbon bug: a stacked item's label, set via the
         /// Text passed to its Data object's constructor, is frequently dropped
         /// at render time (icon shows, text doesn't) — this only happens inside
