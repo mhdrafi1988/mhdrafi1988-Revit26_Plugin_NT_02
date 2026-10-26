@@ -9,6 +9,31 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.14.0] — 2026-10-26
+
+### Added
+- **Tag To Text v1.0.0 (V001)** — new **Tagging** panel on the **SloperPro-Documents** tab. Copies tags into
+  text notes with leaders, at the same place and with the same text:
+  - **Spot Elevation**, **Spot Coordinate** (two notes: N, then E below it), **Spot Slope**, **element tags**
+    (roof, door, keynote, multi-category…) and **Room / Area / Space tags**.
+  - **Source:** the selected tags, all tags in the active view, or **Pick Tags…**; a tick box per tag type.
+  - **Table:** tick the tags to copy; double-click a text to edit it before it is written.
+  - **Text Output:** text type (its arrowhead is used), prefix, suffix, keep leader/arrow, match tag rotation,
+    and an optional source note ("From tag <Id> · <date>") in the note's Comments.
+  - **Place Text In:** the same view, or a **new duplicate view**, **without** or **with detailing**, with a
+    view name (made unique if taken) and an option to open it when done.
+  - **Original Tags** (same view only): keep, hide in view, or delete. Tags in groups or owned by another
+    user are kept.
+  - **Progress:** bar, "n of N · %", current step, and Created / Skipped / Failed counts. **Cancel** stops
+    the run and rolls back everything it did.
+  - **Remembers settings:** the window reopens with the last-used options
+    (`%AppData%\Revit26_Plugin_Revised\TagToText\settings.json`).
+- **User note:** the copied text is static. It does not update when the model changes.
+- Unit tests for the tool's text and settings rules: `dotnet test Tests/TagToText.Tests`.
+
+### Changed
+- Plugin version in `Revit26_Plugin_Revised.csproj` set to 6.14.0 (it read 6.10.0, behind this changelog).
+
 ## [6.13.0] — 2026-10-24
 
 ### Changed

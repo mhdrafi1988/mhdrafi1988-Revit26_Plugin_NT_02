@@ -55,8 +55,9 @@ namespace Revit26_Plugin_Revised
             RoofToolsRibbon.BuildUtilities(application, ModellingTabName, assemblyPath);
 
             // ── SloperPro-Documents ──────────────────────────────────────────
-            // Views, then sheets, then DWG/family setup, then model management.
+            // Views, then tagging, then sheets, then DWG/family setup, then model management.
             ViewToolsRibbon.Build(application, DocumentsTabName, assemblyPath);
+            TaggingRibbon.Build(application, DocumentsTabName, assemblyPath);
             SheetToolsRibbon.Build(application, DocumentsTabName, assemblyPath);
             SetupRibbon.Build(application, DocumentsTabName, assemblyPath);
             ManageRibbon.Build(application, DocumentsTabName, assemblyPath);

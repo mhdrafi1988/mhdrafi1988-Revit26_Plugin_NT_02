@@ -49,6 +49,20 @@ td.txt{font-family:var(--mono);white-space:pre-line}
 .footer{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 16px;border-top:1px solid var(--line);background:var(--panel)}
 .footer .push{margin-left:auto}
 a{color:#0b5cad}
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:12px 16px 0}
+.tile{border:1px solid var(--line);padding:8px 10px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.tile span{font-size:10px;letter-spacing:.06em;color:var(--muted)}
+.tile b{font-size:20px;font-variant-numeric:tabular-nums}
+.tile b.small{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tile.ok span,.tile.ok b{color:var(--ok)}
+button.link{background:none;border:0;padding:0;color:#0b5cad;font:inherit;cursor:pointer;text-decoration:underline}
+fieldset:disabled{opacity:.55}
+.hint{margin:0;font-size:12px}
+.log{margin:0 16px 14px;background:#1f2633;color:#d6dde8}
+.logbar{display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:#2a3343;font-size:10px;letter-spacing:.06em}
+.ghost{background:none;border:1px solid #56627a;color:#d6dde8;font:inherit;font-size:11px;padding:3px 8px;margin-left:6px;cursor:pointer}
+.loglines{padding:6px 10px;font:11px/1.6 var(--mono)}
+.loglines span{color:#8b96a8;margin-right:8px}
 .caption{max-width:760px;margin:12px auto 0;color:var(--muted);font-size:12px}
 </style>
 
@@ -59,13 +73,19 @@ a{color:#0b5cad}
     <button class="x" type="button" aria-label="Close window">✕</button>
   </div>
 
+  <div class="tiles">
+    <div class="tile"><span>FOUND</span><b>6</b></div>
+    <div class="tile ok"><span>TICKED</span><b>5</b></div>
+    <div class="tile"><span>VIEW</span><b class="small">Level 03 – Roof Plan</b></div>
+  </div>
+
   <div class="body">
     <fieldset>
       <legend>Source</legend>
       <div class="row">
         <label class="opt"><input id="src-sel" type="radio" name="src" checked> Selected tags</label>
         <label class="opt"><input id="src-view" type="radio" name="src"> All tags in active view</label>
-        <button class="btn" type="button" style="margin-left:auto">Pick Tags…</button>
+        <span style="margin-left:auto;display:flex;gap:6px"><button class="btn" type="button">Pick Tags…</button><button class="btn" type="button">↺ Refresh List</button></span>
       </div>
       <div class="grid3">
         <label class="opt"><input id="c1" type="checkbox" checked> Spot Elevation</label>
@@ -77,18 +97,18 @@ a{color:#0b5cad}
     </fieldset>
 
     <div style="display:flex;flex-direction:column;gap:6px;min-width:0">
-      <div class="head"><strong>Found: 6 tags · 5 selected</strong><span class="muted">View: Level 03 – Roof Plan</span></div>
+      <div class="head"><strong>Found: 6 tags · 5 ticked</strong><span class="muted">Double-click a text to edit it · <button class="link" type="button">Select All</button> · <button class="link" type="button">Clear</button></span></div>
       <div class="tablewrap">
         <table>
           <thead><tr><th><input id="all" type="checkbox" checked aria-label="Select all"></th><th>Type</th><th>Text</th><th>Leader</th><th>Status</th></tr></thead>
           <tbody>
             <tr><td><input id="r1" type="checkbox" checked aria-label="Row 1"></td><td>Spot Elevation</td><td class="txt">TOS +12.450</td><td>Yes</td><td class="ok">OK</td></tr>
             <tr><td><input id="r2" type="checkbox" checked aria-label="Row 2"></td><td>Spot Coordinate</td><td class="txt">N 2504.120
-E 1180.440</td><td>Yes</td><td class="ok">OK</td></tr>
+E 1180.440</td><td>Yes</td><td class="ok">OK · 2 notes</td></tr>
             <tr><td><input id="r3" type="checkbox" checked aria-label="Row 3"></td><td>Spot Slope</td><td class="txt">2.00%</td><td>Yes</td><td class="ok">OK</td></tr>
             <tr><td><input id="r4" type="checkbox" checked aria-label="Row 4"></td><td>Roof Tag</td><td class="txt">RF-01</td><td>No</td><td class="ok">OK</td></tr>
             <tr><td><input id="r5" type="checkbox" checked aria-label="Row 5"></td><td>Room Tag</td><td class="txt">PLANT 301</td><td>Yes</td><td class="ok">OK</td></tr>
-            <tr class="skip"><td><input id="r6" type="checkbox" aria-label="Row 6"></td><td>Spot Elevation</td><td class="txt">+12.300</td><td>Yes</td><td class="warn">Owned by user J.Smith</td></tr>
+            <tr class="skip"><td><input id="r6" type="checkbox" checked aria-label="Row 6"></td><td>Spot Elevation</td><td class="txt">+12.300</td><td>Yes</td><td class="warn">OK · owned by J.Smith</td></tr>
           </tbody>
         </table>
       </div>
@@ -108,14 +128,6 @@ E 1180.440</td><td>Yes</td><td class="ok">OK</td></tr>
       </div>
     </fieldset>
 
-    <fieldset>
-      <legend>Original Tags</legend>
-      <div class="row">
-        <label class="opt"><input id="k1" type="radio" name="orig" checked> Keep</label>
-        <label class="opt"><input id="k2" type="radio" name="orig"> Hide in view</label>
-        <label class="opt"><input id="k3" type="radio" name="orig"> Delete</label>
-      </div>
-    </fieldset>
 
     <fieldset>
       <legend>Place Text In</legend>
@@ -129,9 +141,19 @@ E 1180.440</td><td>Yes</td><td class="ok">OK</td></tr>
           <label class="opt"><input id="d1" type="radio" name="dup" checked> Without detailing</label>
           <label class="opt"><input id="d2" type="radio" name="dup"> With detailing</label>
         </div>
-        <div class="field"><label for="vname">View name</label><input id="vname" class="grow" type="text" value="Level 03 – Roof Plan – Text"></div>
+        <div class="field"><label for="vname">View name</label><input id="vname" class="grow" type="text" value="Level 03 – Roof Plan - Text"></div>
         <label class="opt"><input id="open" type="checkbox" checked> Open the new view when done</label>
       </div>
+    </fieldset>
+
+    <fieldset id="origSet">
+      <legend>Original Tags (same view only)</legend>
+      <div class="row">
+        <label class="opt"><input id="k1" type="radio" name="orig" checked> Keep</label>
+        <label class="opt"><input id="k2" type="radio" name="orig"> Hide in view</label>
+        <label class="opt"><input id="k3" type="radio" name="orig"> Delete</label>
+      </div>
+      <p class="muted hint" id="origHint">Greyed out: with a new view the original tags are not changed.</p>
     </fieldset>
 
     <div class="note">
@@ -149,12 +171,28 @@ E 1180.440</td><td>Yes</td><td class="ok">OK</td></tr>
     </div>
   </div>
 
+  <div class="log">
+    <div class="logbar"><strong>RUN LOG</strong><span><button class="ghost" type="button">Open Log Folder</button><button class="ghost" type="button">Copy Log</button></span></div>
+    <div class="loglines">
+      <div><span>08:41:12</span> Found 6 tag(s) in 'Level 03 – Roof Plan'.</div>
+      <div><span>08:41:20</span> Duplicated 'Level 03 – Roof Plan' as 'Level 03 – Roof Plan - Text' (without detailing).</div>
+      <div><span>08:41:21</span> Copying 5 tag(s)…</div>
+    </div>
+  </div>
+
   <div class="footer">
-    <button class="btn" type="button">Preview</button>
-    <a href="#log">Open log</a>
-    <button class="btn push" type="button">Cancel</button>
-    <button class="btn primary" type="button">Create Text</button>
+    <span class="muted">5 ticked</span>
+    <button class="btn primary push" type="button">Create Text</button>
+    <button class="btn" type="button">Cancel</button>
     <button class="btn" type="button">Close</button>
   </div>
 </div>
-<p class="caption">Static mock-up of the planned Revit dialog. Controls are not wired.</p>
+<p class="caption">Mock-up of the Tag To Text window (v1.0.0). Try the Place Text In options: Original Tags greys out for a new view.</p>
+<script>
+(function(){
+  var same=document.getElementById('t1'), nv=document.getElementById('t2'), set=document.getElementById('origSet'), hint=document.getElementById('origHint');
+  var sub=document.querySelector('.sub');
+  function sync(){ var isNew=nv.checked; set.disabled=isNew; hint.hidden=!isNew; sub.querySelectorAll('input').forEach(function(i){i.disabled=!isNew;}); sub.style.opacity=isNew?1:.55; }
+  same.addEventListener('change',sync); nv.addEventListener('change',sync); sync();
+})();
+</script>

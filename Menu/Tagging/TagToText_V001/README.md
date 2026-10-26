@@ -1,70 +1,77 @@
-# Tag To Text — V001 (planned)
+# Tag To Text — V001
 
-> Status: **design / spec only.** No code yet. UI mock-up: [`UI_Mockup.html`](UI_Mockup.html)
-> (open it in a browser).
-
-Copies tags from the active view into **text notes with leaders (arrows)**, at the same
-position and with the same text. The text can go in the **same view** or in a **new
-duplicate of the view**.
+Copies tags from the active view into **text notes with leaders (arrows)**, at the same position and
+with the same text. The text can go in the **same view** or in a **new duplicate of the view**.
+UI mock-up: [`UI_Mockup.html`](UI_Mockup.html) (open it in a browser).
 
 | Item | Value |
 |---|---|
-| Tool name | Tag To Text |
-| Folder | `Menu/Tagging/TagToText_V001/` (`Commands`, `Core`, `UI`, `Infrastructure`) |
+| Tool name | Tag To Text, v1.0.0 (plugin 6.14.0) |
+| Folder | `Menu/Tagging/TagToText_V001/` |
 | Namespace | `Revit26_Plugin_Revised.TagToText.V001` |
 | Command | `Revit26_Plugin_Revised.TagToText.V001.Commands.TagToTextCommand` (via `ToolGuard.RunCommand`) |
-| Catalog | `ToolCatalog.TagToText = Add("Tag To Text", "1.0.0", "V001", …)` |
-| Settings | `%AppData%\Revit26_Plugin_Revised\TagToText\settings.json` (with a version field) |
-| Ribbon panel | _to be decided_ |
+| Ribbon | **SloperPro-Documents › Tagging › Tag To Text** (`Btn_TagToText_V001`) |
+| Catalog | `ToolCatalog.TagToText` |
+| Settings | `%AppData%\Revit26_Plugin_Revised\TagToText\settings.json` (with a `Version` field) |
+| Tests | `dotnet test Tests/TagToText.Tests` |
+
+## Code layout
+
+| File | Job |
+|---|---|
+| `Commands/TagToTextCommand.cs` | Checks the document and view, opens the window |
+| `Core/Services/TagReader.cs` | Finds tags; reads text, text position, leader end and bend |
+| `Core/Services/TagToTextService.cs` | The run: duplicate view, create notes, hide/delete originals, progress, cancel |
+| `Core/Services/TextRules.cs` | Revit-free rules: line splitting, prefixes, unique view names (unit-tested) |
+| `Core/Models/*` | Enums, the settings file, what was read from a tag |
+| `Infrastructure/TagToTextHandler.cs` | External event handler (via `ToolGuard.RunHandler`) |
+| `UI/*` | Window (shared `ToolWindowShell`) and view model |
 
 ## Tags it copies
 
-| Tag type | Text read | Leader read |
+| Tag type | Text read | Text position / leader |
 |---|---|---|
-| Spot Elevation | Displayed value, with prefix and suffix | Leader end, bend, text position |
-| Spot Coordinate | N / E lines | Same as above |
-| Spot Slope | Value, e.g. `2.00%` | Arrow point and direction |
-| Element tags (roof, door, keynote, multi-category…) | `TagText` | Tag head, leader end, bend |
-| Room / Area / Space tags | `TagText` | Tag head, leader end |
-| Dimensions | Not in V001 | — |
+| Spot Elevation | `ValueString`, plus the type's Elevation Indicator and the prefix/suffix if missing | Text position; leader to the spotted point, bend at the shoulder |
+| Spot Coordinate | `ValueString` lines, plus N/S and E/W indicators if missing | **Two notes**: N at the text position, E one line below; both lead to the spotted point |
+| Spot Slope | `ValueString` | Just above the slope arrow, leader to the spotted point (the API gives no text position) |
+| Element tags | `TagText` | Tag head; free leader end, or the tagged element's location for attached leaders (linked elements too) |
+| Room / Area / Space tags | `TagText` | Tag head, leader end and bend |
 
-Output is a `TextNote` with a leader. The arrowhead comes from the chosen Text Type.
-Supported views: plan, section, elevation, detail and drafting. Other views are refused
-with a message.
+Every text can be edited in the table before it is written. Supported views: plan, ceiling, structural,
+area, section, elevation, detail and drafting.
 
 ## UI
 
-1. **Source**: selected tags / all tags in the active view, a **Pick Tags…** button, and a
-   tick box for each tag type.
-2. **Results table**: tick, type, text, leader yes/no, status (e.g. "Owned by user X").
-3. **Text Output**: text type, prefix, suffix, keep leader/arrow, match tag rotation,
-   add a source note (tag Id + date).
-4. **Original Tags**: Keep / Hide in view / Delete.
-5. **Place Text In**:
-   - Same view (current)
-   - New view (duplicate of the current view), with:
-     - **Duplicate**: Without detailing / With detailing
-     - **View name** (default: `<current view name> – Text`, made unique if taken)
-     - **Open the new view when done**
-6. **Warning**: the text is static and won't update with the model.
-7. **Progress**: progress bar, `n of N · %`, current step, and Created / Skipped / Failed
-   counts.
-8. **Buttons**: Preview, Open log, Cancel, Create Text, Close.
+1. **Source**: selected tags / all tags in the active view, **Pick Tags…**, **Refresh List**, a tick box per tag type.
+2. **Table**: tick, type, text (editable), leader yes/no, status ("OK", "owned by X", "in a group", problems).
+3. **Text Output**: text type, prefix, suffix, keep leader/arrow, match tag rotation, source note in Comments.
+4. **Place Text In**: same view, or a new view duplicated **without** or **with detailing**, view name,
+   open the new view when done.
+5. **Original Tags** (same view only; greyed out for a new view): Keep / Hide in view / Delete.
+6. Warning that the text is static.
+7. **Progress**: bar, `n of N · %`, step, Created / Skipped / Failed.
+8. Run log with Copy Log and Open Log Folder. Footer: **Create Text**, **Cancel**, **Close**.
+
+All options are remembered and restored when the window opens again.
 
 ## Behaviour and robustness
 
-- All changes run in one `TransactionGroup`. An error rolls back everything, including
-  the duplicated view.
-- **Duplicate without detailing** uses `ViewDuplicateOption.Duplicate`; **with detailing**
-  uses `ViewDuplicateOption.WithDetailing`. Check `View.CanViewBeDuplicated` first.
-- Tags owned by another user (`WorksharingUtils.GetCheckoutStatus`), tags in groups, and
-  tags with no readable text are skipped, and the reason is shown in the table.
-- Cancel stops after the current tag and rolls back.
-- Unexpected errors go to `%AppData%\Revit26_Plugin_Revised\Logs` through `ToolGuard.Report`.
+- One `TransactionGroup` per run. Each tag is created in its own `SubTransaction`: a tag that fails is
+  logged and skipped, the rest go ahead. **Cancel**, or an unexpected error, rolls back everything,
+  including the duplicated view.
+- **Without detailing** uses `ViewDuplicateOption.Duplicate`, **with detailing**
+  `ViewDuplicateOption.WithDetailing`, after `View.CanViewBeDuplicated`.
+- With **Delete**, tags in groups or owned by another user (`WorksharingUtils.GetCheckoutStatus`) are
+  kept and logged. With **Hide**, tags that can't be hidden in the view stay visible.
+- If Revit refuses a leader, the note is kept without it and a warning is logged.
+- The window can't close while a run is in progress. Unexpected errors go to
+  `%AppData%\Revit26_Plugin_Revised\Logs` through `ToolGuard.Report`.
 
-## Open questions
+## Needs checking in Revit
 
-1. Which ribbon panel gets the button?
-2. Spot Coordinate: one text note with 2 lines, or two notes?
-3. With **New view**, should "Hide/Delete original tags" apply only to the current view?
-4. Should every option shown be in V001, or should some wait for a later version?
+Built and unit-tested on Linux; not yet run in Revit. Check these on a real model:
+
+1. Spot Coordinate `ValueString` gives two lines (N and E). If it gives one, the tool makes one note.
+2. Spot prefixes/indicators are not doubled (the tool only adds them when missing).
+3. Text sits centred on the tag head and the arrowhead matches the chosen text type.
+4. Progress updates and Cancel respond during a long run.
