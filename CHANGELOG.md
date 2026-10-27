@@ -9,6 +9,25 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.16.0] — 2026-10-27
+
+### Changed
+- **Roof Tag v18.2.0** — the command is split into a thin entry point plus workflow, point collector,
+  filter rules (interior loop, exterior loop, cluster) and a placement runner; files now follow the
+  `Commands / Core / UI / Infrastructure` layout. Tagging results are unchanged.
+- The command now runs through `ToolGuard`, and dialog titles read the version from the tool catalog
+  (they said "V015" before).
+- Placement errors now say why Revit refused the tag, instead of only "placement failed".
+
+### Added
+- Checks before any change: read-only document, no active view, sheet / schedule / view-template views,
+  and a roof checked out by another user (when the shape editor must be enabled).
+
+### Fixed
+- Log file write failures are no longer swallowed silently.
+- **User note:** the tag log file moved from `Documents\RoofTag_V015_Log.txt` to
+  `%AppData%\Revit26_Plugin_Revised\Logs\RoofTag.log`.
+
 ## [6.15.0] — 2026-10-27
 
 ### Changed
