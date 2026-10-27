@@ -9,6 +9,16 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.15.1] — 2026-10-27
+
+### Fixed
+- **Export DWG to Folder v4.1.2** — re-exported DWGs (imports, and links without a reachable source file)
+  sometimes contained other Revit elements from the view. The tool used Temporary Isolate, which DWG export does
+  not reliably honour. It now really hides every other element and category in the view (and the crop region),
+  regenerates, exports, then rolls everything back.
+- **User note:** the view returns exactly to its earlier state after each export — hidden elements, categories,
+  crop region and view template are all restored. Nothing is saved in the model.
+
 ## [6.15.0] — 2026-10-27
 
 ### Changed
