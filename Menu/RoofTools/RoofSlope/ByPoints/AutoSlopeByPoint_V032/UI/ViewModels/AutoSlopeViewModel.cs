@@ -158,6 +158,7 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V032.UI.ViewModels
         {
             RunState.Running => "Running…",
             RunState.Ready or RunState.Picking => "Run AutoSlope",
+            RunState.Done => "Done · re-pick to run",
             _ => "Run again"
         };
 
@@ -365,8 +366,10 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V032.UI.ViewModels
 
         // ══ Run ══════════════════════════════════════════════════════════════
 
+        // Disabled after a successful run; re-picking the drains sets State back to Ready.
         private bool CanRun() =>
             IsInputEnabled
+            && State != RunState.Done
             && string.IsNullOrEmpty(ValidationMessage)
             && _picks.Count > 0
             && AutoSlopeEventManager.Handler?.HasPending != true;

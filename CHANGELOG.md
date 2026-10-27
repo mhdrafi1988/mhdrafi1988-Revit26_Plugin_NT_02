@@ -9,6 +9,13 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.15.0] — 2026-10-27
+
+### Changed
+- **Auto Slope By Point v32.4.0** — the Run button is disabled after a successful run, so the same slope is not
+  applied twice by accident. It stays enabled after a cancelled or failed run.
+- **User note:** to run again, click **Re-pick** and pick the drains; this turns the Run button back on.
+
 ## [6.14.1] — 2026-10-26
 
 ### Fixed
