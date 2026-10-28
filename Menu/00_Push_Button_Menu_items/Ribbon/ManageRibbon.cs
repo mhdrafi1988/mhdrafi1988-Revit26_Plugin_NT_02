@@ -76,6 +76,12 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             bulkRenameV001.ToolTip = Revit26_Plugin_Revised.Shared.Services.ToolCatalog.BulkRename.Tip(
                 "Renames many line styles, line patterns, arrowheads or fill patterns at once: find/replace, prefix/suffix, case change and numbering.");
 
+            var bulkDeleteV001 = Btn(assemblyPath, "Btn_BulkDelete_V001", "Bulk Delete V001",
+                "Revit26_Plugin_Revised.BulkDelete.V001.Commands.BulkDeleteCommand",
+                "Manage.DeleteLineStyles_16.png", "Bulk Delete", "V001");
+            bulkDeleteV001.ToolTip = Revit26_Plugin_Revised.Shared.Services.ToolCatalog.BulkDelete.Tip(
+                "Deletes many line styles, line patterns, arrowheads or fill patterns at once. Nothing is ticked at first; you confirm before anything is removed.");
+
             var trackerIdV001 = Btn(assemblyPath, "Btn_TrackerId_V001", "Tracker ID V001",
                 "Revit26_Plugin_Revised.TrackerId.V001.Commands.TrackerIdCommand",
                 "Manage.TrackerId_16.png", "Tracker ID", "V001");
@@ -199,12 +205,14 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             {
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_DeleteLineStyles", "Del. Line Styles", deleteLineStylesV001),
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_BulkRename", "Bulk Rename", bulkRenameV001),
+                RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_BulkDelete", "Bulk Delete", bulkDeleteV001),
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_TrackerId", "Tracker ID", trackerIdV002),
             });
             RibbonLayoutHelper.WirePulldownButton(manageItems, "Pulldown_AnnotationOverlapDetection", overlapV004);
             RibbonLayoutHelper.WirePulldownButton(manageItems, "Pulldown_ParaManager", paraManagerV005);
             RibbonLayoutHelper.WirePulldownButton(manageItems, "Pulldown_DeleteLineStyles", deleteLineStylesV001);
             RibbonLayoutHelper.WirePulldownButton(manageItems, "Pulldown_BulkRename", bulkRenameV001);
+            RibbonLayoutHelper.WirePulldownButton(manageItems, "Pulldown_BulkDelete", bulkDeleteV001);
             RibbonLayoutHelper.WirePulldownButton(manageItems, "Pulldown_TrackerId", trackerIdV002, trackerIdV001);
             RibbonLayoutHelper.WirePulldownButton(manageItems, "Pulldown_ScheduleExportImport", scheduleExportImportV007, scheduleExportImportV006);
             // Link Check lists V007 first, then V006, then V004's three scan modes, then V003's.

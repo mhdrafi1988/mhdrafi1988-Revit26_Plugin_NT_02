@@ -9,6 +9,25 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.19.0] — 2026-10-28
+
+### Added
+- **Bulk Delete v1.0.0** (Manage panel, slide-out, next to Bulk Rename) — delete many line styles, line
+  patterns, arrowheads or fill patterns at once. It works like Bulk Rename: pick **What to delete**, filter
+  by name, tick rows, press **Delete**.
+  - Nothing is ticked when a list opens. **Select All**, **Select None** and **Select Unused** act on the
+    rows the filter shows; only visible, ticked rows are deleted.
+  - Delete asks first (the default answer is No), listing what will go. One Ctrl+Z in Revit undoes the run.
+  - Locked rows cannot be ticked: Revit's built-in line styles, the solid fill pattern, items owned by another
+    user in a workshared model, and line styles that lines still use (the Used By column shows how many;
+    move those lines first with Delete Line Styles).
+  - Each item is deleted on its own, and skipped (left in the model, reason in the log) if it changed since
+    the list was loaded, or if deleting it would also delete other elements that depend on it.
+  - The log is saved to `%AppData%\Revit26_Plugin_Revised\Logs` after every run.
+  - **User note:** Revit does not report where line patterns, arrowheads and fill patterns are used, so for
+    those the Used By column is empty and **Select Unused** ticks nothing. Anything that still uses a deleted
+    pattern or arrowhead changes appearance; use Ctrl+Z to bring it back.
+
 ## [6.18.0] — 2026-10-28
 
 ### Added
