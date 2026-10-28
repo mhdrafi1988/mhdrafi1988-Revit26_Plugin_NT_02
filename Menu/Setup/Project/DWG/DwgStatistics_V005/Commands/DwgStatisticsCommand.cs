@@ -61,8 +61,9 @@ namespace Revit26_Plugin_Revised.DwgStatistics.V005.Commands
     {
         private static DwgStatisticsWindow _window;
 
-        // V004 hardening: the Revit application whose DocumentClosing event is watched while a window is open.
-        private static Autodesk.Revit.ApplicationServices.Application _watchedApp;
+        // V004 hardening: the DocumentClosing listener while a window is open. Goes through RevitEventRelay,
+        // because the window closes outside Revit's API context, where Revit refuses to remove a handler.
+        private static System.IDisposable _documentClosingSubscription;
 
         /// <inheritdoc/>
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
@@ -120,17 +121,14 @@ namespace Revit26_Plugin_Revised.DwgStatistics.V005.Commands
         // keeps a dead Document (and its external event) alive or offers actions on a closed model.
         private static void WatchDocuments(Autodesk.Revit.ApplicationServices.Application app)
         {
-            if (_watchedApp != null) return;
-            _watchedApp = app;
-            _watchedApp.DocumentClosing += OnDocumentClosing;
+            _documentClosingSubscription ??= RevitEventRelay.DocumentClosing(app, typeof(DwgStatisticsCommand), OnDocumentClosing);
         }
 
+        // Safe from the window's Closed handler: it only leaves the relay's list.
         private static void StopWatchingDocuments()
         {
-            if (_watchedApp == null) return;
-            try { _watchedApp.DocumentClosing -= OnDocumentClosing; }
-            catch (Autodesk.Revit.Exceptions.ApplicationException) { /* Revit is shutting down */ }
-            _watchedApp = null;
+            _documentClosingSubscription?.Dispose();
+            _documentClosingSubscription = null;
         }
 
         private static void OnDocumentClosing(object sender, DocumentClosingEventArgs e)

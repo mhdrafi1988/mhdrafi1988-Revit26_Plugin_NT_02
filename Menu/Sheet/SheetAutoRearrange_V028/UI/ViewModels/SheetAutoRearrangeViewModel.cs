@@ -40,6 +40,10 @@ namespace Revit26_Plugin_Revised.SheetAutoRearrange.V028.UI.ViewModels
         private readonly UIDocument _uiDoc;
         private readonly SheetAutoRearrangeEventHandler _handler;
         private readonly ExternalEvent _externalEvent;
+
+        // Live-sync listener. Goes through RevitEventRelay so closing the window never
+        // removes a Revit event handler (Revit refuses that outside its API context).
+        private System.IDisposable _documentChangedSubscription;
         private readonly Dispatcher _dispatcher;
 
         [ObservableProperty] private string lastLogFilePath = string.Empty;
@@ -168,13 +172,18 @@ namespace Revit26_Plugin_Revised.SheetAutoRearrange.V028.UI.ViewModels
             // move a view on the sheet, undo, etc.) — no manual Refresh
             // needed. Guarded by IsBusy so our own Load/Run actions don't
             // re-trigger themselves.
-            _uiDoc.Document.Application.DocumentChanged += OnDocumentChanged;
+            _documentChangedSubscription = Revit26_Plugin_Revised.Shared.Services.RevitEventRelay.DocumentChanged(
+                _uiDoc.Document.Application, GetType(), OnDocumentChanged);
         }
 
-        /// <summary>Unhooks the DocumentChanged subscription. Called by the window's Closing handler alongside SaveSettings.</summary>
+        /// <summary>
+        /// Stops the live sync. Called by the window's Closing handler alongside SaveSettings. Safe outside
+        /// a Revit API context: it only leaves RevitEventRelay's list, it does not touch Revit's event.
+        /// </summary>
         public void Detach()
         {
-            _uiDoc.Document.Application.DocumentChanged -= OnDocumentChanged;
+            _documentChangedSubscription?.Dispose();
+            _documentChangedSubscription = null;
         }
 
         /// <summary>

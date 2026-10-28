@@ -9,6 +9,25 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.16.2] — 2026-10-28
+
+### Fixed
+- **Sheet Auto Rearrange v28.1.2 (V028)**, and V027 with the same fix (no version entry) — closing the window
+  showed "Invalid call to Revit API! Revit is currently not within an API context." The window stopped
+  listening for model changes by removing its handler from Revit's `DocumentChanged` event, and Revit only
+  allows that while a command or external event is running, never from a window closing on its own.
+- **Auto Slope By Point v32.4.1 (V032)** and **Auto Slope By Drain (Multi-Roof) v13.1.4 (V013)** — same
+  problem with the `ViewActivated` event, hidden by an empty `catch`: no error showed, but the closed window
+  stayed attached to Revit, and each reopen added another one.
+- **DWG Statistics v5.1.2 (V005)** — same problem with the `DocumentClosing` event when you closed the window
+  yourself: the error was caught, but the listener stayed attached and was added again on the next open.
+- New shared helper `RevitEventRelay` (`Shared/Services`): attaches each Revit event once per session, from
+  inside the command, and passes it on to the open tool windows. Closing a window only takes it off the relay's
+  list, which needs no Revit call. A listener that throws is reported through `ToolGuard` and then stopped,
+  so one bug can't show an error on every model change.
+- **User note:** nothing changes in how these tools work. Closing Sheet Auto Rearrange no longer shows an error;
+  your settings were always saved before the error, and the model was never changed by it.
+
 ## [6.16.1] — 2026-10-28
 
 ### Fixed
