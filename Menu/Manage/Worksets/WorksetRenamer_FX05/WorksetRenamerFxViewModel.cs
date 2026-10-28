@@ -10,12 +10,20 @@ using Autodesk.Revit.UI;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Win32;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace Revit26_Plugin_Revised.WorksetRenamer.FX05.ViewModels
 {
-    public partial class WorksetRenamerFxViewModel : ObservableObject
+    /// <summary>
+    /// Workset Renamer (From Excel) window state. Update runs through <see cref="RevitApiQueue"/>, because
+    /// the window is modeless and Revit refuses transactions started from its button clicks.
+    /// </summary>
+    public partial class WorksetRenamerFxViewModel : ObservableObject, IDisposable
     {
         private readonly Document _doc;
+
+        // Runs the rename/create in Revit's API context. Created by the constructor, which the command runs.
+        private readonly RevitApiQueue _revit;
         private List<ExcelMappingRow> _importedPairs = new List<ExcelMappingRow>();
         private bool _isRevalidating;
 
@@ -67,9 +75,11 @@ namespace Revit26_Plugin_Revised.WorksetRenamer.FX05.ViewModels
                 || (row.NewName?.IndexOf(t, StringComparison.OrdinalIgnoreCase) >= 0);
         }
 
+        /// <summary>Creates the window state for <paramref name="doc"/>. Call from the command (a Revit API context).</summary>
         public WorksetRenamerFxViewModel(Document doc)
         {
             _doc = doc;
+            _revit = new RevitApiQueue("Workset Renamer FX05");
 
             var okView = new ListCollectionView(Rows) { Filter = r => { var row = (WorksetFxRowVM)r; return row.Kind == RowKind.Rename && !row.IsDuplicateWarning && MatchesSearch(row); } };
             var dupView = new ListCollectionView(Rows) { Filter = r => { var row = (WorksetFxRowVM)r; return row.IsDuplicateWarning && MatchesSearch(row); } };
@@ -368,6 +378,14 @@ namespace Revit26_Plugin_Revised.WorksetRenamer.FX05.ViewModels
         [RelayCommand]
         private void Update()
         {
+            if (IsRunning) return;
+
+            if (!_doc.IsValidObject)
+            {
+                StatusMessage = "The project was closed. Close this window.";
+                return;
+            }
+
             var candidates = Rows.Where(r => r.IsSelected && r.IsActionable).ToList();
             if (!candidates.Any())
             {
@@ -392,6 +410,32 @@ namespace Revit26_Plugin_Revised.WorksetRenamer.FX05.ViewModels
             {
                 TaskDialog.Show("Duplicate Name",
                     $"Duplicate new name(s) remain after auto-resolve:\n{string.Join(", ", stillColliding)}\n\nAdjust them manually and try again.");
+                return;
+            }
+
+            IsRunning = true;
+            StatusMessage = $"Updating {candidates.Count} workset(s)…";
+
+            // Revit runs this once it is idle; a modeless window cannot start the transaction itself.
+            bool queued = _revit.TryRun(_ =>
+            {
+                try { UpdateInRevit(candidates); }
+                finally { IsRunning = false; }
+            });
+
+            if (!queued)
+            {
+                IsRunning = false;
+                StatusMessage = "Revit is busy. Finish the current command or close any open dialog, then click Update again.";
+            }
+        }
+
+        // Runs in the Revit API context (through _revit).
+        private void UpdateInRevit(List<WorksetFxRowVM> candidates)
+        {
+            if (!_doc.IsValidObject)
+            {
+                StatusMessage = "The project was closed. Close this window.";
                 return;
             }
 
@@ -441,6 +485,9 @@ namespace Revit26_Plugin_Revised.WorksetRenamer.FX05.ViewModels
 
             StatusMessage = $"Done — {renamed} renamed, {created} created, {errors} error(s)";
         }
+
+        /// <summary>Releases the Revit external event. Called when the window closes.</summary>
+        public void Dispose() => _revit.Dispose();
 
         private List<string> FindRemainingCollisions(List<WorksetFxRowVM> candidates)
         {

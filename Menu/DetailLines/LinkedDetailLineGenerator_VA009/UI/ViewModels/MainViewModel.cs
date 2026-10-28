@@ -45,6 +45,9 @@ namespace Revit26_Plugin_Revised.LinkedDetailLineGenerator.VA009.UI.ViewModels
         private readonly CreateDetailLinesEventHandler _eventHandler = new();
         private readonly ExternalEvent _externalEvent;
 
+        // Runs Pick Line's PickObject in Revit's API context (a modeless window's click is outside it).
+        private readonly Revit26_Plugin_Revised.Shared.Services.RevitApiQueue _pickQueue;
+
         // ── VA007: pre-selected Floor/Roof header info (set once, never changes) ──
         public long SelectedElementId { get; }
         public string SelectedElementName { get; }
@@ -323,6 +326,7 @@ namespace Revit26_Plugin_Revised.LinkedDetailLineGenerator.VA009.UI.ViewModels
             // by the PushButton command (per suite convention: never lazily inside
             // Execute()).
             _externalEvent = ExternalEvent.Create(_eventHandler);
+            _pickQueue = new Revit26_Plugin_Revised.Shared.Services.RevitApiQueue("Detail Lines From Links VA009 — Pick Line");
             _eventHandler.OnComplete = OnProcessingComplete;
 
             MappingsGrouped = CollectionViewSource.GetDefaultView(Mappings);
@@ -450,12 +454,26 @@ namespace Revit26_Plugin_Revised.LinkedDetailLineGenerator.VA009.UI.ViewModels
         [RelayCommand]
         private void PickAxisLine()
         {
-            UIDocument uiDoc = _uiApp.ActiveUIDocument;
-            Document hostDoc = uiDoc.Document;
+            _ownerWindow?.Hide();
+            if (!_pickQueue.TryRun(PickAxisLineInRevit))
+            {
+                _ownerWindow?.Show();
+                AddLog(LogLevel.Warning, "Pick Line: Revit is busy. Finish the current command or close any open dialog, then try again.");
+            }
+        }
 
+        // Runs in the Revit API context (through _pickQueue).
+        private void PickAxisLineInRevit(UIApplication app)
+        {
             try
             {
-                _ownerWindow?.Hide();
+                UIDocument uiDoc = app.ActiveUIDocument;
+                Document hostDoc = _selectedBoundaryElement.IsValidObject ? _selectedBoundaryElement.Document : null;
+                if (uiDoc == null || hostDoc == null || !uiDoc.Document.Equals(hostDoc))
+                {
+                    AddLog(LogLevel.Error, "Pick Line: switch back to the project this window was opened for, then try again.");
+                    return;
+                }
 
                 Reference pickedRef = uiDoc.Selection.PickObject(
                     ObjectType.Element,
@@ -994,6 +1012,9 @@ namespace Revit26_Plugin_Revised.LinkedDetailLineGenerator.VA009.UI.ViewModels
             AddLog(autoSaved ? LogLevel.Success : LogLevel.Warning,
                 autoSaved ? $"Log auto-saved to {path}" : "Log auto-save failed");
         }
+
+        /// <summary>Releases the Pick Line external event. Called when the window closes.</summary>
+        public void ReleaseRevitQueue() => _pickQueue.Dispose();
     }
 }
 

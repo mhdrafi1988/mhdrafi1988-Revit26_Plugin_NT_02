@@ -26,12 +26,20 @@ using System.Windows;
 using Revit26_Plugin_Revised.DwgToLines.V007.Core.Models;
 using Revit26_Plugin_Revised.DwgToLines.V007.Core.Services;
 using Revit26_Plugin_Revised.Shared.Models;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace Revit26_Plugin_Revised.DwgToLines.V007.UI.ViewModels
 {
-    public partial class DwgToLinesViewModel : ObservableObject
+    /// <summary>
+    /// DWG To Lines window state. Convert runs through <see cref="RevitApiQueue"/>, because the window is
+    /// modeless and Revit refuses transactions started from its button clicks.
+    /// </summary>
+    public partial class DwgToLinesViewModel : ObservableObject, IDisposable
     {
         private readonly UIApplication _uiApp;
+
+        // Runs the conversion in Revit's API context. Created by the constructor, which the command runs.
+        private readonly RevitApiQueue _revit;
 
         public ObservableCollection<CadImportItem> AvailableCads { get; } = new();
         public ObservableCollection<LogEntry> LogEntries { get; } = new();
@@ -57,11 +65,13 @@ namespace Revit26_Plugin_Revised.DwgToLines.V007.UI.ViewModels
 
         public event Action RequestClose;
 
+        /// <summary>Lists the family's CAD imports. Call from the command (a Revit API context).</summary>
         public DwgToLinesViewModel(UIApplication app)
         {
             _uiApp = app;
+            _revit = new RevitApiQueue("DWG To Lines V007");
 
-            ConvertCommand = new RelayCommand(Convert, () => SelectedCad != null);
+            ConvertCommand = new RelayCommand(Convert, () => SelectedCad != null && !IsRunning);
             CloseCommand = new RelayCommand(() => RequestClose?.Invoke());
             CopyAllLogsCommand = new RelayCommand(CopyAllLogs);
             CopySelectedLogsCommand = new RelayCommand(CopySelectedLogs);
@@ -82,22 +92,57 @@ namespace Revit26_Plugin_Revised.DwgToLines.V007.UI.ViewModels
         partial void OnSelectedCadChanged(CadImportItem value)
             => ConvertCommand.NotifyCanExecuteChanged();
 
+        partial void OnIsRunningChanged(bool value)
+            => ConvertCommand.NotifyCanExecuteChanged();
+
         private void Convert()
         {
+            if (IsRunning || SelectedCad == null) return;
+
+            // Snapshot the options now; Revit runs the job a moment later, once it is idle.
+            var cad = SelectedCad.ImportInstance;
+            var placement = PlacementMode;
+            var spline = SplineHandlingMode;
+            bool extrusionReady = ExtrusionReadyMode;
+
+            IsRunning = true;
+            bool queued = _revit.TryRun(app =>
+            {
+                try { ConvertInRevit(app, cad, placement, spline, extrusionReady); }
+                finally { IsRunning = false; }
+            });
+
+            if (!queued)
+            {
+                IsRunning = false;
+                AddLog(LogLevel.Warning, "Revit is busy. Finish the current command or close any open dialog, then click Convert again.");
+            }
+        }
+
+        // Runs in the Revit API context (through _revit).
+        private void ConvertInRevit(UIApplication app, Autodesk.Revit.DB.ImportInstance cad,
+            PlacementMode placement, SplineHandlingMode spline, bool extrusionReady)
+        {
+            var activeDoc = app.ActiveUIDocument?.Document;
+            if (cad == null || !cad.IsValidObject || activeDoc == null || !cad.Document.Equals(activeDoc))
+            {
+                AddLog(LogLevel.Error, "The family this window was opened for is not the active document (or the CAD import was deleted). Switch back to it, or reopen DWG To Lines.");
+                return;
+            }
+
             try
             {
-                new CadConversionService(_uiApp, entry => AddLog(entry.Level, entry.Message))
-                    .Execute(
-                        SelectedCad.ImportInstance,
-                        PlacementMode,
-                        SplineHandlingMode,
-                        ExtrusionReadyMode);
+                new CadConversionService(app, entry => AddLog(entry.Level, entry.Message))
+                    .Execute(cad, placement, spline, extrusionReady);
             }
             catch (Exception ex)
             {
                 AddLog(LogLevel.Error, $"Conversion failed: {ex.Message}");
             }
         }
+
+        /// <summary>Releases the Revit external event. Called when the window closes.</summary>
+        public void Dispose() => _revit.Dispose();
 
         private void AddLog(LogLevel level, string message)
             => LogEntries.Add(new LogEntry(level, message));

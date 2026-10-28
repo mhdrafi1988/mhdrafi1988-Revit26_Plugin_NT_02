@@ -10,6 +10,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Windows.Data;
 using Revit26_Plugin_Revised.Shared.Models;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace Revit26_Plugin_Revised.RoofEdgeElementSections.V004
 {
@@ -44,6 +45,9 @@ namespace Revit26_Plugin_Revised.RoofEdgeElementSections.V004
         private readonly UIDocument _uiDoc;
         private readonly ExternalEvent _externalEvent;
         private readonly RoofEdgeElementSectionsEventHandler _handler;
+
+        // Runs Pick Roofs' PickObjects in Revit's API context (a modeless window's click is outside it).
+        private readonly RevitApiQueue _pickQueue;
         private readonly RoofEdgeElementSectionsSettings _settings;
         private readonly LinkService _linkService = new();
 
@@ -160,6 +164,7 @@ namespace Revit26_Plugin_Revised.RoofEdgeElementSections.V004
             _uiDoc = uiDoc;
             _externalEvent = externalEvent;
             _handler = handler;
+            _pickQueue = new RevitApiQueue("Roof Edge Element Sections V004 — Pick Roofs");
 
             _settings = SettingsService.Load();
             edgeProximityToleranceMm = _settings.EdgeProximityToleranceMm;
@@ -291,17 +296,35 @@ namespace Revit26_Plugin_Revised.RoofEdgeElementSections.V004
         // ── 1. Roofs ─────────────────────────────────────────────────────
 
         /// <summary>Wired by the View so PickRoofs can hide/show the (modeless) window
-        /// around the blocking Selection.PickObjects call — WPF's thread is Revit's
-        /// main STA thread here, so this can be called directly, no ExternalEvent.</summary>
+        /// around the blocking Selection.PickObjects call. The pick itself runs through
+        /// _pickQueue: Revit only allows it inside its API context, which a button click is not.</summary>
         public Action HideWindow { get; set; }
         public Action ShowWindow { get; set; }
 
         [RelayCommand]
         private void PickRoofs()
         {
+            HideWindow?.Invoke();
+            if (!_pickQueue.TryRun(PickRoofsInRevit))
+            {
+                ShowWindow?.Invoke();
+                LogEntries.Add(new LogEntry(LogLevel.Warning,
+                    "Pick Roofs: Revit is busy. Finish the current command or close any open dialog, then try again."));
+            }
+        }
+
+        // Runs in the Revit API context (through _pickQueue).
+        private void PickRoofsInRevit(UIApplication app)
+        {
             try
             {
-                HideWindow?.Invoke();
+                UIDocument active = app.ActiveUIDocument;
+                if (active == null || !_doc.IsValidObject || !active.Document.Equals(_doc))
+                {
+                    LogEntries.Add(new LogEntry(LogLevel.Error,
+                        "Pick Roofs: switch back to the project this window was opened for, then try again."));
+                    return;
+                }
 
                 IList<Reference> picked = _uiDoc.Selection.PickObjects(
                     ObjectType.Element, new RoofSelectionFilter(), "Select roof elements");
@@ -680,8 +703,11 @@ namespace Revit26_Plugin_Revised.RoofEdgeElementSections.V004
 
         public Action<List<LogEntry>, string> ExportLogsRequested { get; set; }
 
+        /// <summary>Releases the pick external event and saves settings. Called from the window's Closing handler.</summary>
         public void OnWindowClosing()
         {
+            _pickQueue.Dispose();
+
             var settingsSnapshot = BuildSettingsSnapshot();
             SettingsService.Save(settingsSnapshot);
 

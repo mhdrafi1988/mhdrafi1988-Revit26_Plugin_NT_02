@@ -20,6 +20,7 @@ namespace Revit26_Plugin_Revised.DwgToLines.V007.UI.Views
             var vm = new DwgToLinesViewModel(uiApp);
             vm.RequestClose += Close;
             DataContext = vm;
+            Closed += (_, _) => vm.Dispose();
         }
 
         private void Window_KeyDown(object sender, KeyEventArgs e)
