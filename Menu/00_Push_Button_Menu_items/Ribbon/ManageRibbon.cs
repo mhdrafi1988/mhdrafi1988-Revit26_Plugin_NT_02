@@ -9,7 +9,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
     {
         // Every Manage button is a pulldown: highest version number first,
         // every older version below it in descending order. Each tool lists only
-        // its latest two versions.
+        // its latest three versions.
         private const string Rebuilt = " with the standard three-zone window layout.";
 
         private static PushButtonData Btn(string assemblyPath, string name, string text, string commandClass,
@@ -49,8 +49,8 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             var worksetRenamerV005 = Btn(assemblyPath, "Btn_WorksetRenamer_V005", "Workset Renamer V005", "Revit26_Plugin_Revised.WorksetRenamer.V005.Command",
                 "SetupTools.WorksetRename_16.png", "Workset Renamer", "V005", "V004 on the shared ToolWindowShell (capped grid).");
 
-            // Newest build first. "#" at the end of the label marks the version added last.
-            var worksetCreatorV016 = Btn(assemblyPath, "Btn_WorksetCreator_V016", "Workset Creator V016 #",
+            // Newest build first.
+            var worksetCreatorV016 = Btn(assemblyPath, "Btn_WorksetCreator_V016", "Workset Creator V016",
                 "Revit26_Plugin_Revised.WorksetCreator.V016.Commands.WorksetCreatorCommand",
                 "SetupTools.WorksetManager_16.png", "Workset Creator", "V016",
                 "V015 with its own tool name/version source (WorksetCreatorTool).");
@@ -108,32 +108,25 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                 "Manage.ScheduleExportImport_16.png", "Schedule Export / Import", "V006", "V005" + Rebuilt);
             var scheduleExportImportV007 = Btn(assemblyPath, "Btn_ScheduleExportImport_V007", "Schedule Export/Import V007", "Revit26_Plugin_Revised.ScheduleExportImport.V007.Commands.ScheduleExportImportCommand",
                 "Manage.ScheduleExportImport_16.png", "Schedule Export / Import", "V007", "V006 on the shared ToolWindowShell (log in body, capped grids).");
-            // Link Version Checker — one tool, three scan modes per version. Pre-Open and Folder
-            // Audit stay enabled with no project open. The load-time logger the checker reads is
-            // registered once, from V004: both versions share
-            // %AppData%\Revit26_Plugin_Revised\LinkVersionChecker\loadtimes.json, so registering both
-            // would double-handle Revit's link-load events and write the same file twice.
+            // Link Version Checker — V004 has three scan modes. Pre-Open and Folder Audit stay
+            // enabled with no project open. The load-time logger the checker reads is registered
+            // once, from V004 (V003 shares the same
+            // %AppData%\Revit26_Plugin_Revised\LinkVersionChecker\loadtimes.json, so registering it
+            // too would double-handle Revit's link-load events and write the same file twice).
             Revit26_Plugin_Revised.LinkVersionChecker_V004.Services.LinkLoadTimeLogger.Register(app.ControlledApplication);
-            const string lvcNs = "Revit26_Plugin_Revised.LinkVersionChecker_V003.Commands.";
-            var linkPreOpenV003 = Btn(assemblyPath, "Btn_LinkVersionChecker_PreOpen_V003", "Link Check Pre-Open V003", lvcNs + "CmdLinkCheckPreOpen",
-                "Manage.ParaManager_16.png", "Link Version Checker - Pre-Open", "V003", "Check a model's linked file versions BEFORE opening it (no model is opened).");
-            linkPreOpenV003.AvailabilityClassName = lvcNs + "LinkCheckAlwaysAvailable";
-            var linkInModelV003 = Btn(assemblyPath, "Btn_LinkVersionChecker_InModel_V003", "Link Check In-Model V003", lvcNs + "CmdLinkCheckInModel",
-                "Manage.ParaManager_16.png", "Link Version Checker - In-Model", "V003", "Check links, IFC caches, imports and worksets in the open model.");
-            var linkFolderV003 = Btn(assemblyPath, "Btn_LinkVersionChecker_Folder_V003", "Link Check Folder Audit V003", lvcNs + "CmdLinkCheckFolder",
-                "Manage.ParaManager_16.png", "Link Version Checker - Folder Audit", "V003", "Audit every host model in a project folder and export one report.");
-            linkFolderV003.AvailabilityClassName = lvcNs + "LinkCheckAlwaysAvailable";
 
-            // Link Version Checker V004 — same three scan modes, now seeing ACC / cloud links
+            // V003's three scan modes left the ribbon in plugin 7.0.0 (latest three versions only);
+            // its source stays in the project.
+
+            // Link Version Checker V004 — three scan modes that see ACC / cloud links
             // (V003 silently dropped them) plus a Source column and filter.
-            // "#" at the end of a label marks the version added last.
             const string lvc4Ns = "Revit26_Plugin_Revised.LinkVersionChecker_V004.Commands.";
-            var linkPreOpenV004 = Btn(assemblyPath, "Btn_LinkVersionChecker_PreOpen_V004", "Link Check Pre-Open V004 #", lvc4Ns + "CmdLinkCheckPreOpen",
+            var linkPreOpenV004 = Btn(assemblyPath, "Btn_LinkVersionChecker_PreOpen_V004", "Link Check Pre-Open V004", lvc4Ns + "CmdLinkCheckPreOpen",
                 "Manage.ParaManager_16.png", "Link Version Checker - Pre-Open", "V004", "Check a model's linked file versions BEFORE opening it (no model is opened). Sees ACC / cloud links.");
             linkPreOpenV004.AvailabilityClassName = lvc4Ns + "LinkCheckAlwaysAvailable";
-            var linkInModelV004 = Btn(assemblyPath, "Btn_LinkVersionChecker_InModel_V004", "Link Check In-Model V004 #", lvc4Ns + "CmdLinkCheckInModel",
+            var linkInModelV004 = Btn(assemblyPath, "Btn_LinkVersionChecker_InModel_V004", "Link Check In-Model V004", lvc4Ns + "CmdLinkCheckInModel",
                 "Manage.ParaManager_16.png", "Link Version Checker - In-Model", "V004", "Check links, IFC caches, imports and worksets in the open model, ACC / cloud links included.");
-            var linkFolderV004 = Btn(assemblyPath, "Btn_LinkVersionChecker_Folder_V004", "Link Check Folder Audit V004 #", lvc4Ns + "CmdLinkCheckFolder",
+            var linkFolderV004 = Btn(assemblyPath, "Btn_LinkVersionChecker_Folder_V004", "Link Check Folder Audit V004", lvc4Ns + "CmdLinkCheckFolder",
                 "Manage.ParaManager_16.png", "Link Version Checker - Folder Audit", "V004", "Audit every host model in a project folder and export one report.");
             linkFolderV004.AvailabilityClassName = lvc4Ns + "LinkCheckAlwaysAvailable";
 
@@ -207,11 +200,10 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             RibbonLayoutHelper.WirePulldownButton(manageItems, "Pulldown_BulkRename", bulkRenameV001);
             RibbonLayoutHelper.WirePulldownButton(manageItems, "Pulldown_TrackerId", trackerIdV002, trackerIdV001);
             RibbonLayoutHelper.WirePulldownButton(manageItems, "Pulldown_ScheduleExportImport", scheduleExportImportV007, scheduleExportImportV006);
-            // Link Check lists V007 first, then V006, then V004's three scan modes, then V003's.
+            // Link Check lists V007 first, then V006, then V004's three scan modes.
             RibbonLayoutHelper.WirePulldownButton(manageItems, "Pulldown_LinkVersionChecker",
                 linkStatusV007, linkStatusV006,
-                linkInModelV004, linkPreOpenV004, linkFolderV004,
-                linkInModelV003, linkPreOpenV003, linkFolderV003);
+                linkInModelV004, linkPreOpenV004, linkFolderV004);
 
             // ── Worksets panel ───────────────────────────────────────────────
             // Every workset tool lives here, in its own panel, instead of being

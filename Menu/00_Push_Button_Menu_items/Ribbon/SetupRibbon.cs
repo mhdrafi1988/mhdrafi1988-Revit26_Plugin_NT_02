@@ -82,8 +82,8 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             };
             var dwgLinesPulldownData = RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_DwgToDetailLines", "DWG To DL(P)", dwgLinesV014);
 
-            // Newest build first. "#" at the end of the label marks the version added last.
-            var exportDwgV004 = new PushButtonData("Btn_ExportDwgToFolder_V004", "Export DWG V004 #", assemblyPath, "Revit26_Plugin_Revised.ExportDwgToFolder.V004.Commands.ExportDwgToFolderCommand")
+            // Newest build first.
+            var exportDwgV004 = new PushButtonData("Btn_ExportDwgToFolder_V004", "Export DWG V004", assemblyPath, "Revit26_Plugin_Revised.ExportDwgToFolder.V004.Commands.ExportDwgToFolderCommand")
             {
                 Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SetupTools.DwgToDetailLines_V011_16.png"),
                 ToolTip = ToolCatalog.ExportDwgToFolder.Tip("Export embedded CAD links and imports to a folder, with layer-property and post-export review options, plus an export manifest.")
@@ -99,7 +99,8 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             var dwgManagerV002 = new PushButtonData("Btn_DwgManager_V002", "DWG Manager V002", assemblyPath, "Revit26_Plugin_Revised.DwgManager.V002.Commands.DwgManagerCommand")
             {
                 Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SetupTools.DwgToDetailLines_16.png"),
-                ToolTip = ToolCatalog.DwgManager.Tip("List every CAD link and import by link type and view, open up to 5 of their views, select instances by ID, and delete them (optionally purging types no longer placed anywhere).")
+                // V002 is not in ToolCatalog (it lists V003 only), so its tip names its own version.
+                ToolTip = RibbonLayoutHelper.VersionTip("DWG Manager", "V002", "List every CAD link and import by link type and view, open up to 5 of their views, select instances by ID, and delete them (optionally purging types no longer placed anywhere).")
             };
             var dwgManagerV003 = new PushButtonData("Btn_DwgManager_V003", "DWG Manager V003", assemblyPath, "Revit26_Plugin_Revised.DwgManager.V003.Commands.DwgManagerCommand")
             {

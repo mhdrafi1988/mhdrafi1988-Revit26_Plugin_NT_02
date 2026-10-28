@@ -9,6 +9,32 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [7.0.0] — 2026-10-28
+
+### Removed
+- **Ribbon: each tool now lists its latest three versions** (the old rule was two, and some dropdowns had
+  grown past it). Buttons removed from the dropdowns:
+  - **EPS 2D Pattern** (Modelling tab ▸ Insulation): V002 and V001. The dropdown now lists V006, V005, V004.
+  - **Link Check** (Documents tab ▸ Manage): V003's Pre-Open, In-Model and Folder Audit. The dropdown now lists
+    V007, V006, then V004's Pre-Open, In-Model and Folder Audit.
+  - The source of these versions stays in the project (and Link Version Checker V003 in `ToolCatalog`), so the
+    buttons can be re-added.
+
+### Changed
+- **Roof Tag moved to the Tagging panel** (Documents tab), next to Tag To Text, as a large dropdown
+  (V018, then V017). The Roof Tools panel (Modelling tab) now holds Creaser Adv, Floor From Rooms and
+  Shape From Link. Internal button names are unchanged.
+- **Dropdown labels no longer end in `#`.** The "most recently added version" marker is retired: it was
+  out of date (Link Check V004 kept it after V006 and V007 arrived) and most tools never had it. Affected:
+  Export DWG V004, Workset Creator V016, Link Check Pre-Open / In-Model / Folder Audit V004.
+
+### Fixed
+- **DWG Manager V002** — its tooltip said V003 (v3.1.1). It now says V002.
+
+**User note:** Roof Tag is now on the Documents tab ▸ Tagging, not Modelling ▸ Roof Tools. EPS 2D Pattern
+V001 / V002 and Link Check V003 are no longer on the ribbon; use the newer versions in the same dropdowns
+(Link Check V004 has the same three scans, and also sees ACC / cloud links).
+
 ## [6.17.0] — 2026-10-28
 
 ### Added

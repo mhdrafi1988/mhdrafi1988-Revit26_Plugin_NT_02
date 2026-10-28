@@ -9,7 +9,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
     {
         // Every roof tool is a pulldown: highest version number first,
         // every older version below it in descending order. Each tool lists only
-        // its latest two versions.
+        // its latest three versions.
         private const string Icons = "Revit26_Plugin_Revised.Resources.Icons.RoofTools.";
 
         private static PushButtonData Btn(string assemblyPath, string name, string text, string commandClass,
@@ -125,18 +125,15 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             RibbonLayoutHelper.WirePulldownButton(shapePointsItems, "Pulldown_MultiplePoints", multiPointsV003, multiPointsV002);
             RibbonLayoutHelper.WirePulldownButton(shapePointsItems, "Pulldown_RoofShapeFromLink", shapeFromLinkV001);
 
-            // Slope Liner + Tag + Floor From Rooms in one stack
-            // (Revit's stacked-item limit is exactly 3 per column).
+            // Creaser Adv + Floor From Rooms + Shape From Link in one stack
+            // (Revit's stacked-item limit is exactly 3 per column). Roof Tag moved to the
+            // Tagging panel on the Documents tab in plugin 7.0.0 (see TaggingRibbon).
             RibbonPanel roofToolsPanel = app.CreateRibbonPanel(tabName, "Roof Tools");
 
             var creaserV011 = Btn(assemblyPath, "Btn_CreaserAdvCommand_V011", "Creaser Adv V011", "Revit26_Plugin_Revised.CreaserAdv.V011.Commands.CreaserAdvCommand",
                 "CreaserAdv_16.png", "Creaser Adv", "V011", "V010 with the standard three-zone window layout.");
             var creaserV012 = Btn(assemblyPath, "Btn_CreaserAdvCommand_V012", "Creaser Adv V012", "Revit26_Plugin_Revised.CreaserAdv.V012.Commands.CreaserAdvCommand",
                 "CreaserAdv_16.png", "Creaser Adv", "V012", "V011 on the shared ToolWindowShell (log in body).");
-            var roofTagV017 = Btn(assemblyPath, "Btn_RoofTagCommand_V017", "Roof Tag V017", "Revit26_Plugin_Revised.RoofTag.V017.RoofTagCommand",
-                "RoofTag_16.png", "Roof Tag", "V017", "V016 with the standard three-zone window layout.");
-            var roofTagV018 = Btn(assemblyPath, "Btn_RoofTagCommand_V018", "Roof Tag V018", "Revit26_Plugin_Revised.RoofTag.V018.RoofTagCommand",
-                "RoofTag_16.png", "Roof Tag", "V018", "V017 on the shared ToolWindowShell (log in body).");
 
             // Roof Shape From Link also sits in Shape Points; this is a second button for the same command,
             // so it needs its own internal name.
@@ -150,13 +147,11 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             var roofToolsItems = RibbonLayoutHelper.AddStackedButtons(roofToolsPanel, new List<RibbonItemData>
             {
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_CreaserAdv", "Creaser Adv", creaserV012),
-                RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_RoofTag", "Roof Tag", roofTagV018),
                 // Moved here from the removed Floor Tools panel (plugin 2.4.0).
                 FloorToolsRibbon.CreateFromRoomsPulldown(assemblyPath, out var fromRoomsVersions),
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_RoofToolsPanel_RoofShapeFromLink", "Shape From Link", shapeFromLinkRoofPanelV001),
             });
             RibbonLayoutHelper.WirePulldownButton(roofToolsItems, "Pulldown_CreaserAdv", creaserV012, creaserV011);
-            RibbonLayoutHelper.WirePulldownButton(roofToolsItems, "Pulldown_RoofTag", roofTagV018, roofTagV017);
             RibbonLayoutHelper.WirePulldownButton(roofToolsItems, FloorToolsRibbon.FromRoomsPulldownName, fromRoomsVersions);
             RibbonLayoutHelper.WirePulldownButton(roofToolsItems, "Pulldown_RoofToolsPanel_RoofShapeFromLink", shapeFromLinkRoofPanelV001);
 
@@ -258,20 +253,9 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             RibbonLayoutHelper.WirePulldownButton(compareItems, "Pulldown_RoofPointComparison", comparisonV003, comparisonV002);
             RibbonLayoutHelper.WirePulldownButton(compareItems, "Pulldown_RoofPointElevationSync", elevationSyncV005, elevationSyncV004);
 
-            // Insulation — Tapered EPS 2D Pattern (V006 highest, descending per CLAUDE.md rule)
+            // Insulation — Tapered EPS 2D Pattern (V006 highest, descending per CLAUDE.md rule).
+            // V002 and V001 left the ribbon in plugin 7.0.0 (latest three versions only); their source stays.
             RibbonPanel insulationPanel = app.CreateRibbonPanel(tabName, "Insulation");
-
-            var taperedEpsPattern2DV001 = Btn(assemblyPath,
-                "Btn_TaperedEpsPattern2D_V001", "EPS Pattern 2D V001",
-                "Revit26_Plugin_Revised.TaperedEpsPattern2D.V001.Commands.TaperedEpsPattern2DCommand",
-                "TaperedEpsPattern2D_16.png", "Tapered EPS 2D Pattern", "V001",
-                "Draws the tapered EPS board layout as detail lines on a plan view.");
-
-            var taperedEpsPattern2DV002 = Btn(assemblyPath,
-                "Btn_TaperedEpsPattern2D_V002", "EPS Pattern 2D V002",
-                "Revit26_Plugin_Revised.TaperedEpsPattern2D.V002.Commands.TaperedEpsPattern2DCommand",
-                "TaperedEpsPattern2D_V002_16.png", "Tapered EPS 2D Pattern", "V002",
-                "V001 with grouping mode and outline edge info support.");
 
             var taperedEpsPattern2DV004 = Btn(assemblyPath,
                 "Btn_TaperedEpsPattern2D_V004", "EPS Pattern 2D V004",
@@ -297,7 +281,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                     RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_TaperedEpsPattern2D", "EPS 2D Pattern", taperedEpsPattern2DV006),
                 });
             RibbonLayoutHelper.WirePulldownButton(insulationItems, "Pulldown_TaperedEpsPattern2D",
-                taperedEpsPattern2DV006, taperedEpsPattern2DV005, taperedEpsPattern2DV004, taperedEpsPattern2DV002, taperedEpsPattern2DV001);
+                taperedEpsPattern2DV006, taperedEpsPattern2DV005, taperedEpsPattern2DV004);
 
         }
     }

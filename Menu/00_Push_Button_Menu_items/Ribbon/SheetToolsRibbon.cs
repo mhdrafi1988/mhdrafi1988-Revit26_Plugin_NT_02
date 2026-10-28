@@ -13,7 +13,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
 
             // Coexisting versions of each tool share one pulldown button; the
             // highest version number stays first, every older version below it.
-            // Each tool lists only its latest two versions.
+            // Each tool lists only its latest three versions.
             var scopeBoxV005 = new PushButtonData("Btn_PlanFromScopeBox.V005", "Scope Box V005", assemblyPath, "Revit26_Plugin_Revised.PlanFromScopeBox.V005.Commands.PlanFromScopeBoxCommand")
             {
                 Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SheetTools.PlanFromScopeBox_V004_16.png"),

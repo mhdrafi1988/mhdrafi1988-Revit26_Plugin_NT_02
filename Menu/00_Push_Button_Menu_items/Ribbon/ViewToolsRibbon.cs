@@ -8,7 +8,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
     {
         // Every View Tools button is a pulldown: highest version number first,
         // every older version below it in descending order. Each tool lists only
-        // its latest two versions.
+        // its latest three versions.
         private const string Icons = "Revit26_Plugin_Revised.Resources.Icons.ViewTools.";
         private const string Rebuilt = " with the standard three-zone window layout.";
         private const string OnShell = " on the shared ToolWindowShell (log in body, capped grids).";

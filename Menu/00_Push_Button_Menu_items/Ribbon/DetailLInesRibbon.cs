@@ -20,7 +20,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
 
             // Coexisting versions share one pulldown: highest version number first,
             // every older version below it in descending order. Each tool lists only
-            // its latest two versions.
+            // its latest three versions.
             var linesVA009 = new PushButtonData("Btn_ DeatailLInes VA009", "From Links VA009", assemblyPath, "Revit26_Plugin_Revised.LinkedDetailLineGenerator.VA009.Commands.OpenLinkedDetailLineGeneratorCommand")
             {
                 Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.DetailLiner.Linematch32_16.png"),
