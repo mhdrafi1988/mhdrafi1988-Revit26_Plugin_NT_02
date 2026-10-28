@@ -9,6 +9,17 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.19.0] — 2026-10-28
+
+### Added
+- **Tag To Text v1.2.0** — warns when the new text won't show in its view. After the notes are made, the tool
+  checks the view for: the Text Notes category switched off in Visibility/Graphics, all annotation categories
+  hidden, a view template doing either, a filter whose Visibility box is off and that matches the new notes,
+  a hidden workset, and notes outside the crop region. Each reason is named in the run log ("Not visible: …")
+  and in a message box after the run, and the log summary counts the warnings.
+- **User note:** nothing is blocked or changed by this; the text is still created. Fix the cause in
+  Visibility/Graphics (VV), the view template or the filters, and the text appears.
+
 ## [6.18.0] — 2026-10-28
 
 ### Added
