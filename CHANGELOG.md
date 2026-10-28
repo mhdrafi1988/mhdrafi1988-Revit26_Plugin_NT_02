@@ -28,6 +28,16 @@ Each release lists every tool whose version changed, under the plugin version.
 - **User note:** "Ask Me" no longer asks Yes/No to open all sections; tick the ones you want in the list instead.
   "Open All" and "Don't Open" work as before. Old settings files load unchanged.
 
+### Fixed
+- **Roof Edge Around Sections v7.2.0 (V007)** and **Roof Edge Element Sections v4.1.2 (V004)** — switching to another
+  open project while the tool window was open made Refresh and Run work on that other project, using roofs and edges
+  from the first one, so section views could be created in the wrong project. Both tools now refuse, and the log names
+  the project to switch back to. Run also refuses on a read-only project.
+- **Roof Edge Element Sections** — its Revit event handler now goes through the plugin's standard error handling
+  (`ToolGuard`), like Roof Edge Around Sections.
+- **User note:** if the log says another project is active, switch back to the project the window was opened in and
+  click **Refresh** (the planned-sections list is cleared when a refresh is refused).
+
 ## [6.16.1] — 2026-10-28
 
 ### Fixed

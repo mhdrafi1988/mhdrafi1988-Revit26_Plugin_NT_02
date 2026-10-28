@@ -50,7 +50,10 @@ namespace Revit26_Plugin_Revised.RoofEdgeAroundSections.V007
         /// <summary>Selected View Template option (or None), for RunCreate.</summary>
         public ViewTemplateOption ViewTemplate { get; set; }
 
-        /// <summary>The project the window works on; OpenViews refuses to run in any other project.</summary>
+        /// <summary>
+        /// The project the window was opened for. Every action refuses to run while another
+        /// project is active, so sections are never planned, created or opened in the wrong one.
+        /// </summary>
         public Document TargetDocument { get; set; }
 
         /// <summary>Section views to open, in order, for OpenViews.</summary>
@@ -75,8 +78,14 @@ namespace Revit26_Plugin_Revised.RoofEdgeAroundSections.V007
 
             try
             {
-                Document doc = app.ActiveUIDocument?.Document
-                    ?? throw new InvalidOperationException("No project is open.");
+                Document doc = app.ActiveUIDocument?.Document;
+                string refusal = CheckTargetDocument(doc);
+                if (refusal != null)
+                {
+                    log.Add(new LogEntry(LogLevel.Error, refusal));
+                    NotifyFailed(log);
+                    return;
+                }
 
                 switch (RequestedAction)
                 {
@@ -96,26 +105,55 @@ namespace Revit26_Plugin_Revised.RoofEdgeAroundSections.V007
             catch (Exception ex)
             {
                 log.Add(new LogEntry(LogLevel.Error, $"Unhandled error: {ex.Message}"));
-                switch (RequestedAction)
-                {
-                    case RoofEdgeSectionsAction.BuildPlan:
-                        OnPlanBuilt?.Invoke(new SectionPlanBuilder.PlanBuildResult
-                        {
-                            Plan = new ObservableCollection<PlannedSection>(),
-                            TotalRoofsCount = 0,
-                            DetectedCount = 0,
-                            SuggestedCount = 0
-                        }, log);
-                        break;
+                NotifyFailed(log);
+            }
+        }
 
-                    case RoofEdgeSectionsAction.RunCreate:
-                        OnRunComplete?.Invoke(new RunResult(), log);
-                        break;
+        /// <summary>
+        /// Returns why the requested action must not run in the active project, or null when it may:
+        /// no project open, the window's project closed, another project active, or (for RunCreate)
+        /// a read-only project.
+        /// </summary>
+        private string CheckTargetDocument(Document active)
+        {
+            if (active == null)
+                return "No project is open. Open the project this window was started in and try again.";
 
-                    case RoofEdgeSectionsAction.OpenViews:
-                        OnViewsOpened?.Invoke(0, ViewIdsToOpen?.Count ?? 0, log);
-                        break;
-                }
+            if (TargetDocument == null || !TargetDocument.IsValidObject)
+                return "The project this window was opened for has been closed. Close this window and start Roof Edge Sections again.";
+
+            if (!TargetDocument.Equals(active))
+                return $"The active project is '{active.Title}', but this window works on '{TargetDocument.Title}'. " +
+                       "Switch back to that project, or close this window and start Roof Edge Sections in this one.";
+
+            if (RequestedAction == RoofEdgeSectionsAction.RunCreate && active.IsReadOnly)
+                return $"'{active.Title}' is read-only, so no section views can be created.";
+
+            return null;
+        }
+
+        /// <summary>Calls the window back with an empty result, so it never stays busy after a failure.</summary>
+        private void NotifyFailed(ObservableCollection<LogEntry> log)
+        {
+            switch (RequestedAction)
+            {
+                case RoofEdgeSectionsAction.BuildPlan:
+                    OnPlanBuilt?.Invoke(new SectionPlanBuilder.PlanBuildResult
+                    {
+                        Plan = new ObservableCollection<PlannedSection>(),
+                        TotalRoofsCount = 0,
+                        DetectedCount = 0,
+                        SuggestedCount = 0
+                    }, log);
+                    break;
+
+                case RoofEdgeSectionsAction.RunCreate:
+                    OnRunComplete?.Invoke(new RunResult(), log);
+                    break;
+
+                case RoofEdgeSectionsAction.OpenViews:
+                    OnViewsOpened?.Invoke(0, ViewIdsToOpen?.Count ?? 0, log);
+                    break;
             }
         }
 
@@ -164,24 +202,7 @@ namespace Revit26_Plugin_Revised.RoofEdgeAroundSections.V007
         private void ExecuteOpenViews(UIDocument uidoc, ObservableCollection<LogEntry> log)
         {
             IList<ElementId> ids = ViewIdsToOpen ?? new List<ElementId>();
-            Document doc = uidoc.Document;
-
-            if (TargetDocument == null || !TargetDocument.IsValidObject)
-            {
-                log.Add(new LogEntry(LogLevel.Error,
-                    "The project this window was opened for has been closed — no views opened."));
-                OnViewsOpened?.Invoke(0, ids.Count, log);
-                return;
-            }
-
-            if (!TargetDocument.Equals(doc))
-            {
-                log.Add(new LogEntry(LogLevel.Error,
-                    $"The active project is '{doc.Title}', but these sections are in '{TargetDocument.Title}'. " +
-                    "Switch back to that project and click Open again."));
-                OnViewsOpened?.Invoke(0, ids.Count, log);
-                return;
-            }
+            Document doc = uidoc.Document; // already checked to be TargetDocument
 
             int opened = 0;
             int failed = 0;

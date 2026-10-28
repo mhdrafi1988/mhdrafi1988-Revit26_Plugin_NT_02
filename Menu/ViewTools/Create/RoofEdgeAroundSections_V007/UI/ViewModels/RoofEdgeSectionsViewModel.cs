@@ -175,6 +175,8 @@ namespace Revit26_Plugin_Revised.RoofEdgeAroundSections.V007
             CreatedSectionsView = System.Windows.Data.CollectionViewSource.GetDefaultView(CreatedSections);
             CreatedSectionsView.Filter = MatchesCreatedSectionsFilter;
 
+            // Every handler action refuses to run while another project is active.
+            _handler.TargetDocument = _doc;
             _handler.OnPlanBuilt = OnPlanBuilt;
             _handler.OnRunComplete = OnRunComplete;
             _handler.OnViewsOpened = OnViewsOpened;
@@ -521,7 +523,6 @@ namespace Revit26_Plugin_Revised.RoofEdgeAroundSections.V007
             IsBusy = true;
             _handler.RequestedAction = RoofEdgeSectionsAction.OpenViews;
             _handler.ViewIdsToOpen = ids;
-            _handler.TargetDocument = _doc;
             _externalEvent.Raise();
         }
 
