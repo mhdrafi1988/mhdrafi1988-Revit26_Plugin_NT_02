@@ -54,6 +54,18 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             };
             var autoSectionPlacerPulldownData = RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_AutomatedSectionPlacer", "Section Placer", autoSectionPlacerV003);
 
+            // Sections To Sheet: separate tool — takes the sections shown in (or selected in) the
+            // active view off their old sheets and lays them out on a new sheet.
+            var sectionsToSheetV001 = new PushButtonData("Btn_SectionsToSheet_V001", "Sections To Sheet", assemblyPath, "Revit26_Plugin_Revised.SectionsToSheet.V001.Commands.SectionsToSheetCommand")
+            {
+                Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SheetTools.SectionsToSheet_16.png"),
+                LargeImage = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SheetTools.SectionsToSheet_32.png"),
+                ToolTip = ToolCatalog.SectionsToSheet.Tip(
+                    "Lists the section markers shown in the active view (or the selected ones, or picked ones), takes them off " +
+                    "the sheet they are on, and lays them out on a new sheet: columns that line up, or justified rows, " +
+                    "in plan order, bottom-aligned so titles line up. Live preview before anything changes; one Undo step.")
+            };
+
             // Rearrange and Arrange Views follow in the same panel (the one-column Sheet Place
             // panel was merged in, plugin 2.4.0, so Revit has room to show every button name).
             var rearrangeV027 = new PushButtonData("Btn_SheetAutoRearrange.V027", "Rearrange V027", assemblyPath, "Revit26_Plugin_Revised.SheetAutoRearrange.V027.Commands.SheetAutoRearrangeCommand")
@@ -82,7 +94,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
 
             // Slide-out (plugin 6.13.0): Rearrange and Arrange Views come after creating and placing views.
             var sheetCreateItems = RibbonLayoutHelper.AddStackedButtonsWithSlideOut(createPanel,
-                new List<RibbonItemData> { scopeBoxPulldownData, sheetPlacerPulldownData, autoSectionPlacerPulldownData },
+                new List<RibbonItemData> { scopeBoxPulldownData, sheetPlacerPulldownData, autoSectionPlacerPulldownData, sectionsToSheetV001 },
                 new List<RibbonItemData> { rearrangePulldownData, viewArrangeV001 });
             RibbonLayoutHelper.WirePulldownButton(sheetCreateItems, "Pulldown_PlanFromScopeBox", scopeBoxV006, scopeBoxV005);
             RibbonLayoutHelper.WirePulldownButton(sheetCreateItems, "Pulldown_SmartViewToSheetPlacer", sheetPlacerV224, sheetPlacerV223);

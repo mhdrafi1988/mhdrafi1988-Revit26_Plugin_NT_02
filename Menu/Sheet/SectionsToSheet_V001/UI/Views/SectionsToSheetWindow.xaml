@@ -1,0 +1,623 @@
+<!--
+=======================================================
+File: SectionsToSheetWindow.xaml  (Sections To Sheet V001)
+ToolWindowShell layout:
+  HEADER  metric cards (picked / moving / can't place / new sheets / fill)
+  BODY    left: sections list (source, pick, search, ticks)
+          middle: live sheet preview, layout chips, banners
+          right: new sheet, layout, already on a sheet, spacing
+          below: activity log
+  FOOTER  Create sheet & place → Close
+A confirm card covers the window before views come off other sheets.
+The preview canvas is drawn in code-behind from ViewModel.Plan.
+=======================================================
+-->
+<Window x:Class="Revit26_Plugin_Revised.SectionsToSheet.V001.UI.Views.SectionsToSheetWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:svc="clr-namespace:Revit26_Plugin_Revised.Shared.Services"
+        xmlns:converters="clr-namespace:Revit26_Plugin_Revised.Shared.Models"
+        xmlns:local="clr-namespace:Revit26_Plugin_Revised.SectionsToSheet.V001.UI.Converters"
+        xmlns:shell="clr-namespace:Revit26_Plugin_Revised.Shared.Controls"
+        Title="Sections To Sheet"
+        Height="900" Width="1400"
+        MinHeight="680" MinWidth="1150"
+        WindowStartupLocation="CenterOwner">
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Revit26_Plugin_Revised;component/Shared/SharedStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+
+            <converters:LogLevelToColorConverter x:Key="LogLevelToColorConverter"/>
+            <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+            <local:EnumMatchConverter x:Key="EnumMatch"/>
+            <local:ChipKindBrushConverter x:Key="ChipBrush"/>
+            <local:RowStatusBrushConverter x:Key="StatusBrush"/>
+
+            <!-- One margin / gap input: boxed number, right-aligned. -->
+            <Style x:Key="MmBox" TargetType="TextBox" BasedOn="{StaticResource BoxedTextInput}">
+                <Setter Property="Width" Value="58"/>
+                <Setter Property="MaxLength" Value="7"/>
+                <Setter Property="HorizontalContentAlignment" Value="Right"/>
+            </Style>
+
+            <Style x:Key="CardBody" TargetType="StackPanel">
+                <Setter Property="Margin" Value="12,0,12,10"/>
+            </Style>
+
+            <Style x:Key="Banner" TargetType="Border">
+                <Setter Property="Padding" Value="10,6"/>
+                <Setter Property="CornerRadius" Value="6"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="Margin" Value="12,0,12,6"/>
+            </Style>
+
+            <Style x:Key="SummaryChip" TargetType="Border">
+                <Setter Property="CornerRadius" Value="10"/>
+                <Setter Property="Padding" Value="9,2"/>
+                <Setter Property="Margin" Value="0,0,6,6"/>
+                <Setter Property="Background" Value="{StaticResource BrushSystemSecondaryBackground}"/>
+            </Style>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <Grid>
+        <shell:ToolWindowShell Title="Sections To Sheet"
+                               Subtitle="Pick sections from a view, take them off their old sheets, and lay them out on a new sheet"
+                               Version="{Binding Source={x:Static svc:ToolCatalog.SectionsToSheet}, Path=Version, StringFormat=v{0}}"
+                               IsRunning="{Binding IsBusy}"
+                               IsIndeterminate="True"
+                               SummaryText="{Binding StatusText}">
+
+            <!-- ═══ HEADER ═══════════════════════════════════════════ -->
+            <shell:ToolWindowShell.HeaderContent>
+                <Grid Margin="0,0,0,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="6"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="6"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="6"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="6"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Border Grid.Column="0" Style="{StaticResource MetricCard}">
+                        <StackPanel HorizontalAlignment="Center">
+                            <TextBlock Text="Ticked" Style="{StaticResource MetricLabel}" HorizontalAlignment="Center"/>
+                            <TextBlock Text="{Binding PickedText}" Style="{StaticResource MetricNumber}" HorizontalAlignment="Center"/>
+                            <TextBlock Text="sections in the list" Style="{StaticResource MetricUnit}" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Grid.Column="2" Style="{StaticResource MetricCard}">
+                        <StackPanel HorizontalAlignment="Center">
+                            <TextBlock Text="Moving" Style="{StaticResource MetricLabel}" HorizontalAlignment="Center"/>
+                            <TextBlock Text="{Binding MovingCount}" Style="{StaticResource MetricNumberWarning}" HorizontalAlignment="Center"/>
+                            <TextBlock Text="off other sheets" Style="{StaticResource MetricUnit}" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Grid.Column="4" Style="{StaticResource MetricCard}">
+                        <StackPanel HorizontalAlignment="Center">
+                            <TextBlock Text="Can't Place" Style="{StaticResource MetricLabel}" HorizontalAlignment="Center"/>
+                            <TextBlock Text="{Binding CantPlaceCount}" Style="{StaticResource MetricNumberDanger}" HorizontalAlignment="Center"/>
+                            <TextBlock Text="locked / too big / no room" Style="{StaticResource MetricUnit}" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Grid.Column="6" Style="{StaticResource MetricCard}">
+                        <StackPanel HorizontalAlignment="Center">
+                            <TextBlock Text="New Sheets" Style="{StaticResource MetricLabel}" HorizontalAlignment="Center"/>
+                            <TextBlock Text="{Binding SheetCount}" Style="{StaticResource MetricNumberAccent}" HorizontalAlignment="Center"/>
+                            <TextBlock Text="to create" Style="{StaticResource MetricUnit}" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Grid.Column="8" Style="{StaticResource MetricCard}">
+                        <StackPanel HorizontalAlignment="Center">
+                            <TextBlock Text="Sheet Fill" Style="{StaticResource MetricLabel}" HorizontalAlignment="Center"/>
+                            <TextBlock Text="{Binding FillText}" Style="{StaticResource MetricNumberSuccess}" HorizontalAlignment="Center"/>
+                            <TextBlock Text="of the usable area" Style="{StaticResource MetricUnit}" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </shell:ToolWindowShell.HeaderContent>
+
+            <!-- ═══ BODY ═════════════════════════════════════════════ -->
+            <shell:ToolWindowShell.BodyContent>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="330"/>
+                        <ColumnDefinition Width="10"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="10"/>
+                        <ColumnDefinition Width="300"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- ── Left: sections ──────────────────────────── -->
+                    <Border Grid.Column="0" Style="{StaticResource SectionCard}" VerticalAlignment="Top">
+                        <StackPanel>
+                            <Grid Margin="0,0,12,0">
+                                <TextBlock Text="Sections" Style="{StaticResource SectionTitle}"/>
+                                <Button Content="Refresh" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,6,0,0"
+                                        Style="{StaticResource SmallSecondaryButton}" Command="{Binding RefreshCommand}"
+                                        ToolTip="Read the model and the Revit selection again, and measure the views again."/>
+                            </Grid>
+                            <StackPanel Style="{StaticResource CardBody}">
+                                <TextBlock Style="{StaticResource FieldLabel}" TextTrimming="CharacterEllipsis">
+                                    <Run Text="From"/> <Run Text="{Binding SourceViewName, Mode=OneWay}" FontWeight="SemiBold"/>
+                                </TextBlock>
+                                <WrapPanel Margin="0,4,0,0">
+                                    <RadioButton GroupName="Source" Style="{StaticResource ChipToggle}" Margin="0,0,6,6"
+                                                 Content="{Binding ViewSourceLabel}"
+                                                 IsChecked="{Binding SourceMode, Converter={StaticResource EnumMatch}, ConverterParameter=View}"/>
+                                    <RadioButton GroupName="Source" Style="{StaticResource ChipToggle}" Margin="0,0,6,6"
+                                                 Content="{Binding SelectionSourceLabel}"
+                                                 IsChecked="{Binding SourceMode, Converter={StaticResource EnumMatch}, ConverterParameter=Selection}"/>
+                                    <RadioButton GroupName="Source" Style="{StaticResource ChipToggle}" Margin="0,0,6,6"
+                                                 Content="{Binding PickedSourceLabel}"
+                                                 Visibility="{Binding HasPicked, Converter={StaticResource BoolToVis}}"
+                                                 IsChecked="{Binding SourceMode, Converter={StaticResource EnumMatch}, ConverterParameter=Picked}"/>
+                                    <Button Content="Pick in view…" Margin="0,0,6,6" Style="{StaticResource SmallSecondaryButton}"
+                                            Command="{Binding PickInViewCommand}"
+                                            ToolTip="The window steps aside: click or box-select section markers in the view, then click Finish on the Options Bar."/>
+                                </WrapPanel>
+                                <TextBlock Text="{Binding SourceNote}" Style="{StaticResource HintText}" Margin="0,0,0,8"/>
+
+                                <DockPanel Margin="0,0,0,6">
+                                    <Button DockPanel.Dock="Right" Content="Untick all" Margin="6,0,0,0" Style="{StaticResource SmallSecondaryButton}"
+                                            Command="{Binding UntickAllCommand}" ToolTip="Untick every shown section."/>
+                                    <Button DockPanel.Dock="Right" Content="Tick all" Margin="6,0,0,0" Style="{StaticResource SmallSecondaryButton}"
+                                            Command="{Binding TickAllCommand}" ToolTip="Tick every shown section."/>
+                                    <Grid>
+                                        <TextBox Style="{StaticResource StyledTextInput}" MaxLength="60"
+                                                 Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged, Delay=200}"
+                                                 ToolTip="Shows the sections whose name or sheet contains this text. Hidden ticked sections are still placed."/>
+                                        <TextBlock Text="Filter by name or sheet…" IsHitTestVisible="False" Margin="8,0,0,0" VerticalAlignment="Center"
+                                                   FontSize="12" Foreground="{StaticResource BrushTextTertiary}">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding SearchText}" Value="">
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                    </Grid>
+                                </DockPanel>
+                                <TextBlock Text="{Binding ListCountText}" FontSize="11.5" Foreground="{StaticResource BrushTextSecondary}" Margin="0,0,0,4"/>
+
+                                <ListBox ItemsSource="{Binding RowsView}" MinHeight="200"
+                                         shell:ShellBehaviors.MaxHeightRatio="0.58"
+                                         shell:ShellBehaviors.ForwardMouseWheel="True"
+                                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                         BorderBrush="{StaticResource BrushSeparator}" BorderThickness="1"
+                                         HorizontalContentAlignment="Stretch">
+                                    <ListBox.ItemContainerStyle>
+                                        <Style TargetType="ListBoxItem">
+                                            <Setter Property="Padding" Value="0"/>
+                                            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsTicked}" Value="False">
+                                                    <Setter Property="Opacity" Value="0.65"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </ListBox.ItemContainerStyle>
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Padding="8,6" BorderBrush="{StaticResource BrushSeparatorThin}" BorderThickness="0,0,0,1">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <CheckBox VerticalAlignment="Top" Margin="0,2,8,0"
+                                                              IsChecked="{Binding IsTicked, UpdateSourceTrigger=PropertyChanged}"
+                                                              ToolTip="Tick to put this section on the new sheet."/>
+                                                    <StackPanel Grid.Column="1">
+                                                        <DockPanel>
+                                                            <Border DockPanel.Dock="Right" CornerRadius="8" Padding="7,1" Margin="6,0,0,0"
+                                                                    Background="{Binding ChipKind, Converter={StaticResource ChipBrush}}">
+                                                                <TextBlock Text="{Binding Chip}" FontSize="10.5"
+                                                                           Foreground="{Binding ChipKind, Converter={StaticResource ChipBrush}, ConverterParameter=Foreground}"/>
+                                                            </Border>
+                                                            <TextBlock Text="{Binding Name}" FontSize="12.5" FontWeight="SemiBold"
+                                                                       TextTrimming="CharacterEllipsis" ToolTip="{Binding Name}"
+                                                                       Foreground="{StaticResource BrushTextPrimary}"/>
+                                                        </DockPanel>
+                                                        <TextBlock Text="{Binding Meta}" FontSize="11" Foreground="{StaticResource BrushTextSecondary}"
+                                                                   TextTrimming="CharacterEllipsis" Margin="0,1,0,0"/>
+                                                        <TextBlock Text="{Binding Status}" FontSize="11" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,1,0,0"
+                                                                   Foreground="{Binding StatusKind, Converter={StaticResource StatusBrush}}"
+                                                                   Visibility="{Binding HasStatus, Converter={StaticResource BoolToVis}}"/>
+                                                    </StackPanel>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                                <TextBlock Style="{StaticResource HintText}"
+                                           Text="The list is in placement order. Status shows where each section goes, or why it is skipped."/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- ── Middle: preview ─────────────────────────── -->
+                    <Border Grid.Column="2" Style="{StaticResource SectionCard}" VerticalAlignment="Top">
+                        <StackPanel>
+                            <DockPanel Margin="0,0,12,0">
+                                <TextBlock DockPanel.Dock="Left" Text="Sheet Preview" Style="{StaticResource SectionTitle}"/>
+                                <TextBlock DockPanel.Dock="Left" Text="{Binding PreviewTitle}" FontSize="11.5" VerticalAlignment="Center" Margin="0,5,0,0"
+                                           Foreground="{StaticResource BrushTextSecondary}" TextTrimming="CharacterEllipsis"/>
+                                <ItemsControl DockPanel.Dock="Right" ItemsSource="{Binding PageTabs}" VerticalAlignment="Center" Margin="8,5,0,0"
+                                              Visibility="{Binding HasTabs, Converter={StaticResource BoolToVis}}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <StackPanel Orientation="Horizontal"/>
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <RadioButton GroupName="SheetTabs" Style="{StaticResource ChipToggle}" Content="{Binding Label}"
+                                                         IsChecked="{Binding IsCurrent}" ToolTip="Show this sheet in the preview."/>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                <Border/>
+                            </DockPanel>
+
+                            <Border Margin="12,0,12,6" Height="440" Background="{StaticResource BrushSystemSecondaryBackground}"
+                                    CornerRadius="6" ClipToBounds="True">
+                                <Canvas x:Name="PreviewCanvas" SizeChanged="PreviewCanvas_SizeChanged"/>
+                            </Border>
+                            <TextBlock Style="{StaticResource HintText}" Margin="12,0,12,8"
+                                       Text="Blue: not on a sheet yet. Orange: comes off another sheet. Number = detail number. Dashed: usable area (title block inset by the margins). Views in a row share a bottom line, so titles line up."/>
+
+                            <WrapPanel Margin="12,0,12,2">
+                                <Border Style="{StaticResource SummaryChip}">
+                                    <TextBlock FontSize="11.5"><Run Text="Layout" FontWeight="SemiBold"/> <Run Text="{Binding LayoutText, Mode=OneWay}"/></TextBlock>
+                                </Border>
+                                <Border Style="{StaticResource SummaryChip}">
+                                    <TextBlock FontSize="11.5"><Run Text="Gap side by side" FontWeight="SemiBold"/> <Run Text="{Binding HorizontalGapText, Mode=OneWay}"/></TextBlock>
+                                </Border>
+                                <Border Style="{StaticResource SummaryChip}">
+                                    <TextBlock FontSize="11.5"><Run Text="Gap between rows" FontWeight="SemiBold"/> <Run Text="{Binding VerticalGapText, Mode=OneWay}"/></TextBlock>
+                                </Border>
+                                <Border Style="{StaticResource SummaryChip}">
+                                    <TextBlock FontSize="11.5"><Run Text="Fill" FontWeight="SemiBold"/> <Run Text="{Binding FillText, Mode=OneWay}"/></TextBlock>
+                                </Border>
+                                <Border>
+                                    <Border.Style>
+                                        <Style TargetType="Border" BasedOn="{StaticResource SummaryChip}">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding HasMixedScales}" Value="True">
+                                                    <Setter Property="Background" Value="{StaticResource BrushStatusWarnSoft}"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                    <TextBlock FontSize="11.5"><Run Text="Scales" FontWeight="SemiBold"/> <Run Text="{Binding ScalesText, Mode=OneWay}"/></TextBlock>
+                                </Border>
+                            </WrapPanel>
+
+                            <Border Style="{StaticResource Banner}" Background="{StaticResource BrushStatusErrorSoft}" BorderBrush="{StaticResource BrushStatusErrorBorder}"
+                                    Visibility="{Binding HasBlocker, Converter={StaticResource BoolToVis}}">
+                                <TextBlock Text="{Binding BlockerText}" TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource BrushStatusError}"/>
+                            </Border>
+                            <Border Style="{StaticResource Banner}" Background="{StaticResource BrushStatusInfoSoft}" BorderBrush="{StaticResource BrushStatusInfoBorder}"
+                                    Visibility="{Binding HasInfo, Converter={StaticResource BoolToVis}}">
+                                <TextBlock Text="{Binding InfoText}" TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource BrushStatusInfo}"/>
+                            </Border>
+                            <Border Style="{StaticResource Banner}" Background="{StaticResource BrushStatusWarnSoft}" BorderBrush="{StaticResource BrushStatusWarnBorder}"
+                                    Margin="12,0,12,10"
+                                    Visibility="{Binding HasWarnings, Converter={StaticResource BoolToVis}}">
+                                <TextBlock Text="{Binding WarningsText}" TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource BrushStatusWarn}"/>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- ── Right: settings ─────────────────────────── -->
+                    <StackPanel Grid.Column="4">
+                        <Border Style="{StaticResource SectionCard}">
+                            <StackPanel>
+                                <TextBlock Text="New Sheet" Style="{StaticResource SectionTitle}"/>
+                                <StackPanel Style="{StaticResource CardBody}">
+                                    <TextBlock Text="Title block" Style="{StaticResource FieldLabel}"/>
+                                    <ComboBox Style="{StaticResource StandardComboBox}" ItemsSource="{Binding TitleBlocks}"
+                                              DisplayMemberPath="Name" SelectedItem="{Binding SelectedTitleBlock}" Margin="0,0,0,8"/>
+                                    <TextBlock Text="Viewport type (view title)" Style="{StaticResource FieldLabel}"/>
+                                    <ComboBox Style="{StaticResource StandardComboBox}" ItemsSource="{Binding ViewportTypes}"
+                                              DisplayMemberPath="Name" SelectedItem="{Binding SelectedViewportType}" Margin="0,0,0,8"
+                                              ToolTip="Every placed view gets this viewport type, so the titles match."/>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="8"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel>
+                                            <TextBlock Text="Sheet number" Style="{StaticResource FieldLabel}"/>
+                                            <TextBox Style="{StaticResource BoxedTextInput}" MaxLength="40"
+                                                     Text="{Binding SheetNumber, UpdateSourceTrigger=PropertyChanged, Delay=300}"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="2">
+                                            <TextBlock Text="Sheet name" Style="{StaticResource FieldLabel}"/>
+                                            <TextBox Style="{StaticResource BoxedTextInput}" MaxLength="80"
+                                                     Text="{Binding SheetName, UpdateSourceTrigger=PropertyChanged, Delay=300}"/>
+                                        </StackPanel>
+                                    </Grid>
+                                    <TextBlock Style="{StaticResource HintText}"
+                                               Text="Suggested: the next free number. Extra sheets count up from it, skipping numbers in use."/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Style="{StaticResource AppleToggleRow}" Margin="12,0,12,10">
+                                    <ToggleButton Style="{StaticResource AppleToggleButton}" IsChecked="{Binding OpenSheetWhenDone}"/>
+                                    <TextBlock Text="Open the new sheet when done" FontSize="12.5" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource SectionCard}">
+                            <StackPanel>
+                                <TextBlock Text="Layout" Style="{StaticResource SectionTitle}"/>
+                                <StackPanel Style="{StaticResource CardBody}">
+                                    <TextBlock Text="Arrangement" Style="{StaticResource FieldLabel}"/>
+                                    <WrapPanel Margin="0,2,0,0">
+                                        <RadioButton GroupName="Mode" Style="{StaticResource ChipToggle}" Content="Grid (columns line up)" Margin="0,0,6,4"
+                                                     IsChecked="{Binding Mode, Converter={StaticResource EnumMatch}, ConverterParameter=Grid}"/>
+                                        <RadioButton GroupName="Mode" Style="{StaticResource ChipToggle}" Content="Rows (justified)" Margin="0,0,6,4"
+                                                     IsChecked="{Binding Mode, Converter={StaticResource EnumMatch}, ConverterParameter=Rows}"/>
+                                    </WrapPanel>
+                                    <TextBlock Text="{Binding ModeNote}" Style="{StaticResource HintText}" Margin="0,0,0,8"/>
+
+                                    <TextBlock Text="Order" Style="{StaticResource FieldLabel}"/>
+                                    <WrapPanel Margin="0,2,0,0">
+                                        <RadioButton GroupName="Order" Style="{StaticResource ChipToggle}" Content="Plan" Margin="0,0,6,4"
+                                                     IsChecked="{Binding Order, Converter={StaticResource EnumMatch}, ConverterParameter=Plan}"/>
+                                        <RadioButton GroupName="Order" Style="{StaticResource ChipToggle}" Content="Number" Margin="0,0,6,4"
+                                                     IsChecked="{Binding Order, Converter={StaticResource EnumMatch}, ConverterParameter=Number}"/>
+                                        <RadioButton GroupName="Order" Style="{StaticResource ChipToggle}" Content="Scale" Margin="0,0,6,4"
+                                                     IsChecked="{Binding Order, Converter={StaticResource EnumMatch}, ConverterParameter=Scale}"/>
+                                        <RadioButton GroupName="Order" Style="{StaticResource ChipToggle}" Content="Size" Margin="0,0,6,4"
+                                                     IsChecked="{Binding Order, Converter={StaticResource EnumMatch}, ConverterParameter=Size}"/>
+                                    </WrapPanel>
+                                    <TextBlock Text="{Binding OrderNote}" Style="{StaticResource HintText}" Margin="0,0,0,4"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,2,0,8"
+                                                Visibility="{Binding IsPlanOrder, Converter={StaticResource BoolToVis}}">
+                                        <TextBlock Text="Same row if marker heights differ by under" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" TextWrapping="Wrap" Width="150"/>
+                                        <TextBox Style="{StaticResource MmBox}" Text="{Binding RowToleranceMm}" Margin="6,0,0,0"
+                                                 ToolTip="Measured on the printed view (paper mm)."/>
+                                        <TextBlock Text="mm" Style="{StaticResource UnitLabel}"/>
+                                    </StackPanel>
+
+                                    <TextBlock Text="Rows on the sheet" Style="{StaticResource FieldLabel}"/>
+                                    <WrapPanel Margin="0,2,0,6">
+                                        <RadioButton GroupName="Vertical" Style="{StaticResource ChipToggle}" Content="From the top" Margin="0,0,6,4"
+                                                     IsChecked="{Binding Vertical, Converter={StaticResource EnumMatch}, ConverterParameter=Top}"/>
+                                        <RadioButton GroupName="Vertical" Style="{StaticResource ChipToggle}" Content="Centred" Margin="0,0,6,4"
+                                                     IsChecked="{Binding Vertical, Converter={StaticResource EnumMatch}, ConverterParameter=Center}"/>
+                                        <RadioButton GroupName="Vertical" Style="{StaticResource ChipToggle}" Content="Spread" Margin="0,0,6,4"
+                                                     IsChecked="{Binding Vertical, Converter={StaticResource EnumMatch}, ConverterParameter=Spread}"/>
+                                    </WrapPanel>
+
+                                    <StackPanel Visibility="{Binding IsRowsMode, Converter={StaticResource BoolToVis}}">
+                                        <TextBlock Text="Short last row" Style="{StaticResource FieldLabel}"/>
+                                        <WrapPanel Margin="0,2,0,6">
+                                            <RadioButton GroupName="LastRow" Style="{StaticResource ChipToggle}" Content="Left" Margin="0,0,6,4"
+                                                         IsChecked="{Binding LastRow, Converter={StaticResource EnumMatch}, ConverterParameter=Left}"/>
+                                            <RadioButton GroupName="LastRow" Style="{StaticResource ChipToggle}" Content="Centre" Margin="0,0,6,4"
+                                                         IsChecked="{Binding LastRow, Converter={StaticResource EnumMatch}, ConverterParameter=Center}"/>
+                                            <RadioButton GroupName="LastRow" Style="{StaticResource ChipToggle}" Content="Stretch" Margin="0,0,6,4"
+                                                         IsChecked="{Binding LastRow, Converter={StaticResource EnumMatch}, ConverterParameter=Justify}"/>
+                                        </WrapPanel>
+                                    </StackPanel>
+
+                                    <TextBlock Text="If it doesn't fit on one sheet" Style="{StaticResource FieldLabel}"/>
+                                    <WrapPanel Margin="0,2,0,0">
+                                        <RadioButton GroupName="Overflow" Style="{StaticResource ChipToggle}" Content="Add more sheets" Margin="0,0,6,4"
+                                                     IsChecked="{Binding Overflow, Converter={StaticResource EnumMatch}, ConverterParameter=AddSheets}"/>
+                                        <RadioButton GroupName="Overflow" Style="{StaticResource ChipToggle}" Content="Skip and report" Margin="0,0,6,4"
+                                                     IsChecked="{Binding Overflow, Converter={StaticResource EnumMatch}, ConverterParameter=Skip}"/>
+                                    </WrapPanel>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource SectionCard}">
+                            <StackPanel>
+                                <TextBlock Text="Already on a Sheet" Style="{StaticResource SectionTitle}"/>
+                                <StackPanel Style="{StaticResource CardBody}">
+                                    <TextBlock Text="{Binding PlacedSummary}" TextWrapping="Wrap" FontSize="12" Margin="0,0,0,4"
+                                               Foreground="{StaticResource BrushTextPrimary}"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Style="{StaticResource AppleToggleRow}" Margin="12,0,12,6">
+                                    <ToggleButton Style="{StaticResource AppleToggleButton}" IsChecked="{Binding RemoveFromOldSheets}"/>
+                                    <TextBlock Text="Take them off their current sheet" FontSize="12.5" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Style="{StaticResource AppleToggleRow}" Margin="12,0,12,4">
+                                    <ToggleButton Style="{StaticResource AppleToggleButton}" IsChecked="{Binding DeleteEmptySheets}"/>
+                                    <TextBlock Text="Delete sheets that end up empty" FontSize="12.5" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                                </StackPanel>
+                                <StackPanel Style="{StaticResource CardBody}">
+                                    <TextBlock Text="{Binding EmptySheetsText}" Style="{StaticResource HintText}" Margin="0,0,0,6"/>
+                                    <Border Padding="8,5" CornerRadius="5" BorderThickness="1" Margin="0,0,0,6"
+                                            Background="{StaticResource BrushStatusErrorSoft}" BorderBrush="{StaticResource BrushStatusErrorBorder}"
+                                            Visibility="{Binding HasLocked, Converter={StaticResource BoolToVis}}">
+                                        <TextBlock Text="{Binding LockedText}" TextWrapping="Wrap" FontSize="11.5" Foreground="{StaticResource BrushStatusError}"/>
+                                    </Border>
+                                    <TextBlock Style="{StaticResource HintText}"
+                                               Text="A view can be on one sheet only. Only the old viewport is removed: the section view, its marker and its annotations stay. Section heads in your plans point to the new sheet."/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource SectionCard}">
+                            <StackPanel>
+                                <TextBlock Text="Spacing (mm on paper)" Style="{StaticResource SectionTitle}"/>
+                                <StackPanel Style="{StaticResource CardBody}">
+                                    <TextBlock Text="Margins inside the title block" Style="{StaticResource FieldLabel}" Margin="0,0,0,4"/>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="14"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="6"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Top" Style="{StaticResource FieldLabel}" VerticalAlignment="Center"/>
+                                        <TextBox Grid.Row="0" Grid.Column="1" Style="{StaticResource MmBox}" Text="{Binding MarginTopMm}"/>
+                                        <TextBlock Grid.Row="0" Grid.Column="3" Text="Bottom" Style="{StaticResource FieldLabel}" VerticalAlignment="Center"/>
+                                        <TextBox Grid.Row="0" Grid.Column="4" Style="{StaticResource MmBox}" Text="{Binding MarginBottomMm}"/>
+                                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Left" Style="{StaticResource FieldLabel}" VerticalAlignment="Center"/>
+                                        <TextBox Grid.Row="2" Grid.Column="1" Style="{StaticResource MmBox}" Text="{Binding MarginLeftMm}"/>
+                                        <TextBlock Grid.Row="2" Grid.Column="3" Text="Right" Style="{StaticResource FieldLabel}" VerticalAlignment="Center"/>
+                                        <TextBox Grid.Row="2" Grid.Column="4" Style="{StaticResource MmBox}" Text="{Binding MarginRightMm}"/>
+                                    </Grid>
+                                    <TextBlock Text="Smallest gap between views" Style="{StaticResource FieldLabel}" Margin="0,10,0,4"/>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="14"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="Side by side" Style="{StaticResource FieldLabel}" VerticalAlignment="Center"/>
+                                        <TextBox Grid.Column="1" Style="{StaticResource MmBox}" Text="{Binding MinHorizontalGapMm}"/>
+                                        <TextBlock Grid.Column="3" Text="Rows" Style="{StaticResource FieldLabel}" VerticalAlignment="Center"/>
+                                        <TextBox Grid.Column="4" Style="{StaticResource MmBox}" Text="{Binding MinVerticalGapMm}"/>
+                                    </Grid>
+                                    <TextBlock Style="{StaticResource HintText}"
+                                               Text="Margins are measured inward from the title block's outer edge; use Right / Bottom to clear the title strip. Sizes include each view's title."/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- ── Activity log ────────────────────────────── -->
+                    <Border Grid.Row="1" Grid.ColumnSpan="5" Margin="0,0,0,0" Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="10,8">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <Grid Margin="0,0,0,6">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="Activity Log" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource BrushLogText}" VerticalAlignment="Center"/>
+                                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                    <Button Content="Copy All" Style="{StaticResource DarkGhostButton}" Command="{Binding CopyAllLogsCommand}"/>
+                                    <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Margin="6,0,0,0" Click="CopySelectedLogs_Click"/>
+                                </StackPanel>
+                            </Grid>
+                            <ListBox Grid.Row="1" x:Name="LogListBox"
+                                     ItemsSource="{Binding LogEntries}"
+                                     SelectionMode="Extended"
+                                     Background="Transparent" BorderThickness="0"
+                                     MinHeight="90" Padding="0"
+                                     shell:ShellBehaviors.MaxHeightRatio="0.2"
+                                     shell:ShellBehaviors.ForwardMouseWheel="True"
+                                     ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="{Binding Time, StringFormat='{}{0:HH:mm:ss}'}"
+                                                       Foreground="{StaticResource BrushLogTextDim}"
+                                                       FontFamily="Consolas" FontSize="11" Margin="0,0,8,0"/>
+                                            <TextBlock Text="{Binding Level}"
+                                                       Foreground="{Binding Level, Converter={StaticResource LogLevelToColorConverter}}"
+                                                       FontFamily="Consolas" FontSize="11" FontWeight="SemiBold"
+                                                       Width="58" Margin="0,0,8,0"/>
+                                            <TextBlock Text="{Binding Message}"
+                                                       Foreground="{StaticResource BrushLogText}"
+                                                       FontFamily="Consolas" FontSize="11" TextWrapping="Wrap"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </shell:ToolWindowShell.BodyContent>
+
+            <!-- ═══ FOOTER ═══════════════════════════════════════════ -->
+            <shell:ToolWindowShell.FooterContent>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button Content="Create Sheet &amp; Place" Style="{StaticResource PrimaryButton}" Margin="0,0,8,0"
+                            Command="{Binding CreateCommand}"
+                            ToolTip="Create the sheet(s) as shown in the preview (one Undo step)."/>
+                    <Button Content="Close" Style="{StaticResource SecondaryButton}" Click="CloseButton_Click"/>
+                </StackPanel>
+            </shell:ToolWindowShell.FooterContent>
+        </shell:ToolWindowShell>
+
+        <!-- ═══ CONFIRM (before views come off other sheets) ═══════ -->
+        <Grid Background="#73142840" Visibility="{Binding IsConfirmOpen, Converter={StaticResource BoolToVis}}">
+            <Border Width="520" VerticalAlignment="Center" HorizontalAlignment="Center" Background="{StaticResource BrushCardBackground}"
+                    BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="1" CornerRadius="8">
+                <Border.Effect>
+                    <DropShadowEffect ShadowDepth="3" BlurRadius="18" Opacity="0.3"/>
+                </Border.Effect>
+                <StackPanel>
+                    <TextBlock Text="{Binding ConfirmTitle}" FontSize="15" FontWeight="SemiBold" Foreground="{StaticResource BrushNavyPrimary}" Margin="18,14,18,4"/>
+                    <TextBlock Text="These viewports come off their current sheets and go on the new one." FontSize="12.5"
+                               Foreground="{StaticResource BrushTextSecondary}" Margin="18,0,18,10" TextWrapping="Wrap"/>
+                    <Border Margin="18,0" BorderBrush="{StaticResource BrushSeparator}" BorderThickness="1" CornerRadius="5" MaxHeight="220">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <ItemsControl ItemsSource="{Binding ConfirmMoves}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Padding="10,6" BorderBrush="{StaticResource BrushSeparatorThin}" BorderThickness="0,0,0,1">
+                                            <DockPanel>
+                                                <Border DockPanel.Dock="Right" CornerRadius="8" Padding="7,1" Background="{StaticResource BrushStatusInfoSoft}">
+                                                    <TextBlock Text="{Binding To}" FontSize="11" Foreground="{StaticResource BrushStatusInfo}"/>
+                                                </Border>
+                                                <TextBlock DockPanel.Dock="Right" Text="→" Margin="6,0" Foreground="{StaticResource BrushTextSecondary}"/>
+                                                <Border DockPanel.Dock="Right" CornerRadius="8" Padding="7,1" Background="{StaticResource BrushStatusWarnSoft}">
+                                                    <TextBlock Text="{Binding From}" FontSize="11" Foreground="{StaticResource BrushStatusWarn}"/>
+                                                </Border>
+                                                <TextBlock Text="{Binding Name}" FontSize="12.5" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" Margin="0,0,8,0"/>
+                                            </DockPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Border>
+                    <Border Margin="18,10,18,0" Padding="8,5" CornerRadius="5" BorderThickness="1"
+                            Background="{StaticResource BrushStatusErrorSoft}" BorderBrush="{StaticResource BrushStatusErrorBorder}"
+                            Visibility="{Binding HasConfirmSkip, Converter={StaticResource BoolToVis}}">
+                        <TextBlock Text="{Binding ConfirmSkipText}" TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource BrushStatusError}"/>
+                    </Border>
+                    <CheckBox Margin="18,10,18,0" IsChecked="{Binding DeleteEmptySheets}">
+                        <TextBlock Text="{Binding ConfirmEmptyText}" TextWrapping="Wrap" FontSize="12.5"/>
+                    </CheckBox>
+                    <TextBlock Margin="18,8,18,0" FontSize="11.5" Foreground="{StaticResource BrushTextSecondary}" TextWrapping="Wrap"
+                               Text="The section views stay in the model, and the section heads in your plans point to the new sheet. One Undo (Ctrl+Z) reverts the whole run."/>
+                    <Border Margin="0,14,0,0" Padding="18,12" Background="{StaticResource BrushSystemBackground}" CornerRadius="0,0,8,8"
+                            BorderBrush="{StaticResource BrushSeparator}" BorderThickness="0,1,0,0">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                            <Button Content="Cancel" Style="{StaticResource SecondaryButton}" Margin="0,0,8,0" Command="{Binding CancelConfirmCommand}"/>
+                            <Button Content="Move &amp; Place" Style="{StaticResource PrimaryButton}" Command="{Binding ConfirmCreateCommand}"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</Window>

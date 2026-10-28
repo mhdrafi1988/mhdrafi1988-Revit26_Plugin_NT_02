@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    Unit tests for Sections To Sheet V001's Revit-free code (layout, reading order, sheet numbers,
+    planner, settings). The tool's files are linked, not copied.
+    Run:  dotnet test Tests/SectionsToSheet.Tests
+  -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <ToolDir>..\..\Menu\Sheet\SectionsToSheet_V001\</ToolDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="$(ToolDir)Core\Layout\*.cs" LinkBase="Tool\Layout" />
+    <Compile Include="$(ToolDir)Core\Models\*.cs" LinkBase="Tool\Models" />
+    <Compile Include="$(ToolDir)Core\Services\SectionPlanner.cs" Link="Tool\Services\SectionPlanner.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+  </ItemGroup>
+</Project>
