@@ -29,6 +29,12 @@ namespace Revit26_Plugin_Revised.TagToText.V001.Core.Models
         /// <summary>Where the leader points (the tagged point). Null when the tag has no leader.</summary>
         public XYZ LeaderEnd { get; init; }
 
+        /// <summary>
+        /// Where the tag's leader leaves the text (a spot's leader end, at the end of its shoulder), or
+        /// null when the API doesn't give it. The new note is moved so its leader starts here.
+        /// </summary>
+        public XYZ LeaderStart { get; init; }
+
         /// <summary>The leader's bend point, or null.</summary>
         public XYZ LeaderElbow { get; init; }
 

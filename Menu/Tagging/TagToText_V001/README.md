@@ -6,7 +6,7 @@ UI mock-up: [`UI_Mockup.html`](UI_Mockup.html) (open it in a browser).
 
 | Item | Value |
 |---|---|
-| Tool name | Tag To Text, v1.0.1 (plugin 6.14.1) |
+| Tool name | Tag To Text, v1.0.2 (plugin 6.15.2) |
 | Folder | `Menu/Tagging/TagToText_V001/` |
 | Namespace | `Revit26_Plugin_Revised.TagToText.V001` |
 | Command | `Revit26_Plugin_Revised.TagToText.V001.Commands.TagToTextCommand` (via `ToolGuard.RunCommand`) |
@@ -63,6 +63,9 @@ All options are remembered and restored when the window opens again.
   `ViewDuplicateOption.WithDetailing`, after `View.CanViewBeDuplicated`.
 - With **Delete**, tags in groups or owned by another user (`WorksharingUtils.GetCheckoutStatus`) are
   kept and logged. With **Hide**, tags that can't be hidden in the view stay visible.
+- Leaders follow the tag's: arrow on the tagged point, bend on the tag's bend (a spot's shoulder point),
+  and the note is moved so its leader starts where the tag's leader leaves its text (read back from
+  Revit after the note is made). A leader without a bend gets its bend on the straight line.
 - If Revit refuses a leader, the note is kept without it and a warning is logged.
 - The window can't close while a run is in progress. Unexpected errors go to
   `%AppData%\Revit26_Plugin_Revised\Logs` through `ToolGuard.Report`.
