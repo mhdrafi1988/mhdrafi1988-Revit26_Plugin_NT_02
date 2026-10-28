@@ -65,10 +65,9 @@ namespace Revit26_Plugin_Revised.CreaserAdv.V012.Services
     /// (multi-source reverse Dijkstra), adapted to this simpler line-segment
     /// graph and to a single-shortest-descent-per-node selection rule.
     ///
-    /// NOTE (perf): node merging uses a linear scan per point (GetOrAddNode),
-    /// which is O(n²) in point count. Fine for typical roof crease/boundary
-    /// counts; if this ever becomes a bottleneck on very large roofs, switch
-    /// to a spatial hash bucketed by rounded coordinates.
+    /// Node merging (GetOrAddNode) uses a grid of cells one merge tolerance
+    /// wide (12.0.3; it was a full scan per point, which grew with the square
+    /// of the point count and could stall Revit on very large roofs).
     /// </summary>
     public class DijkstraPathValidityService
     {
@@ -181,13 +180,40 @@ namespace Revit26_Plugin_Revised.CreaserAdv.V012.Services
             out SlopeStats slopeStats)
         {
             double mergeTolFt = NodeMergeToleranceMm * MmToFt;
+
+            // Nodes are bucketed in grid cells one merge tolerance wide, so a point is only
+            // compared with the nodes in its own and the 26 neighbouring cells (any node within
+            // the tolerance is in one of them) instead of with every node. Picks the same node
+            // as the old full scan: the earliest-added one within the tolerance.
+            var cells = new Dictionary<(long, long, long), List<int>>();
+            (long, long, long) CellOf(XYZ p) => (
+                (long)Math.Floor(p.X / mergeTolFt),
+                (long)Math.Floor(p.Y / mergeTolFt),
+                (long)Math.Floor(p.Z / mergeTolFt));
+
             int GetOrAddNode(XYZ p)
             {
-                for (int i = 0; i < nodes.Count; i++)
-                    if (nodes[i].DistanceTo(p) <= mergeTolFt)
-                        return i;
+                var (cx, cy, cz) = CellOf(p);
+                int match = -1;
+
+                for (long dx = -1; dx <= 1; dx++)
+                for (long dy = -1; dy <= 1; dy++)
+                for (long dz = -1; dz <= 1; dz++)
+                {
+                    if (!cells.TryGetValue((cx + dx, cy + dy, cz + dz), out List<int> bucket)) continue;
+                    foreach (int i in bucket)
+                        if ((match == -1 || i < match) && nodes[i].DistanceTo(p) <= mergeTolFt)
+                            match = i;
+                }
+
+                if (match != -1) return match;
+
                 nodes.Add(p);
-                return nodes.Count - 1;
+                int index = nodes.Count - 1;
+                if (!cells.TryGetValue((cx, cy, cz), out List<int> own))
+                    cells[(cx, cy, cz)] = own = new List<int>();
+                own.Add(index);
+                return index;
             }
 
             var edges = new List<Edge>();

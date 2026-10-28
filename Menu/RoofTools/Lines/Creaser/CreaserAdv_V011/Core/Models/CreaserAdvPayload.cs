@@ -14,8 +14,16 @@ using System;
 
 namespace Revit26_Plugin_Revised.CreaserAdv.V011.Core.Models
 {
+    /// <summary>One Run request, handed from the window to <c>CreaserAdvHandler</c>.</summary>
     public class CreaserAdvPayload
     {
+        /// <summary>
+        /// The project the window was opened for. The handler refuses to run when another
+        /// project is active, because <see cref="RoofId"/> and <see cref="SelectedDetailSymbolId"/>
+        /// only mean something in this one.
+        /// </summary>
+        public Document Document { get; set; }
+
         public ElementId RoofId { get; set; }
         public ElementId SelectedDetailSymbolId { get; set; }
 

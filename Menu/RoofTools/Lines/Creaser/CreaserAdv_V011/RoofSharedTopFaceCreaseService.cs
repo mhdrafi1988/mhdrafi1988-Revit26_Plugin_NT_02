@@ -34,6 +34,10 @@ namespace Revit26_Plugin_Revised.CreaserAdv.V011.Services
     /// on); solids nested inside <see cref="GeometryInstance"/>s are now
     /// included; and every stage reports counts to the UI log so an empty
     /// result can be traced to its cause.
+    ///
+    /// plugin 6.16.1: each face is classified once per solid, sampling its normals
+    /// once for both tests. Before, both faces of every edge were sampled
+    /// twice (top test, side test) for every edge they touch.
     /// </summary>
     public sealed class RoofSharedTopFaceCreaseService
     {
@@ -78,6 +82,7 @@ namespace Revit26_Plugin_Revised.CreaserAdv.V011.Services
             foreach (Solid solid in solids)
             {
                 faceCount += solid.Faces.Size;
+                var faceKinds = new FaceKindCache(solid);
 
                 foreach (Edge edge in solid.Edges)
                 {
@@ -86,11 +91,11 @@ namespace Revit26_Plugin_Revised.CreaserAdv.V011.Services
                     Curve curve = edge.AsCurve();
                     if (curve == null || curve.Length < 1e-6) { degenerate++; continue; }
 
-                    Face f0 = edge.GetFace(0);
-                    Face f1 = edge.GetFace(1);
+                    FaceKind k0 = faceKinds.Get(edge.GetFace(0));
+                    FaceKind k1 = faceKinds.Get(edge.GetFace(1));
 
-                    bool f0Side = IsSideFace(f0), f1Side = IsSideFace(f1);
-                    bool f0Top  = IsTopFace(f0),  f1Top  = IsTopFace(f1);
+                    bool f0Side = k0.IsSide, f1Side = k1.IsSide;
+                    bool f0Top  = k0.IsTop,  f1Top  = k1.IsTop;
 
                     if (f0Side && f1Side)
                     {
@@ -160,22 +165,54 @@ namespace Revit26_Plugin_Revised.CreaserAdv.V011.Services
         // Face classification
         // --------------------------------------------------
 
-        private static bool IsTopFace(Face face)
+        /// <summary>
+        /// Top face: at least <see cref="UpwardMajorityThreshold"/> of the sampled normals have
+        /// Z &gt; <see cref="TopFaceMinNormalZ"/>. Side face: at least
+        /// <see cref="VerticalMajorityThreshold"/> have |Z| &lt; <see cref="SideFaceMaxNormalZ"/>.
+        /// A null face is neither.
+        /// </summary>
+        private readonly struct FaceKind
         {
-            if (face == null) return false;
-            return MajorityCheck(face, n => n.Z > TopFaceMinNormalZ, UpwardMajorityThreshold);
+            public readonly bool IsTop;
+            public readonly bool IsSide;
+
+            public FaceKind(bool isTop, bool isSide) { IsTop = isTop; IsSide = isSide; }
         }
 
-        private static bool IsSideFace(Face face)
+        /// <summary>
+        /// Classifies every face of one solid once. Edge faces are looked up by their geometry
+        /// <see cref="GeometryObject.Id"/>; when the solid's face ids are not unique (or not set),
+        /// or an id is not found, the face is classified directly — same result, just slower.
+        /// </summary>
+        private sealed class FaceKindCache
         {
-            if (face == null) return false;
-            return MajorityCheck(face, n => Math.Abs(n.Z) < SideFaceMaxNormalZ, VerticalMajorityThreshold);
+            private readonly Dictionary<int, FaceKind> _byId;
+
+            public FaceKindCache(Solid solid)
+            {
+                var byId = new Dictionary<int, FaceKind>();
+                foreach (Face face in solid.Faces)
+                {
+                    int id = face.Id;
+                    if (id < 0 || byId.ContainsKey(id)) { byId = null; break; }
+                    byId[id] = Classify(face);
+                }
+                _byId = byId;
+            }
+
+            public FaceKind Get(Face face)
+            {
+                if (face == null) return default;
+                if (_byId != null && _byId.TryGetValue(face.Id, out FaceKind kind)) return kind;
+                return Classify(face);
+            }
         }
 
-        private static bool MajorityCheck(Face face, Func<XYZ, bool> predicate, double threshold)
+        /// <summary>Samples the face's normals on a UV grid once and applies both tests to them.</summary>
+        private static FaceKind Classify(Face face)
         {
             BoundingBoxUV bb = face.GetBoundingBox();
-            int pass = 0, total = 0;
+            int up = 0, vertical = 0, total = 0;
 
             for (int i = 0; i < SampleCount; i++)
             {
@@ -185,17 +222,23 @@ namespace Revit26_Plugin_Revised.CreaserAdv.V011.Services
                     double v = bb.Min.V + (bb.Max.V - bb.Min.V) * j / (SampleCount - 1);
                     try
                     {
-                        if (predicate(face.ComputeNormal(new UV(u, v)))) pass++;
+                        XYZ n = face.ComputeNormal(new UV(u, v));
+                        if (n.Z > TopFaceMinNormalZ) up++;
+                        if (Math.Abs(n.Z) < SideFaceMaxNormalZ) vertical++;
                         total++;
                     }
                     catch (System.Exception ex)
                     {
-                        System.Diagnostics.Debug.WriteLine($"[RoofSharedTopFaceCreaseService] MajorityCheck: ComputeNormal failed at U={u:F3} V={v:F3} — {ex.Message}");
+                        System.Diagnostics.Debug.WriteLine($"[RoofSharedTopFaceCreaseService] Classify: ComputeNormal failed at U={u:F3} V={v:F3} — {ex.Message}");
                     }
                 }
             }
 
-            return total > 0 && (double)pass / total >= threshold;
+            if (total == 0) return default;
+
+            return new FaceKind(
+                (double)up / total >= UpwardMajorityThreshold,
+                (double)vertical / total >= VerticalMajorityThreshold);
         }
 
         // --------------------------------------------------
