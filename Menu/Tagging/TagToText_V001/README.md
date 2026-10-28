@@ -6,7 +6,7 @@ UI mock-up: [`UI_Mockup.html`](UI_Mockup.html) (open it in a browser).
 
 | Item | Value |
 |---|---|
-| Tool name | Tag To Text, v1.1.0 (plugin 6.17.0) |
+| Tool name | Tag To Text, v1.1.0 (plugin 6.18.0) |
 | Folder | `Menu/Tagging/TagToText_V001/` |
 | Namespace | `Revit26_Plugin_Revised.TagToText.V001` |
 | Command | `Revit26_Plugin_Revised.TagToText.V001.Commands.TagToTextCommand` (via `ToolGuard.RunCommand`) |

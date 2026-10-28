@@ -13,6 +13,11 @@ Changes vs V006 (layout only):
     (ShellBehaviors.MaxHeightRatio) and forward the mouse wheel.
   - Chip order-badge tint → SharedStyles BrushBadgeOnDark.
   - No behaviour change — every binding/command is the V006 one.
+Tool v7.2.0:
+  - "Ask Me" shows an in-window popover listing every created
+    section with a checkbox; only the ticked ones are opened.
+  - Run turns off after a run that created sections, until
+    Refresh or a setting change (footer hint explains).
 =======================================================
 -->
 <Window x:Class="Revit26_Plugin_Revised.RoofEdgeAroundSections.V007.RoofEdgeSectionsWindow"
@@ -41,6 +46,7 @@ Changes vs V006 (layout only):
         </ResourceDictionary>
     </Window.Resources>
 
+    <Grid>
     <shell:ToolWindowShell Title="Roof Edge Sections"
                            Subtitle="Section views around every edge of the selected roofs"
                            Version="{Binding Source={x:Static svc:ToolCatalog.RoofEdgeAroundSections}, Path=Version, StringFormat=v{0}}"
@@ -187,10 +193,10 @@ Changes vs V006 (layout only):
                                 </StackPanel>
 
                                 <StackPanel Grid.Column="4">
-                                    <TextBlock Text="Open Views After Creation" Style="{StaticResource FieldLabel}" ToolTip="Controls whether created views open automatically, ask first, or stay closed."/>
+                                    <TextBlock Text="Open Views After Creation" Style="{StaticResource FieldLabel}" ToolTip="Ask Me lists the created sections so you can tick the ones to open. Open All opens every created section. Don't Open leaves them closed."/>
                                     <ComboBox Style="{StaticResource StandardComboBox}"
                                               SelectedValue="{Binding OpenViewsMode}" SelectedValuePath="Tag"
-                                              ToolTip="Controls whether created views open automatically, ask first, or stay closed.">
+                                              ToolTip="Ask Me lists the created sections so you can tick the ones to open. Open All opens every created section. Don't Open leaves them closed.">
                                         <ComboBoxItem Content="Ask Me" Tag="AskMe"/>
                                         <ComboBoxItem Content="Open All" Tag="OpenAll"/>
                                         <ComboBoxItem Content="Don't Open" Tag="DontOpen"/>
@@ -461,10 +467,15 @@ Changes vs V006 (layout only):
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
+                <TextBlock Grid.Column="0" Style="{StaticResource HintText}" Margin="0,0,12,0" VerticalAlignment="Center"
+                           Text="Sections created — click Refresh or change a setting to run again."
+                           Visibility="{Binding IsRunLocked, Converter={StaticResource BoolToVisibilityConverter}}"/>
+
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
                     <Button Style="{StaticResource PrimaryButton}" Width="130" Margin="0,0,8,0"
                             Command="{Binding RunCommand}"
-                            ToolTip="Create a section view for every checked row in the Planned Sections table below.">
+                            ToolTipService.ShowOnDisabled="True"
+                            ToolTip="Create a section view for every checked row in the Planned Sections table below. Turns off after a run until you click Refresh or change a setting.">
                         <Button.Content>
                             <TextBlock Text="{Binding SectionsSuggestedCount, StringFormat='Run ({0})'}"/>
                         </Button.Content>
@@ -475,4 +486,124 @@ Changes vs V006 (layout only):
             </Grid>
         </shell:ToolWindowShell.FooterContent>
     </shell:ToolWindowShell>
+
+    <!-- ═══ OPEN CREATED SECTIONS popover ("Ask Me" mode) ═════
+         In-window overlay (not a WPF Popup) so it moves and resizes with the window.
+         Clicking the dimmed backdrop or pressing Esc closes it. -->
+    <Grid Visibility="{Binding IsOpenSectionsPopoverOpen, Converter={StaticResource BoolToVisibilityConverter}}">
+        <Border Background="#66000000" MouseLeftButtonDown="PopoverBackdrop_MouseLeftButtonDown"/>
+
+        <Border Style="{StaticResource ContentCard}" Width="600" MaxHeight="560" Margin="0,0,16,96"
+                HorizontalAlignment="Right" VerticalAlignment="Bottom">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="18" ShadowDepth="2" Opacity="0.25"/>
+            </Border.Effect>
+            <Grid Margin="0,0,0,12">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0" Style="{StaticResource SectionTitle}"
+                           Text="{Binding CreatedSections.Count, StringFormat='Open created sections ({0})'}"/>
+                <TextBlock Grid.Row="1" Style="{StaticResource HintText}" Margin="12,0,12,8"
+                           Text="Tick the sections to open. Each one opens as a tab in Revit."/>
+
+                <Grid Grid.Row="2" Margin="12,0,12,6">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="Search" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <TextBox Grid.Column="1" Style="{StaticResource StyledTextInput}" Margin="0,0,12,0"
+                             Text="{Binding CreatedSectionsFilter, UpdateSourceTrigger=PropertyChanged}"
+                             ToolTip="Type part of a section name, roof name or direction to show only matching rows."/>
+                    <StackPanel Grid.Column="2" Orientation="Horizontal">
+                        <Button Content="Select All" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,6,0"
+                                Command="{Binding SelectAllCreatedCommand}"
+                                ToolTip="Tick every row shown below."/>
+                        <Button Content="Clear" Style="{StaticResource SmallSecondaryButton}"
+                                Command="{Binding ClearCreatedCommand}"
+                                ToolTip="Untick every row shown below."/>
+                    </StackPanel>
+                </Grid>
+
+                <Border Grid.Row="3" Margin="12,0,12,0" BorderBrush="{StaticResource BrushSeparator}" BorderThickness="1" CornerRadius="4">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <Grid Grid.Row="0" Background="{StaticResource BrushSystemSecondaryBackground}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="36"/>
+                                <ColumnDefinition Width="2*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="80"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="1" Text="Section View Name" Style="{StaticResource FieldLabel}" Margin="0,6"/>
+                            <TextBlock Grid.Column="2" Text="Roof" Style="{StaticResource FieldLabel}" Margin="0,6"/>
+                            <TextBlock Grid.Column="3" Text="Direction" Style="{StaticResource FieldLabel}" Margin="0,6"/>
+                        </Grid>
+
+                        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                            <ItemsControl ItemsSource="{Binding CreatedSectionsView}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border BorderBrush="{StaticResource BrushSeparatorThin}" BorderThickness="0,0,0,1">
+                                            <Grid MinHeight="28">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="36"/>
+                                                    <ColumnDefinition Width="2*"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="80"/>
+                                                </Grid.ColumnDefinitions>
+                                                <CheckBox Grid.Column="0" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                          IsChecked="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}"
+                                                          ToolTip="Open this section."/>
+                                                <TextBlock Grid.Column="1" Text="{Binding Name}" VerticalAlignment="Center" FontSize="12"
+                                                           Foreground="{StaticResource BrushTextPrimary}" TextTrimming="CharacterEllipsis"
+                                                           ToolTip="{Binding Name}"/>
+                                                <TextBlock Grid.Column="2" Text="{Binding RoofDisplayName}" VerticalAlignment="Center" FontSize="12"
+                                                           Foreground="{StaticResource BrushTextSecondary}" TextTrimming="CharacterEllipsis"
+                                                           ToolTip="{Binding RoofDisplayName}"/>
+                                                <TextBlock Grid.Column="3" Text="{Binding Direction}" VerticalAlignment="Center" FontSize="12"
+                                                           Foreground="{StaticResource BrushTextSecondary}"/>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Grid>
+                </Border>
+
+                <Grid Grid.Row="4" Margin="12,10,12,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Style="{StaticResource HintText}" Margin="0" VerticalAlignment="Center"
+                               Text="{Binding SelectedCreatedCount, StringFormat='{}{0} selected'}"/>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <Button Style="{StaticResource PrimaryButton}" MinWidth="130" Margin="0,0,8,0"
+                                Command="{Binding OpenSelectedSectionsCommand}"
+                                ToolTipService.ShowOnDisabled="True"
+                                ToolTip="Open the ticked sections in Revit.">
+                            <TextBlock Text="{Binding SelectedCreatedCount, StringFormat='Open selected ({0})'}"/>
+                        </Button>
+                        <Button Content="Close" Style="{StaticResource OutlineButton}" Width="90"
+                                Command="{Binding CloseOpenSectionsPopoverCommand}"
+                                ToolTip="Close this list without opening anything."/>
+                    </StackPanel>
+                </Grid>
+            </Grid>
+        </Border>
+    </Grid>
+    </Grid>
 </Window>

@@ -33,6 +33,24 @@ namespace Revit26_Plugin_Revised.RoofEdgeAroundSections.V007
             _viewModel.RequestOpenViewsIfNeeded = OnRequestOpenViewsIfNeeded;
 
             Closing += RoofEdgeSectionsWindow_Closing;
+            PreviewKeyDown += RoofEdgeSectionsWindow_PreviewKeyDown;
+        }
+
+        // Esc closes the "Open created sections" popover (and only that).
+        private void RoofEdgeSectionsWindow_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Escape && _viewModel.IsOpenSectionsPopoverOpen)
+            {
+                _viewModel.IsOpenSectionsPopoverOpen = false;
+                e.Handled = true;
+            }
+        }
+
+        // Clicking the dimmed area around the popover closes it.
+        private void PopoverBackdrop_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            _viewModel.IsOpenSectionsPopoverOpen = false;
+            e.Handled = true;
         }
 
         private void RoofEdgeSectionsWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -94,22 +112,10 @@ namespace Revit26_Plugin_Revised.RoofEdgeAroundSections.V007
             LogExportHelper.Export(entries, folder);
         }
 
+        // "Open All" mode only. "Ask Me" shows the in-window popover instead (ViewModel).
         private void OnRequestOpenViewsIfNeeded(List<ElementId> createdViewIds, string openViewsMode)
         {
-            if (createdViewIds.Count == 0) return;
-
-            bool shouldOpen;
-            if (openViewsMode == "OpenAll") shouldOpen = true;
-            else if (openViewsMode == "DontOpen") shouldOpen = false;
-            else
-            {
-                var tdOpen = new TaskDialog("Roof Edge Sections");
-                tdOpen.MainContent = $"{createdViewIds.Count} section view(s) were created. Open them now?";
-                tdOpen.CommonButtons = TaskDialogCommonButtons.Yes | TaskDialogCommonButtons.No;
-                shouldOpen = tdOpen.Show() == TaskDialogResult.Yes;
-            }
-
-            if (!shouldOpen) return;
+            if (createdViewIds.Count == 0 || openViewsMode != "OpenAll") return;
 
             Document doc = _uiApp.ActiveUIDocument.Document;
             foreach (ElementId id in createdViewIds)
