@@ -18,6 +18,7 @@ using System.Diagnostics;
 using System.Text;
 using System.Windows;
 using System.Windows.Data;
+using System.Windows.Threading;
 
 namespace Revit26_Plugin_Revised.CreaserAdv.V011.ViewModels
 {
@@ -51,6 +52,9 @@ namespace Revit26_Plugin_Revised.CreaserAdv.V011.ViewModels
         private readonly Document       _doc;
         private readonly ElementId      _roofId;
         private readonly LoggingService _log;
+
+        /// <summary>The window's (Revit's main) thread; run results are marshalled back to it.</summary>
+        private readonly Dispatcher     _dispatcher;
 
         // --------------------------------------------------
         // UI-bound collections
@@ -163,6 +167,10 @@ namespace Revit26_Plugin_Revised.CreaserAdv.V011.ViewModels
         // Constructor
         // --------------------------------------------------
 
+        /// <summary>
+        /// Builds the ViewModel for <paramref name="roof"/> in the active project. Must be created on
+        /// Revit's main thread (it captures that thread's dispatcher for run results).
+        /// </summary>
         public CreaserAdvViewModel(
             UIApplication  uiApp,
             Element        roof,
@@ -173,6 +181,10 @@ namespace Revit26_Plugin_Revised.CreaserAdv.V011.ViewModels
             _doc    = uiApp.ActiveUIDocument.Document;
             _roofId = (roof ?? throw new ArgumentNullException(nameof(roof))).Id;
             _log    = log  ?? throw new ArgumentNullException(nameof(log));
+
+            // Captured here, on the thread that creates the window. Application.Current
+            // is not guaranteed to exist inside Revit.
+            _dispatcher = Dispatcher.CurrentDispatcher;
 
             VisibleLogEntries = new ListCollectionView(_log.Entries)
             {
@@ -240,6 +252,7 @@ namespace Revit26_Plugin_Revised.CreaserAdv.V011.ViewModels
 
             CreaserAdvHandler.Payload = new CreaserAdvPayload
             {
+                Document = _doc,
                 RoofId = _roofId,
                 SelectedDetailSymbolId = SelectedDetailSymbol.Id,
                 IncludeBoundaryLines = IncludeBoundaryLines,
@@ -253,7 +266,7 @@ namespace Revit26_Plugin_Revised.CreaserAdv.V011.ViewModels
                 Log = _log,
                 OnCompleted = result =>
                 {
-                    System.Windows.Application.Current.Dispatcher.BeginInvoke(new Action(() =>
+                    _dispatcher.BeginInvoke(new Action(() =>
                     {
                         IsRunning = false;
 

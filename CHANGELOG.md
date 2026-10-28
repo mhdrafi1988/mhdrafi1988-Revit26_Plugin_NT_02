@@ -9,6 +9,26 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.16.1] — 2026-10-28
+
+### Fixed
+- **Creaser Adv v12.0.3 (V012)**, and V011 with the same fix (no version entry) — errors could crash Revit.
+  V011 and V012 had lost the plugin's standard error handling (`ToolGuard`), so an error outside the run's own
+  error handling went straight into Revit. That happened when Run was pressed with no project open, when Revit
+  refused to start the edit, or when reporting a failed run back to the window failed too. The command and the
+  run now go through `ToolGuard`; the window is always told when the run ends, so Run never stays locked.
+- **Creaser Adv** — Run used whichever project was active, with the roof and detail item picked in the project
+  the window was opened for. It now refuses, and says which project to switch back to. It also refuses on a
+  read-only project.
+- **Creaser Adv** — large roofs ran much slower than needed, which could leave Revit "Not Responding":
+  - each roof face is checked once per solid, instead of up to four times for every edge it touches;
+  - merging line ends in the drain-path (Dijkstra) step looks only at nearby points instead of every point;
+  - the tool's log file stays open while the window is open, instead of being opened and closed for every line;
+  - the log list scrolls once per batch of new lines, instead of once per line.
+- **User note:** results are unchanged. An unexpected error during Run now also shows the standard error dialog
+  and is written to `%AppData%\Revit26_Plugin_Revised\Logs` (it used to appear only in the tool's log).
+  Pressing Run after switching to another project now shows an error in the log instead of running.
+
 ## [6.16.0] — 2026-10-28
 
 ### Added

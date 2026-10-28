@@ -21,7 +21,6 @@
 // =======================================================
 
 using Autodesk.Revit.DB;
-using Autodesk.Revit.UI;
 using Revit26_Plugin_Revised.CreaserAdv.V011.Core.Models;
 using Revit26_Plugin_Revised.CreaserAdv.V011.Services;
 using System;
@@ -30,14 +29,19 @@ using System.Linq;
 
 namespace Revit26_Plugin_Revised.CreaserAdv.V011.Core.Engine
 {
+    /// <summary>Creaser Adv pipeline: roof curves → filters → detail items in the active plan view.</summary>
     public static class CreaserAdvEngine
     {
         private const double FtToMm = 304.8;
         private const int    TotalSteps = 6;
 
-        public static CreaserAdvResult Execute(UIApplication app, CreaserAdvPayload payload)
+        /// <summary>
+        /// Runs one pass on <paramref name="doc"/>, which must be the active project (the caller checks
+        /// it is the one the window was opened for) and must have no open transaction. Only the placement
+        /// step opens a transaction.
+        /// </summary>
+        public static CreaserAdvResult Execute(Document doc, CreaserAdvPayload payload)
         {
-            Document doc = app.ActiveUIDocument.Document;
             LoggingService log = payload.Log;
 
             // ── Resolve inputs from Ids ───────────────────────────────────────
