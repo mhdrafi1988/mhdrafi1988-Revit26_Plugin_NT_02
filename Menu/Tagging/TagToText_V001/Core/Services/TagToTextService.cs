@@ -257,15 +257,7 @@ namespace Revit26_Plugin_Revised.TagToText.V001.Core.Services
                 {
                     try
                     {
-                        bool endIsLeft = (s.LeaderEnd - point).DotProduct(view.RightDirection) < 0;
-                        Leader l = note.AddLeader(endIsLeft ? TextNoteLeaderTypes.TNLT_STRAIGHT_L : TextNoteLeaderTypes.TNLT_STRAIGHT_R);
-                        l.End = s.LeaderEnd;
-                        // Only the first note gets the bend, so a coordinate's two leaders don't overlap.
-                        if (i == 0 && s.LeaderElbow != null && s.LeaderElbow.DistanceTo(s.LeaderEnd) > 1e-6)
-                        {
-                            try { l.Elbow = s.LeaderElbow; }
-                            catch (Autodesk.Revit.Exceptions.ApplicationException) { /* Revit keeps its own bend */ }
-                        }
+                        AddLeader(doc, view, note, s, point, firstNote: i == 0);
                     }
                     catch (Autodesk.Revit.Exceptions.ApplicationException ex)
                     {
@@ -286,6 +278,48 @@ namespace Revit26_Plugin_Revised.TagToText.V001.Core.Services
             }
             return texts.Count;
         }
+
+        // Adds a leader that follows the tag's: arrow at the tagged point, bend where the tag bends, and
+        // (for the first note) starting where the tag's leader leaves its text. Revit decides where a
+        // note's leader starts (its "anchor", on the side of the text), so the note is created, the anchor
+        // is read back, and the note is moved by the difference. A tag leader without a bend gets its bend
+        // on the straight line, so Revit doesn't add its own kink.
+        private static void AddLeader(Document doc, View view, TextNote note, TagSnapshot s, XYZ textPoint, bool firstNote)
+        {
+            XYZ towards = (firstNote ? s.LeaderStart ?? s.LeaderElbow : s.LeaderElbow) ?? s.LeaderEnd;
+            bool leaderOnLeft = (towards - textPoint).DotProduct(view.RightDirection) < 0;
+            note.AddLeader(leaderOnLeft ? TextNoteLeaderTypes.TNLT_STRAIGHT_L : TextNoteLeaderTypes.TNLT_STRAIGHT_R);
+            doc.Regenerate();
+
+            if (firstNote && s.LeaderStart != null)
+            {
+                XYZ delta = InPlane(view, s.LeaderStart - CurrentLeader(note).Anchor);
+                if (delta.GetLength() > 1e-9)
+                {
+                    note.Coord = note.Coord + delta;
+                    doc.Regenerate();
+                }
+            }
+
+            Leader leader = CurrentLeader(note);
+            XYZ anchor = leader.Anchor;
+            XYZ elbow = firstNote && s.LeaderElbow != null ? s.LeaderElbow : (anchor + s.LeaderEnd) / 2;
+            bool elbowUsable = elbow.DistanceTo(anchor) > 1e-6 && elbow.DistanceTo(s.LeaderEnd) > 1e-6;
+            if (!elbowUsable) elbow = (anchor + s.LeaderEnd) / 2;
+
+            // Set the end, then the bend (Revit refuses an end on top of the current bend, so try both orders).
+            try { leader.End = s.LeaderEnd; leader.Elbow = elbow; }
+            catch (Autodesk.Revit.Exceptions.ApplicationException)
+            {
+                leader = CurrentLeader(note);
+                leader.Elbow = elbow;
+                leader.End = s.LeaderEnd;
+            }
+        }
+
+        private static Leader CurrentLeader(TextNote note) => note.GetLeaders().Last();
+
+        private static XYZ InPlane(View view, XYZ v) => v - view.ViewDirection * v.DotProduct(view.ViewDirection);
 
         private void HandleOriginals(Document doc, View view, List<TagSnapshot> converted, OriginalTagAction action, TagToTextResult result)
         {

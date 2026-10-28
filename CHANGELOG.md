@@ -9,6 +9,16 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.15.2] — 2026-10-28
+
+### Fixed
+- **Tag To Text v1.0.2** — leaders on text copied from spot elevations and spot coordinates didn't follow the
+  spot's leader: the angle of the first segment and the shoulder were off. Each note is now moved so its leader
+  starts exactly where the spot's shoulder meets the text, the bend is placed on the spot's shoulder point, and
+  the arrow on the spotted point. Leaders without a bend stay straight (Revit no longer adds its own kink).
+- **User note:** the text may sit slightly to one side of where it was before, so that the leader lines up with
+  the original. Spot Coordinates: the second note (E) keeps a straight leader to the same point.
+
 ## [6.15.1] — 2026-10-27
 
 ### Fixed

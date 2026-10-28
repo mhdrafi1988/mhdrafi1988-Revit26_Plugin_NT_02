@@ -139,7 +139,7 @@ namespace Revit26_Plugin_Revised.TagToText.V001.Core.Services
 
             XYZ origin = OnViewPlane(view, spot.Origin);
             XYZ textPoint;
-            XYZ end = null, elbow = null;
+            XYZ end = null, elbow = null, start = null;
 
             if (kind == TagKind.SpotSlope)
             {
@@ -153,7 +153,10 @@ namespace Revit26_Plugin_Revised.TagToText.V001.Core.Services
                 textPoint = OnViewPlane(view, TryPoint(() => spot.TextPosition) ?? spot.Origin);
                 if (spot.HasLeader)
                 {
+                    // Spot leader: spotted point (Origin) → bend (shoulder position) → leader end, where
+                    // the shoulder meets the text. The note copies the same three points.
                     end = origin;
+                    start = OnViewPlane(view, TryPoint(() => spot.LeaderEndPosition));
                     if (spot.LeaderHasShoulder)
                         elbow = OnViewPlane(view, TryPoint(() => spot.LeaderShoulderPosition));
                 }
@@ -162,7 +165,7 @@ namespace Revit26_Plugin_Revised.TagToText.V001.Core.Services
             return new TagSnapshot
             {
                 TagId = spot.Id, Kind = kind, TypeLabel = label, Lines = lines,
-                TextPoint = textPoint, LeaderEnd = end, LeaderElbow = elbow, Rotation = 0,
+                TextPoint = textPoint, LeaderEnd = end, LeaderElbow = elbow, LeaderStart = start, Rotation = 0,
                 InGroup = inGroup, OwnedBy = owner,
                 Problem = null
             };
