@@ -9,7 +9,7 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
-## [6.17.1] — 2026-10-28
+## [6.18.1] — 2026-10-28
 
 ### Fixed
 - **Sheet Auto Rearrange v28.1.2 (V028)**, and V027 with the same fix (no version entry) — closing the window
@@ -43,6 +43,28 @@ Each release lists every tool whose version changed, under the plugin version.
   your settings were always saved before the error, and the model was never changed by it. The six buttons
   above now do what they say. If Revit is busy (another command or a dialog is open), the window says so and
   you click again.
+
+## [6.18.0] — 2026-10-28
+
+### Added
+- **Tag To Text v1.1.0** — work with the tag table by tag type (the Type column: Spot Elevation, Spot Slope,
+  Roof Tags, Door Tags, Room Tags…):
+  - **Group by type** (above the table): one collapsible heading per type, showing "3 of 5 ticked". Each heading
+    has a tick box that ticks every tag of that type, or clears them when they are all ticked; a partly ticked
+    type shows a partial tick, and clicking it ticks the rest. Groups stay in the table's order (spots first)
+    when a column is sorted.
+  - **Type** list with **Select Type** / **Clear Type**: tick or clear every tag of one type, grouped or not.
+    The list shows only the types the Source tick boxes show, with how many tags each has.
+  - Tags that can't be copied are never ticked, the same as **Select All**.
+
+### Changed
+- **Tag To Text** — in the table, element tags and room/area tags are now listed by type name, then by text
+  (spots still come first). Before, all element tags were sorted by text only, so types were mixed.
+- **Tag To Text** — changing the Source tick boxes, grouping or reloading the list while a text is being edited
+  now ends the edit first, so it can't stop with an error.
+- **User note:** the table opens **grouped by type** (also with settings saved by v1.0.x). Untick
+  **Group by type** to get the flat list back; the choice is remembered. The settings file is now version 2;
+  older files are read as before.
 
 ## [6.17.0] — 2026-10-28
 

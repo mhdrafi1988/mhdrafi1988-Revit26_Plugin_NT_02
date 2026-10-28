@@ -128,19 +128,40 @@
                 <!-- Tag table -->
                 <Border Background="{StaticResource BrushSystemSecondaryBackground}" BorderBrush="{StaticResource BrushBorderDefault}"
                         BorderThickness="1,1,1,0" CornerRadius="4,4,0,0" Padding="8,6">
-                    <DockPanel LastChildFill="False">
-                        <TextBlock VerticalAlignment="Center" FontSize="11" Foreground="{StaticResource BrushTextSecondary}">
-                            <Run Text="Found:"/> <Run Text="{Binding FoundCount, Mode=OneWay}"/>
-                            <Run Text="tags ·"/> <Run Text="{Binding SelectedCount, Mode=OneWay}"/>
-                            <Run Text="ticked · double-click a text to edit it"/>
-                        </TextBlock>
-                        <Button DockPanel.Dock="Right" Content="Clear" Command="{Binding ClearSelectionCommand}"
-                                Style="{StaticResource SmallSecondaryButton}"/>
-                        <Button DockPanel.Dock="Right" Content="Select All" Command="{Binding SelectAllCommand}"
-                                Style="{StaticResource SmallSecondaryButton}" Margin="0,0,4,0"/>
-                    </DockPanel>
+                    <StackPanel>
+                        <DockPanel LastChildFill="False">
+                            <TextBlock VerticalAlignment="Center" FontSize="11" Foreground="{StaticResource BrushTextSecondary}">
+                                <Run Text="Found:"/> <Run Text="{Binding FoundCount, Mode=OneWay}"/>
+                                <Run Text="tags ·"/> <Run Text="{Binding SelectedCount, Mode=OneWay}"/>
+                                <Run Text="ticked · double-click a text to edit it"/>
+                            </TextBlock>
+                            <Button DockPanel.Dock="Right" Content="Clear" Command="{Binding ClearSelectionCommand}"
+                                    Style="{StaticResource SmallSecondaryButton}"/>
+                            <Button DockPanel.Dock="Right" Content="Select All" Command="{Binding SelectAllCommand}"
+                                    Style="{StaticResource SmallSecondaryButton}" Margin="0,0,4,0"/>
+                        </DockPanel>
+                        <!-- By tag type: group the table, or tick / clear one type from the list -->
+                        <DockPanel LastChildFill="False" Margin="0,6,0,0" IsEnabled="{Binding IsIdle}">
+                            <CheckBox Content="Group by type" IsChecked="{Binding GroupByType}" Style="{StaticResource Opt}"
+                                      ToolTip="Show the tags under one heading per type. Tick a heading's box to tick or clear every tag of that type."/>
+                            <Button DockPanel.Dock="Right" Content="Clear Type" Command="{Binding ClearTypeCommand}"
+                                    Style="{StaticResource SmallSecondaryButton}"
+                                    ToolTip="Untick every tag of the type picked in the list."/>
+                            <Button DockPanel.Dock="Right" Content="Select Type" Command="{Binding SelectTypeCommand}"
+                                    Style="{StaticResource SmallSecondaryButton}" Margin="0,0,4,0"
+                                    ToolTip="Tick every tag of the type picked in the list."/>
+                            <ComboBox DockPanel.Dock="Right" Width="190" Margin="0,0,6,0"
+                                      ItemsSource="{Binding TypeGroupsView}" SelectedItem="{Binding SelectedTypeGroup}"
+                                      IsSynchronizedWithCurrentItem="False" DisplayMemberPath="Label"
+                                      Style="{StaticResource StandardComboBox}" FontSize="11"
+                                      ToolTip="Pick a tag type, then Select Type or Clear Type."/>
+                            <TextBlock DockPanel.Dock="Right" Text="Type" Style="{StaticResource FieldLabel}"
+                                       VerticalAlignment="Center" Margin="0,0,6,0"/>
+                        </DockPanel>
+                    </StackPanel>
                 </Border>
-                <DataGrid MinHeight="140"
+                <DataGrid x:Name="TagGrid"
+                          MinHeight="140"
                           shell:ShellBehaviors.MaxHeightRatio="0.35"
                           shell:ShellBehaviors.ForwardMouseWheel="True"
                           ItemsSource="{Binding RowsView}"
@@ -156,7 +177,42 @@
                           GridLinesVisibility="Horizontal"
                           HorizontalGridLinesBrush="{StaticResource BrushSeparatorThin}"
                           BorderThickness="1"
-                          BorderBrush="{StaticResource BrushBorderDefault}">
+                          BorderBrush="{StaticResource BrushBorderDefault}"
+                          VirtualizingPanel.IsVirtualizingWhenGrouping="True">
+                    <!-- Group by type: one collapsible heading per type, with a tick box for the whole type.
+                         The heading's DataContext is the type's TagTypeGroup (every row of a group shares it). -->
+                    <DataGrid.GroupStyle>
+                        <GroupStyle>
+                            <GroupStyle.ContainerStyle>
+                                <Style TargetType="GroupItem">
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="GroupItem">
+                                                <Expander IsExpanded="True" Padding="0,2"
+                                                          BorderBrush="{StaticResource BrushSeparatorThin}" BorderThickness="0,0,0,1">
+                                                    <Expander.Header>
+                                                        <StackPanel Orientation="Horizontal" DataContext="{Binding Items[0].TypeGroup}">
+                                                            <CheckBox IsChecked="{Binding AllTicked, Mode=OneWay}"
+                                                                      IsEnabled="{Binding HasCopyable}"
+                                                                      Command="{Binding DataContext.ToggleTypeCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                                      CommandParameter="{Binding}"
+                                                                      VerticalAlignment="Center" Margin="0,0,8,0"
+                                                                      ToolTip="Tick or clear every tag of this type."/>
+                                                            <TextBlock Text="{Binding Name}" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center"
+                                                                       Foreground="{StaticResource BrushTextPrimary}"/>
+                                                            <TextBlock Text="{Binding TickedText}" FontSize="10.5" VerticalAlignment="Center" Margin="8,0,0,0"
+                                                                       Foreground="{StaticResource BrushTextSecondary}"/>
+                                                        </StackPanel>
+                                                    </Expander.Header>
+                                                    <ItemsPresenter/>
+                                                </Expander>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </GroupStyle.ContainerStyle>
+                        </GroupStyle>
+                    </DataGrid.GroupStyle>
                     <DataGrid.Columns>
                         <DataGridTemplateColumn Header="" Width="36" CanUserResize="False">
                             <DataGridTemplateColumn.CellTemplate>
