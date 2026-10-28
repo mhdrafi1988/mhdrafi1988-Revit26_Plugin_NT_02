@@ -9,6 +9,25 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.17.0] — 2026-10-28
+
+### Added
+- **Roof Edge Around Sections v7.2.0 (V007)** — choose which created sections to open. With **Open Views After
+  Creation** set to **Ask Me**, a panel now opens inside the tool window after a run. It lists every section just
+  created (name, roof, direction) with a checkbox, a search box, Select All / Clear, and **Open selected**. Only the
+  ticked sections open. Close, Esc or a click outside the panel closes it without opening anything. Views that
+  cannot be opened are listed in the log.
+
+### Changed
+- **Roof Edge Around Sections v7.2.0 (V007)** — Run turns off after a run that created sections. After a run the
+  tool re-scans the roofs and finds the same edges again (with new names, because the views now exist), so a second
+  click made duplicate sections. Run comes back on when you click **Refresh** or change a setting (distances, view
+  template, merge, or naming). A run that created nothing can be retried straight away.
+- **Roof Edge Around Sections** — the tool's Revit event handler now goes through the plugin's standard error
+  handling (`ToolGuard`), so an unexpected error is shown and written to `%AppData%\Revit26_Plugin_Revised\Logs`.
+- **User note:** "Ask Me" no longer asks Yes/No to open all sections; tick the ones you want in the list instead.
+  "Open All" and "Don't Open" work as before. Old settings files load unchanged.
+
 ## [6.16.1] — 2026-10-28
 
 ### Fixed

@@ -35,6 +35,11 @@ namespace Revit26_Plugin_Revised.RoofEdgeAroundSections.V007
         }
     }
 
+    /// <summary>
+    /// View model of the Roof Edge Around Sections window: parameters, naming pattern,
+    /// planned-sections grid, Run (locked after a run until Refresh or a setting change)
+    /// and the "Open created sections" popover.
+    /// </summary>
     public partial class RoofEdgeSectionsViewModel : ObservableObject
     {
         private readonly Document _doc;
@@ -44,10 +49,40 @@ namespace Revit26_Plugin_Revised.RoofEdgeAroundSections.V007
         private readonly IList<Element> _skippedNonRoofElements;
         private readonly RoofEdgeSectionsSettings _settings;
 
+        /// <summary>Rows sent to the last Run, used to label the created sections in the popover.</summary>
+        private List<PlannedSection> _lastRunRows = new();
+
         public ObservableCollection<PlannedSection> PlannedSections { get; } = new();
         public ObservableCollection<LogEntry> LogEntries { get; } = new();
         public ObservableCollection<string> ViewTemplateNames { get; } = new() { "None" };
         public ObservableCollection<NamingTokenChipViewModel> NamingTokenChips { get; } = new();
+
+        /// <summary>Sections created by the last Run, listed in the "Open created sections" popover.</summary>
+        public ObservableCollection<CreatedSectionItem> CreatedSections { get; } = new();
+
+        /// <summary><see cref="CreatedSections"/> filtered by <see cref="CreatedSectionsFilter"/>, bound to the popover list.</summary>
+        public System.ComponentModel.ICollectionView CreatedSectionsView { get; }
+
+        /// <summary>
+        /// True after a run that created sections. Run stays disabled until Refresh or a
+        /// setting change, so the same edges are not created twice.
+        /// </summary>
+        [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(RunCommand))]
+        private bool isRunLocked;
+
+        /// <summary>True while the "Open created sections" popover is shown.</summary>
+        [ObservableProperty]
+        private bool isOpenSectionsPopoverOpen;
+
+        /// <summary>Search text for the popover list (matches name, roof or direction).</summary>
+        [ObservableProperty]
+        private string createdSectionsFilter = "";
+
+        /// <summary>Number of ticked rows in the popover.</summary>
+        [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(OpenSelectedSectionsCommand))]
+        private int selectedCreatedCount;
 
         [ObservableProperty]
         private double belowRoofMm;
@@ -137,8 +172,12 @@ namespace Revit26_Plugin_Revised.RoofEdgeAroundSections.V007
             LoadNamingTokenChips();
             UpdateNamingPreview();
 
+            CreatedSectionsView = System.Windows.Data.CollectionViewSource.GetDefaultView(CreatedSections);
+            CreatedSectionsView.Filter = MatchesCreatedSectionsFilter;
+
             _handler.OnPlanBuilt = OnPlanBuilt;
             _handler.OnRunComplete = OnRunComplete;
+            _handler.OnViewsOpened = OnViewsOpened;
 
             RequestBuildPlan();
         }
@@ -191,7 +230,11 @@ namespace Revit26_Plugin_Revised.RoofEdgeAroundSections.V007
                     : token.Type.ToString(); // safe fallback — still renders, just less pretty
 
                 var chip = new NamingTokenChipViewModel(token.Type, label, token.IsEnabled, token.Order);
-                chip.PropertyChanged += (s, e) => UpdateNamingPreview();
+                chip.PropertyChanged += (s, e) =>
+                {
+                    UpdateNamingPreview();
+                    UnlockRun();
+                };
                 NamingTokenChips.Add(chip);
             }
         }
@@ -231,7 +274,31 @@ namespace Revit26_Plugin_Revised.RoofEdgeAroundSections.V007
                 .Replace(" ", string.IsNullOrEmpty(NamingSeparator) ? "_" : NamingSeparator);
         }
 
-        partial void OnNamingSeparatorChanged(string value) => UpdateNamingPreview();
+        partial void OnNamingSeparatorChanged(string value)
+        {
+            UpdateNamingPreview();
+            UnlockRun();
+        }
+
+        // Any setting that changes what Run creates turns Run back on after a run.
+        // Open Views mode is left out: it does not change the sections.
+        partial void OnBelowRoofMmChanged(double value) => UnlockRun();
+        partial void OnAboveRoofMmChanged(double value) => UnlockRun();
+        partial void OnSectionFarLengthMmChanged(double value) => UnlockRun();
+        partial void OnMarginOutwardMmChanged(double value) => UnlockRun();
+        partial void OnLengthInsideRoofMmChanged(double value) => UnlockRun();
+        partial void OnSelectedViewTemplateNameChanged(string value) => UnlockRun();
+        partial void OnMergeEnabledChanged(bool value) => UnlockRun();
+        partial void OnMergeDistanceMmChanged(double value) => UnlockRun();
+
+        partial void OnIsBusyChanged(bool value)
+        {
+            RunCommand.NotifyCanExecuteChanged();
+            OpenSelectedSectionsCommand.NotifyCanExecuteChanged();
+        }
+
+        /// <summary>Turns Run back on after a run (Refresh or a setting change).</summary>
+        private void UnlockRun() => IsRunLocked = false;
 
         /// <summary>Builds a settings snapshot from current bindable properties, including naming tokens.</summary>
         private RoofEdgeSectionsSettings BuildSettingsSnapshot()
@@ -299,10 +366,12 @@ namespace Revit26_Plugin_Revised.RoofEdgeAroundSections.V007
         [RelayCommand]
         private void Refresh()
         {
+            UnlockRun();
             RequestBuildPlan();
         }
 
-        private bool CanRun() => !IsBusy && PlannedSections.Any(r => r.IsIncluded && r.Status == PlannedSectionStatus.Ready);
+        private bool CanRun() => !IsBusy && !IsRunLocked
+            && PlannedSections.Any(r => r.IsIncluded && r.Status == PlannedSectionStatus.Ready);
 
         [RelayCommand(CanExecute = nameof(CanRun))]
         private void Run()
@@ -322,9 +391,11 @@ namespace Revit26_Plugin_Revised.RoofEdgeAroundSections.V007
                     templateOption.TemplateId = templateView.Id;
             }
 
+            _lastRunRows = PlannedSections.Where(r => r.IsIncluded && r.Status == PlannedSectionStatus.Ready).ToList();
+
             _handler.RequestedAction = RoofEdgeSectionsAction.RunCreate;
             _handler.Settings = settingsSnapshot;
-            _handler.RowsToProcess = PlannedSections.Where(r => r.IsIncluded && r.Status == PlannedSectionStatus.Ready).ToList();
+            _handler.RowsToProcess = _lastRunRows;
             _handler.ViewTemplate = templateOption;
 
             SettingsService.Save(settingsSnapshot);
@@ -341,22 +412,134 @@ namespace Revit26_Plugin_Revised.RoofEdgeAroundSections.V007
             FinallyCreatedCount = result.CreatedCount;
             SkippedCount = result.SkippedCount;
 
+            // The plan rebuild below finds the same edges again (renamed, since their views
+            // now exist), so Run stays off until Refresh or a setting change. A run that
+            // created nothing can be retried straight away.
+            if (result.CreatedCount > 0)
+                IsRunLocked = true;
+
             IsBusy = false;
             RunCommand.NotifyCanExecuteChanged();
 
-            RequestOpenViewsIfNeeded?.Invoke(result.CreatedViewIds, OpenViewsMode);
+            if (result.CreatedViewIds.Count > 0)
+            {
+                if (OpenViewsMode == "OpenAll")
+                    RequestOpenViewsIfNeeded?.Invoke(result.CreatedViewIds, OpenViewsMode);
+                else if (OpenViewsMode != "DontOpen")
+                    ShowOpenSectionsPopover(result.CreatedViewIds); // "AskMe" (and any unknown value)
+            }
 
-            // Rebuild the plan so just-created rows drop out (their views now exist) and
-            // the Selection Summary reflects the post-Run state.
+            // Rebuild the plan so the Selection Summary reflects the post-Run state.
             RequestBuildPlan();
         }
 
         /// <summary>
-        /// Raised so the View can show the "Open Views?" prompt (AskMe mode) or
-        /// silently open/skip (OpenAll/DontOpen), keeping Revit UI-thread activation
-        /// concerns in the View rather than the ViewModel.
+        /// Raised in "Open All" mode so the View opens every created section. Runs inside the
+        /// external event, so the views can be activated directly.
         /// </summary>
         public Action<List<ElementId>, string> RequestOpenViewsIfNeeded { get; set; }
+
+        /// <summary>
+        /// Fills the popover with the sections just created (all unticked) and shows it.
+        /// Called before the plan rebuild, while the run's rows are still known.
+        /// </summary>
+        private void ShowOpenSectionsPopover(List<ElementId> createdViewIds)
+        {
+            var rowsByName = _lastRunRows
+                .Where(r => !string.IsNullOrEmpty(r.SectionViewName))
+                .GroupBy(r => r.SectionViewName)
+                .ToDictionary(g => g.Key, g => g.First());
+
+            foreach (CreatedSectionItem old in CreatedSections)
+                old.PropertyChanged -= OnCreatedSectionChanged;
+            CreatedSections.Clear();
+            CreatedSectionsFilter = "";
+
+            foreach (ElementId id in createdViewIds)
+            {
+                string name = (_doc.GetElement(id) as View)?.Name ?? $"View {id.Value}";
+                rowsByName.TryGetValue(name, out PlannedSection row);
+
+                var item = new CreatedSectionItem(id, name,
+                    row?.RoofDisplayName ?? "—",
+                    row?.Direction.ToString() ?? "—");
+                item.PropertyChanged += OnCreatedSectionChanged;
+                CreatedSections.Add(item);
+            }
+
+            UpdateSelectedCreatedCount();
+            IsOpenSectionsPopoverOpen = true;
+        }
+
+        private void OnCreatedSectionChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(CreatedSectionItem.IsSelected))
+                UpdateSelectedCreatedCount();
+        }
+
+        private void UpdateSelectedCreatedCount() =>
+            SelectedCreatedCount = CreatedSections.Count(i => i.IsSelected);
+
+        partial void OnCreatedSectionsFilterChanged(string value) => CreatedSectionsView?.Refresh();
+
+        private bool MatchesCreatedSectionsFilter(object obj)
+        {
+            if (string.IsNullOrWhiteSpace(CreatedSectionsFilter)) return true;
+            if (obj is not CreatedSectionItem item) return false;
+
+            string text = CreatedSectionsFilter.Trim();
+            return item.Name.Contains(text, StringComparison.OrdinalIgnoreCase)
+                || item.RoofDisplayName.Contains(text, StringComparison.OrdinalIgnoreCase)
+                || item.Direction.Contains(text, StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>Ticks every row currently shown in the popover (respects the search).</summary>
+        [RelayCommand]
+        private void SelectAllCreated()
+        {
+            foreach (CreatedSectionItem item in CreatedSectionsView.Cast<CreatedSectionItem>())
+                item.IsSelected = true;
+        }
+
+        /// <summary>Unticks every row currently shown in the popover (respects the search).</summary>
+        [RelayCommand]
+        private void ClearCreated()
+        {
+            foreach (CreatedSectionItem item in CreatedSectionsView.Cast<CreatedSectionItem>())
+                item.IsSelected = false;
+        }
+
+        private bool CanOpenSelectedSections() => !IsBusy && SelectedCreatedCount > 0;
+
+        /// <summary>Opens the ticked sections through the external event (Revit API context).</summary>
+        [RelayCommand(CanExecute = nameof(CanOpenSelectedSections))]
+        private void OpenSelectedSections()
+        {
+            List<ElementId> ids = CreatedSections.Where(i => i.IsSelected).Select(i => i.ViewId).ToList();
+            if (ids.Count == 0) return;
+
+            IsBusy = true;
+            _handler.RequestedAction = RoofEdgeSectionsAction.OpenViews;
+            _handler.ViewIdsToOpen = ids;
+            _handler.TargetDocument = _doc;
+            _externalEvent.Raise();
+        }
+
+        /// <summary>Hides the popover without opening anything.</summary>
+        [RelayCommand]
+        private void CloseOpenSectionsPopover() => IsOpenSectionsPopoverOpen = false;
+
+        private void OnViewsOpened(int opened, int failed, ObservableCollection<LogEntry> log)
+        {
+            foreach (var entry in log)
+                LogEntries.Add(entry);
+
+            IsBusy = false;
+
+            // Keep the popover up when nothing opened, so the user can see what was picked.
+            if (opened > 0)
+                IsOpenSectionsPopoverOpen = false;
+        }
 
         [RelayCommand]
         private void CopyAllLogs()

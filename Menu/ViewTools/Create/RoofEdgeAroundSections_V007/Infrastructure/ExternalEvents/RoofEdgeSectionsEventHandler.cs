@@ -1,28 +1,38 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using Revit26_Plugin_Revised.Shared.Models;
+using Revit26_Plugin_Revised.Shared.Services;
 
 
 namespace Revit26_Plugin_Revised.RoofEdgeAroundSections.V007
 {
     /// <summary>
-    /// Single handler/event pair for RoofEdgeSections V002 (one window, distinct
-    /// Revit-side actions routed through RequestedAction rather than separate
-    /// handler/event pairs, per convention: "shared orchestrator only if one
-    /// window has multiple distinct Revit-side actions" — this window has two:
-    /// BuildPlan and RunCreate).
+    /// Revit-side actions of the Roof Edge Sections window, routed through one
+    /// handler/event pair via <see cref="RoofEdgeSectionsEventHandler.RequestedAction"/>.
     /// </summary>
     public enum RoofEdgeSectionsAction
     {
+        /// <summary>Scan the selected roofs and build the planned-sections list.</summary>
         BuildPlan,
-        RunCreate
+
+        /// <summary>Create the checked planned sections.</summary>
+        RunCreate,
+
+        /// <summary>Open the section views the user picked in the "Open created sections" popover.</summary>
+        OpenViews
     }
 
+    /// <summary>
+    /// Single external-event handler for the window. Every action reports back through
+    /// its callback, also after an error, so the window never stays busy.
+    /// </summary>
     public class RoofEdgeSectionsEventHandler : IExternalEventHandler
     {
+        /// <summary>Which action the next <see cref="Execute"/> runs.</summary>
         public RoofEdgeSectionsAction RequestedAction { get; set; }
 
         /// <summary>Roofs captured from the pre-launch selection (set once, by the command).</summary>
@@ -40,19 +50,34 @@ namespace Revit26_Plugin_Revised.RoofEdgeAroundSections.V007
         /// <summary>Selected View Template option (or None), for RunCreate.</summary>
         public ViewTemplateOption ViewTemplate { get; set; }
 
+        /// <summary>The project the window works on; OpenViews refuses to run in any other project.</summary>
+        public Document TargetDocument { get; set; }
+
+        /// <summary>Section views to open, in order, for OpenViews.</summary>
+        public IList<ElementId> ViewIdsToOpen { get; set; } = new List<ElementId>();
+
         /// <summary>Callback invoked on the UI thread once BuildPlan finishes.</summary>
-        public Action<SectionPlanBuilder.PlanBuildResult, System.Collections.ObjectModel.ObservableCollection<LogEntry>> OnPlanBuilt { get; set; }
+        public Action<SectionPlanBuilder.PlanBuildResult, ObservableCollection<LogEntry>> OnPlanBuilt { get; set; }
 
         /// <summary>Callback invoked on the UI thread once RunCreate finishes.</summary>
-        public Action<RunResult, System.Collections.ObjectModel.ObservableCollection<LogEntry>> OnRunComplete { get; set; }
+        public Action<RunResult, ObservableCollection<LogEntry>> OnRunComplete { get; set; }
 
+        /// <summary>Callback invoked on the UI thread once OpenViews finishes: (opened, failed, log).</summary>
+        public Action<int, int, ObservableCollection<LogEntry>> OnViewsOpened { get; set; }
+
+        /// <inheritdoc/>
         public void Execute(UIApplication app)
+            => ToolGuard.RunHandler(GetType(), app, ExecuteUnguarded);
+
+        private void ExecuteUnguarded(UIApplication app)
         {
-            Document doc = app.ActiveUIDocument.Document;
-            var log = new System.Collections.ObjectModel.ObservableCollection<LogEntry>();
+            var log = new ObservableCollection<LogEntry>();
 
             try
             {
+                Document doc = app.ActiveUIDocument?.Document
+                    ?? throw new InvalidOperationException("No project is open.");
+
                 switch (RequestedAction)
                 {
                     case RoofEdgeSectionsAction.BuildPlan:
@@ -62,25 +87,39 @@ namespace Revit26_Plugin_Revised.RoofEdgeAroundSections.V007
                     case RoofEdgeSectionsAction.RunCreate:
                         ExecuteRunCreate(doc, log);
                         break;
+
+                    case RoofEdgeSectionsAction.OpenViews:
+                        ExecuteOpenViews(app.ActiveUIDocument, log);
+                        break;
                 }
             }
             catch (Exception ex)
             {
                 log.Add(new LogEntry(LogLevel.Error, $"Unhandled error: {ex.Message}"));
-                if (RequestedAction == RoofEdgeSectionsAction.BuildPlan)
-                    OnPlanBuilt?.Invoke(new SectionPlanBuilder.PlanBuildResult
-                    {
-                        Plan = new System.Collections.ObjectModel.ObservableCollection<PlannedSection>(),
-                        TotalRoofsCount = 0,
-                        DetectedCount = 0,
-                        SuggestedCount = 0
-                    }, log);
-                else
-                    OnRunComplete?.Invoke(new RunResult(), log);
+                switch (RequestedAction)
+                {
+                    case RoofEdgeSectionsAction.BuildPlan:
+                        OnPlanBuilt?.Invoke(new SectionPlanBuilder.PlanBuildResult
+                        {
+                            Plan = new ObservableCollection<PlannedSection>(),
+                            TotalRoofsCount = 0,
+                            DetectedCount = 0,
+                            SuggestedCount = 0
+                        }, log);
+                        break;
+
+                    case RoofEdgeSectionsAction.RunCreate:
+                        OnRunComplete?.Invoke(new RunResult(), log);
+                        break;
+
+                    case RoofEdgeSectionsAction.OpenViews:
+                        OnViewsOpened?.Invoke(0, ViewIdsToOpen?.Count ?? 0, log);
+                        break;
+                }
             }
         }
 
-        private void ExecuteBuildPlan(UIApplication app, Document doc, System.Collections.ObjectModel.ObservableCollection<LogEntry> log)
+        private void ExecuteBuildPlan(UIApplication app, Document doc, ObservableCollection<LogEntry> log)
         {
             double viewRotationRadians = 0.0;
             View activeView = app.ActiveUIDocument.ActiveView;
@@ -98,7 +137,7 @@ namespace Revit26_Plugin_Revised.RoofEdgeAroundSections.V007
             OnPlanBuilt?.Invoke(result, log);
         }
 
-        private void ExecuteRunCreate(Document doc, System.Collections.ObjectModel.ObservableCollection<LogEntry> log)
+        private void ExecuteRunCreate(Document doc, ObservableCollection<LogEntry> log)
         {
             ViewFamilyType sectionVft = new FilteredElementCollector(doc)
                 .OfClass(typeof(ViewFamilyType))
@@ -118,6 +157,63 @@ namespace Revit26_Plugin_Revised.RoofEdgeAroundSections.V007
             OnRunComplete?.Invoke(result, log);
         }
 
-        public string GetName() => "RoofEdgeSections V002 Event Handler";
+        /// <summary>
+        /// Opens each requested section view as a tab, in order (the last one ends up active).
+        /// Views that no longer exist or fail to open are logged and counted, never thrown.
+        /// </summary>
+        private void ExecuteOpenViews(UIDocument uidoc, ObservableCollection<LogEntry> log)
+        {
+            IList<ElementId> ids = ViewIdsToOpen ?? new List<ElementId>();
+            Document doc = uidoc.Document;
+
+            if (TargetDocument == null || !TargetDocument.IsValidObject)
+            {
+                log.Add(new LogEntry(LogLevel.Error,
+                    "The project this window was opened for has been closed — no views opened."));
+                OnViewsOpened?.Invoke(0, ids.Count, log);
+                return;
+            }
+
+            if (!TargetDocument.Equals(doc))
+            {
+                log.Add(new LogEntry(LogLevel.Error,
+                    $"The active project is '{doc.Title}', but these sections are in '{TargetDocument.Title}'. " +
+                    "Switch back to that project and click Open again."));
+                OnViewsOpened?.Invoke(0, ids.Count, log);
+                return;
+            }
+
+            int opened = 0;
+            int failed = 0;
+
+            foreach (ElementId id in ids)
+            {
+                if (doc.GetElement(id) is not View view)
+                {
+                    failed++;
+                    log.Add(new LogEntry(LogLevel.Warning, $"View Id {id.Value} no longer exists — skipped."));
+                    continue;
+                }
+
+                try
+                {
+                    uidoc.ActiveView = view;
+                    opened++;
+                }
+                catch (Exception ex)
+                {
+                    failed++;
+                    log.Add(new LogEntry(LogLevel.Warning, $"{view.Name}: could not be opened — {ex.Message}"));
+                }
+            }
+
+            log.Add(new LogEntry(failed == 0 ? LogLevel.Success : LogLevel.Warning,
+                $"Opened {opened} section view(s)" + (failed > 0 ? $", {failed} could not be opened." : ".")));
+
+            OnViewsOpened?.Invoke(opened, failed, log);
+        }
+
+        /// <inheritdoc/>
+        public string GetName() => "Roof Edge Around Sections V007 Event Handler";
     }
 }
