@@ -4,11 +4,12 @@ namespace Revit26_Plugin_Revised.TagToText.V001.Core.Models
     /// Options remembered between runs, stored in
     /// %AppData%\Revit26_Plugin_Revised\TagToText\settings.json.
     /// Every default matches what the window shows the first time it opens.
+    /// Version 2 added <see cref="GroupByType"/>.
     /// </summary>
     public sealed class TagToTextSettings
     {
         /// <summary>Current file format version.</summary>
-        public const int CurrentVersion = 1;
+        public const int CurrentVersion = 2;
 
         /// <summary>File format version. Files without it are read as version 1.</summary>
         public int Version { get; set; } = CurrentVersion;
@@ -30,6 +31,12 @@ namespace Revit26_Plugin_Revised.TagToText.V001.Core.Models
 
         /// <summary>List Room / Area / Space tags.</summary>
         public bool IncludeSpatialTags { get; set; } = true;
+
+        /// <summary>
+        /// Show the tag table grouped by tag type, with a tick box per type. On by default; files from
+        /// before version 2 don't have it, so they get it on too.
+        /// </summary>
+        public bool GroupByType { get; set; } = true;
 
         /// <summary>Name of the last text type used; empty means the project default.</summary>
         public string TextTypeName { get; set; } = string.Empty;
@@ -68,6 +75,7 @@ namespace Revit26_Plugin_Revised.TagToText.V001.Core.Models
         public TagToTextSettings Migrate()
         {
             if (Version < 1) Version = 1;
+            // Version 1 -> 2: GroupByType is new. A version 1 file has no value for it, so it keeps its default.
             TextTypeName ??= string.Empty;
             Prefix ??= string.Empty;
             Suffix ??= string.Empty;
