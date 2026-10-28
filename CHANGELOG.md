@@ -9,6 +9,39 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.16.0] — 2026-10-28
+
+### Added
+- **Sections To Sheet v1.0.0 (V001)** — new **Sections To Sheet** button in the **Sheet Create** panel
+  (documents tab, SloperPro_Rev_88-DCM). Puts sections on a new sheet in a tidy layout:
+  - **Source:** every section marker shown in the active view, the selected markers (or section views selected
+    in the Project Browser), or **Pick in view…**. Untick the ones you don't want; filter the list by name or sheet.
+  - **Already on a sheet:** ticked sections that are on another sheet are taken off it (only the viewport is
+    removed; the view, its marker and annotations stay) and moved to the new sheet. A confirm card lists every
+    move first. Optionally delete old sheets left empty (off by default). Sections whose view, viewport or sheet
+    is owned by another user (or changed in central) are skipped and reported.
+  - **Layout:** **Grid** (columns that line up from row to row, spread to the full width — the default) or
+    **Rows** (flow like text, each row justified, short last row left / centre / stretched). Rows from the top,
+    centred or spread. Views in a row share a bottom line, so the titles line up. Sizes include each view's title.
+  - **Order:** plan position of the markers (left to right, top to bottom, with a row tolerance), view number
+    (2 before 10), scale (same-scale views together) or size. Detail numbers 1, 2, 3 … follow the order.
+  - **New sheet:** title block, viewport type (all placed views get the same title style), sheet number
+    (pre-filled with the next free one) and name. If the views don't fit, more sheets are added (numbered on,
+    skipping numbers in use) — or the rest is skipped and reported.
+  - **Live preview** of each new sheet before anything changes, with fill %, gaps and a mixed-scale warning.
+    Sizes are measured on a temporary sheet in a rolled-back transaction, so the model is never touched by the
+    preview. **Create Sheet & Place** re-checks the model and refuses if it changed since the preview.
+  - Everything happens in one transaction group — **one Undo** reverts the whole run; any error rolls it all back.
+  - **Remembers settings** in `%AppData%\Revit26_Plugin_Revised\SectionsToSheet\settings.json` (with a version field).
+- **User note:** nothing changes until you press **Create Sheet & Place** (and confirm, when views come off other
+  sheets). Section heads in plans then point to the new sheet.
+- Unit tests for the layout, plan order, sheet numbering, planner and settings: `dotnet test Tests/SectionsToSheet.Tests`.
+
+### Changed
+- Plugin version in `Revit26_Plugin_Revised.csproj` set to 6.16.0 (it read 6.10.0, behind this changelog).
+- **Sheet Create** panel: four visible tools now show as two stacks of two (Scope Box, Sheet Placer / Section
+  Placer, Sections To Sheet). Rearrange and Arrange Views stay in the slide-out.
+
 ## [6.15.2] — 2026-10-28
 
 ### Fixed
