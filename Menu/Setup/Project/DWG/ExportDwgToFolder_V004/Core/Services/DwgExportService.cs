@@ -140,21 +140,23 @@ namespace Revit26_Plugin_Revised.ExportDwgToFolder.V004.Core.Services
                     tx.Start();
                     try
                     {
-                        // Hide everything in the view except this one CAD link/import, so the
-                        // exported DWG contains only that instance.
+                        // V004 (4.1.2): hide everything in the view except this one CAD link/import
+                        // with a real hide, not a temporary isolate — DWG export does not reliably
+                        // honour Temporary Hide/Isolate, which let other Revit elements leak into the
+                        // file. All of it is undone by the rollback below.
                         try
                         {
-                            view.IsolateElementTemporary(info.ElementId);
+                            HideEverythingExcept(view, info.ElementId);
                         }
-                        catch (Exception isolateEx)
+                        catch (Exception hideEx)
                         {
-                            // A locked view template, a view in another temporary mode, or a view
-                            // type that doesn't support temporary isolate all land here — give a
-                            // reason instead of a bare Revit API message.
                             throw new InvalidOperationException(
-                                $"Could not isolate this element in \"{view.Name}\" — check the view's " +
-                                $"template and V/G overrides. ({isolateEx.Message})", isolateEx);
+                                $"Could not hide the other elements in \"{view.Name}\" — check the view's " +
+                                $"template and V/G overrides. ({hideEx.Message})", hideEx);
                         }
+
+                        // Make sure the export sees the hidden state, not the pre-hide view.
+                        _doc.Regenerate();
 
                         // V004: options (and with them the layer table) come from the factory —
                         // a named export setup when one is chosen, layer-safe defaults otherwise.
@@ -209,6 +211,71 @@ namespace Revit26_Plugin_Revised.ExportDwgToFolder.V004.Core.Services
             finally
             {
                 try { Directory.Delete(tempFolder, recursive: true); } catch { }
+            }
+        }
+
+        /// <summary>
+        /// Hides, in <paramref name="view"/>, every element except <paramref name="keepId"/>, and turns
+        /// off the crop region display. Only called inside a transaction that is rolled back, so the
+        /// view always returns to its earlier state. Uses a view template's settings only where
+        /// allowed: a view template is detached first, since it can lock V/G (also rolled back).
+        /// </summary>
+        private void HideEverythingExcept(View view, ElementId keepId)
+        {
+            // A template controlling V/G can block HideElements; detach it (rolled back later).
+            if (view.ViewTemplateId != ElementId.InvalidElementId)
+                view.ViewTemplateId = ElementId.InvalidElementId;
+
+            // A temporary hide/isolate mode left on by the user would also hide things from us.
+            if (view.IsInTemporaryViewMode(TemporaryViewMode.TemporaryHideIsolate))
+                view.DisableTemporaryViewMode(TemporaryViewMode.TemporaryHideIsolate);
+
+            try { view.CropBoxVisible = false; } catch { /* not every view has a crop box */ }
+
+            var toHide = new List<ElementId>();
+            foreach (var el in new FilteredElementCollector(_doc, view.Id).WhereElementIsNotElementType())
+            {
+                if (el.Id == keepId) continue;
+                if (el.Id == view.Id) continue;
+                try
+                {
+                    if (el.CanBeHidden(view) && !el.IsHidden(view))
+                        toHide.Add(el.Id);
+                }
+                catch { /* element that can't be queried in this view — leave it */ }
+            }
+
+            if (toHide.Count > 0)
+            {
+                try
+                {
+                    view.HideElements(toHide);
+                }
+                catch
+                {
+                    // One bad element fails the whole batch — fall back to one at a time so the rest
+                    // still get hidden.
+                    foreach (var id in toHide)
+                    {
+                        try { view.HideElements(new List<ElementId> { id }); } catch { }
+                    }
+                }
+            }
+
+            // Items that are not elements in the view collector (linked RVT contents, grids/levels
+            // coming through scope boxes) follow their category, so turn off every category that
+            // can be hidden except the CAD instance's own.
+            var keep = _doc.GetElement(keepId);
+            var keepCatId = keep?.Category?.Id;
+            foreach (Category cat in _doc.Settings.Categories)
+            {
+                if (cat == null || (keepCatId != null && cat.Id == keepCatId)) continue;
+                try
+                {
+                    if (view.CanCategoryBeHidden(cat.Id))
+                        view.SetCategoryHidden(cat.Id, true);
+                }
+                catch { }
             }
         }
 
