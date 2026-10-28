@@ -6,8 +6,8 @@ using System.Collections.Generic;
 namespace Revit26_Plugin_Revised.Menu.Ribbon
 {
     /// <summary>
-    /// Builds the Detail Lines panel: From Links, Closed Loop and Line Dims stacked in one column,
-    /// then Line Manager as a large dropdown (V002, then V001) beside the stack (a stack holds at most three items).
+    /// Builds the Detail Lines panel: From Links, Closed Loop and Line Dims stacked in one column
+    /// (a stack holds at most three items). Line Manager lives on the documents tab (<see cref="BuildLineManager"/>).
     /// Replaces the one-button Detail Line Create, Detail Line Process and Dimensions panels
     /// (plugin 2.4.0) so Revit has room to show every button name.
     /// </summary>
@@ -55,6 +55,16 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             RibbonLayoutHelper.WirePulldownButton(items, "Pulldown_DetailLinesFromLinks", linesVA010, linesVA009);
             RibbonLayoutHelper.WirePulldownButton(items, "Pulldown_DetailLineClosedLoop", closedLoopV003, closedLoopV002);
             RibbonLayoutHelper.WirePulldownButton(items, DimensionsRibbon.DetailLineDimPulldownName, lineDimsVersions);
+
+        }
+
+        /// <summary>
+        /// Creates the Detail Lines panel on the documents tab (<paramref name="tabName"/>) holding Line Manager
+        /// as a large dropdown (V002, then V001). Moved from the modelling tab's Detail Lines panel in plugin 6.19.0.
+        /// </summary>
+        public static void BuildLineManager(UIControlledApplication app, string tabName, string assemblyPath)
+        {
+            RibbonPanel panel = app.CreateRibbonPanel(tabName, "Detail Lines");
 
             // Line Manager lists V002 first (it supplies the dropdown's icon), then V001.
             var lineManagerV002 = new PushButtonData("Btn_DetailLineManager_V002", "Line Manager", assemblyPath, "Revit26_Plugin_Revised.DetailLineManager.V002.Commands.DetailLineManagerCommand")

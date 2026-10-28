@@ -60,6 +60,7 @@ namespace Revit26_Plugin_Revised
             TaggingRibbon.Build(application, DocumentsTabName, assemblyPath);
             SheetToolsRibbon.Build(application, DocumentsTabName, assemblyPath);
             SetupRibbon.Build(application, DocumentsTabName, assemblyPath);
+            DetailLInesRibbon.BuildLineManager(application, DocumentsTabName, assemblyPath);
             ManageRibbon.Build(application, DocumentsTabName, assemblyPath);
         }
     }

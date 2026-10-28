@@ -9,6 +9,14 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.19.0] — 2026-10-28
+
+### Changed
+- **Line Manager** moved from the modelling tab (SloperPro_Rev_88-MDL › Detail Lines) to its own
+  **Detail Lines** panel on the documents tab (SloperPro_Rev_88-DCM). The tool itself is unchanged.
+- **User note:** From Links, Closed Loop and Line Dims stay on the MDL tab. If you pinned Line Manager to
+  the Quick Access Toolbar, pin it again from the DCM tab.
+
 ## [6.18.0] — 2026-10-28
 
 ### Added
