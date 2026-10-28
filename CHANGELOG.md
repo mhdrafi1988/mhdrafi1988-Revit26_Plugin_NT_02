@@ -9,6 +9,39 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.17.0] — 2026-10-28
+
+### Added
+- **Workset Memory v1.1.0**, **Link Memory v2.1.0 (V002)** and **Link Memory v1.1.0 (V001, classic)** — the window
+  options are remembered between Revit sessions: *Restore active workset* (WS Memory); the marks to follow, link
+  kinds, *Unload unused* and *Reload used* (Link Memory V002); *Unload* and *Reload loaded* (Link Memory V001).
+  They are kept in `%AppData%\Revit26_Plugin_Revised\WorksetMemory\settings.json` and
+  `...\LinkMemory\settings_v002.json` / `settings_v001.json`. With no settings file the defaults are as before.
+
+### Fixed
+- **Workset Memory**, **Link Memory V002** and **Link Memory V001** — saved sets could be lost when two Revit
+  sessions were open: each window kept its own copy of the memory file and wrote the whole copy back, so the
+  last window to save erased what the other session had saved meanwhile. Every save (remember, overwrite,
+  update, rename, delete, and V002's one-time import of the V001 sets) now re-reads the file and changes only
+  that set, with a lock so two sessions never write at the same time.
+- **Workset Memory**, **Link Memory** — a memory file that was briefly locked (antivirus, OneDrive / roaming
+  profile sync, another Revit session saving) was treated as corrupt: it was renamed aside, the window showed
+  no sets, and if the rename also failed the next save replaced the file with only the new set. A busy file is
+  now tried again for about a second; if it still can't be read the window says so, the file is not touched,
+  and saving refuses instead of overwriting it. Files whose content is invalid are still kept aside as before.
+- **Workset Memory** — the local copy saved with a model was only updated by *Remember* / *Overwrite*, so after
+  a new local copy was made, opening the model from WS Memory with no model open went to the old (or deleted)
+  file. The window now stores the open model's current local copy each time it opens. If a saved local copy is
+  missing, the message names the central model and says to create a new local from it. A model already open in
+  another window is reopened from where it is open now. Revit Server central models no longer fail the
+  "file not found" check.
+- **Workset Memory** — if the placeholder project can't be opened (for example another Revit session is reloading
+  at the same moment), a clear message is shown and the model is left open, instead of the standard error dialog.
+
+**User note:** saved sets, memories and their files are unchanged and load as before. A `memory*.json.lock`
+file now sits next to each memory file; it is empty and can be ignored. When a local copy saved with a WS
+Memory set no longer exists, reload stops with a message (no new local is created automatically).
+
 ## [6.16.1] — 2026-10-28
 
 ### Fixed

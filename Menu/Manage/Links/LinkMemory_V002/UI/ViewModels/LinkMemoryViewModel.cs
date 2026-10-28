@@ -26,7 +26,7 @@ namespace Revit26_Plugin_Revised.LinkMemory.V002.UI.ViewModels
         private readonly Document _doc;
         private readonly View _activeView;
         private readonly ModelIdentity _model;
-        private readonly LinkMemoryFile _file;
+        private LinkMemoryFile _file;   // as last read from or saved to disk
         private List<LiveLink> _live = new();
         private LinkMemoryItem _working;
 
@@ -117,14 +117,8 @@ namespace Revit26_Plugin_Revised.LinkMemory.V002.UI.ViewModels
             _model = ModelIdentity.FromDocument(doc);
             _file = LinkMemoryStore.Load(out string warning);
             if (warning != null) AddLog(LogLevel.Warning, warning);
-
-            int imported = LinkMemoryStore.ImportV001(_file, out string importWarning);
-            if (importWarning != null) AddLog(LogLevel.Warning, importWarning);
-            if (imported > 0 || (_file.V001Imported && !File.Exists(LinkMemoryStore.FilePath)))
-            {
-                if (Persist() && imported > 0)
-                    AddLog(LogLevel.Success, $"Imported {imported} set(s) from Link Memory V001 as whole-model memories.");
-            }
+            if (!_file.V001Imported) ImportV001();
+            ApplySettings(LinkMemoryStore.LoadSettings());
 
             foreach (ViewSheetSet set in LinkMemoryCapture.PrintSets(doc)) PrintSets.Add(set.Name);
             SelectedPrintSet = PrintSets.FirstOrDefault();
@@ -226,8 +220,7 @@ namespace Revit26_Plugin_Revised.LinkMemory.V002.UI.ViewModels
             string name = (MemoryName ?? string.Empty).Trim();
             if (name.Length == 0) name = _working.SourceName ?? $"Memory {DateTime.Now:dd MMM HH:mm}";
 
-            LinkModelEntry entry = EnsureEntry();
-            LinkMemoryItem existing = entry.Memories.FirstOrDefault(m => string.Equals(m.Name, name, StringComparison.OrdinalIgnoreCase));
+            LinkMemoryItem existing = _file.Find(_model.Key)?.FindMemory(name);
             if (existing != null && existing != _working
                 && Ask($"A memory called '{name}' already exists. Replace it?") != MessageBoxResult.Yes)
                 return;
@@ -236,19 +229,25 @@ namespace Revit26_Plugin_Revised.LinkMemory.V002.UI.ViewModels
             copy.Name = name;
             copy.SavedAt = DateTime.Now;
             copy.SavedBy = _doc.Application.Username;
-            if (existing != null) entry.Memories.Remove(existing);
-            entry.Memories.Insert(0, copy);
-            entry.Model = _model;
+            ModelIdentity model = _model;
+            bool saved = Commit(file =>
+            {
+                LinkModelEntry entry = file.Ensure(model);
+                entry.Memories.RemoveAll(m => SameName(m.Name, name));
+                entry.Memories.Insert(0, copy);
+                entry.Model = model;
+                return true;
+            });
 
-            if (Persist()) AddLog(LogLevel.Success, $"Saved '{name}': {copy.UsedCount} links used in {copy.Views.Count} views.");
-            ReloadMemories(copy);
+            if (saved) AddLog(LogLevel.Success, $"Saved '{name}': {copy.UsedCount} links used in {copy.Views.Count} views.");
+            ReloadMemories(saved ? name : SelectedMemory?.Name);
         }
 
         /// <summary>Collects the selected memory's view or print set again and overwrites the memory.</summary>
         [RelayCommand(CanExecute = nameof(HasMemory))]
         private void Update()
         {
-            if (!CheckModel()) return;
+            if (!CheckSavedModel()) return;
             LinkMemoryItem old = SelectedMemory.Memory;
             CollectOptions options = old.Options?.Clone() ?? new CollectOptions();
             LinkMemoryItem fresh;
@@ -281,16 +280,22 @@ namespace Revit26_Plugin_Revised.LinkMemory.V002.UI.ViewModels
             if (Ask($"Collect '{old.SourceName}' again and replace the saved '{old.Name}' with what is found now?") != MessageBoxResult.Yes)
                 return;
 
-            fresh.Name = old.Name;
+            string name = old.Name;
+            fresh.Name = name;
             fresh.FromV001 = false;
-            LinkModelEntry entry = EnsureEntry();
-            int index = Math.Max(0, entry.Memories.IndexOf(old));
-            entry.Memories.Remove(old);
-            entry.Memories.Insert(index, fresh);
+            ModelIdentity model = _model;
+            bool saved = Commit(file =>
+            {
+                LinkModelEntry entry = file.Ensure(model);
+                int index = entry.Memories.FindIndex(m => SameName(m.Name, name));
+                if (index >= 0) entry.Memories[index] = fresh;
+                else entry.Memories.Insert(0, fresh);   // deleted in another session meanwhile
+                return true;
+            });
 
-            if (Persist()) AddLog(LogLevel.Success, $"Updated '{fresh.Name}': {fresh.UsedCount} links used in {fresh.Views.Count} views.");
+            if (saved) AddLog(LogLevel.Success, $"Updated '{name}': {fresh.UsedCount} links used in {fresh.Views.Count} views.");
             LogCollected(fresh);
-            ReloadMemories(fresh);
+            ReloadMemories(name);
         }
 
         /// <summary>Renames the selected memory to the name in the name box.</summary>
@@ -306,34 +311,45 @@ namespace Revit26_Plugin_Revised.LinkMemory.V002.UI.ViewModels
             }
             if (string.Equals(name, memory.Name, StringComparison.Ordinal)) return;
 
-            LinkModelEntry entry = EnsureEntry();
-            if (entry.Memories.Any(m => m != memory && string.Equals(m.Name, name, StringComparison.OrdinalIgnoreCase)))
-            {
-                AddLog(LogLevel.Warning, $"A memory called '{name}' already exists. Pick another name.");
-                return;
-            }
-
             string oldName = memory.Name;
-            memory.Name = name;
-            if (Persist()) AddLog(LogLevel.Success, $"Renamed '{oldName}' to '{name}'.");
-            else memory.Name = oldName;
-            ReloadMemories(memory);
+            string key = _model?.Key;
+            bool taken = false, gone = false;
+            bool saved = Commit(file =>
+            {
+                LinkModelEntry entry = file.Find(key);
+                LinkMemoryItem target = entry?.FindMemory(oldName);
+                if (target == null) { gone = true; return false; }
+                if (entry.Memories.Any(m => m != target && SameName(m.Name, name))) { taken = true; return false; }
+                target.Name = name;
+                return true;
+            });
+
+            if (taken) AddLog(LogLevel.Warning, $"A memory called '{name}' already exists. Pick another name.");
+            else if (gone) AddLog(LogLevel.Warning, $"'{oldName}' is no longer saved (deleted in another Revit session?).");
+            else if (saved) AddLog(LogLevel.Success, $"Renamed '{oldName}' to '{name}'.");
+            ReloadMemories(saved && !taken && !gone ? name : oldName);
         }
 
         /// <summary>Deletes the selected memory.</summary>
         [RelayCommand(CanExecute = nameof(HasMemory))]
         private void Delete()
         {
-            LinkMemoryItem memory = SelectedMemory.Memory;
-            if (Ask($"Delete the memory '{memory.Name}'?") != MessageBoxResult.Yes) return;
+            string name = SelectedMemory.Name;
+            if (Ask($"Delete the memory '{name}'?") != MessageBoxResult.Yes) return;
 
-            LinkModelEntry entry = _file.Find(_model?.Key);
-            entry?.Memories.Remove(memory);
-            if (entry != null && entry.Memories.Count == 0) _file.Models.Remove(entry);
+            string key = _model?.Key;
+            bool saved = Commit(file =>
+            {
+                LinkModelEntry entry = file.Find(key);
+                if (entry == null) return false;
+                int removed = entry.Memories.RemoveAll(m => SameName(m.Name, name));
+                if (entry.Memories.Count == 0) file.Models.Remove(entry);
+                return removed > 0;
+            });
 
-            if (Persist()) AddLog(LogLevel.Info, $"Deleted '{memory.Name}'.");
-            ReloadMemories(null);
-            ShowWorking(null, "Nothing selected");
+            if (saved) AddLog(LogLevel.Info, $"Deleted '{name}'.");
+            ReloadMemories(saved ? null : name);
+            if (saved) ShowWorking(null, "Nothing selected");
         }
 
         private bool HasMemory() => SelectedMemory != null;
@@ -486,23 +502,57 @@ namespace Revit26_Plugin_Revised.LinkMemory.V002.UI.ViewModels
                 .FirstOrDefault(v => !v.IsTemplate && string.Equals(ViewCollector.NameOf(v), memory.SourceName, StringComparison.OrdinalIgnoreCase));
         }
 
-        private LinkModelEntry EnsureEntry()
-        {
-            LinkModelEntry entry = _file.Find(_model.Key);
-            if (entry != null) return entry;
-            entry = new LinkModelEntry { Model = _model };
-            _file.Models.Add(entry);
-            return entry;
-        }
-
-        private void ReloadMemories(LinkMemoryItem select)
+        // Shows the saved memories of this model, selecting the one called selectName (or none).
+        private void ReloadMemories(string selectName)
         {
             Memories.Clear();
             foreach (var m in _file.Find(_model?.Key)?.Memories ?? new List<LinkMemoryItem>())
                 Memories.Add(new MemoryRow(m));
             MemoryCount = Memories.Count;
-            SelectedMemory = select == null ? null : Memories.FirstOrDefault(r => r.Memory == select);
+            SelectedMemory = selectName == null ? null : Memories.FirstOrDefault(r => SameName(r.Name, selectName));
         }
+
+        // Imports the Link Memory V001 sets once, into the latest file on disk.
+        private void ImportV001()
+        {
+            int imported = 0;
+            string importWarning = null;
+            bool saved = Commit(file =>
+            {
+                bool wasImported = file.V001Imported;
+                imported = LinkMemoryStore.ImportV001(file, out importWarning);
+                return imported > 0 || file.V001Imported != wasImported;
+            });
+
+            if (importWarning != null) AddLog(LogLevel.Warning, importWarning);
+            if (saved && imported > 0)
+                AddLog(LogLevel.Success, $"Imported {imported} set(s) from Link Memory V001 as whole-model memories.");
+        }
+
+        private void ApplySettings(LinkMemorySettings settings)
+        {
+            CollectOptions c = settings.Collect;
+            IncludeSections = c.Sections;
+            IncludeElevations = c.Elevations;
+            IncludeCallouts = c.Callouts;
+            IncludeDrafting = c.DraftingViews;
+            IncludePlacedViews = c.PlacedViews;
+            KindRevit = c.Revit;
+            KindCad = c.Cad;
+            KindIfc = c.Ifc;
+            KindPointCloud = c.PointClouds;
+            KindImage = c.Images;
+            UnloadUnused = settings.UnloadUnused;
+            ReloadUsed = settings.ReloadUsed;
+        }
+
+        /// <summary>Saves the window options so the next session starts with them.</summary>
+        public void SaveSettings() => LinkMemoryStore.SaveSettings(new LinkMemorySettings
+        {
+            Collect = CurrentOptions(),
+            UnloadUnused = UnloadUnused,
+            ReloadUsed = ReloadUsed
+        });
 
         private void ShowWorking(LinkMemoryItem memory, string title)
         {
@@ -631,11 +681,13 @@ namespace Revit26_Plugin_Revised.LinkMemory.V002.UI.ViewModels
             return sb.ToString();
         }
 
-        private bool Persist()
+        // Applies change to the latest memory file on disk (so memories saved by another Revit session
+        // are kept) and saves it. False when it could not be saved.
+        private bool Commit(Func<LinkMemoryFile, bool> change)
         {
             try
             {
-                LinkMemoryStore.Save(_file);
+                _file = LinkMemoryStore.Update(change);
                 return true;
             }
             catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException || ex is NotSupportedException)
@@ -644,6 +696,8 @@ namespace Revit26_Plugin_Revised.LinkMemory.V002.UI.ViewModels
                 return false;
             }
         }
+
+        private static bool SameName(string a, string b) => string.Equals(a, b, StringComparison.OrdinalIgnoreCase);
 
         private void AddLog(LogLevel level, string message) => AddLog(new LogEntry(level, message));
 

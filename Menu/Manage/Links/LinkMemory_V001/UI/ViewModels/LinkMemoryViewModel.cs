@@ -23,7 +23,7 @@ namespace Revit26_Plugin_Revised.LinkMemory.V001.UI.ViewModels
     {
         private readonly Document _doc;
         private readonly ModelIdentity _model;
-        private readonly LinkMemoryFile _file;
+        private LinkMemoryFile _file;   // as last read from or saved to disk
         private List<LiveLink> _live = new();
 
         /// <summary>Saved sets of this model, newest first.</summary>
@@ -73,6 +73,10 @@ namespace Revit26_Plugin_Revised.LinkMemory.V001.UI.ViewModels
             _file = LinkMemoryService.Load(out string warning);
             if (warning != null) AddLog(LogLevel.Warning, warning);
 
+            LinkMemorySettings settings = LinkMemoryService.LoadSettings();
+            UnloadUnloaded = settings.UnloadUnloaded;
+            ReloadLoaded = settings.ReloadLoaded;
+
             NewSetName = DefaultSetName();
             RefreshLive();
             ReloadSets(null);
@@ -109,53 +113,69 @@ namespace Revit26_Plugin_Revised.LinkMemory.V001.UI.ViewModels
             string name = (NewSetName ?? string.Empty).Trim();
             if (name.Length == 0) name = DefaultSetName();
 
-            LinkModelEntry entry = EnsureEntry();
-            LinkSet existing = entry.Sets.FirstOrDefault(s => string.Equals(s.Name, name, StringComparison.OrdinalIgnoreCase));
-            if (existing != null && Ask($"A set called '{name}' already exists. Replace it with the links loaded now?") != MessageBoxResult.Yes)
+            if (_file.Find(_model.Key)?.FindSet(name) != null
+                && Ask($"A set called '{name}' already exists. Replace it with the links loaded now?") != MessageBoxResult.Yes)
                 return;
 
             LinkSet set = LinkMemoryService.Capture(_doc, name);
-            if (existing != null) entry.Sets.Remove(existing);
-            entry.Sets.Insert(0, set);
-            entry.Model = _model;
+            ModelIdentity model = _model;
+            bool saved = Commit(file =>
+            {
+                LinkModelEntry entry = file.Ensure(model);
+                entry.Sets.RemoveAll(s => SameName(s.Name, name));
+                entry.Sets.Insert(0, set);
+                entry.Model = model;
+                return true;
+            });
 
-            if (Persist())
+            if (saved)
             {
                 AddLog(LogLevel.Success, $"Remembered '{name}': {set.LoadedCount} of {set.Links.Count} links loaded.");
                 NewSetName = DefaultSetName();
             }
-            ReloadSets(set);
+            ReloadSets(saved ? name : SelectedSet?.Name);
         }
 
         /// <summary>Replaces the selected set with the links loaded now.</summary>
         [RelayCommand(CanExecute = nameof(HasSet))]
         private void Overwrite()
         {
-            LinkSet old = SelectedSet.Set;
-            if (Ask($"Replace '{old.Name}' with the links loaded now?") != MessageBoxResult.Yes) return;
+            string name = SelectedSet.Name;
+            if (Ask($"Replace '{name}' with the links loaded now?") != MessageBoxResult.Yes) return;
 
-            LinkModelEntry entry = EnsureEntry();
-            LinkSet set = LinkMemoryService.Capture(_doc, old.Name);
-            int index = Math.Max(0, entry.Sets.IndexOf(old));
-            entry.Sets.Remove(old);
-            entry.Sets.Insert(index, set);
+            LinkSet set = LinkMemoryService.Capture(_doc, name);
+            ModelIdentity model = _model;
+            bool saved = Commit(file =>
+            {
+                LinkModelEntry entry = file.Ensure(model);
+                int index = entry.Sets.FindIndex(s => SameName(s.Name, name));
+                if (index >= 0) entry.Sets[index] = set;
+                else entry.Sets.Insert(0, set);   // deleted in another session meanwhile
+                return true;
+            });
 
-            if (Persist()) AddLog(LogLevel.Success, $"Updated '{set.Name}'.");
-            ReloadSets(set);
+            if (saved) AddLog(LogLevel.Success, $"Updated '{name}'.");
+            ReloadSets(name);
         }
 
         /// <summary>Deletes the selected set.</summary>
         [RelayCommand(CanExecute = nameof(HasSet))]
         private void Delete()
         {
-            LinkSet set = SelectedSet.Set;
-            if (Ask($"Delete the set '{set.Name}'?") != MessageBoxResult.Yes) return;
+            string name = SelectedSet.Name;
+            if (Ask($"Delete the set '{name}'?") != MessageBoxResult.Yes) return;
 
-            LinkModelEntry entry = _file.Find(_model?.Key);
-            entry?.Sets.Remove(set);
-            if (entry != null && entry.Sets.Count == 0) _file.Models.Remove(entry);
+            string key = _model?.Key;
+            bool saved = Commit(file =>
+            {
+                LinkModelEntry entry = file.Find(key);
+                if (entry == null) return false;
+                int removed = entry.Sets.RemoveAll(s => SameName(s.Name, name));
+                if (entry.Sets.Count == 0) file.Models.Remove(entry);
+                return removed > 0;
+            });
 
-            if (Persist()) AddLog(LogLevel.Info, $"Deleted '{set.Name}'.");
+            if (saved) AddLog(LogLevel.Info, $"Deleted '{name}'.");
             ReloadSets(null);
         }
 
@@ -232,22 +252,14 @@ namespace Revit26_Plugin_Revised.LinkMemory.V001.UI.ViewModels
             LoadedNowCount = _live.Count(l => l.IsLoaded);
         }
 
-        private LinkModelEntry EnsureEntry()
-        {
-            LinkModelEntry entry = _file.Find(_model.Key);
-            if (entry != null) return entry;
-            entry = new LinkModelEntry { Model = _model };
-            _file.Models.Add(entry);
-            return entry;
-        }
-
-        private void ReloadSets(LinkSet select)
+        // Shows the saved sets of this model, selecting the one called selectName (or the first).
+        private void ReloadSets(string selectName)
         {
             Sets.Clear();
             foreach (var s in _file.Find(_model?.Key)?.Sets ?? new List<LinkSet>())
                 Sets.Add(new LinkSetRow(s));
             SavedSetCount = Sets.Count;
-            SelectedSet = Sets.FirstOrDefault(r => r.Set == select) ?? Sets.FirstOrDefault();
+            SelectedSet = Sets.FirstOrDefault(r => SameName(r.Name, selectName)) ?? Sets.FirstOrDefault();
             Rebuild();
         }
 
@@ -367,11 +379,20 @@ namespace Revit26_Plugin_Revised.LinkMemory.V001.UI.ViewModels
 
         private static string DefaultSetName() => $"Set {DateTime.Now:dd MMM HH:mm}";
 
-        private bool Persist()
+        /// <summary>Saves the window options so the next session starts with them.</summary>
+        public void SaveSettings() => LinkMemoryService.SaveSettings(new LinkMemorySettings
+        {
+            UnloadUnloaded = UnloadUnloaded,
+            ReloadLoaded = ReloadLoaded
+        });
+
+        // Applies change to the latest memory file on disk (so sets saved by another Revit session
+        // are kept) and saves it. False when it could not be saved.
+        private bool Commit(Func<LinkMemoryFile, bool> change)
         {
             try
             {
-                LinkMemoryService.Save(_file);
+                _file = LinkMemoryService.Update(change);
                 return true;
             }
             catch (Exception ex) when (ex is System.IO.IOException || ex is UnauthorizedAccessException
@@ -381,6 +402,8 @@ namespace Revit26_Plugin_Revised.LinkMemory.V001.UI.ViewModels
                 return false;
             }
         }
+
+        private static bool SameName(string a, string b) => string.Equals(a, b, StringComparison.OrdinalIgnoreCase);
 
         private void AddLog(LogLevel level, string message) => AddLog(new LogEntry(level, message));
 

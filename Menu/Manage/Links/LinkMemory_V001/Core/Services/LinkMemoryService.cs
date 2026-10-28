@@ -73,14 +73,41 @@ namespace Revit26_Plugin_Revised.LinkMemory.V001.Core.Services
         /// <summary>Path of the memory file.</summary>
         public static string FilePath => JsonFileStore.PathFor(ToolFolder, "memory.json");
 
-        /// <summary>Loads the memory file; <paramref name="warning"/> is set when it could not be read.</summary>
-        public static LinkMemoryFile Load(out string warning) => JsonFileStore.Load<LinkMemoryFile>(FilePath, out warning);
+        /// <summary>File name of the window options (kept apart from V002's).</summary>
+        public const string SettingsFileName = "settings_v001.json";
 
-        /// <summary>Saves the memory file. Throws on failure.</summary>
-        public static void Save(LinkMemoryFile file)
+        /// <summary>Loads the memory file; <paramref name="warning"/> is set when it could not be read.</summary>
+        public static LinkMemoryFile Load(out string warning)
         {
-            file.FormatVersion = LinkMemoryFile.CurrentFormat;
-            JsonFileStore.Save(FilePath, file);
+            LinkMemoryFile file = JsonFileStore.Load<LinkMemoryFile>(FilePath, out warning);
+            file.Normalize();
+            return file;
+        }
+
+        /// <summary>
+        /// Re-reads the memory file, runs <paramref name="change"/> on the latest content and saves it
+        /// when <paramref name="change"/> returns true, so sets another Revit session saved in the
+        /// meantime are kept. Returns the file as saved. Throws <see cref="System.IO.IOException"/>,
+        /// <see cref="UnauthorizedAccessException"/> or <see cref="NotSupportedException"/> on failure.
+        /// </summary>
+        public static LinkMemoryFile Update(Func<LinkMemoryFile, bool> change)
+            => JsonFileStore.Update<LinkMemoryFile>(FilePath, file =>
+            {
+                file.Normalize();
+                if (!change(file)) return false;
+                file.FormatVersion = LinkMemoryFile.CurrentFormat;
+                return true;
+            });
+
+        /// <summary>Loads the window options (defaults when there are none or they can't be read).</summary>
+        public static LinkMemorySettings LoadSettings()
+            => SettingsService<LinkMemorySettings>.Load(ToolFolder, SettingsFileName);
+
+        /// <summary>Saves the window options (a failure only means they are not remembered).</summary>
+        public static void SaveSettings(LinkMemorySettings settings)
+        {
+            settings.FormatVersion = LinkMemorySettings.CurrentFormat;
+            SettingsService<LinkMemorySettings>.Save(ToolFolder, SettingsFileName, settings);
         }
 
         /// <summary>Top-level Revit links of <paramref name="doc"/>, sorted by name.</summary>
