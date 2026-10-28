@@ -34,6 +34,7 @@ namespace Revit26_Plugin_Revised.WorksetMemory.V001.Commands
             var window = new WorksetMemoryWindow(viewModel);
             new WindowInteropHelper(window).Owner = uiapp.MainWindowHandle;
             window.ShowDialog();
+            viewModel.SaveSettings();
 
             ReloadRequest request = viewModel.ReloadRequest;
             if (request == null) return Result.Cancelled;

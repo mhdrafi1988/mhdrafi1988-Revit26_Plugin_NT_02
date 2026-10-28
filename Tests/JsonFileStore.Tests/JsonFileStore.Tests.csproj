@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    Unit tests for the shared JSON data-file store used by Workset Memory and Link Memory
+    (save in one Revit session, reload in another; two sessions saving to one file).
+    The shared files are linked, not copied.
+    Run:  dotnet test Tests/JsonFileStore.Tests
+  -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <SharedDir>..\..\Shared\Services\</SharedDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="$(SharedDir)JsonFileStore.cs" Link="Shared\JsonFileStore.cs" />
+    <Compile Include="$(SharedDir)SettingsService.cs" Link="Shared\SettingsService.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+  </ItemGroup>
+</Project>

@@ -21,9 +21,33 @@ namespace Revit26_Plugin_Revised.LinkMemory.V001.Core.Models
         /// <summary>Remembered models.</summary>
         public List<LinkModelEntry> Models { get; set; } = new();
 
-        /// <summary>The entry for <paramref name="key"/>, or null.</summary>
+        /// <summary>The entry for <paramref name="key"/>, or null (also for an empty key).</summary>
         public LinkModelEntry Find(string key)
-            => Models.FirstOrDefault(m => string.Equals(m.Model?.Key, key, StringComparison.OrdinalIgnoreCase));
+            => string.IsNullOrEmpty(key) ? null
+                : Models.FirstOrDefault(m => string.Equals(m.Model?.Key, key, StringComparison.OrdinalIgnoreCase));
+
+        /// <summary>The entry for <paramref name="model"/>, added when there is none yet.</summary>
+        public LinkModelEntry Ensure(ModelIdentity model)
+        {
+            LinkModelEntry entry = Find(model.Key);
+            if (entry != null) return entry;
+            entry = new LinkModelEntry { Model = model };
+            Models.Add(entry);
+            return entry;
+        }
+
+        /// <summary>Replaces missing lists (a hand-edited or older file) with empty ones.</summary>
+        public void Normalize()
+        {
+            Models ??= new List<LinkModelEntry>();
+            Models.RemoveAll(m => m == null);
+            foreach (LinkModelEntry entry in Models)
+            {
+                entry.Sets ??= new List<LinkSet>();
+                entry.Sets.RemoveAll(s => s == null);
+                foreach (LinkSet set in entry.Sets) set.Links ??= new List<SavedLink>();
+            }
+        }
     }
 
     /// <summary>One host model and its saved link sets.</summary>
@@ -34,6 +58,10 @@ namespace Revit26_Plugin_Revised.LinkMemory.V001.Core.Models
 
         /// <summary>Saved sets, newest first.</summary>
         public List<LinkSet> Sets { get; set; } = new();
+
+        /// <summary>The set called <paramref name="name"/> (ignoring case), or null.</summary>
+        public LinkSet FindSet(string name)
+            => Sets.FirstOrDefault(s => string.Equals(s.Name, name, StringComparison.OrdinalIgnoreCase));
     }
 
     /// <summary>A named snapshot of which top-level Revit links were loaded.</summary>
