@@ -72,9 +72,22 @@ namespace TagToText.Tests
         public void Settings_file_without_version_or_strings_is_migrated()
         {
             var s = JsonSerializer.Deserialize<TagToTextSettings>("{\"Prefix\":null,\"NewViewSuffix\":null,\"Version\":0}").Migrate();
-            Assert.Equal(1, s.Version);
+            Assert.Equal(TagToTextSettings.CurrentVersion, s.Version);
             Assert.Equal(string.Empty, s.Prefix);
             Assert.Equal(" - Text", s.NewViewSuffix);
+        }
+
+        [Fact]
+        public void Version_1_settings_file_gets_group_by_type_on_and_the_choice_round_trips()
+        {
+            var v1 = JsonSerializer.Deserialize<TagToTextSettings>("{\"Version\":1,\"Prefix\":\"EL \"}").Migrate();
+            Assert.Equal(2, v1.Version);
+            Assert.True(v1.GroupByType);
+            Assert.Equal("EL ", v1.Prefix);
+
+            v1.GroupByType = false;
+            var back = JsonSerializer.Deserialize<TagToTextSettings>(JsonSerializer.Serialize(v1)).Migrate();
+            Assert.False(back.GroupByType);
         }
     }
 }

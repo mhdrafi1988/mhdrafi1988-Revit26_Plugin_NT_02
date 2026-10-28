@@ -9,6 +9,7 @@ using Revit26_Plugin_Revised.TagToText.V001.Core.Models;
 using Revit26_Plugin_Revised.TagToText.V001.Core.Services;
 using Revit26_Plugin_Revised.TagToText.V001.Infrastructure;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -38,7 +39,9 @@ namespace Revit26_Plugin_Revised.TagToText.V001.UI.ViewModels
         private readonly ExternalEvent _externalEvent;
         private readonly Dispatcher _dispatcher;
         private readonly TagToTextSettings _settings;
+        private readonly Dictionary<string, int> _typeRank = new();   // type name -> position in TypeGroups
         private bool _cancelRequested;
+        private bool _bulkTicking;
 
         /// <summary>Creates the view model for the active view of <paramref name="uidoc"/> and lists its tags.</summary>
         public TagToTextViewModel(UIDocument uidoc)
@@ -50,12 +53,13 @@ namespace Revit26_Plugin_Revised.TagToText.V001.UI.ViewModels
             _dispatcher = Dispatcher.CurrentDispatcher;
             _externalEvent = ExternalEvent.Create(_handler);
 
+            RowsView = CollectionViewSource.GetDefaultView(Rows);
+            RowsView.Filter = o => o is TagRow r && IsKindShown(r.Snapshot.Kind);
+            TypeGroupsView = new ListCollectionView(TypeGroups) { Filter = o => o is TagTypeGroup g && IsKindShown(g.Kind) };
+
             _settings = SettingsService<TagToTextSettings>.Load(SettingsKey).Migrate();
             ApplySettings(_settings);
             LoadTextTypes();
-
-            RowsView = CollectionViewSource.GetDefaultView(Rows);
-            RowsView.Filter = o => o is TagRow r && IsKindShown(r.Snapshot.Kind);
 
             LoadTags(_uidoc.Selection.GetElementIds(), SourceIsSelection);
         }
@@ -65,8 +69,29 @@ namespace Revit26_Plugin_Revised.TagToText.V001.UI.ViewModels
         /// <summary>Tags found.</summary>
         public ObservableCollection<TagRow> Rows { get; } = new();
 
-        /// <summary><see cref="Rows"/> filtered by the ticked categories.</summary>
+        /// <summary><see cref="Rows"/> filtered by the ticked categories, grouped by type when <see cref="GroupByType"/> is on.</summary>
         public ICollectionView RowsView { get; }
+
+        /// <summary>The tag types found, in table order (spots first, then the other tags by name).</summary>
+        public ObservableCollection<TagTypeGroup> TypeGroups { get; } = new();
+
+        /// <summary><see cref="TypeGroups"/> filtered by the ticked categories; the Type list.</summary>
+        public ICollectionView TypeGroupsView { get; }
+
+        /// <summary>
+        /// Set by the window: ends a text edit in the table. The list can't be regrouped, filtered or
+        /// reloaded while a row is being edited.
+        /// </summary>
+        public Action CommitTableEdit { get; set; }
+
+        /// <summary>Show the table grouped by tag type, with a tick box on each group heading.</summary>
+        [ObservableProperty] private bool groupByType;
+
+        /// <summary>Type picked in the Type list, for Select Type / Clear Type.</summary>
+        [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(SelectTypeCommand))]
+        [NotifyCanExecuteChangedFor(nameof(ClearTypeCommand))]
+        private TagTypeGroup selectedTypeGroup;
 
         /// <summary>Run log, newest first.</summary>
         public ObservableCollection<LogEntry> Log { get; } = new();
@@ -196,6 +221,7 @@ namespace Revit26_Plugin_Revised.TagToText.V001.UI.ViewModels
         partial void OnIncludeSpotSlopeChanged(bool value) => RefreshView();
         partial void OnIncludeElementTagsChanged(bool value) => RefreshView();
         partial void OnIncludeSpatialTagsChanged(bool value) => RefreshView();
+        partial void OnGroupByTypeChanged(bool value) => ApplyGrouping();
 
         partial void OnTargetSameViewChanged(bool value)
         {
@@ -272,16 +298,31 @@ namespace Revit26_Plugin_Revised.TagToText.V001.UI.ViewModels
 
         /// <summary>Ticks every copyable row shown.</summary>
         [RelayCommand]
-        private void SelectAll()
-        {
-            foreach (var r in VisibleRows().Where(r => r.IsCopyable)) r.IsSelected = true;
-        }
+        private void SelectAll() => SetTicked(VisibleRows(), true);
 
         /// <summary>Unticks every row shown.</summary>
         [RelayCommand]
-        private void ClearSelection()
+        private void ClearSelection() => SetTicked(VisibleRows(), false);
+
+        /// <summary>Ticks every copyable row of the type picked in the Type list.</summary>
+        [RelayCommand(CanExecute = nameof(HasSelectedType))]
+        private void SelectType() => SetTicked(VisibleRows(SelectedTypeGroup), true);
+
+        /// <summary>Unticks every row of the type picked in the Type list.</summary>
+        [RelayCommand(CanExecute = nameof(HasSelectedType))]
+        private void ClearType() => SetTicked(VisibleRows(SelectedTypeGroup), false);
+
+        private bool HasSelectedType() => SelectedTypeGroup != null;
+
+        /// <summary>
+        /// Tick box on a group heading: ticks every copyable row of the type, or clears them when they
+        /// are all ticked already. A partial tick becomes a full tick.
+        /// </summary>
+        [RelayCommand]
+        private void ToggleType(TagTypeGroup group)
         {
-            foreach (var r in VisibleRows()) r.IsSelected = false;
+            if (group == null) return;
+            SetTicked(VisibleRows(group), group.AllTicked != true);
         }
 
         /// <summary>Creates the text notes for the ticked rows.</summary>
@@ -441,13 +482,28 @@ namespace Revit26_Plugin_Revised.TagToText.V001.UI.ViewModels
             var rows = elements.Select(e => TagReader.Read(_doc, view, e)).Where(s => s != null).Select(s => new TagRow(s)).ToList();
             SetOnUi(() =>
             {
+                EndTableEdit();
+                string keepType = SelectedTypeGroup?.Name;
                 foreach (var r in Rows) r.PropertyChanged -= OnRowChanged;
                 Rows.Clear();
-                foreach (var r in rows.OrderBy(r => r.Snapshot.Kind).ThenBy(r => r.Text))
+                TypeGroups.Clear();
+                _typeRank.Clear();
+
+                // Spots first, then the other tags by type name; GroupBy keeps that order.
+                var ordered = rows.OrderBy(r => r.Snapshot.Kind).ThenBy(r => r.KindLabel).ThenBy(r => r.Text).ToList();
+                foreach (var g in ordered.GroupBy(r => r.KindLabel))
+                {
+                    var group = new TagTypeGroup(g.Key, g.First().Snapshot.Kind, g);
+                    foreach (var r in g) r.TypeGroup = group;
+                    _typeRank[group.Name] = TypeGroups.Count;
+                    TypeGroups.Add(group);
+                }
+                foreach (var r in ordered)
                 {
                     r.PropertyChanged += OnRowChanged;
                     Rows.Add(r);
                 }
+                SelectedTypeGroup = TypeGroups.FirstOrDefault(g => g.Name == keepType);
                 RefreshView();
                 if (!quiet) AddLog(LogLevel.Info, $"Found {rows.Count} tag(s) in '{ViewName}'.");
             });
@@ -489,9 +545,17 @@ namespace Revit26_Plugin_Revised.TagToText.V001.UI.ViewModels
 
         private IEnumerable<TagRow> VisibleRows() => Rows.Where(r => IsKindShown(r.Snapshot.Kind));
 
+        private IEnumerable<TagRow> VisibleRows(TagTypeGroup group)
+            => group == null ? Enumerable.Empty<TagRow>() : group.Rows.Where(r => IsKindShown(r.Snapshot.Kind));
+
         private void RefreshView()
         {
+            EndTableEdit();
             RowsView?.Refresh();
+            TypeGroupsView?.Refresh();
+            // Keep the Type list on a type that is shown.
+            if (TypeGroupsView != null && (SelectedTypeGroup == null || !IsKindShown(SelectedTypeGroup.Kind)))
+                SelectedTypeGroup = TypeGroupsView.Cast<TagTypeGroup>().FirstOrDefault();
             UpdateCounts();
         }
 
@@ -499,11 +563,60 @@ namespace Revit26_Plugin_Revised.TagToText.V001.UI.ViewModels
         {
             FoundCount = VisibleRows().Count();
             SelectedCount = VisibleRows().Count(r => r.IsSelected);
+            foreach (var g in TypeGroups) g.NotifyTicksChanged();
         }
 
         private void OnRowChanged(object sender, PropertyChangedEventArgs e)
         {
+            if (_bulkTicking) return;
             if (e.PropertyName == nameof(TagRow.IsSelected)) UpdateCounts();
+            else if (e.PropertyName == nameof(TagRow.IsCopyable)) (sender as TagRow)?.TypeGroup?.NotifyTicksChanged();
+        }
+
+        // Ticks (only copyable rows) or unticks rows, then updates the counts once.
+        private void SetTicked(IEnumerable<TagRow> rows, bool ticked)
+        {
+            _bulkTicking = true;
+            try
+            {
+                foreach (var r in rows.ToList())
+                    if (!ticked || r.IsCopyable) r.IsSelected = ticked;
+            }
+            finally
+            {
+                _bulkTicking = false;
+            }
+            UpdateCounts();
+        }
+
+        // Groups the table by the Type column, or shows it flat.
+        private void ApplyGrouping()
+        {
+            if (RowsView == null) return;
+            EndTableEdit();
+            using (RowsView.DeferRefresh())
+            {
+                RowsView.GroupDescriptions.Clear();
+                if (GroupByType)
+                    RowsView.GroupDescriptions.Add(new PropertyGroupDescription(nameof(TagRow.KindLabel))
+                    {
+                        CustomSort = new TypeGroupOrder(_typeRank)
+                    });
+            }
+        }
+
+        // Ends a text edit in the table first: WPF refuses to regroup, filter or reload a list while a
+        // row is being edited.
+        private void EndTableEdit()
+        {
+            try { CommitTableEdit?.Invoke(); }
+            catch (InvalidOperationException) { /* the table is busy; the list-level commit below ends the edit */ }
+
+            if (RowsView is IEditableCollectionView edit)
+            {
+                if (edit.IsAddingNew) edit.CommitNew();
+                if (edit.IsEditingItem) edit.CommitEdit();
+            }
         }
 
         private void ApplySettings(TagToTextSettings s)
@@ -515,6 +628,7 @@ namespace Revit26_Plugin_Revised.TagToText.V001.UI.ViewModels
             IncludeSpotSlope = s.IncludeSpotSlope;
             IncludeElementTags = s.IncludeElementTags;
             IncludeSpatialTags = s.IncludeSpatialTags;
+            GroupByType = s.GroupByType;
             Prefix = s.Prefix;
             Suffix = s.Suffix;
             KeepLeader = s.KeepLeader;
@@ -545,6 +659,7 @@ namespace Revit26_Plugin_Revised.TagToText.V001.UI.ViewModels
                 IncludeSpotSlope = IncludeSpotSlope,
                 IncludeElementTags = IncludeElementTags,
                 IncludeSpatialTags = IncludeSpatialTags,
+                GroupByType = GroupByType,
                 TextTypeName = SelectedTextType?.Name ?? string.Empty,
                 Prefix = Prefix ?? string.Empty,
                 Suffix = Suffix ?? string.Empty,
@@ -578,6 +693,27 @@ namespace Revit26_Plugin_Revised.TagToText.V001.UI.ViewModels
             public bool AllowElement(Element elem) => elem.OwnerViewId == _viewId && TagReader.Classify(elem) != null;
 
             public bool AllowReference(Reference reference, XYZ position) => false;
+        }
+
+        /// <summary>
+        /// Keeps the table's groups in <see cref="TypeGroups"/> order (spots first), even when a column is sorted.
+        /// </summary>
+        private sealed class TypeGroupOrder : IComparer
+        {
+            private readonly Dictionary<string, int> _rank;
+
+            public TypeGroupOrder(Dictionary<string, int> rank) => _rank = rank;
+
+            public int Compare(object x, object y)
+            {
+                string a = NameOf(x), b = NameOf(y);
+                int byRank = RankOf(a).CompareTo(RankOf(b));
+                return byRank != 0 ? byRank : string.Compare(a, b, StringComparison.CurrentCulture);
+            }
+
+            private int RankOf(string name) => _rank.TryGetValue(name, out int i) ? i : int.MaxValue;
+
+            private static string NameOf(object group) => (group as CollectionViewGroup)?.Name as string ?? string.Empty;
         }
     }
 }

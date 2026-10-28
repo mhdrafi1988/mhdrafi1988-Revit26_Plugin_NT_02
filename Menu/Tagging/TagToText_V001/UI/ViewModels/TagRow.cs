@@ -18,6 +18,9 @@ namespace Revit26_Plugin_Revised.TagToText.V001.UI.ViewModels
         /// <summary>The tag as read.</summary>
         public TagSnapshot Snapshot { get; }
 
+        /// <summary>The tag type this row belongs to (set when the list is loaded).</summary>
+        public TagTypeGroup TypeGroup { get; internal set; }
+
         /// <summary>Ticked rows are copied.</summary>
         [ObservableProperty] private bool isSelected;
 
