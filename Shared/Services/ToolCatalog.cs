@@ -66,7 +66,7 @@ namespace Revit26_Plugin_Revised.Shared.Services
         public static readonly ToolInfo WorksetRenamer = Add("Workset Renamer", "5.1.1", "V005", "Revit26_Plugin_Revised.WorksetRenamer.V005");
         public static readonly ToolInfo WorksetRenamerExcel = Add("Workset Renamer (From Excel)", "5.1.1", "FX05", "Revit26_Plugin_Revised.WorksetRenamer.FX05");
         public static readonly ToolInfo AutoSlopeByPoint = Add("Auto Slope By Point", "30.0.1", "V030", "Revit26_Plugin_Revised.AutoSlopeByPoint.V030");
-        public static readonly ToolInfo AutoSlopeByPointV032 = Add("Auto Slope By Point", "32.3.1", "V032", "Revit26_Plugin_Revised.AutoSlopeByPoint.V032");
+        public static readonly ToolInfo AutoSlopeByPointV032 = Add("Auto Slope By Point", "32.4.0", "V032", "Revit26_Plugin_Revised.AutoSlopeByPoint.V032");
         public static readonly ToolInfo AutoSlopeByPointRidge = Add("Auto Slope By Point (Ridge)", "3.1.1", "V003", "Revit26_Plugin_Revised.AutoSlopeByPointRidge.V003");
         public static readonly ToolInfo AutoSlopeByPointMultiCopies = Add("Auto Slope By Point (Multi Copies)", "30.1.1", "MultiCopies30", "Revit26_Plugin_Revised.AutoSlopeByPoint.MultiCopies30");
         public static readonly ToolInfo AutoSlopeByDrain = Add("Auto Slope By Drain", "7.2.0", "V007", "Revit26_Plugin_Revised.AutoSlopeByDrain.V007");
@@ -82,7 +82,7 @@ namespace Revit26_Plugin_Revised.Shared.Services
         public static readonly ToolInfo RidgeByPoints = Add("Ridge By Points", "59.1.0", "V059", "Revit26_Plugin_Revised.RoofTools.LineAndPoints.RoofRidgeLines.V059");
         public static readonly ToolInfo CreaserAdv = Add("Creaser Adv", "12.0.2", "V012", "Revit26_Plugin_Revised.CreaserAdv.V012");
         public static readonly ToolInfo RoofTag = Add("Roof Tag", "18.1.2", "V018", "Revit26_Plugin_Revised.RoofTag.V018");
-        public static readonly ToolInfo TagToText = Add("Tag To Text", "1.0.0", "V001", "Revit26_Plugin_Revised.TagToText.V001");
+        public static readonly ToolInfo TagToText = Add("Tag To Text", "1.0.1", "V001", "Revit26_Plugin_Revised.TagToText.V001");
         // Source not in the repository; removed from the ribbon in plugin 3.10.0. Kept so logs stay readable.
         public static readonly ToolInfo RoofFromDetailLines = Add("Roof From Detail Lines", "9.0.0", "V009", "Revit26_Plugin_Revised.RoofFromDetailLines.V009");
         public static readonly ToolInfo CombinedRoofTools = Add("Combined Roof Tools", "3.1.2", "V003", "Revit26_Plugin_Revised.CombinedRoofTools.V003");
@@ -96,7 +96,7 @@ namespace Revit26_Plugin_Revised.Shared.Services
         public static readonly ToolInfo DwgToDlp = Add("DWG To DL(P)", "14.0.1", "V014", "Revit26_Plugin_Revised.DwgToDetailLines.V014");
         public static readonly ToolInfo DwgManager = Add("DWG Manager", "3.1.1", "V003", "Revit26_Plugin_Revised.DwgManager.V003");
         public static readonly ToolInfo DwgStatistics = Add("DWG Statistics", "5.1.1", "V005", "Revit26_Plugin_Revised.DwgStatistics.V005");
-        public static readonly ToolInfo ExportDwgToFolder = Add("Export DWG to Folder", "4.1.1", "V004", "Revit26_Plugin_Revised.ExportDwgToFolder.V004");
+        public static readonly ToolInfo ExportDwgToFolder = Add("Export DWG to Folder", "4.1.2", "V004", "Revit26_Plugin_Revised.ExportDwgToFolder.V004");
         public static readonly ToolInfo PlanFromScopeBox = Add("Plan From Scope Box", "6.1.2", "V006", "Revit26_Plugin_Revised.PlanFromScopeBox.V006");
         public static readonly ToolInfo SmartViewToSheetPlacer = Add("Smart View To Sheet Placer", "224.1.1", "V224", "Revit26_Plugin_Revised.SmartViewToSheetPlacer.V224");
         public static readonly ToolInfo AutomatedSectionPlacer = Add("Automated Section Placer", "3.1.1", "V003", "Revit26_Plugin_Revised.AutomatedSectionPlacer.V003");
