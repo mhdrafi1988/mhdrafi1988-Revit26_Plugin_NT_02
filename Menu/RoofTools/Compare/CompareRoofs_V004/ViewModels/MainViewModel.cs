@@ -10,6 +10,7 @@ using Autodesk.Revit.UI;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Revit26_Plugin_Revised.Shared.Models;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace Revit26_Plugin_Revised.RoofPointElevationSync.V004
 {
@@ -18,6 +19,9 @@ namespace Revit26_Plugin_Revised.RoofPointElevationSync.V004
         private readonly UIDocument _uiDoc;
         private readonly ExternalEvent _externalEvent;
         private readonly RoofSyncEventHandler _handler;
+
+        // Runs the Roof A / Roof B picks in Revit's API context (a modeless window's click is outside it).
+        private readonly RevitApiQueue _pickQueue;
         private readonly string _settingsPath;
         private RoofSyncSettings _settings;
 
@@ -55,6 +59,7 @@ namespace Revit26_Plugin_Revised.RoofPointElevationSync.V004
                 Log = AddLog
             };
             _externalEvent = ExternalEvent.Create(_handler);
+            _pickQueue = new RevitApiQueue("Elevation Sync V004 — Pick Roof");
 
             MatchRowsView = CollectionViewSource.GetDefaultView(MatchRows);
             MatchRowsView.Filter = FilterRow;
@@ -91,40 +96,66 @@ namespace Revit26_Plugin_Revised.RoofPointElevationSync.V004
         partial void OnFilterTextChanged(string value) => MatchRowsView.Refresh();
 
         [RelayCommand]
-        private void PickRoofA()
+        private void PickRoofA() => PickRoof("Roof A", roof =>
         {
-            var roof = PickRoof();
-            if (roof == null) return;
             _roofA = roof;
             RoofAName = DescribeRoof(roof);
             AddLog($"Roof A set: {RoofAName}", LogLevel.Info);
-        }
+        });
 
         [RelayCommand]
-        private void PickRoofB()
+        private void PickRoofB() => PickRoof("Roof B", roof =>
         {
-            var roof = PickRoof();
-            if (roof == null) return;
             _roofB = roof;
             RoofBName = DescribeRoof(roof);
             AddLog($"Roof B set: {RoofBName}", LogLevel.Info);
+        });
+
+        // Queues the pick: Revit only allows PickObject inside its API context.
+        private void PickRoof(string label, Action<RoofBase> onPicked)
+        {
+            if (IsBusy) return;
+
+            IsBusy = true;
+            bool queued = _pickQueue.TryRun(app =>
+            {
+                try { PickRoofInRevit(app, label, onPicked); }
+                finally { IsBusy = false; }
+            });
+
+            if (!queued)
+            {
+                IsBusy = false;
+                AddLog("Revit is busy. Finish the current command or close any open dialog, then pick again.", LogLevel.Warning);
+            }
         }
 
-        private RoofBase PickRoof()
+        // Runs in the Revit API context (through _pickQueue).
+        private void PickRoofInRevit(UIApplication app, string label, Action<RoofBase> onPicked)
         {
+            UIDocument active = app.ActiveUIDocument;
+            if (active == null || !_uiDoc.Document.IsValidObject || !active.Document.Equals(_uiDoc.Document))
+            {
+                AddLog($"Pick {label}: switch back to the project this window was opened for, then try again.", LogLevel.Error);
+                return;
+            }
+
             try
             {
-                var reference = _uiDoc.Selection.PickObject(
+                var reference = active.Selection.PickObject(
                     Autodesk.Revit.UI.Selection.ObjectType.Element,
                     new RoofSelectionFilter(),
-                    "Select a roof");
-                return _uiDoc.Document.GetElement(reference) as RoofBase;
+                    $"Select {label}");
+                if (active.Document.GetElement(reference) is RoofBase roof) onPicked(roof);
             }
             catch (Autodesk.Revit.Exceptions.OperationCanceledException)
             {
-                return null;
+                AddLog($"Pick {label}: cancelled.", LogLevel.Info);
             }
         }
+
+        /// <summary>Releases the pick external event. Called when the window closes.</summary>
+        public void ReleaseRevitQueue() => _pickQueue.Dispose();
 
         private static string DescribeRoof(RoofBase roof) =>
             $"{roof.Name} (Id {roof.Id.Value})";

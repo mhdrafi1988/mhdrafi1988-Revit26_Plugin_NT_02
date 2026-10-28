@@ -14,6 +14,7 @@ namespace Revit26_Plugin_Revised.WorksetRenamer.FX05.Views
             InitializeComponent();
             _viewModel = viewModel;
             DataContext = viewModel;
+            Closed += (_, _) => viewModel.Dispose();
         }
 
         private void CloseButton_Click(object sender, RoutedEventArgs e) => Close();

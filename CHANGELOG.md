@@ -9,6 +9,41 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.18.1] — 2026-10-28
+
+### Fixed
+- **Sheet Auto Rearrange v28.1.2 (V028)**, and V027 with the same fix (no version entry) — closing the window
+  showed "Invalid call to Revit API! Revit is currently not within an API context." The window stopped
+  listening for model changes by removing its handler from Revit's `DocumentChanged` event, and Revit only
+  allows that while a command or external event is running, never from a window closing on its own.
+- **Auto Slope By Point v32.4.1 (V032)** and **Auto Slope By Drain (Multi-Roof) v13.1.4 (V013)** — same
+  problem with the `ViewActivated` event, hidden by an empty `catch`: no error showed, but the closed window
+  stayed attached to Revit, and each reopen added another one.
+- **DWG Statistics v5.1.2 (V005)** — same problem with the `DocumentClosing` event when you closed the window
+  yourself: the error was caught, but the listener stayed attached and was added again on the next open.
+- New shared helper `RevitEventRelay` (`Shared/Services`): attaches each Revit event once per session, from
+  inside the command, and passes it on to the open tool windows. Closing a window only takes it off the relay's
+  list, which needs no Revit call. A listener that throws is reported through `ToolGuard` and then stopped,
+  so one bug can't show an error on every model change.
+- Six more tools had a button that never worked: it started a transaction or a pick in the view straight from
+  the window's click. Revit refuses both unless a command or external event is running. These buttons now go
+  through Revit's queue (an external event, new shared `RevitApiQueue` in `Shared/Services`), the same way the
+  other window buttons in the suite already do:
+  - **Workset Renamer v5.1.2 (V005)** — Apply.
+  - **Workset Renamer (From Excel) v5.1.2 (FX05)** — Update.
+  - **DWG To Lines v7.0.2 (V007)**, and V006 with the same fix (no version entry) — Convert (it logged
+    "Conversion failed: Starting a transaction … outside of API context is not allowed").
+  - **Detail Lines From Links v10.1.2 (VA010)**, and VA009 with the same fix (no version entry) — Pick Line.
+  - **Roof Point Elevation Sync v5.0.2 (V005, ribbon "Elevation Sync")**, and V004 with the same fix
+    (no version entry) — Roof A / Roof B pick buttons.
+  - **Roof Edge Element Sections v4.1.3 (V004)**, and V003 with the same fix (no version entry) — Pick Roofs.
+  Each of these now also checks that the project the window was opened for is still open and active, and
+  says so in the window if not. Apply / Update / Convert / Pick can't be started twice while one is waiting.
+- **User note:** nothing changes in how these tools work. Closing Sheet Auto Rearrange no longer shows an error;
+  your settings were always saved before the error, and the model was never changed by it. The six buttons
+  above now do what they say. If Revit is busy (another command or a dialog is open), the window says so and
+  you click again.
+
 ## [6.18.0] — 2026-10-28
 
 ### Added

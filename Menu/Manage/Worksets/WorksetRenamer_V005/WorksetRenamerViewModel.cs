@@ -7,13 +7,21 @@ using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace Revit26_Plugin_Revised.WorksetRenamer.V005.ViewModels
 {
-    public class WorksetRenamerViewModel : INotifyPropertyChanged
+    /// <summary>
+    /// Workset Renamer window state. Apply runs through <see cref="RevitApiQueue"/>, because the window is
+    /// modeless and Revit refuses transactions started from its button clicks.
+    /// </summary>
+    public class WorksetRenamerViewModel : INotifyPropertyChanged, IDisposable
     {
         // ── Revit document reference ──────────────────────────────────
         private readonly Document _doc;
+
+        // Runs the rename in Revit's API context. Created by the constructor, which the command runs.
+        private readonly RevitApiQueue _revit;
 
         // ── All rows (full list) ──────────────────────────────────────
         public ObservableCollection<WorksetRowVM> Rows { get; }
@@ -113,9 +121,11 @@ namespace Revit26_Plugin_Revised.WorksetRenamer.V005.ViewModels
         // Constructor
         // ══════════════════════════════════════════════════════════════
 
+        /// <summary>Loads the worksets of <paramref name="doc"/>. Call from the command (a Revit API context).</summary>
         public WorksetRenamerViewModel(Document doc)
         {
             _doc = doc;
+            _revit = new RevitApiQueue("Workset Renamer V005");
             LoadWorksets();
 
             ApplyFindReplaceCommand = new RelayCommand(_ => ExecuteFindReplace());
@@ -252,6 +262,14 @@ namespace Revit26_Plugin_Revised.WorksetRenamer.V005.ViewModels
 
         private void ExecuteApply()
         {
+            if (IsRunning) return;
+
+            if (!_doc.IsValidObject)
+            {
+                StatusMessage = "The project was closed. Close this window.";
+                return;
+            }
+
             var candidates = Rows
                 .Where(r => r.IsSelected && r.NewName != r.CurrentName)
                 .ToList();
@@ -275,6 +293,32 @@ namespace Revit26_Plugin_Revised.WorksetRenamer.V005.ViewModels
             if (emptyRow != null)
             {
                 TaskDialog.Show("Invalid Name", $"New name for '{emptyRow.CurrentName}' cannot be empty.");
+                return;
+            }
+
+            IsRunning = true;
+            StatusMessage = $"Renaming {candidates.Count} workset(s)…";
+
+            // Revit runs this once it is idle; a modeless window cannot start the transaction itself.
+            bool queued = _revit.TryRun(_ =>
+            {
+                try { RenameInRevit(candidates); }
+                finally { IsRunning = false; }
+            });
+
+            if (!queued)
+            {
+                IsRunning = false;
+                StatusMessage = "Revit is busy. Finish the current command or close any open dialog, then click Apply again.";
+            }
+        }
+
+        // Runs in the Revit API context (through _revit).
+        private void RenameInRevit(List<WorksetRowVM> candidates)
+        {
+            if (!_doc.IsValidObject)
+            {
+                StatusMessage = "The project was closed. Close this window.";
                 return;
             }
 
@@ -317,6 +361,9 @@ namespace Revit26_Plugin_Revised.WorksetRenamer.V005.ViewModels
 
             StatusMessage = $"Done — {renamed} renamed, {errors} error(s)";
         }
+
+        /// <summary>Releases the Revit external event. Called when the window closes.</summary>
+        public void Dispose() => _revit.Dispose();
 
         // ══════════════════════════════════════════════════════════════
         // Duplicate guard

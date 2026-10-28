@@ -15,6 +15,7 @@ namespace Revit26_Plugin_Revised.RoofPointElevationSync.V004
             InitializeComponent();
             _viewModel = new MainViewModel(uiDoc, preselectedRoofA, preselectedRoofB);
             DataContext = _viewModel;
+            Closed += (_, _) => _viewModel.ReleaseRevitQueue();
 
             LogListBox.SelectionChanged += (s, e) =>
                 _viewModel.SelectedLogEntries = LogListBox.SelectedItems;

@@ -85,6 +85,8 @@ namespace Revit26_Plugin_Revised.MultiRoofSlopeByDrain.V013.UI.ViewModels
         private DateTime _lastPump = DateTime.MinValue;
         private bool _loading = true;
         private bool _disposed;
+        // Active-view badge listener; disposing it is safe on window close (see RevitEventRelay).
+        private IDisposable _viewActivatedSubscription;
 
         public AutoSlopeDrainViewModel(UIDocument uidoc, UIApplication app, List<RoofData> roofDataList, IEnumerable<LogEntry> diagnostics)
         {
@@ -127,7 +129,7 @@ namespace Revit26_Plugin_Revised.MultiRoofSlopeByDrain.V013.UI.ViewModels
             AddLog(LogLevel.Info, "Nothing in the model has changed yet. Each roof is reset to 0 when you press Run.");
 
             UpdateViewBadge(_app.ActiveUIDocument?.ActiveView);
-            _app.ViewActivated += OnViewActivated;
+            _viewActivatedSubscription = RevitEventRelay.ViewActivated(_app, GetType(), OnViewActivated);
 
             AutoSlopeDrainEventManager.Init();
             _loading = false;
@@ -1031,11 +1033,18 @@ namespace Revit26_Plugin_Revised.MultiRoofSlopeByDrain.V013.UI.ViewModels
             return false;
         }
 
+        /// <summary>
+        /// Releases the window's listeners and cancels a run in progress. Called from the window's
+        /// OnClosed, outside a Revit API context, so it makes no Revit calls.
+        /// </summary>
         public void Dispose()
         {
             if (_disposed) return;
             _disposed = true;
-            try { _app.ViewActivated -= OnViewActivated; } catch { /* Revit shutting down */ }
+            // Removing a Revit event handler here threw outside the API context (the old catch hid it
+            // and left the handler attached); leaving the relay's list is always allowed.
+            _viewActivatedSubscription?.Dispose();
+            _viewActivatedSubscription = null;
             LogEntries.CollectionChanged -= OnLogChanged;
             foreach (var g in MarkerGroups) g.PropertyChanged -= OnMarkerGroupChanged;
             foreach (var t in RoofTabs) t.SelectionChanged -= OnAnyDrainSelectionChanged;

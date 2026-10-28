@@ -24,6 +24,7 @@ namespace Revit26_Plugin_Revised.LinkedDetailLineGenerator.VA009.UI.Views
             var viewModel = new MainViewModel(uiApp, selectedBoundaryElement);
             viewModel.SetOwnerWindow(this);
             DataContext = viewModel;
+            Closed += (_, _) => viewModel.ReleaseRevitQueue();
 
             // Never use System.Windows.Application.Current.MainWindow for Revit add-ins â€” use the
             // Revit main window handle via WindowInteropHelper (suite convention).
