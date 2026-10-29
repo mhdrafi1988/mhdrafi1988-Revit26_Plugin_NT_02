@@ -20,27 +20,44 @@
 //   3. Crossings: in each cell that shows two groups, every side whose ends
 //      belong to different groups and see each other across the roof gets
 //      the point where both groups are equally far, found by bisection to
-//      1e-5 ft. Neighbouring cells share the crossing on their common side.
-//      Cells cut by the outline count too, so a ridge runs on up to an edge
-//      it meets at a shallow angle.
-//   4. Segments: two crossings in a cell are joined when they see each
-//      other. Four (a saddle) are joined in two pairs, round the corners
-//      whose group differs from the cell centre's. 0 or 1 crossings (a
-//      corner off the roof or beyond the drainage distance), or 3 (a side
-//      cut by the outline), give none. Cells with three or more groups are
-//      skipped here.
+//      1e-5 ft. When a third group is nearer at that point, its area cuts
+//      the side between the corners: the side gets the two points where
+//      that area begins and ends instead. Neighbouring cells share the
+//      crossings on their common side. Cells cut by the outline count too,
+//      so a ridge runs on up to an edge it meets at a shallow angle.
+//   4. Segments: in a cell with two groups, two crossings are joined when
+//      they see each other. Four (a saddle) are joined in two pairs, round
+//      the corners whose group differs from the cell centre's. 0 or 1
+//      crossings (a corner off the roof or beyond the drainage distance), or
+//      3 (a side cut by the outline), give none.
+//      Junctions: in a cell with three or more groups (at the corners or on
+//      the sides), Newton's method finds the point where three of them are
+//      equally far (on an open roof the circumcentre of their drains). A
+//      point that lies in the cell, on the roof, with no other group nearer
+//      is a junction joined to each of the cell's crossings it sees. A cell
+//      next to it holds ridges that only pass through: the two crossings of
+//      each pair are joined, any others go to that junction. A point that
+//      lies off the roof means the ridges reach the edge separately; when
+//      Newton does not converge, the junction is the mean of the crossings.
+//      Junctions closer than h / 2 become one at their mean; a crossing that
+//      two cells holding the same junction both join to lies between them
+//      and is dropped (the ridge runs on to a further crossing).
 //   5. Chain and straighten: zero-length segments are dropped (their ends
 //      become one point). Free ends of the same group pair within 3 h that
 //      see each other are bridged, closest first, so a ridge broken up along
-//      an edge is one run again. Each run between ends and branch points (or
-//      a whole closed loop) is straightened by Douglas–Peucker within 20 mm,
-//      so a straight ridge is one line.
-//   6. Reach the roof edge: a line end that no other line uses and that lies
-//      within 3 h of the outline is moved on, away from the line's other end,
-//      to the first edge within 20 h, if that edge point is still sloped. So
-//      an end where the drainage distance stops the slope stays where it is.
-//   7. RidgeCount = the drain-group pairs with at least one segment. Lines
-//      come out in the order the runs were walked.
+//      an edge is one run again. Each run between ends, branch points,
+//      junctions and changes of group pair (or a whole closed loop) is
+//      straightened by Douglas–Peucker within 20 mm, so a straight ridge is
+//      one line.
+//   6. Reach the roof edge: a line end that no other line uses, is not a
+//      junction and lies within 3 h of the outline is moved on, away from
+//      the line's other end, to the first edge within 20 h, if that edge
+//      point is still sloped by one of the line's own two groups. So an end
+//      where the drainage distance stops the slope stays where it is, and an
+//      end never runs on into a third group's area.
+//   7. RidgeCount = the drain-group pairs with at least one segment.
+//      Junctions = the junctions that end three or more segments, ascending
+//      by (X, Y). Lines come out in the order the runs were walked.
 // =======================================================
 
 using System;
@@ -83,7 +100,10 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Core.Services
         /// <summary>The lines to draw, in plan (Z = 0).</summary>
         public List<RidgeLine> Lines { get; } = new List<RidgeLine>();
 
-        /// <summary>Points where three or more drain groups meet.</summary>
+        /// <summary>
+        /// Points where three or more drain groups meet (on an open roof the Voronoi vertices of the
+        /// drains): line ends shared by three or more lines, ascending by (X, Y), Z = 0.
+        /// </summary>
         public List<Point3> Junctions { get; } = new List<Point3>();
 
         /// <summary>Number of distinct drain groups.</summary>
@@ -131,8 +151,29 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Core.Services
         /// </summary>
         public const double DrainSnapToleranceFt = 150 / 304.8;
 
-        /// <summary>Junctions closer than this × the grid step count as one junction.</summary>
+        /// <summary>Step 4: junctions closer than this × the grid step become one junction at their mean.</summary>
         public const double JunctionMergeFactor = 0.5;
+
+        /// <summary>Step 4: the junction's Newton search stops when a step is shorter than this (feet).</summary>
+        private const double JunctionToleranceFt = 1e-7;
+
+        /// <summary>Step 4: most Newton iterations per junction.</summary>
+        private const int MaxJunctionIterations = 20;
+
+        /// <summary>Step 4: the Newton Jacobian's central-difference step, as a fraction of the grid step.</summary>
+        private const double JunctionJacobianFactor = 1e-3;
+
+        /// <summary>
+        /// Step 4: a junction counts as inside a cell up to this far (feet) outside it, so one on a side
+        /// or node shared by cells is not lost between them.
+        /// </summary>
+        private const double OwnToleranceFt = 1e-6;
+
+        /// <summary>Steps 3–4: another group is nearer only when it is nearer by more than this (feet).</summary>
+        private const double IntruderToleranceFt = 1e-6;
+
+        /// <summary>Step 4: the vertex search tries the triples of at most this many of a cell's groups.</summary>
+        private const int MaxJunctionGroups = 4;
 
         /// <summary>Step 3: bisection stops when the interval is shorter than this (feet).</summary>
         private const double CrossingToleranceFt = 1e-5;
@@ -149,7 +190,7 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Core.Services
         /// <summary>Cancellation is checked once per this many grid nodes or cells.</summary>
         private const int CancelCheckInterval = 256;
 
-        /// <summary>Runs steps 1–7.</summary>
+        /// <summary>Runs steps 1–7 (see the file header).</summary>
         /// <param name="input">Outline, drains, their groups and the drainage distance.</param>
         /// <param name="cancel">Cancels the search; checked per grid row and every 256 nodes or cells.</param>
         /// <returns>The ridge lines; none when there are fewer than two drain groups.</returns>
@@ -174,22 +215,24 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Core.Services
             var grid = new LabelGrid(input.Outline, field, input.MaxDistance, cancel);
             result.GridStep = grid.Step;
 
-            // ── 3–4. Crossings and segments ────────────────────────────────
+            // ── 3–4. Crossings, segments and junctions ─────────────────────
             var net = new RidgeNet();
             FindSegments(grid, field, input.Outline, net, cancel);
+            net.MergeJunctions(JunctionMergeFactor * grid.Step);
 
             // ── 5. Chain and straighten ────────────────────────────────────
             net.DropZeroLength();
             BridgeGaps(net, input.Outline, BridgeFactor * grid.Step);
             result.RidgeCount = net.PairCount();
-            List<(int A, int B)> lines = Straighten(net);
+            List<(int A, int B, (int, int) Pair)> lines = Straighten(net);
 
             // ── 6. Reach the roof edge ─────────────────────────────────────
             Point3[] at = net.Points.ToArray();
-            ReachEdge(lines, at, input.Outline, field, input.MaxDistance, grid.Step);
+            ReachEdge(lines, at, net.Junctions, input.Outline, field, input.MaxDistance, grid.Step);
 
-            foreach (var (a, b) in lines)
+            foreach (var (a, b, _) in lines)
                 result.Lines.Add(new RidgeLine(at[a], at[b]));
+            result.Junctions.AddRange(net.JunctionPoints());
             return result;
         }
 
@@ -234,18 +277,21 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Core.Services
         }
 
         // ------------------------------------------------------------------
-        // Steps 3–4: crossings and segments
+        // Steps 3–4: crossings, segments and junctions
         // ------------------------------------------------------------------
 
         /// <summary>
-        /// Walks the grid cells and adds each two-group cell's segments to <paramref name="net"/>. Sides
-        /// and segments that leave the roof (cross an outline edge) are left out.
+        /// Walks the grid cells and adds their segments, junctions and junction legs to
+        /// <paramref name="net"/>. Sides and segments that leave the roof (cross an outline edge) are
+        /// left out.
         /// </summary>
         private static void FindSegments(LabelGrid grid, GeodesicField field, RoofOutline outline, RidgeNet net, CancellationToken cancel)
         {
-            var crossingOfSide = new Dictionary<long, int>();
-            var corner = new int[4];   // labels, counter-clockwise from the lower-left corner
-            var side = new int[4];     // crossing on side k (corner k to corner k + 1), or -1
+            var crossingsOfSide = new Dictionary<long, (int, int)>();
+            var corner = new int[4];             // labels, counter-clockwise from the lower-left corner
+            var side = new int[4];               // first crossing on side k (corner k to corner k + 1), or -1
+            var crossings = new List<int>(8);    // every crossing of the cell
+            var groups = new List<int>(8);       // groups of the corners and the crossings, ascending
             int visited = 0;
 
             for (int j = 0; j < grid.Ny; j++)
@@ -259,29 +305,45 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Core.Services
                     corner[1] = grid.Label(i + 1, j);
                     corner[2] = grid.Label(i + 1, j + 1);
                     corner[3] = grid.Label(i, j + 1);
-                    // One group: no ridge here. Three or more: they meet in this cell (a junction), skipped.
-                    if (CountGroups(corner, out int ga, out int gb) != 2) continue;
+                    // One group: no ridge here.
+                    if (CountGroups(corner, out int ga, out int gb) < 2) continue;
 
+                    crossings.Clear();
                     int count = 0;
                     for (int k = 0; k < 4; k++)
                     {
                         side[k] = -1;
                         int a = corner[k], b = corner[(k + 1) % 4];
                         if (a < 0 || b < 0 || a == b) continue;
-                        side[k] = Crossing(grid, field, outline, net, crossingOfSide, i, j, k);
-                        if (side[k] >= 0) count++;
+                        var (first, second) = Crossings(grid, field, outline, net, crossingsOfSide, i, j, k);
+                        side[k] = first;
+                        if (first >= 0) { crossings.Add(first); count++; }
+                        if (second >= 0) crossings.Add(second);
                     }
 
-                    var pair = (Math.Min(ga, gb), Math.Max(ga, gb));
+                    groups.Clear();
+                    foreach (int g in corner)
+                        if (g >= 0 && !groups.Contains(g)) groups.Add(g);
+                    foreach (int c in crossings)
+                    {
+                        var (pa, pb) = net.PairOf(c);
+                        if (!groups.Contains(pa)) groups.Add(pa);
+                        if (!groups.Contains(pb)) groups.Add(pb);
+                    }
+                    groups.Sort();
+
+                    // Three or more groups meet in or next to this cell.
+                    if (groups.Count >= 3)
+                    {
+                        JunctionCell(grid, field, outline, net, i, j, groups, crossings);
+                        continue;
+                    }
+
+                    // Two groups (ga and gb): each side holds at most one crossing (two need a third group).
+                    var pair = (groups[0], groups[1]);
                     if (count == 2)
                     {
-                        int first = -1;
-                        for (int k = 0; k < 4; k++)
-                        {
-                            if (side[k] < 0) continue;
-                            if (first < 0) first = side[k];
-                            else Join(net, outline, first, side[k], pair);
-                        }
+                        Join(net, outline, crossings[0], crossings[1], pair);
                     }
                     else if (count == 4)
                     {
@@ -299,6 +361,144 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Core.Services
                     // side cut by the outline): no pair to join.
                 }
             }
+        }
+
+        /// <summary>
+        /// Step 4 for a cell where three or more groups show, at its corners or on its sides. When a
+        /// vertex (<see cref="FindVertex"/>) lies in the cell and the cell has three or more crossings,
+        /// the vertex is a junction joined to every crossing it sees. When no vertex search converged
+        /// (or ran off the roof) at all, the junction is the mean of three or more crossings, joined to
+        /// all of them. Otherwise the ridges only pass through: the two crossings of each pair that has
+        /// exactly two are joined, and the others are joined to the vertex next door, if one was found
+        /// (it merges with the junction of the cell that holds it).
+        /// </summary>
+        private static void JunctionCell(
+            LabelGrid grid, GeodesicField field, RoofOutline outline, RidgeNet net, int i, int j, List<int> groups, List<int> crossings)
+        {
+            if (crossings.Count == 0) return;
+            Point3 lo = grid.Node(i, j), hi = grid.Node(i + 1, j + 1);
+            Point3 mean = Mean(net, crossings);
+            Point3? vertex = FindVertex(field, outline, groups, mean, lo, hi, grid.Step, out bool unsolved);
+
+            if (vertex is Point3 v && crossings.Count >= 3 && InBox(v, lo, hi, OwnToleranceFt))
+            {
+                AddLegs(net, outline, v, crossings, own: true);
+                return;
+            }
+            if (unsolved && crossings.Count >= 3)
+            {
+                if (outline.Contains(mean)) AddLegs(net, outline, mean, crossings, own: true);
+                return;
+            }
+
+            var rest = new List<int>();
+            foreach (int x in crossings)
+            {
+                var pair = net.PairOf(x);
+                int other = -1, same = 0;
+                foreach (int y in crossings)
+                    if (net.PairOf(y) == pair) { same++; if (y != x) other = y; }
+                if (same != 2) rest.Add(x);
+                else if (x < other) Join(net, outline, x, other, pair);
+            }
+            if (rest.Count > 0 && vertex is Point3 near) AddLegs(net, outline, near, rest, own: false);
+        }
+
+        /// <summary>
+        /// Adds a junction at <paramref name="at"/> and a leg from it to each crossing it sees, tagged
+        /// with the crossing's pair. <paramref name="own"/>: the junction is this cell's own.
+        /// </summary>
+        private static void AddLegs(RidgeNet net, RoofOutline outline, Point3 at, List<int> crossings, bool own)
+        {
+            int id = net.AddJunction(at);
+            foreach (int x in crossings)
+                if (outline.IsVisible(at, net.Points[x])) net.AddLeg(id, x, net.PairOf(x), own);
+        }
+
+        /// <summary>
+        /// A vertex of the drain groups' Voronoi diagram near the cell (inside it grown by one step on
+        /// each side): a roof point where three of <paramref name="groups"/> are equally far and no other
+        /// group is nearer. Tries the triples of the (at most four) lowest ids, lowest first, each by
+        /// <see cref="SolveJunction"/> from <paramref name="start"/>. <paramref name="unsolved"/> is true
+        /// when no search converged or ran off the roof, so nothing is known about a vertex.
+        /// </summary>
+        private static Point3? FindVertex(
+            GeodesicField field, RoofOutline outline, List<int> groups, Point3 start, Point3 lo, Point3 hi, double step, out bool unsolved)
+        {
+            unsolved = true;
+            int n = Math.Min(groups.Count, MaxJunctionGroups);
+            for (int a = 0; a < n; a++)
+                for (int b = a + 1; b < n; b++)
+                    for (int c = b + 1; c < n; c++)
+                    {
+                        Point3? v = SolveJunction(field, outline, groups[a], groups[b], groups[c], start, step, out bool offRoof);
+                        if (v == null && !offRoof) continue;
+                        unsolved = false;
+                        if (v is Point3 p && InBox(p, lo, hi, step) && Intruder(field, p, groups[a], groups[b]) < 0) return p;
+                    }
+            return null;
+        }
+
+        /// <summary>
+        /// Newton's method on F = (D(a) − D(b), D(a) − D(c)) from <paramref name="start"/>, with a
+        /// central-difference Jacobian (step <paramref name="step"/> × 1e-3): at most 20 iterations,
+        /// done when a step is under 1e-7 ft. Null when it does not converge; then
+        /// <paramref name="offRoof"/> tells whether a step left the roof (the point is outside it).
+        /// </summary>
+        private static Point3? SolveJunction(
+            GeodesicField field, RoofOutline outline, int a, int b, int c, Point3 start, double step, out bool offRoof)
+        {
+            offRoof = false;
+            double e = step * JunctionJacobianFactor;
+            (double, double) F(double x, double y)
+            {
+                var p = new Point3(x, y, 0);
+                double da = field.DistanceTo(p, a);
+                return (da - field.DistanceTo(p, b), da - field.DistanceTo(p, c));
+            }
+
+            double jx = start.X, jy = start.Y;
+            for (int it = 0; it < MaxJunctionIterations; it++)
+            {
+                var (f1, f2) = F(jx, jy);
+                var (xp1, xp2) = F(jx + e, jy);
+                var (xm1, xm2) = F(jx - e, jy);
+                var (yp1, yp2) = F(jx, jy + e);
+                var (ym1, ym2) = F(jx, jy - e);
+                double j11 = (xp1 - xm1) / (2 * e), j21 = (xp2 - xm2) / (2 * e);
+                double j12 = (yp1 - ym1) / (2 * e), j22 = (yp2 - ym2) / (2 * e);
+                double det = j11 * j22 - j12 * j21;
+                double dx = -(j22 * f1 - j12 * f2) / det, dy = -(j11 * f2 - j21 * f1) / det;
+                if (!double.IsFinite(dx) || !double.IsFinite(dy)) return null;   // no unique point, or a group unreachable
+
+                jx += dx;
+                jy += dy;
+                var at = new Point3(jx, jy, 0);
+                if (!outline.Contains(at)) { offRoof = true; return null; }
+                if (Math.Sqrt(dx * dx + dy * dy) < JunctionToleranceFt) return at;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// A group nearer to <paramref name="x"/> than both <paramref name="ga"/> and
+        /// <paramref name="gb"/> (by more than 1e-6 ft), or -1 when there is none.
+        /// </summary>
+        private static int Intruder(GeodesicField field, Point3 x, int ga, int gb)
+        {
+            int g = field.Nearest(x, out double d);
+            if (g < 0 || g == ga || g == gb) return -1;
+            return d < Math.Min(field.DistanceTo(x, ga), field.DistanceTo(x, gb)) - IntruderToleranceFt ? g : -1;
+        }
+
+        private static bool InBox(Point3 p, Point3 lo, Point3 hi, double margin) =>
+            p.X >= lo.X - margin && p.X <= hi.X + margin && p.Y >= lo.Y - margin && p.Y <= hi.Y + margin;
+
+        private static Point3 Mean(RidgeNet net, List<int> ids)
+        {
+            double sx = 0, sy = 0;
+            foreach (int id in ids) { sx += net.Points[id].X; sy += net.Points[id].Y; }
+            return new Point3(sx / ids.Count, sy / ids.Count, 0);
         }
 
         /// <summary>Adds the segment between two crossings when it stays on the roof.</summary>
@@ -325,12 +525,15 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Core.Services
         }
 
         /// <summary>
-        /// The crossing on side <paramref name="k"/> of cell (i, j), computed once per side so the
-        /// two cells that share it share the point; -1 when the side leaves the roof.
+        /// The crossings on side <paramref name="k"/> of cell (i, j), computed once per side so the two
+        /// cells that share it share the points: none (-1, -1) when the side leaves the roof; else the
+        /// point where its two end groups are equally far. When a third group is nearer at that point
+        /// (its area cuts the side between the two corners), the side meets that area instead: the two
+        /// points where it begins and ends, each kept only when no fourth group is nearer there.
         /// </summary>
-        private static int Crossing(
+        private static (int First, int Second) Crossings(
             LabelGrid grid, GeodesicField field, RoofOutline outline, RidgeNet net,
-            Dictionary<long, int> crossingOfSide, int i, int j, int k)
+            Dictionary<long, (int, int)> crossingsOfSide, int i, int j, int k)
         {
             // Each side is stored by its lower-left node and direction (0 = towards +X, 1 = towards +Y).
             int ni, nj, dir;
@@ -342,16 +545,33 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Core.Services
                 default: ni = i; nj = j; dir = 1; break;        // left
             }
             long key = 2 * ((long)nj * (grid.Nx + 1) + ni) + dir;
-            if (crossingOfSide.TryGetValue(key, out int id)) return id;
+            if (crossingsOfSide.TryGetValue(key, out var ids)) return ids;
 
             int mi = dir == 0 ? ni + 1 : ni, mj = dir == 0 ? nj : nj + 1;
             Point3 p = grid.Node(ni, nj), q = grid.Node(mi, mj);
-            id = outline.IsVisible(p, q)
-                ? net.AddPoint(Bisect(field, p, grid.Label(ni, nj), q, grid.Label(mi, mj)))
-                : -1;
-            crossingOfSide[key] = id;
-            return id;
+            int gp = grid.Label(ni, nj), gq = grid.Label(mi, mj);
+            ids = (-1, -1);
+            if (outline.IsVisible(p, q))
+            {
+                Point3 x = Bisect(field, p, gp, q, gq);
+                int g = Intruder(field, x, gp, gq);
+                if (g < 0)
+                {
+                    ids = (net.AddPoint(x, Pair(gp, gq)), -1);
+                }
+                else
+                {
+                    Point3 x1 = Bisect(field, p, gp, x, g), x2 = Bisect(field, x, g, q, gq);
+                    int i1 = Intruder(field, x1, gp, g) < 0 ? net.AddPoint(x1, Pair(gp, g)) : -1;
+                    int i2 = Intruder(field, x2, g, gq) < 0 ? net.AddPoint(x2, Pair(g, gq)) : -1;
+                    ids = i1 >= 0 ? (i1, i2) : (i2, -1);
+                }
+            }
+            crossingsOfSide[key] = ids;
+            return ids;
         }
+
+        private static (int, int) Pair(int a, int b) => (Math.Min(a, b), Math.Max(a, b));
 
         /// <summary>
         /// The point between <paramref name="p"/> (nearest to group <paramref name="gp"/>) and
@@ -383,9 +603,9 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Core.Services
         // ------------------------------------------------------------------
 
         /// <summary>
-        /// Joins free ends (points on exactly one segment) of the same group pair that lie within
-        /// <paramref name="reach"/> of each other and see each other: closest pair first, each end
-        /// once, never two ends of the same piece (that would close it into a loop).
+        /// Joins free ends (points on exactly one segment, not junctions) of the same group pair that
+        /// lie within <paramref name="reach"/> of each other and see each other: closest pair first,
+        /// each end once, never two ends of the same piece (that would close it into a loop).
         /// </summary>
         private static void BridgeGaps(RidgeNet net, RoofOutline outline, double reach)
         {
@@ -409,7 +629,7 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Core.Services
 
             var ends = new List<int>();
             for (int v = 0; v < n; v++)
-                if (degree[v] == 1) ends.Add(v);
+                if (degree[v] == 1 && !net.Junctions.Contains(v)) ends.Add(v);
             ends.Sort((u, v) => net.Points[u].X.CompareTo(net.Points[v].X));
 
             // Sweep along X: only ends within `reach` in X can be within `reach`.
@@ -438,12 +658,13 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Core.Services
         }
 
         /// <summary>
-        /// Walks each run between nodes that are not simple links (ends and branch points), then each
-        /// remaining closed loop, and straightens it. Returns the lines as point pairs of the net.
+        /// Walks each run between nodes that are not simple links (ends, branch points, junctions and
+        /// points where the group pair changes), then each remaining closed loop, and straightens it.
+        /// Returns the lines as point pairs of the net, each with its run's group pair.
         /// </summary>
-        private static List<(int A, int B)> Straighten(RidgeNet net)
+        private static List<(int A, int B, (int, int) Pair)> Straighten(RidgeNet net)
         {
-            var lines = new List<(int A, int B)>();
+            var lines = new List<(int A, int B, (int, int) Pair)>();
             int n = net.Points.Count;
             var adj = new List<(int To, int Seg)>[n];
             for (int s = 0; s < net.Segments.Count; s++)
@@ -453,13 +674,19 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Core.Services
                 (adj[b] ??= new List<(int, int)>()).Add((a, s));
             }
 
+            // A run goes on only through a link: two segments of the same pair, not a junction.
+            bool IsLink(int v) =>
+                adj[v].Count == 2 && !net.Junctions.Contains(v) &&
+                net.Segments[adj[v][0].Seg].Pair == net.Segments[adj[v][1].Seg].Pair;
+
             var used = new bool[net.Segments.Count];
             void Walk(int start, int to, int seg)
             {
                 used[seg] = true;
+                var pair = net.Segments[seg].Pair;
                 var run = new List<int> { start, to };
                 int cur = to;
-                while (adj[cur].Count == 2)
+                while (IsLink(cur))
                 {
                     var next = adj[cur][0].Seg == seg ? adj[cur][1] : adj[cur][0];
                     if (used[next.Seg]) break;   // back at the start of a closed loop
@@ -484,12 +711,12 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Core.Services
 
                 for (int i = 1; i < ids.Count; i++)
                     if (ids[i - 1] != ids[i])   // a closed loop smaller than the tolerance
-                        lines.Add((ids[i - 1], ids[i]));
+                        lines.Add((ids[i - 1], ids[i], pair));
             }
 
-            // Ends and branch points first, so only closed loops start part-way along a run.
+            // Ends, branch points and junctions first, so only closed loops start part-way along a run.
             for (int v = 0; v < n; v++)
-                if (adj[v] != null && adj[v].Count != 2)
+                if (adj[v] != null && !IsLink(v))
                     foreach (var (to, seg) in adj[v])
                         if (!used[seg]) Walk(v, to, seg);
             for (int v = 0; v < n; v++)
@@ -546,15 +773,15 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Core.Services
         // ------------------------------------------------------------------
 
         /// <summary>
-        /// Moves every line end that no other line uses on along its line, away from the other end,
-        /// to the roof edge when <see cref="Reach"/> allows it. A junction always has three or more
-        /// lines, so it is never moved.
+        /// Moves every line end that no other line uses and that is not a junction on along its line,
+        /// away from the other end, to the roof edge when <see cref="Reach"/> allows it.
         /// </summary>
         private static void ReachEdge(
-            List<(int A, int B)> lines, Point3[] at, RoofOutline outline, GeodesicField field, double maxDistance, double step)
+            List<(int A, int B, (int, int) Pair)> lines, Point3[] at, ISet<int> junctions,
+            RoofOutline outline, GeodesicField field, double maxDistance, double step)
         {
             var uses = new Dictionary<int, int>();
-            foreach (var (a, b) in lines)
+            foreach (var (a, b, _) in lines)
             {
                 uses[a] = uses.TryGetValue(a, out int ua) ? ua + 1 : 1;
                 uses[b] = uses.TryGetValue(b, out int ub) ? ub + 1 : 1;
@@ -562,22 +789,25 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Core.Services
 
             // Directions come from the unmoved ends, so a line free at both ends keeps its direction.
             var moves = new List<(int Node, Point3 To)>();
-            foreach (var (a, b) in lines)
+            foreach (var (a, b, pair) in lines)
             {
-                if (uses[a] == 1 && Reach(at[a], at[b], outline, field, maxDistance, step) is Point3 ta) moves.Add((a, ta));
-                if (uses[b] == 1 && Reach(at[b], at[a], outline, field, maxDistance, step) is Point3 tb) moves.Add((b, tb));
+                if (uses[a] == 1 && !junctions.Contains(a) &&
+                    Reach(at[a], at[b], pair, outline, field, maxDistance, step) is Point3 ta) moves.Add((a, ta));
+                if (uses[b] == 1 && !junctions.Contains(b) &&
+                    Reach(at[b], at[a], pair, outline, field, maxDistance, step) is Point3 tb) moves.Add((b, tb));
             }
             foreach (var (node, to) in moves) at[node] = to;
         }
 
         /// <summary>
-        /// Where an open end at <paramref name="end"/> (line from <paramref name="other"/>) reaches the
-        /// outline, or null: the end must lie within <see cref="EndReachFactor"/> × step of the outline
-        /// (and not on it), the first edge along the line must be within <see cref="MaxReachFactor"/> ×
-        /// step, and that edge point must still be sloped (within the drainage distance of a drain).
+        /// Where an open end at <paramref name="end"/> (line from <paramref name="other"/>, between the
+        /// groups of <paramref name="pair"/>) reaches the outline, or null: the end must lie within
+        /// <see cref="EndReachFactor"/> × step of the outline (and not on it), the first edge along the
+        /// line must be within <see cref="MaxReachFactor"/> × step, and that edge point must still be
+        /// sloped by one of the line's own two groups (nearest to it, within the drainage distance).
         /// </summary>
         private static Point3? Reach(
-            Point3 end, Point3 other, RoofOutline outline, GeodesicField field, double maxDistance, double step)
+            Point3 end, Point3 other, (int A, int B) pair, RoofOutline outline, GeodesicField field, double maxDistance, double step)
         {
             outline.ClosestPoint(end, out double gap);
             if (gap > EndReachFactor * step || gap <= RoofOutline.OnEdgeTolerance) return null;
@@ -585,7 +815,8 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Core.Services
             // The first edge the ray meets, so the way there stays on the roof.
             Point3? hit = outline.RayHit(end, end.X - other.X, end.Y - other.Y, MaxReachFactor * step);
             if (hit == null) return null;
-            if (field.Nearest(hit.Value, out double d) < 0 || !(d <= maxDistance)) return null;
+            int g = field.Nearest(hit.Value, out double d);
+            if ((g != pair.A && g != pair.B) || !(d <= maxDistance)) return null;
             return hit;
         }
 
@@ -636,21 +867,117 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Core.Services
             public int Label(int i, int j) => _label[j * (Nx + 1) + i];
         }
 
-        /// <summary>Ridge points and the segments between them, each tagged with its group pair.</summary>
+        /// <summary>
+        /// Ridge points and the segments between them, each tagged with its group pair, and which
+        /// points are junctions.
+        /// </summary>
         private sealed class RidgeNet
         {
+            /// <summary>
+            /// Junction legs (junction, crossing, pair, whether the junction is the cell's own) until
+            /// <see cref="MergeJunctions"/>.
+            /// </summary>
+            private readonly List<(int J, int X, (int, int) Pair, bool Own)> _legs = new List<(int, int, (int, int), bool)>();
+
+            /// <summary>The group pair of each crossing; (-1, -1) for a junction.</summary>
+            private readonly List<(int, int)> _pairs = new List<(int, int)>();
+
             public List<Point3> Points { get; } = new List<Point3>();
 
             public List<(int A, int B, (int, int) Pair)> Segments { get; private set; } =
                 new List<(int, int, (int, int))>();
 
-            public int AddPoint(Point3 p)
+            /// <summary>The points that are junctions (where three or more groups meet).</summary>
+            public HashSet<int> Junctions { get; private set; } = new HashSet<int>();
+
+            public int AddPoint(Point3 p, (int, int) pair)
             {
                 Points.Add(p);
+                _pairs.Add(pair);
                 return Points.Count - 1;
             }
 
+            public (int, int) PairOf(int point) => _pairs[point];
+
+            public int AddJunction(Point3 p)
+            {
+                int id = AddPoint(p, (-1, -1));
+                Junctions.Add(id);
+                return id;
+            }
+
             public void AddSegment(int a, int b, (int, int) pair) => Segments.Add((a, b, pair));
+
+            public void AddLeg(int junction, int crossing, (int, int) pair, bool own) =>
+                _legs.Add((junction, crossing, pair, own));
+
+            /// <summary>
+            /// Junctions closer than <paramref name="radius"/> become one point at their mean (chains
+            /// too), and the legs move with them into the segments. A crossing that two cells both join
+            /// to their own junction, now one point, lies on the side between those cells: the ridge
+            /// through it runs on to a further crossing that has its own leg, so both legs to it go.
+            /// </summary>
+            public void MergeJunctions(double radius)
+            {
+                var ids = new List<int>(Junctions);
+                ids.Sort((u, v) => Points[u].X.CompareTo(Points[v].X));
+                var parent = new Dictionary<int, int>();
+                foreach (int id in ids) parent[id] = id;
+                int Root(int x)
+                {
+                    while (parent[x] != x) { parent[x] = parent[parent[x]]; x = parent[x]; }
+                    return x;
+                }
+
+                // Sweep along X: only junctions within `radius` in X can be within `radius`.
+                for (int i = 0; i < ids.Count; i++)
+                    for (int k = i + 1; k < ids.Count; k++)
+                    {
+                        Point3 p = Points[ids[i]], q = Points[ids[k]];
+                        if (q.X - p.X >= radius) break;
+                        if (p.DistanceXY(q) >= radius) continue;
+                        int ra = Root(ids[i]), rb = Root(ids[k]);
+                        if (ra != rb) parent[Math.Max(ra, rb)] = Math.Min(ra, rb);
+                    }
+
+                var sum = new Dictionary<int, (double X, double Y, int N)>();
+                foreach (int id in ids)
+                {
+                    int r = Root(id);
+                    var (x, y, n) = sum.TryGetValue(r, out var t) ? t : (0.0, 0.0, 0);
+                    sum[r] = (x + Points[id].X, y + Points[id].Y, n + 1);
+                }
+                foreach (var (r, (x, y, n)) in sum) Points[r] = new Point3(x / n, y / n, 0);
+                Junctions = new HashSet<int>(sum.Keys);
+
+                var owners = new Dictionary<(int, int), int>();
+                foreach (var (jn, x, _, own) in _legs)
+                    if (own) owners[(Root(jn), x)] = owners.TryGetValue((Root(jn), x), out int o) ? o + 1 : 1;
+                var added = new HashSet<(int, int)>();
+                foreach (var (jn, x, pair, _) in _legs)
+                {
+                    var leg = (Root(jn), x);
+                    if (owners.TryGetValue(leg, out int o) && o >= 2) continue;
+                    if (added.Add(leg)) Segments.Add((leg.Item1, x, pair));
+                }
+                _legs.Clear();
+            }
+
+            /// <summary>The junctions that end three or more segments, ascending by (X, Y).</summary>
+            public List<Point3> JunctionPoints()
+            {
+                var degree = new Dictionary<int, int>();
+                foreach (var (a, b, _) in Segments)
+                {
+                    degree[a] = degree.TryGetValue(a, out int da) ? da + 1 : 1;
+                    degree[b] = degree.TryGetValue(b, out int db) ? db + 1 : 1;
+                }
+                var points = new List<Point3>();
+                foreach (int j in Junctions)
+                    if (degree.TryGetValue(j, out int d) && d >= 3) points.Add(Points[j]);
+                points.Sort((p, q) => p.X != q.X ? p.X.CompareTo(q.X) : p.Y.CompareTo(q.Y));
+                return points;
+            }
 
             /// <summary>
             /// Drops segments shorter than <see cref="ZeroLengthFt"/>, joining their ends into one
@@ -700,6 +1027,10 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Core.Services
                     kept.Add((ra, rb, pair));
                 }
                 Segments = kept;
+
+                var junctions = new HashSet<int>();
+                foreach (int j in Junctions) junctions.Add(Root(j));
+                Junctions = junctions;
             }
 
             /// <summary>Number of different group pairs among the segments.</summary>

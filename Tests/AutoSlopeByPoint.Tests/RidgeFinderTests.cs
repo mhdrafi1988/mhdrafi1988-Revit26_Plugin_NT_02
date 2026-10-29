@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Core.Models;
@@ -167,6 +169,146 @@ namespace AutoSlopeByPoint.Tests
             Assert.True(Near(l.A, 30, 25, 0.05) || Near(l.B, 30, 25, 0.05), $"{l.A} – {l.B}");
             double yRight = 25 + 30 * uy / ux;                      // the other end, on x = 60
             Assert.True(Near(l.A, 60, yRight, 0.05) || Near(l.B, 60, yRight, 0.05), $"{l.A} – {l.B}");
+        }
+
+        [Fact] public void MaxDistance_ClippedEnd_IsNotPushedIntoAnotherGroupsSlope()
+        {
+            // The a–b ridge is cut off by the drainage distance 2h before the top edge (10° to it). The edge
+            // point beyond the cut-off is sloped, but only by a third drain c 22 ft away; a and b do not reach
+            // it. The end must stay at the cut-off, so no line runs over roof that no drain slopes.
+            var ab = DrainsMeetingTopEdge(10, 25, out double ux, out double uy);
+            double h = Math.Sqrt(60 * 40 / 40000.0), s = 2 * h / Math.Sin(10 * Math.PI / 180);
+            double cutX = 30 + s * ux, cutY = 25 + s * uy;
+            double max = Math.Sqrt((cutX - ab[0].X) * (cutX - ab[0].X) + (cutY - ab[0].Y) * (cutY - ab[0].Y));
+            var drains = ab.Append((X: 10.3, Y: 34.7)).ToArray();
+            var r = TestRoofs.Find(Trapezoid(), drains, maxDistance: max);
+            Assert.NotEmpty(r.Lines);
+            foreach (var l in r.Lines)
+                for (int k = 0; k <= 20; k++)
+                {
+                    double x = l.A.X + k / 20.0 * (l.B.X - l.A.X), y = l.A.Y + k / 20.0 * (l.B.Y - l.A.Y);
+                    double d = drains.Min(q => Math.Sqrt((q.X - x) * (q.X - x) + (q.Y - y) * (q.Y - y)));
+                    Assert.True(d <= max + 1e-3, $"({x:0.###}, {y:0.###}) on {l.A} – {l.B} is {d - max:0.###} ft past the slope");
+                }
+            Assert.DoesNotContain(r.Lines.SelectMany(l => new[] { l.A, l.B }), p => Near(p, 30, 25, 0.5));
+        }
+
+        [Fact] public void ThreeDrains_JunctionIsTheCircumcentre()   // Voronoi vertex = Delaunay circumcentre
+        {
+            var r = TestRoofs.Find(TestRoofs.Rectangle(), new[] { (6.0, 6.0), (34.0, 8.0), (18.0, 20.0) });
+            var j = Assert.Single(r.Junctions);
+            Assert.True(Near(j, 14768.0 / 736, 4480.0 / 736, 1e-3), $"junction at {j}");
+            Assert.Equal(3, r.Lines.Count); Assert.Equal(3, r.RidgeCount);
+            Assert.All(r.Lines, l => Assert.True(Near(l.A, j.X, j.Y, 1e-6) || Near(l.B, j.X, j.Y, 1e-6)));
+        }
+
+        [Fact] public void FourDrainsInASquare_OneFourWayJunction()
+        {
+            var r = TestRoofs.Find(TestRoofs.Rectangle(), new[] { (10.0, 6.0), (30.0, 6.0), (10.0, 18.0), (30.0, 18.0) });
+            var j = Assert.Single(r.Junctions);
+            Assert.True(Near(j, 20, 12, 1e-3));
+            Assert.Equal(4, r.Lines.Count); Assert.Equal(4, r.RidgeCount);
+        }
+
+        // Three drains 5 ft from V at the given angles (degrees). On the 40 × 24 roof the grid step is
+        // RidgeFinder.MinGridStepFt and the nodes sit at multiples of it.
+        static (double X, double Y)[] DrainsRound(double vx, double vy, params double[] deg) =>
+            deg.Select(a => (vx + 5 * Math.Cos(a * Math.PI / 180), vy + 5 * Math.Sin(a * Math.PI / 180))).ToArray();
+
+        static void AssertThreeLinesMeetAt(RidgeResult r, double vx, double vy)
+        {
+            var j = Assert.Single(r.Junctions);
+            Assert.True(Near(j, vx, vy, 1e-3), $"junction at {j}");
+            Assert.Equal(3, r.Lines.Count);
+            Assert.All(r.Lines, l => Assert.True(Near(l.A, j.X, j.Y, 1e-6) || Near(l.B, j.X, j.Y, 1e-6), $"{l.A} – {l.B}"));
+        }
+
+        [Fact] public void JunctionInACellWhoseCornersShowTwoGroups_ThreeLinesMeetThere()
+        {
+            // V sits 0.6 h above a grid line and c's area (below V, 60° wide) passes between the two lower
+            // corners of V's cell, so the corners show only a and b. The a–b tie on that side lies in c's area,
+            // 0.098 ft below V: joined to it, the a–b ridge would fold back on itself.
+            double h = RidgeFinder.MinGridStepFt, vx = 122.5 * h, vy = 37.6 * h;
+            var r = TestRoofs.Find(TestRoofs.Rectangle(), DrainsRound(vx, vy, 330, 210, 270));
+            AssertThreeLinesMeetAt(r, vx, vy);
+        }
+
+        [Fact] public void JunctionOnAGridNode_ThreeLinesMeetThere()
+        {
+            double h = RidgeFinder.MinGridStepFt, vx = 122 * h, vy = 37 * h;
+            var r = TestRoofs.Find(TestRoofs.Rectangle(), DrainsRound(vx, vy, 90, 210, 330));
+            AssertThreeLinesMeetAt(r, vx, vy);
+        }
+
+        [Fact] public void JunctionNextToAGridNode_ThreeLinesMeetThere()
+        {
+            // V ≈ (18.6933, 18.8796) lies 0.05 h left of and 0.09 h above a grid node, so the cells round
+            // that node show three groups although only one holds V (a case found by random testing).
+            var drains = new[] { (29.112862, 7.470299), (9.57859, 6.403148), (34.022788, 20.815098) };
+            var r = TestRoofs.Find(TestRoofs.Rectangle(), drains);
+            var j = Assert.Single(r.Junctions);
+            AssertThreeLinesMeetAt(r, j.X, j.Y);
+            Assert.True(Near(j, 18.6933, 18.8796, 1e-3), $"junction at {j}");
+        }
+
+        [Fact] public void VertexJustOutsideTheRoof_TwoLinesToTheEdge_NoJunction()
+        {
+            // V = (20.1, −0.05) is outside, below the bottom edge. Only the a–b and b–c ridges reach the roof,
+            // meeting the edge 0.035 ft either side of x = V.x; between them b's area touches the edge.
+            double h = RidgeFinder.MinGridStepFt, vx = 122.5 * h, vy = -0.05;
+            var r = TestRoofs.Find(TestRoofs.Rectangle(), DrainsRound(vx, vy, 20, 90, 160));
+            Assert.Empty(r.Junctions);
+            Assert.Equal(2, r.Lines.Count); Assert.Equal(2, r.RidgeCount);
+            double dx = 0.05 / Math.Tan(55 * Math.PI / 180);
+            var ends = r.Lines.SelectMany(l => new[] { l.A, l.B }).ToList();
+            Assert.Contains(ends, p => Near(p, vx - dx, 0, 1e-3));
+            Assert.Contains(ends, p => Near(p, vx + dx, 0, 1e-3));
+        }
+
+        // Proper crossing: each line has its ends strictly on both sides of the other (a shared end is not one).
+        static bool Cross(RidgeLine p, RidgeLine q)
+        {
+            static double Side(Point3 a, Point3 b, Point3 c) => (b.X - a.X) * (c.Y - a.Y) - (b.Y - a.Y) * (c.X - a.X);
+            const double e = 1e-7;
+            double d1 = Side(p.A, p.B, q.A), d2 = Side(p.A, p.B, q.B), d3 = Side(q.A, q.B, p.A), d4 = Side(q.A, q.B, p.B);
+            return ((d1 > e && d2 < -e) || (d1 < -e && d2 > e)) && ((d3 > e && d4 < -e) || (d3 < -e && d4 > e));
+        }
+
+        [Theory, InlineData(0.1), InlineData(0.3)]
+        public void JunctionNearTheEdge_NoLinesCross(double vy)
+        {
+            // Three drains round the Voronoi vertex V = (20, vy), just inside the bottom edge: a and b mirror each
+            // other about the a–b ridge, which leaves V at 15° to the edge; c is as far from V, up and to the left.
+            double t = 15 * Math.PI / 180, ux = Math.Cos(t), uy = Math.Sin(t);
+            double mx = 20 + 10 * ux, my = vy + 10 * uy, radius = Math.Sqrt(104), cl = Math.Sqrt(0.958 * 0.958 + 0.287 * 0.287);
+            var drains = new[] { (mx - 2 * uy, my + 2 * ux), (mx + 2 * uy, my - 2 * ux),
+                                 (20 - radius * 0.958 / cl, vy + radius * 0.287 / cl) };
+            var r = TestRoofs.Find(TestRoofs.Rectangle(), drains);
+            for (int i = 0; i < r.Lines.Count; i++)
+                for (int k = i + 1; k < r.Lines.Count; k++)
+                    Assert.False(Cross(r.Lines[i], r.Lines[k]), $"{r.Lines[i].A} – {r.Lines[i].B} crosses {r.Lines[k].A} – {r.Lines[k].B}");
+            var j = Assert.Single(r.Junctions);
+            Assert.True(Near(j, 20, vy, 1e-3), $"junction at {j}");
+            Assert.Equal(3, r.Lines.Count);
+        }
+
+        [Fact] public void LargeRoof_FinishesInSeconds()
+        {
+            var holes = new[] { TestRoofs.Box(30, 20, 40, 30), TestRoofs.Box(80, 60, 95, 70),
+                                TestRoofs.Box(110, 15, 120, 40), TestRoofs.Circle(150, 50, 6, 72) };
+            var outline = new RoofOutline(new[] { TestRoofs.Box(0, 0, 200, 100) }.Concat(holes));
+            var rnd = new Random(33);
+            var drains = new List<(double X, double Y)>();
+            while (drains.Count < 30)                       // each its own group, ≥ 1 away from every opening's box
+            {
+                double x = 2 + rnd.NextDouble() * 196, y = 2 + rnd.NextDouble() * 96;
+                if (holes.All(h => x < h.Min(q => q.X) - 1 || x > h.Max(q => q.X) + 1
+                                || y < h.Min(q => q.Y) - 1 || y > h.Max(q => q.Y) + 1)) drains.Add((x, y));
+            }
+            var watch = Stopwatch.StartNew();
+            RidgeResult r = TestRoofs.Find(outline, drains.ToArray());
+            Assert.NotEmpty(r.Lines); Assert.NotEmpty(r.Junctions);
+            Assert.True(watch.Elapsed.TotalSeconds < 10, $"took {watch.Elapsed.TotalSeconds:0.0} s");
         }
 
         [Fact] public void OneDrain_NoLines() =>
