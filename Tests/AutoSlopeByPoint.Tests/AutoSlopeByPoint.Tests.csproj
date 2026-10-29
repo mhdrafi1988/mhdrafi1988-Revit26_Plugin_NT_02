@@ -24,6 +24,7 @@
     <Compile Include="$(ToolDir)Core\Services\SpatialGrid2D.cs" Link="Tool\Services\SpatialGrid2D.cs" />
     <Compile Include="$(ToolDir)Core\Services\RoofOutline.cs" Link="Tool\Services\RoofOutline.cs" />
     <Compile Include="$(ToolDir)Core\Services\ShortestPathSolver.cs" Link="Tool\Services\ShortestPathSolver.cs" />
+    <Compile Include="$(ToolDir)Core\Services\GeodesicField.cs" Link="Tool\Services\GeodesicField.cs" />
     <Compile Include="$(ToolDir)Core\Services\RidgeFinder.cs" Link="Tool\Services\RidgeFinder.cs" />
     <Compile Include="$(ToolDir)Infrastructure\Helpers\AutoSlopeSettingsStore.cs" Link="Tool\Helpers\AutoSlopeSettingsStore.cs" />
   </ItemGroup>
