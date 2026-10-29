@@ -8,12 +8,14 @@
 //     is not pushed towards whichever loop happens to sit higher (D3).
 //   - IsPointOnFace removed (unused in V030).
 //   - 32.3.0: GetOuterBoundaryCorners for the corner Offset notes.
+//   - 33.1.0: GetOutlineLoops, the plan outline for the ridge finder.
 // =======================================================
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Autodesk.Revit.DB;
+using Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Core.Models;
 
 namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Infrastructure.RoofOps
 {
@@ -62,6 +64,38 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Infrastructure.RoofOps
                 if (curves.Count > 0) loops.Add(curves);
             }
             return loops;
+        }
+
+        /// <summary>
+        /// The top face's loops (outer boundary and every opening) as plan polylines for the ridge
+        /// finder (33.1.0): each curve's tessellated points except its last, which is the next curve's
+        /// first, with Z = 0. Returns an empty list for a null face or when the loops can't be read.
+        /// </summary>
+        /// <param name="topFace">The roof's top face.</param>
+        public static List<List<Point3>> GetOutlineLoops(Face topFace)
+        {
+            var loops = new List<List<Point3>>();
+            if (topFace == null) return loops;
+
+            try
+            {
+                foreach (CurveLoop loop in topFace.GetEdgesAsCurveLoops())
+                {
+                    var pts = new List<Point3>();
+                    foreach (Curve curve in loop)
+                    {
+                        IList<XYZ> t = curve.Tessellate();
+                        for (int i = 0; i < t.Count - 1; i++)
+                            pts.Add(new Point3(t[i].X, t[i].Y, 0));
+                    }
+                    if (pts.Count > 0) loops.Add(pts);
+                }
+                return loops;
+            }
+            catch (Exception)
+            {
+                return new List<List<Point3>>();
+            }
         }
 
         /// <summary>

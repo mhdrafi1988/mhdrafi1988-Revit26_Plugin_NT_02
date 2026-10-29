@@ -17,7 +17,6 @@
 // =======================================================
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -116,13 +115,9 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Infrastructure.RoofOps
             cancel.ThrowIfCancellationRequested();
 
             // ── 3b. Ridge lines (V033): worked out here, drawn inside the transaction ──
-            List<Point3> ridgePositions = null;
             RidgeResult ridges = null;
             if (request.DrawRidgeLines)
-            {
-                ridgePositions = prep.Positions.Select(p => p.ToPoint3()).ToList();
-                ridges = FindRidges(ridgePositions, graph, paths, drains, request, log, cancel);
-            }
+                ridges = FindRidges(prep, drains, request, log, cancel);
 
             // ── 4. Apply + markers (one transaction, one undo step) ────────
             ApplyOutcome applied;
@@ -164,7 +159,7 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Infrastructure.RoofOps
                 if (ridges != null)
                 {
                     progress(RunPhases.Report(RunPhase.PlacingRidgeLines));
-                    ridgeLines = RidgeLineService.Place(doc, uidoc.ActiveView, ridgePositions, ridges, request, log);
+                    ridgeLines = RidgeLineService.Place(doc, uidoc.ActiveView, ridges, request, log);
                 }
 
                 cancel.ThrowIfCancellationRequested();
@@ -251,14 +246,13 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Infrastructure.RoofOps
         }
 
         /// <summary>
-        /// V033: finds the ridges between drain groups from this run's values. Returns null (with a
-        /// log line) when there is nothing to draw or the ridges could not be worked out; the slope
-        /// is applied either way.
+        /// V033: finds the ridge lines between drain groups at the true watershed (33.1.0): where two
+        /// groups are equally far away across the roof outline, with the drainage distance as the
+        /// limit. Returns null (with a log line) when there is nothing to draw or the ridges could not
+        /// be worked out; the slope is applied either way. Only cancellation is passed on.
         /// </summary>
         private static RidgeResult FindRidges(
-            List<Point3> positions,
-            PathGraph graph,
-            ShortestPathResult paths,
+            PreparedRoof prep,
             DrainResolution drains,
             AutoSlopeRequest request,
             Action<LogLevel, string> log,
@@ -271,44 +265,36 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Infrastructure.RoofOps
                 return null;
             }
 
-            int n = positions.Count;
-            double maxDistFt = RevitConvert.MToFt(request.MaxDrainDistanceM);
-            double slopeFactor = request.SlopePercent / 100.0;
-            var groupOf = new int[n];
-            var elevation = new double[n];
-            var isDrain = new bool[n];
-            for (int i = 0; i < n; i++)
-            {
-                double d = paths.Distance[i];
-                int source = paths.SourceDrain[i];
-                int group = -1;
-                bool sloped = !double.IsInfinity(d) && d <= maxDistFt && source >= 0
-                              && drains.GroupOfDrain.TryGetValue(source, out group);
-                groupOf[i] = sloped ? group : -1;
-                elevation[i] = sloped ? d * slopeFactor : 0;   // same value ElevationApplier writes
-                isDrain[i] = drains.GroupOfDrain.ContainsKey(i);
-            }
-
             try
             {
                 var clock = Stopwatch.StartNew();
-                RidgeResult ridges = RidgeFinder.Find(new RidgeInput
+                var drainVertices = drains.GroupOfDrain.Keys.OrderBy(k => k).ToList();
+                var outline = new RoofOutline(AutoSlopeGeometry.GetOutlineLoops(prep.TopFace));
+                if (outline.Loops.Count == 0)
                 {
-                    Positions = positions,
-                    Graph = graph,
-                    GroupOf = groupOf,
-                    Elevation = elevation,
-                    IsDrain = isDrain,
-                    TieTolerance = RevitConvert.MmToFt(AutoSlopeConstants.RidgeTieToleranceMm)
+                    log(LogLevel.Warning, "Ridge lines skipped: the roof outline could not be read. The slope is applied as usual.");
+                    return null;
+                }
+
+                RidgeResult r = RidgeFinder.Find(new RidgeInput
+                {
+                    Outline = outline,
+                    Drains = drainVertices.Select(k => prep.Positions[k].ToPoint3()).ToList(),
+                    DrainGroup = drainVertices.Select(k => drains.GroupOfDrain[k]).ToList(),
+                    MaxDistance = RevitConvert.MToFt(request.MaxDrainDistanceM)
                 }, cancel);
 
-                if (ridges.Lines.Count == 0)
+                if (r.DrainsMoved > 0)
+                    log(LogLevel.Warning, $"Ridge lines: {r.DrainsMoved} drain point(s) lay just outside the roof outline and were moved onto it.");
+                if (r.DrainsOutside > 0)
+                    log(LogLevel.Warning, $"Ridge lines: {r.DrainsOutside} drain point(s) are outside the roof outline and were left out of the ridge lines.");
+                if (r.Lines.Count == 0)
                 {
                     log(LogLevel.Info, "Ridge lines: no ridge was found between the drain groups.");
                     return null;
                 }
-                log(LogLevel.Info, $"Ridge lines: {ridges.RidgePoints.Count} ridge point(s), {ridges.Junctions.Count} junction(s), {ridges.Lines.Count} line(s), found in {clock.Elapsed.TotalSeconds:0.0} s.");
-                return ridges;
+                log(LogLevel.Info, $"Ridge lines: {r.Lines.Count} line(s), {r.Junctions.Count} junction(s), {r.RidgeCount} ridge(s), grid {RevitConvert.FtToMm(r.GridStep):0} mm, found in {clock.Elapsed.TotalSeconds:0.0} s.");
+                return r;
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
