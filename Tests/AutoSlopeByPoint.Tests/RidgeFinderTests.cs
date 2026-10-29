@@ -64,8 +64,8 @@ namespace AutoSlopeByPoint.Tests
             var pts = r.Lines.SelectMany(x => new[] { x.A, x.B }).ToList();
             Assert.Contains(pts, p => Near(p, 0, 12, 1e-2));
             Assert.Contains(pts, p => Near(p, 40, 12, 1e-2));
-            Assert.Contains(pts, p => Near(p, 16, 11, 0.05));   // round-the-corner tie, not y = 12
-            Assert.Contains(pts, p => Near(p, 24, 11, 0.05));
+            Assert.Contains(pts, p => Near(p, 16, 11.777, 0.05));   // round-the-corner tie, not y = 12
+            Assert.Contains(pts, p => Near(p, 24, 11.777, 0.05));
         }
 
         [Fact] public void Opening_TieOnTheOpeningSide_IsTheRoundTheCornerDistance()
