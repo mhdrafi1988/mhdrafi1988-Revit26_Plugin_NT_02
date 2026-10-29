@@ -9,6 +9,77 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.18.0] — 2026-10-28
+
+### Added
+- **Tag To Text v1.1.0** — work with the tag table by tag type (the Type column: Spot Elevation, Spot Slope,
+  Roof Tags, Door Tags, Room Tags…):
+  - **Group by type** (above the table): one collapsible heading per type, showing "3 of 5 ticked". Each heading
+    has a tick box that ticks every tag of that type, or clears them when they are all ticked; a partly ticked
+    type shows a partial tick, and clicking it ticks the rest. Groups stay in the table's order (spots first)
+    when a column is sorted.
+  - **Type** list with **Select Type** / **Clear Type**: tick or clear every tag of one type, grouped or not.
+    The list shows only the types the Source tick boxes show, with how many tags each has.
+  - Tags that can't be copied are never ticked, the same as **Select All**.
+
+### Changed
+- **Tag To Text** — in the table, element tags and room/area tags are now listed by type name, then by text
+  (spots still come first). Before, all element tags were sorted by text only, so types were mixed.
+- **Tag To Text** — changing the Source tick boxes, grouping or reloading the list while a text is being edited
+  now ends the edit first, so it can't stop with an error.
+- **User note:** the table opens **grouped by type** (also with settings saved by v1.0.x). Untick
+  **Group by type** to get the flat list back; the choice is remembered. The settings file is now version 2;
+  older files are read as before.
+
+## [6.17.0] — 2026-10-28
+
+### Added
+- **Roof Edge Around Sections v7.2.0 (V007)** — choose which created sections to open. With **Open Views After
+  Creation** set to **Ask Me**, a panel now opens inside the tool window after a run. It lists every section just
+  created (name, roof, direction) with a checkbox, a search box, Select All / Clear, and **Open selected**. Only the
+  ticked sections open. Close, Esc or a click outside the panel closes it without opening anything. Views that
+  cannot be opened are listed in the log.
+
+### Changed
+- **Roof Edge Around Sections v7.2.0 (V007)** — Run turns off after a run that created sections. After a run the
+  tool re-scans the roofs and finds the same edges again (with new names, because the views now exist), so a second
+  click made duplicate sections. Run comes back on when you click **Refresh** or change a setting (distances, view
+  template, merge, or naming). A run that created nothing can be retried straight away.
+- **Roof Edge Around Sections** — the tool's Revit event handler now goes through the plugin's standard error
+  handling (`ToolGuard`), so an unexpected error is shown and written to `%AppData%\Revit26_Plugin_Revised\Logs`.
+- **User note:** "Ask Me" no longer asks Yes/No to open all sections; tick the ones you want in the list instead.
+  "Open All" and "Don't Open" work as before. Old settings files load unchanged.
+
+### Fixed
+- **Roof Edge Around Sections v7.2.0 (V007)** and **Roof Edge Element Sections v4.1.2 (V004)** — switching to another
+  open project while the tool window was open made Refresh and Run work on that other project, using roofs and edges
+  from the first one, so section views could be created in the wrong project. Both tools now refuse, and the log names
+  the project to switch back to. Run also refuses on a read-only project.
+- **Roof Edge Element Sections** — its Revit event handler now goes through the plugin's standard error handling
+  (`ToolGuard`), like Roof Edge Around Sections.
+- **User note:** if the log says another project is active, switch back to the project the window was opened in and
+  click **Refresh** (the planned-sections list is cleared when a refresh is refused).
+
+## [6.16.1] — 2026-10-28
+
+### Fixed
+- **Creaser Adv v12.0.3 (V012)**, and V011 with the same fix (no version entry) — errors could crash Revit.
+  V011 and V012 had lost the plugin's standard error handling (`ToolGuard`), so an error outside the run's own
+  error handling went straight into Revit. That happened when Run was pressed with no project open, when Revit
+  refused to start the edit, or when reporting a failed run back to the window failed too. The command and the
+  run now go through `ToolGuard`; the window is always told when the run ends, so Run never stays locked.
+- **Creaser Adv** — Run used whichever project was active, with the roof and detail item picked in the project
+  the window was opened for. It now refuses, and says which project to switch back to. It also refuses on a
+  read-only project.
+- **Creaser Adv** — large roofs ran much slower than needed, which could leave Revit "Not Responding":
+  - each roof face is checked once per solid, instead of up to four times for every edge it touches;
+  - merging line ends in the drain-path (Dijkstra) step looks only at nearby points instead of every point;
+  - the tool's log file stays open while the window is open, instead of being opened and closed for every line;
+  - the log list scrolls once per batch of new lines, instead of once per line.
+- **User note:** results are unchanged. An unexpected error during Run now also shows the standard error dialog
+  and is written to `%AppData%\Revit26_Plugin_Revised\Logs` (it used to appear only in the tool's log).
+  Pressing Run after switching to another project now shows an error in the log instead of running.
+
 ## [6.16.0] — 2026-10-28
 
 ### Added

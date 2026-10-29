@@ -10,8 +10,13 @@ using Revit26_Plugin_Revised.Shared.Services;
 
 namespace Revit26_Plugin_Revised.CreaserAdv.V011.Views
 {
+    /// <summary>Modeless Creaser Adv window; the run itself goes through <c>CreaserAdvHandler</c>.</summary>
     public partial class CreaserAdvWindow : Window
     {
+        /// <summary>True while a scroll to the newest log line is queued.</summary>
+        private bool _scrollQueued;
+
+        /// <summary>Creates the window bound to <paramref name="viewModel"/>.</summary>
         public CreaserAdvWindow(CreaserAdvViewModel viewModel)
         {
             InitializeComponent();
@@ -24,13 +29,17 @@ namespace Revit26_Plugin_Revised.CreaserAdv.V011.Views
 
         private void OnLogChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            if (e.Action != NotifyCollectionChangedAction.Add || LogList.Items.Count == 0)
+            if (e.Action != NotifyCollectionChangedAction.Add || _scrollQueued)
                 return;
 
             // Deferred: scrolling inside CollectionChanged makes WPF throw
             // "ItemsControl is inconsistent with its items source".
+            // One scroll per burst: a large run posts thousands of lines at once,
+            // and a scroll per line keeps the window busy after the run ends.
+            _scrollQueued = true;
             Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Background, new System.Action(() =>
             {
+                _scrollQueued = false;
                 if (LogList.Items.Count > 0)
                     LogList.ScrollIntoView(LogList.Items[LogList.Items.Count - 1]);
             }));

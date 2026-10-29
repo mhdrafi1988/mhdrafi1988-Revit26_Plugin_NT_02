@@ -177,6 +177,8 @@ namespace Revit26_Plugin_Revised.RoofEdgeElementSections.V004
             LoadNamingTokenChips();
             UpdateNamingPreview();
 
+            // Every handler action refuses to run while another project is active.
+            _handler.TargetDocument = _doc;
             _handler.OnPlanBuilt = OnPlanBuilt;
             _handler.OnRunComplete = OnRunComplete;
 
