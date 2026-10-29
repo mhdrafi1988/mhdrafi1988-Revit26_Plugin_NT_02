@@ -149,11 +149,17 @@ public partial class ViewsListViewModel : ObservableObject
     private readonly DispatcherTimer _previewTimer;
     private bool _suppressSelectionPreview;
 
+    // Filter changes are debounced so typing or a group tick doesn't re-filter thousands of rows per event.
+    private readonly DispatcherTimer _refreshTimer = new() { Interval = TimeSpan.FromMilliseconds(150) };
+    // ViewTypes whose popover tick is off. Looked up per row, so kept as a set instead of searching the groups.
+    private readonly HashSet<Autodesk.Revit.DB.ViewType> _uncheckedTypes = new();
+
     // ── Constructor ─────────────────────────────────────────────────────────
     public ViewsListViewModel(IEnumerable<ViewItemViewModel> views, string activeSheetNumber, bool allViewsLoaded = true)
     {
         this.allViewsLoaded = allViewsLoaded;
         _activeSheetNumber = activeSheetNumber;
+        _refreshTimer.Tick += (_, _) => { _refreshTimer.Stop(); ViewsGrid.Refresh(); RecalculateActiveFilterCount(); };
 
         Views = new ObservableCollection<ViewItemViewModel>(views);
         foreach (var v in Views)
@@ -233,6 +239,7 @@ public partial class ViewsListViewModel : ObservableObject
         int added = 0;
 
         _suppressSelectionPreview = true;
+        using var deferred = ViewsGrid.DeferRefresh();
         foreach (var item in loaded)
         {
             if (existing.TryGetValue(item.ElementId, out var current))
@@ -338,12 +345,26 @@ public partial class ViewsListViewModel : ObservableObject
                 r.PropertyChanged += (_, e) =>
                 {
                     if (e.PropertyName != nameof(ViewTypeFilterRow.IsChecked)) return;
-                    ViewsGrid.Refresh();
-                    RecalculateActiveFilterCount();
+                    UpdateUncheckedTypes();
+                    ScheduleGridRefresh();
                 };
 
             ViewTypeFilterGroups.Add(groupRow);
         }
+        UpdateUncheckedTypes();
+    }
+
+    private void UpdateUncheckedTypes()
+    {
+        _uncheckedTypes.Clear();
+        foreach (var r in ViewTypeFilterGroups.SelectMany(g => g.Rows))
+            if (!r.IsChecked) _uncheckedTypes.Add(r.ViewType);
+    }
+
+    private void ScheduleGridRefresh()
+    {
+        _refreshTimer.Stop();
+        _refreshTimer.Start();
     }
 
     // ── Filter helpers ───────────────────────────────────────────────────────
@@ -373,8 +394,7 @@ public partial class ViewsListViewModel : ObservableObject
         }
 
         // ── View Type popover checklist ──
-        var row = ViewTypeFilterGroups.SelectMany(g => g.Rows).FirstOrDefault(r => r.ViewType == v.ViewType);
-        if (row != null && !row.IsChecked) return false;
+        if (_uncheckedTypes.Contains(v.ViewType)) return false;
 
         // ── Placed / Not placed ──
         if (v.IsPlaced && !ShowPlacedOnSheet) return false;
@@ -416,11 +436,11 @@ public partial class ViewsListViewModel : ObservableObject
         return true;
     }
 
-    partial void OnSelectedSheetFilterChanged(string value)  { ViewsGrid.Refresh(); RecalculateActiveFilterCount(); }
-    partial void OnSheetSearchTextChanged(string value)      { ViewsGrid.Refresh(); RecalculateActiveFilterCount(); }
-    partial void OnViewNameSearchTextChanged(string value)   { ViewsGrid.Refresh(); RecalculateActiveFilterCount(); }
-    partial void OnShowPlacedOnSheetChanged(bool value)      { ViewsGrid.Refresh(); RecalculateActiveFilterCount(); }
-    partial void OnShowNotPlacedChanged(bool value)          { ViewsGrid.Refresh(); RecalculateActiveFilterCount(); }
+    partial void OnSelectedSheetFilterChanged(string value)  => ScheduleGridRefresh();
+    partial void OnSheetSearchTextChanged(string value)      => ScheduleGridRefresh();
+    partial void OnViewNameSearchTextChanged(string value)   => ScheduleGridRefresh();
+    partial void OnShowPlacedOnSheetChanged(bool value)      => ScheduleGridRefresh();
+    partial void OnShowNotPlacedChanged(bool value)          => ScheduleGridRefresh();
     partial void OnActiveQuickFilterChanged(QuickFilterMode value) => ViewsGrid.Refresh();
 
     private void RecalculateActiveFilterCount()
@@ -788,7 +808,7 @@ public partial class ViewsListViewModel : ObservableObject
             // (SelectAll/SelectNone/InvertSelection) suppress this and call
             // RunPreview once after the loop instead.
             if (!_suppressSelectionPreview)
-                RunPreview();
+                SchedulePreview();
         }
     }
 

@@ -9,6 +9,15 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.21.1] — 2026-10-29
+
+### Changed
+- **View Auto Renamer 7.1.1 (V007)** — faster with many views. The view-type filter is now a direct lookup
+  instead of a search per row, filter changes (typing in the search boxes, ticking view types) are grouped
+  into one refresh instead of one per keystroke or tick, checking a row no longer recomputes every preview
+  at once, and **Load all views** refreshes the grid once instead of once per added view.
+- **User note:** previews and the grid now update a fraction of a second after your last change.
+
 ## [6.21.0] — 2026-10-29
 
 ### Changed
