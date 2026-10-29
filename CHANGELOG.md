@@ -9,6 +9,21 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.20.0] — 2026-10-29
+
+### Changed
+- **Auto Slope By Point v33.1.0 (V033)** — ridge lines are drawn where the ridge really is: the line where two
+  drain groups are equally far away. On an open roof this is the line halfway between neighbouring drains, and
+  ridges meet at the point equally far from three drains. Near openings the ridge bends, because water goes
+  round the opening. Ridge lines now run from roof edge to roof edge (or to an opening), stop where the
+  drainage distance ends, and no longer jump between shape points.
+- **Auto Slope By Point v33.1.0 (V033)** — a drain that lies up to 150 mm outside the roof outline (for example
+  on a curved edge) is moved onto the outline for the ridge lines only; the run log says how many. A drain
+  further outside is left out of the ridge lines, and the log says so too.
+- **User note:** elevations are unchanged; the slope is exactly what 33.0.0 calculates. Ridge lines can now
+  sit between shape points. Revit builds the roof surface from the shape points, so on a roof with few points
+  the surface may not show a sharp ridge exactly under the line.
+
 ## [6.19.0] — 2026-10-29
 
 ### Added

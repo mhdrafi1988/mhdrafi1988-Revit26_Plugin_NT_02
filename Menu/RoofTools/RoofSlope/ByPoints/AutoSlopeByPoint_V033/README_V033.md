@@ -1,6 +1,6 @@
 # AutoSlopeByPoint V033
 
-Current version: **33.0.0** (`ToolCatalog.AutoSlopeByPointV033`). Release notes are in the repo's `CHANGELOG.md`.
+Current version: **33.1.0** (`ToolCatalog.AutoSlopeByPointV033`). Release notes are in the repo's `CHANGELOG.md`.
 
 V033 is the current Auto Slope By Point tool: V032 plus optional **ridge lines** (see below). V032 and V030
 stay on disk and in the pulldown as fallbacks. The change codes (B1, D1, …) below come from the V030 refactor
@@ -13,9 +13,9 @@ review plan, which is not kept in this repo.
 
 - **ToolCatalog** (`Shared/Services/ToolCatalog.cs`):
   ```csharp
-  public static readonly ToolInfo AutoSlopeByPointV033 = Add("Auto Slope By Point", "33.0.0", "V033", "Revit26_Plugin_Revised.AutoSlopeByPoint.V033");
+  public static readonly ToolInfo AutoSlopeByPointV033 = Add("Auto Slope By Point", "33.1.0", "V033", "Revit26_Plugin_Revised.AutoSlopeByPoint.V033");
   ```
-  Without this entry the code falls back to `33.0.0` (`AutoSlopeConstants.FallbackToolVersion`).
+  Without this entry the code falls back to `33.1.0` (`AutoSlopeConstants.FallbackToolVersion`).
 - **Ribbon** (`Menu/00_Push_Button_Menu_items/Ribbon/RoofToolsRibbon.cs`): button `Btn_AutoSlopeByPoint_033`
   ("By Point V033"), command `Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Commands.AutoSlopeCommand`.
   It is first in the "By Point" pulldown and supplies the pulldown's icon. V032, V030, Ridge V003 and
@@ -26,22 +26,39 @@ No new NuGet packages; it uses CommunityToolkit.Mvvm and EPPlus, as V030 does.
 ## Ridge lines (new in V033)
 
 Off by default. When **Draw ridge lines between drain groups** is ticked, each run also draws detail lines
-along the ridges between drain groups, in the active plan view. **Elevations are not changed**: the ridge
-follows the high points that V032's slope already creates.
+along the ridges between drain groups, in the active plan view. **Elevations are not changed**, and no shape
+points are added. Since 33.1.0 the ridge is drawn where it really is: the line where two drain groups are
+equally far away. On an open roof that is the line halfway between neighbouring drains. Near an opening it
+bends, because water goes round the opening. Lines can therefore sit between shape points, and Revit's roof
+surface (built from the shape points) may not show a sharp ridge exactly under a line.
 
-How the ridges are found (`Core/Services/RidgeFinder.cs`, no Revit API, unit-tested):
+How the ridges are found (`Core/Services/RidgeFinder.cs` and `GeodesicField.cs`, no Revit API, unit-tested):
 
 1. **Drain group** = one pick plus its nearby points. Picks that share a shape point are one group
-   (`DrainResolver`). Every sloped point belongs to the group its shortest path runs to.
-2. **Short link** = a straight path-graph link (so inside the roof, never across an opening) with no other
-   shape point inside or on the circle drawn on it as its diameter.
-3. **Ridge point** = on every short link whose ends run to different groups, the higher end. A tie (within
-   1 mm) goes to the lower group number, so the ridge is one point wide. Drains and points left at 0 never are.
-4. **Junction** = a ridge point on the ridges of 2+ group pairs; it joins every ridge among those groups.
-5. Each group pair's ridge points are joined by a minimum spanning tree of short links; a link longer than
-   3 × the tree's median link is a gap and is left out.
-6. Each run between junctions and ends is straightened (Douglas–Peucker, 0.75 × the median segment length),
-   so a diagonal ridge is one line, not a staircase. Every line starts and ends on a ridge point.
+   (`DrainResolver`). With fewer than 2 groups there are no ridges.
+2. **Drains on the outline.** A drain that lies up to 150 mm outside the roof outline (for example a shape
+   point on a curved edge) is moved onto the outline for the ridge lines; the run log says how many. A drain
+   further outside is left out of the ridge lines, also logged. The slope itself is not affected.
+3. **Distance** to a drain is measured straight when the drain can see the point across the roof, otherwise
+   round the corners of openings and of the roof edge.
+4. **Nearest group, on a grid.** A grid of square cells over the roof (about 40 000 grid points, cell side at
+   least 50 mm; the side is logged as "grid … mm") gives each grid point the group nearest to it. A point off
+   the roof, or further than the drainage distance from every drain, gets none.
+5. **Exact crossings.** On each cell side whose two ends belong to different groups, the point where both
+   groups are equally far away is found to a fraction of a millimetre. Crossings are joined into short
+   ridge segments. Cells cut by the roof edge or an opening count too, so a ridge that meets an edge or
+   opening at a shallow angle still runs on to it as one line.
+6. **Junctions.** Where 3 or more groups meet, the ridges meet at one point: the point equally far from the
+   three drains (on an open roof, the Voronoi vertex of the drains).
+7. **Straightened.** Each run of segments between ends and junctions is straightened to within 20 mm, so a
+   straight ridge is one line, not a staircase.
+8. **Ends.** An end near the roof edge or an opening is run on to it, as long as the point on the edge is
+   still sloped by one of the line's two groups. An end where the slope stops because the drainage distance
+   runs out stays where it is.
+
+Known limits: very small features, under about one grid cell, can be missed. For example, a junction within
+about 0.1 ft of an opening edge can be missed, and two junctions less than about one cell apart are drawn as
+one. The grid step is in the run log (50 mm at least), so the limit can be read off for each roof.
 
 How they are placed (`Infrastructure/RoofOps/RidgeLineService.cs`):
 
@@ -56,7 +73,7 @@ How they are placed (`Infrastructure/RoofOps/RidgeLineService.cs`):
 
 ## Window layout
 
-Default size 1000 × 640, minimum 880 × 520. The window title reads "Auto Slope By Point — v33.0.0".
+Default size 1000 × 640, minimum 880 × 520. The window title reads "Auto Slope By Point — v33.1.0".
 
 ```
 ┌ Header: state · roof · plan-view badges │ 6 tiles: Processed · Skipped · Drains picked → used · Highest elevation · Longest path · Run time ┐
