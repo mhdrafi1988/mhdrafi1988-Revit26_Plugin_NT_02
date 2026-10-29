@@ -692,7 +692,7 @@ converters declared here.
                                         </Grid.RowDefinitions>
                                         <TextBlock Grid.Row="0" Text="Ridge lines" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,3,0,3"/>
                                         <CheckBox Grid.Row="0" Grid.Column="1" Margin="0,3" VerticalAlignment="Center" IsChecked="{Binding DrawRidgeLines}"
-                                                  ToolTip="Draws detail lines in the active plan view, joining the highest shape points between each pair of neighbouring drain groups.">
+                                                  ToolTip="Draws detail lines in the active plan view, along the ridge between each pair of neighbouring drain groups (where the groups are equally far away).">
                                             <TextBlock Text="Draw ridge lines between drain groups" Style="{StaticResource FieldValue}" FontSize="12"/>
                                         </CheckBox>
                                         <TextBlock Grid.Row="1" Text="Line style" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,3,0,3"/>
@@ -700,7 +700,7 @@ converters declared here.
                                                   IsEnabled="{Binding DrawRidgeLines}" Style="{StaticResource StandardComboBox}"
                                                   ItemsSource="{Binding RidgeLineStyleOptions}" SelectedItem="{Binding SelectedRidgeLineStyle}" DisplayMemberPath="Name"/>
                                         <TextBlock Grid.Row="2" Grid.Column="1" Style="{StaticResource HintText}" Margin="0,0,0,4"
-                                                   Text="Joins the highest shape points between each pair of neighbouring drain groups. Elevations are not changed. Needs 2 or more drain groups and a plan view. If the chosen line style can't be used, Thin Lines is used."/>
+                                                   Text="Draws a line along the ridge between each pair of neighbouring drain groups, where the groups are equally far away. Elevations are not changed. Needs 2 or more drain groups and a plan view. If the chosen line style can't be used, Thin Lines is used."/>
                                     </Grid>
                                     <Button Content="Reset to defaults" Style="{StaticResource LinkButton}" Command="{Binding ResetRidgeLinesCommand}"/>
                                 </StackPanel>
