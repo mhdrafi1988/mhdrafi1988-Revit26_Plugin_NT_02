@@ -71,6 +71,9 @@ All options are remembered and restored when the window opens again.
   and the note is moved so its leader starts where the tag's leader leaves its text (read back from
   Revit after the note is made). A leader without a bend gets its bend on the straight line.
 - If Revit refuses a leader, the note is kept without it and a warning is logged.
+- **Visibility check:** after the notes are created, `TextVisibilityChecker` looks for what could hide them in the
+  target view (Text Notes / annotation categories off, view template, filters that hide and match the notes, hidden
+  workset, outside the crop region) and reports each reason in the log and in a message box. Nothing is blocked.
 - The window can't close while a run is in progress. Unexpected errors go to
   `%AppData%\Revit26_Plugin_Revised\Logs` through `ToolGuard.Report`.
 

@@ -425,6 +425,14 @@ namespace Revit26_Plugin_Revised.TagToText.V001.UI.ViewModels
                 TagToTextResult result = service.Run(_doc, request);
                 AddLog(result.Cancelled ? LogLevel.Warning : result.Failed > 0 ? LogLevel.Warning : LogLevel.Success, result.ToString());
 
+                if (result.VisibilityWarnings.Count > 0)
+                {
+                    string text = "The new text was created, but it may not show in the view:\n\n• "
+                        + string.Join("\n• ", result.VisibilityWarnings)
+                        + "\n\nFix this in Visibility/Graphics (VV), the view template or the filters.";
+                    SetOnUi(() => MessageBox.Show(text, ToolCatalog.TagToText.Title, MessageBoxButton.OK, MessageBoxImage.Warning));
+                }
+
                 if (result.NewView != null && request.Options.OpenNewView)
                     uidoc.RequestViewChange(result.NewView);
             }
