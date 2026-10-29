@@ -17,22 +17,28 @@
 //      50 mm) over the outline's bounding box. Each node gets the group
 //      nearest to it, or -1 when it is off the roof or further than the
 //      drainage distance from every drain.
-//   3. Crossings: in each cell that is clear of the outline and shows two
-//      groups, every side whose ends belong to different groups gets the
-//      point where both groups are equally far, found by bisection to
+//   3. Crossings: in each cell that shows two groups, every side whose ends
+//      belong to different groups and see each other across the roof gets
+//      the point where both groups are equally far, found by bisection to
 //      1e-5 ft. Neighbouring cells share the crossing on their common side.
-//   4. Segments: two crossings in a cell are joined. Four (a saddle) are
-//      joined in two pairs, round the corners whose group differs from the
-//      cell centre's. An odd count (a corner beyond the drainage distance)
-//      gives none. Cells with three or more groups are skipped here.
+//      Cells cut by the outline count too, so a ridge runs on up to an edge
+//      it meets at a shallow angle.
+//   4. Segments: two crossings in a cell are joined when they see each
+//      other. Four (a saddle) are joined in two pairs, round the corners
+//      whose group differs from the cell centre's. 0 or 1 crossings (a
+//      corner off the roof or beyond the drainage distance), or 3 (a side
+//      cut by the outline), give none. Cells with three or more groups are
+//      skipped here.
 //   5. Chain and straighten: zero-length segments are dropped (their ends
-//      become one point). Each run between ends and branch points (or a
-//      whole closed loop) is straightened by Douglas–Peucker within 20 mm,
+//      become one point). Free ends of the same group pair within 3 h that
+//      see each other are bridged, closest first, so a ridge broken up along
+//      an edge is one run again. Each run between ends and branch points (or
+//      a whole closed loop) is straightened by Douglas–Peucker within 20 mm,
 //      so a straight ridge is one line.
-//   6. Reach the roof edge: a line end that no other line uses is moved on,
-//      away from the line's other end, to the roof edge or opening when one
-//      is within 3 h. Ends where the drainage distance stops the slope have
-//      no edge that close and stay where they are.
+//   6. Reach the roof edge: a line end that no other line uses and that lies
+//      within 3 h of the outline is moved on, away from the line's other end,
+//      to the first edge within 20 h, if that edge point is still sloped. So
+//      an end where the drainage distance stops the slope stays where it is.
 //   7. RidgeCount = the drain-group pairs with at least one segment. Lines
 //      come out in the order the runs were walked.
 // =======================================================
@@ -114,8 +120,11 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Core.Services
         /// <summary>Step 5: points within this distance (20 mm, in feet) of a straight line are dropped.</summary>
         public const double StraightenToleranceFt = 20 / 304.8;
 
-        /// <summary>Step 6: a free line end reaches the roof edge when that is within this × the grid step.</summary>
+        /// <summary>Step 6: only a free line end within this × the grid step of the outline is extended.</summary>
         public const double EndReachFactor = 3.0;
+
+        /// <summary>Step 6: a free line end is extended by at most this × the grid step.</summary>
+        public const double MaxReachFactor = 20.0;
 
         /// <summary>
         /// Step 1: a drain outside the outline by at most this (150 mm, in feet) is moved onto it.
@@ -133,6 +142,9 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Core.Services
 
         /// <summary>Step 5: a segment shorter than this (feet) has zero length.</summary>
         private const double ZeroLengthFt = 1e-4;
+
+        /// <summary>Step 5: free ends closer than this × the grid step are bridged.</summary>
+        private const double BridgeFactor = 3.0;
 
         /// <summary>Cancellation is checked once per this many grid nodes or cells.</summary>
         private const int CancelCheckInterval = 256;
@@ -168,12 +180,13 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Core.Services
 
             // ── 5. Chain and straighten ────────────────────────────────────
             net.DropZeroLength();
+            BridgeGaps(net, input.Outline, BridgeFactor * grid.Step);
             result.RidgeCount = net.PairCount();
             List<(int A, int B)> lines = Straighten(net);
 
             // ── 6. Reach the roof edge ─────────────────────────────────────
             Point3[] at = net.Points.ToArray();
-            ReachEdge(lines, at, input.Outline, EndReachFactor * grid.Step);
+            ReachEdge(lines, at, input.Outline, field, input.MaxDistance, grid.Step);
 
             foreach (var (a, b) in lines)
                 result.Lines.Add(new RidgeLine(at[a], at[b]));
@@ -224,7 +237,10 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Core.Services
         // Steps 3–4: crossings and segments
         // ------------------------------------------------------------------
 
-        /// <summary>Walks the grid cells and adds each two-group cell's segments to <paramref name="net"/>.</summary>
+        /// <summary>
+        /// Walks the grid cells and adds each two-group cell's segments to <paramref name="net"/>. Sides
+        /// and segments that leave the roof (cross an outline edge) are left out.
+        /// </summary>
         private static void FindSegments(LabelGrid grid, GeodesicField field, RoofOutline outline, RidgeNet net, CancellationToken cancel)
         {
             var crossingOfSide = new Dictionary<long, int>();
@@ -246,17 +262,14 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Core.Services
                     // One group: no ridge here. Three or more: they meet in this cell (a junction), skipped.
                     if (CountGroups(corner, out int ga, out int gb) != 2) continue;
 
-                    Point3 lo = grid.Node(i, j), hi = grid.Node(i + 1, j + 1);
-                    if (!outline.IsClearRect(lo.X, lo.Y, hi.X, hi.Y)) continue;
-
                     int count = 0;
                     for (int k = 0; k < 4; k++)
                     {
                         side[k] = -1;
                         int a = corner[k], b = corner[(k + 1) % 4];
                         if (a < 0 || b < 0 || a == b) continue;
-                        side[k] = Crossing(grid, field, net, crossingOfSide, i, j, k);
-                        count++;
+                        side[k] = Crossing(grid, field, outline, net, crossingOfSide, i, j, k);
+                        if (side[k] >= 0) count++;
                     }
 
                     var pair = (Math.Min(ga, gb), Math.Max(ga, gb));
@@ -267,23 +280,31 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Core.Services
                         {
                             if (side[k] < 0) continue;
                             if (first < 0) first = side[k];
-                            else net.AddSegment(first, side[k], pair);
+                            else Join(net, outline, first, side[k], pair);
                         }
                     }
                     else if (count == 4)
                     {
                         // Saddle: the centre's group (the nearer of the two; a tie goes to the lower
                         // id, as for the nodes) decides which two corners are cut off.
+                        Point3 lo = grid.Node(i, j), hi = grid.Node(i + 1, j + 1);
                         Point3 c = new Point3(0.5 * (lo.X + hi.X), 0.5 * (lo.Y + hi.Y), 0);
                         double f = field.DistanceTo(c, ga) - field.DistanceTo(c, gb);
                         int centre = f > 0 || (f == 0 && gb < ga) ? gb : ga;
                         for (int k = 0; k < 4; k++)
                             if (corner[k] != centre)
-                                net.AddSegment(side[(k + 3) % 4], side[k], pair);
+                                Join(net, outline, side[(k + 3) % 4], side[k], pair);
                     }
-                    // 0 or 1 (odd): corners beyond the drainage distance leave no pair of crossings to join.
+                    // 0 or 1 crossings (a corner off the roof or beyond the drainage distance), or 3 (a
+                    // side cut by the outline): no pair to join.
                 }
             }
+        }
+
+        /// <summary>Adds the segment between two crossings when it stays on the roof.</summary>
+        private static void Join(RidgeNet net, RoofOutline outline, int a, int b, (int, int) pair)
+        {
+            if (outline.IsVisible(net.Points[a], net.Points[b])) net.AddSegment(a, b, pair);
         }
 
         /// <summary>Number of different groups (≥ 0) among the four corners; the first two found.</summary>
@@ -305,10 +326,11 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Core.Services
 
         /// <summary>
         /// The crossing on side <paramref name="k"/> of cell (i, j), computed once per side so the
-        /// two cells that share it share the point.
+        /// two cells that share it share the point; -1 when the side leaves the roof.
         /// </summary>
         private static int Crossing(
-            LabelGrid grid, GeodesicField field, RidgeNet net, Dictionary<long, int> crossingOfSide, int i, int j, int k)
+            LabelGrid grid, GeodesicField field, RoofOutline outline, RidgeNet net,
+            Dictionary<long, int> crossingOfSide, int i, int j, int k)
         {
             // Each side is stored by its lower-left node and direction (0 = towards +X, 1 = towards +Y).
             int ni, nj, dir;
@@ -324,7 +346,9 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Core.Services
 
             int mi = dir == 0 ? ni + 1 : ni, mj = dir == 0 ? nj : nj + 1;
             Point3 p = grid.Node(ni, nj), q = grid.Node(mi, mj);
-            id = net.AddPoint(Bisect(field, p, grid.Label(ni, nj), q, grid.Label(mi, mj)));
+            id = outline.IsVisible(p, q)
+                ? net.AddPoint(Bisect(field, p, grid.Label(ni, nj), q, grid.Label(mi, mj)))
+                : -1;
             crossingOfSide[key] = id;
             return id;
         }
@@ -357,6 +381,61 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Core.Services
         // ------------------------------------------------------------------
         // Step 5: chain and straighten
         // ------------------------------------------------------------------
+
+        /// <summary>
+        /// Joins free ends (points on exactly one segment) of the same group pair that lie within
+        /// <paramref name="reach"/> of each other and see each other: closest pair first, each end
+        /// once, never two ends of the same piece (that would close it into a loop).
+        /// </summary>
+        private static void BridgeGaps(RidgeNet net, RoofOutline outline, double reach)
+        {
+            int n = net.Points.Count;
+            var degree = new int[n];
+            var pairOf = new (int, int)[n];
+            var piece = new int[n];
+            for (int i = 0; i < n; i++) piece[i] = i;
+            int Root(int x)
+            {
+                while (piece[x] != x) { piece[x] = piece[piece[x]]; x = piece[x]; }
+                return x;
+            }
+            foreach (var (a, b, pair) in net.Segments)
+            {
+                degree[a]++;
+                degree[b]++;
+                pairOf[a] = pairOf[b] = pair;
+                piece[Root(a)] = Root(b);
+            }
+
+            var ends = new List<int>();
+            for (int v = 0; v < n; v++)
+                if (degree[v] == 1) ends.Add(v);
+            ends.Sort((u, v) => net.Points[u].X.CompareTo(net.Points[v].X));
+
+            // Sweep along X: only ends within `reach` in X can be within `reach`.
+            var candidates = new List<(double D, int U, int V)>();
+            for (int i = 0; i < ends.Count; i++)
+                for (int j = i + 1; j < ends.Count; j++)
+                {
+                    Point3 pu = net.Points[ends[i]], pv = net.Points[ends[j]];
+                    if (pv.X - pu.X > reach) break;
+                    double d = pu.DistanceXY(pv);
+                    if (d <= reach && pairOf[ends[i]] == pairOf[ends[j]])
+                        candidates.Add((d, Math.Min(ends[i], ends[j]), Math.Max(ends[i], ends[j])));
+                }
+            candidates.Sort();
+
+            var used = new bool[n];
+            foreach (var (_, u, v) in candidates)
+            {
+                if (used[u] || used[v]) continue;
+                int ru = Root(u), rv = Root(v);
+                if (ru == rv || !outline.IsVisible(net.Points[u], net.Points[v])) continue;
+                net.AddSegment(u, v, pairOf[u]);
+                used[u] = used[v] = true;
+                piece[ru] = rv;
+            }
+        }
 
         /// <summary>
         /// Walks each run between nodes that are not simple links (ends and branch points), then each
@@ -468,10 +547,11 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Core.Services
 
         /// <summary>
         /// Moves every line end that no other line uses on along its line, away from the other end,
-        /// to the first roof edge within <paramref name="reach"/>. A junction always has three or more
+        /// to the roof edge when <see cref="Reach"/> allows it. A junction always has three or more
         /// lines, so it is never moved.
         /// </summary>
-        private static void ReachEdge(List<(int A, int B)> lines, Point3[] at, RoofOutline outline, double reach)
+        private static void ReachEdge(
+            List<(int A, int B)> lines, Point3[] at, RoofOutline outline, GeodesicField field, double maxDistance, double step)
         {
             var uses = new Dictionary<int, int>();
             foreach (var (a, b) in lines)
@@ -484,14 +564,30 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Core.Services
             var moves = new List<(int Node, Point3 To)>();
             foreach (var (a, b) in lines)
             {
-                if (uses[a] == 1 && Reach(at[a], at[b], outline, reach) is Point3 ta) moves.Add((a, ta));
-                if (uses[b] == 1 && Reach(at[b], at[a], outline, reach) is Point3 tb) moves.Add((b, tb));
+                if (uses[a] == 1 && Reach(at[a], at[b], outline, field, maxDistance, step) is Point3 ta) moves.Add((a, ta));
+                if (uses[b] == 1 && Reach(at[b], at[a], outline, field, maxDistance, step) is Point3 tb) moves.Add((b, tb));
             }
             foreach (var (node, to) in moves) at[node] = to;
         }
 
-        private static Point3? Reach(Point3 end, Point3 other, RoofOutline outline, double reach) =>
-            outline.RayHit(end, end.X - other.X, end.Y - other.Y, reach);
+        /// <summary>
+        /// Where an open end at <paramref name="end"/> (line from <paramref name="other"/>) reaches the
+        /// outline, or null: the end must lie within <see cref="EndReachFactor"/> × step of the outline
+        /// (and not on it), the first edge along the line must be within <see cref="MaxReachFactor"/> ×
+        /// step, and that edge point must still be sloped (within the drainage distance of a drain).
+        /// </summary>
+        private static Point3? Reach(
+            Point3 end, Point3 other, RoofOutline outline, GeodesicField field, double maxDistance, double step)
+        {
+            outline.ClosestPoint(end, out double gap);
+            if (gap > EndReachFactor * step || gap <= RoofOutline.OnEdgeTolerance) return null;
+
+            // The first edge the ray meets, so the way there stays on the roof.
+            Point3? hit = outline.RayHit(end, end.X - other.X, end.Y - other.Y, MaxReachFactor * step);
+            if (hit == null) return null;
+            if (field.Nearest(hit.Value, out double d) < 0 || !(d <= maxDistance)) return null;
+            return hit;
+        }
 
         // ------------------------------------------------------------------
         // Grid and segment store

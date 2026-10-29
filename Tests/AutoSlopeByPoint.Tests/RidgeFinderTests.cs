@@ -127,6 +127,48 @@ namespace AutoSlopeByPoint.Tests
             Assert.Equal(20, l.A.X, 3); Assert.Equal(20, l.B.X, 3);
         }
 
+        [Fact] public void MaxDistance_ClippedEndNearTheEdge_IsNotExtended()
+        {
+            // Sloped up to |y − 12| ≤ √(16.8² − 12²) ≈ 11.76, so both cut-off ends lie within 3h (0.49) of the
+            // roof edge, but the edge points beyond them are not sloped: the ridge must stop at the cut-off.
+            var r = TestRoofs.Find(TestRoofs.Rectangle(), new[] { (8.0, 12.0), (32.0, 12.0) }, maxDistance: 16.8);
+            var l = Assert.Single(r.Lines);
+            var ys = new[] { l.A.Y, l.B.Y }.OrderBy(y => y).ToArray();
+            Assert.InRange(ys[0], 0.22, 0.5); Assert.InRange(ys[1], 23.5, 23.77);
+        }
+
+        // Trapezoid 60 × 40 whose top edge runs (60, 10) → (0, 40). Two drains 6 ft apart whose bisector meets
+        // that edge at (30, 25), at `deg` degrees to it; their midpoint is `along` ft from (30, 25).
+        static RoofOutline Trapezoid() => TestRoofs.Polygon((0, 0), (60, 0), (60, 10), (0, 40));
+
+        static (double X, double Y)[] DrainsMeetingTopEdge(double deg, double along, out double ux, out double uy)
+        {
+            double ex = 2 / Math.Sqrt(5), ey = -1 / Math.Sqrt(5);   // along the top edge, towards (60, 10)
+            double a = deg * Math.PI / 180;
+            ux = ex * Math.Cos(a) + ey * Math.Sin(a);               // bisector direction, into the roof
+            uy = -ex * Math.Sin(a) + ey * Math.Cos(a);
+            double mx = 30 + along * ux, my = 25 + along * uy;
+            return new[] { (mx - 3 * uy, my + 3 * ux), (mx + 3 * uy, my - 3 * ux) };
+        }
+
+        [Fact] public void ShallowEdge_25Degrees_OneLineReachingTheEdge()
+        {
+            var drains = DrainsMeetingTopEdge(25, 16, out double ux, out double uy);
+            var l = Assert.Single(TestRoofs.Find(Trapezoid(), drains).Lines);
+            Assert.True(Near(l.A, 30, 25, 0.05) || Near(l.B, 30, 25, 0.05), $"{l.A} – {l.B}");
+            double xBottom = 30 - 25 * ux / uy;                     // the other end, on y = 0
+            Assert.True(Near(l.A, xBottom, 0, 0.05) || Near(l.B, xBottom, 0, 0.05), $"{l.A} – {l.B}");
+        }
+
+        [Fact] public void ShallowEdge_10Degrees_OneLineReachingTheEdge()
+        {
+            var drains = DrainsMeetingTopEdge(10, 25, out double ux, out double uy);
+            var l = Assert.Single(TestRoofs.Find(Trapezoid(), drains).Lines);
+            Assert.True(Near(l.A, 30, 25, 0.05) || Near(l.B, 30, 25, 0.05), $"{l.A} – {l.B}");
+            double yRight = 25 + 30 * uy / ux;                      // the other end, on x = 60
+            Assert.True(Near(l.A, 60, yRight, 0.05) || Near(l.B, 60, yRight, 0.05), $"{l.A} – {l.B}");
+        }
+
         [Fact] public void OneDrain_NoLines() =>
             Assert.Empty(TestRoofs.Find(TestRoofs.Rectangle(), new[] { (8.0, 12.0) }).Lines);
 
