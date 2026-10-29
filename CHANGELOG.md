@@ -9,6 +9,27 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.21.1] — 2026-10-29
+
+### Changed
+- **View Auto Renamer 7.1.1 (V007)** — faster with many views. The view-type filter is now a direct lookup
+  instead of a search per row, filter changes (typing in the search boxes, ticking view types) are grouped
+  into one refresh instead of one per keystroke or tick, checking a row no longer recomputes every preview
+  at once, and **Load all views** refreshes the grid once instead of once per added view.
+- **User note:** previews and the grid now update a fraction of a second after your last change.
+
+## [6.21.0] — 2026-10-29
+
+### Changed
+- **View Auto Renamer 7.1.0 (V007)** — opens with only the current sheet's views instead of loading the whole
+  project. If you start it on a view placed on a sheet, that sheet's views load.
+  - New **Load all views** button (above the grid) loads the rest of the project when you want it. Your edits and
+    selections are kept; Legends and Schedules then show all their sheets, and the sheet and view-type filters
+    include the new views. The sheet filter switches to **All**.
+  - If the active view is not on a sheet, the grid starts empty with a log hint; click **Load all views**.
+- **User note:** the grid no longer shows every view straight away. Click **Load all views** to get the old
+  behaviour. Legends and Schedules on other sheets show only the current sheet until you do.
+
 ## [6.20.0] — 2026-10-29
 
 ### Added

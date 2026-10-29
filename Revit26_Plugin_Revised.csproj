@@ -9,7 +9,7 @@
 		<AssemblyName>Revit26_Plugin_Revised</AssemblyName>
 		<RootNamespace>Revit26_Plugin_Revised</RootNamespace>
 		<!-- Plugin version (SemVer). Per-tool versions live in Shared/Services/ToolCatalog.cs. -->
-		<Version>6.20.0</Version>
+		<Version>6.21.1</Version>
 		<BaseOutputPath>D:\Plugin\mhdrafi1988\Revit26_Plugin\bin\106</BaseOutputPath>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
