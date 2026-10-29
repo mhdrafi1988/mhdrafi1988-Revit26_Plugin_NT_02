@@ -9,7 +9,7 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
-## [6.19.0] — 2026-10-28
+## [6.20.0] — 2026-10-29
 
 ### Added
 - **Tag To Text v1.2.0** — warns when the new text won't show in its view. After the notes are made, the tool
@@ -19,6 +19,30 @@ Each release lists every tool whose version changed, under the plugin version.
   and in a message box after the run, and the log summary counts the warnings.
 - **User note:** nothing is blocked or changed by this; the text is still created. Fix the cause in
   Visibility/Graphics (VV), the view template or the filters, and the text appears.
+
+## [6.19.0] — 2026-10-29
+
+### Added
+- **Auto Slope By Point v33.0.0 (V033)** — new version of By Point, first in the **By Point** pulldown. Same as
+  V032, plus optional **ridge lines**:
+  - New **Ridge lines** section in the options: a tick box, **Draw ridge lines between drain groups** (off by
+    default), and a **Line style** list with the project's line styles.
+  - When ticked, the run joins the highest shape points between each pair of neighbouring drain groups and draws
+    them as detail lines in the active plan view, in the chosen line style. Where three or more groups meet, the
+    ridges meet at one point. Ridges never cross an opening, and small zig-zags are straightened.
+  - A drain group is one pick plus its nearby points. Picks that share a shape point are one group. Ridge lines
+    need 2 or more groups.
+  - If the chosen line style is missing or Revit refuses it, **Thin Lines** is used; if that fails too, Revit's
+    default line style. Each fallback is written to the log.
+  - The Excel **Run Summary** sheet has a new last row, **Ridge lines** (lines placed, ridges, line style).
+
+### Changed
+- **By Point** pulldown — order is now V033, V032, V030, Ridge V003, Multi Copies 30. V033 supplies the
+  pulldown's icon. V032 stays as the fallback.
+- **User note:** V033 never changes elevations for ridge lines: the slope is exactly what V032 calculates. Ridge
+  lines are placed in the same undo step as the slope, so Ctrl+Z removes both. Lines from an earlier run are
+  kept, as circle markers are. The first time V033 opens it reads V032's settings (ridge lines off); after that
+  it keeps its own file, `settings.v033.json`.
 
 ## [6.18.0] — 2026-10-28
 
