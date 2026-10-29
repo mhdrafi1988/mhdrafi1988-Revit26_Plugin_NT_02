@@ -1,304 +1,409 @@
 // =======================================================
 // File: RidgeFinder.cs
 // Namespace: Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Core.Services
-// New in V033. Finds the ridge lines between drain groups from values the
-// run already has: each shape point's calculated elevation and the drain
-// group its path runs to. It never changes an elevation. No Revit API, so
-// it is unit-tested (Tests/AutoSlopeByPoint.Tests).
+// New in V033; rewritten for the true ridge position. Finds the ridge lines
+// between drain groups at the real watershed: the line where two groups
+// are equally far away along the roof (a straight line, or round opening
+// and edge corners — see GeodesicField). On an open roof that is the
+// perpendicular bisector (Voronoi edge) between the drains. Ridge points
+// are not snapped to shape points, and no elevation is changed. No Revit
+// API, so it is unit-tested (Tests/AutoSlopeByPoint.Tests).
 //
-//   1. Short link: a straight path-graph link (inside the roof, never across
-//      an opening) with no other point inside or on the circle drawn on it as
-//      its diameter. These are the local neighbours, close to how Revit
-//      triangulates the roof.
-//   2. Ridge point: on every short link whose two ends run to different drain
-//      groups, the higher end. Equal heights (within the tie tolerance) go to
-//      the lower group number, so a ridge stays one point wide. Drains and
-//      points left at 0 are never ridge points.
-//   3. Junction: a ridge point on the ridges of two or more group pairs joins
-//      every ridge among those groups, so the ridges meet.
-//   4. Each group pair's ridge points are joined by the shortest set of short
-//      links between them (a minimum spanning tree). A link longer than 3 ×
-//      the tree's median link is a real gap and is left out.
-//   5. Each run between junctions and ends is straightened (Douglas–Peucker,
-//      tolerance 0.75 × the median segment length), so a diagonal ridge is one
-//      line, not a staircase. Every line starts and ends on a ridge point.
+//   1. Validate the input and build the GeodesicField. Fewer than two drain
+//      groups: no lines.
+//   2. Grid: square cells of side h = max(√(bounding-box area / 40 000),
+//      50 mm) over the outline's bounding box. Each node gets the group
+//      nearest to it, or -1 when it is off the roof or further than the
+//      drainage distance from every drain.
+//   3. Crossings: in each cell that is clear of the outline and shows two
+//      groups, every side whose ends belong to different groups gets the
+//      point where both groups are equally far, found by bisection to
+//      1e-5 ft. Neighbouring cells share the crossing on their common side.
+//   4. Segments: two crossings in a cell are joined. Four (a saddle) are
+//      joined in two pairs, round the corners whose group differs from the
+//      cell centre's. An odd count (a corner beyond the drainage distance)
+//      gives none. Cells with three or more groups are skipped here.
+//   5. Chain and straighten: zero-length segments are dropped (their ends
+//      become one point). Each run between ends and branch points (or a
+//      whole closed loop) is straightened by Douglas–Peucker within 20 mm,
+//      so a straight ridge is one line.
+//   6. Reach the roof edge: a line end that no other line uses is moved on,
+//      away from the line's other end, to the roof edge or opening when one
+//      is within 3 h. Ends where the drainage distance stops the slope have
+//      no edge that close and stay where they are.
+//   7. RidgeCount = the drain-group pairs with at least one segment. Lines
+//      come out in the order the runs were walked.
 // =======================================================
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Core.Models;
 
 namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Core.Services
 {
-    /// <summary>One ridge line, from shape point <see cref="A"/> to shape point <see cref="B"/> (vertex indices).</summary>
-    public readonly record struct RidgeLine(int A, int B);
+    /// <summary>One ridge line between two plan points (Revit feet, Z = 0).</summary>
+    /// <param name="A">One end.</param>
+    /// <param name="B">The other end.</param>
+    public readonly record struct RidgeLine(Point3 A, Point3 B);
 
-    /// <summary>Inputs for <see cref="RidgeFinder.Find"/>. All lists are indexed by vertex.</summary>
+    /// <summary>Inputs for <see cref="RidgeFinder.Find"/>.</summary>
     public sealed class RidgeInput
     {
-        /// <summary>Shape point positions; only X and Y are used.</summary>
-        public IReadOnlyList<Point3> Positions { get; init; }
+        /// <summary>The roof's plan outline: outer boundary and openings.</summary>
+        public RoofOutline Outline { get; init; }
 
-        /// <summary>The run's path graph. Only its straight links count as "inside the roof".</summary>
-        public PathGraph Graph { get; init; }
+        /// <summary>Drain positions; only X and Y are used.</summary>
+        public IReadOnlyList<Point3> Drains { get; init; }
 
-        /// <summary>Drain group per point; -1 = not sloped (no path, or beyond the drainage distance).</summary>
-        public IReadOnlyList<int> GroupOf { get; init; }
+        /// <summary>
+        /// Group id of each drain, same length as <see cref="Drains"/>, not negative. Ridges run only
+        /// between different groups.
+        /// </summary>
+        public IReadOnlyList<int> DrainGroup { get; init; }
 
-        /// <summary>Calculated elevation per point, in any unit (<see cref="TieTolerance"/> uses the same unit).</summary>
-        public IReadOnlyList<double> Elevation { get; init; }
-
-        /// <summary>True for drain points.</summary>
-        public IReadOnlyList<bool> IsDrain { get; init; }
-
-        /// <summary>Two link ends closer in height than this count as equal.</summary>
-        public double TieTolerance { get; init; }
+        /// <summary>
+        /// Drainage distance in feet: roof further than this from every drain is not sloped, so no
+        /// ridge runs there. +∞ (the default) = no limit.
+        /// </summary>
+        public double MaxDistance { get; init; } = double.PositiveInfinity;
     }
 
     /// <summary>Output of <see cref="RidgeFinder.Find"/>.</summary>
     public sealed class RidgeResult
     {
-        /// <summary>The lines to draw.</summary>
+        /// <summary>The lines to draw, in plan (Z = 0).</summary>
         public List<RidgeLine> Lines { get; } = new List<RidgeLine>();
 
-        /// <summary>Every ridge point, ascending.</summary>
-        public List<int> RidgePoints { get; } = new List<int>();
+        /// <summary>Points where three or more drain groups meet.</summary>
+        public List<Point3> Junctions { get; } = new List<Point3>();
 
-        /// <summary>Ridge points where three or more drain groups meet, ascending.</summary>
-        public List<int> Junctions { get; } = new List<int>();
-
-        /// <summary>Number of drain groups among the sloped points.</summary>
+        /// <summary>Number of distinct drain groups.</summary>
         public int GroupCount { get; set; }
 
-        /// <summary>Drain-group pairs that got at least one line.</summary>
+        /// <summary>Drain-group pairs with a ridge between them.</summary>
         public int RidgeCount { get; set; }
+
+        /// <summary>Side of the grid cells in feet; 0 when no grid was needed (fewer than two groups).</summary>
+        public double GridStep { get; set; }
     }
 
-    /// <summary>Finds ridge lines between drain groups. See the file header for the method.</summary>
+    /// <summary>Finds the ridge lines between drain groups. See the file header for the method.</summary>
     public static class RidgeFinder
     {
-        /// <summary>Nearest points tried as short-link partners in step 2.</summary>
-        public const int NeighbourCandidates = 16;
+        /// <summary>Step 2: the grid over the outline's bounding box gets about this many nodes.</summary>
+        public const int TargetGridNodes = 40_000;
 
-        /// <summary>Nearest ridge points tried as tree links in step 4.</summary>
-        public const int RidgeNeighbourCandidates = 8;
+        /// <summary>Step 2: the smallest grid step, 50 mm in feet.</summary>
+        public const double MinGridStepFt = 50 / 304.8;
 
-        /// <summary>Step 4: a tree link longer than this × the median tree link is a gap.</summary>
-        public const double MaxGapFactor = 3.0;
+        /// <summary>Step 5: points within this distance (20 mm, in feet) of a straight line are dropped.</summary>
+        public const double StraightenToleranceFt = 20 / 304.8;
 
-        /// <summary>Step 5: zig-zags smaller than this × the median segment length are straightened.</summary>
-        public const double StraightenFactor = 0.75;
+        /// <summary>Step 6: a free line end reaches the roof edge when that is within this × the grid step.</summary>
+        public const double EndReachFactor = 3.0;
 
-        private const double CircleEps = 1e-6;
+        /// <summary>Junctions closer than this × the grid step count as one junction.</summary>
+        public const double JunctionMergeFactor = 0.5;
 
-        /// <summary>Runs steps 1–5. Returns no lines (never throws) when fewer than two drain groups are sloped.</summary>
-        /// <exception cref="ArgumentException">The input lists are missing or of different lengths.</exception>
-        /// <exception cref="OperationCanceledException">The run was cancelled.</exception>
+        /// <summary>Step 3: bisection stops when the interval is shorter than this (feet).</summary>
+        private const double CrossingToleranceFt = 1e-5;
+
+        /// <summary>Step 3: most bisection steps per crossing.</summary>
+        private const int MaxBisectionSteps = 40;
+
+        /// <summary>Step 5: a segment shorter than this (feet) has zero length.</summary>
+        private const double ZeroLengthFt = 1e-4;
+
+        /// <summary>Cancellation is checked once per this many grid nodes or cells.</summary>
+        private const int CancelCheckInterval = 256;
+
+        /// <summary>Runs steps 1–7.</summary>
+        /// <param name="input">Outline, drains, their groups and the drainage distance.</param>
+        /// <param name="cancel">Cancels the search; checked per grid row and every 256 nodes or cells.</param>
+        /// <returns>The ridge lines; none when there are fewer than two drain groups.</returns>
+        /// <exception cref="ArgumentException">
+        /// The outline, drains or groups are missing, the drain and group lists differ in length, or a
+        /// group id is negative.
+        /// </exception>
+        /// <exception cref="OperationCanceledException"><paramref name="cancel"/> was cancelled.</exception>
         public static RidgeResult Find(RidgeInput input, CancellationToken cancel = default)
         {
+            cancel.ThrowIfCancellationRequested();
             Validate(input);
-            var result = new RidgeResult();
-            IReadOnlyList<Point3> pos = input.Positions;
-            int n = pos.Count;
 
-            result.GroupCount = input.GroupOf.Where(g => g >= 0).Distinct().Count();
-            if (result.GroupCount < 2 || n < 2) return result;
+            // ── 1. Distance field ──────────────────────────────────────────
+            var field = new GeodesicField(input.Outline, input.Drains, input.DrainGroup, cancel);
+            var result = new RidgeResult { GroupCount = field.GroupCount };
+            if (field.GroupCount < 2) return result;
 
-            double spacing = TypicalSpacing(pos);
-            double reach = Diagonal(pos) + spacing;
-            var grid = new SpatialGrid2D(pos, spacing * 2);
-            var straight = new StraightLinks(input.Graph, pos);
+            // ── 2. Labelled grid ───────────────────────────────────────────
+            var grid = new LabelGrid(input.Outline, field, input.MaxDistance, cancel);
+            result.GridStep = grid.Step;
 
-            // ── 2. Ridge points ────────────────────────────────────────────
-            var pairs = new SortedDictionary<(int, int), HashSet<int>>();
-            var pairsOfPoint = new SortedDictionary<int, HashSet<(int, int)>>();
-            for (int i = 0; i < n; i++)
-            {
-                if ((i & 0xFF) == 0) cancel.ThrowIfCancellationRequested();
-                int gi = input.GroupOf[i];
-                if (gi < 0) continue;
+            // ── 3–4. Crossings and segments ────────────────────────────────
+            var net = new RidgeNet();
+            FindSegments(grid, field, input.Outline, net, cancel);
 
-                straight.Mark(i);
-                foreach (int j in Nearest(pos, grid, i, NeighbourCandidates, spacing, reach))
-                {
-                    int gj = input.GroupOf[j];
-                    if (gj < 0 || gj == gi || !straight.IsLinked(j)) continue;
-                    if (!IsShortLink(pos, grid, i, j)) continue;
+            // ── 5. Chain and straighten ────────────────────────────────────
+            net.DropZeroLength();
+            result.RidgeCount = net.PairCount();
+            List<(int A, int B)> lines = Straighten(net);
 
-                    int top = Higher(input, i, j);
-                    if (input.IsDrain[top]) continue;
+            // ── 6. Reach the roof edge ─────────────────────────────────────
+            Point3[] at = net.Points.ToArray();
+            ReachEdge(lines, at, input.Outline, EndReachFactor * grid.Step);
 
-                    var key = gi < gj ? (gi, gj) : (gj, gi);
-                    if (!pairs.TryGetValue(key, out var set)) pairs[key] = set = new HashSet<int>();
-                    set.Add(top);
-                    if (!pairsOfPoint.TryGetValue(top, out var keys)) pairsOfPoint[top] = keys = new HashSet<(int, int)>();
-                    keys.Add(key);
-                }
-            }
-
-            // ── 3. Junctions ───────────────────────────────────────────────
-            foreach (var (point, keys) in pairsOfPoint)
-            {
-                if (keys.Count < 2) continue;
-                result.Junctions.Add(point);
-                var groups = keys.SelectMany(k => new[] { k.Item1, k.Item2 }).Distinct().OrderBy(g => g).ToList();
-                for (int a = 0; a < groups.Count; a++)
-                    for (int b = a + 1; b < groups.Count; b++)
-                        if (pairs.TryGetValue((groups[a], groups[b]), out var set)) set.Add(point);
-            }
-
-            // ── 4. Join each pair's ridge points ───────────────────────────
-            var segments = new List<(int A, int B)>();
-            var seen = new HashSet<(int, int)>();
-            foreach (var set in pairs.Values)
-            {
-                cancel.ThrowIfCancellationRequested();
-                int added = 0;
-                foreach (var (a, b) in JoinRidgePoints(set.OrderBy(v => v).ToList(), pos, straight, spacing, reach))
-                {
-                    var key = a < b ? (a, b) : (b, a);
-                    if (seen.Add(key)) { segments.Add(key); added++; }
-                }
-                if (added > 0) result.RidgeCount++;
-            }
-
-            // ── 5. Straighten ──────────────────────────────────────────────
-            result.Lines.AddRange(Straighten(segments, pos));
-            result.RidgePoints.AddRange(pairs.Values.SelectMany(s => s).Distinct().OrderBy(v => v));
+            foreach (var (a, b) in lines)
+                result.Lines.Add(new RidgeLine(at[a], at[b]));
             return result;
         }
 
         private static void Validate(RidgeInput input)
         {
-            if (input?.Positions == null || input.Graph == null || input.GroupOf == null
-                || input.Elevation == null || input.IsDrain == null)
-                throw new ArgumentException("Ridge input is incomplete.", nameof(input));
-
-            int n = input.Positions.Count;
-            if (input.Graph.VertexCount != n || input.GroupOf.Count != n || input.Elevation.Count != n || input.IsDrain.Count != n)
-                throw new ArgumentException("Ridge input lists differ in length.", nameof(input));
+            if (input == null) throw new ArgumentException("Ridge input is required.", nameof(input));
+            if (input.Outline == null) throw new ArgumentException("The roof outline is required.", nameof(input));
+            if (input.Drains == null) throw new ArgumentException("The drain list is required.", nameof(input));
+            if (input.DrainGroup == null) throw new ArgumentException("The drain group list is required.", nameof(input));
+            if (input.Drains.Count != input.DrainGroup.Count)
+                throw new ArgumentException("Every drain needs exactly one group id.", nameof(input));
+            for (int i = 0; i < input.DrainGroup.Count; i++)
+                if (input.DrainGroup[i] < 0)
+                    throw new ArgumentException("Group ids must not be negative.", nameof(input));
         }
 
-        /// <summary>The higher end of link i–j; on a tie, the end in the lower-numbered group.</summary>
-        private static int Higher(RidgeInput input, int i, int j)
-        {
-            double diff = input.Elevation[i] - input.Elevation[j];
-            if (Math.Abs(diff) <= input.TieTolerance)
-                return input.GroupOf[i] <= input.GroupOf[j] ? i : j;
-            return diff > 0 ? i : j;
-        }
+        // ------------------------------------------------------------------
+        // Steps 3–4: crossings and segments
+        // ------------------------------------------------------------------
 
-        /// <summary>Step 4 for one group pair: minimum spanning tree over short links, gaps left out.</summary>
-        private static IEnumerable<(int A, int B)> JoinRidgePoints(
-            List<int> points, IReadOnlyList<Point3> pos, StraightLinks straight, double spacing, double reach)
+        /// <summary>Walks the grid cells and adds each two-group cell's segments to <paramref name="net"/>.</summary>
+        private static void FindSegments(LabelGrid grid, GeodesicField field, RoofOutline outline, RidgeNet net, CancellationToken cancel)
         {
-            int k = points.Count;
-            if (k < 2) yield break;
+            var crossingOfSide = new Dictionary<long, int>();
+            var corner = new int[4];   // labels, counter-clockwise from the lower-left corner
+            var side = new int[4];     // crossing on side k (corner k to corner k + 1), or -1
+            int visited = 0;
 
-            var sub = points.Select(v => pos[v]).ToList();
-            var grid = new SpatialGrid2D(sub, spacing * 2);
-            var candidates = new List<(double W, int A, int B)>();
-            var tried = new HashSet<(int, int)>();
-            for (int a = 0; a < k; a++)
+            for (int j = 0; j < grid.Ny; j++)
             {
-                straight.Mark(points[a]);
-                foreach (int b in Nearest(sub, grid, a, RidgeNeighbourCandidates, spacing, reach))
+                cancel.ThrowIfCancellationRequested();
+                for (int i = 0; i < grid.Nx; i++)
                 {
-                    var key = a < b ? (a, b) : (b, a);
-                    if (!tried.Add(key)) continue;
-                    if (!straight.IsLinked(points[b]) || !IsShortLink(sub, grid, a, b)) continue;
-                    candidates.Add((sub[a].DistanceXY(sub[b]), key.Item1, key.Item2));
-                }
-            }
+                    if (++visited % CancelCheckInterval == 0) cancel.ThrowIfCancellationRequested();
 
-            // Kruskal
-            candidates.Sort((x, y) => x.W.CompareTo(y.W));
-            var parent = Enumerable.Range(0, k).ToArray();
-            int Root(int x)
-            {
-                while (parent[x] != x) { parent[x] = parent[parent[x]]; x = parent[x]; }
-                return x;
-            }
-            var tree = new List<(double W, int A, int B)>();
-            foreach (var c in candidates)
-            {
-                int ra = Root(c.A), rb = Root(c.B);
-                if (ra == rb) continue;
-                parent[ra] = rb;
-                tree.Add(c);
-            }
-            if (tree.Count == 0) yield break;
+                    corner[0] = grid.Label(i, j);
+                    corner[1] = grid.Label(i + 1, j);
+                    corner[2] = grid.Label(i + 1, j + 1);
+                    corner[3] = grid.Label(i, j + 1);
+                    // One group: no ridge here. Three or more: they meet in this cell (a junction), skipped.
+                    if (CountGroups(corner, out int ga, out int gb) != 2) continue;
 
-            double maxGap = MaxGapFactor * Median(tree.Select(t => t.W));
-            foreach (var t in tree)
-                if (t.W <= maxGap + CircleEps) yield return (points[t.A], points[t.B]);
-        }
+                    Point3 lo = grid.Node(i, j), hi = grid.Node(i + 1, j + 1);
+                    if (!outline.IsClearRect(lo.X, lo.Y, hi.X, hi.Y)) continue;
 
-        /// <summary>Step 5: walk each run between junctions and ends, then straighten it.</summary>
-        private static List<RidgeLine> Straighten(List<(int A, int B)> segments, IReadOnlyList<Point3> pos)
-        {
-            var lines = new List<RidgeLine>();
-            if (segments.Count == 0) return lines;
-
-            double tol = StraightenFactor * Median(segments.Select(s => pos[s.A].DistanceXY(pos[s.B])));
-            var adj = new SortedDictionary<int, List<int>>();
-            void Link(int a, int b)
-            {
-                if (!adj.TryGetValue(a, out var list)) adj[a] = list = new List<int>();
-                list.Add(b);
-            }
-            foreach (var (a, b) in segments) { Link(a, b); Link(b, a); }
-
-            var used = new HashSet<(int, int)>();
-            (int, int) Key(int a, int b) => a < b ? (a, b) : (b, a);
-            // Start at ends and junctions first, so closed loops are the only runs started mid-way.
-            var starts = adj.Keys.OrderBy(v => adj[v].Count == 2 ? 1 : 0).ThenBy(v => v).ToList();
-
-            foreach (int start in starts)
-            {
-                foreach (int first in adj[start])
-                {
-                    if (!used.Add(Key(start, first))) continue;
-                    var run = new List<int> { start, first };
-                    int prev = start, cur = first;
-                    while (adj[cur].Count == 2)
+                    int count = 0;
+                    for (int k = 0; k < 4; k++)
                     {
-                        int next = adj[cur][0] == prev ? adj[cur][1] : adj[cur][0];
-                        if (!used.Add(Key(cur, next))) break;
-                        run.Add(next);
-                        prev = cur;
-                        cur = next;
+                        side[k] = -1;
+                        int a = corner[k], b = corner[(k + 1) % 4];
+                        if (a < 0 || b < 0 || a == b) continue;
+                        side[k] = Crossing(grid, field, net, crossingOfSide, i, j, k);
+                        count++;
                     }
 
-                    List<int> kept = Simplify(run, pos, tol);
-                    for (int i = 1; i < kept.Count; i++)
-                        if (kept[i - 1] != kept[i]) lines.Add(new RidgeLine(kept[i - 1], kept[i]));
+                    var pair = (Math.Min(ga, gb), Math.Max(ga, gb));
+                    if (count == 2)
+                    {
+                        int first = -1;
+                        for (int k = 0; k < 4; k++)
+                        {
+                            if (side[k] < 0) continue;
+                            if (first < 0) first = side[k];
+                            else net.AddSegment(first, side[k], pair);
+                        }
+                    }
+                    else if (count == 4)
+                    {
+                        // Saddle: the centre's group (the nearer of the two; a tie goes to the lower
+                        // id, as for the nodes) decides which two corners are cut off.
+                        Point3 c = new Point3(0.5 * (lo.X + hi.X), 0.5 * (lo.Y + hi.Y), 0);
+                        double f = field.DistanceTo(c, ga) - field.DistanceTo(c, gb);
+                        int centre = f > 0 || (f == 0 && gb < ga) ? gb : ga;
+                        for (int k = 0; k < 4; k++)
+                            if (corner[k] != centre)
+                                net.AddSegment(side[(k + 3) % 4], side[k], pair);
+                    }
+                    // 0 or 1 (odd): corners beyond the drainage distance leave no pair of crossings to join.
                 }
             }
+        }
+
+        /// <summary>Number of different groups (≥ 0) among the four corners; the first two found.</summary>
+        private static int CountGroups(int[] corner, out int ga, out int gb)
+        {
+            ga = -1;
+            gb = -1;
+            int count = 0;
+            for (int k = 0; k < 4; k++)
+            {
+                int g = corner[k];
+                if (g < 0 || Array.IndexOf(corner, g) < k) continue;   // no group, or seen at an earlier corner
+                count++;
+                if (count == 1) ga = g;
+                else if (count == 2) gb = g;
+            }
+            return count;
+        }
+
+        /// <summary>
+        /// The crossing on side <paramref name="k"/> of cell (i, j), computed once per side so the
+        /// two cells that share it share the point.
+        /// </summary>
+        private static int Crossing(
+            LabelGrid grid, GeodesicField field, RidgeNet net, Dictionary<long, int> crossingOfSide, int i, int j, int k)
+        {
+            // Each side is stored by its lower-left node and direction (0 = towards +X, 1 = towards +Y).
+            int ni, nj, dir;
+            switch (k)
+            {
+                case 0: ni = i; nj = j; dir = 0; break;         // bottom
+                case 1: ni = i + 1; nj = j; dir = 1; break;     // right
+                case 2: ni = i; nj = j + 1; dir = 0; break;     // top
+                default: ni = i; nj = j; dir = 1; break;        // left
+            }
+            long key = 2 * ((long)nj * (grid.Nx + 1) + ni) + dir;
+            if (crossingOfSide.TryGetValue(key, out int id)) return id;
+
+            int mi = dir == 0 ? ni + 1 : ni, mj = dir == 0 ? nj : nj + 1;
+            Point3 p = grid.Node(ni, nj), q = grid.Node(mi, mj);
+            id = net.AddPoint(Bisect(field, p, grid.Label(ni, nj), q, grid.Label(mi, mj)));
+            crossingOfSide[key] = id;
+            return id;
+        }
+
+        /// <summary>
+        /// The point between <paramref name="p"/> (nearest to group <paramref name="gp"/>) and
+        /// <paramref name="q"/> (nearest to <paramref name="gq"/>) where both groups are equally far:
+        /// bisection on D(gp) − D(gq) until the interval is under 1e-5 ft, at most 40 steps. A NaN
+        /// (neither group reachable) stops it at that midpoint.
+        /// </summary>
+        private static Point3 Bisect(GeodesicField field, Point3 p, int gp, Point3 q, int gq)
+        {
+            double len = p.DistanceXY(q);
+            double lo = 0, hi = 1;
+            for (int step = 0; step < MaxBisectionSteps && (hi - lo) * len >= CrossingToleranceFt; step++)
+            {
+                double m = 0.5 * (lo + hi);
+                Point3 x = Lerp(p, q, m);
+                double f = field.DistanceTo(x, gp) - field.DistanceTo(x, gq);
+                if (double.IsNaN(f)) { lo = hi = m; break; }
+                if (f > 0) hi = m;
+                else lo = m;
+            }
+            return Lerp(p, q, 0.5 * (lo + hi));
+        }
+
+        private static Point3 Lerp(Point3 p, Point3 q, double t) =>
+            new Point3(p.X + t * (q.X - p.X), p.Y + t * (q.Y - p.Y), 0);
+
+        // ------------------------------------------------------------------
+        // Step 5: chain and straighten
+        // ------------------------------------------------------------------
+
+        /// <summary>
+        /// Walks each run between nodes that are not simple links (ends and branch points), then each
+        /// remaining closed loop, and straightens it. Returns the lines as point pairs of the net.
+        /// </summary>
+        private static List<(int A, int B)> Straighten(RidgeNet net)
+        {
+            var lines = new List<(int A, int B)>();
+            int n = net.Points.Count;
+            var adj = new List<(int To, int Seg)>[n];
+            for (int s = 0; s < net.Segments.Count; s++)
+            {
+                var (a, b, _) = net.Segments[s];
+                (adj[a] ??= new List<(int, int)>()).Add((b, s));
+                (adj[b] ??= new List<(int, int)>()).Add((a, s));
+            }
+
+            var used = new bool[net.Segments.Count];
+            void Walk(int start, int to, int seg)
+            {
+                used[seg] = true;
+                var run = new List<int> { start, to };
+                int cur = to;
+                while (adj[cur].Count == 2)
+                {
+                    var next = adj[cur][0].Seg == seg ? adj[cur][1] : adj[cur][0];
+                    if (used[next.Seg]) break;   // back at the start of a closed loop
+                    used[next.Seg] = true;
+                    run.Add(next.To);
+                    seg = next.Seg;
+                    cur = next.To;
+                }
+
+                var pts = new List<Point3>(run.Count);
+                foreach (int v in run) pts.Add(net.Points[v]);
+                var ids = new List<int>();
+                foreach (int k in Simplify(pts, StraightenToleranceFt)) ids.Add(run[k]);
+
+                // A closed loop starts wherever the walk did; drop that point when it sits on a straight side.
+                if (ids.Count >= 5 && ids[0] == ids[ids.Count - 1] &&
+                    DistanceToSegment(net.Points[ids[0]], net.Points[ids[ids.Count - 2]], net.Points[ids[1]]) <= StraightenToleranceFt)
+                {
+                    ids.RemoveAt(0);
+                    ids[ids.Count - 1] = ids[0];
+                }
+
+                for (int i = 1; i < ids.Count; i++)
+                    if (ids[i - 1] != ids[i])   // a closed loop smaller than the tolerance
+                        lines.Add((ids[i - 1], ids[i]));
+            }
+
+            // Ends and branch points first, so only closed loops start part-way along a run.
+            for (int v = 0; v < n; v++)
+                if (adj[v] != null && adj[v].Count != 2)
+                    foreach (var (to, seg) in adj[v])
+                        if (!used[seg]) Walk(v, to, seg);
+            for (int v = 0; v < n; v++)
+                if (adj[v] != null)
+                    foreach (var (to, seg) in adj[v])
+                        if (!used[seg]) Walk(v, to, seg);
             return lines;
         }
 
-        /// <summary>Douglas–Peucker: keeps the run's ends, drops points within <paramref name="tol"/> of the straight line.</summary>
-        private static List<int> Simplify(List<int> run, IReadOnlyList<Point3> pos, double tol)
+        /// <summary>
+        /// Douglas–Peucker: indices of the points kept so that every dropped point lies within
+        /// <paramref name="tol"/> of the line between its kept neighbours. The first and last point
+        /// are always kept. Iterative, so long runs cannot overflow the stack.
+        /// </summary>
+        private static List<int> Simplify(IReadOnlyList<Point3> pts, double tol)
         {
-            if (run.Count < 3) return run;
-            Point3 a = pos[run[0]], b = pos[run[run.Count - 1]];
-            int iMax = -1;
-            double dMax = 0;
-            for (int i = 1; i < run.Count - 1; i++)
+            int n = pts.Count;
+            var keep = new bool[n];
+            keep[0] = keep[n - 1] = true;
+            var todo = new Stack<(int First, int Last)>();
+            todo.Push((0, n - 1));
+            while (todo.Count > 0)
             {
-                double d = DistanceToSegment(pos[run[i]], a, b);
-                if (d > dMax) { dMax = d; iMax = i; }
+                var (first, last) = todo.Pop();
+                int iMax = -1;
+                double dMax = 0;
+                for (int i = first + 1; i < last; i++)
+                {
+                    double d = DistanceToSegment(pts[i], pts[first], pts[last]);
+                    if (d > dMax) { dMax = d; iMax = i; }
+                }
+                if (iMax < 0 || dMax <= tol) continue;
+                keep[iMax] = true;
+                todo.Push((first, iMax));
+                todo.Push((iMax, last));
             }
-            if (dMax <= tol) return new List<int> { run[0], run[run.Count - 1] };
 
-            List<int> left = Simplify(run.GetRange(0, iMax + 1), pos, tol);
-            List<int> right = Simplify(run.GetRange(iMax, run.Count - iMax), pos, tol);
-            left.RemoveAt(left.Count - 1);
-            left.AddRange(right);
-            return left;
+            var kept = new List<int>();
+            for (int i = 0; i < n; i++)
+                if (keep[i]) kept.Add(i);
+            return kept;
         }
 
         private static double DistanceToSegment(Point3 p, Point3 a, Point3 b)
@@ -309,103 +414,157 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Core.Services
             return Math.Sqrt(ex * ex + ey * ey);
         }
 
-        /// <summary>True when no other point lies inside or on the circle drawn on link i–j as its diameter.</summary>
-        private static bool IsShortLink(IReadOnlyList<Point3> pos, SpatialGrid2D grid, int i, int j)
-        {
-            var c = new Point3((pos[i].X + pos[j].X) / 2, (pos[i].Y + pos[j].Y) / 2, 0);
-            double r = pos[i].DistanceXY(pos[j]) / 2;
-            foreach (int k in grid.QueryXY(c, r + CircleEps))
-                if (k != i && k != j && pos[k].DistanceXY(c) <= r + CircleEps) return false;
-            return true;
-        }
-
-        /// <summary>Up to <paramref name="count"/> nearest other points of <paramref name="i"/> (XY), nearest first.</summary>
-        private static List<int> Nearest(IReadOnlyList<Point3> pos, SpatialGrid2D grid, int i, int count, double spacing, double reach)
-        {
-            double radius = spacing * 2;
-            List<int> found;
-            while (true)
-            {
-                found = grid.QueryXY(pos[i], radius);
-                if (found.Count > count || radius >= reach) break;
-                radius *= 2;
-            }
-            found.Remove(i);
-            return found.OrderBy(j => pos[i].DistanceXY(pos[j])).ThenBy(j => j).Take(count).ToList();
-        }
-
-        /// <summary>Median distance from a point to its nearest neighbour (XY): the roof's point spacing.</summary>
-        private static double TypicalSpacing(IReadOnlyList<Point3> pos)
-        {
-            double area = Math.Max(Width(pos, p => p.X) * Width(pos, p => p.Y), 1e-6);
-            double guess = Math.Max(Math.Sqrt(area / pos.Count), 1e-3);
-            var grid = new SpatialGrid2D(pos, guess * 2);
-            double reach = Diagonal(pos) + guess;
-            var nearest = new List<double>(pos.Count);
-            for (int i = 0; i < pos.Count; i++)
-            {
-                double radius = guess * 2;
-                double best = double.MaxValue;
-                while (true)
-                {
-                    foreach (int j in grid.QueryXY(pos[i], radius))
-                    {
-                        double d = pos[i].DistanceXY(pos[j]);
-                        if (j != i && d > CircleEps && d < best) best = d;
-                    }
-                    if (best <= radius || radius >= reach) break;
-                    radius *= 2;
-                }
-                if (best < double.MaxValue) nearest.Add(best);
-            }
-            return nearest.Count == 0 ? 1.0 : Math.Max(Median(nearest), 1e-3);
-        }
-
-        private static double Width(IReadOnlyList<Point3> pos, Func<Point3, double> axis) =>
-            pos.Count == 0 ? 0 : pos.Max(axis) - pos.Min(axis);
-
-        private static double Diagonal(IReadOnlyList<Point3> pos)
-        {
-            double w = Width(pos, p => p.X), h = Width(pos, p => p.Y);
-            return Math.Sqrt(w * w + h * h);
-        }
-
-        private static double Median(IEnumerable<double> values)
-        {
-            var sorted = values.OrderBy(v => v).ToList();
-            return sorted.Count == 0 ? 0 : sorted[sorted.Count / 2];
-        }
+        // ------------------------------------------------------------------
+        // Step 6: reach the roof edge
+        // ------------------------------------------------------------------
 
         /// <summary>
-        /// "Is j linked to the marked point by a straight path-graph link?" in O(1), after an
-        /// O(degree) <see cref="Mark"/>. A link whose weight is longer than its chord goes
-        /// round an arc, so a straight line along it could leave the roof: it does not count.
+        /// Moves every line end that no other line uses on along its line, away from the other end,
+        /// to the first roof edge within <paramref name="reach"/>. A junction always has three or more
+        /// lines, so it is never moved.
         /// </summary>
-        private sealed class StraightLinks
+        private static void ReachEdge(List<(int A, int B)> lines, Point3[] at, RoofOutline outline, double reach)
         {
-            private readonly PathGraph _graph;
-            private readonly IReadOnlyList<Point3> _pos;
-            private readonly int[] _stamp;
-            private int _marked = -1;
-
-            public StraightLinks(PathGraph graph, IReadOnlyList<Point3> pos)
+            var uses = new Dictionary<int, int>();
+            foreach (var (a, b) in lines)
             {
-                _graph = graph;
-                _pos = pos;
-                _stamp = Enumerable.Repeat(-1, pos.Count).ToArray();
+                uses[a] = uses.TryGetValue(a, out int ua) ? ua + 1 : 1;
+                uses[b] = uses.TryGetValue(b, out int ub) ? ub + 1 : 1;
             }
 
-            public void Mark(int i)
+            // Directions come from the unmoved ends, so a line free at both ends keeps its direction.
+            var moves = new List<(int Node, Point3 To)>();
+            foreach (var (a, b) in lines)
             {
-                _marked = i;
-                foreach (var (to, weight) in _graph.Neighbours(i))
+                if (uses[a] == 1 && Reach(at[a], at[b], outline, reach) is Point3 ta) moves.Add((a, ta));
+                if (uses[b] == 1 && Reach(at[b], at[a], outline, reach) is Point3 tb) moves.Add((b, tb));
+            }
+            foreach (var (node, to) in moves) at[node] = to;
+        }
+
+        private static Point3? Reach(Point3 end, Point3 other, RoofOutline outline, double reach) =>
+            outline.RayHit(end, end.X - other.X, end.Y - other.Y, reach);
+
+        // ------------------------------------------------------------------
+        // Grid and segment store
+        // ------------------------------------------------------------------
+
+        /// <summary>Step 2: the nodes of a square grid over the outline's bounding box, each with its group.</summary>
+        private sealed class LabelGrid
+        {
+            private readonly double _x0, _y0;
+            private readonly int[] _label;
+
+            public LabelGrid(RoofOutline outline, GeodesicField field, double maxDistance, CancellationToken cancel)
+            {
+                _x0 = outline.MinX;
+                _y0 = outline.MinY;
+                double w = outline.MaxX - outline.MinX, d = outline.MaxY - outline.MinY;
+                Step = Math.Max(Math.Sqrt(w * d / TargetGridNodes), MinGridStepFt);
+                Nx = Math.Max(1, (int)Math.Ceiling(w / Step));
+                Ny = Math.Max(1, (int)Math.Ceiling(d / Step));
+
+                _label = new int[(Nx + 1) * (Ny + 1)];
+                int visited = 0;
+                for (int j = 0; j <= Ny; j++)
                 {
-                    double chord = _pos[i].DistanceTo(_pos[to]);
-                    if (weight <= chord * (1 + 1e-9) + 1e-9) _stamp[to] = i;
+                    cancel.ThrowIfCancellationRequested();
+                    for (int i = 0; i <= Nx; i++)
+                    {
+                        if (++visited % CancelCheckInterval == 0) cancel.ThrowIfCancellationRequested();
+                        int g = field.Nearest(Node(i, j), out double dist);   // -1 off the roof
+                        _label[j * (Nx + 1) + i] = g >= 0 && dist <= maxDistance ? g : -1;
+                    }
                 }
             }
 
-            public bool IsLinked(int j) => _stamp[j] == _marked;
+            /// <summary>Grid step (cell side) in feet.</summary>
+            public double Step { get; }
+
+            /// <summary>Cells along X (nodes: Nx + 1).</summary>
+            public int Nx { get; }
+
+            /// <summary>Cells along Y (nodes: Ny + 1).</summary>
+            public int Ny { get; }
+
+            public Point3 Node(int i, int j) => new Point3(_x0 + i * Step, _y0 + j * Step, 0);
+
+            public int Label(int i, int j) => _label[j * (Nx + 1) + i];
+        }
+
+        /// <summary>Ridge points and the segments between them, each tagged with its group pair.</summary>
+        private sealed class RidgeNet
+        {
+            public List<Point3> Points { get; } = new List<Point3>();
+
+            public List<(int A, int B, (int, int) Pair)> Segments { get; private set; } =
+                new List<(int, int, (int, int))>();
+
+            public int AddPoint(Point3 p)
+            {
+                Points.Add(p);
+                return Points.Count - 1;
+            }
+
+            public void AddSegment(int a, int b, (int, int) pair) => Segments.Add((a, b, pair));
+
+            /// <summary>
+            /// Drops segments shorter than <see cref="ZeroLengthFt"/>, joining their ends into one
+            /// point (at their mean), so the runs through them stay connected. Repeated segments go too.
+            /// </summary>
+            public void DropZeroLength()
+            {
+                int n = Points.Count;
+                var parent = new int[n];
+                for (int i = 0; i < n; i++) parent[i] = i;
+                int Root(int x)
+                {
+                    while (parent[x] != x) { parent[x] = parent[parent[x]]; x = parent[x]; }
+                    return x;
+                }
+
+                bool merged = false;
+                foreach (var (a, b, _) in Segments)
+                    if (Points[a].DistanceXY(Points[b]) < ZeroLengthFt)
+                    {
+                        int ra = Root(a), rb = Root(b);
+                        if (ra != rb) { parent[Math.Max(ra, rb)] = Math.Min(ra, rb); merged = true; }
+                    }
+
+                if (merged)
+                {
+                    var sx = new double[n];
+                    var sy = new double[n];
+                    var count = new int[n];
+                    for (int i = 0; i < n; i++)
+                    {
+                        int r = Root(i);
+                        sx[r] += Points[i].X;
+                        sy[r] += Points[i].Y;
+                        count[r]++;
+                    }
+                    for (int i = 0; i < n; i++)
+                        if (count[i] > 1) Points[i] = new Point3(sx[i] / count[i], sy[i] / count[i], 0);
+                }
+
+                var kept = new List<(int, int, (int, int))>(Segments.Count);
+                var seen = new HashSet<(int, int)>();
+                foreach (var (a, b, pair) in Segments)
+                {
+                    int ra = Root(a), rb = Root(b);
+                    if (ra == rb || !seen.Add((Math.Min(ra, rb), Math.Max(ra, rb)))) continue;
+                    kept.Add((ra, rb, pair));
+                }
+                Segments = kept;
+            }
+
+            /// <summary>Number of different group pairs among the segments.</summary>
+            public int PairCount()
+            {
+                var pairs = new HashSet<(int, int)>();
+                foreach (var (_, _, pair) in Segments) pairs.Add(pair);
+                return pairs.Count;
+            }
         }
     }
 }

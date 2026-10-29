@@ -2,7 +2,10 @@
 // File: RidgeLineService.cs
 // Namespace: Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Infrastructure.RoofOps
 // New in V033. Draws the ridge lines found by Core.Services.RidgeFinder as
-// detail lines in the active plan view, like the circle markers:
+// detail lines in the active plan view, like the circle markers. Since
+// 33.1.0 each line runs between two watershed points (where two drain
+// groups are equally far away), not between shape points; only their plan
+// position is used, at the view's level.
 //   - Called inside the runner's open "Apply AutoSlope" transaction; it never
 //     opens or commits its own, so Ctrl+Z undoes slope, markers and ridge
 //     lines together, and Cancel or a failure rolls all of them back.
@@ -15,7 +18,6 @@
 // =======================================================
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Autodesk.Revit.DB;
 using Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Core.Models;
@@ -40,13 +42,18 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Infrastructure.RoofOps
         private const string RevitDefaultStyle = "Revit's default line style";
 
         /// <summary>
-        /// Places one detail line per ridge line in <paramref name="activeView"/>. Never throws for
+        /// Places one detail line per ridge line in <paramref name="activeView"/>, from
+        /// <see cref="RidgeLine.A"/> to <see cref="RidgeLine.B"/> at the view's level. Never throws for
         /// expected problems (wrong view, missing style, a line Revit refuses): it logs and goes on.
         /// </summary>
+        /// <param name="doc">The document; a transaction must be open.</param>
+        /// <param name="activeView">The view to draw in; must be a plan view.</param>
+        /// <param name="ridges">The ridge lines to draw (plan points, feet).</param>
+        /// <param name="request">The run's options: the chosen line style.</param>
+        /// <param name="log">Receives warnings and notes.</param>
         public static RidgeLineOutcome Place(
             Document doc,
             View activeView,
-            IReadOnlyList<Point3> positions,
             RidgeResult ridges,
             AutoSlopeRequest request,
             Action<LogLevel, string> log)
@@ -75,9 +82,8 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Infrastructure.RoofOps
 
             foreach (RidgeLine line in ridges.Lines)
             {
-                Point3 a = positions[line.A], b = positions[line.B];
-                var p1 = new XYZ(a.X, a.Y, viewElevFt);
-                var p2 = new XYZ(b.X, b.Y, viewElevFt);
+                var p1 = new XYZ(line.A.X, line.A.Y, viewElevFt);
+                var p2 = new XYZ(line.B.X, line.B.Y, viewElevFt);
                 if (p1.DistanceTo(p2) < minLengthFt)
                 {
                     outcome.TooShort++;

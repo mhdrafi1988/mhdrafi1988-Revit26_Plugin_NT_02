@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Core.Models;
 using Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Core.Services;
 
@@ -44,5 +45,34 @@ namespace AutoSlopeByPoint.Tests
             {
                 (IReadOnlyList<Point3>)outer.Select(p => new Point3(p.X, p.Y, 0)).ToArray()
             });
+
+        /// <summary>Runs the ridge finder on plan drain points; <paramref name="groups"/> null = each drain
+        /// its own group.</summary>
+        public static RidgeResult Find(
+            RoofOutline o, (double X, double Y)[] drains, int[] groups = null,
+            double maxDistance = double.PositiveInfinity, CancellationToken cancel = default) =>
+            RidgeFinder.Find(new RidgeInput
+            {
+                Outline = o,
+                Drains = drains.Select(d => new Point3(d.X, d.Y, 0)).ToArray(),
+                DrainGroup = groups ?? Enumerable.Range(0, drains.Length).ToArray(),
+                MaxDistance = maxDistance
+            }, cancel);
+
+        /// <summary>True when any of 50 evenly spaced points of the line lies strictly inside the
+        /// rectangular opening (1e-6 margin, so a line ending on its edge does not count).</summary>
+        public static bool HitsHole(RidgeLine l, (double X0, double Y0, double X1, double Y1) hole)
+        {
+            const double margin = 1e-6;
+            double lx = Math.Min(hole.X0, hole.X1), hx = Math.Max(hole.X0, hole.X1);
+            double ly = Math.Min(hole.Y0, hole.Y1), hy = Math.Max(hole.Y0, hole.Y1);
+            for (int k = 0; k < 50; k++)
+            {
+                double t = k / 49.0;
+                double x = l.A.X + t * (l.B.X - l.A.X), y = l.A.Y + t * (l.B.Y - l.A.Y);
+                if (x > lx + margin && x < hx - margin && y > ly + margin && y < hy - margin) return true;
+            }
+            return false;
+        }
     }
 }

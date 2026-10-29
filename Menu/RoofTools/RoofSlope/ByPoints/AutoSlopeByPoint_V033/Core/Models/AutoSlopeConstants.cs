@@ -84,7 +84,5 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Core.Models
         public const double CornerLabelMatchMm          = 50;
         /// <summary>Direction change, in degrees, that counts as a corner on the outer boundary (32.3.0).</summary>
         public const double CornerMinAngleDeg           = 1.0;
-        /// <summary>Ridge lines (V033): two link ends this close in height count as equal.</summary>
-        public const double RidgeTieToleranceMm         = 1.0;
     }
 }

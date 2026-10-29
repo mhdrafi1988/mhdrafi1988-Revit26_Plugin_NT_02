@@ -1,5 +1,7 @@
-using System.Collections.Generic;
+using System;
 using System.Linq;
+using System.Threading;
+using Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Core.Models;
 using Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Core.Services;
 using Xunit;
 
@@ -7,144 +9,120 @@ namespace AutoSlopeByPoint.Tests
 {
     public class RidgeFinderTests
     {
-        [Fact]
-        public void TwoDrains_GiveOneStraightLineOnTheMidline()
+        static bool Near(Point3 p, double x, double y, double tol) => Math.Abs(p.X - x) <= tol && Math.Abs(p.Y - y) <= tol;
+
+        [Fact] public void TwoDrains_OneLineOnTheBisector_EdgeToEdge()
         {
-            var roof = SampleRoof.Build(new[] { (8.0, 12.0), (32.0, 12.0) });
+            var r = TestRoofs.Find(TestRoofs.Rectangle(), new[] { (8.0, 12.0), (32.0, 12.0) });
+            var l = Assert.Single(r.Lines);
+            Assert.Equal(20, l.A.X, 3); Assert.Equal(20, l.B.X, 3);
+            Assert.Equal(new[] { 0.0, 24.0 }, new[] { l.A.Y, l.B.Y }.OrderBy(y => y).Select(y => Math.Round(y, 3)));
+            Assert.Equal(1, r.RidgeCount); Assert.Equal(2, r.GroupCount); Assert.Empty(r.Junctions);
+        }
 
-            RidgeResult r = roof.Find();
+        [Fact] public void TwoDrains_OffGrid_IsNotSnapped()          // midline x = 19.5, between any shape points
+        {
+            var l = Assert.Single(TestRoofs.Find(TestRoofs.Rectangle(), new[] { (8.0, 12.0), (31.0, 12.0) }).Lines);
+            Assert.Equal(19.5, l.A.X, 3); Assert.Equal(19.5, l.B.X, 3);
+        }
 
-            RidgeLine line = Assert.Single(r.Lines);
-            var a = roof.Points[line.A];
-            var b = roof.Points[line.B];
-            Assert.Equal(20, a.X, 6);
-            Assert.Equal(20, b.X, 6);
-            Assert.Equal(new[] { 0.0, 24.0 }, new[] { a.Y, b.Y }.OrderBy(y => y).ToArray());
+        [Fact] public void TwoDrains_Diagonal_OneStraightLine()      // bisector y = 48 − 2x
+        {
+            var l = Assert.Single(TestRoofs.Find(TestRoofs.Rectangle(), new[] { (6.0, 6.0), (30.0, 18.0) }).Lines);
+            var ends = new[] { l.A, l.B }.OrderBy(p => p.Y).ToArray();
+            Assert.True(Near(ends[0], 24, 0, 1e-3) && Near(ends[1], 12, 24, 1e-3));
+        }
+
+        [Fact] public void DrainsOnRoofEdge_BisectorEdgeToEdge()
+        {
+            var l = Assert.Single(TestRoofs.Find(TestRoofs.Rectangle(), new[] { (0.0, 12.0), (40.0, 12.0) }).Lines);
+            Assert.Equal(20, l.A.X, 3); Assert.Equal(20, l.B.X, 3);
+        }
+
+        [Fact] public void SameGroup_NoRidgeBetweenThem()
+        {
+            var r = TestRoofs.Find(TestRoofs.Rectangle(), new[] { (8.0, 12.0), (32.0, 12.0) }, new[] { 0, 0 });
+            Assert.Empty(r.Lines); Assert.Equal(1, r.GroupCount);
+        }
+
+        [Fact] public void GroupOfTwo_RidgeKinksBetweenItsDrains()   // kink near (19.25, 12), ends (22.25, 0) and (22.25, 24)
+        {
+            var r = TestRoofs.Find(TestRoofs.Rectangle(), new[] { (8.0, 6.0), (8.0, 18.0), (32.0, 12.0) }, new[] { 0, 0, 1 });
+            Assert.Equal(2, r.Lines.Count); Assert.Equal(1, r.RidgeCount); Assert.Empty(r.Junctions);
+            var pts = r.Lines.SelectMany(x => new[] { x.A, x.B }).ToList();
+            Assert.Contains(pts, p => Near(p, 22.25, 0, 0.05));    // kept kink point sits within h of the true kink,
+            Assert.Contains(pts, p => Near(p, 22.25, 24, 0.05));   // so the extended ends can drift slightly
+            Assert.Contains(pts, p => Near(p, 19.25, 12, 0.25));
+        }
+
+        [Fact] public void Opening_RidgeBendsAndStopsAtTheOpening()
+        {
+            var hole = (16.0, 8.0, 24.0, 14.0);
+            var r = TestRoofs.Find(TestRoofs.Rectangle(hole: hole), new[] { (20.0, 4.0), (20.0, 20.0) });
+            Assert.NotEmpty(r.Lines);
+            Assert.DoesNotContain(r.Lines, l => TestRoofs.HitsHole(l, hole));
+            var pts = r.Lines.SelectMany(x => new[] { x.A, x.B }).ToList();
+            Assert.Contains(pts, p => Near(p, 0, 12, 1e-2));
+            Assert.Contains(pts, p => Near(p, 40, 12, 1e-2));
+            Assert.Contains(pts, p => Near(p, 16, 11, 0.05));   // round-the-corner tie, not y = 12
+            Assert.Contains(pts, p => Near(p, 24, 11, 0.05));
+        }
+
+        [Fact] public void Opening_TieOnTheOpeningSide_IsTheRoundTheCornerDistance()
+        {
+            // On the opening's sides both drains are reached round its corners:
+            // √32 + (y − 8) = √52 + (14 − y)  →  y = (22 + √52 − √32) / 2 ≈ 11.777.
+            double tie = (22 + Math.Sqrt(52) - Math.Sqrt(32)) / 2;
+            var hole = (16.0, 8.0, 24.0, 14.0);
+            var r = TestRoofs.Find(TestRoofs.Rectangle(hole: hole), new[] { (20.0, 4.0), (20.0, 20.0) });
+            var pts = r.Lines.SelectMany(x => new[] { x.A, x.B }).ToList();
+            Assert.Contains(pts, p => Near(p, 16, tie, 0.01));
+            Assert.Contains(pts, p => Near(p, 24, tie, 0.01));
             Assert.Equal(1, r.RidgeCount);
-            Assert.Equal(2, r.GroupCount);
         }
 
-        [Fact]
-        public void TieBetweenTwoColumns_GivesOneLineNotTwo()
+        [Fact] public void RidgeThroughGridNodes_StaysOneLine()
         {
-            // Midline at x = 19 falls between the grid columns 18 and 20, which tie in height.
-            var roof = SampleRoof.Build(new[] { (8.0, 12.0), (30.0, 12.0) });
-
-            RidgeResult r = roof.Find();
-
-            RidgeLine line = Assert.Single(r.Lines);
-            Assert.Equal(roof.Points[line.A].X, roof.Points[line.B].X, 6);
+            // y = x runs exactly through the grid nodes (both drains are exactly as far from each),
+            // so neighbouring crossings coincide and zero-length segments appear between them.
+            var l = Assert.Single(TestRoofs.Find(TestRoofs.Rectangle(24, 24), new[] { (4.0, 20.0), (20.0, 4.0) }).Lines);
+            var ends = new[] { l.A, l.B }.OrderBy(p => p.X).ToArray();
+            Assert.True(Near(ends[0], 0, 0, 1e-3) && Near(ends[1], 24, 24, 1e-3), $"{l.A} – {l.B}");
         }
 
-        [Fact]
-        public void ThreeDrains_RidgesMeetAtOneJunction()
+        [Fact] public void DrainRingedByAnotherGroup_ClosedRidge()
         {
-            var roof = SampleRoof.Build(new[] { (6.0, 6.0), (34.0, 8.0), (18.0, 20.0) });
-
-            RidgeResult r = roof.Find();
-
-            int junction = Assert.Single(r.Junctions);
-            Assert.Equal(3, r.RidgeCount);
-            Assert.True(r.Lines.Count(l => l.A == junction || l.B == junction) >= 3,
-                "Every ridge should reach the junction.");
-            Assert.True(r.Lines.Count <= 8, $"Expected straightened ridges, got {r.Lines.Count} lines.");
+            // A drain at the centre, eight drains of another group round it at radius 8: the ridge is
+            // the octagon with apothem 4. A closed loop has no free ends, so nothing is extended.
+            var drains = new[] { (20.0, 20.0) }.Concat(Enumerable.Range(0, 8).Select(k =>
+                (20 + 8 * Math.Cos(k * Math.PI / 4), 20 + 8 * Math.Sin(k * Math.PI / 4)))).ToArray();
+            var r = TestRoofs.Find(TestRoofs.Rectangle(40, 40), drains, new[] { 1, 0, 0, 0, 0, 0, 0, 0, 0 });
+            Assert.Equal(8, r.Lines.Count); Assert.Equal(1, r.RidgeCount);
+            var ends = r.Lines.SelectMany(x => new[] { x.A, x.B }).ToList();
+            Assert.All(ends, p => Assert.Equal(2, ends.Count(q => q.Equals(p))));
+            Assert.All(ends, p => Assert.InRange(Math.Sqrt((p.X - 20) * (p.X - 20) + (p.Y - 20) * (p.Y - 20)),
+                4 - 1e-3, 4 / Math.Cos(Math.PI / 8) + 1e-3));
         }
 
-        [Fact]
-        public void LinesStartAndEndOnRidgePoints()
+        [Fact] public void MaxDistance_RidgeStopsWhereTheSlopeStops()  // |y − 12| ≤ 5 when 13 from both drains
         {
-            var roof = SampleRoof.Build(new[] { (6.0, 6.0), (34.0, 8.0), (18.0, 20.0) });
-
-            RidgeResult r = roof.Find();
-
-            var ridge = new HashSet<int>(r.RidgePoints);
-            Assert.NotEmpty(r.Lines);
-            Assert.All(r.Lines, l =>
-            {
-                Assert.Contains(l.A, ridge);
-                Assert.Contains(l.B, ridge);
-                Assert.NotEqual(l.A, l.B);
-            });
+            var l = Assert.Single(TestRoofs.Find(TestRoofs.Rectangle(), new[] { (8.0, 12.0), (32.0, 12.0) }, maxDistance: 13).Lines);
+            var ys = new[] { l.A.Y, l.B.Y }.OrderBy(y => y).ToArray();
+            Assert.InRange(ys[0], 6.5, 7.5); Assert.InRange(ys[1], 16.5, 17.5);
         }
 
-        [Fact]
-        public void RidgePointsAreTheHigherEnd()
+        [Fact] public void OneDrain_NoLines() =>
+            Assert.Empty(TestRoofs.Find(TestRoofs.Rectangle(), new[] { (8.0, 12.0) }).Lines);
+
+        [Fact] public void BadInput_Throws()
         {
-            var roof = SampleRoof.Build(new[] { (6.0, 6.0), (34.0, 8.0), (18.0, 20.0) });
-
-            RidgeResult r = roof.Find();
-
-            // Every ridge point is the higher end of at least one link across the ridge
-            // (on this grid the short links are the 2 m links along the axes).
-            Assert.NotEmpty(r.RidgePoints);
-            foreach (int v in r.RidgePoints)
-            {
-                bool higherEnd = roof.Graph.Neighbours(v).Any(e =>
-                    roof.GroupOf[e.To] >= 0 && roof.GroupOf[e.To] != roof.GroupOf[v]
-                    && roof.Points[v].DistanceXY(roof.Points[e.To]) <= 2.0 + 1e-6
-                    && roof.Elevation[v] >= roof.Elevation[e.To] - 1e-3);
-                Assert.True(higherEnd, $"Ridge point {v} is not the higher end of any link across the ridge.");
-            }
+            Assert.Throws<ArgumentException>(() => RidgeFinder.Find(new RidgeInput { Drains = new Point3[0], DrainGroup = new int[0] }));
+            Assert.Throws<ArgumentException>(() => RidgeFinder.Find(new RidgeInput
+                { Outline = TestRoofs.Rectangle(), Drains = new[] { new Point3(1, 1, 0) }, DrainGroup = new int[0] }));
         }
 
-        [Fact]
-        public void OneDrainGroup_GivesNoLines()
-        {
-            var roof = SampleRoof.Build(new[] { (8.0, 12.0), (32.0, 12.0) }, drainGroups: new[] { 0, 0 });
-
-            RidgeResult r = roof.Find();
-
-            Assert.Empty(r.Lines);
-            Assert.Empty(r.RidgePoints);
-            Assert.Equal(1, r.GroupCount);
-        }
-
-        [Fact]
-        public void Opening_NoLineCrossesIt()
-        {
-            var roof = SampleRoof.Build(
-                new[] { (6.0, 18.0), (34.0, 18.0), (8.0, 4.0), (30.0, 4.0) },
-                hole: (16, 8, 24, 14));
-
-            RidgeResult r = roof.Find();
-
-            Assert.NotEmpty(r.Lines);
-            Assert.All(r.Lines, l => Assert.False(roof.Crosses(roof.Points[l.A], roof.Points[l.B]),
-                $"Line {l.A}–{l.B} crosses the opening."));
-        }
-
-        [Fact]
-        public void DrainsAndUnslopedPoints_AreNeverRidgePoints()
-        {
-            var roof = SampleRoof.Build(new[] { (8.0, 12.0), (32.0, 12.0) });
-            // Points on the top row count as "beyond the drainage distance".
-            for (int i = 0; i < roof.Points.Count; i++)
-                if (roof.Points[i].Y > 23) roof.GroupOf[i] = -1;
-
-            RidgeResult r = roof.Find();
-
-            Assert.NotEmpty(r.RidgePoints);
-            Assert.All(r.RidgePoints, v =>
-            {
-                Assert.False(roof.IsDrain[v]);
-                Assert.True(roof.GroupOf[v] >= 0);
-            });
-        }
-
-        [Fact]
-        public void EmptyRoof_GivesNoLines()
-        {
-            var r = RidgeFinder.Find(new RidgeInput
-            {
-                Positions = new List<Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Core.Models.Point3>(),
-                Graph = new PathGraph(0),
-                GroupOf = new int[0],
-                Elevation = new double[0],
-                IsDrain = new bool[0]
-            });
-
-            Assert.Empty(r.Lines);
-            Assert.Equal(0, r.GroupCount);
-        }
+        [Fact] public void Cancelled_Throws() =>
+            Assert.Throws<OperationCanceledException>(() => TestRoofs.Find(TestRoofs.Rectangle(),
+                new[] { (8.0, 12.0), (32.0, 12.0) }, cancel: new CancellationToken(true)));
     }
 }
