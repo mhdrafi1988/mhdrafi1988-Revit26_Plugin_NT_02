@@ -23,7 +23,7 @@ public partial class ViewItemViewModel : ObservableObject
     /// For Schedules/Legends this is populated separately via
     /// PlacedSheetNumbers since a single view can be on several sheets.
     /// </summary>
-    public string? SheetNumber  { get; }
+    public string? SheetNumber  { get; private set; }
     public string? DetailNumber { get; }
 
     /// <summary>
@@ -31,9 +31,19 @@ public partial class ViewItemViewModel : ObservableObject
     /// Schedules, which can be placed multiple times). SheetNumber above
     /// is simply the first entry here for display in the grid's Sheet column.
     /// </summary>
-    public IReadOnlyList<string> PlacedSheetNumbers { get; }
+    public IReadOnlyList<string> PlacedSheetNumbers { get; private set; }
 
     public bool IsPlaced => PlacedSheetNumbers.Count > 0;
+
+    /// <summary>Replaces the sheet list (used when the full project load completes a Legend/Schedule's placements).</summary>
+    public void UpdatePlacement(IReadOnlyList<string> sheets)
+    {
+        PlacedSheetNumbers = sheets;
+        SheetNumber = sheets.Count > 0 ? sheets[0] : null;
+        OnPropertyChanged(nameof(PlacedSheetNumbers));
+        OnPropertyChanged(nameof(SheetNumber));
+        OnPropertyChanged(nameof(IsPlaced));
+    }
     public bool IsPinned { get; }
 
     // ── Observable mutable state ────────────────────────────────────────────
