@@ -310,28 +310,21 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Core.Services
         // ------------------------------------------------------------------
 
         /// <summary>
-        /// Orients the outer loop (largest |area|) counter-clockwise and every other loop clockwise,
-        /// so the roof is always on the left of travel; a right turn is then a reflex corner. A
-        /// second outer part also gets its convex corners listed. That only costs speed, never
-        /// accuracy.
+        /// Winds every loop so the roof is on its left, by nesting depth: a loop inside an even
+        /// number of other loops (an outer part, or an island inside an opening) is wound
+        /// counter-clockwise, one inside an odd number (an opening) clockwise. A right turn is then
+        /// a reflex corner, whatever the number of outer parts and openings.
         /// </summary>
         private void FindPivots()
         {
             if (_loops.Count == 0) return;
 
-            var areas = new double[_loops.Count];
-            int outer = 0;
-            for (int i = 0; i < _loops.Count; i++)
-            {
-                areas[i] = SignedArea(_loops[i]);
-                if (Math.Abs(areas[i]) > Math.Abs(areas[outer])) outer = i;
-            }
-
             for (int i = 0; i < _loops.Count; i++)
             {
                 var pts = new List<Point3>(_loops[i]);
-                bool counterClockwise = areas[i] > 0;
-                if (counterClockwise != (i == outer)) pts.Reverse();
+                bool roofInside = NestingDepth(i) % 2 == 0;
+                bool counterClockwise = SignedArea(pts) > 0;
+                if (counterClockwise != roofInside) pts.Reverse();
 
                 int n = pts.Count;
                 for (int j = 0; j < n; j++)
@@ -352,6 +345,48 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Core.Services
                 sum += a.X * b.Y - b.X * a.Y;
             }
             return 0.5 * sum;
+        }
+
+        /// <summary>How many of the other loops enclose loop <paramref name="index"/>.</summary>
+        private int NestingDepth(int index)
+        {
+            var loop = _loops[index];
+            int depth = 0;
+            for (int k = 0; k < _loops.Count; k++)
+            {
+                if (k == index) continue;
+
+                // One point of the loop decides, as loops do not cross. Take one that is clear of
+                // the other loop's edges; if every vertex touches them, try the edge midpoints.
+                bool? inside = null;
+                for (int i = 0; i < loop.Count && inside == null; i++)
+                    inside = InsideLoop(_loops[k], loop[i].X, loop[i].Y);
+                for (int i = 0; i < loop.Count && inside == null; i++)
+                {
+                    Point3 a = loop[i], b = loop[(i + 1) % loop.Count];
+                    inside = InsideLoop(_loops[k], 0.5 * (a.X + b.X), 0.5 * (a.Y + b.Y));
+                }
+                if (inside == true) depth++;
+            }
+            return depth;
+        }
+
+        /// <summary>
+        /// Even-odd point-in-polygon test against a single loop. Null when the point lies on the
+        /// loop's edges, so the caller can pick another point.
+        /// </summary>
+        private static bool? InsideLoop(IReadOnlyList<Point3> loop, double x, double y)
+        {
+            const double tolSq = OnEdgeTolerance * OnEdgeTolerance;
+            bool inside = false;
+            for (int i = 0; i < loop.Count; i++)
+            {
+                Point3 a = loop[i], b = loop[(i + 1) % loop.Count];
+                if (PointSegmentDistSq(x, y, a.X, a.Y, b.X, b.Y) <= tolSq) return null;
+                if ((a.Y > y) != (b.Y > y) && a.X + (y - a.Y) * (b.X - a.X) / (b.Y - a.Y) > x)
+                    inside = !inside;
+            }
+            return inside;
         }
 
         // ------------------------------------------------------------------

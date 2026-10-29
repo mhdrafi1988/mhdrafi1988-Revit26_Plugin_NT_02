@@ -146,5 +146,40 @@ namespace AutoSlopeByPoint.Tests
             Assert.False(o.IsClearRect(0, 0, 1, 1));       // sides lie on the outer edge
             Assert.True(o.IsClearRect(26, 16, 25, 15));    // corners given in any order
         }
+
+        [Fact] public void Pivots_SecondOuterPart_OnlyItsReflexCorner()
+        {
+            // A square and, apart from it, an L-shaped part whose only reflex corner is (25, 5).
+            var square = TestRoofs.Box(0, 0, 10, 10);
+            var l = new[]
+            {
+                new Point3(20, 0, 0), new Point3(30, 0, 0), new Point3(30, 5, 0),
+                new Point3(25, 5, 0), new Point3(25, 10, 0), new Point3(20, 10, 0),
+            };
+            var o = new RoofOutline(new IReadOnlyList<Point3>[] { square, l });
+
+            var pivot = Assert.Single(o.Pivots);
+            Assert.Equal((25.0, 5.0), (pivot.X, pivot.Y));
+        }
+
+        [Fact] public void Pivots_IslandInsideAnOpening_ReflexCornersOfBoth()
+        {
+            // 40 x 24 roof, opening (4,4)-(16,16), and in the opening an L-shaped island of roof
+            // whose only reflex corner is (10, 10).
+            var island = new[]
+            {
+                new Point3(6, 6, 0), new Point3(14, 6, 0), new Point3(14, 10, 0),
+                new Point3(10, 10, 0), new Point3(10, 14, 0), new Point3(6, 14, 0),
+            };
+            var o = new RoofOutline(new IReadOnlyList<Point3>[]
+            {
+                TestRoofs.Box(0, 0, 40, 24), TestRoofs.Box(4, 4, 16, 16), island,
+            });
+
+            var expected = new[] { (4.0, 4.0), (4.0, 16.0), (10.0, 10.0), (16.0, 4.0), (16.0, 16.0) };
+            Assert.Equal(expected, o.Pivots.Select(p => (p.X, p.Y)).OrderBy(p => p).ToArray());
+            Assert.True(o.Contains(new Point3(7, 7, 0)));      // island is roof again
+            Assert.False(o.Contains(new Point3(12, 12, 0)));   // opening around it
+        }
     }
 }
