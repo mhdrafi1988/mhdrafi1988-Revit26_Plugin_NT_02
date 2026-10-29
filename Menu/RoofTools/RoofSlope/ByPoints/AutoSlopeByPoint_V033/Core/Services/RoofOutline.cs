@@ -6,7 +6,8 @@
 // ignored. Answers the geometry questions the ridge finder needs: is a
 // point on the roof, can two points see each other without leaving it,
 // is a small cell clear of every edge, where does a ray meet an edge,
-// and which corners bend the shortest path (reflex corners).
+// which outline point is closest, and which corners bend the shortest
+// path (reflex corners).
 // Brute force over all edges with bounding-box rejects; roofs have tens
 // of edges, so no spatial index. Revit-free (no Autodesk usings).
 // =======================================================
@@ -303,6 +304,34 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Core.Services
 
             if (best == double.MaxValue) return null;
             return new Point3(from.X + best * rx, from.Y + best * ry, from.Z);
+        }
+
+        // ------------------------------------------------------------------
+        // Closest point
+        // ------------------------------------------------------------------
+
+        /// <summary>
+        /// The point on any loop edge (outer boundary or opening) closest to <paramref name="p"/> in
+        /// plan, with Z = 0. Works from inside or outside the roof.
+        /// </summary>
+        /// <param name="p">The point; Z is ignored.</param>
+        /// <param name="distance">Plan distance in feet from <paramref name="p"/> to that point; +∞ when there are no loops.</param>
+        /// <returns>The closest edge point, or <paramref name="p"/> (Z = 0) when there are no loops.</returns>
+        public Point3 ClosestPoint(Point3 p, out double distance)
+        {
+            double best = double.PositiveInfinity, bx = p.X, by = p.Y;
+            foreach (var e in _edges)
+            {
+                double dx = e.Bx - e.Ax, dy = e.By - e.Ay;
+                double lenSq = dx * dx + dy * dy;
+                double t = lenSq > 0 ? ((p.X - e.Ax) * dx + (p.Y - e.Ay) * dy) / lenSq : 0.0;
+                t = Math.Max(0.0, Math.Min(1.0, t));
+                double cx = e.Ax + t * dx, cy = e.Ay + t * dy;
+                double dSq = (cx - p.X) * (cx - p.X) + (cy - p.Y) * (cy - p.Y);
+                if (dSq < best) { best = dSq; bx = cx; by = cy; }
+            }
+            distance = Math.Sqrt(best);
+            return new Point3(bx, by, 0);
         }
 
         // ------------------------------------------------------------------

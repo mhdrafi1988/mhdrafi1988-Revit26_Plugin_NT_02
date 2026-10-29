@@ -181,5 +181,20 @@ namespace AutoSlopeByPoint.Tests
             Assert.True(o.Contains(new Point3(7, 7, 0)));      // island is roof again
             Assert.False(o.Contains(new Point3(12, 12, 0)));   // opening around it
         }
+
+        [Fact] public void ClosestPoint_OnAStraightEdge_FromInsideAndOutside()
+        {
+            var o = TestRoofs.Rectangle(hole: (16, 8, 24, 14));
+            var c = o.ClosestPoint(new Point3(10, -2, 5), out double d);
+            Assert.Equal(10, c.X, 9); Assert.Equal(0, c.Y, 9); Assert.Equal(0, c.Z); Assert.Equal(2, d, 9);
+            c = o.ClosestPoint(new Point3(20, 13, 0), out d);   // in the opening, 1 from its top edge
+            Assert.Equal(20, c.X, 9); Assert.Equal(14, c.Y, 9); Assert.Equal(1, d, 9);
+        }
+
+        [Fact] public void ClosestPoint_BeyondACorner_IsTheCorner()
+        {
+            var c = TestRoofs.Rectangle().ClosestPoint(new Point3(43, 28, 0), out double d);
+            Assert.Equal(40, c.X, 9); Assert.Equal(24, c.Y, 9); Assert.Equal(5, d, 9);
+        }
     }
 }

@@ -9,8 +9,10 @@
 // are not snapped to shape points, and no elevation is changed. No Revit
 // API, so it is unit-tested (Tests/AutoSlopeByPoint.Tests).
 //
-//   1. Validate the input and build the GeodesicField. Fewer than two drain
-//      groups: no lines.
+//   1. Validate the input. A drain just outside the outline (up to 150 mm,
+//      e.g. a shape point on an arc between the outline's tessellation
+//      points) is moved onto it; one further out is counted and reaches
+//      nothing. Build the GeodesicField. Fewer than two groups: no lines.
 //   2. Grid: square cells of side h = max(√(bounding-box area / 40 000),
 //      50 mm) over the outline's bounding box. Each node gets the group
 //      nearest to it, or -1 when it is off the roof or further than the
@@ -86,6 +88,18 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Core.Services
 
         /// <summary>Side of the grid cells in feet; 0 when no grid was needed (fewer than two groups).</summary>
         public double GridStep { get; set; }
+
+        /// <summary>
+        /// Drains that lay just outside the outline (within <see cref="RidgeFinder.DrainSnapToleranceFt"/>,
+        /// e.g. a shape point on an arc between its tessellation points) and were moved onto it.
+        /// </summary>
+        public int DrainsMoved { get; set; }
+
+        /// <summary>
+        /// Drains further outside the outline than <see cref="RidgeFinder.DrainSnapToleranceFt"/>. They are
+        /// left where they are, so they reach no roof point and get no ridge.
+        /// </summary>
+        public int DrainsOutside { get; set; }
     }
 
     /// <summary>Finds the ridge lines between drain groups. See the file header for the method.</summary>
@@ -102,6 +116,11 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Core.Services
 
         /// <summary>Step 6: a free line end reaches the roof edge when that is within this × the grid step.</summary>
         public const double EndReachFactor = 3.0;
+
+        /// <summary>
+        /// Step 1: a drain outside the outline by at most this (150 mm, in feet) is moved onto it.
+        /// </summary>
+        public const double DrainSnapToleranceFt = 150 / 304.8;
 
         /// <summary>Junctions closer than this × the grid step count as one junction.</summary>
         public const double JunctionMergeFactor = 0.5;
@@ -132,9 +151,11 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Core.Services
             cancel.ThrowIfCancellationRequested();
             Validate(input);
 
-            // ── 1. Distance field ──────────────────────────────────────────
-            var field = new GeodesicField(input.Outline, input.Drains, input.DrainGroup, cancel);
-            var result = new RidgeResult { GroupCount = field.GroupCount };
+            // ── 1. Drains on the outline, distance field ───────────────────
+            var result = new RidgeResult();
+            List<Point3> drains = SnapDrains(input.Outline, input.Drains, result);
+            var field = new GeodesicField(input.Outline, drains, input.DrainGroup, cancel);
+            result.GroupCount = field.GroupCount;
             if (field.GroupCount < 2) return result;
 
             // ── 2. Labelled grid ───────────────────────────────────────────
@@ -170,6 +191,33 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Core.Services
             for (int i = 0; i < input.DrainGroup.Count; i++)
                 if (input.DrainGroup[i] < 0)
                     throw new ArgumentException("Group ids must not be negative.", nameof(input));
+        }
+
+        /// <summary>
+        /// Step 1: the drains, each one that <see cref="RoofOutline.Contains"/> rejects moved to the
+        /// closest outline point when that is within <see cref="DrainSnapToleranceFt"/>. Counts the moved
+        /// and the outside drains in <paramref name="result"/>.
+        /// </summary>
+        private static List<Point3> SnapDrains(RoofOutline outline, IReadOnlyList<Point3> drains, RidgeResult result)
+        {
+            var snapped = new List<Point3>(drains.Count);
+            foreach (Point3 d in drains)
+            {
+                if (outline.Contains(d)) { snapped.Add(d); continue; }
+
+                Point3 on = outline.ClosestPoint(d, out double gap);
+                if (gap <= DrainSnapToleranceFt)
+                {
+                    snapped.Add(on);
+                    result.DrainsMoved++;
+                }
+                else
+                {
+                    snapped.Add(d);
+                    result.DrainsOutside++;
+                }
+            }
+            return snapped;
         }
 
         // ------------------------------------------------------------------

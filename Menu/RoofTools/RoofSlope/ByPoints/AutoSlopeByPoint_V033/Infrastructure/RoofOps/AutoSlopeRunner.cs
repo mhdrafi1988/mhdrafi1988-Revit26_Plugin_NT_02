@@ -284,6 +284,10 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Infrastructure.RoofOps
                     MaxDistance = RevitConvert.MToFt(request.MaxDrainDistanceM)
                 }, cancel);
 
+                if (r.DrainsMoved > 0)
+                    log(LogLevel.Warning, $"Ridge lines: {r.DrainsMoved} drain point(s) lay just outside the roof outline and were moved onto it.");
+                if (r.DrainsOutside > 0)
+                    log(LogLevel.Warning, $"Ridge lines: {r.DrainsOutside} drain point(s) are outside the roof outline and were left out of the ridge lines.");
                 if (r.Lines.Count == 0)
                 {
                     log(LogLevel.Info, "Ridge lines: no ridge was found between the drain groups.");

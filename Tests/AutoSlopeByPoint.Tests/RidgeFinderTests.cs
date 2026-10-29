@@ -111,6 +111,22 @@ namespace AutoSlopeByPoint.Tests
             Assert.InRange(ys[0], 6.5, 7.5); Assert.InRange(ys[1], 16.5, 17.5);
         }
 
+        [Fact] public void DrainsJustOutsideTheOutline_AreMovedOntoIt()   // 0.9 mm outside each end
+        {
+            var r = TestRoofs.Find(TestRoofs.Rectangle(), new[] { (-0.003, 12.0), (40.003, 12.0) });
+            var l = Assert.Single(r.Lines);
+            Assert.Equal(20, l.A.X, 3); Assert.Equal(20, l.B.X, 3);
+            Assert.Equal(2, r.DrainsMoved); Assert.Equal(0, r.DrainsOutside);
+        }
+
+        [Fact] public void DrainFarOutsideTheOutline_IsCountedAndLeftOut()
+        {
+            var r = TestRoofs.Find(TestRoofs.Rectangle(), new[] { (8.0, 12.0), (32.0, 12.0), (41.0, 12.0) });
+            Assert.Equal(1, r.DrainsOutside); Assert.Equal(0, r.DrainsMoved); Assert.Equal(3, r.GroupCount);
+            var l = Assert.Single(r.Lines);
+            Assert.Equal(20, l.A.X, 3); Assert.Equal(20, l.B.X, 3);
+        }
+
         [Fact] public void OneDrain_NoLines() =>
             Assert.Empty(TestRoofs.Find(TestRoofs.Rectangle(), new[] { (8.0, 12.0) }).Lines);
 
