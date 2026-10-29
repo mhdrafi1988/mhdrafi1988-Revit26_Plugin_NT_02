@@ -292,6 +292,85 @@ namespace AutoSlopeByPoint.Tests
             Assert.Equal(3, r.Lines.Count);
         }
 
+        // A clean ridge network: no two lines cross (except at a shared end), no line appears twice (same ends
+        // within 1e-6, either order), and no closed loop is shorter than 3 grid steps. The shortest loop through
+        // a line is that line plus the shortest path between its ends without it (ends within 1e-6 are one node).
+        static void AssertCleanNetwork(RidgeResult r)
+        {
+            var lines = r.Lines;
+            for (int i = 0; i < lines.Count; i++)
+                for (int k = i + 1; k < lines.Count; k++)
+                {
+                    RidgeLine p = lines[i], q = lines[k];
+                    Assert.False(Cross(p, q), $"{p.A} – {p.B} crosses {q.A} – {q.B}");
+                    bool same = (Near(p.A, q.A.X, q.A.Y, 1e-6) && Near(p.B, q.B.X, q.B.Y, 1e-6)) ||
+                                (Near(p.A, q.B.X, q.B.Y, 1e-6) && Near(p.B, q.A.X, q.A.Y, 1e-6));
+                    Assert.False(same, $"{p.A} – {p.B} appears twice");
+                }
+
+            var nodes = new List<Point3>();
+            int Id(Point3 x)
+            {
+                int i = nodes.FindIndex(n => Near(n, x.X, x.Y, 1e-6));
+                if (i >= 0) return i;
+                nodes.Add(x);
+                return nodes.Count - 1;
+            }
+            var edges = lines.Select(l => (A: Id(l.A), B: Id(l.B), Len: Math.Sqrt((l.A.X - l.B.X) * (l.A.X - l.B.X) + (l.A.Y - l.B.Y) * (l.A.Y - l.B.Y)))).ToList();
+            for (int e = 0; e < edges.Count; e++)
+            {
+                var dist = Enumerable.Repeat(double.PositiveInfinity, nodes.Count).ToArray();
+                var done = new bool[nodes.Count];
+                dist[edges[e].A] = 0;
+                while (true)   // Dijkstra from one end to the other, without line e
+                {
+                    int u = -1;
+                    for (int n = 0; n < nodes.Count; n++)
+                        if (!done[n] && dist[n] < double.PositiveInfinity && (u < 0 || dist[n] < dist[u])) u = n;
+                    if (u < 0 || u == edges[e].B) break;
+                    done[u] = true;
+                    for (int f = 0; f < edges.Count; f++)
+                    {
+                        if (f == e) continue;
+                        int v = edges[f].A == u ? edges[f].B : edges[f].B == u ? edges[f].A : -1;
+                        if (v >= 0 && dist[u] + edges[f].Len < dist[v]) dist[v] = dist[u] + edges[f].Len;
+                    }
+                }
+                double loop = dist[edges[e].B] + edges[e].Len;
+                Assert.True(loop >= 3 * r.GridStep, $"closed loop of {loop:0.###} ft through {lines[e].A} – {lines[e].B}");
+            }
+        }
+
+        [Fact] public void TwoVerticesAQuarterFootApart_NoCrossingsDuplicatesOrSmallLoops()
+        {
+            // A 3 × 2 grid of drains on a 164 × 110 roof (h ≈ 0.67): the vertices (109.2819, 55.0585) and
+            // (109.4839, 54.8537) are 0.29 ft apart and merge into one junction; a crossing between them
+            // made a small triangle whose middle line crossed two of the junction's lines.
+            var drains = new[] { (27.64146685816416, 27.403492883967), (27.233744679127703, 82.56994621295945),
+                                 (81.95716904660556, 27.61938853683853), (81.93826531569393, 82.47884323656506),
+                                 (137.2794878693668, 27.89390542446352), (137.10726821893235, 81.98985429806163) };
+            var r = TestRoofs.Find(TestRoofs.Rectangle(164.45488648929395, 109.63659099286264), drains);
+            AssertCleanNetwork(r);
+        }
+
+        [Fact] public void TwoVerticesOneCellApart_NoCrossingsDuplicatesOrSmallLoops()
+        {
+            // Vertices (19.5455, 13.7614) and (19.5151, 13.6678), 0.6 h apart: the line between them came out twice.
+            var drains = new[] { (24.1214, 12.2146), (14.9330, 15.1955), (21.0360, 18.3560), (18.0246, 9.0735) };
+            var r = TestRoofs.Find(TestRoofs.Rectangle(), drains);
+            AssertCleanNetwork(r);
+        }
+
+        [Fact] public void TwoVerticesNearTheEdge_NoCrossingsDuplicatesOrSmallLoops()
+        {
+            // Vertices (22.4158, 23.1997) and (22.4268, 23.3636), one cell apart near the top edge: a ridge
+            // folded back between them into a small triangle (a case found by random testing).
+            var drains = new[] { (34.7017, 9.0509), (18.2153, 4.9381), (34.8392, 7.8884),
+                                 (8.3505, 10.8184), (13.89, 3.058), (4.9747, 16.2258) };
+            var r = TestRoofs.Find(TestRoofs.Rectangle(), drains);
+            AssertCleanNetwork(r);
+        }
+
         [Fact] public void LargeRoof_FinishesInSeconds()
         {
             var holes = new[] { TestRoofs.Box(30, 20, 40, 30), TestRoofs.Box(80, 60, 95, 70),

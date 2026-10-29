@@ -34,14 +34,18 @@
 //      the sides), Newton's method finds the point where three of them are
 //      equally far (on an open roof the circumcentre of their drains). A
 //      point that lies in the cell, on the roof, with no other group nearer
-//      is a junction joined to each of the cell's crossings it sees. A cell
-//      next to it holds ridges that only pass through: the two crossings of
-//      each pair are joined, any others go to that junction. A point that
-//      lies off the roof means the ridges reach the edge separately; when
-//      Newton does not converge, the junction is the mean of the crossings.
-//      Junctions closer than h / 2 become one at their mean; a crossing that
-//      two cells holding the same junction both join to lies between them
-//      and is dropped (the ridge runs on to a further crossing).
+//      is a junction joined to each of the cell's crossings between two of
+//      its three groups that it sees. A cell next to it (and the junction
+//      cell's other crossings) holds ridges that only pass through: the two
+//      crossings of each pair are joined, any others go to that junction. A
+//      point that lies off the roof means the ridges reach the edge
+//      separately; when Newton does not converge, the junction is the mean
+//      of the crossings. Junctions closer than h / 2 become one at their
+//      mean; a crossing that two cells holding the same junction both join
+//      to lies between them and is dropped (the ridge runs on to a further
+//      crossing); where different points merged, every crossing closer than
+//      h / 2 to the junction becomes part of it, so the short pieces between
+//      them leave no small loop or doubled line.
 //   5. Chain and straighten: zero-length segments are dropped (their ends
 //      become one point). Free ends of the same group pair within 3 h that
 //      see each other are bridged, closest first, so a ridge broken up along
@@ -366,11 +370,13 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Core.Services
         /// <summary>
         /// Step 4 for a cell where three or more groups show, at its corners or on its sides. When a
         /// vertex (<see cref="FindVertex"/>) lies in the cell and the cell has three or more crossings,
-        /// the vertex is a junction joined to every crossing it sees. When no vertex search converged
-        /// (or ran off the roof) at all, the junction is the mean of three or more crossings, joined to
-        /// all of them. Otherwise the ridges only pass through: the two crossings of each pair that has
-        /// exactly two are joined, and the others are joined to the vertex next door, if one was found
-        /// (it merges with the junction of the cell that holds it).
+        /// the vertex is a junction joined to every crossing between two of its own three groups that
+        /// it sees; the cell's other crossings (a ridge from a vertex next door cutting a corner) are
+        /// handled as below. When no vertex search converged (or ran off the roof) at all, the junction
+        /// is the mean of three or more crossings, joined to all of them. Otherwise the ridges only pass
+        /// through: the two crossings of each pair that has exactly two are joined, and the others are
+        /// joined to the vertex nearby, if one was found (it merges with the junction of the cell that
+        /// holds it).
         /// </summary>
         private static void JunctionCell(
             LabelGrid grid, GeodesicField field, RoofOutline outline, RidgeNet net, int i, int j, List<int> groups, List<int> crossings)
@@ -378,14 +384,24 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Core.Services
             if (crossings.Count == 0) return;
             Point3 lo = grid.Node(i, j), hi = grid.Node(i + 1, j + 1);
             Point3 mean = Mean(net, crossings);
-            Point3? vertex = FindVertex(field, outline, groups, mean, lo, hi, grid.Step, out bool unsolved);
+            Point3? vertex = FindVertex(field, outline, groups, mean, lo, hi, grid.Step, out var triple, out bool unsolved);
 
             if (vertex is Point3 v && crossings.Count >= 3 && InBox(v, lo, hi, OwnToleranceFt))
             {
-                AddLegs(net, outline, v, crossings, own: true);
-                return;
+                var mine = new List<int>();
+                var others = new List<int>();
+                foreach (int x in crossings)
+                {
+                    var (pa, pb) = net.PairOf(x);
+                    bool own = (pa == triple.A || pa == triple.B || pa == triple.C) &&
+                               (pb == triple.A || pb == triple.B || pb == triple.C);
+                    (own ? mine : others).Add(x);
+                }
+                AddLegs(net, outline, v, mine, own: true);
+                if (others.Count == 0) return;
+                crossings = others;
             }
-            if (unsolved && crossings.Count >= 3)
+            else if (unsolved && crossings.Count >= 3)
             {
                 if (outline.Contains(mean)) AddLegs(net, outline, mean, crossings, own: true);
                 return;
@@ -417,14 +433,17 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Core.Services
 
         /// <summary>
         /// A vertex of the drain groups' Voronoi diagram near the cell (inside it grown by one step on
-        /// each side): a roof point where three of <paramref name="groups"/> are equally far and no other
-        /// group is nearer. Tries the triples of the (at most four) lowest ids, lowest first, each by
-        /// <see cref="SolveJunction"/> from <paramref name="start"/>. <paramref name="unsolved"/> is true
-        /// when no search converged or ran off the roof, so nothing is known about a vertex.
+        /// each side): a roof point where three of <paramref name="groups"/> (returned in
+        /// <paramref name="triple"/>) are equally far and no other group is nearer. Tries the triples of
+        /// the (at most four) lowest ids, lowest first, each by <see cref="SolveJunction"/> from
+        /// <paramref name="start"/>. <paramref name="unsolved"/> is true when no search converged or ran
+        /// off the roof, so nothing is known about a vertex.
         /// </summary>
         private static Point3? FindVertex(
-            GeodesicField field, RoofOutline outline, List<int> groups, Point3 start, Point3 lo, Point3 hi, double step, out bool unsolved)
+            GeodesicField field, RoofOutline outline, List<int> groups, Point3 start, Point3 lo, Point3 hi, double step,
+            out (int A, int B, int C) triple, out bool unsolved)
         {
+            triple = (-1, -1, -1);
             unsolved = true;
             int n = Math.Min(groups.Count, MaxJunctionGroups);
             for (int a = 0; a < n; a++)
@@ -434,7 +453,11 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Core.Services
                         Point3? v = SolveJunction(field, outline, groups[a], groups[b], groups[c], start, step, out bool offRoof);
                         if (v == null && !offRoof) continue;
                         unsolved = false;
-                        if (v is Point3 p && InBox(p, lo, hi, step) && Intruder(field, p, groups[a], groups[b]) < 0) return p;
+                        if (v is Point3 p && InBox(p, lo, hi, step) && Intruder(field, p, groups[a], groups[b]) < 0)
+                        {
+                            triple = (groups[a], groups[b], groups[c]);
+                            return p;
+                        }
                     }
             return null;
         }
@@ -916,6 +939,9 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Core.Services
             /// too), and the legs move with them into the segments. A crossing that two cells both join
             /// to their own junction, now one point, lies on the side between those cells: the ridge
             /// through it runs on to a further crossing that has its own leg, so both legs to it go.
+            /// Last, a crossing closer than <paramref name="radius"/> to a junction made of two or more
+            /// different points becomes part of it (the nearest such junction), so the short pieces
+            /// between the vertices that merged leave no small loop or doubled line.
             /// </summary>
             public void MergeJunctions(double radius)
             {
@@ -940,6 +966,8 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Core.Services
                         if (ra != rb) parent[Math.Max(ra, rb)] = Math.Min(ra, rb);
                     }
 
+                var before = new Dictionary<int, Point3>();
+                foreach (int id in ids) before[id] = Points[id];
                 var sum = new Dictionary<int, (double X, double Y, int N)>();
                 foreach (int id in ids)
                 {
@@ -961,6 +989,57 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Core.Services
                     if (added.Add(leg)) Segments.Add((leg.Item1, x, pair));
                 }
                 _legs.Clear();
+
+                // Only where different points merged: cells next to a junction add theirs at the same point.
+                var spread = new Dictionary<int, double>();
+                foreach (int id in ids)
+                {
+                    int r = Root(id);
+                    double d = Math.Max(spread.TryGetValue(r, out double sd) ? sd : 0, before[id].DistanceXY(Points[r]));
+                    spread[r] = d;
+                }
+                var mergedRoots = new List<int>();
+                foreach (var (r, d) in spread)
+                    if (d > OwnToleranceFt) mergedRoots.Add(r);
+                if (mergedRoots.Count > 0) AbsorbCrossings(mergedRoots, radius);
+            }
+
+            /// <summary>
+            /// Moves every segment end that is a crossing closer than <paramref name="radius"/> to one of
+            /// <paramref name="junctions"/> onto the nearest of them. Segments that then start and end at
+            /// the same point go, and so do repeats.
+            /// </summary>
+            private void AbsorbCrossings(List<int> junctions, double radius)
+            {
+                var target = new Dictionary<int, int>();   // crossing -> junction, or -1 when none is that close
+                void Consider(int x)
+                {
+                    if (Junctions.Contains(x) || target.ContainsKey(x)) return;
+                    int best = -1;
+                    double bestD = radius;
+                    foreach (int r in junctions)
+                    {
+                        double d = Points[x].DistanceXY(Points[r]);
+                        if (d < bestD) { bestD = d; best = r; }
+                    }
+                    target[x] = best;
+                }
+                foreach (var (a, b, _) in Segments)
+                {
+                    Consider(a);
+                    Consider(b);
+                }
+
+                int Map(int v) => target.TryGetValue(v, out int t) && t >= 0 ? t : v;
+                var kept = new List<(int, int, (int, int))>(Segments.Count);
+                var seen = new HashSet<(int, int)>();
+                foreach (var (a, b, pair) in Segments)
+                {
+                    int ma = Map(a), mb = Map(b);
+                    if (ma == mb || !seen.Add((Math.Min(ma, mb), Math.Max(ma, mb)))) continue;
+                    kept.Add((ma, mb, pair));
+                }
+                Segments = kept;
             }
 
             /// <summary>The junctions that end three or more segments, ascending by (X, Y).</summary>
