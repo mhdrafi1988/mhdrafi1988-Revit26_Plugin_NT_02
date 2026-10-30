@@ -104,6 +104,11 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             RibbonLayoutHelper.WirePulldownButton(placeItems, "Pulldown_RefSectionHeadPlacer", headPlacerV015, headPlacerV014);
             RibbonLayoutHelper.WirePulldownButton(placeItems, "Pulldown_SectionViewAutoTagger", taggerV006, taggerV005);
 
+            // TEMPORARY spike button - branch spike/scopebox-api-spike only, never merge.
+            RibbonPanel spikePanel = app.CreateRibbonPanel(tabName, "SPIKE (temp)");
+            spikePanel.AddItem(new PushButtonData("Btn_ScopeBoxApiSpike", "Scope Box\nAPI Spike", assemblyPath,
+                "Revit26_Plugin_Revised.ScopeBoxApiSpike.Commands.ScopeBoxApiSpikeCommand"));
+
             RibbonPanel renamePanel = app.CreateRibbonPanel(tabName, "View Rename");
 
             var bubbleV007 = Btn(assemblyPath, "Btn_BubbleAutoRenumber_V007", "Bubble Renumber V007", "Revit26_Plugin_Revised.BubbleAutoRenumber.V007.Commands.SectionAutoRenumberCommand",
