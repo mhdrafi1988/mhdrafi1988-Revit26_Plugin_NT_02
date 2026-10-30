@@ -43,6 +43,8 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                 "by_point_16.png", "Auto Slope By Point", "V032", "V031 with ToolGuard.RunCommand, single-instance window, and shape editing guarded inside the TransactionGroup.");
             var byPointV033 = Btn(assemblyPath, "Btn_AutoSlopeByPoint_033", "By Point V033", "Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Commands.AutoSlopeCommand",
                 "by_point_16.png", "Auto Slope By Point", "V033", "V032 plus optional ridge lines: detail lines joining the highest points between drain groups.");
+            byPointV033.ToolTip = Revit26_Plugin_Revised.Shared.Services.ToolCatalog.AutoSlopeByPointV033.Tip(
+                "V032 plus optional ridge lines: detail lines joining the highest points between drain groups.");
             var byPointRidgeV003 = Btn(assemblyPath, "Btn_AutoSlopeByPointRidge_003", "By Point Ridge V003", "Revit26_Plugin_Revised.AutoSlopeByPointRidge.V003.Commands.AutoSlopeCommand",
                 "AutoSlopeByPoint_Ridge_16.png", "Auto Slope By Point (Ridge)", "V003", "Ridge V002 on the shared ToolWindowShell (log in body).");
             var byPointMultiCopies30 = Btn(assemblyPath, "Btn_AutoSlopeByPoint_MultiCopies30", "By Point Multi Copies 30", "Revit26_Plugin_Revised.AutoSlopeByPoint.MultiCopies30.Commands.AutoSlopeCommand",

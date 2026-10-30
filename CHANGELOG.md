@@ -9,6 +9,11 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.21.3] — 2026-10-30
+
+### Fixed
+- **Ribbon** — the Auto Slope By Point V033 button tooltip now shows the tool's real version (33.0.1) from the tool catalog.
+
 ## [6.21.2] — 2026-10-30
 
 ### Fixed
