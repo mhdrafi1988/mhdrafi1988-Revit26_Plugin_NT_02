@@ -8,6 +8,9 @@ namespace Revit26_Plugin_Revised.BubbleAutoRenumber.V009.Core.Models
         /// <summary>First number of the sequence. 1-based, always &gt; 0.</summary>
         public int StartNumber { get; set; } = 1;
 
+        /// <summary>How labels are written (1, 01, A or a). Default keeps the old plain numbers.</summary>
+        public NumberStyle Style { get; set; } = NumberStyle.Numeric;
+
         /// <summary>Row-banding tolerance in internal units (feet), converted from the
         /// window's millimetres by the ViewModel.</summary>
         public double ThresholdFt { get; set; }

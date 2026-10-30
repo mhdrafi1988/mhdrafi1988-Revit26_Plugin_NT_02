@@ -9,6 +9,14 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.22.0] — 2026-10-30
+
+### Added
+- **Bubble Auto Renumber 9.2.0 (V009)** — choose the label style: `1, 2, 3`, `01, 02, 03`, `A, B, C` or
+  `a, b, c`. The starting label is typed in the chosen style (letters continue AA, AB … after Z).
+- **User note:** the default is still `1, 2, 3`, so existing workflows are unchanged. Changing the style
+  converts the starting label (3 → C).
+
 ## [6.21.2] — 2026-10-30
 
 ### Fixed
