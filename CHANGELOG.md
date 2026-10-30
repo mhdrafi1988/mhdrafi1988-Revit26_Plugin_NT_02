@@ -9,6 +9,14 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.21.2] — 2026-10-30
+
+### Fixed
+- **Auto Slope By Point 33.0.1 (V033)** — the roof's `AutoSlope_*` parameters are written to whatever data
+  type the parameter has (whole number, number/length or text) instead of being skipped on a type mismatch.
+  Parameters that still cannot be written are listed by name with the reason in the run log.
+- **User note:** if a parameter stays empty, the log now says why (not bound to Roofs, read-only, unsupported type).
+
 ## [6.21.1] — 2026-10-29
 
 ### Changed
