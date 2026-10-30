@@ -21,10 +21,16 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Infrastructure.RoofOps
         public int Status { get; set; }
         public int Written { get; set; }
         public int Skipped { get; set; }
+        /// <summary>One line per parameter that could not be written, with the reason.</summary>
+        public System.Collections.Generic.List<string> Failures { get; } = new System.Collections.Generic.List<string>();
     }
 
     internal static class AutoSlopeParameterWriter
     {
+        /// <summary>
+        /// Writes the run summary to the roof's AutoSlope_* parameters. Each value is converted to the
+        /// parameter's own storage type; every parameter that cannot be written is listed with the reason.
+        /// </summary>
         public static ParameterWriteOutcome WriteAll(
             Document doc,
             RoofBase roof,
@@ -41,73 +47,70 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Infrastructure.RoofOps
             var o = new ParameterWriteOutcome { Status = AutoSlopeConstants.Status_Failed };
             if (doc == null || roof == null) return o;
 
-            int ok = 0, fail = 0;
             using (var tx = new Transaction(doc, "AutoSlope – Update Roof Parameters"))
             {
                 tx.Start();
 
-                SetDouble(roof, AutoSlopeConstants.Param_HighestElevation, RevitConvert.MmToFt(highestElevationMm), ref ok, ref fail);
-                SetInt(roof, AutoSlopeConstants.Param_VerticesProcessed, processed, ref ok, ref fail);
-                SetInt(roof, AutoSlopeConstants.Param_VerticesSkipped, skipped, ref ok, ref fail);
-                SetInt(roof, AutoSlopeConstants.Param_DrainCount, finalDrainCount, ref ok, ref fail);
-                SetInt(roof, AutoSlopeConstants.Param_RunDuration, durationSec, ref ok, ref fail);
-                SetDouble(roof, AutoSlopeConstants.Param_LongestPath, longestPathFt, ref ok, ref fail);
-                SetDouble(roof, AutoSlopeConstants.Param_SlopePercent, request.SlopePercent, ref ok, ref fail);
-                SetString(roof, AutoSlopeConstants.Param_SlopePercent_Text, $"{request.SlopePercent}%", ref ok, ref fail);
-                SetDouble(roof, AutoSlopeConstants.Param_Threshold, RevitConvert.MToFt(request.MaxDrainDistanceM), ref ok, ref fail);
-                SetString(roof, AutoSlopeConstants.Param_RunDate, runDate, ref ok, ref fail);
-                SetString(roof, AutoSlopeConstants.Param_Versions, version, ref ok, ref fail);
-                SetInt(roof, AutoSlopeConstants.Param_DrainToleranceMm,
-                    request.IncludeNearbyPoints ? (int)Math.Round(request.SnapRadiusMm) : 0, ref ok, ref fail);
-                SetInt(roof, AutoSlopeConstants.Param_DrainToleranceEnabled, request.IncludeNearbyPoints ? 1 : 0, ref ok, ref fail);
+                Set(roof, AutoSlopeConstants.Param_HighestElevation, RevitConvert.MmToFt(highestElevationMm), o);
+                Set(roof, AutoSlopeConstants.Param_VerticesProcessed, processed, o);
+                Set(roof, AutoSlopeConstants.Param_VerticesSkipped, skipped, o);
+                Set(roof, AutoSlopeConstants.Param_DrainCount, finalDrainCount, o);
+                Set(roof, AutoSlopeConstants.Param_RunDuration, durationSec, o);
+                Set(roof, AutoSlopeConstants.Param_LongestPath, longestPathFt, o);
+                Set(roof, AutoSlopeConstants.Param_SlopePercent, request.SlopePercent, o);
+                Set(roof, AutoSlopeConstants.Param_SlopePercent_Text, $"{request.SlopePercent}%", o);
+                Set(roof, AutoSlopeConstants.Param_Threshold, RevitConvert.MToFt(request.MaxDrainDistanceM), o);
+                Set(roof, AutoSlopeConstants.Param_RunDate, runDate, o);
+                Set(roof, AutoSlopeConstants.Param_Versions, version, o);
+                Set(roof, AutoSlopeConstants.Param_DrainToleranceMm,
+                    request.IncludeNearbyPoints ? (int)Math.Round(request.SnapRadiusMm) : 0, o);
+                Set(roof, AutoSlopeConstants.Param_DrainToleranceEnabled, request.IncludeNearbyPoints ? 1 : 0, o);
 
-                o.Status = ok == 0
+                o.Status = o.Written == 0
                     ? AutoSlopeConstants.Status_Failed
-                    : fail > 0 ? AutoSlopeConstants.Status_Partial : AutoSlopeConstants.Status_OK;
+                    : o.Skipped > 0 ? AutoSlopeConstants.Status_Partial : AutoSlopeConstants.Status_OK;
 
-                SetInt(roof, AutoSlopeConstants.Param_Status, o.Status, ref ok, ref fail);
+                Set(roof, AutoSlopeConstants.Param_Status, o.Status, o);
                 tx.Commit();
             }
 
-            o.Written = ok;
-            o.Skipped = fail;
             return o;
         }
 
-        private static void SetInt(Element e, string name, int value, ref int ok, ref int fail)
+        /// <summary>Sets one parameter, converting the value to its storage type. Records the reason on failure.</summary>
+        private static void Set(Element e, string name, object value, ParameterWriteOutcome o)
         {
             try
             {
                 Parameter p = e.LookupParameter(name);
-                if (p == null || p.IsReadOnly || p.StorageType != StorageType.Integer) { fail++; return; }
-                p.Set(value);
-                ok++;
+                if (p == null) { Fail(o, name, "not found on the roof (is the shared parameter bound to Roofs?)"); return; }
+                if (p.IsReadOnly) { Fail(o, name, "read-only"); return; }
+
+                bool done;
+                switch (p.StorageType)
+                {
+                    case StorageType.Integer:
+                        done = p.Set(Convert.ToInt32(Math.Round(Convert.ToDouble(value)))); break;
+                    case StorageType.Double:
+                        done = p.Set(Convert.ToDouble(value)); break;
+                    case StorageType.String:
+                        done = p.Set(Convert.ToString(value, System.Globalization.CultureInfo.InvariantCulture)); break;
+                    default:
+                        Fail(o, name, $"unsupported data type {p.StorageType}"); return;
+                }
+
+                if (done) o.Written++; else Fail(o, name, "Revit refused the value");
             }
-            catch { fail++; }
+            catch (Exception ex)
+            {
+                Fail(o, name, ex.Message);
+            }
         }
 
-        private static void SetDouble(Element e, string name, double value, ref int ok, ref int fail)
+        private static void Fail(ParameterWriteOutcome o, string name, string reason)
         {
-            try
-            {
-                Parameter p = e.LookupParameter(name);
-                if (p == null || p.IsReadOnly || p.StorageType != StorageType.Double) { fail++; return; }
-                p.Set(value);
-                ok++;
-            }
-            catch { fail++; }
-        }
-
-        private static void SetString(Element e, string name, string value, ref int ok, ref int fail)
-        {
-            try
-            {
-                Parameter p = e.LookupParameter(name);
-                if (p == null || p.IsReadOnly || p.StorageType != StorageType.String) { fail++; return; }
-                p.Set(value);
-                ok++;
-            }
-            catch { fail++; }
+            o.Skipped++;
+            o.Failures.Add($"{name}: {reason}");
         }
     }
 }

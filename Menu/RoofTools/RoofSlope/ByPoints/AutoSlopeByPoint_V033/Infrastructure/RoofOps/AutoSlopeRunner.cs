@@ -197,7 +197,9 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Infrastructure.RoofOps
                 readback.HighestElevationMm, applied.LongestPathFt,
                 applied.Processed, skipped, (int)Math.Round(durationSoFar),
                 drains.DrainVertices.Count, start.ToString("dd-MM-yy HH:mm"), version);
-            log(LogLevel.Info, $"Roof parameters: {param.Written} updated, {param.Skipped} not found or read-only.");
+            log(LogLevel.Info, $"Roof parameters: {param.Written} updated, {param.Skipped} not written.");
+            foreach (string failure in param.Failures)
+                log(LogLevel.Warning, $"Roof parameter not written – {failure}");
 
             // ── 7. Result ──────────────────────────────────────────────────
             var result = new AutoSlopeResult

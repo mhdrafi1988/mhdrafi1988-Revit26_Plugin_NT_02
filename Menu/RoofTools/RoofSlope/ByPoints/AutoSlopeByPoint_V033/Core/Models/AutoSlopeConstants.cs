@@ -32,7 +32,7 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Core.Models
         public const int Status_Failed  = 3;
 
         /// <summary>Fallback when ToolCatalog has no entry for this namespace yet.</summary>
-        public const string FallbackToolVersion = "33.0.0";
+        public const string FallbackToolVersion = "33.0.1";
 
         // ── Defaults ─────────────────────────────────────────────────────
         public const double DefaultSlopePercent            = 1.5;
