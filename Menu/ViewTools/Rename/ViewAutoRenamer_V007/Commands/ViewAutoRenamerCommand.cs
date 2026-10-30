@@ -35,15 +35,14 @@ public class OpenViewAutoRenamerCommand : IExternalCommand
 
         RevitEventManager.Initialize();
 
-        // 7.1.0: open fast with only the current sheet's views; the rest of the
-        // project loads when the user clicks "Load all views".
-        var currentSheet = ViewLoadService.FindCurrentSheet(doc, uidoc.ActiveView);
-        var items = currentSheet != null
-            ? ViewLoadService.LoadForSheet(doc, currentSheet)
-            : new List<ViewItemViewModel>();
-
-        var vm = new ViewsListViewModel(items, currentSheet?.SheetNumber ?? "", allViewsLoaded: false);
+        // 7.2.0: show the window first (empty, "loading"); the current sheet's views are
+        // loaded right after by an external event, so the window never waits on the model.
+        var vm = new ViewsListViewModel(new List<ViewItemViewModel>(), "", allViewsLoaded: false)
+        {
+            IsLoadingViews = true
+        };
         new ViewsListWindow(vm).Show();
+        RevitEventManager.RequestLoadCurrentSheet(vm);
 
         return Result.Succeeded;
     }

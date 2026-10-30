@@ -9,6 +9,23 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.22.0] — 2026-10-30
+
+### Changed
+- **View Auto Renamer 7.2.0 (V007)** — opens instantly and no longer touches views it does not need to.
+  - The window appears first and the current sheet's views load right after, instead of the window waiting on the model.
+  - Finding the current sheet uses a parameter-filtered lookup instead of scanning every sheet.
+  - **Commit** only renames views whose name actually changes; already-correct views are skipped, so Revit does not
+    regenerate them. If nothing changes the model is not touched at all. Duplicate-name checks read only the view types being renamed.
+  - The commit button shows "Commit N change(s)" with a summary of changes, unchanged and conflicts; it is disabled when nothing would change.
+  - After a commit the grid shows the new names without reloading; a progress strip shows while Revit works.
+  - Esc closes the window; Ctrl+A selects all rows.
+- **User note:** the first moment after opening the grid is empty while the sheet loads. Dry run now reports how many views would change.
+
+### Fixed
+- Pinned views are pinned again after being renamed (they were left unpinned).
+- Views checked out by another user are skipped with a warning instead of failing.
+
 ## [6.21.1] — 2026-10-29
 
 ### Changed

@@ -11,6 +11,9 @@ public class LoadAllViewsHandler : IExternalEventHandler
 {
     public ViewsListViewModel? Vm { get; set; }
 
+    /// <summary>True for the fast first load: only the active sheet's views, window stays in "partial" state.</summary>
+    public bool CurrentSheetOnly { get; set; }
+
     /// <summary>Runs through ToolGuard so no exception reaches Revit.</summary>
     public void Execute(UIApplication app) =>
         ToolGuard.RunHandler(typeof(LoadAllViewsHandler), app, Run);
@@ -25,6 +28,15 @@ public class LoadAllViewsHandler : IExternalEventHandler
         {
             var doc = app.ActiveUIDocument?.Document;
             if (doc == null) throw new InvalidOperationException("No project is open.");
+            if (CurrentSheetOnly)
+            {
+                var uidoc = app.ActiveUIDocument;
+                var sheet = ViewLoadService.FindCurrentSheet(doc, uidoc.ActiveView);
+                items = sheet != null ? ViewLoadService.LoadForSheet(doc, sheet) : new List<ViewItemViewModel>();
+                var number = sheet?.SheetNumber ?? "";
+                System.Windows.Application.Current?.Dispatcher.Invoke(() => vm.OnSheetLoaded(items, number));
+                return;
+            }
             items = ViewLoadService.LoadAll(doc);
         }
         catch (Exception ex)

@@ -10,7 +10,7 @@ public partial class ViewItemViewModel : ObservableObject
 {
     // ── Immutable Revit data ────────────────────────────────────────────────
     public ElementId    ElementId    { get; }
-    public string       OriginalName { get; }
+    public string       OriginalName { get; private set; }
     public ViewType     ViewType     { get; }
     public ViewTypeGroup TypeGroup   { get; }
 
@@ -51,6 +51,21 @@ public partial class ViewItemViewModel : ObservableObject
     [ObservableProperty] private string editableName;
     [ObservableProperty] private string previewName;
     [ObservableProperty] private bool   isDuplicate;
+
+    /// <summary>True when the preview differs from the model name, i.e. a commit would change this view.</summary>
+    public bool WillChange => !string.Equals(PreviewName, OriginalName, System.StringComparison.Ordinal);
+
+    partial void OnPreviewNameChanged(string value) => OnPropertyChanged(nameof(WillChange));
+
+    /// <summary>Records the name Revit now holds so the grid matches the model without a reload.</summary>
+    public void ApplyCommittedName(string name)
+    {
+        OriginalName = name;
+        EditableName = name;
+        PreviewName = name;
+        OnPropertyChanged(nameof(OriginalName));
+        OnPropertyChanged(nameof(WillChange));
+    }
 
     public ViewItemViewModel(
         View view,

@@ -38,10 +38,15 @@ public static class ViewLoadService
         var number = activeView.get_Parameter(BuiltInParameter.VIEWER_SHEET_NUMBER)?.AsString();
         if (string.IsNullOrWhiteSpace(number)) return null;
 
+        // Parameter-filtered: Revit matches the number natively instead of us walking every sheet.
+        var rule = new FilterStringRule(
+            new ParameterValueProvider(new ElementId(BuiltInParameter.SHEET_NUMBER)),
+            new FilterStringEquals(), number!);
         return new FilteredElementCollector(doc)
             .OfClass(typeof(ViewSheet))
+            .WherePasses(new ElementParameterFilter(rule))
             .Cast<ViewSheet>()
-            .FirstOrDefault(s => s.SheetNumber == number);
+            .FirstOrDefault();
     }
 
     /// <summary>Loads only the in-scope views placed on <paramref name="sheet"/>.</summary>

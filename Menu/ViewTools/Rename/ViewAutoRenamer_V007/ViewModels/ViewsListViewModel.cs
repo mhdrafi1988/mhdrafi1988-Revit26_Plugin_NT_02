@@ -145,7 +145,44 @@ public partial class ViewsListViewModel : ObservableObject
     [NotifyCanExecuteChangedFor(nameof(LoadAllViewsCommand))]
     private bool isLoadingViews;
 
-    private readonly string _activeSheetNumber;
+    // 7.2.0: rows whose preview differs from the model name — the only ones a commit touches.
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(CommitRenameCommand))]
+    private int changeCount;
+
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(CommitRenameCommand))]
+    private bool isCommitting;
+
+    /// <summary>Text for the commit bar, e.g. "3 will change · 12 unchanged · 1 conflict".</summary>
+    public string ChangeSummary =>
+        $"{ChangeCount} will change · {Views.Count(v => v.IsSelected) - ChangeCount} unchanged (selected) · {DuplicatesCount} conflict(s)";
+
+    partial void OnChangeCountChanged(int value) => OnPropertyChanged(nameof(ChangeSummary));
+    partial void OnDuplicatesCountChanged(int value) => OnPropertyChanged(nameof(ChangeSummary));
+
+    partial void OnIsLoadingViewsChanged(bool value) => UpdateBusyState();
+    partial void OnIsCommittingChanged(bool value) => UpdateBusyState();
+
+    // Drives the shell's progress strip so the user always sees when Revit is working.
+    private void UpdateBusyState()
+    {
+        IsRunning = IsLoadingViews || IsCommitting;
+        SummaryText = IsCommitting ? "Renaming views in Revit…" : IsLoadingViews ? "Loading views…" : "";
+    }
+
+    private bool CanCommit() => ChangeCount > 0 && !IsCommitting;
+
+    /// <summary>Called on the UI thread after Revit committed a rename.</summary>
+    public void OnRenameCommitted()
+    {
+        IsCommitting = false;
+        RunPreview();
+        RecalculateQuickFilterCounts();
+        ViewsGrid.Refresh();
+    }
+
+    private string _activeSheetNumber;
     private readonly DispatcherTimer _previewTimer;
     private bool _suppressSelectionPreview;
 
@@ -204,10 +241,20 @@ public partial class ViewsListViewModel : ObservableObject
         RecalculateQuickFilterCounts();
         if (allViewsLoaded)
             LogInfo($"Loaded {Views.Count} views across {ViewTypeFilterGroups.Count} categories. Active sheet: {SelectedSheetFilter}");
-        else if (string.IsNullOrWhiteSpace(activeSheetNumber))
-            LogInfo("The active view is not on a sheet — no views loaded yet. Click \"Load all views\" to load the project's views.");
-        else
-            LogInfo($"Loaded {Views.Count} views from sheet {activeSheetNumber}. Click \"Load all views\" to load the rest of the project.");
+        else if (Views.Count == 0)
+            LogInfo("Loading the current sheet's views…");
+    }
+
+    /// <summary>Called on the UI thread when the active sheet's views arrive (first, fast load).</summary>
+    public void OnSheetLoaded(IEnumerable<ViewItemViewModel> loaded, string sheetNumber)
+    {
+        _activeSheetNumber = sheetNumber;
+        MergeLoadedViews(loaded, complete: false);
+        if (!string.IsNullOrWhiteSpace(sheetNumber) && SheetFilters.Contains(sheetNumber))
+            SelectedSheetFilter = sheetNumber;
+        LogInfo(string.IsNullOrWhiteSpace(sheetNumber)
+            ? "The active view is not on a sheet. Click \"Load all views\" to load the project's views."
+            : $"Loaded {Views.Count} views from sheet {sheetNumber}. Click \"Load all views\" for the rest of the project.");
     }
 
     private bool CanLoadAllViews() => !AllViewsLoaded && !IsLoadingViews;
@@ -233,7 +280,7 @@ public partial class ViewsListViewModel : ObservableObject
     /// Merges the full project view list into the grid: new views are appended,
     /// existing rows keep their edits and selection but get complete sheet placements.
     /// </summary>
-    public void MergeLoadedViews(IEnumerable<ViewItemViewModel> loaded)
+    public void MergeLoadedViews(IEnumerable<ViewItemViewModel> loaded, bool complete = true)
     {
         var existing = Views.ToDictionary(v => v.ElementId);
         int added = 0;
@@ -263,16 +310,19 @@ public partial class ViewsListViewModel : ObservableObject
             SheetFilters.Insert(at, n);
         }
         // The user asked for everything, so stop narrowing to the first sheet.
-        SelectedSheetFilter = "All";
+        if (complete) SelectedSheetFilter = "All";
         RecalculateActiveFilterCount();
         UpdateSelectedCount();
         RecalculateQuickFilterCounts();
         RunPreview();
         ViewsGrid.Refresh();
 
-        AllViewsLoaded = true;
         IsLoadingViews = false;
-        LogSuccess($"Loaded {added} more views — {Views.Count} in total.");
+        if (complete)
+        {
+            AllViewsLoaded = true;
+            LogSuccess($"Loaded {added} more views — {Views.Count} in total.");
+        }
     }
 
     // Keeps the user's current ticks; view types seen for the first time start ticked.
@@ -735,12 +785,14 @@ public partial class ViewsListViewModel : ObservableObject
             LogWarning("Duplicate preview names detected within a view-type group — auto-fix will apply on commit.");
 
         DuplicatesCount = Views.Count(v => v.IsDuplicate);
+        ChangeCount = Views.Count(v => v.IsSelected && v.WillChange);
+        OnPropertyChanged(nameof(ChangeSummary));
         if (ActiveQuickFilter == QuickFilterMode.DuplicatesOnly)
             ViewsGrid.Refresh();
     }
 
     // ── Commit ───────────────────────────────────────────────────────────────
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanCommit))]
     private void CommitRename()
     {
         // Force any pending debounced preview to run synchronously first —
@@ -754,19 +806,21 @@ public partial class ViewsListViewModel : ObservableObject
 
         if (IsDryRun)
         {
-            LogWarning("Dry run is ON — no changes committed.");
+            LogWarning($"Dry run is ON — {ChangeCount} view(s) would change; nothing was committed. Untick Dry run to apply.");
             return;
         }
 
-        var selected = Views.Where(v => v.IsSelected).ToList();
+        var selected = Views.Where(v => v.IsSelected && v.WillChange).ToList();
         if (selected.Count == 0)
         {
-            LogWarning("No rows selected — nothing to commit.");
+            LogWarning("No selected row would change — nothing to commit.");
             return;
         }
 
         SaveSettings();
-        RevitEventManager.RequestRename(selected, this);
+        IsCommitting = true;
+        try { RevitEventManager.RequestRename(selected, this); }
+        catch (Exception ex) { IsCommitting = false; LogError($"Could not start the rename: {ex.Message}"); }
     }
 
     // ── Settings persistence ─────────────────────────────────────────────────

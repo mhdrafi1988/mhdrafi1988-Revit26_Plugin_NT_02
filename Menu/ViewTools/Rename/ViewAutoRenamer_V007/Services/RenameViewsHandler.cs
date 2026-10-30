@@ -22,7 +22,8 @@ public class RenameViewsHandler : IExternalEventHandler
     {
         var doc = app.ActiveUIDocument.Document;
 
-        int ok = 0, fixedDup = 0, fail = 0;
+        int ok = 0, fixedDup = 0, fail = 0, unchanged = 0, skippedOwned = 0;
+        var renamed = new List<(ViewItemViewModel item, string name)>();
 
         using var tx = new Transaction(doc, "VAR02 Rename Views");
 
@@ -34,10 +35,9 @@ public class RenameViewsHandler : IExternalEventHandler
                 return;
             }
 
-            // Snapshot of all current view names, grouped PER ViewTypeGroup —
-            // matches Revit's actual name-uniqueness rule (Section+Callout
-            // share one namespace; each other view-type family independent).
-            var existingNamesByGroup = BuildExistingNamesByGroup(doc);
+            // Only the name groups being renamed are scanned (not every view in the project).
+            var groups = new HashSet<ViewTypeGroup>(Payload.Select(i => i.TypeGroup));
+            var existingNamesByGroup = BuildExistingNamesByGroup(doc, groups);
 
             foreach (var item in Payload)
             {
@@ -46,17 +46,29 @@ public class RenameViewsHandler : IExternalEventHandler
                     var v = doc.GetElement(item.ElementId) as View;
                     if (v == null) continue;
 
+                    // Nothing to do when the name is already right: assigning Name would
+                    // still make Revit regenerate the view, so leave it alone.
+                    if (string.Equals(v.Name, item.PreviewName, StringComparison.Ordinal))
+                    {
+                        unchanged++;
+                        continue;
+                    }
+
+                    if (doc.IsWorkshared)
+                    {
+                        var status = WorksharingUtils.GetCheckoutStatus(doc, v.Id);
+                        if (status == CheckoutStatus.OwnedByOtherUser)
+                        {
+                            skippedOwned++;
+                            Dispatch(() => Vm.LogWarning($"\"{item.OriginalName}\" is checked out by another user — skipped."));
+                            continue;
+                        }
+                    }
+
                     if (!existingNamesByGroup.TryGetValue(item.TypeGroup, out var existingNames))
                     {
                         existingNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                         existingNamesByGroup[item.TypeGroup] = existingNames;
-                    }
-
-                    // Un-pin silently if needed, but log a warning per view
-                    if (v.Pinned)
-                    {
-                        v.Pinned = false;
-                        Dispatch(() => Vm.LogWarning($"\"{item.OriginalName}\" was pinned — un-pinned automatically."));
                     }
 
                     // Remove the element's current name so it doesn't block its own rename
@@ -69,32 +81,50 @@ public class RenameViewsHandler : IExternalEventHandler
                         fixedDup++;
                     }
 
+                    // Pinned views can't be renamed: unpin, rename, then pin again.
+                    bool wasPinned = v.Pinned;
+                    if (wasPinned) v.Pinned = false;
                     v.Name = finalName;
+                    if (wasPinned) v.Pinned = true;
+
                     existingNames.Add(finalName);
+                    renamed.Add((item, finalName));
                     ok++;
                 }
                 catch (Exception ex)
                 {
-                    // Per-item failure — skip silently in the model, log it, keep processing the rest.
+                    // Per-item failure — log it, keep processing the rest.
                     fail++;
                     Dispatch(() => Vm.LogError($"\"{item.OriginalName}\": {ex.Message}"));
                 }
             }
 
-            var status = tx.Commit();
-            if (status != TransactionStatus.Committed)
+            if (ok == 0)
             {
-                Dispatch(() => Vm.LogError($"Transaction failed to commit (status: {status}) — no changes were saved."));
+                tx.RollBack();
+                Dispatch(() => Vm.LogInfo(
+                    $"Nothing to rename — {unchanged} already named correctly, {skippedOwned} skipped, {fail} failed. The model was not touched."));
                 return;
             }
 
-            Dispatch(() => Vm.LogSuccess(
-                $"Rename complete — OK: {ok}  |  Duplicates fixed: {fixedDup}  |  Failed: {fail}"));
+            var commit = tx.Commit();
+            if (commit != TransactionStatus.Committed)
+            {
+                Dispatch(() => Vm.LogError($"Transaction failed to commit (status: {commit}) — no changes were saved."));
+                return;
+            }
+
+            Dispatch(() =>
+            {
+                foreach (var (item, name) in renamed) item.ApplyCommittedName(name);
+                Vm.OnRenameCommitted();
+                Vm.LogSuccess(
+                    $"Rename complete — Renamed: {ok}  |  Duplicates fixed: {fixedDup}  |  Unchanged (skipped): {unchanged}  |  Failed: {fail}. Ctrl+Z in Revit undoes it in one step.");
+            });
         }
         catch (Exception ex)
         {
-            // Unexpected failure outside the per-item loop (e.g. collector or commit threw).
-            // Roll back so the model is never left half-renamed.
+            // Unexpected failure outside the per-item loop. Roll back so the model is never left half-renamed.
             if (tx.GetStatus() == TransactionStatus.Started)
                 tx.RollBack();
 
@@ -103,24 +133,19 @@ public class RenameViewsHandler : IExternalEventHandler
     }
 
     /// <summary>
-    /// Builds one existing-names HashSet per ViewTypeGroup by re-classifying
-    /// every non-template view currently in the model. Mirrors the grouping
-    /// logic in OpenViewAutoRenamerCommand.ClassifyView so collision checks
-    /// stay consistent between load and commit.
+    /// Builds one existing-names HashSet per requested ViewTypeGroup. Only views of the
+    /// matching Revit view types are read, so a rename never scans unrelated views.
     /// </summary>
-    private static Dictionary<ViewTypeGroup, HashSet<string>> BuildExistingNamesByGroup(Document doc)
+    private static Dictionary<ViewTypeGroup, HashSet<string>> BuildExistingNamesByGroup(
+        Document doc, ISet<ViewTypeGroup> wanted)
     {
         var result = new Dictionary<ViewTypeGroup, HashSet<string>>();
 
-        var allViews = new FilteredElementCollector(doc)
-            .OfClass(typeof(View))
-            .Cast<View>()
-            .Where(v => !v.IsTemplate);
-
-        foreach (var v in allViews)
+        foreach (var v in new FilteredElementCollector(doc).OfClass(typeof(View)).Cast<View>())
         {
+            if (v.IsTemplate) continue;
             var group = MapViewTypeToGroup(v.ViewType);
-            if (group == null) continue; // out-of-scope view type — ignore for collision purposes
+            if (group == null || !wanted.Contains(group.Value)) continue;
 
             if (!result.TryGetValue(group.Value, out var set))
             {

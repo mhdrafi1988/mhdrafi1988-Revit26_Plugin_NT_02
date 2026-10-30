@@ -735,14 +735,16 @@ Changes vs V005 (layout only):
                         <TextBlock FontSize="11" Foreground="{StaticResource BrushTextPrimary}"
                                    Text="Dry run — no changes will be saved"/>
                     </Border>
+                    <TextBlock Text="{Binding ChangeSummary}" FontSize="11" Margin="0,0,12,0" VerticalAlignment="Center"
+                               Foreground="{StaticResource BrushTextSecondary}"/>
                     <Button Style="{StaticResource PrimaryButton}" Margin="0,0,8,0">
                                             <Button.Command>
                                                 <Binding Path="CommitRenameCommand"/>
                                             </Button.Command>
                                             <StackPanel Orientation="Horizontal">
-                                                <TextBlock Text="Commit selected (" VerticalAlignment="Center"/>
-                                                <TextBlock Text="{Binding SelectedCount}" VerticalAlignment="Center"/>
-                                                <TextBlock Text=")" VerticalAlignment="Center"/>
+                                                <TextBlock Text="Commit " VerticalAlignment="Center"/>
+                                                <TextBlock Text="{Binding ChangeCount}" VerticalAlignment="Center"/>
+                                                <TextBlock Text=" change(s)" VerticalAlignment="Center"/>
                                             </StackPanel>
                                         </Button>
                     <Button Content="Close" Style="{StaticResource OutlineButton}" Width="90" Height="38" Click="CloseButton_Click"/>

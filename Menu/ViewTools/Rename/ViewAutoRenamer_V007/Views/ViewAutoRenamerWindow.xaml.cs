@@ -33,6 +33,17 @@ public partial class ViewsListWindow : Window
 
         // Save filter/rename settings on close, per project convention.
         Closing += (_, _) => Vm.SaveSettings();
+
+        // Esc closes; Ctrl+A selects every visible row.
+        PreviewKeyDown += (_, e) =>
+        {
+            if (e.Key == Key.Escape && !(e.OriginalSource is TextBox)) { Close(); e.Handled = true; }
+            else if (e.Key == Key.A && Keyboard.Modifiers == ModifierKeys.Control && !(e.OriginalSource is TextBox))
+            {
+                Vm.SelectAllCommand.Execute(null);
+                e.Handled = true;
+            }
+        };
     }
 
     // ── Header checkbox ──────────────────────────────────────────────────────
