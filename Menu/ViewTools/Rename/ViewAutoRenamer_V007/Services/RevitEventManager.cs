@@ -33,10 +33,11 @@ public static class RevitEventManager
         _event!.Raise();
     }
 
-    /// <summary>Asks Revit to load every remaining view into <paramref name="vm"/>.</summary>
-    public static void RequestLoadAll(ViewsListViewModel vm)
+    /// <summary>Asks Revit to load the views of the given types (all when null) into <paramref name="vm"/>.</summary>
+    public static void RequestLoadAll(ViewsListViewModel vm, ISet<Autodesk.Revit.DB.ViewType>? types = null)
     {
         _loadHandler!.Vm = vm;
+        _loadHandler.Types = types;
         _loadEvent!.Raise();
     }
 

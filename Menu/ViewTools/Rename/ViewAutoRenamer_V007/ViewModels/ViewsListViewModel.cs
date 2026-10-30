@@ -15,6 +15,23 @@ using System.Windows.Threading;
 
 namespace Revit26_Plugin_Revised.ViewAutoRenamer.V007.ViewModels;
 
+/// <summary>One tick box in the "Load views by type" popover.</summary>
+public partial class LoadTypeOption : ObservableObject
+{
+    public Autodesk.Revit.DB.ViewType ViewType { get; }
+    public string Label { get; }
+
+    [ObservableProperty] private bool isChecked;
+    /// <summary>True once every view of this type has been loaded.</summary>
+    [ObservableProperty] private bool isLoaded;
+
+    public LoadTypeOption(Autodesk.Revit.DB.ViewType viewType, string label)
+    {
+        ViewType = viewType;
+        Label = label;
+    }
+}
+
 /// <summary>
 /// One row per distinct Autodesk.Revit.DB.ViewType present in the loaded
 /// set — used to build the popover's "View type" checklist, grouped by
@@ -161,7 +178,11 @@ public partial class ViewsListViewModel : ObservableObject
     partial void OnChangeCountChanged(int value) => OnPropertyChanged(nameof(ChangeSummary));
     partial void OnDuplicatesCountChanged(int value) => OnPropertyChanged(nameof(ChangeSummary));
 
-    partial void OnIsLoadingViewsChanged(bool value) => UpdateBusyState();
+    partial void OnIsLoadingViewsChanged(bool value)
+    {
+        UpdateBusyState();
+        LoadSelectedTypesCommand.NotifyCanExecuteChanged();
+    }
     partial void OnIsCommittingChanged(bool value) => UpdateBusyState();
 
     // Drives the shell's progress strip so the user always sees when Revit is working.
@@ -249,24 +270,73 @@ public partial class ViewsListViewModel : ObservableObject
     public void OnSheetLoaded(IEnumerable<ViewItemViewModel> loaded, string sheetNumber)
     {
         _activeSheetNumber = sheetNumber;
-        MergeLoadedViews(loaded, complete: false);
+        MergeLoadedViews(loaded, null, sheetOnly: true);
         if (!string.IsNullOrWhiteSpace(sheetNumber) && SheetFilters.Contains(sheetNumber))
             SelectedSheetFilter = sheetNumber;
         LogInfo(string.IsNullOrWhiteSpace(sheetNumber)
-            ? "The active view is not on a sheet. Click \"Load all views\" to load the project's views."
-            : $"Loaded {Views.Count} views from sheet {sheetNumber}. Click \"Load all views\" for the rest of the project.");
+            ? "The active view is not on a sheet. Use \"Load views\" to pick view types to load."
+            : $"Loaded {Views.Count} views from sheet {sheetNumber}. Use \"Load views\" to pick more view types.");
     }
 
+    // ── Load views by type (tick-box popover) ───────────────────────────────
+    /// <summary>The view types offered in the "Load views" popover, in display order.</summary>
+    public ObservableCollection<LoadTypeOption> LoadTypeOptions { get; } = new()
+    {
+        new(Autodesk.Revit.DB.ViewType.FloorPlan,        "Floor plans"),
+        new(Autodesk.Revit.DB.ViewType.CeilingPlan,      "Ceiling plans"),
+        new(Autodesk.Revit.DB.ViewType.EngineeringPlan,  "Structural plans"),
+        new(Autodesk.Revit.DB.ViewType.AreaPlan,         "Area plans"),
+        new(Autodesk.Revit.DB.ViewType.Section,          "Sections & callouts"),
+        new(Autodesk.Revit.DB.ViewType.Elevation,        "Elevations"),
+        new(Autodesk.Revit.DB.ViewType.DraftingView,     "Drafting views"),
+        new(Autodesk.Revit.DB.ViewType.Legend,           "Legends"),
+        new(Autodesk.Revit.DB.ViewType.Schedule,         "Schedules"),
+    };
+
+    [ObservableProperty] private bool isLoadPopupOpen;
+
+    private bool CanLoadSelectedTypes() => !IsLoadingViews && LoadTypeOptions.Any(o => o.IsChecked && !o.IsLoaded);
     private bool CanLoadAllViews() => !AllViewsLoaded && !IsLoadingViews;
+
+    [RelayCommand]
+    private void ToggleLoadPopup() => IsLoadPopupOpen = !IsLoadPopupOpen;
+
+    [RelayCommand]
+    private void TickAllLoadTypes()
+    {
+        foreach (var o in LoadTypeOptions) o.IsChecked = !o.IsLoaded;
+        LoadSelectedTypesCommand.NotifyCanExecuteChanged();
+    }
+
+    [RelayCommand]
+    private void TickNoLoadTypes()
+    {
+        foreach (var o in LoadTypeOptions) o.IsChecked = false;
+        LoadSelectedTypesCommand.NotifyCanExecuteChanged();
+    }
+
+    /// <summary>Called by the popover when a tick box changes so the Load button enables/disables.</summary>
+    public void OnLoadTypeTickChanged() => LoadSelectedTypesCommand.NotifyCanExecuteChanged();
+
+    /// <summary>Loads only the ticked view types (project-wide) via an external event.</summary>
+    [RelayCommand(CanExecute = nameof(CanLoadSelectedTypes))]
+    private void LoadSelectedTypes()
+    {
+        var types = LoadTypeOptions.Where(o => o.IsChecked && !o.IsLoaded).Select(o => o.ViewType).ToHashSet();
+        if (types.Count == 0) return;
+        IsLoadPopupOpen = false;
+        IsLoadingViews = true;
+        LogInfo($"Loading {string.Join(", ", LoadTypeOptions.Where(o => types.Contains(o.ViewType)).Select(o => o.Label.ToLowerInvariant()))}…");
+        try { RevitEventManager.RequestLoadAll(this, types); }
+        catch (Exception ex) { OnLoadAllFailed(ex.Message); }
+    }
 
     /// <summary>Asks Revit (via an external event) to load every remaining view.</summary>
     [RelayCommand(CanExecute = nameof(CanLoadAllViews))]
     private void LoadAllViews()
     {
-        IsLoadingViews = true;
-        LogInfo("Loading all views…");
-        try { RevitEventManager.RequestLoadAll(this); }
-        catch (Exception ex) { OnLoadAllFailed(ex.Message); }
+        foreach (var o in LoadTypeOptions) o.IsChecked = !o.IsLoaded;
+        LoadSelectedTypes();
     }
 
     /// <summary>Called on the UI thread when the background load failed.</summary>
@@ -280,7 +350,7 @@ public partial class ViewsListViewModel : ObservableObject
     /// Merges the full project view list into the grid: new views are appended,
     /// existing rows keep their edits and selection but get complete sheet placements.
     /// </summary>
-    public void MergeLoadedViews(IEnumerable<ViewItemViewModel> loaded, bool complete = true)
+    public void MergeLoadedViews(IEnumerable<ViewItemViewModel> loaded, ISet<Autodesk.Revit.DB.ViewType>? types, bool sheetOnly = false)
     {
         var existing = Views.ToDictionary(v => v.ElementId);
         int added = 0;
@@ -310,7 +380,7 @@ public partial class ViewsListViewModel : ObservableObject
             SheetFilters.Insert(at, n);
         }
         // The user asked for everything, so stop narrowing to the first sheet.
-        if (complete) SelectedSheetFilter = "All";
+        if (!sheetOnly) SelectedSheetFilter = "All";
         RecalculateActiveFilterCount();
         UpdateSelectedCount();
         RecalculateQuickFilterCounts();
@@ -318,9 +388,15 @@ public partial class ViewsListViewModel : ObservableObject
         ViewsGrid.Refresh();
 
         IsLoadingViews = false;
-        if (complete)
+        if (!sheetOnly)
         {
-            AllViewsLoaded = true;
+            foreach (var o in LoadTypeOptions.Where(o => types == null || types.Contains(o.ViewType)))
+            {
+                o.IsLoaded = true;
+                o.IsChecked = false;
+            }
+            AllViewsLoaded = LoadTypeOptions.All(o => o.IsLoaded);
+            LoadSelectedTypesCommand.NotifyCanExecuteChanged();
             LogSuccess($"Loaded {added} more views — {Views.Count} in total.");
         }
     }

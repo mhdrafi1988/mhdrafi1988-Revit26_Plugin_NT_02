@@ -46,6 +46,9 @@ public partial class ViewsListWindow : Window
         };
     }
 
+    // Keeps the popover's Load button in step with the tick boxes.
+    private void LoadTypeTick_Changed(object sender, RoutedEventArgs e) => Vm.OnLoadTypeTickChanged();
+
     // ── Header checkbox ──────────────────────────────────────────────────────
     private void HeaderCheckBox_Checked(object sender, RoutedEventArgs e)
     {

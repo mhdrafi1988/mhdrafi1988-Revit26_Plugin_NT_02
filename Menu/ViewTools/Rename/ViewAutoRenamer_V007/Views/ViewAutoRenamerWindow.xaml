@@ -468,10 +468,58 @@ Changes vs V005 (layout only):
                             Padding="12,5">
                         <DockPanel>
                             <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
-                                <Button Content="Load all views" Margin="0,0,10,0"
-                                        Command="{Binding LoadAllViewsCommand}"
+                                <Button Margin="0,0,10,0" x:Name="LoadViewsButton"
+                                        Command="{Binding ToggleLoadPopupCommand}"
                                         Style="{StaticResource SmallSecondaryButton}"
-                                        ToolTip="Loads every view in the project. Opening loads only the current sheet's views."/>
+                                        IsEnabled="{Binding IsLoadingViews, Converter={StaticResource InverseBoolConverter}}"
+                                        ToolTip="Pick which view types to load. Opening loads only the current sheet's views.">
+                                    <TextBlock Text="⏷ Load views by type" FontSize="12"/>
+                                </Button>
+                                <Popup IsOpen="{Binding IsLoadPopupOpen, Mode=TwoWay}"
+                                       PlacementTarget="{Binding ElementName=LoadViewsButton}"
+                                       Placement="Bottom" StaysOpen="False" AllowsTransparency="True" Width="250">
+                                    <Border Background="{StaticResource BrushSurfaceCard}" BorderBrush="{StaticResource BrushBorderDefault}"
+                                            BorderThickness="1" CornerRadius="8" Margin="0,4,12,12">
+                                        <Border.Effect>
+                                            <DropShadowEffect Opacity="0.18" BlurRadius="24" ShadowDepth="4"/>
+                                        </Border.Effect>
+                                        <StackPanel>
+                                            <Border Padding="14,10" BorderBrush="{StaticResource BrushBorderDefault}" BorderThickness="0,0,0,1">
+                                                <DockPanel>
+                                                    <TextBlock Text="Load views by type" FontSize="12.5" FontWeight="SemiBold"/>
+                                                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right">
+                                                        <TextBlock Text="All" FontSize="11" Margin="0,0,10,0" Cursor="Hand" Foreground="{StaticResource BrushSystemAccent}">
+                                                            <TextBlock.InputBindings><MouseBinding MouseAction="LeftClick" Command="{Binding TickAllLoadTypesCommand}"/></TextBlock.InputBindings>
+                                                        </TextBlock>
+                                                        <TextBlock Text="None" FontSize="11" Cursor="Hand" Foreground="{StaticResource BrushSystemAccent}">
+                                                            <TextBlock.InputBindings><MouseBinding MouseAction="LeftClick" Command="{Binding TickNoLoadTypesCommand}"/></TextBlock.InputBindings>
+                                                        </TextBlock>
+                                                    </StackPanel>
+                                                </DockPanel>
+                                            </Border>
+                                            <ItemsControl ItemsSource="{Binding LoadTypeOptions}" Margin="14,8">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <CheckBox Margin="0,3" IsChecked="{Binding IsChecked, Mode=TwoWay}"
+                                                                  IsEnabled="{Binding IsLoaded, Converter={StaticResource InverseBoolConverter}}"
+                                                                  Checked="LoadTypeTick_Changed" Unchecked="LoadTypeTick_Changed">
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <TextBlock Text="{Binding Label}" FontSize="12"/>
+                                                                <TextBlock Text="  loaded" FontSize="10" VerticalAlignment="Center"
+                                                                           Foreground="{StaticResource BrushTextTertiary}"
+                                                                           Visibility="{Binding IsLoaded, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                                                            </StackPanel>
+                                                        </CheckBox>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                            <Border Padding="14,10" BorderBrush="{StaticResource BrushBorderDefault}" BorderThickness="0,1,0,0">
+                                                <Button Content="Load ticked types" Style="{StaticResource PrimaryButton}"
+                                                        Command="{Binding LoadSelectedTypesCommand}" HorizontalAlignment="Right"/>
+                                            </Border>
+                                        </StackPanel>
+                                    </Border>
+                                </Popup>
                                 <Button Content="Select all"  Margin="0,0,5,0"
                                         Command="{Binding SelectAllCommand}"
                                         Style="{StaticResource SmallSecondaryButton}"/>

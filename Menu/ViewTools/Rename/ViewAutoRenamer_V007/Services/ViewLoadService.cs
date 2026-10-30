@@ -13,7 +13,7 @@ public static class ViewLoadService
 {
     // Sections & Callouts, Plans (Floor/Ceiling/Structural/Area), Elevations,
     // Drafting, Legends, Schedules. Callouts report ViewType.Section.
-    private static readonly HashSet<Autodesk.Revit.DB.ViewType> InScopeViewTypes = new()
+    internal static readonly HashSet<Autodesk.Revit.DB.ViewType> InScopeViewTypes = new()
     {
         Autodesk.Revit.DB.ViewType.Section,
         Autodesk.Revit.DB.ViewType.Elevation,
@@ -72,14 +72,26 @@ public static class ViewLoadService
         return Build(views, _ => onThisSheet);
     }
 
-    /// <summary>Loads every in-scope view in the project with its full sheet placement.</summary>
-    public static List<ViewItemViewModel> LoadAll(Document doc)
+    /// <summary>
+    /// Loads the in-scope views of the given <paramref name="types"/> (every in-scope type when null)
+    /// with their full sheet placement. The sheet-placement lookup is only built when Legends or
+    /// Schedules are requested, since only they can sit on several sheets.
+    /// </summary>
+    public static List<ViewItemViewModel> LoadAll(Document doc, ISet<Autodesk.Revit.DB.ViewType>? types = null)
     {
-        var placed = ViewClassificationService.BuildPlacedSheetsLookup(doc);
+        bool Wanted(Autodesk.Revit.DB.ViewType t) => InScopeViewTypes.Contains(t) && (types == null || types.Contains(t));
+
         var views = new FilteredElementCollector(doc)
             .OfClass(typeof(View))
             .Cast<View>()
-            .Where(IsInScope);
+            .Where(v => !v.IsTemplate && Wanted(v.ViewType))
+            .ToList();
+
+        bool needsLookup = views.Any(v => v.ViewType == Autodesk.Revit.DB.ViewType.Legend
+                                       || v.ViewType == Autodesk.Revit.DB.ViewType.Schedule);
+        var placed = needsLookup
+            ? ViewClassificationService.BuildPlacedSheetsLookup(doc)
+            : new Dictionary<ElementId, List<string>>();
 
         return Build(views, v => placed.TryGetValue(v.Id, out var list) ? list : new List<string>());
     }

@@ -20,6 +20,10 @@ Each release lists every tool whose version changed, under the plugin version.
   - The commit button shows "Commit N change(s)" with a summary of changes, unchanged and conflicts; it is disabled when nothing would change.
   - After a commit the grid shows the new names without reloading; a progress strip shows while Revit works.
   - Esc closes the window; Ctrl+A selects all rows.
+  - **Load views by type** replaces the single "Load all views" button: a tick-box popover (floor plans, ceiling plans,
+    structural/area plans, sections & callouts, elevations, drafting views, legends, schedules) loads only the types you tick.
+    Types already loaded are marked and locked; **All** ticks everything. Sheet placements are only looked up when legends
+    or schedules are requested, so loading plans or sections is faster.
 - **User note:** the first moment after opening the grid is empty while the sheet loads. Dry run now reports how many views would change.
 
 ### Fixed

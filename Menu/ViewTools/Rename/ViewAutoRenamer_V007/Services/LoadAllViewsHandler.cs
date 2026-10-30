@@ -14,6 +14,9 @@ public class LoadAllViewsHandler : IExternalEventHandler
     /// <summary>True for the fast first load: only the active sheet's views, window stays in "partial" state.</summary>
     public bool CurrentSheetOnly { get; set; }
 
+    /// <summary>View types to load; null loads every in-scope type.</summary>
+    public ISet<Autodesk.Revit.DB.ViewType>? Types { get; set; }
+
     /// <summary>Runs through ToolGuard so no exception reaches Revit.</summary>
     public void Execute(UIApplication app) =>
         ToolGuard.RunHandler(typeof(LoadAllViewsHandler), app, Run);
@@ -37,7 +40,7 @@ public class LoadAllViewsHandler : IExternalEventHandler
                 System.Windows.Application.Current?.Dispatcher.Invoke(() => vm.OnSheetLoaded(items, number));
                 return;
             }
-            items = ViewLoadService.LoadAll(doc);
+            items = ViewLoadService.LoadAll(doc, Types);
         }
         catch (Exception ex)
         {
@@ -45,7 +48,7 @@ public class LoadAllViewsHandler : IExternalEventHandler
             throw; // ToolGuard logs it
         }
 
-        System.Windows.Application.Current?.Dispatcher.Invoke(() => vm.MergeLoadedViews(items));
+        System.Windows.Application.Current?.Dispatcher.Invoke(() => vm.MergeLoadedViews(items, Types));
     }
 
     public string GetName() => "VAR02 Load All Views Handler";
