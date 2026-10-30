@@ -85,6 +85,9 @@ namespace Revit26_Plugin_Revised.TagToText.V001.Core.Services
         /// <summary>The new view, when one was made and kept.</summary>
         public View NewView { get; set; }
 
+        /// <summary>Reasons the new text may not show in its view (hidden category, filter, workset, crop…).</summary>
+        public List<string> VisibilityWarnings { get; } = new List<string>();
+
         /// <inheritdoc/>
         public override string ToString()
         {
@@ -93,6 +96,7 @@ namespace Revit26_Plugin_Revised.TagToText.V001.Core.Services
             if (Hidden > 0) s += $" Hid {Hidden} tag(s).";
             if (Deleted > 0) s += $" Deleted {Deleted} tag(s).";
             if (NewView != null) s += $" New view: {NewView.Name}.";
+            if (VisibilityWarnings.Count > 0) s += $" {VisibilityWarnings.Count} visibility warning(s): the new text may not show.";
             return s;
         }
     }
@@ -142,6 +146,7 @@ namespace Revit26_Plugin_Revised.TagToText.V001.Core.Services
 
             bool commentsMissingLogged = false;
             var converted = new List<TagSnapshot>();
+            var noteIds = new List<ElementId>();
 
             using (var t = new Transaction(doc, "Tag To Text: create text"))
             {
@@ -171,7 +176,7 @@ namespace Revit26_Plugin_Revised.TagToText.V001.Core.Services
                         string[] lines = TextRules.ApplyUserAffixes(job.Lines, options.Prefix, options.Suffix);
                         int made = CreateNotes(doc, target, request.TextTypeId, s, lines, options, lineStep,
                             options.AddSourceNote ? $"From tag {s.TagId.Value} · {date}" : null,
-                            ref commentsMissingLogged);
+                            noteIds, ref commentsMissingLogged);
                         st.Commit();
                         result.Created++;
                         result.Notes += made;
@@ -187,6 +192,13 @@ namespace Revit26_Plugin_Revised.TagToText.V001.Core.Services
 
                 if (!result.Cancelled && options.Target == TargetMode.SameView && converted.Count > 0)
                     HandleOriginals(doc, sourceView, converted, options.OriginalAction, result);
+
+                if (!result.Cancelled && noteIds.Count > 0)
+                {
+                    result.VisibilityWarnings.AddRange(TextVisibilityChecker.Check(doc, target, noteIds));
+                    foreach (string w in result.VisibilityWarnings)
+                        _log(new LogEntry(LogLevel.Warning, "Not visible: " + w));
+                }
 
                 if (result.Cancelled) t.RollBack();
                 else t.Commit();
@@ -233,7 +245,7 @@ namespace Revit26_Plugin_Revised.TagToText.V001.Core.Services
         }
 
         private int CreateNotes(Document doc, View view, ElementId typeId, TagSnapshot s, string[] lines,
-            TagToTextSettings options, double lineStep, string sourceNote, ref bool commentsMissingLogged)
+            TagToTextSettings options, double lineStep, string sourceNote, List<ElementId> noteIds, ref bool commentsMissingLogged)
         {
             // A Spot Coordinate becomes two notes (N, then E below it); everything else one note.
             var texts = s.Kind == TagKind.SpotCoordinate && lines.Length >= 2
@@ -252,6 +264,7 @@ namespace Revit26_Plugin_Revised.TagToText.V001.Core.Services
                     KeepRotatedTextReadable = true
                 };
                 TextNote note = TextNote.Create(doc, view.Id, point, string.Join("\r", texts[i]), noteOptions);
+                noteIds.Add(note.Id);
 
                 if (leader && s.LeaderEnd.DistanceTo(point) > 1e-6)
                 {

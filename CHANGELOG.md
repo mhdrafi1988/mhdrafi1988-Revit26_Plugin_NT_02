@@ -9,6 +9,46 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.21.2] — 2026-10-30
+
+### Fixed
+- **Auto Slope By Point 33.0.1 (V033)** — the roof's `AutoSlope_*` parameters are written to whatever data
+  type the parameter has (whole number, number/length or text) instead of being skipped on a type mismatch.
+  Parameters that still cannot be written are listed by name with the reason in the run log.
+- **User note:** if a parameter stays empty, the log now says why (not bound to Roofs, read-only, unsupported type).
+
+## [6.21.1] — 2026-10-29
+
+### Changed
+- **View Auto Renamer 7.1.1 (V007)** — faster with many views. The view-type filter is now a direct lookup
+  instead of a search per row, filter changes (typing in the search boxes, ticking view types) are grouped
+  into one refresh instead of one per keystroke or tick, checking a row no longer recomputes every preview
+  at once, and **Load all views** refreshes the grid once instead of once per added view.
+- **User note:** previews and the grid now update a fraction of a second after your last change.
+
+## [6.21.0] — 2026-10-29
+
+### Changed
+- **View Auto Renamer 7.1.0 (V007)** — opens with only the current sheet's views instead of loading the whole
+  project. If you start it on a view placed on a sheet, that sheet's views load.
+  - New **Load all views** button (above the grid) loads the rest of the project when you want it. Your edits and
+    selections are kept; Legends and Schedules then show all their sheets, and the sheet and view-type filters
+    include the new views. The sheet filter switches to **All**.
+  - If the active view is not on a sheet, the grid starts empty with a log hint; click **Load all views**.
+- **User note:** the grid no longer shows every view straight away. Click **Load all views** to get the old
+  behaviour. Legends and Schedules on other sheets show only the current sheet until you do.
+
+## [6.20.0] — 2026-10-29
+
+### Added
+- **Tag To Text v1.2.0** — warns when the new text won't show in its view. After the notes are made, the tool
+  checks the view for: the Text Notes category switched off in Visibility/Graphics, all annotation categories
+  hidden, a view template doing either, a filter whose Visibility box is off and that matches the new notes,
+  a hidden workset, and notes outside the crop region. Each reason is named in the run log ("Not visible: …")
+  and in a message box after the run, and the log summary counts the warnings.
+- **User note:** nothing is blocked or changed by this; the text is still created. Fix the cause in
+  Visibility/Graphics (VV), the view template or the filters, and the text appears.
+
 ## [6.19.0] — 2026-10-29
 
 ### Added
