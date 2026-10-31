@@ -9,6 +9,13 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.21.4] — 2026-10-31
+
+### Fixed
+- **Tag To Text 1.2.1 (V001)** — the plugin builds again. The hidden-annotations check called
+  `View.AreAnnotationCategoriesHidden` as a method; in the Revit 2026 API it is a property.
+  No change in behaviour.
+
 ## [6.21.3] — 2026-10-30
 
 ### Fixed
