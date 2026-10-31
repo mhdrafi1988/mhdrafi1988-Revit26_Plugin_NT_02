@@ -66,6 +66,15 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                     "in plan order, bottom-aligned so titles line up. Live preview before anything changes; one Undo step.")
             };
 
+            // Sheet Text Replace: finds and replaces text in the text notes on a sheet, in the views
+            // the user ticks (and in notes placed on the sheet itself).
+            var sheetTextReplaceV001 = new PushButtonData("Btn_SheetTextReplace.V001", "Text Replace", assemblyPath, "Revit26_Plugin_Revised.SheetTextReplace.V001.Commands.SheetTextReplaceCommand")
+            {
+                Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SheetTools.SheetTextReplace_16.png"),
+                LargeImage = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SheetTools.SheetTextReplace_32.png"),
+                ToolTip = ToolCatalog.SheetTextReplace.Tip("Find and replace text notes in selected views on a sheet.")
+            };
+
             // Rearrange and Arrange Views follow in the same panel (the one-column Sheet Place
             // panel was merged in, plugin 2.4.0, so Revit has room to show every button name).
             var rearrangeV027 = new PushButtonData("Btn_SheetAutoRearrange.V027", "Rearrange V027", assemblyPath, "Revit26_Plugin_Revised.SheetAutoRearrange.V027.Commands.SheetAutoRearrangeCommand")
@@ -100,6 +109,11 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             RibbonLayoutHelper.WirePulldownButton(sheetCreateItems, "Pulldown_SmartViewToSheetPlacer", sheetPlacerV224, sheetPlacerV223);
             RibbonLayoutHelper.WirePulldownButton(sheetCreateItems, "Pulldown_AutomatedSectionPlacer", autoSectionPlacerV003, autoSectionPlacerV002);
             RibbonLayoutHelper.WirePulldownButton(sheetCreateItems, "Pulldown_SheetAutoRearrange", rearrangeV028, rearrangeV027);
+
+            // Sheet Edit panel (plugin 6.22.0): tools that change what is already on a sheet.
+            // A lone item is added as a full-size button with its 32 px icon.
+            RibbonPanel editPanel = app.CreateRibbonPanel(tabName, "Sheet Edit");
+            RibbonLayoutHelper.AddStackedButtons(editPanel, new List<RibbonItemData> { sheetTextReplaceV001 });
         }
     }
 }
