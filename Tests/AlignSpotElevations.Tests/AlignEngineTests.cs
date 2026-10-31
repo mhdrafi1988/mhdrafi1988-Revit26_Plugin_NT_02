@@ -9,10 +9,10 @@ namespace AlignSpotElevations.Tests
     public class AlignEngineTests
     {
         private static List<SpotItem> Us(params double[] u)
-            => u.Select((x, i) => new SpotItem { Id = i + 1, U = x, V = 100 - x }).ToList();
+            => u.Select((x, i) => new SpotItem { Id = i + 1, U = x, V = 100 - x, TextU = x, TextV = 100 - x }).ToList();
 
         private static SpotItem P(long id, double u, double v, double pu = 0, double pv = 0)
-            => new SpotItem { Id = id, U = u, V = v, PointU = pu, PointV = pv };
+            => new SpotItem { Id = id, U = u, V = v, TextU = u, TextV = v, PointU = pu, PointV = pv };
 
         [Fact]
         public void Average_IsMean()
@@ -144,7 +144,7 @@ namespace AlignSpotElevations.Tests
         public void Plan_FlagsOverlapFromTagSize()
         {
             // Column, fixed gap 2 mm, tags 2.5 mm tall: neighbours overlap. Gap 3.5 mm: clear.
-            var items = Enumerable.Range(0, 3).Select(i => new SpotItem { Id = i, U = i, V = 10 * i, WidthMm = 12, HeightMm = 2.5 }).ToList();
+            var items = Enumerable.Range(0, 3).Select(i => new SpotItem { Id = i, U = i, V = 10 * i, TextU = i, TextV = 10 * i, WidthMm = 12, HeightMm = 2.5 }).ToList();
             var tight = AlignEngine.Plan(items, new AlignOptions { Distribute = DistributeMode.FixedGap, GapMm = 2 });
             Assert.Equal(3, tight.OverlapCount);
             var clear = AlignEngine.Plan(items, new AlignOptions { Distribute = DistributeMode.FixedGap, GapMm = 3.5 });
@@ -179,6 +179,81 @@ namespace AlignSpotElevations.Tests
             Assert.Equal(ArrangeMode.OffsetFromPoint, back.Mode);
             Assert.Equal(4, back.GapMm);
             Assert.Null(back.ReferenceId);
+        }
+
+        private static SpotItem Leader(long id, double textU, double endU, double? shoulderU, double v = 0)
+            => new SpotItem
+            {
+                Id = id, U = textU, V = v, TextU = textU, TextV = v,
+                HasLeader = true, EndU = endU, EndV = v,
+                HasShoulder = shoulderU.HasValue, ShoulderU = shoulderU ?? 0, ShoulderV = v
+            };
+
+        [Fact]
+        public void ForAnchor_FallsBackShoulderToEndToText()
+        {
+            var items = new List<SpotItem>
+            {
+                Leader(1, 10, 20, 30),
+                Leader(2, 10, 20, null),
+                new SpotItem { Id = 3, TextU = 10, TextV = 0 }
+            };
+            var s = AlignEngine.ForAnchor(items, AnchorPoint.Shoulder);
+            Assert.Equal(new[] { AnchorPoint.Shoulder, AnchorPoint.LeaderEnd, AnchorPoint.Text }, s.Select(x => x.Anchor));
+            Assert.Equal(new[] { 30.0, 20.0, 10.0 }, s.Select(x => x.U));
+            Assert.Equal(10, items[0].U); // source untouched
+        }
+
+        [Fact]
+        public void Plan_AlignByLeaderEnd_UsesEndPositions()
+        {
+            // Ends at 20 and 40 -> average 30; texts are elsewhere and must not matter.
+            var items = new List<SpotItem> { Leader(1, 0, 20, null, 0), Leader(2, 100, 40, null, 10) };
+            var plan = AlignEngine.Plan(items, new AlignOptions { AlignBy = AnchorPoint.LeaderEnd });
+            Assert.Equal(30, plan.Target.Value, 9);
+            Assert.Equal(10, plan.Entries[0].DeltaU, 9);
+            Assert.Equal(-10, plan.Entries[1].DeltaU, 9);
+            Assert.All(plan.Entries, e => Assert.Equal(AnchorPoint.LeaderEnd, e.Item.Anchor));
+            Assert.Equal(0, plan.FallbackCount);
+        }
+
+        [Fact]
+        public void Plan_AlignByShoulder_CountsFallbacks()
+        {
+            var items = new List<SpotItem> { Leader(1, 0, 5, 10, 0), Leader(2, 0, 5, null, 10) };
+            var plan = AlignEngine.Plan(items, new AlignOptions { AlignBy = AnchorPoint.Shoulder, Target = AlignTarget.Min });
+            Assert.Equal(1, plan.FallbackCount);
+            Assert.Equal(5, plan.Target.Value, 9);      // min of shoulder 10 and end 5
+            Assert.Equal(-5, plan.Entries[0].DeltaU, 9); // shoulder 10 -> 5
+        }
+
+        [Fact]
+        public void Plan_OverlapUsesTextMovedWithAnchor()
+        {
+            // Ends line up in a column; texts start 20 mm apart vertically, so they cannot overlap.
+            var a = Leader(1, 0, 10, null, 0); a.WidthMm = 10; a.HeightMm = 2.5;
+            var b = Leader(2, 0, 30, null, 20); b.WidthMm = 10; b.HeightMm = 2.5;
+            var plan = AlignEngine.Plan(new List<SpotItem> { a, b }, new AlignOptions { AlignBy = AnchorPoint.LeaderEnd });
+            Assert.Equal(0, plan.OverlapCount);
+        }
+
+        [Fact]
+        public void Plan_Offset_SkipsTagsWithoutPoint()
+        {
+            var items = new List<SpotItem> { P(1, 0, 0, 10, 10), P(2, 5, 5) };
+            items[1].HasPoint = false;
+            var plan = AlignEngine.Plan(items, new AlignOptions { Mode = ArrangeMode.OffsetFromPoint, OffsetXMm = 1, OffsetYMm = 1 });
+            Assert.Equal(1, plan.NoPointCount);
+            Assert.False(plan.Entries[1].Moves);
+            Assert.True(plan.Entries[0].Moves);
+        }
+
+        [Fact]
+        public void Options_Version1File_LoadsWithTextAnchor()
+        {
+            var back = System.Text.Json.JsonSerializer.Deserialize<AlignOptions>("{\"Version\":1,\"GapMm\":4}");
+            Assert.Equal(AnchorPoint.Text, back.AlignBy);
+            Assert.Equal(1, back.Version);
         }
     }
 }

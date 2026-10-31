@@ -33,7 +33,8 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                 ToolTip = ToolCatalog.AlignSpotElevations.Tip(
                     "Lines up the tags of the selected spot elevations in one column or one row (average, most common, " +
                     "median, min / max or a reference tag), spaces them evenly or at a fixed gap, or places each tag " +
-                    "at the same offset from its point. Distances are paper mm. Only the tags move.")
+                    "at the same offset from its point. Lines up the text, the leader ends or the shoulders. " +
+                    "Distances are paper mm. The measured points never move.")
             };
             panel.AddItem(align);
 

@@ -57,9 +57,11 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Infrastructure
                 {
                     var sd = (SpotDimension)e;
                     XYZ p = sd.TextPosition;
-                    XYZ pt = PointOf(sd) ?? p;
+                    XYZ pt = PointOf(sd);
+                    XYZ end = LeaderEndOf(sd);
+                    XYZ shoulder = end != null ? ShoulderOf(sd) : null;
                     EstimateSize(doc, sd, out double widthMm, out double heightMm);
-                    result.Items.Add(new SpotItem
+                    var item = new SpotItem
                     {
                         WidthMm = widthMm,
                         HeightMm = heightMm,
@@ -67,9 +69,19 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Infrastructure
                         Label = LabelOf(sd),
                         U = p.DotProduct(right) * toPaper,
                         V = p.DotProduct(up) * toPaper,
-                        PointU = pt.DotProduct(right) * toPaper,
-                        PointV = pt.DotProduct(up) * toPaper
-                    });
+                        TextU = p.DotProduct(right) * toPaper,
+                        TextV = p.DotProduct(up) * toPaper,
+                        HasPoint = pt != null,
+                        PointU = pt != null ? pt.DotProduct(right) * toPaper : 0,
+                        PointV = pt != null ? pt.DotProduct(up) * toPaper : 0,
+                        HasLeader = end != null,
+                        EndU = end != null ? end.DotProduct(right) * toPaper : 0,
+                        EndV = end != null ? end.DotProduct(up) * toPaper : 0,
+                        HasShoulder = shoulder != null,
+                        ShoulderU = shoulder != null ? shoulder.DotProduct(right) * toPaper : 0,
+                        ShoulderV = shoulder != null ? shoulder.DotProduct(up) * toPaper : 0
+                    };
+                    result.Items.Add(item);
                 }
                 catch (Exception ex)
                 {
@@ -126,12 +138,25 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Infrastructure
             }
         }
 
-        /// <summary>The measured point: the spot's origin, else its leader end; null when neither can be read.</summary>
+        /// <summary>
+        /// The measured point (the spot's origin), or null when it cannot be read. The leader end is not a
+        /// substitute: it is the other end of the leader, at the text.
+        /// </summary>
         private static XYZ PointOf(SpotDimension sd)
         {
-            try { XYZ o = sd.Origin; if (o != null) return o; } catch { }
-            try { if (sd.HasLeader) return sd.LeaderEndPosition; } catch { }
-            return null;
+            try { return sd.Origin; } catch { return null; }
+        }
+
+        /// <summary>The leader end (where the leader meets the text), or null when the spot has no leader.</summary>
+        private static XYZ LeaderEndOf(SpotDimension sd)
+        {
+            try { return sd.HasLeader ? sd.LeaderEndPosition : null; } catch { return null; }
+        }
+
+        /// <summary>The leader shoulder, or null when the leader has none.</summary>
+        private static XYZ ShoulderOf(SpotDimension sd)
+        {
+            try { return sd.LeaderHasShoulder ? sd.LeaderShoulderPosition : null; } catch { return null; }
         }
 
         private static string LabelOf(SpotDimension sd)
@@ -143,16 +168,18 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Infrastructure
 
         /// <summary>
         /// Moves the tags in one transaction (one Undo step). If any tag cannot be moved, nothing changes.
-        /// Deltas are paper mm in the view's axes; <paramref name="scale"/> turns them back into model feet.
-        /// Returns the number moved; <paramref name="error"/> is set when it rolled back.
+        /// Each move shifts the point named by its item's <see cref="SpotItem.Anchor"/>; deltas are paper mm in
+        /// the view's axes and <paramref name="scale"/> turns them back into model feet. After the moves every
+        /// tag is read back, and tags whose point landed more than <see cref="LandToleranceMm"/> from the plan
+        /// are listed in <see cref="ApplyResult.NotExact"/> (they are still moved).
         /// </summary>
-        public static int Apply(Document doc, View view, IEnumerable<PlannedMove> moves, int scale,
-            string transactionName, out string error)
+        public static ApplyResult Apply(Document doc, View view, IEnumerable<PlannedMove> moves, int scale,
+            string transactionName)
         {
-            error = null;
+            var result = new ApplyResult();
             double toFeet = Math.Max(1, scale) / MmPerFoot;
             XYZ right = view.RightDirection, up = view.UpDirection;
-            int moved = 0;
+            var targets = new List<(SpotDimension Spot, PlannedMove Move, XYZ Target)>();
             using (var t = new Transaction(doc, transactionName))
             {
                 t.Start();
@@ -163,19 +190,108 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Infrastructure
                         var sd = doc.GetElement(new ElementId(m.Item.Id)) as SpotDimension;
                         if (sd == null) throw new InvalidOperationException($"Element {m.Item.Id} no longer exists.");
                         XYZ shift = right.Multiply(m.DeltaU * toFeet) + up.Multiply(m.DeltaV * toFeet);
-                        sd.TextPosition = sd.TextPosition + shift;
-                        moved++;
+                        XYZ target = AnchorOf(sd, m.Item.Anchor) + shift;
+                        MoveAnchor(doc, sd, m.Item.Anchor, shift, target);
+                        targets.Add((sd, m, target));
                     }
-                    t.Commit();
+
+                    doc.Regenerate();
+                    foreach (var (spot, move, target) in targets)
+                    {
+                        XYZ now = AnchorOf(spot, move.Item.Anchor);
+                        double offMm = (now - target).GetLength() / toFeet;
+                        if (offMm > LandToleranceMm)
+                            result.NotExact.Add($"{move.Item.Label}: {AnchorName(move.Item.Anchor)} is {offMm:0.#} mm from the planned position");
+                    }
+                    if (t.Commit() != TransactionStatus.Committed)
+                        throw new InvalidOperationException("Revit did not accept the change.");
+                    result.Moved = targets.Count;
                 }
                 catch (Exception ex)
                 {
-                    t.RollBack();
-                    error = ex.Message;
-                    return 0;
+                    if (t.GetStatus() == TransactionStatus.Started) t.RollBack();
+                    result.Moved = 0;
+                    result.NotExact.Clear();
+                    result.Error = ex.Message;
                 }
             }
-            return moved;
+            return result;
         }
+
+        /// <summary>A tag whose point lands farther than this from the plan is reported, paper mm.</summary>
+        public const double LandToleranceMm = 0.25;
+
+        /// <summary>Plain name of an anchor point for messages.</summary>
+        public static string AnchorName(AnchorPoint anchor) => anchor switch
+        {
+            AnchorPoint.LeaderEnd => "leader end",
+            AnchorPoint.Shoulder => "shoulder",
+            _ => "text"
+        };
+
+        private static XYZ AnchorOf(SpotDimension sd, AnchorPoint anchor) => anchor switch
+        {
+            AnchorPoint.LeaderEnd => sd.LeaderEndPosition,
+            AnchorPoint.Shoulder => sd.LeaderShoulderPosition,
+            _ => sd.TextPosition
+        };
+
+        /// <summary>
+        /// Moves one spot's anchor to <paramref name="target"/>. The measured point never moves.
+        /// <list type="bullet">
+        /// <item>Text: shifts the text drag point.</item>
+        /// <item>Shoulder: shifts the shoulder; Revit moves the leader end and text with it.</item>
+        /// <item>Leader end without a shoulder: sets the leader end; Revit moves the text with it.</item>
+        /// <item>Leader end with a shoulder: Revit keeps the end on the shoulder line, so the shoulder is first
+        /// shifted across that line (keeping its direction, e.g. horizontal), then the end slides along it to the
+        /// target.</item>
+        /// </list>
+        /// </summary>
+        private static void MoveAnchor(Document doc, SpotDimension sd, AnchorPoint anchor, XYZ shift, XYZ target)
+        {
+            switch (anchor)
+            {
+                case AnchorPoint.Shoulder:
+                    sd.LeaderShoulderPosition = sd.LeaderShoulderPosition + shift;
+                    break;
+
+                case AnchorPoint.LeaderEnd:
+                    if (sd.LeaderHasShoulder)
+                    {
+                        XYZ s = sd.LeaderShoulderPosition;
+                        XYZ along = sd.LeaderEndPosition - s;
+                        XYZ across = shift;
+                        if (along.GetLength() > 1e-9)
+                        {
+                            XYZ dir = along.Normalize();
+                            across = shift - dir.Multiply(shift.DotProduct(dir));
+                        }
+                        if (across.GetLength() > 1e-9)
+                        {
+                            sd.LeaderShoulderPosition = s + across;
+                            doc.Regenerate();
+                        }
+                    }
+                    sd.LeaderEndPosition = target;
+                    break;
+
+                default:
+                    sd.TextPosition = sd.TextPosition + shift;
+                    break;
+            }
+        }
+    }
+
+    /// <summary>Outcome of <see cref="SpotAlignService.Apply"/>.</summary>
+    public sealed class ApplyResult
+    {
+        /// <summary>Number of tags moved (0 when rolled back).</summary>
+        public int Moved { get; set; }
+
+        /// <summary>Tags moved but not exactly to the planned position, with how far off.</summary>
+        public List<string> NotExact { get; } = new List<string>();
+
+        /// <summary>Why nothing changed, or null on success.</summary>
+        public string Error { get; set; }
     }
 }

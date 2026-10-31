@@ -26,6 +26,12 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.UI.ViewModels
 
         /// <summary>True when the tag would overlap another selected tag (estimated).</summary>
         public bool Overlaps { get; set; }
+
+        /// <summary>The point lined up for this tag: "Text", "Leader end" or "Shoulder".</summary>
+        public string By { get; set; }
+
+        /// <summary>True when the tag uses another point than the one asked for.</summary>
+        public bool FellBack { get; set; }
     }
 
     /// <summary>Options, live preview and result of the Align Spot Elevations window.</summary>
@@ -122,6 +128,21 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.UI.ViewModels
             if (mode == ArrangeMode.DistributeOnly && _o.Distribute == DistributeMode.None) _o.Distribute = DistributeMode.Even;
             RaiseAll();
         }
+
+        // ── Align by ────────────────────────────────────────────────────────
+
+        /// <summary>Radio: line up the text.</summary>
+        public bool IsByText { get => _o.AlignBy == AnchorPoint.Text; set { if (value) Set(() => _o.AlignBy = AnchorPoint.Text); } }
+
+        /// <summary>Radio: line up the leader ends.</summary>
+        public bool IsByLeaderEnd { get => _o.AlignBy == AnchorPoint.LeaderEnd; set { if (value) Set(() => _o.AlignBy = AnchorPoint.LeaderEnd); } }
+
+        /// <summary>Radio: line up the shoulders.</summary>
+        public bool IsByShoulder { get => _o.AlignBy == AnchorPoint.Shoulder; set { if (value) Set(() => _o.AlignBy = AnchorPoint.Shoulder); } }
+
+        /// <summary>How many selected tags have a leader / a shoulder, e.g. "5 of 6 have a leader, 3 have a shoulder".</summary>
+        public string LeaderInfo
+            => $"{_items.Count(i => i.HasLeader)} of {_items.Count} have a leader, {_items.Count(i => i.HasShoulder)} have a shoulder.";
 
         // ── Direction ───────────────────────────────────────────────────────
 
@@ -235,7 +256,9 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.UI.ViewModels
                     MoveX = Fmt(m.DeltaU),
                     MoveY = Fmt(m.DeltaV),
                     Stays = !m.Moves,
-                    Overlaps = m.Overlaps
+                    Overlaps = m.Overlaps,
+                    By = AnchorLabel(m.Item.Anchor),
+                    FellBack = m.Item.Anchor != _o.AlignBy
                 });
             }
 
@@ -249,13 +272,25 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.UI.ViewModels
             string extra = string.Empty;
             if (Plan.Target != null && Plan.Target.FellBackToAverage) extra = " No tags share a position, so the average is used.";
             else if (Plan.Target != null && _o.Target == AlignTarget.MostCommon) extra = $" {Plan.Target.SharedCount} tags already share the line.";
-            Summary = $"{n} of {_items.Count} tags will be {what}.{extra}";
+            if (Plan.FallbackCount > 0)
+                extra += $" {Plan.FallbackCount} tag(s) have no {(_o.AlignBy == AnchorPoint.Shoulder ? "shoulder" : "leader")}, so another point is used (see By).";
+            if (Plan.NoPointCount > 0)
+                extra += $" {Plan.NoPointCount} tag(s) stay put: their measured point could not be read.";
+            string by = _o.AlignBy == AnchorPoint.Text ? string.Empty : $" by {AnchorLabel(_o.AlignBy).ToLowerInvariant()}";
+            Summary = $"{n} of {_items.Count} tags will be {what}{by}.{extra}";
 
             if (Plan.OverlapCount > 0)
                 Warning = $"{Plan.OverlapCount} tags would overlap (red rows, estimated from the text size). " +
                           "Choose even spacing or a fixed gap; Fit picks a gap that clears the tags.";
             CanApply = n > 0;
         }
+
+        private static string AnchorLabel(AnchorPoint a) => a switch
+        {
+            AnchorPoint.LeaderEnd => "Leader end",
+            AnchorPoint.Shoulder => "Shoulder",
+            _ => "Text"
+        };
 
         private static string Fmt(double mm) => Math.Abs(mm) < 1e-6 ? "–" : $"{(mm > 0 ? "+" : "")}{mm:0.0}";
     }

@@ -25,6 +25,19 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Core.Models
         OffsetFromPoint
     }
 
+    /// <summary>Which point of each spot elevation is lined up.</summary>
+    public enum AnchorPoint
+    {
+        /// <summary>The text's drag point (the behaviour before 1.3.0).</summary>
+        Text,
+
+        /// <summary>The end of the leader, where it meets the text. Falls back to the text without a leader.</summary>
+        LeaderEnd,
+
+        /// <summary>The leader's shoulder (bend). Falls back to the leader end without a shoulder.</summary>
+        Shoulder
+    }
+
     /// <summary>How the common line position is chosen (Align to line).</summary>
     public enum AlignTarget
     {
@@ -72,11 +85,44 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Core.Models
         /// <summary>Text shown in lists, e.g. the elevation text.</summary>
         public string Label { get; set; }
 
-        /// <summary>Tag position along the view's right direction (paper mm).</summary>
+        /// <summary>
+        /// Working position along the view's right direction (paper mm): the point being lined up.
+        /// The reader sets it to the text position; <c>AlignEngine.ForAnchor</c> switches it to another point.
+        /// </summary>
         public double U { get; set; }
 
-        /// <summary>Tag position along the view's up direction (paper mm).</summary>
+        /// <summary>Working position along the view's up direction (paper mm).</summary>
         public double V { get; set; }
+
+        /// <summary>The point <see cref="U"/>/<see cref="V"/> hold (after any fallback).</summary>
+        public AnchorPoint Anchor { get; set; } = AnchorPoint.Text;
+
+        /// <summary>Text drag point, right (paper mm).</summary>
+        public double TextU { get; set; }
+
+        /// <summary>Text drag point, up (paper mm).</summary>
+        public double TextV { get; set; }
+
+        /// <summary>True when the spot has a leader, so <see cref="EndU"/>/<see cref="EndV"/> are set.</summary>
+        public bool HasLeader { get; set; }
+
+        /// <summary>Leader end (where the leader meets the text), right (paper mm).</summary>
+        public double EndU { get; set; }
+
+        /// <summary>Leader end, up (paper mm).</summary>
+        public double EndV { get; set; }
+
+        /// <summary>True when the leader has a shoulder, so <see cref="ShoulderU"/>/<see cref="ShoulderV"/> are set.</summary>
+        public bool HasShoulder { get; set; }
+
+        /// <summary>Leader shoulder (bend), right (paper mm).</summary>
+        public double ShoulderU { get; set; }
+
+        /// <summary>Leader shoulder, up (paper mm).</summary>
+        public double ShoulderV { get; set; }
+
+        /// <summary>True when the measured point could be read, so <see cref="PointU"/>/<see cref="PointV"/> are set.</summary>
+        public bool HasPoint { get; set; } = true;
 
         /// <summary>Measured point along the view's right direction (paper mm).</summary>
         public double PointU { get; set; }
@@ -89,6 +135,9 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Core.Models
 
         /// <summary>Estimated tag text height (paper mm); 0 when unknown.</summary>
         public double HeightMm { get; set; }
+
+        /// <summary>A copy of this item.</summary>
+        public SpotItem Clone() => (SpotItem)MemberwiseClone();
     }
 
     /// <summary>
@@ -97,14 +146,17 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Core.Models
     /// </summary>
     public sealed class AlignOptions
     {
-        /// <summary>Settings file format version.</summary>
-        public const int CurrentVersion = 1;
+        /// <summary>Settings file format version. 2 added <see cref="AlignBy"/>; version 1 files load with Text.</summary>
+        public const int CurrentVersion = 2;
 
         /// <summary>Format version of the saved file.</summary>
         public int Version { get; set; } = CurrentVersion;
 
         /// <summary>What the tool does.</summary>
         public ArrangeMode Mode { get; set; } = ArrangeMode.AlignToLine;
+
+        /// <summary>Which point of each spot is lined up. Defaults to the text, as before 1.3.0.</summary>
+        public AnchorPoint AlignBy { get; set; } = AnchorPoint.Text;
 
         /// <summary>Column (vertical) or row (horizontal).</summary>
         public AlignDirection Direction { get; set; } = AlignDirection.Vertical;
@@ -178,6 +230,12 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Core.Models
 
         /// <summary>Number of tags whose box would overlap another selected tag after the move.</summary>
         public int OverlapCount { get; set; }
+
+        /// <summary>Number of tags that use another point than the one asked for (no leader or no shoulder).</summary>
+        public int FallbackCount { get; set; }
+
+        /// <summary>Number of tags left in place in Offset from point because their measured point is unknown.</summary>
+        public int NoPointCount { get; set; }
 
         /// <summary>Number of tags that move.</summary>
         public int MoveCount

@@ -9,6 +9,27 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.27.0] — 2026-10-31
+
+### Added
+- **Align Spot Elevations v1.3.0 (V001)** — new **Align by** choice in the window: **Text** (as before),
+  **Leader end** (where the leader meets the text) or **Shoulder** (the bend in the leader). It applies to Align to
+  a line, Distribute only and Offset from point, and the quick-align buttons use the last choice.
+  - Tags without a shoulder use their leader end; tags without a leader use their text. A **By** column in the
+    preview shows the point each tag really uses (in italics when it fell back), and the window shows how many of the
+    selected tags have a leader and a shoulder.
+  - Leader end with a shoulder: the shoulder moves across its own line (it keeps its direction, e.g. horizontal) and
+    the end slides along it to the line. Shoulder: the shoulder moves, and Revit takes the leader end and text with it.
+  - After applying, every tag is read back; any whose point landed more than 0.25 mm from the plan is listed in the
+    result message.
+  - The settings file is now version 2 (adds Align by). Version 1 files still load, with Align by = Text.
+
+### Fixed
+- **Align Spot Elevations:** Offset from point no longer uses the leader end as the measured point when the spot's
+  point cannot be read (the leader end is the other end of the leader). Such tags now stay where they are and are
+  counted in the summary.
+- **User note:** nothing changes unless you pick Leader end or Shoulder; the default is still Text.
+
 ## [6.26.0] — 2026-10-31
 
 ### Added

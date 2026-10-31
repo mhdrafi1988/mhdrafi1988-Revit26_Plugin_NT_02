@@ -16,6 +16,32 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Core.Services
         /// <summary>Clearance added to the tag height (column) or width (row) by <see cref="SuggestGap"/>, paper mm.</summary>
         public const double GapClearanceMm = 1.0;
 
+        /// <summary>
+        /// Copies of <paramref name="items"/> whose working position (U, V) is the <paramref name="anchor"/> point.
+        /// A spot without a shoulder uses its leader end; a spot without a leader uses its text. Each copy's
+        /// <see cref="SpotItem.Anchor"/> says which point it really uses.
+        /// </summary>
+        public static List<SpotItem> ForAnchor(IReadOnlyList<SpotItem> items, AnchorPoint anchor)
+        {
+            var result = new List<SpotItem>(items.Count);
+            foreach (SpotItem item in items)
+            {
+                SpotItem c = item.Clone();
+                AnchorPoint used = anchor;
+                if (used == AnchorPoint.Shoulder && !c.HasShoulder) used = AnchorPoint.LeaderEnd;
+                if (used == AnchorPoint.LeaderEnd && !c.HasLeader) used = AnchorPoint.Text;
+                switch (used)
+                {
+                    case AnchorPoint.Shoulder: c.U = c.ShoulderU; c.V = c.ShoulderV; break;
+                    case AnchorPoint.LeaderEnd: c.U = c.EndU; c.V = c.EndV; break;
+                    default: c.U = c.TextU; c.V = c.TextV; break;
+                }
+                c.Anchor = used;
+                result.Add(c);
+            }
+            return result;
+        }
+
         /// <summary>Position of an item along the aligned axis (U for vertical, V for horizontal).</summary>
         public static double Axis(SpotItem item, AlignDirection direction)
             => direction == AlignDirection.Vertical ? item.U : item.V;
@@ -124,14 +150,18 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Core.Services
         }
 
         /// <summary>
-        /// Plans the moves for <paramref name="options"/>. Returns one entry per tag, in input order.
+        /// Plans the moves for <paramref name="options"/>. Returns one entry per tag, in input order; each
+        /// entry's <see cref="PlannedMove.Item"/> is a copy positioned at the point being lined up
+        /// (<see cref="AlignOptions.AlignBy"/>, after fallback), and the deltas move that point.
         /// </summary>
-        public static ArrangePlan Plan(IReadOnlyList<SpotItem> items, AlignOptions options)
+        public static ArrangePlan Plan(IReadOnlyList<SpotItem> source, AlignOptions options)
         {
-            if (items == null) throw new ArgumentNullException(nameof(items));
+            if (source == null) throw new ArgumentNullException(nameof(source));
             if (options == null) throw new ArgumentNullException(nameof(options));
             var plan = new ArrangePlan();
-            if (items.Count == 0) return plan;
+            if (source.Count == 0) return plan;
+            List<SpotItem> items = ForAnchor(source, options.AlignBy);
+            plan.FallbackCount = items.Count(i => i.Anchor != options.AlignBy);
 
             var finalU = new double[items.Count];
             var finalV = new double[items.Count];
@@ -141,6 +171,13 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Core.Services
             {
                 for (int i = 0; i < items.Count; i++)
                 {
+                    if (!items[i].HasPoint)
+                    {
+                        // Measured point unknown: leave the tag where it is rather than guess.
+                        finalU[i] = items[i].U; finalV[i] = items[i].V;
+                        plan.NoPointCount++;
+                        continue;
+                    }
                     finalU[i] = items[i].PointU + options.OffsetXMm;
                     finalV[i] = items[i].PointV + options.OffsetYMm;
                 }
@@ -179,7 +216,15 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Core.Services
                     DeltaV = Clean(finalV[i] - items[i].V)
                 });
             }
-            bool[] overlaps = FindOverlaps(items, finalU, finalV);
+            // Tag boxes sit on the text, which moves with the anchor by the same distance.
+            var textU = new double[items.Count];
+            var textV = new double[items.Count];
+            for (int i = 0; i < items.Count; i++)
+            {
+                textU[i] = items[i].TextU + plan.Entries[i].DeltaU;
+                textV[i] = items[i].TextV + plan.Entries[i].DeltaV;
+            }
+            bool[] overlaps = FindOverlaps(items, textU, textV);
             for (int i = 0; i < items.Count; i++) plan.Entries[i].Overlaps = overlaps[i];
             plan.OverlapCount = overlaps.Count(o => o);
             return plan;

@@ -10,7 +10,7 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Commands
 {
     /// <summary>
     /// Quick align without the window: lines the selected tags up using the last options saved by the
-    /// window (line position, tolerance, spacing). Reference falls back to Average, since there is no
+    /// window (align by, line position, tolerance, spacing). Reference falls back to Average, since there is no
     /// window to choose the reference tag in.
     /// </summary>
     internal static class QuickAlign
@@ -53,7 +53,8 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Commands
                 DistributeMode.FixedGap => $", {o.GapMm:0.#} mm gap",
                 _ => string.Empty
             };
-            return target + spacing;
+            string by = o.AlignBy == AnchorPoint.Text ? string.Empty : $", by {SpotAlignService.AnchorName(o.AlignBy)}";
+            return target + spacing + by;
         }
     }
 

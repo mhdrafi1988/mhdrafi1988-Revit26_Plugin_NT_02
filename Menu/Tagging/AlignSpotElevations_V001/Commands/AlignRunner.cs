@@ -66,14 +66,20 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Commands
         /// <summary>Applies <paramref name="plan"/> as one Undo step and reports the result.</summary>
         public static Result Apply(AlignContext ctx, ArrangePlan plan, string whatHappened)
         {
-            int moved = SpotAlignService.Apply(ctx.Doc, ctx.View, plan.Entries, ctx.Read.Scale, ctx.Title, out string error);
-            if (error != null)
+            ApplyResult applied = SpotAlignService.Apply(ctx.Doc, ctx.View, plan.Entries, ctx.Read.Scale, ctx.Title);
+            if (applied.Error != null)
             {
-                TaskDialog.Show(ctx.Title, "Nothing was changed. " + error);
+                TaskDialog.Show(ctx.Title, "Nothing was changed. " + applied.Error);
                 return Result.Failed;
             }
 
-            var lines = new List<string> { $"{moved} spot elevation tag(s) {whatHappened}." };
+            var lines = new List<string> { $"{applied.Moved} spot elevation tag(s) {whatHappened}." };
+            if (plan.FallbackCount > 0)
+                lines.Add($"{plan.FallbackCount} tag(s) have no leader or no shoulder, so their leader end or text was used instead.");
+            if (plan.NoPointCount > 0)
+                lines.Add($"{plan.NoPointCount} tag(s) were left in place because their measured point could not be read.");
+            if (applied.NotExact.Count > 0)
+                lines.Add("Revit placed these slightly off the plan:\n" + string.Join("\n", applied.NotExact));
             if (plan.OverlapCount > 0)
                 lines.Add($"{plan.OverlapCount} tag(s) may overlap (estimated from the text size). " +
                           "Undo, or open Align Spot Elevations and choose even spacing or a fixed gap.");
