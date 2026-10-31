@@ -12,7 +12,8 @@ Each release lists every tool whose version changed, under the plugin version.
 ## [6.22.0] — 2026-10-31
 
 ### Added
-- **Sheet Text Replace v1.0.0 (V001)** — new tool: **Text Replace** button in the **Sheet Create** panel. Finds
+- **Sheet Text Replace v1.0.0 (V001)** — new tool: **Text Replace** button in the new **Sheet Edit** panel
+  (next to Sheet Create). Finds
   and replaces text in the text notes on one sheet, in the views you tick.
   - **Sheet picker** with search (number or name). The active sheet is preselected when the tool opens on one.
   - **Views…** pop-up: the sheet's views grouped by view type, with a tick box and a select / clear button per
