@@ -9,6 +9,34 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.22.0] — 2026-10-31
+
+### Added
+- **Sheet Text Replace v1.0.0 (V001)** — new tool: **Text Replace** button in the **Sheet Create** panel. Finds
+  and replaces text in the text notes on one sheet, in the views you tick.
+  - **Sheet picker** with search (number or name). The active sheet is preselected when the tool opens on one.
+  - **Views…** pop-up: the sheet's views grouped by view type, with a tick box and a select / clear button per
+    type, a filter box and All / None. Shows each view's scale and number of text notes; views without text notes
+    are greyed out, views owned by another user show a lock, legends that are also on other sheets show ⧉.
+    Notes placed directly on the sheet are listed as **Sheet (no view)**.
+  - **Find**, **Replace with**, **Prefix**, **Suffix**, with **Match case**, **Whole word**, **Regex** and
+    **Trim spaces** (removes spaces at the start and end of each line and turns double spaces into one; line
+    breaks are kept). An invalid regular expression is shown under Find and disables Apply. Prefix and suffix
+    are added only to notes that change.
+  - **Preview** with one row per matching note: only the found text is coloured (red, struck through) and the
+    replacement (green). Rows can be unticked; only ticked rows are applied. Double-click a row to show the note
+    in Revit.
+  - **Summary** cards before Apply (views checked, notes scanned, matches, will change, excluded, will skip,
+    plus an example) and after Apply (changed, skipped, failed, views affected, time), with one line per skipped
+    or failed note. Any change to the inputs, options or views returns to the before-Apply cards.
+  - **Refresh** re-reads the sheet after changes made in Revit.
+  - Apply runs as **one Undo step**. Only the found text is replaced, so bold, italic, underline and lists in the
+    rest of each note are kept. Notes owned by another user, in a group, read-only, needing Reload Latest, or
+    changed in Revit since the preview are skipped and listed with the reason.
+- **User note:** legend notes start unticked, because a legend can be on several sheets and a change shows on all
+  of them; tick them in the preview to change them anyway.
+- Unit tests for the find / replace rules: `dotnet test Tests/SheetTextReplace.Tests`.
+
 ## [6.21.4] — 2026-10-31
 
 ### Fixed
