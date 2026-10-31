@@ -71,6 +71,8 @@
                             <TextBox Style="{StaticResource Num}" Text="{Binding GapMm, UpdateSourceTrigger=PropertyChanged, StringFormat=0.##}"
                                      IsEnabled="{Binding IsFixedGap}"/>
                             <TextBlock Text="mm (top / left tag stays)" VerticalAlignment="Center"/>
+                            <Button Content="Fit" Width="44" Margin="8,0,0,0" Command="{Binding FitGapCommand}"
+                                    ToolTip="{Binding FitGapTip}" ToolTipService.ShowOnDisabled="True"/>
                         </StackPanel>
                     </StackPanel>
                 </GroupBox>
@@ -96,6 +98,19 @@
 
         <DataGrid Grid.Row="4" ItemsSource="{Binding Rows}" AutoGenerateColumns="False" IsReadOnly="True"
                   HeadersVisibility="Column" CanUserAddRows="False" GridLinesVisibility="Horizontal">
+            <DataGrid.RowStyle>
+                <Style TargetType="DataGridRow">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding Stays}" Value="True">
+                            <Setter Property="Foreground" Value="Gray"/>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Overlaps}" Value="True">
+                            <Setter Property="Foreground" Value="#C0392B"/>
+                            <Setter Property="ToolTip" Value="Would overlap another selected tag (estimated)"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </DataGrid.RowStyle>
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Spot" Binding="{Binding Label}" Width="*"/>
                 <DataGridTextColumn Header="Move X (mm)" Binding="{Binding MoveX}" Width="100"/>

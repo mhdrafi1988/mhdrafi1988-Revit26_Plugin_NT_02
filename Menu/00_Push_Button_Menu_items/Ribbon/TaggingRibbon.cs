@@ -9,7 +9,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
     {
         private const string Icons = "Revit26_Plugin_Revised.Resources.Icons.Tagging.";
 
-        /// <summary>Creates the Tagging panel on <paramref name="tabName"/> with the Tag To Text and Align Spot Elevations buttons.</summary>
+        /// <summary>Creates the Tagging panel on <paramref name="tabName"/> with the Tag To Text and Align Spot Elevations buttons (plus the two quick-align buttons).</summary>
         public static void Build(UIControlledApplication app, string tabName, string assemblyPath)
         {
             RibbonPanel panel = app.CreateRibbonPanel(tabName, "Tagging");
@@ -36,6 +36,28 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                     "at the same offset from its point. Distances are paper mm. Only the tags move.")
             };
             panel.AddItem(align);
+
+            // Quick align: same tool, no window, last-used options. Stacked small buttons, not a dropdown
+            // (dropdowns are only for grouping different tools).
+            var quickVertical = new PushButtonData("Btn_AlignSpotElevations_QuickVertical_V001", "Quick Align Vertical",
+                assemblyPath, "Revit26_Plugin_Revised.AlignSpotElevations.V001.Commands.AlignSpotElevationsQuickVerticalCommand")
+            {
+                Image = ImageUtils.Load(Icons + "AlignSpotElevationsVertical_16.png"),
+                LargeImage = ImageUtils.Load(Icons + "AlignSpotElevationsVertical_32.png"),
+                ToolTip = ToolCatalog.AlignSpotElevations.Tip(
+                    "Lines the selected spot elevation tags up in one column right away, with the line position and " +
+                    "spacing last used in the Align Spot Elevations window. One Undo step.")
+            };
+            var quickHorizontal = new PushButtonData("Btn_AlignSpotElevations_QuickHorizontal_V001", "Quick Align Horizontal",
+                assemblyPath, "Revit26_Plugin_Revised.AlignSpotElevations.V001.Commands.AlignSpotElevationsQuickHorizontalCommand")
+            {
+                Image = ImageUtils.Load(Icons + "AlignSpotElevationsHorizontal_16.png"),
+                LargeImage = ImageUtils.Load(Icons + "AlignSpotElevationsHorizontal_32.png"),
+                ToolTip = ToolCatalog.AlignSpotElevations.Tip(
+                    "Lines the selected spot elevation tags up in one row right away, with the line position and " +
+                    "spacing last used in the Align Spot Elevations window. One Undo step.")
+            };
+            RibbonLayoutHelper.AddStackedButtons(panel, new RibbonItemData[] { quickVertical, quickHorizontal });
         }
     }
 }

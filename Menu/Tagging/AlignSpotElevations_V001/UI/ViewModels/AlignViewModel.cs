@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Revit26_Plugin_Revised.AlignSpotElevations.V001.Core.Models;
 using Revit26_Plugin_Revised.AlignSpotElevations.V001.Core.Services;
 using System;
@@ -22,6 +23,9 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.UI.ViewModels
 
         /// <summary>True when the tag stays where it is.</summary>
         public bool Stays { get; set; }
+
+        /// <summary>True when the tag would overlap another selected tag (estimated).</summary>
+        public bool Overlaps { get; set; }
     }
 
     /// <summary>Options, live preview and result of the Align Spot Elevations window.</summary>
@@ -43,7 +47,28 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.UI.ViewModels
             _o = (options ?? new AlignOptions()).Clone();
             if (_o.Mode == ArrangeMode.DistributeOnly && _o.Distribute == DistributeMode.None) _o.Distribute = DistributeMode.Even;
             _reference = items.FirstOrDefault();
+            FitGapCommand = new RelayCommand(FitGap, () => SuggestedGapMm.HasValue);
             Refresh();
+        }
+
+        /// <summary>Sets a fixed gap that keeps the tags apart (tag height for a column, width for a row, + 1 mm).</summary>
+        public IRelayCommand FitGapCommand { get; }
+
+        /// <summary>The gap <see cref="FitGapCommand"/> would set, or null when no tag size is known.</summary>
+        public double? SuggestedGapMm => AlignEngine.SuggestGap(_items, _o.Direction);
+
+        /// <summary>Tooltip for the Fit button.</summary>
+        public string FitGapTip => SuggestedGapMm.HasValue
+            ? $"Set the gap to {SuggestedGapMm:0.#} mm: the {(_o.Direction == AlignDirection.Vertical ? "tallest" : "widest")} tag plus 1 mm (estimated from the text size)."
+            : "Tag sizes are unknown for this selection.";
+
+        private void FitGap()
+        {
+            double? gap = SuggestedGapMm;
+            if (!gap.HasValue) return;
+            _o.GapMm = gap.Value;
+            _o.Distribute = DistributeMode.FixedGap;
+            RaiseAll();
         }
 
         /// <summary>Tags that can be arranged.</summary>
@@ -163,7 +188,7 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.UI.ViewModels
         /// <summary>One-line result under the options.</summary>
         public string Summary { get => _summary; private set => SetProperty(ref _summary, value); }
 
-        /// <summary>Warning line (stacked tags), empty when none.</summary>
+        /// <summary>Warning line (overlapping tags), empty when none.</summary>
         public string Warning { get => _warning; private set { if (SetProperty(ref _warning, value)) OnPropertyChanged(nameof(HasWarning)); } }
 
         /// <summary>True when <see cref="Warning"/> has text.</summary>
@@ -209,7 +234,8 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.UI.ViewModels
                     Label = m.Item.Label,
                     MoveX = Fmt(m.DeltaU),
                     MoveY = Fmt(m.DeltaV),
-                    Stays = !m.Moves
+                    Stays = !m.Moves,
+                    Overlaps = m.Overlaps
                 });
             }
 
@@ -225,8 +251,9 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.UI.ViewModels
             else if (Plan.Target != null && _o.Target == AlignTarget.MostCommon) extra = $" {Plan.Target.SharedCount} tags already share the line.";
             Summary = $"{n} of {_items.Count} tags will be {what}.{extra}";
 
-            if (Plan.StackedCount > 0)
-                Warning = $"{Plan.StackedCount} tags would sit on top of each other. Choose even spacing or a fixed gap.";
+            if (Plan.OverlapCount > 0)
+                Warning = $"{Plan.OverlapCount} tags would overlap (red rows, estimated from the text size). " +
+                          "Choose even spacing or a fixed gap; Fit picks a gap that clears the tags.";
             CanApply = n > 0;
         }
 

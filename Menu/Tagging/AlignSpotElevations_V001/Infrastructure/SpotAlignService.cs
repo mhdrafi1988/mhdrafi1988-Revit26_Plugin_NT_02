@@ -58,8 +58,11 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Infrastructure
                     var sd = (SpotDimension)e;
                     XYZ p = sd.TextPosition;
                     XYZ pt = PointOf(sd) ?? p;
+                    EstimateSize(doc, sd, out double widthMm, out double heightMm);
                     result.Items.Add(new SpotItem
                     {
+                        WidthMm = widthMm,
+                        HeightMm = heightMm,
                         Id = id.Value,
                         Label = LabelOf(sd),
                         U = p.DotProduct(right) * toPaper,
@@ -91,6 +94,36 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Infrastructure
                 catch { /* status unavailable — let the move try */ }
             }
             return null;
+        }
+
+        /// <summary>Average character width as a share of the text height, for the size estimate.</summary>
+        private const double CharWidthFactor = 0.62;
+
+        /// <summary>
+        /// Estimates the tag text size on paper from the type's text size and width factor and the length of
+        /// the shown value. Revit does not expose the text extents of a spot, so this is an estimate used only
+        /// for the overlap warning. Both values are 0 when the type gives no text size.
+        /// </summary>
+        private static void EstimateSize(Document doc, SpotDimension sd, out double widthMm, out double heightMm)
+        {
+            widthMm = 0; heightMm = 0;
+            try
+            {
+                if (!(doc.GetElement(sd.GetTypeId()) is DimensionType type)) return;
+                double sizeFt = type.get_Parameter(BuiltInParameter.TEXT_SIZE)?.AsDouble() ?? 0;
+                if (sizeFt <= 0) return;
+                double widthScale = type.get_Parameter(BuiltInParameter.TEXT_WIDTH_SCALE)?.AsDouble() ?? 1;
+                if (widthScale <= 0) widthScale = 1;
+                string text = null;
+                try { text = sd.ValueString; } catch { }
+                int chars = Math.Max(4, (text ?? string.Empty).Length);
+                heightMm = sizeFt * MmPerFoot;
+                widthMm = chars * CharWidthFactor * heightMm * widthScale;
+            }
+            catch
+            {
+                widthMm = 0; heightMm = 0; // unknown: the engine falls back to a small default box
+            }
         }
 
         /// <summary>The measured point: the spot's origin, else its leader end; null when neither can be read.</summary>

@@ -10,8 +10,11 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Core.Services
     /// </summary>
     public static class AlignEngine
     {
-        /// <summary>Two tags closer than this on both axes count as stacked, paper mm.</summary>
-        public const double StackDistanceMm = 1.0;
+        /// <summary>Box size used for a tag whose size is unknown, paper mm (two such tags closer than this overlap).</summary>
+        public const double UnknownSizeMm = 1.0;
+
+        /// <summary>Clearance added to the tag height (column) or width (row) by <see cref="SuggestGap"/>, paper mm.</summary>
+        public const double GapClearanceMm = 1.0;
 
         /// <summary>Position of an item along the aligned axis (U for vertical, V for horizontal).</summary>
         public static double Axis(SpotItem item, AlignDirection direction)
@@ -176,24 +179,44 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Core.Services
                     DeltaV = Clean(finalV[i] - items[i].V)
                 });
             }
-            plan.StackedCount = CountStacked(finalU, finalV, StackDistanceMm);
+            bool[] overlaps = FindOverlaps(items, finalU, finalV);
+            for (int i = 0; i < items.Count; i++) plan.Entries[i].Overlaps = overlaps[i];
+            plan.OverlapCount = overlaps.Count(o => o);
             return plan;
         }
 
-        /// <summary>Number of positions that lie within <paramref name="distance"/> of another on both axes.</summary>
-        public static int CountStacked(IReadOnlyList<double> u, IReadOnlyList<double> v, double distance)
+        /// <summary>
+        /// Marks every tag whose box, centred on its (new) position, overlaps another tag's box. Boxes use the
+        /// tags' estimated sizes; a tag of unknown size counts as <see cref="UnknownSizeMm"/> square.
+        /// </summary>
+        public static bool[] FindOverlaps(IReadOnlyList<SpotItem> items, IReadOnlyList<double> u, IReadOnlyList<double> v)
         {
-            int n = 0;
-            for (int i = 0; i < u.Count; i++)
+            var hit = new bool[items.Count];
+            for (int i = 0; i < items.Count; i++)
             {
-                for (int j = 0; j < u.Count; j++)
+                for (int j = i + 1; j < items.Count; j++)
                 {
-                    if (i == j) continue;
-                    if (Math.Abs(u[i] - u[j]) < distance && Math.Abs(v[i] - v[j]) < distance) { n++; break; }
+                    double w = (Size(items[i].WidthMm) + Size(items[j].WidthMm)) / 2;
+                    double h = (Size(items[i].HeightMm) + Size(items[j].HeightMm)) / 2;
+                    if (Math.Abs(u[i] - u[j]) < w - 1e-9 && Math.Abs(v[i] - v[j]) < h - 1e-9) hit[i] = hit[j] = true;
                 }
             }
-            return n;
+            return hit;
         }
+
+        /// <summary>
+        /// A fixed gap that keeps tags apart: the tallest tag plus <see cref="GapClearanceMm"/> for a column,
+        /// the widest for a row, rounded up to 0.5 mm. Null when no tag size is known.
+        /// </summary>
+        public static double? SuggestGap(IReadOnlyList<SpotItem> items, AlignDirection direction)
+        {
+            if (items == null || items.Count == 0) return null;
+            double max = items.Max(i => direction == AlignDirection.Vertical ? i.HeightMm : i.WidthMm);
+            if (max <= 0) return null;
+            return Math.Ceiling((max + GapClearanceMm) * 2) / 2;
+        }
+
+        private static double Size(double mm) => mm > 0 ? mm : UnknownSizeMm;
 
         private static double Clean(double d) => Math.Abs(d) < 1e-6 ? 0 : d;
     }

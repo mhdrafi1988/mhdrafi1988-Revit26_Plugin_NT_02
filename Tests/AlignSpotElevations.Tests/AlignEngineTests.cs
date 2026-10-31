@@ -129,14 +129,35 @@ namespace AlignSpotElevations.Tests
         }
 
         [Fact]
-        public void Plan_FlagsStackedTags()
+        public void Plan_FlagsStackedTags_UnknownSize()
         {
             // Horizontal row at the average V with spacing kept: two tags share U, so they stack.
             var items = new List<SpotItem> { P(1, 5, 0), P(2, 5, 10), P(3, 40, 20) };
             var plan = AlignEngine.Plan(items, new AlignOptions { Direction = AlignDirection.Horizontal });
-            Assert.Equal(2, plan.StackedCount);
+            Assert.Equal(2, plan.OverlapCount);
+            Assert.True(plan.Entries[0].Overlaps && plan.Entries[1].Overlaps && !plan.Entries[2].Overlaps);
             var spaced = AlignEngine.Plan(items, new AlignOptions { Direction = AlignDirection.Horizontal, Distribute = DistributeMode.Even });
-            Assert.Equal(0, spaced.StackedCount);
+            Assert.Equal(0, spaced.OverlapCount);
+        }
+
+        [Fact]
+        public void Plan_FlagsOverlapFromTagSize()
+        {
+            // Column, fixed gap 2 mm, tags 2.5 mm tall: neighbours overlap. Gap 3.5 mm: clear.
+            var items = Enumerable.Range(0, 3).Select(i => new SpotItem { Id = i, U = i, V = 10 * i, WidthMm = 12, HeightMm = 2.5 }).ToList();
+            var tight = AlignEngine.Plan(items, new AlignOptions { Distribute = DistributeMode.FixedGap, GapMm = 2 });
+            Assert.Equal(3, tight.OverlapCount);
+            var clear = AlignEngine.Plan(items, new AlignOptions { Distribute = DistributeMode.FixedGap, GapMm = 3.5 });
+            Assert.Equal(0, clear.OverlapCount);
+        }
+
+        [Fact]
+        public void SuggestGap_UsesHeightForColumnWidthForRow()
+        {
+            var items = new List<SpotItem> { new SpotItem { WidthMm = 11.2, HeightMm = 2.5 }, new SpotItem { WidthMm = 9, HeightMm = 2.2 } };
+            Assert.Equal(3.5, AlignEngine.SuggestGap(items, AlignDirection.Vertical));
+            Assert.Equal(12.5, AlignEngine.SuggestGap(items, AlignDirection.Horizontal));
+            Assert.Null(AlignEngine.SuggestGap(new List<SpotItem> { new SpotItem() }, AlignDirection.Vertical));
         }
 
         [Fact]

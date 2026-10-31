@@ -9,6 +9,25 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.25.0] — 2026-10-31
+
+### Added
+- **Align Spot Elevations v1.2.0 (V001)**
+  - **Quick Align Vertical** and **Quick Align Horizontal**: two small buttons next to Align Spot Elevations in the
+    **Tagging** panel. They line the selected tags up in one column or one row right away, without the window, using
+    the line position, tolerance and spacing last used in the window. If "Reference spot" was last used, they use
+    Average. One Undo step; the result dialog says what was done and lists any skipped tags.
+  - **Overlap check:** the preview marks tags that would overlap another selected tag in red, and the warning counts
+    them. Tag sizes are estimated from the spot type's text size and width factor and the length of the value, so
+    the check is a guide, not exact. Quick align reports possible overlaps after it runs.
+  - **Fit** button next to Fixed gap: sets a gap that clears the tags (the tallest tag plus 1 mm for a column, the
+    widest tag plus 1 mm for a row).
+
+### Changed
+- **Align Spot Elevations:** rows of tags that stay are shown in grey in the preview.
+- **User note:** the old "tags on top of each other" warning is replaced by the overlap check, which uses tag size
+  instead of a 1 mm distance, so it also catches tags that are close but not stacked.
+
 ## [6.24.0] — 2026-10-31
 
 ### Added

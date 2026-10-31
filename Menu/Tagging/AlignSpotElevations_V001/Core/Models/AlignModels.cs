@@ -83,6 +83,12 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Core.Models
 
         /// <summary>Measured point along the view's up direction (paper mm).</summary>
         public double PointV { get; set; }
+
+        /// <summary>Estimated tag text width (paper mm); 0 when unknown.</summary>
+        public double WidthMm { get; set; }
+
+        /// <summary>Estimated tag text height (paper mm); 0 when unknown.</summary>
+        public double HeightMm { get; set; }
     }
 
     /// <summary>
@@ -154,6 +160,9 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Core.Models
         /// <summary>Move up, paper mm (signed).</summary>
         public double DeltaV { get; set; }
 
+        /// <summary>True when this tag's box would overlap another selected tag after the move.</summary>
+        public bool Overlaps { get; set; }
+
         /// <summary>True when the tag actually moves.</summary>
         public bool Moves => System.Math.Abs(DeltaU) > 1e-6 || System.Math.Abs(DeltaV) > 1e-6;
     }
@@ -167,8 +176,8 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Core.Models
         /// <summary>The line target (Align to line only).</summary>
         public TargetResult Target { get; set; }
 
-        /// <summary>Number of tags that would end up on top of another tag.</summary>
-        public int StackedCount { get; set; }
+        /// <summary>Number of tags whose box would overlap another selected tag after the move.</summary>
+        public int OverlapCount { get; set; }
 
         /// <summary>Number of tags that move.</summary>
         public int MoveCount
