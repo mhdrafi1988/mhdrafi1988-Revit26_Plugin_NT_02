@@ -86,9 +86,10 @@ namespace Revit26_Plugin_Revised.TagToText.V001.Core.Services
             string owner = OwnerOf(doc, e.Id);
             string label = e.Category?.Name ?? kind.ToString();
 
+            TagSnapshot snapshot;
             try
             {
-                return kind switch
+                snapshot = kind switch
                 {
                     TagKind.SpotElevation or TagKind.SpotCoordinate or TagKind.SpotSlope
                         => ReadSpot(doc, view, (SpotDimension)e, kind.Value, label, inGroup, owner),
@@ -98,12 +99,77 @@ namespace Revit26_Plugin_Revised.TagToText.V001.Core.Services
             }
             catch (Exception ex)
             {
-                return new TagSnapshot
+                snapshot = new TagSnapshot
                 {
                     TagId = e.Id, Kind = kind.Value, TypeLabel = label, Lines = Array.Empty<string>(),
                     InGroup = inGroup, OwnedBy = owner, Problem = "Can't read this tag: " + ex.Message
                 };
             }
+
+            // Table grouping data. A failure here only leaves "(none)"; it never stops the tag being read.
+            snapshot.TagTypeName = TagTypeNameOf(doc, e);
+            snapshot.TaggedCategory = TaggedCategoryOf(doc, e);
+            return snapshot;
+        }
+
+        /// <summary>Text shown when a grouping value is not available.</summary>
+        private const string NoValue = "(none)";
+
+        /// <summary>"Family : Type" of the tag, or "(none)".</summary>
+        private static string TagTypeNameOf(Document doc, Element tag)
+        {
+            try
+            {
+                if (doc.GetElement(tag.GetTypeId()) is ElementType type)
+                {
+                    string family = type.FamilyName;
+                    return string.IsNullOrWhiteSpace(family) ? type.Name : $"{family} : {type.Name}";
+                }
+            }
+            catch (Autodesk.Revit.Exceptions.ApplicationException) { }
+            catch (InvalidOperationException) { }
+            return NoValue;
+        }
+
+        /// <summary>
+        /// Category name of the element the tag points at: the tagged element (host or linked) of an element
+        /// tag, the room / area / space of a spatial tag, the first spotted element of a spot. "(none)" if unknown.
+        /// </summary>
+        private static string TaggedCategoryOf(Document doc, Element tag)
+        {
+            try
+            {
+                switch (tag)
+                {
+                    case IndependentTag independent:
+                        foreach (LinkElementId id in independent.GetTaggedElementIds())
+                        {
+                            Element target = id.LinkInstanceId != ElementId.InvalidElementId
+                                ? (doc.GetElement(id.LinkInstanceId) as RevitLinkInstance)?.GetLinkDocument()?.GetElement(id.LinkedElementId)
+                                : doc.GetElement(id.HostElementId);
+                            if (target?.Category != null) return target.Category.Name;
+                        }
+                        break;
+                    case Autodesk.Revit.DB.Architecture.RoomTag room:
+                        return room.Room?.Category?.Name ?? NoValue;
+                    case AreaTag area:
+                        return area.Area?.Category?.Name ?? NoValue;
+                    case Autodesk.Revit.DB.Mechanical.SpaceTag space:
+                        return space.Space?.Category?.Name ?? NoValue;
+                    case SpotDimension spot:
+                        foreach (Reference r in spot.References)
+                        {
+                            Element target = doc.GetElement(r.ElementId);
+                            if (target is RevitLinkInstance link && r.LinkedElementId != ElementId.InvalidElementId)
+                                target = link.GetLinkDocument()?.GetElement(r.LinkedElementId);
+                            if (target?.Category != null) return target.Category.Name;
+                        }
+                        break;
+                }
+            }
+            catch (Autodesk.Revit.Exceptions.ApplicationException) { }
+            catch (InvalidOperationException) { }
+            return NoValue;
         }
 
         private static TagSnapshot ReadSpot(Document doc, View view, SpotDimension spot, TagKind kind,

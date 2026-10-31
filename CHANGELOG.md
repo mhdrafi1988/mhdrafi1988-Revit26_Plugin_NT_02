@@ -9,7 +9,7 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
-## [6.25.0] — 2026-10-31
+## [6.26.0] — 2026-10-31
 
 ### Added
 - **Align Spot Elevations v1.2.0 (V001)**
@@ -28,7 +28,7 @@ Each release lists every tool whose version changed, under the plugin version.
 - **User note:** the old "tags on top of each other" warning is replaced by the overlap check, which uses tag size
   instead of a 1 mm distance, so it also catches tags that are close but not stacked.
 
-## [6.24.0] — 2026-10-31
+## [6.25.0] — 2026-10-31
 
 ### Added
 - **Align Spot Elevations v1.1.0 (V001)** — the window now has three ways to arrange the selected tags:
@@ -50,7 +50,7 @@ Each release lists every tool whose version changed, under the plugin version.
 - **User note:** the "Most common" tolerance default is now **1 mm on paper** (was 5 mm of model space, which
   at 1:100 was only 0.05 mm on paper, so it almost never found a shared line).
 
-## [6.23.0] — 2026-10-31
+## [6.24.0] — 2026-10-31
 
 ### Added
 - **Align Spot Elevations v1.0.0 (V001)** — new tool: **Align Spot Elevations** button in the **Tagging** panel.
@@ -65,6 +65,19 @@ Each release lists every tool whose version changed, under the plugin version.
 - **User note:** only the tag text moves. The measured point and the leader end stay where they are, so the
   elevation values do not change. Spot coordinates and spot slopes are not touched.
 - Unit tests for the alignment maths: `dotnet test Tests/AlignSpotElevations.Tests`.
+## [6.23.0] — 2026-10-31
+
+### Added
+- **Tag To Text 1.3.0 (V001)** — **multi-level grouping** in the tag table. Under *Group by type* there is now a
+  **Group by … then … then …** row with three drop-downs. Each level can be **Type** (as before), **Tag category**,
+  **Tag family & type** (e.g. "Roof Tag : Slope 2%"), **Tagged element's category** (e.g. Roofs, Rooms, Doors),
+  **Status** (OK, no text, in a group, owned by another user, problem) or **Identical text**.
+  - Levels nest in the order chosen; a level set to *(none)*, or repeated, is skipped. Every heading, at every
+    level, has its own tick box and "n of N ticked".
+  - The choice is remembered (`settings.json` version 3 adds `GroupLevel1`–`GroupLevel3`; older files load as before).
+- **User note:** nothing changes until you pick a second or third level: the default is Type only, which is the
+  grouping the table had before.
+- Unit tests for the new settings: `dotnet test Tests/TagToText.Tests`.
 
 ## [6.22.0] — 2026-10-31
 

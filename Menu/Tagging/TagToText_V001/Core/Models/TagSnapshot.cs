@@ -17,6 +17,12 @@ namespace Revit26_Plugin_Revised.TagToText.V001.Core.Models
         /// <summary>Category or family name shown in the table, e.g. "Roof Tags".</summary>
         public string TypeLabel { get; init; }
 
+        /// <summary>The tag's family and type, e.g. "Roof Tag : Slope 2%". "(none)" when it can't be read.</summary>
+        public string TagTypeName { get; set; } = "(none)";
+
+        /// <summary>Category of the element the tag points at, e.g. "Roofs". "(none)" when there is none.</summary>
+        public string TaggedCategory { get; set; } = "(none)";
+
         /// <summary>
         /// Text lines as the tag shows them. Spot Coordinates have two (N, E);
         /// everything else normally has one.
