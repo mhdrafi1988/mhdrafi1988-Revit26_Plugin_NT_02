@@ -35,7 +35,7 @@ namespace Revit26_Plugin_Revised.TagToText.V001.Core.Services
 
             Safe(() =>
             {
-                if (view.AreAnnotationCategoriesHidden())
+                if (view.AreAnnotationCategoriesHidden)
                     issues.Add($"Annotation categories are hidden in {where}{template}.");
             });
 
