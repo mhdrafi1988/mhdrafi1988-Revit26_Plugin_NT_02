@@ -8,10 +8,19 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Infrastructure
 {
     /// <summary>
     /// Reads spot elevation tags from the selection and moves their text. Only the tag moves; the
-    /// measured point and leader end stay where they are.
+    /// measured point and leader end stay where they are. Positions are passed to the engine in paper mm
+    /// (model feet × 304.8 ÷ view scale) so tolerances and gaps match the printed drawing.
     /// </summary>
     public static class SpotAlignService
     {
+        private const double MmPerFoot = 304.8;
+
+        /// <summary>The view's scale, at least 1 (3D and drafting views can report odd values).</summary>
+        public static int ScaleOf(View view)
+        {
+            try { return Math.Max(1, view.Scale); } catch { return 1; }
+        }
+
         /// <summary>Why the active view cannot hold spot elevations, or null when it can.</summary>
         public static string CheckView(View view)
         {
@@ -32,8 +41,9 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Infrastructure
         /// </summary>
         public static SpotReadResult Read(Document doc, View view, IEnumerable<ElementId> ids)
         {
-            var result = new SpotReadResult();
+            var result = new SpotReadResult { Scale = ScaleOf(view) };
             XYZ right = view.RightDirection, up = view.UpDirection;
+            double toPaper = MmPerFoot / result.Scale;
             foreach (ElementId id in ids)
             {
                 Element e = doc.GetElement(id);
@@ -47,12 +57,15 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Infrastructure
                 {
                     var sd = (SpotDimension)e;
                     XYZ p = sd.TextPosition;
+                    XYZ pt = PointOf(sd) ?? p;
                     result.Items.Add(new SpotItem
                     {
                         Id = id.Value,
                         Label = LabelOf(sd),
-                        U = p.DotProduct(right),
-                        V = p.DotProduct(up)
+                        U = p.DotProduct(right) * toPaper,
+                        V = p.DotProduct(up) * toPaper,
+                        PointU = pt.DotProduct(right) * toPaper,
+                        PointV = pt.DotProduct(up) * toPaper
                     });
                 }
                 catch (Exception ex)
@@ -80,6 +93,14 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Infrastructure
             return null;
         }
 
+        /// <summary>The measured point: the spot's origin, else its leader end; null when neither can be read.</summary>
+        private static XYZ PointOf(SpotDimension sd)
+        {
+            try { XYZ o = sd.Origin; if (o != null) return o; } catch { }
+            try { if (sd.HasLeader) return sd.LeaderEndPosition; } catch { }
+            return null;
+        }
+
         private static string LabelOf(SpotDimension sd)
         {
             string text = null;
@@ -89,24 +110,27 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Infrastructure
 
         /// <summary>
         /// Moves the tags in one transaction (one Undo step). If any tag cannot be moved, nothing changes.
+        /// Deltas are paper mm in the view's axes; <paramref name="scale"/> turns them back into model feet.
         /// Returns the number moved; <paramref name="error"/> is set when it rolled back.
         /// </summary>
-        public static int Apply(Document doc, View view, IReadOnlyList<PlannedMove> moves,
-            AlignDirection direction, string transactionName, out string error)
+        public static int Apply(Document doc, View view, IEnumerable<PlannedMove> moves, int scale,
+            string transactionName, out string error)
         {
             error = null;
-            XYZ axis = direction == AlignDirection.Vertical ? view.RightDirection : view.UpDirection;
+            double toFeet = Math.Max(1, scale) / MmPerFoot;
+            XYZ right = view.RightDirection, up = view.UpDirection;
             int moved = 0;
             using (var t = new Transaction(doc, transactionName))
             {
                 t.Start();
                 try
                 {
-                    foreach (PlannedMove m in moves)
+                    foreach (PlannedMove m in moves.Where(x => x.Moves))
                     {
                         var sd = doc.GetElement(new ElementId(m.Item.Id)) as SpotDimension;
                         if (sd == null) throw new InvalidOperationException($"Element {m.Item.Id} no longer exists.");
-                        sd.TextPosition = sd.TextPosition + axis.Multiply(m.Delta);
+                        XYZ shift = right.Multiply(m.DeltaU * toFeet) + up.Multiply(m.DeltaV * toFeet);
+                        sd.TextPosition = sd.TextPosition + shift;
                         moved++;
                     }
                     t.Commit();

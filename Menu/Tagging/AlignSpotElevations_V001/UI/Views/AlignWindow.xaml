@@ -1,8 +1,14 @@
 <Window x:Class="Revit26_Plugin_Revised.AlignSpotElevations.V001.UI.Views.AlignWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Width="520" Height="560" MinWidth="460" MinHeight="460"
+        Width="560" Height="700" MinWidth="480" MinHeight="560"
         WindowStartupLocation="CenterOwner" ShowInTaskbar="False" ResizeMode="CanResizeWithGrip">
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+        <Style TargetType="RadioButton"><Setter Property="Margin" Value="0,2"/></Style>
+        <Style TargetType="GroupBox"><Setter Property="Margin" Value="0,0,0,8"/><Setter Property="Padding" Value="8,4"/></Style>
+        <Style x:Key="Num" TargetType="TextBox"><Setter Property="Width" Value="48"/><Setter Property="Margin" Value="6,0"/></Style>
+    </Window.Resources>
     <Grid Margin="16">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -13,47 +19,87 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <TextBlock x:Name="Header" Grid.Row="0" FontSize="13" Margin="0,0,0,10" TextWrapping="Wrap"/>
+        <TextBlock Grid.Row="0" Text="{Binding Header}" Margin="0,0,0,10" TextWrapping="Wrap"/>
 
-        <GroupBox Grid.Row="1" Header="Direction" Margin="0,0,0,8" Padding="8,4">
-            <StackPanel Orientation="Horizontal">
-                <RadioButton Content="Vertical — one column (same X)" IsChecked="{Binding IsVertical}" Margin="0,0,24,0"/>
-                <RadioButton Content="Horizontal — one row (same Y)" IsChecked="{Binding IsHorizontal}"/>
+        <GroupBox Grid.Row="1" Header="Arrange">
+            <StackPanel>
+                <RadioButton Content="Align to a line" IsChecked="{Binding IsAlignMode}"/>
+                <RadioButton Content="Distribute only (space along the column or row)" IsChecked="{Binding IsDistributeMode}"/>
+                <RadioButton Content="Offset from point (same distance from each measured point)" IsChecked="{Binding IsOffsetMode}"/>
             </StackPanel>
         </GroupBox>
 
-        <GroupBox Grid.Row="2" Header="Align to" Margin="0,0,0,8" Padding="8,4">
-            <Grid>
-                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                <StackPanel Grid.Column="0">
-                    <RadioButton Content="Average" IsChecked="{Binding IsAverage}" Margin="0,2"/>
-                    <RadioButton Content="Most common (most tags on the same line)" IsChecked="{Binding IsMostCommon}" Margin="0,2"/>
-                    <StackPanel Orientation="Horizontal" Margin="18,2,0,2">
-                        <TextBlock Text="Same within" VerticalAlignment="Center"/>
-                        <TextBox Width="48" Margin="6,0" Text="{Binding ToleranceMm, UpdateSourceTrigger=PropertyChanged, StringFormat=0.##}"/>
-                        <TextBlock Text="mm" VerticalAlignment="Center"/>
+        <StackPanel Grid.Row="2">
+            <!-- Line options: direction, target, spacing -->
+            <StackPanel Visibility="{Binding UsesLine, Converter={StaticResource BoolToVis}}">
+                <GroupBox Header="Direction">
+                    <StackPanel Orientation="Horizontal">
+                        <RadioButton Content="Vertical — one column" IsChecked="{Binding IsVertical}" Margin="0,2,24,2"/>
+                        <RadioButton Content="Horizontal — one row" IsChecked="{Binding IsHorizontal}"/>
                     </StackPanel>
-                    <RadioButton Content="Median" IsChecked="{Binding IsMedian}" Margin="0,2"/>
-                </StackPanel>
-                <StackPanel Grid.Column="1">
-                    <RadioButton Content="Min (left / bottom)" IsChecked="{Binding IsMin}" Margin="0,2"/>
-                    <RadioButton Content="Max (right / top)" IsChecked="{Binding IsMax}" Margin="0,2"/>
-                    <RadioButton Content="Reference spot:" IsChecked="{Binding IsReference}" Margin="0,2"/>
-                    <ComboBox Margin="18,2,0,2" ItemsSource="{Binding Items}" DisplayMemberPath="Label"
-                              SelectedItem="{Binding Reference}" IsEnabled="{Binding IsReference}"/>
-                </StackPanel>
-            </Grid>
-        </GroupBox>
+                </GroupBox>
 
-        <TextBlock Grid.Row="3" Text="{Binding Summary}" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,0,0,6"/>
+                <GroupBox Header="Line position" Visibility="{Binding IsAlignMode, Converter={StaticResource BoolToVis}}">
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0">
+                            <RadioButton Content="Average" IsChecked="{Binding IsAverage}"/>
+                            <RadioButton Content="Most common" IsChecked="{Binding IsMostCommon}"/>
+                            <StackPanel Orientation="Horizontal" Margin="18,2,0,2">
+                                <TextBlock Text="Same within" VerticalAlignment="Center"/>
+                                <TextBox Style="{StaticResource Num}" Text="{Binding ToleranceMm, UpdateSourceTrigger=PropertyChanged, StringFormat=0.##}"/>
+                                <TextBlock Text="mm" VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <RadioButton Content="Median" IsChecked="{Binding IsMedian}"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1">
+                            <RadioButton Content="Min (left / bottom)" IsChecked="{Binding IsMin}"/>
+                            <RadioButton Content="Max (right / top)" IsChecked="{Binding IsMax}"/>
+                            <RadioButton Content="Reference spot:" IsChecked="{Binding IsReference}"/>
+                            <ComboBox Margin="18,2,0,2" ItemsSource="{Binding Items}" DisplayMemberPath="Label"
+                                      SelectedItem="{Binding Reference}" IsEnabled="{Binding IsReference}"/>
+                        </StackPanel>
+                    </Grid>
+                </GroupBox>
+
+                <GroupBox Header="Spacing along the line">
+                    <StackPanel>
+                        <RadioButton Content="Keep current spacing" IsChecked="{Binding IsKeepSpacing}" IsEnabled="{Binding CanKeepSpacing}"/>
+                        <RadioButton Content="Even (first and last tag stay)" IsChecked="{Binding IsEvenSpacing}"/>
+                        <StackPanel Orientation="Horizontal">
+                            <RadioButton Content="Fixed gap" IsChecked="{Binding IsFixedGap}" VerticalAlignment="Center"/>
+                            <TextBox Style="{StaticResource Num}" Text="{Binding GapMm, UpdateSourceTrigger=PropertyChanged, StringFormat=0.##}"
+                                     IsEnabled="{Binding IsFixedGap}"/>
+                            <TextBlock Text="mm (top / left tag stays)" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </StackPanel>
+                </GroupBox>
+            </StackPanel>
+
+            <!-- Offset options -->
+            <GroupBox Header="Offset from measured point" Visibility="{Binding IsOffsetMode, Converter={StaticResource BoolToVis}}">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="Right" VerticalAlignment="Center"/>
+                    <TextBox Style="{StaticResource Num}" Text="{Binding OffsetXMm, UpdateSourceTrigger=PropertyChanged, StringFormat=0.##}"/>
+                    <TextBlock Text="mm    Up" VerticalAlignment="Center"/>
+                    <TextBox Style="{StaticResource Num}" Text="{Binding OffsetYMm, UpdateSourceTrigger=PropertyChanged, StringFormat=0.##}"/>
+                    <TextBlock Text="mm   (negative = left / down)" VerticalAlignment="Center"/>
+                </StackPanel>
+            </GroupBox>
+        </StackPanel>
+
+        <StackPanel Grid.Row="3" Margin="0,0,0,6">
+            <TextBlock Text="{Binding Summary}" FontWeight="SemiBold" TextWrapping="Wrap"/>
+            <TextBlock Text="{Binding Warning}" Foreground="#B45309" TextWrapping="Wrap" Margin="0,2,0,0"
+                       Visibility="{Binding HasWarning, Converter={StaticResource BoolToVis}}"/>
+        </StackPanel>
 
         <DataGrid Grid.Row="4" ItemsSource="{Binding Rows}" AutoGenerateColumns="False" IsReadOnly="True"
                   HeadersVisibility="Column" CanUserAddRows="False" GridLinesVisibility="Horizontal">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Spot" Binding="{Binding Label}" Width="*"/>
-                <DataGridTextColumn Header="Now" Binding="{Binding Before}" Width="90"/>
-                <DataGridTextColumn Header="After" Binding="{Binding After}" Width="90"/>
-                <DataGridTextColumn Header="Moves" Binding="{Binding Moves}" Width="80"/>
+                <DataGridTextColumn Header="Move X (mm)" Binding="{Binding MoveX}" Width="100"/>
+                <DataGridTextColumn Header="Move Y (mm)" Binding="{Binding MoveY}" Width="100"/>
             </DataGrid.Columns>
         </DataGrid>
 

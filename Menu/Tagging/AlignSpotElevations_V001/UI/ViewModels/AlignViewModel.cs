@@ -8,46 +8,45 @@ using System.Linq;
 
 namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.UI.ViewModels
 {
-    /// <summary>One line of the preview list.</summary>
+    /// <summary>One line of the preview list. Distances are paper mm.</summary>
     public sealed class PreviewRow
     {
         /// <summary>Tag label.</summary>
         public string Label { get; set; }
 
-        /// <summary>Position now (mm, along the aligned axis, relative to the first tag).</summary>
-        public string Before { get; set; }
+        /// <summary>Move to the right (negative = left), e.g. "+4.2", or "–".</summary>
+        public string MoveX { get; set; }
 
-        /// <summary>Position after the move.</summary>
-        public string After { get; set; }
+        /// <summary>Move up (negative = down), e.g. "-6.0", or "–".</summary>
+        public string MoveY { get; set; }
 
-        /// <summary>Distance moved, e.g. "+120 mm", or "stays".</summary>
-        public string Moves { get; set; }
+        /// <summary>True when the tag stays where it is.</summary>
+        public bool Stays { get; set; }
     }
 
     /// <summary>Options, live preview and result of the Align Spot Elevations window.</summary>
     public sealed class AlignViewModel : ObservableObject
     {
-        private const double FeetToMm = 304.8;
         private readonly IReadOnlyList<SpotItem> _items;
-        private double _origin;
-
-        private bool _isVertical = true;
-        private AlignTarget _target = AlignTarget.Average;
-        private double _toleranceMm = 5;
+        private readonly AlignOptions _o;
         private SpotItem _reference;
         private string _summary = string.Empty;
+        private string _warning = string.Empty;
         private bool _canApply;
 
-        /// <summary>Creates the view model for the readable tags.</summary>
-        public AlignViewModel(IReadOnlyList<SpotItem> items, IReadOnlyList<string> skipped)
+        /// <summary>Creates the view model for the readable tags, starting from <paramref name="options"/>.</summary>
+        public AlignViewModel(IReadOnlyList<SpotItem> items, IReadOnlyList<string> skipped, int scale, AlignOptions options)
         {
             _items = items ?? throw new ArgumentNullException(nameof(items));
             Skipped = skipped ?? new List<string>();
+            Scale = Math.Max(1, scale);
+            _o = (options ?? new AlignOptions()).Clone();
+            if (_o.Mode == ArrangeMode.DistributeOnly && _o.Distribute == DistributeMode.None) _o.Distribute = DistributeMode.Even;
             _reference = items.FirstOrDefault();
             Refresh();
         }
 
-        /// <summary>Tags that can be aligned.</summary>
+        /// <summary>Tags that can be arranged.</summary>
         public IReadOnlyList<SpotItem> Items => _items;
 
         /// <summary>Skipped tags with reasons.</summary>
@@ -56,61 +55,79 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.UI.ViewModels
         /// <summary>True when something was skipped.</summary>
         public bool HasSkipped => Skipped.Count > 0;
 
+        /// <summary>View scale (100 for 1:100).</summary>
+        public int Scale { get; }
+
+        /// <summary>Header text, e.g. "6 spot elevations · view 1:100".</summary>
+        public string Header => $"{_items.Count} spot elevation(s) selected · view 1:{Scale}. Distances are paper mm. Only the tag text moves.";
+
         /// <summary>Preview rows.</summary>
         public ObservableCollection<PreviewRow> Rows { get; } = new ObservableCollection<PreviewRow>();
 
-        /// <summary>Vertical (one column) when true, horizontal (one row) when false.</summary>
-        public bool IsVertical
+        /// <summary>The current plan.</summary>
+        public ArrangePlan Plan { get; private set; } = new ArrangePlan();
+
+        /// <summary>A copy of the current options, for saving and applying.</summary>
+        public AlignOptions Options
         {
-            get => _isVertical;
-            set { if (SetProperty(ref _isVertical, value)) { OnPropertyChanged(nameof(IsHorizontal)); Refresh(); } }
+            get { var c = _o.Clone(); c.ReferenceId = _reference?.Id; return c; }
         }
 
-        /// <summary>Opposite of <see cref="IsVertical"/>, for the radio button.</summary>
-        public bool IsHorizontal
+        // ── Mode ────────────────────────────────────────────────────────────
+
+        /// <summary>Radio: Align to a line.</summary>
+        public bool IsAlignMode { get => _o.Mode == ArrangeMode.AlignToLine; set { if (value) SetMode(ArrangeMode.AlignToLine); } }
+
+        /// <summary>Radio: Distribute only.</summary>
+        public bool IsDistributeMode { get => _o.Mode == ArrangeMode.DistributeOnly; set { if (value) SetMode(ArrangeMode.DistributeOnly); } }
+
+        /// <summary>Radio: Offset from point.</summary>
+        public bool IsOffsetMode { get => _o.Mode == ArrangeMode.OffsetFromPoint; set { if (value) SetMode(ArrangeMode.OffsetFromPoint); } }
+
+        /// <summary>True when direction and spacing options apply.</summary>
+        public bool UsesLine => _o.Mode != ArrangeMode.OffsetFromPoint;
+
+        /// <summary>True when "Keep spacing" can be chosen (not in Distribute only).</summary>
+        public bool CanKeepSpacing => _o.Mode == ArrangeMode.AlignToLine;
+
+        private void SetMode(ArrangeMode mode)
         {
-            get => !_isVertical;
-            set { if (value) IsVertical = false; }
+            if (_o.Mode == mode) return;
+            _o.Mode = mode;
+            if (mode == ArrangeMode.DistributeOnly && _o.Distribute == DistributeMode.None) _o.Distribute = DistributeMode.Even;
+            RaiseAll();
         }
 
-        /// <summary>Selected target mode.</summary>
-        public AlignTarget Target
-        {
-            get => _target;
-            set
-            {
-                if (!SetProperty(ref _target, value)) return;
-                OnPropertyChanged(nameof(IsAverage)); OnPropertyChanged(nameof(IsMostCommon));
-                OnPropertyChanged(nameof(IsMedian)); OnPropertyChanged(nameof(IsMin));
-                OnPropertyChanged(nameof(IsMax)); OnPropertyChanged(nameof(IsReference));
-                Refresh();
-            }
-        }
+        // ── Direction ───────────────────────────────────────────────────────
+
+        /// <summary>Radio: one column.</summary>
+        public bool IsVertical { get => _o.Direction == AlignDirection.Vertical; set { if (value) Set(() => _o.Direction = AlignDirection.Vertical); } }
+
+        /// <summary>Radio: one row.</summary>
+        public bool IsHorizontal { get => _o.Direction == AlignDirection.Horizontal; set { if (value) Set(() => _o.Direction = AlignDirection.Horizontal); } }
+
+        // ── Target ──────────────────────────────────────────────────────────
 
         /// <summary>Radio: Average.</summary>
-        public bool IsAverage { get => _target == AlignTarget.Average; set { if (value) Target = AlignTarget.Average; } }
+        public bool IsAverage { get => _o.Target == AlignTarget.Average; set { if (value) Set(() => _o.Target = AlignTarget.Average); } }
 
         /// <summary>Radio: Most common.</summary>
-        public bool IsMostCommon { get => _target == AlignTarget.MostCommon; set { if (value) Target = AlignTarget.MostCommon; } }
+        public bool IsMostCommon { get => _o.Target == AlignTarget.MostCommon; set { if (value) Set(() => _o.Target = AlignTarget.MostCommon); } }
 
         /// <summary>Radio: Median.</summary>
-        public bool IsMedian { get => _target == AlignTarget.Median; set { if (value) Target = AlignTarget.Median; } }
+        public bool IsMedian { get => _o.Target == AlignTarget.Median; set { if (value) Set(() => _o.Target = AlignTarget.Median); } }
 
         /// <summary>Radio: Min.</summary>
-        public bool IsMin { get => _target == AlignTarget.Min; set { if (value) Target = AlignTarget.Min; } }
+        public bool IsMin { get => _o.Target == AlignTarget.Min; set { if (value) Set(() => _o.Target = AlignTarget.Min); } }
 
         /// <summary>Radio: Max.</summary>
-        public bool IsMax { get => _target == AlignTarget.Max; set { if (value) Target = AlignTarget.Max; } }
+        public bool IsMax { get => _o.Target == AlignTarget.Max; set { if (value) Set(() => _o.Target = AlignTarget.Max); } }
 
         /// <summary>Radio: Reference tag.</summary>
-        public bool IsReference { get => _target == AlignTarget.Reference; set { if (value) Target = AlignTarget.Reference; } }
+        public bool IsReference { get => _o.Target == AlignTarget.Reference; set { if (value) Set(() => _o.Target = AlignTarget.Reference); } }
 
-        /// <summary>Tolerance in millimetres for "Most common".</summary>
-        public double ToleranceMm
-        {
-            get => _toleranceMm;
-            set { if (SetProperty(ref _toleranceMm, Math.Max(0, value))) Refresh(); }
-        }
+        /// <summary>Tolerance for "Most common", paper mm.</summary>
+        public double ToleranceMm { get => _o.ToleranceMm; set => SetNumber(() => _o.ToleranceMm = Math.Max(0, value)); }
 
         /// <summary>The reference tag.</summary>
         public SpotItem Reference
@@ -119,51 +136,100 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.UI.ViewModels
             set { if (SetProperty(ref _reference, value)) Refresh(); }
         }
 
+        // ── Spacing ─────────────────────────────────────────────────────────
+
+        /// <summary>Radio: keep spacing.</summary>
+        public bool IsKeepSpacing { get => _o.Distribute == DistributeMode.None; set { if (value) Set(() => _o.Distribute = DistributeMode.None); } }
+
+        /// <summary>Radio: even spacing.</summary>
+        public bool IsEvenSpacing { get => _o.Distribute == DistributeMode.Even; set { if (value) Set(() => _o.Distribute = DistributeMode.Even); } }
+
+        /// <summary>Radio: fixed gap.</summary>
+        public bool IsFixedGap { get => _o.Distribute == DistributeMode.FixedGap; set { if (value) Set(() => _o.Distribute = DistributeMode.FixedGap); } }
+
+        /// <summary>Gap for fixed spacing, paper mm.</summary>
+        public double GapMm { get => _o.GapMm; set => SetNumber(() => _o.GapMm = Math.Max(0, value)); }
+
+        // ── Offset ──────────────────────────────────────────────────────────
+
+        /// <summary>Tag offset to the right of its point, paper mm.</summary>
+        public double OffsetXMm { get => _o.OffsetXMm; set => SetNumber(() => _o.OffsetXMm = value); }
+
+        /// <summary>Tag offset above its point, paper mm.</summary>
+        public double OffsetYMm { get => _o.OffsetYMm; set => SetNumber(() => _o.OffsetYMm = value); }
+
+        // ── Result ──────────────────────────────────────────────────────────
+
         /// <summary>One-line result under the options.</summary>
         public string Summary { get => _summary; private set => SetProperty(ref _summary, value); }
+
+        /// <summary>Warning line (stacked tags), empty when none.</summary>
+        public string Warning { get => _warning; private set { if (SetProperty(ref _warning, value)) OnPropertyChanged(nameof(HasWarning)); } }
+
+        /// <summary>True when <see cref="Warning"/> has text.</summary>
+        public bool HasWarning => !string.IsNullOrEmpty(_warning);
 
         /// <summary>True when at least one tag will move.</summary>
         public bool CanApply { get => _canApply; private set => SetProperty(ref _canApply, value); }
 
-        /// <summary>Axis used.</summary>
-        public AlignDirection Direction => _isVertical ? AlignDirection.Vertical : AlignDirection.Horizontal;
+        private void Set(Action change)
+        {
+            change();
+            RaiseAll();
+        }
 
-        /// <summary>The moves the current options produce (feet).</summary>
-        public List<PlannedMove> Moves { get; private set; } = new List<PlannedMove>();
+        /// <summary>
+        /// Number boxes refresh the preview only. Raising PropertyChanged for the box being typed in would
+        /// make WPF reformat it mid-typing ("1." becomes "1").
+        /// </summary>
+        private void SetNumber(Action change)
+        {
+            change();
+            Refresh();
+        }
+
+        private void RaiseAll()
+        {
+            OnPropertyChanged(string.Empty); // every binding re-reads; the options are small
+            Refresh();
+        }
 
         private void Refresh()
         {
             Rows.Clear();
-            Moves = new List<PlannedMove>();
-            if (_items.Count == 0) { Summary = "No spot elevations to align."; CanApply = false; return; }
-            if (_items.Count == 1) { Summary = "Select at least two spot elevations."; CanApply = false; return; }
-            if (_target == AlignTarget.Reference && _reference == null) { Summary = "Choose a reference spot."; CanApply = false; return; }
+            Plan = new ArrangePlan();
+            Warning = string.Empty;
+            if (_items.Count < 2) { Summary = "Select at least two spot elevations."; CanApply = false; return; }
 
-            double tol = _toleranceMm / FeetToMm;
-            TargetResult target = AlignEngine.ChooseTarget(_items, Direction, _target, tol, _reference);
-            Moves = AlignEngine.Plan(_items, Direction, target.Value);
-            _origin = AlignEngine.Axis(_items[0], Direction);
-
-            foreach (SpotItem item in _items)
+            Plan = AlignEngine.Plan(_items, Options);
+            foreach (PlannedMove m in Plan.Entries)
             {
-                double now = AlignEngine.Axis(item, Direction);
-                PlannedMove move = Moves.FirstOrDefault(m => m.Item == item);
                 Rows.Add(new PreviewRow
                 {
-                    Label = item.Label,
-                    Before = Mm(now - _origin),
-                    After = Mm(target.Value - _origin),
-                    Moves = move == null ? "stays" : $"{(move.Delta >= 0 ? "+" : "")}{move.Delta * FeetToMm:0} mm"
+                    Label = m.Item.Label,
+                    MoveX = Fmt(m.DeltaU),
+                    MoveY = Fmt(m.DeltaV),
+                    Stays = !m.Moves
                 });
             }
 
-            string axis = _isVertical ? "one column" : "one row";
-            Summary = $"{Moves.Count} of {_items.Count} tags will move to {axis}"
-                + (target.FellBackToAverage ? " — no tags share a position, so the average is used." : ".")
-                + (_target == AlignTarget.MostCommon && !target.FellBackToAverage ? $" {target.SharedCount} tags already share it." : string.Empty);
-            CanApply = Moves.Count > 0;
+            int n = Plan.MoveCount;
+            string what = _o.Mode switch
+            {
+                ArrangeMode.OffsetFromPoint => $"placed {_o.OffsetXMm:0.#} mm right and {_o.OffsetYMm:0.#} mm up from their points",
+                ArrangeMode.DistributeOnly => _o.Direction == AlignDirection.Vertical ? "spaced down their column" : "spaced along their row",
+                _ => _o.Direction == AlignDirection.Vertical ? "moved into one column" : "moved into one row"
+            };
+            string extra = string.Empty;
+            if (Plan.Target != null && Plan.Target.FellBackToAverage) extra = " No tags share a position, so the average is used.";
+            else if (Plan.Target != null && _o.Target == AlignTarget.MostCommon) extra = $" {Plan.Target.SharedCount} tags already share the line.";
+            Summary = $"{n} of {_items.Count} tags will be {what}.{extra}";
+
+            if (Plan.StackedCount > 0)
+                Warning = $"{Plan.StackedCount} tags would sit on top of each other. Choose even spacing or a fixed gap.";
+            CanApply = n > 0;
         }
 
-        private static string Mm(double feet) => $"{feet * FeetToMm:0.#} mm";
+        private static string Fmt(double mm) => Math.Abs(mm) < 1e-6 ? "–" : $"{(mm > 0 ? "+" : "")}{mm:0.0}";
     }
 }

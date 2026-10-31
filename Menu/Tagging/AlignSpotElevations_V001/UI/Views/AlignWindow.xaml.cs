@@ -18,8 +18,6 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.UI.Views
             _viewModel = viewModel ?? throw new ArgumentNullException(nameof(viewModel));
             DataContext = _viewModel;
             Title = ToolCatalog.AlignSpotElevations.Title;
-            Header.Text = $"{_viewModel.Items.Count} spot elevation(s) selected. Only the tag text moves; " +
-                          "the measured point and the leader end stay put.";
             SkippedText.Text = _viewModel.HasSkipped ? $"{_viewModel.Skipped.Count} skipped — click for details" : string.Empty;
         }
 

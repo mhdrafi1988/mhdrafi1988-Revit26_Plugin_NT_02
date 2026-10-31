@@ -31,8 +31,9 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                 Image = ImageUtils.Load(Icons + "AlignSpotElevations_16.png"),
                 LargeImage = ImageUtils.Load(Icons + "AlignSpotElevations_32.png"),
                 ToolTip = ToolCatalog.AlignSpotElevations.Tip(
-                    "Lines up the tags of the selected spot elevations in one column or one row, at the average, " +
-                    "the most common position, the median, the min / max or a reference tag. Only the tags move.")
+                    "Lines up the tags of the selected spot elevations in one column or one row (average, most common, " +
+                    "median, min / max or a reference tag), spaces them evenly or at a fixed gap, or places each tag " +
+                    "at the same offset from its point. Distances are paper mm. Only the tags move.")
             };
             panel.AddItem(align);
         }

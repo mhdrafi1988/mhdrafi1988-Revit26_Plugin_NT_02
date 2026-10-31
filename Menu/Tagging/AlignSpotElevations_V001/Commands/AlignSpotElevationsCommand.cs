@@ -14,8 +14,9 @@ using System.Windows.Interop;
 namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Commands
 {
     /// <summary>
-    /// Lines up the tags of the selected spot elevations (vertical column or horizontal row) at the
-    /// average, the most common, the median, the min / max or a reference tag's position.
+    /// Arranges the tags of the selected spot elevations: lines them up in a column or row (average, most
+    /// common, median, min / max or a reference tag), spaces them evenly or at a fixed gap, or places each
+    /// one at the same offset from its measured point. Remembers the last options.
     /// </summary>
     [Transaction(TransactionMode.Manual)]
     [Regeneration(RegenerationOption.Manual)]
@@ -60,12 +61,13 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Commands
                 return Result.Cancelled;
             }
 
-            var vm = new AlignViewModel(read.Items, read.Skipped);
+            var vm = new AlignViewModel(read.Items, read.Skipped, read.Scale, AlignSettingsStore.Load());
             var window = new AlignWindow(vm);
             new WindowInteropHelper(window) { Owner = commandData.Application.MainWindowHandle };
             if (window.ShowDialog() != true) return Result.Cancelled;
 
-            int moved = SpotAlignService.Apply(doc, view, vm.Moves, vm.Direction, title, out string error);
+            AlignSettingsStore.Save(vm.Options);
+            int moved = SpotAlignService.Apply(doc, view, vm.Plan.Entries, read.Scale, title, out string error);
             if (error != null)
             {
                 TaskDialog.Show(title, "Nothing was changed. " + error);

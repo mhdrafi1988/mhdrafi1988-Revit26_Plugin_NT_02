@@ -9,6 +9,28 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.24.0] — 2026-10-31
+
+### Added
+- **Align Spot Elevations v1.1.0 (V001)** — the window now has three ways to arrange the selected tags:
+  - **Align to a line** (as before), now with **Spacing along the line**: keep the current spacing, **Even**
+    (first and last tag stay, the rest are spaced evenly) or **Fixed gap** (the top tag of a column or the left
+    tag of a row stays, the rest follow at the gap).
+  - **Distribute only**: spaces the tags evenly or at a fixed gap down their column or along their row,
+    without lining them up.
+  - **Offset from point**: places every tag the same distance right and up from its own measured point, so
+    all leaders get the same length and direction.
+  - A warning when tags would sit on top of each other after the move.
+  - The last-used options are remembered in `%AppData%\Revit26_Plugin_Revised\AlignSpotElevations\settings.json`
+    (versioned; a missing or unreadable file falls back to the defaults).
+
+### Changed
+- **Align Spot Elevations:** all distances (tolerance, gap, offset and the preview) are now in **paper mm**
+  (model distance ÷ view scale), so they match the printed drawing at any view scale. The preview shows the
+  move in X and Y for each tag.
+- **User note:** the "Most common" tolerance default is now **1 mm on paper** (was 5 mm of model space, which
+  at 1:100 was only 0.05 mm on paper, so it almost never found a shared line).
+
 ## [6.23.0] — 2026-10-31
 
 ### Added
