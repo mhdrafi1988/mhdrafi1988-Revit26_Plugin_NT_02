@@ -9,6 +9,20 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.23.0] — 2026-10-31
+
+### Added
+- **Tag To Text 1.3.0 (V001)** — **multi-level grouping** in the tag table. Under *Group by type* there is now a
+  **Group by … then … then …** row with three drop-downs. Each level can be **Type** (as before), **Tag category**,
+  **Tag family & type** (e.g. "Roof Tag : Slope 2%"), **Tagged element's category** (e.g. Roofs, Rooms, Doors),
+  **Status** (OK, no text, in a group, owned by another user, problem) or **Identical text**.
+  - Levels nest in the order chosen; a level set to *(none)*, or repeated, is skipped. Every heading, at every
+    level, has its own tick box and "n of N ticked".
+  - The choice is remembered (`settings.json` version 3 adds `GroupLevel1`–`GroupLevel3`; older files load as before).
+- **User note:** nothing changes until you pick a second or third level: the default is Type only, which is the
+  grouping the table had before.
+- Unit tests for the new settings: `dotnet test Tests/TagToText.Tests`.
+
 ## [6.22.0] — 2026-10-31
 
 ### Added

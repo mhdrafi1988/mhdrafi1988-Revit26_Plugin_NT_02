@@ -4,12 +4,12 @@ namespace Revit26_Plugin_Revised.TagToText.V001.Core.Models
     /// Options remembered between runs, stored in
     /// %AppData%\Revit26_Plugin_Revised\TagToText\settings.json.
     /// Every default matches what the window shows the first time it opens.
-    /// Version 2 added <see cref="GroupByType"/>.
+    /// Version 2 added <see cref="GroupByType"/>. Version 3 added <see cref="GroupLevel1"/> to <see cref="GroupLevel3"/>.
     /// </summary>
     public sealed class TagToTextSettings
     {
         /// <summary>Current file format version.</summary>
-        public const int CurrentVersion = 2;
+        public const int CurrentVersion = 3;
 
         /// <summary>File format version. Files without it are read as version 1.</summary>
         public int Version { get; set; } = CurrentVersion;
@@ -37,6 +37,15 @@ namespace Revit26_Plugin_Revised.TagToText.V001.Core.Models
         /// before version 2 don't have it, so they get it on too.
         /// </summary>
         public bool GroupByType { get; set; } = true;
+
+        /// <summary>First grouping level of the table (when <see cref="GroupByType"/> is on). Default: the Type column.</summary>
+        public GroupLevel GroupLevel1 { get; set; } = GroupLevel.Kind;
+
+        /// <summary>Second grouping level, nested under the first. Default: none (the old one-level grouping).</summary>
+        public GroupLevel GroupLevel2 { get; set; } = GroupLevel.None;
+
+        /// <summary>Third grouping level, nested under the second. Default: none.</summary>
+        public GroupLevel GroupLevel3 { get; set; } = GroupLevel.None;
 
         /// <summary>Name of the last text type used; empty means the project default.</summary>
         public string TextTypeName { get; set; } = string.Empty;
@@ -76,6 +85,11 @@ namespace Revit26_Plugin_Revised.TagToText.V001.Core.Models
         {
             if (Version < 1) Version = 1;
             // Version 1 -> 2: GroupByType is new. A version 1 file has no value for it, so it keeps its default.
+            // Version 2 -> 3: GroupLevel1..3 are new. An older file has no values, so they keep their defaults
+            // (Kind, None, None = the old one-level grouping). A level number this version doesn't know becomes None.
+            if (!System.Enum.IsDefined(typeof(GroupLevel), GroupLevel1)) GroupLevel1 = GroupLevel.Kind;
+            if (!System.Enum.IsDefined(typeof(GroupLevel), GroupLevel2)) GroupLevel2 = GroupLevel.None;
+            if (!System.Enum.IsDefined(typeof(GroupLevel), GroupLevel3)) GroupLevel3 = GroupLevel.None;
             TextTypeName ??= string.Empty;
             Prefix ??= string.Empty;
             Suffix ??= string.Empty;

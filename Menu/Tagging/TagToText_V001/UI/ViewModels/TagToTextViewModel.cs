@@ -24,6 +24,9 @@ namespace Revit26_Plugin_Revised.TagToText.V001.UI.ViewModels
     /// <summary>A text note type in the Text Type list.</summary>
     public sealed record TextTypeItem(ElementId Id, string Name);
 
+    /// <summary>One choice in a grouping level drop-down.</summary>
+    public sealed record GroupLevelOption(GroupLevel Level, string Label);
+
     /// <summary>
     /// View model of the Tag To Text window: lists tags, holds the options (remembered between runs)
     /// and runs the copy through an external event, showing progress as it goes.
@@ -86,6 +89,30 @@ namespace Revit26_Plugin_Revised.TagToText.V001.UI.ViewModels
 
         /// <summary>Show the table grouped by tag type, with a tick box on each group heading.</summary>
         [ObservableProperty] private bool groupByType;
+
+        /// <summary>First grouping level of the table.</summary>
+        [ObservableProperty] private GroupLevel groupLevel1;
+
+        /// <summary>Second grouping level, nested under the first.</summary>
+        [ObservableProperty] private GroupLevel groupLevel2;
+
+        /// <summary>Third grouping level, nested under the second.</summary>
+        [ObservableProperty] private GroupLevel groupLevel3;
+
+        /// <summary>What each grouping level can group by, for the level drop-downs.</summary>
+        public IReadOnlyList<GroupLevelOption> GroupLevelOptions { get; } = new[]
+        {
+            new GroupLevelOption(GroupLevel.None, "(none)"),
+            new GroupLevelOption(GroupLevel.Kind, "Type"),
+            new GroupLevelOption(GroupLevel.Category, "Tag category"),
+            new GroupLevelOption(GroupLevel.TagType, "Tag family & type"),
+            new GroupLevelOption(GroupLevel.TaggedCategory, "Tagged element's category"),
+            new GroupLevelOption(GroupLevel.Status, "Status"),
+            new GroupLevelOption(GroupLevel.SameText, "Identical text")
+        };
+
+        /// <summary>Goes up whenever ticks change, so group headings re-read their "n of m ticked" state.</summary>
+        [ObservableProperty] private int ticksVersion;
 
         /// <summary>Type picked in the Type list, for Select Type / Clear Type.</summary>
         [ObservableProperty]
@@ -222,6 +249,9 @@ namespace Revit26_Plugin_Revised.TagToText.V001.UI.ViewModels
         partial void OnIncludeElementTagsChanged(bool value) => RefreshView();
         partial void OnIncludeSpatialTagsChanged(bool value) => RefreshView();
         partial void OnGroupByTypeChanged(bool value) => ApplyGrouping();
+        partial void OnGroupLevel1Changed(GroupLevel value) => ApplyGrouping();
+        partial void OnGroupLevel2Changed(GroupLevel value) => ApplyGrouping();
+        partial void OnGroupLevel3Changed(GroupLevel value) => ApplyGrouping();
 
         partial void OnTargetSameViewChanged(bool value)
         {
@@ -315,14 +345,38 @@ namespace Revit26_Plugin_Revised.TagToText.V001.UI.ViewModels
         private bool HasSelectedType() => SelectedTypeGroup != null;
 
         /// <summary>
-        /// Tick box on a group heading: ticks every copyable row of the type, or clears them when they
-        /// are all ticked already. A partial tick becomes a full tick.
+        /// Tick box on a group heading (any level): ticks every copyable row under the heading, or clears
+        /// them when they are all ticked already. A partial tick becomes a full tick.
         /// </summary>
         [RelayCommand]
-        private void ToggleType(TagTypeGroup group)
+        private void ToggleGroup(CollectionViewGroup group)
         {
             if (group == null) return;
-            SetTicked(VisibleRows(group), group.AllTicked != true);
+            var rows = LeafRows(group).ToList();
+            SetTicked(rows, GroupTickState(rows) != true);
+        }
+
+        /// <summary>Every row under a group heading, at any depth (only the rows the filter shows).</summary>
+        public static IEnumerable<TagRow> LeafRows(CollectionViewGroup group)
+        {
+            if (group == null) yield break;
+            foreach (object item in group.Items)
+            {
+                if (item is TagRow row) yield return row;
+                else if (item is CollectionViewGroup child)
+                    foreach (var r in LeafRows(child)) yield return r;
+            }
+        }
+
+        /// <summary>
+        /// True when every copyable row is ticked, false when none is, null when only some are
+        /// (the heading's tick box then shows a partial tick).
+        /// </summary>
+        public static bool? GroupTickState(IReadOnlyCollection<TagRow> rows)
+        {
+            int ticked = rows.Count(r => r.IsSelected);
+            if (ticked == 0) return false;
+            return ticked >= rows.Count(r => r.IsCopyable) ? true : null;
         }
 
         /// <summary>Creates the text notes for the ticked rows.</summary>
@@ -572,6 +626,7 @@ namespace Revit26_Plugin_Revised.TagToText.V001.UI.ViewModels
             FoundCount = VisibleRows().Count();
             SelectedCount = VisibleRows().Count(r => r.IsSelected);
             foreach (var g in TypeGroups) g.NotifyTicksChanged();
+            TicksVersion++;
         }
 
         private void OnRowChanged(object sender, PropertyChangedEventArgs e)
@@ -597,7 +652,8 @@ namespace Revit26_Plugin_Revised.TagToText.V001.UI.ViewModels
             UpdateCounts();
         }
 
-        // Groups the table by the Type column, or shows it flat.
+        // Groups the table by the chosen levels (outermost first), or shows it flat. A level set to None,
+        // or the same as an outer level, is skipped.
         private void ApplyGrouping()
         {
             if (RowsView == null) return;
@@ -605,11 +661,18 @@ namespace Revit26_Plugin_Revised.TagToText.V001.UI.ViewModels
             using (RowsView.DeferRefresh())
             {
                 RowsView.GroupDescriptions.Clear();
-                if (GroupByType)
-                    RowsView.GroupDescriptions.Add(new PropertyGroupDescription(nameof(TagRow.KindLabel))
+                if (!GroupByType) return;
+
+                var used = new HashSet<GroupLevel>();
+                foreach (GroupLevel level in new[] { GroupLevel1, GroupLevel2, GroupLevel3 })
+                {
+                    string property = TagRow.GroupProperty(level);
+                    if (property == null || !used.Add(level)) continue;
+                    RowsView.GroupDescriptions.Add(new PropertyGroupDescription(property)
                     {
-                        CustomSort = new TypeGroupOrder(_typeRank)
+                        CustomSort = level == GroupLevel.Kind ? new TypeGroupOrder(_typeRank) : new GroupNameOrder()
                     });
+                }
             }
         }
 
@@ -636,6 +699,9 @@ namespace Revit26_Plugin_Revised.TagToText.V001.UI.ViewModels
             IncludeSpotSlope = s.IncludeSpotSlope;
             IncludeElementTags = s.IncludeElementTags;
             IncludeSpatialTags = s.IncludeSpatialTags;
+            GroupLevel1 = s.GroupLevel1;
+            GroupLevel2 = s.GroupLevel2;
+            GroupLevel3 = s.GroupLevel3;
             GroupByType = s.GroupByType;
             Prefix = s.Prefix;
             Suffix = s.Suffix;
@@ -668,6 +734,9 @@ namespace Revit26_Plugin_Revised.TagToText.V001.UI.ViewModels
                 IncludeElementTags = IncludeElementTags,
                 IncludeSpatialTags = IncludeSpatialTags,
                 GroupByType = GroupByType,
+                GroupLevel1 = GroupLevel1,
+                GroupLevel2 = GroupLevel2,
+                GroupLevel3 = GroupLevel3,
                 TextTypeName = SelectedTextType?.Name ?? string.Empty,
                 Prefix = Prefix ?? string.Empty,
                 Suffix = Suffix ?? string.Empty,
@@ -701,6 +770,14 @@ namespace Revit26_Plugin_Revised.TagToText.V001.UI.ViewModels
             public bool AllowElement(Element elem) => elem.OwnerViewId == _viewId && TagReader.Classify(elem) != null;
 
             public bool AllowReference(Reference reference, XYZ position) => false;
+        }
+
+        /// <summary>Orders the groups of a level by name.</summary>
+        private sealed class GroupNameOrder : IComparer
+        {
+            public int Compare(object x, object y)
+                => string.Compare((x as CollectionViewGroup)?.Name as string, (y as CollectionViewGroup)?.Name as string,
+                    StringComparison.CurrentCulture);
         }
 
         /// <summary>
