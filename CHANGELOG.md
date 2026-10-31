@@ -9,6 +9,25 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.27.0] — 2026-10-31
+
+### Added
+- **Auto Slope By Point v34.0.0 (V034)** — new version of By Point, first in the **By Point** pulldown. It works
+  exactly like V033 (same slope, circle markers, ridge lines, Excel workbook and roof parameters). The change is
+  inside: the run's step order now lives in a new **Application** layer that uses no Revit API, and talks to Revit
+  through small interfaces. This lets the whole run be tested without Revit: 7 new unit tests check the step
+  order, rollback on cancel or error, the "no drain" and "not ready" messages, Excel export only when switched
+  on, and ridge lines skipped with fewer than 2 drain groups.
+
+### Changed
+- **By Point** pulldown — order is now V034, V033, V032, V030, Ridge V003, Multi Copies 30. V034 supplies the
+  pulldown's icon. V033 stays as the fallback.
+- **Tool layout standard** (`CLAUDE.md`) — a tool may now have an optional `Application` folder for its
+  orchestrators: classes that run a job's steps and use no Revit API.
+- **Unit tests** — `Tests/AutoSlopeByPoint.Tests` now test V034 (its Core is V033's).
+- **User note:** nothing changes in how the tool is used. The first time V034 opens it reads V033's settings;
+  after that it keeps its own file, `settings.v034.json`.
+
 ## [6.26.0] — 2026-10-31
 
 ### Added

@@ -18,7 +18,12 @@ done until it builds with 0 errors. Running it still needs Revit on Windows.
   The one exception is shareable tool packages: a `.zip` of a tool's source, made with
   `git archive` from `main`, may go in `Installer/Output/ToolPackages/` (one per tool, replaced in place).
 - **Folder layout:** `Menu/<Area>/<Group>/<Tool>_V<NNN>/` holding `Commands`, `Core`, `UI`,
-  `Infrastructure` directly. No wrapper levels (`Tool_V003/Tool_V003/…`), no spaces, `&`, `(1)`,
+  `Infrastructure` directly, plus an optional `Application` folder for a tool's orchestrators (the
+  classes that run a job's steps in order). `Application` uses only `Core` and the interfaces in
+  `Application/Ports`; `Infrastructure` implements those interfaces for Revit, and `Commands` or an
+  external-event job plugs them in (see `AutoSlopeByPoint_V034`). `Core` and `Application` never use
+  the Revit API. Use `Application` when a job has several steps worth testing without Revit.
+  No wrapper levels (`Tool_V003/Tool_V003/…`), no spaces, `&`, `(1)`,
   `_UPDATED` or `_0`/`_01` suffixes in folder names. Unfinished tools go in `Menu/RoofTools/WIP`,
   which the `.csproj` excludes; the only other exclusion is `Tests/` (unit-test projects, run with
   `dotnet test Tests/<Project>`).

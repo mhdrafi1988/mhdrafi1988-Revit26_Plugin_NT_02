@@ -1,7 +1,7 @@
 using System;
 using System.IO;
-using Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Core.Models;
-using Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Infrastructure.Helpers;
+using Revit26_Plugin_Revised.AutoSlopeByPoint.V034.Core.Models;
+using Revit26_Plugin_Revised.AutoSlopeByPoint.V034.Infrastructure.Helpers;
 using Xunit;
 
 namespace AutoSlopeByPoint.Tests

@@ -1,7 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <!--
-    Unit tests for Auto Slope By Point V033's Revit-free code: the ridge finder and loading
-    older settings files. The tool's files are linked, not copied.
+    Unit tests for Auto Slope By Point's Revit-free code: the ridge finder, loading older
+    settings files and (V034) the run orchestrator with fake Revit steps. They follow the newest
+    version, V034 (its Core is V033's). The tool's files are linked, not copied.
     Run:  dotnet test Tests/AutoSlopeByPoint.Tests
   -->
   <PropertyGroup>
@@ -13,7 +14,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <ToolDir>..\..\Menu\RoofTools\RoofSlope\ByPoints\AutoSlopeByPoint_V033\</ToolDir>
+    <ToolDir>..\..\Menu\RoofTools\RoofSlope\ByPoints\AutoSlopeByPoint_V034\</ToolDir>
   </PropertyGroup>
 
   <ItemGroup>
@@ -25,6 +26,14 @@
     <Compile Include="$(ToolDir)Core\Services\ShortestPathSolver.cs" Link="Tool\Services\ShortestPathSolver.cs" />
     <Compile Include="$(ToolDir)Core\Services\RidgeFinder.cs" Link="Tool\Services\RidgeFinder.cs" />
     <Compile Include="$(ToolDir)Infrastructure\Helpers\AutoSlopeSettingsStore.cs" Link="Tool\Helpers\AutoSlopeSettingsStore.cs" />
+    <Compile Include="$(ToolDir)Core\Models\AutoSlopeRequest.cs" Link="Tool\Models\AutoSlopeRequest.cs" />
+    <Compile Include="$(ToolDir)Core\Models\AutoSlopeResult.cs" Link="Tool\Models\AutoSlopeResult.cs" />
+    <Compile Include="$(ToolDir)Core\Models\VertexData.cs" Link="Tool\Models\VertexData.cs" />
+    <Compile Include="$(ToolDir)Core\Models\RunOutcomes.cs" Link="Tool\Models\RunOutcomes.cs" />
+    <Compile Include="$(ToolDir)Core\Models\RunProgressInfo.cs" Link="Tool\Models\RunProgressInfo.cs" />
+    <Compile Include="$(ToolDir)Core\Services\RunPhases.cs" Link="Tool\Services\RunPhases.cs" />
+    <Compile Include="$(ToolDir)Application\**\*.cs" Link="Tool\Application\%(RecursiveDir)%(Filename)%(Extension)" />
+    <Compile Include="..\..\Shared\LogLevel.cs" Link="Shared\LogLevel.cs" />
   </ItemGroup>
 
   <ItemGroup>
