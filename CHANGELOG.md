@@ -9,6 +9,62 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.26.0] — 2026-10-31
+
+### Added
+- **Align Spot Elevations v1.2.0 (V001)**
+  - **Quick Align Vertical** and **Quick Align Horizontal**: two small buttons next to Align Spot Elevations in the
+    **Tagging** panel. They line the selected tags up in one column or one row right away, without the window, using
+    the line position, tolerance and spacing last used in the window. If "Reference spot" was last used, they use
+    Average. One Undo step; the result dialog says what was done and lists any skipped tags.
+  - **Overlap check:** the preview marks tags that would overlap another selected tag in red, and the warning counts
+    them. Tag sizes are estimated from the spot type's text size and width factor and the length of the value, so
+    the check is a guide, not exact. Quick align reports possible overlaps after it runs.
+  - **Fit** button next to Fixed gap: sets a gap that clears the tags (the tallest tag plus 1 mm for a column, the
+    widest tag plus 1 mm for a row).
+
+### Changed
+- **Align Spot Elevations:** rows of tags that stay are shown in grey in the preview.
+- **User note:** the old "tags on top of each other" warning is replaced by the overlap check, which uses tag size
+  instead of a 1 mm distance, so it also catches tags that are close but not stacked.
+
+## [6.25.0] — 2026-10-31
+
+### Added
+- **Align Spot Elevations v1.1.0 (V001)** — the window now has three ways to arrange the selected tags:
+  - **Align to a line** (as before), now with **Spacing along the line**: keep the current spacing, **Even**
+    (first and last tag stay, the rest are spaced evenly) or **Fixed gap** (the top tag of a column or the left
+    tag of a row stays, the rest follow at the gap).
+  - **Distribute only**: spaces the tags evenly or at a fixed gap down their column or along their row,
+    without lining them up.
+  - **Offset from point**: places every tag the same distance right and up from its own measured point, so
+    all leaders get the same length and direction.
+  - A warning when tags would sit on top of each other after the move.
+  - The last-used options are remembered in `%AppData%\Revit26_Plugin_Revised\AlignSpotElevations\settings.json`
+    (versioned; a missing or unreadable file falls back to the defaults).
+
+### Changed
+- **Align Spot Elevations:** all distances (tolerance, gap, offset and the preview) are now in **paper mm**
+  (model distance ÷ view scale), so they match the printed drawing at any view scale. The preview shows the
+  move in X and Y for each tag.
+- **User note:** the "Most common" tolerance default is now **1 mm on paper** (was 5 mm of model space, which
+  at 1:100 was only 0.05 mm on paper, so it almost never found a shared line).
+
+## [6.24.0] — 2026-10-31
+
+### Added
+- **Align Spot Elevations v1.0.0 (V001)** — new tool: **Align Spot Elevations** button in the **Tagging** panel.
+  Lines up the tags of the selected spot elevations in the active view.
+  - **Direction:** Vertical (one column, same position left-right) or Horizontal (one row, same position up-down).
+  - **Align to:** Average, Most common (the position shared by the most tags, within a tolerance, default 5 mm),
+    Median, Min, Max, or one chosen Reference spot. If "Most common" finds no shared position, the average is used.
+  - Live preview with the current position, the new position and the distance each tag moves.
+  - Works from the current selection, or asks you to select spot elevations.
+  - Apply is **one Undo step**; if any tag cannot be moved nothing changes.
+  - Pinned, grouped and other-user-owned tags are skipped and listed with the reason.
+- **User note:** only the tag text moves. The measured point and the leader end stay where they are, so the
+  elevation values do not change. Spot coordinates and spot slopes are not touched.
+- Unit tests for the alignment maths: `dotnet test Tests/AlignSpotElevations.Tests`.
 ## [6.23.0] — 2026-10-31
 
 ### Added
