@@ -9,6 +9,22 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.23.0] — 2026-10-31
+
+### Added
+- **Align Spot Elevations v1.0.0 (V001)** — new tool: **Align Spot Elevations** button in the **Tagging** panel.
+  Lines up the tags of the selected spot elevations in the active view.
+  - **Direction:** Vertical (one column, same position left-right) or Horizontal (one row, same position up-down).
+  - **Align to:** Average, Most common (the position shared by the most tags, within a tolerance, default 5 mm),
+    Median, Min, Max, or one chosen Reference spot. If "Most common" finds no shared position, the average is used.
+  - Live preview with the current position, the new position and the distance each tag moves.
+  - Works from the current selection, or asks you to select spot elevations.
+  - Apply is **one Undo step**; if any tag cannot be moved nothing changes.
+  - Pinned, grouped and other-user-owned tags are skipped and listed with the reason.
+- **User note:** only the tag text moves. The measured point and the leader end stay where they are, so the
+  elevation values do not change. Spot coordinates and spot slopes are not touched.
+- Unit tests for the alignment maths: `dotnet test Tests/AlignSpotElevations.Tests`.
+
 ## [6.22.0] — 2026-10-31
 
 ### Added
