@@ -102,7 +102,7 @@ namespace Revit26_Plugin_Revised.Shared.Services
         public static readonly ToolInfo PlanFromScopeBox = Add("Plan From Scope Box", "6.1.2", "V006", "Revit26_Plugin_Revised.PlanFromScopeBox.V006");
         public static readonly ToolInfo SmartViewToSheetPlacer = Add("Smart View To Sheet Placer", "224.1.1", "V224", "Revit26_Plugin_Revised.SmartViewToSheetPlacer.V224");
         public static readonly ToolInfo AutomatedSectionPlacer = Add("Automated Section Placer", "3.1.1", "V003", "Revit26_Plugin_Revised.AutomatedSectionPlacer.V003");
-        public static readonly ToolInfo SheetAutoRearrange = Add("Sheet Auto Rearrange", "28.1.1", "V028", "Revit26_Plugin_Revised.SheetAutoRearrange.V028");
+        public static readonly ToolInfo SheetAutoRearrange = Add("Sheet Auto Rearrange", "28.1.2", "V028", "Revit26_Plugin_Revised.SheetAutoRearrange.V028");
         public static readonly ToolInfo SheetViewArrange = Add("Sheet View Arrange", "1.2.1", "V001", "Revit26_Plugin_Revised.SheetViewArrange.V001");
         public static readonly ToolInfo SectionsToSheet = Add("Sections To Sheet", "1.0.0", "V001", "Revit26_Plugin_Revised.SectionsToSheet.V001");
         public static readonly ToolInfo SheetTextReplace = Add("Sheet Text Replace", "1.0.0", "V001", "Revit26_Plugin_Revised.SheetTextReplace.V001");

@@ -167,10 +167,18 @@ namespace Revit26_Plugin_Revised.SheetAutoRearrange.V027.UI.ViewModels
             _uiDoc.Document.Application.DocumentChanged += OnDocumentChanged;
         }
 
-        /// <summary>Unhooks the DocumentChanged subscription. Called by the window's Closing handler alongside SaveSettings.</summary>
+        private volatile bool _detached;
+
+        /// <summary>
+        /// Marks the live-sync subscription for removal. Revit only allows
+        /// adding/removing Application events inside an API context, and the
+        /// window's Closing handler runs on the plain WPF thread, so the actual
+        /// unsubscribe happens in <see cref="OnDocumentChanged"/> (which Revit
+        /// calls inside an API context) the next time the event fires.
+        /// </summary>
         public void Detach()
         {
-            _uiDoc.Document.Application.DocumentChanged -= OnDocumentChanged;
+            _detached = true;
         }
 
         /// <summary>
@@ -193,6 +201,14 @@ namespace Revit26_Plugin_Revised.SheetAutoRearrange.V027.UI.ViewModels
 
         private void OnDocumentChanged(object sender, DocumentChangedEventArgs e)
         {
+            if (_detached)
+            {
+                // Inside an API context here, so unsubscribing is legal.
+                if (sender is Autodesk.Revit.ApplicationServices.Application app)
+                    app.DocumentChanged -= OnDocumentChanged;
+                return;
+            }
+
             if (IsBusy || _activeSheet == null || !ReferenceEquals(e.GetDocument(), _uiDoc.Document))
                 return;
 
