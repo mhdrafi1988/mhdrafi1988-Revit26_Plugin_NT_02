@@ -9,6 +9,23 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.30.3] — 2026-11-02
+
+### Fixed
+- Same class of bug as 6.30.2: Revit only accepts event unsubscribes inside an API context, but several
+  windows unsubscribed when closing. The unsubscribe is now finished the next time Revit raises the event,
+  so no stale handler stays behind after the window closes.
+  - **Auto Slope By Point 32.4.1 (V032)** and **33.0.2 (V033)**
+  - **Auto Slope By Drain (Multi-Roof) 13.1.4 (V013)**
+  - **DWG Statistics 5.1.2 (V005)**
+
+## [6.30.2] — 2026-11-02
+
+### Fixed
+- **Sheet Auto Rearrange 28.1.2 (V028)** and the older **V027** — closing the window showed "Invalid call to
+  Revit API! Revit is currently not within an API context". The window now releases its live-sync hook safely
+  the next time Revit reports a document change, so closing is clean. Settings are still saved on close.
+
 ## [6.30.1] — 2026-11-02
 
 ### Fixed
