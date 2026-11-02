@@ -1,4 +1,4 @@
-using Autodesk.Revit.UI;
+﻿using Autodesk.Revit.UI;
 using Revit26_Plugin_Revised.Resources.Icons;
 using System.Collections.Generic;
 
@@ -24,7 +24,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
 
         /// <summary>
         /// Creates the roof panels on <paramref name="tabName"/>, in workflow order: Roof Slope,
-        /// Shape Points, Roof Tools, Roof Edit, Plan View, Compare, Insulation. The Utilities panel is built
+        /// Floor Slope (<see cref="FloorToolsRibbon.BuildSlopePanel"/>), Shape Points, Roof Tools, Roof Edit, Plan View, Compare, Insulation. The Utilities panel is built
         /// separately by <see cref="BuildUtilities"/> so it can sit at the end of the tab.
         /// </summary>
         public static void Build(UIControlledApplication app, string tabName, string assemblyPath)
@@ -72,6 +72,9 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             RibbonLayoutHelper.WirePulldownButton(slopeItems, "Pulldown_AutoSlopeByPoint", byPointV033, byPointV032, byPointV030, byPointRidgeV003, byPointMultiCopies30);
             RibbonLayoutHelper.WirePulldownButton(slopeItems, "Pulldown_AutoSlopeByDrain", byDrainV013, byDrainV012, byDrainV011, byDrainV007);
             RibbonLayoutHelper.WirePulldownButton(slopeItems, "Pulldown_RoofPointsAndSlope", pointsAndSlopeV001);
+
+            // Floor Slope — floor versions of By Drain and By Point, next to Roof Slope (plugin 6.31.0).
+            FloorToolsRibbon.BuildSlopePanel(app, tabName, assemblyPath);
 
             // Shape Points — one pulldown per tool (current version, then its rebuild)
             RibbonPanel shapePointsPanel = app.CreateRibbonPanel(tabName, "Shape Points");

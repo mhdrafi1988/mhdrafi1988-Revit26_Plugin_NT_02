@@ -1,15 +1,50 @@
-using Autodesk.Revit.UI;
+﻿using Autodesk.Revit.UI;
 using Revit26_Plugin_Revised.Resources.Icons;
+using Revit26_Plugin_Revised.Shared.Services;
+using System.Collections.Generic;
 
 namespace Revit26_Plugin_Revised.Menu.Ribbon
 {
     /// <summary>
-    /// Builds the Floors And Roof From Linked Rooms pulldown. Since plugin 2.4.0 it sits in the
-    /// Roof Tools panel (see <see cref="RoofToolsRibbon"/>); the old one-button Floor Tools panel
-    /// was removed to keep the tab narrow enough for Revit to show every button name.
+    /// Builds the floor ribbon items. The Floors And Roof From Linked Rooms pulldown has sat in the
+    /// Roof Tools panel (see <see cref="RoofToolsRibbon"/>) since plugin 2.4.0, when the old one-button
+    /// Floor Tools panel was removed to keep the tab narrow. The Floor Slope panel (plugin 6.31.0)
+    /// is built by <see cref="BuildSlopePanel"/>, right after the Roof Slope panel.
     /// </summary>
     public static class FloorToolsRibbon
     {
+        /// <summary>Roof slope icons, reused by the floor slope buttons until floor icons exist.</summary>
+        private const string RoofIcons = "Revit26_Plugin_Revised.Resources.Icons.RoofTools.";
+
+        /// <summary>
+        /// Creates the "Floor Slope" panel on <paramref name="tabName"/>: Floor Slope By Drain and
+        /// Floor Slope By Point as two stacked buttons (one version each, so no pulldown).
+        /// </summary>
+        public static void BuildSlopePanel(UIControlledApplication app, string tabName, string assemblyPath)
+        {
+            RibbonPanel panel = app.CreateRibbonPanel(tabName, "Floor Slope");
+
+            var byDrain = new PushButtonData("Btn_FloorSlopeByDrain_V001", "By Drain", assemblyPath,
+                "Revit26_Plugin_Revised.FloorSlopeByDrain.V001.Commands.FloorSlopeByDrainCommand")
+            {
+                Image = ImageUtils.Load(RoofIcons + "by_drain_16.png"),
+                LargeImage = ImageUtils.Load(RoofIcons + "by_drain_32.png"),
+                ToolTip = ToolCatalog.FloorSlopeByDrain.Tip(
+                    "Pick one or more floors and slope each one's shape points down to its drains: openings in the floor sketch " +
+                    "and drain families (Plumbing Fixtures) on the floor. Asks before sloping a floor whose type has no Variable layer. One Undo.")
+            };
+            var byPoint = new PushButtonData("Btn_FloorSlopeByPoint_V001", "By Point", assemblyPath,
+                "Revit26_Plugin_Revised.FloorSlopeByPoint.V001.Commands.FloorSlopeByPointCommand")
+            {
+                Image = ImageUtils.Load(RoofIcons + "by_point_16.png"),
+                ToolTip = ToolCatalog.FloorSlopeByPoint.Tip(
+                    "Pick a floor, then click the drain points on it; the floor's shape points are sloped down to them, " +
+                    "with optional ridge lines between drain groups. Asks before sloping a floor whose type has no Variable layer.")
+            };
+
+            RibbonLayoutHelper.AddStackedButtons(panel, new List<RibbonItemData> { byDrain, byPoint });
+        }
+
         /// <summary>Internal name of the pulldown (unchanged since it lived in Floor Tools).</summary>
         public const string FromRoomsPulldownName = "Pulldown_FloorsAndRoofFromLinkedRooms";
 
