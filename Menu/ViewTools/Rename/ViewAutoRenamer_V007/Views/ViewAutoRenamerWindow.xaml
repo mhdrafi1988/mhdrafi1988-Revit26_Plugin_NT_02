@@ -506,8 +506,7 @@ Changes vs V005 (layout only):
                             </StackPanel>
                         </DockPanel>
                     </Border>
-                         One-click triage row, separate from the precision popover.
-                    ═══════════════════════════════════════════ -->
+                    <!-- ═══ QUICK FILTER — one-click triage row, separate from the precision popover. ═══ -->
                     <Border Grid.Row="3"
                             Background="{StaticResource BrushSystemSecondaryBackground}"
                             BorderBrush="{StaticResource BrushBorderDefault}"
