@@ -61,7 +61,7 @@ svg{display:block;width:100%;min-width:480px;height:auto}
 </style>
 
 <h1>Align Spot Elevations 1.5.0 (proposed)</h1>
-<p class="sub">Preview with five example spots on a 1:100 plan. <b>New: Align to a detail line</b> — select one detail line plus several spots, choose end point or bend point, and the tool checks whether a vertical or horizontal move onto the line is possible. Distances are paper mm. UI only, nothing is coded yet.</p>
+<p class="sub">Preview with five example spots on a 1:100 plan. <b>New: Align to a detail line</b>. Select the spots, then pick a detail line for the leader end points, one for the bend points, or both (each is optional). For each line the tool checks whether a vertical or horizontal move onto it is possible, and does what it can. Distances are paper mm. UI only, nothing is coded yet.</p>
 
 <div class="wrap">
   <div class="win" role="group" aria-label="Align Spot Elevations window">
@@ -81,22 +81,28 @@ svg{display:block;width:100%;min-width:480px;height:auto}
         <div class="note">Parts that are not ticked follow, as in Revit: the text moves with the leader end, and the end and text move with the bend point.</div>
       </fieldset>
       <div id="lnOpts" hidden style="display:grid;gap:10px">
-        <fieldset class="new"><legend>Detail line (selected in the view)</legend>
-          <div class="row"><span class="note">Preview only, pick an example line:</span>
-            <select id="ln" aria-label="Example detail line"><option value="slope">Sloped line</option><option value="vert">Vertical line</option><option value="horz">Horizontal line</option></select></div>
-          <label><input type="checkbox" id="ext"> Extend the line beyond its ends <span class="note">(off: spots past an end are skipped)</span></label>
+        <div class="note">Pick a detail line for the leader end points, one for the bend points, or both. A part with no line stays where it is. The text follows the end point, as in Revit. In Revit, <b>Pick line…</b> hides this window until you click a detail line. In this preview it cycles through example lines.</div>
+        <fieldset class="new"><legend>Bend point line · optional</legend>
+          <div class="row"><button type="button" id="pk-s"><span class="dot" style="background:var(--bend)"></span> Pick line…</button>
+            <span id="nm-s" class="note"></span>
+            <button type="button" id="cl-s">Clear</button></div>
+          <div class="row" id="dr-s"><span class="note">Move:</span>
+            <label><input type="radio" name="ld-s" id="ld-s-a" value="a" checked> Auto</label>
+            <label><input type="radio" name="ld-s" id="ld-s-v" value="v"> Vertical (X stays)</label>
+            <label><input type="radio" name="ld-s" id="ld-s-h" value="h"> Horizontal (Y stays)</label></div>
+          <div id="chk-s" class="note"></div>
         </fieldset>
-        <fieldset class="new"><legend>Part to align</legend>
-          <label><input type="radio" name="lpart" id="lp-e" value="e" checked><span class="dot" style="background:var(--end)"></span> Leader end point</label>
-          <label><input type="radio" name="lpart" id="lp-s" value="s"><span class="dot" style="background:var(--bend)"></span> Leader bend point (shoulder)</label>
-          <div class="note">The text follows the part, as in Revit. The measured point never moves.</div>
+        <fieldset class="new"><legend>End point line · optional</legend>
+          <div class="row"><button type="button" id="pk-e"><span class="dot" style="background:var(--end)"></span> Pick line…</button>
+            <span id="nm-e" class="note"></span>
+            <button type="button" id="cl-e">Clear</button></div>
+          <div class="row" id="dr-e"><span class="note">Move:</span>
+            <label><input type="radio" name="ld-e" id="ld-e-a" value="a" checked> Auto</label>
+            <label><input type="radio" name="ld-e" id="ld-e-v" value="v"> Vertical (X stays)</label>
+            <label><input type="radio" name="ld-e" id="ld-e-h" value="h"> Horizontal (Y stays)</label></div>
+          <div id="chk-e" class="note"></div>
         </fieldset>
-        <fieldset class="new"><legend>Move onto the line</legend>
-          <label><input type="radio" name="ldir" id="ld-a" value="a" checked> Auto — whichever is possible (shorter move)</label>
-          <label><input type="radio" name="ldir" id="ld-v" value="v"> Vertical — slide up / down, X stays</label>
-          <label><input type="radio" name="ldir" id="ld-h" value="h"> Horizontal — slide left / right, Y stays</label>
-          <div id="chk" class="note" style="margin-top:4px"></div>
-        </fieldset>
+        <label><input type="checkbox" id="ext"> Extend the lines beyond their ends <span class="note">(off: spots past an end are skipped)</span></label>
       </div>
       <div id="lineOpts" style="display:grid;gap:10px">
         <fieldset><legend>Direction</legend>
@@ -127,7 +133,7 @@ svg{display:block;width:100%;min-width:480px;height:auto}
       </fieldset>
       <div><div class="sum" id="sum"></div><div class="warn" id="warn"></div></div>
       <div class="tbl"><table>
-        <thead><tr><th>Spot</th><th id="th1">Text X</th><th id="th2">Text Y</th><th class="cEnd">End X, Y</th><th class="cBend">Bend X, Y</th><th class="cStat" hidden>Result</th></tr></thead>
+        <thead><tr><th>Spot</th><th class="cTx">Text X</th><th class="cTx">Text Y</th><th class="cEnd">End X, Y</th><th class="cBend">Bend X, Y</th><th class="cStat" hidden>Result</th></tr></thead>
         <tbody id="rows"></tbody>
       </table></div>
       <div class="btns"><button class="pri" id="apply">Apply</button><button id="cancel">Cancel</button></div>
@@ -163,7 +169,7 @@ const $=id=>document.getElementById(id);
 const val=n=>document.querySelector(`input[name=${n}]:checked`).value;
 let showBefore=false;
 
-function opts(){return{mode:val("mode"),lpart:val("lpart"),ldir:val("ldir"),ln:$("ln").value,ext:$("ext").checked,dir:val("dir"),tgt:val("tgt"),sp:val("sp"),gap:+$("gap").value||0,
+function opts(){return{mode:val("mode"),ext:$("ext").checked,dir:val("dir"),tgt:val("tgt"),sp:val("sp"),gap:+$("gap").value||0,
   text:$("p-text").checked,end:$("p-end").checked,bend:$("p-bend").checked,
   off:{t:[+$("ox-text").value,+$("oy-text").value],e:[+$("ox-end").value,+$("oy-end").value],s:[+$("ox-bend").value,+$("oy-bend").value]}};}
 
@@ -202,9 +208,13 @@ function plan(o){
 const f=v=>Math.abs(v)<1e-6?"–":(v>0?"+":"")+v.toFixed(1);
 const pair=d=>Math.abs(d[0])<1e-6&&Math.abs(d[1])<1e-6?"–":f(d[0])+", "+f(d[1]);
 
-// Detail lines (paper mm) used by the preview.
-const LINES={slope:{a:[12,14],b:[120,106]},vert:{a:[62,8],b:[62,112]},horz:{a:[10,66],b:[150,66]}};
-// What the real tool will check: can this point reach the line by sliding vertically or horizontally?
+// Example detail lines (paper mm) the preview "picks". Index 0 = not picked.
+const LINES={
+  e:[null,{n:"sloped, 40°",a:[12,14],b:[120,106]},{n:"vertical",a:[86,8],b:[86,112]},{n:"horizontal",a:[10,70],b:[150,70]}],
+  s:[null,{n:"sloped, 41°",a:[8,30],b:[100,110]},{n:"vertical",a:[40,8],b:[40,112]},{n:"horizontal",a:[10,48],b:[150,48]}]};
+const pick={e:1,s:0};
+const lenMm=L=>Math.hypot(L.b[0]-L.a[0],L.b[1]-L.a[1]).toFixed(0);
+// What the real tool checks: can this point reach the line by sliding vertically or horizontally?
 function reach(q,L,dir,ext){
   const dx=L.b[0]-L.a[0],dy=L.b[1]-L.a[1];
   if(dir==="v"){ if(Math.abs(dx)<1e-6) return{ok:false,why:"line is vertical"};
@@ -214,55 +224,89 @@ function reach(q,L,dir,ext){
   const t=(q[1]-L.a[1])/dy; if(!ext&&(t<-1e-9||t>1+1e-9)) return{ok:false,why:"past the line end"};
   return{ok:true,to:[L.a[0]+t*dx,q[1]]};
 }
+function choose(q,L,mode,ext){
+  const c=["v","h"].map(d=>({d,r:reach(q,L,d,ext)}));
+  if(mode!=="a") return c.find(x=>x.d===mode);
+  const ok=c.filter(x=>x.r.ok).sort((a,b)=>Math.hypot(a.r.to[0]-q[0],a.r.to[1]-q[1])-Math.hypot(b.r.to[0]-q[0],b.r.to[1]-q[1]));
+  return ok[0]||c[0];
+}
+const word=d=>d==="v"?"vertically":"horizontally";
+// Bend points go first; end points then start from where the bend move left them.
 function planLine(o){
-  const L=LINES[o.ln],key=o.lpart;
+  const Ls=LINES.s[pick.s],Le=LINES.e[pick.e];
   return SPOTS.map(x=>{
-    const r={x,sd:[0,0],ed:[0,0],td:[0,0],lim:false,moves:false,st:""};
-    if(!x[key]){r.st=key==="e"?"no leader":"no bend point";return r;}
-    const cand=["v","h"].map(d=>({d,r:reach(x[key],L,d,o.ext)}));
-    const pick=o.ldir==="a"?cand.filter(c=>c.r.ok).sort((a,b)=>Math.hypot(a.r.to[0]-x[key][0],a.r.to[1]-x[key][1])-Math.hypot(b.r.to[0]-x[key][0],b.r.to[1]-x[key][1]))[0]||cand[0]
-      :cand.find(c=>c.d===o.ldir);
-    if(!pick.r.ok){r.st="skipped: "+pick.r.why;return r;}
-    let tg=pick.r.to;
-    if(key==="e"&&x.s){const d=[x.e[0]-x.s[0],x.e[1]-x.s[1]],n=Math.hypot(...d),u=[d[0]/n,d[1]/n],k=(tg[0]-x.s[0])*u[0]+(tg[1]-x.s[1])*u[1],rr=[x.s[0]+u[0]*k,x.s[1]+u[1]*k];
-      if(Math.abs(rr[0]-tg[0])>.05||Math.abs(rr[1]-tg[1])>.05){r.lim=true;} tg=rr;}
-    const dl=[tg[0]-x[key][0],tg[1]-x[key][1]];
-    if(key==="s"){r.sd=dl;r.ed=x.e?dl.slice():[0,0];} else r.ed=dl;
-    r.td=key==="s"?dl.slice():r.ed.slice(); if(!x.e&&key==="s"&&!x.e) r.td=dl.slice();
-    r.moves=Math.abs(dl[0])>1e-6||Math.abs(dl[1])>1e-6;
-    r.st=r.moves?(pick.d==="v"?"moved vertically":"moved horizontally")+(r.lim?" · stops short on its leader (*)":""):"already on the line";
+    const r={x,sd:[0,0],ed:[0,0],td:[0,0],lim:false,moves:false,st:[]};
+    if(Ls){ if(!x.s) r.st.push("bend: none");
+      else{const c=choose(x.s,Ls,o.lds,o.ext);
+        if(!c.r.ok) r.st.push("bend: skipped, "+c.r.why);
+        else{r.sd=[c.r.to[0]-x.s[0],c.r.to[1]-x.s[1]]; r.st.push(Math.hypot(...r.sd)>1e-6?"bend: moved "+word(c.d):"bend: on line");}}}
+    r.ed=x.e?r.sd.slice():[0,0];
+    if(Le){ if(!x.e) r.st.push("end: no leader");
+      else{const q=[x.e[0]+r.sd[0],x.e[1]+r.sd[1]];
+        // Try a direction; with a bend the end can only slide along the bend-to-end segment.
+        const tryDir=d=>{const rr=reach(q,Le,d,o.ext); if(!rr.ok) return{d,ok:false,why:rr.why};
+          let tg=rr.to,lim=false;
+          if(x.s){const dv=[x.e[0]-x.s[0],x.e[1]-x.s[1]],n=Math.hypot(...dv),u=[dv[0]/n,dv[1]/n],s0=[x.s[0]+r.sd[0],x.s[1]+r.sd[1]],
+            k=(tg[0]-s0[0])*u[0]+(tg[1]-s0[1])*u[1],pr=[s0[0]+u[0]*k,s0[1]+u[1]*k];
+            if(Math.abs(pr[0]-tg[0])>.05||Math.abs(pr[1]-tg[1])>.05) lim=true; tg=pr;}
+          return{d,ok:true,tg,lim,dist:Math.hypot(tg[0]-q[0],tg[1]-q[1])};};
+        let c;
+        if(o.lde!=="a") c=tryDir(o.lde);
+        else{const t=["v","h"].map(tryDir),ok=t.filter(z=>z.ok).sort((p1,p2)=>(p1.lim-p2.lim)||(p1.dist-p2.dist)); c=ok[0]||t[0];}
+        if(!c.ok) r.st.push("end: skipped, "+c.why);
+        else{r.lim=c.lim; r.ed=[c.tg[0]-x.e[0],c.tg[1]-x.e[1]];
+          const moved=c.dist>1e-6;
+          r.st.push(c.lim?(moved?"end: moved "+word(c.d)+", stops short (*)":"end: cannot slide onto the line (*)")
+            :moved?"end: moved "+word(c.d):"end: on line");}}}
+    r.td=r.ed.slice();
+    r.moves=Math.hypot(...r.sd)>1e-6||Math.hypot(...r.ed)>1e-6;
+    if(!x.e&&!x.s) r.st=["no leader, stays"];
     return r;
   });
 }
-function renderLine(o){
-  const P=planLine(o);
-  const cnt=d=>SPOTS.filter(x=>x[o.lpart]).filter(x=>reach(x[o.lpart],LINES[o.ln],d,o.ext).ok).length, have=SPOTS.filter(x=>x[o.lpart]).length;
-  const L=LINES[o.ln],isV=Math.abs(L.b[0]-L.a[0])<1e-6,isH=Math.abs(L.b[1]-L.a[1])<1e-6;
-  const msg=(d,name,block)=>block?`${name}: <b style="color:var(--bad)">not possible</b> (line is ${d==="v"?"vertical":"horizontal"})`:`${name}: <b style="color:var(--accent)">possible</b> for ${cnt(d)} of ${have}`;
-  $("chk").innerHTML=msg("v","Vertical",isV)+" · "+msg("h","Horizontal",isH);
-  $("ld-v").disabled=isV; $("ld-h").disabled=isH;
-  document.querySelectorAll(".cEnd,.cBend").forEach(c=>c.hidden=true); document.querySelectorAll(".cStat").forEach(c=>c.hidden=false);
-  $("th1").textContent="Move X"; $("th2").textContent="Move Y";
-  const key=o.lpart;
-  $("rows").innerHTML=P.map(m=>{const d=key==="s"?m.sd:m.ed;
-    return `<tr class="${m.moves?"":"stay"}"><td>${m.x.id}</td><td class="n">${f(d[0])}</td><td class="n">${f(d[1])}</td><td class="cStat">${m.st}</td></tr>`;}).join("");
-  const n=P.filter(m=>m.moves).length;
-  $("sum").textContent=n?`${n} of 5 spots change: ${key==="e"?"leader end points":"bend points"} moved onto the detail line.`:"Nothing can move with these settings.";
-  const w=[]; const sk=P.filter(m=>m.st.startsWith("skipped")).length; if(sk) w.push(`${sk} spot(s) skipped (see Result).`);
-  const nl=SPOTS.filter(x=>!x[key]).length; if(nl) w.push(`${nl} spot(s) have no ${key==="e"?"leader":"bend point"}; they stay.`);
-  if(P.some(m=>m.lim)) w.push("(*) With a bend, Revit only lets the end slide along the bend-to-end segment. Choose the bend point to move those further.");
-  $("warn").textContent=w.join(" ");
-  $("apply").disabled=n===0;
-  drawLine(P,o);
+function lineBox(k,o){
+  const L=LINES[k][pick[k]], has=SPOTS.filter(x=>x[k]).length;
+  $("nm-"+k).innerHTML=L?`Detail line · ${L.n} · ${lenMm(L)} mm`:"Not picked: these points stay";
+  $("cl-"+k).hidden=!L; $("dr-"+k).hidden=!L;
+  if(!L){$("chk-"+k).textContent="";return;}
+  const isV=Math.abs(L.b[0]-L.a[0])<1e-6,isH=Math.abs(L.b[1]-L.a[1])<1e-6;
+  $(`ld-${k}-v`).disabled=isV; $(`ld-${k}-h`).disabled=isH;
+  if((isV&&$(`ld-${k}-v`).checked)||(isH&&$(`ld-${k}-h`).checked)) $(`ld-${k}-a`).checked=true;
+  const cnt=d=>SPOTS.filter(x=>x[k]).filter(x=>reach(x[k],L,d,o.ext).ok).length;
+  const msg=(d,name,block)=>block?`${name}: <b style="color:var(--bad)">not possible</b> (line is ${d==="v"?"vertical":"horizontal"})`
+    :`${name}: <b style="color:var(--accent)">possible</b> for ${cnt(d)} of ${has}`;
+  $("chk-"+k).innerHTML=msg("v","Vertical",isV)+" · "+msg("h","Horizontal",isH);
 }
-function drawLine(P,o){
-  const H=120,Y=y=>H-y,L=LINES[o.ln],add=(a,d)=>[a[0]+d[0],a[1]+d[1]];
+function renderLine(o){
+  o.lds=val("ld-s"); o.lde=val("ld-e");
+  lineBox("s",o); lineBox("e",o);
+  const P=planLine(o);
+  document.querySelectorAll(".cTx").forEach(c=>c.hidden=true);
+  document.querySelectorAll(".cEnd,.cBend,.cStat").forEach(c=>c.hidden=false);
+  $("rows").innerHTML=P.map(m=>`<tr class="${m.moves?"":"stay"}"><td>${m.x.id}</td>`+
+    `<td class="n cEnd">${m.x.e?pair(m.ed)+(m.lim?" *":""):"no leader"}</td><td class="n cBend">${m.x.s?pair(m.sd):"no bend"}</td>`+
+    `<td class="cStat">${m.st.join(" · ")}</td></tr>`).join("");
+  const n=P.filter(m=>m.moves).length, any=pick.e||pick.s;
+  const parts=[pick.s&&"bend points",pick.e&&"end points"].filter(Boolean).join(" and ");
+  $("sum").textContent=!any?"Pick at least one detail line: for the end points, the bend points, or both."
+    :n?`${n} of 5 spots change: ${parts} moved onto their detail line.`:"Nothing can move with these settings.";
+  const w=[], sk=P.filter(m=>m.st.some(t=>t.includes("skipped"))).length;
+  if(sk) w.push(`${sk} spot(s) have a part skipped (see Result).`);
+  if(P.some(m=>m.lim)) w.push("(*) With a bend, Revit only lets the end slide along the bend-to-end segment. Pick a bend point line too to move those further.");
+  $("warn").textContent=w.join(" ");
+  $("apply").disabled=!any||n===0;
+  drawLine(P);
+}
+function drawLine(P){
+  const H=120,Y=y=>H-y,add=(a,d)=>[a[0]+d[0],a[1]+d[1]];
   let g=`<g stroke="var(--line)" stroke-width=".2">`;
   for(let i=10;i<160;i+=10) g+=`<line x1="${i}" y1="0" x2="${i}" y2="${H}"/>`;
   for(let i=10;i<H;i+=10) g+=`<line x1="0" y1="${i}" x2="160" y2="${i}"/>`;
   g+="</g>";
-  let ln=`<line x1="${L.a[0]}" y1="${Y(L.a[1])}" x2="${L.b[0]}" y2="${Y(L.b[1])}" stroke="var(--warn)" stroke-width=".7"/>`+
-    `<text x="${L.b[0]-2}" y="${Y(L.b[1])-2}" font-size="3" text-anchor="end" fill="var(--warn)">detail line</text>`;
+  let ln="";
+  [["s","var(--bend)","bend point line"],["e","var(--end)","end point line"]].forEach(([k,c,t])=>{const L=LINES[k][pick[k]]; if(!L) return;
+    ln+=`<line x1="${L.a[0]}" y1="${Y(L.a[1])}" x2="${L.b[0]}" y2="${Y(L.b[1])}" stroke="${c}" stroke-width=".7" stroke-dasharray="3 1"/>`+
+      `<text x="${L.b[0]-1}" y="${Y(L.b[1])+4}" font-size="3" text-anchor="end" fill="${c}">${t}</text>`;});
   const spot=(x,s,e,t,ghost)=>{const c=ghost?"var(--ghost)":"var(--fg)";let h="";const pts=[x.p,s,e].filter(Boolean);
     if(pts.length>1) h+=`<polyline fill="none" stroke="${c}" stroke-width=".35" points="${pts.map(q=>q[0]+","+Y(q[1])).join(" ")}"/>`;
     h+=`<path d="M${x.p[0]-1.6},${Y(x.p[1])-2.6}h3.2l-1.6,2.6z" fill="${c}"/>`;
@@ -274,12 +318,16 @@ function drawLine(P,o){
     if(!showBefore) after+=spot(x,x.s&&add(x.s,m.sd),x.e&&add(x.e,m.ed),add(x.t,m.td),false);});
   $("svg").innerHTML=g+ln+before+after;
 }
+["e","s"].forEach(k=>{
+  $("pk-"+k).onclick=()=>{pick[k]=pick[k]%3+1;render();};
+  $("cl-"+k).onclick=()=>{pick[k]=0;render();};
+});
 
 function render(){
   const o=opts();
   $("moveBox").hidden=o.mode==="line"; $("lnOpts").hidden=o.mode!=="line";
   document.querySelectorAll(".cStat").forEach(c=>c.hidden=true);
-  $("th1").textContent="Text X"; $("th2").textContent="Text Y";
+  document.querySelectorAll(".cTx").forEach(c=>c.hidden=false);
   $("lineOpts").hidden=o.mode==="off"||o.mode==="line"; $("offOpts").hidden=o.mode!=="off";
   if(o.mode==="line"){renderLine(o);return;}
   $("posBox").hidden=o.mode!=="align";
