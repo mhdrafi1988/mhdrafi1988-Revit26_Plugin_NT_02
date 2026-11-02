@@ -19,16 +19,26 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.UI.Views
             DataContext = _viewModel;
             Title = ToolCatalog.AlignSpotElevations.Title;
             _viewModel.PropertyChanged += (_, __) => UpdateColumns();
+            _viewModel.PickRequested += OnPickRequested;
+            Closed += (_, __) => _viewModel.PickRequested -= OnPickRequested;
             UpdateColumns();
             SkippedText.Text = _viewModel.HasSkipped ? $"{_viewModel.Skipped.Count} skipped — click for details" : string.Empty;
         }
 
-        /// <summary>Shows the leader end and bend columns only while those parts are ticked.</summary>
+        /// <summary>
+        /// Shows the leader end and bend columns only while those parts are ticked. Align to detail lines
+        /// shows every column plus Result.
+        /// </summary>
         private void UpdateColumns()
         {
-            EndColumn.Visibility = _viewModel.MoveLeaderEnd || _viewModel.MoveLeaderShoulder ? Visibility.Visible : Visibility.Collapsed;
-            BendColumn.Visibility = _viewModel.MoveLeaderShoulder ? Visibility.Visible : Visibility.Collapsed;
+            bool lines = _viewModel.IsDetailLineMode;
+            EndColumn.Visibility = lines || _viewModel.MoveLeaderEnd || _viewModel.MoveLeaderShoulder ? Visibility.Visible : Visibility.Collapsed;
+            BendColumn.Visibility = lines || _viewModel.MoveLeaderShoulder ? Visibility.Visible : Visibility.Collapsed;
+            ResultColumn.Visibility = lines ? Visibility.Visible : Visibility.Collapsed;
         }
+
+        /// <summary>Closes the window (not Apply) so the command can let the user pick a detail line, then reopen it.</summary>
+        private void OnPickRequested(object sender, EventArgs e) => DialogResult = false;
 
         private void Apply_Click(object sender, RoutedEventArgs e) => DialogResult = true;
 
