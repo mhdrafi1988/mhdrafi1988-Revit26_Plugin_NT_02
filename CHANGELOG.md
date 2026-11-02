@@ -9,6 +9,30 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.29.0] — 2026-11-02
+
+### Added
+- **Align Spot Elevations v1.5.0 (V001)** — new **Align to detail lines** mode, and a new **Align to Detail Line**
+  button in the **Tagging** panel that opens the window in that mode.
+  - Pick up to three detail lines, each optional: one for the **bend points**, one for the **leader end points**
+    and one for the **text**. **Pick line…** hides the window until you click a straight detail line in the view;
+    **Clear** removes it. A part with no line stays where it is (the text still follows its end point, as in Revit).
+  - Each line has its own **Move** choice: **Auto** (whichever reaches the line, the shorter move when both do),
+    **Vertical** (X stays) or **Horizontal** (Y stays). Under each line the window says whether each direction is
+    possible and for how many spots; a direction that can never reach the line (a vertical line for a vertical
+    move, a horizontal line for a horizontal move) is greyed out.
+  - Bend points move first, then leader ends, then text. With a bend, Revit only lets the end slide along the
+    bend-to-end segment, so Auto prefers the direction the end can really reach; ends that still stop short are
+    marked * and counted.
+  - **Spots past the end of a line:** **Skip them** (default) or **Treat the line as endless**.
+  - New **Result** column in the preview: what happened to each part of each spot, and why a part was skipped.
+  - Select exactly one straight detail line together with the spots before starting, and the window opens in this
+    mode with that line set for the end points.
+
+### Changed
+- **User note:** settings files are now version 3 (new fields default to the old behaviour); version 1 and 2 files
+  still load. The other modes and the quick-align buttons work as before. Picked lines are not saved.
+
 ## [6.28.0] — 2026-11-02
 
 ### Added
