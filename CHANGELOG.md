@@ -9,6 +9,36 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.31.0] — 2026-11-02
+
+### Added
+- **Floor Slope** ribbon panel on the Modelling tab, next to **Roof Slope**, with two new tools:
+  - **Floor Slope By Drain v1.0.0 (V001)**: the floor version of Auto Slope By Drain (Multi-Roof) V013. Pick one
+    or more floors. Their drains are listed in one tab per floor, then each floor's shape points are sloped down to
+    the ticked drains in one Undo step. Two kinds of drain are found:
+    - openings in the floor sketch, as on roofs;
+    - **drain families**: Plumbing Fixture instances hosted on the floor or standing on its top face (within
+      300 mm). They are listed in a new **Fixture** group. Only fixtures whose family or type name looks like a
+      drain (drain, gully, outlet, trap, sump) start ticked. When the run starts, a shape point is added at each
+      ticked drain family.
+
+    Excel export, circle markers, path options and parameter write-back are the same as on the roof tool.
+  - **Floor Slope By Point v1.0.0 (V001)**: the floor version of Auto Slope By Point V033. Pick a floor, click the
+    drain points on it, and the floor is sloped down to them, with optional ridge lines.
+  - Both tools refuse floors that are in a group, borrowed by another user, in a read-only model, or that do not
+    support shape editing, and say why.
+
+### Changed
+- **User note:** if a floor's type has no **Variable** layer, both floor tools ask before sloping it. Shape editing
+  would tilt the whole slab, bottom included. Choose **Continue** to slope it anyway, or **Skip** (By Point:
+  **Cancel**) to leave it unchanged.
+- **User note:** the floor tools write the same `AutoSlope_*` shared parameters as the roof tools, but only where
+  they are bound to the **Floors** category. If they are not bound, the run log says so and the slope is still
+  applied. Settings are saved separately from the roof tools, under
+  `%AppData%\Revit26_Plugin_Revised\FloorSlopeByDrain` and `...\FloorSlopeByPoint`. Excel reports go to
+  `Documents\FloorSlope_Reports` by default.
+- The roof slope tools are unchanged.
+
 ## [6.30.1] — 2026-11-02
 
 ### Fixed
