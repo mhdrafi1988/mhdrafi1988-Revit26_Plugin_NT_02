@@ -9,6 +9,19 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.28.0] — 2026-11-02
+
+### Added
+- **Align Spot Elevations v1.4.0 (V001)** — four new small buttons in the **Tagging** panel, in two stacks next to
+  Quick Align Vertical / Horizontal:
+  - **Quick Align Ends Vertical** and **Quick Align Ends Horizontal**: line the leader end points up in one column or
+    row right away, without the window. The text moves with each end.
+  - **Quick Align Bends Vertical** and **Quick Align Bends Horizontal**: the same for the leader bend points
+    (shoulders). The end and text move with each bend.
+  - They use the line position and spacing last used in the window, give one Undo step, and say when fewer than two
+    selected spots have a leader (or a bend). A leader with a bend only lets its end slide along the bend-to-end
+    segment; the result dialog counts ends that stop short of the line.
+
 ## [6.27.0] — 2026-11-02
 
 ### Added
