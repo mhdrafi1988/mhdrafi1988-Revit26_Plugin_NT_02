@@ -9,13 +9,33 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
-## [6.29.1] — 2026-11-02
+## [6.30.1] — 2026-11-02
 
 ### Fixed
 - **View Auto Renamer 7.1.2 (V007)** — the window failed to open with "Add value to collection of type
   'UIElementCollection' threw an exception". A damaged comment in the window layout left stray text in the
   layout; it is repaired. The tool still opens with only the current sheet's views and loads the rest of the
   project when you click **Load all views**.
+
+## [6.30.0] — 2026-11-02
+
+### Added
+- **Worksets & Elements Browser v4.3.0 (WSEB004)**
+  - **Group by** drop-down in the toolbar: **Category › Type** (the old layout, still the default),
+    **Type › Category**, **Category only** or **Type only**. Changing it re-shapes the tree instantly; check
+    marks are cleared because the rows change.
+  - **Select** and **Show in 3D** buttons on Category rows as well as Type rows. They act on every element under
+    the row. **Select** sets the Revit selection directly, without opening a 3D view.
+  - Right-click a row ▸ **Check same category / type in all worksets**, and a new **Check Filtered** button that
+    checks every row matching the filter box.
+  - **Save as Selection Set…** saves all checked elements as a Revit selection set (it appears under
+    Manage ▸ Selection ▸ Edit/Load Selection Sets). You pick the name; if it already exists you are asked
+    whether to replace its contents. A name used by a view filter is refused.
+
+### Changed
+- **User note:** the "checked" counter now counts rows instead of types. The selection set is a new model
+  element, so in a workshared model it is created on your current active workset. Defaults are unchanged: with
+  no changes to Group by the tree looks and behaves as before.
 
 ## [6.29.0] — 2026-11-02
 
