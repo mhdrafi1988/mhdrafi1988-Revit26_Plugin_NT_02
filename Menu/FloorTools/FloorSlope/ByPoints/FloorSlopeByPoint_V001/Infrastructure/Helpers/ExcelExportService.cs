@@ -80,7 +80,7 @@ namespace Revit26_Plugin_Revised.FloorSlopeByPoint.V001.Infrastructure.Helpers
         /// <summary>Manual export to a chosen path. Returns an error message, or null on success.</summary>
         public static string ExportTo(string path, AutoSlopeResult result, Action<LogLevel, string> log)
         {
-            if (result == null) return "Run AutoSlope first.";
+            if (result == null) return "Run Floor Slope first.";
             if (!IsAvailable(log)) return "EPPlus.dll was not found next to the add-in.";
             try
             {

@@ -144,7 +144,7 @@ namespace Revit26_Plugin_Revised.FloorSlopeByDrain.V001.UI.ViewModels
 
         public string ToolTitle => "Floor Slope By Drain";
         public string VersionText => "v" + AutoSlopeDrainEngine.ToolVersion;
-        public string SubtitleText => "Revit 2026 · slopes each floor towards its selected drain openings";
+        public string SubtitleText => "Revit 2026 · slopes each floor towards its selected drains (openings and drain families)";
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(StateText))]
@@ -171,7 +171,7 @@ namespace Revit26_Plugin_Revised.FloorSlopeByDrain.V001.UI.ViewModels
         public string RunButtonText => State switch
         {
             DrainRunState.Running => "Running…",
-            DrainRunState.Ready => "Run AutoSlope",
+            DrainRunState.Ready => "Run Floor Slope",
             _ => "Run again"
         };
 

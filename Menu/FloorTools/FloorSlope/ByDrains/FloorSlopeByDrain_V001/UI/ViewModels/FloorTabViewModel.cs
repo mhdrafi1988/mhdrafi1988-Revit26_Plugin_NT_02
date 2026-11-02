@@ -144,7 +144,7 @@ namespace Revit26_Plugin_Revised.FloorSlopeByDrain.V001.UI.ViewModels
             FloorTabStatus.Skipped => "This floor was skipped (no drains checked).",
             FloorTabStatus.NoDrains => "No drains are checked on this floor, so it will not run.",
             FloorTabStatus.Done => "No rows.",
-            _ => "Run AutoSlope to see this floor's results."
+            _ => "Run Floor Slope to see this floor's results."
         };
 
         public FloorTabViewModel(FloorData floorData, int tabNumber)

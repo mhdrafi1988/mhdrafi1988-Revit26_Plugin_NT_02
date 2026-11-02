@@ -164,7 +164,7 @@ namespace Revit26_Plugin_Revised.FloorSlopeByPoint.V001.UI.ViewModels
         public string RunButtonText => State switch
         {
             RunState.Running => "Running…",
-            RunState.Ready or RunState.Picking => "Run AutoSlope",
+            RunState.Ready or RunState.Picking => "Run Floor Slope",
             RunState.Done => "Done · re-pick to run",
             _ => "Run again"
         };
@@ -650,7 +650,7 @@ namespace Revit26_Plugin_Revised.FloorSlopeByPoint.V001.UI.ViewModels
             RunState.Cancelled => "The run was cancelled, so there is nothing to show.",
             RunState.Failed => "The run failed, so there is nothing to show.",
             RunState.Done when IsSkippedTab => "No points were skipped.",
-            _ => IsLongestTab ? "Run AutoSlope to see the 10 longest drain paths." : "Skipped points appear here after a run."
+            _ => IsLongestTab ? "Run Floor Slope to see the 10 longest drain paths." : "Skipped points appear here after a run."
         };
 
         /// <summary>Set by the window from the active grid's selection.</summary>

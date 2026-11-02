@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Floor Slope windows</title>
+<!-- Static mock-up of the Floor Slope tools (plugin 6.31.0): the new ribbon panel, the
+     "no Variable layer" dialog, Floor Slope By Drain V001 and Floor Slope By Point V001.
+     Values are sample data (two floors picked, one without a Variable layer, drains = two
+     circular openings + drain families). The real windows are
+     Menu/FloorTools/FloorSlope/ByDrains/FloorSlopeByDrain_V001/UI/Views/FloorSlopeByDrainWindow.xaml and
+     Menu/FloorTools/FloorSlope/ByPoints/FloorSlopeByPoint_V001/UI/Views/FloorSlopeByPointWindow.xaml.
+     Colours are the Shared/SharedStyles.xaml v4.0 tokens. -->
+<style>
+:root{
+  --surface-window:#F3F5F7; --card:#FFFFFF; --border:#D6DCE3; --border-input:#B5C2CF;
+  --action:#1E3A5F; --navy-light:#2C4A6E; --text:#1A2B3C; --text2:#5B7185; --text3:#8FA3B8;
+  --text-disabled:#C3CFDB; --bg2:#ECEFF3; --bg3:#E1E6EC; --sep-thin:#E6EAEF;
+  --info:#1F5FBF; --info-soft:#E6EEFB; --warn:#9A5B00; --warn-soft:#FDF1E1; --warn-border:#E8B66B;
+  --ok:#1E7B4F; --ok-soft:#E3F4EA; --error:#B23A35;
+  --log-bg:#14283F; --log-text:#EAF1F8; --log-dim:#7E94AA; --log-ok:#4CC18A; --log-warn:#F0AE5C; --on-dark:#EAF1F8;
+  --new:#0E7C66; --new-soft:#E0F4EF;
+}
+*{box-sizing:border-box}
+body{margin:0;background:#E9EDF1;padding:16px;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--text);font-size:12.5px}
+h1{font-size:18px;margin:0 0 4px}
+h2{font-size:14px;margin:28px 0 8px;color:var(--action)}
+.note{color:var(--text2);font-size:12px;max-width:1180px;line-height:1.45;margin:0 0 6px}
+.tagnew{display:inline-block;background:var(--new-soft);color:var(--new);border-radius:10px;padding:1px 8px;font-size:10.5px;font-weight:700;margin-left:6px;vertical-align:1px}
+input[type=checkbox],input[type=radio]{accent-color:var(--action);width:14px;height:14px;margin:0 6px 0 0;vertical-align:-2px}
+
+/* ── Ribbon ── */
+.ribbon{width:1180px;background:#F7F8FA;border:1px solid var(--border-input)}
+.rtabs{display:flex;background:#1C2B3A;color:#C9D6E3;font-size:12px}
+.rtabs span{padding:6px 14px}
+.rtabs .on{background:#F7F8FA;color:var(--text);font-weight:600}
+.rpanels{display:flex;padding:6px 4px 0}
+.rpanel{display:flex;flex-direction:column;border-right:1px solid var(--border);padding:0 10px}
+.rpanel .items{display:flex;gap:6px;min-height:72px;align-items:flex-start}
+.rpanel .title{font-size:11px;color:var(--text2);text-align:center;padding:3px 0 4px;border-top:1px solid var(--sep-thin);margin-top:4px}
+.rpanel.new{background:var(--new-soft);outline:2px dashed var(--new);outline-offset:-2px;border-radius:3px}
+.rpanel.new .title{color:var(--new);font-weight:700}
+.stack{display:flex;flex-direction:column;gap:2px}
+.rbtn{display:flex;align-items:center;font-size:12px;padding:2px 6px;border-radius:2px;white-space:nowrap}
+.rbtn .ico{width:16px;height:16px;border-radius:3px;margin-right:6px;flex:none;display:inline-flex;align-items:center;justify-content:center;font-size:10px;color:#fff}
+.rbtn .dd{color:var(--text2);font-size:9px;margin-left:4px}
+.rbtn.hover{background:#DCE8F5;outline:1px solid #9DB9D8}
+.tooltip{position:relative;margin:6px 0 0 260px;width:430px;background:#fff;border:1px solid var(--border-input);box-shadow:0 2px 8px rgba(0,0,0,.15);padding:8px 10px;font-size:11.5px;line-height:1.45}
+.tooltip b{display:block;margin-bottom:3px}
+
+/* ── Dialog ── */
+.dialog{width:520px;background:#fff;border:1px solid var(--border-input);box-shadow:0 4px 16px rgba(0,0,0,.18)}
+.dialog .dt{height:30px;display:flex;align-items:center;justify-content:space-between;padding:0 10px;font-size:12px;border-bottom:1px solid var(--border)}
+.dialog .db{padding:14px 18px}
+.dialog .mi{font-size:15px;color:#1C4E9A;margin-bottom:10px}
+.dialog .mc{font-size:12px;line-height:1.5;color:var(--text)}
+.cmdlink{display:flex;align-items:flex-start;padding:8px 10px;margin-top:6px;border-radius:3px;border:1px solid transparent}
+.cmdlink:first-of-type{margin-top:14px}
+.cmdlink.hover{background:#EEF4FB;border-color:#C9DBF0}
+.cmdlink .arr{color:#1C4E9A;font-size:15px;margin-right:8px;line-height:1}
+.cmdlink .ct{font-size:14px;color:#1C4E9A}
+.cmdlink .cs{font-size:11.5px;color:var(--text2)}
+
+/* ── Window ── */
+.win{width:1180px;display:flex;flex-direction:column;background:var(--surface-window);border:1px solid var(--border-input)}
+.titlebar{height:32px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;background:#fff;border-bottom:1px solid var(--border);font-size:12px}
+.titlebar span:last-child{color:var(--text2);letter-spacing:14px}
+.header{background:var(--action);color:#fff;padding:12px 16px;display:flex;align-items:center}
+.header .t{font-size:18px;font-weight:600}.header .s{font-size:11.5px;color:#C9D6E3;margin-top:2px}
+.header .badges{margin-left:auto;display:flex;gap:6px}
+.hb{background:var(--navy-light);border-radius:10px;padding:3px 9px;font-size:11px;font-weight:600;color:var(--on-dark)}
+.hb.state{background:#2F6E4F}
+.metrics{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;padding:8px 12px 0}
+.tile{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:8px 10px}
+.tile .ml{font-size:10px;font-weight:700;letter-spacing:.4px;color:var(--info)}
+.tile .ml.ok{color:var(--ok)}.tile .ml.w{color:var(--warn)}.tile .ml.n{color:var(--text2)}
+.tile .mn{font-size:20px;font-weight:600;margin-top:2px}
+.tile .mh{font-size:10.5px;color:var(--text3)}
+.body{display:grid;grid-template-columns:300px 1fr;gap:8px;padding:8px 12px 0}
+.card{background:var(--card);border:1px solid var(--border);border-radius:4px}
+.sec{padding:10px 12px;margin-bottom:8px}
+.section{font-size:11.5px;font-weight:600;color:var(--action)}
+.cap{font-size:10px;font-weight:700;letter-spacing:.5px;color:var(--text3);margin:6px 2px 6px}
+.hint{font-size:10.5px;color:var(--text3);line-height:1.35}
+.l{font-size:11.5px;color:var(--text2);margin-bottom:3px}
+.combo{height:26px;border:1px solid var(--border-input);border-radius:2px;background:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 6px;font-size:13px}
+.combo:after{content:"▾";color:var(--text2);font-size:10px;margin-left:8px}
+.num{height:26px;border:1px solid var(--border-input);border-radius:2px;background:#fff;display:flex;align-items:center;padding:0 6px;font-size:13px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.warn{background:var(--warn-soft);border:1px solid var(--warn-border);border-radius:4px;padding:6px 8px;color:var(--warn);font-size:11px;line-height:1.4}
+.exp{display:flex;align-items:center;padding:9px 12px;margin-bottom:6px}
+.exp .chev{color:var(--text2);font-size:11px;margin-right:8px}
+.exp .sum{font-size:10.5px;color:var(--text3);margin-left:8px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.custom{background:var(--info-soft);color:var(--info);border-radius:10px;padding:1px 7px;font-size:10px;font-weight:600}
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--border);padding:0 8px}
+.tab{padding:6px 10px;font-size:11px;border:1px solid transparent;border-bottom:none;border-radius:4px 4px 0 0;display:flex;align-items:center;gap:6px;color:var(--text2)}
+.tab.on{background:#fff;border-color:var(--border);color:var(--text);margin-bottom:-1px;font-weight:600}
+.tpill{background:var(--bg2);border-radius:8px;padding:1px 6px;font-size:10px;font-weight:600;color:var(--action)}
+.tpill.w{background:var(--warn-soft);color:var(--warn)}
+.gridwrap{padding:8px 12px 10px}
+.ghead{display:flex;align-items:center;margin-bottom:6px}
+.ghead .r{margin-left:auto;display:flex;align-items:center;gap:3px}
+.sbtn{height:24px;padding:0 9px;font-size:11px;border:1px solid var(--border-input);border-radius:4px;background:#fff;color:var(--text);display:inline-flex;align-items:center}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{background:var(--bg2);color:var(--text2);font-weight:600;text-align:left;padding:5px 6px;border-bottom:1px solid var(--border);font-size:11.5px}
+td{padding:3px 6px;border-bottom:1px solid var(--sep-thin);height:26px}
+td.n{text-align:right;font-variant-numeric:tabular-nums}
+tr.grp td{background:#F7F9FB;font-weight:600;color:var(--action);font-size:11.5px;height:28px}
+tr.grp td .gb{float:right;font-weight:400}
+tr.grp.new td{background:var(--new-soft);color:var(--new)}
+tr.dim td{color:var(--text3)}
+.banner{margin-top:8px;background:var(--info-soft);color:var(--info);border-radius:4px;padding:5px 8px;font-size:11px}
+.log{background:var(--log-bg);border-radius:4px;padding:8px 12px;margin:8px 12px;font-family:Consolas,monospace;font-size:11.5px;color:var(--log-text)}
+.loghead{display:flex;align-items:center;font-family:'Segoe UI',system-ui,sans-serif;margin-bottom:4px}
+.loghead b{font-size:11.5px}
+.ghost{height:24px;padding:0 9px;border:1px solid var(--log-dim);border-radius:4px;color:var(--log-text);display:inline-flex;align-items:center;font-size:11px;margin-left:6px}
+.logline{margin-top:3px}.logline .tm{color:var(--log-dim);margin-right:8px}
+.footer{border-top:1px solid var(--border);padding:8px 12px;display:flex;align-items:center;background:#fff}
+.btn{height:30px;padding:0 12px;border-radius:4px;font-size:12.5px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--action);color:var(--action);background:#fff;margin-left:8px}
+.btn.run{background:var(--action);color:#fff;padding:0 16px;min-width:160px;font-weight:600}
+.pickrow{display:flex;align-items:center;gap:8px}
+.chip{background:var(--bg2);border-radius:10px;padding:3px 9px;font-size:11px;font-weight:600;color:var(--action)}
+.empty{color:var(--text3);font-size:11.5px;text-align:center;padding:30px 0}
+</style>
+</head>
+<body>
+
+<h1>Floor Slope tools <span class="tagnew">NEW in 6.31.0</span></h1>
+<p class="note">Floor versions of the roof slope tools: <b>Floor Slope By Drain V001</b> (from Auto Slope By Drain Multi-Roof V013)
+and <b>Floor Slope By Point V001</b> (from Auto Slope By Point V033). Same engine, layout and options as the roof tools; the floor-specific
+parts are marked in green. Sample data only.</p>
+
+<!-- ═══ 1. Ribbon ═══ -->
+<h2>1 · Ribbon: new “Floor Slope” panel next to Roof Slope</h2>
+<div class="ribbon">
+  <div class="rtabs"><span>File</span><span>Architecture</span><span>Structure</span><span>…</span><span class="on">SloperPro Modelling</span><span>SloperPro Documents</span></div>
+  <div class="rpanels">
+    <div class="rpanel">
+      <div class="items"><div class="stack">
+        <div class="rbtn"><span class="ico" style="background:#2E7D5B">●</span>By Point<span class="dd">▾</span></div>
+        <div class="rbtn"><span class="ico" style="background:#2563A8">◉</span>By Drain<span class="dd">▾</span></div>
+        <div class="rbtn"><span class="ico" style="background:#7A4FB5">✦</span>Points &amp; Slope<span class="dd">▾</span></div>
+      </div></div>
+      <div class="title">Roof Slope</div>
+    </div>
+    <div class="rpanel new">
+      <div class="items"><div class="stack">
+        <div class="rbtn hover"><span class="ico" style="background:#2563A8">◉</span>By Drain</div>
+        <div class="rbtn"><span class="ico" style="background:#2E7D5B">●</span>By Point</div>
+      </div></div>
+      <div class="title">Floor Slope</div>
+    </div>
+    <div class="rpanel">
+      <div class="items"><div class="stack">
+        <div class="rbtn"><span class="ico" style="background:#5B7185">▦</span>Inner Loops<span class="dd">▾</span></div>
+        <div class="rbtn"><span class="ico" style="background:#5B7185">◠</span>Outer Curve<span class="dd">▾</span></div>
+        <div class="rbtn"><span class="ico" style="background:#5B7185">✕</span>Line Intersect<span class="dd">▾</span></div>
+      </div></div>
+      <div class="title">Shape Points</div>
+    </div>
+    <div class="rpanel" style="border-right:none;color:var(--text3);justify-content:center;padding:0 16px">… Roof Tools · Roof Edit · Plan View · Compare · Insulation · Utilities</div>
+  </div>
+</div>
+<div class="tooltip">
+  <b>Floor Slope By Drain — v1.0.0 (build V001)</b>
+  Pick one or more floors and slope each one's shape points down to its drains: openings in the floor sketch and drain
+  families (Plumbing Fixtures) on the floor. Asks before sloping a floor whose type has no Variable layer. One Undo.
+</div>
+
+<!-- ═══ 2. Dialog ═══ -->
+<h2>2 · Asked for each floor whose type has no Variable layer</h2>
+<p class="note">Shown by both tools before anything changes. By Drain: <b>Skip this floor</b> leaves it out of the run. By Point: the second choice reads <b>Cancel</b>.
+Closing the dialog counts as Skip.</p>
+<div class="dialog">
+  <div class="dt"><span>Floor Slope By Drain</span><span style="color:var(--text2)">✕</span></div>
+  <div class="db">
+    <div class="mi">This floor type has no Variable layer</div>
+    <div class="mc">Floor: Podium Slab 300mm (Id 412377)<br>Type: Podium Slab 300mm<br><br>
+      Without a Variable layer, shape editing tilts the whole slab: its bottom follows the slope as well as its top.<br><br>
+      To slope only the top, tick 'Variable' on a layer of the floor type, then run again.</div>
+    <div class="cmdlink hover"><span class="arr">➜</span><div><div class="ct">Continue</div><div class="cs">Slope the whole slab.</div></div></div>
+    <div class="cmdlink"><span class="arr">➜</span><div><div class="ct">Skip this floor</div><div class="cs">Leave this floor unchanged.</div></div></div>
+  </div>
+</div>
+
+<!-- ═══ 3. By Drain window ═══ -->
+<h2>3 · Floor Slope By Drain V001: two floors picked, ready to run</h2>
+<div class="win">
+  <div class="titlebar"><span>Floor Slope By Drain — v1.0.0</span><span>—□✕</span></div>
+  <div class="header">
+    <div><div class="t">Floor Slope By Drain</div><div class="s">Revit 2026 · slopes each floor towards its selected drains (openings and drain families)</div></div>
+    <div class="badges"><span class="hb state">Ready</span><span class="hb">2 floors</span><span class="hb">Level 1 – Plan</span></div>
+  </div>
+
+  <div class="metrics">
+    <div class="tile"><div class="ml">DRAINS SELECTED</div><div class="mn">7</div><div class="mh">across 2 floors</div></div>
+    <div class="tile"><div class="ml ok">PROCESSED</div><div class="mn">—</div></div>
+    <div class="tile"><div class="ml w">SKIPPED</div><div class="mn">—</div></div>
+    <div class="tile"><div class="ml">HIGHEST ELEVATION</div><div class="mn">—</div></div>
+    <div class="tile"><div class="ml">LONGEST PATH</div><div class="mn">—</div></div>
+    <div class="tile"><div class="ml n">RUN TIME</div><div class="mn">—</div><div class="mh">not run yet</div></div>
+  </div>
+
+  <div class="body">
+    <!-- LEFT -->
+    <div>
+      <div class="card sec">
+        <div class="section">Every run · all floors</div>
+        <div class="two" style="margin-top:8px">
+          <div><div class="l">Slope (%)</div><div class="combo">1.5</div></div>
+          <div><div class="l">Max path distance (m)</div><div class="num">40</div><div class="hint" style="margin-top:2px">Longer paths stay at 0.</div></div>
+        </div>
+        <div class="warn" style="margin-top:10px">⚠ Run first resets every shape point on each floor to 0. Picking floors no longer changes them, so closing without running leaves them as they were. Ctrl+Z undoes the whole run in one step.</div>
+      </div>
+      <div class="cap">OPTIONS · SET ONCE, KEPT BETWEEN SESSIONS</div>
+      <div class="card exp"><span class="chev">▸</span><span class="section">Path &amp; curves</span><span class="sum">Max edge 30 m · 10 samples · read-back on</span></div>
+      <div class="card exp"><span class="chev">▸</span><span class="section">Circle markers</span><span class="sum">Drains · Highest point</span><span class="custom">Custom</span></div>
+      <div class="card exp"><span class="chev">▸</span><span class="section">Export &amp; parameters</span><span class="sum">Documents\FloorSlope_Reports</span></div>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="card" style="margin-bottom:0">
+      <div style="padding:8px 12px 0" class="section">Detected drains</div>
+      <div class="tabs" style="margin-top:6px">
+        <div class="tab on">Floor 1 — Generic 200mm - Variable<span class="tpill">5 selected</span></div>
+        <div class="tab">Floor 2 — Podium Slab 300mm<span class="tpill w">no Variable layer</span></div>
+      </div>
+      <div class="gridwrap">
+        <div class="ghead">
+          <span class="hint">Floor: Generic 200mm - Variable (Id 412355) · Level 1 · +0 mm</span>
+          <div class="r"><span class="l" style="margin:0 4px 0 0">Size</span><span class="combo" style="width:120px;height:24px;font-size:11.5px">All</span>
+            <span class="sbtn" style="margin-left:6px">Select all</span><span class="sbtn">None</span><span class="sbtn">Invert</span></div>
+        </div>
+        <table>
+          <tr><th style="width:30px">✓</th><th style="width:76px">Shape</th><th>Size / family</th><th style="width:64px">⌀ (mm)</th><th style="width:66px">X (m)</th><th style="width:66px">Y (m)</th></tr>
+          <tr class="grp"><td colspan="6">Circle (2)<span class="gb"><span class="sbtn">All</span> <span class="sbtn">None</span></span></td></tr>
+          <tr><td><input type="checkbox" checked></td><td>Circle</td><td>100 x 100 mm</td><td class="n">100</td><td class="n">12.40</td><td class="n">8.15</td></tr>
+          <tr><td><input type="checkbox" checked></td><td>Circle</td><td>100 x 100 mm</td><td class="n">100</td><td class="n">27.85</td><td class="n">8.15</td></tr>
+          <tr class="grp"><td colspan="6">Rectangle (1)<span class="gb"><span class="sbtn">All</span> <span class="sbtn">None</span></span></td></tr>
+          <tr class="dim"><td><input type="checkbox"></td><td>Rectangle</td><td>1200 x 800 mm</td><td class="n"></td><td class="n">20.10</td><td class="n">14.60</td></tr>
+          <tr class="grp new"><td colspan="6">Fixture (3) &nbsp;<span class="tagnew" style="margin:0">drain families · new for floors</span><span class="gb"><span class="sbtn">All</span> <span class="sbtn">None</span></span></td></tr>
+          <tr><td><input type="checkbox" checked></td><td>Fixture</td><td>Floor Drain - Round : 150mm</td><td class="n"></td><td class="n">6.20</td><td class="n">3.05</td></tr>
+          <tr><td><input type="checkbox" checked></td><td>Fixture</td><td>Shower Gully : Linear 600</td><td class="n"></td><td class="n">33.70</td><td class="n">3.40</td></tr>
+          <tr class="dim"><td><input type="checkbox"></td><td>Fixture</td><td>WC - Floor Mounted : Standard</td><td class="n"></td><td class="n">31.05</td><td class="n">5.90</td></tr>
+        </table>
+        <div class="banner">Default selection: 2 circle(s) with ⌀ 90–110 mm (of 2 circle(s) detected). Drain families are ticked when the name looks like a drain (drain, gully, outlet, trap, sump).</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="log">
+    <div class="loghead"><b>Processing log</b><span style="margin-left:auto"></span><span class="ghost">All</span><span class="ghost">Warnings</span><span class="ghost">Errors</span><span class="ghost">Copy all</span><span class="ghost">Save log…</span><span class="ghost">Clear</span></div>
+    <div class="logline" style="color:var(--log-warn)"><span class="tm">[10:42:03]</span>Skipped floor Lift Pit Slab (Id 412390): it is in a group (ungroup it first).</div>
+    <div class="logline" style="color:var(--log-warn)"><span class="tm">[10:42:05]</span>Floor Podium Slab 300mm (Id 412377): its type has no Variable layer, so the whole slab will follow the slope.</div>
+    <div class="logline"><span class="tm">[10:42:05]</span>Drain families: 3 plumbing fixture(s) on floor Generic 200mm - Variable (Id 412355), 2 ticked because the name looks like a drain.</div>
+    <div class="logline"><span class="tm">[10:42:05]</span>Drain families: 1 plumbing fixture(s) on floor Podium Slab 300mm (Id 412377), 1 ticked because the name looks like a drain.</div>
+  </div>
+
+  <div class="footer">
+    <span class="btn" style="margin-left:0">Open export folder</span>
+    <span style="flex:1"></span>
+    <span class="btn run">Run Floor Slope</span>
+    <span class="btn" style="width:90px">Close</span>
+  </div>
+</div>
+
+<!-- ═══ 4. By Point window ═══ -->
+<h2>4 · Floor Slope By Point V001: one floor, three drain points picked</h2>
+<div class="win">
+  <div class="titlebar"><span>Floor Slope By Point — v1.0.0</span><span>—□✕</span></div>
+  <div class="header">
+    <div><div class="t">Floor Slope By Point</div><div class="s">Floor · Generic 200mm - Variable (Id 412355) · Level 1 · +0 mm</div></div>
+    <div class="badges"><span class="hb state">Ready</span><span class="hb">Level 1 – Plan</span></div>
+  </div>
+
+  <div class="metrics">
+    <div class="tile"><div class="ml ok">PROCESSED</div><div class="mn">—</div></div>
+    <div class="tile"><div class="ml w">SKIPPED</div><div class="mn">—</div></div>
+    <div class="tile"><div class="ml">DRAINS PICKED → USED</div><div class="mn">3 → —</div></div>
+    <div class="tile"><div class="ml">HIGHEST ELEVATION</div><div class="mn">—</div></div>
+    <div class="tile"><div class="ml">LONGEST PATH</div><div class="mn">—</div></div>
+    <div class="tile"><div class="ml n">RUN TIME</div><div class="mn">—</div><div class="mh">not run yet</div></div>
+  </div>
+
+  <div class="body">
+    <div>
+      <div class="card sec">
+        <div class="section">Every run</div>
+        <div class="pickrow" style="margin-top:8px"><span class="l" style="margin:0;width:70px">Drains</span><span class="chip">3 picked</span><span class="sbtn" style="margin-left:auto">Re-pick</span></div>
+        <div class="two" style="margin-top:8px">
+          <div><div class="l">Slope (%)</div><div class="combo">1.5</div></div>
+          <div><div class="l">Drainage Distance (m)</div><div class="num">40</div></div>
+        </div>
+        <div class="hint" style="margin-top:3px">Points further from every drain stay at 0.</div>
+        <div class="warn" style="margin-top:10px">⚠ Run resets every existing shape-point elevation on this floor. Ctrl+Z undoes the whole run in one step.</div>
+      </div>
+      <div class="cap">OPTIONS · SET ONCE, KEPT BETWEEN SESSIONS</div>
+      <div class="card exp"><span class="chev">▸</span><span class="section">Drain options</span><span class="sum">Add a point at each pick</span></div>
+      <div class="card exp"><span class="chev">▸</span><span class="section">Path &amp; curves</span><span class="sum">Max link = drainage distance</span></div>
+      <div class="card exp"><span class="chev">▸</span><span class="section">Circle markers</span><span class="sum">Drains · Highest point</span></div>
+      <div class="card exp"><span class="chev">▸</span><span class="section">Ridge lines</span><span class="sum">On · Medium Lines</span><span class="custom">Custom</span></div>
+      <div class="card exp"><span class="chev">▸</span><span class="section">Export &amp; parameters</span><span class="sum">Documents\FloorSlope_Reports</span></div>
+    </div>
+    <div class="card">
+      <div class="gridwrap">
+        <div class="ghead"><span class="section">Results</span>
+          <div class="r"><span class="sbtn" style="background:var(--bg2);font-weight:600">Longest 10</span><span class="sbtn">Skipped (0)</span></div></div>
+        <table>
+          <tr><th style="width:40px">#</th><th>PathLength_m</th><th>ElevModel_mm</th><th>1 % (mm)</th><th>1.5 % (mm)</th><th>2 % (mm)</th></tr>
+        </table>
+        <div class="empty">Run Floor Slope to see the 10 longest drain paths.</div>
+        <div style="display:flex;justify-content:flex-end;gap:4px"><span class="sbtn">Copy rows</span><span class="sbtn">Zoom to</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="log">
+    <div class="loghead"><b>Processing log</b><span style="margin-left:auto"></span><span class="ghost">All</span><span class="ghost">Warnings</span><span class="ghost">Errors</span><span class="ghost">Copy all</span><span class="ghost">Save log…</span><span class="ghost">Clear</span></div>
+    <div class="logline"><span class="tm">[10:51:12]</span>Floor read: 3 drain point(s) picked on Generic 200mm - Variable (Id 412355).</div>
+  </div>
+
+  <div class="footer">
+    <span class="btn" style="margin-left:0">Export results…</span>
+    <span style="flex:1"></span>
+    <span class="btn run">Run Floor Slope</span>
+    <span class="btn" style="width:90px">Close</span>
+  </div>
+</div>
+
+</body>
+</html>
