@@ -9,6 +9,14 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.30.1] — 2026-11-02
+
+### Fixed
+- **View Auto Renamer 7.1.2 (V007)** — the window failed to open with "Add value to collection of type
+  'UIElementCollection' threw an exception". A damaged comment in the window layout left stray text in the
+  layout; it is repaired. The tool still opens with only the current sheet's views and loads the rest of the
+  project when you click **Load all views**.
+
 ## [6.30.0] — 2026-11-02
 
 ### Added
