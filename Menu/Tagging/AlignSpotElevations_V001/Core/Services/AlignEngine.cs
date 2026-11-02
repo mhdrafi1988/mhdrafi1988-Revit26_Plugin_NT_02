@@ -137,6 +137,7 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Core.Services
         {
             if (items == null) throw new ArgumentNullException(nameof(items));
             if (options == null) throw new ArgumentNullException(nameof(options));
+            if (options.Mode == ArrangeMode.AlignToDetailLines) return PlanDetailLines(items, options);
             var plan = new ArrangePlan();
             if (items.Count == 0) return plan;
 
@@ -307,6 +308,225 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Core.Services
             double max = items.Max(i => direction == AlignDirection.Vertical ? i.HeightMm : i.WidthMm);
             if (max <= 0) return null;
             return Math.Ceiling((max + GapClearanceMm) * 2) / 2;
+        }
+
+        // ── Align to detail lines ───────────────────────────────────────────
+
+        /// <summary>
+        /// Slides the point (<paramref name="u"/>, <paramref name="v"/>) onto <paramref name="line"/>:
+        /// vertically (U stays) or horizontally (V stays). Returns false with a reason when it cannot: the
+        /// line runs the same way as the move, or (unless <paramref name="extend"/>) the move would land past
+        /// an end of the line.
+        /// </summary>
+        public static bool TryReach(double u, double v, DetailLine2D line, AlignDirection direction, bool extend,
+            out double toU, out double toV, out string why)
+        {
+            toU = u; toV = v; why = null;
+            if (line == null) { why = "no line"; return false; }
+            double du = line.BU - line.AU, dv = line.BV - line.AV;
+            double t;
+            if (direction == AlignDirection.Vertical)
+            {
+                if (line.IsVertical) { why = "line is vertical"; return false; }
+                t = (u - line.AU) / du;
+            }
+            else
+            {
+                if (line.IsHorizontal) { why = "line is horizontal"; return false; }
+                t = (v - line.AV) / dv;
+            }
+            // Ends count as on the line within a hair (0.01 mm of paper).
+            double slack = line.Length > 0 ? 0.01 / line.Length : 0;
+            if (!extend && (t < -slack || t > 1 + slack)) { why = "past the line end"; return false; }
+            if (direction == AlignDirection.Vertical) toV = line.AV + t * dv;
+            else toU = line.AU + t * du;
+            return true;
+        }
+
+        /// <summary>
+        /// How many of <paramref name="items"/> have <paramref name="part"/> and can slide it onto
+        /// <paramref name="line"/> in <paramref name="direction"/>, from where it is now. Used for the
+        /// "possible for N of M" check in the window.
+        /// </summary>
+        public static int CountReachable(IReadOnlyList<SpotItem> items, SpotPart part, DetailLine2D line,
+            AlignDirection direction, bool extend)
+        {
+            if (items == null || line == null) return 0;
+            int n = 0;
+            foreach (SpotItem it in items)
+            {
+                if (!Has(it, part)) continue;
+                PartPos(it, part, out double u, out double v);
+                if (TryReach(u, v, line, direction, extend, out _, out _, out _)) n++;
+            }
+            return n;
+        }
+
+        /// <summary>True when the spot has <paramref name="part"/> (text always; end needs a leader; bend needs a bend).</summary>
+        public static bool Has(SpotItem item, SpotPart part)
+            => part == SpotPart.Text || (part == SpotPart.LeaderEnd ? item.HasEnd : item.HasShoulder);
+
+        private static void PartPos(SpotItem it, SpotPart part, out double u, out double v)
+        {
+            u = part == SpotPart.LeaderEnd ? it.EndU : part == SpotPart.LeaderShoulder ? it.ShoulderU : it.U;
+            v = part == SpotPart.LeaderEnd ? it.EndV : part == SpotPart.LeaderShoulder ? it.ShoulderV : it.V;
+        }
+
+        /// <summary>Picks the move for a free point: the asked direction, or for Auto the shorter one that reaches.</summary>
+        private static (bool Ok, AlignDirection Dir, double U, double V, string Why) Choose(double u, double v,
+            DetailLine2D line, LineMove move, bool extend)
+        {
+            var tries = new List<(bool Ok, AlignDirection Dir, double U, double V, string Why)>();
+            foreach (AlignDirection d in Directions(move))
+            {
+                bool ok = TryReach(u, v, line, d, extend, out double tu, out double tv, out string why);
+                tries.Add((ok, d, tu, tv, why));
+            }
+            var best = tries.Where(x => x.Ok).OrderBy(x => Dist(u, v, x.U, x.V)).ToList();
+            return best.Count > 0 ? best[0] : tries[0];
+        }
+
+        private static IEnumerable<AlignDirection> Directions(LineMove move)
+        {
+            if (move != LineMove.Horizontal) yield return AlignDirection.Vertical;
+            if (move != LineMove.Vertical) yield return AlignDirection.Horizontal;
+        }
+
+        private static double Dist(double u0, double v0, double u1, double v1)
+            => Math.Sqrt((u1 - u0) * (u1 - u0) + (v1 - v0) * (v1 - v0));
+
+        private static string Word(AlignDirection d) => d == AlignDirection.Vertical ? "vertically" : "horizontally";
+
+        /// <summary>
+        /// Plans Align to detail lines. Per spot, in the order Revit needs: the bend point slides onto the
+        /// bend line; the leader end (which has followed the bend) slides onto the end line, but with a bend
+        /// it can only move along the bend-to-end segment, so Auto prefers a direction it can really reach
+        /// and the end may stop short (<see cref="PlannedMove.EndLimited"/>); the text (which has followed
+        /// the end) slides onto the text line. A part without a line stays, or follows as in Revit. A part
+        /// that cannot reach its line is skipped and noted in <see cref="PlannedMove.LineResult"/>.
+        /// </summary>
+        public static ArrangePlan PlanDetailLines(IReadOnlyList<SpotItem> items, AlignOptions options)
+        {
+            if (items == null) throw new ArgumentNullException(nameof(items));
+            if (options == null) throw new ArgumentNullException(nameof(options));
+            var plan = new ArrangePlan();
+            if (items.Count == 0) return plan;
+            bool ext = options.ExtendLines;
+
+            var finalU = new double[items.Count];
+            var finalV = new double[items.Count];
+            for (int i = 0; i < items.Count; i++)
+            {
+                SpotItem it = items[i];
+                var m = new PlannedMove { Item = it };
+                var notes = new List<string>();
+
+                // Bend point.
+                double sdU = 0, sdV = 0;
+                if (options.ShoulderLine != null)
+                {
+                    if (!it.HasShoulder) notes.Add("bend: none");
+                    else
+                    {
+                        var c = Choose(it.ShoulderU, it.ShoulderV, options.ShoulderLine, options.ShoulderLineMove, ext);
+                        if (!c.Ok) { notes.Add("bend: skipped, " + c.Why); m.LineSkipped = true; }
+                        else
+                        {
+                            sdU = c.U - it.ShoulderU; sdV = c.V - it.ShoulderV;
+                            notes.Add(Dist(0, 0, sdU, sdV) > 1e-6 ? "bend: moved " + Word(c.Dir) : "bend: on line");
+                        }
+                    }
+                }
+
+                // Leader end: follows the bend, then slides onto its own line.
+                double edU = it.HasEnd ? sdU : 0, edV = it.HasEnd ? sdV : 0;
+                bool setsEnd = false;
+                if (options.EndLine != null)
+                {
+                    if (!it.HasEnd) notes.Add("end: no leader");
+                    else
+                    {
+                        double qU = it.EndU + sdU, qV = it.EndV + sdV;
+                        var best = (Ok: false, Dir: AlignDirection.Vertical, U: 0.0, V: 0.0, Lim: false, Why: (string)null);
+                        double bestDist = double.MaxValue;
+                        foreach (AlignDirection d in Directions(options.EndLineMove))
+                        {
+                            if (!TryReach(qU, qV, options.EndLine, d, ext, out double tu, out double tv, out string why))
+                            {
+                                if (best.Why == null && !best.Ok) best.Why = why;
+                                continue;
+                            }
+                            bool lim = false;
+                            if (it.HasShoulder)
+                            {
+                                double du = it.EndU - it.ShoulderU, dv = it.EndV - it.ShoulderV;
+                                double len = Math.Sqrt(du * du + dv * dv);
+                                double su = it.ShoulderU + sdU, sv = it.ShoulderV + sdV;
+                                double pu = qU, pv = qV;
+                                if (len >= 1e-9)
+                                {
+                                    du /= len; dv /= len;
+                                    double along = (tu - su) * du + (tv - sv) * dv;
+                                    pu = su + du * along; pv = sv + dv * along;
+                                }
+                                lim = Math.Abs(pu - tu) > ReachToleranceMm || Math.Abs(pv - tv) > ReachToleranceMm;
+                                tu = pu; tv = pv;
+                            }
+                            double dist = Dist(qU, qV, tu, tv);
+                            // Prefer a move that really reaches the line, then the shorter one.
+                            bool better = !best.Ok || (best.Lim && !lim) || (best.Lim == lim && dist < bestDist);
+                            if (better) { best = (true, d, tu, tv, lim, null); bestDist = dist; }
+                        }
+                        if (!best.Ok) { notes.Add("end: skipped, " + (best.Why ?? "cannot reach the line")); m.LineSkipped = true; }
+                        else
+                        {
+                            m.EndLimited = best.Lim;
+                            edU = best.U - it.EndU; edV = best.V - it.EndV;
+                            setsEnd = true;
+                            bool moved = bestDist > 1e-6;
+                            notes.Add(best.Lim
+                                ? (moved ? "end: moved " + Word(best.Dir) + ", stops short (*)" : "end: cannot slide onto the line (*)")
+                                : moved ? "end: moved " + Word(best.Dir) : "end: on line");
+                        }
+                    }
+                }
+
+                // Text: follows the end, then slides onto its own line.
+                double tdU = edU, tdV = edV;
+                bool setsText = false;
+                if (options.TextLine != null)
+                {
+                    double qU = it.U + tdU, qV = it.V + tdV;
+                    var c = Choose(qU, qV, options.TextLine, options.TextLineMove, ext);
+                    if (!c.Ok) { notes.Add("text: skipped, " + c.Why); m.LineSkipped = true; }
+                    else
+                    {
+                        tdU = c.U - it.U; tdV = c.V - it.V;
+                        setsText = true;
+                        notes.Add(Dist(qU, qV, c.U, c.V) > 1e-6 ? "text: moved " + Word(c.Dir) : "text: on line");
+                    }
+                }
+
+                m.ShoulderDeltaU = Clean(sdU); m.ShoulderDeltaV = Clean(sdV);
+                m.EndDeltaU = Clean(edU); m.EndDeltaV = Clean(edV);
+                m.DeltaU = Clean(tdU); m.DeltaV = Clean(tdV);
+                m.SetsShoulder = options.ShoulderLine != null && it.HasShoulder && (m.ShoulderDeltaU != 0 || m.ShoulderDeltaV != 0);
+                m.SetsEnd = setsEnd && (m.EndDeltaU != 0 || m.EndDeltaV != 0);
+                m.SetsText = setsText && (m.DeltaU != 0 || m.DeltaV != 0);
+                m.LineResult = notes.Count > 0 ? string.Join(" · ", notes) : "stays";
+                plan.Entries.Add(m);
+                finalU[i] = it.U + m.DeltaU;
+                finalV[i] = it.V + m.DeltaV;
+            }
+
+            if (options.EndLine != null) plan.MissingEndCount = items.Count(i => !i.HasEnd);
+            if (options.ShoulderLine != null) plan.MissingShoulderCount = items.Count(i => !i.HasShoulder);
+            bool[] overlaps = FindOverlaps(items, finalU, finalV);
+            for (int i = 0; i < items.Count; i++) plan.Entries[i].Overlaps = overlaps[i];
+            plan.OverlapCount = overlaps.Count(o => o);
+            plan.EndLimitedCount = plan.Entries.Count(e => e.EndLimited);
+            plan.LineSkippedCount = plan.Entries.Count(e => e.LineSkipped);
+            return plan;
         }
 
         private static double Size(double mm) => mm > 0 ? mm : UnknownSizeMm;

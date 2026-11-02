@@ -9,7 +9,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
     {
         private const string Icons = "Revit26_Plugin_Revised.Resources.Icons.Tagging.";
 
-        /// <summary>Creates the Tagging panel on <paramref name="tabName"/> with the Tag To Text and Align Spot Elevations buttons (plus the six quick-align buttons).</summary>
+        /// <summary>Creates the Tagging panel on <paramref name="tabName"/> with the Tag To Text, Align Spot Elevations and Align to Detail Line buttons (plus the six quick-align buttons).</summary>
         public static void Build(UIControlledApplication app, string tabName, string assemblyPath)
         {
             RibbonPanel panel = app.CreateRibbonPanel(tabName, "Tagging");
@@ -33,9 +33,24 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                 ToolTip = ToolCatalog.AlignSpotElevations.Tip(
                     "Lines up the tags of the selected spot elevations in one column or one row (average, most common, " +
                     "median, min / max or a reference tag), spaces them evenly or at a fixed gap, or places each tag " +
-                    "at the same offset from its point. Can also align the leader end and bend points. Distances are paper mm.")
+                    "at the same offset from its point, or slides them onto picked detail lines. Can also align the leader " +
+                    "end and bend points. Distances are paper mm.")
             };
             panel.AddItem(align);
+
+            var alignToLine = new PushButtonData("Btn_AlignSpotElevations_ToDetailLine_V001", "Align to\nDetail Line", assemblyPath,
+                "Revit26_Plugin_Revised.AlignSpotElevations.V001.Commands.AlignSpotElevationsToDetailLineCommand")
+            {
+                Image = ImageUtils.Load(Icons + "AlignSpotElevationsDetailLine_16.png"),
+                LargeImage = ImageUtils.Load(Icons + "AlignSpotElevationsDetailLine_32.png"),
+                ToolTip = ToolCatalog.AlignSpotElevations.Tip(
+                    "Slides the selected spot elevations onto detail lines you pick: one optional line for the bend points, " +
+                    "one for the leader end points and one for the text. Checks for each line whether a vertical or " +
+                    "horizontal move can reach it and does what is possible; spots past the end of a line are skipped " +
+                    "unless you choose to extend it. Select one detail line with the spots to use it for the end points. " +
+                    "One Undo step.")
+            };
+            panel.AddItem(alignToLine);
 
             // Quick align: same tool, no window, last-used options. Stacked small buttons, not a dropdown
             // (dropdowns are only for grouping different tools).

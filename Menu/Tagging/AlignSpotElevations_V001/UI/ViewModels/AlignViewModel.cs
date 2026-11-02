@@ -35,6 +35,9 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.UI.ViewModels
 
         /// <summary>True when the tag would overlap another selected tag (estimated).</summary>
         public bool Overlaps { get; set; }
+
+        /// <summary>What happened to each part (Align to detail lines only).</summary>
+        public string Result { get; set; }
     }
 
     /// <summary>Options, live preview and result of the Align Spot Elevations window.</summary>
@@ -57,8 +60,68 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.UI.ViewModels
             if (_o.Mode == ArrangeMode.DistributeOnly && _o.Distribute == DistributeMode.None) _o.Distribute = DistributeMode.Even;
             _reference = items.FirstOrDefault();
             FitGapCommand = new RelayCommand(FitGap, () => SuggestedGapMm.HasValue);
+            BendLine = new LinePickViewModel(SpotPart.LeaderShoulder, "Bend point line · optional",
+                () => _o.ShoulderLineMove, m => _o.ShoulderLineMove = m, RequestPick, Refresh);
+            EndLine = new LinePickViewModel(SpotPart.LeaderEnd, "End point line · optional",
+                () => _o.EndLineMove, m => _o.EndLineMove = m, RequestPick, Refresh);
+            TextLine = new LinePickViewModel(SpotPart.Text, "Text line · optional",
+                () => _o.TextLineMove, m => _o.TextLineMove = m, RequestPick, Refresh);
             Refresh();
         }
+
+        // ── Align to detail lines ───────────────────────────────────────────
+
+        /// <summary>Detail line for the leader bend points.</summary>
+        public LinePickViewModel BendLine { get; }
+
+        /// <summary>Detail line for the leader end points.</summary>
+        public LinePickViewModel EndLine { get; }
+
+        /// <summary>Detail line for the text.</summary>
+        public LinePickViewModel TextLine { get; }
+
+        /// <summary>
+        /// The part whose line the user asked to pick, or null. The window closes when this is set; the
+        /// command then lets the user pick a detail line, calls <see cref="SetPickedLine"/> and shows the
+        /// window again.
+        /// </summary>
+        public SpotPart? PendingPick { get; private set; }
+
+        /// <summary>Raised when the user clicks Pick line…; the window closes itself.</summary>
+        public event EventHandler PickRequested;
+
+        private void RequestPick(SpotPart part)
+        {
+            PendingPick = part;
+            PickRequested?.Invoke(this, EventArgs.Empty);
+        }
+
+        /// <summary>Stores the line picked for <see cref="PendingPick"/> (null keeps the old one) and clears the request.</summary>
+        public void SetPickedLine(DetailLine2D line)
+        {
+            SpotPart? part = PendingPick;
+            PendingPick = null;
+            if (line == null || !part.HasValue) return;
+            LineFor(part.Value).Line = line;
+        }
+
+        /// <summary>Puts <paramref name="line"/> on the box for <paramref name="part"/> (e.g. a detail line selected before the command).</summary>
+        public void SetLine(SpotPart part, DetailLine2D line) => LineFor(part).Line = line;
+
+        private LinePickViewModel LineFor(SpotPart part)
+            => part == SpotPart.Text ? TextLine : part == SpotPart.LeaderEnd ? EndLine : BendLine;
+
+        /// <summary>Radio: Align to detail lines.</summary>
+        public bool IsDetailLineMode { get => _o.Mode == ArrangeMode.AlignToDetailLines; set { if (value) SetMode(ArrangeMode.AlignToDetailLines); } }
+
+        /// <summary>True when the Move checkboxes apply (every mode except Align to detail lines).</summary>
+        public bool ShowsMoveParts => _o.Mode != ArrangeMode.AlignToDetailLines;
+
+        /// <summary>Radio: skip parts whose move would land past an end of their line (default).</summary>
+        public bool IsSkipPastEnd { get => !_o.ExtendLines; set { if (value) Set(() => _o.ExtendLines = false); } }
+
+        /// <summary>Radio: treat the detail lines as endless.</summary>
+        public bool IsExtendLines { get => _o.ExtendLines; set { if (value) Set(() => _o.ExtendLines = true); } }
 
         /// <summary>Sets a fixed gap that keeps the tags apart (tag height for a column, width for a row, + 1 mm).</summary>
         public IRelayCommand FitGapCommand { get; }
@@ -104,7 +167,15 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.UI.ViewModels
         /// <summary>A copy of the current options, for saving and applying.</summary>
         public AlignOptions Options
         {
-            get { var c = _o.Clone(); c.ReferenceId = _reference?.Id; return c; }
+            get
+            {
+                var c = _o.Clone();
+                c.ReferenceId = _reference?.Id;
+                c.ShoulderLine = BendLine?.Line;
+                c.EndLine = EndLine?.Line;
+                c.TextLine = TextLine?.Line;
+                return c;
+            }
         }
 
         // ── Mode ────────────────────────────────────────────────────────────
@@ -119,7 +190,7 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.UI.ViewModels
         public bool IsOffsetMode { get => _o.Mode == ArrangeMode.OffsetFromPoint; set { if (value) SetMode(ArrangeMode.OffsetFromPoint); } }
 
         /// <summary>True when direction and spacing options apply.</summary>
-        public bool UsesLine => _o.Mode != ArrangeMode.OffsetFromPoint;
+        public bool UsesLine => _o.Mode == ArrangeMode.AlignToLine || _o.Mode == ArrangeMode.DistributeOnly;
 
         /// <summary>True when "Keep spacing" can be chosen (not in Distribute only).</summary>
         public bool CanKeepSpacing => _o.Mode == ArrangeMode.AlignToLine;
@@ -258,6 +329,7 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.UI.ViewModels
         private void RaiseAll()
         {
             OnPropertyChanged(string.Empty); // every binding re-reads; the options are small
+            BendLine?.RaiseAll(); EndLine?.RaiseAll(); TextLine?.RaiseAll();
             Refresh();
         }
 
@@ -267,6 +339,8 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.UI.ViewModels
             Plan = new ArrangePlan();
             Warning = string.Empty;
             if (_items.Count < 2) { Summary = "Select at least two spot elevations."; CanApply = false; return; }
+            if (BendLine == null) return; // still constructing
+            if (_o.Mode == ArrangeMode.AlignToDetailLines) { RefreshDetailLines(); return; }
             if (!_o.MovesAnything) { Summary = "Tick at least one part to move: text, leader end or bend point."; CanApply = false; return; }
 
             Plan = AlignEngine.Plan(_items, Options);
@@ -313,6 +387,63 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.UI.ViewModels
             if (Plan.OverlapCount > 0)
                 warn.Add($"{Plan.OverlapCount} tags would overlap (red rows, estimated from the text size). " +
                          "Choose even spacing or a fixed gap; Fit picks a gap that clears the tags.");
+            Warning = string.Join(" ", warn);
+            CanApply = n > 0;
+        }
+
+        /// <summary>Preview, summary and checks for Align to detail lines.</summary>
+        private void RefreshDetailLines()
+        {
+            AlignOptions o = Options;
+            foreach (LinePickViewModel box in new[] { BendLine, EndLine, TextLine })
+            {
+                int have = _items.Count(i => AlignEngine.Has(i, box.Part));
+                box.SetCounts(have,
+                    AlignEngine.CountReachable(_items, box.Part, box.Line, AlignDirection.Vertical, o.ExtendLines),
+                    AlignEngine.CountReachable(_items, box.Part, box.Line, AlignDirection.Horizontal, o.ExtendLines));
+            }
+            if (!o.HasAnyDetailLine)
+            {
+                Summary = "Pick at least one detail line: for the bend points, the end points or the text.";
+                CanApply = false;
+                return;
+            }
+
+            Plan = AlignEngine.Plan(_items, o);
+            foreach (PlannedMove m in Plan.Entries)
+            {
+                Rows.Add(new PreviewRow
+                {
+                    Label = m.Item.Label,
+                    MoveX = Fmt(m.DeltaU),
+                    MoveY = Fmt(m.DeltaV),
+                    EndMove = m.Item.HasEnd ? Pair(m.EndDeltaU, m.EndDeltaV) + (m.EndLimited ? " *" : "") : "no leader",
+                    BendMove = m.Item.HasShoulder ? Pair(m.ShoulderDeltaU, m.ShoulderDeltaV) : "no bend",
+                    EndLimited = m.EndLimited,
+                    Stays = !m.Moves,
+                    Overlaps = m.Overlaps,
+                    Result = m.LineResult
+                });
+            }
+
+            var parts = new List<string>();
+            if (o.ShoulderLine != null) parts.Add("bend points");
+            if (o.EndLine != null) parts.Add("end points");
+            if (o.TextLine != null) parts.Add("text");
+            int n = Plan.MoveCount;
+            Summary = n > 0
+                ? $"{n} of {_items.Count} spots change: {string.Join(", ", parts)} moved onto their detail line."
+                : "Nothing can move with these settings.";
+
+            var warn = new List<string>();
+            if (Plan.LineSkippedCount > 0) warn.Add($"{Plan.LineSkippedCount} spot(s) have a part skipped (see Result).");
+            if (Plan.MissingEndCount > 0) warn.Add($"{Plan.MissingEndCount} spot(s) have no leader; their end point stays.");
+            if (Plan.MissingShoulderCount > 0) warn.Add($"{Plan.MissingShoulderCount} spot(s) have no bend point; theirs stays.");
+            if (Plan.EndLimitedCount > 0)
+                warn.Add($"{Plan.EndLimitedCount} leader end(s) (*) cannot reach the line: with a bend, Revit only lets the end " +
+                         "slide along the bend-to-end segment. Pick a bend point line too to move them further.");
+            if (Plan.OverlapCount > 0)
+                warn.Add($"{Plan.OverlapCount} tags would overlap (red rows, estimated from the text size).");
             Warning = string.Join(" ", warn);
             CanApply = n > 0;
         }

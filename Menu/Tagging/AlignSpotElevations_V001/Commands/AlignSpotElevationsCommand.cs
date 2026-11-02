@@ -1,6 +1,7 @@
 using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
+using Revit26_Plugin_Revised.AlignSpotElevations.V001.Core.Models;
 using Revit26_Plugin_Revised.AlignSpotElevations.V001.Infrastructure;
 using Revit26_Plugin_Revised.AlignSpotElevations.V001.UI.ViewModels;
 using Revit26_Plugin_Revised.AlignSpotElevations.V001.UI.Views;
@@ -28,13 +29,53 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Commands
             AlignContext ctx = AlignRunner.Prepare(commandData);
             if (ctx == null) return Result.Cancelled;
 
-            var vm = new AlignViewModel(ctx.Read.Items, ctx.Read.Skipped, ctx.Read.Scale, AlignSettingsStore.Load());
-            var window = new AlignWindow(vm);
-            new WindowInteropHelper(window) { Owner = commandData.Application.MainWindowHandle };
-            if (window.ShowDialog() != true) return Result.Cancelled;
-
-            AlignSettingsStore.Save(vm.Options);
-            return AlignRunner.Apply(ctx, vm.Plan, "arranged");
+            AlignOptions options = AlignSettingsStore.Load();
+            if (ctx.PreselectedLine != null) options.Mode = ArrangeMode.AlignToDetailLines;
+            if (StartInDetailLineMode) options.Mode = ArrangeMode.AlignToDetailLines;
+            var vm = new AlignViewModel(ctx.Read.Items, ctx.Read.Skipped, ctx.Read.Scale, options);
+            if (ctx.PreselectedLine != null) vm.SetLine(SpotPart.LeaderEnd, ctx.PreselectedLine);
+            return ShowLoop(commandData, ctx, vm);
         }
+
+        /// <summary>True for the Align to Detail Line button: the window opens in Align to detail lines.</summary>
+        protected virtual bool StartInDetailLineMode => false;
+
+        /// <summary>
+        /// Shows the window until Apply or Cancel. Pick line… closes it; the user then clicks a detail line
+        /// in the view (no model change happens meanwhile) and the window opens again with the same options.
+        /// </summary>
+        internal static Result ShowLoop(ExternalCommandData commandData, AlignContext ctx, AlignViewModel vm)
+        {
+            while (true)
+            {
+                var window = new AlignWindow(vm);
+                new WindowInteropHelper(window) { Owner = commandData.Application.MainWindowHandle };
+                bool applied = window.ShowDialog() == true;
+                if (vm.PendingPick.HasValue)
+                {
+                    vm.SetPickedLine(AlignRunner.PickDetailLine(ctx, vm.PendingPick.Value));
+                    continue;
+                }
+                if (!applied) return Result.Cancelled;
+
+                AlignSettingsStore.Save(vm.Options);
+                return AlignRunner.Apply(ctx, vm.Plan,
+                    vm.IsDetailLineMode ? "aligned to the detail lines" : "arranged");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Align to Detail Line: opens Align Spot Elevations in the Align to detail lines mode. Pick a line for
+    /// the bend points, one for the leader end points and / or one for the text; each part slides onto its
+    /// line vertically or horizontally where that is possible. A detail line selected with the spots is used
+    /// for the end points.
+    /// </summary>
+    [Transaction(TransactionMode.Manual)]
+    [Regeneration(RegenerationOption.Manual)]
+    public class AlignSpotElevationsToDetailLineCommand : AlignSpotElevationsCommand
+    {
+        /// <inheritdoc/>
+        protected override bool StartInDetailLineMode => true;
     }
 }

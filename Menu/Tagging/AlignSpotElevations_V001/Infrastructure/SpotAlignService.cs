@@ -35,6 +35,39 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Infrastructure
             => e is SpotDimension && e.Category != null
                && e.Category.Id.Value == (long)BuiltInCategory.OST_SpotElevations;
 
+        /// <summary>True when <paramref name="e"/> is a straight detail line drawn in <paramref name="view"/>.</summary>
+        public static bool IsStraightDetailLine(Element e, View view)
+        {
+            try
+            {
+                return e is DetailCurve dc && dc.GeometryCurve is Line && dc.GeometryCurve.IsBound
+                       && (view == null || dc.OwnerViewId == view.Id);
+            }
+            catch { return false; }
+        }
+
+        /// <summary>
+        /// Reads a straight detail line as paper mm in the view's axes, or null when <paramref name="e"/> is
+        /// not one (or is too short to use).
+        /// </summary>
+        public static DetailLine2D ReadDetailLine(Element e, View view, int scale)
+        {
+            if (!IsStraightDetailLine(e, view)) return null;
+            Curve c = ((DetailCurve)e).GeometryCurve;
+            XYZ a = c.GetEndPoint(0), b = c.GetEndPoint(1);
+            XYZ right = view.RightDirection, up = view.UpDirection;
+            double toPaper = MmPerFoot / Math.Max(1, scale);
+            var line = new DetailLine2D
+            {
+                Id = e.Id.Value,
+                AU = a.DotProduct(right) * toPaper,
+                AV = a.DotProduct(up) * toPaper,
+                BU = b.DotProduct(right) * toPaper,
+                BV = b.DotProduct(up) * toPaper
+            };
+            return line.Length < 0.01 ? null : line; // seen end-on (e.g. in a section): unusable
+        }
+
         /// <summary>
         /// Reads the tag positions of <paramref name="ids"/> in <paramref name="view"/>. Anything that is not a
         /// spot elevation of this view, is pinned, grouped, or owned by another user is skipped with a reason.

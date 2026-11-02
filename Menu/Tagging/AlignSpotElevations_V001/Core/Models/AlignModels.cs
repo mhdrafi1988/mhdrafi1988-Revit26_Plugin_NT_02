@@ -22,7 +22,72 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Core.Models
         DistributeOnly,
 
         /// <summary>Place every tag the same distance from its own measured point.</summary>
-        OffsetFromPoint
+        OffsetFromPoint,
+
+        /// <summary>Slide the bend points, leader ends and / or text vertically or horizontally onto a picked
+        /// detail line (one optional line per part).</summary>
+        AlignToDetailLines
+    }
+
+    /// <summary>How a part slides onto its detail line.</summary>
+    public enum LineMove
+    {
+        /// <summary>Vertical or horizontal, whichever reaches the line (the shorter move when both do).</summary>
+        Auto,
+
+        /// <summary>Up or down: the part's X stays.</summary>
+        Vertical,
+
+        /// <summary>Left or right: the part's Y stays.</summary>
+        Horizontal
+    }
+
+    /// <summary>
+    /// A straight detail line in paper mm, in the view's axes (U = right, V = up), from A to B.
+    /// </summary>
+    public sealed class DetailLine2D
+    {
+        /// <summary>Element id value of the detail line (0 when not from Revit).</summary>
+        public long Id { get; set; }
+
+        /// <summary>Start, along the view's right direction (paper mm).</summary>
+        public double AU { get; set; }
+
+        /// <summary>Start, along the view's up direction (paper mm).</summary>
+        public double AV { get; set; }
+
+        /// <summary>End, along the view's right direction (paper mm).</summary>
+        public double BU { get; set; }
+
+        /// <summary>End, along the view's up direction (paper mm).</summary>
+        public double BV { get; set; }
+
+        /// <summary>Length on paper, mm.</summary>
+        public double Length => System.Math.Sqrt((BU - AU) * (BU - AU) + (BV - AV) * (BV - AV));
+
+        /// <summary>A line closer than this to vertical / horizontal (as a share of its length) counts as exactly so.</summary>
+        public const double StraightTolerance = 1e-6;
+
+        /// <summary>True when the line runs straight up and down, so a vertical move can never reach it.</summary>
+        public bool IsVertical => System.Math.Abs(BU - AU) <= StraightTolerance * System.Math.Max(Length, 1e-9);
+
+        /// <summary>True when the line runs straight left to right, so a horizontal move can never reach it.</summary>
+        public bool IsHorizontal => System.Math.Abs(BV - AV) <= StraightTolerance * System.Math.Max(Length, 1e-9);
+
+        /// <summary>Short description, e.g. "sloped, 40° · 142 mm".</summary>
+        public string Describe()
+        {
+            string shape;
+            if (IsVertical) shape = "vertical";
+            else if (IsHorizontal) shape = "horizontal";
+            else
+            {
+                double deg = System.Math.Atan2(BV - AV, BU - AU) * 180 / System.Math.PI;
+                if (deg < 0) deg += 180;
+                shape = $"sloped, {deg:0}°";
+            }
+            return $"{shape} · {Length:0} mm";
+        }
     }
 
     /// <summary>How the common line position is chosen (Align to line).</summary>
@@ -129,7 +194,7 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Core.Models
     public sealed class AlignOptions
     {
         /// <summary>Settings file format version.</summary>
-        public const int CurrentVersion = 2;
+        public const int CurrentVersion = 3;
 
         /// <summary>Format version of the saved file.</summary>
         public int Version { get; set; } = CurrentVersion;
@@ -178,6 +243,35 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Core.Models
 
         /// <summary>Bend point offset above its point, paper mm (Offset from point).</summary>
         public double ShoulderOffsetYMm { get; set; } = 3.0;
+
+        /// <summary>How the text slides onto its detail line (Align to detail lines). Version 3.</summary>
+        public LineMove TextLineMove { get; set; } = LineMove.Auto;
+
+        /// <summary>How the leader ends slide onto their detail line (Align to detail lines). Version 3.</summary>
+        public LineMove EndLineMove { get; set; } = LineMove.Auto;
+
+        /// <summary>How the bend points slide onto their detail line (Align to detail lines). Version 3.</summary>
+        public LineMove ShoulderLineMove { get; set; } = LineMove.Auto;
+
+        /// <summary>Treat the detail lines as endless. Off (default): a part whose move would land past
+        /// an end of its line is skipped. Version 3.</summary>
+        public bool ExtendLines { get; set; }
+
+        /// <summary>Detail line for the text (Align to detail lines), or null. Not saved.</summary>
+        [System.Text.Json.Serialization.JsonIgnore]
+        public DetailLine2D TextLine { get; set; }
+
+        /// <summary>Detail line for the leader ends (Align to detail lines), or null. Not saved.</summary>
+        [System.Text.Json.Serialization.JsonIgnore]
+        public DetailLine2D EndLine { get; set; }
+
+        /// <summary>Detail line for the bend points (Align to detail lines), or null. Not saved.</summary>
+        [System.Text.Json.Serialization.JsonIgnore]
+        public DetailLine2D ShoulderLine { get; set; }
+
+        /// <summary>True when at least one detail line is picked.</summary>
+        [System.Text.Json.Serialization.JsonIgnore]
+        public bool HasAnyDetailLine => TextLine != null || EndLine != null || ShoulderLine != null;
 
         /// <summary>True when at least one part is chosen.</summary>
         [System.Text.Json.Serialization.JsonIgnore]
@@ -249,6 +343,13 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Core.Models
         /// <summary>True when this tag's box would overlap another selected tag after the move.</summary>
         public bool Overlaps { get; set; }
 
+        /// <summary>What happened to each part (Align to detail lines), e.g.
+        /// "bend: moved vertically · end: on line". Empty in the other modes.</summary>
+        public string LineResult { get; set; } = string.Empty;
+
+        /// <summary>True when a part of this spot could not reach its detail line and was skipped.</summary>
+        public bool LineSkipped { get; set; }
+
         /// <summary>True when the tag actually moves.</summary>
         public bool Moves => SetsText || SetsEnd || SetsShoulder;
     }
@@ -276,6 +377,9 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Core.Models
 
         /// <summary>Number of tags whose box would overlap another selected tag after the move.</summary>
         public int OverlapCount { get; set; }
+
+        /// <summary>Spots with at least one part that could not reach its detail line (Align to detail lines).</summary>
+        public int LineSkippedCount { get; set; }
 
         /// <summary>Number of tags that move.</summary>
         public int MoveCount

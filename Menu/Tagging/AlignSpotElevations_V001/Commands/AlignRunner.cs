@@ -15,6 +15,10 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Commands
         public Document Doc { get; set; }
         public View View { get; set; }
         public SpotReadResult Read { get; set; }
+        public UIDocument UiDoc { get; set; }
+
+        /// <summary>A straight detail line that was selected with the spots (exactly one), or null.</summary>
+        public DetailLine2D PreselectedLine { get; set; }
         public string Title => ToolCatalog.AlignSpotElevations.Title;
     }
 
@@ -25,6 +29,36 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Commands
         {
             public bool AllowElement(Element e) => SpotAlignService.IsSpotElevation(e);
             public bool AllowReference(Reference r, XYZ p) => false;
+        }
+
+        private sealed class DetailLineFilter : ISelectionFilter
+        {
+            private readonly View _view;
+            public DetailLineFilter(View view) { _view = view; }
+            public bool AllowElement(Element e) => SpotAlignService.IsStraightDetailLine(e, _view);
+            public bool AllowReference(Reference r, XYZ p) => false;
+        }
+
+        /// <summary>
+        /// Lets the user click one straight detail line in the active view for <paramref name="part"/>.
+        /// Returns null when the pick is cancelled (Esc) or the line cannot be used (a message says why).
+        /// </summary>
+        public static DetailLine2D PickDetailLine(AlignContext ctx, SpotPart part)
+        {
+            string what = part == SpotPart.Text ? "text" : part == SpotPart.LeaderEnd ? "leader end points" : "bend points";
+            try
+            {
+                Reference r = ctx.UiDoc.Selection.PickObject(ObjectType.Element, new DetailLineFilter(ctx.View),
+                    $"Click a straight detail line for the {what} (Esc keeps the current one)");
+                DetailLine2D line = SpotAlignService.ReadDetailLine(ctx.Doc.GetElement(r), ctx.View, ctx.Read.Scale);
+                if (line == null)
+                    TaskDialog.Show(ctx.Title, "That detail line is too short in this view to align to. Pick another one.");
+                return line;
+            }
+            catch (Autodesk.Revit.Exceptions.OperationCanceledException)
+            {
+                return null; // Esc: keep what was there
+            }
         }
 
         /// <summary>
@@ -45,8 +79,11 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Commands
 
             // Use the current selection if it holds spot elevations; otherwise ask for them.
             // Cancelling the pick throws OperationCanceledException, which ToolGuard turns into Cancelled.
-            List<ElementId> ids = uiDoc.Selection.GetElementIds()
+            ICollection<ElementId> selected = uiDoc.Selection.GetElementIds();
+            List<ElementId> ids = selected
                 .Where(id => SpotAlignService.IsSpotElevation(doc.GetElement(id))).ToList();
+            List<ElementId> lineIds = selected
+                .Where(id => SpotAlignService.IsStraightDetailLine(doc.GetElement(id), view)).ToList();
             if (ids.Count < 2)
             {
                 ids = uiDoc.Selection.PickObjects(ObjectType.Element, new SpotFilter(),
@@ -60,7 +97,10 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Commands
                 TaskDialog.Show(title, "Select at least two spot elevations that can be moved." + why);
                 return null;
             }
-            return new AlignContext { Doc = doc, View = view, Read = read };
+            // Exactly one straight detail line selected with the spots: offer it for Align to detail lines.
+            DetailLine2D preselected = lineIds.Count == 1
+                ? SpotAlignService.ReadDetailLine(doc.GetElement(lineIds[0]), view, read.Scale) : null;
+            return new AlignContext { Doc = doc, View = view, Read = read, UiDoc = uiDoc, PreselectedLine = preselected };
         }
 
         /// <summary>Applies <paramref name="plan"/> as one Undo step and reports the result.</summary>
