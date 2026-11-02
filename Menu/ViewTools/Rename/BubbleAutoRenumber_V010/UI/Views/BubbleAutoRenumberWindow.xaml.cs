@@ -3,10 +3,10 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Interop;
 using Autodesk.Revit.UI;
-using Revit26_Plugin_Revised.BubbleAutoRenumber.V009.UI.ViewModels;
+using Revit26_Plugin_Revised.BubbleAutoRenumber.V010.UI.ViewModels;
 using Revit26_Plugin_Revised.Shared.Models;
 
-namespace Revit26_Plugin_Revised.BubbleAutoRenumber.V009.UI.Views
+namespace Revit26_Plugin_Revised.BubbleAutoRenumber.V010.UI.Views
 {
     /// <summary>
     /// CHANGED in V009: the two log Copy handlers are gone — Copy All, Copy Selected

@@ -1,4 +1,4 @@
-namespace Revit26_Plugin_Revised.BubbleAutoRenumber.V009.Core.Models
+namespace Revit26_Plugin_Revised.BubbleAutoRenumber.V010.Core.Models
 {
     /// <summary>How detail numbers are written. <see cref="Numeric"/> is the pre-9.2 behaviour.</summary>
     public enum NumberingStyle

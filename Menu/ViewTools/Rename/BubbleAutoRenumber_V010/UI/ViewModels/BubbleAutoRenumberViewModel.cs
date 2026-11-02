@@ -6,14 +6,14 @@ using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Revit26_Plugin_Revised.BubbleAutoRenumber.V009.Core.Models;
-using Revit26_Plugin_Revised.BubbleAutoRenumber.V009.Core.Services;
-using Revit26_Plugin_Revised.BubbleAutoRenumber.V009.Infrastructure.ExternalEvents;
-using Revit26_Plugin_Revised.BubbleAutoRenumber.V009.Infrastructure.Helpers;
+using Revit26_Plugin_Revised.BubbleAutoRenumber.V010.Core.Models;
+using Revit26_Plugin_Revised.BubbleAutoRenumber.V010.Core.Services;
+using Revit26_Plugin_Revised.BubbleAutoRenumber.V010.Infrastructure.ExternalEvents;
+using Revit26_Plugin_Revised.BubbleAutoRenumber.V010.Infrastructure.Helpers;
 using Revit26_Plugin_Revised.Shared.Models;
 using Revit26_Plugin_Revised.Shared.ViewModels;
 
-namespace Revit26_Plugin_Revised.BubbleAutoRenumber.V009.UI.ViewModels
+namespace Revit26_Plugin_Revised.BubbleAutoRenumber.V010.UI.ViewModels
 {
     /// <summary>
     /// CHANGED in V009:
@@ -370,7 +370,7 @@ namespace Revit26_Plugin_Revised.BubbleAutoRenumber.V009.UI.ViewModels
     }
 }
 
-namespace Revit26_Plugin_Revised.BubbleAutoRenumber.V009.UI.ViewModels
+namespace Revit26_Plugin_Revised.BubbleAutoRenumber.V010.UI.ViewModels
 {
     /// <summary>A numbering style and its label for the style drop-down.</summary>
     public sealed class NumberingStyleItem

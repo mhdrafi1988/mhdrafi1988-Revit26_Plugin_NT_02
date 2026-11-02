@@ -20,13 +20,13 @@ Changes vs V008:
   - No inline colours: every brush is a SharedStyles token (Transparent aside).
 =======================================================
 -->
-<Window x:Class="Revit26_Plugin_Revised.BubbleAutoRenumber.V009.UI.Views.BubbleAutoRenumberWindow"
+<Window x:Class="Revit26_Plugin_Revised.BubbleAutoRenumber.V010.UI.Views.BubbleAutoRenumberWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:svc="clr-namespace:Revit26_Plugin_Revised.Shared.Services"
         xmlns:shell="clr-namespace:Revit26_Plugin_Revised.Shared.Controls"
         xmlns:converters="clr-namespace:Revit26_Plugin_Revised.Shared.Models"
-        Title="{Binding Source={x:Static svc:ToolCatalog.BubbleAutoRenumberV009}, Path=Title}"
+        Title="{Binding Source={x:Static svc:ToolCatalog.BubbleAutoRenumberV010}, Path=Title}"
         Width="660" Height="780"
         MinWidth="560" MinHeight="620"
         ResizeMode="CanResizeWithGrip"
@@ -49,7 +49,7 @@ Changes vs V008:
 
     <shell:ToolWindowShell Title="Bubble Auto Renumber"
                            Subtitle="Renumber detail bubbles on a sheet, top-left to bottom-right"
-                           Version="{Binding Source={x:Static svc:ToolCatalog.BubbleAutoRenumberV009}, Path=Version, StringFormat=v{0}}"
+                           Version="{Binding Source={x:Static svc:ToolCatalog.BubbleAutoRenumberV010}, Path=Version, StringFormat=v{0}}"
                            IsRunning="{Binding IsRunning}"
                            Progress="{Binding Progress}"
                            SummaryText="{Binding SummaryText}">

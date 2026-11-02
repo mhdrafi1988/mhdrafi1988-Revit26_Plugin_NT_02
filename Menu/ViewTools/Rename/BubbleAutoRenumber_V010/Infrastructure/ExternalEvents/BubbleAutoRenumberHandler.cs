@@ -1,12 +1,12 @@
 using System;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
-using Revit26_Plugin_Revised.BubbleAutoRenumber.V009.Core.Models;
-using Revit26_Plugin_Revised.BubbleAutoRenumber.V009.Core.Services;
-using Revit26_Plugin_Revised.BubbleAutoRenumber.V009.Infrastructure.Helpers;
+using Revit26_Plugin_Revised.BubbleAutoRenumber.V010.Core.Models;
+using Revit26_Plugin_Revised.BubbleAutoRenumber.V010.Core.Services;
+using Revit26_Plugin_Revised.BubbleAutoRenumber.V010.Infrastructure.Helpers;
 using Revit26_Plugin_Revised.Shared.Services;
 
-namespace Revit26_Plugin_Revised.BubbleAutoRenumber.V009.Infrastructure.ExternalEvents
+namespace Revit26_Plugin_Revised.BubbleAutoRenumber.V010.Infrastructure.ExternalEvents
 {
     /// <summary>
     /// Does the model mutation on Revit's API thread: re-reads the sheet, plans the
@@ -37,7 +37,7 @@ namespace Revit26_Plugin_Revised.BubbleAutoRenumber.V009.Infrastructure.External
         public void Execute(UIApplication app) =>
             ToolGuard.RunHandler(typeof(BubbleAutoRenumberHandler), app, Run);
 
-        public string GetName() => "Bubble Auto Renumber V009";
+        public string GetName() => "Bubble Auto Renumber V010";
 
         private void Run(UIApplication app)
         {

@@ -1,13 +1,13 @@
 using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
-using Revit26_Plugin_Revised.BubbleAutoRenumber.V009.UI.Views;
+using Revit26_Plugin_Revised.BubbleAutoRenumber.V010.UI.Views;
 using Revit26_Plugin_Revised.Shared.Services;
 
-namespace Revit26_Plugin_Revised.BubbleAutoRenumber.V009.Commands
+namespace Revit26_Plugin_Revised.BubbleAutoRenumber.V010.Commands
 {
     /// <summary>
-    /// Ribbon entry point for Bubble Auto Renumber V009. Thin by design — opens the
+    /// Ribbon entry point for Bubble Auto Renumber V010. Thin by design — opens the
     /// modeless window and nothing else; every decision lives in Core and every
     /// model change in Infrastructure/ExternalEvents (CLAUDE.md).
     ///

@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Revit26_Plugin_Revised.BubbleAutoRenumber.V009.Core.Models
+namespace Revit26_Plugin_Revised.BubbleAutoRenumber.V010.Core.Models
 {
     /// <summary>One view's place in the sequence: what it holds now, and what it will get.</summary>
     public class RenumberAssignment

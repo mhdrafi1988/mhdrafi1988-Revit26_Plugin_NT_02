@@ -9,6 +9,15 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [7.0.0] — 2026-11-02
+
+### Changed
+- **Bubble Auto Renumber v10.0.0 (V010)** — the tool previously labelled V009 is now **V010**: folder, namespace
+  (`BubbleAutoRenumber.V010`), ribbon button (`Btn_BubbleAutoRenumber_V010`, "Bubble Renumber V010") and window
+  version. Functionality is unchanged from 9.2.0 (numbering styles 1,2,3 / 01,02,03 / a,b,c / A,B,C).
+  User note: the dropdown now lists V010, V008, V007; the V009 entry is gone. Re-pin the V009 button if you had
+  it on your Quick Access Toolbar.
+
 ## [6.31.0] — 2026-11-02
 
 ### Added

@@ -1,6 +1,6 @@
 using Autodesk.Revit.UI;
 
-namespace Revit26_Plugin_Revised.BubbleAutoRenumber.V009.Infrastructure.ExternalEvents
+namespace Revit26_Plugin_Revised.BubbleAutoRenumber.V010.Infrastructure.ExternalEvents
 {
     /// <summary>
     /// Static holder for this tool's one handler and one ExternalEvent, created once
