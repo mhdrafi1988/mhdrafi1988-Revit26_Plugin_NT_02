@@ -1,100 +1,73 @@
 # Tool Versioning
 
-What a `_V0xx` folder suffix actually means in this repo, the states a
-version can be in, and how retirement actually works — reverse-engineered
-from the `.csproj` and ribbon files, since none of this is written down
-anywhere else. Folder/dependency layout is in `CLAUDE.md` and
-`Claude/ARCHITECTURE.md`; this file is specifically about the version
-lifecycle.
+What a tool's version means in this repo, the states a tool folder can be in, and how versions change and retire.
+Updated 2026-11-02 (plugin 6.31.0). The rules are in the root `CLAUDE.md` (Repository conventions, Documentation,
+Backward compatibility). This file explains them and the history behind them.
 
-## It's not semver, and it's not global
+## Three version numbers
 
-`V0xx` is a per-tool-lineage folder suffix (`AutoSlopeByDrain_V007` →
-`_V010`), unrelated to any assembly/NuGet version — there is no
-`AssemblyVersion` in this project at all (see `CLAUDE.md`). Numbering is
-**not consistently zero-padded**: the same family appears as both
-`RoofRidgeLines_V057_By_POints` (3-digit) and `RoofRidgeLines_V57`/`V56`/
-`V60` (bare) elsewhere. Don't assume you can sort folders lexicographically
-to find the newest — read the ribbon file's grouping/comments instead (see
-below), or the tooltip text, which is the one place version identity is
-guaranteed human-readable.
+| Number | Where | Example | Meaning |
+|---|---|---|---|
+| Plugin version | `<Version>` in `Revit26_Plugin_Revised.csproj` | `6.31.0` | The release. Semantic versioning, one CHANGELOG entry per release. |
+| Tool version | `Shared/Services/ToolCatalog.cs` | `Add("Floor Slope By Drain", "1.0.0", "V001", "Revit26_Plugin_Revised.FloorSlopeByDrain.V001")` | Each tool's own semantic version. The window title (`Name — vX.Y.Z`), the ribbon tooltip (`… (build V001)`) and error dialogs read it. |
+| Build tag | The folder / namespace suffix | `_V001`, `VA010`, `WSEB004`, `FX05`, `MultiCopies30` | Identifies the code lineage. It is the third `ToolCatalog` argument and is not a semantic version. |
 
-## A higher version is not always a replacement for a lower one
+`ToolCatalog.Find(type)` maps any class to its tool through the namespace prefix (the fourth argument). A tool that
+has no entry falls back to a hard-coded version, so **every tool, including each coexisting build, needs its own
+entry**.
 
-Several pulldowns deliberately keep **multiple coexisting implementations**
-side by side rather than one superseding chain. From
-`RoofToolsRibbon.cs`'s own comment on the "By Point" pulldown:
+Build tags are not consistently padded (`Btn_RoofRidgeLines_V69` and `V70` next to `_V013`), so don't sort folders
+by name to find the newest. Read the ribbon file: a pulldown lists its versions highest first.
 
-> Slope — By Point (3 coexisting implementations) and By Drain (2) each
-> collected under one pulldown button... Only versions whose source still
-> exists are listed here.
+## How a tool changes now
 
-`Btn_AutoSlopeByPoint_028`, `Btn_AutoSlopeByPointRidge_001`, and
-`Btn_AutoSlopeByPoint_MultiCopies28` all live in the same dropdown as
-genuinely different algorithms (base, ridge-aware, multi-copy), not three
-generations of the same one. Before assuming the highest `V0xx` is "the"
-current tool and the rest are dead weight, check whether the ribbon file
-groups them as alternates.
+Since plugin 3.10.0 (2026-10-19), **git is the version history**:
 
-## The states a version folder can actually be in
+- **Change the tool in place and bump its `ToolCatalog` version.** MAJOR is for a breaking change or removal,
+  MINOR for a new feature, PATCH for a fix. Bump the plugin version too, and add a CHANGELOG entry.
+- **Never copy a tool folder to make a new version** (`Tool_V005` next to `Tool_V004`), and never commit `.zip`
+  backups. The only `.zip` allowed is a shareable tool package made with `git archive` from `main`, in
+  `Installer/Output/ToolPackages/`.
+- **A new tool** gets its own folder at `_V001`, a new `ToolCatalog` entry and a new ribbon button. For example, the
+  floor versions of the roof slope tools in 6.31.0 are new tools (`FloorSlopeByDrain_V001`,
+  `FloorSlopeByPoint_V001`), not new versions of the roof tools.
+- **Every tool update** also updates the tool's HTML UI preview in `Claude/Previews/` and republishes it as a
+  claude.ai Artifact (root `CLAUDE.md`, UI previews).
 
-1. **Live** — its Command class is referenced by fully-qualified name in a
-   `Menu/00_Push_Button_Menu_items/Ribbon/*Ribbon.cs` file (or
-   `QuickAcces.cs`). This is a small minority: as of this writing, ~38
-   distinct Command classes are wired up against 225 `_V0xx`-suffixed
-   folders under `Menu/` — most version folders are not reachable from the UI.
-2. **Compiled but orphaned** — this is an SDK-style project, so every
-   `.cs` file under the project root is compiled by default unless
-   explicitly excluded. A folder with no ribbon reference still builds into
-   the assembly; it just has no button pointing at it. This is the state
-   most non-live version folders are actually in — "not live" does not
-   mean "not compiled." Check the `*Ribbon.cs` files, not the `.csproj`,
-   to know if a tool is reachable.
-3. **Explicitly retired** — excluded from the build entirely via a
-   `<Compile Remove="Menu\...\FolderName\**" />` block in
-   `Revit26_Plugin.csproj`. This is the actual mechanism used to kill off
-   abandoned early drafts (e.g. the repo's `CreasetoLines\Creaser_V01`
-   through `Creaser_V0302a` draft sequence is retired this way — a dozen-plus
-   `**` exclusions in a row). Source stays on disk for reference; it simply
-   never compiles.
-4. **Never entered the build** — a handful of folders contain only a `.zip`
-   with no extracted `.cs` source (see `Claude/RIBBON_AND_ICONS.md`'s
-   sibling note in `Ribbon_Code_Notes.md` §5). These aren't excluded from
-   anything — there's nothing for the compiler to see yet.
+Before 3.10.0, a behaviour change usually meant a new `_V0xx` folder, wired into the ribbon next to the old one so
+users could fall back. That is why many tools still have two or more coexisting folders (`AutoSlopeByPoint_V030`,
+`_V032`, `_V033`). They stay until they are retired as below.
 
-Individual stray files are also sometimes excluded the same way
-(`<Compile Remove="App-backup.cs" />`, a few one-off `.cs` files inside
-otherwise-live folders) — grep the `.csproj` for `Compile Remove` before
-assuming a `.cs` file you're editing is actually part of the build.
+## A higher build is not always a replacement
 
-## Retiring a version — how to do it consistent with the repo
+Some pulldowns hold genuinely different implementations, not generations of one tool. **Roof Slope ▸ By Point**
+lists V033, V032 and V030 (one lineage), plus **Ridge V003** (ridge-aware) and **Multi Copies 30** (multi-copy).
+Before assuming the highest build is "the" tool and the rest are dead weight, check whether the ribbon groups them
+as alternatives.
 
-Don't delete the folder. Either:
-- Leave it as compiled-but-orphaned (the default/most common outcome —
-  nothing extra to do once you stop referencing it from a `*Ribbon.cs`
-  file), or
-- If it doesn't compile, or you want it excluded outright, add a
-  `<Compile Remove="Menu\<path>\<FolderName>\**" />` line grouped with the
-  other exclusions in the `.csproj`.
+## States a tool folder can be in
 
-Informal in-repo signals for "don't touch, this is going away": a filename
-prefixed `Tobe deleted...` (seen once, already excluded via `Compile
-Remove`), and a `-backup` suffix on a file kept alongside the live one
-(`App-backup.cs`, also excluded).
+1. **Live:** a ribbon file references its command class by fully-qualified name. Look in
+   `Menu/00_Push_Button_Menu_items/Ribbon/*.cs`; there is no `QuickAcces.cs` any more.
+2. **Compiled, not on the ribbon:** this is an SDK-style project, so every `.cs` under the project root compiles
+   unless excluded. A folder with no ribbon reference still builds into the assembly, and other tools may use its
+   code. Check the ribbon files, not the `.csproj`, to know whether a tool is reachable.
+3. **Work in progress:** `Menu/RoofTools/WIP/` is excluded from the build (`<Compile Remove="Menu\RoofTools\WIP\**" />`
+   and the matching `EmbeddedResource` / `None` / `Page` removes). The only other excluded folder is `Tests/`.
+   Single excluded files are `IconLoader.cs` and `Resources/App.xaml(.cs)`.
+4. **Removed:** deleted with `git rm`, so history keeps it. Examples: the buttons whose source was missing (plugin
+   4.2.1), Roof From Detail Lines V008/V009, and 48 `.zip` backups (both 3.10.0).
 
-## When does a change warrant a new `_V0xx` folder vs. an in-place edit?
+## Retiring a version
 
-Not written down anywhere, but the pattern across git history and the audit
-is: bug fixes, error-handling hardening, and refactors that preserve
-behavior happen **in place** in the current version's files (e.g. the
-try/catch and structure fixes in `Claude/REVIT_PLUGIN_AUDIT.md` were applied
-to existing files, not new version folders). A **new folder** appears when
-the tool gains different behavior worth being able to fall back from — e.g.
-`AutoSlopeByDrain_V010`'s multi-roof support, called out in its own
-`Commands/AutoSlopeDrainCommand.cs` header as a deliberate, confirmed
-decision (`NEW (V008), per Rafi's confirmed multi-roof decision
-(2026-09-08)`). If a change is a confirmed, real behavior change rather than
-a fix, prefer a new version folder and update the ribbon wiring, matching
-this pattern — but treat this section as inferred convention, not a
-documented rule, and confirm with the maintainer if a specific case is
-ambiguous.
+The root `CLAUDE.md` says to **deprecate before deleting**: keep the old behaviour for one or two releases with a
+warning, then remove it. To retire a coexisting build:
+
+1. Remove its button from the pulldown, keeping the others highest first, and note it in the CHANGELOG with a user
+   note. Keyboard shortcuts on that button are lost.
+2. Search the repo for its namespace (`Revit26_Plugin_Revised.<Tool>.V<NNN>`) to make sure no other tool compiles
+   against it.
+3. `git rm` the folder, build with 0 errors, and keep its `ToolCatalog` entry if old logs still name it.
+
+Never change a released button's internal name, command class name or the add-in GUID (root `CLAUDE.md`, Backward
+compatibility 1).

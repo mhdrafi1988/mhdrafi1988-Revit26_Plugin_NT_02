@@ -16,8 +16,46 @@ Commit history before 2026-09-09 is terse/inconsistent ("Updated", "DOne",
 "V020") and isn't reliably summarizable — use `git log` directly for that
 period rather than trusting a reconstruction here.
 
+**The release log is the root `CHANGELOG.md`.** It has every plugin release
+and tool version, with user notes. This file is for engineering context only.
+No entries were added between 2026-10-17 and 2026-11-02; for that period
+(plugin 3.x to 6.30.x) read the root `CHANGELOG.md` and `git log`.
+
 ---
 
+
+## 2026-11-02 — Floor Slope tools, UI previews, docs refresh (plugin 6.31.0)
+
+- **New tools, not new versions:** Floor Slope By Drain V001 and Floor Slope By
+  Point V001 are copies of Auto Slope By Drain (Multi-Roof) V013 and Auto Slope
+  By Point V033, retargeted from `RoofBase` / `FootPrintRoof` to `Floor`. They
+  got their own folders under `Menu/FloorTools/FloorSlope/`, their own
+  `ToolCatalog` entries and their own settings folders. The roof tools are
+  untouched. A copy was chosen over a shared roof/floor engine so neither roof
+  tool's behaviour could change.
+- **Floor-only logic is shared** in `Shared/Services/FloorShapeEditChecks.cs`:
+  - shape-edit support, group, read-only and borrowed-by-another-user checks;
+  - the "no Variable layer" Continue / Skip dialog. It is asked each time, per
+    the owner's choice.
+- **Drain families:** By Drain also treats Plumbing Fixtures on the floor as
+  drains, per the owner's choice. Only names that look like drains start
+  ticked, so WCs and basins are listed but unused.
+- **Ribbon:** a new **Floor Slope** panel with two plain buttons, added after
+  Roof Slope by `FloorToolsRibbon.BuildSlopePanel`. It is its own panel at the
+  owner's request, despite the "add to an existing panel" guidance.
+- **Convention: UI previews.** The root `CLAUDE.md` now requires an HTML
+  preview (`Claude/Previews/<ToolFolder>_Window.html`) for every tool update,
+  published as a claude.ai Artifact. Its link goes in the file header comment
+  and the PR description.
+- **Docs refresh:** this folder's `CLAUDE.md`, `ARCHITECTURE.md`,
+  `RIBBON_AND_ICONS.md`, `TOOL_VERSIONING.md` and `UI_UX_PATTERNS.md` were
+  rewritten against the current code. Corrections:
+  - namespaces are now `Revit26_Plugin_Revised`;
+  - there are two ribbon tabs, and no `QuickAcces.cs`;
+  - 12 test projects exist;
+  - most `Core/` folders do use the Revit API;
+  - tools change in place since 3.10.0;
+  - the full current panel layout is recorded.
 
 ## 2026-10-17 — Manage / Links
 

@@ -35,7 +35,9 @@ done until it builds with 0 errors. Running it still needs Revit on Windows.
   `FullClassName` as the one the `Installer/Output/*.iss` scripts write). Keep them in sync.
 - **Ribbon** files are in `Menu/00_Push_Button_Menu_items/Ribbon`. One button runs one tool; use a
   dropdown only to group different tools. Labels show the tool name, never a version number.
-  Tooltips use `ToolCatalog.<Tool>.Tip(...)`.
+  Tooltips use `ToolCatalog.<Tool>.Tip(...)`. When a panel or button is added, moved or removed, update the
+  layout tables in `Claude/Revit26_Plugin_Md Files/Claude/RIBBON_AND_ICONS.md` and the Ribbon section of
+  `README.md` in the same change.
 - **Dropdown version order:** when a pulldown lists coexisting versions of the same tool (via
   `RibbonLayoutHelper.CreatePulldownButtonData` / `WirePulldownButton`), order them highest version
   number first, every older version below it in descending order — never "current version first".
