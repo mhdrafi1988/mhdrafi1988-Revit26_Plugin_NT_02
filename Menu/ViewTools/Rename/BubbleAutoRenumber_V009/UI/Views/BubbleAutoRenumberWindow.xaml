@@ -120,6 +120,17 @@ Changes vs V008:
                         <Border Style="{StaticResource SeparatorLine}"/>
 
                         <StackPanel Style="{StaticResource FieldRow}" Orientation="Horizontal">
+                            <TextBlock Text="Numbering Style" Style="{StaticResource FieldLabel}"
+                                       VerticalAlignment="Center" Width="130"/>
+                            <ComboBox ItemsSource="{Binding NumberingStyles}"
+                                      SelectedValuePath="Style" DisplayMemberPath="Label"
+                                      SelectedValue="{Binding SelectedStyle}"
+                                      Style="{StaticResource StandardComboBox}" MinWidth="140"/>
+                        </StackPanel>
+
+                        <Border Style="{StaticResource SeparatorLine}"/>
+
+                        <StackPanel Style="{StaticResource FieldRow}" Orientation="Horizontal">
                             <TextBlock Text="Starting Number" Style="{StaticResource FieldLabel}"
                                        VerticalAlignment="Center" Width="130"/>
                             <TextBox Text="{Binding StartingNumber, UpdateSourceTrigger=PropertyChanged}"

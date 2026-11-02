@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Revit26_Plugin_Revised.BubbleAutoRenumber.V009.Core.Models;
 
 namespace Revit26_Plugin_Revised.BubbleAutoRenumber.V009.Core.Services
 {
@@ -43,16 +44,18 @@ namespace Revit26_Plugin_Revised.BubbleAutoRenumber.V009.Core.Services
         /// <paramref name="reserved"/>. Every number returned is added to
         /// <paramref name="reserved"/>, so the caller's set stays the live picture.
         /// </summary>
-        public static List<string> Allocate(int count, int startNumber, HashSet<string> reserved)
+        public static List<string> Allocate(int count, int startNumber, HashSet<string> reserved,
+            NumberingStyle style = NumberingStyle.Numeric)
         {
             var allocated = new List<string>(count);
             HashSet<string> used = reserved ?? new HashSet<string>();
 
             int next = startNumber;
+            int pad = System.Math.Max(2, (startNumber + count).ToString().Length);
 
             for (int i = 0; i < count; i++)
             {
-                allocated.Add(MakeUnique(next.ToString(), used));
+                allocated.Add(MakeUnique(NumberFormatter.Format(next, style, pad), used));
                 next++;
             }
 

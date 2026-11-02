@@ -9,6 +9,14 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.31.0] — 2026-11-02
+
+### Added
+- **Bubble Auto Renumber v9.2.0 (V009)** — new **Numbering Style** drop-down: **1, 2, 3**, **01, 02, 03**
+  (zero-padded), **a, b, c** or **A, B, C** (continues z → aa, ab… ). The **Starting Number** box takes a value in
+  the chosen style, for example `c` to begin at c. A clash with a view you left alone still gets the `(D)` suffix.
+  User note: the default is **1, 2, 3**, exactly as before.
+
 ## [6.30.1] — 2026-11-02
 
 ### Fixed

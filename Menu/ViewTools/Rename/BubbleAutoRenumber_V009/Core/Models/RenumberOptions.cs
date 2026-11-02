@@ -5,8 +5,11 @@ namespace Revit26_Plugin_Revised.BubbleAutoRenumber.V009.Core.Models
     /// </summary>
     public class RenumberOptions
     {
-        /// <summary>First number of the sequence. 1-based, always &gt; 0.</summary>
+        /// <summary>First position of the sequence, 1-based, always &gt; 0 (for letters: a = 1, b = 2 …).</summary>
         public int StartNumber { get; set; } = 1;
+
+        /// <summary>How numbers are written (1,2,3 / 01,02,03 / a,b,c / A,B,C). Defaults to the old plain numbers.</summary>
+        public NumberingStyle Style { get; set; } = NumberingStyle.Numeric;
 
         /// <summary>Row-banding tolerance in internal units (feet), converted from the
         /// window's millimetres by the ViewModel.</summary>

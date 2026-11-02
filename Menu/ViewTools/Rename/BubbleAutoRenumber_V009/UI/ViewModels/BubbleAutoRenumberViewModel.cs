@@ -53,6 +53,30 @@ namespace Revit26_Plugin_Revised.BubbleAutoRenumber.V009.UI.ViewModels
         [ObservableProperty] private string _startingNumber = "1";
         [ObservableProperty] private string _verticalThreshold = "20";
 
+        /// <summary>Numbering styles offered in the window.</summary>
+        public System.Collections.Generic.IReadOnlyList<NumberingStyleItem> NumberingStyles { get; } = new[]
+        {
+            new NumberingStyleItem(NumberingStyle.Numeric, "1, 2, 3 …"),
+            new NumberingStyleItem(NumberingStyle.ZeroPadded, "01, 02, 03 …"),
+            new NumberingStyleItem(NumberingStyle.LowerLetters, "a, b, c …"),
+            new NumberingStyleItem(NumberingStyle.UpperLetters, "A, B, C …")
+        };
+
+        [ObservableProperty] private NumberingStyle _selectedStyle = NumberingStyle.Numeric;
+
+        partial void OnSelectedStyleChanged(NumberingStyle value)
+        {
+            // Keep the start box meaningful for the new style.
+            if (NumberFormatter.TryParseStart(StartingNumber, value, out _)) { RefreshPreview(); return; }
+            StartingNumber = value switch
+            {
+                NumberingStyle.LowerLetters => "a",
+                NumberingStyle.UpperLetters => "A",
+                NumberingStyle.ZeroPadded => "01",
+                _ => "1"
+            };
+        }
+
         partial void OnStartingNumberChanged(string value) => RefreshPreview();
         partial void OnVerticalThresholdChanged(string value) => RefreshPreview();
 
@@ -193,9 +217,11 @@ namespace Revit26_Plugin_Revised.BubbleAutoRenumber.V009.UI.ViewModels
         {
             options = null;
 
-            if (!int.TryParse(StartingNumber, out int start) || start <= 0)
+            if (!NumberFormatter.TryParseStart(StartingNumber, SelectedStyle, out int start))
             {
-                ValidationMessage = "Starting number must be a whole number above zero.";
+                ValidationMessage = SelectedStyle is NumberingStyle.LowerLetters or NumberingStyle.UpperLetters
+                    ? "Starting value must be letters only (a, b … or A, B …), matching the style."
+                    : "Starting number must be a whole number above zero.";
                 return false;
             }
 
@@ -208,6 +234,7 @@ namespace Revit26_Plugin_Revised.BubbleAutoRenumber.V009.UI.ViewModels
             var built = new RenumberOptions
             {
                 StartNumber = start,
+                Style = SelectedStyle,
                 ThresholdFt = UnitUtils.ConvertToInternalUnits(mm, UnitTypeId.Millimeters),
                 IncludeSections = IncludeSections,
                 IncludeDrafting = IncludeDrafting,
@@ -241,7 +268,7 @@ namespace Revit26_Plugin_Revised.BubbleAutoRenumber.V009.UI.ViewModels
 
             AddLog(LogLevel.Info,
                 $"Run started on {SelectedSheet.SheetNumber} — {TargetCount} view(s) in scope, "
-                + $"starting at {options.StartNumber}.");
+                + $"starting at {StartingNumber}.");
 
             _handler.Request = new RenumberRequest
             {
@@ -340,5 +367,19 @@ namespace Revit26_Plugin_Revised.BubbleAutoRenumber.V009.UI.ViewModels
             SummaryText = string.Empty;
             Progress = 0;
         }
+    }
+}
+
+namespace Revit26_Plugin_Revised.BubbleAutoRenumber.V009.UI.ViewModels
+{
+    /// <summary>A numbering style and its label for the style drop-down.</summary>
+    public sealed class NumberingStyleItem
+    {
+        /// <summary>Creates an item.</summary>
+        public NumberingStyleItem(Core.Models.NumberingStyle style, string label) { Style = style; Label = label; }
+        /// <summary>The style.</summary>
+        public Core.Models.NumberingStyle Style { get; }
+        /// <summary>Text shown in the drop-down.</summary>
+        public string Label { get; }
     }
 }
