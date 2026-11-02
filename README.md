@@ -1,70 +1,137 @@
 # SloperPro
 
-**SloperPro** is a Revit productivity add-in focused on building envelope workflows — roof slope automation, section/sheet management, workset organisation, and detail line tools.
+**SloperPro** is a Revit productivity add-in focused on building envelope workflows: roof and floor slope automation,
+section/sheet management, workset organisation, and detail line tools.
 
 ## Compatibility
 
 | SloperPro | Revit |
 |---|---|
+| 6.x (current: 6.31.0) | 2026 |
 | 2.0.0 | 2026 |
 | 1.0.0 | 2026 |
 
+## Ribbon
+
+SloperPro adds two ribbon tabs. Panels are listed left to right, in the order `App.cs` builds them.
+A **▸ slide-out** is the arrow on a panel's title bar; the tools listed after it sit in the slide-out.
+Where a tool has several versions, its button is a dropdown listing the newest version first.
+
+**SloperPro_Rev_88-MDL** (Modelling)
+
+| Panel | Tools |
+|---|---|
+| Roof Slope | By Point · By Drain · Points & Slope |
+| Floor Slope | By Drain · By Point |
+| Shape Points | Inner Loops · Outer Curve · Line Intersect · Loops + Perp. ▸ slide-out: Vertex Reducer · Multi Points · Shape From Link |
+| Roof Tools | Creaser Adv · Roof Tag · Floor From Rooms · Shape From Link |
+| Roof Edit | Name Builder · Island Splitter |
+| Plan View | Island Splitter |
+| Compare | Comparison · Elevation Sync |
+| Insulation | EPS 2D Pattern |
+| Detail Lines | From Links · Closed Loop · Line Dims · Line Manager |
+| Utilities | Combined Tools · Ridge Lines · Roof Types |
+
+**SloperPro_Rev_88-DCM** (Documents)
+
+| Panel | Tools |
+|---|---|
+| View Create | From Lines · Around Edges · Edge Element ▸ slide-out: Roof Focus · Isolated Section |
+| View Place | Place Sections · Callout To Section · Head Placer · View Tagger |
+| View Rename | Bubble Renumber · Section Renamer · Auto Renamer |
+| Tagging | Tag To Text · Align Spot Elevations · Align to Detail Line · Quick Align (vertical / horizontal, ends, bends) |
+| Sheet Create | Scope Box · Sheet Placer · Section Placer · Sections To Sheet ▸ slide-out: Rearrange · Arrange Views |
+| Sheet Edit | Text Replace |
+| DWG Tools | DWG To DL(P) · Export DWG · DWG Manager · DWG Statistics |
+| Family Tools | Batch Link DWG · DWG To Lines |
+| Manage | Overlaps · ParaManager · Shared Params · Schedule I/O · Link Check ▸ slide-out: Del. Line Styles · Bulk Rename · Tracker ID |
+| Worksets | WS Browser · WS Creator · WS Renamer ▸ slide-out: WS Renamer XL · Delete Workset |
+| Memory | WS Memory · Link Memory |
+
 ## Features
 
-### Roof Tools
-- **Auto Slope By Point / By Drain** — set roof slopes automatically from drain or reference points
-- **Ridge Lines By Openings / By Points** — generate ridge lines from openings or point references
-- **Creaser Advanced** — create crease lines on roofs
-- **Inner/Outer Loop Divider, Line Intersect, Loops + Perpendicular** — divide and intersect roof loops
-- **Vertex Reducer, Multi Points** — simplify roof geometry
-- **Roof From Detail Lines** — generate roof elements from drawn detail lines
-- **Elevation Sync, Roof Point Comparison** — sync and compare roof point elevations
-- **Roof Tag** — tag roof elements automatically
+### Roof slope
+- **Auto Slope By Point**: slope a roof's shape points down to drain points you pick. V033 adds optional ridge
+  lines between drain groups. The dropdown also has the Ridge and Multi Copies variants.
+- **Auto Slope By Drain (Multi-Roof)**: pick one or more roofs and slope each one down to the drain openings in its
+  sketch, with circle markers, Excel export and `AutoSlope_*` parameters.
+- **Roof Points & Slope**: shape points around openings, perpendicular to the boundary, at mid/quarter points and in
+  long gaps, the ridges between drains, then the slope, in one window and one Undo.
 
-### Floor Tools
-- **Floors & Roof From Linked Rooms** — create floor/roof elements from rooms in linked models
-- **Rooms Plan View** — generate plan views scoped to rooms
+### Floor slope (new in 6.31.0)
+- **Floor Slope By Drain**: the floor version of Auto Slope By Drain. Drains are openings in the floor sketch and
+  drain families (Plumbing Fixtures) on the floor.
+- **Floor Slope By Point**: the floor version of Auto Slope By Point, with optional ridge lines.
+- Both refuse floors that are in a group, borrowed by another user or can't be shape-edited. They ask before sloping
+  a floor whose type has no Variable layer, because the whole slab would tilt.
 
-### View & Section Tools
-- **Sections From Detail Lines / Place Sections** — create sections from detail lines or place them by layout
-- **Edge Around Sections, Edge Element Sections** — add edge elements around section boxes
-- **Callout To Section, Section Head Placer, Section View Tagger** — manage section heads and tags
-- **Roof View Focus** — focus views to roof extents
-- **Isolated Section** — one 3D view of the selected elements, section box turned parallel to their largest side, elements isolated
-- **View Renamer, Section Renamer, Bubble Renumber** — batch rename views and renumber bubbles
+### Roof shape points, editing and checks
+- **Inner Loops, Outer Curve, Line Intersect, Loops + Perpendicular**: divide and intersect roof loops into shape points.
+- **Vertex Reducer, Multi Points (1/2–1/4)**: simplify roof edges and add mid/quarter points.
+- **Roof Shape From Link**: set each shape point to the linked roof's top-surface elevation.
+- **Creaser Adv, Roof Tag**: crease lines on roofs, and roof tagging.
+- **Roof Name Builder, Island Roof Splitter**: bulk-rename roof types and instances with INS/SLP/MAT codes, and
+  split a sloped roof into one roof per closed detail-line island.
+- **Roof Point Comparison, Elevation Sync**: compare and sync roof point elevations.
+- **Tapered EPS 2D Pattern**: draw the tapered EPS board layout as detail lines on a plan view.
+- **Ridge By Openings / By Points, Combined Roof Tools, Roof Type Manager** (Utilities panel).
 
-### Sheet Tools
-- **Smart View To Sheet Placer** — place views on sheets intelligently
-- **Plan From Scope Box** — generate plans from scope boxes
-- **Auto Section Placer** — automatically place sections on sheets
-- **Sheet Auto Rearrange** — rearrange sheet layouts automatically
+### Floors from rooms
+- **Floors And Roof From Linked Rooms** (Roof Tools ▸ Floor From Rooms): create floors or a roof from rooms in linked
+  models, directly or through a plan view.
 
-### Setup & Detail Lines
-- **Batch Link DWG, DWG To Lines** — import DWG files and convert to detail lines
-- **Linked Detail Line Generator** — generate detail lines from linked model elements
-- **Detail Line Closed Loop** — close open detail line loops
+### Views and sections
+- **Sections From Detail Lines, Section Around Edges, Edge Element Sections**: create sections from detail lines and
+  roof edges.
+- **Roof View Focus, Isolated Section**: focus views on roof extents; make one 3D view of the selected elements with a
+  section box turned parallel to their largest side.
+- **Place Sections, Callout To Section, Section Head Placer, Section View Tagger**: place and tag section views.
+- **Bubble Renumber, Section Renamer, View Auto Renamer**: batch renumber and rename.
 
-### Manage
-- **Workset Manager, Worksets From Links, Workset Renamer** — manage worksets and rename from Excel
-- **ParaManager** — manage shared parameters
-- **Annotation Overlap Detection** — detect overlapping annotations
-- **Worksets & Elements Browser** — browse worksets and their element counts
+### Tagging
+- **Tag To Text**: copy spot elevations, coordinates, slopes and tags into text notes with leaders.
+- **Align Spot Elevations**: line spot elevation tags up in a column or row, or onto detail lines. The Quick Align
+  buttons do it in one click with the last-used settings.
 
-### Memory
-- **WS Memory** — remember which worksets are open as named sets, then reopen the model with exactly those worksets
-- **Link Memory** (dropdown) — V002: remember which links (Revit, IFC, CAD, point clouds, images/PDF) the active view
-  and its related views, or a print set, show; load them back in one click and export the list to Excel.
-  *Link Memory (classic)* (V001): remember which Revit links are loaded as named sets, then load and unload links back to a set
+### Sheets
+- **Plan From Scope Box, Smart View To Sheet Placer, Automated Section Placer, Sections To Sheet**: create plans and
+  place views and sections on sheets.
+- **Sheet Auto Rearrange, Sheet View Arrange**: rearrange sheet layouts.
+- **Sheet Text Replace**: find and replace text notes in views on a sheet.
+
+### DWG and families
+- **DWG To DL(P), DWG To Lines**: convert DWGs to detail lines and hatches.
+- **Export DWG to Folder, DWG Manager, DWG Statistics**: export, list, clean up and report CAD links and imports.
+- **Batch Link DWG Family**: link DWGs into families in a batch.
+
+### Detail lines
+- **Detail Lines From Links, Detail Line Closed Loop, Auto Dim Detail Line**: generate detail lines from linked
+  elements, close open loops, and dimension detail lines.
+- **Detail Line Manager**: find, clean up and join detail lines, and rename line styles.
+
+### Manage, worksets and memory
+- **Annotation Overlap Detection, ParaManager, Shared Parameter Studio, Schedule Export / Import**.
+- **Link Version Checker**: status of RVT links, including ACC Desktop Connector and Autodesk Docs cloud links.
+- **Delete Line Styles, Bulk Rename, Tracker ID**: clean up and rename styles and patterns, and give elements a
+  permanent tracker ID.
+- **Worksets & Elements Browser, Workset Creator, Workset Renamer (also from Excel), Delete Workset**.
+- **WS Memory**: remember which worksets are open as named sets, then reopen the model with exactly those worksets.
+- **Link Memory** (dropdown): V002 remembers which links (Revit, IFC, CAD, point clouds, images/PDF) the active view
+  and its related views, or a print set, show, loads them back in one click, and exports the list to Excel.
+  *Link Memory (classic)* (V001) remembers which Revit links are loaded as named sets.
 
 ## Installation
 
 1. Download the latest release from the [Autodesk App Store](https://apps.autodesk.com).
-2. Run the installer — it registers the add-in for Revit 2026 automatically.
-3. Open Revit. A **SloperPro** tab appears in the ribbon.
+2. Run the installer. It registers the add-in for Revit 2026 automatically.
+3. Open Revit. The two SloperPro tabs appear in the ribbon.
 
 ## Version History
 
 See [CHANGELOG.md](CHANGELOG.md) for the full history and per-tool versions.
+
+### 6.31.0 — 2026-11-02
+- New **Floor Slope** panel: Floor Slope By Drain and Floor Slope By Point.
 
 ### 2.0.0 — 2026-10-02
 - One button per tool; superseded tool versions removed

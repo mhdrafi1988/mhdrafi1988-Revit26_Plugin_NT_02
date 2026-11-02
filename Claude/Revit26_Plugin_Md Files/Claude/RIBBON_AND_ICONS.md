@@ -1,150 +1,166 @@
 # Ribbon & Icons
 
-Living reference for adding/changing ribbon buttons and their icons. For the
-history of the original cleanup pass this consolidates, see
-`Claude/LOGO PROMPT FOLDER/Ribbon_Code_Notes.md` (kept as a record, not
-current status — e.g. it describes a flat, partially-unembedded icon set;
-icons are now organized into per-category subfolders and, as of this
-writing, everything a `*Ribbon.cs` file actually references is embedded).
+Living reference for adding or changing ribbon buttons and their icons. Updated 2026-11-02 (plugin 6.31.0) from
+`App.cs` and `Menu/00_Push_Button_Menu_items/Ribbon/*.cs`. The rules themselves are in the root `CLAUDE.md`
+(Repository conventions: Ribbon, Dropdown version order, Slide-out); this file is the how-to and the current
+layout. For the original cleanup pass, see `Claude/LOGO PROMPT FOLDER/Ribbon_Code_Notes.md`, which is kept as a
+record and not current.
 
 ## Where things live
 
-- `Menu/00_Push_Button_Menu_items/Ribbon/*Ribbon.cs` — one file per category
-  (`RoofToolsRibbon`, `FloorToolsRibbon`, ... ), each with a static
-  `Build(app, tabName, assemblyPath)` called from `App.cs`. Also
-  `QuickAcces.cs` → `QuickAccessRibbon` — doesn't match `*Ribbon.cs` by name,
-  easy to miss when grepping for ribbon files.
-- `Menu/00_Push_Button_Menu_items/Ribbon/RibbonLayoutHelper.cs` — shared
-  layout/tooltip helpers; use these rather than calling `panel.AddItem` /
-  `AddStackedItems` directly (see below for why).
-- `Resources/Icons/<Category>/<Name>_<16|32>.png` — one subfolder per
-  category (`RoofTools`, `Dimensions`, `FloorTools`, `Manage`, `SetupTools`,
-  `SheetTools`, `ViewTools`, `DetailLiner`).
-- `Utilities/ImageUtils.cs` — `ImageUtils.Load(resourcePath)` loads an
-  embedded PNG by its dotted manifest-resource name and throws
-  `FileNotFoundException` if it isn't embedded.
+- `App.cs : InitializeRibbonPanels` creates two tabs and calls the builders in order. Panels appear in the order
+  they are created.
+  - **SloperPro_Rev_88-MDL** (Modelling): `RoofToolsRibbon.Build` (which also calls
+    `FloorToolsRibbon.BuildSlopePanel`), `DetailLInesRibbon.Build`, then `RoofToolsRibbon.BuildUtilities`.
+  - **SloperPro_Rev_88-DCM** (Documents): `ViewToolsRibbon`, `TaggingRibbon`, `SheetToolsRibbon`, `SetupRibbon`,
+    `ManageRibbon`.
+- `Menu/00_Push_Button_Menu_items/Ribbon/`: `RoofToolsRibbon.cs`, `FloorRibbon.cs` (class `FloorToolsRibbon`),
+  `DetailLInesRibbon.cs`, `DimensionsRibbon.cs`, `ViewToolsRibbon.cs`, `TaggingRibbon.cs`, `SheetToolsRibbon.cs`,
+  `SetupRibbon.cs`, `ManageRibbon.cs`, and `RibbonLayoutHelper.cs`. There is no `QuickAcces.cs` any more.
+- Some builders only return a pulldown for another file's panel: `FloorToolsRibbon.CreateFromRoomsPulldown` (Roof
+  Tools panel) and `DimensionsRibbon.CreateDetailLineDimPulldown` (Detail Lines panel).
+- `Resources/Icons/<Category>/<Name>_<16|32>.png`, with one subfolder per category: `RoofTools`, `FloorTools`,
+  `DetailLiner`, `Dimensions`, `ViewTools`, `Tagging`, `SheetTools`, `SetupTools`, `Manage`.
+- `Utilities/ImageUtils.cs`: `ImageUtils.Load(resourcePath)` loads an embedded PNG by its dotted
+  manifest-resource name, and throws `FileNotFoundException` if it isn't embedded.
+
+## Current layout
+
+Left to right. **▸** marks a slide-out (the arrow on the panel title bar); the items after it sit inside it.
+Each item is a pulldown unless marked *button*. A pulldown lists its versions highest first.
+
+### SloperPro_Rev_88-MDL (Modelling)
+
+| Panel | Items | Builder |
+|---|---|---|
+| Roof Slope | By Point (V033, V032, V030, Ridge V003, Multi Copies 30) · By Drain (V013, V012, V011, V007) · Points & Slope (V001) | `RoofToolsRibbon.Build` |
+| Floor Slope | By Drain *button* (Floor Slope By Drain V001) · By Point *button* (Floor Slope By Point V001) | `FloorToolsRibbon.BuildSlopePanel` |
+| Shape Points | Inner Loops · Outer Curve · Line Intersect · Loops + Perp. ▸ Vertex Reducer · Multi Points · Shape From Link | `RoofToolsRibbon.Build` |
+| Roof Tools | Creaser Adv · Roof Tag · Floor From Rooms · Shape From Link | `RoofToolsRibbon.Build` |
+| Roof Edit | Name Builder · Island Splitter | `BuildEditComparePanels` |
+| Plan View | Island Splitter (large *button*) | `BuildEditComparePanels` |
+| Compare | Comparison · Elevation Sync | `BuildEditComparePanels` |
+| Insulation | EPS 2D Pattern (V006, V005, V004, V002, V001) | `BuildEditComparePanels` |
+| Detail Lines | From Links · Closed Loop · Line Dims · Line Manager (large) | `DetailLInesRibbon.Build` |
+| Utilities | Combined Tools · Ridge Lines (By Openings V070, V069, By Points V059, V058) · Roof Types | `RoofToolsRibbon.BuildUtilities` |
+
+### SloperPro_Rev_88-DCM (Documents)
+
+| Panel | Items | Builder |
+|---|---|---|
+| View Create | From Lines · Around Edges · Edge Element ▸ Roof Focus · Isolated Section *button* | `ViewToolsRibbon` |
+| View Place | Place Sections · Callout To Section · Head Placer · View Tagger | `ViewToolsRibbon` |
+| View Rename | Bubble Renumber · Section Renamer · Auto Renamer | `ViewToolsRibbon` |
+| Tagging | Tag To Text, Align Spot Elevations, Align to Detail Line (large *buttons*) · Quick Align Vertical / Horizontal · Quick Align Ends V / H · Quick Align Bends V / H | `TaggingRibbon` |
+| Sheet Create | Scope Box · Sheet Placer · Section Placer · Sections To Sheet *button* ▸ Rearrange · Arrange Views *button* | `SheetToolsRibbon` |
+| Sheet Edit | Text Replace *button* (large) | `SheetToolsRibbon` |
+| DWG Tools | DWG To DL(P) · Export DWG · DWG Manager · DWG Statistics | `SetupRibbon` |
+| Family Tools | Batch Link DWG · DWG To Lines | `SetupRibbon` |
+| Manage | Overlaps · ParaManager · Shared Params *button* · Schedule I/O · Link Check (8 entries: V007, V006, then V004 and V003 scan modes) ▸ Del. Line Styles · Bulk Rename · Tracker ID | `ManageRibbon` |
+| Worksets | WS Browser · WS Creator · WS Renamer ▸ WS Renamer XL · Delete Workset | `ManageRibbon` |
+| Memory | WS Memory (large *button*) · Link Memory (large; V002, V001) | `ManageRibbon` |
+
+The latest change was plugin 6.31.0, which added the **Floor Slope** panel. When you change the ribbon, update the
+tables above, `README.md` (Ribbon section) and the tool's UI preview (root `CLAUDE.md`, UI previews).
 
 ## Adding a new icon
 
-Drop the PNG in the right `Resources/Icons/<Category>/` folder. That's it:
-`Revit26_Plugin.csproj` embeds every `Resources\Icons\**\*.png` through one
-wildcard (with a matching `<None Remove>` so the SDK doesn't also include it
-as `None`):
+Drop the PNG in the right `Resources/Icons/<Category>/` folder. That's all: `Revit26_Plugin_Revised.csproj` embeds
+every `Resources\Icons\**\*.png` through one wildcard, with a matching `<None Remove>` so the SDK doesn't also
+include it as `None`:
 
 ```xml
 <None Remove="Resources\Icons\**\*.png" />
 <EmbeddedResource Include="Resources\Icons\**\*.png" />
 ```
 
-A typo in the resource path doesn't fail the build; it fails at runtime the
-first time `ImageUtils.Load` is asked for that path (i.e. the first time the
-button is built in `OnStartup`). Names are case-sensitive.
+A typo in the resource path doesn't fail the build. It fails at runtime the first time `ImageUtils.Load` is asked
+for that path, i.e. when the button is built in `OnStartup`. Names are case-sensitive.
 
-The manifest-resource path is the `<RootNamespace>` (`Revit26_Plugin_Revised`) followed by the folder as dotted segments:
-`Resources/Icons/RoofTools/by_point_16.png` on disk →
+The manifest-resource path is the `<RootNamespace>` (`Revit26_Plugin_Revised`) followed by the folders as dotted
+segments: `Resources/Icons/RoofTools/by_point_16.png` on disk is
 `"Revit26_Plugin_Revised.Resources.Icons.RoofTools.by_point_16.png"` in code.
 
 ## 16px vs 32px
 
-Convention is one icon at each size per tool: `<Name>_16.png` for
-`PushButtonData.Image` (used for individual buttons inside a dropdown/stack)
-and `<Name>_32.png` for `.LargeImage` (used for a pulldown's own header icon,
-or a lone full-size button). Not every tool has both generated — check
-before assuming a `_32` exists just because a `_16` does, or vice versa.
+Each tool should have both sizes: `<Name>_16.png` for `PushButtonData.Image` (a button in a stack or dropdown) and
+`<Name>_32.png` for `.LargeImage` (a pulldown's own header icon, or a full-size button). Not every tool has both,
+so check before assuming a `_32` exists because a `_16` does. The Floor Slope buttons reuse the roof
+`by_drain_*` / `by_point_16` icons until floor icons are made.
 
 ## Adding a push button
 
-`PulldownButton.AddPushButton(...)` and `RibbonPanel.AddItem(...)` both
-return the created item — **capture it and cast to set an icon**:
-
 ```csharp
-var btn = (PushButton)pulldown.AddPushButton(new PushButtonData(
-    "Btn_MyTool_V001", "My Tool V001", assemblyPath,
+var btn = new PushButtonData("Btn_MyTool_V001", "My Tool", assemblyPath,
     "Revit26_Plugin_Revised.MyTool.V001.Commands.MyToolCommand")
 {
-    Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.RoofTools.MyNewTool_16.png"),
-    ToolTip = RibbonLayoutHelper.VersionTip("My Tool", "V001", "one-line description")
-});
+    Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.RoofTools.MyTool_16.png"),
+    ToolTip = ToolCatalog.MyTool.Tip("One-line description of what the tool does.")
+};
 ```
 
-Always set `Image` on the `PushButtonData` object itself (as above) rather
-than on the object returned by `AddPushButton` — that's the pattern every
-`*Ribbon.cs` file uses. Always build the tooltip through
-`RibbonLayoutHelper.VersionTip(tool, version, detail?)` so the version
-string is never accidentally left off.
+- The **label** shows the tool name, never a version. Keep it to about 15 characters: a stacked column is as wide
+  as its longest label, and the tooltip carries the full name.
+- The **tooltip** comes from `ToolCatalog.<Tool>.Tip(detail)`, so the name and version always match the window
+  title. `RibbonLayoutHelper.AddStackedButtons` and `WirePulldownButton` also refresh the first tooltip line from
+  `ToolCatalog` by command class (`ToolCatalog.Find`). Older buttons still pass a
+  `RibbonLayoutHelper.VersionTip(tool, version, detail)` string, which that refresh replaces.
+- The **internal name** (first argument) and the **command class name** never change once released (root
+  `CLAUDE.md`, Backward compatibility 1). The command class string is not compiler-checked: a typo builds fine and
+  only fails when the button is clicked. After a namespace change, grep the ribbon files for the old name.
+- **Set `Image` on the `PushButtonData`**, as above, rather than on the item that `AddPushButton` returns. Every
+  ribbon file uses that pattern.
 
-## Stacking / pulldowns — use `RibbonLayoutHelper`, not the Revit API directly
+## Stacks, pulldowns and slide-outs — use `RibbonLayoutHelper`
 
-`RibbonLayoutHelper` exists because of two real Revit ribbon quirks it works
-around; skipping it reintroduces both:
+`RibbonLayoutHelper` works around two Revit ribbon quirks. Skipping it brings both back:
 
-- **Stacked-item label bug**: inside `panel.AddStackedItems(...)`, a
-  button's `Text` is frequently dropped at render time (icon shows, no
-  label) — never happens for a lone `AddItem` button. `AddStackedButtons`
-  re-applies `ItemText`/`ToolTip` on the returned `RibbonItem` after the
-  fact to force it to bind. If you ever add buttons via `AddStackedItems`
-  directly, you'll hit this.
-- **Lone leftover button with no `LargeImage`**: a stack of 1 (odd item
-  left over after grouping in 3s) renders as a full-size `AddItem` button,
-  which needs `LargeImage` set or it shows a blank icon slot.
-  `AddStackedButtons` backfills `LargeImage = Image` for this case
-  automatically — only when you skip the helper does this need doing by hand.
+- **Stacked-item label bug:** inside `panel.AddStackedItems(...)`, a button's `Text` is often dropped at render
+  time (icon, no label). `AddStackedButtons` re-applies `ItemText` / `ToolTip` on the created items to force them
+  to bind.
+- **Lone large button with no `LargeImage`:** `AddStackedButtons` stacks 3 per column and splits 4 as 2 + 2. A
+  leftover single item becomes a full-size `AddItem` button, which needs `LargeImage` or it shows a blank icon slot.
+  The helper backfills `LargeImage = Image` for that case.
 
-For 2+ versions of the same tool under one dropdown, the wiring is
-**two calls, in order**:
+A pulldown for coexisting versions of one tool takes two calls, in order:
 
 ```csharp
-var pulldownData = RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_MyTool", "My Tool", primaryVersion);
-// ... include pulldownData in the list passed to AddStackedButtons ...
-var created = RibbonLayoutHelper.AddStackedButtons(panel, items);
-RibbonLayoutHelper.WirePulldownButton(created, "Pulldown_MyTool", primaryVersion, olderVersion1, olderVersion2);
+var pulldownData = RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_MyTool", "My Tool", highestVersion);
+var created = RibbonLayoutHelper.AddStackedButtons(panel, new List<RibbonItemData> { pulldownData, ... });
+RibbonLayoutHelper.WirePulldownButton(created, "Pulldown_MyTool", highestVersion, nextVersion, oldestVersion);
 ```
 
-`CreatePulldownButtonData` only sets a placeholder icon/tooltip from the
-primary (newest) version; `WirePulldownButton` must run afterward with the
-full version list (primary first) to actually populate the dropdown and
-build the combined "N versions" tooltip via `VersionTip`'s sibling,
-`BuildVersionsTip`. Only the primary `PushButtonData` should carry an icon —
-the other versions carry their own icon/text once added to the dropdown.
+- **Order:** highest version first, every older version below it in descending order, never "current version
+  first". The highest version is also the `primary` argument that gives the pulldown its icon (root `CLAUDE.md`,
+  Dropdown version order).
+- `WirePulldownButton` fills the dropdown and builds the combined "N versions" tooltip.
+- **Use a dropdown only to group versions or different tools.** One button runs one tool. A tool with a single
+  version gets a plain button, as the Floor Slope tools do.
 
-**Keep only the latest two versions of each tool in its dropdown** (plugin 3.0.0). When a new
-version is added, drop the oldest button from the dropdown *and* delete its source folder with
-`git rm` (history keeps it) — unless another tool still compiles against it. Check with a repo-wide
-search for the old namespace (`Revit26_Plugin.<Tool>.V0nn`) and a build before deleting.
+**Slide-outs:** `RibbonLayoutHelper.AddStackedButtonsWithSlideOut(panel, visible, slideOut)` adds the visible
+stacks, calls `panel.AddSlideOut()`, then adds the slide-out stacks. It returns every created item, so
+`WirePulldownButton` works unchanged. A panel has at most one slide-out. **Never add one without the owner's
+agreement** on which panel and which tools go inside it (root `CLAUDE.md`, Slide-out). Current slide-outs: Shape
+Points, View Create, Sheet Create, Manage, Worksets.
 
-## Panel layout — keep the tab narrow
+**Large buttons:** `panel.AddItem(...)` gives a full-size button. Use it deliberately and set `LargeImage`. Current
+uses: Tagging (Tag To Text, Align Spot Elevations, Align to Detail Line), Memory (WS Memory, Link Memory), Detail
+Lines (Line Manager), Plan View (Island Splitter) and Sheet Edit (Text Replace).
 
-Revit shrinks a ribbon tab that is wider than its window: first it drops the names of stacked
-buttons, starting with the right-most panels, then it folds whole panels into one dropdown.
-Every button should show its icon **and** name, so (since plugin 2.4.0):
+## Panel layout — keep the tabs narrow
 
-- **No one-button panels.** Add a new tool to the panel it belongs with instead of creating a
-  panel for it. The one-button panel for a moved tool keeps its pulldown builder in its old file
-  (`FloorToolsRibbon.CreateFromRoomsPulldown`, `DimensionsRibbon.CreateDetailLineDimPulldown`)
-  and the receiving panel stacks it.
-- **No lone large buttons.** `AddStackedButtons` stacks 3 per column and splits 4 as 2 + 2, so
-  only a one-item panel gets a full-size button.
-- **Short labels.** A stacked column is as wide as its longest label, so keep labels to about
-  15 characters; the tooltip carries the full tool name.
-- **Panel names are part of shortcut ids.** Revit keys keyboard shortcuts and QAT items on
-  tab + panel + button name, so moving a button to another panel (or renaming a panel) resets
-  them. Never rename a panel just for its title; note moved buttons in the CHANGELOG user note.
+Revit shrinks a tab that is wider than its window. First it drops the names of stacked buttons, starting with the
+right-most panels, then it folds whole panels into one dropdown. Every button should show its icon **and** name, so:
 
-Current tab, left to right (13 panels): Utilities · Roof Slope · Shape Points · Roof Tools ·
-Compare · View Create · View Place · View Rename · Family Tools · Project Tools · Sheet Create ·
-Detail Lines · Manage.
-
-## Known trap: `QuickAcces.cs`
-
-Filename doesn't contain "Ribbon", so a filename-based search for ribbon
-files misses it. It's still called from `App.cs` and builds a real panel —
-check it explicitly when auditing what's wired to the ribbon.
+- **Add a tool to the panel it belongs with** rather than creating a panel for it. Current one-item panels are
+  Plan View and Sheet Edit. Floor Slope (6.31.0) was added as its own panel at the owner's request.
+- **Short labels:** about 15 characters (see above).
+- **Panel names are part of shortcut ids.** Revit keys keyboard shortcuts and Quick Access Toolbar items on
+  tab + panel + button name, so moving a button to another panel, or renaming a panel, resets them. Never rename a
+  panel just for its title, and note moved buttons in the CHANGELOG user note.
 
 ## Other files in this area
 
-- `Claude/LOGO PROMPT FOLDER/Icon_Prompts.md` — AI image-generation prompts,
-  one per live button at the time it was written; regenerate/extend as
-  buttons change rather than treating it as exhaustive or current.
-- `Claude/LOGO PROMPT FOLDER/Ribbon_Code_Notes.md` — historical notes from
-  the original PushButton/icon cleanup pass; superseded by this file for
-  current conventions.
+- `Claude/LOGO PROMPT FOLDER/Icon_Prompts.md`: icon-generation prompts. They were written for an older ribbon, and
+  the Floor Slope prompts were added in 6.31.0. Extend them as buttons change.
+- `Claude/LOGO PROMPT FOLDER/Ribbon_Code_Notes.md`: historical notes from the first PushButton/icon cleanup.
