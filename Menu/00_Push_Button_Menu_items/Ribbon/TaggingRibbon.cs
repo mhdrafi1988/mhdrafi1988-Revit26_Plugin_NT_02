@@ -9,7 +9,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
     {
         private const string Icons = "Revit26_Plugin_Revised.Resources.Icons.Tagging.";
 
-        /// <summary>Creates the Tagging panel on <paramref name="tabName"/> with the Tag To Text and Align Spot Elevations buttons (plus the two quick-align buttons).</summary>
+        /// <summary>Creates the Tagging panel on <paramref name="tabName"/> with the Tag To Text and Align Spot Elevations buttons (plus the six quick-align buttons).</summary>
         public static void Build(UIControlledApplication app, string tabName, string assemblyPath)
         {
             RibbonPanel panel = app.CreateRibbonPanel(tabName, "Tagging");
@@ -58,6 +58,40 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                     "spacing last used in the Align Spot Elevations window. One Undo step.")
             };
             RibbonLayoutHelper.AddStackedButtons(panel, new RibbonItemData[] { quickVertical, quickHorizontal });
+
+            // Quick align of one leader part. Text follows a moved end or bend point, as in Revit.
+            RibbonLayoutHelper.AddStackedButtons(panel, new RibbonItemData[]
+            {
+                QuickPart(assemblyPath, "QuickEndsVertical", "Quick Align Ends Vertical", "EndsVertical",
+                    "Lines the leader end points of the selected spot elevations up in one column right away. The text " +
+                    "moves with each end. A leader with a bend only lets its end slide along the bend-to-end segment. " +
+                    "Uses the line position and spacing last used in the window. One Undo step."),
+                QuickPart(assemblyPath, "QuickEndsHorizontal", "Quick Align Ends Horizontal", "EndsHorizontal",
+                    "Lines the leader end points of the selected spot elevations up in one row right away. The text " +
+                    "moves with each end. A leader with a bend only lets its end slide along the bend-to-end segment. " +
+                    "Uses the line position and spacing last used in the window. One Undo step.")
+            });
+            RibbonLayoutHelper.AddStackedButtons(panel, new RibbonItemData[]
+            {
+                QuickPart(assemblyPath, "QuickBendsVertical", "Quick Align Bends Vertical", "BendsVertical",
+                    "Lines the leader bend points (shoulders) of the selected spot elevations up in one column right away. " +
+                    "The leader end and text move with each bend. Uses the line position and spacing last used in the " +
+                    "window. One Undo step."),
+                QuickPart(assemblyPath, "QuickBendsHorizontal", "Quick Align Bends Horizontal", "BendsHorizontal",
+                    "Lines the leader bend points (shoulders) of the selected spot elevations up in one row right away. " +
+                    "The leader end and text move with each bend. Uses the line position and spacing last used in the " +
+                    "window. One Undo step.")
+            });
         }
+
+        /// <summary>One small quick-align button for a leader part of Align Spot Elevations.</summary>
+        private static PushButtonData QuickPart(string assemblyPath, string key, string label, string icon, string tip)
+            => new PushButtonData($"Btn_AlignSpotElevations_{key}_V001", label, assemblyPath,
+                $"Revit26_Plugin_Revised.AlignSpotElevations.V001.Commands.AlignSpotElevations{key}Command")
+            {
+                Image = ImageUtils.Load(Icons + $"AlignSpotElevations{icon}_16.png"),
+                LargeImage = ImageUtils.Load(Icons + $"AlignSpotElevations{icon}_32.png"),
+                ToolTip = ToolCatalog.AlignSpotElevations.Tip(tip)
+            };
     }
 }
