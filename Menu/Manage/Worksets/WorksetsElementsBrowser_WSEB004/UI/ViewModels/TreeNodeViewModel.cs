@@ -93,10 +93,13 @@ namespace Revit26_Plugin_Revised.WorksetsElementsBrowser.WSEB004.UI.ViewModels
             Parent?.RecomputeCheckedFromChildren();
         }
 
-        /// <summary>Every Type-node ElementId checked at or under this node.</summary>
+        /// <summary>True when this row has no child rows, i.e. it directly owns <see cref="ElementIds"/>.</summary>
+        public bool IsLeaf => Children.Count == 0;
+
+        /// <summary>Every leaf-row ElementId checked at or under this node.</summary>
         public IEnumerable<ElementId> CollectCheckedElementIds()
         {
-            if (Kind == ElementTreeNodeKind.Type)
+            if (IsLeaf)
             {
                 if (IsChecked == true)
                     foreach (var id in ElementIds)
@@ -106,6 +109,29 @@ namespace Revit26_Plugin_Revised.WorksetsElementsBrowser.WSEB004.UI.ViewModels
             foreach (var child in Children)
                 foreach (var id in child.CollectCheckedElementIds())
                     yield return id;
+        }
+
+        /// <summary>Every ElementId at or under this node, whether checked or not.</summary>
+        public IEnumerable<ElementId> CollectAllElementIds()
+        {
+            if (IsLeaf)
+            {
+                foreach (var id in ElementIds)
+                    yield return id;
+                yield break;
+            }
+            foreach (var child in Children)
+                foreach (var id in child.CollectAllElementIds())
+                    yield return id;
+        }
+
+        /// <summary>Walks this node and every descendant.</summary>
+        public IEnumerable<TreeNodeViewModel> SelfAndDescendants()
+        {
+            yield return this;
+            foreach (var child in Children)
+                foreach (var d in child.SelfAndDescendants())
+                    yield return d;
         }
 
         [RelayCommand]

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
+using Revit26_Plugin_Revised.Shared.Services;
 using Revit26_Plugin_Revised.WorksetsElementsBrowser.WSEB004.Core.Models;
 using Revit26_Plugin_Revised.WorksetsElementsBrowser.WSEB004.Core.Services;
 
@@ -18,7 +19,9 @@ namespace Revit26_Plugin_Revised.WorksetsElementsBrowser.WSEB004.Infrastructure.
     {
         LoadTree,
         LoadViews,
-        ApplyAction
+        ApplyAction,
+        SelectElements,
+        SaveSelectionSet
     }
 
     /// <summary>
@@ -39,11 +42,23 @@ namespace Revit26_Plugin_Revised.WorksetsElementsBrowser.WSEB004.Infrastructure.
         public ElementId TargetViewId { get; set; }
         public ElementActionMode ActionMode { get; set; }
 
+        /// <summary>Name for the Revit selection set to create (SaveSelectionSet).</summary>
+        public string SelectionSetName { get; set; } = string.Empty;
+
+        /// <summary>When true, an existing selection set of that name is replaced; when false it is left untouched.</summary>
+        public bool OverwriteExisting { get; set; }
+
         // ---- Outputs (read by ViewModel after RequestCompleted fires) ----
         public List<WorksetNodeData> LoadedTree { get; private set; } = new();
         public List<View3DOption> LoadedViews { get; private set; } = new();
         public string ErrorMessage { get; private set; } = string.Empty;
         public bool LastRunSucceeded { get; private set; }
+
+        /// <summary>What the last SaveSelectionSet request did.</summary>
+        public SelectionSetOutcome SelectionSetResult { get; private set; }
+
+        /// <summary>Number of elements stored by the last SaveSelectionSet request.</summary>
+        public int SelectionSetElementCount { get; private set; }
 
         public event Action RequestCompleted;
 
@@ -69,6 +84,12 @@ namespace Revit26_Plugin_Revised.WorksetsElementsBrowser.WSEB004.Infrastructure.
                     case WorksetsElementsBrowserRequest.ApplyAction:
                         ExecuteApplyAction();
                         break;
+                    case WorksetsElementsBrowserRequest.SelectElements:
+                        ExecuteSelectElements();
+                        break;
+                    case WorksetsElementsBrowserRequest.SaveSelectionSet:
+                        ExecuteSaveSelectionSet();
+                        break;
                 }
                 LastRunSucceeded = true;
                 WsebDebugLog.Write($"Execute() finished OK, Request={Request}");
@@ -78,6 +99,7 @@ namespace Revit26_Plugin_Revised.WorksetsElementsBrowser.WSEB004.Infrastructure.
                 LastRunSucceeded = false;
                 ErrorMessage = ex.Message;
                 WsebDebugLog.Write($"Execute() THREW, Request={Request}: {ex}");
+                if (ex is not InvalidOperationException) ToolGuard.Report(typeof(WorksetsElementsBrowserHandler), ex); // expected validation messages are shown in the UI only
             }
             finally
             {
@@ -144,6 +166,69 @@ namespace Revit26_Plugin_Revised.WorksetsElementsBrowser.WSEB004.Infrastructure.
             {
                 _uiDoc.Selection.SetElementIds(validIds);
                 WsebDebugLog.Write("ExecuteApplyAction: selection set");
+            }
+        }
+
+        /// <summary>Sets the Revit selection to the given elements without changing the active view.</summary>
+        private void ExecuteSelectElements()
+        {
+            var doc = _uiDoc.Document;
+            var validIds = ActionElementIds.Where(id => doc.GetElement(id) != null).ToList();
+            if (validIds.Count == 0)
+                throw new InvalidOperationException("None of those elements exist any more. Reload the browser.");
+            _uiDoc.Selection.SetElementIds(validIds);
+        }
+
+        /// <summary>
+        /// Saves <see cref="ActionElementIds"/> as a Revit selection set (<see cref="SelectionFilterElement"/>)
+        /// named <see cref="SelectionSetName"/>, in one transaction that rolls back on any failure.
+        /// A name already used by a non-selection-set filter is refused; a name used by a selection set is
+        /// replaced only when <see cref="OverwriteExisting"/> is true.
+        /// </summary>
+        private void ExecuteSaveSelectionSet()
+        {
+            SelectionSetResult = SelectionSetOutcome.None;
+            SelectionSetElementCount = 0;
+
+            var doc = _uiDoc.Document;
+            string name = (SelectionSetName ?? string.Empty).Trim();
+            if (name.Length == 0)
+                throw new InvalidOperationException("Enter a name for the selection set.");
+            if (doc.IsReadOnly)
+                throw new InvalidOperationException("The document is read-only; a selection set cannot be saved.");
+
+            var validIds = ActionElementIds.Where(id => doc.GetElement(id) != null).Distinct().ToList();
+            if (validIds.Count == 0)
+                throw new InvalidOperationException("None of the checked elements exist any more. Reload the browser.");
+
+            var existing = new FilteredElementCollector(doc)
+                .OfClass(typeof(FilterElement))
+                .Cast<FilterElement>()
+                .FirstOrDefault(f => string.Equals(f.Name, name, StringComparison.OrdinalIgnoreCase));
+
+            if (existing != null && existing is not SelectionFilterElement)
+                throw new InvalidOperationException($"The name \"{name}\" is already used by a view filter. Choose another name.");
+
+            if (existing != null && !OverwriteExisting)
+            {
+                SelectionSetResult = SelectionSetOutcome.NameExists;
+                return;
+            }
+
+            using var tx = new Transaction(doc, "Worksets & Elements Browser - Save Selection Set");
+            tx.Start();
+            try
+            {
+                var set = existing as SelectionFilterElement ?? SelectionFilterElement.Create(doc, name);
+                set.SetElementIds(validIds);
+                tx.Commit();
+                SelectionSetResult = existing == null ? SelectionSetOutcome.Created : SelectionSetOutcome.Updated;
+                SelectionSetElementCount = validIds.Count;
+            }
+            catch
+            {
+                if (tx.GetStatus() == TransactionStatus.Started) tx.RollBack();
+                throw;
             }
         }
     }

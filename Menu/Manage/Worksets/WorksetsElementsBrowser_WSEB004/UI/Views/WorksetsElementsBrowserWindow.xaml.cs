@@ -33,9 +33,28 @@ namespace Revit26_Plugin_Revised.WorksetsElementsBrowser.WSEB004.UI.Views
         {
             if (sender is not FrameworkElement element) return;
             if (element.DataContext is not TreeNodeViewModel node) return;
-            if (node.Kind != ElementTreeNodeKind.Type) return;
+            if (node.Kind == ElementTreeNodeKind.Workset) return;
 
             (DataContext as WorksetsElementsBrowserViewModel)?.OnTypeRowClicked(node);
+            e.Handled = true;
+        }
+
+        private void SelectRow_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is not FrameworkElement element) return;
+            if (element.DataContext is not TreeNodeViewModel node) return;
+            if (node.Kind == ElementTreeNodeKind.Workset) return;
+
+            (DataContext as WorksetsElementsBrowserViewModel)?.SelectRow(node);
+            e.Handled = true;
+        }
+
+        private void CheckSameInAllWorksets_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is not FrameworkElement element) return;
+            if (element.DataContext is not TreeNodeViewModel node) return;
+
+            (DataContext as WorksetsElementsBrowserViewModel)?.CheckSameInAllWorksets(node);
             e.Handled = true;
         }
 
