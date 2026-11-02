@@ -7,8 +7,8 @@ using System.Linq;
 namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Infrastructure
 {
     /// <summary>
-    /// Reads spot elevation tags from the selection and moves their text. Only the tag moves; the
-    /// measured point and leader end stay where they are. Positions are passed to the engine in paper mm
+    /// Reads spot elevation tags from the selection and moves their text, leader end and leader bend point
+    /// (shoulder). The measured point never moves. Positions are passed to the engine in paper mm
     /// (model feet × 304.8 ÷ view scale) so tolerances and gaps match the printed drawing.
     /// </summary>
     public static class SpotAlignService
@@ -59,8 +59,16 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Infrastructure
                     XYZ p = sd.TextPosition;
                     XYZ pt = PointOf(sd) ?? p;
                     EstimateSize(doc, sd, out double widthMm, out double heightMm);
+                    XYZ end = LeaderEndOf(sd);
+                    XYZ shoulder = end != null ? ShoulderOf(sd) : null;
                     result.Items.Add(new SpotItem
                     {
+                        HasEnd = end != null,
+                        EndU = end != null ? end.DotProduct(right) * toPaper : 0,
+                        EndV = end != null ? end.DotProduct(up) * toPaper : 0,
+                        HasShoulder = shoulder != null,
+                        ShoulderU = shoulder != null ? shoulder.DotProduct(right) * toPaper : 0,
+                        ShoulderV = shoulder != null ? shoulder.DotProduct(up) * toPaper : 0,
                         WidthMm = widthMm,
                         HeightMm = heightMm,
                         Id = id.Value,
@@ -134,6 +142,18 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Infrastructure
             return null;
         }
 
+        /// <summary>The leader end point, or null when the spot has no leader or it cannot be read.</summary>
+        private static XYZ LeaderEndOf(SpotDimension sd)
+        {
+            try { return sd.HasLeader ? sd.LeaderEndPosition : null; } catch { return null; }
+        }
+
+        /// <summary>The leader bend point (shoulder), or null when the leader has none or it cannot be read.</summary>
+        private static XYZ ShoulderOf(SpotDimension sd)
+        {
+            try { return sd.LeaderHasShoulder ? sd.LeaderShoulderPosition : null; } catch { return null; }
+        }
+
         private static string LabelOf(SpotDimension sd)
         {
             string text = null;
@@ -143,16 +163,23 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Infrastructure
 
         /// <summary>
         /// Moves the tags in one transaction (one Undo step). If any tag cannot be moved, nothing changes.
+        /// Per tag the bend point is set first, then the leader end, then the text, because Revit moves the
+        /// end and text with the bend point, and the text with the end. Parts that are not set follow.
         /// Deltas are paper mm in the view's axes; <paramref name="scale"/> turns them back into model feet.
         /// Returns the number moved; <paramref name="error"/> is set when it rolled back.
+        /// <paramref name="endsShort"/> counts leader ends that Revit stopped more than 0.1 mm short of
+        /// their target (a leader with a bend only lets the end slide along the bend-to-end segment).
         /// </summary>
         public static int Apply(Document doc, View view, IEnumerable<PlannedMove> moves, int scale,
-            string transactionName, out string error)
+            string transactionName, out string error, out int endsShort)
         {
             error = null;
+            endsShort = 0;
             double toFeet = Math.Max(1, scale) / MmPerFoot;
+            double shortFeet = 0.1 * toFeet;
             XYZ right = view.RightDirection, up = view.UpDirection;
-            int moved = 0;
+            XYZ Shift(double du, double dv) => right.Multiply(du * toFeet) + up.Multiply(dv * toFeet);
+            int moved = 0, missed = 0;
             using (var t = new Transaction(doc, transactionName))
             {
                 t.Start();
@@ -162,8 +189,22 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Infrastructure
                     {
                         var sd = doc.GetElement(new ElementId(m.Item.Id)) as SpotDimension;
                         if (sd == null) throw new InvalidOperationException($"Element {m.Item.Id} no longer exists.");
-                        XYZ shift = right.Multiply(m.DeltaU * toFeet) + up.Multiply(m.DeltaV * toFeet);
-                        sd.TextPosition = sd.TextPosition + shift;
+
+                        // Targets from the positions before anything moves.
+                        XYZ text0 = sd.TextPosition;
+                        XYZ end0 = m.SetsEnd ? sd.LeaderEndPosition : null;
+                        XYZ shoulder0 = m.SetsShoulder ? sd.LeaderShoulderPosition : null;
+
+                        if (m.SetsShoulder)
+                            sd.LeaderShoulderPosition = shoulder0 + Shift(m.ShoulderDeltaU, m.ShoulderDeltaV);
+                        if (m.SetsEnd)
+                        {
+                            XYZ target = end0 + Shift(m.EndDeltaU, m.EndDeltaV);
+                            sd.LeaderEndPosition = target;
+                            if (sd.LeaderEndPosition.DistanceTo(target) > shortFeet) missed++;
+                        }
+                        if (m.SetsText)
+                            sd.TextPosition = text0 + Shift(m.DeltaU, m.DeltaV);
                         moved++;
                     }
                     t.Commit();
@@ -175,6 +216,7 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Infrastructure
                     return 0;
                 }
             }
+            endsShort = missed;
             return moved;
         }
     }

@@ -10,7 +10,7 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Commands
 {
     /// <summary>
     /// Quick align without the window: lines the selected tags up using the last options saved by the
-    /// window (line position, tolerance, spacing). Reference falls back to Average, since there is no
+    /// window (parts to move, line position, tolerance, spacing). Reference falls back to Average, since there is no
     /// window to choose the reference tag in.
     /// </summary>
     internal static class QuickAlign
@@ -26,6 +26,7 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Commands
             o.Direction = direction;
             o.ReferenceId = null;
             if (o.Target == AlignTarget.Reference) o.Target = AlignTarget.Average;
+            if (!o.MovesAnything) o.MoveText = true;
 
             ArrangePlan plan = AlignEngine.Plan(ctx.Read.Items, o);
             string where = direction == AlignDirection.Vertical ? "one column" : "one row";
@@ -53,7 +54,11 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Commands
                 DistributeMode.FixedGap => $", {o.GapMm:0.#} mm gap",
                 _ => string.Empty
             };
-            return target + spacing;
+            var parts = new System.Collections.Generic.List<string>();
+            if (o.MoveText) parts.Add("text");
+            if (o.MoveLeaderEnd) parts.Add("leader ends");
+            if (o.MoveLeaderShoulder) parts.Add("bend points");
+            return string.Join(" + ", parts) + ", " + target + spacing;
         }
     }
 

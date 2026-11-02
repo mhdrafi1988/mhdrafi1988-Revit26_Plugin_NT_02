@@ -18,7 +18,16 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.UI.Views
             _viewModel = viewModel ?? throw new ArgumentNullException(nameof(viewModel));
             DataContext = _viewModel;
             Title = ToolCatalog.AlignSpotElevations.Title;
+            _viewModel.PropertyChanged += (_, __) => UpdateColumns();
+            UpdateColumns();
             SkippedText.Text = _viewModel.HasSkipped ? $"{_viewModel.Skipped.Count} skipped — click for details" : string.Empty;
+        }
+
+        /// <summary>Shows the leader end and bend columns only while those parts are ticked.</summary>
+        private void UpdateColumns()
+        {
+            EndColumn.Visibility = _viewModel.MoveLeaderEnd || _viewModel.MoveLeaderShoulder ? Visibility.Visible : Visibility.Collapsed;
+            BendColumn.Visibility = _viewModel.MoveLeaderShoulder ? Visibility.Visible : Visibility.Collapsed;
         }
 
         private void Apply_Click(object sender, RoutedEventArgs e) => DialogResult = true;

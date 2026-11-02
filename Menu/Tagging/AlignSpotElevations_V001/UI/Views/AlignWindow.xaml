@@ -1,7 +1,7 @@
 <Window x:Class="Revit26_Plugin_Revised.AlignSpotElevations.V001.UI.Views.AlignWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Width="560" Height="700" MinWidth="480" MinHeight="560"
+        Width="600" Height="780" MinWidth="520" MinHeight="600"
         WindowStartupLocation="CenterOwner" ShowInTaskbar="False" ResizeMode="CanResizeWithGrip">
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
@@ -11,6 +11,7 @@
     </Window.Resources>
     <Grid Margin="16">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -29,7 +30,16 @@
             </StackPanel>
         </GroupBox>
 
-        <StackPanel Grid.Row="2">
+        <GroupBox Grid.Row="2" Header="Move">
+            <StackPanel>
+                <CheckBox Content="Text" IsChecked="{Binding MoveText}" Margin="0,2"/>
+                <CheckBox Content="{Binding LeaderEndLabel}" IsChecked="{Binding MoveLeaderEnd}" Margin="0,2"/>
+                <CheckBox Content="{Binding LeaderShoulderLabel}" IsChecked="{Binding MoveLeaderShoulder}" Margin="0,2"/>
+                <TextBlock Text="{Binding FollowNote}" Foreground="Gray" TextWrapping="Wrap" Margin="0,4,0,0"/>
+            </StackPanel>
+        </GroupBox>
+
+        <StackPanel Grid.Row="3">
             <!-- Line options: direction, target, spacing -->
             <StackPanel Visibility="{Binding UsesLine, Converter={StaticResource BoolToVis}}">
                 <GroupBox Header="Direction">
@@ -78,25 +88,44 @@
                 </GroupBox>
             </StackPanel>
 
-            <!-- Offset options -->
-            <GroupBox Header="Offset from measured point" Visibility="{Binding IsOffsetMode, Converter={StaticResource BoolToVis}}">
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="Right" VerticalAlignment="Center"/>
-                    <TextBox Style="{StaticResource Num}" Text="{Binding OffsetXMm, UpdateSourceTrigger=PropertyChanged, StringFormat=0.##}"/>
-                    <TextBlock Text="mm    Up" VerticalAlignment="Center"/>
-                    <TextBox Style="{StaticResource Num}" Text="{Binding OffsetYMm, UpdateSourceTrigger=PropertyChanged, StringFormat=0.##}"/>
-                    <TextBlock Text="mm   (negative = left / down)" VerticalAlignment="Center"/>
+            <!-- Offset options: one row per ticked part -->
+            <GroupBox Header="Offset from measured point (negative = left / down)" Visibility="{Binding IsOffsetMode, Converter={StaticResource BoolToVis}}">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,2" Visibility="{Binding MoveText, Converter={StaticResource BoolToVis}}">
+                        <TextBlock Text="Text" Width="80" VerticalAlignment="Center"/>
+                        <TextBlock Text="Right" VerticalAlignment="Center"/>
+                        <TextBox Style="{StaticResource Num}" Text="{Binding OffsetXMm, UpdateSourceTrigger=PropertyChanged, StringFormat=0.##}"/>
+                        <TextBlock Text="mm    Up" VerticalAlignment="Center"/>
+                        <TextBox Style="{StaticResource Num}" Text="{Binding OffsetYMm, UpdateSourceTrigger=PropertyChanged, StringFormat=0.##}"/>
+                        <TextBlock Text="mm" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,2" Visibility="{Binding MoveLeaderEnd, Converter={StaticResource BoolToVis}}">
+                        <TextBlock Text="Leader end" Width="80" VerticalAlignment="Center"/>
+                        <TextBlock Text="Right" VerticalAlignment="Center"/>
+                        <TextBox Style="{StaticResource Num}" Text="{Binding EndOffsetXMm, UpdateSourceTrigger=PropertyChanged, StringFormat=0.##}"/>
+                        <TextBlock Text="mm    Up" VerticalAlignment="Center"/>
+                        <TextBox Style="{StaticResource Num}" Text="{Binding EndOffsetYMm, UpdateSourceTrigger=PropertyChanged, StringFormat=0.##}"/>
+                        <TextBlock Text="mm" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,2" Visibility="{Binding MoveLeaderShoulder, Converter={StaticResource BoolToVis}}">
+                        <TextBlock Text="Bend point" Width="80" VerticalAlignment="Center"/>
+                        <TextBlock Text="Right" VerticalAlignment="Center"/>
+                        <TextBox Style="{StaticResource Num}" Text="{Binding ShoulderOffsetXMm, UpdateSourceTrigger=PropertyChanged, StringFormat=0.##}"/>
+                        <TextBlock Text="mm    Up" VerticalAlignment="Center"/>
+                        <TextBox Style="{StaticResource Num}" Text="{Binding ShoulderOffsetYMm, UpdateSourceTrigger=PropertyChanged, StringFormat=0.##}"/>
+                        <TextBlock Text="mm" VerticalAlignment="Center"/>
+                    </StackPanel>
                 </StackPanel>
             </GroupBox>
         </StackPanel>
 
-        <StackPanel Grid.Row="3" Margin="0,0,0,6">
+        <StackPanel Grid.Row="4" Margin="0,0,0,6">
             <TextBlock Text="{Binding Summary}" FontWeight="SemiBold" TextWrapping="Wrap"/>
             <TextBlock Text="{Binding Warning}" Foreground="#B45309" TextWrapping="Wrap" Margin="0,2,0,0"
                        Visibility="{Binding HasWarning, Converter={StaticResource BoolToVis}}"/>
         </StackPanel>
 
-        <DataGrid Grid.Row="4" ItemsSource="{Binding Rows}" AutoGenerateColumns="False" IsReadOnly="True"
+        <DataGrid Grid.Row="5" ItemsSource="{Binding Rows}" AutoGenerateColumns="False" IsReadOnly="True"
                   HeadersVisibility="Column" CanUserAddRows="False" GridLinesVisibility="Horizontal">
             <DataGrid.RowStyle>
                 <Style TargetType="DataGridRow">
@@ -113,12 +142,14 @@
             </DataGrid.RowStyle>
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Spot" Binding="{Binding Label}" Width="*"/>
-                <DataGridTextColumn Header="Move X (mm)" Binding="{Binding MoveX}" Width="100"/>
-                <DataGridTextColumn Header="Move Y (mm)" Binding="{Binding MoveY}" Width="100"/>
+                <DataGridTextColumn Header="Text X (mm)" Binding="{Binding MoveX}" Width="80"/>
+                <DataGridTextColumn Header="Text Y (mm)" Binding="{Binding MoveY}" Width="80"/>
+                <DataGridTextColumn x:Name="EndColumn" Header="End X, Y (mm)" Binding="{Binding EndMove}" Width="100"/>
+                <DataGridTextColumn x:Name="BendColumn" Header="Bend X, Y (mm)" Binding="{Binding BendMove}" Width="100"/>
             </DataGrid.Columns>
         </DataGrid>
 
-        <DockPanel Grid.Row="5" Margin="0,10,0,0" LastChildFill="False">
+        <DockPanel Grid.Row="6" Margin="0,10,0,0" LastChildFill="False">
             <TextBlock x:Name="SkippedText" DockPanel.Dock="Left" Foreground="#B45309" VerticalAlignment="Center"
                        Cursor="Hand" TextDecorations="Underline" MouseLeftButtonUp="Skipped_Click"/>
             <Button Content="Cancel" DockPanel.Dock="Right" Width="80" IsCancel="True" Margin="8,0,0,0"/>
