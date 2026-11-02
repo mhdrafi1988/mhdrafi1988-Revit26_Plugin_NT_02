@@ -47,6 +47,19 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Core.Models
         Reference
     }
 
+    /// <summary>A part of a spot elevation that the tool can move.</summary>
+    public enum SpotPart
+    {
+        /// <summary>The tag text.</summary>
+        Text,
+
+        /// <summary>The leader end point (where the leader meets the text).</summary>
+        LeaderEnd,
+
+        /// <summary>The leader bend point (shoulder).</summary>
+        LeaderShoulder
+    }
+
     /// <summary>How tags are spaced along the column or row.</summary>
     public enum DistributeMode
     {
@@ -84,6 +97,24 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Core.Models
         /// <summary>Measured point along the view's up direction (paper mm).</summary>
         public double PointV { get; set; }
 
+        /// <summary>True when the spot has a leader, so <see cref="EndU"/> / <see cref="EndV"/> are known.</summary>
+        public bool HasEnd { get; set; }
+
+        /// <summary>Leader end point along the view's right direction (paper mm).</summary>
+        public double EndU { get; set; }
+
+        /// <summary>Leader end point along the view's up direction (paper mm).</summary>
+        public double EndV { get; set; }
+
+        /// <summary>True when the leader has a bend point (shoulder).</summary>
+        public bool HasShoulder { get; set; }
+
+        /// <summary>Leader bend point along the view's right direction (paper mm).</summary>
+        public double ShoulderU { get; set; }
+
+        /// <summary>Leader bend point along the view's up direction (paper mm).</summary>
+        public double ShoulderV { get; set; }
+
         /// <summary>Estimated tag text width (paper mm); 0 when unknown.</summary>
         public double WidthMm { get; set; }
 
@@ -98,7 +129,7 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Core.Models
     public sealed class AlignOptions
     {
         /// <summary>Settings file format version.</summary>
-        public const int CurrentVersion = 1;
+        public const int CurrentVersion = 2;
 
         /// <summary>Format version of the saved file.</summary>
         public int Version { get; set; } = CurrentVersion;
@@ -127,6 +158,31 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Core.Models
         /// <summary>Tag offset above its point, paper mm (Offset from point).</summary>
         public double OffsetYMm { get; set; } = 3.0;
 
+        /// <summary>Move the tag text (on by default, the only choice before version 2).</summary>
+        public bool MoveText { get; set; } = true;
+
+        /// <summary>Move the leader end points. Spots without a leader keep theirs.</summary>
+        public bool MoveLeaderEnd { get; set; }
+
+        /// <summary>Move the leader bend points (shoulders). Leaders without a bend keep theirs.</summary>
+        public bool MoveLeaderShoulder { get; set; }
+
+        /// <summary>Leader end offset to the right of its point, paper mm (Offset from point).</summary>
+        public double EndOffsetXMm { get; set; } = 8.0;
+
+        /// <summary>Leader end offset above its point, paper mm (Offset from point).</summary>
+        public double EndOffsetYMm { get; set; } = 3.0;
+
+        /// <summary>Bend point offset to the right of its point, paper mm (Offset from point).</summary>
+        public double ShoulderOffsetXMm { get; set; } = 4.0;
+
+        /// <summary>Bend point offset above its point, paper mm (Offset from point).</summary>
+        public double ShoulderOffsetYMm { get; set; } = 3.0;
+
+        /// <summary>True when at least one part is chosen.</summary>
+        [System.Text.Json.Serialization.JsonIgnore]
+        public bool MovesAnything => MoveText || MoveLeaderEnd || MoveLeaderShoulder;
+
         /// <summary>Reference tag id for <see cref="AlignTarget.Reference"/>. Not saved.</summary>
         [System.Text.Json.Serialization.JsonIgnore]
         public long? ReferenceId { get; set; }
@@ -146,6 +202,9 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Core.Models
 
         /// <summary>Number of tags that share the chosen position (Most common only).</summary>
         public int SharedCount { get; set; }
+
+        /// <summary>True when the reference tag lacks this part, so the first tag that has it was used.</summary>
+        public bool ReferenceMissing { get; set; }
     }
 
     /// <summary>The planned move of one tag.</summary>
@@ -154,17 +213,44 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Core.Models
         /// <summary>The tag.</summary>
         public SpotItem Item { get; set; }
 
-        /// <summary>Move to the right, paper mm (signed).</summary>
+        /// <summary>Text move to the right, paper mm (signed). When text is not chosen this is the estimated
+        /// move Revit makes when the leader end moves.</summary>
         public double DeltaU { get; set; }
 
-        /// <summary>Move up, paper mm (signed).</summary>
+        /// <summary>Text move up, paper mm (signed). See <see cref="DeltaU"/>.</summary>
         public double DeltaV { get; set; }
+
+        /// <summary>Leader end move to the right, paper mm. When the end is not chosen this is the
+        /// estimated move Revit makes when the bend point moves.</summary>
+        public double EndDeltaU { get; set; }
+
+        /// <summary>Leader end move up, paper mm. See <see cref="EndDeltaU"/>.</summary>
+        public double EndDeltaV { get; set; }
+
+        /// <summary>Bend point move to the right, paper mm.</summary>
+        public double ShoulderDeltaU { get; set; }
+
+        /// <summary>Bend point move up, paper mm.</summary>
+        public double ShoulderDeltaV { get; set; }
+
+        /// <summary>True when the text is set explicitly (text chosen and it moves).</summary>
+        public bool SetsText { get; set; }
+
+        /// <summary>True when the leader end is set explicitly (end chosen, the spot has one and it moves).</summary>
+        public bool SetsEnd { get; set; }
+
+        /// <summary>True when the bend point is set explicitly.</summary>
+        public bool SetsShoulder { get; set; }
+
+        /// <summary>True when the leader end cannot reach its line: with a bend, Revit only lets the end
+        /// slide along the bend-to-end segment. The end deltas are then the reachable move.</summary>
+        public bool EndLimited { get; set; }
 
         /// <summary>True when this tag's box would overlap another selected tag after the move.</summary>
         public bool Overlaps { get; set; }
 
         /// <summary>True when the tag actually moves.</summary>
-        public bool Moves => System.Math.Abs(DeltaU) > 1e-6 || System.Math.Abs(DeltaV) > 1e-6;
+        public bool Moves => SetsText || SetsEnd || SetsShoulder;
     }
 
     /// <summary>The full result of a plan: one entry per tag (including tags that stay) plus notes.</summary>
@@ -173,8 +259,20 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Core.Models
         /// <summary>One entry per tag, in the order given.</summary>
         public List<PlannedMove> Entries { get; } = new List<PlannedMove>();
 
-        /// <summary>The line target (Align to line only).</summary>
+        /// <summary>The line target of the first chosen part (Align to line only).</summary>
         public TargetResult Target { get; set; }
+
+        /// <summary>The line target of each chosen part (Align to line only).</summary>
+        public Dictionary<SpotPart, TargetResult> Targets { get; } = new Dictionary<SpotPart, TargetResult>();
+
+        /// <summary>Tags without a leader while the leader end was chosen (their end stays).</summary>
+        public int MissingEndCount { get; set; }
+
+        /// <summary>Tags without a bend point while the bend point was chosen (theirs stays).</summary>
+        public int MissingShoulderCount { get; set; }
+
+        /// <summary>Leader ends that cannot reach their line because of the bend (see <see cref="PlannedMove.EndLimited"/>).</summary>
+        public int EndLimitedCount { get; set; }
 
         /// <summary>Number of tags whose box would overlap another selected tag after the move.</summary>
         public int OverlapCount { get; set; }

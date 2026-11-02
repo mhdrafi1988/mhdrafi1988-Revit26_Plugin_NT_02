@@ -66,14 +66,22 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Commands
         /// <summary>Applies <paramref name="plan"/> as one Undo step and reports the result.</summary>
         public static Result Apply(AlignContext ctx, ArrangePlan plan, string whatHappened)
         {
-            int moved = SpotAlignService.Apply(ctx.Doc, ctx.View, plan.Entries, ctx.Read.Scale, ctx.Title, out string error);
+            int moved = SpotAlignService.Apply(ctx.Doc, ctx.View, plan.Entries, ctx.Read.Scale, ctx.Title,
+                out string error, out int endsShort);
             if (error != null)
             {
                 TaskDialog.Show(ctx.Title, "Nothing was changed. " + error);
                 return Result.Failed;
             }
 
-            var lines = new List<string> { $"{moved} spot elevation tag(s) {whatHappened}." };
+            var lines = new List<string> { $"{moved} spot elevation(s) {whatHappened}." };
+            if (endsShort > 0)
+                lines.Add($"{endsShort} leader end(s) did not reach the line: a leader with a bend point only lets " +
+                          "its end slide along the bend-to-end segment. Also align the bend points to move them further.");
+            if (plan.MissingEndCount > 0)
+                lines.Add($"{plan.MissingEndCount} spot(s) have no leader, so there was no end point to move.");
+            if (plan.MissingShoulderCount > 0)
+                lines.Add($"{plan.MissingShoulderCount} spot(s) have no bend point, so there was none to move.");
             if (plan.OverlapCount > 0)
                 lines.Add($"{plan.OverlapCount} tag(s) may overlap (estimated from the text size). " +
                           "Undo, or open Align Spot Elevations and choose even spacing or a fixed gap.");

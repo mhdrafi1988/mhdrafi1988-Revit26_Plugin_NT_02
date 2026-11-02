@@ -180,5 +180,104 @@ namespace AlignSpotElevations.Tests
             Assert.Equal(4, back.GapMm);
             Assert.Null(back.ReferenceId);
         }
+
+        // ── Leader end and bend point ──────────────────────────────────────
+
+        private static SpotItem L(long id, double textU, double endU, double endV, bool shoulder = false,
+            double sU = 0, double sV = 0)
+            => new SpotItem
+            {
+                Id = id, U = textU, V = endV, HasEnd = true, EndU = endU, EndV = endV,
+                HasShoulder = shoulder, ShoulderU = sU, ShoulderV = sV
+            };
+
+        [Fact]
+        public void EndOnly_AlignsEnds_TextFollows()
+        {
+            var items = new List<SpotItem> { L(1, 12, 10, 0), L(2, 22, 20, 10) };
+            var o = new AlignOptions { MoveText = false, MoveLeaderEnd = true, Target = AlignTarget.Min };
+            var plan = AlignEngine.Plan(items, o);
+            Assert.Equal(0, plan.Entries[0].EndDeltaU, 9);
+            Assert.Equal(-10, plan.Entries[1].EndDeltaU, 9);
+            Assert.True(plan.Entries[1].SetsEnd);
+            Assert.False(plan.Entries[1].SetsText);
+            Assert.Equal(-10, plan.Entries[1].DeltaU, 9); // text moves with the end
+        }
+
+        [Fact]
+        public void TextAndEnd_EachOnOwnLine()
+        {
+            var items = new List<SpotItem> { L(1, 15, 10, 0), L(2, 30, 20, 10) };
+            var o = new AlignOptions { MoveText = true, MoveLeaderEnd = true, Target = AlignTarget.Min };
+            var plan = AlignEngine.Plan(items, o);
+            Assert.Equal(-15, plan.Entries[1].DeltaU, 9);    // text to 15
+            Assert.Equal(-10, plan.Entries[1].EndDeltaU, 9); // end to 10
+            Assert.True(plan.Entries[1].SetsText && plan.Entries[1].SetsEnd);
+        }
+
+        [Fact]
+        public void NoLeader_EndStays_AndIsCounted()
+        {
+            var items = new List<SpotItem> { L(1, 12, 10, 0), L(2, 22, 20, 10), P(3, 5, 5) };
+            var o = new AlignOptions { MoveText = false, MoveLeaderEnd = true, Target = AlignTarget.Min };
+            var plan = AlignEngine.Plan(items, o);
+            Assert.Equal(1, plan.MissingEndCount);
+            Assert.False(plan.Entries[2].Moves);
+            Assert.Equal(10, plan.Targets[SpotPart.LeaderEnd].Value, 9); // tag 3 not used for the line
+        }
+
+        [Fact]
+        public void Shoulder_EndAndTextFollow()
+        {
+            var items = new List<SpotItem> { L(1, 12, 10, 5, true, 5, 5), L(2, 22, 20, 5, true, 15, 5) };
+            var o = new AlignOptions { MoveText = false, MoveLeaderShoulder = true, Target = AlignTarget.Min };
+            var plan = AlignEngine.Plan(items, o);
+            Assert.Equal(-10, plan.Entries[1].ShoulderDeltaU, 9);
+            Assert.Equal(-10, plan.Entries[1].EndDeltaU, 9);
+            Assert.Equal(-10, plan.Entries[1].DeltaU, 9);
+            Assert.False(plan.Entries[1].SetsEnd);
+        }
+
+        [Fact]
+        public void EndWithShoulder_SlidesAlongSegment_AndIsFlaggedWhenShort()
+        {
+            // Horizontal bend-to-end segments. A column (same U) is reachable; a row (same V) is not.
+            var items = new List<SpotItem> { L(1, 12, 10, 0, true, 5, 0), L(2, 22, 20, 10, true, 15, 10) };
+            var col = AlignEngine.Plan(items, new AlignOptions { MoveText = false, MoveLeaderEnd = true, Target = AlignTarget.Min });
+            Assert.Equal(-10, col.Entries[1].EndDeltaU, 9);
+            Assert.Equal(0, col.EndLimitedCount);
+
+            var row = AlignEngine.Plan(items, new AlignOptions
+            {
+                MoveText = false, MoveLeaderEnd = true, Target = AlignTarget.Min, Direction = AlignDirection.Horizontal
+            });
+            Assert.Equal(0, row.Entries[1].EndDeltaV, 9);
+            Assert.True(row.Entries[1].EndLimited);
+            Assert.Equal(1, row.EndLimitedCount);
+        }
+
+        [Fact]
+        public void Offset_UsesEachPartsOwnOffset()
+        {
+            var a = L(1, 0, 0, 0); a.PointU = 100; a.PointV = 100;
+            var o = new AlignOptions
+            {
+                Mode = ArrangeMode.OffsetFromPoint, MoveText = true, MoveLeaderEnd = true,
+                OffsetXMm = 8, OffsetYMm = 3, EndOffsetXMm = 6, EndOffsetYMm = 2
+            };
+            var plan = AlignEngine.Plan(new List<SpotItem> { a }, o);
+            Assert.Equal(108, a.U + plan.Entries[0].DeltaU, 9);
+            Assert.Equal(106, a.EndU + plan.Entries[0].EndDeltaU, 9);
+            Assert.Equal(102, a.EndV + plan.Entries[0].EndDeltaV, 9);
+        }
+
+        [Fact]
+        public void OldSettings_DefaultToTextOnly()
+        {
+            var back = System.Text.Json.JsonSerializer.Deserialize<AlignOptions>("{\"Version\":1}");
+            Assert.True(back.MoveText);
+            Assert.False(back.MoveLeaderEnd);
+            Assert.False(back.MoveLeaderShoulder);
+        }
     }
 }

@@ -33,7 +33,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                 ToolTip = ToolCatalog.AlignSpotElevations.Tip(
                     "Lines up the tags of the selected spot elevations in one column or one row (average, most common, " +
                     "median, min / max or a reference tag), spaces them evenly or at a fixed gap, or places each tag " +
-                    "at the same offset from its point. Distances are paper mm. Only the tags move.")
+                    "at the same offset from its point. Can also align the leader end and bend points. Distances are paper mm.")
             };
             panel.AddItem(align);
 
@@ -45,7 +45,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                 Image = ImageUtils.Load(Icons + "AlignSpotElevationsVertical_16.png"),
                 LargeImage = ImageUtils.Load(Icons + "AlignSpotElevationsVertical_32.png"),
                 ToolTip = ToolCatalog.AlignSpotElevations.Tip(
-                    "Lines the selected spot elevation tags up in one column right away, with the line position and " +
+                    "Lines the selected spot elevation tags up in one column right away, with the parts, line position and " +
                     "spacing last used in the Align Spot Elevations window. One Undo step.")
             };
             var quickHorizontal = new PushButtonData("Btn_AlignSpotElevations_QuickHorizontal_V001", "Quick Align Horizontal",
@@ -54,7 +54,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                 Image = ImageUtils.Load(Icons + "AlignSpotElevationsHorizontal_16.png"),
                 LargeImage = ImageUtils.Load(Icons + "AlignSpotElevationsHorizontal_32.png"),
                 ToolTip = ToolCatalog.AlignSpotElevations.Tip(
-                    "Lines the selected spot elevation tags up in one row right away, with the line position and " +
+                    "Lines the selected spot elevation tags up in one row right away, with the parts, line position and " +
                     "spacing last used in the Align Spot Elevations window. One Undo step.")
             };
             RibbonLayoutHelper.AddStackedButtons(panel, new RibbonItemData[] { quickVertical, quickHorizontal });
