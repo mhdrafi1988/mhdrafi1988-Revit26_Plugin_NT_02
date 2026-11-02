@@ -12,7 +12,8 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Commands
     /// <summary>
     /// Arranges the tags of the selected spot elevations: lines them up in a column or row (average, most
     /// common, median, min / max or a reference tag), spaces them evenly or at a fixed gap, or places each
-    /// one at the same offset from its measured point. Remembers the last options.
+    /// one at the same offset from its measured point. Can move the text, the leader end points and the
+    /// leader bend points (shoulders), each on its own line. Remembers the last options.
     /// </summary>
     [Transaction(TransactionMode.Manual)]
     [Regeneration(RegenerationOption.Manual)]

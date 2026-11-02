@@ -123,8 +123,15 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Core.Services
             return result;
         }
 
+        /// <summary>Leader ends closer than this to their line count as on it, paper mm.</summary>
+        public const double ReachToleranceMm = 0.05;
+
         /// <summary>
         /// Plans the moves for <paramref name="options"/>. Returns one entry per tag, in input order.
+        /// Each chosen part (text, leader end, bend point) is arranged on its own, using only the tags that
+        /// have that part. A part that is not chosen follows the way Revit moves it: the end moves with the
+        /// bend point, and the text moves with the end. With a bend, the end can only slide along the
+        /// bend-to-end segment, so it may stop short of its line (<see cref="PlannedMove.EndLimited"/>).
         /// </summary>
         public static ArrangePlan Plan(IReadOnlyList<SpotItem> items, AlignOptions options)
         {
@@ -133,56 +140,142 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Core.Services
             var plan = new ArrangePlan();
             if (items.Count == 0) return plan;
 
+            Dictionary<SpotItem, (double U, double V)> text = null, end = null, shoulder = null;
+            if (options.MoveLeaderShoulder)
+                shoulder = PlanPart(items, options, SpotPart.LeaderShoulder, plan, options.ShoulderOffsetXMm, options.ShoulderOffsetYMm);
+            if (options.MoveLeaderEnd)
+                end = PlanPart(items, options, SpotPart.LeaderEnd, plan, options.EndOffsetXMm, options.EndOffsetYMm);
+            if (options.MoveText)
+                text = PlanPart(items, options, SpotPart.Text, plan, options.OffsetXMm, options.OffsetYMm);
+            if (options.MoveLeaderEnd) plan.MissingEndCount = items.Count(i => !i.HasEnd);
+            if (options.MoveLeaderShoulder) plan.MissingShoulderCount = items.Count(i => !i.HasShoulder);
+            plan.Target = plan.Targets.TryGetValue(SpotPart.Text, out TargetResult t) ? t
+                : plan.Targets.Values.FirstOrDefault();
+
             var finalU = new double[items.Count];
             var finalV = new double[items.Count];
-            AlignDirection dir = options.Direction;
-
-            if (options.Mode == ArrangeMode.OffsetFromPoint)
-            {
-                for (int i = 0; i < items.Count; i++)
-                {
-                    finalU[i] = items[i].PointU + options.OffsetXMm;
-                    finalV[i] = items[i].PointV + options.OffsetYMm;
-                }
-            }
-            else
-            {
-                double? line = null;
-                if (options.Mode == ArrangeMode.AlignToLine)
-                {
-                    SpotItem reference = options.ReferenceId.HasValue
-                        ? items.FirstOrDefault(i => i.Id == options.ReferenceId.Value) : null;
-                    if (options.Target == AlignTarget.Reference && reference == null) reference = items[0];
-                    plan.Target = ChooseTarget(items, dir, options.Target, options.ToleranceMm, reference);
-                    line = plan.Target.Value;
-                }
-
-                DistributeMode spacing = options.Mode == ArrangeMode.DistributeOnly && options.Distribute == DistributeMode.None
-                    ? DistributeMode.Even : options.Distribute;
-                Dictionary<SpotItem, double> along = Distribute(items, dir, spacing, options.GapMm);
-
-                for (int i = 0; i < items.Count; i++)
-                {
-                    double axis = line ?? Axis(items[i], dir);
-                    double a = along[items[i]];
-                    finalU[i] = dir == AlignDirection.Vertical ? axis : a;
-                    finalV[i] = dir == AlignDirection.Vertical ? a : axis;
-                }
-            }
-
             for (int i = 0; i < items.Count; i++)
             {
-                plan.Entries.Add(new PlannedMove
+                SpotItem it = items[i];
+                var m = new PlannedMove { Item = it };
+
+                // Bend point: chosen and present, else stays.
+                double sdU = 0, sdV = 0;
+                if (shoulder != null && shoulder.TryGetValue(it, out var s))
                 {
-                    Item = items[i],
-                    DeltaU = Clean(finalU[i] - items[i].U),
-                    DeltaV = Clean(finalV[i] - items[i].V)
-                });
+                    sdU = s.U - it.ShoulderU; sdV = s.V - it.ShoulderV;
+                }
+
+                // Leader end: follows the bend point, or is set (projected onto the bend-to-end line).
+                double edU = it.HasEnd ? sdU : 0, edV = it.HasEnd ? sdV : 0;
+                bool setsEnd = false;
+                if (end != null && end.TryGetValue(it, out var e))
+                {
+                    double tu = e.U, tv = e.V;
+                    if (it.HasShoulder)
+                    {
+                        double du = it.EndU - it.ShoulderU, dv = it.EndV - it.ShoulderV;
+                        double len = Math.Sqrt(du * du + dv * dv);
+                        double su = it.ShoulderU + sdU, sv = it.ShoulderV + sdV;
+                        if (len < 1e-9) { tu = it.EndU + sdU; tv = it.EndV + sdV; }
+                        else
+                        {
+                            du /= len; dv /= len;
+                            double along = (e.U - su) * du + (e.V - sv) * dv;
+                            tu = su + du * along; tv = sv + dv * along;
+                        }
+                        if (Math.Abs(tu - e.U) > ReachToleranceMm || Math.Abs(tv - e.V) > ReachToleranceMm) m.EndLimited = true;
+                    }
+                    edU = tu - it.EndU; edV = tv - it.EndV;
+                    setsEnd = true;
+                }
+
+                // Text: set, or follows the leader end.
+                double tdU = edU, tdV = edV;
+                bool setsText = false;
+                if (text != null && text.TryGetValue(it, out var x))
+                {
+                    tdU = x.U - it.U; tdV = x.V - it.V;
+                    setsText = true;
+                }
+
+                m.ShoulderDeltaU = Clean(sdU); m.ShoulderDeltaV = Clean(sdV);
+                m.EndDeltaU = Clean(edU); m.EndDeltaV = Clean(edV);
+                m.DeltaU = Clean(tdU); m.DeltaV = Clean(tdV);
+                m.SetsShoulder = shoulder != null && it.HasShoulder && (m.ShoulderDeltaU != 0 || m.ShoulderDeltaV != 0);
+                m.SetsEnd = setsEnd && (m.EndDeltaU != 0 || m.EndDeltaV != 0);
+                m.SetsText = setsText && (m.DeltaU != 0 || m.DeltaV != 0);
+                plan.Entries.Add(m);
+                finalU[i] = it.U + m.DeltaU;
+                finalV[i] = it.V + m.DeltaV;
             }
+
             bool[] overlaps = FindOverlaps(items, finalU, finalV);
             for (int i = 0; i < items.Count; i++) plan.Entries[i].Overlaps = overlaps[i];
             plan.OverlapCount = overlaps.Count(o => o);
+            plan.EndLimitedCount = plan.Entries.Count(m => m.EndLimited);
             return plan;
+        }
+
+        /// <summary>
+        /// Arranges one part of the tags that have it. Returns the new position of that part, keyed by tag.
+        /// </summary>
+        private static Dictionary<SpotItem, (double U, double V)> PlanPart(IReadOnlyList<SpotItem> items,
+            AlignOptions options, SpotPart part, ArrangePlan plan, double offsetX, double offsetY)
+        {
+            var result = new Dictionary<SpotItem, (double, double)>();
+            // Stand-ins whose U/V are the part's position, so the line maths works on any part.
+            var proxies = new List<SpotItem>();
+            var owner = new Dictionary<SpotItem, SpotItem>();
+            foreach (SpotItem it in items)
+            {
+                if (part == SpotPart.LeaderEnd && !it.HasEnd) continue;
+                if (part == SpotPart.LeaderShoulder && !it.HasShoulder) continue;
+                var p = new SpotItem
+                {
+                    Id = it.Id, Label = it.Label, PointU = it.PointU, PointV = it.PointV,
+                    U = part == SpotPart.LeaderEnd ? it.EndU : part == SpotPart.LeaderShoulder ? it.ShoulderU : it.U,
+                    V = part == SpotPart.LeaderEnd ? it.EndV : part == SpotPart.LeaderShoulder ? it.ShoulderV : it.V
+                };
+                proxies.Add(p);
+                owner[p] = it;
+            }
+            if (proxies.Count == 0) return result;
+
+            AlignDirection dir = options.Direction;
+            if (options.Mode == ArrangeMode.OffsetFromPoint)
+            {
+                foreach (SpotItem p in proxies) result[owner[p]] = (p.PointU + offsetX, p.PointV + offsetY);
+                return result;
+            }
+
+            double? line = null;
+            if (options.Mode == ArrangeMode.AlignToLine)
+            {
+                SpotItem reference = options.ReferenceId.HasValue
+                    ? proxies.FirstOrDefault(p => p.Id == options.ReferenceId.Value) : null;
+                bool missing = false;
+                if (options.Target == AlignTarget.Reference && reference == null)
+                {
+                    missing = options.ReferenceId.HasValue && items.Any(i => i.Id == options.ReferenceId.Value);
+                    reference = proxies[0];
+                }
+                TargetResult target = ChooseTarget(proxies, dir, options.Target, options.ToleranceMm, reference);
+                target.ReferenceMissing = missing;
+                plan.Targets[part] = target;
+                line = target.Value;
+            }
+
+            DistributeMode spacing = options.Mode == ArrangeMode.DistributeOnly && options.Distribute == DistributeMode.None
+                ? DistributeMode.Even : options.Distribute;
+            Dictionary<SpotItem, double> along = Distribute(proxies, dir, spacing, options.GapMm);
+            foreach (SpotItem p in proxies)
+            {
+                double axis = line ?? Axis(p, dir);
+                double a = along[p];
+                result[owner[p]] = dir == AlignDirection.Vertical ? (axis, a) : (a, axis);
+            }
+            return result;
         }
 
         /// <summary>

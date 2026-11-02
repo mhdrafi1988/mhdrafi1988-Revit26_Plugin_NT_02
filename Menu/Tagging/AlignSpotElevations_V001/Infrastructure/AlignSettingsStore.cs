@@ -35,6 +35,8 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Infrastructure
                 o.Version = AlignOptions.CurrentVersion;
                 if (o.ToleranceMm < 0) o.ToleranceMm = 0;
                 if (o.GapMm < 0) o.GapMm = 0;
+                if (!o.MovesAnything) o.MoveText = true; // version 1 files: text only
+
                 return o;
             }
             catch (Exception ex)

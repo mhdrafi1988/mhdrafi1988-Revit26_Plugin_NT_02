@@ -21,6 +21,15 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.UI.ViewModels
         /// <summary>Move up (negative = down), e.g. "-6.0", or "–".</summary>
         public string MoveY { get; set; }
 
+        /// <summary>Leader end move "X, Y", "–", or "no leader".</summary>
+        public string EndMove { get; set; }
+
+        /// <summary>Bend point move "X, Y", "–", or "no bend".</summary>
+        public string BendMove { get; set; }
+
+        /// <summary>True when the leader end stops short of its line (see the warning).</summary>
+        public bool EndLimited { get; set; }
+
         /// <summary>True when the tag stays where it is.</summary>
         public bool Stays { get; set; }
 
@@ -84,7 +93,7 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.UI.ViewModels
         public int Scale { get; }
 
         /// <summary>Header text, e.g. "6 spot elevations · view 1:100".</summary>
-        public string Header => $"{_items.Count} spot elevation(s) selected · view 1:{Scale}. Distances are paper mm. Only the tag text moves.";
+        public string Header => $"{_items.Count} spot elevation(s) selected · view 1:{Scale}. Distances are paper mm. The measured point never moves.";
 
         /// <summary>Preview rows.</summary>
         public ObservableCollection<PreviewRow> Rows { get; } = new ObservableCollection<PreviewRow>();
@@ -122,6 +131,27 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.UI.ViewModels
             if (mode == ArrangeMode.DistributeOnly && _o.Distribute == DistributeMode.None) _o.Distribute = DistributeMode.Even;
             RaiseAll();
         }
+
+        // ── Parts to move ───────────────────────────────────────────────────
+
+        /// <summary>Checkbox: move the tag text.</summary>
+        public bool MoveText { get => _o.MoveText; set => Set(() => _o.MoveText = value); }
+
+        /// <summary>Checkbox: move the leader end points.</summary>
+        public bool MoveLeaderEnd { get => _o.MoveLeaderEnd; set => Set(() => _o.MoveLeaderEnd = value); }
+
+        /// <summary>Checkbox: move the leader bend points (shoulders).</summary>
+        public bool MoveLeaderShoulder { get => _o.MoveLeaderShoulder; set => Set(() => _o.MoveLeaderShoulder = value); }
+
+        /// <summary>Label of the leader end checkbox, with how many tags have a leader.</summary>
+        public string LeaderEndLabel => $"Leader end point  ({_items.Count(i => i.HasEnd)} of {_items.Count} have a leader)";
+
+        /// <summary>Label of the bend point checkbox, with how many leaders have a bend.</summary>
+        public string LeaderShoulderLabel => $"Leader bend point (shoulder)  ({_items.Count(i => i.HasShoulder)} of {_items.Count} have one)";
+
+        /// <summary>Note under the checkboxes on how parts that are not ticked behave.</summary>
+        public string FollowNote => "Parts that are not ticked follow, as in Revit: the text moves with the leader end, " +
+                                    "and the end and text move with the bend point.";
 
         // ── Direction ───────────────────────────────────────────────────────
 
@@ -183,6 +213,18 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.UI.ViewModels
         /// <summary>Tag offset above its point, paper mm.</summary>
         public double OffsetYMm { get => _o.OffsetYMm; set => SetNumber(() => _o.OffsetYMm = value); }
 
+        /// <summary>Leader end offset to the right of its point, paper mm.</summary>
+        public double EndOffsetXMm { get => _o.EndOffsetXMm; set => SetNumber(() => _o.EndOffsetXMm = value); }
+
+        /// <summary>Leader end offset above its point, paper mm.</summary>
+        public double EndOffsetYMm { get => _o.EndOffsetYMm; set => SetNumber(() => _o.EndOffsetYMm = value); }
+
+        /// <summary>Bend point offset to the right of its point, paper mm.</summary>
+        public double ShoulderOffsetXMm { get => _o.ShoulderOffsetXMm; set => SetNumber(() => _o.ShoulderOffsetXMm = value); }
+
+        /// <summary>Bend point offset above its point, paper mm.</summary>
+        public double ShoulderOffsetYMm { get => _o.ShoulderOffsetYMm; set => SetNumber(() => _o.ShoulderOffsetYMm = value); }
+
         // ── Result ──────────────────────────────────────────────────────────
 
         /// <summary>One-line result under the options.</summary>
@@ -225,6 +267,7 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.UI.ViewModels
             Plan = new ArrangePlan();
             Warning = string.Empty;
             if (_items.Count < 2) { Summary = "Select at least two spot elevations."; CanApply = false; return; }
+            if (!_o.MovesAnything) { Summary = "Tick at least one part to move: text, leader end or bend point."; CanApply = false; return; }
 
             Plan = AlignEngine.Plan(_items, Options);
             foreach (PlannedMove m in Plan.Entries)
@@ -234,28 +277,48 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.UI.ViewModels
                     Label = m.Item.Label,
                     MoveX = Fmt(m.DeltaU),
                     MoveY = Fmt(m.DeltaV),
+                    EndMove = m.Item.HasEnd ? Pair(m.EndDeltaU, m.EndDeltaV) + (m.EndLimited ? " *" : "") : "no leader",
+                    BendMove = m.Item.HasShoulder ? Pair(m.ShoulderDeltaU, m.ShoulderDeltaV) : "no bend",
+                    EndLimited = m.EndLimited,
                     Stays = !m.Moves,
                     Overlaps = m.Overlaps
                 });
             }
 
             int n = Plan.MoveCount;
+            var parts = new List<string>();
+            if (_o.MoveText) parts.Add("text");
+            if (_o.MoveLeaderEnd) parts.Add("leader ends");
+            if (_o.MoveLeaderShoulder) parts.Add("bend points");
+            string partsText = string.Join(", ", parts);
             string what = _o.Mode switch
             {
-                ArrangeMode.OffsetFromPoint => $"placed {_o.OffsetXMm:0.#} mm right and {_o.OffsetYMm:0.#} mm up from their points",
+                ArrangeMode.OffsetFromPoint => "placed at their offsets from the measured points",
                 ArrangeMode.DistributeOnly => _o.Direction == AlignDirection.Vertical ? "spaced down their column" : "spaced along their row",
                 _ => _o.Direction == AlignDirection.Vertical ? "moved into one column" : "moved into one row"
             };
             string extra = string.Empty;
             if (Plan.Target != null && Plan.Target.FellBackToAverage) extra = " No tags share a position, so the average is used.";
             else if (Plan.Target != null && _o.Target == AlignTarget.MostCommon) extra = $" {Plan.Target.SharedCount} tags already share the line.";
-            Summary = $"{n} of {_items.Count} tags will be {what}.{extra}";
+            if (_o.Target == AlignTarget.Reference && Plan.Targets.Values.Any(t => t.ReferenceMissing))
+                extra += " The reference spot lacks a chosen leader point, so the first spot that has it sets that line.";
+            Summary = $"{n} of {_items.Count} spots change: {partsText} {what}.{extra}";
 
+            var warn = new List<string>();
+            if (Plan.MissingEndCount > 0) warn.Add($"{Plan.MissingEndCount} spot(s) have no leader; their end point stays.");
+            if (Plan.MissingShoulderCount > 0) warn.Add($"{Plan.MissingShoulderCount} spot(s) have no bend point; theirs stays.");
+            if (Plan.EndLimitedCount > 0)
+                warn.Add($"{Plan.EndLimitedCount} leader end(s) (*) cannot reach the line: with a bend, Revit only lets the end " +
+                         "slide along the bend-to-end segment. Also tick the bend point to move them further.");
             if (Plan.OverlapCount > 0)
-                Warning = $"{Plan.OverlapCount} tags would overlap (red rows, estimated from the text size). " +
-                          "Choose even spacing or a fixed gap; Fit picks a gap that clears the tags.";
+                warn.Add($"{Plan.OverlapCount} tags would overlap (red rows, estimated from the text size). " +
+                         "Choose even spacing or a fixed gap; Fit picks a gap that clears the tags.");
+            Warning = string.Join(" ", warn);
             CanApply = n > 0;
         }
+
+        private static string Pair(double u, double v)
+            => Math.Abs(u) < 1e-6 && Math.Abs(v) < 1e-6 ? "–" : $"{Fmt(u)}, {Fmt(v)}";
 
         private static string Fmt(double mm) => Math.Abs(mm) < 1e-6 ? "–" : $"{(mm > 0 ? "+" : "")}{mm:0.0}";
     }

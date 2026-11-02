@@ -9,6 +9,26 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.27.0] — 2026-11-02
+
+### Added
+- **Align Spot Elevations v1.3.0 (V001)**
+  - New **Move** group with three checkboxes: **Text** (on by default), **Leader end point** and **Leader bend
+    point (shoulder)**. Any mix can be ticked; each ticked part goes on its own column or row, is spaced on its own,
+    or (Offset from point) gets its own Right / Up offset. All three modes work with all three parts.
+  - Parts that are not ticked follow, as Revit moves them: the text moves with the leader end, and the end and
+    text move with the bend point.
+  - Spots without a leader (or without a bend) keep that point; the preview and result say how many.
+  - With a bend, Revit only lets the leader end slide along the bend-to-end segment, so an end may stop short of
+    its line. The preview marks these ends with * and the result dialog counts them; tick the bend point too to
+    move them further.
+  - The preview shows the leader end and bend moves in their own columns while those parts are ticked.
+
+### Changed
+- **Align Spot Elevations:** the preview's "Move X / Move Y" columns are now "Text X / Text Y".
+- **User note:** old settings load as before (text only). Quick Align Vertical / Horizontal use the parts last
+  ticked in the window.
+
 ## [6.26.0] — 2026-10-31
 
 ### Added
