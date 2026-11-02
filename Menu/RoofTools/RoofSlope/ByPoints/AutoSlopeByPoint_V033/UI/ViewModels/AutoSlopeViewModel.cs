@@ -850,7 +850,17 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V033.UI.ViewModels
 
         // ══ Active view badge ════════════════════════════════════════════════
 
-        private void OnViewActivated(object sender, ViewActivatedEventArgs e) => UpdateViewBadge(e.CurrentActiveView);
+        private void OnViewActivated(object sender, ViewActivatedEventArgs e)
+        {
+            if (_disposed)
+            {
+                // Window already closed. Dispose() runs on the WPF thread, outside a Revit API context,
+                // where unsubscribing is refused; Revit calls this handler inside one, so finish it here.
+                try { if (sender is UIApplication ui) ui.ViewActivated -= OnViewActivated; } catch { /* Revit shutting down */ }
+                return;
+            }
+            UpdateViewBadge(e.CurrentActiveView);
+        }
 
         private void UpdateViewBadge(View view)
         {
