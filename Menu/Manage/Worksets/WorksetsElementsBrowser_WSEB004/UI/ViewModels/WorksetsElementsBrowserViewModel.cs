@@ -35,6 +35,26 @@ namespace Revit26_Plugin_Revised.WorksetsElementsBrowser.WSEB004.UI.ViewModels
         [ObservableProperty] private string _checkedSummaryText = "0 elements checked";
         [ObservableProperty] private bool _hideEmptyWorksets = true;
 
+        /// <summary>Choices for the toolbar "Group by" combo box.</summary>
+        public IReadOnlyList<GroupByOption> GroupByOptions { get; } = new[]
+        {
+            new GroupByOption(GroupByMode.CategoryThenType, "Category › Type"),
+            new GroupByOption(GroupByMode.TypeThenCategory, "Type › Category"),
+            new GroupByOption(GroupByMode.CategoryOnly, "Category only"),
+            new GroupByOption(GroupByMode.TypeOnly, "Type only")
+        };
+
+        /// <summary>How rows under each workset are grouped. Defaults to the original Category › Type layout.</summary>
+        [ObservableProperty] private GroupByMode _groupBy = GroupByMode.CategoryThenType;
+
+        private List<WorksetNodeData> _loadedTree = new();
+
+        partial void OnGroupByChanged(GroupByMode value)
+        {
+            // Pure in-memory re-shape of data already loaded — no Revit round trip needed.
+            if (_loadedTree.Count > 0) RebuildTree();
+        }
+
         public WorksetsElementsBrowserViewModel(UIDocument uiDoc, IntPtr mainWindowHandle)
         {
             _uiDoc = uiDoc;
@@ -107,14 +127,35 @@ namespace Revit26_Plugin_Revised.WorksetsElementsBrowser.WSEB004.UI.ViewModels
                 return;
             }
 
-            int worksetCount = 0, categoryCount = 0, typeCount = 0, elementCount = 0;
+            _loadedTree = _handler.LoadedTree;
+            RebuildTree();
+        }
 
-            foreach (var worksetData in _handler.LoadedTree)
+        /// <summary>
+        /// Builds the tree from <see cref="_loadedTree"/> in the current <see cref="GroupBy"/> mode.
+        /// Leaf rows (the lowest level) always carry the element ids; parents derive theirs from the leaves.
+        /// Check state is reset when the grouping changes, as rows no longer map one-to-one.
+        /// </summary>
+        private void RebuildTree()
+        {
+            RootNodes.Clear();
+
+            int worksetCount = 0, groupCount = 0, elementCount = 0;
+            var categories = new HashSet<string>();
+            var types = new HashSet<string>();
+
+            foreach (var worksetData in _loadedTree)
             {
                 worksetCount++;
-                int worksetElementCount = worksetData.Categories
-                    .SelectMany(c => c.Types)
-                    .Sum(t => t.ElementIds.Count);
+
+                // Flatten to (category, type, ids) rows, then regroup per mode.
+                var rows = worksetData.Categories
+                    .SelectMany(c => c.Types.Select(t => (Category: c.Name, Type: t.Name, Ids: t.ElementIds)))
+                    .ToList();
+
+                int worksetElementCount = rows.Sum(r => r.Ids.Count);
+                elementCount += worksetElementCount;
+                foreach (var r in rows) { categories.Add(r.Category); types.Add(r.Type); }
 
                 var worksetNode = new TreeNodeViewModel(
                     ElementTreeNodeKind.Workset,
@@ -127,54 +168,78 @@ namespace Revit26_Plugin_Revised.WorksetsElementsBrowser.WSEB004.UI.ViewModels
                 };
                 worksetNode.CheckedChanged += RefreshCheckedSummary;
 
-                foreach (var categoryData in worksetData.Categories)
+                switch (GroupBy)
                 {
-                    categoryCount++;
-                    var categoryNode = new TreeNodeViewModel(ElementTreeNodeKind.Category, categoryData.Name);
-                    worksetNode.AddChild(categoryNode);
-
-                    foreach (var typeData in categoryData.Types)
-                    {
-                        typeCount++;
-                        elementCount += typeData.ElementIds.Count;
-                        var typeNode = new TreeNodeViewModel(
-                            ElementTreeNodeKind.Type,
-                            typeData.Name,
-                            elementCount: typeData.ElementIds.Count,
-                            elementIds: typeData.ElementIds);
-                        categoryNode.AddChild(typeNode);
-                    }
+                    case GroupByMode.CategoryThenType:
+                        AddTwoLevel(worksetNode, rows, r => r.Category, ElementTreeNodeKind.Category, r => r.Type, ElementTreeNodeKind.Type, ref groupCount);
+                        break;
+                    case GroupByMode.TypeThenCategory:
+                        AddTwoLevel(worksetNode, rows, r => r.Type, ElementTreeNodeKind.Type, r => r.Category, ElementTreeNodeKind.Category, ref groupCount);
+                        break;
+                    case GroupByMode.CategoryOnly:
+                        AddOneLevel(worksetNode, rows, r => r.Category, ElementTreeNodeKind.Category, ref groupCount);
+                        break;
+                    case GroupByMode.TypeOnly:
+                        AddOneLevel(worksetNode, rows, r => r.Type, ElementTreeNodeKind.Type, ref groupCount);
+                        break;
                 }
 
                 RootNodes.Add(worksetNode);
             }
 
             SummaryText = $"{worksetCount} workset{(worksetCount == 1 ? "" : "s")} · " +
-                           $"{categoryCount} categor{(categoryCount == 1 ? "y" : "ies")} · " +
-                           $"{typeCount} type{(typeCount == 1 ? "" : "s")} · " +
+                           $"{categories.Count} categor{(categories.Count == 1 ? "y" : "ies")} · " +
+                           $"{types.Count} type{(types.Count == 1 ? "" : "s")} · " +
                            $"{elementCount:N0} elements";
 
+            if (!string.IsNullOrEmpty(SearchText)) OnSearchTextChanged(SearchText);
             ApplyEmptyWorksetsVisibility(HideEmptyWorksets);
             RefreshCheckedSummary();
+        }
+
+        private static void AddOneLevel(
+            TreeNodeViewModel parent,
+            List<(string Category, string Type, List<ElementId> Ids)> rows,
+            Func<(string Category, string Type, List<ElementId> Ids), string> key,
+            ElementTreeNodeKind kind,
+            ref int groupCount)
+        {
+            foreach (var g in rows.GroupBy(key).OrderBy(g => g.Key, StringComparer.CurrentCultureIgnoreCase))
+            {
+                var ids = g.SelectMany(r => r.Ids).ToList();
+                parent.AddChild(new TreeNodeViewModel(kind, g.Key, elementCount: ids.Count, elementIds: ids));
+                groupCount++;
+            }
+        }
+
+        private static void AddTwoLevel(
+            TreeNodeViewModel parent,
+            List<(string Category, string Type, List<ElementId> Ids)> rows,
+            Func<(string Category, string Type, List<ElementId> Ids), string> outerKey,
+            ElementTreeNodeKind outerKind,
+            Func<(string Category, string Type, List<ElementId> Ids), string> innerKey,
+            ElementTreeNodeKind innerKind,
+            ref int groupCount)
+        {
+            foreach (var outer in rows.GroupBy(outerKey).OrderBy(g => g.Key, StringComparer.CurrentCultureIgnoreCase))
+            {
+                var outerNode = new TreeNodeViewModel(outerKind, outer.Key, elementCount: outer.Sum(r => r.Ids.Count));
+                parent.AddChild(outerNode);
+                groupCount++;
+
+                foreach (var inner in outer.GroupBy(innerKey).OrderBy(g => g.Key, StringComparer.CurrentCultureIgnoreCase))
+                {
+                    var ids = inner.SelectMany(r => r.Ids).ToList();
+                    outerNode.AddChild(new TreeNodeViewModel(innerKind, inner.Key, elementCount: ids.Count, elementIds: ids));
+                }
+            }
         }
 
         private void RefreshCheckedSummary()
         {
             var ids = CollectCheckedElementIds().ToList();
-            int typeCount = RootNodes.SelectMany(FlattenTypes).Count(t => t.IsChecked == true);
-            CheckedSummaryText = $"{typeCount} type{(typeCount == 1 ? "" : "s")} checked · {ids.Count:N0} elements";
-        }
-
-        private static IEnumerable<TreeNodeViewModel> FlattenTypes(TreeNodeViewModel node)
-        {
-            if (node.Kind == ElementTreeNodeKind.Type)
-            {
-                yield return node;
-                yield break;
-            }
-            foreach (var child in node.Children)
-                foreach (var t in FlattenTypes(child))
-                    yield return t;
+            int rowCount = RootNodes.SelectMany(r => r.SelfAndDescendants()).Count(n => n.IsLeaf && n.ElementIds.Count > 0 && n.IsChecked == true);
+            CheckedSummaryText = $"{rowCount} row{(rowCount == 1 ? "" : "s")} checked · {ids.Count:N0} elements";
         }
 
         private List<ElementId> CollectCheckedElementIds()
@@ -205,7 +270,7 @@ namespace Revit26_Plugin_Revised.WorksetsElementsBrowser.WSEB004.UI.ViewModels
         {
             foreach (var node in nodes)
             {
-                if (node.Kind != ElementTreeNodeKind.Type)
+                if (node.Children.Count > 0)
                     node.IsExpanded = expanded;
                 SetExpandedRecursive(node.Children, expanded);
             }
@@ -238,18 +303,55 @@ namespace Revit26_Plugin_Revised.WorksetsElementsBrowser.WSEB004.UI.ViewModels
             ShowInThreeD($"Show all {ids.Count:N0} checked element(s) in a 3D view?", ids, mode);
         }
 
-        /// <summary>Invoked from the View's code-behind when the user clicks a Type row's name, or its dedicated "Show in 3D" button.</summary>
-        public void OnTypeRowClicked(TreeNodeViewModel typeNode)
+        /// <summary>Invoked from the View's code-behind when the user clicks a Type row's name, or a row's "Show in 3D" button. Acts on every element under the row.</summary>
+        public void OnTypeRowClicked(TreeNodeViewModel node)
         {
-            if (typeNode.Kind != ElementTreeNodeKind.Type) return;
+            var ids = node.CollectAllElementIds().Distinct().ToList();
+            if (ids.Count == 0) return;
 
-            string prompt = $"Show all {typeNode.ElementIds.Count:N0} elements of \"{typeNode.Name}\" in a 3D view?";
+            string prompt = $"Show all {ids.Count:N0} elements of \"{node.Name}\" in a 3D view?";
             var td = new TaskDialog("Worksets & Elements Browser");
             td.MainContent = prompt;
             td.CommonButtons = TaskDialogCommonButtons.Yes | TaskDialogCommonButtons.No;
             if (td.Show() != TaskDialogResult.Yes) return;
 
-            ShowInThreeD(prompt, typeNode.ElementIds.ToList(), ElementActionMode.IsolateAndSelect);
+            ShowInThreeD(prompt, ids, ElementActionMode.IsolateAndSelect);
+        }
+
+        /// <summary>Selects, in the Revit model, every element under the given row (Category or Type) — no 3D view needed.</summary>
+        public void SelectRow(TreeNodeViewModel node)
+        {
+            var ids = node.CollectAllElementIds().Distinct().ToList();
+            if (ids.Count == 0) return;
+            SelectInRevit(ids);
+        }
+
+        /// <summary>Checks every row of the same kind and name in all worksets (e.g. category "Walls" everywhere).</summary>
+        public void CheckSameInAllWorksets(TreeNodeViewModel node)
+        {
+            if (node.Kind == ElementTreeNodeKind.Workset) return;
+            foreach (var n in RootNodes.SelectMany(r => r.SelfAndDescendants()))
+                if (n.Kind == node.Kind && n.Name == node.Name)
+                    n.IsChecked = true;
+        }
+
+        /// <summary>Checks every leaf row currently visible under the search filter.</summary>
+        [RelayCommand]
+        private void CheckFiltered()
+        {
+            foreach (var root in RootNodes)
+                CheckVisibleLeaves(root);
+        }
+
+        private static void CheckVisibleLeaves(TreeNodeViewModel node)
+        {
+            if (!node.IsVisible) return;
+            if (node.IsLeaf)
+            {
+                if (node.ElementIds.Count > 0) node.IsChecked = true;
+                return;
+            }
+            foreach (var c in node.Children) CheckVisibleLeaves(c);
         }
 
         /// <summary>
@@ -287,6 +389,87 @@ namespace Revit26_Plugin_Revised.WorksetsElementsBrowser.WSEB004.UI.ViewModels
                 Infrastructure.ExternalEvents.WsebDebugLog.Write($"About to RaiseRequest(ApplyAction), IsBusy={IsBusy}, ids.Count={ids.Count}, mode={mode}");
                 RaiseRequest(WorksetsElementsBrowserRequest.ApplyAction, HandleApplyActionCompleted);
             });
+        }
+
+        private void SelectInRevit(List<ElementId> ids)
+        {
+            _handler.ActionElementIds = ids;
+            RaiseRequest(WorksetsElementsBrowserRequest.SelectElements, () =>
+            {
+                if (!_handler.LastRunSucceeded)
+                    TaskDialog.Show("Worksets & Elements Browser", $"Could not select the elements: {_handler.ErrorMessage}");
+            });
+        }
+
+        // ─────────────────────────────────────────────────────────────
+        // Save as Revit selection set
+        // ─────────────────────────────────────────────────────────────
+
+        /// <summary>Saves every checked element as a Revit selection set (Manage ▸ Selection Sets).</summary>
+        [RelayCommand]
+        private void SaveSelectionSet()
+        {
+            var ids = CollectCheckedElementIds();
+            if (ids.Count == 0)
+            {
+                TaskDialog.Show("Worksets & Elements Browser", "No elements are checked. Check one or more rows first.");
+                return;
+            }
+
+            var dialog = new SelectionSetNameWindow();
+            new System.Windows.Interop.WindowInteropHelper(dialog).Owner = _mainWindowHandle;
+            dialog.Initialize($"Save {ids.Count:N0} checked element(s) as a Revit selection set.", SuggestSelectionSetName());
+            if (dialog.ShowDialog() != true) return;
+
+            RunSaveSelectionSet(ids, dialog.SetName, overwrite: false);
+        }
+
+        private void RunSaveSelectionSet(List<ElementId> ids, string name, bool overwrite)
+        {
+            _handler.ActionElementIds = ids;
+            _handler.SelectionSetName = name;
+            _handler.OverwriteExisting = overwrite;
+            RaiseRequest(WorksetsElementsBrowserRequest.SaveSelectionSet, () =>
+            {
+                if (!_handler.LastRunSucceeded)
+                {
+                    TaskDialog.Show("Worksets & Elements Browser", $"Could not save the selection set: {_handler.ErrorMessage}");
+                    return;
+                }
+
+                switch (_handler.SelectionSetResult)
+                {
+                    case SelectionSetOutcome.NameExists:
+                        var td = new TaskDialog("Worksets & Elements Browser")
+                        {
+                            MainContent = $"A selection set named \"{name}\" already exists. Replace its contents?",
+                            CommonButtons = TaskDialogCommonButtons.Yes | TaskDialogCommonButtons.No
+                        };
+                        if (td.Show() == TaskDialogResult.Yes)
+                            RunSaveSelectionSet(ids, name, overwrite: true);
+                        break;
+                    case SelectionSetOutcome.Created:
+                    case SelectionSetOutcome.Updated:
+                        string verb = _handler.SelectionSetResult == SelectionSetOutcome.Created ? "Saved" : "Updated";
+                        TaskDialog.Show("Worksets & Elements Browser",
+                            $"{verb} selection set \"{name}\" with {_handler.SelectionSetElementCount:N0} element(s).\n\n" +
+                            "Find it under Manage ▸ Selection ▸ Edit/Load Selection Sets.");
+                        break;
+                }
+            });
+        }
+
+        /// <summary>Default name: "Workset - Row" when one leaf row under one workset is checked, else "Workset selection" / "Browser selection".</summary>
+        private string SuggestSelectionSetName()
+        {
+            var checkedRoots = RootNodes.Where(r => r.IsChecked != false).ToList();
+            if (checkedRoots.Count != 1) return "Browser selection";
+
+            var leaves = checkedRoots[0].SelfAndDescendants()
+                .Where(n => n.IsLeaf && n.ElementIds.Count > 0 && n.IsChecked == true).ToList();
+            return leaves.Count == 1
+                ? $"{checkedRoots[0].Name} - {leaves[0].Name}"
+                : $"{checkedRoots[0].Name} selection";
         }
 
         private void HandleApplyActionCompleted()
