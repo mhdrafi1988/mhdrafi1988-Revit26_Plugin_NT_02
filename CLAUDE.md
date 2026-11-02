@@ -61,6 +61,13 @@ done until it builds with 0 errors. Running it still needs Revit on Windows.
    worksharing — check `WorksharingUtils.GetCheckoutStatus`).
 5. Report errors in the tool's UI or log; never fail silently. Unexpected errors go to
    `%AppData%\Revit26_Plugin_Revised\Logs` through `ToolGuard.Report`.
+6. **Revit events need an API context.** Adding or removing a Revit event handler (`DocumentChanged`,
+   `ViewActivated`, `DocumentClosing`, `Idling`, …) throws "Revit is currently not within an API context"
+   when done on the WPF thread, so never unsubscribe in a window's `Closing`/`Closed` handler or a
+   ViewModel `Dispose`. Set a `_detached`/`_disposed` flag there, and let the event handler itself
+   unsubscribe (Revit calls it inside an API context) and return; or raise an `ExternalEvent` to do it.
+   Never hide the failure with an empty `catch`: that leaves a stale handler on a closed window.
+   Subscribe from `Execute` or another API context, and remove any earlier subscription first to avoid duplicates.
 
 ## Documentation
 
