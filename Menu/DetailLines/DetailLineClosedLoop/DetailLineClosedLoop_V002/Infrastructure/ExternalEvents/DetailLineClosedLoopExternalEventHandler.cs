@@ -10,6 +10,7 @@ using Revit26_Plugin_Revised.DetailLineClosedLoop.V002.Core.Services;
 using Revit26_Plugin_Revised.DetailLineClosedLoop.V002.Infrastructure.SelectionFilters;
 using Revit26_Plugin_Revised.DetailLineClosedLoop.V002.UI.ViewModels;
 using Revit26_Plugin_Revised.Shared.Models;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace Revit26_Plugin_Revised.DetailLineClosedLoop.V002.Infrastructure.ExternalEvents
 {
@@ -27,7 +28,11 @@ namespace Revit26_Plugin_Revised.DetailLineClosedLoop.V002.Infrastructure.Extern
 
         public DetailLineClosedLoopExternalEventHandler(DetailLineClosedLoopViewModel vm) => _vm = vm;
 
+        /// <inheritdoc/>
         public void Execute(UIApplication app)
+            => ToolGuard.RunHandler(GetType(), app, ExecuteUnguarded);
+
+        private void ExecuteUnguarded(UIApplication app)
         {
             UIDocument uiDoc = app.ActiveUIDocument;
             Document doc = uiDoc?.Document;
@@ -58,7 +63,9 @@ namespace Revit26_Plugin_Revised.DetailLineClosedLoop.V002.Infrastructure.Extern
             }
             catch (Exception ex)
             {
+                // Show it in the tool's log too, then let ToolGuard write the error log and dialog.
                 _vm.Log(LogLevel.Error, $"Unhandled error: {ex.Message}");
+                throw;
             }
             finally
             {

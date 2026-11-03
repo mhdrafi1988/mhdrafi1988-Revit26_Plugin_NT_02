@@ -1,0 +1,168 @@
+<title>Detail Line Closed Loop</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<!-- UI preview (CLAUDE.md "UI previews"): Detail Line Closed Loop V003, tool 3.0.2, plugin 6.37.1.
+     New in 3.0.2: the ribbon command and the window's Revit actions run through ToolGuard. An unexpected
+     error still adds a line to the Processing Log, and now also shows the standard error dialog and is
+     written to %AppData%\Revit26_Plugin_Revised\Logs\errors-<date>.log.
+     Mirrors: Menu/DetailLines/DetailLineClosedLoop/DetailLineClosedLoop_V003/UI/Views/DetailLineClosedLoopWindow.xaml
+              (+ DetailLineClosedLoopViewModel), Shared/Services/ToolGuard.cs (Report dialog)
+     Artifact: https://claude.ai/artifact/FrU2QrCJXVcdMzAqtDZnyE (republish to this URL on every update)
+     Colours: Shared/SharedStyles.xaml tokens, one light look on purpose (mirrors the light WPF window). -->
+<style>
+/* Layout: one column of captioned mock-ups; each fixed-width Revit piece scrolls in its own frame. */
+:root{
+  color-scheme:light;
+  --page:#E9EDF1; --window:#F3F5F7; --card:#FFFFFF; --border:#D6DCE3; --input:#B5C2CF;
+  --navy:#1E3A5F; --text:#1A2B3C; --text2:#5B7185; --bg2:#ECEFF3;
+  --ok:#2E7D4F; --warn:#9A5B00; --warn-soft:#FDF1E1; --danger:#B23A35; --danger-soft:#FBE8E7;
+  --log-bg:#14283F; --log-text:#EAF1F8; --log-dim:#7E94AA; --log-info:#64D2FF; --log-err:#FF453A; --log-ok:#4CC18A;
+  --new:#0E7C66; --new-soft:#E0F4EF;
+  --ui:'Segoe UI',system-ui,-apple-system,sans-serif; --mono:Consolas,'Cascadia Mono',monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--text);font-family:var(--ui);font-size:12.5px;
+  padding-block:24px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.page{max-width:980px;margin:0 auto;display:grid;gap:22px}
+h1{font-size:20px;margin:0 0 4px;font-weight:600;text-wrap:balance}
+h2{font-size:14px;margin:0 0 8px;font-weight:600}
+p{margin:0;line-height:1.5;max-width:75ch}
+.muted{color:var(--text2)}
+.tag{display:inline-block;background:var(--new);color:#FFFFFF;font-size:10px;font-weight:600;letter-spacing:.04em;
+  padding:1px 6px;border-radius:3px;vertical-align:middle;margin-left:6px}
+.sample{display:inline-block;background:var(--warn-soft);color:var(--warn);border:1px solid #E8B66B;border-radius:3px;padding:2px 8px;font-size:11.5px}
+.frame{overflow-x:auto;padding-bottom:4px}
+/* tool window */
+.win{width:980px;background:var(--window);border:1px solid var(--input);box-shadow:0 6px 20px rgba(16,32,48,.18)}
+.tbar{background:var(--card);border-bottom:1px solid var(--border);padding:7px 10px;display:flex;justify-content:space-between}
+.hdr{background:var(--navy);color:#FFFFFF;padding:12px 16px;display:flex;justify-content:space-between;align-items:baseline}
+.hdr b{font-size:16px} .hdr span{opacity:.75;margin-left:8px}
+.ver{background:rgba(255,255,255,.15);border-radius:10px;padding:1px 8px;font-size:11px}
+.wb{padding:12px 16px;display:grid;gap:8px}
+.metrics{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.m{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:6px;text-align:center}
+.m small{display:block;color:var(--text2);font-size:11px}
+.m b{font-size:20px;font-variant-numeric:tabular-nums}
+.body{display:grid;grid-template-columns:440px 1fr;gap:10px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 12px;display:grid;gap:6px;align-content:start}
+.card h3{margin:0;font-size:13px}
+.hint{color:var(--text2);font-size:11.5px}
+.r{display:flex;align-items:center;gap:8px}
+.btn{display:inline-block;border:1px solid var(--input);background:var(--bg2);padding:3px 12px;border-radius:4px}
+.btn.acc{background:var(--navy);border-color:var(--navy);color:#FFFFFF}
+.btn.dng{background:var(--danger);border-color:var(--danger);color:#FFFFFF}
+.btn.sm{padding:1px 8px;font-size:11.5px}
+.pill{background:var(--bg2);border-radius:10px;padding:1px 8px;font-size:11.5px}
+.tog{width:30px;height:16px;border-radius:8px;background:var(--ok);position:relative;flex:none}
+.tog::after{content:"";position:absolute;right:2px;top:2px;width:12px;height:12px;border-radius:50%;background:#FFFFFF}
+.tog.off{background:var(--input)} .tog.off::after{right:auto;left:2px}
+.inp{border:1px solid var(--input);background:var(--card);padding:2px 6px;min-width:80px;text-align:right}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+th,td{border-bottom:1px solid var(--border);padding:3px 6px;text-align:left}
+th{background:var(--bg2);font-weight:600}
+td.n{text-align:right}
+.log{background:var(--log-bg);border-radius:8px;padding:8px 10px;color:var(--log-text);font-family:var(--mono);font-size:11px;display:grid;gap:2px}
+.log .t{color:var(--log-dim);margin-right:8px} .lv{display:inline-block;width:58px;font-weight:600}
+.log .newline{outline:1px dashed var(--log-ok);outline-offset:2px}
+.foot{border-top:1px solid var(--border);padding:8px 16px;display:flex;justify-content:space-between;align-items:center;background:var(--card)}
+/* TaskDialog */
+.dlg{width:520px;background:var(--card);border:1px solid var(--input);box-shadow:0 6px 20px rgba(16,32,48,.22);outline:2px solid var(--new);outline-offset:3px}
+.dlg .tbar{background:var(--window)}
+.dlg .c{padding:14px 16px;display:grid;grid-template-columns:32px 1fr;gap:10px 12px}
+.x{width:32px;height:32px;border-radius:50%;background:var(--danger);color:#FFFFFF;display:grid;place-items:center;font-weight:700;font-size:18px}
+.mi{color:#1F4E9A;font-size:14.5px;line-height:1.35}
+.dlg pre{grid-column:2;margin:0;font-family:var(--mono);font-size:11px;background:var(--bg2);padding:6px 8px;white-space:pre-wrap}
+.dlg .bar{background:var(--window);border-top:1px solid var(--border);padding:8px 16px;display:flex;justify-content:space-between;align-items:center}
+.dlg .fn{padding:8px 16px;border-top:1px solid var(--border);color:var(--text2);font-size:11.5px;overflow-wrap:anywhere}
+ul{margin:0;padding-left:18px;line-height:1.6}
+</style>
+
+<div class="page">
+  <header>
+    <h1>Detail Line Closed Loop <span class="muted">v3.0.2</span></h1>
+    <p class="muted">Plugin 6.37.1 · Error handling fix. The window layout is unchanged; what changed is what you see when a Revit action fails unexpectedly.</p>
+    <p style="margin-top:8px"><span class="sample">Sample data: element ids, lengths and the error text are made up.</span></p>
+  </header>
+
+  <section>
+    <h2>What changed in 3.0.2</h2>
+    <ul>
+      <li>Title bar and header show <b>v3.0.2</b>.</li>
+      <li>An unexpected error in Select Detail Lines, Run, Delete Selected or Refresh still adds an <b>Error</b> line to the Processing Log.</li>
+      <li><span class="tag">NEW</span> It now also shows the standard SloperPro error dialog and is written to the error log file. Before, only the log line appeared.</li>
+      <li>Cancelling a pick (Esc) is not an error: it logs "Selection cancelled." and shows no dialog.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Tool window after a failed Run</h2>
+    <div class="frame">
+      <div class="win">
+        <div class="tbar"><span>Detail Line Closed Loop — v3.0.2<span class="tag">CHANGED</span></span><span class="muted">— ☐ ✕</span></div>
+        <div class="hdr"><div><b>Detail Line Closed Loop</b><span>Trim, merge &amp; close a detail-line boundary</span></div><span class="ver">v3.0.2</span></div>
+        <div class="wb">
+          <div class="metrics">
+            <div class="m"><small>In Loop</small><b>0</b><small>curves</small></div>
+            <div class="m"><small>Merged</small><b style="color:var(--warn)">0</b><small>segments</small></div>
+            <div class="m"><small>Removed</small><b style="color:var(--warn)">0</b><small>engulfed</small></div>
+            <div class="m"><small>Gaps Closed</small><b style="color:var(--ok)">0</b><small>&nbsp;</small></div>
+            <div class="m"><small>Failed</small><b style="color:var(--danger)">0</b><small>&nbsp;</small></div>
+          </div>
+          <div class="body">
+            <div style="display:grid;gap:8px;align-content:start">
+              <div class="card">
+                <h3>Selection</h3>
+                <div class="r"><span class="btn acc">Select Detail Lines</span><span class="pill">14 lines selected</span></div>
+                <div class="hint">Pick detail lines/arcs in the active view. Only the active view's sketch plane is used — Model Lines are not supported by this tool.</div>
+              </div>
+              <div class="card">
+                <h3>Options</h3>
+                <div class="r"><span class="tog"></span>Snap Endpoints</div>
+                <div class="r" style="justify-content:space-between"><span>Max Gap to Auto-Close</span><span><span class="inp">50</span> mm</span></div>
+                <div class="r"><span class="tog off"></span>Group New Lines</div>
+                <div class="r" style="justify-content:space-between"><span>Group Name</span><span class="inp" style="min-width:170px;text-align:left;color:var(--text2)">ClosedLoop Group</span></div>
+              </div>
+            </div>
+            <div class="card">
+              <h3>Created Lines</h3>
+              <div class="hint">Segments drawn by the most recent run, pre-selected for deletion. Uncheck any you want to keep.</div>
+              <div class="r"><span class="inp" style="min-width:150px"></span><span class="btn sm">Select All</span><span class="btn sm">Clear</span><span class="btn sm">Refresh</span></div>
+              <table>
+                <tr><th>☐</th><th>#</th><th>Type</th><th>Length (mm)</th><th>Element Id</th></tr>
+                <tr><td colspan="5" class="hint" style="padding:18px 6px">No lines created — the run was rolled back.</td></tr>
+              </table>
+              <div class="r" style="justify-content:space-between"><span class="hint">0 line(s) · 0 selected</span><span class="btn dng">Delete Selected (0)</span></div>
+            </div>
+          </div>
+          <div class="log">
+            <div class="r" style="justify-content:space-between;font-family:var(--ui)"><b style="font-size:11.5px">Processing Log</b><span><span class="btn sm" style="background:transparent;color:var(--log-text);border-color:var(--log-dim)">Copy All</span> <span class="btn sm" style="background:transparent;color:var(--log-text);border-color:var(--log-dim)">Copy Selected</span></span></div>
+            <div><span class="t">10:42:07</span><span class="lv" style="color:var(--log-info)">Info</span>Selected 14 curve(s) (12 Line, 2 Arc)</div>
+            <div><span class="t">10:42:15</span><span class="lv" style="color:var(--log-info)">Info</span>Run started: 14 curve(s), gap tolerance 50 mm</div>
+            <div class="newline"><span class="t">10:42:16</span><span class="lv" style="color:var(--log-err)">Error</span>Unhandled error: The element 412873 belongs to a different view.</div>
+          </div>
+        </div>
+        <div class="foot"><span class="hint">Run failed. See the error dialog.</span><span><span class="btn acc">Run</span> <span class="btn">Close</span></span></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Error dialog <span class="tag">NEW</span></h2>
+    <p class="muted" style="margin-bottom:8px">Shown by the shared error guard at the same moment as the Error line above. Details are collapsed until "Show details" is clicked.</p>
+    <div class="frame">
+      <div class="dlg">
+        <div class="tbar"><span>Detail Line Closed Loop</span><span class="muted">✕</span></div>
+        <div class="c">
+          <div class="x">✕</div>
+          <div class="mi">The tool hit an error and stopped. The change in progress was rolled back.</div>
+          <div></div>
+          <div>The element 412873 belongs to a different view.</div>
+          <pre>Autodesk.Revit.Exceptions.ArgumentException: The element 412873 belongs to a different view.
+   at …DetailLineDrawService.Draw(…)
+   at …DetailLineClosedLoopExternalEventHandler.RunProcess(…)</pre>
+        </div>
+        <div class="bar"><span class="muted">⌃ Hide details</span><span class="btn" style="min-width:70px;text-align:center">Close</span></div>
+        <div class="fn">Detail Line Closed Loop — v3.0.2 · Log: C:\Users\example\AppData\Roaming\Revit26_Plugin_Revised\Logs\errors-2026-11-03.log</div>
+      </div>
+    </div>
+  </section>
+</div>

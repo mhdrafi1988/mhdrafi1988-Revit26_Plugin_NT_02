@@ -9,6 +9,16 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.37.1] — 2026-11-03
+
+### Fixed
+- **Detail Line Closed Loop v3.0.2 (V003)**, and the older V002 in the same dropdown: the ribbon command and the
+  window's Revit actions (Select Detail Lines, Run, Delete Selected, Refresh) now run through the shared error guard,
+  like every other tool.
+- **User note:** an unexpected error now shows the standard SloperPro error dialog and is written to
+  `%AppData%\Revit26_Plugin_Revised\Logs`. Before, a failed Revit action only added a line to the Processing Log.
+  The line still appears there. Cancelling a pick is not an error and shows no dialog.
+
 ## [6.37.0] — 2026-11-03
 
 ### Added
