@@ -52,7 +52,7 @@ namespace Revit26_Plugin_Revised.Shared.Services
         private static readonly List<ToolInfo> All = new();
 
         public static readonly ToolInfo LinkedDetailLineGenerator = Add("Detail Lines From Links", "10.1.1", "VA010", "Revit26_Plugin_Revised.LinkedDetailLineGenerator.VA010");
-        public static readonly ToolInfo DetailLineClosedLoop = Add("Detail Line Closed Loop", "3.0.1", "V003", "Revit26_Plugin_Revised.DetailLineClosedLoop.V003");
+        public static readonly ToolInfo DetailLineClosedLoop = Add("Detail Line Closed Loop", "3.0.2", "V003", "Revit26_Plugin_Revised.DetailLineClosedLoop.V003");
         public static readonly ToolInfo DetailLineManager = Add("Detail Line Manager", "1.1.1", "V001", "Revit26_Plugin_Revised.DetailLineManager.V001");
         public static readonly ToolInfo DetailLineManagerV002 = Add("Detail Line Manager", "2.0.0", "V002", "Revit26_Plugin_Revised.DetailLineManager.V002");
         public static readonly ToolInfo DtlLineDim = Add("Auto Dim Detail Line", "10.1.1", "V010", "Revit26_Plugin_Revised.DtlLineDim.V010");
