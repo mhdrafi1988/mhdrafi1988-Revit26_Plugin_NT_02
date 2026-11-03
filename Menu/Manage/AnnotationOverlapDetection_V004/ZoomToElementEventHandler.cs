@@ -3,6 +3,7 @@ using System.Linq;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using Autodesk.Revit.UI.Events;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V004
 {
@@ -16,7 +17,10 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V004
     {
         public ElementId ElementIdToZoom { get; set; }
 
-        public void Execute(UIApplication app)
+        public void Execute(UIApplication app) =>
+            ToolGuard.RunHandler(GetType(), app, ExecuteCore);
+
+        private void ExecuteCore(UIApplication app)
         {
             if (ElementIdToZoom == null)
                 return;
