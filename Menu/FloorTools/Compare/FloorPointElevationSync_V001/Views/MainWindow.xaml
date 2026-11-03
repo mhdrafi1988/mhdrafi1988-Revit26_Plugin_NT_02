@@ -1,0 +1,269 @@
+<!--
+=======================================================
+File: MainWindow.xaml
+Changes vs V004 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
+  - Window content is a shared ToolWindowShell:
+      HEADER  title bar + V005, metrics card
+      BODY    selection card, point-mapping grid, Log (moved here from
+              the footer)
+      FOOTER  status strip (IsBusy / Progress / SummaryText — the old
+              footer summary), Reset left, Apply → Close right
+  - Mapping grid and log: ShellBehaviors.MaxHeightRatio + ForwardMouseWheel.
+  - No behaviour change — every binding/command is the V004 one.
+=======================================================
+-->
+<Window x:Class="Revit26_Plugin_Revised.FloorPointElevationSync.V001.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:svc="clr-namespace:Revit26_Plugin_Revised.Shared.Services"
+        xmlns:local="clr-namespace:Revit26_Plugin_Revised.FloorPointElevationSync.V001"
+        xmlns:shell="clr-namespace:Revit26_Plugin_Revised.Shared.Controls"
+        Title="{Binding Source={x:Static svc:ToolCatalog.FloorPointElevationSync}, Path=Title}"
+        Width="1000" Height="800" MinWidth="1000" MinHeight="800"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="CanResizeWithGrip">
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/Revit26_Plugin_Revised;component/Shared/SharedStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+            <local:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <shell:ToolWindowShell Title="Floor Point Elevation Sync"
+                           Subtitle="Match shape points between two floors and lower the higher one"
+                           Version="{Binding Source={x:Static svc:ToolCatalog.FloorPointElevationSync}, Path=Version, StringFormat=v{0}}"
+                           IsRunning="{Binding IsBusy}"
+                           IsIndeterminate="True"
+                           Progress="{Binding Progress}"
+                           SummaryText="{Binding SummaryText}">
+
+        <!-- ═══ HEADER ═══════════════════════════════════════════ -->
+        <shell:ToolWindowShell.HeaderContent>
+            <UniformGrid Columns="4" Margin="0,0,0,8">
+                <Border Style="{StaticResource MetricCard}" Margin="0,0,6,0">
+                    <StackPanel>
+                        <TextBlock Text="Matched Points" Style="{StaticResource MetricLabel}"/>
+                        <TextBlock Text="{Binding MatchedCount}" Style="{StaticResource MetricNumber}"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource MetricCard}" Margin="6,0">
+                    <StackPanel>
+                        <TextBlock Text="To Apply" Style="{StaticResource MetricLabel}"/>
+                        <TextBlock Text="{Binding ToApplyCount}" Style="{StaticResource MetricNumber}"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource MetricCard}" Margin="6,0">
+                    <StackPanel>
+                        <TextBlock Text="Excluded" Style="{StaticResource MetricLabel}"/>
+                        <TextBlock Text="{Binding ExcludedCount}" Style="{StaticResource MetricNumber}"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource MetricCard}" Margin="6,0,0,0">
+                    <StackPanel>
+                        <TextBlock Text="Max Δ Elevation (mm)" Style="{StaticResource MetricLabel}"/>
+                        <TextBlock Text="{Binding MaxDeltaMm, StringFormat={}{0:F0}}" Style="{StaticResource MetricNumber}"/>
+                    </StackPanel>
+                </Border>
+            </UniformGrid>
+        </shell:ToolWindowShell.HeaderContent>
+
+        <!-- ═══ BODY ═════════════════════════════════════════════ -->
+        <shell:ToolWindowShell.BodyContent>
+            <StackPanel>
+                <!-- Selection card -->
+                <Border Style="{StaticResource SectionCard}" Margin="0,0,0,14">
+                    <StackPanel>
+                        <TextBlock Text="Selection" Style="{StaticResource SectionTitle}"/>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom">
+                            <StackPanel Margin="0,0,16,0">
+                                <TextBlock Text="Floor A" Style="{StaticResource FieldLabel}"/>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{Binding FloorAName}" Width="220" VerticalAlignment="Center"
+                                               TextTrimming="CharacterEllipsis"/>
+                                    <Button Content="Pick..." Command="{Binding PickFloorACommand}" Style="{StaticResource SecondaryButton}" Padding="10,4" Margin="6,0,0,0"/>
+                                </StackPanel>
+                            </StackPanel>
+                            <StackPanel Margin="0,0,16,0">
+                                <TextBlock Text="Floor B" Style="{StaticResource FieldLabel}"/>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{Binding FloorBName}" Width="220" VerticalAlignment="Center"
+                                               TextTrimming="CharacterEllipsis"/>
+                                    <Button Content="Pick..." Command="{Binding PickFloorBCommand}" Style="{StaticResource SecondaryButton}" Padding="10,4" Margin="6,0,0,0"/>
+                                </StackPanel>
+                            </StackPanel>
+                            <StackPanel Margin="0,0,16,0">
+                                <TextBlock Text="XY Tolerance (mm)" Style="{StaticResource FieldLabel}"/>
+                                <TextBox Text="{Binding XyToleranceMm, UpdateSourceTrigger=PropertyChanged}"
+                                         MaxLength="10" Width="100" Style="{StaticResource BoxedTextInput}"/>
+                            </StackPanel>
+                            <Button Content="Find Matching Points" Command="{Binding FindMatchingPointsCommand}"
+                                    Style="{StaticResource SecondaryButton}" Padding="12,6"/>
+                        </StackPanel>
+                        <TextBlock Style="{StaticResource HintText}" Margin="0,8,0,0"
+                                   Text="Tolerance applies to horizontal (XY) distance only; elevation values are compared exactly, not tolerance-matched."/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Mapping grid card -->
+                <Border Style="{StaticResource SectionCard}" Margin="0,0,0,10">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" Text="Point Mapping" Style="{StaticResource SectionTitle}"/>
+                        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,8">
+                            <TextBox Width="220" Style="{StaticResource BoxedTextInput}"
+                                     Text="{Binding FilterText, UpdateSourceTrigger=PropertyChanged}"
+                                     Tag="Filter points..."/>
+                            <Button Content="Select All" Command="{Binding SelectAllVisibleCommand}" Style="{StaticResource SecondaryButton}" Padding="10,4" Margin="8,0,0,0"/>
+                            <Button Content="Clear Selection" Command="{Binding ClearSelectionVisibleCommand}" Style="{StaticResource SecondaryButton}" Padding="10,4" Margin="8,0,0,0"/>
+                            <Button Content="Refresh" Command="{Binding RefreshCommand}" Style="{StaticResource SecondaryButton}" Padding="10,4" Margin="8,0,0,0"/>
+                        </StackPanel>
+                        <DataGrid Grid.Row="2" ItemsSource="{Binding MatchRowsView}" MinHeight="200" shell:ShellBehaviors.MaxHeightRatio="0.45" shell:ShellBehaviors.ForwardMouseWheel="True"
+                                  AutoGenerateColumns="False"
+                                  CanUserAddRows="False"
+                                  CanUserDeleteRows="False"
+                                  IsReadOnly="False"
+                                  SelectionMode="Extended"
+                                  EnableRowVirtualization="True"
+                                  VirtualizingPanel.IsVirtualizing="True"
+                                  VirtualizingPanel.VirtualizationMode="Recycling"
+                                  Style="{StaticResource StandardDataGrid}"
+                                  ColumnHeaderStyle="{StaticResource DataGridColumnHeaderStyle}"
+                                  CellStyle="{StaticResource DataGridCellStyle}"
+                                  RowStyle="{StaticResource DataGridRowStyle}">
+                            <DataGrid.Columns>
+                                <DataGridTemplateColumn Width="34" CanUserSort="False">
+                                    <DataGridTemplateColumn.HeaderTemplate>
+                                        <DataTemplate>
+                                            <CheckBox HorizontalAlignment="Center"
+                                                      IsThreeState="True"
+                                                      IsChecked="{Binding DataContext.HeaderAllIncluded, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                      ToolTip="Select / clear all (excluding equal-elevation pairs)"/>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.HeaderTemplate>
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <CheckBox HorizontalAlignment="Center"
+                                                      IsChecked="{Binding IsIncluded, UpdateSourceTrigger=PropertyChanged}"
+                                                      IsEnabled="{Binding IsEqual, Converter={StaticResource InverseBooleanConverter}}"
+                                                      PreviewMouseLeftButtonDown="ChkBox_PreventRowSelect"/>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTextColumn Header="Point ID" Binding="{Binding PointId}" Width="90" IsReadOnly="True"/>
+                                <DataGridTextColumn Header="X (mm)" Binding="{Binding X, StringFormat={}{0:N0}}" Width="90" IsReadOnly="True">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="HorizontalAlignment" Value="Right"/>
+                                            <Setter Property="Margin" Value="0,0,6,0"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn Header="Y (mm)" Binding="{Binding Y, StringFormat={}{0:N0}}" Width="90" IsReadOnly="True">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="HorizontalAlignment" Value="Right"/>
+                                            <Setter Property="Margin" Value="0,0,6,0"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn Header="Floor A Elev." Binding="{Binding ElevationA, StringFormat={}{0:N0}}" Width="100" IsReadOnly="True">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="HorizontalAlignment" Value="Right"/>
+                                            <Setter Property="Margin" Value="0,0,6,0"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn Header="Floor B Elev." Binding="{Binding ElevationB, StringFormat={}{0:N0}}" Width="100" IsReadOnly="True">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="HorizontalAlignment" Value="Right"/>
+                                            <Setter Property="Margin" Value="0,0,6,0"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn Header="Target (Lower)" Binding="{Binding TargetLabel}" Width="140" IsReadOnly="True"/>
+                                <DataGridTextColumn Header="New Elev." Binding="{Binding NewElevation, StringFormat={}{0:N0}}" Width="90" IsReadOnly="True">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="HorizontalAlignment" Value="Right"/>
+                                            <Setter Property="Margin" Value="0,0,6,0"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                        <TextBlock Grid.Row="3" Style="{StaticResource HintText}" Margin="0,8,0,0"
+                                   Text="Pairs with equal elevation are auto-excluded (checkbox disabled, no target)."/>
+                    </Grid>
+                </Border>
+
+                <!-- Log (moved from footer) -->
+                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="10,8" Margin="0,0,0,0">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Log" Foreground="{StaticResource BrushLogText}"
+                                       FontSize="11.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                <Button Content="Export Logs (.txt)" Style="{StaticResource DarkGhostButton}" Command="{Binding ExportLogsCommand}" Margin="0,0,6,0"/>
+                                <Button Content="Copy All" Style="{StaticResource DarkGhostButton}" Command="{Binding CopyAllLogCommand}"/>
+                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Command="{Binding CopySelectedLogCommand}" Margin="6,0,0,0"/>
+                            </StackPanel>
+                        </Grid>
+                        <ListBox Grid.Row="1" x:Name="LogListBox" ItemsSource="{Binding LogEntries}" MinHeight="100" shell:ShellBehaviors.MaxHeightRatio="0.2" shell:ShellBehaviors.ForwardMouseWheel="True"
+                                 Background="Transparent" BorderThickness="0" SelectionMode="Extended"
+                                 ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                            <ListBox.ItemContainerStyle>
+                                <Style TargetType="ListBoxItem">
+                                    <Setter Property="Padding" Value="0,1"/>
+                                    <Setter Property="Background" Value="Transparent"/>
+                                </Style>
+                            </ListBox.ItemContainerStyle>
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" Margin="0,1">
+                                <TextBlock Text="{Binding Time, StringFormat=HH:mm:ss}"
+                                           Foreground="{StaticResource BrushLogTextDim}"
+                                           FontFamily="Consolas" FontSize="11" Margin="0,0,10,0"/>
+                                <TextBlock Text="{Binding Message}"
+                                           Foreground="{StaticResource BrushLogText}"
+                                           FontFamily="Consolas" FontSize="11" TextWrapping="Wrap"/>
+                            </StackPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </Grid>
+                </Border>
+            </StackPanel>
+        </shell:ToolWindowShell.BodyContent>
+
+        <!-- ═══ FOOTER ═══════════════════════════════════════════ -->
+        <shell:ToolWindowShell.FooterContent>
+            <DockPanel LastChildFill="False">
+                <Button DockPanel.Dock="Left" Content="Reset" Command="{Binding ResetCommand}" Style="{StaticResource SecondaryButton}"/>
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                    <Button Content="Apply" Command="{Binding ApplyCommand}" Style="{StaticResource PrimaryButton}" Margin="0,0,8,0"
+                            IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}"/>
+                    <Button Content="Close" Click="CloseButton_Click" Style="{StaticResource SecondaryButton}"/>
+                </StackPanel>
+            </DockPanel>
+        </shell:ToolWindowShell.FooterContent>
+    </shell:ToolWindowShell>
+</Window>

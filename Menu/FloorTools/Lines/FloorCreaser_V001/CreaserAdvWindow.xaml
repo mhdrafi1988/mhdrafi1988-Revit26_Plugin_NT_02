@@ -1,0 +1,324 @@
+<!--
+=======================================================
+File: CreaserAdvWindow.xaml
+Changes vs V011 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
+  - Window content is a shared ToolWindowShell:
+      HEADER  title bar + V012, metrics card
+      BODY    detail item, filters, minimum slope, Log (moved here from
+              the footer); the middle's own ScrollViewer removed
+      FOOTER  status strip (IsRunning / Progress / SummaryText), Run → Close
+  - Log: ShellBehaviors.MaxHeightRatio + ForwardMouseWheel.
+  - No behaviour change — every binding/command is the V011 one.
+=======================================================
+-->
+<Window
+    x:Class="Revit26_Plugin_Revised.FloorCreaser.V001.Views.CreaserAdvWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:svc="clr-namespace:Revit26_Plugin_Revised.Shared.Services"
+    xmlns:models="clr-namespace:Revit26_Plugin_Revised.Shared.Models"
+    xmlns:shell="clr-namespace:Revit26_Plugin_Revised.Shared.Controls"
+    Title="{Binding Source={x:Static svc:ToolCatalog.FloorCreaser}, Path=Title}"
+    Width="500"
+    Height="760"
+    MinWidth="500"
+    MinHeight="760"
+    WindowStartupLocation="CenterOwner"
+    ResizeMode="CanResizeWithGrip"
+    Topmost="True">
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary
+                    Source="pack://application:,,,/Revit26_Plugin_Revised;component/Shared/SharedStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+
+            <!--
+                Declared here directly — avoids MC3074 designer resolution issues
+                with assembly= references. Uses the same shared class from
+                Revit26_Plugin_Revised.Shared.Models that all other tools use.
+            -->
+            <models:LogLevelToColorConverter    x:Key="LogLevelToColor"/>
+            <models:BoolToVisibilityConverter   x:Key="BoolToVisibility"/>
+
+            <DataTemplate x:Key="LogEntryTemplate">
+                <TextBlock
+                    Text="{Binding}"
+                    Foreground="{Binding Level, Converter={StaticResource LogLevelToColor}}"
+                    FontFamily="Consolas"
+                    FontSize="11"
+                    TextWrapping="NoWrap"/>
+            </DataTemplate>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <shell:ToolWindowShell Title="Floor Creaser"
+                           Subtitle="Floor creases → detail items"
+                           Version="{Binding Source={x:Static svc:ToolCatalog.FloorCreaser}, Path=Version, StringFormat=v{0}}"
+                           IsRunning="{Binding IsRunning}"
+                           IsIndeterminate="True"
+                           Progress="{Binding Progress}"
+                           SummaryText="{Binding SummaryText}">
+
+        <!-- ═══ HEADER ═══════════════════════════════════════════ -->
+        <shell:ToolWindowShell.HeaderContent>
+            <StackPanel>
+                        <UniformGrid Columns="3" Margin="0,0,0,4">
+                            <Border Style="{StaticResource MetricCard}" Margin="0,0,4,0" Padding="10,8">
+                                <StackPanel>
+                                    <TextBlock Text="Creases Found" Style="{StaticResource MetricLabel}"/>
+                                    <TextBlock Text="{Binding Summary.CreasesFound}" Style="{StaticResource MetricNumber}" FontSize="18"/>
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="10,8">
+                                <StackPanel>
+                                    <TextBlock Text="Boundary Found" Style="{StaticResource MetricLabel}"/>
+                                    <TextBlock Text="{Binding Summary.BoundaryFound}" Style="{StaticResource MetricNumber}" FontSize="18"/>
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource MetricCard}" Margin="4,0,0,0" Padding="10,8">
+                                <StackPanel>
+                                    <TextBlock Text="Created" Style="{StaticResource MetricLabel}"/>
+                                    <TextBlock Text="{Binding Summary.Created}" Style="{StaticResource MetricNumberSuccess}" FontSize="18"/>
+                                </StackPanel>
+                            </Border>
+                        </UniformGrid>
+                        <UniformGrid Columns="3" Margin="0,0,0,8">
+                            <Border Style="{StaticResource MetricCard}" Margin="0,0,4,0" Padding="10,8">
+                                <StackPanel>
+                                    <TextBlock Text="Failed" Style="{StaticResource MetricLabel}"/>
+                                    <TextBlock Text="{Binding Summary.Failed}" Style="{StaticResource MetricNumberDanger}" FontSize="18"/>
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="10,8">
+                                <StackPanel>
+                                    <TextBlock Text="Ridge Points" Style="{StaticResource MetricLabel}"/>
+                                    <TextBlock Text="{Binding Summary.RidgePoints}" Style="{StaticResource MetricNumberAccent}" FontSize="18"/>
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource MetricCard}" Margin="4,0,0,0" Padding="10,8">
+                                <StackPanel>
+                                    <TextBlock Text="Disconnected" Style="{StaticResource MetricLabel}"/>
+                                    <TextBlock Text="{Binding Summary.DisconnectedPoints}" Style="{StaticResource MetricNumberWarning}" FontSize="18"/>
+                                </StackPanel>
+                            </Border>
+                        </UniformGrid>
+            </StackPanel>
+        </shell:ToolWindowShell.HeaderContent>
+
+        <!-- ═══ BODY ═════════════════════════════════════════════ -->
+        <shell:ToolWindowShell.BodyContent>
+            <StackPanel>
+                <!-- ═══ Row 0 · Detail item card ════════════════════════════════════ -->
+                <Border Style="{StaticResource BaseCard}" Padding="8,6" Margin="0,0,0,8">
+                    <StackPanel>
+                        <TextBlock
+                            Text="Detail Item"
+                            Style="{StaticResource FieldLabel}"
+                            Margin="0,0,0,3"/>
+                        <ComboBox
+                            Height="22"
+                            FontSize="11"
+                            ItemsSource="{Binding DetailSymbols}"
+                            SelectedItem="{Binding SelectedDetailSymbol}">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock FontSize="11">
+                                        <Run Text="{Binding FamilyName, Mode=OneWay}"/>
+                                        <Run Text=" : "/>
+                                        <Run Text="{Binding Name}"/>
+                                    </TextBlock>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                    </StackPanel>
+                </Border>
+
+                <!-- ═══ Row 1 · Filters card ═════════════════════════════════════════ -->
+                <Border Style="{StaticResource BaseCard}" Padding="8,6" Margin="0,0,0,8">
+                    <StackPanel>
+                        <TextBlock
+                            Text="Filters"
+                            Style="{StaticResource SectionTitle}"
+                            Margin="0,0,0,4"/>
+
+                        <CheckBox
+                            Content="Include boundary lines"
+                            IsChecked="{Binding IncludeBoundaryLines}"
+                            Foreground="{StaticResource BrushTextPrimary}"
+                            Margin="0,0,0,6"
+                            VerticalContentAlignment="Center"/>
+
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <CheckBox
+                                Grid.Column="0"
+                                Content="Drop lines less than minimum"
+                                IsChecked="{Binding EnableMinimumLength}"
+                                Foreground="{StaticResource BrushTextPrimary}"
+                                VerticalContentAlignment="Center"/>
+                            <TextBox
+                                Grid.Column="1"
+                                Style="{StaticResource StyledTextInput}"
+                                Text="{Binding MinimumLengthMm}"
+                                MaxLength="10"
+                                Width="56"
+                                HorizontalContentAlignment="Right"
+                                Margin="6,0,0,0"/>
+                            <TextBlock
+                                Grid.Column="2"
+                                Text="mm"
+                                Style="{StaticResource UnitLabel}"/>
+                        </Grid>
+
+                        <Grid Margin="0,0,0,4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <CheckBox
+                                Grid.Column="0"
+                                Content="Drain grouping radius"
+                                IsChecked="{Binding EnableDrainGrouping}"
+                                Foreground="{StaticResource BrushTextPrimary}"
+                                VerticalContentAlignment="Center"/>
+                            <TextBox
+                                Grid.Column="1"
+                                Style="{StaticResource StyledTextInput}"
+                                Text="{Binding DrainGroupingRadiusMm}"
+                                MaxLength="10"
+                                Width="56"
+                                HorizontalContentAlignment="Right"
+                                Margin="6,0,0,0"/>
+                            <TextBlock
+                                Grid.Column="2"
+                                Text="mm"
+                                Style="{StaticResource UnitLabel}"/>
+                        </Grid>
+
+                        <CheckBox
+                            Content="Filter by Dijkstra path validity"
+                            IsChecked="{Binding EnableDijkstraPathFilter}"
+                            Foreground="{StaticResource BrushTextPrimary}"
+                            Margin="0,0,0,4"
+                            VerticalContentAlignment="Center"/>
+
+                        <TextBlock
+                            Text="Horizontal-crease filter always runs, no toggle needed."
+                            Style="{StaticResource HintText}"
+                            Margin="0"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- ═══ Row 2 · Minimum Slope card ══════════════════════════════════ -->
+                <Border
+                    Style="{StaticResource BaseCard}"
+                    Padding="8,6"
+                    Margin="0,0,0,8"
+                    IsEnabled="{Binding EnableDijkstraPathFilter}">
+                    <StackPanel>
+                        <TextBlock
+                            Text="Minimum Slope"
+                            Style="{StaticResource SectionTitle}"
+                            Margin="0,0,0,4"/>
+
+                        <Grid Margin="0,0,0,4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <CheckBox
+                                Grid.Column="0"
+                                Content="Enforce minimum slope"
+                                IsChecked="{Binding EnableMinimumSlope}"
+                                Foreground="{StaticResource BrushTextPrimary}"
+                                VerticalContentAlignment="Center"/>
+                            <TextBox
+                                Grid.Column="1"
+                                Style="{StaticResource StyledTextInput}"
+                                Text="{Binding MinimumSlopePercent}"
+                                MaxLength="10"
+                                Width="56"
+                                HorizontalContentAlignment="Right"
+                                Margin="6,0,0,0"/>
+                            <TextBlock
+                                Grid.Column="2"
+                                Text="%"
+                                Style="{StaticResource UnitLabel}"/>
+                        </Grid>
+
+                        <TextBlock
+                            Text="Edges below this slope are rejected before path-finding."
+                            Style="{StaticResource HintText}"
+                            Margin="0"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- ═══ Log (moved from footer) ═══ -->
+                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="10,8" Margin="0,0,0,0">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Log" Foreground="{StaticResource BrushLogText}"
+                                       FontSize="11.5" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <CheckBox Grid.Column="1" Content="Show Detail" IsChecked="{Binding ShowDetailLog}"
+                                      Foreground="{StaticResource BrushLogText}" VerticalContentAlignment="Center"/>
+                            <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                <Button Content="Open Log File" Style="{StaticResource DarkGhostButton}" Command="{Binding OpenLogFileCommand}" Margin="0,0,6,0"/>
+                                <Button Content="Copy All" Style="{StaticResource DarkGhostButton}" Command="{Binding CopyLogCommand}" Margin="0,0,6,0"/>
+                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Click="CopySelectedLog_Click" Margin="0,0,6,0"/>
+                                <Button Content="Clear" Style="{StaticResource DarkGhostButton}" Command="{Binding ClearLogCommand}"/>
+                            </StackPanel>
+                        </Grid>
+                        <ListBox
+                            x:Name="LogList"
+                            Grid.Row="1"
+                            ItemsSource="{Binding VisibleLogEntries}"
+                            ItemTemplate="{StaticResource LogEntryTemplate}"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            MinHeight="130"
+                            shell:ShellBehaviors.MaxHeightRatio="0.2"
+                            shell:ShellBehaviors.ForwardMouseWheel="True"
+                            SelectionMode="Extended"
+                            ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                            ScrollViewer.VerticalScrollBarVisibility="Auto"
+                            VirtualizingPanel.IsVirtualizing="True"/>
+                    </Grid>
+                </Border>
+            </StackPanel>
+        </shell:ToolWindowShell.BodyContent>
+
+        <!-- ═══ FOOTER ═══════════════════════════════════════════ -->
+        <shell:ToolWindowShell.FooterContent>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button
+                    Content="Run"
+                    Width="90"
+                    Margin="0,0,8,0"
+                    Style="{StaticResource PrimaryButton}"
+                    Command="{Binding RunCommand}"/>
+                <Button
+                    Content="Close"
+                    Width="80"
+                    Style="{StaticResource OutlineButton}"
+                    Click="CloseButton_Click"/>
+            </StackPanel>
+        </shell:ToolWindowShell.FooterContent>
+    </shell:ToolWindowShell>
+</Window>

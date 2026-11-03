@@ -1,6 +1,6 @@
 # Ribbon & Icons
 
-Living reference for adding or changing ribbon buttons and their icons. Updated 2026-11-03 (plugin 6.32.0) from
+Living reference for adding or changing ribbon buttons and their icons. Updated 2026-11-03 (plugin 6.37.0) from
 `App.cs` and `Menu/00_Push_Button_Menu_items/Ribbon/*.cs`. The rules themselves are in the root `CLAUDE.md`
 (Repository conventions: Ribbon, Dropdown version order, Slide-out); this file is the how-to and the current
 layout. For the original cleanup pass, see `Claude/LOGO PROMPT FOLDER/Ribbon_Code_Notes.md`, which is kept as a
@@ -11,9 +11,10 @@ record and not current.
 - `App.cs : InitializeRibbonPanels` creates two tabs and calls the builders in order. Panels appear in the order
   they are created.
   - **SloperPro_Rev_88-MDL** (Modelling): `RoofToolsRibbon.Build` (which also calls
-    `FloorToolsRibbon.BuildSlopePanel`), `DetailLInesRibbon.Build`, then `RoofToolsRibbon.BuildUtilities`.
-  - **SloperPro_Rev_88-DCM** (Documents): `ViewToolsRibbon`, `TaggingRibbon`, `SheetToolsRibbon`, `SetupRibbon`,
-    `ManageRibbon`.
+    `FloorToolsRibbon.BuildSlopePanel`, `BuildPointsPanel`, `BuildLinesPanel` and `BuildEditPanel`),
+    `DetailLInesRibbon.Build`, then `RoofToolsRibbon.BuildUtilities`.
+  - **SloperPro_Rev_88-DCM** (Documents): `ViewToolsRibbon` (which also calls `FloorToolsRibbon.BuildViewsPanel`),
+    `TaggingRibbon`, `SheetToolsRibbon`, `SetupRibbon`, `ManageRibbon`.
 - `Menu/00_Push_Button_Menu_items/Ribbon/`: `RoofToolsRibbon.cs`, `FloorRibbon.cs` (class `FloorToolsRibbon`),
   `DetailLInesRibbon.cs`, `DimensionsRibbon.cs`, `ViewToolsRibbon.cs`, `TaggingRibbon.cs`, `SheetToolsRibbon.cs`,
   `SetupRibbon.cs`, `ManageRibbon.cs`, and `RibbonLayoutHelper.cs`. There is no `QuickAcces.cs` any more.
@@ -34,8 +35,11 @@ Each item is a pulldown unless marked *button*. A pulldown lists its versions hi
 | Panel | Items | Builder |
 |---|---|---|
 | Roof Slope | By Point (V033, V032, V030, Ridge V003, Multi Copies 30) · By Drain (V013, V012, V011, V007) · Points & Slope (V001) | `RoofToolsRibbon.Build` |
-| Floor Slope | By Drain *button* (Floor Slope By Drain V001) · By Point *button* (Floor Slope By Point V001) | `FloorToolsRibbon.BuildSlopePanel` |
+| Floor Slope | By Drain *button* (Floor Slope By Drain V001) · By Point (By Point V001, Ridge V001, Multi Copies V001) · Points & Slope *button* (Floor Points & Slope V001) | `FloorToolsRibbon.BuildSlopePanel` |
 | Shape Points | Inner Loops · Outer Curve · Line Intersect · Loops + Perp. ▸ Vertex Reducer · Multi Points · Shape From Link | `RoofToolsRibbon.Build` |
+| Floor Points | Inner Loops *button* · Outer Curve *button* · Line Intersect *button* · Loops + Perp. *button* · Vertex Reducer *button* · Multi Points *button* · Shape From Link (large *button*) — each V001 | `FloorToolsRibbon.BuildPointsPanel` |
+| Floor Lines | Crease By Openings *button* · Crease By Points *button* · Floor Creaser *button* — each V001 | `FloorToolsRibbon.BuildLinesPanel` |
+| Floor Edit | Floor Types *button* · Name Builder *button* · Floor Tag *button* · Comparison *button* · Elevation Sync *button* · Floor EPS *button* — each V001 | `FloorToolsRibbon.BuildEditPanel` |
 | Roof Tools | Creaser Adv · Roof Tag · Floor From Rooms · Shape From Link | `RoofToolsRibbon.Build` |
 | Roof Edit | Name Builder · Island Splitter | `BuildEditComparePanels` |
 | Plan View | Island Splitter (large *button*) | `BuildEditComparePanels` |
@@ -49,6 +53,7 @@ Each item is a pulldown unless marked *button*. A pulldown lists its versions hi
 | Panel | Items | Builder |
 |---|---|---|
 | View Create | From Lines · Around Edges · Edge Element ▸ Roof Focus · Isolated Section *button* | `ViewToolsRibbon` |
+| Floor Views | Floor Around Edges *button* · Floor Edge Element *button* · Floor Focus *button* — each V001 | `FloorToolsRibbon.BuildViewsPanel` (called from `ViewToolsRibbon`) |
 | View Place | Place Sections · Callout To Section · Head Placer · View Tagger | `ViewToolsRibbon` |
 | View Rename | Bubble Renumber · Section Renamer · Auto Renamer | `ViewToolsRibbon` |
 | Tagging | Tag To Text, Align Spot Elevations, Align to Detail Line (large *buttons*) · Quick Align Vertical / Horizontal · Quick Align Ends V / H · Quick Align Bends V / H · Quick Align Ends / Bends to Tag | `TaggingRibbon` |
@@ -60,7 +65,13 @@ Each item is a pulldown unless marked *button*. A pulldown lists its versions hi
 | Worksets | WS Browser · WS Creator · WS Renamer ▸ WS Renamer XL · Delete Workset | `ManageRibbon` |
 | Memory | WS Memory (large *button*) · Link Memory (large; V002, V001) | `ManageRibbon` |
 
-The latest change was plugin 6.31.0, which added the **Floor Slope** panel. When you change the ribbon, update the
+The latest change was plugin 6.37.0, which added the **Floor Views** panel (Documents tab, after View Create) and
+Floor EPS on Floor Edit. 6.36.0 added the **Floor Edit** panel (floor versions of Roof Types, Name
+Builder, Roof Tag, Point Comparison and Elevation Sync) after Floor Lines. 6.35.0 added the **Floor Lines** panel (floor versions of Ridge By Openings,
+Ridge By Points and Creaser Adv) after Floor Points. 6.34.0 added the **Floor Points** panel (floor versions of
+the Shape Points tools) after Shape Points. Before it, 6.33.0 added the floor Ridge, Multi Copies and Points & Slope tools to the
+**Floor Slope** panel (By Point became a pulldown, as on Roof Slope). 6.32.0 added Quick Align Ends / Bends to Tag to
+the Tagging panel. When you change the ribbon, update the
 tables above, `README.md` (Ribbon section) and the tool's UI preview (root `CLAUDE.md`, UI previews).
 
 ## Adding a new icon
@@ -85,8 +96,8 @@ segments: `Resources/Icons/RoofTools/by_point_16.png` on disk is
 
 Each tool should have both sizes: `<Name>_16.png` for `PushButtonData.Image` (a button in a stack or dropdown) and
 `<Name>_32.png` for `.LargeImage` (a pulldown's own header icon, or a full-size button). Not every tool has both,
-so check before assuming a `_32` exists because a `_16` does. The Floor Slope buttons reuse the roof
-`by_drain_*` / `by_point_16` icons until floor icons are made.
+so check before assuming a `_32` exists because a `_16` does. All floor buttons reuse the roof (and roof
+view-tool) icons of the tool they were ported from until floor icons are made.
 
 ## Adding a push button
 
@@ -135,7 +146,7 @@ RibbonLayoutHelper.WirePulldownButton(created, "Pulldown_MyTool", highestVersion
   Dropdown version order).
 - `WirePulldownButton` fills the dropdown and builds the combined "N versions" tooltip.
 - **Use a dropdown only to group versions or different tools.** One button runs one tool. A tool with a single
-  version gets a plain button, as the Floor Slope tools do.
+  version gets a plain button, as Floor Slope's By Drain and Points & Slope do.
 
 **Slide-outs:** `RibbonLayoutHelper.AddStackedButtonsWithSlideOut(panel, visible, slideOut)` adds the visible
 stacks, calls `panel.AddSlideOut()`, then adds the slide-out stacks. It returns every created item, so

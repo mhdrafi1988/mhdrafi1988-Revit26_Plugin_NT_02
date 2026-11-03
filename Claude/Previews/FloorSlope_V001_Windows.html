@@ -1,11 +1,21 @@
 <title>Floor Slope Windows</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<!-- UI preview (CLAUDE.md "UI previews"): Floor Slope By Drain V001 and Floor Slope By Point V001,
-     tool 1.0.0 each, plugin 6.31.0. Shows the new ribbon panel, the "no Variable layer" dialog
-     and both windows with sample data (two floors picked, one without a Variable layer; drains =
-     two circular openings + drain families).
+<!-- UI preview (CLAUDE.md "UI previews") for every tool on the Floor Slope panel, plugin 6.33.0:
+       Floor Slope By Drain V001 (1.0.0), Floor Slope By Point V001 (1.0.0),
+       Floor Slope By Point (Ridge) V001 (1.0.0, new in 6.33.0),
+       Floor Slope By Point (Multi Copies) V001 (1.0.0, new in 6.33.0),
+       Floor Points & Slope V001 (1.0.0, new in 6.33.0).
+     Shows the panel (By Point is now a pulldown), the "no Variable layer" dialog and every window
+     with sample data.
      Real windows: Menu/FloorTools/FloorSlope/ByDrains/FloorSlopeByDrain_V001/UI/Views/FloorSlopeByDrainWindow.xaml
                    Menu/FloorTools/FloorSlope/ByPoints/FloorSlopeByPoint_V001/UI/Views/FloorSlopeByPointWindow.xaml
+                   Menu/FloorTools/FloorSlope/ByPoints/FloorSlopeByPointRidge_V001/UI/Views/FloorSlopeByPointRidgeWindow.xaml
+                   Menu/FloorTools/FloorSlope/ByPoints/FloorSlopeByPointMultiCopies_V001/UI/Views/FloorSlopeByPointMultiCopiesWindow.xaml
+                   Menu/FloorTools/CombinedTools/FloorPointsAndSlope_V001/UI/Views/FloorPointsAndSlopeWindow.xaml
+     Ribbon: Menu/00_Push_Button_Menu_items/Ribbon/FloorRibbon.cs (FloorToolsRibbon.BuildSlopePanel)
+     By Drain / By Point icons: the 6.31.1 floor icons (Resources/Icons/FloorTools/FloorSlopeBy{Drain,Point}_{16,32}.png,
+     embedded as data URIs; branch claude/zen-allen-inrabd, not yet on main). The three new tools reuse
+     roof icons for now (drawn here as coloured squares).
      Artifact: https://claude.ai/artifact/56Mi3sx9kAC3H6f4NjLkfd (republish to this URL on every update)
      Colours are the Shared/SharedStyles.xaml v4.0 tokens. One light look on purpose: it mirrors the
      light WPF windows in Revit, so every colour is set explicitly and the page reads the same on a
@@ -54,6 +64,11 @@ input[type=checkbox]{accent-color:var(--action);width:14px;height:14px;margin:0 
 .rbtn .ico{width:16px;height:16px;border-radius:3px;margin-right:6px;flex:none;display:inline-flex;align-items:center;justify-content:center;font-size:10px;color:var(--card)}
 .ico.p{background:var(--ico-point)}.ico.d{background:var(--ico-drain)}.ico.c{background:var(--ico-combo)}.ico.g{background:var(--ico-plain)}
 .rbtn .dd{color:var(--text2);font-size:9px;margin-left:4px}
+.rbtn img{width:16px;height:16px;margin-right:6px;flex:none}
+.icons{display:flex;flex-wrap:wrap;gap:20px;align-items:flex-end;margin-top:10px;padding:12px 14px;background:var(--ribbon-bg);border:1px solid var(--border);width:max-content}
+.icons figure{margin:0;display:flex;flex-direction:column;align-items:center;gap:6px}
+.icons .px{image-rendering:pixelated}
+.icons figcaption{font-size:11px;color:var(--text2);text-align:center;line-height:1.35}
 .rbtn.hover{background:var(--ribbon-hover);outline:1px solid var(--ribbon-hover-line)}
 .tooltip{width:430px;margin:6px 0 0 150px;background:var(--card);border:1px solid var(--border-input);box-shadow:0 2px 8px var(--shadow);padding:8px 10px;font-size:11.5px;line-height:1.45}
 .tooltip b{display:block;margin-bottom:3px}
@@ -136,16 +151,34 @@ tr.dim td{color:var(--text3)}
 .chip{background:var(--bg2);border-radius:10px;padding:3px 9px;font-size:11px;font-weight:600;color:var(--action)}
 .empty{color:var(--text3);font-size:11.5px;text-align:center;padding:30px 0}
 .tools{display:flex;justify-content:flex-end;gap:4px}
+
+/* 6.33.0 additions: ribbon dropdown, slope rows, step list */
+.ddwrap{position:relative}
+.ddmenu{position:absolute;left:0;top:100%;z-index:2;width:220px;background:var(--card);border:1px solid var(--border-input);box-shadow:0 2px 8px var(--shadow);padding:3px 0}
+.ddmenu .rbtn{padding:4px 8px}
+.ribbon.tall{padding-bottom:88px}
+.rbtn.isnew{background:var(--new-soft);color:var(--new);font-weight:600}
+.rows{display:grid;grid-template-columns:24px 70px 1fr 160px;gap:6px 8px;align-items:center;margin-top:8px;font-size:12px}
+.rows .ws{color:var(--text2);font-family:var(--font-mono);font-size:11px}
+.steps{display:flex;flex-direction:column;gap:4px}
+.step{display:grid;grid-template-columns:18px 22px 1fr auto;gap:8px;align-items:center;padding:7px 10px;border:1px solid var(--border);border-radius:4px;background:var(--card)}
+.step.sel{border-color:var(--action);box-shadow:inset 3px 0 0 var(--action)}
+.step .no{width:22px;height:22px;border-radius:11px;background:var(--action);color:var(--card);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.step .no.off{background:var(--text-disabled)}
+.step .st{font-size:12px;font-weight:600}.step .ss{font-size:10.5px;color:var(--text3)}
+.step .badge{background:var(--bg2);border-radius:8px;padding:1px 7px;font-size:10.5px;font-weight:600;color:var(--action)}
 </style>
 
-<h1>Floor Slope tools <span class="tagnew">NEW IN 6.31.0</span></h1>
-<p class="note">Floor versions of the roof slope tools: <b>Floor Slope By Drain V001</b> (from Auto Slope By Drain Multi-Roof V013)
-and <b>Floor Slope By Point V001</b> (from Auto Slope By Point V033). Same engine, layout and options as the roof tools.
-Floor-specific parts are marked in green. All values are sample data. On a narrow screen, scroll each window sideways.</p>
+<h1>Floor Slope tools <span class="tagnew">UPDATED IN 6.33.0</span></h1>
+<p class="note">Floor versions of every Roof Slope tool. <b>Floor Slope By Drain V001</b> and <b>Floor Slope By Point V001</b> came in 6.31.0.
+6.33.0 adds <b>Floor Slope By Point (Ridge) V001</b>, <b>Floor Slope By Point (Multi Copies) V001</b> and <b>Floor Points &amp; Slope V001</b>
+(sections 5–7). Each has the same engine, layout and options as its roof tool. New and floor-specific parts are marked in green.
+All values are sample data, not a real project. On a narrow screen, scroll each window sideways.</p>
 
-<h2>1 · Ribbon: new Floor Slope panel next to Roof Slope</h2>
+<h2>1 · Ribbon: Floor Slope panel, By Point is now a pulldown <span class="tagnew">CHANGED IN 6.33.0</span></h2>
+<p class="note">Laid out like Roof Slope: By Drain, a By Point pulldown (By Point, Ridge, Multi Copies) and Points &amp; Slope.</p>
 <div class="frame">
-  <div class="ribbon">
+  <div class="ribbon tall">
     <div class="rtabs"><span>File</span><span>Architecture</span><span>Structure</span><span>…</span><span class="on">SloperPro Modelling</span><span>SloperPro Documents</span></div>
     <div class="rpanels">
       <div class="rpanel">
@@ -158,8 +191,14 @@ Floor-specific parts are marked in green. All values are sample data. On a narro
       </div>
       <div class="rpanel new">
         <div class="items"><div class="stack">
-          <div class="rbtn hover"><span class="ico d">◉</span>By Drain</div>
-          <div class="rbtn"><span class="ico p">●</span>By Point</div>
+          <div class="rbtn"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACTUlEQVR4nIWSzUtUURjGf+85M86XzjXK+QN006ZgyF3RwlWgYBC48INqUZtoJaiLFoGrCXIRQbs2jQ64SArDXW0MQhGLdFeb3PgxEXcG753x3ntOiztoI2UvnN15nvOe3/PI7tQlq9JdkEwBAjbizBENWAiPMH6dhEp3ce7BKwiaWBOhsg6Yf5gojfFrIILKOPx6cZsEyRSYiMb2e0xtH399CZXvgShsF+sExj0g0z+MZB0yV4aRjiwKBBs0MbV98rcek7p4neDHV0y9iqkdxKdeJdjZoqO3n/zILNZzsYEPAglsvLa/voSp/6T77nMkmcLfeAui4tetIXd1DGdiDrcyjb+2RG7gHtYYEgCYCJXvwf+0iCRTOKMlgp0tJJWL9c1DnLEnuOVJvNUyutCHbXFKHP8xCmOTjTcEO9t03nhIujgEQGNzmWppiHDvGypfAHPCR7WBshZEI6lsLLYGrCFdHEJSWVAqjvDPYM4O/f/TbiBxkWzTo7G5HEMURWNzGdv0wBhA2iQnDHQSU6+SvTaOM1qiWhrk8MPL+GfNQy5Mv8NdmMZbnUcXek8ZKI1x90gXB3HGn+KWJwn3voPS8S0T4c5P4UzMYcOAxpcVROuWgcT1zPTfJD8yi1uZwVstx7SPgXXgfVzARiHdd57hVmYwnouIIgEWUQkk61BbfIS/9hpd6GuLCkAXeml8XsGtzMT90MnWBmETSedIFwchDMgN3D8uyekRpTG+C6LRneexRz6yO3XZqnwPqiMDIi2x/NUg3laDtdigQVQ74Df2y/4I7vq+qwAAAABJRU5ErkJggg==" alt="">By Drain</div>
+          <div class="ddwrap"><div class="rbtn hover isnew"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACZUlEQVR4nI2TO2tUURSFv33uc+48otFoCvEBVtFEMGAjYhACNk5h6QNRUJDUBvILrBQbEdRGVBBLQQWVKIJoYSHGB1ioCGIwMElmJpO5r7Mt7kiKRHDBgQPn7MVae+0ts5PDasIqeAEgYHMQ1oYCxikuWYJdbuGasMr6iduQxqgqJqyA2rUJxKDJEqpgSjXmr53CxQvA5nRnnpI3fhJ/eo4E5dUkYtDuEsGuMUxlA6V9RxE/wi0e2ogXUhk/z/Kb+4jfQvWv5l69ONjOPNHB06Rf32I7iyCCweZItI7Oq7uIXyLcewTNUsQvIa5fHL+E2oxweBx34zY6L29hoj5ULQYUcTxsu0F35hnB0Bi2+RvN4pXeZQl2YZZgz2HiD8/I5r4jXgCqmOKHRfyIzut7uIM76Z+4g1MbgDyFPMWpDdA/cRtvy26Wnt9E/BI9jz0CEbAZlUNn8baOEI7Wqdan0DRB04RqfYpwtI63dZjyoXNF1L2szT8S/2+4hQUF49Kevo6zaQf572+0Hl1GPB+A1oOLkMU4A9tZmr6xMkwrFgyaLFM+eIb0xwyNqyfIm3PgeOB45M05GldPkP36QrT/GJp0QMxfAkHzGGf9IMHQGPH7J5i+QcT1C2WqiOtjapuJP04TDI9japvQLOkRGAftNIn2H8e2G8SfXxTFaVw0y+aQJogX0H33CO22iA6cxHYWEePgohYJIvKFWdqPryBhBQnW2Iee5NbDS5hyf2/cFZcsRoIypdE6qpbqkQuoXXuZxBhs3AYEp9KPJsvI7OSImtoAxi8BgupKxquhiHFAFU275M05/gCXRgXVTaq8TQAAAABJRU5ErkJggg==" alt="">By Point<span class="dd">▾</span></div>
+            <div class="ddmenu">
+              <div class="rbtn"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACZUlEQVR4nI2TO2tUURSFv33uc+48otFoCvEBVtFEMGAjYhACNk5h6QNRUJDUBvILrBQbEdRGVBBLQQWVKIJoYSHGB1ioCGIwMElmJpO5r7Mt7kiKRHDBgQPn7MVae+0ts5PDasIqeAEgYHMQ1oYCxikuWYJdbuGasMr6iduQxqgqJqyA2rUJxKDJEqpgSjXmr53CxQvA5nRnnpI3fhJ/eo4E5dUkYtDuEsGuMUxlA6V9RxE/wi0e2ogXUhk/z/Kb+4jfQvWv5l69ONjOPNHB06Rf32I7iyCCweZItI7Oq7uIXyLcewTNUsQvIa5fHL+E2oxweBx34zY6L29hoj5ULQYUcTxsu0F35hnB0Bi2+RvN4pXeZQl2YZZgz2HiD8/I5r4jXgCqmOKHRfyIzut7uIM76Z+4g1MbgDyFPMWpDdA/cRtvy26Wnt9E/BI9jz0CEbAZlUNn8baOEI7Wqdan0DRB04RqfYpwtI63dZjyoXNF1L2szT8S/2+4hQUF49Kevo6zaQf572+0Hl1GPB+A1oOLkMU4A9tZmr6xMkwrFgyaLFM+eIb0xwyNqyfIm3PgeOB45M05GldPkP36QrT/GJp0QMxfAkHzGGf9IMHQGPH7J5i+QcT1C2WqiOtjapuJP04TDI9japvQLOkRGAftNIn2H8e2G8SfXxTFaVw0y+aQJogX0H33CO22iA6cxHYWEePgohYJIvKFWdqPryBhBQnW2Iee5NbDS5hyf2/cFZcsRoIypdE6qpbqkQuoXXuZxBhs3AYEp9KPJsvI7OSImtoAxi8BgupKxquhiHFAFU275M05/gCXRgXVTaq8TQAAAABJRU5ErkJggg==" alt="">By Point</div>
+              <div class="rbtn isnew"><span class="ico p">▲</span>Ridge</div>
+              <div class="rbtn isnew"><span class="ico p">●</span>Multi Copies</div>
+            </div></div>
+          <div class="rbtn isnew"><span class="ico c">✦</span>Points &amp; Slope</div>
         </div></div>
         <div class="title">Floor Slope</div>
       </div>
@@ -175,15 +214,22 @@ Floor-specific parts are marked in green. All values are sample data. On a narro
     </div>
   </div>
   <div class="tooltip">
-    <b>Floor Slope By Drain — v1.0.0 (build V001)</b>
-    Pick one or more floors and slope each one's shape points down to its drains: openings in the floor sketch and drain
-    families (Plumbing Fixtures) on the floor. Asks before sloping a floor whose type has no Variable layer. One Undo.
+    <b>Floor Slope By Point (Ridge) — v1.0.0 (build V001)</b>
+    Pick a floor, then click the drain points on it. Groups the drains, lifts the ridge points between the groups so every
+    point drains at the given slope, then slopes the floor. Asks before sloping a floor whose type has no Variable layer.
+  </div>
+  <div class="icons">
+    <figure><img class="px" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAFmElEQVR4nL2XbYhc5RXHf+d57svOa2Znl3Yh2YoVQ0zEgkWlqRtMCBQslFYxQm3Wqq2RII0UWsRSCxVKv1irjUJarDZYagjV9oNGCzEv1oAbrCbEJMaI0cS60M3s7M7Mzsyduff0w53M7mRnN9No+v90ufc8z/k///PynCvjP7laOQcR/i/QWZdOx4ewCSiXHGbW7eyTCJLKIQh6iUgIscJRrQwatQiIQNjAJPvJb9mJJDKIWLAWoojProiAMRCFaBSizTqTj99Os/BvxPUws3aCpPoxiSygaHW6/f4zOYd4L40wiSwmnQeZddsOgaKIRmitxNnffRdnYJjg1NvxNsaiLcl6d23iNap4X76W5vj75Dc/h8kMogsmoXXQ6jTOwJfI3f0kM/u3M7XjZ62wtJS4EJHW6RSIypNkb32Y1Pr7mPzDD4mCCsZ8ocO8k0AUIn6a4NS/mHl9O8k1o2As0zt/Dl4CDRuIm2DhvBC0UUWsiwY1sht+SWrtD6gdfpXGqXcwfrqjBOcTaG8DU88/BGJJ3ngHoJRe+g3+ihGCY/vAuF1ICEQB/qp1BCfHyH7rQZIjG6m9s4vin7YgfrJrPnUhoKgxmEQ2PrmGJEdG8VfeRFQpcvbIa4j1YoftsMRkNAxJf+N+zHdy2PwyqmN/ZeovDyLWRaw77/TAnCro4KBxVXgJyi//lrA4js0vw+aG4izWEA1miMoFonIBDWZAQ0w6j10yhM0vIypNUPr7r8E6YOyCudM1BG0eYRPvytWE/zkFGmL7l+IMXkb9+H685V/HHb4agMbpIwQn3sBfugqTGSSc/IRw4jTuZV+hfvz1hY55AQIaIV4fwXv/pH50Lya1JD5ZpUju+0+QuOG2DvPqmzspv/okZx/9NmHhDNHMFGIcxO2DqHkRBCAOheMijoc26gQfjJG7ayuJ626hfnQvld3bQCG1/t6YkLEUn7kfkx5AvCSgXeM+F4uIM4cEoI0a3vLVbeeFrXdgckPYwWEKT91J/egeEtfdgrd8NdqodaxdDIsrcA4iaKOOO3wNqFLZvY3E1zaQ2/hY/Nnto7J7G/5VN+EOX0NwcgzxUz1dIxdWoBtU47I6x8/xLvrO6k0BVcT1aZw+DCKk1m+i8NRonGDWZWbv0/Rv+iOI0Dh9GHH9nuSHXhRoNRtx+whOHKB68AX8lWvJb95O89P3aZ55l/5Nz+CvWkf14AsEJw7ExOasXQyLKyACjQANm5jUErwrrqe86wmIQhI33Ia/cm3b9FwZeldcH5dhZQqxDlwgPAsTEIMGNfwVa0ituwc7MIztX0rh8dspPvsjZg7smN+IVqwhv2VHuxFV9jxN/fj+OEcuRgGxDo0P38IOPoLNDRGVJmhOfITJDND4+BDBB2OxnetjMgM0Jz4iKk1g+5eCWBofvhWrsAi654BI3EOCGumbH8DmhgiL44TFT4nKBRCLeElMOo9J5+OmI5aoXIjtCmewuSHSNz+ABtX23dKjAoJESlgpkN3wCMmRUaoHX6T0t1/hXn4tYm0rw/W82ApiLeV/bCU4OUbmmz8mOTIKYph6/iGs4/V6HcfjWfbWX8TDxKFXmPrzT8FxqB/dE2e4xg7nwbrUj7yGOC7TOx8GIHnj9wAovfRoDwoYi1an8S7/Kqn191E7tIvis1vi+8DYeJ6Pwq4btZjHPQAQLxkPNaokRzZSP7aPqFbGZAYXIRCFiJegOX6Cyd/fQ+Pjw4ifbA0T/9tQigjW8Si9/Bj1Y/tojp/EeIl5+7QJCIKqYvoy5Dc/hwYzcT8X6bmrdSMBoLUy4icw2S+iUXN2wOU8BbRRQx03lsmYi3d8PjKDoBHaDNBmjbnZK+2fUzGYzCAi0jG3f64QAZSodLY1pMgcBTQinPzk0v+bCq3mFIehIwSLtczPFXMU/i9yuEgt06P5MAAAAABJRU5ErkJggg==" width="64" height="64" alt="Floor Slope By Drain icon, 32 px shown at 2x"><figcaption>By Drain<br>32 px (×2)</figcaption></figure>
+    <figure><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACTUlEQVR4nIWSzUtUURjGf+85M86XzjXK+QN006ZgyF3RwlWgYBC48INqUZtoJaiLFoGrCXIRQbs2jQ64SArDXW0MQhGLdFeb3PgxEXcG753x3ntOiztoI2UvnN15nvOe3/PI7tQlq9JdkEwBAjbizBENWAiPMH6dhEp3ce7BKwiaWBOhsg6Yf5gojfFrIILKOPx6cZsEyRSYiMb2e0xtH399CZXvgShsF+sExj0g0z+MZB0yV4aRjiwKBBs0MbV98rcek7p4neDHV0y9iqkdxKdeJdjZoqO3n/zILNZzsYEPAglsvLa/voSp/6T77nMkmcLfeAui4tetIXd1DGdiDrcyjb+2RG7gHtYYEgCYCJXvwf+0iCRTOKMlgp0tJJWL9c1DnLEnuOVJvNUyutCHbXFKHP8xCmOTjTcEO9t03nhIujgEQGNzmWppiHDvGypfAHPCR7WBshZEI6lsLLYGrCFdHEJSWVAqjvDPYM4O/f/TbiBxkWzTo7G5HEMURWNzGdv0wBhA2iQnDHQSU6+SvTaOM1qiWhrk8MPL+GfNQy5Mv8NdmMZbnUcXek8ZKI1x90gXB3HGn+KWJwn3voPS8S0T4c5P4UzMYcOAxpcVROuWgcT1zPTfJD8yi1uZwVstx7SPgXXgfVzARiHdd57hVmYwnouIIgEWUQkk61BbfIS/9hpd6GuLCkAXeml8XsGtzMT90MnWBmETSedIFwchDMgN3D8uyekRpTG+C6LRneexRz6yO3XZqnwPqiMDIi2x/NUg3laDtdigQVQ74Df2y/4I7vq+qwAAAABJRU5ErkJggg==" width="16" height="16" alt="Floor Slope By Drain icon, 16 px"><figcaption>16 px</figcaption></figure>
+    <figure><img class="px" src="data:image/png;base64,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" width="64" height="64" alt="Floor Slope By Point icon, 32 px shown at 2x"><figcaption>By Point<br>32 px (×2)</figcaption></figure>
+    <figure><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACZUlEQVR4nI2TO2tUURSFv33uc+48otFoCvEBVtFEMGAjYhACNk5h6QNRUJDUBvILrBQbEdRGVBBLQQWVKIJoYSHGB1ioCGIwMElmJpO5r7Mt7kiKRHDBgQPn7MVae+0ts5PDasIqeAEgYHMQ1oYCxikuWYJdbuGasMr6iduQxqgqJqyA2rUJxKDJEqpgSjXmr53CxQvA5nRnnpI3fhJ/eo4E5dUkYtDuEsGuMUxlA6V9RxE/wi0e2ogXUhk/z/Kb+4jfQvWv5l69ONjOPNHB06Rf32I7iyCCweZItI7Oq7uIXyLcewTNUsQvIa5fHL+E2oxweBx34zY6L29hoj5ULQYUcTxsu0F35hnB0Bi2+RvN4pXeZQl2YZZgz2HiD8/I5r4jXgCqmOKHRfyIzut7uIM76Z+4g1MbgDyFPMWpDdA/cRtvy26Wnt9E/BI9jz0CEbAZlUNn8baOEI7Wqdan0DRB04RqfYpwtI63dZjyoXNF1L2szT8S/2+4hQUF49Kevo6zaQf572+0Hl1GPB+A1oOLkMU4A9tZmr6xMkwrFgyaLFM+eIb0xwyNqyfIm3PgeOB45M05GldPkP36QrT/GJp0QMxfAkHzGGf9IMHQGPH7J5i+QcT1C2WqiOtjapuJP04TDI9japvQLOkRGAftNIn2H8e2G8SfXxTFaVw0y+aQJogX0H33CO22iA6cxHYWEePgohYJIvKFWdqPryBhBQnW2Iee5NbDS5hyf2/cFZcsRoIypdE6qpbqkQuoXXuZxBhs3AYEp9KPJsvI7OSImtoAxi8BgupKxquhiHFAFU275M05/gCXRgXVTaq8TQAAAABJRU5ErkJggg==" width="16" height="16" alt="Floor Slope By Point icon, 16 px"><figcaption>16 px</figcaption></figure>
+    <figcaption style="max-width:300px;text-align:left">Floor-fall symbol in plan: fall lines from the slab corners into the drain (By Drain), or into two picked points with the ridge between them (By Point). Floor Tools orange.</figcaption>
   </div>
 </div>
 
 <h2>2 · Asked for each floor whose type has no Variable layer</h2>
-<p class="note">Both tools show this before anything changes. In By Drain, <b>Skip this floor</b> leaves the floor out of the run.
-In By Point the second choice reads <b>Cancel</b>. Closing the dialog counts as Skip.</p>
+<p class="note">Every floor tool shows this before anything changes. In By Drain and Points &amp; Slope, <b>Skip this floor</b> leaves the
+floor out of the run. In By Point, Ridge and Multi Copies the second choice reads <b>Cancel</b>. Closing the dialog counts as Skip.</p>
 <div class="frame">
   <div class="dialog">
     <div class="dt"><span>Floor Slope By Drain</span><span>✕</span></div>
@@ -341,5 +387,136 @@ In By Point the second choice reads <b>Cancel</b>. Closing the dialog counts as 
     <span class="btn run">Run Floor Slope</span>
     <span class="btn close">Close</span>
   </div>
+</div>
+</div>
+
+<h2>5 · Floor Slope By Point (Ridge) V001: two drain groups, after a run <span class="tagnew">NEW</span></h2>
+<div class="frame">
+<div class="win">
+  <div class="titlebar"><span>Floor Slope By Point (Ridge) — v1.0.0</span><span class="wc">—□✕</span></div>
+  <div class="header">
+    <div><div class="t">Floor Slope By Point (Ridge)</div><div class="s">Revit 2026 · floor shape points + ridge points</div></div>
+    <div class="badges"><span class="hb state">Completed</span><span class="hb">v1.0.0</span></div>
+  </div>
+  <div class="metrics">
+    <div class="tile"><div class="ml">LONGEST PATH</div><div class="mn">9.84</div><div class="mh">Meters</div></div>
+    <div class="tile"><div class="ml">HIGHEST ELEVATION</div><div class="mn">148</div><div class="mh">Millimeters</div></div>
+    <div class="tile"><div class="ml ok">VERTICES PROCESSED</div><div class="mn">212</div><div class="mh">Vertices</div></div>
+    <div class="tile"><div class="ml w">VERTICES SKIPPED</div><div class="mn">0</div><div class="mh">Boundary</div></div>
+    <div class="tile"><div class="ml">FINAL DRAIN COUNT</div><div class="mn">4</div><div class="mh">Detected</div></div>
+    <div class="tile"><div class="ml ok">RIDGE POINTS</div><div class="mn">11</div><div class="mh">2 drain groups</div></div>
+  </div>
+  <div class="body">
+    <div class="left">
+      <div class="card sec">
+        <div class="section">Slope</div>
+        <div class="two"><div><div class="lbl">Percentage</div><div class="num">1.5</div></div><div><div class="lbl">Threshold (m)</div><div class="num">40</div></div></div>
+      </div>
+      <div class="card sec">
+        <div class="section">Ridge Detection</div>
+        <div class="pickrow"><input type="checkbox" checked aria-label="Enable ridge rule"><span>Enable ridge rule</span></div>
+        <div class="two"><div><div class="lbl">Drain group radius (mm)</div><div class="num">1000</div></div></div>
+        <div class="hint" style="margin-top:6px">Each floor point belongs to the nearest drain group by path along the floor. Points on the boundary between two groups are ridge points.</div>
+      </div>
+      <div class="card exp"><span class="chev">▸</span><span class="section">Circle Markers</span><span class="sum">Drains · Highest Pt · Ridge</span></div>
+    </div>
+    <div class="card sec">
+      <div class="section">Export</div>
+      <div class="pickrow"><input type="checkbox" checked aria-label="Export to Excel"><span>Export to Excel</span></div>
+      <div class="hint" style="margin-top:6px">Documents\FloorSlope_Reports · FloorSlopeRidge_Results_20261103_104512.xlsx</div>
+    </div>
+  </div>
+  <div class="log">
+    <div class="loghead"><b>Processing Log</b><span class="ghost">Copy All</span><span class="ghost">Clear</span></div>
+    <div class="logline"><span class="tm">[10:45:09]</span>Drain groups: 2 (from 4 drain vertex/vertices, group radius 1000 mm)</div>
+    <div class="logline"><span class="tm">[10:45:10]</span>Ridge detection: 11 ridge point(s) found on the basin boundaries.</div>
+    <div class="logline"><span class="tm">[10:45:11]</span>Slope check: every processed vertex descends to a neighbour at ≥ 1.5%.</div>
+    <div class="logline w"><span class="tm">[10:45:11]</span>AutoSlope Parameters: 0 updated, 14 skipped (not bound to Floors)</div>
+  </div>
+  <div class="footer"><span class="btn">Export Results</span><span class="grow"></span><span class="btn run">✓ Complete</span><span class="btn close">Close</span></div>
+</div>
+</div>
+
+<h2>6 · Floor Slope By Point (Multi Copies) V001: two slopes ticked <span class="tagnew">NEW</span></h2>
+<p class="note">Each ticked row copies the floor in place, slopes the copy and puts it on its own workset. Needs a workshared model.</p>
+<div class="frame">
+<div class="win">
+  <div class="titlebar"><span>Floor Slope By Point (Multi Copies) — v1.0.0</span><span class="wc">—□✕</span></div>
+  <div class="header">
+    <div><div class="t">Floor Slope By Point (Multi Copies)</div><div class="s">Revit 2026 · one sloped floor copy per slope</div></div>
+    <div class="badges"><span class="hb state">Ready</span><span class="hb">v1.0.0</span></div>
+  </div>
+  <div class="metrics">
+    <div class="tile"><div class="ml n">SELECTED FLOOR</div><div class="mn" style="font-size:13px;margin-top:6px">Floors (Id 412355)</div><div class="mh">Source</div></div>
+    <div class="tile"><div class="ml">ACTIVE SLOPES</div><div class="mn">2</div><div class="mh">Of 4 rows</div></div>
+    <div class="tile"><div class="ml">COPIES TO CREATE</div><div class="mn">2</div><div class="mh">Floors</div></div>
+    <div class="tile"><div class="ml ok">WORKSETS NEW</div><div class="mn">2</div><div class="mh">Will be created</div></div>
+    <div class="tile"><div class="ml">PICKED DRAIN</div><div class="mn">3</div><div class="mh">Detected</div></div>
+    <div class="tile"><div class="ml n">LAST COMPLETED SLOPE</div><div class="mn">—</div></div>
+  </div>
+  <div class="body">
+    <div class="left">
+      <div class="card sec">
+        <div class="section">Multi-Slope Floor Variants</div>
+        <div class="rows">
+          <input type="checkbox" checked aria-label="Slope 1"><span>Slope 1</span><span class="num" style="width:70px">1</span><span class="ws">Floor_Slope_1%</span>
+          <input type="checkbox" checked aria-label="Slope 2"><span>Slope 2</span><span class="num" style="width:70px">2</span><span class="ws">Floor_Slope_2%</span>
+          <input type="checkbox" aria-label="Slope 3"><span>Slope 3</span><span class="num" style="width:70px">1</span><span class="ws"></span>
+          <input type="checkbox" aria-label="Slope 4"><span>Slope 4</span><span class="num" style="width:70px">1</span><span class="ws"></span>
+        </div>
+      </div>
+      <div class="card exp"><span class="chev">▸</span><span class="section">Circle Markers</span><span class="sum">Drains · Highest Pt</span></div>
+    </div>
+    <div class="card sec">
+      <div class="section">Drain Detection</div>
+      <div class="two"><div><div class="lbl">Threshold (m)</div><div class="num">40</div></div><div><div class="lbl">Tolerance · Radius (mm)</div><div class="num">50</div></div></div>
+    </div>
+  </div>
+  <div class="footer"><span class="btn">Export Results</span><span class="grow"></span><span class="btn run">Run Floor Slope</span><span class="btn close">Close</span></div>
+</div>
+</div>
+
+<h2>7 · Floor Points &amp; Slope V001: two floors, step 1 selected <span class="tagnew">NEW</span></h2>
+<p class="note">Steps 1–4 add shape points, step 5 builds the ridge between the drain openings, step 6 slopes the floor with the Floor Slope By Drain engine. One Undo.
+Only sketch openings can be drains here; drain families are listed in Floor Slope By Drain.</p>
+<div class="frame">
+<div class="win">
+  <div class="titlebar"><span>Floor Points &amp; Slope — v1.0.0</span><span class="wc">—□✕</span></div>
+  <div class="header">
+    <div><div class="t">Floor Points &amp; Slope</div><div class="s">Generic 200mm - Variable  ·  Id 412355</div></div>
+    <div class="badges"><span class="hb">2 floors</span><span class="hb">v1.0.0</span></div>
+  </div>
+  <div class="body" style="grid-template-columns:330px 1fr">
+    <div class="left">
+      <div class="pickrow" style="margin:0"><span class="lbl" style="margin:0">Floor</span><span class="combo" style="flex:1">Generic 200mm - Variable  ·  Id 412355</span></div>
+      <div class="steps">
+        <div class="step"><span></span><span class="no off">⚙</span><div><div class="st">Run options</div><div class="ss">Clear first · min spacing · run report</div></div><span></span></div>
+        <div class="step sel"><input type="checkbox" checked aria-label="Run step 1"><span class="no">1</span><div><div class="st">Points around openings</div><div class="ss">Count or spacing per opening</div></div><span class="badge">+24</span></div>
+        <div class="step"><input type="checkbox" checked aria-label="Run step 2"><span class="no">2</span><div><div class="st">Perpendicular points</div><div class="ss">From openings to the boundary</div></div><span class="badge">+8</span></div>
+        <div class="step"><input type="checkbox" aria-label="Run step 3"><span class="no off">3</span><div><div class="st">Mid and quarter points</div><div class="ss">On the edges you pick</div></div><span class="badge">0</span></div>
+        <div class="step"><input type="checkbox" checked aria-label="Run step 4"><span class="no">4</span><div><div class="st">Fill gaps along edges</div><div class="ss">Where points are too far apart</div></div><span class="badge">+15</span></div>
+        <div class="step"><input type="checkbox" checked aria-label="Run step 5"><span class="no">5</span><div><div class="st">Ridge between drains</div><div class="ss">Ridge By Openings V070 engine</div></div><span class="badge">2 drains</span></div>
+        <div class="step"><input type="checkbox" checked aria-label="Run step 6"><span class="no">6</span><div><div class="st">Slope by drain <span class="tagnew">FLOOR ENGINE</span></div><div class="ss">Floor Slope By Drain V001 engine</div></div><span class="badge">1.5 %</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="gridwrap">
+        <div class="ghead"><span class="section">1 · Points around openings</span></div>
+        <div class="two"><div><div class="lbl">Points per opening</div><div class="num">8</div></div><div><div class="lbl">Group opening points within</div><div class="num">300 mm</div></div></div>
+        <div class="ghead" style="margin-top:12px"><span class="section">Openings</span></div>
+        <table>
+          <tr><th style="width:30px">#</th><th>Shape</th><th>Size (mm)</th><th>Source</th><th style="width:60px">Points</th><th style="width:90px">Perpendicular</th><th style="width:50px">Drain</th></tr>
+          <tr><td class="n">1</td><td>Circle</td><td>Ø 100</td><td>Sketch</td><td class="n">8</td><td><input type="checkbox" checked aria-label="Perpendicular 1"></td><td><input type="checkbox" checked aria-label="Drain 1"></td></tr>
+          <tr><td class="n">2</td><td>Circle</td><td>Ø 100</td><td>Sketch</td><td class="n">8</td><td><input type="checkbox" checked aria-label="Perpendicular 2"></td><td><input type="checkbox" checked aria-label="Drain 2"></td></tr>
+          <tr class="dim"><td class="n">3</td><td>Rectangle</td><td>1200 × 800</td><td>Opening cut</td><td class="n">8</td><td><input type="checkbox" aria-label="Perpendicular 3"></td><td><input type="checkbox" aria-label="Drain 3"></td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="log">
+    <div class="loghead"><b>Activity log</b><span class="ghost">Copy all</span><span class="ghost">Clear</span></div>
+    <div class="logline w"><span class="tm">[11:02:41]</span>Skipped Podium Slab 300mm  ·  Id 412377: its type has no Variable layer (skipped at your choice).</div>
+  </div>
+  <div class="footer"><span class="btn">Re-read Floor</span><span class="grow"></span><span class="btn">Run on All Floors</span><span class="btn run">Run Selected Steps</span><span class="btn close">Close</span></div>
 </div>
 </div>

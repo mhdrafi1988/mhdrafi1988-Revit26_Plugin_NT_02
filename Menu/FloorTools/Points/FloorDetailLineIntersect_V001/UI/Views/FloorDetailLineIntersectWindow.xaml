@@ -1,0 +1,251 @@
+<!--
+=======================================================
+File: FloorDetailLineIntersectWindow.xaml
+Location: UI/Views/
+Changes vs V013 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
+  - Window content is a shared ToolWindowShell:
+      HEADER  title bar + V014, metrics card
+      BODY    Selection, Options, Run Log (moved here from the footer);
+              the middle's own ScrollViewer removed
+      FOOTER  status strip (IsBusy / Progress / SummaryText), Run → Close
+  - Log: ShellBehaviors.MaxHeightRatio + ForwardMouseWheel.
+  - No behaviour change — every binding/command is the V013 one.
+=======================================================
+-->
+<Window
+    x:Class="Revit26_Plugin_Revised.FloorDetailLineIntersect.V001.UI.Views.FloorDetailLineIntersectWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:svc="clr-namespace:Revit26_Plugin_Revised.Shared.Services"
+    xmlns:shared="clr-namespace:Revit26_Plugin_Revised.Shared.Models"
+    xmlns:shell="clr-namespace:Revit26_Plugin_Revised.Shared.Controls"
+    Title="{Binding Source={x:Static svc:ToolCatalog.FloorDetailLineIntersect}, Path=Title}"
+    Width="520" Height="700"
+    MinWidth="520" MinHeight="700"
+    ResizeMode="CanResizeWithGrip"
+    WindowStartupLocation="CenterScreen"
+    Topmost="True">
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/Revit26_Plugin_Revised;component/Shared/SharedStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- Shared converters — instantiated here in the consuming window (never in SharedStyles.xaml) -->
+            <shared:InverseBoolConverter       x:Key="InvBool"/>
+            <shared:LogLevelToColorConverter   x:Key="LogColor"/>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <shell:ToolWindowShell Title="Floor Detail Line Intersect"
+                           Subtitle="Curves · Endpoints · Shape Points · Line×Line"
+                           Version="{Binding Source={x:Static svc:ToolCatalog.FloorDetailLineIntersect}, Path=Version, StringFormat=v{0}}"
+                           IsRunning="{Binding IsBusy}"
+                           IsIndeterminate="True"
+                           Progress="{Binding Progress}"
+                           SummaryText="{Binding SummaryText}">
+
+        <!-- ═══ HEADER ═══════════════════════════════════════════ -->
+        <shell:ToolWindowShell.HeaderContent>
+            <UniformGrid Columns="5" Margin="0,0,0,8">
+                <Border Style="{StaticResource MetricCard}" Margin="0,0,4,0" Padding="10,8">
+                    <StackPanel>
+                        <TextBlock Text="Lines" Style="{StaticResource MetricLabel}"/>
+                        <TextBlock Text="{Binding TotalLines}" Style="{StaticResource MetricNumber}" FontSize="18"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="10,8">
+                    <StackPanel>
+                        <TextBlock Text="Boundary" Style="{StaticResource MetricLabel}"/>
+                        <TextBlock Text="{Binding IntersectionsFound}" Style="{StaticResource MetricNumberSuccess}" FontSize="18"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="10,8">
+                    <StackPanel>
+                        <TextBlock Text="Line×Line" Style="{StaticResource MetricLabel}"/>
+                        <TextBlock Text="{Binding LineToLineIntersectionsFound}" Style="{StaticResource MetricNumberSuccess}" FontSize="18"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="10,8">
+                    <StackPanel>
+                        <TextBlock Text="Pts Placed" Style="{StaticResource MetricLabel}"/>
+                        <TextBlock Text="{Binding PointsPlaced}" Style="{StaticResource MetricNumberSuccess}" FontSize="18"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource MetricCard}" Margin="4,0,0,0" Padding="10,8">
+                    <StackPanel>
+                        <TextBlock Text="Skipped" Style="{StaticResource MetricLabel}"/>
+                        <TextBlock Text="{Binding SkippedCount}" Style="{StaticResource MetricNumberWarning}" FontSize="18"/>
+                    </StackPanel>
+                </Border>
+            </UniformGrid>
+        </shell:ToolWindowShell.HeaderContent>
+
+        <!-- ═══ BODY ═════════════════════════════════════════════ -->
+        <shell:ToolWindowShell.BodyContent>
+            <StackPanel>
+                <!-- ── Selection info ──────────────────────────────────────── -->
+                <Border Style="{StaticResource ContentCard}" Margin="0,0,0,0">
+                    <StackPanel>
+
+                        <TextBlock Text="Selection"
+                                   Style="{StaticResource SectionTitle}"
+                                   Margin="12,8,12,4"/>
+
+                        <Border Height="1" Background="{StaticResource BrushSeparatorThin}" Margin="12,0"/>
+
+                        <!-- Floor row -->
+                        <Grid Margin="12,6,12,4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Border Grid.Column="0"
+                                    Background="{StaticResource BrushAppleBlue}"
+                                    CornerRadius="8" Padding="7,2" Margin="0,0,8,0"
+                                    VerticalAlignment="Center">
+                                <TextBlock Text="FLOOR" FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrushTextOnDark}"/>
+                            </Border>
+
+                            <TextBlock Grid.Column="1"
+                                       Text="{Binding FloorName}"
+                                       Style="{StaticResource FieldValue}"
+                                       VerticalAlignment="Center"/>
+
+                            <TextBlock Grid.Column="2"
+                                       Text="{Binding FloorIdText}"
+                                       Style="{StaticResource FieldLabel}"
+                                       VerticalAlignment="Center"/>
+                        </Grid>
+
+                        <Border Height="1" Background="{StaticResource BrushSeparatorThin}" Margin="12,0"/>
+
+                        <!-- Detail Lines row -->
+                        <Grid Margin="12,6,12,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Border Grid.Column="0"
+                                    Background="{StaticResource BrushStatusOk}"
+                                    CornerRadius="8" Padding="7,2" Margin="0,0,8,0"
+                                    VerticalAlignment="Center">
+                                <TextBlock FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrushTextOnDark}">
+                                    <Run Text="{Binding TotalLines, Mode=OneWay}"/>
+                                    <Run Text=" LINES"/>
+                                </TextBlock>
+                            </Border>
+
+                            <TextBlock Grid.Column="1"
+                                       Text="Detail Lines selected"
+                                       Style="{StaticResource FieldValue}"
+                                       VerticalAlignment="Center"/>
+
+                            <TextBlock Grid.Column="2"
+                                       Text="{Binding ViewName}"
+                                       Style="{StaticResource FieldLabel}"
+                                       VerticalAlignment="Center"/>
+                        </Grid>
+
+                    </StackPanel>
+                </Border>
+
+                <!-- ── Options  ───────────────────────────────── -->
+                <Border Style="{StaticResource ContentCard}" Margin="0,6,0,0">
+                    <StackPanel>
+
+                        <TextBlock Text="Options"
+                                   Style="{StaticResource SectionTitle}"
+                                   Margin="12,8,12,4"/>
+
+                        <Border Height="1" Background="{StaticResource BrushSeparatorThin}" Margin="12,0"/>
+
+                        <CheckBox Content="Include Line × Line Intersections"
+                                  IsChecked="{Binding IncludeLineToLineIntersections}"
+                                  IsEnabled="{Binding IsBusy, Converter={StaticResource InvBool}}"
+                                  Margin="12,10,12,4"
+                                  FontSize="12.5"
+                                  Foreground="{StaticResource BrushTextPrimary}"/>
+
+                        <TextBlock Text="Also places a shape point wherever two of the selected detail lines cross each other, not just where they cross the floor boundary."
+                                   Style="{StaticResource FieldLabel}"
+                                   TextWrapping="Wrap"
+                                   Margin="30,0,12,10"/>
+
+                    </StackPanel>
+                </Border>
+
+                <!-- ── Run Log (moved from footer) ── -->
+                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="10,8" Margin="0,8,0,0">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Run Log" Foreground="{StaticResource BrushLogText}"
+                                       FontSize="11.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                <Button Content="Copy All" Style="{StaticResource DarkGhostButton}" Command="{Binding CopyLogCommand}"/>
+                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Click="CopySelectedLog_Click" Margin="6,0,0,0"/>
+                            </StackPanel>
+                        </Grid>
+                        <ListBox Grid.Row="1" x:Name="LogList" ItemsSource="{Binding LogEntries}" MinHeight="150"
+                                 shell:ShellBehaviors.MaxHeightRatio="0.2"
+                                 shell:ShellBehaviors.ForwardMouseWheel="True"
+                                 Background="Transparent" BorderThickness="0" SelectionMode="Extended"
+                                 ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                            <ListBox.ItemContainerStyle>
+                                <Style TargetType="ListBoxItem">
+                                    <Setter Property="Padding" Value="0,1"/>
+                                    <Setter Property="Background" Value="Transparent"/>
+                                </Style>
+                            </ListBox.ItemContainerStyle>
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" Margin="0,1">
+                                <TextBlock Text="{Binding Time, StringFormat=HH:mm:ss}"
+                                           Foreground="{StaticResource BrushLogTextDim}"
+                                           FontFamily="Consolas" FontSize="11" Margin="0,0,10,0"/>
+                                <TextBlock Text="{Binding Level}"
+                                           Foreground="{Binding Level, Converter={StaticResource LogColor}}"
+                                           FontFamily="Consolas" FontSize="11" FontWeight="SemiBold" Width="64"/>
+                                <TextBlock Text="{Binding Message}"
+                                           Foreground="{StaticResource BrushLogText}"
+                                           FontFamily="Consolas" FontSize="11" TextWrapping="Wrap"/>
+                            </StackPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </Grid>
+                </Border>
+            </StackPanel>
+        </shell:ToolWindowShell.BodyContent>
+
+        <!-- ═══ FOOTER ═══════════════════════════════════════════ -->
+        <shell:ToolWindowShell.FooterContent>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="▶  Run"
+                        Style="{StaticResource PrimaryButton}"
+                        Command="{Binding RunCommand}"
+                        Width="90"
+                        Margin="0,0,8,0"/>
+                <Button Content="Close"
+                        Style="{StaticResource OutlineButton}"
+                        Click="CloseButton_Click"
+                        Width="80"
+                        IsEnabled="{Binding IsBusy, Converter={StaticResource InvBool}}"/>
+            </StackPanel>
+        </shell:ToolWindowShell.FooterContent>
+    </shell:ToolWindowShell>
+</Window>

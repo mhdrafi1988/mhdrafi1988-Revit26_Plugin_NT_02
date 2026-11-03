@@ -24,6 +24,28 @@ No entries were added between 2026-10-17 and 2026-11-02; for that period
 ---
 
 
+## 2026-11-03 — Floor versions of the roof tools (plugins 6.33.0–6.37.0)
+
+- **Latest roof version only:** 22 more floor tools, each a new tool at `_V001` ported from the newest roof
+  build. Older roof builds were not ported. The roof folders were not touched. The full mapping is in
+  `TOOL_VERSIONING.md`.
+- **Shared helpers added:** `Shared/Services/FloorSketchProfile` (a floor's sketch loops; floors have no
+  `GetProfiles()`, and the sketch does not promise the outer loop comes first, so callers that need it sort by
+  area) and `Shared/Services/FloorPickFilter` (floors outside groups).
+- **Every floor port goes through `ToolGuard`**, including tools whose roof version did not. Tools that change a
+  floor call `FloorShapeEditChecks.GetBlockReason`; tools that change heights also ask about a missing Variable
+  layer. Read-only tools (comparison, creaser, views, EPS) only pick floors.
+- **Rename hazard:** a plain Roof → Floor rename turns `roof is ExtrusionRoof || roof is not FootPrintRoof` into a
+  check that is always true. Tapered EPS replaces it with "the floor's sketch can be read". Check type tests after
+  any bulk rename.
+- **Floor Shape From Link:** a floor's level + offset is its top surface (a roof's is its bottom), so "Subtract host
+  floor thickness" defaults to off. `ApplyFloor` measures each point's base by setting it to 0, so the same apply
+  code works.
+- **Floor Points & Slope** reuses Floor Slope By Drain V001's detection and engine, and floor copies of Ridge By
+  Openings V070's boundary, opening and ridge-creation services (`Floor*Service.cs`); V070's 2D helpers and models
+  are still shared.
+- **Not compiled in the authoring session** (no .NET SDK there): parse-checked with tree-sitter only.
+
 ## 2026-11-02 — Floor Slope tools, UI previews, docs refresh (plugin 6.31.0)
 
 - **New tools, not new versions:** Floor Slope By Drain V001 and Floor Slope By

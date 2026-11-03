@@ -1,0 +1,672 @@
+<!--
+=======================================================
+File: FloorTypeManagerWindow.xaml  (V003 — ToolWindowShell, CLAUDE.md v1.1)
+Changes vs V002 (layout only):
+  - Hosted in Shared/Controls/ToolWindowShell.
+    HEADER: title / subtitle / version + metric cards.
+    BODY:   Export / Import tabs, then the Operation Log (moved from the
+            footer) with its completion summary bar.
+    FOOTER: shell status strip (IsBusy, indeterminate) + Close.
+  - The busy bar under the title is now the shell's progress bar.
+  - Export / Import grids and the log cap their height
+    (ShellBehaviors.MaxHeightRatio) and forward the mouse wheel.
+  - Inline greys and status-pill colours → SharedStyles brushes.
+  - No behaviour change — every binding/command is the V002 one.
+=======================================================
+-->
+<Window x:Class="Revit26_Plugin_Revised.FloorTypeManager.V001.UI.Views.FloorTypeManagerWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:svc="clr-namespace:Revit26_Plugin_Revised.Shared.Services"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:converters="clr-namespace:Revit26_Plugin_Revised.Shared.Models"
+        xmlns:shell="clr-namespace:Revit26_Plugin_Revised.Shared.Controls"
+        xmlns:models="clr-namespace:Revit26_Plugin_Revised.FloorTypeManager.V001.Core.Models"
+        mc:Ignorable="d"
+        Title="{Binding Source={x:Static svc:ToolCatalog.FloorTypeManager}, Path=Title}"
+        Height="900" Width="1020"
+        MinHeight="900" MinWidth="1020"
+        WindowStartupLocation="CenterOwner"
+        Loaded="Window_Loaded">
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Revit26_Plugin_Revised;component/Shared/SharedStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+            <converters:LogLevelToColorConverter    x:Key="LogLevelToColorConverter"/>
+            <converters:BoolToVisibilityConverter   x:Key="BoolToVisibilityConverter"/>
+            <converters:InverseBoolConverter        x:Key="InverseBoolConverter"/>
+
+            <!-- Status pill style -->
+            <Style x:Key="StatusPillBorder" TargetType="Border">
+                <Setter Property="CornerRadius" Value="8"/>
+                <Setter Property="Padding"      Value="7,2"/>
+                <Setter Property="HorizontalAlignment" Value="Center"/>
+                <Setter Property="VerticalAlignment"   Value="Center"/>
+            </Style>
+
+            <!-- Layer sub-row header text -->
+            <Style x:Key="LayerHeaderText" TargetType="TextBlock">
+                <Setter Property="FontSize"     Value="10"/>
+                <Setter Property="FontWeight"   Value="SemiBold"/>
+                <Setter Property="Foreground"   Value="{StaticResource BrushDetailMutedText}"/>
+                <Setter Property="Margin"       Value="0,0,0,2"/>
+            </Style>
+
+            <!-- Layer cell value text -->
+            <Style x:Key="LayerValueText" TargetType="TextBlock">
+                <Setter Property="FontSize"   Value="11"/>
+                <Setter Property="Foreground" Value="{StaticResource BrushDetailValueText}"/>
+            </Style>
+
+            <!-- Expand toggle button -->
+            <Style x:Key="ExpandToggle" TargetType="Button">
+                <Setter Property="Background"   Value="Transparent"/>
+                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="Cursor"       Value="Hand"/>
+                <Setter Property="Padding"      Value="4,0"/>
+                <Setter Property="FontSize"     Value="11"/>
+                <Setter Property="Foreground"   Value="{StaticResource BrushTextSecondary}"/>
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Foreground" Value="{StaticResource BrushAppleBlueLight}"/>
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <shell:ToolWindowShell Title="Floor Type Manager"
+                           Subtitle="Export and import floor type definitions via Excel"
+                           Version="{Binding Source={x:Static svc:ToolCatalog.FloorTypeManager}, Path=Version, StringFormat=v{0}}"
+                           IsRunning="{Binding IsBusy}"
+                           IsIndeterminate="True"
+                           Progress="{Binding Progress}"
+                           SummaryText="{Binding SummaryText}">
+
+        <!-- ═══ HEADER ═══════════════════════════════════════════ -->
+        <shell:ToolWindowShell.HeaderContent>
+            <Grid Margin="0,2,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="8"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="8"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Border Grid.Column="0" Style="{StaticResource MetricCard}" Padding="10,8">
+                    <StackPanel HorizontalAlignment="Center">
+                        <TextBlock Text="Total Floor Types" Style="{StaticResource MetricLabel}" HorizontalAlignment="Center"/>
+                        <TextBlock Text="{Binding TotalFloorTypes}" Style="{StaticResource MetricNumberAccent}" HorizontalAlignment="Center"/>
+                        <TextBlock Text="in current model" Style="{StaticResource MetricUnit}" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Column="2" Style="{StaticResource MetricCard}" Padding="10,8">
+                    <StackPanel HorizontalAlignment="Center">
+                        <TextBlock Text="Last Export" Style="{StaticResource MetricLabel}" HorizontalAlignment="Center"/>
+                        <TextBlock Text="{Binding LastExportDate}" Style="{StaticResource MetricNumber}"
+                                   FontSize="16" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Column="4" Style="{StaticResource MetricCard}" Padding="10,8">
+                    <StackPanel HorizontalAlignment="Center">
+                        <TextBlock Text="Last Import File" Style="{StaticResource MetricLabel}" HorizontalAlignment="Center"/>
+                        <TextBlock Text="{Binding LastImportFile}" Style="{StaticResource MetricValue}"
+                                   FontSize="13" TextWrapping="Wrap" HorizontalAlignment="Center" TextAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </shell:ToolWindowShell.HeaderContent>
+
+        <!-- ═══ BODY ═════════════════════════════════════════════ -->
+        <shell:ToolWindowShell.BodyContent>
+            <StackPanel>
+                <!-- Export / Import tabs in workflow order -->
+                <TabControl Margin="0,0,0,10" Background="{StaticResource BrushSurfaceCard}"
+                            BorderBrush="{StaticResource BrushBorderDefault}">
+                    <TabItem Header="Export">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*" MinHeight="120"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <!-- Section header -->
+                            <Grid Grid.Row="0" Margin="12,10,12,6">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="Export Floor Types" Style="{StaticResource SectionTitle}" Margin="0"/>
+                                <Border Grid.Column="1" Style="{StaticResource BadgePill}">
+                                    <TextBlock Style="{StaticResource BadgeText}">
+                                        <Run Text="{Binding TotalFloorTypes, Mode=OneWay}"/>
+                                        <Run Text=" types loaded"/>
+                                    </TextBlock>
+                                </Border>
+                            </Grid>
+
+                            <!-- Toolbar -->
+                            <Grid Grid.Row="1" Margin="12,0,12,6">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBox Style="{StaticResource StyledTextInput}" Width="180"
+                                             Text="{Binding FilterText, UpdateSourceTrigger=PropertyChanged}"
+                                             MaxLength="60" Margin="0,0,6,0"/>
+                                    <Button Content="Select All"  Style="{StaticResource SmallSecondaryButton}"
+                                            Command="{Binding SelectAllCommand}" Margin="0,0,4,0"/>
+                                    <Button Content="Clear"       Style="{StaticResource SmallSecondaryButton}"
+                                            Command="{Binding ClearSelectionCommand}" Margin="0,0,4,0"/>
+                                    <Border Width="1" Background="{StaticResource BrushSeparatorThin}" Margin="4,3"/>
+                                    <Button Content="↺  Refresh" Style="{StaticResource SmallSecondaryButton}"
+                                            Command="{Binding RefreshCommand}"/>
+                                </StackPanel>
+
+                                <TextBlock Grid.Column="2" VerticalAlignment="Center"
+                                           Foreground="{StaticResource BrushTextSecondary}" FontSize="11.5">
+                                    <Run Text="{Binding SelectedExportCount, Mode=OneWay}"/>
+                                    <Run Text=" of "/>
+                                    <Run Text="{Binding TotalFloorTypes, Mode=OneWay}"/>
+                                    <Run Text=" selected"/>
+                                </TextBlock>
+                            </Grid>
+
+                            <!-- Export DataGrid with expandable rows -->
+                            <DataGrid Grid.Row="2" x:Name="ExportGrid" MinHeight="120" shell:ShellBehaviors.MaxHeightRatio="0.45" shell:ShellBehaviors.ForwardMouseWheel="True"
+                                      Margin="12,0,12,0"
+                                      ItemsSource="{Binding FilteredFloorTypes}"
+                                      Style="{StaticResource StandardDataGrid}"
+                                      ColumnHeaderStyle="{StaticResource StandardDataGridColumnHeader}"
+                                      CellStyle="{StaticResource StandardDataGridCell}"
+                                      RowStyle="{StaticResource StandardDataGridRow}"
+                                      AutoGenerateColumns="False"
+                                      CanUserAddRows="False" CanUserDeleteRows="False"
+                                      CanUserSortColumns="True"
+                                      EnableRowVirtualization="True"
+                                      VirtualizingPanel.VirtualizationMode="Recycling"
+                                      RowDetailsVisibilityMode="Collapsed">
+
+                                <!-- Row details: layer stack -->
+                                <DataGrid.RowDetailsTemplate>
+                                    <DataTemplate DataType="models:FloorTypeItem">
+                                        <Border Background="{StaticResource BrushNavyDark}" Padding="40,8,12,10" BorderThickness="0,1,0,0"
+                                                BorderBrush="{StaticResource BrushNavyLight}">
+                                            <StackPanel>
+                                                <!-- Column headers -->
+                                                <Grid Margin="0,0,0,4">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="180"/>
+                                                        <ColumnDefinition Width="90"/>
+                                                        <ColumnDefinition Width="120"/>
+                                                        <ColumnDefinition Width="70"/>
+                                                        <ColumnDefinition Width="70"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Grid.Column="0" Text="MATERIAL"  Style="{StaticResource LayerHeaderText}"/>
+                                                    <TextBlock Grid.Column="1" Text="THICK (mm)" Style="{StaticResource LayerHeaderText}"/>
+                                                    <TextBlock Grid.Column="2" Text="FUNCTION"  Style="{StaticResource LayerHeaderText}"/>
+                                                    <TextBlock Grid.Column="3" Text="PRIORITY"  Style="{StaticResource LayerHeaderText}"/>
+                                                    <TextBlock Grid.Column="4" Text="VARIABLE"  Style="{StaticResource LayerHeaderText}"/>
+                                                </Grid>
+                                                <!-- Layer rows -->
+                                                <ItemsControl ItemsSource="{Binding Layers}">
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate DataType="models:LayerData">
+                                                            <Grid Margin="0,1">
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="180"/>
+                                                                    <ColumnDefinition Width="90"/>
+                                                                    <ColumnDefinition Width="120"/>
+                                                                    <ColumnDefinition Width="70"/>
+                                                                    <ColumnDefinition Width="70"/>
+                                                                </Grid.ColumnDefinitions>
+                                                                <TextBlock Grid.Column="0" Text="{Binding MaterialName}"  Style="{StaticResource LayerValueText}"/>
+                                                                <TextBlock Grid.Column="1" Text="{Binding ThicknessMm, StringFormat=F1}" Style="{StaticResource LayerValueText}"/>
+                                                                <TextBlock Grid.Column="2" Text="{Binding LayerFunction}" Style="{StaticResource LayerValueText}"/>
+                                                                <TextBlock Grid.Column="3" Text="{Binding Priority}"      Style="{StaticResource LayerValueText}"/>
+                                                                <TextBlock Grid.Column="4">
+                                                                    <TextBlock.Style>
+                                                                        <Style TargetType="TextBlock" BasedOn="{StaticResource LayerValueText}">
+                                                                            <Style.Triggers>
+                                                                                <DataTrigger Binding="{Binding IsVariable}" Value="True">
+                                                                                    <Setter Property="Text"       Value="Yes"/>
+                                                                                    <Setter Property="Foreground" Value="{StaticResource BrushLogSuccess}"/>
+                                                                                </DataTrigger>
+                                                                                <DataTrigger Binding="{Binding IsVariable}" Value="False">
+                                                                                    <Setter Property="Text"       Value="No"/>
+                                                                                    <Setter Property="Foreground" Value="{StaticResource BrushDetailMutedText}"/>
+                                                                                </DataTrigger>
+                                                                            </Style.Triggers>
+                                                                        </Style>
+                                                                    </TextBlock.Style>
+                                                                </TextBlock>
+                                                            </Grid>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </DataGrid.RowDetailsTemplate>
+
+                                <DataGrid.Columns>
+                                    <!-- Expand toggle -->
+                                    <DataGridTemplateColumn Width="30" CanUserSort="False" CanUserResize="False">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate DataType="models:FloorTypeItem">
+                                                <Button Style="{StaticResource ExpandToggle}"
+                                                        Click="ExpandRow_Click"
+                                                        ToolTip="Show / hide layers">
+                                                    <Button.Content>
+                                                        <TextBlock>
+                                                            <TextBlock.Style>
+                                                                <Style TargetType="TextBlock">
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding IsExpanded}" Value="True">
+                                                                            <Setter Property="Text" Value="▾"/>
+                                                                        </DataTrigger>
+                                                                        <DataTrigger Binding="{Binding IsExpanded}" Value="False">
+                                                                            <Setter Property="Text" Value="▸"/>
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </TextBlock.Style>
+                                                        </TextBlock>
+                                                    </Button.Content>
+                                                </Button>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+
+                                    <!-- Checkbox -->
+                                    <DataGridTemplateColumn Width="34" CanUserSort="False" CanUserResize="False">
+                                        <DataGridTemplateColumn.Header>
+                                            <CheckBox HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                      IsChecked="{Binding AllExportItemsSelected, Mode=TwoWay}"
+                                                      ToolTip="Select / deselect all visible"/>
+                                        </DataGridTemplateColumn.Header>
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <CheckBox HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                          IsChecked="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+
+                                    <DataGridTextColumn Header="Type Name"     Binding="{Binding TypeName}"            Width="2*" MinWidth="130" IsReadOnly="True" SortMemberPath="TypeName"/>
+                                    <DataGridTextColumn Header="Type Mark"     Binding="{Binding TypeMark}"            Width="80"  MinWidth="60"  IsReadOnly="True" SortMemberPath="TypeMark"/>
+                                    <DataGridTextColumn Header="Function"      Binding="{Binding Function}"            Width="90"  MinWidth="70"  IsReadOnly="True" SortMemberPath="Function"/>
+                                    <DataGridTextColumn Header="Layer Count"   Binding="{Binding LayerCount}"          Width="80"  MinWidth="60"  IsReadOnly="True" SortMemberPath="LayerCount">
+                                        <DataGridTextColumn.ElementStyle><Style TargetType="TextBlock"><Setter Property="TextAlignment" Value="Right"/><Setter Property="Padding" Value="0,0,6,0"/></Style></DataGridTextColumn.ElementStyle>
+                                    </DataGridTextColumn>
+                                    <DataGridTextColumn Header="Thickness (mm)" Binding="{Binding TotalThicknessMm, StringFormat=F1}" Width="100" MinWidth="80" IsReadOnly="True" SortMemberPath="TotalThicknessMm">
+                                        <DataGridTextColumn.ElementStyle><Style TargetType="TextBlock"><Setter Property="TextAlignment" Value="Right"/><Setter Property="Padding" Value="0,0,6,0"/></Style></DataGridTextColumn.ElementStyle>
+                                    </DataGridTextColumn>
+                                </DataGrid.Columns>
+                            </DataGrid>
+
+                            <!-- File path + Export button + Open button -->
+                            <Grid Grid.Row="3" Margin="12,8,12,12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox Grid.Column="0" Style="{StaticResource BoxedTextInput}"
+                                         Text="{Binding ExportFilePath}" IsReadOnly="True" Margin="0,0,6,0"/>
+                                <Button  Grid.Column="1" Content="Browse…" Style="{StaticResource OutlineButton}"
+                                         Command="{Binding BrowseExportCommand}" Margin="0,0,6,0"/>
+                                <!-- Open in Excel — visible only after a successful export -->
+                                <Button  Grid.Column="2" Content="📂  Open in Excel"
+                                         Style="{StaticResource SmallSecondaryButton}"
+                                         Command="{Binding OpenExportFileCommand}"
+                                         Margin="0,0,6,0"
+                                         Visibility="{Binding LastExportPath, Converter={StaticResource BoolToVisibilityConverter}}"
+                                         ToolTip="{Binding LastExportPath}"/>
+                                <Button  Grid.Column="3" Style="{StaticResource AccentButton}"
+                                         Command="{Binding ExportSelectedCommand}">
+                                    <TextBlock>
+                                        <Run Text="Export Selected ("/>
+                                        <Run Text="{Binding SelectedExportCount, Mode=OneWay}"/>
+                                        <Run Text=")"/>
+                                    </TextBlock>
+                                </Button>
+                            </Grid>
+                        </Grid>
+                    </TabItem>
+                    <TabItem Header="Import">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*" MinHeight="120"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <!-- Section header with Download Template button -->
+                            <Grid Grid.Row="0" Margin="12,10,12,6">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="Import Floor Types" Style="{StaticResource SectionTitle}" Margin="0"/>
+                                <Button Grid.Column="1"
+                                        Content="⬇  Download Blank Template"
+                                        Style="{StaticResource SmallSecondaryButton}"
+                                        Command="{Binding DownloadTemplateCommand}"
+                                        ToolTip="Save a pre-formatted Excel template to use as a starting point"/>
+                            </Grid>
+
+                            <!-- File picker -->
+                            <Grid Grid.Row="1" Margin="12,0,12,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox Grid.Column="0" Style="{StaticResource BoxedTextInput}"
+                                         Text="{Binding ImportFilePath}" IsReadOnly="True" Margin="0,0,6,0"/>
+                                <Button  Grid.Column="1" Content="Browse…" Style="{StaticResource OutlineButton}"
+                                         Command="{Binding BrowseImportCommand}"/>
+                            </Grid>
+
+                            <!-- Preview DataGrid with expandable rows -->
+                            <DataGrid Grid.Row="2" x:Name="ImportGrid" MinHeight="120" shell:ShellBehaviors.MaxHeightRatio="0.45" shell:ShellBehaviors.ForwardMouseWheel="True"
+                                      Margin="12,0,12,0"
+                                      ItemsSource="{Binding ImportPreviewItems}"
+                                      Style="{StaticResource StandardDataGrid}"
+                                      ColumnHeaderStyle="{StaticResource StandardDataGridColumnHeader}"
+                                      CellStyle="{StaticResource StandardDataGridCell}"
+                                      RowStyle="{StaticResource StandardDataGridRow}"
+                                      AutoGenerateColumns="False"
+                                      CanUserAddRows="False" CanUserDeleteRows="False"
+                                      CanUserSortColumns="True"
+                                      IsReadOnly="True"
+                                      EnableRowVirtualization="True"
+                                      VirtualizingPanel.VirtualizationMode="Recycling"
+                                      RowDetailsVisibilityMode="Collapsed">
+
+                                <!-- Row details: layer stack -->
+                                <DataGrid.RowDetailsTemplate>
+                                    <DataTemplate DataType="models:ImportPreviewItem">
+                                        <Border Background="{StaticResource BrushNavyDark}" Padding="40,8,12,10" BorderThickness="0,1,0,0"
+                                                BorderBrush="{StaticResource BrushNavyLight}">
+                                            <StackPanel>
+                                                <Grid Margin="0,0,0,4">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="180"/>
+                                                        <ColumnDefinition Width="90"/>
+                                                        <ColumnDefinition Width="120"/>
+                                                        <ColumnDefinition Width="70"/>
+                                                        <ColumnDefinition Width="70"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Grid.Column="0" Text="MATERIAL"   Style="{StaticResource LayerHeaderText}"/>
+                                                    <TextBlock Grid.Column="1" Text="THICK (mm)" Style="{StaticResource LayerHeaderText}"/>
+                                                    <TextBlock Grid.Column="2" Text="FUNCTION"   Style="{StaticResource LayerHeaderText}"/>
+                                                    <TextBlock Grid.Column="3" Text="PRIORITY"   Style="{StaticResource LayerHeaderText}"/>
+                                                    <TextBlock Grid.Column="4" Text="VARIABLE"   Style="{StaticResource LayerHeaderText}"/>
+                                                </Grid>
+                                                <ItemsControl ItemsSource="{Binding Layers}">
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate DataType="models:LayerData">
+                                                            <Grid Margin="0,1">
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="180"/>
+                                                                    <ColumnDefinition Width="90"/>
+                                                                    <ColumnDefinition Width="120"/>
+                                                                    <ColumnDefinition Width="70"/>
+                                                                    <ColumnDefinition Width="70"/>
+                                                                </Grid.ColumnDefinitions>
+                                                                <TextBlock Grid.Column="0" Text="{Binding MaterialName}"  Style="{StaticResource LayerValueText}"/>
+                                                                <TextBlock Grid.Column="1" Text="{Binding ThicknessMm, StringFormat=F1}" Style="{StaticResource LayerValueText}"/>
+                                                                <TextBlock Grid.Column="2" Text="{Binding LayerFunction}" Style="{StaticResource LayerValueText}"/>
+                                                                <TextBlock Grid.Column="3" Text="{Binding Priority}"      Style="{StaticResource LayerValueText}"/>
+                                                                <TextBlock Grid.Column="4">
+                                                                    <TextBlock.Style>
+                                                                        <Style TargetType="TextBlock" BasedOn="{StaticResource LayerValueText}">
+                                                                            <Style.Triggers>
+                                                                                <DataTrigger Binding="{Binding IsVariable}" Value="True">
+                                                                                    <Setter Property="Text"       Value="Yes"/>
+                                                                                    <Setter Property="Foreground" Value="{StaticResource BrushLogSuccess}"/>
+                                                                                </DataTrigger>
+                                                                                <DataTrigger Binding="{Binding IsVariable}" Value="False">
+                                                                                    <Setter Property="Text"       Value="No"/>
+                                                                                    <Setter Property="Foreground" Value="{StaticResource BrushDetailMutedText}"/>
+                                                                                </DataTrigger>
+                                                                            </Style.Triggers>
+                                                                        </Style>
+                                                                    </TextBlock.Style>
+                                                                </TextBlock>
+                                                            </Grid>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </DataGrid.RowDetailsTemplate>
+
+                                <DataGrid.Columns>
+                                    <!-- Expand toggle -->
+                                    <DataGridTemplateColumn Width="30" CanUserSort="False" CanUserResize="False">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate DataType="models:ImportPreviewItem">
+                                                <Button Style="{StaticResource ExpandToggle}"
+                                                        Click="ExpandImportRow_Click"
+                                                        ToolTip="Show / hide layers">
+                                                    <Button.Content>
+                                                        <TextBlock>
+                                                            <TextBlock.Style>
+                                                                <Style TargetType="TextBlock">
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding IsExpanded}" Value="True">
+                                                                            <Setter Property="Text" Value="▾"/>
+                                                                        </DataTrigger>
+                                                                        <DataTrigger Binding="{Binding IsExpanded}" Value="False">
+                                                                            <Setter Property="Text" Value="▸"/>
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </TextBlock.Style>
+                                                        </TextBlock>
+                                                    </Button.Content>
+                                                </Button>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+
+                                    <DataGridTextColumn Header="Sheet"         Binding="{Binding SheetName}"       Width="90"  MinWidth="70"  SortMemberPath="SheetName"/>
+                                    <DataGridTextColumn Header="Type Name"     Binding="{Binding TypeName}"        Width="2*"  MinWidth="130" SortMemberPath="TypeName"/>
+                                    <DataGridTextColumn Header="Layer Count"   Binding="{Binding LayerCount}"      Width="80"  MinWidth="60"  SortMemberPath="LayerCount">
+                                        <DataGridTextColumn.ElementStyle><Style TargetType="TextBlock"><Setter Property="TextAlignment" Value="Right"/><Setter Property="Padding" Value="0,0,6,0"/></Style></DataGridTextColumn.ElementStyle>
+                                    </DataGridTextColumn>
+                                    <DataGridTextColumn Header="Thickness (mm)" Binding="{Binding TotalThicknessMm, StringFormat=F1}" Width="100" MinWidth="80" SortMemberPath="TotalThicknessMm">
+                                        <DataGridTextColumn.ElementStyle><Style TargetType="TextBlock"><Setter Property="TextAlignment" Value="Right"/><Setter Property="Padding" Value="0,0,6,0"/></Style></DataGridTextColumn.ElementStyle>
+                                    </DataGridTextColumn>
+
+                                    <!-- Status pill -->
+                                    <DataGridTemplateColumn Header="Status" Width="90" MinWidth="70" CanUserSort="False">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate DataType="models:ImportPreviewItem">
+                                                <Border x:Name="PillBorder" Style="{StaticResource StatusPillBorder}">
+                                                    <TextBlock x:Name="PillText" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                                </Border>
+                                                <DataTemplate.Triggers>
+                                                    <DataTrigger Binding="{Binding Status}" Value="New">
+                                                        <Setter TargetName="PillBorder" Property="Background" Value="{StaticResource BrushStatusInfoSoft}"/>
+                                                        <Setter TargetName="PillText"   Property="Foreground" Value="{StaticResource BrushStatusInfo}"/>
+                                                        <Setter TargetName="PillText"   Property="Text"       Value="NEW"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Status}" Value="Dup">
+                                                        <Setter TargetName="PillBorder" Property="Background" Value="{StaticResource BrushStatusWarnSoft}"/>
+                                                        <Setter TargetName="PillText"   Property="Foreground" Value="{StaticResource BrushStatusWarn}"/>
+                                                        <Setter TargetName="PillText"   Property="Text"       Value="DUP → RENAME"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Status}" Value="Renamed">
+                                                        <Setter TargetName="PillBorder" Property="Background" Value="{StaticResource BrushPillRenamedBackground}"/>
+                                                        <Setter TargetName="PillText"   Property="Foreground" Value="{StaticResource BrushPillRenamedText}"/>
+                                                        <Setter TargetName="PillText"   Property="Text"       Value="RENAMED"/>
+                                                    </DataTrigger>
+                                                </DataTemplate.Triggers>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                </DataGrid.Columns>
+                            </DataGrid>
+
+                            <!-- Stats + Import button -->
+                            <Grid Grid.Row="3" Margin="12,8,12,12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" VerticalAlignment="Center"
+                                           Style="{StaticResource HintText}" Margin="0">
+                                    <Run Text="{Binding ImportPreviewItems.Count, Mode=OneWay}"/>
+                                    <Run Text=" types previewed  ·  "/>
+                                    <Run Text="{Binding NewImportCount, Mode=OneWay}"/>
+                                    <Run Text=" new  ·  "/>
+                                    <Run Text="{Binding DupImportCount, Mode=OneWay}"/>
+                                    <Run Text=" will be auto-renamed"/>
+                                </TextBlock>
+                                <Button Grid.Column="1"
+                                        Style="{StaticResource PrimaryButton}"
+                                        Command="{Binding ImportCommand}">
+                                    <TextBlock>
+                                        <Run Text="Import All ("/>
+                                        <Run Text="{Binding ImportPreviewItems.Count, Mode=OneWay}"/>
+                                        <Run Text=")"/>
+                                    </TextBlock>
+                                </Button>
+                            </Grid>
+                        </Grid>
+                    </TabItem>
+                </TabControl>
+
+                <!-- ─── 4. Log Panel ───────────────────────────── -->
+                <Border Background="{StaticResource BrushLogBg}" CornerRadius="10">
+                    <StackPanel>
+                        <!-- Log title bar -->
+                        <Border Background="{StaticResource BrushLogTitleBar}"
+                                CornerRadius="10,10,0,0" Padding="12,8">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="Operation Log" FontSize="11.5" FontWeight="SemiBold"
+                                               Foreground="{StaticResource BrushTextOnDark}"
+                                               VerticalAlignment="Center"/>
+                                    <Border Style="{StaticResource BadgePill}"
+                                            Background="{StaticResource BrushNavyLight}" Margin="8,0,0,0">
+                                        <TextBlock Style="{StaticResource BadgeText}"
+                                                   Foreground="{StaticResource BrushAppleBlueLight}">
+                                            <Run Text="{Binding LogEntries.Count, Mode=OneWay}"/>
+                                            <Run Text=" entries"/>
+                                        </TextBlock>
+                                    </Border>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                    <Button Content="Copy All" Style="{StaticResource DarkGhostButton}"
+                                            Command="{Binding CopyAllLogsCommand}" Margin="0,0,6,0"/>
+                                    <Button x:Name="CopySelectedBtn"
+                                            Content="Copy Selected" Style="{StaticResource DarkGhostButton}"
+                                            Click="CopySelectedBtn_Click"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <!-- Log entries list -->
+                        <ListBox x:Name="LogListBox"
+                                 ItemsSource="{Binding LogEntries}"
+                                 SelectionMode="Extended"
+                                 Background="Transparent" BorderThickness="0"
+                                 MinHeight="110" shell:ShellBehaviors.MaxHeightRatio="0.2" shell:ShellBehaviors.ForwardMouseWheel="True" Padding="8,4"
+                                 ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                            <ListBox.ItemContainerStyle>
+                                <Style TargetType="ListBoxItem">
+                                    <Setter Property="Padding"         Value="0,1"/>
+                                    <Setter Property="Background"      Value="Transparent"/>
+                                    <Setter Property="BorderThickness" Value="0"/>
+                                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                    <Style.Triggers>
+                                        <Trigger Property="IsSelected" Value="True">
+                                            <Setter Property="Background" Value="{StaticResource BrushNavyLight}"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ListBox.ItemContainerStyle>
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="{Binding Time, StringFormat='{}{0:HH:mm:ss}'}"
+                                                   Foreground="{StaticResource BrushLogTextDim}"
+                                                   FontFamily="Consolas" FontSize="11" Margin="0,0,8,0"/>
+                                        <TextBlock Text="{Binding Level}"
+                                                   Foreground="{Binding Level, Converter={StaticResource LogLevelToColorConverter}}"
+                                                   FontFamily="Consolas" FontSize="11" FontWeight="SemiBold"
+                                                   Width="58" Margin="0,0,8,0"/>
+                                        <TextBlock Text="{Binding Message}"
+                                                   Foreground="{StaticResource BrushLogText}"
+                                                   FontFamily="Consolas" FontSize="11"
+                                                   TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+
+                        <!-- Completion summary bar -->
+                        <Border Background="{StaticResource BrushNavyDark}" CornerRadius="0,0,10,10" Padding="12,7">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock FontSize="12" FontWeight="Bold" VerticalAlignment="Center">
+                                        <Run Text="{Binding ImportedCount, Mode=OneWay}"
+                                             Foreground="{StaticResource BrushLogSuccess}"/>
+                                        <Run Text=" created" Foreground="{StaticResource BrushLogTextDim}"/>
+                                    </TextBlock>
+                                    <TextBlock Text="  |  " Foreground="{StaticResource BrushLogTextDim}" FontSize="12" VerticalAlignment="Center"/>
+                                    <TextBlock FontSize="12" FontWeight="Bold" VerticalAlignment="Center">
+                                        <Run Text="{Binding RenamedCount, Mode=OneWay}"
+                                             Foreground="{StaticResource BrushLogHighlight}"/>
+                                        <Run Text=" renamed" Foreground="{StaticResource BrushLogTextDim}"/>
+                                    </TextBlock>
+                                    <TextBlock Text="  |  " Foreground="{StaticResource BrushLogTextDim}" FontSize="12" VerticalAlignment="Center"/>
+                                    <TextBlock FontSize="12" FontWeight="Bold" VerticalAlignment="Center">
+                                        <Run Text="{Binding FailedCount, Mode=OneWay}"
+                                             Foreground="{StaticResource BrushLogError}"/>
+                                        <Run Text=" failed" Foreground="{StaticResource BrushLogTextDim}"/>
+                                    </TextBlock>
+                                </StackPanel>
+                                <TextBlock Grid.Column="1" Text="{Binding LastRunTime}"
+                                           Foreground="{StaticResource BrushLogTextDim}"
+                                           FontSize="11" VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </shell:ToolWindowShell.BodyContent>
+
+        <!-- ═══ FOOTER ═══════════════════════════════════════════ -->
+        <shell:ToolWindowShell.FooterContent>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="Close" Style="{StaticResource OutlineButton}" Width="90" Click="CloseButton_Click"/>
+            </StackPanel>
+        </shell:ToolWindowShell.FooterContent>
+    </shell:ToolWindowShell>
+</Window>
