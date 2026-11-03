@@ -9,6 +9,29 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.35.0] — 2026-11-03
+
+### Added
+- New **Floor Edit** ribbon panel, right after **Floor Lines**, each tool **v1.0.0 (V001)**:
+  - **Floor Type Manager** (from Roof Type Manager V003): floor types with their layers, Excel export, and new
+    floor types created from an Excel template (compound structure, Variable layer, layer priorities).
+  - **Floor Name Builder** (from Roof Name Builder V002): bulk-renames floor types, or writes a floor instance
+    parameter, from INS / SLP / MAT codes.
+  - **Floor Tag** (from Roof Tag V018): spot elevations on a floor's top face at its shape points or picked points.
+  - **Floor Point Comparison** (from Roof Point Comparison V003): compares two floors' shape-point heights. It only
+    reads the floors.
+  - **Floor Point Elevation Sync** (from Roof Point Elevation Sync V005): matches two floors' shape points by plan
+    position and sets the chosen heights.
+- Floor Tag and Floor Point Elevation Sync refuse floors that are in a group, in a read-only model, borrowed by
+  another user, or that do not support shape editing, and say why. Elevation Sync also asks before changing a floor
+  whose type has no Variable layer.
+
+### Changed
+- **User note:** settings are saved separately from the roof tools, under
+  `%AppData%\Revit26_Plugin_Revised\FloorNameBuilder` and `...\FloorPointElevationSync`. Floor Tag's log file is
+  `Documents\FloorTag_V001_Log.txt`.
+- The roof tools are unchanged.
+
 ## [6.34.0] — 2026-11-03
 
 ### Added

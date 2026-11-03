@@ -1,0 +1,284 @@
+<!--
+=======================================================
+File: FloorComparisonWindow.xaml
+Location: UI/Views/
+Changes vs V002 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
+  - Window content is a shared ToolWindowShell:
+      HEADER  title bar + V003, both metrics rows
+      BODY    tolerances + marker settings, Processing Log (moved here
+              from the footer); the middle's own ScrollViewer removed
+      FOOTER  status strip (IsBusy / Progress / StatusMessage),
+              Recalculate · Place Markers → Close
+  - Log: ShellBehaviors.MaxHeightRatio + ForwardMouseWheel.
+  - No behaviour change — every binding/command is the V002 one.
+=======================================================
+-->
+<Window x:Class="Revit26_Plugin_Revised.FloorPointComparison.V001.UI.Views.FloorComparisonWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:svc="clr-namespace:Revit26_Plugin_Revised.Shared.Services"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:shared="clr-namespace:Revit26_Plugin_Revised.Shared.Models"
+        xmlns:shell="clr-namespace:Revit26_Plugin_Revised.Shared.Controls"
+        mc:Ignorable="d"
+        Title="{Binding Source={x:Static svc:ToolCatalog.FloorPointComparison}, Path=Title}"
+        Width="1000"
+        Height="820"
+        MinWidth="1000"
+        MinHeight="820"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="CanResizeWithGrip"
+        Background="{StaticResource BrushSystemSecondaryBackground}"
+        KeyDown="Window_KeyDown">
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/Revit26_Plugin_Revised;component/Shared/SharedStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+
+            <shared:LogLevelToColorConverter x:Key="LogLevelToColor"/>
+            <BooleanToVisibilityConverter x:Key="BoolToVisibility"/>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <shell:ToolWindowShell Title="Compare Floors"
+                           Subtitle="Shape-point position and elevation comparison between Floor A and Floor B"
+                           Version="{Binding Source={x:Static svc:ToolCatalog.FloorPointComparison}, Path=Version, StringFormat=v{0}}"
+                           IsRunning="{Binding IsBusy}"
+                           IsIndeterminate="True"
+                           Progress="{Binding Progress}"
+                           SummaryText="{Binding StatusMessage}">
+
+        <!-- ═══ HEADER ═══════════════════════════════════════════ -->
+        <shell:ToolWindowShell.HeaderContent>
+            <StackPanel>
+                        <UniformGrid Columns="5" Rows="1" Margin="0,0,0,6">
+                            <Border Style="{StaticResource MetricCard}" Padding="10,8" Margin="0,0,3,0">
+                                <StackPanel>
+                                    <TextBlock Text="Total Points — A / B" Style="{StaticResource MetricLabel}"/>
+                                    <TextBlock FontSize="18" Style="{StaticResource MetricNumberAccent}">
+                                        <Run Text="{Binding Metrics.TotalPointsA, Mode=OneWay}"/><Run Text=" / "/><Run Text="{Binding Metrics.TotalPointsB, Mode=OneWay}"/>
+                                    </TextBlock>
+                                    <TextBlock Text="Shape points" Style="{StaticResource MetricUnit}"/>
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource MetricCard}" Padding="10,8" Margin="3,0,3,0">
+                                <StackPanel>
+                                    <TextBlock Text="Differences Found" Style="{StaticResource MetricLabel}"/>
+                                    <TextBlock Text="{Binding Metrics.DifferencesCount, Mode=OneWay}" FontSize="18" Style="{StaticResource MetricNumberDanger}"/>
+                                    <TextBlock Text="Missing + Mismatched" Style="{StaticResource MetricUnit}"/>
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource MetricCard}" Padding="10,8" Margin="3,0,3,0">
+                                <StackPanel>
+                                    <TextBlock Text="Matched Points" Style="{StaticResource MetricLabel}"/>
+                                    <TextBlock Text="{Binding Metrics.MatchedCount, Mode=OneWay}" FontSize="18" Style="{StaticResource MetricNumberSuccess}"/>
+                                    <TextBlock Text="Same position &amp; elevation" Style="{StaticResource MetricUnit}"/>
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource MetricCard}" Padding="10,8" Margin="3,0,3,0">
+                                <StackPanel>
+                                    <TextBlock Text="Match Percentage" Style="{StaticResource MetricLabel}"/>
+                                    <TextBlock Text="{Binding Metrics.MatchPercentage, StringFormat=F1, Mode=OneWay}" FontSize="18" Style="{StaticResource MetricNumberWarning}"/>
+                                    <TextBlock Text="Percent" Style="{StaticResource MetricUnit}"/>
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource MetricCard}" Padding="10,8" Margin="3,0,0,0">
+                        <StackPanel>
+                            <TextBlock Text="Avg Elev. Diff (Matched, B − A)" Style="{StaticResource MetricLabel}"/>
+                            <TextBlock Text="{Binding Metrics.AverageElevationDiffMatched_mm, StringFormat=F2, Mode=OneWay}" FontSize="18" Style="{StaticResource MetricNumberAccent}"/>
+                            <TextBlock Text="Millimeters" Style="{StaticResource MetricUnit}"/>
+                        </StackPanel>
+                    </Border>
+                </UniformGrid>
+
+                <UniformGrid Columns="5" Rows="1" Margin="0,0,0,8">
+                    <Border Style="{StaticResource MetricCard}" Padding="10,8" Margin="0,0,3,0">
+                        <StackPanel>
+                            <TextBlock Text="Highest Elevation A / B" Style="{StaticResource MetricLabel}"/>
+                            <TextBlock FontSize="18" Style="{StaticResource MetricNumberAccent}">
+                                <Run Text="{Binding Metrics.HighestElevationA_mm, StringFormat=F0, Mode=OneWay}"/><Run Text=" / "/><Run Text="{Binding Metrics.HighestElevationB_mm, StringFormat=F0, Mode=OneWay}"/>
+                            </TextBlock>
+                            <TextBlock Text="Millimeters" Style="{StaticResource MetricUnit}"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource MetricCard}" Padding="10,8" Margin="3,0,3,0">
+                        <StackPanel>
+                            <TextBlock Text="Lowest Elevation A / B" Style="{StaticResource MetricLabel}"/>
+                            <TextBlock FontSize="18" Style="{StaticResource MetricNumberAccent}">
+                                <Run Text="{Binding Metrics.LowestElevationA_mm, StringFormat=F0, Mode=OneWay}"/><Run Text=" / "/><Run Text="{Binding Metrics.LowestElevationB_mm, StringFormat=F0, Mode=OneWay}"/>
+                            </TextBlock>
+                            <TextBlock Text="Millimeters" Style="{StaticResource MetricUnit}"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource MetricCard}" Padding="10,8" Margin="3,0,3,0">
+                        <StackPanel>
+                            <TextBlock Text="Average Elevation A / B" Style="{StaticResource MetricLabel}"/>
+                            <TextBlock FontSize="18" Style="{StaticResource MetricNumberAccent}">
+                                <Run Text="{Binding Metrics.AverageElevationA_mm, StringFormat=F0, Mode=OneWay}"/><Run Text=" / "/><Run Text="{Binding Metrics.AverageElevationB_mm, StringFormat=F0, Mode=OneWay}"/>
+                            </TextBlock>
+                            <TextBlock Text="Millimeters" Style="{StaticResource MetricUnit}"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource MetricCard}" Padding="10,8" Margin="3,0,3,0">
+                        <StackPanel>
+                            <TextBlock Text="Elevation Range A / B" Style="{StaticResource MetricLabel}"/>
+                            <TextBlock FontSize="18" Style="{StaticResource MetricNumberWarning}">
+                                <Run Text="{Binding Metrics.ElevationRangeA_mm, StringFormat=F0, Mode=OneWay}"/><Run Text=" / "/><Run Text="{Binding Metrics.ElevationRangeB_mm, StringFormat=F0, Mode=OneWay}"/>
+                            </TextBlock>
+                            <TextBlock Text="Millimeters" Style="{StaticResource MetricUnit}"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource MetricCard}" Padding="10,8" Margin="3,0,0,0">
+                        <StackPanel>
+                            <TextBlock Text="Std Dev A / B" Style="{StaticResource MetricLabel}"/>
+                            <TextBlock FontSize="18" Style="{StaticResource MetricNumberAccent}">
+                                <Run Text="{Binding Metrics.StdDevElevationA_mm, StringFormat=F1, Mode=OneWay}"/><Run Text=" / "/><Run Text="{Binding Metrics.StdDevElevationB_mm, StringFormat=F1, Mode=OneWay}"/>
+                            </TextBlock>
+                            <TextBlock Text="Millimeters" Style="{StaticResource MetricUnit}"/>
+                        </StackPanel>
+                    </Border>
+                </UniformGrid>
+            </StackPanel>
+        </shell:ToolWindowShell.HeaderContent>
+
+        <!-- ═══ BODY ═════════════════════════════════════════════ -->
+        <shell:ToolWindowShell.BodyContent>
+            <StackPanel>
+                <Border Style="{StaticResource ContentCard}" Padding="12">
+                    <StackPanel>
+                        <TextBlock Text="Comparison Tolerances" Style="{StaticResource SectionTitle}"/>
+                        <Grid Margin="4,0,4,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="12"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Position Tolerance (mm)" Style="{StaticResource FieldLabel}"/>
+                                <TextBox Style="{StaticResource BorderlessTextInput}"
+                                         Text="{Binding PositionToleranceMm, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         MaxLength="10"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Elevation Tolerance (mm)" Style="{StaticResource FieldLabel}"/>
+                                <TextBox Style="{StaticResource BorderlessTextInput}"
+                                         Text="{Binding ElevationToleranceMm, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         MaxLength="10"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <Border Style="{StaticResource SeparatorLine}" Margin="4,0,4,8"/>
+
+                        <TextBlock Text="Visual Markers" Style="{StaticResource SectionTitle}"
+                                   ToolTip="Placed in the active plan view when 'Place Markers' is run. Skipped with a warning if the active view is not a plan view."/>
+
+                        <!-- Missing Point marker -->
+                        <TextBlock Text="Missing Point" Style="{StaticResource FieldValue}" FontWeight="SemiBold" Margin="4,4,4,0"/>
+                        <Grid Margin="4,4,4,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="8"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Color" Style="{StaticResource FieldLabel}"/>
+                                <ComboBox ItemsSource="{Binding ColorPalette}"
+                                          SelectedItem="{Binding MissingMarkerGroup.ColorName, Mode=TwoWay}"
+                                          Padding="2"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Radius (mm)" Style="{StaticResource FieldLabel}"/>
+                                <TextBox Style="{StaticResource BorderlessTextInput}"
+                                         Text="{Binding MissingMarkerGroup.RadiusMm, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         MaxLength="10" Padding="2"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- Mismatched Elevation marker -->
+                        <TextBlock Text="Mismatched Elevation" Style="{StaticResource FieldValue}" FontWeight="SemiBold" Margin="4,0,4,0"/>
+                        <Grid Margin="4,4,4,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="8"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Color" Style="{StaticResource FieldLabel}"/>
+                                <ComboBox ItemsSource="{Binding ColorPalette}"
+                                          SelectedItem="{Binding MismatchMarkerGroup.ColorName, Mode=TwoWay}"
+                                          Padding="2"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Radius (mm)" Style="{StaticResource FieldLabel}"/>
+                                <TextBox Style="{StaticResource BorderlessTextInput}"
+                                         Text="{Binding MismatchMarkerGroup.RadiusMm, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         MaxLength="10" Padding="2"/>
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Processing Log (moved from footer) -->
+                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="10,8" Margin="0,8,0,0">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Processing Log" Foreground="{StaticResource BrushLogText}"
+                                       FontSize="11.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                <Button Content="Copy All" Style="{StaticResource DarkGhostButton}" Click="CopyAllLog_Click"/>
+                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Click="CopySelectedLog_Click" Margin="6,0,0,0"/>
+                                <Button Content="Clear" Style="{StaticResource DarkGhostButton}" Command="{Binding ClearLogCommand}" Margin="6,0,0,0"/>
+                            </StackPanel>
+                        </Grid>
+                        <ListBox Grid.Row="1" x:Name="LogListBox" ItemsSource="{Binding LogEntries}" MinHeight="110" shell:ShellBehaviors.MaxHeightRatio="0.2" shell:ShellBehaviors.ForwardMouseWheel="True"
+                                 Background="Transparent" BorderThickness="0" SelectionMode="Extended"
+                                 ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                            <ListBox.ItemContainerStyle>
+                                <Style TargetType="ListBoxItem">
+                                    <Setter Property="Padding" Value="0,1"/>
+                                    <Setter Property="Background" Value="Transparent"/>
+                                </Style>
+                            </ListBox.ItemContainerStyle>
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" Margin="0,1">
+                                <TextBlock Text="{Binding Time, StringFormat=HH:mm:ss}"
+                                           Foreground="{StaticResource BrushLogTextDim}"
+                                           FontFamily="Consolas" FontSize="11" Margin="0,0,10,0"/>
+                                <TextBlock Text="{Binding Message}"
+                                           Foreground="{Binding Level, Converter={StaticResource LogLevelToColor}}"
+                                           FontFamily="Consolas" FontSize="11" TextWrapping="Wrap"/>
+                            </StackPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </Grid>
+                </Border>
+            </StackPanel>
+        </shell:ToolWindowShell.BodyContent>
+
+        <!-- ═══ FOOTER ═══════════════════════════════════════════ -->
+        <shell:ToolWindowShell.FooterContent>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="Recalculate" Command="{Binding RecalculateCommand}"
+                        Style="{StaticResource OutlineButton}" Height="32" Width="120" Margin="0,0,8,0"/>
+                <Button Content="Place Markers" Command="{Binding PlaceMarkersCommand}"
+                        Style="{StaticResource PrimaryButton}" Height="32" Width="130" Margin="0,0,8,0"/>
+                <Button Content="Close" Click="CloseButton_Click"
+                        Style="{StaticResource OutlineButton}" Height="32" Width="90"/>
+            </StackPanel>
+        </shell:ToolWindowShell.FooterContent>
+    </shell:ToolWindowShell>
+</Window>

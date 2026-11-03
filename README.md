@@ -7,7 +7,7 @@ section/sheet management, workset organisation, and detail line tools.
 
 | SloperPro | Revit |
 |---|---|
-| 6.x (current: 6.34.0) | 2026 |
+| 6.x (current: 6.35.0) | 2026 |
 | 2.0.0 | 2026 |
 | 1.0.0 | 2026 |
 
@@ -26,6 +26,7 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 | Shape Points | Inner Loops · Outer Curve · Line Intersect · Loops + Perp. ▸ slide-out: Vertex Reducer · Multi Points · Shape From Link |
 | Floor Points | Inner Loops · Outer Curve · Line Intersect · Loops + Perp. · Vertex Reducer · Multi Points · Shape From Link |
 | Floor Lines | Crease By Openings · Crease By Points · Floor Creaser |
+| Floor Edit | Floor Types · Name Builder · Floor Tag · Comparison · Elevation Sync |
 | Roof Tools | Creaser Adv · Roof Tag · Floor From Rooms · Shape From Link |
 | Roof Edit | Name Builder · Island Splitter |
 | Plan View | Island Splitter |
@@ -85,6 +86,13 @@ Where a tool has several versions, its button is a dropdown listing the newest v
   They draw the crease (ridge) lines midway between the drains, as shape points + split lines and/or detail lines.
 - **Floor Creaser**: the floor version of Creaser Adv. It places detail items along a sloped floor's creases and
   only reads the floor.
+
+### Floor types, names, tags and checks (new in 6.35.0)
+- **Floor Type Manager, Floor Name Builder**: export and create floor types from Excel; bulk-rename floor types with
+  INS / SLP / MAT codes.
+- **Floor Tag**: spot elevations on a floor's top face at its shape points.
+- **Floor Point Comparison, Floor Point Elevation Sync**: compare two floors' shape-point heights, and copy heights
+  between matching points (asks before changing a floor type with no Variable layer).
 
 ### Roof shape points, editing and checks
 - **Inner Loops, Outer Curve, Line Intersect, Loops + Perpendicular**: divide and intersect roof loops into shape points.
@@ -150,6 +158,9 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 ## Version History
 
 See [CHANGELOG.md](CHANGELOG.md) for the full history and per-tool versions.
+
+### 6.35.0 — 2026-11-03
+- New **Floor Edit** panel: Floor Types, Name Builder, Floor Tag, Comparison and Elevation Sync.
 
 ### 6.34.0 — 2026-11-03
 - New **Floor Lines** panel: Floor Crease Lines By Openings, By Points, and Floor Creaser.

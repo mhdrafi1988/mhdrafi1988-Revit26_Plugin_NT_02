@@ -159,6 +159,43 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             RibbonLayoutHelper.AddStackedButtons(panel, new List<RibbonItemData> { byOpenings, byPoints, creaser });
         }
 
+        /// <summary>
+        /// Creates the "Floor Edit" panel (plugin 6.35.0): Floor Types, Name Builder, Floor Tag, Comparison and
+        /// Elevation Sync, one plain button each (one version each), stacked 3 + 2. They reuse the roof icons.
+        /// </summary>
+        public static void BuildEditPanel(UIControlledApplication app, string tabName, string assemblyPath)
+        {
+            RibbonPanel panel = app.CreateRibbonPanel(tabName, "Floor Edit");
+
+            PushButtonData Btn(string name, string text, string commandClass, string icon, ToolInfo tool, string detail) =>
+                new PushButtonData(name, text, assemblyPath, "Revit26_Plugin_Revised." + commandClass)
+                {
+                    Image = ImageUtils.Load(RoofIcons + icon + "_16.png"),
+                    ToolTip = tool.Tip(detail)
+                };
+
+            var items = new List<RibbonItemData>
+            {
+                Btn("Btn_FloorTypeManager_V001", "Floor Types", "FloorTypeManager.V001.Commands.FloorTypeManagerCommand",
+                    "CreateRoofromLInes", ToolCatalog.FloorTypeManager,
+                    "Lists the project's floor types with their layers; exports them to Excel and creates new floor types from an Excel template."),
+                Btn("Btn_FloorNameBuilder_V001", "Name Builder", "FloorNameBuilder.V001.Commands.FloorNameBuilderCommand",
+                    "CreateRoofromLInes", ToolCatalog.FloorNameBuilder,
+                    "Bulk-renames floor types (or writes a floor instance parameter) from configurable INS / SLP / MAT codes."),
+                Btn("Btn_FloorTag_V001", "Floor Tag", "FloorTag.V001.FloorTagCommand",
+                    "RoofTag", ToolCatalog.FloorTag,
+                    "Pick a floor: places spot elevations on its top face at the shape points (or points you pick), skipping duplicates."),
+                Btn("Btn_FloorPointComparison_V001", "Comparison", "FloorPointComparison.V001.Commands.FloorComparisonCommand",
+                    "PointComparison", ToolCatalog.FloorPointComparison,
+                    "Pick floor A and floor B: compares their shape-point heights point by point. Reads the floors only."),
+                Btn("Btn_FloorPointElevationSync_V001", "Elevation Sync", "FloorPointElevationSync.V001.Command",
+                    "ElevationSync", ToolCatalog.FloorPointElevationSync,
+                    "Pick floor A and floor B: matches their shape points by plan position and sets the chosen heights. One Undo."),
+            };
+
+            RibbonLayoutHelper.AddStackedButtons(panel, items);
+        }
+
         /// <summary>Internal name of the pulldown (unchanged since it lived in Floor Tools).</summary>
         public const string FromRoomsPulldownName = "Pulldown_FloorsAndRoofFromLinkedRooms";
 

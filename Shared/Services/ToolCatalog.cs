@@ -106,6 +106,11 @@ namespace Revit26_Plugin_Revised.Shared.Services
         public static readonly ToolInfo RoofTypeManager = Add("Roof Type Manager", "3.1.2", "V003", "Revit26_Plugin_Revised.RoofTypeCreator.V003");
         public static readonly ToolInfo RoofPointElevationSync = Add("Roof Point Elevation Sync", "5.0.1", "V005", "Revit26_Plugin_Revised.RoofPointElevationSync.V005");
         public static readonly ToolInfo RoofPointComparison = Add("Roof Point Comparison", "3.0.1", "V003", "Revit26_Plugin_Revised.RoofPointComparison.V003");
+        public static readonly ToolInfo FloorTypeManager = Add("Floor Type Manager", "1.0.0", "V001", "Revit26_Plugin_Revised.FloorTypeManager.V001");
+        public static readonly ToolInfo FloorNameBuilder = Add("Floor Name Builder", "1.0.0", "V001", "Revit26_Plugin_Revised.FloorNameBuilder.V001");
+        public static readonly ToolInfo FloorTag = Add("Floor Tag", "1.0.0", "V001", "Revit26_Plugin_Revised.FloorTag.V001");
+        public static readonly ToolInfo FloorPointComparison = Add("Floor Point Comparison", "1.0.0", "V001", "Revit26_Plugin_Revised.FloorPointComparison.V001");
+        public static readonly ToolInfo FloorPointElevationSync = Add("Floor Point Elevation Sync", "1.0.0", "V001", "Revit26_Plugin_Revised.FloorPointElevationSync.V001");
         public static readonly ToolInfo TaperedEpsPattern2D = Add("Tapered EPS 2D Pattern", "6.1.0", "V006", "Revit26_Plugin_Revised.TaperedEpsPattern2D.V006");
         public static readonly ToolInfo BatchDwgFamilyLinker = Add("Batch Link DWG Family", "2.2.0", "V002", "BatchDwgFamilyLinker.V002");
         public static readonly ToolInfo DwgToLines = Add("DWG To Lines", "7.0.1", "V007", "Revit26_Plugin_Revised.DwgToLines.V007");

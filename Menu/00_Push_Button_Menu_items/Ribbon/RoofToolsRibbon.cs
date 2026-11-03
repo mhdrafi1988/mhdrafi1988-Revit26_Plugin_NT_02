@@ -25,7 +25,8 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
         /// <summary>
         /// Creates the roof panels on <paramref name="tabName"/>, in workflow order: Roof Slope,
         /// Floor Slope (<see cref="FloorToolsRibbon.BuildSlopePanel"/>), Shape Points, Floor Points
-        /// (<see cref="FloorToolsRibbon.BuildPointsPanel"/>), Floor Lines (<see cref="FloorToolsRibbon.BuildLinesPanel"/>), Roof Tools, Roof Edit, Plan View, Compare, Insulation. The Utilities panel is built
+        /// (<see cref="FloorToolsRibbon.BuildPointsPanel"/>), Floor Lines (<see cref="FloorToolsRibbon.BuildLinesPanel"/>),
+        /// Floor Edit (<see cref="FloorToolsRibbon.BuildEditPanel"/>), Roof Tools, Roof Edit, Plan View, Compare, Insulation. The Utilities panel is built
         /// separately by <see cref="BuildUtilities"/> so it can sit at the end of the tab.
         /// </summary>
         public static void Build(UIControlledApplication app, string tabName, string assemblyPath)
@@ -138,6 +139,9 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
 
             // Floor Lines — floor versions of Ridge By Openings / By Points and Creaser Adv (plugin 6.34.0).
             FloorToolsRibbon.BuildLinesPanel(app, tabName, assemblyPath);
+
+            // Floor Edit — floor versions of Roof Types, Name Builder, Roof Tag, Comparison and Elevation Sync (plugin 6.35.0).
+            FloorToolsRibbon.BuildEditPanel(app, tabName, assemblyPath);
 
             // Slope Liner + Tag + Floor From Rooms in one stack
             // (Revit's stacked-item limit is exactly 3 per column).
