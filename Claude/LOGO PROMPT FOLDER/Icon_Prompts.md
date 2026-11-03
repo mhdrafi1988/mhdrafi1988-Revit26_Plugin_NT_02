@@ -4,7 +4,8 @@ One monochrome icon prompt per live `PushButton` in the ribbon, after the cleanu
 
 > **Status (2026-11-02, plugin 6.31.0):** entries 1–64 were written for an older ribbon. Some button IDs and
 > versions below no longer exist, and `QuickAcces.cs` is gone. The current layout is in
-> `Claude/Revit26_Plugin_Md Files/Claude/RIBBON_AND_ICONS.md`. Entries 65–66 cover the Floor Slope panel added in 6.31.0.
+> `Claude/Revit26_Plugin_Md Files/Claude/RIBBON_AND_ICONS.md`. Entries 65–66 cover the Floor Slope panel added in 6.31.0;
+> its icons were made in 6.31.1.
 > Add a prompt here whenever a new button needs its own icon.
 
 ## Shared style brief (prepend to every prompt)
@@ -131,8 +132,15 @@ Several tool families already have an unused, never-wired icon sitting in `Resou
 
 ## Floor Slope (`FloorRibbon.cs` — `FloorToolsRibbon.BuildSlopePanel`, plugin 6.31.0)
 
-These buttons currently reuse the roof `by_drain_16/32.png` and `by_point_16.png` icons. Save the new files in
-`Resources/Icons/FloorTools/`, then point `BuildSlopePanel` at them (16px for `Image`, 32px for `LargeImage`).
+**Done in 6.31.1.** These icons were drawn in code rather than generated from the prompts, so they match the Floor Tools style
+exactly. `make_floor_slope_icons.py` (in this folder) writes them to `Resources/Icons/FloorTools/`. To change one, edit the
+script and run it again:
 
-65. **Btn_FloorSlopeByDrain_V001** → `FloorSlopeByDrain_16.png` / `FloorSlopeByDrain_32.png` — a flat rectangular floor slab seen in plan with a round floor-drain grate (circle with a cross) near one corner and three short slope arrows converging on it; a thin horizontal line under the slab hints at its thickness, to tell it apart from the roof By Drain icon.
-66. **Btn_FloorSlopeByPoint_V001** → `FloorSlopeByPoint_16.png` / `FloorSlopeByPoint_32.png` — the same flat floor slab in plan with two small target dots (picked points) and slope arrows running from the slab edges to each dot; same slab-thickness line as the By Drain icon so the two read as a pair.
+```bash
+python3 "Claude/LOGO PROMPT FOLDER/make_floor_slope_icons.py" Resources/Icons/FloorTools
+```
+
+Style: Floor Tools orange square (#E8752C) with white line art, the drafting symbol for floor falls in plan.
+
+65. **Btn_FloorSlopeByDrain_V001** → `FloorSlopeByDrain_16.png` / `FloorSlopeByDrain_32.png` — the slab outline in plan with fall lines from its four corners into a central drain (ring and dot). At 32 px the fall lines are arrows; at 16 px they are plain lines into a solid drain dot.
+66. **Btn_FloorSlopeByPoint_V001** → `FloorSlopeByPoint_16.png` / `FloorSlopeByPoint_32.png` — the same slab outline with two picked points (ring and dot), each taking the falls from its half of the slab, and the ridge line between them (32 px only).

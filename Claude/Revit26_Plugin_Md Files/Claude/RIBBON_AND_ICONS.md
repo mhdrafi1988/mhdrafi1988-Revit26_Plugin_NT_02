@@ -85,8 +85,9 @@ segments: `Resources/Icons/RoofTools/by_point_16.png` on disk is
 
 Each tool should have both sizes: `<Name>_16.png` for `PushButtonData.Image` (a button in a stack or dropdown) and
 `<Name>_32.png` for `.LargeImage` (a pulldown's own header icon, or a full-size button). Not every tool has both,
-so check before assuming a `_32` exists because a `_16` does. The Floor Slope buttons reuse the roof
-`by_drain_*` / `by_point_16` icons until floor icons are made.
+so check before assuming a `_32` exists because a `_16` does. Since 6.31.1 the Floor Slope buttons have their
+own `FloorTools/FloorSlopeByDrain_*` / `FloorSlopeByPoint_*` icons, drawn by
+`Claude/LOGO PROMPT FOLDER/make_floor_slope_icons.py`. A script like that keeps an icon reproducible.
 
 ## Adding a push button
 

@@ -9,6 +9,18 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.31.1] — 2026-11-03
+
+### Changed
+- **Floor Slope panel icons**: **By Drain** and **By Point** have their own icons instead of the roof slope ones.
+  They are Floor Tools orange and show the floor-fall symbol in plan:
+  - By Drain: fall lines from the slab corners into one drain.
+  - By Point: falls into two picked points, with the ridge between them.
+
+  The 16 and 32 px files are in `Resources/Icons/FloorTools/`. They are drawn by
+  `Claude/LOGO PROMPT FOLDER/make_floor_slope_icons.py`, so they can be regenerated. No tool behaviour changed, and
+  the tool versions stay at 1.0.0.
+
 ## [6.31.0] — 2026-11-02
 
 ### Added

@@ -13,8 +13,8 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
     /// </summary>
     public static class FloorToolsRibbon
     {
-        /// <summary>Roof slope icons, reused by the floor slope buttons until floor icons exist.</summary>
-        private const string RoofIcons = "Revit26_Plugin_Revised.Resources.Icons.RoofTools.";
+        /// <summary>Floor Tools icon folder (embedded resources), used by the Floor Slope buttons since 6.31.1.</summary>
+        private const string FloorIcons = "Revit26_Plugin_Revised.Resources.Icons.FloorTools.";
 
         /// <summary>
         /// Creates the "Floor Slope" panel on <paramref name="tabName"/>: Floor Slope By Drain and
@@ -27,8 +27,8 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             var byDrain = new PushButtonData("Btn_FloorSlopeByDrain_V001", "By Drain", assemblyPath,
                 "Revit26_Plugin_Revised.FloorSlopeByDrain.V001.Commands.FloorSlopeByDrainCommand")
             {
-                Image = ImageUtils.Load(RoofIcons + "by_drain_16.png"),
-                LargeImage = ImageUtils.Load(RoofIcons + "by_drain_32.png"),
+                Image = ImageUtils.Load(FloorIcons + "FloorSlopeByDrain_16.png"),
+                LargeImage = ImageUtils.Load(FloorIcons + "FloorSlopeByDrain_32.png"),
                 ToolTip = ToolCatalog.FloorSlopeByDrain.Tip(
                     "Pick one or more floors and slope each one's shape points down to its drains: openings in the floor sketch " +
                     "and drain families (Plumbing Fixtures) on the floor. Asks before sloping a floor whose type has no Variable layer. One Undo.")
@@ -36,7 +36,8 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             var byPoint = new PushButtonData("Btn_FloorSlopeByPoint_V001", "By Point", assemblyPath,
                 "Revit26_Plugin_Revised.FloorSlopeByPoint.V001.Commands.FloorSlopeByPointCommand")
             {
-                Image = ImageUtils.Load(RoofIcons + "by_point_16.png"),
+                Image = ImageUtils.Load(FloorIcons + "FloorSlopeByPoint_16.png"),
+                LargeImage = ImageUtils.Load(FloorIcons + "FloorSlopeByPoint_32.png"),
                 ToolTip = ToolCatalog.FloorSlopeByPoint.Tip(
                     "Pick a floor, then click the drain points on it; the floor's shape points are sloped down to them, " +
                     "with optional ridge lines between drain groups. Asks before sloping a floor whose type has no Variable layer.")
