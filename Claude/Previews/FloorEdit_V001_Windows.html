@@ -1,13 +1,15 @@
 <title>Floor Edit Windows</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<!-- UI preview (CLAUDE.md "UI previews") for the Floor Edit panel, plugin 6.35.0. Tools, each 1.0.0 (V001):
-       Floor Type Manager, Floor Name Builder, Floor Tag, Floor Point Comparison, Floor Point Elevation Sync.
+<!-- UI preview (CLAUDE.md "UI previews") for the Floor Edit panel, plugin 6.37.0. Tools, each 1.0.0 (V001):
+       Floor Type Manager, Floor Name Builder, Floor Tag, Floor Point Comparison, Floor Point Elevation Sync (6.35.0),
+       Floor EPS (6.36.0, window on FloorViewsAndEps_V001_Windows.html), Island Floor Splitter (6.37.0).
      Real windows:
        Menu/FloorTools/Types/FloorTypeManager_V001/UI/Views/FloorTypeManagerWindow.xaml
        Menu/FloorTools/Types/FloorNameBuilder_V001/UI/Views/FloorNameBuilderWindow.xaml
        Menu/Tagging/FloorTag_V001/FloorTagWindow.xaml
        Menu/FloorTools/Compare/FloorPointComparison_V001/UI/Views/FloorComparisonWindow.xaml
        Menu/FloorTools/Compare/FloorPointElevationSync_V001/Views/MainWindow.xaml
+       Menu/FloorTools/IslandFloorSplitter_V001/UI/Views/IslandFloorSplitterWindow.xaml
      Ribbon: Menu/00_Push_Button_Menu_items/Ribbon/FloorRibbon.cs (FloorToolsRibbon.BuildEditPanel)
      Artifact: https://claude.ai/artifact/JJCL4FgyoiMsdPSFwG66t3 (republish to this URL on every update)
      Colours are the Shared/SharedStyles.xaml v4.0 tokens, same single light look as FloorSlope_V001_Windows.html
@@ -172,7 +174,7 @@ tr.dim td{color:var(--text3)}
 .pill.w{background:var(--warn-soft);color:var(--warn)}
 .section-new{color:var(--new)}
 </style>
-<h1>Floor Edit tools <span class="tagnew">NEW IN 6.35.0</span></h1>
+<h1>Floor Edit tools <span class="tagnew">UPDATED IN 6.37.0</span></h1>
 <p class="note">Floor versions of Roof Types, Roof Name Builder, Roof Tag, Roof Point Comparison and Roof Point Elevation Sync, on a new
 <b>Floor Edit</b> panel after Floor Lines. Each window is the roof tool's window with floor wording; floor-specific parts are marked in
 green. All values are sample data, not a real project. On a narrow screen, scroll each window sideways.</p>
@@ -190,7 +192,8 @@ green. All values are sample data, not a real project. On a narrow screen, scrol
         <div class="rbtn"><span class="ico g">Aa</span>Name Builder</div>
         <div class="rbtn"><span class="ico d">⌖</span>Floor Tag</div></div>
         <div class="stack"><div class="rbtn"><span class="ico p">⇆</span>Comparison</div>
-        <div class="rbtn"><span class="ico p">⇅</span>Elevation Sync</div></div></div>
+        <div class="rbtn"><span class="ico p">⇅</span>Elevation Sync</div><div class="rbtn"><span class="ico c">▦</span>Floor EPS</div></div>
+        <div class="stack"><div class="rbtn isnew" style="flex-direction:column;padding:4px 10px"><span class="ico g" style="width:32px;height:32px;margin:0 0 4px;font-size:16px">◫</span>Island<br>Splitter</div></div></div>
         <div class="title">Floor Edit</div></div>
       <div class="rpanel more">… Roof Tools · Roof Edit · Plan View · Compare · Insulation · Utilities</div>
     </div>
@@ -289,5 +292,40 @@ green. All values are sample data, not a real project. On a narrow screen, scrol
  <table><tr><th>✓</th><th>Point ID</th><th>X (mm)</th><th>Y (mm)</th><th>Floor A Elev.</th><th>Floor B Elev.</th><th>Target (Lower)</th><th>New Elev.</th></tr><tr><td><input type="checkbox" checked aria-label="Use"></td><td class=n>7</td><td>12 400</td><td>8 150</td><td class=n>62</td><td class=n>74</td><td>A</td><td class=n>62</td></tr><tr><td><input type="checkbox" checked aria-label="Use"></td><td class=n>8</td><td>18 600</td><td>8 150</td><td class=n>88</td><td class=n>91</td><td>A</td><td class=n>88</td></tr><tr><td><input type="checkbox" aria-label="Use"></td><td class=n>9</td><td>24 800</td><td>8 150</td><td class=n>120</td><td class=n>120</td><td>—</td><td class=n>120</td></tr></table></div></div>
   <div class="log"><div class="loghead"><b>Log</b><span class="ghost">Copy All</span><span class="ghost">Copy Selected</span><span class="ghost">Clear</span></div><div class="logline"><span class="tm">[11:20:13]</span>24 matching point(s) within 10 mm; 5 differ.</div></div>
   <div class="footer"><span class="btn">Find Matching Points</span><span class="btn">Export Logs (.txt)</span><span class="grow"></span><span class="btn run">Apply</span><span class="btn close">Close</span></div>
+</div>
+</div>
+
+<h2>7 · Island Floor Splitter: two islands over one floor <span class="tagnew">NEW IN 6.37.0</span></h2>
+<p class="note">The floor version always creates floors: the roof tool's output choice and roof-type picker are hidden. The source floor is only read.</p>
+<div class="frame">
+<div class="win sm">
+  <div class="titlebar"><span>Island Floor Splitter — v1.0.0</span><span class="wc">—□✕</span></div>
+  <div class="header"><div><div class="t">Island Floor Splitter</div><div class="s">Split a floor into one new floor per closed detail-line island</div></div>
+    <div class="badges"><span class="hb state">Preview ready</span><span class="hb">v1.0.0</span></div></div>
+  <div class="metrics" style="grid-template-columns:repeat(4,1fr)">
+    <div class="tile"><div class="ml">ISLANDS DETECTED</div><div class="mn">2</div></div>
+    <div class="tile"><div class="ml ok">CREATED</div><div class="mn">—</div></div>
+    <div class="tile"><div class="ml w">SKIPPED / UNCLOSED</div><div class="mn">0</div></div>
+    <div class="tile"><div class="ml">VERTICES TOTAL</div><div class="mn">8</div></div>
+  </div>
+  <div class="body"><div class="left">
+    <div class="card sec"><div class="section">SELECTION</div>
+      <div class="lbl" style="margin-top:6px">Source floor <span class="tagnew">WAS ROOF</span></div><div class="chip">Floor : Generic 200mm - Variable</div>
+      <div class="hint" style="margin-top:4px">ID 412355 · Level 1 (0 mm) · height offset 0 mm · 38 shape points</div>
+      <div class="lbl" style="margin-top:8px">Detail lines</div><div class="chip">8 detail curves (8 straight)</div></div>
+    <div class="card sec"><div class="section">MODE — applies to every island this run</div>
+      <div class="pickrow"><span class="sbtn">Flat</span><span class="sbtn on">Sloped (match parent)</span></div></div>
+    <div class="card sec"><div class="section">NEW ELEMENTS</div>
+      <div class="kv"><span class="lbl" style="margin:0">Floor type</span><span class="combo" style="width:190px">Floor : Generic 200mm - Variable</span></div>
+      <div class="kv"><span class="lbl" style="margin:0">Level (name · elevation)</span><span class="combo" style="width:140px">Level 1 · 0 mm</span></div>
+      <div class="kv"><span class="lbl" style="margin:0">Mark prefix</span><span class="num" style="width:110px">F412355_</span></div></div>
+  </div>
+  <div class="card gridwrap"><div class="ghead"><span class="section">ISLANDS</span></div>
+    <table><tr><th>✓</th><th>Island</th><th>Vertices</th><th>Holes</th><th>Z min (mm)</th><th>Z max (mm)</th><th>Status</th></tr>
+    <tr><td><input type="checkbox" checked aria-label="Island 1"></td><td>Island_01</td><td class=n>4</td><td class=n>0</td><td class=n>0</td><td class=n>62</td><td><span class="pill ok">Ready</span></td></tr>
+    <tr><td><input type="checkbox" checked aria-label="Island 2"></td><td>Island_02</td><td class=n>4</td><td class=n>0</td><td class=n>38</td><td class=n>148</td><td><span class="pill ok">Ready</span></td></tr></table></div></div>
+  <div class="log"><div class="loghead"><b>LOG (2 entries)</b><span class="ghost">Copy All</span><span class="ghost">Export Log</span></div>
+    <div class="logline"><span class="tm">[13:02:10]</span>Preview: 2 island(s) ready, 0 skipped.</div></div>
+  <div class="footer"><span class="btn">Re-pick</span><span class="btn">Run (preview)</span><span class="grow"></span><span class="btn run">Commit</span><span class="btn close">Close</span></div>
 </div>
 </div>

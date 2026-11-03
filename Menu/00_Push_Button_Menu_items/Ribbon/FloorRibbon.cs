@@ -161,8 +161,8 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
 
         /// <summary>
         /// Creates the "Floor Edit" panel (plugin 6.35.0): Floor Types, Name Builder, Floor Tag, Comparison,
-        /// Elevation Sync and (6.36.0) Floor EPS, one plain button each (one version each), stacked 3 + 3.
-        /// They reuse the roof icons.
+        /// Elevation Sync, (6.36.0) Floor EPS and (6.37.0) Island Splitter, one plain button each (one version each),
+        /// stacked 3 + 3 + 1 (Island Splitter is the large button). They reuse the roof icons.
         /// </summary>
         public static void BuildEditPanel(UIControlledApplication app, string tabName, string assemblyPath)
         {
@@ -197,6 +197,14 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                     "TaperedEpsPattern2D", ToolCatalog.FloorTaperedEpsPattern,
                     "In a plan view, pick a floor with a single outer loop: draws the tapered EPS insulation layout as a 2D detail pattern. Reads the floor only."),
             };
+
+            // Added in plugin 6.37.0. Seventh item, so it stands alone as a large button: give it a 32 px icon.
+            var islandSplitter = Btn("Btn_IslandFloorSplitter_V001", "Island Splitter", "IslandFloorSplitter.V001.Commands.IslandFloorSplitterCommand",
+                "DetailLineIntersect", ToolCatalog.IslandFloorSplitter,
+                "Pick a floor and the closed detail-line islands drawn over it: creates one new floor per island (flat, or following the " +
+                "source floor's shape). The source floor is not changed. Test on a copy of your model.");
+            islandSplitter.LargeImage = ImageUtils.Load(RoofIcons + "DetailLineIntersect_32.png");
+            items.Add(islandSplitter);
 
             RibbonLayoutHelper.AddStackedButtons(panel, items);
         }

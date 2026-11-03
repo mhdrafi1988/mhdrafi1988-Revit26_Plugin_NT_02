@@ -7,7 +7,7 @@ section/sheet management, workset organisation, and detail line tools.
 
 | SloperPro | Revit |
 |---|---|
-| 6.x (current: 6.36.0) | 2026 |
+| 6.x (current: 6.37.0) | 2026 |
 | 2.0.0 | 2026 |
 | 1.0.0 | 2026 |
 
@@ -26,7 +26,7 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 | Shape Points | Inner Loops · Outer Curve · Line Intersect · Loops + Perp. ▸ slide-out: Vertex Reducer · Multi Points · Shape From Link |
 | Floor Points | Inner Loops · Outer Curve · Line Intersect · Loops + Perp. · Vertex Reducer · Multi Points · Shape From Link |
 | Floor Lines | Crease By Openings · Crease By Points · Floor Creaser |
-| Floor Edit | Floor Types · Name Builder · Floor Tag · Comparison · Elevation Sync · Floor EPS |
+| Floor Edit | Floor Types · Name Builder · Floor Tag · Comparison · Elevation Sync · Floor EPS · Island Splitter |
 | Roof Tools | Creaser Adv · Roof Tag · Floor From Rooms · Shape From Link |
 | Roof Edit | Name Builder · Island Splitter |
 | Plan View | Island Splitter |
@@ -94,6 +94,10 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 - **Floor Tag**: spot elevations on a floor's top face at its shape points.
 - **Floor Point Comparison, Floor Point Elevation Sync**: compare two floors' shape-point heights, and copy heights
   between matching points (asks before changing a floor type with no Variable layer).
+
+### Island Floor Splitter (new in 6.37.0)
+- Pick a floor and the closed detail-line islands drawn over it: one new floor per island, flat or following the
+  source floor's shape. The source floor is not changed.
 
 ### Floor views and insulation (new in 6.36.0)
 - **Floor Views** panel (Documents tab): **Floor Edge Around Sections**, **Floor Edge Element Sections** and
@@ -165,6 +169,9 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 ## Version History
 
 See [CHANGELOG.md](CHANGELOG.md) for the full history and per-tool versions.
+
+### 6.37.0 — 2026-11-03
+- **Island Floor Splitter** on the Floor Edit panel.
 
 ### 6.36.0 — 2026-11-03
 - New **Floor Views** panel (Documents tab) and **Floor EPS** on Floor Edit.
