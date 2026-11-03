@@ -83,7 +83,7 @@ namespace Revit26_Plugin_Revised.FloorPointsAndSlope.V001.Core.Engine
             var result = new VoronoiRidgeResult
             {
                 BoundaryPolygon = input.Boundary,
-                FloorCentroid = new XYZ(input.Boundary.Average(p => p.X), input.Boundary.Average(p => p.Y), 0),
+                RoofCentroid = new XYZ(input.Boundary.Average(p => p.X), input.Boundary.Average(p => p.Y), 0),
                 InnerLoops = input.InnerLoops,
                 DrainGroups = groups
             };
