@@ -9,6 +9,24 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.32.0] — 2026-11-03
+
+### Added
+- **Align Spot Elevations v1.6.0 (V001)**: line spot elevations up with a tag.
+  - In **Align to detail lines** mode, the **Bend point line** and **End point line** boxes get a **Pick tag…**
+    button next to **Pick line…**. Click one spot elevation in the view: the selected spots' bend points (or leader
+    end points) line up with that tag's bend point (or end point), on a **Vertical (same X)** or
+    **Horizontal (same Y)** line. Pick the same tag for both boxes to line up bends and ends together. The clicked
+    tag does not need to be selected, and it stays where it is. It may be pinned or grouped, since it never moves.
+  - Two new small buttons in the **Tagging** panel: **Quick Align Ends to Tag** and **Quick Align Bends to Tag**.
+    Select the spots, click the button, click one tag. One Undo step.
+
+### Changed
+- **User note:** a line taken from a tag is endless, so the "Spots past the end of a line" choice does not apply
+  to it. The direction (vertical or horizontal) of each tag line is remembered and is also what the two quick
+  buttons use (default: vertical). The settings file moves to format version 4; older files still load.
+- The Align Spot Elevations mode is now labelled **Align to detail lines or a tag**.
+
 ## [6.31.0] — 2026-11-02
 
 ### Added

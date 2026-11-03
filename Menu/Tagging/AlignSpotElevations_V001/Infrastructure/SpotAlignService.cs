@@ -88,29 +88,7 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Infrastructure
 
                 try
                 {
-                    var sd = (SpotDimension)e;
-                    XYZ p = sd.TextPosition;
-                    XYZ pt = PointOf(sd) ?? p;
-                    EstimateSize(doc, sd, out double widthMm, out double heightMm);
-                    XYZ end = LeaderEndOf(sd);
-                    XYZ shoulder = end != null ? ShoulderOf(sd) : null;
-                    result.Items.Add(new SpotItem
-                    {
-                        HasEnd = end != null,
-                        EndU = end != null ? end.DotProduct(right) * toPaper : 0,
-                        EndV = end != null ? end.DotProduct(up) * toPaper : 0,
-                        HasShoulder = shoulder != null,
-                        ShoulderU = shoulder != null ? shoulder.DotProduct(right) * toPaper : 0,
-                        ShoulderV = shoulder != null ? shoulder.DotProduct(up) * toPaper : 0,
-                        WidthMm = widthMm,
-                        HeightMm = heightMm,
-                        Id = id.Value,
-                        Label = LabelOf(sd),
-                        U = p.DotProduct(right) * toPaper,
-                        V = p.DotProduct(up) * toPaper,
-                        PointU = pt.DotProduct(right) * toPaper,
-                        PointV = pt.DotProduct(up) * toPaper
-                    });
+                    result.Items.Add(ToItem(doc, (SpotDimension)e, right, up, toPaper));
                 }
                 catch (Exception ex)
                 {
@@ -118,6 +96,54 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Infrastructure
                 }
             }
             return result;
+        }
+
+        /// <summary>
+        /// Reads one spot elevation picked as a reference (Pick tag…). It is never moved, so pinned, grouped
+        /// or borrowed tags are fine; it only has to be drawn in <paramref name="view"/>. Returns null with
+        /// <paramref name="why"/> set when it cannot be used.
+        /// </summary>
+        public static SpotItem ReadReference(Document doc, View view, Element e, int scale, out string why)
+        {
+            why = null;
+            if (!IsSpotElevation(e)) { why = "That is not a spot elevation."; return null; }
+            if (e.OwnerViewId != view.Id) { why = "That spot elevation belongs to another view."; return null; }
+            try
+            {
+                return ToItem(doc, (SpotDimension)e, view.RightDirection, view.UpDirection, MmPerFoot / Math.Max(1, scale));
+            }
+            catch (Exception ex)
+            {
+                why = $"Cannot read that spot elevation ({ex.Message}).";
+                return null;
+            }
+        }
+
+        /// <summary>Reads one spot elevation as paper mm in the view's axes.</summary>
+        private static SpotItem ToItem(Document doc, SpotDimension sd, XYZ right, XYZ up, double toPaper)
+        {
+            XYZ p = sd.TextPosition;
+            XYZ pt = PointOf(sd) ?? p;
+            EstimateSize(doc, sd, out double widthMm, out double heightMm);
+            XYZ end = LeaderEndOf(sd);
+            XYZ shoulder = end != null ? ShoulderOf(sd) : null;
+            return new SpotItem
+            {
+                HasEnd = end != null,
+                EndU = end != null ? end.DotProduct(right) * toPaper : 0,
+                EndV = end != null ? end.DotProduct(up) * toPaper : 0,
+                HasShoulder = shoulder != null,
+                ShoulderU = shoulder != null ? shoulder.DotProduct(right) * toPaper : 0,
+                ShoulderV = shoulder != null ? shoulder.DotProduct(up) * toPaper : 0,
+                WidthMm = widthMm,
+                HeightMm = heightMm,
+                Id = sd.Id.Value,
+                Label = LabelOf(sd),
+                U = p.DotProduct(right) * toPaper,
+                V = p.DotProduct(up) * toPaper,
+                PointU = pt.DotProduct(right) * toPaper,
+                PointV = pt.DotProduct(up) * toPaper
+            };
         }
 
         private static string Blocker(Document doc, View view, Element e)

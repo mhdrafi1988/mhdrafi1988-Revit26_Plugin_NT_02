@@ -62,6 +62,44 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Commands
         }
 
         /// <summary>
+        /// Lets the user click one spot elevation in the active view and returns an endless line through its
+        /// leader end (<paramref name="part"/> = LeaderEnd) or bend point (LeaderShoulder), vertical (same X)
+        /// or horizontal (same Y) as <paramref name="direction"/> says. Returns null when the pick is
+        /// cancelled (Esc, which throws only when <paramref name="escThrows"/> is true) or the tag has no
+        /// such point (a message says why).
+        /// </summary>
+        public static DetailLine2D PickTagLine(AlignContext ctx, SpotPart part, AlignDirection direction, bool escThrows = false)
+        {
+            if (part == SpotPart.Text) throw new System.ArgumentException("Tag lines are for the leader end or bend point only.", nameof(part));
+            string what = part == SpotPart.LeaderEnd ? "end points" : "bend points";
+            Reference r;
+            try
+            {
+                r = ctx.UiDoc.Selection.PickObject(ObjectType.Element, new SpotFilter(),
+                    $"Click the spot elevation to line the {what} up with (Esc cancels)");
+            }
+            catch (Autodesk.Revit.Exceptions.OperationCanceledException)
+            {
+                if (escThrows) throw;
+                return null; // Esc: keep what was there
+            }
+
+            SpotItem tag = SpotAlignService.ReadReference(ctx.Doc, ctx.View, ctx.Doc.GetElement(r), ctx.Read.Scale, out string why);
+            if (tag != null && part == SpotPart.LeaderEnd && !tag.HasEnd)
+                why = "That spot elevation has no leader, so it has no end point to line up with.";
+            else if (tag != null && part == SpotPart.LeaderShoulder && !tag.HasShoulder)
+                why = "That spot elevation has no leader bend point to line up with.";
+            if (why != null)
+            {
+                TaskDialog.Show(ctx.Title, why + " Pick another one.");
+                return null;
+            }
+            return part == SpotPart.LeaderEnd
+                ? DetailLine2D.ThroughTag(tag.EndU, tag.EndV, direction, tag.Id, tag.Label, part)
+                : DetailLine2D.ThroughTag(tag.ShoulderU, tag.ShoulderV, direction, tag.Id, tag.Label, part);
+        }
+
+        /// <summary>
         /// Checks the document and view, takes the selected spot elevations (or asks for them) and reads them.
         /// Returns null after telling the user why when the command cannot go on.
         /// </summary>
