@@ -7,6 +7,7 @@ using Autodesk.Revit.UI.Selection;
 using Revit26_Plugin_Revised.RoofDetailLineIntersect.V014.Infrastructure.Helpers;
 using Revit26_Plugin_Revised.RoofDetailLineIntersect.V014.UI.ViewModels;
 using Revit26_Plugin_Revised.RoofDetailLineIntersect.V014.UI.Views;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace Revit26_Plugin_Revised.RoofDetailLineIntersect.V014.Commands
 {
@@ -14,7 +15,10 @@ namespace Revit26_Plugin_Revised.RoofDetailLineIntersect.V014.Commands
     [Regeneration(RegenerationOption.Manual)]
     public class RoofDetailLineIntersectCommand : IExternalCommand
     {
-        public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
+        public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements) =>
+            ToolGuard.RunCommand(GetType(), commandData, ref message, elements, ExecuteCore);
+
+        private Result ExecuteCore(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
             UIDocument uiDoc      = commandData.Application.ActiveUIDocument;
             Document   doc        = uiDoc.Document;
