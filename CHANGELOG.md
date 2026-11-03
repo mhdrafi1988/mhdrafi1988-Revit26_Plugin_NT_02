@@ -9,6 +9,14 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.37.1] — 2026-11-03
+
+### Fixed
+- 189 command and external-event handler entry points (older tool versions still on the ribbon: roof, sheet,
+  view, workset, link, DWG, detail-line and others) now run through `ToolGuard`. An unexpected error in these
+  tools is logged to `%AppData%\Revit26_Plugin_Revised\Logs`, shown in an error dialog, and no longer reaches
+  Revit. No tool behaviour or version changes; no new UI.
+
 ## [6.37.0] — 2026-11-03
 
 ### Added

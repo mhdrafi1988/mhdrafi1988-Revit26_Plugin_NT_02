@@ -4,6 +4,7 @@ using System;
 using Revit26_Plugin_Revised.DtlLineDim.V010.Core.Engine;
 using Revit26_Plugin_Revised.DtlLineDim.V010.Core.Services;
 using Revit26_Plugin_Revised.DtlLineDim.V010.UI.ViewModels;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace Revit26_Plugin_Revised.DtlLineDim.V010.Infrastructure.ExternalEvents
 {
@@ -25,7 +26,10 @@ namespace Revit26_Plugin_Revised.DtlLineDim.V010.Infrastructure.ExternalEvents
             _vm = vm;
         }
 
-        public void Execute(UIApplication app)
+        public void Execute(UIApplication app) =>
+            ToolGuard.RunHandler(GetType(), app, ExecuteCore);
+
+        private void ExecuteCore(UIApplication app)
         {
             Document doc = app.ActiveUIDocument?.Document;
             View view = doc?.ActiveView;

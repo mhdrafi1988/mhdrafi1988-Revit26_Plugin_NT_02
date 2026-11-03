@@ -6,6 +6,7 @@ using BatchDwgFamilyLinker.V002.Services;
 using BatchDwgFamilyLinker.V002.Logging;
 using System.IO;
 using System.Linq;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace BatchDwgFamilyLinker.V002
 {
@@ -19,7 +20,10 @@ namespace BatchDwgFamilyLinker.V002
             _vm = vm;
         }
 
-        public void Execute(UIApplication app)
+        public void Execute(UIApplication app) =>
+            ToolGuard.RunHandler(GetType(), app, ExecuteCore);
+
+        private void ExecuteCore(UIApplication app)
         {
             var famFiles = Directory.GetFiles(Options.FamilyFolderPath, "*.rfa");
             _vm.TotalFamilies = famFiles.Length;

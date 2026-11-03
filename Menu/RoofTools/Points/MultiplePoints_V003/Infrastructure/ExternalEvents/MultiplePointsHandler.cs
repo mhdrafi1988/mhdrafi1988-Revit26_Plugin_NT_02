@@ -13,6 +13,7 @@ using Revit26_Plugin_Revised.MultiplePoints.V003.Core.Engine;
 using Revit26_Plugin_Revised.MultiplePoints.V003.Core.Models;
 using Revit26_Plugin_Revised.Shared.Models;
 using System;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace Revit26_Plugin_Revised.MultiplePoints.V003.Infrastructure.ExternalEvents
 {
@@ -25,7 +26,10 @@ namespace Revit26_Plugin_Revised.MultiplePoints.V003.Infrastructure.ExternalEven
         /// </summary>
         public static MultiplePointsPayload Payload;
 
-        public void Execute(UIApplication app)
+        public void Execute(UIApplication app) =>
+            ToolGuard.RunHandler(GetType(), app, ExecuteCore);
+
+        private void ExecuteCore(UIApplication app)
         {
             if (Payload == null) return;
 

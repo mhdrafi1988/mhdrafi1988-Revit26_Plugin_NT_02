@@ -5,6 +5,7 @@ using BatchDwgFamilyLinker.V002.UI;
 using BatchDwgFamilyLinker.V002.ViewModels;
 using System.Windows.Interop;
 using Revit26_Plugin_Revised.Utilities;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace BatchDwgFamilyLinker.V002.Command
 {
@@ -12,10 +13,10 @@ namespace BatchDwgFamilyLinker.V002.Command
     [Regeneration(RegenerationOption.Manual)]
     public class BatchLinkDwgCommand : IExternalCommand
     {
-        public Result Execute(
-            ExternalCommandData commandData,
-            ref string message,
-            ElementSet elements)
+        public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements) =>
+            ToolGuard.RunCommand(GetType(), commandData, ref message, elements, ExecuteCore);
+
+        private Result ExecuteCore(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
             try
             {

@@ -1,6 +1,7 @@
 using System;
 using Autodesk.Revit.UI;
 using Revit26_Plugin_Revised.TaperedEpsPattern2D.V002.Revit;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace Revit26_Plugin_Revised.TaperedEpsPattern2D.V002.Events
 {
@@ -15,7 +16,10 @@ namespace Revit26_Plugin_Revised.TaperedEpsPattern2D.V002.Events
         /// <summary>Raised on Revit's UI thread after every attempt.</summary>
         public event Action<PatternWriteResult>? Completed;
 
-        public void Execute(UIApplication app)
+        public void Execute(UIApplication app) =>
+            ToolGuard.RunHandler(GetType(), app, ExecuteCore);
+
+        private void ExecuteCore(UIApplication app)
         {
             PatternWriteRequest? request = Pending;
             Pending = null;

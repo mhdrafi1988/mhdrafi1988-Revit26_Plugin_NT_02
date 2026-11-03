@@ -67,7 +67,10 @@ namespace Revit26_Plugin_Revised.WorksetsElementsBrowser.WSEB004.Infrastructure.
             _uiDoc = uiDoc;
         }
 
-        public void Execute(UIApplication app)
+        public void Execute(UIApplication app) =>
+            ToolGuard.RunHandler(GetType(), app, ExecuteCore);
+
+        private void ExecuteCore(UIApplication app)
         {
             WsebDebugLog.Write($"Execute() entered, Request={Request}");
             ErrorMessage = string.Empty;

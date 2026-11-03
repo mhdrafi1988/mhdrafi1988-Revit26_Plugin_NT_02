@@ -8,6 +8,7 @@ using Revit26_Plugin_Revised.ViewAutoRenamer.V006.Views;
 using System.Collections.Generic;
 using System.Linq;
 using Revit26_Plugin_Revised.Utilities;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace Revit26_Plugin_Revised.ViewAutoRenamer.V006.Commands;
 
@@ -34,7 +35,10 @@ public class OpenViewAutoRenamerCommand : IExternalCommand
     // ViewType exists for them) and are included automatically by this
     // filter. See ClassifyView for the SectionOrCallout grouping rationale.
 
-    public Result Execute(ExternalCommandData c, ref string m, ElementSet e)
+    public Result Execute(ExternalCommandData c, ref string m, ElementSet e) =>
+        ToolGuard.RunCommand(GetType(), c, ref m, e, ExecuteCore);
+
+    private Result ExecuteCore(ExternalCommandData c, ref string m, ElementSet e)
     {
         try
         {
