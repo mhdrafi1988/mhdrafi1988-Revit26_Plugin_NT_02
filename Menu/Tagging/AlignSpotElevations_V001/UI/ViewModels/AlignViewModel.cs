@@ -61,9 +61,11 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.UI.ViewModels
             _reference = items.FirstOrDefault();
             FitGapCommand = new RelayCommand(FitGap, () => SuggestedGapMm.HasValue);
             BendLine = new LinePickViewModel(SpotPart.LeaderShoulder, "Bend point line · optional",
-                () => _o.ShoulderLineMove, m => _o.ShoulderLineMove = m, RequestPick, Refresh);
+                () => _o.ShoulderLineMove, m => _o.ShoulderLineMove = m, RequestPick, Refresh,
+                () => _o.ShoulderTagLineDirection, d => _o.ShoulderTagLineDirection = d);
             EndLine = new LinePickViewModel(SpotPart.LeaderEnd, "End point line · optional",
-                () => _o.EndLineMove, m => _o.EndLineMove = m, RequestPick, Refresh);
+                () => _o.EndLineMove, m => _o.EndLineMove = m, RequestPick, Refresh,
+                () => _o.EndTagLineDirection, d => _o.EndTagLineDirection = d);
             TextLine = new LinePickViewModel(SpotPart.Text, "Text line · optional",
                 () => _o.TextLineMove, m => _o.TextLineMove = m, RequestPick, Refresh);
             Refresh();
@@ -82,17 +84,25 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.UI.ViewModels
 
         /// <summary>
         /// The part whose line the user asked to pick, or null. The window closes when this is set; the
-        /// command then lets the user pick a detail line, calls <see cref="SetPickedLine"/> and shows the
-        /// window again.
+        /// command then lets the user pick a detail line (or a tag, see <see cref="PendingPickIsTag"/>), calls
+        /// <see cref="SetPickedLine"/> and shows the window again.
         /// </summary>
         public SpotPart? PendingPick { get; private set; }
 
-        /// <summary>Raised when the user clicks Pick line…; the window closes itself.</summary>
+        /// <summary>True when <see cref="PendingPick"/> asks for a tag (Pick tag…) instead of a detail line.</summary>
+        public bool PendingPickIsTag { get; private set; }
+
+        /// <summary>Direction of the line through a picked tag for <paramref name="part"/> (vertical = same X).</summary>
+        public AlignDirection TagDirectionFor(SpotPart part)
+            => part == SpotPart.LeaderShoulder ? _o.ShoulderTagLineDirection : _o.EndTagLineDirection;
+
+        /// <summary>Raised when the user clicks Pick line… or Pick tag…; the window closes itself.</summary>
         public event EventHandler PickRequested;
 
-        private void RequestPick(SpotPart part)
+        private void RequestPick(SpotPart part, bool tag)
         {
             PendingPick = part;
+            PendingPickIsTag = tag;
             PickRequested?.Invoke(this, EventArgs.Empty);
         }
 
@@ -101,6 +111,7 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.UI.ViewModels
         {
             SpotPart? part = PendingPick;
             PendingPick = null;
+            PendingPickIsTag = false;
             if (line == null || !part.HasValue) return;
             LineFor(part.Value).Line = line;
         }
@@ -404,7 +415,7 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.UI.ViewModels
             }
             if (!o.HasAnyDetailLine)
             {
-                Summary = "Pick at least one detail line: for the bend points, the end points or the text.";
+                Summary = "Pick at least one detail line or tag: for the bend points, the end points or the text.";
                 CanApply = false;
                 return;
             }
@@ -432,7 +443,7 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.UI.ViewModels
             if (o.TextLine != null) parts.Add("text");
             int n = Plan.MoveCount;
             Summary = n > 0
-                ? $"{n} of {_items.Count} spots change: {string.Join(", ", parts)} moved onto their detail line."
+                ? $"{n} of {_items.Count} spots change: {string.Join(", ", parts)} moved onto their line."
                 : "Nothing can move with these settings.";
 
             var warn = new List<string>();

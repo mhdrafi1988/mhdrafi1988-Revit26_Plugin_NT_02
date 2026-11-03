@@ -1,0 +1,214 @@
+<title>Align Spot Elevations Window</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<!-- UI preview (CLAUDE.md "UI previews"): Align Spot Elevations V001, tool 1.6.0, plugin 6.32.0.
+     New in 1.6.0: "Pick tag…" for the bend point and end point lines in Align to detail lines mode
+     (vertical / horizontal line through the clicked tag's point), and two quick ribbon buttons
+     (Quick Align Ends to Tag, Quick Align Bends to Tag).
+     Mirrors: Menu/Tagging/AlignSpotElevations_V001/UI/Views/AlignWindow.xaml (+ LinePickViewModel, AlignViewModel),
+              Menu/00_Push_Button_Menu_items/Ribbon/TaggingRibbon.cs
+     Artifact: https://claude.ai/artifact/2VHrumnthLR5qSpzTFHfpi (republish to this URL on every update)
+     Colours: Shared/SharedStyles.xaml tokens, one light look on purpose (mirrors the light WPF window). -->
+<style>
+/* Layout: one column of captioned mock-ups; each fixed-width Revit piece scrolls in its own frame. */
+:root{
+  color-scheme:light;
+  --page:#E9EDF1; --window:#F3F5F7; --card:#FFFFFF; --border:#D6DCE3; --input:#B5C2CF;
+  --action:#1E3A5F; --text:#1A2B3C; --text2:#5B7185; --text3:#8FA3B8; --disabled:#C3CFDB;
+  --bg2:#ECEFF3; --info:#1F5FBF; --warn:#9A5B00; --warn-soft:#FDF1E1;
+  --new:#0E7C66; --new-soft:#E0F4EF; --end:#C2410C; --bend:#7C3AED;
+  --ribbon-tabs:#1C2B3A; --ribbon-bg:#F7F8FA; --hover:#DCE8F5;
+  --ui:'Segoe UI',system-ui,-apple-system,sans-serif; --mono:Consolas,'Cascadia Mono',monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--text);font-family:var(--ui);font-size:12.5px;
+  padding-block:24px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.page{max-width:980px;margin:0 auto;display:grid;gap:22px}
+h1{font-size:20px;margin:0 0 4px;font-weight:600;text-wrap:balance}
+h2{font-size:14px;margin:0 0 8px;font-weight:600}
+p{margin:0;line-height:1.5;max-width:75ch}
+.muted{color:var(--text2)}
+.tag{display:inline-block;background:var(--new);color:#FFFFFF;font-size:10px;font-weight:600;letter-spacing:.04em;
+  padding:1px 6px;border-radius:3px;vertical-align:middle;margin-left:6px}
+.sample{display:inline-block;background:var(--warn-soft);color:var(--warn);border:1px solid #E8B66B;border-radius:3px;padding:2px 8px;font-size:11.5px}
+.frame{overflow-x:auto;padding-bottom:4px}
+/* Revit window */
+.win{width:640px;background:var(--window);border:1px solid var(--input);box-shadow:0 6px 20px rgba(16,32,48,.18)}
+.tbar{background:var(--card);border-bottom:1px solid var(--border);padding:7px 10px;display:flex;justify-content:space-between}
+.tbar .x{color:var(--text2)}
+.wbody{padding:16px;display:grid;gap:8px}
+fieldset{border:1px solid var(--border);margin:0;padding:6px 10px 8px;display:grid;gap:4px;background:var(--window)}
+legend{padding:0 4px;color:var(--text)}
+fieldset.new{border-color:var(--new);background:var(--new-soft)}
+.r{display:flex;align-items:center;gap:6px}
+.row{display:flex;flex-wrap:wrap;align-items:center;gap:4px 16px}
+.rad,.chk{width:12px;height:12px;border:1px solid var(--text2);border-radius:50%;display:inline-block;background:var(--card);flex:none}
+.rad.on{background:radial-gradient(circle,var(--text) 0 3px,var(--card) 3.5px)}
+.dis{color:var(--disabled)} .dis .rad{border-color:var(--disabled)}
+.btn{display:inline-block;border:1px solid var(--input);background:var(--bg2);padding:2px 0;text-align:center;width:80px}
+.btn.sm{width:56px}
+.btn.new{border-color:var(--new);background:var(--card);color:var(--new);font-weight:600}
+.btn.pri{background:var(--action);color:#FFFFFF;border-color:var(--action)}
+.gray{color:var(--text2)}
+.newline{border:1px dashed var(--new);background:var(--new-soft);padding:4px 6px}
+table{border-collapse:collapse;width:100%;background:var(--card);font-variant-numeric:tabular-nums}
+th,td{border:1px solid var(--border);padding:3px 6px;text-align:left;white-space:nowrap}
+th{background:var(--bg2);font-weight:600}
+tr.ref td{background:var(--new-soft)}
+.foot{display:flex;justify-content:space-between;align-items:center}
+/* view sketch */
+.sheet{background:var(--card);border:1px solid var(--border);width:640px}
+.sheet svg{display:block;width:640px;height:auto}
+/* ribbon */
+.rib{width:760px;background:var(--ribbon-bg);border:1px solid var(--border)}
+.tabs{background:var(--ribbon-tabs);color:#EAF1F8;padding:4px 10px;font-size:11.5px}
+.panel{display:flex;gap:4px;padding:6px 8px 0;align-items:stretch}
+.big{width:70px;text-align:center;padding:4px 2px;font-size:11px;line-height:1.2}
+.ico{width:32px;height:32px;margin:0 auto 4px;border-radius:4px;background:var(--action)}
+.stack{display:grid;gap:2px;align-content:start;font-size:11px}
+.small{display:flex;align-items:center;gap:5px;padding:2px 4px;white-space:nowrap}
+.small i{width:16px;height:16px;border-radius:3px;background:var(--text2);display:inline-block}
+.small.new{background:var(--new-soft);outline:1px solid var(--new)}
+.small.new i{background:var(--new)}
+.ptitle{text-align:center;color:var(--text2);border-top:1px solid var(--border);margin-top:6px;padding:2px;font-size:11px}
+.tip{width:380px;background:var(--card);border:1px solid var(--input);padding:10px 12px;box-shadow:0 4px 14px rgba(16,32,48,.18);display:grid;gap:6px;margin-top:8px}
+.prompt{width:760px;background:var(--bg2);border:1px solid var(--border);padding:4px 8px;font-size:11.5px;margin-top:8px}
+ul{margin:0;padding-left:18px;line-height:1.6}
+.q{background:var(--card);border:1px solid var(--border);border-left:3px solid var(--info);padding:10px 14px}
+</style>
+
+<div class="page">
+  <header>
+    <h1>Align Spot Elevations v1.6.0 — align to a tag</h1>
+    <p class="muted">Click one spot elevation; its leader end point or bend point gives a vertical or horizontal line, and the selected spots move the same part onto it. Pick the same tag for both boxes to line up bends and ends together. Green tags mark what is new.</p>
+    <p style="margin-top:8px"><span class="sample">Sample data: spot labels and positions are made up.</span></p>
+  </header>
+
+  <!-- 1. Window -->
+  <section>
+    <h2>1 · Window, Align to detail lines mode</h2>
+    <div class="frame"><div class="win">
+      <div class="tbar"><span>Align Spot Elevations — v1.6.0</span><span class="x">✕</span></div>
+      <div class="wbody">
+        <div>5 spot elevation(s) selected · view 1:100. Distances are paper mm. The measured point never moves.</div>
+
+        <fieldset><legend>Arrange</legend>
+          <span class="r"><span class="rad"></span>Align to a line</span>
+          <span class="r"><span class="rad"></span>Distribute only (space along the column or row)</span>
+          <span class="r"><span class="rad"></span>Offset from point (same distance from each measured point)</span>
+          <span class="r"><span class="rad on"></span>Align to detail lines or a tag (slide onto picked lines, vertically or horizontally)<span class="tag">CHANGED</span></span>
+        </fieldset>
+
+        <div class="gray">Pick a detail line, or a tag, for the bend points and the leader end points, and a detail line for the text, or any mix. Every pick is optional. A part with no line stays where it is, except that the text follows its end point, as in Revit.<span class="tag">CHANGED</span></div>
+
+        <fieldset class="new"><legend>Bend point line · optional</legend>
+          <div class="r"><span class="btn">Pick line…</span><span class="btn new">Pick tag…</span><span style="flex:1">Not picked: these points stay</span></div>
+        </fieldset>
+
+        <fieldset class="new"><legend>End point line · optional</legend>
+          <div class="r"><span class="btn">Pick line…</span><span class="btn new">Pick tag…</span>
+            <span style="flex:1">Tag <b>+3.150&nbsp;&nbsp;(412206)</b> · end point line, vertical through X 48.0 mm</span><span class="btn sm">Clear</span></div>
+          <div class="row newline">
+            <span class="gray">Line through the tag's end point:</span>
+            <span class="r"><span class="rad on"></span>Vertical (same X)</span>
+            <span class="r"><span class="rad"></span>Horizontal (same Y)</span>
+            <span class="tag">NEW</span>
+          </div>
+          <div class="row">
+            <span class="gray">Move:</span>
+            <span class="r"><span class="rad on"></span>Auto</span>
+            <span class="r dis"><span class="rad"></span>Vertical (X stays)</span>
+            <span class="r"><span class="rad"></span>Horizontal (Y stays)</span>
+          </div>
+          <div class="gray">Vertical: not possible (line is vertical)&nbsp;&nbsp;·&nbsp;&nbsp;Horizontal: possible for 5 of 5&nbsp;&nbsp;·&nbsp;&nbsp;tag lines are endless</div>
+        </fieldset>
+
+        <fieldset><legend>Text line · optional</legend>
+          <div class="r"><span class="btn">Pick line…</span><span style="flex:1">Not picked: these points stay</span></div>
+        </fieldset>
+
+        <fieldset><legend>Spots past the end of a line</legend>
+          <span class="r"><span class="rad on"></span>Skip them (only use the line as drawn)</span>
+          <span class="r"><span class="rad"></span>Treat the line as endless (extend it as far as needed)</span>
+          <span class="gray">A tag line is always endless.<span class="tag">NEW</span></span>
+        </fieldset>
+
+        <table>
+          <tr><th>Spot</th><th>Text X (mm)</th><th>Text Y (mm)</th><th>End X, Y (mm)</th><th>Bend X, Y (mm)</th><th>Result</th></tr>
+          <tr><td>+3.100&nbsp;&nbsp;(412205)</td><td>+6.5</td><td>–</td><td>+6.5, –</td><td>no bend</td><td>end: moved horizontally</td></tr>
+          <tr class="ref"><td>+3.150&nbsp;&nbsp;(412206)</td><td>–</td><td>–</td><td>–</td><td>no bend</td><td>end: reference tag, stays<span class="tag">NEW</span></td></tr>
+          <tr><td>+3.150&nbsp;&nbsp;(412207)</td><td>-4.0</td><td>–</td><td>-4.0, –</td><td>no bend</td><td>end: moved horizontally</td></tr>
+          <tr><td>+3.200&nbsp;&nbsp;(412208)</td><td>+2.5</td><td>–</td><td>+2.5, –</td><td>no bend</td><td>end: moved horizontally</td></tr>
+          <tr><td>+3.250&nbsp;&nbsp;(412209)</td><td>-9.0</td><td>–</td><td>-9.0, –</td><td>no bend</td><td>end: moved horizontally</td></tr>
+        </table>
+
+        <div class="foot"><span>4 of 5 spots change: end points moved onto their line.</span>
+          <span class="r"><span class="btn pri">Apply</span><span class="btn">Cancel</span></span></div>
+      </div>
+    </div></div>
+  </section>
+
+  <!-- 2. View sketch -->
+  <section>
+    <h2>2 · What happens in the view</h2>
+    <p class="muted" style="margin-bottom:8px">Pale = before, solid = after. The dashed green line runs through the end point of the clicked tag (+3.150, 412206).</p>
+    <div class="frame"><div class="sheet">
+      <svg viewBox="0 0 640 260" role="img" aria-label="Spot elevation end points sliding horizontally onto a vertical line through the clicked tag's end point">
+        <line x1="300" y1="14" x2="300" y2="246" stroke="#0E7C66" stroke-width="1.5" stroke-dasharray="6 4" fill="none"/>
+        <text x="306" y="24" fill="#0E7C66" font-size="11" font-family="Segoe UI,sans-serif">vertical line through the clicked tag's end point</text>
+        <g font-family="Segoe UI,sans-serif" font-size="11">
+          <!-- each spot: measured point (x,y) -> leader end before / after -->
+          <g opacity=".35"><line x1="120" y1="60" x2="340" y2="45" stroke="#5B7185" fill="none"/><text x="345" y="49" fill="#5B7185">+3.100</text></g>
+          <line x1="120" y1="60" x2="300" y2="45" stroke="#C2410C" stroke-width="1.5" fill="none"/><circle cx="120" cy="60" r="3" fill="#1A2B3C"/><text x="305" y="49" fill="#1A2B3C">+3.100</text>
+
+          <line x1="150" y1="100" x2="300" y2="90" stroke="#0E7C66" stroke-width="2" fill="none"/><circle cx="150" cy="100" r="3" fill="#1A2B3C"/><circle cx="300" cy="90" r="4" fill="none" stroke="#0E7C66" stroke-width="1.5"/>
+          <text x="305" y="94" fill="#0E7C66" font-weight="600">+3.150  ← clicked tag</text>
+
+          <g opacity=".35"><line x1="200" y1="145" x2="275" y2="135" stroke="#5B7185" fill="none"/><text x="280" y="139" fill="#5B7185">+3.150</text></g>
+          <line x1="200" y1="145" x2="300" y2="135" stroke="#C2410C" stroke-width="1.5" fill="none"/><circle cx="200" cy="145" r="3" fill="#1A2B3C"/><text x="305" y="139" fill="#1A2B3C">+3.150</text>
+
+          <g opacity=".35"><line x1="110" y1="190" x2="316" y2="180" stroke="#5B7185" fill="none"/><text x="321" y="184" fill="#5B7185">+3.200</text></g>
+          <line x1="110" y1="190" x2="300" y2="180" stroke="#C2410C" stroke-width="1.5" fill="none"/><circle cx="110" cy="190" r="3" fill="#1A2B3C"/><text x="305" y="184" fill="#1A2B3C">+3.200</text>
+
+          <g opacity=".35"><line x1="170" y1="232" x2="244" y2="222" stroke="#5B7185" fill="none"/><text x="249" y="226" fill="#5B7185">+3.250</text></g>
+          <line x1="170" y1="232" x2="300" y2="222" stroke="#C2410C" stroke-width="1.5" fill="none"/><circle cx="170" cy="232" r="3" fill="#1A2B3C"/><text x="305" y="226" fill="#1A2B3C">+3.250</text>
+        </g>
+      </svg>
+    </div></div>
+  </section>
+
+  <!-- 3. Ribbon -->
+  <section>
+    <h2>3 · Ribbon, Tagging panel</h2>
+    <p class="muted" style="margin-bottom:8px">Two new small buttons, stacked after the existing quick-align buttons. Select the spots, click the button, click one tag, done. One Undo step.</p>
+    <div class="frame">
+      <div class="rib">
+        <div class="tabs">… · Tagging · …</div>
+        <div class="panel">
+          <div class="big"><div class="ico"></div>Tag To Text</div>
+          <div class="big"><div class="ico"></div>Align Spot Elevations</div>
+          <div class="big"><div class="ico"></div>Align to Detail Line</div>
+          <div class="stack"><span class="small"><i></i>Quick Align Vertical</span><span class="small"><i></i>Quick Align Horizontal</span></div>
+          <div class="stack"><span class="small"><i></i>Quick Align Ends Vertical</span><span class="small"><i></i>Quick Align Ends Horizontal</span></div>
+          <div class="stack"><span class="small"><i></i>Quick Align Bends Vertical</span><span class="small"><i></i>Quick Align Bends Horizontal</span></div>
+          <div class="stack"><span class="small new"><i></i>Quick Align Ends to Tag</span><span class="small new"><i></i>Quick Align Bends to Tag</span></div>
+        </div>
+        <div class="ptitle">Tagging</div>
+      </div>
+      <div class="tip">
+        <b>Quick Align Ends to Tag<span class="tag">NEW</span></b>
+        <span>Lines up the leader end points of the selected spot elevations with the end point of one spot elevation you click, right away. The text moves with each end. Uses the line direction (vertical or horizontal) last used in the window. One Undo step.</span>
+        <span class="gray">Align Spot Elevations v1.6.0</span>
+      </div>
+      <div class="prompt">Status bar: <b>Click the spot elevation to line the end points up with (Esc cancels)</b><span class="tag">NEW</span></div>
+    </div>
+  </section>
+
+  <section class="q">
+    <h2>What changed in 1.6.0</h2>
+    <ul>
+      <li><b>Pick tag…</b> on the bend point and end point lines (not the text line). Vertical = same X, Horizontal = same Y; each line remembers its own direction.</li>
+      <li>The clicked tag need not be selected; it never moves, so it may be pinned or grouped.</li>
+      <li>Two quick buttons: <b>Quick Align Ends to Tag</b>, <b>Quick Align Bends to Tag</b>. They use the direction last chosen in the window (default vertical).</li>
+    </ul>
+  </section>
+</div>

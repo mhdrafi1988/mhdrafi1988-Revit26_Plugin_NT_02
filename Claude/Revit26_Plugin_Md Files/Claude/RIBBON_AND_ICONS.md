@@ -1,6 +1,6 @@
 # Ribbon & Icons
 
-Living reference for adding or changing ribbon buttons and their icons. Updated 2026-11-02 (plugin 6.31.0) from
+Living reference for adding or changing ribbon buttons and their icons. Updated 2026-11-03 (plugin 6.32.0) from
 `App.cs` and `Menu/00_Push_Button_Menu_items/Ribbon/*.cs`. The rules themselves are in the root `CLAUDE.md`
 (Repository conventions: Ribbon, Dropdown version order, Slide-out); this file is the how-to and the current
 layout. For the original cleanup pass, see `Claude/LOGO PROMPT FOLDER/Ribbon_Code_Notes.md`, which is kept as a
@@ -51,7 +51,7 @@ Each item is a pulldown unless marked *button*. A pulldown lists its versions hi
 | View Create | From Lines · Around Edges · Edge Element ▸ Roof Focus · Isolated Section *button* | `ViewToolsRibbon` |
 | View Place | Place Sections · Callout To Section · Head Placer · View Tagger | `ViewToolsRibbon` |
 | View Rename | Bubble Renumber · Section Renamer · Auto Renamer | `ViewToolsRibbon` |
-| Tagging | Tag To Text, Align Spot Elevations, Align to Detail Line (large *buttons*) · Quick Align Vertical / Horizontal · Quick Align Ends V / H · Quick Align Bends V / H | `TaggingRibbon` |
+| Tagging | Tag To Text, Align Spot Elevations, Align to Detail Line (large *buttons*) · Quick Align Vertical / Horizontal · Quick Align Ends V / H · Quick Align Bends V / H · Quick Align Ends / Bends to Tag | `TaggingRibbon` |
 | Sheet Create | Scope Box · Sheet Placer · Section Placer · Sections To Sheet *button* ▸ Rearrange · Arrange Views *button* | `SheetToolsRibbon` |
 | Sheet Edit | Text Replace *button* (large) | `SheetToolsRibbon` |
 | DWG Tools | DWG To DL(P) · Export DWG · DWG Manager · DWG Statistics | `SetupRibbon` |

@@ -41,8 +41,9 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Commands
         protected virtual bool StartInDetailLineMode => false;
 
         /// <summary>
-        /// Shows the window until Apply or Cancel. Pick line… closes it; the user then clicks a detail line
-        /// in the view (no model change happens meanwhile) and the window opens again with the same options.
+        /// Shows the window until Apply or Cancel. Pick line… / Pick tag… closes it; the user then clicks a
+        /// detail line or a spot elevation in the view (no model change happens meanwhile) and the window
+        /// opens again with the same options.
         /// </summary>
         internal static Result ShowLoop(ExternalCommandData commandData, AlignContext ctx, AlignViewModel vm)
         {
@@ -53,7 +54,9 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Commands
                 bool applied = window.ShowDialog() == true;
                 if (vm.PendingPick.HasValue)
                 {
-                    vm.SetPickedLine(AlignRunner.PickDetailLine(ctx, vm.PendingPick.Value));
+                    vm.SetPickedLine(vm.PendingPickIsTag
+                        ? AlignRunner.PickTagLine(ctx, vm.PendingPick.Value, vm.TagDirectionFor(vm.PendingPick.Value))
+                        : AlignRunner.PickDetailLine(ctx, vm.PendingPick.Value));
                     continue;
                 }
                 if (!applied) return Result.Cancelled;
@@ -66,9 +69,9 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Commands
     }
 
     /// <summary>
-    /// Align to Detail Line: opens Align Spot Elevations in the Align to detail lines mode. Pick a line for
-    /// the bend points, one for the leader end points and / or one for the text; each part slides onto its
-    /// line vertically or horizontally where that is possible. A detail line selected with the spots is used
+    /// Align to Detail Line: opens Align Spot Elevations in the Align to detail lines mode. Pick a line (or,
+    /// for the bend and end points, a tag) for the bend points, one for the leader end points and / or one
+    /// for the text; each part slides onto its line vertically or horizontally where that is possible. A detail line selected with the spots is used
     /// for the end points.
     /// </summary>
     [Transaction(TransactionMode.Manual)]

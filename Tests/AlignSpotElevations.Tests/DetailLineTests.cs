@@ -187,5 +187,61 @@ namespace AlignSpotElevations.Tests
             Assert.Equal("vertical · 30 mm", L(5, 0, 5, 30).Describe());
             Assert.Equal("sloped, 45° · 14 mm", L(0, 0, 10, 10).Describe());
         }
+    
+        // ── Tag lines (Pick tag…) ───────────────────────────────────────────
+
+        [Fact]
+        public void TagLine_Vertical_IsEndless_ReachesFarSpots()
+        {
+            DetailLine2D line = DetailLine2D.ThroughTag(48, 18.5, AlignDirection.Vertical, 2, "Spot 2", SpotPart.LeaderEnd);
+            Assert.True(line.IsVertical);
+            Assert.True(line.IsTagLine);
+            Assert.True(AlignEngine.TryReach(0, 5000, line, AlignDirection.Horizontal, false, out double u, out double v, out _));
+            Assert.Equal(48, u, 9);
+            Assert.Equal(5000, v, 9);
+        }
+
+        [Fact]
+        public void TagLine_Horizontal_KeepsX_SetsY()
+        {
+            DetailLine2D line = DetailLine2D.ThroughTag(48, 18.5, AlignDirection.Horizontal, 2, "Spot 2", SpotPart.LeaderEnd);
+            Assert.True(line.IsHorizontal);
+            Assert.Equal("horizontal through Y 18.5 mm", line.Describe());
+            Assert.True(AlignEngine.TryReach(-3000, 0, line, AlignDirection.Vertical, false, out double u, out double v, out _));
+            Assert.Equal(-3000, u, 9);
+            Assert.Equal(18.5, v, 9);
+        }
+
+        [Fact]
+        public void TagLine_Ends_LineUpWithReferenceEnd_ReferenceStays()
+        {
+            var items = new List<SpotItem> { Straight(1, 41.5, 10), Straight(2, 48, 20), Straight(3, 52, 30) };
+            AlignOptions o = Opt();
+            o.EndLine = DetailLine2D.ThroughTag(48, 20, AlignDirection.Vertical, 2, "Spot 2", SpotPart.LeaderEnd);
+            ArrangePlan plan = AlignEngine.Plan(items, o);
+            Assert.Equal(6.5, plan.Entries[0].EndDeltaU, 9);
+            Assert.Equal(0, plan.Entries[0].EndDeltaV, 9);
+            Assert.False(plan.Entries[1].Moves);
+            Assert.Contains("reference tag", plan.Entries[1].LineResult);
+            Assert.Equal(-4, plan.Entries[2].EndDeltaU, 9);
+            Assert.Equal(2, plan.MoveCount);
+        }
+
+        [Fact]
+        public void TagLine_BendsAndEnds_SameTag_EachOnItsOwnX()
+        {
+            // Reference tag 9 (not selected): bend at U = 20, end at U = 30.
+            var items = new List<SpotItem> { Bent(1, 12, 0), Bent(2, 25, 40) };
+            AlignOptions o = Opt();
+            o.ShoulderLine = DetailLine2D.ThroughTag(20, 50, AlignDirection.Vertical, 9, "Spot 9", SpotPart.LeaderShoulder);
+            o.EndLine = DetailLine2D.ThroughTag(30, 50, AlignDirection.Vertical, 9, "Spot 9", SpotPart.LeaderEnd);
+            ArrangePlan plan = AlignEngine.Plan(items, o);
+            for (int i = 0; i < items.Count; i++)
+            {
+                Assert.Equal(20, items[i].ShoulderU + plan.Entries[i].ShoulderDeltaU, 9);
+                Assert.Equal(30, items[i].EndU + plan.Entries[i].EndDeltaU, 9);
+                Assert.False(plan.Entries[i].EndLimited);
+            }
+        }
     }
 }
