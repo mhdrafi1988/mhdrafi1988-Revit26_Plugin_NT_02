@@ -9,7 +9,7 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
-## [6.36.0] — 2026-11-03
+## [6.37.0] — 2026-11-03
 
 ### Added
 - New **Floor Views** ribbon panel on the Documents tab, right after **View Create**, each tool **v1.0.0 (V001)**:
@@ -30,7 +30,7 @@ Each release lists every tool whose version changed, under the plugin version.
   `...\FloorViewFocus`.
 - The roof tools are unchanged.
 
-## [6.35.0] — 2026-11-03
+## [6.36.0] — 2026-11-03
 
 ### Added
 - New **Floor Edit** ribbon panel, right after **Floor Lines**, each tool **v1.0.0 (V001)**:
@@ -53,7 +53,7 @@ Each release lists every tool whose version changed, under the plugin version.
   `Documents\FloorTag_V001_Log.txt`.
 - The roof tools are unchanged.
 
-## [6.34.0] — 2026-11-03
+## [6.35.0] — 2026-11-03
 
 ### Added
 - New **Floor Lines** ribbon panel, right after **Floor Points**, each tool **v1.0.0 (V001)**:
@@ -71,7 +71,7 @@ Each release lists every tool whose version changed, under the plugin version.
   fixed in the window.
 - The roof tools are unchanged.
 
-## [6.33.0] — 2026-11-03
+## [6.34.0] — 2026-11-03
 
 ### Added
 - New **Floor Points** ribbon panel, right after **Shape Points**, with floor versions of every Shape Points tool,
@@ -98,7 +98,7 @@ Each release lists every tool whose version changed, under the plugin version.
   tick that option.
 - The roof tools are unchanged.
 
-## [6.32.0] — 2026-11-03
+## [6.33.0] — 2026-11-03
 
 ### Added
 - Three more floor tools on the **Floor Slope** panel (floor versions of the remaining Roof Slope tools):

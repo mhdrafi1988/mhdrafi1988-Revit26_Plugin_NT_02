@@ -1,6 +1,6 @@
 # Revit26_Plugin — reference notes
 
-_v2.1, 2026-11-03 (plugin 6.36.0): floor tools added. v2.0 (2026-11-02, plugin 6.31.0) brought it in line with the root `CLAUDE.md`. v1.1 (2026-10-04) added the
+_v2.1, 2026-11-03 (plugin 6.37.0): floor tools added. v2.0 (2026-11-02, plugin 6.31.0) brought it in line with the root `CLAUDE.md`. v1.1 (2026-10-04) added the
 ToolWindowShell standard._
 
 **The development standard is the root `CLAUDE.md`.** It covers build, folder layout, versioning, robustness,
@@ -43,7 +43,7 @@ disagree, the root one wins. The `Claude/` folder next to this file holds the de
   one to the front (`TryActivateOpenWindow`).
 - **Settings** are JSON under `%AppData%\Revit26_Plugin_Revised\<Tool>\`, read with try/catch and defaults on
   failure. New settings formats carry a version field (root `CLAUDE.md`, Backward compatibility 4).
-- **Floor versions of roof tools** (plugins 6.31.0–6.36.0) are new tools at `_V001`, copied from the latest roof
+- **Floor versions of roof tools** (plugins 6.31.0–6.37.0) are new tools at `_V001`, copied from the latest roof
   version only, with Roof → Floor names. They read a floor's sketch through `Shared/Services/FloorSketchProfile`
   (floors have no `GetProfiles()`), refuse floors they can't change through `FloorShapeEditChecks`, and ask before
   changing a floor type with no Variable layer. The full roof → floor list is in `Claude/TOOL_VERSIONING.md`.

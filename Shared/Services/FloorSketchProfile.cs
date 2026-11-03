@@ -2,7 +2,7 @@
 // File: FloorSketchProfile.cs
 // Namespace: Revit26_Plugin_Revised.Shared.Services
 // Reads a floor's sketch loops. FootPrintRoof has GetProfiles(); Floor has
-// no such method, so the floor tools ported from roof tools (plugin 6.33.0)
+// no such method, so the floor tools ported from roof tools (plugin 6.34.0)
 // read the floor's Sketch instead: floor.SketchId, falling back to the
 // first dependent Sketch. Read-only, no transaction.
 // =======================================================

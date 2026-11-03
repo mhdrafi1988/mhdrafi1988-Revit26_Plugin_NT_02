@@ -42,7 +42,7 @@ namespace Revit26_Plugin_Revised.FloorEdgeVertexReducer.V001.Core.Services
                 return segments;
             }
 
-            // A Floor has no GetProfiles(); its Sketch is read instead (floor port, 6.33.0).
+            // A Floor has no GetProfiles(); its Sketch is read instead (floor port, 6.34.0).
             List<List<Curve>> loops = FloorSketchProfile.GetLoops(footprint);
 
             if (loops.Count == 0)

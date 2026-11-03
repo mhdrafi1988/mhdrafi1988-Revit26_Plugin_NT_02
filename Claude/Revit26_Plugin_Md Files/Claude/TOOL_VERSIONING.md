@@ -1,14 +1,14 @@
 # Tool Versioning
 
 What a tool's version means in this repo, the states a tool folder can be in, and how versions change and retire.
-Updated 2026-11-03 (plugin 6.36.0). The rules are in the root `CLAUDE.md` (Repository conventions, Documentation,
+Updated 2026-11-03 (plugin 6.37.0). The rules are in the root `CLAUDE.md` (Repository conventions, Documentation,
 Backward compatibility). This file explains them and the history behind them.
 
 ## Three version numbers
 
 | Number | Where | Example | Meaning |
 |---|---|---|---|
-| Plugin version | `<Version>` in `Revit26_Plugin_Revised.csproj` | `6.36.0` | The release. Semantic versioning, one CHANGELOG entry per release. |
+| Plugin version | `<Version>` in `Revit26_Plugin_Revised.csproj` | `6.37.0` | The release. Semantic versioning, one CHANGELOG entry per release. |
 | Tool version | `Shared/Services/ToolCatalog.cs` | `Add("Floor Slope By Drain", "1.0.0", "V001", "Revit26_Plugin_Revised.FloorSlopeByDrain.V001")` | Each tool's own semantic version. The window title (`Name — vX.Y.Z`), the ribbon tooltip (`… (build V001)`) and error dialogs read it. |
 | Build tag | The folder / namespace suffix | `_V001`, `VA010`, `WSEB004`, `FX05`, `MultiCopies30` | Identifies the code lineage. It is the third `ToolCatalog` argument and is not a semantic version. |
 
@@ -38,7 +38,7 @@ Before 3.10.0, a behaviour change usually meant a new `_V0xx` folder, wired into
 users could fall back. That is why many tools still have two or more coexisting folders (`AutoSlopeByPoint_V030`,
 `_V032`, `_V033`). They stay until they are retired as below.
 
-## Floor versions of roof tools (plugins 6.31.0–6.36.0)
+## Floor versions of roof tools (plugins 6.31.0–6.37.0)
 
 Every floor tool is a **new tool at `_V001`**, ported from the **latest roof version only**. Older roof builds
 (for example Ridge By Openings V069 next to V070) are not ported and get no floor button. The roof folders are

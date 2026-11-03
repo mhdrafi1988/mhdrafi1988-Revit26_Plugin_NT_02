@@ -1,6 +1,6 @@
 # Ribbon & Icons
 
-Living reference for adding or changing ribbon buttons and their icons. Updated 2026-11-03 (plugin 6.36.0) from
+Living reference for adding or changing ribbon buttons and their icons. Updated 2026-11-03 (plugin 6.37.0) from
 `App.cs` and `Menu/00_Push_Button_Menu_items/Ribbon/*.cs`. The rules themselves are in the root `CLAUDE.md`
 (Repository conventions: Ribbon, Dropdown version order, Slide-out); this file is the how-to and the current
 layout. For the original cleanup pass, see `Claude/LOGO PROMPT FOLDER/Ribbon_Code_Notes.md`, which is kept as a
@@ -65,11 +65,11 @@ Each item is a pulldown unless marked *button*. A pulldown lists its versions hi
 | Worksets | WS Browser · WS Creator · WS Renamer ▸ WS Renamer XL · Delete Workset | `ManageRibbon` |
 | Memory | WS Memory (large *button*) · Link Memory (large; V002, V001) | `ManageRibbon` |
 
-The latest change was plugin 6.36.0, which added the **Floor Views** panel (Documents tab, after View Create) and
-Floor EPS on Floor Edit. 6.35.0 added the **Floor Edit** panel (floor versions of Roof Types, Name
-Builder, Roof Tag, Point Comparison and Elevation Sync) after Floor Lines. 6.34.0 added the **Floor Lines** panel (floor versions of Ridge By Openings,
-Ridge By Points and Creaser Adv) after Floor Points. 6.33.0 added the **Floor Points** panel (floor versions of
-the Shape Points tools) after Shape Points. Before it, 6.32.0 added the floor Ridge, Multi Copies and Points & Slope tools to the
+The latest change was plugin 6.37.0, which added the **Floor Views** panel (Documents tab, after View Create) and
+Floor EPS on Floor Edit. 6.36.0 added the **Floor Edit** panel (floor versions of Roof Types, Name
+Builder, Roof Tag, Point Comparison and Elevation Sync) after Floor Lines. 6.35.0 added the **Floor Lines** panel (floor versions of Ridge By Openings,
+Ridge By Points and Creaser Adv) after Floor Points. 6.34.0 added the **Floor Points** panel (floor versions of
+the Shape Points tools) after Shape Points. Before it, 6.33.0 added the floor Ridge, Multi Copies and Points & Slope tools to the
 **Floor Slope** panel (By Point became a pulldown, as on Roof Slope). When you change the ribbon, update the
 tables above, `README.md` (Ribbon section) and the tool's UI preview (root `CLAUDE.md`, UI previews).
 

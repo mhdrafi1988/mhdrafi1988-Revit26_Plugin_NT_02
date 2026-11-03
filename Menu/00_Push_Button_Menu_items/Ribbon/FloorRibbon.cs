@@ -20,7 +20,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
         /// Creates the "Floor Slope" panel on <paramref name="tabName"/>, laid out like Roof Slope:
         /// a stack of By Drain (button), By Point (pulldown: Floor Slope By Point, its Ridge and its
         /// Multi Copies variants) and Points &amp; Slope (button). The By Point pulldown was added in
-        /// plugin 6.32.0; the By Point button kept its internal name and moved into it.
+        /// plugin 6.33.0; the By Point button kept its internal name and moved into it.
         /// </summary>
         public static void BuildSlopePanel(UIControlledApplication app, string tabName, string assemblyPath)
         {
@@ -77,7 +77,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
         }
 
         /// <summary>
-        /// Creates the "Floor Points" panel (plugin 6.33.0): the floor versions of the Shape Points tools,
+        /// Creates the "Floor Points" panel (plugin 6.34.0): the floor versions of the Shape Points tools,
         /// one plain button each (one version per tool), stacked 3 + 3 + 1. They reuse the roof icons.
         /// </summary>
         public static void BuildPointsPanel(UIControlledApplication app, string tabName, string assemblyPath)
@@ -123,7 +123,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
         }
 
         /// <summary>
-        /// Creates the "Floor Lines" panel (plugin 6.34.0): Floor Crease Lines By Openings, Floor Crease Lines
+        /// Creates the "Floor Lines" panel (plugin 6.35.0): Floor Crease Lines By Openings, Floor Crease Lines
         /// By Points and Floor Creaser as one stack of three plain buttons (one version each). They reuse the
         /// roof Ridge Lines and Creaser Adv icons.
         /// </summary>
@@ -160,8 +160,8 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
         }
 
         /// <summary>
-        /// Creates the "Floor Edit" panel (plugin 6.35.0): Floor Types, Name Builder, Floor Tag, Comparison,
-        /// Elevation Sync and (6.36.0) Floor EPS, one plain button each (one version each), stacked 3 + 3.
+        /// Creates the "Floor Edit" panel (plugin 6.36.0): Floor Types, Name Builder, Floor Tag, Comparison,
+        /// Elevation Sync and (6.37.0) Floor EPS, one plain button each (one version each), stacked 3 + 3.
         /// They reuse the roof icons.
         /// </summary>
         public static void BuildEditPanel(UIControlledApplication app, string tabName, string assemblyPath)
@@ -192,7 +192,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                 Btn("Btn_FloorPointElevationSync_V001", "Elevation Sync", "FloorPointElevationSync.V001.Command",
                     "ElevationSync", ToolCatalog.FloorPointElevationSync,
                     "Pick floor A and floor B: matches their shape points by plan position and sets the chosen heights. One Undo."),
-                // Added in plugin 6.36.0.
+                // Added in plugin 6.37.0.
                 Btn("Btn_FloorTaperedEpsPattern_V001", "Floor EPS", "FloorTaperedEpsPattern.V001.Commands.TaperedEpsPattern2DCommand",
                     "TaperedEpsPattern2D", ToolCatalog.FloorTaperedEpsPattern,
                     "In a plan view, pick a floor with a single outer loop: draws the tapered EPS insulation layout as a 2D detail pattern. Reads the floor only."),
@@ -202,7 +202,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
         }
 
         /// <summary>
-        /// Creates the "Floor Views" panel on the Documents tab (plugin 6.36.0), right after View Create: Floor Edge
+        /// Creates the "Floor Views" panel on the Documents tab (plugin 6.37.0), right after View Create: Floor Edge
         /// Around Sections, Floor Edge Element Sections and Floor View Focus as one stack of three plain buttons
         /// (one version each). They reuse the roof view-tool icons.
         /// </summary>

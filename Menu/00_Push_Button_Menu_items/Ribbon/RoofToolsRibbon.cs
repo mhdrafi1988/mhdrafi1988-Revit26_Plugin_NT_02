@@ -134,13 +134,13 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             RibbonLayoutHelper.WirePulldownButton(shapePointsItems, "Pulldown_MultiplePoints", multiPointsV003, multiPointsV002);
             RibbonLayoutHelper.WirePulldownButton(shapePointsItems, "Pulldown_RoofShapeFromLink", shapeFromLinkV001);
 
-            // Floor Points — floor versions of the Shape Points tools, next to Shape Points (plugin 6.33.0).
+            // Floor Points — floor versions of the Shape Points tools, next to Shape Points (plugin 6.34.0).
             FloorToolsRibbon.BuildPointsPanel(app, tabName, assemblyPath);
 
-            // Floor Lines — floor versions of Ridge By Openings / By Points and Creaser Adv (plugin 6.34.0).
+            // Floor Lines — floor versions of Ridge By Openings / By Points and Creaser Adv (plugin 6.35.0).
             FloorToolsRibbon.BuildLinesPanel(app, tabName, assemblyPath);
 
-            // Floor Edit — floor versions of Roof Types, Name Builder, Roof Tag, Comparison and Elevation Sync (plugin 6.35.0).
+            // Floor Edit — floor versions of Roof Types, Name Builder, Roof Tag, Comparison and Elevation Sync (plugin 6.36.0).
             FloorToolsRibbon.BuildEditPanel(app, tabName, assemblyPath);
 
             // Slope Liner + Tag + Floor From Rooms in one stack

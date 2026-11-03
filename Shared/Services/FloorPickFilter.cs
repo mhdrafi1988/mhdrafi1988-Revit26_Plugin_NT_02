@@ -1,7 +1,7 @@
 // =======================================================
 // File: FloorPickFilter.cs
 // Namespace: Revit26_Plugin_Revised.Shared.Services
-// Selection filter for the floor tools (plugin 6.33.0): only host-model
+// Selection filter for the floor tools (plugin 6.34.0): only host-model
 // floors that are not in a group can be picked, so a pick never lands on an
 // element FloorShapeEditChecks would refuse for that reason.
 // =======================================================

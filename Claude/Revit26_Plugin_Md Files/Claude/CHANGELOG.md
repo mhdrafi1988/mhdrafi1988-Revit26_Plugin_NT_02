@@ -24,7 +24,7 @@ No entries were added between 2026-10-17 and 2026-11-02; for that period
 ---
 
 
-## 2026-11-03 — Floor versions of the roof tools (plugins 6.32.0–6.36.0)
+## 2026-11-03 — Floor versions of the roof tools (plugins 6.33.0–6.37.0)
 
 - **Latest roof version only:** 22 more floor tools, each a new tool at `_V001` ported from the newest roof
   build. Older roof builds were not ported. The roof folders were not touched. The full mapping is in

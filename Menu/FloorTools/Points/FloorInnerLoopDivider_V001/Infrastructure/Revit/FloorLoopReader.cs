@@ -49,7 +49,7 @@ namespace Revit26_Plugin_Revised.FloorInnerLoopDivider.V001.Infrastructure.Revit
             var openings = new List<(Loop2D Loop, string Source, CurveLoop Geometry)>();
 
             // 1 — sketch profiles. A Floor has no GetProfiles(); its Sketch is read
-            // through Shared.Services.FloorSketchProfile instead (floor port, 6.33.0).
+            // through Shared.Services.FloorSketchProfile instead (floor port, 6.34.0).
             {
                 var sketchLoops = new List<Loop2D>();
                 int n = 0;

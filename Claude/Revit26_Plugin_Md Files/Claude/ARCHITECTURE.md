@@ -1,6 +1,6 @@
 # Architecture
 
-How a request flows through this add-in, end to end. Updated 2026-11-03 (plugin 6.36.0). The rules (folder
+How a request flows through this add-in, end to end. Updated 2026-11-03 (plugin 6.37.0). The rules (folder
 layout, versioning, robustness) are in the root `CLAUDE.md`. This file is the runtime picture: what calls what,
 and where the sharp edges are.
 
