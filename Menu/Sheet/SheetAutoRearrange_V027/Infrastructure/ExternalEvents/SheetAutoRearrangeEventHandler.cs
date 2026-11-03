@@ -7,6 +7,7 @@ using Revit26_Plugin_Revised.Shared.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace Revit26_Plugin_Revised.SheetAutoRearrange.V027.Infrastructure.ExternalEvents
 {
@@ -66,7 +67,10 @@ namespace Revit26_Plugin_Revised.SheetAutoRearrange.V027.Infrastructure.External
         private readonly TitleBlockDetectionService _detectionService = new();
         private readonly RearrangeEngine _engine = new();
 
-        public void Execute(UIApplication app)
+        public void Execute(UIApplication app) =>
+            ToolGuard.RunHandler(GetType(), app, ExecuteCore);
+
+        private void ExecuteCore(UIApplication app)
         {
             var doc = app.ActiveUIDocument.Document;
 
