@@ -1,7 +1,7 @@
 # Tool Versioning
 
 What a tool's version means in this repo, the states a tool folder can be in, and how versions change and retire.
-Updated 2026-11-03 (plugin 6.37.0). The rules are in the root `CLAUDE.md` (Repository conventions, Documentation,
+Updated 2026-11-03 (plugin 6.36.0). The rules are in the root `CLAUDE.md` (Repository conventions, Documentation,
 Backward compatibility). This file explains them and the history behind them.
 
 ## Three version numbers
@@ -72,11 +72,9 @@ floor tool's own version. Don't add a second floor folder.
 | Floor Edge Element Sections | Roof Edge Element Sections V004 | `Menu/ViewTools/Create/FloorEdgeElementSections_V001` |
 | Floor View Focus | Roof View Focus V004 | `Menu/ViewTools/Create/FloorViewFocus_V001` |
 | Floor Tapered EPS 2D Pattern | Tapered EPS 2D Pattern V006 | `Menu/FloorTools/Modelling/FloorTaperedEpsPattern_V001` |
-| Island Floor Splitter | Island Roof Splitter V002 | `Menu/FloorTools/IslandFloorSplitter_V001` |
 
-Not ported (no floor equivalent needed or not requested yet): Combined Roof Tools, Roof From Detail Lines.
-Island Floor Splitter was ported by hand, not by the Roof → Floor rename: Island Roof Splitter V002 already has a
-floor output (`IslandFloorFactory`), so a blanket rename would have collided with it. Each floor tool's folder has a `README_V001.md` with the differences from its roof tool.
+Not ported (no floor equivalent needed or not requested yet): Island Roof Splitter, Combined Roof Tools, Roof From
+Detail Lines. Each floor tool's folder has a `README_V001.md` with the differences from its roof tool.
 
 ## A higher build is not always a replacement
 

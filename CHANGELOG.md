@@ -9,20 +9,6 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
-## [6.37.0] — 2026-11-03
-
-### Added
-- **Island Floor Splitter v1.0.0 (V001)** (from Island Roof Splitter V002, the latest roof version), as **Island
-  Splitter** on the **Floor Edit** panel: pick a floor, then the closed detail-line islands drawn over it, and one
-  new floor is created per island, at the source floor's level and type by default. **Flat** mode makes flat floors;
-  **Sloped** mode pushes each new floor's points to the source floor's surface. The source floor is only read.
-
-### Changed
-- **User note:** the floor version always creates floors. The roof tool's output choice (roof only / roof, floor if
-  it fails / floor only) and its roof-type picker are hidden. Marks default to `F<sourceFloorId>_Island_NN`.
-  Settings are saved under `%AppData%\Revit26_Plugin_Revised\IslandFloorSplitter`.
-- The roof tools are unchanged.
-
 ## [6.36.0] — 2026-11-03
 
 ### Added
