@@ -43,7 +43,7 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 | Floor Views | Floor Around Edges · Floor Edge Element · Floor Focus |
 | View Place | Place Sections · Callout To Section · Head Placer · View Tagger |
 | View Rename | Bubble Renumber · Section Renamer · Auto Renamer |
-| Tagging | Tag To Text · Align Spot Elevations · Align to Detail Line · Quick Align (vertical / horizontal, ends, bends) |
+| Tagging | Tag To Text · Align Spot Elevations · Align to Detail Line · Quick Align (vertical / horizontal, ends, bends, ends / bends to tag) |
 | Sheet Create | Scope Box · Sheet Placer · Section Placer · Sections To Sheet ▸ slide-out: Rearrange · Arrange Views |
 | Sheet Edit | Text Replace |
 | DWG Tools | DWG To DL(P) · Export DWG · DWG Manager · DWG Statistics |
@@ -126,8 +126,8 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 
 ### Tagging
 - **Tag To Text**: copy spot elevations, coordinates, slopes and tags into text notes with leaders.
-- **Align Spot Elevations**: line spot elevation tags up in a column or row, or onto detail lines. The Quick Align
-  buttons do it in one click with the last-used settings.
+- **Align Spot Elevations**: line spot elevation tags up in a column or row, onto detail lines, or with the end or
+  bend point of a tag you click. The Quick Align buttons do it in one click with the last-used settings.
 
 ### Sheets
 - **Plan From Scope Box, Smart View To Sheet Placer, Automated Section Placer, Sections To Sheet**: create plans and
@@ -180,6 +180,9 @@ See [CHANGELOG.md](CHANGELOG.md) for the full history and per-tool versions.
 
 ### 6.33.0 — 2026-11-03
 - **Floor Slope** panel: new Ridge and Multi Copies tools (in the By Point pulldown) and Floor Points & Slope.
+
+### 6.32.0 — 2026-11-03
+- **Align Spot Elevations 1.6.0**: line bend / end points up with a clicked tag; Quick Align Ends / Bends to Tag.
 
 ### 6.31.0 — 2026-11-02
 - New **Floor Slope** panel: Floor Slope By Drain and Floor Slope By Point.
