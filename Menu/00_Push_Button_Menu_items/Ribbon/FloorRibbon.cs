@@ -76,6 +76,52 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             RibbonLayoutHelper.WirePulldownButton(items, "Pulldown_FloorSlopeByPoint", byPoint, byPointRidge, byPointMultiCopies);
         }
 
+        /// <summary>
+        /// Creates the "Floor Points" panel (plugin 6.33.0): the floor versions of the Shape Points tools,
+        /// one plain button each (one version per tool), stacked 3 + 3 + 1. They reuse the roof icons.
+        /// </summary>
+        public static void BuildPointsPanel(UIControlledApplication app, string tabName, string assemblyPath)
+        {
+            RibbonPanel panel = app.CreateRibbonPanel(tabName, "Floor Points");
+            const string ns = "Revit26_Plugin_Revised.";
+
+            PushButtonData Btn(string name, string text, string commandClass, string icon, ToolInfo tool, string detail) =>
+                new PushButtonData(name, text, assemblyPath, ns + commandClass)
+                {
+                    Image = ImageUtils.Load(RoofIcons + icon + "_16.png"),
+                    LargeImage = ImageUtils.Load(RoofIcons + icon + "_32.png"),
+                    ToolTip = tool.Tip(detail)
+                };
+
+            var items = new List<RibbonItemData>
+            {
+                Btn("Btn_FloorInnerLoopDivider_V001", "Inner Loops", "FloorInnerLoopDivider.V001.Commands.InnerLoopDividerCommand",
+                    "InnerLoopDivider", ToolCatalog.FloorInnerLoopDivider,
+                    "Pick a floor: adds shape points around its openings (sketch openings and opening cuts), by count or spacing per opening."),
+                Btn("Btn_FloorOuterCurveDivider_V001", "Outer Curve", "FloorOuterCurveDivider.V001.Commands.CurveDividerCommand",
+                    "OuterCurveDivider", ToolCatalog.FloorOuterCurveDivider,
+                    "Pick a floor: divides its curved boundary edges with shape points."),
+                Btn("Btn_FloorDetailLineIntersect_V001", "Line Intersect", "FloorDetailLineIntersect.V001.Commands.FloorDetailLineIntersectCommand",
+                    "DetailLineIntersect", ToolCatalog.FloorDetailLineIntersect,
+                    "In a plan view, pick a floor and detail lines: adds shape points where the lines cross the floor's edges."),
+                Btn("Btn_FloorInnerLoopsAndPerpendicular_V001", "Loops + Perp.", "FloorInnerLoopsAndPerpendicular.V001.Commands.InnerLoopsAndPerpendicularCommand",
+                    "InnerLoopsPerpendicular", ToolCatalog.FloorInnerLoopsAndPerpendicular,
+                    "Pick a floor: points around its openings plus perpendicular points to the boundary. Resets the floor's shape points to 0 when it opens."),
+                Btn("Btn_FloorEdgeVertexReducer_V001", "Vertex Reducer", "FloorEdgeVertexReducer.V001.Commands.FloorEdgeVertexReducerCommand",
+                    "VertexReducer", ToolCatalog.FloorEdgeVertexReducer,
+                    "Removes extra shape points along the straight edges of a floor whose shape editing is on. Preview first."),
+                Btn("Btn_FloorMultiplePoints_V001", "Multi Points", "FloorMultiplePoints.V001.Commands.MultiplePointsCommand",
+                    "MultiplePoints", ToolCatalog.FloorMultiplePoints,
+                    "Pick a floor: adds shape points at the half and quarter points of the edges you choose."),
+                Btn("Btn_FloorShapeFromLink_V001", "Shape From Link", "FloorShapeFromLink.V001.Commands.FloorShapeFromLinkCommand",
+                    "ElevationSync", ToolCatalog.FloorShapeFromLink,
+                    "Select floors in a plan view, tick the linked files, and set each shape-editing point to the linked floor's top-surface " +
+                    "(or nearest point) elevation minus a fixed number. Test on a copy of your model."),
+            };
+
+            RibbonLayoutHelper.AddStackedButtons(panel, items);
+        }
+
         /// <summary>Internal name of the pulldown (unchanged since it lived in Floor Tools).</summary>
         public const string FromRoomsPulldownName = "Pulldown_FloorsAndRoofFromLinkedRooms";
 

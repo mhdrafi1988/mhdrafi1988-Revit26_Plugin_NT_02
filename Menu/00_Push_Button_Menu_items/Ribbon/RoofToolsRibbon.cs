@@ -24,7 +24,8 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
 
         /// <summary>
         /// Creates the roof panels on <paramref name="tabName"/>, in workflow order: Roof Slope,
-        /// Floor Slope (<see cref="FloorToolsRibbon.BuildSlopePanel"/>), Shape Points, Roof Tools, Roof Edit, Plan View, Compare, Insulation. The Utilities panel is built
+        /// Floor Slope (<see cref="FloorToolsRibbon.BuildSlopePanel"/>), Shape Points, Floor Points
+        /// (<see cref="FloorToolsRibbon.BuildPointsPanel"/>), Roof Tools, Roof Edit, Plan View, Compare, Insulation. The Utilities panel is built
         /// separately by <see cref="BuildUtilities"/> so it can sit at the end of the tab.
         /// </summary>
         public static void Build(UIControlledApplication app, string tabName, string assemblyPath)
@@ -131,6 +132,9 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             RibbonLayoutHelper.WirePulldownButton(shapePointsItems, "Pulldown_VertexReducer", vertexReducerV009, vertexReducerV008);
             RibbonLayoutHelper.WirePulldownButton(shapePointsItems, "Pulldown_MultiplePoints", multiPointsV003, multiPointsV002);
             RibbonLayoutHelper.WirePulldownButton(shapePointsItems, "Pulldown_RoofShapeFromLink", shapeFromLinkV001);
+
+            // Floor Points — floor versions of the Shape Points tools, next to Shape Points (plugin 6.33.0).
+            FloorToolsRibbon.BuildPointsPanel(app, tabName, assemblyPath);
 
             // Slope Liner + Tag + Floor From Rooms in one stack
             // (Revit's stacked-item limit is exactly 3 per column).

@@ -9,6 +9,33 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.33.0] — 2026-11-03
+
+### Added
+- New **Floor Points** ribbon panel, right after **Shape Points**, with floor versions of every Shape Points tool,
+  each **v1.0.0 (V001)**:
+  - **Floor Divide Inner Loops** (from Divide Inner Loops V012)
+  - **Floor Outer Curve Divider** (from Outer Curve Divider V006)
+  - **Floor Detail Line Intersect** (from Roof Detail Line Intersect V014)
+  - **Floor Inner Loops And Perpendicular** (from Inner Loops And Perpendicular V007)
+  - **Floor Edge Vertex Reducer** (from Roof Edge Vertex Reducer V009)
+  - **Floor Multiple Points (1/2–1/4)** (from Multiple Points V003)
+  - **Floor Shape From Link** (from Roof Shape From Link V002): reads the floors in the linked files.
+- All seven refuse floors that are in a group, in a read-only model, borrowed by another user, or that do not
+  support shape editing, and say why. Floor Shape From Link, which changes point heights, also asks before
+  changing a floor whose type has no Variable layer.
+- `Shared/Services/FloorSketchProfile` (reads a floor's sketch loops; a floor has no `GetProfiles()`) and
+  `Shared/Services/FloorPickFilter` (picks floors outside groups only).
+
+### Changed
+- **User note:** in **Floor Shape From Link**, "Subtract host floor thickness" is **off** by default. A floor's
+  level + offset is its top surface, so the host top follows the linked surface directly. Tick it to set the host
+  top one floor-type thickness lower. (The roof tool keeps it on, because a roof's base is its bottom.)
+- **User note:** **Floor Inner Loops And Perpendicular** resets every shape point of the picked floor to 0 when it
+  opens, as the roof tool does. Run it before sloping, or use Floor Divide Inner Loops, which only resets when you
+  tick that option.
+- The roof tools are unchanged.
+
 ## [6.32.0] — 2026-11-03
 
 ### Added

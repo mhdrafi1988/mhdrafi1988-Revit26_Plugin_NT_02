@@ -7,7 +7,7 @@ section/sheet management, workset organisation, and detail line tools.
 
 | SloperPro | Revit |
 |---|---|
-| 6.x (current: 6.32.0) | 2026 |
+| 6.x (current: 6.33.0) | 2026 |
 | 2.0.0 | 2026 |
 | 1.0.0 | 2026 |
 
@@ -24,6 +24,7 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 | Roof Slope | By Point · By Drain · Points & Slope |
 | Floor Slope | By Drain · By Point (By Point, Ridge, Multi Copies) · Points & Slope |
 | Shape Points | Inner Loops · Outer Curve · Line Intersect · Loops + Perp. ▸ slide-out: Vertex Reducer · Multi Points · Shape From Link |
+| Floor Points | Inner Loops · Outer Curve · Line Intersect · Loops + Perp. · Vertex Reducer · Multi Points · Shape From Link |
 | Roof Tools | Creaser Adv · Roof Tag · Floor From Rooms · Shape From Link |
 | Roof Edit | Name Builder · Island Splitter |
 | Plan View | Island Splitter |
@@ -70,6 +71,13 @@ Where a tool has several versions, its button is a dropdown listing the newest v
   openings, ridges between drain openings, then slope by drain, in one window and one Undo.
 - All of them refuse floors that are in a group, borrowed by another user or can't be shape-edited. They ask before sloping
   a floor whose type has no Variable layer, because the whole slab would tilt.
+
+### Floor shape points (new in 6.33.0)
+- The **Floor Points** panel has floor versions of every Shape Points tool: Inner Loops, Outer Curve, Line
+  Intersect, Loops + Perpendicular, Vertex Reducer, Multi Points and Shape From Link. Same windows and options as
+  the roof tools; they refuse floors that are in a group, borrowed by another user or can't be shape-edited.
+- **Floor Shape From Link** sets each shape point from the linked floors' top surface. Because a floor's level +
+  offset is its top, "Subtract host floor thickness" is off by default.
 
 ### Roof shape points, editing and checks
 - **Inner Loops, Outer Curve, Line Intersect, Loops + Perpendicular**: divide and intersect roof loops into shape points.
@@ -135,6 +143,9 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 ## Version History
 
 See [CHANGELOG.md](CHANGELOG.md) for the full history and per-tool versions.
+
+### 6.33.0 — 2026-11-03
+- New **Floor Points** panel: floor versions of the seven Shape Points tools.
 
 ### 6.32.0 — 2026-11-03
 - **Floor Slope** panel: new Ridge and Multi Copies tools (in the By Point pulldown) and Floor Points & Slope.

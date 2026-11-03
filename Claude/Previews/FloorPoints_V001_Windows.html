@@ -1,0 +1,335 @@
+<title>Floor Points Windows</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<!-- UI preview (CLAUDE.md "UI previews") for the Floor Points panel, plugin 6.33.0. Tools, each 1.0.0 (V001):
+       Floor Divide Inner Loops, Floor Outer Curve Divider, Floor Detail Line Intersect,
+       Floor Inner Loops And Perpendicular, Floor Edge Vertex Reducer, Floor Multiple Points (1/2–1/4),
+       Floor Shape From Link.
+     Real windows (Menu/FloorTools/Points/…):
+       FloorInnerLoopDivider_V001/UI/Views/InnerLoopDividerWindow.xaml
+       FloorOuterCurveDivider_V001/UI/Views/CurveDividerWindow.xaml
+       FloorDetailLineIntersect_V001/UI/Views/FloorDetailLineIntersectWindow.xaml
+       FloorInnerLoopsAndPerpendicular_V001/UI/Views/InnerLoopsAndPerpendicularWindow.xaml
+       FloorEdgeVertexReducer_V001/UI/Views/MainWindow.xaml
+       FloorMultiplePoints_V001/UI/Views/MultiplePointsWindow.xaml
+       FloorShapeFromLink_V001/UI/Views/FloorShapeFromLinkWindow.xaml
+     Ribbon: Menu/00_Push_Button_Menu_items/Ribbon/FloorRibbon.cs (FloorToolsRibbon.BuildPointsPanel)
+     Artifact: https://claude.ai/artifact/FZB1xTfbiJrCpBeX84hnNk (republish to this URL on every update)
+     Colours are the Shared/SharedStyles.xaml v4.0 tokens, same single light look as FloorSlope_V001_Windows.html
+     (it mirrors the light WPF windows in Revit). Each mock-up sits in its own horizontal scroll box (.frame). -->
+<style>
+/* Layout: one column of captioned mock-ups; each fixed-width Revit window scrolls inside its own frame. */
+:root{
+  color-scheme: light;
+  --page:#E9EDF1; --surface-window:#F3F5F7; --card:#FFFFFF; --border:#D6DCE3; --border-input:#B5C2CF;
+  --action:#1E3A5F; --navy-light:#2C4A6E; --text:#1A2B3C; --text2:#5B7185; --text3:#8FA3B8;
+  --text-disabled:#C3CFDB; --bg2:#ECEFF3; --sep-thin:#E6EAEF; --row-group:#F7F9FB;
+  --info:#1F5FBF; --info-soft:#E6EEFB; --warn:#9A5B00; --warn-soft:#FDF1E1; --warn-border:#E8B66B;
+  --ok:#1E7B4F; --state-ok:#2F6E4F; --header-sub:#C9D6E3;
+  --log-bg:#14283F; --log-text:#EAF1F8; --log-dim:#7E94AA; --log-warn:#F0AE5C; --on-dark:#EAF1F8;
+  --new:#0E7C66; --new-soft:#E0F4EF;
+  --ribbon-tabs:#1C2B3A; --ribbon-bg:#F7F8FA; --ribbon-hover:#DCE8F5; --ribbon-hover-line:#9DB9D8;
+  --ico-point:#2E7D5B; --ico-drain:#2563A8; --ico-combo:#7A4FB5; --ico-plain:#5B7185;
+  --dlg-blue:#1C4E9A; --dlg-hover:#EEF4FB; --dlg-hover-line:#C9DBF0; --shadow:rgba(16,32,48,.18);
+  --font-ui:'Segoe UI',system-ui,-apple-system,sans-serif; --font-mono:Consolas,'Cascadia Mono',monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--text);font-family:var(--font-ui);font-size:12.5px;
+  padding-block:16px 32px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+h1{font-size:20px;margin:0 0 6px;text-wrap:balance}
+h2{font-size:14px;margin:28px 0 6px;color:var(--action);text-wrap:balance}
+.note{color:var(--text2);font-size:12.5px;max-width:72ch;line-height:1.5;margin:0 0 8px}
+.tagnew{display:inline-block;background:var(--new-soft);color:var(--new);border-radius:10px;padding:1px 8px;font-size:10.5px;font-weight:700;letter-spacing:.3px;margin-left:6px;vertical-align:2px}
+.frame{max-width:100%;overflow-x:auto;padding-bottom:4px}
+input[type=checkbox]{accent-color:var(--action);width:14px;height:14px;margin:0 6px 0 0;vertical-align:-2px}
+.n,td.n,.tile .mn{font-variant-numeric:tabular-nums}
+
+/* Ribbon */
+.ribbon{width:1180px;background:var(--ribbon-bg);border:1px solid var(--border-input)}
+.rtabs{display:flex;background:var(--ribbon-tabs);color:var(--header-sub);font-size:12px}
+.rtabs span{padding:6px 14px}
+.rtabs .on{background:var(--ribbon-bg);color:var(--text);font-weight:600}
+.rpanels{display:flex;padding:6px 4px 0}
+.rpanel{display:flex;flex-direction:column;border-right:1px solid var(--border);padding:0 10px}
+.rpanel .items{display:flex;min-height:72px;align-items:flex-start}
+.rpanel .title{font-size:11px;color:var(--text2);text-align:center;padding:3px 0 4px;border-top:1px solid var(--sep-thin);margin-top:4px}
+.rpanel.new{background:var(--new-soft);outline:2px dashed var(--new);outline-offset:-2px;border-radius:3px}
+.rpanel.new .title{color:var(--new);font-weight:700}
+.rpanel.more{border-right:none;color:var(--text3);justify-content:center;padding:0 16px}
+.stack{display:flex;flex-direction:column;gap:2px}
+.rbtn{display:flex;align-items:center;font-size:12px;padding:2px 6px;border-radius:2px;white-space:nowrap}
+.rbtn .ico{width:16px;height:16px;border-radius:3px;margin-right:6px;flex:none;display:inline-flex;align-items:center;justify-content:center;font-size:10px;color:var(--card)}
+.ico.p{background:var(--ico-point)}.ico.d{background:var(--ico-drain)}.ico.c{background:var(--ico-combo)}.ico.g{background:var(--ico-plain)}
+.rbtn .dd{color:var(--text2);font-size:9px;margin-left:4px}
+.rbtn img{width:16px;height:16px;margin-right:6px;flex:none}
+.icons{display:flex;flex-wrap:wrap;gap:20px;align-items:flex-end;margin-top:10px;padding:12px 14px;background:var(--ribbon-bg);border:1px solid var(--border);width:max-content}
+.icons figure{margin:0;display:flex;flex-direction:column;align-items:center;gap:6px}
+.icons .px{image-rendering:pixelated}
+.icons figcaption{font-size:11px;color:var(--text2);text-align:center;line-height:1.35}
+.rbtn.hover{background:var(--ribbon-hover);outline:1px solid var(--ribbon-hover-line)}
+.tooltip{width:430px;margin:6px 0 0 150px;background:var(--card);border:1px solid var(--border-input);box-shadow:0 2px 8px var(--shadow);padding:8px 10px;font-size:11.5px;line-height:1.45}
+.tooltip b{display:block;margin-bottom:3px}
+
+/* Task dialog */
+.dialog{width:520px;background:var(--card);border:1px solid var(--border-input);box-shadow:0 4px 16px var(--shadow)}
+.dialog .dt{height:30px;display:flex;align-items:center;justify-content:space-between;padding:0 10px;font-size:12px;border-bottom:1px solid var(--border)}
+.dialog .db{padding:14px 18px}
+.dialog .mi{font-size:15px;color:var(--dlg-blue);margin-bottom:10px}
+.dialog .mc{font-size:12px;line-height:1.5}
+.cmds{display:flex;flex-direction:column;gap:6px;margin-top:14px}
+.cmdlink{display:flex;align-items:flex-start;padding:8px 10px;border-radius:3px;border:1px solid transparent}
+.cmdlink.hover{background:var(--dlg-hover);border-color:var(--dlg-hover-line)}
+.cmdlink .arr{color:var(--dlg-blue);font-size:15px;margin-right:8px;line-height:1}
+.cmdlink .ct{font-size:14px;color:var(--dlg-blue)}
+.cmdlink .cs{font-size:11.5px;color:var(--text2)}
+
+/* Tool window */
+.win{width:1180px;display:flex;flex-direction:column;background:var(--surface-window);border:1px solid var(--border-input)}
+.titlebar{height:32px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;background:var(--card);border-bottom:1px solid var(--border);font-size:12px}
+.titlebar .wc{color:var(--text2);letter-spacing:14px}
+.header{background:var(--action);color:var(--card);padding:12px 16px;display:flex;align-items:center}
+.header .t{font-size:18px;font-weight:600}.header .s{font-size:11.5px;color:var(--header-sub);margin-top:2px}
+.header .badges{margin-left:auto;display:flex;gap:6px}
+.hb{background:var(--navy-light);border-radius:10px;padding:3px 9px;font-size:11px;font-weight:600;color:var(--on-dark)}
+.hb.state{background:var(--state-ok)}
+.metrics{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;padding:8px 12px 0}
+.tile{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:8px 10px}
+.tile .ml{font-size:10px;font-weight:700;letter-spacing:.4px;color:var(--info)}
+.tile .ml.ok{color:var(--ok)}.tile .ml.w{color:var(--warn)}.tile .ml.n{color:var(--text2)}
+.tile .mn{font-size:20px;font-weight:600;margin-top:2px}
+.tile .mh{font-size:10.5px;color:var(--text3)}
+.body{display:grid;grid-template-columns:300px 1fr;gap:8px;padding:8px 12px 0}
+.left{display:flex;flex-direction:column;gap:6px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:4px}
+.sec{padding:10px 12px}
+.section{font-size:11.5px;font-weight:600;color:var(--action)}
+.cap{font-size:10px;font-weight:700;letter-spacing:.5px;color:var(--text3);margin:4px 2px 0}
+.hint{font-size:10.5px;color:var(--text3);line-height:1.35}
+.lbl{font-size:11.5px;color:var(--text2);margin-bottom:3px}
+.combo,.num{height:26px;border:1px solid var(--border-input);border-radius:2px;background:var(--card);display:flex;align-items:center;padding:0 6px;font-size:13px}
+.combo{justify-content:space-between}
+.combo:after{content:"▾";color:var(--text2);font-size:10px;margin-left:8px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+.warn{background:var(--warn-soft);border:1px solid var(--warn-border);border-radius:4px;padding:6px 8px;color:var(--warn);font-size:11px;line-height:1.4;margin-top:10px}
+.exp{display:flex;align-items:center;padding:9px 12px}
+.exp .chev{color:var(--text2);font-size:11px;margin-right:8px}
+.exp .sum{font-size:10.5px;color:var(--text3);margin-left:8px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.custom{background:var(--info-soft);color:var(--info);border-radius:10px;padding:1px 7px;font-size:10px;font-weight:600}
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--border);padding:0 8px;margin-top:6px}
+.tab{padding:6px 10px;font-size:11px;border:1px solid transparent;border-bottom:none;border-radius:4px 4px 0 0;display:flex;align-items:center;gap:6px;color:var(--text2)}
+.tab.on{background:var(--card);border-color:var(--border);color:var(--text);margin-bottom:-1px;font-weight:600}
+.tpill{background:var(--bg2);border-radius:8px;padding:1px 6px;font-size:10px;font-weight:600;color:var(--action)}
+.tpill.w{background:var(--warn-soft);color:var(--warn)}
+.gridwrap{padding:8px 12px 10px}
+.ghead{display:flex;align-items:center;margin-bottom:6px}
+.ghead .r{margin-left:auto;display:flex;align-items:center;gap:3px}
+.sbtn{height:24px;padding:0 9px;font-size:11px;border:1px solid var(--border-input);border-radius:4px;background:var(--card);color:var(--text);display:inline-flex;align-items:center}
+.sbtn.on{background:var(--bg2);font-weight:600}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{background:var(--bg2);color:var(--text2);font-weight:600;text-align:left;padding:5px 6px;border-bottom:1px solid var(--border);font-size:11.5px}
+td{padding:3px 6px;border-bottom:1px solid var(--sep-thin);height:26px}
+td.n{text-align:right}
+tr.grp td{background:var(--row-group);font-weight:600;color:var(--action);font-size:11.5px;height:28px}
+tr.grp td .gb{float:right;font-weight:400;display:inline-flex;gap:3px}
+tr.grp.new td{background:var(--new-soft);color:var(--new)}
+tr.dim td{color:var(--text3)}
+.banner{margin-top:8px;background:var(--info-soft);color:var(--info);border-radius:4px;padding:5px 8px;font-size:11px}
+.log{background:var(--log-bg);border-radius:4px;padding:8px 12px;margin:8px 12px;font-family:var(--font-mono);font-size:11.5px;color:var(--log-text)}
+.loghead{display:flex;align-items:center;gap:6px;font-family:var(--font-ui);margin-bottom:4px}
+.loghead b{font-size:11.5px;margin-right:auto}
+.ghost{height:24px;padding:0 9px;border:1px solid var(--log-dim);border-radius:4px;color:var(--log-text);display:inline-flex;align-items:center;font-size:11px}
+.logline{margin-top:3px}.logline .tm{color:var(--log-dim);margin-right:8px}.logline.w{color:var(--log-warn)}
+.footer{border-top:1px solid var(--border);padding:8px 12px;display:flex;align-items:center;gap:8px;background:var(--card)}
+.footer .grow{flex:1}
+.btn{height:30px;padding:0 12px;border-radius:4px;font-size:12.5px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--action);color:var(--action);background:var(--card)}
+.btn.run{background:var(--action);color:var(--card);padding:0 16px;min-width:160px;font-weight:600}
+.btn.close{width:90px}
+.pickrow{display:flex;align-items:center;gap:8px;margin-top:8px}
+.chip{background:var(--bg2);border-radius:10px;padding:3px 9px;font-size:11px;font-weight:600;color:var(--action)}
+.empty{color:var(--text3);font-size:11.5px;text-align:center;padding:30px 0}
+.tools{display:flex;justify-content:flex-end;gap:4px}
+
+/* 6.32.0 additions: ribbon dropdown, slope rows, step list */
+.ddwrap{position:relative}
+.ddmenu{position:absolute;left:0;top:100%;z-index:2;width:220px;background:var(--card);border:1px solid var(--border-input);box-shadow:0 2px 8px var(--shadow);padding:3px 0}
+.ddmenu .rbtn{padding:4px 8px}
+.ribbon.tall{padding-bottom:88px}
+.rbtn.isnew{background:var(--new-soft);color:var(--new);font-weight:600}
+.rows{display:grid;grid-template-columns:24px 70px 1fr 160px;gap:6px 8px;align-items:center;margin-top:8px;font-size:12px}
+.rows .ws{color:var(--text2);font-family:var(--font-mono);font-size:11px}
+.steps{display:flex;flex-direction:column;gap:4px}
+.step{display:grid;grid-template-columns:18px 22px 1fr auto;gap:8px;align-items:center;padding:7px 10px;border:1px solid var(--border);border-radius:4px;background:var(--card)}
+.step.sel{border-color:var(--action);box-shadow:inset 3px 0 0 var(--action)}
+.step .no{width:22px;height:22px;border-radius:11px;background:var(--action);color:var(--card);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.step .no.off{background:var(--text-disabled)}
+.step .st{font-size:12px;font-weight:600}.step .ss{font-size:10.5px;color:var(--text3)}
+.step .badge{background:var(--bg2);border-radius:8px;padding:1px 7px;font-size:10.5px;font-weight:600;color:var(--action)}
+
+/* Floor Points page */
+.wins{display:flex;flex-direction:column;gap:0}
+.win.sm{width:980px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.kv{display:flex;align-items:center;gap:8px;margin-top:8px}
+.kv .num{width:90px}
+.chk{display:flex;align-items:center;font-size:12px;margin-top:8px}
+.pill{display:inline-block;border-radius:8px;padding:1px 7px;font-size:10.5px;font-weight:600;background:var(--bg2);color:var(--action)}
+.pill.ok{background:var(--new-soft);color:var(--new)}
+.pill.w{background:var(--warn-soft);color:var(--warn)}
+.section-new{color:var(--new)}
+</style>
+<h1>Floor Points tools <span class="tagnew">NEW IN 6.33.0</span></h1>
+<p class="note">Floor versions of every <b>Shape Points</b> tool, on a new <b>Floor Points</b> panel. Each window is the roof tool's window with
+floor wording; floor-specific parts are marked in green. Every tool refuses floors that are in a group, borrowed by another user,
+in a read-only model, or that can't be shape-edited. All values are sample data, not a real project. On a narrow screen, scroll each
+window sideways.</p>
+
+<h2>1 · Ribbon: new Floor Points panel next to Shape Points <span class="tagnew">NEW</span></h2>
+<p class="note">One plain button per tool (each has one version), stacked 3 + 3 + 1. The buttons reuse the roof icons for now.</p>
+<div class="frame">
+  <div class="ribbon">
+    <div class="rtabs"><span>File</span><span>Architecture</span><span>Structure</span><span>…</span><span class="on">SloperPro Modelling</span><span>SloperPro Documents</span></div>
+    <div class="rpanels">
+      <div class="rpanel"><div class="items"><div class="stack">
+        <div class="rbtn"><span class="ico g">▦</span>Inner Loops<span class="dd">▾</span></div>
+        <div class="rbtn"><span class="ico g">◠</span>Outer Curve<span class="dd">▾</span></div>
+        <div class="rbtn"><span class="ico g">✕</span>Line Intersect<span class="dd">▾</span></div></div>
+        <div class="stack"><div class="rbtn"><span class="ico g">⊥</span>Loops + Perp.<span class="dd">▾</span></div></div></div>
+        <div class="title">Shape Points ▸</div></div>
+      <div class="rpanel new"><div class="items"><div class="stack">
+        <div class="rbtn hover"><span class="ico p">▦</span>Inner Loops</div>
+        <div class="rbtn"><span class="ico p">◠</span>Outer Curve</div>
+        <div class="rbtn"><span class="ico p">✕</span>Line Intersect</div></div>
+        <div class="stack"><div class="rbtn"><span class="ico p">⊥</span>Loops + Perp.</div>
+        <div class="rbtn"><span class="ico p">⋯</span>Vertex Reducer</div>
+        <div class="rbtn"><span class="ico p">½</span>Multi Points</div></div>
+        <div class="stack"><div class="rbtn" style="flex-direction:column;padding:4px 10px"><span class="ico c" style="width:32px;height:32px;margin:0 0 4px;font-size:16px">⇅</span>Shape From<br>Link</div></div></div>
+        <div class="title">Floor Points</div></div>
+      <div class="rpanel more">… Roof Tools · Roof Edit · Plan View · Compare · Insulation · Utilities</div>
+    </div>
+  </div>
+  <div class="tooltip"><b>Floor Divide Inner Loops — v1.0.0 (build V001)</b>
+    Pick a floor: adds shape points around its openings (sketch openings and opening cuts), by count or spacing per opening.</div>
+</div>
+
+<h2>2 · Floor Divide Inner Loops: three openings found <span class="tagnew">NEW</span></h2>
+<div class="frame">
+<div class="win sm">
+  <div class="titlebar"><span>Floor Divide Inner Loops — v1.0.0</span><span class="wc">—□✕</span></div>
+  <div class="header"><div><div class="t">Floor Divide Inner Loops</div><div class="s">Shape points around floor openings</div></div>
+    <div class="badges"><span class="hb state">Ready</span><span class="hb">v1.0.0</span></div></div>
+  <div class="metrics" style="grid-template-columns:repeat(4,1fr)"><div class="tile"><div class="ml">TOTAL OPENINGS</div><div class="mn">3</div></div><div class="tile"><div class="ml">SELECTED</div><div class="mn">2</div></div><div class="tile"><div class="ml">EXISTING</div><div class="mn">24</div><div class=mh>points</div></div><div class="tile"><div class="ml ok">NEW POINTS</div><div class="mn">+20</div></div></div>
+  <div class="body"><div class="left"><div class="card sec"><div class="section">Points per loop</div>
+ <div class="kv"><span class="lbl" style="margin:0">Set all loops to</span><span class="num">8</span></div>
+ <div class="kv"><span class="lbl" style="margin:0">Max spacing · Gap (m)</span><span class="num">0.50</span></div>
+ <div class="hint" style="margin-top:6px">No gap along a loop longer than this. Circles get at least 3 points.</div>
+ <div class="chk"><input type="checkbox" aria-label="Reset">Reset existing offsets to 0 first</div></div></div>
+ <div class="card gridwrap"><div class="ghead"><span class="section">Selected Shapes</span><div class="r"><span class="sbtn">Select All</span><span class="sbtn">Select None</span></div></div>
+ <table><tr><th>✓</th><th>Shape</th><th>Size (mm)</th><th>Perimeter (mm)</th><th>Source</th><th>Points</th><th>New</th></tr><tr><td><input type="checkbox" checked aria-label="Use"></td><td>Circle</td><td>Ø 100</td><td class=n>314</td><td>Sketch</td><td class=n>8</td><td class=n>+8</td></tr><tr><td><input type="checkbox" checked aria-label="Use"></td><td>Circle</td><td>Ø 150</td><td class=n>471</td><td>Sketch</td><td class=n>12</td><td class=n>+12</td></tr><tr><td><input type="checkbox" aria-label="Use"></td><td>Rectangle</td><td>1200 × 800</td><td class=n>4000</td><td>Opening cut</td><td class=n>8</td><td class=n>0</td></tr></table></div></div>
+  <div class="log"><div class="loghead"><b>Activity Log</b><span class="ghost">Copy All</span><span class="ghost">Copy Selected</span><span class="ghost">Clear</span></div><div class="logline"><span class="tm">[09:12:04]</span>Floor read: Generic 200mm - Variable (Id 412355), 3 opening(s) (2 sketch, 1 opening cut).</div></div>
+  <div class="footer"><span class="btn">Re-analyze</span><span class="grow"></span><span class="btn run">Add Shape Points</span><span class="btn close">Close</span></div>
+</div>
+</div>
+
+<h2>3 · Floor Outer Curve Divider: two curved edges <span class="tagnew">NEW</span></h2>
+<div class="frame">
+<div class="win sm">
+  <div class="titlebar"><span>Floor Outer Curve Divider — v1.0.0</span><span class="wc">—□✕</span></div>
+  <div class="header"><div><div class="t">Floor Outer Curve Divider</div><div class="s">Each edge's point count is seeded from its length and is editable per row.</div></div>
+    <div class="badges"><span class="hb state">Ready</span><span class="hb">v1.0.0</span></div></div>
+  <div class="metrics" style="grid-template-columns:repeat(2,1fr)"><div class="tile"><div class="ml">CURVED EDGES</div><div class="mn">2</div></div><div class="tile"><div class="ml ok">POINTS</div><div class="mn">16</div></div></div>
+  <div class="body"><div class="left"><div class="card sec"><div class="section">Default Rule By Edge Type</div>
+ <table><tr><th>Edge Type</th><th>Mode</th><th>Target (m)</th></tr><tr><td>Arc</td><td>Count</td><td>—</td></tr><tr><td>Spline</td><td>Distance</td><td class=n>0.50</td></tr></table></div></div>
+ <div class="card gridwrap"><div class="ghead"><span class="section">Edges</span></div>
+ <table><tr><th>✓</th><th>Type</th><th>Len (m)</th><th>Mode</th><th>Count (pts)</th><th>Override</th></tr><tr><td><input type="checkbox" checked aria-label="Use"></td><td>Arc</td><td class=n>6.28</td><td>Count</td><td class=n>8</td><td></td></tr><tr><td><input type="checkbox" checked aria-label="Use"></td><td>Spline</td><td class=n>4.10</td><td>Distance</td><td class=n>8</td><td class=n>0.50</td></tr></table></div></div>
+  <div class="log"><div class="loghead"><b>Activity Log</b><span class="ghost">Copy All</span><span class="ghost">Copy Selected</span><span class="ghost">Clear</span></div><div class="logline"><span class="tm">[09:14:22]</span>2 curved edge(s) found; 11 straight edge(s) filtered out.</div></div>
+  <div class="footer"><span class="grow"></span><span class="btn run">Apply Points</span><span class="btn close">Close</span></div>
+</div>
+</div>
+
+<h2>4 · Floor Detail Line Intersect: floor and four detail lines picked <span class="tagnew">NEW</span></h2>
+<div class="frame">
+<div class="win sm">
+  <div class="titlebar"><span>Floor Detail Line Intersect — v1.0.0</span><span class="wc">—□✕</span></div>
+  <div class="header"><div><div class="t">Floor Detail Line Intersect</div><div class="s">Curves · Endpoints · Shape Points · Line×Line</div></div>
+    <div class="badges"><span class="hb state">Ready</span><span class="hb">v1.0.0</span></div></div>
+  <div class="metrics" style="grid-template-columns:repeat(4,1fr)"><div class="tile"><div class="ml">FLOOR <span class=tagnew>WAS ROOF</span></div><div class="mn">1</div><div class=mh>Generic 200mm - Variable (Id 412355)</div></div><div class="tile"><div class="ml">LINES</div><div class="mn">4</div><div class=mh>Detail Lines selected</div></div><div class="tile"><div class="ml ok">PTS PLACED</div><div class="mn">—</div></div><div class="tile"><div class="ml w">SKIPPED</div><div class="mn">—</div></div></div>
+  <div class="body" style="grid-template-columns:1fr"><div class="card sec"><div class="section">Options</div>
+ <div class="chk"><input type="checkbox" checked aria-label="Line x Line">Include Line × Line Intersections</div></div></div>
+  <div class="log"><div class="loghead"><b>Activity Log</b><span class="ghost">Copy All</span><span class="ghost">Copy Selected</span><span class="ghost">Clear</span></div><div class="logline"><span class="tm">[09:20:41]</span>Floor sketch: outer boundary 13 edges, 2 inner loop(s) — largest loop used as the outer boundary.</div></div>
+  <div class="footer"><span class="grow"></span><span class="btn run">▶  Run</span><span class="btn close">Close</span></div>
+</div>
+</div>
+
+<h2>5 · Floor Inner Loops And Perpendicular: points generated <span class="tagnew">NEW</span></h2>
+<div class="frame">
+<div class="win sm">
+  <div class="titlebar"><span>Floor Inner Loops And Perpendicular — v1.0.0</span><span class="wc">—□✕</span></div>
+  <div class="header"><div><div class="t">Floor Inner Loops And Perpendicular</div><div class="s">Perpendicular floor-border point placement</div></div>
+    <div class="badges"><span class="hb state">Ready</span><span class="hb">v1.0.0</span></div></div>
+  <div class="metrics" style="grid-template-columns:repeat(3,1fr)"><div class="tile"><div class="ml">SELECTED SHAPES</div><div class="mn">2</div></div><div class="tile"><div class="ml">CANDIDATES</div><div class="mn">6</div></div><div class="tile"><div class="ml ok">PERPENDICULAR POINTS</div><div class="mn">6</div></div></div>
+  <div class="body"><div class="left"><div class="card sec"><div class="section">Selected Shapes</div>
+ <table><tr><th>✓</th><th>Shape #</th><th>Shape</th><th>Perimeter (mm)</th></tr><tr><td><input type="checkbox" checked aria-label="Use"></td><td class=n>1</td><td>Circle</td><td class=n>314</td></tr><tr><td><input type="checkbox" checked aria-label="Use"></td><td class=n>2</td><td>Circle</td><td class=n>471</td></tr></table>
+ <div class="kv"><span class="lbl" style="margin:0">Tolerance (mm)</span><span class="num">10</span></div></div>
+ <div class="warn">⚠ Opening this tool reset every shape point on the floor to 0 (same as the roof tool). Run it before sloping.</div></div>
+ <div class="card gridwrap"><div class="ghead"><span class="section">Perpendicular Points</span></div>
+ <table><tr><th>Use</th><th>Index</th><th>Side</th><th>Distance (mm)</th><th>Selected Point (m)</th><th>Elevation (mm)</th></tr><tr><td><input type="checkbox" checked aria-label="Use"></td><td class=n>1</td><td>North</td><td>3 140</td><td>12.40, 11.30</td><td class=n>0</td></tr><tr><td><input type="checkbox" checked aria-label="Use"></td><td class=n>2</td><td>South</td><td>8 150</td><td>12.40, 0.00</td><td class=n>0</td></tr><tr><td><input type="checkbox" checked aria-label="Use"></td><td class=n>3</td><td>West</td><td>12 400</td><td>0.00, 8.15</td><td class=n>0</td></tr></table></div></div>
+  <div class="log"><div class="loghead"><b>Activity Log</b><span class="ghost">Copy All</span><span class="ghost">Copy Selected</span><span class="ghost">Clear</span></div><div class="logline w"><span class="tm">[09:25:10]</span>Shape editing enabled and every point reset to 0.</div><div class="logline"><span class="tm">[09:25:31]</span>6 perpendicular point(s) generated from 2 shape(s).</div></div>
+  <div class="footer"><span class="btn">Re-analyze</span><span class="btn">Generate Perpendicular Points</span><span class="grow"></span><span class="btn run">Apply Perpendicular Points</span><span class="btn close">Close</span></div>
+</div>
+</div>
+
+<h2>6 · Floor Edge Vertex Reducer: preview <span class="tagnew">NEW</span></h2>
+<div class="frame">
+<div class="win sm">
+  <div class="titlebar"><span>Floor Edge Vertex Reducer — v1.0.0</span><span class="wc">—□✕</span></div>
+  <div class="header"><div><div class="t">Floor Edge Vertex Reducer</div><div class="s">Straight-edge interior point simplification</div></div>
+    <div class="badges"><span class="hb state">Ready</span><span class="hb">v1.0.0</span></div></div>
+  <div class="metrics" style="grid-template-columns:repeat(2,1fr)"><div class="tile"><div class="ml">PREVIEW ROWS</div><div class="mn">9</div></div><div class="tile"><div class="ml w">TO REMOVE</div><div class="mn">5</div></div></div>
+  <div class="body"><div class="left"><div class="card sec"><div class="section">Selection</div>
+ <div class="pickrow"><span class="chip">Floor: Generic 200mm - Variable (id 412355)</span></div>
+ <div class="section" style="margin-top:10px">Settings</div>
+ <div class="kv"><span class="lbl" style="margin:0">Tolerance</span><span class="num">5</span><span class="lbl" style="margin:0">mm</span></div>
+ <div class="kv"><span class="lbl" style="margin:0">Neighbor Offset</span><span class="num">10</span><span class="lbl" style="margin:0">mm</span></div></div></div>
+ <div class="card gridwrap"><div class="ghead"><span class="section">Preview Results</span></div>
+ <table><tr><th>Segment</th><th>Point</th><th>Action</th></tr><tr><td class=n>1</td><td class=n>2</td><td><span class="pill w">Remove</span></td></tr><tr><td class=n>1</td><td class=n>3</td><td><span class="pill w">Remove</span></td></tr><tr><td class=n>2</td><td class=n>1</td><td><span class="pill">Keep</span></td></tr><tr><td class=n>3</td><td class=n>4</td><td><span class="pill w">Remove</span></td></tr></table></div></div>
+  <div class="log"><div class="loghead"><b>Activity Log</b><span class="ghost">Copy All</span><span class="ghost">Copy Selected</span><span class="ghost">Clear</span></div><div class="logline"><span class="tm">[09:31:02]</span>Floor selected: Generic 200mm - Variable (id 412355)</div><div class="logline"><span class="tm">[09:31:05]</span>Preview: 5 of 9 interior edge points can be removed.</div></div>
+  <div class="footer"><span class="btn">Select Floor</span><span class="btn">Preview</span><span class="grow"></span><span class="btn run">Apply</span><span class="btn close">Close</span></div>
+</div>
+</div>
+
+<h2>7 · Floor Multiple Points: half and quarter points <span class="tagnew">NEW</span></h2>
+<div class="frame">
+<div class="win sm">
+  <div class="titlebar"><span>Floor Multiple Points — v1.0.0</span><span class="wc">—□✕</span></div>
+  <div class="header"><div><div class="t">Floor Multiple Points</div><div class="s">Select a floor, then add shape-edit points at each edge's midpoint and/or quarter points.</div></div>
+    <div class="badges"><span class="hb state">Ready</span><span class="hb">v1.0.0</span></div></div>
+  <div class="metrics" style="grid-template-columns:repeat(2,1fr)"><div class="tile"><div class="ml">EDGES</div><div class="mn">13</div></div><div class="tile"><div class="ml ok">POINTS TO ADD</div><div class="mn">+18</div></div></div>
+  <div class="body"><div class="left"><div class="card sec"><div class="section">Points</div>
+ <div class="chk"><input type="checkbox" checked aria-label="Mid">Midpoint (1/2)</div><div class="chk"><input type="checkbox" checked aria-label="Quarter">Quarter points (1/4, 3/4)</div>
+ <div class="kv"><span class="lbl" style="margin:0">Add extra points on edges longer than:</span><span class="num">6.0</span></div>
+ <div class="kv"><span class="lbl" style="margin:0">Limit to floor slope under:</span><span class="num">5</span></div></div></div>
+ <div class="card gridwrap"><div class="ghead"><span class="section">Edges</span><div class="r"><span class="sbtn">Select All</span><span class="sbtn">Select None</span></div></div>
+ <table><tr><th>✓</th><th>Type</th><th>Len (m)</th><th>Slope %</th><th>Points</th></tr><tr><td><input type="checkbox" checked aria-label="Use"></td><td>Line</td><td class=n>12.40</td><td class=n>0.0</td><td class=n>3</td></tr><tr><td><input type="checkbox" checked aria-label="Use"></td><td>Line</td><td class=n>8.15</td><td class=n>0.0</td><td class=n>3</td></tr><tr><td><input type="checkbox" aria-label="Use"></td><td>Arc</td><td class=n>6.28</td><td class=n>0.0</td><td class=n>0</td></tr></table></div></div>
+  <div class="log"><div class="loghead"><b>Activity Log</b><span class="ghost">Copy All</span><span class="ghost">Copy Selected</span><span class="ghost">Clear</span></div><div class="logline"><span class="tm">[09:40:12]</span>13 edge(s) read; 6 ticked.</div></div>
+  <div class="footer"><span class="btn">Preview Points</span><span class="grow"></span><span class="btn run">Apply Points</span><span class="btn close">Close</span></div>
+</div>
+</div>
+
+<h2>8 · Floor Shape From Link: elevations read from a linked structure model <span class="tagnew">NEW</span></h2>
+<div class="frame">
+<div class="win ">
+  <div class="titlebar"><span>Floor Shape From Link — v1.0.0</span><span class="wc">—□✕</span></div>
+  <div class="header"><div><div class="t">Floor Shape From Link</div><div class="s">Reads the floor above each selected floor from the ticked linked files and sets each shape-editing point to the linked floor's top-surface elevation (or its nearest shape point), minus a fixed number.</div></div>
+    <div class="badges"><span class="hb state">Ready</span><span class="hb">v1.0.0</span></div></div>
+  <div class="metrics" style="grid-template-columns:repeat(4,1fr)"><div class="tile"><div class="ml">FLOORS</div><div class="mn">1</div></div><div class="tile"><div class="ml">SHAPE POINTS</div><div class="mn">6</div></div><div class="tile"><div class="ml ok">WITH LINKED ELEVATION</div><div class="mn">6</div></div><div class="tile"><div class="ml">TO APPLY</div><div class="mn">6</div></div></div>
+  <div class="body" style="grid-template-columns:300px 1fr"><div class="left"><div class="card sec"><div class="section">Linked files</div>
+ <div class="chk"><input type="checkbox" checked aria-label="Link">STR_Model_Sample.rvt</div>
+ <div class="section" style="margin-top:10px">Options</div>
+ <div class="kv"><span class="lbl" style="margin:0">Subtract:</span><span class="num">0.000</span></div>
+ <div class="chk"><input type="checkbox" aria-label="Thickness">Subtract host floor thickness <span class="tagnew">OFF BY DEFAULT</span></div>
+ <div class="hint">Off: the floor top follows the linked surface. On: the top sits one floor-type thickness lower.</div></div></div>
+ <div class="card gridwrap"><div class="ghead"><span class="section">Shape points</span></div>
+ <table><tr><th>✓</th><th>Floor</th><th>Pt</th><th>Current Z</th><th>Surface Z</th><th>New Z</th><th>Δ vs current</th><th>Note</th></tr><tr><td><input type="checkbox" checked aria-label="Use"></td><td class=n>412355</td><td class=n>1</td><td class=n>3.000</td><td class=n>3.000</td><td class=n>3.000</td><td class=n>0.000</td><td></td></tr><tr><td><input type="checkbox" checked aria-label="Use"></td><td class=n>412355</td><td class=n>2</td><td class=n>3.000</td><td class=n>3.062</td><td class=n>3.062</td><td class=n>+0.062</td><td></td></tr><tr><td><input type="checkbox" checked aria-label="Use"></td><td class=n>412355</td><td class=n>3</td><td class=n>3.000</td><td class=n>3.124</td><td class=n>3.124</td><td class=n>+0.124</td><td></td></tr><tr><td><input type="checkbox" checked aria-label="Use"></td><td class=n>412355</td><td class=n>4</td><td class=n>3.000</td><td class=n>3.081</td><td class=n>3.081</td><td class=n>+0.081</td><td>outside the top face: snapped to its edge</td></tr></table></div></div>
+  <div class="log"><div class="loghead"><b>Activity Log</b><span class="ghost">Copy All</span><span class="ghost">Copy Selected</span><span class="ghost">Clear</span></div><div class="logline"><span class="tm">[09:51:40]</span>Read 6 point(s) on 1 floor; 6 with a linked elevation.</div><div class="logline"><span class="tm">[!09:51:41]</span>Floor 412355: type has no Variable layer — you will be asked at Apply.</div></div>
+  <div class="footer"><span class="btn">Change selection…</span><span class="btn">Read elevations</span><span class="grow"></span><span class="btn run">Apply to floors</span><span class="btn close">Close</span></div>
+</div>
+</div>
