@@ -17,8 +17,10 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
         private const string RoofIcons = "Revit26_Plugin_Revised.Resources.Icons.RoofTools.";
 
         /// <summary>
-        /// Creates the "Floor Slope" panel on <paramref name="tabName"/>: Floor Slope By Drain and
-        /// Floor Slope By Point as two stacked buttons (one version each, so no pulldown).
+        /// Creates the "Floor Slope" panel on <paramref name="tabName"/>, laid out like Roof Slope:
+        /// a stack of By Drain (button), By Point (pulldown: Floor Slope By Point, its Ridge and its
+        /// Multi Copies variants) and Points &amp; Slope (button). The By Point pulldown was added in
+        /// plugin 6.32.0; the By Point button kept its internal name and moved into it.
         /// </summary>
         public static void BuildSlopePanel(UIControlledApplication app, string tabName, string assemblyPath)
         {
@@ -41,8 +43,37 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                     "Pick a floor, then click the drain points on it; the floor's shape points are sloped down to them, " +
                     "with optional ridge lines between drain groups. Asks before sloping a floor whose type has no Variable layer.")
             };
+            var byPointRidge = new PushButtonData("Btn_FloorSlopeByPointRidge_V001", "Ridge", assemblyPath,
+                "Revit26_Plugin_Revised.FloorSlopeByPointRidge.V001.Commands.FloorSlopeByPointRidgeCommand")
+            {
+                Image = ImageUtils.Load(RoofIcons + "AutoSlopeByPoint_Ridge_16.png"),
+                ToolTip = ToolCatalog.FloorSlopeByPointRidge.Tip(
+                    "Pick a floor, then click the drain points on it. Groups the drains, lifts the ridge points between the groups " +
+                    "so every point drains at the given slope, then slopes the floor. Asks before sloping a floor whose type has no Variable layer.")
+            };
+            var byPointMultiCopies = new PushButtonData("Btn_FloorSlopeByPointMultiCopies_V001", "Multi Copies", assemblyPath,
+                "Revit26_Plugin_Revised.FloorSlopeByPointMultiCopies.V001.Commands.FloorSlopeByPointMultiCopiesCommand")
+            {
+                Image = ImageUtils.Load(RoofIcons + "by_point_16.png"),
+                ToolTip = ToolCatalog.FloorSlopeByPointMultiCopies.Tip(
+                    "Pick a floor and its drain points, then tick several slopes: the floor is copied once per slope, each copy is " +
+                    "sloped to the drains and put on its own workset (Floor_Slope_<n>%). Needs a workshared model.")
+            };
+            var byPointPulldown = RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_FloorSlopeByPoint", "By Point", byPoint);
 
-            RibbonLayoutHelper.AddStackedButtons(panel, new List<RibbonItemData> { byDrain, byPoint });
+            var pointsAndSlope = new PushButtonData("Btn_FloorPointsAndSlope_V001", "Points & Slope", assemblyPath,
+                "Revit26_Plugin_Revised.FloorPointsAndSlope.V001.Commands.FloorPointsAndSlopeCommand")
+            {
+                Image = ImageUtils.Load(RoofIcons + "CombinedTools_16.png"),
+                LargeImage = ImageUtils.Load(RoofIcons + "CombinedTools_32.png"),
+                ToolTip = ToolCatalog.FloorPointsAndSlope.Tip(
+                    "Adds shape points around the floor's openings, perpendicular to the boundary, at mid/quarter points and in long gaps, " +
+                    "builds the ridges between the chosen drain openings, then slopes the floor to them. One window, one Undo. Pick one floor or several.")
+            };
+
+            IList<RibbonItem> items = RibbonLayoutHelper.AddStackedButtons(panel,
+                new List<RibbonItemData> { byDrain, byPointPulldown, pointsAndSlope });
+            RibbonLayoutHelper.WirePulldownButton(items, "Pulldown_FloorSlopeByPoint", byPoint, byPointRidge, byPointMultiCopies);
         }
 
         /// <summary>Internal name of the pulldown (unchanged since it lived in Floor Tools).</summary>

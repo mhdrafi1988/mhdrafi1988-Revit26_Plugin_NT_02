@@ -9,6 +9,35 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.32.0] — 2026-11-03
+
+### Added
+- Three more floor tools on the **Floor Slope** panel (floor versions of the remaining Roof Slope tools):
+  - **Floor Slope By Point (Ridge) v1.0.0 (V001)**: the floor version of Auto Slope By Point (Ridge) V003. Pick a
+    floor and its drain points. Drains are grouped, the ridge points between groups are lifted, and every point
+    drains to a neighbour at the given slope or more.
+  - **Floor Slope By Point (Multi Copies) v1.0.0 (V001)**: the floor version of Auto Slope By Point (Multi Copies)
+    30. Pick a floor and its drain points, tick several slopes, and the floor is copied once per slope. Each copy is
+    sloped and put on its own workset (`Floor_Slope_<n>%`). Needs a workshared model, as on roofs.
+  - **Floor Points & Slope v1.0.0 (V001)**: the floor version of Roof Points & Slope V001. Pick one or more floors:
+    shape points around openings, perpendicular, mid/quarter and gap-fill points, the ridges between the drain
+    openings, then slope by drain (Floor Slope By Drain V001's engine), in one window and one Undo step.
+  - All three refuse floors that are in a group, borrowed by another user, in a read-only model, or that do not
+    support shape editing, and ask before sloping a floor whose type has no Variable layer.
+
+### Changed
+- **User note:** on the **Floor Slope** panel, **By Point** is now a pulldown (as on Roof Slope). It holds
+  **By Point** (the tool that was the button), **Ridge** and **Multi Copies**. If you added the old By Point button
+  to the Quick Access Toolbar, add it again from the pulldown.
+- **User note:** settings are saved separately from the roof tools, under
+  `%AppData%\Revit26_Plugin_Revised\FloorSlopeByPointRidge`, `...\FloorSlopeByPointMultiCopies` and
+  `...\FloorPointsAndSlope`. Excel reports go to `Documents\FloorSlope_Reports` by default. The same `AutoSlope_*`
+  parameters are written where they are bound to Floors.
+- **User note:** Floor Points & Slope uses **openings** in the floor sketch as drains. Drain families (Plumbing
+  Fixtures) are not listed there yet; use Floor Slope By Drain for floors drained by drain families.
+- The roof tools are unchanged. Floor Points & Slope uses floor copies of Ridge By Openings V070's boundary,
+  opening and ridge-creation services; V070 itself is untouched.
+
 ## [6.31.0] — 2026-11-02
 
 ### Added

@@ -34,7 +34,7 @@ Each item is a pulldown unless marked *button*. A pulldown lists its versions hi
 | Panel | Items | Builder |
 |---|---|---|
 | Roof Slope | By Point (V033, V032, V030, Ridge V003, Multi Copies 30) · By Drain (V013, V012, V011, V007) · Points & Slope (V001) | `RoofToolsRibbon.Build` |
-| Floor Slope | By Drain *button* (Floor Slope By Drain V001) · By Point *button* (Floor Slope By Point V001) | `FloorToolsRibbon.BuildSlopePanel` |
+| Floor Slope | By Drain *button* (Floor Slope By Drain V001) · By Point (By Point V001, Ridge V001, Multi Copies V001) · Points & Slope *button* (Floor Points & Slope V001) | `FloorToolsRibbon.BuildSlopePanel` |
 | Shape Points | Inner Loops · Outer Curve · Line Intersect · Loops + Perp. ▸ Vertex Reducer · Multi Points · Shape From Link | `RoofToolsRibbon.Build` |
 | Roof Tools | Creaser Adv · Roof Tag · Floor From Rooms · Shape From Link | `RoofToolsRibbon.Build` |
 | Roof Edit | Name Builder · Island Splitter | `BuildEditComparePanels` |
@@ -60,7 +60,8 @@ Each item is a pulldown unless marked *button*. A pulldown lists its versions hi
 | Worksets | WS Browser · WS Creator · WS Renamer ▸ WS Renamer XL · Delete Workset | `ManageRibbon` |
 | Memory | WS Memory (large *button*) · Link Memory (large; V002, V001) | `ManageRibbon` |
 
-The latest change was plugin 6.31.0, which added the **Floor Slope** panel. When you change the ribbon, update the
+The latest change was plugin 6.32.0, which added the floor Ridge, Multi Copies and Points & Slope tools to the
+**Floor Slope** panel (By Point became a pulldown, as on Roof Slope). When you change the ribbon, update the
 tables above, `README.md` (Ribbon section) and the tool's UI preview (root `CLAUDE.md`, UI previews).
 
 ## Adding a new icon
@@ -86,7 +87,7 @@ segments: `Resources/Icons/RoofTools/by_point_16.png` on disk is
 Each tool should have both sizes: `<Name>_16.png` for `PushButtonData.Image` (a button in a stack or dropdown) and
 `<Name>_32.png` for `.LargeImage` (a pulldown's own header icon, or a full-size button). Not every tool has both,
 so check before assuming a `_32` exists because a `_16` does. The Floor Slope buttons reuse the roof
-`by_drain_*` / `by_point_16` icons until floor icons are made.
+`by_drain_*`, `by_point_16`, `AutoSlopeByPoint_Ridge_16` and `CombinedTools_*` icons until floor icons are made.
 
 ## Adding a push button
 
@@ -135,7 +136,7 @@ RibbonLayoutHelper.WirePulldownButton(created, "Pulldown_MyTool", highestVersion
   Dropdown version order).
 - `WirePulldownButton` fills the dropdown and builds the combined "N versions" tooltip.
 - **Use a dropdown only to group versions or different tools.** One button runs one tool. A tool with a single
-  version gets a plain button, as the Floor Slope tools do.
+  version gets a plain button, as Floor Slope's By Drain and Points & Slope do.
 
 **Slide-outs:** `RibbonLayoutHelper.AddStackedButtonsWithSlideOut(panel, visible, slideOut)` adds the visible
 stacks, calls `panel.AddSlideOut()`, then adds the slide-out stacks. It returns every created item, so

@@ -75,6 +75,9 @@ namespace Revit26_Plugin_Revised.Shared.Services
         public static readonly ToolInfo MultiRoofSlopeByDrainV013 = Add("Auto Slope By Drain (Multi-Roof)", "13.1.3", "V013", "Revit26_Plugin_Revised.MultiRoofSlopeByDrain.V013");
         public static readonly ToolInfo FloorSlopeByDrain = Add("Floor Slope By Drain", "1.0.0", "V001", "Revit26_Plugin_Revised.FloorSlopeByDrain.V001");
         public static readonly ToolInfo FloorSlopeByPoint = Add("Floor Slope By Point", "1.0.0", "V001", "Revit26_Plugin_Revised.FloorSlopeByPoint.V001");
+        public static readonly ToolInfo FloorSlopeByPointRidge = Add("Floor Slope By Point (Ridge)", "1.0.0", "V001", "Revit26_Plugin_Revised.FloorSlopeByPointRidge.V001");
+        public static readonly ToolInfo FloorSlopeByPointMultiCopies = Add("Floor Slope By Point (Multi Copies)", "1.0.0", "V001", "Revit26_Plugin_Revised.FloorSlopeByPointMultiCopies.V001");
+        public static readonly ToolInfo FloorPointsAndSlope = Add("Floor Points & Slope", "1.0.0", "V001", "Revit26_Plugin_Revised.FloorPointsAndSlope.V001");
         public static readonly ToolInfo InnerLoopDivider = Add("Divide Inner Loops", "12.1.1", "V012", "Revit26_Plugin_Revised.InnerLoopDivider.V012");
         public static readonly ToolInfo OuterCurveDivider = Add("Outer Curve Divider", "6.0.2", "V006", "Revit26_Plugin_Revised.OuterCurveDivider.V006");
         public static readonly ToolInfo RoofDetailLineIntersect = Add("Roof Detail Line Intersect", "14.1.1", "V014", "Revit26_Plugin_Revised.RoofDetailLineIntersect.V014");

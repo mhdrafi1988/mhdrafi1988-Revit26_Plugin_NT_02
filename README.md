@@ -7,7 +7,7 @@ section/sheet management, workset organisation, and detail line tools.
 
 | SloperPro | Revit |
 |---|---|
-| 6.x (current: 6.31.0) | 2026 |
+| 6.x (current: 6.32.0) | 2026 |
 | 2.0.0 | 2026 |
 | 1.0.0 | 2026 |
 
@@ -22,7 +22,7 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 | Panel | Tools |
 |---|---|
 | Roof Slope | By Point · By Drain · Points & Slope |
-| Floor Slope | By Drain · By Point |
+| Floor Slope | By Drain · By Point (By Point, Ridge, Multi Copies) · Points & Slope |
 | Shape Points | Inner Loops · Outer Curve · Line Intersect · Loops + Perp. ▸ slide-out: Vertex Reducer · Multi Points · Shape From Link |
 | Roof Tools | Creaser Adv · Roof Tag · Floor From Rooms · Shape From Link |
 | Roof Edit | Name Builder · Island Splitter |
@@ -62,7 +62,13 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 - **Floor Slope By Drain**: the floor version of Auto Slope By Drain. Drains are openings in the floor sketch and
   drain families (Plumbing Fixtures) on the floor.
 - **Floor Slope By Point**: the floor version of Auto Slope By Point, with optional ridge lines.
-- Both refuse floors that are in a group, borrowed by another user or can't be shape-edited. They ask before sloping
+- **Floor Slope By Point (Ridge)** (new in 6.32.0): the floor version of Auto Slope By Point (Ridge). Lifts the
+  ridge points between drain groups so every point drains at the given slope.
+- **Floor Slope By Point (Multi Copies)** (new in 6.32.0): the floor version of Auto Slope By Point (Multi Copies).
+  One sloped copy of the floor per slope, each on its own workset.
+- **Floor Points & Slope** (new in 6.32.0): the floor version of Roof Points & Slope. Shape points around
+  openings, ridges between drain openings, then slope by drain, in one window and one Undo.
+- All of them refuse floors that are in a group, borrowed by another user or can't be shape-edited. They ask before sloping
   a floor whose type has no Variable layer, because the whole slab would tilt.
 
 ### Roof shape points, editing and checks
@@ -129,6 +135,9 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 ## Version History
 
 See [CHANGELOG.md](CHANGELOG.md) for the full history and per-tool versions.
+
+### 6.32.0 — 2026-11-03
+- **Floor Slope** panel: new Ridge and Multi Copies tools (in the By Point pulldown) and Floor Points & Slope.
 
 ### 6.31.0 — 2026-11-02
 - New **Floor Slope** panel: Floor Slope By Drain and Floor Slope By Point.
