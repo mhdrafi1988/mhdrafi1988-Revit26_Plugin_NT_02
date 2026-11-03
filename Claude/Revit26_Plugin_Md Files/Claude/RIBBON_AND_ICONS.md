@@ -38,7 +38,7 @@ Each item is a pulldown unless marked *button*. A pulldown lists its versions hi
 | Shape Points | Inner Loops · Outer Curve · Line Intersect · Loops + Perp. ▸ Vertex Reducer · Multi Points · Shape From Link | `RoofToolsRibbon.Build` |
 | Floor Points | Inner Loops *button* · Outer Curve *button* · Line Intersect *button* · Loops + Perp. *button* · Vertex Reducer *button* · Multi Points *button* · Shape From Link (large *button*) — each V001 | `FloorToolsRibbon.BuildPointsPanel` |
 | Floor Lines | Crease By Openings *button* · Crease By Points *button* · Floor Creaser *button* — each V001 | `FloorToolsRibbon.BuildLinesPanel` |
-| Floor Edit | Floor Types *button* · Name Builder *button* · Floor Tag *button* · Comparison *button* · Elevation Sync *button* — each V001 | `FloorToolsRibbon.BuildEditPanel` |
+| Floor Edit | Floor Types *button* · Name Builder *button* · Floor Tag *button* · Comparison *button* · Elevation Sync *button* · Floor EPS *button* — each V001 | `FloorToolsRibbon.BuildEditPanel` |
 | Roof Tools | Creaser Adv · Roof Tag · Floor From Rooms · Shape From Link | `RoofToolsRibbon.Build` |
 | Roof Edit | Name Builder · Island Splitter | `BuildEditComparePanels` |
 | Plan View | Island Splitter (large *button*) | `BuildEditComparePanels` |
@@ -52,6 +52,7 @@ Each item is a pulldown unless marked *button*. A pulldown lists its versions hi
 | Panel | Items | Builder |
 |---|---|---|
 | View Create | From Lines · Around Edges · Edge Element ▸ Roof Focus · Isolated Section *button* | `ViewToolsRibbon` |
+| Floor Views | Floor Around Edges *button* · Floor Edge Element *button* · Floor Focus *button* — each V001 | `FloorToolsRibbon.BuildViewsPanel` (called from `ViewToolsRibbon`) |
 | View Place | Place Sections · Callout To Section · Head Placer · View Tagger | `ViewToolsRibbon` |
 | View Rename | Bubble Renumber · Section Renamer · Auto Renamer | `ViewToolsRibbon` |
 | Tagging | Tag To Text, Align Spot Elevations, Align to Detail Line (large *buttons*) · Quick Align Vertical / Horizontal · Quick Align Ends V / H · Quick Align Bends V / H | `TaggingRibbon` |
@@ -63,7 +64,8 @@ Each item is a pulldown unless marked *button*. A pulldown lists its versions hi
 | Worksets | WS Browser · WS Creator · WS Renamer ▸ WS Renamer XL · Delete Workset | `ManageRibbon` |
 | Memory | WS Memory (large *button*) · Link Memory (large; V002, V001) | `ManageRibbon` |
 
-The latest change was plugin 6.35.0, which added the **Floor Edit** panel (floor versions of Roof Types, Name
+The latest change was plugin 6.36.0, which added the **Floor Views** panel (Documents tab, after View Create) and
+Floor EPS on Floor Edit. 6.35.0 added the **Floor Edit** panel (floor versions of Roof Types, Name
 Builder, Roof Tag, Point Comparison and Elevation Sync) after Floor Lines. 6.34.0 added the **Floor Lines** panel (floor versions of Ridge By Openings,
 Ridge By Points and Creaser Adv) after Floor Points. 6.33.0 added the **Floor Points** panel (floor versions of
 the Shape Points tools) after Shape Points. Before it, 6.32.0 added the floor Ridge, Multi Copies and Points & Slope tools to the

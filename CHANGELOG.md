@@ -9,6 +9,27 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.36.0] — 2026-11-03
+
+### Added
+- New **Floor Views** ribbon panel on the Documents tab, right after **View Create**, each tool **v1.0.0 (V001)**:
+  - **Floor Edge Around Sections** (from Roof Edge Around Sections V007): section views around every edge of the
+    selected floors.
+  - **Floor Edge Element Sections** (from Roof Edge Element Sections V004): section views where linked elements
+    meet the selected floor edges.
+  - **Floor View Focus** (from Roof View Focus V004): crops the plan view to the selected floors.
+- **Floor Tapered EPS 2D Pattern v1.0.0 (V001)** (from Tapered EPS 2D Pattern V006), as **Floor EPS** on the
+  **Floor Edit** panel: draws the tapered EPS insulation layout as a 2D detail pattern in a plan view. Like the roof
+  tool, the floor must have a single outer loop (no openings).
+- These four tools only read the floors; they create views and detail items. Each tool was ported from the
+  latest roof version only.
+
+### Changed
+- **User note:** settings are saved separately from the roof tools, under
+  `%AppData%\Revit26_Plugin_Revised\FloorEdgeAroundSections`, `...\FloorEdgeElementSections` and
+  `...\FloorViewFocus`.
+- The roof tools are unchanged.
+
 ## [6.35.0] — 2026-11-03
 
 ### Added

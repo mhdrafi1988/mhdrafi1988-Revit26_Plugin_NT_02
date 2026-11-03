@@ -7,7 +7,7 @@ section/sheet management, workset organisation, and detail line tools.
 
 | SloperPro | Revit |
 |---|---|
-| 6.x (current: 6.35.0) | 2026 |
+| 6.x (current: 6.36.0) | 2026 |
 | 2.0.0 | 2026 |
 | 1.0.0 | 2026 |
 
@@ -26,7 +26,7 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 | Shape Points | Inner Loops · Outer Curve · Line Intersect · Loops + Perp. ▸ slide-out: Vertex Reducer · Multi Points · Shape From Link |
 | Floor Points | Inner Loops · Outer Curve · Line Intersect · Loops + Perp. · Vertex Reducer · Multi Points · Shape From Link |
 | Floor Lines | Crease By Openings · Crease By Points · Floor Creaser |
-| Floor Edit | Floor Types · Name Builder · Floor Tag · Comparison · Elevation Sync |
+| Floor Edit | Floor Types · Name Builder · Floor Tag · Comparison · Elevation Sync · Floor EPS |
 | Roof Tools | Creaser Adv · Roof Tag · Floor From Rooms · Shape From Link |
 | Roof Edit | Name Builder · Island Splitter |
 | Plan View | Island Splitter |
@@ -40,6 +40,7 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 | Panel | Tools |
 |---|---|
 | View Create | From Lines · Around Edges · Edge Element ▸ slide-out: Roof Focus · Isolated Section |
+| Floor Views | Floor Around Edges · Floor Edge Element · Floor Focus |
 | View Place | Place Sections · Callout To Section · Head Placer · View Tagger |
 | View Rename | Bubble Renumber · Section Renamer · Auto Renamer |
 | Tagging | Tag To Text · Align Spot Elevations · Align to Detail Line · Quick Align (vertical / horizontal, ends, bends) |
@@ -93,6 +94,12 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 - **Floor Tag**: spot elevations on a floor's top face at its shape points.
 - **Floor Point Comparison, Floor Point Elevation Sync**: compare two floors' shape-point heights, and copy heights
   between matching points (asks before changing a floor type with no Variable layer).
+
+### Floor views and insulation (new in 6.36.0)
+- **Floor Views** panel (Documents tab): **Floor Edge Around Sections**, **Floor Edge Element Sections** and
+  **Floor View Focus**, the floor versions of the roof section and view-focus tools.
+- **Floor EPS** (Floor Edit panel): the floor version of Tapered EPS 2D Pattern. It draws the tapered insulation
+  layout as a 2D detail pattern for a floor with a single outer loop.
 
 ### Roof shape points, editing and checks
 - **Inner Loops, Outer Curve, Line Intersect, Loops + Perpendicular**: divide and intersect roof loops into shape points.
@@ -158,6 +165,9 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 ## Version History
 
 See [CHANGELOG.md](CHANGELOG.md) for the full history and per-tool versions.
+
+### 6.36.0 — 2026-11-03
+- New **Floor Views** panel (Documents tab) and **Floor EPS** on Floor Edit.
 
 ### 6.35.0 — 2026-11-03
 - New **Floor Edit** panel: Floor Types, Name Builder, Floor Tag, Comparison and Elevation Sync.

@@ -138,6 +138,10 @@ namespace Revit26_Plugin_Revised.Shared.Services
         public static readonly ToolInfo LinkVersionCheckerV006 = Add("Link Version Checker", "6.1.0", "V006", "Revit26_Plugin_Revised.LinkVersionChecker.V006");
         public static readonly ToolInfo LinkVersionCheckerV007 = Add("Link Version Checker", "7.1.1", "V007", "Revit26_Plugin_Revised.LinkVersionChecker.V007");
         public static readonly ToolInfo RoofViewFocus = Add("Roof View Focus", "4.1.1", "V004", "Revit26_Plugin_Revised.RoofViewFocus.V004");
+        public static readonly ToolInfo FloorViewFocus = Add("Floor View Focus", "1.0.0", "V001", "Revit26_Plugin_Revised.FloorViewFocus.V001");
+        public static readonly ToolInfo FloorEdgeAroundSections = Add("Floor Edge Around Sections", "1.0.0", "V001", "Revit26_Plugin_Revised.FloorEdgeAroundSections.V001");
+        public static readonly ToolInfo FloorEdgeElementSections = Add("Floor Edge Element Sections", "1.0.0", "V001", "Revit26_Plugin_Revised.FloorEdgeElementSections.V001");
+        public static readonly ToolInfo FloorTaperedEpsPattern = Add("Floor Tapered EPS 2D Pattern", "1.0.0", "V001", "Revit26_Plugin_Revised.FloorTaperedEpsPattern.V001");
         public static readonly ToolInfo CreateSections = Add("Create Sections From Detail Lines", "13.1.2", "V013", "Revit26_Plugin_Revised.CreateSections.V013");
         public static readonly ToolInfo APUS = Add("Auto Place Sections", "324.1.1", "V324", "Revit26_Plugin_Revised.APUS.V324");
         public static readonly ToolInfo CalloutCOP = Add("Callout To Section View Placement", "21.1.1", "V021", "Revit26_Plugin_Revised.CalloutCOP.V021");
