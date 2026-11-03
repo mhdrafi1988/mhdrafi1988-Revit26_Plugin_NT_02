@@ -4,6 +4,7 @@ using Revit26_Plugin_Revised.BubbleAutoRenumber.V007.Models;
 using Revit26_Plugin_Revised.BubbleAutoRenumber.V007.Services;
 using Revit26_Plugin_Revised.BubbleAutoRenumber.V007.ViewModels;
 using System;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace Revit26_Plugin_Revised.BubbleAutoRenumber.V007.Handlers
 {
@@ -17,7 +18,10 @@ namespace Revit26_Plugin_Revised.BubbleAutoRenumber.V007.Handlers
         // ─── callback posted back to the ViewModel on completion ───────────
         public Action<RenumberSummary>? OnCompleted { get; set; }
 
-        public void Execute(UIApplication app)
+        public void Execute(UIApplication app) =>
+            ToolGuard.RunHandler(GetType(), app, ExecuteCore);
+
+        private void ExecuteCore(UIApplication app)
         {
             if (TargetSheet is null || OnCompleted is null) return;
 
