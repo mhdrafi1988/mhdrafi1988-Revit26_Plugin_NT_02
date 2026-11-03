@@ -1,6 +1,6 @@
 # Architecture
 
-How a request flows through this add-in, end to end. Updated 2026-11-02 (plugin 6.31.0). The rules (folder
+How a request flows through this add-in, end to end. Updated 2026-11-03 (plugin 6.36.0). The rules (folder
 layout, versioning, robustness) are in the root `CLAUDE.md`. This file is the runtime picture: what calls what,
 and where the sharp edges are.
 
@@ -23,6 +23,12 @@ new PushButtonData("Btn_FloorSlopeByDrain_V001", "By Drain", assemblyPath,
 This string is not compiler-checked. A typo, or a namespace that drifts from the ribbon file, builds fine and only
 breaks when the button is clicked in Revit. When renaming a namespace or moving a tool, grep the ribbon files for
 the old fully-qualified name. Moving folders doesn't update it.
+
+**Floor ports keep their roof tool's class names with Roof → Floor**, but command classes do not always sit in a
+`.Commands` namespace (for example `Revit26_Plugin_Revised.FloorEdgeAroundSections.V001.FloorEdgeAroundSectionsCommand`
+and `Revit26_Plugin_Revised.FloorPointElevationSync.V001.Command`). The floor panels are built in `FloorRibbon.cs`
+(`FloorToolsRibbon.BuildSlopePanel`, `BuildPointsPanel`, `BuildLinesPanel`, `BuildEditPanel`, `BuildViewsPanel`),
+called from `RoofToolsRibbon` and `ViewToolsRibbon`.
 
 **The namespace does not always mirror the folder path.** `AutoSlopeByDrain_V013` lives under
 `Menu/RoofTools/RoofSlope/ByDrains/`, but its code is in `Revit26_Plugin_Revised.MultiRoofSlopeByDrain.V013`, a
@@ -84,7 +90,9 @@ before changing a signature.
 | `Services/SettingsService.cs`, `JsonFileStore.cs` | `Shared.Services` | JSON files under `%AppData%\Revit26_Plugin_Revised\<Tool>`. `SettingsService` falls back to defaults; `JsonFileStore` throws on a failed save so the tool can tell the user |
 | `Services/LogExportService.cs`, `LogClipboardService.cs` | `Shared.Services` | Save and copy the log |
 | `Services/ModelIdentity.cs` | `Shared.Services` | Stable identity of a project model, for filing per-model data (saved sets, settings) |
-| `Services/FloorShapeEditChecks.cs` | `Shared.Services` | Floor pre-checks and the no-Variable-layer dialog (Floor Slope tools) |
+| `Services/FloorShapeEditChecks.cs` | `Shared.Services` | Floor pre-checks (group, read-only, borrowed, shape-editing support) and the no-Variable-layer dialog, used by every floor tool that edits a floor |
+| `Services/FloorSketchProfile.cs` | `Shared.Services` | A floor's sketch loops (`floor.SketchId`, else the dependent `Sketch`). Floors have no `GetProfiles()`; the floor ports use this instead |
+| `Services/FloorPickFilter.cs` | `Shared.Services` | Selection filter: floors outside groups only |
 | `Controls/ToolWindowShell.cs`, `ToolWindowShellTemplate.xaml`, `ShellBehaviors.cs` | `Shared.Controls` | The standard tool window (see `CLAUDE.md` next to this folder) |
 | `ViewModels/ToolViewModelBase.cs` | `Shared.ViewModels` | Base ViewModel with the shared log and shell properties |
 | `LogEntry.cs`, `LogLevel.cs`, `Converters.cs` | `Shared.Models` | The one log model, and the shared value converters |

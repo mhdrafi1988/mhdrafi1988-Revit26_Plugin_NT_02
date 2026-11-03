@@ -1,6 +1,6 @@
 # Ribbon & Icons
 
-Living reference for adding or changing ribbon buttons and their icons. Updated 2026-11-02 (plugin 6.31.0) from
+Living reference for adding or changing ribbon buttons and their icons. Updated 2026-11-03 (plugin 6.36.0) from
 `App.cs` and `Menu/00_Push_Button_Menu_items/Ribbon/*.cs`. The rules themselves are in the root `CLAUDE.md`
 (Repository conventions: Ribbon, Dropdown version order, Slide-out); this file is the how-to and the current
 layout. For the original cleanup pass, see `Claude/LOGO PROMPT FOLDER/Ribbon_Code_Notes.md`, which is kept as a
@@ -11,9 +11,10 @@ record and not current.
 - `App.cs : InitializeRibbonPanels` creates two tabs and calls the builders in order. Panels appear in the order
   they are created.
   - **SloperPro_Rev_88-MDL** (Modelling): `RoofToolsRibbon.Build` (which also calls
-    `FloorToolsRibbon.BuildSlopePanel`), `DetailLInesRibbon.Build`, then `RoofToolsRibbon.BuildUtilities`.
-  - **SloperPro_Rev_88-DCM** (Documents): `ViewToolsRibbon`, `TaggingRibbon`, `SheetToolsRibbon`, `SetupRibbon`,
-    `ManageRibbon`.
+    `FloorToolsRibbon.BuildSlopePanel`, `BuildPointsPanel`, `BuildLinesPanel` and `BuildEditPanel`),
+    `DetailLInesRibbon.Build`, then `RoofToolsRibbon.BuildUtilities`.
+  - **SloperPro_Rev_88-DCM** (Documents): `ViewToolsRibbon` (which also calls `FloorToolsRibbon.BuildViewsPanel`),
+    `TaggingRibbon`, `SheetToolsRibbon`, `SetupRibbon`, `ManageRibbon`.
 - `Menu/00_Push_Button_Menu_items/Ribbon/`: `RoofToolsRibbon.cs`, `FloorRibbon.cs` (class `FloorToolsRibbon`),
   `DetailLInesRibbon.cs`, `DimensionsRibbon.cs`, `ViewToolsRibbon.cs`, `TaggingRibbon.cs`, `SheetToolsRibbon.cs`,
   `SetupRibbon.cs`, `ManageRibbon.cs`, and `RibbonLayoutHelper.cs`. There is no `QuickAcces.cs` any more.
@@ -94,8 +95,8 @@ segments: `Resources/Icons/RoofTools/by_point_16.png` on disk is
 
 Each tool should have both sizes: `<Name>_16.png` for `PushButtonData.Image` (a button in a stack or dropdown) and
 `<Name>_32.png` for `.LargeImage` (a pulldown's own header icon, or a full-size button). Not every tool has both,
-so check before assuming a `_32` exists because a `_16` does. The Floor Slope buttons reuse the roof
-`by_drain_*`, `by_point_16`, `AutoSlopeByPoint_Ridge_16` and `CombinedTools_*` icons until floor icons are made.
+so check before assuming a `_32` exists because a `_16` does. All floor buttons reuse the roof (and roof
+view-tool) icons of the tool they were ported from until floor icons are made.
 
 ## Adding a push button
 

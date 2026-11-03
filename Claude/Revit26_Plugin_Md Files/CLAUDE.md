@@ -1,6 +1,6 @@
 # Revit26_Plugin — reference notes
 
-_v2.0, 2026-11-02 (plugin 6.31.0). Brought in line with the root `CLAUDE.md`. v1.1 (2026-10-04) added the
+_v2.1, 2026-11-03 (plugin 6.36.0): floor tools added. v2.0 (2026-11-02, plugin 6.31.0) brought it in line with the root `CLAUDE.md`. v1.1 (2026-10-04) added the
 ToolWindowShell standard._
 
 **The development standard is the root `CLAUDE.md`.** It covers build, folder layout, versioning, robustness,
@@ -13,7 +13,7 @@ disagree, the root one wins. The `Claude/` folder next to this file holds the de
 | `Claude/RIBBON_AND_ICONS.md` | Ribbon layout of both tabs, `RibbonLayoutHelper`, icons |
 | `Claude/TOOL_VERSIONING.md` | What `_V<NNN>` and `ToolCatalog` versions mean, and a tool version's states |
 | `Claude/UI_UX_PATTERNS.md` | Window patterns: shared styles, filtering, grouping, logging, tabs |
-| `Claude/CHANGELOG.md` | Engineering notes up to 2026-10-17 (the root `CHANGELOG.md` is the release log) |
+| `Claude/CHANGELOG.md` | Engineering notes (the root `CHANGELOG.md` is the release log) |
 
 ## Project at a glance
 
@@ -43,6 +43,10 @@ disagree, the root one wins. The `Claude/` folder next to this file holds the de
   one to the front (`TryActivateOpenWindow`).
 - **Settings** are JSON under `%AppData%\Revit26_Plugin_Revised\<Tool>\`, read with try/catch and defaults on
   failure. New settings formats carry a version field (root `CLAUDE.md`, Backward compatibility 4).
+- **Floor versions of roof tools** (plugins 6.31.0–6.36.0) are new tools at `_V001`, copied from the latest roof
+  version only, with Roof → Floor names. They read a floor's sketch through `Shared/Services/FloorSketchProfile`
+  (floors have no `GetProfiles()`), refuse floors they can't change through `FloorShapeEditChecks`, and ask before
+  changing a floor type with no Variable layer. The full roof → floor list is in `Claude/TOOL_VERSIONING.md`.
 - **`Core/`** holds the tool's logic. Only some tools keep it free of the Revit API: 85 of the 105 `Core/` folders
   outside WIP use Revit types. Where a tool has unit tests, the tested files are the Revit-free ones.
 
