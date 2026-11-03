@@ -102,8 +102,10 @@ the preview is updated and published.
 4. **Header comment** (an HTML comment after `<title>`): the tool(s) and versions, the plugin version,
    the XAML file(s) the page mirrors, and the Artifact link.
 5. **Publish:** publish the page as a claude.ai Artifact. If the header comment already holds a link,
-   republish to that link so it stays the same, and keep the link in the comment. Show the page to the
-   owner, and put the link in the PR description.
+   republish to that link so it stays the same, and keep the link in the comment. Open the Artifact
+   for the owner in the same turn as the tool change, before reporting the change as done, and put
+   the link in the PR description. A Stop hook (`.claude/hooks/check-preview.sh`) reminds Claude when
+   `ToolCatalog.cs` changed on the branch but no `Claude/Previews/*.html` did.
 6. Older previews that do not follow this format yet are brought up to it the next time their tool
    changes.
 

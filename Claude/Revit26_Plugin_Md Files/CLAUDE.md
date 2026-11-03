@@ -1,6 +1,6 @@
 # Revit26_Plugin — reference notes
 
-_v2.0, 2026-11-02 (plugin 6.31.0). Brought in line with the root `CLAUDE.md`. v1.1 (2026-10-04) added the
+_v2.1, 2026-11-03: preview Artifact is opened every tool update (Stop hook reminder). v2.0, 2026-11-02 (plugin 6.31.0): brought in line with the root `CLAUDE.md`. v1.1 (2026-10-04) added the
 ToolWindowShell standard._
 
 **The development standard is the root `CLAUDE.md`.** It covers build, folder layout, versioning, robustness,
@@ -27,7 +27,8 @@ disagree, the root one wins. The `Claude/` folder next to this file holds the de
 - Unit tests are in `Tests/<Project>` (12 projects), and run with `dotnet test Tests/<Project>`. They link the
   tool's Revit-free files rather than copying them.
 - UI previews for tool changes are in `Claude/Previews/` and are published as claude.ai Artifacts (root
-  `CLAUDE.md`, "UI previews").
+  `CLAUDE.md`, "UI previews"). Every tool update opens the Artifact for the owner in the same turn, before
+  the change is reported done; a Stop hook (`.claude/hooks/check-preview.sh`) reminds Claude if it is missing.
 
 ## Established patterns
 
