@@ -1,12 +1,17 @@
 # UI/UX Patterns
 
 How the newer and actively maintained tool windows are built: shared visual system, window shell, filtering,
-grouping, logging, wizards and multi-item tabs. Updated 2026-11-02 (plugin 6.31.0). These patterns come from
+grouping, logging, wizards and multi-item tabs. Updated 2026-11-03 (plugin 6.37.0). These patterns come from
 specific tools (named below), and are not enforced repo-wide. Older tools may predate them. Treat this as "what to
 copy when building or updating a tool's UI".
 
 Every tool update also needs an HTML preview of the window in `Claude/Previews/`, published as a claude.ai Artifact
 (root `CLAUDE.md`, UI previews). The preview uses the same colour tokens as `Shared/SharedStyles.xaml`.
+
+The floor tools (plugins 6.31.0–6.37.0) reuse their roof tool's window as-is, with floor wording and the title and
+version taken from `ToolCatalog`. Their previews are grouped per panel: `FloorSlope_V001_Windows.html`,
+`FloorPoints_V001_Windows.html`, `FloorLines_V001_Windows.html`, `FloorEdit_V001_Windows.html` and
+`FloorViewsAndEps_V001_Windows.html`.
 
 ## Window shell
 

@@ -7,7 +7,7 @@ section/sheet management, workset organisation, and detail line tools.
 
 | SloperPro | Revit |
 |---|---|
-| 6.x (current: 6.31.0) | 2026 |
+| 6.x (current: 6.37.0) | 2026 |
 | 2.0.0 | 2026 |
 | 1.0.0 | 2026 |
 
@@ -22,8 +22,11 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 | Panel | Tools |
 |---|---|
 | Roof Slope | By Point · By Drain · Points & Slope |
-| Floor Slope | By Drain · By Point |
+| Floor Slope | By Drain · By Point (By Point, Ridge, Multi Copies) · Points & Slope |
 | Shape Points | Inner Loops · Outer Curve · Line Intersect · Loops + Perp. ▸ slide-out: Vertex Reducer · Multi Points · Shape From Link |
+| Floor Points | Inner Loops · Outer Curve · Line Intersect · Loops + Perp. · Vertex Reducer · Multi Points · Shape From Link |
+| Floor Lines | Crease By Openings · Crease By Points · Floor Creaser |
+| Floor Edit | Floor Types · Name Builder · Floor Tag · Comparison · Elevation Sync · Floor EPS |
 | Roof Tools | Creaser Adv · Roof Tag · Floor From Rooms · Shape From Link |
 | Roof Edit | Name Builder · Island Splitter |
 | Plan View | Island Splitter |
@@ -37,6 +40,7 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 | Panel | Tools |
 |---|---|
 | View Create | From Lines · Around Edges · Edge Element ▸ slide-out: Roof Focus · Isolated Section |
+| Floor Views | Floor Around Edges · Floor Edge Element · Floor Focus |
 | View Place | Place Sections · Callout To Section · Head Placer · View Tagger |
 | View Rename | Bubble Renumber · Section Renamer · Auto Renamer |
 | Tagging | Tag To Text · Align Spot Elevations · Align to Detail Line · Quick Align (vertical / horizontal, ends, bends, ends / bends to tag) |
@@ -62,8 +66,40 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 - **Floor Slope By Drain**: the floor version of Auto Slope By Drain. Drains are openings in the floor sketch and
   drain families (Plumbing Fixtures) on the floor.
 - **Floor Slope By Point**: the floor version of Auto Slope By Point, with optional ridge lines.
-- Both refuse floors that are in a group, borrowed by another user or can't be shape-edited. They ask before sloping
+- **Floor Slope By Point (Ridge)** (new in 6.33.0): the floor version of Auto Slope By Point (Ridge). Lifts the
+  ridge points between drain groups so every point drains at the given slope.
+- **Floor Slope By Point (Multi Copies)** (new in 6.33.0): the floor version of Auto Slope By Point (Multi Copies).
+  One sloped copy of the floor per slope, each on its own workset.
+- **Floor Points & Slope** (new in 6.33.0): the floor version of Roof Points & Slope. Shape points around
+  openings, ridges between drain openings, then slope by drain, in one window and one Undo.
+- All of them refuse floors that are in a group, borrowed by another user or can't be shape-edited. They ask before sloping
   a floor whose type has no Variable layer, because the whole slab would tilt.
+
+### Floor shape points (new in 6.34.0)
+- The **Floor Points** panel has floor versions of every Shape Points tool: Inner Loops, Outer Curve, Line
+  Intersect, Loops + Perpendicular, Vertex Reducer, Multi Points and Shape From Link. Same windows and options as
+  the roof tools; they refuse floors that are in a group, borrowed by another user or can't be shape-edited.
+- **Floor Shape From Link** sets each shape point from the linked floors' top surface. Because a floor's level +
+  offset is its top, "Subtract host floor thickness" is off by default.
+
+### Floor crease lines (new in 6.35.0)
+- **Floor Crease Lines By Openings / By Points**: the floor versions of Ridge By Openings and Ridge By Points.
+  They draw the crease (ridge) lines midway between the drains, as shape points + split lines and/or detail lines.
+- **Floor Creaser**: the floor version of Creaser Adv. It places detail items along a sloped floor's creases and
+  only reads the floor.
+
+### Floor types, names, tags and checks (new in 6.36.0)
+- **Floor Type Manager, Floor Name Builder**: export and create floor types from Excel; bulk-rename floor types with
+  INS / SLP / MAT codes.
+- **Floor Tag**: spot elevations on a floor's top face at its shape points.
+- **Floor Point Comparison, Floor Point Elevation Sync**: compare two floors' shape-point heights, and copy heights
+  between matching points (asks before changing a floor type with no Variable layer).
+
+### Floor views and insulation (new in 6.37.0)
+- **Floor Views** panel (Documents tab): **Floor Edge Around Sections**, **Floor Edge Element Sections** and
+  **Floor View Focus**, the floor versions of the roof section and view-focus tools.
+- **Floor EPS** (Floor Edit panel): the floor version of Tapered EPS 2D Pattern. It draws the tapered insulation
+  layout as a 2D detail pattern for a floor with a single outer loop.
 
 ### Roof shape points, editing and checks
 - **Inner Loops, Outer Curve, Line Intersect, Loops + Perpendicular**: divide and intersect roof loops into shape points.
@@ -129,6 +165,24 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 ## Version History
 
 See [CHANGELOG.md](CHANGELOG.md) for the full history and per-tool versions.
+
+### 6.37.0 — 2026-11-03
+- New **Floor Views** panel (Documents tab) and **Floor EPS** on Floor Edit.
+
+### 6.36.0 — 2026-11-03
+- New **Floor Edit** panel: Floor Types, Name Builder, Floor Tag, Comparison and Elevation Sync.
+
+### 6.35.0 — 2026-11-03
+- New **Floor Lines** panel: Floor Crease Lines By Openings, By Points, and Floor Creaser.
+
+### 6.34.0 — 2026-11-03
+- New **Floor Points** panel: floor versions of the seven Shape Points tools.
+
+### 6.33.0 — 2026-11-03
+- **Floor Slope** panel: new Ridge and Multi Copies tools (in the By Point pulldown) and Floor Points & Slope.
+
+### 6.32.0 — 2026-11-03
+- **Align Spot Elevations 1.6.0**: line bend / end points up with a clicked tag; Quick Align Ends / Bends to Tag.
 
 ### 6.31.0 — 2026-11-02
 - New **Floor Slope** panel: Floor Slope By Drain and Floor Slope By Point.
