@@ -4,6 +4,7 @@ using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using Revit26_Plugin_Revised.RefSectionHeadPlacer.V015.UI.Views;
 using Revit26_Plugin_Revised.Utilities;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace Revit26_Plugin_Revised.RefSectionHeadPlacer.V015.Commands
 {
@@ -25,7 +26,10 @@ namespace Revit26_Plugin_Revised.RefSectionHeadPlacer.V015.Commands
     [Regeneration(RegenerationOption.Manual)]
     public class RefSectionHeadPlacerCommand : IExternalCommand
     {
-        public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
+        public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements) =>
+            ToolGuard.RunCommand(GetType(), commandData, ref message, elements, ExecuteCore);
+
+        private Result ExecuteCore(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
             try
             {

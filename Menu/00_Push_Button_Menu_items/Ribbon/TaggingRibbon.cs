@@ -9,7 +9,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
     {
         private const string Icons = "Revit26_Plugin_Revised.Resources.Icons.Tagging.";
 
-        /// <summary>Creates the Tagging panel on <paramref name="tabName"/> with the Tag To Text, Align Spot Elevations and Align to Detail Line buttons (plus the six quick-align buttons).</summary>
+        /// <summary>Creates the Tagging panel on <paramref name="tabName"/> with the Tag To Text, Align Spot Elevations and Align to Detail Line buttons (plus the eight quick-align buttons).</summary>
         public static void Build(UIControlledApplication app, string tabName, string assemblyPath)
         {
             RibbonPanel panel = app.CreateRibbonPanel(tabName, "Tagging");
@@ -45,7 +45,8 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                 LargeImage = ImageUtils.Load(Icons + "AlignSpotElevationsDetailLine_32.png"),
                 ToolTip = ToolCatalog.AlignSpotElevations.Tip(
                     "Slides the selected spot elevations onto detail lines you pick: one optional line for the bend points, " +
-                    "one for the leader end points and one for the text. Checks for each line whether a vertical or " +
+                    "one for the leader end points and one for the text. The bend and end points can instead line up with " +
+                    "a spot elevation you click (Pick tag…). Checks for each line whether a vertical or " +
                     "horizontal move can reach it and does what is possible; spots past the end of a line are skipped " +
                     "unless you choose to extend it. Select one detail line with the spots to use it for the end points. " +
                     "One Undo step.")
@@ -96,6 +97,19 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                     "Lines the leader bend points (shoulders) of the selected spot elevations up in one row right away. " +
                     "The leader end and text move with each bend. Uses the line position and spacing last used in the " +
                     "window. One Undo step.")
+            });
+
+            // Quick align to a tag: click one spot elevation; the parts line up with its point.
+            RibbonLayoutHelper.AddStackedButtons(panel, new RibbonItemData[]
+            {
+                QuickPart(assemblyPath, "QuickEndsToTag", "Quick Align Ends to Tag", "EndsToTag",
+                    "Lines up the leader end points of the selected spot elevations with the end point of one spot " +
+                    "elevation you click, right away. The text moves with each end. Uses the line direction (vertical " +
+                    "or horizontal) last used in the window. One Undo step."),
+                QuickPart(assemblyPath, "QuickBendsToTag", "Quick Align Bends to Tag", "BendsToTag",
+                    "Lines up the leader bend points (shoulders) of the selected spot elevations with the bend point of " +
+                    "one spot elevation you click, right away. The leader end and text move with each bend. Uses the " +
+                    "line direction (vertical or horizontal) last used in the window. One Undo step.")
             });
         }
 

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Diagnostics;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace Revit26_Plugin_Revised.ViewAutoRenamer.V005.Services;
 
@@ -26,7 +27,10 @@ public class LoadViewsHandler : IExternalEventHandler
     public ViewLoadCriteria  Criteria { get; set; } = new();
     public ViewsListViewModel Vm      { get; set; } = null!;
 
-    public void Execute(UIApplication app)
+    public void Execute(UIApplication app) =>
+        ToolGuard.RunHandler(GetType(), app, ExecuteCore);
+
+    private void ExecuteCore(UIApplication app)
     {
         var vm = Vm;
         if (vm == null) return;

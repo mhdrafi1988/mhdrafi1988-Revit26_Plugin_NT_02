@@ -10,18 +10,26 @@
         <Style TargetType="GroupBox"><Setter Property="Margin" Value="0,0,0,8"/><Setter Property="Padding" Value="8,4"/></Style>
         <Style x:Key="Num" TargetType="TextBox"><Setter Property="Width" Value="48"/><Setter Property="Margin" Value="6,0"/></Style>
 
-        <!-- One optional detail line (bend points, leader ends or text) -->
+        <!-- One optional detail line (bend points, leader ends or text); bend and end points can also use a tag -->
         <DataTemplate DataType="{x:Type vm:LinePickViewModel}">
             <GroupBox Header="{Binding Header}">
                 <StackPanel>
                     <DockPanel LastChildFill="True" Margin="0,2">
                         <Button DockPanel.Dock="Left" Content="Pick line…" Width="80" Command="{Binding PickCommand}"
                                 ToolTip="Hides this window until you click a straight detail line in the view. Esc keeps the current line."/>
+                        <Button DockPanel.Dock="Left" Content="Pick tag…" Width="80" Margin="6,0,0,0" Command="{Binding PickTagCommand}"
+                                Visibility="{Binding CanPickTag, Converter={StaticResource BoolToVis}}"
+                                ToolTip="Hides this window until you click one spot elevation in the view. The points then line up with its point, on a vertical or horizontal line. Esc keeps the current line."/>
                         <Button DockPanel.Dock="Right" Content="Clear" Width="56" Command="{Binding ClearCommand}"
                                 Visibility="{Binding HasLine, Converter={StaticResource BoolToVis}}"/>
                         <TextBlock Text="{Binding LineText}" Margin="8,0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                     </DockPanel>
                     <StackPanel Visibility="{Binding HasLine, Converter={StaticResource BoolToVis}}">
+                        <StackPanel Orientation="Horizontal" Visibility="{Binding IsTagLine, Converter={StaticResource BoolToVis}}">
+                            <TextBlock Text="{Binding TagDirectionLabel}" Foreground="Gray" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <RadioButton Content="Vertical (same X)" IsChecked="{Binding IsTagVertical}" Margin="0,2,16,2"/>
+                            <RadioButton Content="Horizontal (same Y)" IsChecked="{Binding IsTagHorizontal}"/>
+                        </StackPanel>
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="Move:" Foreground="Gray" VerticalAlignment="Center" Margin="0,0,10,0"/>
                             <RadioButton Content="Auto" IsChecked="{Binding IsAuto}" Margin="0,2,16,2"
@@ -53,7 +61,7 @@
                 <RadioButton Content="Align to a line" IsChecked="{Binding IsAlignMode}"/>
                 <RadioButton Content="Distribute only (space along the column or row)" IsChecked="{Binding IsDistributeMode}"/>
                 <RadioButton Content="Offset from point (same distance from each measured point)" IsChecked="{Binding IsOffsetMode}"/>
-                <RadioButton Content="Align to detail lines (slide onto picked lines, vertically or horizontally)" IsChecked="{Binding IsDetailLineMode}"/>
+                <RadioButton Content="Align to detail lines or a tag (slide onto picked lines, vertically or horizontally)" IsChecked="{Binding IsDetailLineMode}"/>
             </StackPanel>
         </GroupBox>
 
@@ -70,7 +78,7 @@
             <!-- Align to detail lines: one optional line per part -->
             <StackPanel Visibility="{Binding IsDetailLineMode, Converter={StaticResource BoolToVis}}">
                 <TextBlock Foreground="Gray" TextWrapping="Wrap" Margin="0,0,0,6"
-                           Text="Pick a detail line for the bend points, the leader end points, the text, or any mix. Every pick is optional. A part with no line stays where it is, except that the text follows its end point, as in Revit."/>
+                           Text="Pick a detail line, or a tag, for the bend points and the leader end points, and a detail line for the text, or any mix. Every pick is optional. A part with no line stays where it is, except that the text follows its end point, as in Revit."/>
                 <ContentControl Content="{Binding BendLine}"/>
                 <ContentControl Content="{Binding EndLine}"/>
                 <ContentControl Content="{Binding TextLine}"/>
@@ -78,6 +86,7 @@
                     <StackPanel>
                         <RadioButton Content="Skip them (only use the line as drawn)" IsChecked="{Binding IsSkipPastEnd}"/>
                         <RadioButton Content="Treat the line as endless (extend it as far as needed)" IsChecked="{Binding IsExtendLines}"/>
+                        <TextBlock Text="A tag line is always endless." Foreground="Gray"/>
                     </StackPanel>
                 </GroupBox>
             </StackPanel>

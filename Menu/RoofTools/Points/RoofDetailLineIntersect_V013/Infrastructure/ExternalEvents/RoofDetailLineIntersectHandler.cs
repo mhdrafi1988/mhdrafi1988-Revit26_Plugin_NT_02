@@ -18,6 +18,7 @@ using Revit26_Plugin_Revised.Shared.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace Revit26_Plugin_Revised.RoofDetailLineIntersect.V013.Infrastructure.ExternalEvents
 {
@@ -30,7 +31,10 @@ namespace Revit26_Plugin_Revised.RoofDetailLineIntersect.V013.Infrastructure.Ext
         /// </summary>
         public static RoofDetailLineIntersectPayload Payload;
 
-        public void Execute(UIApplication app)
+        public void Execute(UIApplication app) =>
+            ToolGuard.RunHandler(GetType(), app, ExecuteCore);
+
+        private void ExecuteCore(UIApplication app)
         {
             if (Payload == null) return;
 

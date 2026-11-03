@@ -337,7 +337,7 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Core.Services
             }
             // Ends count as on the line within a hair (0.01 mm of paper).
             double slack = line.Length > 0 ? 0.01 / line.Length : 0;
-            if (!extend && (t < -slack || t > 1 + slack)) { why = "past the line end"; return false; }
+            if (!extend && !line.IsEndless && (t < -slack || t > 1 + slack)) { why = "past the line end"; return false; }
             if (direction == AlignDirection.Vertical) toV = line.AV + t * dv;
             else toU = line.AU + t * du;
             return true;
@@ -433,7 +433,8 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Core.Services
                         else
                         {
                             sdU = c.U - it.ShoulderU; sdV = c.V - it.ShoulderV;
-                            notes.Add(Dist(0, 0, sdU, sdV) > 1e-6 ? "bend: moved " + Word(c.Dir) : "bend: on line");
+                            notes.Add(Dist(0, 0, sdU, sdV) > 1e-6 ? "bend: moved " + Word(c.Dir)
+                                : IsRef(options.ShoulderLine, it) ? "bend: reference tag, stays" : "bend: on line");
                         }
                     }
                 }
@@ -486,7 +487,8 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Core.Services
                             bool moved = bestDist > 1e-6;
                             notes.Add(best.Lim
                                 ? (moved ? "end: moved " + Word(best.Dir) + ", stops short (*)" : "end: cannot slide onto the line (*)")
-                                : moved ? "end: moved " + Word(best.Dir) : "end: on line");
+                                : moved ? "end: moved " + Word(best.Dir)
+                                : IsRef(options.EndLine, it) ? "end: reference tag, stays" : "end: on line");
                         }
                     }
                 }
@@ -528,6 +530,9 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Core.Services
             plan.LineSkippedCount = plan.Entries.Count(e => e.LineSkipped);
             return plan;
         }
+
+        /// <summary>True when <paramref name="line"/> was taken from <paramref name="item"/> (Pick tag…).</summary>
+        private static bool IsRef(DetailLine2D line, SpotItem item) => line != null && line.IsTagLine && line.TagId == item.Id;
 
         private static double Size(double mm) => mm > 0 ? mm : UnknownSizeMm;
 

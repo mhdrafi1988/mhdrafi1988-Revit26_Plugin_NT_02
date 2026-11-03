@@ -3,6 +3,7 @@ using System.Linq;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using Revit26_Plugin_Revised.Shared.Models;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace Revit26_Plugin_Revised.RoofPointElevationSync.V004
 {
@@ -24,7 +25,10 @@ namespace Revit26_Plugin_Revised.RoofPointElevationSync.V004
         public Action<bool, string> OnApplyCompleted { get; set; }
         public Action<string, LogLevel> Log { get; set; }
 
-        public void Execute(UIApplication app)
+        public void Execute(UIApplication app) =>
+            ToolGuard.RunHandler(GetType(), app, ExecuteCore);
+
+        private void ExecuteCore(UIApplication app)
         {
             try
             {

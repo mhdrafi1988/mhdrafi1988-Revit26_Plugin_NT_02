@@ -2,6 +2,11 @@
 
 One monochrome icon prompt per live `PushButton` in the ribbon, after the cleanup pass that removed dead entries and added missing ones. Generated from the state of `Menu/00_Push_Button_Menu_items/Ribbon/*.cs` + `QuickAcces.cs` as wired up in `App.cs`.
 
+> **Status (2026-11-02, plugin 6.31.0):** entries 1–64 were written for an older ribbon. Some button IDs and
+> versions below no longer exist, and `QuickAcces.cs` is gone. The current layout is in
+> `Claude/Revit26_Plugin_Md Files/Claude/RIBBON_AND_ICONS.md`. Entries 65–66 cover the Floor Slope panel added in 6.31.0.
+> Add a prompt here whenever a new button needs its own icon.
+
 ## Shared style brief (prepend to every prompt)
 
 > Flat monochrome line-art icon for a Revit ribbon toolbar button, single dark-gray/black stroke (#2B2B2B) on a fully transparent background, 32x32px canvas, simple geometric silhouette, no gradients, no shadows, no text or letters, no color, centered composition with even padding, consistent 2px stroke weight, matches the visual weight of Autodesk Revit's native ribbon icon set.
@@ -123,3 +128,11 @@ Several tool families already have an unused, never-wired icon sitting in `Resou
 62. **Btn_SectionManager_V008** → `SectionManager_32.png` — a small list/table icon (three horizontal rows) with a section-marker arrow glyph in the first row, representing a management panel.
 63. **Btn_SectionManagerRefactor_V002** → `SectionManagerRefactor_32.png` — same list-panel-with-section-marker subject as SectionManager, with a small gear badge to indicate the refactored engine.
 64. **Btn_ViewAutoRenamer_V003** → `ViewAutoRenamer_32.png` ♻ reuse/refresh — a generic view-viewport rectangle with a pencil/edit icon over its label area and a refresh/cycle arrow beside it.
+
+## Floor Slope (`FloorRibbon.cs` — `FloorToolsRibbon.BuildSlopePanel`, plugin 6.31.0)
+
+These buttons currently reuse the roof `by_drain_16/32.png` and `by_point_16.png` icons. Save the new files in
+`Resources/Icons/FloorTools/`, then point `BuildSlopePanel` at them (16px for `Image`, 32px for `LargeImage`).
+
+65. **Btn_FloorSlopeByDrain_V001** → `FloorSlopeByDrain_16.png` / `FloorSlopeByDrain_32.png` — a flat rectangular floor slab seen in plan with a round floor-drain grate (circle with a cross) near one corner and three short slope arrows converging on it; a thin horizontal line under the slab hints at its thickness, to tell it apart from the roof By Drain icon.
+66. **Btn_FloorSlopeByPoint_V001** → `FloorSlopeByPoint_16.png` / `FloorSlopeByPoint_32.png` — the same flat floor slab in plan with two small target dots (picked points) and slope arrows running from the slab edges to each dot; same slab-thickness line as the By Drain icon so the two read as a pair.

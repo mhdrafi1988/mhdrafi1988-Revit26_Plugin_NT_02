@@ -1,0 +1,256 @@
+<!--
+=======================================================
+File: CurveDividerWindow.xaml
+Location: UI/Views/
+Changes vs V005 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
+  - Window content is a shared ToolWindowShell:
+      HEADER  title bar + V006, metrics card
+      BODY    type rules grid, edges toolbar + grid, Activity Log
+              (moved here from the footer)
+      FOOTER  status strip (IsRunning / Progress / SummaryText),
+              Apply Points → Close
+  - Both grids and the log: ShellBehaviors.MaxHeightRatio +
+    ForwardMouseWheel (type grid's fixed MaxHeight=160 replaced).
+  - No behaviour change — every binding/command is the V005 one.
+=======================================================
+-->
+<Window x:Class="Revit26_Plugin_Revised.FloorOuterCurveDivider.V001.UI.Views.CurveDividerWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:svc="clr-namespace:Revit26_Plugin_Revised.Shared.Services"
+        xmlns:conv="clr-namespace:Revit26_Plugin_Revised.Shared.Models"
+        xmlns:shell="clr-namespace:Revit26_Plugin_Revised.Shared.Controls"
+        Title="{Binding Source={x:Static svc:ToolCatalog.FloorOuterCurveDivider}, Path=Title}"
+        Width="860" Height="720"
+        MinWidth="860" MinHeight="720"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="CanResizeWithGrip"
+        Background="{DynamicResource BrushSystemSecondaryBackground}">
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/Revit26_Plugin_Revised;component/Shared/SharedStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- Shared converter: LogLevel → coloured brush -->
+            <conv:LogLevelToColorConverter x:Key="LogLevelToColor"/>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <shell:ToolWindowShell Title="Floor Outer Curve Divider"
+                           Subtitle="Each edge's point count is seeded from its length (4 / 8 / 12 / L÷2) and is editable per row. Type rules and per-edge overrides still apply. Straight (Line) edges are filtered out; interior points only."
+                           Version="{Binding Source={x:Static svc:ToolCatalog.FloorOuterCurveDivider}, Path=Version, StringFormat=v{0}}"
+                           IsRunning="{Binding IsRunning}"
+                           Progress="{Binding Progress}"
+                           SummaryText="{Binding SummaryText}">
+
+        <!-- ═══ HEADER ═══════════════════════════════════════════ -->
+        <shell:ToolWindowShell.HeaderContent>
+            <UniformGrid Columns="3" Margin="0,0,0,8">
+                <Border Style="{StaticResource MetricCard}" Margin="0,0,4,0" Padding="10,8">
+                    <StackPanel>
+                        <TextBlock Text="Curved Edges" Style="{StaticResource MetricLabel}"/>
+                        <TextBlock Text="{Binding Edges.Count}" Style="{StaticResource MetricNumber}" FontSize="18"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="10,8">
+                    <StackPanel>
+                        <TextBlock Text="Edge Types" Style="{StaticResource MetricLabel}"/>
+                        <TextBlock Text="{Binding TypeSettings.Count}" Style="{StaticResource MetricNumberAccent}" FontSize="18"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource MetricCard}" Margin="4,0,0,0" Padding="10,8">
+                    <StackPanel>
+                        <TextBlock Text="Log Entries" Style="{StaticResource MetricLabel}"/>
+                        <TextBlock Text="{Binding LogEntries.Count}" Style="{StaticResource MetricNumber}" FontSize="18"/>
+                    </StackPanel>
+                </Border>
+            </UniformGrid>
+        </shell:ToolWindowShell.HeaderContent>
+
+        <!-- ═══ BODY ═════════════════════════════════════════════ -->
+        <shell:ToolWindowShell.BodyContent>
+            <StackPanel>
+                <!-- ── Per-type defaults ── -->
+                <TextBlock Text="Default Rule By Edge Type" Style="{StaticResource SectionTitle}"/>
+                <DataGrid MinHeight="80"
+                          shell:ShellBehaviors.MaxHeightRatio="0.2"
+                          shell:ShellBehaviors.ForwardMouseWheel="True"
+                          ItemsSource="{Binding TypeSettings}"
+                          Style="{StaticResource StandardDataGrid}"
+                          ColumnHeaderStyle="{StaticResource DataGridColumnHeaderStyle}"
+                          CellStyle="{StaticResource DataGridCellStyle}"
+                          RowStyle="{StaticResource DataGridRowStyle}"
+                          AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False"
+                          RowHeight="36" Margin="0,6,0,10">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Edge Type" Binding="{Binding TypeName}" Width="150" IsReadOnly="True"/>
+
+                        <DataGridTemplateColumn Header="Mode" Width="220">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <RadioButton Content="Distance" Margin="0,0,12,0" VerticalContentAlignment="Center"
+                                                     IsChecked="{Binding ModeByDistance, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                        <RadioButton Content="Count" VerticalContentAlignment="Center"
+                                                     IsChecked="{Binding ModeByCount, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <DataGridTemplateColumn Header="Target (m)" Width="130">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBox Style="{StaticResource BoxedTextInput}" Height="26" Padding="6,2" Width="62"
+                                                 IsEnabled="{Binding ModeByDistance}"
+                                                 Text="{Binding TargetMeters, StringFormat=F2, UpdateSourceTrigger=LostFocus}"/>
+                                        <TextBlock Text="m" Style="{StaticResource UnitLabel}"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <DataGridTemplateColumn Header="Count (pts)" Width="*">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBox Style="{StaticResource BoxedTextInput}" Height="26" Padding="6,2" Width="62"
+                                             HorizontalAlignment="Left"
+                                             IsEnabled="{Binding ModeByCount}"
+                                             Text="{Binding FixedCount, UpdateSourceTrigger=LostFocus}"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+
+                <!-- ── Edges toolbar ── -->
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="Edges" Style="{StaticResource SectionTitle}" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                    <Button Content="Select All"  Style="{StaticResource SmallSecondaryButton}" Width="86" Command="{Binding SelectAllCommand}"/>
+                    <Button Content="Select None" Style="{StaticResource SmallSecondaryButton}" Width="86" Margin="6,0,0,0" Command="{Binding SelectNoneCommand}"/>
+                </StackPanel>
+
+                <!-- ── Edges grid (override + editable point count) ── -->
+                <DataGrid Margin="0,6,0,0" MinHeight="150"
+                          shell:ShellBehaviors.MaxHeightRatio="0.4"
+                          shell:ShellBehaviors.ForwardMouseWheel="True"
+                          VirtualizingStackPanel.IsVirtualizing="True" VirtualizingStackPanel.VirtualizationMode="Recycling"
+                          ItemsSource="{Binding Edges}"
+                          Style="{StaticResource StandardDataGrid}"
+                          ColumnHeaderStyle="{StaticResource DataGridColumnHeaderStyle}"
+                          CellStyle="{StaticResource DataGridCellStyle}"
+                          RowStyle="{StaticResource DataGridRowStyle}"
+                          AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False"
+                          RowHeight="36">
+                    <DataGrid.Columns>
+                        <DataGridTemplateColumn Header="✓" Width="40">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                              HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <DataGridTextColumn Header="#"        Binding="{Binding Index}"                    Width="40"  IsReadOnly="True"/>
+                        <DataGridTextColumn Header="Type"     Binding="{Binding CurveTypeName}"            Width="115" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="Len (m)"  Binding="{Binding LengthM, StringFormat=F3}" Width="85"  IsReadOnly="True"/>
+
+                        <DataGridTemplateColumn Header="Override" Width="78">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <CheckBox IsChecked="{Binding HasOverride, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                              HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <DataGridTemplateColumn Header="Mode" Width="112">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <ComboBox Style="{StaticResource StandardComboBox}" Height="26"
+                                              IsEnabled="{Binding HasOverride}"
+                                              ItemsSource="{Binding DataContext.ModeOptions, RelativeSource={RelativeSource AncestorType=Window}}"
+                                              SelectedItem="{Binding OverrideModeText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <DataGridTemplateColumn Header="Target (m)" Width="100">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBox Style="{StaticResource BoxedTextInput}" Height="26" Padding="6,2" Width="56"
+                                                 IsEnabled="{Binding OverrideDistanceEnabled}"
+                                                 Text="{Binding OverrideTargetMeters, StringFormat=F2, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+                                        <TextBlock Text="m" Style="{StaticResource UnitLabel}"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <!-- Editable point count (length-seeded). Editable when count-driven;
+                             shows the computed result (greyed) when distance-driven. -->
+                        <DataGridTemplateColumn Header="Points" Width="*">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBox Style="{StaticResource BoxedTextInput}" Height="26" Padding="6,2" Width="64"
+                                             HorizontalAlignment="Left"
+                                             IsEnabled="{Binding IsCountDriven}"
+                                             Text="{Binding FinalPointCount, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+
+                <!-- Activity Log (moved from footer) -->
+                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="10,8" Margin="0,10,0,0">
+                    <StackPanel>
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Activity Log" Foreground="{StaticResource BrushLogText}" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                <Button Content="Copy All" Style="{StaticResource DarkGhostButton}" Click="CopyAllLog_Click" Margin="0,0,6,0"/>
+                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Click="CopySelectedLog_Click"/>
+                            </StackPanel>
+                        </Grid>
+                        <ListBox x:Name="LogList" ItemsSource="{Binding LogEntries}" MinHeight="100"
+                                 shell:ShellBehaviors.MaxHeightRatio="0.2"
+                                 shell:ShellBehaviors.ForwardMouseWheel="True"
+                                 Background="Transparent" BorderThickness="0" SelectionMode="Extended"
+                                 ScrollViewer.VerticalScrollBarVisibility="Auto">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" Margin="0,1">
+                                        <TextBlock Text="{Binding Time, StringFormat=HH:mm:ss}"
+                                                   Foreground="{StaticResource BrushLogTextDim}"
+                                                   FontFamily="Consolas" FontSize="11.5" Margin="0,0,10,0"/>
+                                        <TextBlock Text="{Binding Message}"
+                                                   Foreground="{Binding Level, Converter={StaticResource LogLevelToColor}}"
+                                                   FontFamily="Consolas" FontSize="11.5" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </shell:ToolWindowShell.BodyContent>
+
+        <!-- ═══ FOOTER ═══════════════════════════════════════════ -->
+        <shell:ToolWindowShell.FooterContent>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="Apply Points" Style="{StaticResource PrimaryButton}" Width="150" Margin="0,0,8,0"
+                        Command="{Binding ApplyCommand}"/>
+                <Button Content="Close" Style="{StaticResource OutlineButton}" Width="90" IsCancel="True" Click="Close_Click"/>
+            </StackPanel>
+        </shell:ToolWindowShell.FooterContent>
+    </shell:ToolWindowShell>
+</Window>

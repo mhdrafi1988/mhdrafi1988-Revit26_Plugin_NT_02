@@ -21,6 +21,7 @@ using Revit26_Plugin_Revised.RoofEdgeVertexReducer.V008.Core.Services;
 using Revit26_Plugin_Revised.RoofEdgeVertexReducer.V008.Infrastructure.Helpers;
 using Revit26_Plugin_Revised.RoofEdgeVertexReducer.V008.UI.ViewModels;
 using Revit26_Plugin_Revised.Shared.Models;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace Revit26_Plugin_Revised.RoofEdgeVertexReducer.V008.Infrastructure.ExternalEvents
 {
@@ -51,7 +52,10 @@ namespace Revit26_Plugin_Revised.RoofEdgeVertexReducer.V008.Infrastructure.Exter
             _vm = vm;
         }
 
-        public void Execute(UIApplication app)
+        public void Execute(UIApplication app) =>
+            ToolGuard.RunHandler(GetType(), app, ExecuteCore);
+
+        private void ExecuteCore(UIApplication app)
         {
             try
             {

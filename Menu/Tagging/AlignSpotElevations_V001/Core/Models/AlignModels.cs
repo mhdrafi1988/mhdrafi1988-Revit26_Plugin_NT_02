@@ -74,9 +74,57 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Core.Models
         /// <summary>True when the line runs straight left to right, so a horizontal move can never reach it.</summary>
         public bool IsHorizontal => System.Math.Abs(BV - AV) <= StraightTolerance * System.Math.Max(Length, 1e-9);
 
-        /// <summary>Short description, e.g. "sloped, 40° · 142 mm".</summary>
+        /// <summary>
+        /// Element id value of the spot elevation this line was taken from (Pick tag…), or 0 for a detail
+        /// line. A tag line runs vertically or horizontally through one point of that tag.
+        /// </summary>
+        public long TagId { get; set; }
+
+        /// <summary>Label of the tag this line was taken from (Pick tag…), or null.</summary>
+        public string TagLabel { get; set; }
+
+        /// <summary>The part of the tag the line runs through (leader end or bend point). Tag lines only.</summary>
+        public SpotPart TagPart { get; set; }
+
+        /// <summary>True when the line was taken from a tag (Pick tag…).</summary>
+        public bool IsTagLine => TagId != 0;
+
+        /// <summary>True when the line has no ends: a tag line always reaches every spot.</summary>
+        public bool IsEndless { get; set; }
+
+        /// <summary>
+        /// An endless vertical (<paramref name="direction"/> = Vertical: same X) or horizontal (same Y) line
+        /// through (<paramref name="u"/>, <paramref name="v"/>), the <paramref name="part"/> of tag
+        /// <paramref name="tagId"/>.
+        /// </summary>
+        public static DetailLine2D ThroughTag(double u, double v, AlignDirection direction, long tagId, string tagLabel, SpotPart part)
+        {
+            const double half = 500; // paper mm; the line is endless anyway
+            bool vertical = direction == AlignDirection.Vertical;
+            return new DetailLine2D
+            {
+                AU = vertical ? u : u - half,
+                AV = vertical ? v - half : v,
+                BU = vertical ? u : u + half,
+                BV = vertical ? v + half : v,
+                TagId = tagId,
+                TagLabel = tagLabel,
+                TagPart = part,
+                IsEndless = true
+            };
+        }
+
+        /// <summary>The point of the tag a tag line runs through: the middle of the line.</summary>
+        public double TagU => (AU + BU) / 2;
+
+        /// <summary>See <see cref="TagU"/>.</summary>
+        public double TagV => (AV + BV) / 2;
+
+        /// <summary>Short description, e.g. "sloped, 40° · 142 mm", or for a tag line "vertical through X 48.0 mm".</summary>
         public string Describe()
         {
+            if (IsTagLine)
+                return IsVertical ? $"vertical through X {TagU:0.0} mm" : $"horizontal through Y {TagV:0.0} mm";
             string shape;
             if (IsVertical) shape = "vertical";
             else if (IsHorizontal) shape = "horizontal";
@@ -194,7 +242,7 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Core.Models
     public sealed class AlignOptions
     {
         /// <summary>Settings file format version.</summary>
-        public const int CurrentVersion = 3;
+        public const int CurrentVersion = 4;
 
         /// <summary>Format version of the saved file.</summary>
         public int Version { get; set; } = CurrentVersion;
@@ -253,6 +301,14 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Core.Models
         /// <summary>How the bend points slide onto their detail line (Align to detail lines). Version 3.</summary>
         public LineMove ShoulderLineMove { get; set; } = LineMove.Auto;
 
+        /// <summary>Which way the line through a picked tag's leader end runs (Pick tag…, and Quick Align
+        /// Ends to Tag): Vertical = same X (one column), Horizontal = same Y (one row). Version 4.</summary>
+        public AlignDirection EndTagLineDirection { get; set; } = AlignDirection.Vertical;
+
+        /// <summary>Which way the line through a picked tag's bend point runs (Pick tag…, and Quick Align
+        /// Bends to Tag). Version 4.</summary>
+        public AlignDirection ShoulderTagLineDirection { get; set; } = AlignDirection.Vertical;
+
         /// <summary>Treat the detail lines as endless. Off (default): a part whose move would land past
         /// an end of its line is skipped. Version 3.</summary>
         public bool ExtendLines { get; set; }
@@ -269,7 +325,7 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Core.Models
         [System.Text.Json.Serialization.JsonIgnore]
         public DetailLine2D ShoulderLine { get; set; }
 
-        /// <summary>True when at least one detail line is picked.</summary>
+        /// <summary>True when at least one detail line or tag line is picked.</summary>
         [System.Text.Json.Serialization.JsonIgnore]
         public bool HasAnyDetailLine => TextLine != null || EndLine != null || ShoulderLine != null;
 

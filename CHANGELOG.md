@@ -9,6 +9,180 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.37.1] — 2026-11-03
+
+### Fixed
+- 189 command and external-event handler entry points (older tool versions still on the ribbon: roof, sheet,
+  view, workset, link, DWG, detail-line and others) now run through `ToolGuard`. An unexpected error in these
+  tools is logged to `%AppData%\Revit26_Plugin_Revised\Logs`, shown in an error dialog, and no longer reaches
+  Revit. No tool behaviour or version changes; no new UI.
+
+## [6.37.0] — 2026-11-03
+
+### Added
+- New **Floor Views** ribbon panel on the Documents tab, right after **View Create**, each tool **v1.0.0 (V001)**:
+  - **Floor Edge Around Sections** (from Roof Edge Around Sections V007): section views around every edge of the
+    selected floors.
+  - **Floor Edge Element Sections** (from Roof Edge Element Sections V004): section views where linked elements
+    meet the selected floor edges.
+  - **Floor View Focus** (from Roof View Focus V004): crops the plan view to the selected floors.
+- **Floor Tapered EPS 2D Pattern v1.0.0 (V001)** (from Tapered EPS 2D Pattern V006), as **Floor EPS** on the
+  **Floor Edit** panel: draws the tapered EPS insulation layout as a 2D detail pattern in a plan view. Like the roof
+  tool, the floor must have a single outer loop (no openings).
+- These four tools only read the floors; they create views and detail items. Each tool was ported from the
+  latest roof version only.
+
+### Changed
+- **User note:** settings are saved separately from the roof tools, under
+  `%AppData%\Revit26_Plugin_Revised\FloorEdgeAroundSections`, `...\FloorEdgeElementSections` and
+  `...\FloorViewFocus`.
+- The roof tools are unchanged.
+
+## [6.36.0] — 2026-11-03
+
+### Added
+- New **Floor Edit** ribbon panel, right after **Floor Lines**, each tool **v1.0.0 (V001)**:
+  - **Floor Type Manager** (from Roof Type Manager V003): floor types with their layers, Excel export, and new
+    floor types created from an Excel template (compound structure, Variable layer, layer priorities).
+  - **Floor Name Builder** (from Roof Name Builder V002): bulk-renames floor types, or writes a floor instance
+    parameter, from INS / SLP / MAT codes.
+  - **Floor Tag** (from Roof Tag V018): spot elevations on a floor's top face at its shape points or picked points.
+  - **Floor Point Comparison** (from Roof Point Comparison V003): compares two floors' shape-point heights. It only
+    reads the floors.
+  - **Floor Point Elevation Sync** (from Roof Point Elevation Sync V005): matches two floors' shape points by plan
+    position and sets the chosen heights.
+- Floor Tag and Floor Point Elevation Sync refuse floors that are in a group, in a read-only model, borrowed by
+  another user, or that do not support shape editing, and say why. Elevation Sync also asks before changing a floor
+  whose type has no Variable layer.
+
+### Changed
+- **User note:** settings are saved separately from the roof tools, under
+  `%AppData%\Revit26_Plugin_Revised\FloorNameBuilder` and `...\FloorPointElevationSync`. Floor Tag's log file is
+  `Documents\FloorTag_V001_Log.txt`.
+- The roof tools are unchanged.
+
+## [6.35.0] — 2026-11-03
+
+### Added
+- New **Floor Lines** ribbon panel, right after **Floor Points**, each tool **v1.0.0 (V001)**:
+  - **Floor Crease Lines By Openings** (from Ridge By Openings V070): pick a floor, choose openings as drains, and
+    the crease (ridge) lines midway between them are drawn as shape points + split lines and/or detail lines.
+  - **Floor Crease Lines By Points** (from Ridge By Points V059): the same, from drain points clicked on the floor.
+  - **Floor Creaser** (from Creaser Adv V012): places detail items along a sloped floor's creases in the active
+    view. It only reads the floor.
+- The two crease-line tools refuse floors that are in a group, in a read-only model, borrowed by another user, or
+  that do not support shape editing, and say why.
+
+### Changed
+- **User note:** the crease-line tools are named "Crease Lines" on floors; they are the same Voronoi ridge
+  tools as on roofs. Their window titles and versions now come from the tool list (`ToolCatalog`), not from text
+  fixed in the window.
+- The roof tools are unchanged.
+
+## [6.34.0] — 2026-11-03
+
+### Added
+- New **Floor Points** ribbon panel, right after **Shape Points**, with floor versions of every Shape Points tool,
+  each **v1.0.0 (V001)**:
+  - **Floor Divide Inner Loops** (from Divide Inner Loops V012)
+  - **Floor Outer Curve Divider** (from Outer Curve Divider V006)
+  - **Floor Detail Line Intersect** (from Roof Detail Line Intersect V014)
+  - **Floor Inner Loops And Perpendicular** (from Inner Loops And Perpendicular V007)
+  - **Floor Edge Vertex Reducer** (from Roof Edge Vertex Reducer V009)
+  - **Floor Multiple Points (1/2–1/4)** (from Multiple Points V003)
+  - **Floor Shape From Link** (from Roof Shape From Link V002): reads the floors in the linked files.
+- All seven refuse floors that are in a group, in a read-only model, borrowed by another user, or that do not
+  support shape editing, and say why. Floor Shape From Link, which changes point heights, also asks before
+  changing a floor whose type has no Variable layer.
+- `Shared/Services/FloorSketchProfile` (reads a floor's sketch loops; a floor has no `GetProfiles()`) and
+  `Shared/Services/FloorPickFilter` (picks floors outside groups only).
+
+### Changed
+- **User note:** in **Floor Shape From Link**, "Subtract host floor thickness" is **off** by default. A floor's
+  level + offset is its top surface, so the host top follows the linked surface directly. Tick it to set the host
+  top one floor-type thickness lower. (The roof tool keeps it on, because a roof's base is its bottom.)
+- **User note:** **Floor Inner Loops And Perpendicular** resets every shape point of the picked floor to 0 when it
+  opens, as the roof tool does. Run it before sloping, or use Floor Divide Inner Loops, which only resets when you
+  tick that option.
+- The roof tools are unchanged.
+
+## [6.33.0] — 2026-11-03
+
+### Added
+- Three more floor tools on the **Floor Slope** panel (floor versions of the remaining Roof Slope tools):
+  - **Floor Slope By Point (Ridge) v1.0.0 (V001)**: the floor version of Auto Slope By Point (Ridge) V003. Pick a
+    floor and its drain points. Drains are grouped, the ridge points between groups are lifted, and every point
+    drains to a neighbour at the given slope or more.
+  - **Floor Slope By Point (Multi Copies) v1.0.0 (V001)**: the floor version of Auto Slope By Point (Multi Copies)
+    30. Pick a floor and its drain points, tick several slopes, and the floor is copied once per slope. Each copy is
+    sloped and put on its own workset (`Floor_Slope_<n>%`). Needs a workshared model, as on roofs.
+  - **Floor Points & Slope v1.0.0 (V001)**: the floor version of Roof Points & Slope V001. Pick one or more floors:
+    shape points around openings, perpendicular, mid/quarter and gap-fill points, the ridges between the drain
+    openings, then slope by drain (Floor Slope By Drain V001's engine), in one window and one Undo step.
+  - All three refuse floors that are in a group, borrowed by another user, in a read-only model, or that do not
+    support shape editing, and ask before sloping a floor whose type has no Variable layer.
+
+### Changed
+- **User note:** on the **Floor Slope** panel, **By Point** is now a pulldown (as on Roof Slope). It holds
+  **By Point** (the tool that was the button), **Ridge** and **Multi Copies**. If you added the old By Point button
+  to the Quick Access Toolbar, add it again from the pulldown.
+- **User note:** settings are saved separately from the roof tools, under
+  `%AppData%\Revit26_Plugin_Revised\FloorSlopeByPointRidge`, `...\FloorSlopeByPointMultiCopies` and
+  `...\FloorPointsAndSlope`. Excel reports go to `Documents\FloorSlope_Reports` by default. The same `AutoSlope_*`
+  parameters are written where they are bound to Floors.
+- **User note:** Floor Points & Slope uses **openings** in the floor sketch as drains. Drain families (Plumbing
+  Fixtures) are not listed there yet; use Floor Slope By Drain for floors drained by drain families.
+- The roof tools are unchanged. Floor Points & Slope uses floor copies of Ridge By Openings V070's boundary,
+  opening and ridge-creation services; V070 itself is untouched.
+
+## [6.32.0] — 2026-11-03
+
+### Added
+- **Align Spot Elevations v1.6.0 (V001)**: line spot elevations up with a tag.
+  - In **Align to detail lines** mode, the **Bend point line** and **End point line** boxes get a **Pick tag…**
+    button next to **Pick line…**. Click one spot elevation in the view: the selected spots' bend points (or leader
+    end points) line up with that tag's bend point (or end point), on a **Vertical (same X)** or
+    **Horizontal (same Y)** line. Pick the same tag for both boxes to line up bends and ends together. The clicked
+    tag does not need to be selected, and it stays where it is. It may be pinned or grouped, since it never moves.
+  - Two new small buttons in the **Tagging** panel: **Quick Align Ends to Tag** and **Quick Align Bends to Tag**.
+    Select the spots, click the button, click one tag. One Undo step.
+
+### Changed
+- **User note:** a line taken from a tag is endless, so the "Spots past the end of a line" choice does not apply
+  to it. The direction (vertical or horizontal) of each tag line is remembered and is also what the two quick
+  buttons use (default: vertical). The settings file moves to format version 4; older files still load.
+- The Align Spot Elevations mode is now labelled **Align to detail lines or a tag**.
+
+## [6.31.0] — 2026-11-02
+
+### Added
+- **Floor Slope** ribbon panel on the Modelling tab, next to **Roof Slope**, with two new tools:
+  - **Floor Slope By Drain v1.0.0 (V001)**: the floor version of Auto Slope By Drain (Multi-Roof) V013. Pick one
+    or more floors. Their drains are listed in one tab per floor, then each floor's shape points are sloped down to
+    the ticked drains in one Undo step. Two kinds of drain are found:
+    - openings in the floor sketch, as on roofs;
+    - **drain families**: Plumbing Fixture instances hosted on the floor or standing on its top face (within
+      300 mm). They are listed in a new **Fixture** group. Only fixtures whose family or type name looks like a
+      drain (drain, gully, outlet, trap, sump) start ticked. When the run starts, a shape point is added at each
+      ticked drain family.
+
+    Excel export, circle markers, path options and parameter write-back are the same as on the roof tool.
+  - **Floor Slope By Point v1.0.0 (V001)**: the floor version of Auto Slope By Point V033. Pick a floor, click the
+    drain points on it, and the floor is sloped down to them, with optional ridge lines.
+  - Both tools refuse floors that are in a group, borrowed by another user, in a read-only model, or that do not
+    support shape editing, and say why.
+
+### Changed
+- **User note:** if a floor's type has no **Variable** layer, both floor tools ask before sloping it. Shape editing
+  would tilt the whole slab, bottom included. Choose **Continue** to slope it anyway, or **Skip** (By Point:
+  **Cancel**) to leave it unchanged.
+- **User note:** the floor tools write the same `AutoSlope_*` shared parameters as the roof tools, but only where
+  they are bound to the **Floors** category. If they are not bound, the run log says so and the slope is still
+  applied. Settings are saved separately from the roof tools, under
+  `%AppData%\Revit26_Plugin_Revised\FloorSlopeByDrain` and `...\FloorSlopeByPoint`. Excel reports go to
+  `Documents\FloorSlope_Reports` by default.
+- The roof slope tools are unchanged.
+
 ## [6.30.1] — 2026-11-02
 
 ### Fixed

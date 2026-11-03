@@ -59,6 +59,49 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Commands
             return AlignRunner.Apply(ctx, plan, $"aligned in {where} ({Describe(o)})");
         }
 
+        /// <summary>
+        /// Quick Align Ends / Bends to Tag: the user clicks one spot elevation, and the <paramref name="part"/>
+        /// (leader end or bend point) of every selected spot slides onto an endless line through that tag's
+        /// point. The line is vertical (same X) or horizontal (same Y) as last chosen in the window.
+        /// </summary>
+        public static Result RunToTag(ExternalCommandData commandData, SpotPart part)
+        {
+            AlignContext ctx = AlignRunner.Prepare(commandData);
+            if (ctx == null) return Result.Cancelled;
+
+            bool ends = part == SpotPart.LeaderEnd;
+            if (ctx.Read.Items.Count(i => ends ? i.HasEnd : i.HasShoulder) == 0)
+            {
+                TaskDialog.Show(ctx.Title, ends
+                    ? "None of the selected spot elevations has a leader, so there are no end points to align."
+                    : "None of the selected spot elevations has a leader with a bend point, so there are no bend points to align.");
+                return Result.Cancelled;
+            }
+
+            AlignOptions o = AlignSettingsStore.Load().Clone();
+            AlignDirection direction = ends ? o.EndTagLineDirection : o.ShoulderTagLineDirection;
+            // Esc throws OperationCanceledException, which ToolGuard turns into Cancelled.
+            DetailLine2D line = AlignRunner.PickTagLine(ctx, part, direction, escThrows: true);
+            if (line == null) return Result.Cancelled;
+
+            o.Mode = ArrangeMode.AlignToDetailLines;
+            o.TextLine = null;
+            o.EndLine = ends ? line : null;
+            o.ShoulderLine = ends ? null : line;
+            o.EndLineMove = LineMove.Auto;
+            o.ShoulderLineMove = LineMove.Auto;
+
+            ArrangePlan plan = AlignEngine.Plan(ctx.Read.Items, o);
+            string what = ends ? "end points" : "bend points";
+            if (plan.MoveCount == 0)
+            {
+                TaskDialog.Show(ctx.Title, $"The selected {what} are already on that line.");
+                return Result.Cancelled;
+            }
+            string where = direction == AlignDirection.Vertical ? "one column" : "one row";
+            return AlignRunner.Apply(ctx, plan, $"aligned: {what} in {where} with {line.TagLabel}");
+        }
+
         private static string Describe(AlignOptions o)
         {
             string target = o.Target switch
@@ -147,5 +190,27 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Commands
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
             => ToolGuard.RunCommand(GetType(), commandData, ref message, elements,
                 (ExternalCommandData d, ref string m, ElementSet e) => QuickAlign.Run(d, AlignDirection.Horizontal, SpotPart.LeaderShoulder));
+    }
+
+    /// <summary>Quick Align Ends to Tag: lines the selected leader end points up with the end point of a clicked tag, no window.</summary>
+    [Transaction(TransactionMode.Manual)]
+    [Regeneration(RegenerationOption.Manual)]
+    public class AlignSpotElevationsQuickEndsToTagCommand : IExternalCommand
+    {
+        /// <summary>Revit entry point — delegates to <see cref="ToolGuard.RunCommand"/>.</summary>
+        public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
+            => ToolGuard.RunCommand(GetType(), commandData, ref message, elements,
+                (ExternalCommandData d, ref string m, ElementSet e) => QuickAlign.RunToTag(d, SpotPart.LeaderEnd));
+    }
+
+    /// <summary>Quick Align Bends to Tag: lines the selected leader bend points up with the bend point of a clicked tag, no window.</summary>
+    [Transaction(TransactionMode.Manual)]
+    [Regeneration(RegenerationOption.Manual)]
+    public class AlignSpotElevationsQuickBendsToTagCommand : IExternalCommand
+    {
+        /// <summary>Revit entry point — delegates to <see cref="ToolGuard.RunCommand"/>.</summary>
+        public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
+            => ToolGuard.RunCommand(GetType(), commandData, ref message, elements,
+                (ExternalCommandData d, ref string m, ElementSet e) => QuickAlign.RunToTag(d, SpotPart.LeaderShoulder));
     }
 }

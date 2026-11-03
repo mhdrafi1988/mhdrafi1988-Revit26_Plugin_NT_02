@@ -1,77 +1,83 @@
 # UI/UX Patterns
 
-How the newer/actively-maintained tool windows are actually built —
-shared visual system, filtering, grouping, logging, wizards, and
-multi-item tabs. These are patterns found in specific tools (named below),
-not enforced repo-wide — older or untouched tools may predate them and use
-something simpler. Treat this as "what to copy when building or updating a
-tool's UI," not a rule every existing window already follows.
+How the newer and actively maintained tool windows are built: shared visual system, window shell, filtering,
+grouping, logging, wizards and multi-item tabs. Updated 2026-11-03 (plugin 6.37.0). These patterns come from
+specific tools (named below), and are not enforced repo-wide. Older tools may predate them. Treat this as "what to
+copy when building or updating a tool's UI".
+
+Every tool update also needs an HTML preview of the window in `Claude/Previews/`, published as a claude.ai Artifact
+(root `CLAUDE.md`, UI previews). The preview uses the same colour tokens as `Shared/SharedStyles.xaml`.
+
+The floor tools (plugins 6.31.0–6.37.0) reuse their roof tool's window as-is, with floor wording and the title and
+version taken from `ToolCatalog`. Their previews are grouped per panel: `FloorSlope_V001_Windows.html`,
+`FloorPoints_V001_Windows.html`, `FloorLines_V001_Windows.html`, `FloorEdit_V001_Windows.html` and
+`FloorViewsAndEps_V001_Windows.html`.
+
+## Window shell
+
+Every tool window's content is a `Shared/Controls/ToolWindowShell`, with a fixed header, one scrolling body and a
+fixed footer. The rules (no nested `ScrollViewer`, `ShellBehaviors.MaxHeightRatio` on grids and logs, tokens only,
+title from `ToolCatalog`) are in `CLAUDE.md` next to this folder. Good examples: Section Auto Renamer V026, Auto
+Slope By Drain V013, Floor Slope By Drain V001.
 
 ## MVVM toolkit
 
-Newer ViewModels use **CommunityToolkit.Mvvm** (`[ObservableProperty]`,
-`[RelayCommand]`, `ObservableObject`/`ObservableRecipient`) rather than
-hand-written `INotifyPropertyChanged`/`ICommand`. Confirmed in
-`CalloutCOPViewModel.cs`, `RoofTabViewModel.cs`, `ParaManagerViewModel.cs`.
-Prefer it for any new or substantially-touched ViewModel.
+Newer ViewModels use **CommunityToolkit.Mvvm** (`[ObservableProperty]`, `[RelayCommand]`, `ObservableObject`)
+rather than hand-written `INotifyPropertyChanged` / `ICommand`. Examples: `CalloutCOPViewModel.cs` (Callout To
+Section V021), `RoofTabViewModel.cs` (Auto Slope By Drain V013), `ParaManagerViewModel.cs` (ParaManager V005). Many
+tools derive from `Shared/ViewModels/ToolViewModelBase`, which provides the log collection, log commands and shell
+properties (26 ViewModels outside WIP use it). Use both for a new or substantially changed ViewModel.
 
 ## Shared visual system — `Shared/SharedStyles.xaml`
 
-"Navy Corporate Theme", currently v3.0 per its own header comment. Color
-tokens as `<Color>` resources, then a matching `<SolidColorBrush>` per
-token (`NavyPrimary` → `BrushNavyPrimary`, etc.) — reference the brush, not
-the raw color, from window XAML. Key groups:
-- Backgrounds/text/status colors for the general card-based UI.
-- A **log panel palette that's always dark**, independent of the rest of
-  the window's theme (`LogBackground`, `LogText`, `LogSuccess`/`Warning`/
-  `Error`, ...).
-- `InputBackground` (light orange) specifically so input fields read as
-  visibly distinct from card backgrounds across every tool — don't override
-  this per-tool.
+The "Navy Corporate Theme". Colour tokens are `<Color>` resources, each with a matching `<SolidColorBrush>`
+(`NavyPrimary` → `BrushNavyPrimary`, etc.). Reference the brush, not the raw colour, from window XAML. New and
+migrated XAML uses the **v4.0 semantic tokens**. Key groups:
 
-Root-tag brushes must be bound via `DynamicResource`, not `StaticResource`
-— a `StaticResource` lookup on a pack-URI-loaded root tag broke in
-`ParaManager`/`WorksetRenamer` and was fixed repo-wide (see
-`Claude/CHANGELOG.md`, 2026-09-17).
+- Backgrounds, text and status colours for the card-based UI, plus tinted metric tiles (v3.1) and pills
+  (`PillInfo…`, `PillSuccess…`, `PillMuted…`).
+- A **log panel palette that is always dark** (`LogBackground` `#14283F`, `LogText`, `LogSuccess` / `Warning` /
+  `Error` …), whatever the rest of the window looks like.
+- `InputBackground`, now `#FFFFFF`. Its comment in the file still says "light orange". Don't override it per tool.
+
+No inline colours in window XAML; `Transparent` is the one exception. Add a token, or a style, to
+`SharedStyles.xaml` instead.
+
+Root-tag brushes must be bound with `DynamicResource`, not `StaticResource`. A `StaticResource` lookup on a
+pack-URI-loaded root tag broke in ParaManager and Workset Renamer and was fixed repo-wide (see `Claude/CHANGELOG.md`,
+2026-09-17).
 
 ## Converters — declare in the window, not in `SharedStyles.xaml`
 
-`Shared/Converters.cs` (namespace `Revit26_Plugin.Shared.Models`) holds the
-shared value converters. Its own file header states the convention
-explicitly: instantiate each converter in the **consuming window's own
-`Resources` block**, never inside `SharedStyles.xaml` — doing the latter
-causes "incompatible type" / "does not exist in namespace" errors at
-design time. Reference with the assembly-qualified xmlns:
+`Shared/Converters.cs` (namespace `Revit26_Plugin_Revised.Shared.Models`) holds the shared value converters.
+Instantiate each converter in the **consuming window's own `Resources`**, never inside `SharedStyles.xaml`. Doing
+the latter causes "incompatible type" / "does not exist in namespace" errors at design time. Reference them with the
+assembly-qualified xmlns:
 
 ```xml
-xmlns:converters="clr-namespace:Revit26_Plugin.Shared.Models;assembly=Revit26_Plugin_Revised"
+xmlns:converters="clr-namespace:Revit26_Plugin_Revised.Shared.Models;assembly=Revit26_Plugin_Revised"
 ...
 <converters:LogLevelToColorConverter x:Key="LogLevelToColorConverter"/>
 ```
 
-Converters worth knowing before writing a new one (check this list first —
-several are generic enough to reuse as-is):
-- `BoolToVisibilityConverter` / `InverseBoolToVisibilityConverter` /
-  `IntToVisibilityConverter` — standard visibility toggles.
-- `InverseBoolConverter` — inverted `IsEnabled` bindings (e.g. disable
-  while busy).
-- `LogLevelToColorConverter` — maps `LogLevel` to the dark log panel's text
-  color.
-- `EnumToBoolConverter` — see **Quick-filter chips** below.
-- `ViewTypeGroupToBrushConverter` — see **Category pills** below.
-- `BoolToHeaderIconBrushConverter` — active/inactive toolbar icon tint.
+Check this list before writing a new converter:
+- `BoolToVisibilityConverter` / `InverseBoolToVisibilityConverter` / `IntToVisibilityConverter`: visibility toggles.
+- `InverseBoolConverter`: inverted `IsEnabled` bindings (e.g. disable while busy).
+- `LogLevelToColorConverter`: maps `LogLevel` to the dark log panel's text colour.
+- `EnumToBoolConverter`: see **Quick-filter chips** below.
+- `ViewTypeGroupToBrushConverter`: see **Category pills** below.
+- `BoolToHeaderIconBrushConverter`: active/inactive toolbar icon tint.
+- `MixedWorksetToColorConverter`: maps a bool to orange (true) or dark grey (false), e.g. to highlight mixed
+  worksets or another status flag.
 
-Two converters (`EnumToBoolConverter`, `ViewTypeGroupToBrushConverter`)
-deliberately match by `.ToString()`/member name rather than a concrete
-enum type, specifically so one shared converter instance works against any
-tool's own locally-declared copy of a similarly-shaped enum. Follow that
-approach for a new converter that needs to work across tools whose enums
-aren't (and don't need to be) unified into one shared type.
+`EnumToBoolConverter` and `ViewTypeGroupToBrushConverter` match by `.ToString()` / member name rather than a
+concrete enum type. That way one shared converter works against each tool's own copy of a similar enum. Do the same
+for a new converter that has to work across tools whose enums aren't unified.
 
-## Filtering — `ICollectionView` + a `[ObservableProperty]` filter state
+## Filtering — `ICollectionView` plus observable filter state
 
-Established pattern, seen in `ViewAutoRenamer_V004/ViewModels/
-ViewsListViewModel.cs` and `CalloutCOP_V019/CalloutCOPViewModel.cs`:
+The established pattern is in `Menu/ViewTools/Rename/ViewAutoRenamer_V007/ViewModels/ViewsListViewModel.cs` and
+`Menu/ViewTools/Place/CalloutCOP_V021/CalloutCOPViewModel.cs`:
 
 ```csharp
 public ICollectionView ViewsGrid { get; }
@@ -80,20 +86,14 @@ ViewsGrid = CollectionViewSource.GetDefaultView(Views);
 ViewsGrid.Filter = PassesAllFilters;   // one predicate combining every active filter
 ```
 
-Filter *state* (a quick-filter enum, a search text box, a sheet/category
-combo selection, checkbox toggles) lives as `[ObservableProperty]` fields.
-Each one's generated `partial void On<Prop>Changed(...)` calls
-`ViewsGrid.Refresh()` so the grid updates live as the user types/toggles —
-don't wire a manual "Apply Filter" button for this; the established pattern
-re-filters immediately.
+Filter state (a quick-filter enum, a search box, a combo selection, checkbox toggles) lives in `[ObservableProperty]`
+fields. Each one's generated `partial void On<Prop>Changed(...)` calls `ViewsGrid.Refresh()`, so the grid updates
+as the user types. Don't add a manual "Apply Filter" button.
 
-**Quick-filter chips**: a row of `RadioButton`s styled as toggle "chips"
-(`GroupName="QuickFilter"`, shared `ChipToggle` style), each bound
-**one-way** through `EnumToBoolConverter` for its checked state and driving
-the actual change through a `Command`, not two-way binding — this split is
-intentional (see the converter's own doc comment) so the state change goes
-through the ViewModel's command (which can also do bookkeeping like
-`RecalculateQuickFilterCounts`), not an implicit two-way write:
+**Quick-filter chips:** a row of `RadioButton`s styled as chips (`GroupName="QuickFilter"`, shared `ChipToggle`
+style). Each one's checked state is bound **one-way** through `EnumToBoolConverter`, and the change goes through a
+`Command`, not a two-way binding. That lets the ViewModel's command do bookkeeping such as
+`RecalculateQuickFilterCounts`:
 
 ```xml
 <RadioButton GroupName="QuickFilter" Style="{StaticResource ChipToggle}"
@@ -101,67 +101,54 @@ through the ViewModel's command (which can also do bookkeeping like
              Command="{Binding SetQuickFilterCommand}" CommandParameter="Unplaced">
 ```
 
-**Filter popovers with their own search**: `CalloutCOPViewModel` nests a
-second `ICollectionView` (`SheetFilterItemsView` over `SheetFilterItems`)
-inside a filter dropdown, with its own `_sheetFilterSearchText`, so a long
-list of sheets/values can itself be searched before picking one — reuse
-this nested-`ICollectionView` shape for any filter popover backed by a
-long option list, rather than an unfiltered `ComboBox`.
+**Filter popovers with their own search:** `CalloutCOPViewModel` nests a second `ICollectionView`
+(`SheetFilterItemsView` over `SheetFilterItems`) inside a filter dropdown, with its own `_sheetFilterSearchText`,
+so a long list of sheets can be searched before picking one. Reuse this shape for any filter popover with a long
+option list, rather than an unfiltered `ComboBox`.
 
-**Counts alongside filters**: quick-filter and status counts
-(`RecalculateQuickFilterCounts`, `SelectedCount`, `PlacedCount`, ...) are
-recomputed and exposed as their own bindable properties so chip/badge
-labels can show "(12)" next to a filter name — compute these next to the
-filter logic, not separately in the view.
+**Counts alongside filters:** counts such as `RecalculateQuickFilterCounts`, `SelectedCount` and `PlacedCount` are
+exposed as their own bindable properties, so chip and badge labels can show "(12)". Compute them next to the filter
+logic, not in the view.
 
-## Grouping — category pills + grouped checkbox filters
+## Grouping — category pills and grouped rows
 
-**Pills**: a small colored `Border` + `TextBlock` (`ViewTypePillBorder` /
-`ViewTypePillText` styles) showing a category, background/foreground driven
-by `ViewTypeGroupToBrushConverter` off a `TypeGroup`-shaped property. The
-converter's palette (`SectionOrCallout`, `FloorPlan`, `CeilingPlan`,
-`Elevation`, ...) is the canonical color-per-category mapping — extend it
-there rather than hardcoding a category color in a new tool's XAML.
+**Category pills:** a small coloured `Border` + `TextBlock` (`ViewTypePillBorder` / `ViewTypePillText`, declared in
+`ViewAutoRenamerWindow.xaml`) showing a category, coloured by `ViewTypeGroupToBrushConverter` from a
+`TypeGroup`-shaped property. The converter's palette (`SectionOrCallout`, `FloorPlan`, `CeilingPlan`, `Elevation`,
+…) is the colour-per-category mapping. Extend it there rather than hard-coding a colour in a new tool.
 
-**Grouped filter checkboxes**: `ViewAutoRenamerWindow`'s
-`ObservableCollection<ViewTypeFilterGroup> ViewTypeFilterGroups` — each
-group has a category header and a nested list of checkbox rows
-(`BuildViewTypeFilterGroups`) — is the pattern for "filter by category,
-with per-item overrides within it" (as opposed to the flat quick-filter
-chips above, which are mutually exclusive). Use grouped checkboxes when the
-filter dimension has many values that cluster into a handful of categories;
-use quick-filter chips when there are only a few mutually-exclusive states.
+**Grouped filter checkboxes:** View Auto Renamer's `ViewTypeFilterGroups` (built by `BuildViewTypeFilterGroups`):
+each group has a category header and nested checkbox rows. Use it for "filter by category, with per-item
+overrides". Use the quick-filter chips above when there are only a few mutually exclusive states.
 
-## Logging — shared `LogEntry`/`LogLevel`, always-dark panel
+**Grouped grid rows:** the drains grid in Auto Slope By Drain V013 and Floor Slope By Drain V001 groups its
+`ICollectionView` with `PropertyGroupDescription(nameof(DrainItem.ShapeGroup))`, sorted by a `ShapeGroupOrder`
+property. Each group header has All / None buttons bound to `SelectAllInGroupCommand` / `SelectNoneInGroupCommand`
+with the group name as parameter. Floor Slope adds a "Fixture" group for drain families.
 
-`Shared/LogEntry.cs` / `Shared/LogLevel.cs` (`Info`, `Warning`, `Error`,
-`Success`, `Debug`) are explicitly the single canonical log model —
-`LogEntry.cs`'s own header says "Replaces per-tool copies; reference only
-this class going forward." Render log rows through
-`LogLevelToColorConverter` against the dark `Log*` brushes from
-`SharedStyles.xaml`, regardless of whether the rest of the window is light
-— the log panel is a fixed dark surface by design, not theme-following.
-`LogEntry.ToString()` already formats as `HH:mm:ss  Level  Message` for a
-"Copy Log" / clipboard-export action — use it rather than reformatting.
+## Logging — shared `LogEntry` / `LogLevel`, always-dark panel
+
+`Shared/LogEntry.cs` and `Shared/LogLevel.cs` (`Info`, `Warning`, `Error`, `Success`, `Debug`) are the one log
+model. The file header says "Replaces per-tool copies; reference only this class going forward." Render log rows
+through `LogLevelToColorConverter` against the dark `Log*` brushes. The log lives in the shell body, and newer tools
+open it collapsed. `LogEntry.ToString()` formats as `HH:mm:ss  Level  Message`. Use `LogClipboardService` (Copy All /
+Copy Selected) and `LogExportService` (Save log…) rather than reformatting.
 
 ## Wizard / multi-step windows
 
-`ParaManager_V003`'s pattern for a linear wizard: an int `CurrentStep`
-`[ObservableProperty]`, bool `IsStep1`..`IsStepN` computed properties
-manually raised from `OnCurrentStepChanged` (needed because
-`[ObservableProperty]` won't auto-derive them), and `[RelayCommand]`
-Next/Back commands gated by `CanExecute` (`CanGoNext` validates the
-*current* step before allowing advance; `CanGoBack` just checks
-`CurrentStep > 1`). Bind each step's panel visibility to its `IsStepN`
-property (via `BoolToVisibilityConverter`).
+ParaManager V005's pattern for a linear wizard:
+- an int `CurrentStep` `[ObservableProperty]`;
+- bool `IsStep1`..`IsStepN` computed properties, raised by hand from `OnCurrentStepChanged`, because
+  `[ObservableProperty]` won't derive them;
+- `[RelayCommand]` Next / Back commands gated by `CanExecute`. `CanGoNext` validates the current step, and
+  `CanGoBack` checks `CurrentStep > 1`.
+
+Bind each step panel's visibility to its `IsStepN` property through `BoolToVisibilityConverter`.
 
 ## Multi-item tabs
 
-`AutoSlopeByDrain_V010`'s multi-roof UI: an
-`ObservableCollection<RoofTabViewModel> RoofTabs`, one `RoofTabViewModel`
-instance per picked roof, each bound to one `TabItem`. Use this shape (a
-collection of per-item child ViewModels feeding a `TabControl`) whenever a
-tool moves from single-element to multi-element selection — it's the
-established alternative to cramming a picked-count loop into one flat
-ViewModel, and is what `Claude/ARCHITECTURE.md` §5's batch-processing
-pattern pairs with on the ViewModel side.
+Auto Slope By Drain V013's multi-roof UI: an `ObservableCollection<RoofTabViewModel> RoofTabs`, one child
+ViewModel per picked roof, each bound to one `TabItem`. Floor Slope By Drain V001 does the same with
+`FloorTabViewModel`. Use this shape (a collection of per-item child ViewModels feeding a `TabControl`) whenever a
+tool moves from one element to several. It pairs with the batch pattern in `Claude/ARCHITECTURE.md` §5 on the
+model side.
