@@ -23,6 +23,7 @@ using Revit26_Plugin_Revised.AutoSlopeByPoint.MultiCopies30.UI.Views;
 using System;
 using System.Collections.Generic;
 using Revit26_Plugin_Revised.Utilities;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace Revit26_Plugin_Revised.AutoSlopeByPoint.MultiCopies30.Commands
 
@@ -31,7 +32,10 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.MultiCopies30.Commands
     [Regeneration(RegenerationOption.Manual)]
     public class AutoSlopeCommand : IExternalCommand
     {
-        public Result Execute(ExternalCommandData data, ref string msg, ElementSet elems)
+        public Result Execute(ExternalCommandData data, ref string msg, ElementSet elems) =>
+            ToolGuard.RunCommand(GetType(), data, ref msg, elems, ExecuteCore);
+
+        private Result ExecuteCore(ExternalCommandData data, ref string msg, ElementSet elems)
         {
             UIDocument uidoc = data.Application.ActiveUIDocument;
             Document doc = uidoc.Document;
