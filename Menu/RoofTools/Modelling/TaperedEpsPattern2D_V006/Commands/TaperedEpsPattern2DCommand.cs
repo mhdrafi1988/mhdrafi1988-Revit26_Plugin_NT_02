@@ -8,6 +8,7 @@ using Revit26_Plugin_Revised.TaperedEpsPattern2D.V006.Events;
 using Revit26_Plugin_Revised.TaperedEpsPattern2D.V006.Revit;
 using Revit26_Plugin_Revised.TaperedEpsPattern2D.V006.ViewModels;
 using Revit26_Plugin_Revised.TaperedEpsPattern2D.V006.Views;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace Revit26_Plugin_Revised.TaperedEpsPattern2D.V006.Commands
 {
@@ -20,7 +21,10 @@ namespace Revit26_Plugin_Revised.TaperedEpsPattern2D.V006.Commands
     [Regeneration(RegenerationOption.Manual)]
     public sealed class TaperedEpsPattern2DCommand : IExternalCommand
     {
-        public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
+        public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements) =>
+            ToolGuard.RunCommand(GetType(), commandData, ref message, elements, ExecuteCore);
+
+        private Result ExecuteCore(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
             UIApplication uiapp = commandData.Application;
             UIDocument? uidoc = uiapp.ActiveUIDocument;
