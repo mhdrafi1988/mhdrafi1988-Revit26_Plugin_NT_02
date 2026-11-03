@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using Revit26_Plugin_Revised.CreateSections.V013.ViewModels;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace Revit26_Plugin_Revised.CreateSections.V013.Services
 {
@@ -52,7 +53,10 @@ namespace Revit26_Plugin_Revised.CreateSections.V013.Services
             _externalEvent.Raise();
         }
 
-        public void Execute(UIApplication app)
+        public void Execute(UIApplication app) =>
+            ToolGuard.RunHandler(GetType(), app, ExecuteCore);
+
+        private void ExecuteCore(UIApplication app)
         {
             Document doc = _uiDoc.Document;
 
