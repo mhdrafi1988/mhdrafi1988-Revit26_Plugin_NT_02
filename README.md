@@ -7,7 +7,7 @@ section/sheet management, workset organisation, and detail line tools.
 
 | SloperPro | Revit |
 |---|---|
-| 6.x (current: 6.33.0) | 2026 |
+| 6.x (current: 6.34.0) | 2026 |
 | 2.0.0 | 2026 |
 | 1.0.0 | 2026 |
 
@@ -25,6 +25,7 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 | Floor Slope | By Drain · By Point (By Point, Ridge, Multi Copies) · Points & Slope |
 | Shape Points | Inner Loops · Outer Curve · Line Intersect · Loops + Perp. ▸ slide-out: Vertex Reducer · Multi Points · Shape From Link |
 | Floor Points | Inner Loops · Outer Curve · Line Intersect · Loops + Perp. · Vertex Reducer · Multi Points · Shape From Link |
+| Floor Lines | Crease By Openings · Crease By Points · Floor Creaser |
 | Roof Tools | Creaser Adv · Roof Tag · Floor From Rooms · Shape From Link |
 | Roof Edit | Name Builder · Island Splitter |
 | Plan View | Island Splitter |
@@ -78,6 +79,12 @@ Where a tool has several versions, its button is a dropdown listing the newest v
   the roof tools; they refuse floors that are in a group, borrowed by another user or can't be shape-edited.
 - **Floor Shape From Link** sets each shape point from the linked floors' top surface. Because a floor's level +
   offset is its top, "Subtract host floor thickness" is off by default.
+
+### Floor crease lines (new in 6.34.0)
+- **Floor Crease Lines By Openings / By Points**: the floor versions of Ridge By Openings and Ridge By Points.
+  They draw the crease (ridge) lines midway between the drains, as shape points + split lines and/or detail lines.
+- **Floor Creaser**: the floor version of Creaser Adv. It places detail items along a sloped floor's creases and
+  only reads the floor.
 
 ### Roof shape points, editing and checks
 - **Inner Loops, Outer Curve, Line Intersect, Loops + Perpendicular**: divide and intersect roof loops into shape points.
@@ -143,6 +150,9 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 ## Version History
 
 See [CHANGELOG.md](CHANGELOG.md) for the full history and per-tool versions.
+
+### 6.34.0 — 2026-11-03
+- New **Floor Lines** panel: Floor Crease Lines By Openings, By Points, and Floor Creaser.
 
 ### 6.33.0 — 2026-11-03
 - New **Floor Points** panel: floor versions of the seven Shape Points tools.

@@ -37,6 +37,7 @@ Each item is a pulldown unless marked *button*. A pulldown lists its versions hi
 | Floor Slope | By Drain *button* (Floor Slope By Drain V001) · By Point (By Point V001, Ridge V001, Multi Copies V001) · Points & Slope *button* (Floor Points & Slope V001) | `FloorToolsRibbon.BuildSlopePanel` |
 | Shape Points | Inner Loops · Outer Curve · Line Intersect · Loops + Perp. ▸ Vertex Reducer · Multi Points · Shape From Link | `RoofToolsRibbon.Build` |
 | Floor Points | Inner Loops *button* · Outer Curve *button* · Line Intersect *button* · Loops + Perp. *button* · Vertex Reducer *button* · Multi Points *button* · Shape From Link (large *button*) — each V001 | `FloorToolsRibbon.BuildPointsPanel` |
+| Floor Lines | Crease By Openings *button* · Crease By Points *button* · Floor Creaser *button* — each V001 | `FloorToolsRibbon.BuildLinesPanel` |
 | Roof Tools | Creaser Adv · Roof Tag · Floor From Rooms · Shape From Link | `RoofToolsRibbon.Build` |
 | Roof Edit | Name Builder · Island Splitter | `BuildEditComparePanels` |
 | Plan View | Island Splitter (large *button*) | `BuildEditComparePanels` |
@@ -61,8 +62,9 @@ Each item is a pulldown unless marked *button*. A pulldown lists its versions hi
 | Worksets | WS Browser · WS Creator · WS Renamer ▸ WS Renamer XL · Delete Workset | `ManageRibbon` |
 | Memory | WS Memory (large *button*) · Link Memory (large; V002, V001) | `ManageRibbon` |
 
-The latest change was plugin 6.33.0, which added the **Floor Points** panel (floor versions of the Shape Points
-tools) after Shape Points. Before it, 6.32.0 added the floor Ridge, Multi Copies and Points & Slope tools to the
+The latest change was plugin 6.34.0, which added the **Floor Lines** panel (floor versions of Ridge By Openings,
+Ridge By Points and Creaser Adv) after Floor Points. 6.33.0 added the **Floor Points** panel (floor versions of
+the Shape Points tools) after Shape Points. Before it, 6.32.0 added the floor Ridge, Multi Copies and Points & Slope tools to the
 **Floor Slope** panel (By Point became a pulldown, as on Roof Slope). When you change the ribbon, update the
 tables above, `README.md` (Ribbon section) and the tool's UI preview (root `CLAUDE.md`, UI previews).
 

@@ -9,6 +9,24 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.34.0] — 2026-11-03
+
+### Added
+- New **Floor Lines** ribbon panel, right after **Floor Points**, each tool **v1.0.0 (V001)**:
+  - **Floor Crease Lines By Openings** (from Ridge By Openings V070): pick a floor, choose openings as drains, and
+    the crease (ridge) lines midway between them are drawn as shape points + split lines and/or detail lines.
+  - **Floor Crease Lines By Points** (from Ridge By Points V059): the same, from drain points clicked on the floor.
+  - **Floor Creaser** (from Creaser Adv V012): places detail items along a sloped floor's creases in the active
+    view. It only reads the floor.
+- The two crease-line tools refuse floors that are in a group, in a read-only model, borrowed by another user, or
+  that do not support shape editing, and say why.
+
+### Changed
+- **User note:** the crease-line tools are named "Crease Lines" on floors; they are the same Voronoi ridge
+  tools as on roofs. Their window titles and versions now come from the tool list (`ToolCatalog`), not from text
+  fixed in the window.
+- The roof tools are unchanged.
+
 ## [6.33.0] — 2026-11-03
 
 ### Added

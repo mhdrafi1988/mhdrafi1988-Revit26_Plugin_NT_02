@@ -122,6 +122,43 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             RibbonLayoutHelper.AddStackedButtons(panel, items);
         }
 
+        /// <summary>
+        /// Creates the "Floor Lines" panel (plugin 6.34.0): Floor Crease Lines By Openings, Floor Crease Lines
+        /// By Points and Floor Creaser as one stack of three plain buttons (one version each). They reuse the
+        /// roof Ridge Lines and Creaser Adv icons.
+        /// </summary>
+        public static void BuildLinesPanel(UIControlledApplication app, string tabName, string assemblyPath)
+        {
+            RibbonPanel panel = app.CreateRibbonPanel(tabName, "Floor Lines");
+
+            var byOpenings = new PushButtonData("Btn_FloorCreaseLinesByOpenings_V001", "Crease By Openings", assemblyPath,
+                "Revit26_Plugin_Revised.FloorCreaseLinesByOpenings.V001.Commands.FloorRidgeCommand")
+            {
+                Image = ImageUtils.Load(RoofIcons + "RidgeLinesMultiShape_16.png"),
+                ToolTip = ToolCatalog.FloorCreaseLinesByOpenings.Tip(
+                    "Pick a floor and choose openings as drains: draws the crease (ridge) lines midway between them as " +
+                    "shape points + split lines and/or detail lines. Run it before sloping.")
+            };
+            var byPoints = new PushButtonData("Btn_FloorCreaseLinesByPoints_V001", "Crease By Points", assemblyPath,
+                "Revit26_Plugin_Revised.FloorCreaseLinesByPoints.V001.Commands.FloorRidgeCommand")
+            {
+                Image = ImageUtils.Load(RoofIcons + "RidgeLinesByPoints_16.png"),
+                ToolTip = ToolCatalog.FloorCreaseLinesByPoints.Tip(
+                    "Pick a floor and click drain points on it: draws the crease (ridge) lines midway between them as " +
+                    "shape points + split lines and/or detail lines.")
+            };
+            var creaser = new PushButtonData("Btn_FloorCreaser_V001", "Floor Creaser", assemblyPath,
+                "Revit26_Plugin_Revised.FloorCreaser.V001.Commands.CreaserAdvCommand")
+            {
+                Image = ImageUtils.Load(RoofIcons + "CreaserAdv_16.png"),
+                ToolTip = ToolCatalog.FloorCreaser.Tip(
+                    "Pick a sloped floor: places detail items along its creases (the edges between its top-face facets) in the active view. " +
+                    "Reads the floor only; it does not change it.")
+            };
+
+            RibbonLayoutHelper.AddStackedButtons(panel, new List<RibbonItemData> { byOpenings, byPoints, creaser });
+        }
+
         /// <summary>Internal name of the pulldown (unchanged since it lived in Floor Tools).</summary>
         public const string FromRoomsPulldownName = "Pulldown_FloorsAndRoofFromLinkedRooms";
 

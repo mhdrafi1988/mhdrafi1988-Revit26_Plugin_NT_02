@@ -94,6 +94,9 @@ namespace Revit26_Plugin_Revised.Shared.Services
         public static readonly ToolInfo RidgeByOpenings = Add("Ridge By Openings", "70.1.1", "V070", "Revit26_Plugin_Revised.RoofRidgeLines.V070");
         public static readonly ToolInfo RidgeByPoints = Add("Ridge By Points", "59.1.0", "V059", "Revit26_Plugin_Revised.RoofTools.LineAndPoints.RoofRidgeLines.V059");
         public static readonly ToolInfo CreaserAdv = Add("Creaser Adv", "12.0.3", "V012", "Revit26_Plugin_Revised.CreaserAdv.V012");
+        public static readonly ToolInfo FloorCreaseLinesByOpenings = Add("Floor Crease Lines By Openings", "1.0.0", "V001", "Revit26_Plugin_Revised.FloorCreaseLinesByOpenings.V001");
+        public static readonly ToolInfo FloorCreaseLinesByPoints = Add("Floor Crease Lines By Points", "1.0.0", "V001", "Revit26_Plugin_Revised.FloorCreaseLinesByPoints.V001");
+        public static readonly ToolInfo FloorCreaser = Add("Floor Creaser", "1.0.0", "V001", "Revit26_Plugin_Revised.FloorCreaser.V001");
         public static readonly ToolInfo RoofTag = Add("Roof Tag", "18.1.2", "V018", "Revit26_Plugin_Revised.RoofTag.V018");
         public static readonly ToolInfo TagToText = Add("Tag To Text", "1.3.0", "V001", "Revit26_Plugin_Revised.TagToText.V001");
         public static readonly ToolInfo AlignSpotElevations = Add("Align Spot Elevations", "1.5.0", "V001", "Revit26_Plugin_Revised.AlignSpotElevations.V001");

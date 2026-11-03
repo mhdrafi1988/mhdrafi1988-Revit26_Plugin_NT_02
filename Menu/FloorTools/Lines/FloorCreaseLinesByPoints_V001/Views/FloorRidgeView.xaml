@@ -1,0 +1,364 @@
+<!--
+=======================================================
+File: FloorRidgeView.xaml
+Changes vs V058 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
+  - Window content is a shared ToolWindowShell:
+      HEADER  title bar + V059, both metrics rows
+      BODY    floor/drain selection, settings, validation results grid,
+              Pipeline Log (moved here from the footer)
+      FOOTER  status strip (IsBusy, indeterminate / StatusMessage — was the
+              footer status line + small progress bar), progress detail,
+              Generate Ridges → Close
+  - Validation grid and log TextBox: ShellBehaviors.MaxHeightRatio +
+    ForwardMouseWheel.
+  - Pass/fail row tints moved to SharedStyles (BrushRowSuccessBackground /
+    BrushRowDangerBackground) — no inline colours.
+  - No behaviour change — every binding/command is the V058 one.
+=======================================================
+-->
+<mah:MetroWindow
+    x:Class="Revit26_Plugin_Revised.FloorCreaseLinesByPoints.V001.Views.FloorRidgeView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+    xmlns:conv="clr-namespace:Revit26_Plugin_Revised.FloorCreaseLinesByPoints.V001.Converters"
+    xmlns:shared="clr-namespace:Revit26_Plugin_Revised.Shared.Models"
+    xmlns:shell="clr-namespace:Revit26_Plugin_Revised.Shared.Controls"
+    xmlns:svc="clr-namespace:Revit26_Plugin_Revised.Shared.Services"
+    mc:Ignorable="d"
+    Title="{Binding Source={x:Static svc:ToolCatalog.FloorCreaseLinesByPoints}, Path=Title}"
+    Width="920" Height="860" MinWidth="920" MinHeight="860"
+    WindowStartupLocation="CenterScreen"
+    ResizeMode="CanResizeWithGrip"
+    Background="{DynamicResource BrushSurfaceWindow}">
+
+    <mah:MetroWindow.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/Revit26_Plugin_Revised;component/Shared/SharedStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+            <conv:InverseBoolConverter      x:Key="InverseBool"/>
+            <shared:BoolToVisibilityConverter x:Key="BoolToVis"/>
+        </ResourceDictionary>
+    </mah:MetroWindow.Resources>
+
+    <shell:ToolWindowShell Title="Floor Crease Lines By Points"
+                           Subtitle="Reset → Add Shape Points → Reset → Detail Lines"
+                           Version="{Binding Source={x:Static svc:ToolCatalog.FloorCreaseLinesByPoints}, Path=Version, StringFormat=v{0}}"
+                           IsRunning="{Binding IsBusy}"
+                           IsIndeterminate="True"
+                           Progress="{Binding Progress}"
+                           SummaryText="{Binding StatusMessage}">
+
+        <!-- ═══ HEADER ═══════════════════════════════════════════ -->
+        <shell:ToolWindowShell.HeaderContent>
+            <StackPanel>
+                <!-- Row A: status + detail lines -->
+                <UniformGrid Rows="1" Margin="0,0,0,8">
+
+                    <!-- Card: First Reset -->
+                    <Border Style="{StaticResource MetricCard}" Margin="0,0,6,0">
+                        <DockPanel>
+                            <Border DockPanel.Dock="Top" Height="4" CornerRadius="8,8,0,0"
+                                    Background="{StaticResource BrushNavyPrimary}" Margin="-12,-14,-12,10"/>
+                            <StackPanel>
+                                <TextBlock Text="First Reset" Style="{StaticResource MetricLabel}"/>
+                                <TextBlock Text="{Binding FirstResetStatus}"
+                                           FontSize="12" FontWeight="SemiBold" TextWrapping="Wrap"
+                                           Foreground="{StaticResource BrushNavyPrimary}"/>
+                            </StackPanel>
+                        </DockPanel>
+                    </Border>
+
+                    <!-- Card: Added Lines -->
+                    <Border Style="{StaticResource MetricCard}" Margin="0,0,6,0">
+                        <DockPanel>
+                            <Border DockPanel.Dock="Top" Height="4" CornerRadius="8,8,0,0"
+                                    Background="{StaticResource BrushStatusOk}" Margin="-12,-14,-12,10"/>
+                            <StackPanel>
+                                <TextBlock Text="Added Lines" Style="{StaticResource MetricLabel}"/>
+                                <TextBlock Text="{Binding DetailLinesAddedCount}"
+                                           Style="{StaticResource MetricNumberSuccess}"/>
+                            </StackPanel>
+                        </DockPanel>
+                    </Border>
+
+                    <!-- Card: Last Reset -->
+                    <Border Style="{StaticResource MetricCard}" Margin="0,0,0,0">
+                        <DockPanel>
+                            <Border DockPanel.Dock="Top" Height="4" CornerRadius="8,8,0,0"
+                                    Background="{StaticResource BrushNavyPrimary}" Margin="-12,-14,-12,10"/>
+                            <StackPanel>
+                                <TextBlock Text="Last Reset" Style="{StaticResource MetricLabel}"/>
+                                <TextBlock Text="{Binding LastResetStatus}"
+                                           FontSize="12" FontWeight="SemiBold" TextWrapping="Wrap"
+                                           Foreground="{StaticResource BrushNavyPrimary}"/>
+                            </StackPanel>
+                        </DockPanel>
+                    </Border>
+
+                </UniformGrid>
+
+                <!-- Row B: shape-point breakdown -->
+                <UniformGrid Rows="1" Margin="0,0,0,8">
+
+                    <!-- Card: Calculated Points -->
+                    <Border Style="{StaticResource MetricCard}" Margin="0,0,6,0">
+                        <DockPanel>
+                            <Border DockPanel.Dock="Top" Height="4" CornerRadius="8,8,0,0"
+                                    Background="{StaticResource BrushStatusWarn}" Margin="-12,-14,-12,10"/>
+                            <StackPanel>
+                                <TextBlock Text="Calculated Points" Style="{StaticResource MetricLabel}"/>
+                                <TextBlock Text="{Binding TotalCalculatedPoints}" Style="{StaticResource MetricNumber}"/>
+                            </StackPanel>
+                        </DockPanel>
+                    </Border>
+
+                    <!-- Card: Added -->
+                    <Border Style="{StaticResource MetricCard}" Margin="0,0,6,0">
+                        <DockPanel>
+                            <Border DockPanel.Dock="Top" Height="4" CornerRadius="8,8,0,0"
+                                    Background="{StaticResource BrushStatusOk}" Margin="-12,-14,-12,10"/>
+                            <StackPanel>
+                                <TextBlock Text="Added ✓" Style="{StaticResource MetricLabel}"/>
+                                <TextBlock Text="{Binding TotalAddedPoints}"
+                                           Style="{StaticResource MetricNumberSuccess}"/>
+                            </StackPanel>
+                        </DockPanel>
+                    </Border>
+
+                    <!-- Card: Failed -->
+                    <Border Style="{StaticResource MetricCard}" Margin="0,0,6,0">
+                        <DockPanel>
+                            <Border DockPanel.Dock="Top" Height="4" CornerRadius="8,8,0,0"
+                                    Background="{StaticResource BrushStatusError}" Margin="-12,-14,-12,10"/>
+                            <StackPanel>
+                                <TextBlock Text="Failed ✗" Style="{StaticResource MetricLabel}"/>
+                                <TextBlock Text="{Binding TotalFailedPoints}"
+                                           Style="{StaticResource MetricNumberDanger}"/>
+                            </StackPanel>
+                        </DockPanel>
+                    </Border>
+
+                    <!-- Card: Skipped -->
+                    <Border Style="{StaticResource MetricCard}" Margin="0,0,0,0">
+                        <DockPanel>
+                            <Border DockPanel.Dock="Top" Height="4" CornerRadius="8,8,0,0"
+                                    Background="{StaticResource BrushStatusWarn}" Margin="-12,-14,-12,10"/>
+                            <StackPanel>
+                                <TextBlock Text="Skipped ⊘" Style="{StaticResource MetricLabel}"/>
+                                <TextBlock Text="{Binding TotalSkippedPoints}"
+                                           Style="{StaticResource MetricNumber}"/>
+                            </StackPanel>
+                        </DockPanel>
+                    </Border>
+
+                </UniformGrid>
+            </StackPanel>
+        </shell:ToolWindowShell.HeaderContent>
+
+        <!-- ═══ BODY ═════════════════════════════════════════════ -->
+        <shell:ToolWindowShell.BodyContent>
+            <StackPanel>
+                <Border Style="{StaticResource AppIdentityCard}" Margin="0,0,0,8">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Floor"
+                                   Style="{StaticResource SectionTitle}" Margin="0,0,0,4"/>
+                        <TextBlock Grid.Row="0" Grid.Column="2" Text="Drains"
+                                   Style="{StaticResource SectionTitle}" Margin="8,0,0,4"/>
+
+                        <Border Grid.Row="1" Grid.Column="0"
+                                Background="{StaticResource BrushSystemSecondaryBackground}"
+                                CornerRadius="6" Padding="8,6">
+                            <TextBlock Text="{Binding FloorDescription}"
+                                       Style="{StaticResource FieldValue}"
+                                       TextTrimming="CharacterEllipsis"/>
+                        </Border>
+
+                        <Button Grid.Row="1" Grid.Column="1" Content="Select Floor"
+                                Command="{Binding SelectFloorCommand}"
+                                Style="{StaticResource OutlineButton}" Margin="8,0,16,0"/>
+
+                        <Border Grid.Row="1" Grid.Column="2"
+                                Background="{StaticResource BrushSystemSecondaryBackground}"
+                                CornerRadius="6" Padding="8,6" Margin="8,0,0,0">
+                            <TextBlock Style="{StaticResource FieldValue}">
+                                <Run Text="{Binding DrainCount}"/>
+                                <Run Text=" drain point(s) selected"/>
+                            </TextBlock>
+                        </Border>
+
+                        <Button Grid.Row="1" Grid.Column="3" Content="Select Drains"
+                                Command="{Binding SelectDrainsCommand}"
+                                Style="{StaticResource OutlineButton}" Margin="8,0,0,0"/>
+                    </Grid>
+                </Border>
+
+                <Border Style="{StaticResource AppIdentityCard}" Margin="0,0,0,8">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="110"/>
+                            <ColumnDefinition Width="16"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="110"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Grid.Column="0" Text="Proximity Distance (mm):"
+                                   Style="{StaticResource FieldLabel}" VerticalAlignment="Center"/>
+                        <TextBox Grid.Column="1" Margin="8,0,0,0"
+                                 Style="{StaticResource BoxedTextInput}"
+                                 Text="{Binding ProximityDistanceMm, UpdateSourceTrigger=PropertyChanged, StringFormat=F1}"/>
+
+                        <TextBlock Grid.Column="3" Text="Validation Tolerance (mm):"
+                                   Style="{StaticResource FieldLabel}" VerticalAlignment="Center"/>
+                        <TextBox Grid.Column="4" Margin="8,0,0,0"
+                                 Style="{StaticResource BoxedTextInput}"
+                                 Text="{Binding ValidationToleranceMm, UpdateSourceTrigger=PropertyChanged, StringFormat=F2}"/>
+
+                        <StackPanel Grid.Column="5" Orientation="Vertical" Margin="16,0,0,0"
+                                    VerticalAlignment="Center">
+                            <CheckBox Content="Add detail lines" IsChecked="{Binding AddDetailLines}"
+                                      FontSize="12" Margin="0,0,0,4"/>
+                            <CheckBox Content="Add shape points" IsChecked="{Binding AddShapePoints}"
+                                      FontSize="12"/>
+                        </StackPanel>
+
+                    </Grid>
+                </Border>
+
+                <!-- Validation results -->
+                <!-- Validation results -->
+                <Border Style="{StaticResource ContentCard}" Margin="0,0,0,8">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="12,8,12,6">
+                            <TextBlock Text="Validation Results" Style="{StaticResource SectionTitle}" Margin="0,0,16,0" VerticalAlignment="Center"/>
+                            <TextBlock FontSize="11" VerticalAlignment="Center"
+                                       Foreground="{StaticResource BrushStatusOk}">
+                                <Run Text="PASS: "/><Run Text="{Binding PassCount}"/>
+                            </TextBlock>
+                            <TextBlock FontSize="11" Margin="16,0,0,0" VerticalAlignment="Center"
+                                       Foreground="{StaticResource BrushStatusError}">
+                                <Run Text="FAIL: "/><Run Text="{Binding FailCount}"/>
+                            </TextBlock>
+                            <TextBlock FontSize="11" Margin="16,0,0,0" VerticalAlignment="Center"
+                                       Foreground="{StaticResource BrushNavyPrimary}"
+                                       Text="{Binding GroupCountDisplay, StringFormat='Groups: {0}'}"/>
+                        </StackPanel>
+                                      <DataGrid Style="{StaticResource StandardDataGrid}"
+                                                ItemsSource="{Binding ValidationLog}"
+                                                Grid.Row="1" MinHeight="140"
+                                                shell:ShellBehaviors.MaxHeightRatio="0.4"
+                                                shell:ShellBehaviors.ForwardMouseWheel="True"
+                                                VirtualizingStackPanel.IsVirtualizing="True" VirtualizingStackPanel.VirtualizationMode="Recycling"
+                                                AutoGenerateColumns="False" IsReadOnly="True"
+                                                CanUserSortColumns="True" SelectionMode="Single"
+                                                VerticalScrollBarVisibility="Auto"
+                                                HorizontalScrollBarVisibility="Auto">
+                                          <DataGrid.ColumnHeaderStyle>
+                                              <Style TargetType="DataGridColumnHeader"
+                                                     BasedOn="{StaticResource StandardDataGridColumnHeader}"/>
+                                          </DataGrid.ColumnHeaderStyle>
+                                          <DataGrid.Columns>
+                                              <DataGridTextColumn Header="Pt #"       Binding="{Binding PointIndex}"                   Width="40"/>
+                                              <DataGridTextColumn Header="X (ft)"     Binding="{Binding X,            StringFormat=F4}" Width="72"/>
+                                              <DataGridTextColumn Header="Y (ft)"     Binding="{Binding Y,            StringFormat=F4}" Width="72"/>
+                                              <DataGridTextColumn Header="Max Δ (ft)" Binding="{Binding MaxDeviation, StringFormat=F6}" Width="85"/>
+                                              <DataGridTextColumn Header="Tol (ft)"   Binding="{Binding Tolerance,    StringFormat=F6}" Width="75"/>
+                                              <DataGridTextColumn Header="Result"     Binding="{Binding Passed}"                        Width="60"/>
+                                              <DataGridTextColumn Header="Note"       Binding="{Binding Note}"                          Width="*"/>
+                                          </DataGrid.Columns>
+                                          <DataGrid.RowStyle>
+                                              <Style TargetType="DataGridRow">
+                                                  <Style.Triggers>
+                                                      <DataTrigger Binding="{Binding Passed}" Value="False">
+                                                          <Setter Property="Background" Value="{StaticResource BrushRowDangerBackground}"/>
+                                                      </DataTrigger>
+                                                      <DataTrigger Binding="{Binding Passed}" Value="True">
+                                                          <Setter Property="Background" Value="{StaticResource BrushRowSuccessBackground}"/>
+                                                      </DataTrigger>
+                                                  </Style.Triggers>
+                                              </Style>
+                                          </DataGrid.RowStyle>
+                                      </DataGrid>
+                    </Grid>
+                </Border>
+
+                <!-- Pipeline Log (moved from footer) -->
+                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="10,8" Margin="0,0,0,0">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Pipeline Log" Foreground="{StaticResource BrushLogText}"
+                                       FontSize="11.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                <Button Content="Copy All" Style="{StaticResource DarkGhostButton}" Command="{Binding CopyLogCommand}" Margin="0,0,6,0"/>
+                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Click="CopySelectedLog_Click"/>
+                            </StackPanel>
+                        </Grid>
+                        <TextBox x:Name="PipelineLogBox" Grid.Row="1" MinHeight="120"
+                                 shell:ShellBehaviors.MaxHeightRatio="0.2"
+                                 shell:ShellBehaviors.ForwardMouseWheel="True"
+                                 Text="{Binding PipelineLogText, Mode=OneWay}"
+                                 IsReadOnly="True" AcceptsReturn="True"
+                                 TextWrapping="NoWrap"
+                                 FontFamily="Consolas, Courier New" FontSize="11"
+                                 Foreground="{StaticResource BrushLogText}"
+                                 Background="{StaticResource BrushLogBg}"
+                                 BorderThickness="0" Padding="0"
+                                 VerticalScrollBarVisibility="Auto"
+                                 HorizontalScrollBarVisibility="Auto"
+                                 ToolTip="Select All: Ctrl+A   Copy: Ctrl+C"/>
+                    </Grid>
+                </Border>
+            </StackPanel>
+        </shell:ToolWindowShell.BodyContent>
+
+        <!-- ═══ FOOTER ═══════════════════════════════════════════ -->
+        <shell:ToolWindowShell.FooterContent>
+            <DockPanel LastChildFill="False">
+                <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center"
+                            Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}">
+                    <TextBlock Text="{Binding ProgressDetail}" FontSize="10"
+                               Foreground="{StaticResource BrushStatusWarn}"
+                               VerticalAlignment="Center"/>
+                </StackPanel>
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                    <Button Content="▶  Generate Ridges"
+                            Command="{Binding RunCommand}"
+                            Style="{StaticResource PrimaryButton}"
+                            Margin="0,0,8,0"
+                            IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBool}}"/>
+                    <Button Content="Close" Style="{StaticResource OutlineButton}" Click="CloseButton_Click"/>
+                </StackPanel>
+            </DockPanel>
+        </shell:ToolWindowShell.FooterContent>
+    </shell:ToolWindowShell>
+</mah:MetroWindow>
