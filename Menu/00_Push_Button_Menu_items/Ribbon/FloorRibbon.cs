@@ -13,8 +13,8 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
     /// </summary>
     public static class FloorToolsRibbon
     {
-        /// <summary>Roof slope icons, reused by the floor slope buttons until floor icons exist.</summary>
-        private const string RoofIcons = "Revit26_Plugin_Revised.Resources.Icons.RoofTools.";
+        /// <summary>Floor icons: light-blue copies of the roof icons (plugin 6.37.2), stored as <c>Floor_&lt;roof icon name&gt;</c>.</summary>
+        private const string RoofIcons = "Revit26_Plugin_Revised.Resources.Icons.FloorTools.Floor_";
 
         /// <summary>
         /// Creates the "Floor Slope" panel on <paramref name="tabName"/>, laid out like Roof Slope:
@@ -209,7 +209,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
         public static void BuildViewsPanel(UIControlledApplication app, string tabName, string assemblyPath)
         {
             RibbonPanel panel = app.CreateRibbonPanel(tabName, "Floor Views");
-            const string viewIcons = "Revit26_Plugin_Revised.Resources.Icons.ViewTools.";
+            const string viewIcons = "Revit26_Plugin_Revised.Resources.Icons.FloorTools.Floor_";
 
             var aroundEdges = new PushButtonData("Btn_FloorEdgeAroundSections_V001", "Floor Around Edges", assemblyPath,
                 "Revit26_Plugin_Revised.FloorEdgeAroundSections.V001.FloorEdgeAroundSectionsCommand")
@@ -251,25 +251,25 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             // number first, every older version below it; V013 keeps the icon.
             var fromRoomsV012 = new PushButtonData("Btn_FloorsAndRoofFromLinkedRooms_V012", "From Rooms V012", assemblyPath, "Revit26_Plugin_Revised.FloorsAndRoofFromLinkedRooms.V012.Command")
             {
-                Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.FloorTools.FloorRoofFromRooms_16.png"),
+                Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.FloorTools.Floor_FloorRoofFromRooms_16.png"),
                 ToolTip = RibbonLayoutHelper.VersionTip("Floors And Roof From Linked Rooms", "V012",
                     "UI Standard layout: footer with progress, summaries, always-visible log and Create Floors / Create Roof → Close.")
             };
             var fromRoomsV013 = new PushButtonData("Btn_FloorsAndRoofFromLinkedRooms_V013", "From Rooms V013", assemblyPath, "Revit26_Plugin_Revised.FloorsAndRoofFromLinkedRooms.V013.Command")
             {
-                Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.FloorTools.FloorRoofFromRooms_16.png"),
+                Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.FloorTools.Floor_FloorRoofFromRooms_16.png"),
                 ToolTip = RibbonLayoutHelper.VersionTip("Floors And Roof From Linked Rooms", "V013",
                     "V012 on the shared ToolWindowShell (summaries and log in body, capped room grid).")
             };
             var fromRoomsPlanViewV005 = new PushButtonData("Btn_FloorsAndRoofFromLinkedRoomsViaPlanViewV005", "Rooms Plan View V005", assemblyPath, "Revit26_Plugin_Revised.FloorsAndRoofFromLinkedRoomsViaPlanView.V005.Command")
             {
-                Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.FloorTools.FloorRoofFromRoomsPlanView_16.png"),
+                Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.FloorTools.Floor_FloorRoofFromRoomsPlanView_16.png"),
                 ToolTip = RibbonLayoutHelper.VersionTip("Floors And Roof From Linked Rooms (Via Plan View)", "V005",
                     "UI Standard layout: metrics card, full-height room list, footer log and Create Floors / Create Roof → Close.")
             };
             var fromRoomsPlanViewV006 = new PushButtonData("Btn_FloorsAndRoofFromLinkedRoomsViaPlanViewV006", "Rooms Plan View V006", assemblyPath, "Revit26_Plugin_Revised.FloorsAndRoofFromLinkedRoomsViaPlanView.V006.Command")
             {
-                Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.FloorTools.FloorRoofFromRoomsPlanView_16.png"),
+                Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.FloorTools.Floor_FloorRoofFromRoomsPlanView_16.png"),
                 ToolTip = RibbonLayoutHelper.VersionTip("Floors And Roof From Linked Rooms (Via Plan View)", "V006",
                     "V005 on the shared ToolWindowShell (summaries and log in body, capped room list).")
             };

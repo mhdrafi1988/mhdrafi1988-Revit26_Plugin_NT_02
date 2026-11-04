@@ -9,6 +9,13 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.37.2] — 2026-11-03
+
+### Changed
+- All Floor tool ribbon icons (Floor Slope, Floor Points, Floor Lines, Floor Edit, Floor Views, Floor From Rooms)
+  are now light blue. They are new `Floor_*` copies of the old roof-coloured icons, so the Roof tool icons are
+  unchanged. No tool behaviour or version changes.
+
 ## [6.37.1] — 2026-11-03
 
 ### Fixed
