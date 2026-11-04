@@ -14,7 +14,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
     public static class FloorToolsRibbon
     {
         /// <summary>Roof slope icons, reused by the floor slope buttons until floor icons exist.</summary>
-        private const string RoofIcons = "Revit26_Plugin_Revised.Resources.Icons.RoofTools.";
+        private const string RoofIcons = "Revit26_Plugin_Revised.Resources.Icons.FloorTools.";
 
         /// <summary>
         /// Creates the "Floor Slope" panel on <paramref name="tabName"/>, laid out like Roof Slope:
