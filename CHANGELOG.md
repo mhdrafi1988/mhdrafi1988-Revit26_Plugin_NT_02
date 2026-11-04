@@ -9,6 +9,12 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.37.3] — 2026-11-04
+
+### Changed
+
+- The five Floor panel title bars (Floor Slope, Floor Points, Floor Lines, Floor Edit, Floor Views) are now green. User note: colour only; no behaviour change.
+
 ## [6.37.2] — 2026-11-04
 
 ### Changed
