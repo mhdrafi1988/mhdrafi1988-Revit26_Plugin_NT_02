@@ -9,6 +9,12 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.37.2] — 2026-11-04
+
+### Changed
+
+- Floor panels (Floor Slope, Floor Points, Floor Lines, Floor Edit) now use green ribbon icons, separate from the orange Roof tools. User note: icon colour only; no behaviour change.
+
 ## [6.37.1] — 2026-11-03
 
 ### Fixed
