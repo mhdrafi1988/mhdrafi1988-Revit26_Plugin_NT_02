@@ -306,7 +306,7 @@ File: ImportPreviewWindow.xaml  (V007, per CLAUDE.md v1.1 — ToolWindowShell)
                     <Run Text="{Binding SelectedChangeCount, Mode=OneWay}" FontWeight="SemiBold"/>
                     <Run Text="change(s) ticked · Ctrl+Z in Revit undoes the whole import"/>
                 </TextBlock>
-                <Button Grid.Column="5" Content="Close" Style="{StaticResource SecondaryButton}" Margin="0,0,8,0"
+                <Button IsCancel="True" Grid.Column="5" Content="Close" Style="{StaticResource SecondaryButton}" Margin="0,0,8,0"
                         Click="Close_Click"/>
                 <Button Grid.Column="6" Content="Apply ▶" Style="{StaticResource PrimaryButton}" MinWidth="110"
                         Command="{Binding ApplySelectedCommand}"/>

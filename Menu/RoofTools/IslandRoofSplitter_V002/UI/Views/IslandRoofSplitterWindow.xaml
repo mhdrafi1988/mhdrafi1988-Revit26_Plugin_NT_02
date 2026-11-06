@@ -394,7 +394,7 @@
                                  Visibility="{Binding IsChecked, ElementName=LogToggle, Converter={StaticResource LogToggleVisibility}}"
                                  Background="{DynamicResource BrushLogBg}"
                                  BorderThickness="0" Margin="0,8,0,0"
-                                 FontFamily="Consolas" FontSize="12"
+                                 FontFamily="{DynamicResource MonoFont}" FontSize="12"
                                  shell:ShellBehaviors.MaxHeightRatio="0.25"
                                  shell:ShellBehaviors.ForwardMouseWheel="True">
                             <ListBox.ItemTemplate>

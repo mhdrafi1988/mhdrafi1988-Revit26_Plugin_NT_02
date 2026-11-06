@@ -1070,7 +1070,7 @@ Changes vs V012: window 1280×820 (min 1100×640; V012's minimum height of
                     <Button Content="{Binding RunButtonText}" Style="{StaticResource RunButton}" MinWidth="150" Margin="0,0,8,0"
                             Command="{Binding RunCommand}"
                             ToolTip="Reset each floor's shape points and apply the slope towards its checked drains."/>
-                    <Button Content="Close" Style="{StaticResource OutlineButton}" Width="90" Click="CloseButton_Click"/>
+                    <Button IsCancel="True" Content="Close" Style="{StaticResource OutlineButton}" Width="90" Click="CloseButton_Click"/>
                 </StackPanel>
             </Grid>
         </shell:ToolWindowShell.FooterContent>

@@ -120,7 +120,7 @@ Previous: three-zone layout on SharedStyles (vs the "_WOrking" build).
                                  Background="Transparent" BorderThickness="0"
                                  Foreground="{StaticResource BrushLogText}"
                                  VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
-                                 FontFamily="Consolas" FontSize="11"/>
+                                 FontFamily="{DynamicResource MonoFont}" FontSize="11"/>
                     </Grid>
                 </Border>
             </StackPanel>
@@ -140,7 +140,7 @@ Previous: three-zone layout on SharedStyles (vs the "_WOrking" build).
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
                     <Button Content="Start Batch" Style="{StaticResource RunButton}" Margin="0,0,8,0"
                             Command="{Binding StartBatchCommand}" IsEnabled="{Binding CanStart}"/>
-                    <Button Content="Close" Style="{StaticResource OutlineButton}" Width="90" Command="{Binding CloseCommand}"/>
+                    <Button IsCancel="True" Content="Close" Style="{StaticResource OutlineButton}" Width="90" Command="{Binding CloseCommand}"/>
                 </StackPanel>
             </Grid>
         </shell:ToolWindowShell.FooterContent>

@@ -1650,7 +1650,7 @@ Changes vs V223 (layout only):
                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
-                                    <TextBlock FontFamily="Consolas" FontSize="11"
+                                    <TextBlock FontFamily="{DynamicResource MonoFont}" FontSize="11"
                                                Foreground="{Binding Level, Converter={StaticResource LogLevelToColorConverter}}"
                                                Text="{Binding}" TextWrapping="Wrap"/>
                                 </DataTemplate>
@@ -1670,7 +1670,7 @@ Changes vs V223 (layout only):
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <Button Grid.Column="0" Content="Export Logs (.txt)" Style="{StaticResource OutlineButton}" Command="{Binding ExportLogsCommand}"/>
-                <Button Grid.Column="2" Content="Close" Style="{StaticResource SecondaryButton}" Command="{Binding CloseCommand}"/>
+                <Button IsCancel="True" Grid.Column="2" Content="Close" Style="{StaticResource SecondaryButton}" Command="{Binding CloseCommand}"/>
             </Grid>
         </shell:ToolWindowShell.FooterContent>
     </shell:ToolWindowShell>

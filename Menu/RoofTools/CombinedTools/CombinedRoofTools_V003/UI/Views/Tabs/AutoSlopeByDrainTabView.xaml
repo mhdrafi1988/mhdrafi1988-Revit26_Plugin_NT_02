@@ -532,7 +532,7 @@ own ScrollViewer(s) removed, grids and the log cap their height
                              Background="Transparent"
                              BorderThickness="0"
                              ScrollViewer.VerticalScrollBarVisibility="Auto"
-                             FontFamily="Consolas"
+                             FontFamily="{DynamicResource MonoFont}"
                              FontSize="10"
                              >
                         <ListBox.ItemContainerStyle>

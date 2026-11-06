@@ -431,7 +431,7 @@ Changes vs V012 (layout only):
                                  VirtualizingPanel.VirtualizationMode="Recycling">
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
-                                    <TextBlock FontFamily="Consolas" FontSize="10" IsHitTestVisible="True" TextWrapping="Wrap">
+                                    <TextBlock FontFamily="{DynamicResource MonoFont}" FontSize="10" IsHitTestVisible="True" TextWrapping="Wrap">
                                         <Run Text="{Binding Time, StringFormat=HH:mm:ss, Mode=OneWay}" Foreground="{StaticResource BrushLogTextDim}"/>
                                         <Run Text=" "/>
                                         <Run Text="{Binding Level, Mode=OneWay}" Foreground="{Binding Level, Converter={StaticResource LogLevelToColorConverter}}"/>
@@ -464,7 +464,7 @@ Changes vs V012 (layout only):
                             Style="{StaticResource PrimaryButton}" Margin="0,0,8,0"/>
                     <Button Content="Create Roof" Command="{Binding RunRoofCommand}"
                             Style="{StaticResource AccentButton}" Margin="0,0,8,0"/>
-                    <Button Content="Close" Click="Close_Click" Style="{StaticResource SecondaryButton}"/>
+                    <Button IsCancel="True" Content="Close" Click="Close_Click" Style="{StaticResource SecondaryButton}"/>
                 </StackPanel>
             </Grid>
         </shell:ToolWindowShell.FooterContent>

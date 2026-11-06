@@ -328,7 +328,7 @@ Changes vs V058 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                  Text="{Binding PipelineLogText, Mode=OneWay}"
                                  IsReadOnly="True" AcceptsReturn="True"
                                  TextWrapping="NoWrap"
-                                 FontFamily="Consolas, Courier New" FontSize="11"
+                                 FontFamily="{DynamicResource MonoFont}" FontSize="11"
                                  Foreground="{StaticResource BrushLogText}"
                                  Background="{StaticResource BrushLogBg}"
                                  BorderThickness="0" Padding="0"
@@ -355,7 +355,7 @@ Changes vs V058 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                             Style="{StaticResource PrimaryButton}"
                             Margin="0,0,8,0"
                             IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBool}}"/>
-                    <Button Content="Close" Style="{StaticResource OutlineButton}" Click="CloseButton_Click"/>
+                    <Button IsCancel="True" Content="Close" Style="{StaticResource OutlineButton}" Click="CloseButton_Click"/>
                 </StackPanel>
             </DockPanel>
         </shell:ToolWindowShell.FooterContent>

@@ -941,11 +941,11 @@ Changes vs VA008 (layout only):
                             <ListBox.ItemTemplate>
                                                             <DataTemplate>
                                                                 <StackPanel Orientation="Horizontal" Margin="0,2,0,2">
-                                                                    <TextBlock Text="{Binding Time, StringFormat='HH:mm:ss', Mode=OneWay}" FontFamily="Consolas" FontSize="11"
+                                                                    <TextBlock Text="{Binding Time, StringFormat='HH:mm:ss', Mode=OneWay}" FontFamily="{DynamicResource MonoFont}" FontSize="11"
                                                                                Foreground="{StaticResource BrushLogTextDim}" Margin="0,0,8,0"/>
-                                                                    <TextBlock Text="{Binding Level, Mode=OneWay}" FontFamily="Consolas" FontSize="11" FontWeight="Bold" Width="60"
+                                                                    <TextBlock Text="{Binding Level, Mode=OneWay}" FontFamily="{DynamicResource MonoFont}" FontSize="11" FontWeight="Bold" Width="60"
                                                                                Foreground="{Binding Level, Converter={StaticResource LogLevelToColorConverter}, Mode=OneWay}"/>
-                                                                    <TextBlock Text="{Binding Message, Mode=OneWay}" FontFamily="Consolas" FontSize="11"
+                                                                    <TextBlock Text="{Binding Message, Mode=OneWay}" FontFamily="{DynamicResource MonoFont}" FontSize="11"
                                                                                Foreground="{StaticResource BrushLogText}" TextWrapping="Wrap"/>
                                                                 </StackPanel>
                                                             </DataTemplate>
@@ -1002,7 +1002,7 @@ Changes vs VA008 (layout only):
                     <Button Content="Reset / New Session" Style="{StaticResource PrimaryButton}" Margin="0,0,8,0"
                             Command="{Binding ResetSessionCommand}"
                             Visibility="{Binding IsFormLocked, Converter={StaticResource BoolToVisibilityConverter}}"/>
-                    <Button Content="Close" Style="{StaticResource SecondaryButton}"
+                    <Button IsCancel="True" Content="Close" Style="{StaticResource SecondaryButton}"
                             Click="CloseButton_Click"/>
                 </StackPanel>
             </Grid>

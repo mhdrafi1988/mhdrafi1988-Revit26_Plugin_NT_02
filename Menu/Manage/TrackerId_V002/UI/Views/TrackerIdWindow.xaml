@@ -560,7 +560,7 @@ File: TrackerIdWindow.xaml  (Tracker ID V002 — ToolWindowShell)
                         <Border Style="{StaticResource ContentCard}" Margin="0,0,0,8">
                             <DockPanel Margin="12,8" LastChildFill="False">
                                 <TextBlock DockPanel.Dock="Left" Text="Tracker ID format" Style="{StaticResource StageTitleText}" VerticalAlignment="Center"/>
-                                <TextBlock DockPanel.Dock="Left" Text="{Binding SampleId}" FontFamily="Consolas" FontSize="14" FontWeight="SemiBold"
+                                <TextBlock DockPanel.Dock="Left" Text="{Binding SampleId}" FontFamily="{DynamicResource MonoFont}" FontSize="14" FontWeight="SemiBold"
                                            Foreground="{StaticResource BrushNavyPrimary}" VerticalAlignment="Center" Margin="8,0,0,0"/>
                                 <Button DockPanel.Dock="Right" Content="Edit naming on page 2 →" Style="{StaticResource SmallSecondaryButton}"
                                         Command="{Binding OpenNamingPageCommand}"/>
@@ -718,7 +718,7 @@ File: TrackerIdWindow.xaml  (Tracker ID V002 — ToolWindowShell)
                                         </WrapPanel>
 
                                         <TextBlock Text="Columns (fixed, so Power BI refresh never breaks)" Style="{StaticResource FieldLabel}"/>
-                                        <TextBlock Text="{Binding ExportColumnsText}" FontFamily="Consolas" FontSize="11" TextWrapping="Wrap"
+                                        <TextBlock Text="{Binding ExportColumnsText}" FontFamily="{DynamicResource MonoFont}" FontSize="11" TextWrapping="Wrap"
                                                    Foreground="{StaticResource BrushTextSecondary}" Margin="0,2,0,8"/>
 
                                         <TextBlock Text="{Binding LastExportText}" Style="{StaticResource HintText}" TextWrapping="Wrap"/>
@@ -1024,7 +1024,7 @@ File: TrackerIdWindow.xaml  (Tracker ID V002 — ToolWindowShell)
                                                                 BorderThickness="1" CornerRadius="4" Padding="12,8" Margin="0,0,0,8">
                                                             <StackPanel>
                                                                 <TextBlock Text="FORMAT PREVIEW · FIRST ELEMENT" Style="{StaticResource MetricTileLabel}"/>
-                                                                <TextBlock Text="{Binding SampleId}" FontFamily="Consolas" FontSize="18" FontWeight="SemiBold"
+                                                                <TextBlock Text="{Binding SampleId}" FontFamily="{DynamicResource MonoFont}" FontSize="18" FontWeight="SemiBold"
                                                                            Foreground="{StaticResource BrushNavyPrimary}" TextWrapping="Wrap"/>
                                                             </StackPanel>
                                                         </Border>
@@ -1091,7 +1091,7 @@ File: TrackerIdWindow.xaml  (Tracker ID V002 — ToolWindowShell)
                                                                                 <TextBlock Text="{Binding OptionPlaceholder}" Style="{StaticResource HintText}" VerticalAlignment="Center"
                                                                                            Visibility="{Binding UsesOption, Converter={StaticResource InverseBoolToVisibilityConverter}}"/>
                                                                             </Grid>
-                                                                            <TextBlock Grid.Column="5" Text="{Binding SampleValue}" FontFamily="Consolas" FontSize="12"
+                                                                            <TextBlock Grid.Column="5" Text="{Binding SampleValue}" FontFamily="{DynamicResource MonoFont}" FontSize="12"
                                                                                        Foreground="{StaticResource BrushAppleBlue}" HorizontalAlignment="Right"
                                                                                        VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                                                                         </Grid>
@@ -1161,7 +1161,7 @@ File: TrackerIdWindow.xaml  (Tracker ID V002 — ToolWindowShell)
                                 <ItemsControl ItemsSource="{Binding NextIds}">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
-                                            <TextBlock Text="{Binding}" FontFamily="Consolas" FontSize="12" Foreground="{StaticResource BrushTextPrimary}" Margin="0,2"/>
+                                            <TextBlock Text="{Binding}" FontFamily="{DynamicResource MonoFont}" FontSize="12" Foreground="{StaticResource BrushTextPrimary}" Margin="0,2"/>
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
@@ -1226,13 +1226,13 @@ File: TrackerIdWindow.xaml  (Tracker ID V002 — ToolWindowShell)
                                 <DataTemplate>
                                     <StackPanel Orientation="Horizontal" Margin="0,2,0,2">
                                         <TextBlock Text="{Binding Time, StringFormat='HH:mm:ss', Mode=OneWay}"
-                                                   FontFamily="Consolas" FontSize="11"
+                                                   FontFamily="{DynamicResource MonoFont}" FontSize="11"
                                                    Foreground="{StaticResource BrushLogTextDim}" Margin="0,0,8,0"/>
                                         <TextBlock Text="{Binding Level, Mode=OneWay}"
-                                                   FontFamily="Consolas" FontSize="11" FontWeight="Bold" Width="60"
+                                                   FontFamily="{DynamicResource MonoFont}" FontSize="11" FontWeight="Bold" Width="60"
                                                    Foreground="{Binding Level, Converter={StaticResource LogLevelToColorConverter}, Mode=OneWay}"/>
                                         <TextBlock Text="{Binding Message, Mode=OneWay}"
-                                                   FontFamily="Consolas" FontSize="11"
+                                                   FontFamily="{DynamicResource MonoFont}" FontSize="11"
                                                    Foreground="{StaticResource BrushLogText}" TextWrapping="Wrap"/>
                                     </StackPanel>
                                 </DataTemplate>
@@ -1253,7 +1253,7 @@ File: TrackerIdWindow.xaml  (Tracker ID V002 — ToolWindowShell)
                             Command="{Binding WriteCommand}"/>
                     <Button Content="Export" Style="{StaticResource PrimaryButton}" MinWidth="120" Margin="0,0,8,0"
                             Command="{Binding ExportCommand}"/>
-                    <Button Content="Close" Style="{StaticResource OutlineButton}" Width="90" Height="38"
+                    <Button IsCancel="True" Content="Close" Style="{StaticResource OutlineButton}" Width="90" Height="38"
                             Click="CloseButton_Click"/>
                 </StackPanel>
             </DockPanel>

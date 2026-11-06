@@ -46,7 +46,7 @@ Changes vs V011 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                 <TextBlock
                     Text="{Binding}"
                     Foreground="{Binding Level, Converter={StaticResource LogLevelToColor}}"
-                    FontFamily="Consolas"
+                    FontFamily="{DynamicResource MonoFont}"
                     FontSize="11"
                     TextWrapping="NoWrap"/>
             </DataTemplate>
@@ -313,7 +313,7 @@ Changes vs V011 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                     Margin="0,0,8,0"
                     Style="{StaticResource PrimaryButton}"
                     Command="{Binding RunCommand}"/>
-                <Button
+                <Button IsCancel="True"
                     Content="Close"
                     Width="80"
                     Style="{StaticResource OutlineButton}"

@@ -906,7 +906,7 @@ Changes vs V027 (layout only):
                                  ScrollViewer.VerticalScrollBarVisibility="Auto">
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
-                                    <TextBlock FontFamily="Consolas" FontSize="11" Foreground="{StaticResource BrushLogText}">
+                                    <TextBlock FontFamily="{DynamicResource MonoFont}" FontSize="11" Foreground="{StaticResource BrushLogText}">
                                         <Run Text="{Binding Time, StringFormat='HH:mm:ss  ', Mode=OneWay}" Foreground="{StaticResource BrushLogTextDim}"/>
                                         <Run Text="{Binding Level, Mode=OneWay}" FontWeight="SemiBold"
                                              Foreground="{Binding Level, Converter={StaticResource LogLevelToColorConverter}}"/>
@@ -940,7 +940,7 @@ Changes vs V027 (layout only):
                 <StackPanel Grid.Column="2" Orientation="Horizontal">
                     <Button Content="Run" Style="{StaticResource PrimaryButton}" Command="{Binding RunCommand}"
                             IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBoolConverter}}" Margin="0,0,8,0"/>
-                    <Button Content="Close" Style="{StaticResource SecondaryButton}" Click="CloseButton_Click"/>
+                    <Button IsCancel="True" Content="Close" Style="{StaticResource SecondaryButton}" Click="CloseButton_Click"/>
                 </StackPanel>
             </Grid>
         </shell:ToolWindowShell.FooterContent>

@@ -238,7 +238,7 @@ Changes vs V005 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                  VirtualizingPanel.VirtualizationMode="Recycling">
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
-                                    <TextBlock FontFamily="Consolas" FontSize="10" IsHitTestVisible="True">
+                                    <TextBlock FontFamily="{DynamicResource MonoFont}" FontSize="10" IsHitTestVisible="True">
                                         <Run Text="{Binding Time, StringFormat=HH:mm:ss}" Foreground="{StaticResource BrushLogTextDim}"/>
                                         <Run Text=" "/>
                                         <Run Text="{Binding Level}" Foreground="{Binding Level, Converter={StaticResource LogLevelToColorConverter}}"/>
@@ -271,7 +271,7 @@ Changes vs V005 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                             Style="{StaticResource PrimaryButton}" Margin="0,0,8,0"/>
                     <Button Content="Create Roof" Command="{Binding RunRoofCommand}"
                             Style="{StaticResource AccentButton}" Margin="0,0,8,0"/>
-                    <Button Content="Close" Click="Close_Click" Style="{StaticResource SecondaryButton}"/>
+                    <Button IsCancel="True" Content="Close" Click="Close_Click" Style="{StaticResource SecondaryButton}"/>
                 </StackPanel>
             </Grid>
         </shell:ToolWindowShell.FooterContent>

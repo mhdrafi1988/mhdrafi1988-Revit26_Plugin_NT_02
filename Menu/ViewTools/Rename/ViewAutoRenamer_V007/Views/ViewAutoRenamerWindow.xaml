@@ -744,7 +744,7 @@ Changes vs V005 (layout only):
                                                 <TextBlock Text=")" VerticalAlignment="Center"/>
                                             </StackPanel>
                                         </Button>
-                    <Button Content="Close" Style="{StaticResource OutlineButton}" Width="90" Height="38" Click="CloseButton_Click"/>
+                    <Button IsCancel="True" Content="Close" Style="{StaticResource OutlineButton}" Width="90" Height="38" Click="CloseButton_Click"/>
                 </StackPanel>
             </DockPanel>
         </shell:ToolWindowShell.FooterContent>

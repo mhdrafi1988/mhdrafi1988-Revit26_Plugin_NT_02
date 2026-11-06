@@ -474,10 +474,10 @@
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
                                         <TextBlock Text="{Binding Time, StringFormat=HH:mm:ss}"
-                                                   FontFamily="Consolas, Courier New" FontSize="10"
+                                                   FontFamily="{DynamicResource MonoFont}" FontSize="10"
                                                    Foreground="{StaticResource BrushLogTextDim}"/>
                                         <TextBlock Grid.Column="1" Text="{Binding Message}"
-                                                   FontFamily="Consolas, Courier New" FontSize="10"
+                                                   FontFamily="{DynamicResource MonoFont}" FontSize="10"
                                                    Foreground="{Binding Level, Converter={StaticResource LogLevelToColor}}"
                                                    TextWrapping="Wrap"/>
                                     </Grid>
@@ -494,7 +494,7 @@
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                 <Button Content="Reload links" Command="{Binding ReloadCommand}"
                         Style="{StaticResource PrimaryButton}" Margin="0,0,8,0"/>
-                <Button Content="Close" Style="{StaticResource OutlineButton}" Width="90" Click="CloseButton_Click"/>
+                <Button IsCancel="True" Content="Close" Style="{StaticResource OutlineButton}" Width="90" Click="CloseButton_Click"/>
             </StackPanel>
         </shell:ToolWindowShell.FooterContent>
     </shell:ToolWindowShell>

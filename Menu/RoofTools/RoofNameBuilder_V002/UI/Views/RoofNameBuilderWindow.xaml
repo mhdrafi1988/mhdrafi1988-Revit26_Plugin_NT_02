@@ -309,7 +309,7 @@ No inline colours: every brush is a SharedStyles token.
                                  shell:ShellBehaviors.ForwardMouseWheel="True">
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
-                                    <TextBlock FontFamily="Consolas" FontSize="12" TextWrapping="Wrap"
+                                    <TextBlock FontFamily="{DynamicResource MonoFont}" FontSize="12" TextWrapping="Wrap"
                                                Foreground="{Binding Level, Converter={StaticResource LogLevelToColorConverter}}"
                                                Text="{Binding}"/>
                                 </DataTemplate>
@@ -329,7 +329,7 @@ No inline colours: every brush is a SharedStyles token.
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
                     <Button Content="Run" Style="{StaticResource RunButton}" MinWidth="110" Margin="0,0,8,0"
                             Command="{Binding RunCommand}"/>
-                    <Button Content="Close" Style="{StaticResource OutlineButton}" MinWidth="90"
+                    <Button IsCancel="True" Content="Close" Style="{StaticResource OutlineButton}" MinWidth="90"
                             Click="CloseButton_Click"/>
                 </StackPanel>
             </DockPanel>

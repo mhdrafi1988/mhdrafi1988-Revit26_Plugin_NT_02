@@ -210,7 +210,7 @@ Changes vs WSEB003 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                     </WrapPanel>
                     <StackPanel Grid.Column="1" Orientation="Horizontal">
                         <Button Content="Show Checked In 3D" Margin="0,0,8,0" Style="{StaticResource PrimaryButton}" Command="{Binding ShowCheckedIn3DCommand}"/>
-                        <Button Content="Close" Style="{StaticResource OutlineButton}" Height="38" Width="90" Command="{Binding CloseCommand}"/>
+                        <Button IsCancel="True" Content="Close" Style="{StaticResource OutlineButton}" Height="38" Width="90" Command="{Binding CloseCommand}"/>
                     </StackPanel>
                 </Grid>
             </shell:ToolWindowShell.FooterContent>

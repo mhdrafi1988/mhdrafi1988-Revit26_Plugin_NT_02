@@ -508,17 +508,17 @@ Changes vs V004 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                             <Grid>
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="▾" Visibility="{Binding IsLogExpanded, Converter={StaticResource BoolToVisibilityConverter}}"
-                                               Foreground="{StaticResource BrushLogTextDim}" FontFamily="Consolas" FontSize="11" Margin="0,0,8,0"/>
+                                               Foreground="{StaticResource BrushLogTextDim}" FontFamily="{DynamicResource MonoFont}" FontSize="11" Margin="0,0,8,0"/>
                                     <TextBlock Text="▸" Visibility="{Binding IsLogExpanded, Converter={StaticResource InverseBoolToVisibilityConverter}}"
-                                               Foreground="{StaticResource BrushLogTextDim}" FontFamily="Consolas" FontSize="11" Margin="0,0,8,0"/>
-                                    <TextBlock Text="Activity Log" Foreground="{StaticResource BrushLogText}" FontFamily="Consolas" FontSize="11"/>
+                                               Foreground="{StaticResource BrushLogTextDim}" FontFamily="{DynamicResource MonoFont}" FontSize="11" Margin="0,0,8,0"/>
+                                    <TextBlock Text="Activity Log" Foreground="{StaticResource BrushLogText}" FontFamily="{DynamicResource MonoFont}" FontSize="11"/>
                                     <Border Background="{StaticResource BrushAppleBlue}" CornerRadius="8" Padding="8,2" Margin="8,0,0,0"
                                             Visibility="{Binding UnreadLogCount, Converter={StaticResource IntToVisibilityConverter}}">
-                                        <TextBlock Text="{Binding UnreadLogCount, StringFormat='{}{0} new'}" Foreground="{StaticResource BrushTextOnDark}" FontSize="10" FontFamily="Consolas"/>
+                                        <TextBlock Text="{Binding UnreadLogCount, StringFormat='{}{0} new'}" Foreground="{StaticResource BrushTextOnDark}" FontSize="10" FontFamily="{DynamicResource MonoFont}"/>
                                     </Border>
                                 </StackPanel>
                                 <TextBlock Text="docked · click to expand" Foreground="{StaticResource BrushLogTextDim}"
-                                           FontFamily="Consolas" FontSize="10" HorizontalAlignment="Right"/>
+                                           FontFamily="{DynamicResource MonoFont}" FontSize="10" HorizontalAlignment="Right"/>
                             </Grid>
                         </ToggleButton>
 
@@ -534,12 +534,12 @@ Changes vs V004 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                             <DataTemplate>
                                                 <StackPanel Orientation="Horizontal">
                                                     <TextBlock Text="{Binding Time, StringFormat='HH:mm:ss'}"
-                                                               Foreground="{StaticResource BrushLogTextDim}" FontFamily="Consolas" FontSize="11"/>
+                                                               Foreground="{StaticResource BrushLogTextDim}" FontFamily="{DynamicResource MonoFont}" FontSize="11"/>
                                                     <TextBlock Text="{Binding Level}" Margin="8,0"
                                                                Foreground="{Binding Level, Converter={StaticResource LogLevelToColorConverter}}"
-                                                               FontFamily="Consolas" FontWeight="Bold" FontSize="11"/>
+                                                               FontFamily="{DynamicResource MonoFont}" FontWeight="Bold" FontSize="11"/>
                                                     <TextBlock Text="{Binding Message}" Foreground="{StaticResource BrushLogText}"
-                                                               FontFamily="Consolas" FontSize="11" TextWrapping="Wrap"/>
+                                                               FontFamily="{DynamicResource MonoFont}" FontSize="11" TextWrapping="Wrap"/>
                                                 </StackPanel>
                                             </DataTemplate>
                                         </ListBox.ItemTemplate>
@@ -578,7 +578,7 @@ Changes vs V004 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                     <Button Content="Run Assignment" Style="{StaticResource PrimaryButton}"
                             Command="{Binding RunCommand}" Margin="0,0,8,0"
                             Visibility="{Binding IsStep4, Converter={StaticResource BoolToVisibilityConverter}}"/>
-                    <Button Content="Close" Style="{StaticResource OutlineButton}" Height="38" Width="90" Click="CloseButton_Click"/>
+                    <Button IsCancel="True" Content="Close" Style="{StaticResource OutlineButton}" Height="38" Width="90" Click="CloseButton_Click"/>
                 </StackPanel>
             </Grid>
         </shell:ToolWindowShell.FooterContent>

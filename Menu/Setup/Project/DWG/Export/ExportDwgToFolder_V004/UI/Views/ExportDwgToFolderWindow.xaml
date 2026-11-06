@@ -94,7 +94,7 @@ V004 (behaviour change — new folder + namespace):
                                            Style="{StaticResource MetricTileLabel}" Margin="0,0,12,4"/>
                                 <TextBlock Grid.Row="1" Grid.Column="1" Margin="0,0,0,4"
                                            Text="{Binding DestinationPath}" TextWrapping="Wrap"
-                                           FontFamily="Consolas" FontSize="12"
+                                           FontFamily="{DynamicResource MonoFont}" FontSize="12"
                                            Foreground="{DynamicResource BrushTextPrimary}"/>
 
                                 <TextBlock Grid.Row="2" Grid.Column="0" Text="SOURCE"
@@ -126,7 +126,7 @@ V004 (behaviour change — new folder + namespace):
                                            Style="{StaticResource MetricTileLabel}" Margin="0,0,12,0"/>
                                 <TextBlock Grid.Row="6" Grid.Column="1"
                                            Text="{Binding ElementIdValue}"
-                                           FontFamily="Consolas" FontSize="12"
+                                           FontFamily="{DynamicResource MonoFont}" FontSize="12"
                                            Foreground="{DynamicResource BrushTextPrimary}"/>
                             </Grid>
                         </Border>
@@ -176,7 +176,7 @@ V004 (behaviour change — new folder + namespace):
                                  Background="{StaticResource BrushSeparatorThin}"
                                  BorderThickness="0" VerticalAlignment="Center"/>
                     <TextBlock Grid.Column="2" Text="{Binding CountText}" HorizontalAlignment="Right" VerticalAlignment="Center"
-                               FontFamily="Consolas" FontSize="11" Foreground="{StaticResource BrushTextSecondary}"/>
+                               FontFamily="{DynamicResource MonoFont}" FontSize="11" Foreground="{StaticResource BrushTextSecondary}"/>
                     <TextBlock x:Name="Pct" Grid.Column="3" Text="{Binding PercentText}" HorizontalAlignment="Right" VerticalAlignment="Center"
                                FontSize="12" FontWeight="Bold" Foreground="{StaticResource BrushTextTertiary}"/>
                 </Grid>
@@ -390,7 +390,7 @@ V004 (behaviour change — new folder + namespace):
                                     Margin="8,0,0,0" Width="80" Height="28"/>
                             <TextBox Text="{Binding OutputFolder, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                      Height="28" Padding="8,4" VerticalContentAlignment="Center"
-                                     FontFamily="Consolas" FontSize="11"
+                                     FontFamily="{DynamicResource MonoFont}" FontSize="11"
                                      IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBoolConverter}}"
                                      ToolTip="Folder where the link / import subfolders are created"/>
                         </DockPanel>
@@ -500,7 +500,7 @@ V004 (behaviour change — new folder + namespace):
                                      Text="{Binding NameTemplate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                      ToolTip="Re-scan to apply. An empty pattern, or one whose tokens are all empty, falls back to the CAD type name."/>
                             <TextBlock Text="{Binding NameTokenHint}" Margin="0,4,0,0" FontSize="10"
-                                       FontFamily="Consolas" Foreground="{StaticResource BrushTextTertiary}"
+                                       FontFamily="{DynamicResource MonoFont}" Foreground="{StaticResource BrushTextTertiary}"
                                        TextWrapping="Wrap"/>
 
                             <TextBlock Text="Folder: link | import \ plan | section | drafting | no_views \ file.dwg"
@@ -825,7 +825,7 @@ V004 (behaviour change — new folder + namespace):
                             </ListBox.ItemContainerStyle>
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
-                                    <TextBlock FontFamily="Consolas" FontSize="11" TextWrapping="Wrap"
+                                    <TextBlock FontFamily="{DynamicResource MonoFont}" FontSize="11" TextWrapping="Wrap"
                                                Foreground="{Binding Level, Converter={StaticResource LogLevelToColorConverter}}"
                                                Text="{Binding Mode=OneWay}"/>
                                 </DataTemplate>
@@ -862,7 +862,7 @@ V004 (behaviour change — new folder + namespace):
                                 Command="{Binding ExportCommand}"
                                 MinWidth="110" Height="38" Margin="0,0,8,0"
                                 ToolTip="Export the ticked DWGs to the output folder"/>
-                        <Button Content="Close"
+                        <Button IsCancel="True" Content="Close"
                                 Style="{StaticResource OutlineButton}"
                                 Width="80" Height="38"
                                 Click="CloseButton_Click"/>

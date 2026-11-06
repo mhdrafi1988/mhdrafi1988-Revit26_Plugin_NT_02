@@ -368,7 +368,7 @@ Changes vs V008:
                                     <!-- LogEntry.ToString() already formats as
                                          "HH:mm:ss  Level  Message" — don't reformat it. -->
                                     <TextBlock Text="{Binding}"
-                                               FontFamily="Consolas" FontSize="11"
+                                               FontFamily="{DynamicResource MonoFont}" FontSize="11"
                                                TextWrapping="Wrap"
                                                Foreground="{Binding Level, Converter={StaticResource LogLevelToColorConverter}}"/>
                                 </DataTemplate>
@@ -399,7 +399,7 @@ Changes vs V008:
                             Command="{Binding RenumberCommand}"
                             Style="{StaticResource RunButton}"
                             Width="120" Margin="0,0,8,0"/>
-                    <Button Content="Close" Style="{StaticResource OutlineButton}" Width="90"
+                    <Button IsCancel="True" Content="Close" Style="{StaticResource OutlineButton}" Width="90"
                             Click="CloseButton_Click"/>
                 </StackPanel>
             </Grid>

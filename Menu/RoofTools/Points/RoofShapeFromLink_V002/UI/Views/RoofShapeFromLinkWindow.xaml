@@ -324,7 +324,7 @@ File: RoofShapeFromLinkWindow.xaml  (V002, ToolWindowShell)
                                                 </Style>
                                             </Border.Style>
                                         </Border>
-                                        <TextBlock Text="{Binding DeltaText}" FontFamily="Consolas"/>
+                                        <TextBlock Text="{Binding DeltaText}" FontFamily="{DynamicResource MonoFont}"/>
                                     </StackPanel>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
@@ -372,10 +372,10 @@ File: RoofShapeFromLinkWindow.xaml  (V002, ToolWindowShell)
                                     <StackPanel Orientation="Horizontal" Margin="0,2">
                                         <TextBlock Text="{Binding Time, StringFormat=HH:mm:ss}"
                                                    Foreground="{StaticResource BrushLogTextDim}"
-                                                   FontFamily="Consolas" FontSize="11" Margin="0,0,12,0"/>
+                                                   FontFamily="{DynamicResource MonoFont}" FontSize="11" Margin="0,0,12,0"/>
                                         <TextBlock Text="{Binding Message}"
                                                    Foreground="{Binding Level, Converter={StaticResource LogLevelToColor}}"
-                                                   FontFamily="Consolas" FontSize="11" TextWrapping="Wrap"/>
+                                                   FontFamily="{DynamicResource MonoFont}" FontSize="11" TextWrapping="Wrap"/>
                                     </StackPanel>
                                 </DataTemplate>
                             </ListBox.ItemTemplate>

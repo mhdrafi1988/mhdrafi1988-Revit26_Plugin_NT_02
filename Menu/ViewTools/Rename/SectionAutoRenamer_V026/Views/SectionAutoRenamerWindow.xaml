@@ -512,7 +512,7 @@ Changes vs V025 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                                 <TextBlock Text=")" VerticalAlignment="Center"/>
                                             </StackPanel>
                                         </Button>
-                    <Button Content="Close" Style="{StaticResource OutlineButton}" Width="90" Height="38" Click="CloseButton_Click"/>
+                    <Button IsCancel="True" Content="Close" Style="{StaticResource OutlineButton}" Width="90" Height="38" Click="CloseButton_Click"/>
                 </StackPanel>
             </DockPanel>
         </shell:ToolWindowShell.FooterContent>

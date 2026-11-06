@@ -579,7 +579,7 @@ Changes vs V012 (layout only):
                                 <DataTemplate>
                                     <TextBlock Text="{Binding}"
                                                Foreground="{StaticResource BrushLogText}"
-                                               FontFamily="Consolas"
+                                               FontFamily="{DynamicResource MonoFont}"
                                                FontSize="12"/>
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
@@ -610,7 +610,7 @@ Changes vs V012 (layout only):
                             </Style>
                         </Button.Style>
                     </Button>
-                    <Button Content="Close" Style="{StaticResource OutlineButton}" Width="85" Height="38"
+                    <Button IsCancel="True" Content="Close" Style="{StaticResource OutlineButton}" Width="85" Height="38"
                             Command="{Binding CancelDialogCommand}"/>
                 </StackPanel>
                 <TextBlock Text="Metric cards reset to 0 at the start of each Create run"

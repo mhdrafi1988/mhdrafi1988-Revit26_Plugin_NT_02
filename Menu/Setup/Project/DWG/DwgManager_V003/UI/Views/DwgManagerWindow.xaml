@@ -470,13 +470,13 @@ File: DwgManagerWindow.xaml  (DWG Manager V003 — ToolWindowShell)
                                 <DataTemplate>
                                     <StackPanel Orientation="Horizontal" Margin="0,2,0,2">
                                         <TextBlock Text="{Binding Time, StringFormat='HH:mm:ss', Mode=OneWay}"
-                                                   FontFamily="Consolas" FontSize="11"
+                                                   FontFamily="{DynamicResource MonoFont}" FontSize="11"
                                                    Foreground="{StaticResource BrushLogTextDim}" Margin="0,0,8,0"/>
                                         <TextBlock Text="{Binding Level, Mode=OneWay}"
-                                                   FontFamily="Consolas" FontSize="11" FontWeight="Bold" Width="60"
+                                                   FontFamily="{DynamicResource MonoFont}" FontSize="11" FontWeight="Bold" Width="60"
                                                    Foreground="{Binding Level, Converter={StaticResource LogLevelToColorConverter}, Mode=OneWay}"/>
                                         <TextBlock Text="{Binding Message, Mode=OneWay}"
-                                                   FontFamily="Consolas" FontSize="11"
+                                                   FontFamily="{DynamicResource MonoFont}" FontSize="11"
                                                    Foreground="{StaticResource BrushLogText}" TextWrapping="Wrap"/>
                                     </StackPanel>
                                 </DataTemplate>
@@ -501,7 +501,7 @@ File: DwgManagerWindow.xaml  (DWG Manager V003 — ToolWindowShell)
                     <Button Content="{Binding OpenViewsLabel}" Style="{StaticResource PrimaryButton}"
                             Command="{Binding OpenViewsCommand}" MinWidth="150" Margin="0,0,8,0"
                             ToolTip="Open the views of the ticked rows (up to 5)."/>
-                    <Button Content="Close" Style="{StaticResource OutlineButton}" Width="90" Height="38"
+                    <Button IsCancel="True" Content="Close" Style="{StaticResource OutlineButton}" Width="90" Height="38"
                             Click="CloseButton_Click"/>
                 </StackPanel>
             </DockPanel>

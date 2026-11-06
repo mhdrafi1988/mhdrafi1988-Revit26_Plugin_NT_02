@@ -38,7 +38,7 @@ own ScrollViewer(s) removed, grids and the log cap their height
                 <TextBlock
                     Text="{Binding}"
                     Foreground="{Binding Level, Converter={StaticResource LogLevelToColor}}"
-                    FontFamily="Consolas"
+                    FontFamily="{DynamicResource MonoFont}"
                     FontSize="11"
                     TextWrapping="NoWrap"/>
             </DataTemplate>

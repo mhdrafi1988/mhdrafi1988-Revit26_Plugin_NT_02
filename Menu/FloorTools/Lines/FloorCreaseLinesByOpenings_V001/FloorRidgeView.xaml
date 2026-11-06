@@ -421,7 +421,7 @@ Changes vs V069 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                            Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
                 <StackPanel Grid.Column="2" Orientation="Horizontal">
                     <Button Content="Generate Ridges" Command="{Binding RunCommand}" Style="{StaticResource PrimaryButton}" Width="160" Height="36" FontSize="13" Margin="0,0,8,0" IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBool}}"/>
-                    <Button Content="Close" Style="{StaticResource OutlineButton}" Height="36" Width="90" Click="CloseButton_Click"/>
+                    <Button IsCancel="True" Content="Close" Style="{StaticResource OutlineButton}" Height="36" Width="90" Click="CloseButton_Click"/>
                 </StackPanel>
             </Grid>
         </shell:ToolWindowShell.FooterContent>

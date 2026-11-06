@@ -393,7 +393,7 @@ Changes vs V020 (layout only):
                                                                     Command="{Binding SheetFilterClearCommand}"
                                                                     Style="{StaticResource SmallSecondaryButton}"/>
                                                         </StackPanel>
-                                                        <Button Grid.Column="1" Content="Close"
+                                                        <Button IsCancel="True" Grid.Column="1" Content="Close"
                                                                 Command="{Binding CloseSheetFilterPopupCommand}"
                                                                 Style="{StaticResource SecondaryButton}"
                                                                 Height="26" Padding="12,0"/>
@@ -699,7 +699,7 @@ Changes vs V020 (layout only):
                             </ListBox.ItemContainerStyle>
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
-                                    <TextBlock FontFamily="Consolas" FontSize="11"
+                                    <TextBlock FontFamily="{DynamicResource MonoFont}" FontSize="11"
                                                Foreground="{Binding Level, Converter={StaticResource LogLevelToColorConverter}}">
                                         <TextBlock.Text>
                                             <MultiBinding StringFormat="{}{0:HH:mm:ss}  {1,-7}  {2}">

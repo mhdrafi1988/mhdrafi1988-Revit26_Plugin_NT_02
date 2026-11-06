@@ -100,7 +100,7 @@ Layout: shell header (metric tiles) / body (grid) / footer (Apply, Open).
                                            Style="{StaticResource MetricTileLabel}" Margin="0,0,12,2"/>
                                 <TextBlock Grid.Row="1" Grid.Column="1" Margin="0,0,0,2"
                                            Text="{Binding DestinationPath}" TextWrapping="Wrap"
-                                           FontFamily="Consolas" FontSize="12"
+                                           FontFamily="{DynamicResource MonoFont}" FontSize="12"
                                            Foreground="{DynamicResource BrushTextPrimary}"/>
 
                                 <TextBlock Grid.Row="2" Grid.Column="0" Text="Source"
@@ -120,7 +120,7 @@ Layout: shell header (metric tiles) / body (grid) / footer (Apply, Open).
                                            Style="{StaticResource MetricTileLabel}" Margin="0,0,12,0"/>
                                 <TextBlock Grid.Row="4" Grid.Column="1"
                                            Text="{Binding ElementIdValue}"
-                                           FontFamily="Consolas" FontSize="12"
+                                           FontFamily="{DynamicResource MonoFont}" FontSize="12"
                                            Foreground="{DynamicResource BrushTextPrimary}"/>
                             </Grid>
                         </Border>
@@ -359,7 +359,7 @@ Layout: shell header (metric tiles) / body (grid) / footer (Apply, Open).
                         Style="{StaticResource OutlineButton}"
                         Command="{Binding SkipAllCommand}"
                         ToolTip="Leave every exported CAD instance in the model and close"/>
-                <Button DockPanel.Dock="Right" Content="Close"
+                <Button IsCancel="True" DockPanel.Dock="Right" Content="Close"
                         Style="{StaticResource OutlineButton}" Margin="8,0,0,0"
                         Click="CloseButton_Click"/>
                 <Button DockPanel.Dock="Right" Content="{Binding OpenButtonText}"

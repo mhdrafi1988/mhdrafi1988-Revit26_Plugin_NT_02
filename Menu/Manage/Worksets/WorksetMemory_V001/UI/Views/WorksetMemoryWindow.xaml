@@ -279,7 +279,7 @@
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                 <Button Content="Reload worksets" Command="{Binding ReloadCommand}"
                         Style="{StaticResource PrimaryButton}" Margin="0,0,8,0"/>
-                <Button Content="Close" Style="{StaticResource OutlineButton}" Width="90" Click="CloseButton_Click"/>
+                <Button IsCancel="True" Content="Close" Style="{StaticResource OutlineButton}" Width="90" Click="CloseButton_Click"/>
             </StackPanel>
         </shell:ToolWindowShell.FooterContent>
     </shell:ToolWindowShell>

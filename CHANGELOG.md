@@ -9,6 +9,18 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.39.9] — 2026-11-06
+
+### All tool windows — shared monospace font and Esc to close
+
+94 tools got a patch version (every tool bumped in 6.39.0 to 6.39.8 that has a window; see `Claude/Previews/AllTools_UiStandard_Windows.html` for the list).
+
+#### Changed
+- Log and code text now read the font from one shared value (`MonoFont` in `Shared/SharedStyles.xaml`) instead of a hard-coded `Consolas`. Same font as before.
+- The Close button in 77 windows is now the cancel button: pressing Esc closes the window.
+
+User note: Esc now closes these tool windows. Nothing else changes.
+
 ## [6.39.8] — 2026-11-06
 
 ### Tagging Tools — spacing and text sizes on the 4 px grid

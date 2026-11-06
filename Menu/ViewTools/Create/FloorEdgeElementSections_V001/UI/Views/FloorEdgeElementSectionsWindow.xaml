@@ -556,7 +556,7 @@ Changes vs V003 (layout only):
                             <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Margin="12,0,12,12" Padding="12,8">
                                 <StackPanel>
                                     <TextBlock Text="LIVE PREVIEW" FontSize="10" Foreground="{StaticResource BrushLogTextDim}" Margin="0,0,0,4"/>
-                                    <TextBlock Text="{Binding NamingPreviewText}" FontFamily="Consolas" FontSize="13"
+                                    <TextBlock Text="{Binding NamingPreviewText}" FontFamily="{DynamicResource MonoFont}" FontSize="13"
                                                Foreground="{StaticResource BrushLogSuccess}"/>
                                 </StackPanel>
                             </Border>
@@ -699,9 +699,9 @@ Changes vs V003 (layout only):
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="{Binding Time, StringFormat={}{0:HH:mm:ss}}" Foreground="{StaticResource BrushLogTextDim}" FontFamily="Consolas" FontSize="11" Width="60"/>
-                                        <TextBlock Text="{Binding Level}" Foreground="{Binding Level, Converter={StaticResource LogLevelToColorConverter}}" FontFamily="Consolas" FontSize="11" FontWeight="SemiBold" Width="60"/>
-                                        <TextBlock Text="{Binding Message}" Foreground="{StaticResource BrushLogText}" FontFamily="Consolas" FontSize="11" TextWrapping="Wrap"/>
+                                        <TextBlock Text="{Binding Time, StringFormat={}{0:HH:mm:ss}}" Foreground="{StaticResource BrushLogTextDim}" FontFamily="{DynamicResource MonoFont}" FontSize="11" Width="60"/>
+                                        <TextBlock Text="{Binding Level}" Foreground="{Binding Level, Converter={StaticResource LogLevelToColorConverter}}" FontFamily="{DynamicResource MonoFont}" FontSize="11" FontWeight="SemiBold" Width="60"/>
+                                        <TextBlock Text="{Binding Message}" Foreground="{StaticResource BrushLogText}" FontFamily="{DynamicResource MonoFont}" FontSize="11" TextWrapping="Wrap"/>
                                     </StackPanel>
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
@@ -727,7 +727,7 @@ Changes vs V003 (layout only):
                             <TextBlock Text="{Binding SuggestedSectionCount, StringFormat='Run ({0})'}"/>
                         </Button.Content>
                     </Button>
-                    <Button Content="Close" Style="{StaticResource OutlineButton}" Width="90" Click="CloseButton_Click"
+                    <Button IsCancel="True" Content="Close" Style="{StaticResource OutlineButton}" Width="90" Click="CloseButton_Click"
                             ToolTip="Close this window without creating any sections."/>
                 </StackPanel>
             </Grid>

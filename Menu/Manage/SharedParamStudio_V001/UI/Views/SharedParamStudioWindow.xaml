@@ -268,16 +268,16 @@
                 <!-- ═══ ACTIVITY LOG ═══ -->
                 <Border Grid.Row="1" Background="{StaticResource BrushLogBg}" CornerRadius="6" Margin="0,12,0,0" Padding="12,8">
                     <StackPanel>
-                        <TextBlock Text="Activity Log" Foreground="{StaticResource BrushLogText}" FontFamily="Consolas" FontSize="11" Margin="0,0,0,4"/>
+                        <TextBlock Text="Activity Log" Foreground="{StaticResource BrushLogText}" FontFamily="{DynamicResource MonoFont}" FontSize="11" Margin="0,0,0,4"/>
                         <ListBox ItemsSource="{Binding LogEntries}" Height="120" Background="Transparent" BorderThickness="0"
                                  SelectionMode="Extended" ScrollViewer.VerticalScrollBarVisibility="Auto"
                                  SelectionChanged="LogListBox_SelectionChanged">
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="{Binding Time, StringFormat='HH:mm:ss'}" Foreground="{StaticResource BrushLogTextDim}" FontFamily="Consolas" FontSize="11"/>
-                                        <TextBlock Text="{Binding Level}" Margin="8,0" Foreground="{Binding Level, Converter={StaticResource LogLevelToColorConverter}}" FontFamily="Consolas" FontWeight="Bold" FontSize="11"/>
-                                        <TextBlock Text="{Binding Message}" Foreground="{StaticResource BrushLogText}" FontFamily="Consolas" FontSize="11" TextWrapping="Wrap"/>
+                                        <TextBlock Text="{Binding Time, StringFormat='HH:mm:ss'}" Foreground="{StaticResource BrushLogTextDim}" FontFamily="{DynamicResource MonoFont}" FontSize="11"/>
+                                        <TextBlock Text="{Binding Level}" Margin="8,0" Foreground="{Binding Level, Converter={StaticResource LogLevelToColorConverter}}" FontFamily="{DynamicResource MonoFont}" FontWeight="Bold" FontSize="11"/>
+                                        <TextBlock Text="{Binding Message}" Foreground="{StaticResource BrushLogText}" FontFamily="{DynamicResource MonoFont}" FontSize="11" TextWrapping="Wrap"/>
                                     </StackPanel>
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
@@ -294,7 +294,7 @@
 
         <shell:ToolWindowShell.FooterContent>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button Content="Close" Style="{StaticResource OutlineButton}" Height="38" Width="90" Click="CloseButton_Click"/>
+                <Button IsCancel="True" Content="Close" Style="{StaticResource OutlineButton}" Height="38" Width="90" Click="CloseButton_Click"/>
             </StackPanel>
         </shell:ToolWindowShell.FooterContent>
     </shell:ToolWindowShell>

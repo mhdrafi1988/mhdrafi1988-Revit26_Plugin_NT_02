@@ -156,7 +156,7 @@ Changes vs V008 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                             </ListBox.ItemContainerStyle>
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
-                                    <TextBlock FontFamily="Consolas" FontSize="11"
+                                    <TextBlock FontFamily="{DynamicResource MonoFont}" FontSize="11"
                                                Text="{Binding}" TextWrapping="Wrap"/>
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
@@ -174,7 +174,7 @@ Changes vs V008 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                         Command="{Binding PreviewCommand}" IsEnabled="{Binding CanPreview}"/>
                 <Button Content="Apply" Style="{StaticResource PrimaryButton}" MinWidth="90" Margin="0,0,8,0"
                         Command="{Binding ApplyCommand}" IsEnabled="{Binding CanApply}"/>
-                <Button Content="Close" Style="{StaticResource OutlineButton}" MinWidth="80" Click="Close_Click"/>
+                <Button IsCancel="True" Content="Close" Style="{StaticResource OutlineButton}" MinWidth="80" Click="Close_Click"/>
             </StackPanel>
         </shell:ToolWindowShell.FooterContent>
     </shell:ToolWindowShell>

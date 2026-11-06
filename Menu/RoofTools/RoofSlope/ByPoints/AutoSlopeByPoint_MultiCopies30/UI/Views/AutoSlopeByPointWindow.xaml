@@ -755,7 +755,7 @@ Changes vs MultiCopies29 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                         </Button.Style>
                     </Button>
 
-                    <Button Content="Close"
+                    <Button IsCancel="True" Content="Close"
                             Style="{StaticResource OutlineButton}"
                             Click="CloseButton_Click"
                             Height="32"

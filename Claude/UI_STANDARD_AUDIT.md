@@ -94,8 +94,15 @@ standard on the current version of every wired tool in: Roof Points (6.39.0), Vi
 (6.39.2), Sheet (6.39.3), Floor Tools (6.39.4), Roof Tools other than Points (6.39.5), Detail Lines and
 Dimensions (6.39.6), Setup (6.39.7), Tagging (6.39.8).
 
-Not done yet: older coexisting version folders; Workset Creator V017 and the WIP tools (not wired);
-moving the non-shell windows (e.g. Link Version Checker V007) onto `ToolWindowShell`; implicit styles for
-ComboBox / CheckBox / DataGrid; button and input heights; replacing hard-coded colours and `Consolas`
-with tokens; `IsDefault` / `IsCancel`, `TabIndex`, `AutomationProperties.Name`. None of this was built or
-opened in Revit from the Linux session; check the windows in Revit first.
+Also done (6.39.9): 219 hard-coded `Consolas` font uses now read `MonoFont`; the Close button is the cancel
+button (Esc closes) in 77 windows.
+
+Deliberately not done, because it can't be done safely without building and viewing the windows:
+- Hard-coded colours: none of the 21 checked in the changed files equals a shared colour exactly, so
+  swapping them would change the look. They need a design decision per colour.
+- `IsDefault` (Enter): Enter on an Apply button could fire a model change from a text box.
+- Implicit styles for ComboBox / CheckBox / DataGrid and the 32 px button / 28 px input heights: these
+  restyle every window at once and need a visual check in Revit first.
+- `TabIndex` / `AutomationProperties.Name`: WPF already tabs in visual order; labels need per-field text.
+- Moving the non-shell windows (e.g. Link Version Checker V007) onto `ToolWindowShell`: a layout rewrite.
+- Older coexisting version folders, Workset Creator V017 and WIP tools (not wired to the ribbon).

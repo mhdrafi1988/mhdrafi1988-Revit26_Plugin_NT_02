@@ -541,7 +541,7 @@ Changes vs V323 (layout only):
                                  Padding="0">
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding DisplayText}" FontFamily="Consolas" FontSize="11"
+                                    <TextBlock Text="{Binding DisplayText}" FontFamily="{DynamicResource MonoFont}" FontSize="11"
                                                TextWrapping="Wrap"
                                                Foreground="{Binding Level, Converter={StaticResource LogLevelToColorConverter}}"/>
                                 </DataTemplate>
@@ -570,7 +570,7 @@ Changes vs V323 (layout only):
                     <Button Content="Cancel Placement" MinWidth="150" Margin="0,0,8,0" Style="{StaticResource DangerButton}"
                                                     Command="{Binding CancelCommand}"
                                                     Visibility="{Binding ShowCancelButton, Converter={StaticResource BoolToVisibilityConverter}}"/>
-                    <Button Content="Close" Style="{StaticResource OutlineButton}" Width="90" Height="38"
+                    <Button IsCancel="True" Content="Close" Style="{StaticResource OutlineButton}" Width="90" Height="38"
                             Click="CloseButton_Click"/>
                 </StackPanel>
             </StackPanel>

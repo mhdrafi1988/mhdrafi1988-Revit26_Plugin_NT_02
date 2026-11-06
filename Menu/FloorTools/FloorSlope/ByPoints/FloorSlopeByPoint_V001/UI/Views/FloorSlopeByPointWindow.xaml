@@ -967,7 +967,7 @@ converters declared here.
                     <Button Content="{Binding RunButtonText}" Style="{StaticResource RunButton}" MinWidth="150" Margin="0,0,8,0"
                             Command="{Binding RunCommand}"
                             ToolTip="Reset the floor's shape points and apply the slope towards the drains."/>
-                    <Button Content="Close" Style="{StaticResource OutlineButton}" Width="90" Click="CloseButton_Click"/>
+                    <Button IsCancel="True" Content="Close" Style="{StaticResource OutlineButton}" Width="90" Click="CloseButton_Click"/>
                 </StackPanel>
             </Grid>
         </shell:ToolWindowShell.FooterContent>

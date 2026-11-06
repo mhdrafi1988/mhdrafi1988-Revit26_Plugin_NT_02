@@ -452,7 +452,7 @@ Changes vs FX04 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                 Style="{StaticResource PrimaryButton}"
                                 Command="{Binding UpdateCommand}"
                                 MinWidth="100" Margin="0,0,8,0"/>
-                        <Button Content="Close" Style="{StaticResource OutlineButton}" Width="90" Height="38" Click="CloseButton_Click"/>
+                        <Button IsCancel="True" Content="Close" Style="{StaticResource OutlineButton}" Width="90" Height="38" Click="CloseButton_Click"/>
                     </StackPanel>
                 </Grid>
             </StackPanel>

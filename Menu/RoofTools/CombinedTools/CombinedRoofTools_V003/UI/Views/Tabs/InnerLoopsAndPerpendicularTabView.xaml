@@ -294,13 +294,13 @@ own ScrollViewer(s) removed, grids and the log cap their height
                                 <StackPanel Orientation="Horizontal" Margin="0,2">
                             <TextBlock Text="{Binding Time, StringFormat=HH:mm:ss}"
                                        Foreground="{StaticResource BrushLogTextDim}"
-                                       FontFamily="Consolas" FontSize="11" Margin="0,0,12,0"/>
+                                       FontFamily="{DynamicResource MonoFont}" FontSize="11" Margin="0,0,12,0"/>
                             <TextBlock Text="{Binding Level}"
                                        Foreground="{Binding Level, Converter={StaticResource LogLevelToColor}}"
-                                       FontFamily="Consolas" FontSize="11" FontWeight="SemiBold" Width="64"/>
+                                       FontFamily="{DynamicResource MonoFont}" FontSize="11" FontWeight="SemiBold" Width="64"/>
                             <TextBlock Text="{Binding Message}"
                                        Foreground="{StaticResource BrushLogText}"
-                                       FontFamily="Consolas" FontSize="11" TextWrapping="Wrap"/>
+                                       FontFamily="{DynamicResource MonoFont}" FontSize="11" TextWrapping="Wrap"/>
                         </StackPanel>
                             </DataTemplate>
                         </ListBox.ItemTemplate>

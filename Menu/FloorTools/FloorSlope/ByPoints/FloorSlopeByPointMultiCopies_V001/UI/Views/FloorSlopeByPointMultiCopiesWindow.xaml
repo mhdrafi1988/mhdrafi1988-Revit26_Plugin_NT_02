@@ -758,7 +758,7 @@ Roof MultiCopies30 notes, changes vs MultiCopies29 (layout only, per CLAUDE.md v
                         </Button.Style>
                     </Button>
 
-                    <Button Content="Close"
+                    <Button IsCancel="True" Content="Close"
                             Style="{StaticResource OutlineButton}"
                             Click="CloseButton_Click"
                             Height="32"

@@ -228,7 +228,7 @@ Added later in V016 — IFC toggle and duplicate prevention:
                                 <TextBlock Text="{Binding TotalLinksCount}"
                                            FontSize="20" FontWeight="Bold"
                                            Foreground="{StaticResource BrushTextPrimary}"
-                                           FontFamily="Consolas"/>
+                                           FontFamily="{DynamicResource MonoFont}"/>
                             </StackPanel>
                         </StackPanel>
                     </Border>
@@ -250,7 +250,7 @@ Added later in V016 — IFC toggle and duplicate prevention:
                                 <TextBlock Text="{Binding Grid1Count}"
                                            FontSize="20" FontWeight="Bold"
                                            Foreground="{StaticResource BrushStatusOk}"
-                                           FontFamily="Consolas"/>
+                                           FontFamily="{DynamicResource MonoFont}"/>
                             </StackPanel>
                         </StackPanel>
                     </Border>
@@ -272,7 +272,7 @@ Added later in V016 — IFC toggle and duplicate prevention:
                                 <TextBlock Text="{Binding Grid2Count}"
                                            FontSize="20" FontWeight="Bold"
                                            Foreground="{StaticResource BrushAppleBlue}"
-                                           FontFamily="Consolas"/>
+                                           FontFamily="{DynamicResource MonoFont}"/>
                             </StackPanel>
                         </StackPanel>
                     </Border>
@@ -294,7 +294,7 @@ Added later in V016 — IFC toggle and duplicate prevention:
                                 <TextBlock Text="{Binding RenameMatchCount}"
                                            FontSize="20" FontWeight="Bold"
                                            Foreground="{StaticResource BrushStatusOk}"
-                                           FontFamily="Consolas"
+                                           FontFamily="{DynamicResource MonoFont}"
                                            ToolTip="Links that already have a workset under a different naming pattern. Renaming it keeps one workset per link."/>
                             </StackPanel>
                         </StackPanel>
@@ -317,7 +317,7 @@ Added later in V016 — IFC toggle and duplicate prevention:
                                 <TextBlock Text="{Binding NeedsReviewCount}"
                                            FontSize="20" FontWeight="Bold"
                                            Foreground="{StaticResource BrushStatusWarn}"
-                                           FontFamily="Consolas"
+                                           FontFamily="{DynamicResource MonoFont}"
                                            ToolTip="Rows held out of the run until you pick an action — a naming pattern too rare to trust, or more than one candidate workset."/>
                             </StackPanel>
                         </StackPanel>
@@ -338,7 +338,7 @@ Added later in V016 — IFC toggle and duplicate prevention:
                                 <TextBlock Text="{Binding Grid3Count}"
                                            FontSize="20" FontWeight="Bold"
                                            Foreground="{StaticResource BrushTextPrimary}"
-                                           FontFamily="Consolas"/>
+                                           FontFamily="{DynamicResource MonoFont}"/>
                             </StackPanel>
                         </StackPanel>
                     </Border>
@@ -446,7 +446,7 @@ Added later in V016 — IFC toggle and duplicate prevention:
                                                 ToolTip="{Binding Tooltip}">
                                             <StackPanel Orientation="Horizontal">
                                                 <TextBlock Text="{Binding Display}"
-                                                           FontFamily="Consolas, Courier New"
+                                                           FontFamily="{DynamicResource MonoFont}"
                                                            FontSize="10"
                                                            Foreground="{StaticResource BrushNavyPrimary}"/>
                                                 <TextBlock Text="{Binding Occurrences, StringFormat=' ×{0}'}"
@@ -723,7 +723,7 @@ Added later in V016 — IFC toggle and duplicate prevention:
                                                VerticalAlignment="Center" Margin="0,0,8,0"/>
                                     <TextBox Grid.Column="1"
                                              Style="{StaticResource StyledTextInput}"
-                                             FontFamily="Consolas, Courier New"
+                                             FontFamily="{DynamicResource MonoFont}"
                                              FontSize="10"
                                              BorderThickness="0"
                                              Background="Transparent"
@@ -912,7 +912,7 @@ Added later in V016 — IFC toggle and duplicate prevention:
                                                VerticalAlignment="Center" Margin="0,0,8,0"/>
                                     <TextBox Grid.Column="1"
                                              Style="{StaticResource StyledTextInput}"
-                                             FontFamily="Consolas, Courier New"
+                                             FontFamily="{DynamicResource MonoFont}"
                                              FontSize="10"
                                              BorderThickness="0"
                                              Background="Transparent"
@@ -1148,7 +1148,7 @@ Added later in V016 — IFC toggle and duplicate prevention:
                                                VerticalAlignment="Center" Margin="0,0,8,0"/>
                                     <TextBox Grid.Column="1"
                                              Style="{StaticResource StyledTextInput}"
-                                             FontFamily="Consolas, Courier New"
+                                             FontFamily="{DynamicResource MonoFont}"
                                              FontSize="10"
                                              BorderThickness="0"
                                              Background="Transparent"
@@ -1260,7 +1260,7 @@ Added later in V016 — IFC toggle and duplicate prevention:
 
                                 <TextBlock Grid.Column="0"
                                            Text="{Binding LogChevron}"
-                                           FontFamily="Consolas"
+                                           FontFamily="{DynamicResource MonoFont}"
                                            FontSize="10"
                                            Foreground="{StaticResource BrushLogTextDim}"
                                            VerticalAlignment="Center"
@@ -1268,7 +1268,7 @@ Added later in V016 — IFC toggle and duplicate prevention:
 
                                 <TextBlock Grid.Column="1"
                                            Text="Live Log"
-                                           FontFamily="Consolas"
+                                           FontFamily="{DynamicResource MonoFont}"
                                            FontSize="10"
                                            FontWeight="SemiBold"
                                            Foreground="{StaticResource BrushLogTextDim}"
@@ -1335,20 +1335,20 @@ Added later in V016 — IFC toggle and duplicate prevention:
                                 <DataTemplate>
                                     <StackPanel Orientation="Horizontal" Margin="12,2">
                                         <TextBlock Text="{Binding Time, StringFormat=HH:mm:ss}"
-                                                   FontFamily="Consolas"
+                                                   FontFamily="{DynamicResource MonoFont}"
                                                    FontSize="10"
                                                    Foreground="{StaticResource BrushLogTextDim}"
                                                    Width="58"
                                                    VerticalAlignment="Center"/>
                                         <TextBlock Text="{Binding Level}"
-                                                   FontFamily="Consolas"
+                                                   FontFamily="{DynamicResource MonoFont}"
                                                    FontSize="10"
                                                    FontWeight="SemiBold"
                                                    Foreground="{Binding Level, Converter={StaticResource LogLevelToColorConverter}}"
                                                    Width="60"
                                                    VerticalAlignment="Center"/>
                                         <TextBlock Text="{Binding Message}"
-                                                   FontFamily="Consolas"
+                                                   FontFamily="{DynamicResource MonoFont}"
                                                    FontSize="10"
                                                    Foreground="{StaticResource BrushLogText}"
                                                    TextWrapping="NoWrap"
@@ -1385,7 +1385,7 @@ Added later in V016 — IFC toggle and duplicate prevention:
                             IsEnabled="{Binding IsResyncEnabled}"
                             Margin="0,0,8,0"
                             ToolTip="Re-assign selected links to their matching worksets"/>
-                    <Button Content="Close"
+                    <Button IsCancel="True" Content="Close"
                             Style="{StaticResource OutlineButton}"
                             Command="{Binding CloseCommand}"/>
                 </StackPanel>

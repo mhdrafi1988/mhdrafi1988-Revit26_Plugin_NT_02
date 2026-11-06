@@ -221,7 +221,7 @@ Changes vs V003 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                  shell:ShellBehaviors.ForwardMouseWheel="True"
                                  SelectionMode="Extended" Margin="4"
                                  Background="Transparent" BorderThickness="0"
-                                 FontFamily="Consolas" FontSize="12"
+                                 FontFamily="{DynamicResource MonoFont}" FontSize="12"
                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                                  VirtualizingPanel.IsVirtualizing="True"
                                  VirtualizingPanel.VirtualizationMode="Recycling">

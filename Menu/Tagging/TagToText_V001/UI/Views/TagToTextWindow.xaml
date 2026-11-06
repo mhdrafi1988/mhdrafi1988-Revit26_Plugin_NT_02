@@ -268,13 +268,13 @@
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding Text}" Style="{StaticResource CellText}"
-                                               FontFamily="Consolas, Courier New" TextWrapping="Wrap"/>
+                                               FontFamily="{DynamicResource MonoFont}" TextWrapping="Wrap"/>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                             <DataGridTemplateColumn.CellEditingTemplate>
                                 <DataTemplate>
                                     <TextBox Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True"
-                                             FontFamily="Consolas, Courier New" FontSize="11" TextWrapping="Wrap"/>
+                                             FontFamily="{DynamicResource MonoFont}" FontSize="11" TextWrapping="Wrap"/>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellEditingTemplate>
                         </DataGridTemplateColumn>
@@ -459,9 +459,9 @@
                                             <ColumnDefinition Width="60"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Text="{Binding Time, StringFormat=HH:mm:ss}" FontFamily="Consolas, Courier New" FontSize="10"
+                                        <TextBlock Text="{Binding Time, StringFormat=HH:mm:ss}" FontFamily="{DynamicResource MonoFont}" FontSize="10"
                                                    Foreground="{StaticResource BrushLogTextDim}"/>
-                                        <TextBlock Grid.Column="1" Text="{Binding Message}" FontFamily="Consolas, Courier New" FontSize="10"
+                                        <TextBlock Grid.Column="1" Text="{Binding Message}" FontFamily="{DynamicResource MonoFont}" FontSize="10"
                                                    Foreground="{Binding Level, Converter={StaticResource LogLevelToColor}}" TextWrapping="Wrap"/>
                                     </Grid>
                                 </DataTemplate>
@@ -478,7 +478,7 @@
                 <Button Content="Create Text" Command="{Binding CreateTextCommand}" Style="{StaticResource PrimaryButton}" Margin="0,0,8,0"/>
                 <Button Content="Cancel" Command="{Binding CancelRunCommand}" Style="{StaticResource OutlineButton}" Width="90" Margin="0,0,8,0"
                         ToolTip="Stops the run and rolls back everything it did."/>
-                <Button Content="Close" Style="{StaticResource OutlineButton}" Width="90" Click="CloseButton_Click"/>
+                <Button IsCancel="True" Content="Close" Style="{StaticResource OutlineButton}" Width="90" Click="CloseButton_Click"/>
             </StackPanel>
         </shell:ToolWindowShell.FooterContent>
     </shell:ToolWindowShell>
