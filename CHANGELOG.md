@@ -9,6 +9,18 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.38.2] — 2026-11-06
+
+### Ribbon panels
+
+#### Fixed
+- Build error: `RibbonPanel.CustomPanelTitleBarBackground` does not exist in the Revit API (it belongs to AdWindows).
+
+#### Removed
+- The green Floor panel title bars added in 6.37.3. Floor panel title bars use the default colour again.
+
+User note: only the title-bar colour changed. Floor button icons stay green.
+
 ## [6.38.1] — 2026-11-06
 
 ### Ribbon panels
