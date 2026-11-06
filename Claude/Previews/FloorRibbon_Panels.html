@@ -1,24 +1,24 @@
-<title>Floor Ribbon Panels</title>
+<title>Floor and Roof Ribbon</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<!-- UI preview (CLAUDE.md "UI previews") for the Floor ribbon colours, plugin 6.37.3:
+<!-- UI preview (CLAUDE.md "UI previews") for the Floor and Roof ribbon panels, plugin 6.37.3:
        Floor Slope, Floor Points, Floor Lines, Floor Edit and Floor Views panels.
        6.37.2: Floor button icons recoloured green (Resources/Icons/FloorTools/).
        6.37.3: Floor panel title bars green (RibbonPanel.CustomPanelTitleBarBackground).
-     Mirrors: Menu/00_Push_Button_Menu_items/Ribbon/FloorRibbon.cs (labels), Shared/SharedStyles.xaml (palette).
-     Artifact: https://claude.ai/artifact/36Dkb78hT7kyzvDEtRLmjM -->
+     Mirrors: Menu/00_Push_Button_Menu_items/Ribbon/FloorRibbon.cs and RoofToolsRibbon.cs (labels), Shared/SharedStyles.xaml (palette).
+     Artifact: https://claude.ai/artifact/Fn6Yud7qdbBL4XEDDguT75 -->
 <style>
 :root {
   --bg: #F3F5F7; --card: #FFFFFF; --fg: #1B2733; --muted: #5B6B7B; --border: #D6DCE3;
-  --navy: #1E3A5F; --floor: #218231; --floor-soft: #E6F4EC; --roof: #B5502F; --roof-soft: #FBEDE7;
+  --rooftitle: #E4E8EC; --navy: #1E3A5F; --floor: #218231; --floor-soft: #E6F4EC; --roof: #B5502F; --roof-soft: #FBEDE7;
   --tag-bg: #E6F4EC; --tag-fg: #1D6B33;
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
   --bg: #12181F; --card: #1B232C; --fg: #E6ECF2; --muted: #93A3B3; --border: #2C3947;
-  --navy: #2B4C78; --floor: #2E9A42; --floor-soft: #17301F; --roof: #D2704D; --roof-soft: #3A2218;
+  --rooftitle: #2C3947; --navy: #2B4C78; --floor: #2E9A42; --floor-soft: #17301F; --roof: #D2704D; --roof-soft: #3A2218;
   --tag-bg: #17301F; --tag-fg: #7FD394; color-scheme: dark; } }
 :root[data-theme="dark"] {
   --bg: #12181F; --card: #1B232C; --fg: #E6ECF2; --muted: #93A3B3; --border: #2C3947;
-  --navy: #2B4C78; --floor: #2E9A42; --floor-soft: #17301F; --roof: #D2704D; --roof-soft: #3A2218;
+  --rooftitle: #2C3947; --navy: #2B4C78; --floor: #2E9A42; --floor-soft: #17301F; --roof: #D2704D; --roof-soft: #3A2218;
   --tag-bg: #17301F; --tag-fg: #7FD394; color-scheme: dark; }
 body { background: var(--bg); color: var(--fg); font: 14px/1.5 "Segoe UI", system-ui, sans-serif;
   padding-block: 20px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
@@ -35,6 +35,9 @@ p { margin: 0; color: var(--muted); max-width: 70ch; }
 .btn { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 64px; font-size: 11px; text-align: center; line-height: 1.2; }
 .ico { width: 32px; height: 32px; border-radius: 4px; background: var(--floor); position: relative; }
 .ico::after { content: ""; position: absolute; inset: 8px; border: 2px solid #fff; border-radius: 2px; }
+.panel.roofp .title { background: var(--rooftitle); color: var(--fg); border-top: 1px solid var(--border); }
+.panel.roofp .ico { background: var(--roof); }
+.panel .slide { font-size: 9px; color: var(--muted); }
 .cmp { display: flex; gap: 14px; flex-wrap: wrap; }
 .cmp .col { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
 .cmp .col .row { display: flex; gap: 8px; }
@@ -43,8 +46,8 @@ p { margin: 0; color: var(--muted); max-width: 70ch; }
 </style>
 <main>
   <header>
-    <h1>Floor Ribbon Panels <span class="tag">plugin 6.37.3</span></h1>
-    <p>Mock-up of the SloperPro tab. The five Floor panels have green title bars <span class="tag">new</span> and green icons <span class="tag">new</span>, so they stand apart from the Roof panels. Sample rendering only; real icons are the PNGs in Resources/Icons/FloorTools.</p>
+    <h1>Floor and Roof Ribbon Panels <span class="tag">plugin 6.38.1</span></h1>
+    <p>Mock-up of the SloperPro tab: Floor panels (green) first, then the eight Roof panels. The five Floor panels have green title bars <span class="tag">new</span> and green icons <span class="tag">new</span>, so they stand apart from the Roof panels. Sample rendering only; real icons are the PNGs in Resources/Icons/FloorTools.</p>
   </header>
 
   <section>
@@ -87,6 +90,50 @@ p { margin: 0; color: var(--muted); max-width: 70ch; }
         <div class="btn"><div class="ico"></div>Floor Focus</div>
       </div><div class="title">Floor Views</div></div>
     </div></div>
+  </section>
+
+  <section>
+    <h2>Roof panels <span class="tag">new</span></h2>
+    <div class="scroll"><div class="ribbon">
+      <div class="panel roofp"><div class="body">
+        <div class="btn"><div class="ico"></div>By Point ▾</div>
+        <div class="btn"><div class="ico"></div>By Drain ▾</div>
+        <div class="btn"><div class="ico"></div>Points &amp; Slope ▾</div>
+      </div><div class="title">Roof Slope</div></div>
+      <div class="panel roofp"><div class="body">
+        <div class="btn"><div class="ico"></div>Inner Loops ▾</div>
+        <div class="btn"><div class="ico"></div>Outer Curve ▾</div>
+        <div class="btn"><div class="ico"></div>Line Intersect ▾</div>
+        <div class="btn"><div class="ico"></div>Loops + Perp. ▾</div>
+        <div class="btn slide">▸ slide-out:<br>Vertex Reducer, Multi Points, Shape From Link</div>
+      </div><div class="title">Shape Points</div></div>
+      <div class="panel roofp"><div class="body">
+        <div class="btn"><div class="ico"></div>Creaser Adv ▾</div>
+        <div class="btn"><div class="ico"></div>Roof Tag ▾</div>
+        <div class="btn"><div class="ico"></div>From Rooms ▾</div>
+        <div class="btn"><div class="ico"></div>Shape From Link</div>
+      </div><div class="title">Roof Tools</div></div>
+      <div class="panel roofp"><div class="body">
+        <div class="btn"><div class="ico"></div>Combined Tools ▾</div>
+        <div class="btn"><div class="ico"></div>Ridge Lines ▾</div>
+        <div class="btn"><div class="ico"></div>Roof Types ▾</div>
+      </div><div class="title">Roof Utilities</div><!-- renamed --></div>
+      <div class="panel roofp"><div class="body">
+        <div class="btn"><div class="ico"></div>Name Builder ▾</div>
+        <div class="btn"><div class="ico"></div>Island Splitter ▾</div>
+      </div><div class="title">Roof Edit</div></div>
+      <div class="panel roofp"><div class="body">
+        <div class="btn"><div class="ico"></div>Island Splitter</div>
+      </div><div class="title">Roof Plan View</div><!-- renamed --></div>
+      <div class="panel roofp"><div class="body">
+        <div class="btn"><div class="ico"></div>Comparison ▾</div>
+        <div class="btn"><div class="ico"></div>Elevation Sync ▾</div>
+      </div><div class="title">Roof Compare</div><!-- renamed --></div>
+      <div class="panel roofp"><div class="body">
+        <div class="btn"><div class="ico"></div>EPS 2D Pattern ▾</div>
+      </div><div class="title">Roof Insulation</div><!-- renamed --></div>
+    </div></div>
+    <p class="note" style="margin-top:8px">Roof panels keep the default title bar and the orange icons, so they stay visibly separate from the green Floor panels. Panel and button labels come from RoofToolsRibbon.cs; ▾ marks a version dropdown. Four panels renamed <span class="tag">new</span>: Roof Utilities, Roof Plan View, Roof Compare, Roof Insulation. Sample rendering only.</p>
   </section>
 
   <section>

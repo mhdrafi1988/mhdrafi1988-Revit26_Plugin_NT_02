@@ -8,13 +8,15 @@ record and not current.
 
 ## Where things live
 
-- `App.cs : InitializeRibbonPanels` creates two tabs and calls the builders in order. Panels appear in the order
+- `App.cs : InitializeRibbonPanels` creates four tabs and calls the builders in order. Panels appear in the order
   they are created.
-  - **SloperPro_Rev_88-MDL** (Modelling): `RoofToolsRibbon.Build` (which also calls
-    `FloorToolsRibbon.BuildSlopePanel`, `BuildPointsPanel`, `BuildLinesPanel` and `BuildEditPanel`),
-    `DetailLInesRibbon.Build`, then `RoofToolsRibbon.BuildUtilities`.
-  - **SloperPro_Rev_88-DCM** (Documents): `ViewToolsRibbon` (which also calls `FloorToolsRibbon.BuildViewsPanel`),
-    `TaggingRibbon`, `SheetToolsRibbon`, `SetupRibbon`, `ManageRibbon`.
+  - **Rafi_Pro_MOds** (model 1): `RoofToolsRibbon.Build` (which also calls `FloorToolsRibbon.BuildSlopePanel`,
+    `BuildPointsPanel`, `BuildLinesPanel` and `BuildEditPanel`).
+  - **Rafi_Pro_MOds2** (model 2): `RoofToolsRibbon.BuildEditComparePanels`, `DetailLInesRibbon.Build`,
+    `RoofToolsRibbon.BuildUtilities`.
+  - **Rafi_Pro_Docs** (sheets 1): `ViewToolsRibbon` (which also calls `FloorToolsRibbon.BuildViewsPanel`),
+    `SheetToolsRibbon`.
+  - **Rafi_Pro_Docs2** (sheets 2): `TaggingRibbon`, `SetupRibbon`, `ManageRibbon`.
 - `Menu/00_Push_Button_Menu_items/Ribbon/`: `RoofToolsRibbon.cs`, `FloorRibbon.cs` (class `FloorToolsRibbon`),
   `DetailLInesRibbon.cs`, `DimensionsRibbon.cs`, `ViewToolsRibbon.cs`, `TaggingRibbon.cs`, `SheetToolsRibbon.cs`,
   `SetupRibbon.cs`, `ManageRibbon.cs`, and `RibbonLayoutHelper.cs`. There is no `QuickAcces.cs` any more.
@@ -30,40 +32,40 @@ record and not current.
 Left to right. **▸** marks a slide-out (the arrow on the panel title bar); the items after it sit inside it.
 Each item is a pulldown unless marked *button*. A pulldown lists its versions highest first.
 
-### SloperPro_Rev_88-MDL (Modelling)
+### Modelling (`Rafi_Pro_MOds`, `Rafi_Pro_MOds2`)
 
-| Panel | Items | Builder |
-|---|---|---|
-| Roof Slope | By Point (V033, V032, V030, Ridge V003, Multi Copies 30) · By Drain (V013, V012, V011, V007) · Points & Slope (V001) | `RoofToolsRibbon.Build` |
-| Floor Slope | By Drain *button* (Floor Slope By Drain V001) · By Point (By Point V001, Ridge V001, Multi Copies V001) · Points & Slope *button* (Floor Points & Slope V001) | `FloorToolsRibbon.BuildSlopePanel` |
-| Shape Points | Inner Loops · Outer Curve · Line Intersect · Loops + Perp. ▸ Vertex Reducer · Multi Points · Shape From Link | `RoofToolsRibbon.Build` |
-| Floor Points | Inner Loops *button* · Outer Curve *button* · Line Intersect *button* · Loops + Perp. *button* · Vertex Reducer *button* · Multi Points *button* · Shape From Link (large *button*) — each V001 | `FloorToolsRibbon.BuildPointsPanel` |
-| Floor Lines | Crease By Openings *button* · Crease By Points *button* · Floor Creaser *button* — each V001 | `FloorToolsRibbon.BuildLinesPanel` |
-| Floor Edit | Floor Types *button* · Name Builder *button* · Floor Tag *button* · Comparison *button* · Elevation Sync *button* · Floor EPS *button* — each V001 | `FloorToolsRibbon.BuildEditPanel` |
-| Roof Tools | Creaser Adv · Roof Tag · Floor From Rooms · Shape From Link | `RoofToolsRibbon.Build` |
-| Roof Edit | Name Builder · Island Splitter | `BuildEditComparePanels` |
-| Plan View | Island Splitter (large *button*) | `BuildEditComparePanels` |
-| Compare | Comparison · Elevation Sync | `BuildEditComparePanels` |
-| Insulation | EPS 2D Pattern (V006, V005, V004, V002, V001) | `BuildEditComparePanels` |
-| Detail Lines | From Links · Closed Loop · Line Dims · Line Manager (large) | `DetailLInesRibbon.Build` |
-| Utilities | Combined Tools · Ridge Lines (By Openings V070, V069, By Points V059, V058) · Roof Types | `RoofToolsRibbon.BuildUtilities` |
+| Tab | Panel | Items | Builder |
+|---|---|---|---|
+| Rafi_Pro_MOds | Roof Slope | By Point (V033, V032, V030, Ridge V003, Multi Copies 30) · By Drain (V013, V012, V011, V007) · Points & Slope (V001) | `RoofToolsRibbon.Build` |
+| Rafi_Pro_MOds | Floor Slope | By Drain *button* (Floor Slope By Drain V001) · By Point (By Point V001, Ridge V001, Multi Copies V001) · Points & Slope *button* (Floor Points & Slope V001) | `FloorToolsRibbon.BuildSlopePanel` |
+| Rafi_Pro_MOds | Shape Points | Inner Loops · Outer Curve · Line Intersect · Loops + Perp. ▸ Vertex Reducer · Multi Points · Shape From Link | `RoofToolsRibbon.Build` |
+| Rafi_Pro_MOds | Floor Points | Inner Loops *button* · Outer Curve *button* · Line Intersect *button* · Loops + Perp. *button* · Vertex Reducer *button* · Multi Points *button* · Shape From Link (large *button*) — each V001 | `FloorToolsRibbon.BuildPointsPanel` |
+| Rafi_Pro_MOds | Floor Lines | Crease By Openings *button* · Crease By Points *button* · Floor Creaser *button* — each V001 | `FloorToolsRibbon.BuildLinesPanel` |
+| Rafi_Pro_MOds | Floor Edit | Floor Types *button* · Name Builder *button* · Floor Tag *button* · Comparison *button* · Elevation Sync *button* · Floor EPS *button* — each V001 | `FloorToolsRibbon.BuildEditPanel` |
+| Rafi_Pro_MOds | Roof Tools | Creaser Adv · Roof Tag · Floor From Rooms · Shape From Link | `RoofToolsRibbon.Build` |
+| Rafi_Pro_MOds2 | Roof Edit | Name Builder · Island Splitter | `BuildEditComparePanels` |
+| Rafi_Pro_MOds2 | Roof Plan View | Island Splitter (large *button*) | `BuildEditComparePanels` |
+| Rafi_Pro_MOds2 | Roof Compare | Comparison · Elevation Sync | `BuildEditComparePanels` |
+| Rafi_Pro_MOds2 | Roof Insulation | EPS 2D Pattern (V006, V005, V004, V002, V001) | `BuildEditComparePanels` |
+| Rafi_Pro_MOds2 | Detail Lines | From Links · Closed Loop · Line Dims · Line Manager (large) | `DetailLInesRibbon.Build` |
+| Rafi_Pro_MOds2 | Roof Utilities | Combined Tools · Ridge Lines (By Openings V070, V069, By Points V059, V058) · Roof Types | `RoofToolsRibbon.BuildUtilities` |
 
-### SloperPro_Rev_88-DCM (Documents)
+### Documents (`Rafi_Pro_Docs`, `Rafi_Pro_Docs2`)
 
-| Panel | Items | Builder |
-|---|---|---|
-| View Create | From Lines · Around Edges · Edge Element ▸ Roof Focus · Isolated Section *button* | `ViewToolsRibbon` |
-| Floor Views | Floor Around Edges *button* · Floor Edge Element *button* · Floor Focus *button* — each V001 | `FloorToolsRibbon.BuildViewsPanel` (called from `ViewToolsRibbon`) |
-| View Place | Place Sections · Callout To Section · Head Placer · View Tagger | `ViewToolsRibbon` |
-| View Rename | Bubble Renumber · Section Renamer · Auto Renamer | `ViewToolsRibbon` |
-| Tagging | Tag To Text, Align Spot Elevations, Align to Detail Line (large *buttons*) · Quick Align Vertical / Horizontal · Quick Align Ends V / H · Quick Align Bends V / H · Quick Align Ends / Bends to Tag | `TaggingRibbon` |
-| Sheet Create | Scope Box · Sheet Placer · Section Placer · Sections To Sheet *button* ▸ Rearrange · Arrange Views *button* | `SheetToolsRibbon` |
-| Sheet Edit | Text Replace *button* (large) | `SheetToolsRibbon` |
-| DWG Tools | DWG To DL(P) · Export DWG · DWG Manager · DWG Statistics | `SetupRibbon` |
-| Family Tools | Batch Link DWG · DWG To Lines | `SetupRibbon` |
-| Manage | Overlaps · ParaManager · Shared Params *button* · Schedule I/O · Link Check (8 entries: V007, V006, then V004 and V003 scan modes) ▸ Del. Line Styles · Bulk Rename · Tracker ID | `ManageRibbon` |
-| Worksets | WS Browser · WS Creator · WS Renamer ▸ WS Renamer XL · Delete Workset | `ManageRibbon` |
-| Memory | WS Memory (large *button*) · Link Memory (large; V002, V001) | `ManageRibbon` |
+| Tab | Panel | Items | Builder |
+|---|---|---|---|
+| Rafi_Pro_Docs | View Create | From Lines · Around Edges · Edge Element ▸ Roof Focus · Isolated Section *button* | `ViewToolsRibbon` |
+| Rafi_Pro_Docs | Floor Views | Floor Around Edges *button* · Floor Edge Element *button* · Floor Focus *button* — each V001 | `FloorToolsRibbon.BuildViewsPanel` (called from `ViewToolsRibbon`) |
+| Rafi_Pro_Docs | View Place | Place Sections · Callout To Section · Head Placer · View Tagger | `ViewToolsRibbon` |
+| Rafi_Pro_Docs | View Rename | Bubble Renumber · Section Renamer · Auto Renamer | `ViewToolsRibbon` |
+| Rafi_Pro_Docs2 | Tagging | Tag To Text, Align Spot Elevations, Align to Detail Line (large *buttons*) · Quick Align Vertical / Horizontal · Quick Align Ends V / H · Quick Align Bends V / H · Quick Align Ends / Bends to Tag | `TaggingRibbon` |
+| Rafi_Pro_Docs | Sheet Create | Scope Box · Sheet Placer · Section Placer · Sections To Sheet *button* ▸ Rearrange · Arrange Views *button* | `SheetToolsRibbon` |
+| Rafi_Pro_Docs | Sheet Edit | Text Replace *button* (large) | `SheetToolsRibbon` |
+| Rafi_Pro_Docs2 | DWG Tools | DWG To DL(P) · Export DWG · DWG Manager · DWG Statistics | `SetupRibbon` |
+| Rafi_Pro_Docs2 | Family Tools | Batch Link DWG · DWG To Lines | `SetupRibbon` |
+| Rafi_Pro_Docs2 | Manage | Overlaps · ParaManager · Shared Params *button* · Schedule I/O · Link Check (8 entries: V007, V006, then V004 and V003 scan modes) ▸ Del. Line Styles · Bulk Rename · Tracker ID | `ManageRibbon` |
+| Rafi_Pro_Docs2 | Worksets | WS Browser · WS Creator · WS Renamer ▸ WS Renamer XL · Delete Workset | `ManageRibbon` |
+| Rafi_Pro_Docs2 | Memory | WS Memory (large *button*) · Link Memory (large; V002, V001) | `ManageRibbon` |
 
 The latest change was plugin 6.37.0, which added the **Floor Views** panel (Documents tab, after View Create) and
 Floor EPS on Floor Edit. 6.36.0 added the **Floor Edit** panel (floor versions of Roof Types, Name

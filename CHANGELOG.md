@@ -9,11 +9,11 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
-## [6.39.9] — 2026-11-06
+## [6.40.9] — 2026-11-06
 
 ### All tool windows — shared monospace font and Esc to close
 
-94 tools got a patch version (every tool bumped in 6.39.0 to 6.39.8 that has a window; see `Claude/Previews/AllTools_UiStandard_Windows.html` for the list).
+94 tools got a patch version (every tool bumped in 6.40.0 to 6.40.8 that has a window; see `Claude/Previews/AllTools_UiStandard_Windows.html` for the list).
 
 #### Changed
 - Log and code text now read the font from one shared value (`MonoFont` in `Shared/SharedStyles.xaml`) instead of a hard-coded `Consolas`. Same font as before.
@@ -21,7 +21,7 @@ Each release lists every tool whose version changed, under the plugin version.
 
 User note: Esc now closes these tool windows. Nothing else changes.
 
-## [6.39.8] — 2026-11-06
+## [6.40.8] — 2026-11-06
 
 ### Tagging Tools — spacing and text sizes on the 4 px grid
 
@@ -32,7 +32,7 @@ Align Spot Elevations 1.6.1, Floor Tag 1.0.1, Roof Tag 18.1.3, Tag To Text 1.3.1
 
 User note: layout only; controls sit 1–2 px differently and a few small texts are slightly larger. No behaviour change. Older tool versions still installed are not changed.
 
-## [6.39.7] — 2026-11-06
+## [6.40.7] — 2026-11-06
 
 ### Setup Tools — spacing and text sizes on the 4 px grid
 
@@ -43,7 +43,7 @@ Batch Link DWG Family 2.2.1, DWG To Lines 7.0.2, DWG To DL(P) 14.0.2, DWG Manage
 
 User note: layout only; controls sit 1–2 px differently and a few small texts are slightly larger. No behaviour change. Older tool versions still installed are not changed.
 
-## [6.39.6] — 2026-11-06
+## [6.40.6] — 2026-11-06
 
 ### Detail Lines and Dimensions — spacing and text sizes on the 4 px grid
 
@@ -54,7 +54,7 @@ Detail Lines From Links 10.1.2, Detail Line Closed Loop 3.0.2, Detail Line Manag
 
 User note: layout only; controls sit 1–2 px differently and a few small texts are slightly larger. No behaviour change. Older tool versions still installed are not changed.
 
-## [6.39.5] — 2026-11-06
+## [6.40.5] — 2026-11-06
 
 ### Roof Tools — spacing and text sizes on the 4 px grid
 
@@ -65,7 +65,7 @@ Auto Slope By Point 33.0.2, Auto Slope By Point (Ridge) 3.1.2, Auto Slope By Poi
 
 User note: layout only; controls sit 1–2 px differently and a few small texts are slightly larger. No behaviour change. Older tool versions still installed are not changed.
 
-## [6.39.4] — 2026-11-06
+## [6.40.4] — 2026-11-06
 
 ### Floor Tools — spacing and text sizes on the 4 px grid
 
@@ -76,7 +76,7 @@ Floors And Roof From Linked Rooms 13.1.2, Floors And Roof From Linked Rooms (Via
 
 User note: layout only; controls sit 1–2 px differently and a few small texts are slightly larger. No behaviour change. Older tool versions still installed are not changed.
 
-## [6.39.3] — 2026-11-06
+## [6.40.3] — 2026-11-06
 
 ### Sheet tools — spacing and text sizes on the 4 px grid
 
@@ -87,7 +87,7 @@ Automated Section Placer 3.1.2, Plan From Scope Box 6.1.3, Sections To Sheet 1.0
 
 User note: layout only; controls sit 1–2 px differently and a few small texts are slightly larger. No behaviour change. Older tool versions still installed are not changed.
 
-## [6.39.2] — 2026-11-06
+## [6.40.2] — 2026-11-06
 
 ### Manage tools — spacing and text sizes on the 4 px grid
 
@@ -98,18 +98,18 @@ Annotation Overlap Detection 4.1.2, Bulk Rename 1.1.2, Delete Line Styles 1.2.1,
 
 User note: layout only; controls sit 1–2 px differently and a few small texts are slightly larger. No behaviour change. Older tool versions still installed are not changed. Workset Creator V017 is not on the ribbon yet and was left as is.
 
-## [6.39.1] — 2026-11-06
+## [6.40.1] — 2026-11-06
 
 ### View Tools — spacing and text sizes on the 4 px grid
 
 Create Sections From Detail Lines 13.1.3, Floor Edge Around Sections 1.0.1, Floor Edge Element Sections 1.0.1, Floor View Focus 1.0.1, Isolated Section 1.0.1, Roof Edge Around Sections 7.2.1, Roof Edge Element Sections 4.1.3, Roof View Focus 4.1.2, Section View Auto Tagger 6.1.2, Auto Place Sections 324.1.2, Callout To Section View Placement 21.1.2, Reference Section Head Placer 15.1.2, Bubble Auto Renumber 9.1.2, Section Auto Renamer 26.1.4, View Auto Renamer 7.1.3.
 
 #### Changed
-- Margins and paddings snapped to 2/4/8/12/16/24 and font sizes to 10/11/12/13, matching the Roof Points windows (see 6.39.0).
+- Margins and paddings snapped to 2/4/8/12/16/24 and font sizes to 10/11/12/13, matching the Roof Points windows (see 6.40.0).
 
 User note: layout only; controls sit 1–2 px differently and a few small texts are slightly larger. No behaviour change. Older tool versions that are still installed are not changed.
 
-## [6.39.0] — 2026-11-06
+## [6.40.0] — 2026-11-06
 
 ### Shared UI standard
 
@@ -124,6 +124,40 @@ Divide Inner Loops 12.1.2, Outer Curve Divider 6.0.3, Roof Detail Line Intersect
 - Margins and paddings snapped to 2/4/8/12/16/24 and font sizes to 10/11/12/13, so text and controls get the same breathing room in every Roof Points window.
 
 User note: layout only; controls sit 1–2 px differently and a few small texts are slightly larger. No behaviour change.
+## [6.39.0] — 2026-11-06
+
+### Ribbon tabs
+
+#### Changed
+- The ribbon now has four tabs instead of two: `Rafi_Pro_MOds` and `Rafi_Pro_MOds2` for model tools, `Rafi_Pro_Docs` and `Rafi_Pro_Docs2` for sheet tools.
+  - `Rafi_Pro_MOds`: Roof Slope, Floor Slope, Shape Points, Floor Points, Floor Lines, Floor Edit, Roof Tools.
+  - `Rafi_Pro_MOds2`: Roof Edit, Roof Plan View, Roof Compare, Roof Insulation, Detail Lines, Roof Utilities.
+  - `Rafi_Pro_Docs`: View Create, Floor Views, View Place, View Rename, Sheet Create, Sheet Edit.
+  - `Rafi_Pro_Docs2`: Tagging, DWG Tools, Family Tools, Manage, Worksets, Memory.
+
+User note: no tool, button or command changed, only which tab its panel is on. Revit stores Quick Access Toolbar
+entries by tab, panel and button, so a button pinned there from a moved panel must be pinned again.
+
+## [6.38.2] — 2026-11-06
+
+### Ribbon panels
+
+#### Fixed
+- Build error: `RibbonPanel.CustomPanelTitleBarBackground` does not exist in the Revit API (it belongs to AdWindows).
+
+#### Removed
+- The green Floor panel title bars added in 6.37.3. Floor panel title bars use the default colour again.
+
+User note: only the title-bar colour changed. Floor button icons stay green.
+
+## [6.38.1] — 2026-11-06
+
+### Ribbon panels
+
+#### Changed
+- Renamed four Roof ribbon panels so they are not confused with the Floor panels: Utilities → Roof Utilities, Plan View → Roof Plan View, Compare → Roof Compare, Insulation → Roof Insulation.
+
+User note: only the panel titles changed. Buttons, their names and their order are unchanged.
 
 ## [6.38.0] — 2026-11-06
 

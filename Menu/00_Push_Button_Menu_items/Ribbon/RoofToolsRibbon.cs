@@ -26,8 +26,8 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
         /// Creates the roof panels on <paramref name="tabName"/>, in workflow order: Roof Slope,
         /// Floor Slope (<see cref="FloorToolsRibbon.BuildSlopePanel"/>), Shape Points, Floor Points
         /// (<see cref="FloorToolsRibbon.BuildPointsPanel"/>), Floor Lines (<see cref="FloorToolsRibbon.BuildLinesPanel"/>),
-        /// Floor Edit (<see cref="FloorToolsRibbon.BuildEditPanel"/>), Roof Tools, Roof Edit, Plan View, Compare, Insulation. The Utilities panel is built
-        /// separately by <see cref="BuildUtilities"/> so it can sit at the end of the tab.
+        /// Floor Edit (<see cref="FloorToolsRibbon.BuildEditPanel"/>) and Roof Tools. Roof Edit, Plan View, Compare and Insulation
+        /// come from <see cref="BuildEditComparePanels"/>, and Utilities from <see cref="BuildUtilities"/>, so the app can place them on a second tab.
         /// </summary>
         public static void Build(UIControlledApplication app, string tabName, string assemblyPath)
         {
@@ -177,8 +177,6 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             RibbonLayoutHelper.WirePulldownButton(roofToolsItems, "Pulldown_RoofTag", roofTagV018, roofTagV017);
             RibbonLayoutHelper.WirePulldownButton(roofToolsItems, FloorToolsRibbon.FromRoomsPulldownName, fromRoomsVersions);
             RibbonLayoutHelper.WirePulldownButton(roofToolsItems, "Pulldown_RoofToolsPanel_RoofShapeFromLink", shapeFromLinkRoofPanelV001);
-
-            BuildEditComparePanels(app, tabName, assemblyPath);
         }
 
         /// <summary>
@@ -187,7 +185,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
         /// </summary>
         public static void BuildUtilities(UIControlledApplication app, string tabName, string assemblyPath)
         {
-            RibbonPanel utilitiesPanel = app.CreateRibbonPanel(tabName, "Utilities");
+            RibbonPanel utilitiesPanel = app.CreateRibbonPanel(tabName, "Roof Utilities");
 
             var ridgeLinesMultiShapeV069 = Btn(assemblyPath, "Btn_RoofRidgeLines_V69", "Ridge By Openings V069", "Revit26_Plugin_Revised.RoofRidgeLines.V069.Commands.RoofRidgeCommand",
                 "RidgeLinesMultiShape_16.png", "Ridge By Openings", "V069", "V068 with the standard three-zone window layout.");
@@ -228,7 +226,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
         }
 
         /// <summary>Creates the Roof Edit, Plan View, Compare and Insulation panels, in that order.</summary>
-        private static void BuildEditComparePanels(UIControlledApplication app, string tabName, string assemblyPath)
+        public static void BuildEditComparePanels(UIControlledApplication app, string tabName, string assemblyPath)
         {
             // Roof Edit — Roof Name Builder (V002) and Island Roof Splitter (V002, V001 WIP).
             RibbonPanel roofEditPanel = app.CreateRibbonPanel(tabName, "Roof Edit");
@@ -248,14 +246,14 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
 
             // Plan View — a second, direct button for Island Roof Splitter V002 (the tool works
             // from detail lines drawn in a plan view). Same command as the Roof Edit dropdown entry.
-            RibbonPanel planViewPanel = app.CreateRibbonPanel(tabName, "Plan View");
+            RibbonPanel planViewPanel = app.CreateRibbonPanel(tabName, "Roof Plan View");
             var planViewIslandSplitter = Btn(assemblyPath, "Btn_PlanView_IslandRoofSplitter_V002", "Island Splitter", "Revit26_Plugin_Revised.IslandRoofSplitter.V002.Commands.IslandRoofSplitterCommand",
                 "DetailLineIntersect_16.png", "Island Roof Splitter", "V002", "Split a sloped roof into one new roof per closed detail-line island, with a floor fallback. Test on a copy of your model.");
             planViewIslandSplitter.LargeImage = ImageUtils.Load(Icons + "DetailLineIntersect_32.png");
             planViewPanel.AddItem(planViewIslandSplitter);
 
             // Compare
-            RibbonPanel comparePanel = app.CreateRibbonPanel(tabName, "Compare");
+            RibbonPanel comparePanel = app.CreateRibbonPanel(tabName, "Roof Compare");
 
             var comparisonV002 = Btn(assemblyPath, "Btn_RoofPointComparison_V002", "Comparison V002", "Revit26_Plugin_Revised.RoofPointComparison.V002.Commands.RoofComparisonCommand",
                 "PointComparison_16.png", "Roof Point Comparison", "V002", "V001 with the standard three-zone window layout.");
@@ -277,7 +275,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             RibbonLayoutHelper.WirePulldownButton(compareItems, "Pulldown_RoofPointElevationSync", elevationSyncV005, elevationSyncV004);
 
             // Insulation — Tapered EPS 2D Pattern (V006 highest, descending per CLAUDE.md rule)
-            RibbonPanel insulationPanel = app.CreateRibbonPanel(tabName, "Insulation");
+            RibbonPanel insulationPanel = app.CreateRibbonPanel(tabName, "Roof Insulation");
 
             var taperedEpsPattern2DV001 = Btn(assemblyPath,
                 "Btn_TaperedEpsPattern2D_V001", "EPS Pattern 2D V001",
