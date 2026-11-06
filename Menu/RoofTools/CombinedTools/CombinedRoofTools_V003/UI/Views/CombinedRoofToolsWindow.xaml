@@ -45,7 +45,7 @@ Changes vs V002 (layout only):
 
             <!-- Slim top-strip tab style, consistent with the suite's navy/blue palette. -->
             <Style x:Key="CombinedTabItem" TargetType="TabItem">
-                <Setter Property="Padding" Value="16,10"/>
+                <Setter Property="Padding" Value="16,12"/>
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="TabItem">
@@ -96,7 +96,7 @@ Changes vs V002 (layout only):
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <Border Grid.Column="0" Style="{StaticResource MetricCard}" Padding="10,8" Margin="0,0,8,0">
+                <Border Grid.Column="0" Style="{StaticResource MetricCard}" Padding="12,8" Margin="0,0,8,0">
                     <StackPanel>
                         <TextBlock Text="Working Roof" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Style="{StaticResource FieldValue}" FontSize="13" FontWeight="SemiBold" TextWrapping="Wrap"
@@ -129,7 +129,7 @@ Changes vs V002 (layout only):
                                         Visibility="{Binding IsInnerLoopDividerAvailable, Converter={StaticResource InverseBoolToVis}}">
                                 <TextBlock Text="Unavailable for this roof" Style="{StaticResource SectionTitle}" HorizontalAlignment="Center"/>
                                 <TextBlock Text="{Binding InnerLoopDividerUnavailableReason}" Style="{StaticResource HintText}"
-                                           TextWrapping="Wrap" TextAlignment="Center" Margin="0,6,0,0"/>
+                                           TextWrapping="Wrap" TextAlignment="Center" Margin="0,8,0,0"/>
                             </StackPanel>
                         </Grid>
                     </TabItem>
@@ -142,7 +142,7 @@ Changes vs V002 (layout only):
                                         Visibility="{Binding IsInnerLoopsAndPerpendicularAvailable, Converter={StaticResource InverseBoolToVis}}">
                                 <TextBlock Text="Unavailable for this roof" Style="{StaticResource SectionTitle}" HorizontalAlignment="Center"/>
                                 <TextBlock Text="{Binding InnerLoopsAndPerpendicularUnavailableReason}" Style="{StaticResource HintText}"
-                                           TextWrapping="Wrap" TextAlignment="Center" Margin="0,6,0,0"/>
+                                           TextWrapping="Wrap" TextAlignment="Center" Margin="0,8,0,0"/>
                             </StackPanel>
                         </Grid>
                     </TabItem>
@@ -155,7 +155,7 @@ Changes vs V002 (layout only):
                                         Visibility="{Binding IsOuterCurveDividerAvailable, Converter={StaticResource InverseBoolToVis}}">
                                 <TextBlock Text="Unavailable for this roof" Style="{StaticResource SectionTitle}" HorizontalAlignment="Center"/>
                                 <TextBlock Text="{Binding OuterCurveDividerUnavailableReason}" Style="{StaticResource HintText}"
-                                           TextWrapping="Wrap" TextAlignment="Center" Margin="0,6,0,0"/>
+                                           TextWrapping="Wrap" TextAlignment="Center" Margin="0,8,0,0"/>
                             </StackPanel>
                         </Grid>
                     </TabItem>
@@ -168,7 +168,7 @@ Changes vs V002 (layout only):
                                         Visibility="{Binding IsAutoSlopeByDrainAvailable, Converter={StaticResource InverseBoolToVis}}">
                                 <TextBlock Text="Unavailable for this roof" Style="{StaticResource SectionTitle}" HorizontalAlignment="Center"/>
                                 <TextBlock Text="{Binding AutoSlopeByDrainUnavailableReason}" Style="{StaticResource HintText}"
-                                           TextWrapping="Wrap" TextAlignment="Center" Margin="0,6,0,0"/>
+                                           TextWrapping="Wrap" TextAlignment="Center" Margin="0,8,0,0"/>
                             </StackPanel>
                         </Grid>
                     </TabItem>
@@ -181,7 +181,7 @@ Changes vs V002 (layout only):
                                         Visibility="{Binding IsCreaserAdvAvailable, Converter={StaticResource InverseBoolToVis}}">
                                 <TextBlock Text="Unavailable for this roof" Style="{StaticResource SectionTitle}" HorizontalAlignment="Center"/>
                                 <TextBlock Text="{Binding CreaserAdvUnavailableReason}" Style="{StaticResource HintText}"
-                                           TextWrapping="Wrap" TextAlignment="Center" Margin="0,6,0,0"/>
+                                           TextWrapping="Wrap" TextAlignment="Center" Margin="0,8,0,0"/>
                             </StackPanel>
                         </Grid>
                     </TabItem>

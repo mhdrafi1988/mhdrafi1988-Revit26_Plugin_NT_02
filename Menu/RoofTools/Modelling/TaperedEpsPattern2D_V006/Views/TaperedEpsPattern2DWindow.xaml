@@ -23,7 +23,7 @@
             </ResourceDictionary.MergedDictionaries>
 
             <Style x:Key="Card" TargetType="Border" BasedOn="{StaticResource BaseCard}">
-                <Setter Property="Padding" Value="10" />
+                <Setter Property="Padding" Value="12" />
             </Style>
             <Style x:Key="CardTitle" TargetType="TextBlock">
                 <Setter Property="FontSize" Value="12" />
@@ -50,7 +50,7 @@
             <views:HexToBrushConverter x:Key="HexToBrush" />
 
             <DataTemplate DataType="{x:Type vm:NumericFieldViewModel}">
-                <Grid Margin="0,0,0,6">
+                <Grid Margin="0,0,0,8">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="120" />
                         <ColumnDefinition Width="*" />
@@ -63,7 +63,7 @@
                     <TextBlock Text="{Binding Label}" Style="{DynamicResource FieldLabel}" VerticalAlignment="Center" />
                     <TextBox Grid.Column="1" Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}"
                              ToolTip="{Binding RangeHint}" Style="{DynamicResource FieldTextBox}" />
-                    <TextBlock Grid.Column="2" Text="{Binding Unit}" Margin="6,0,0,0" VerticalAlignment="Center"
+                    <TextBlock Grid.Column="2" Text="{Binding Unit}" Margin="8,0,0,0" VerticalAlignment="Center"
                                Style="{DynamicResource FieldLabel}" />
                     <TextBlock Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Text="{Binding Error}" TextWrapping="Wrap"
                                Style="{DynamicResource ErrorText}"
@@ -72,7 +72,7 @@
             </DataTemplate>
 
             <DataTemplate x:Key="LayerRowTemplate" DataType="{x:Type vm:LayerOptionViewModel}">
-                <Grid Margin="0,0,0,6">
+                <Grid Margin="0,0,0,8">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="140" />
                         <ColumnDefinition Width="*" />
@@ -134,7 +134,7 @@
 
                 <!-- LEFT: grouped settings in collapsible sections (all open by default) -->
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <StackPanel Margin="0,0,6,0">
+                    <StackPanel Margin="0,0,8,0">
 
                         <!-- 1 · ROOF -->
                         <Expander Style="{StaticResource Eps2D.GroupExpander}">
@@ -167,7 +167,7 @@
                                         <TextBlock Grid.Row="3" Text="Edges" Style="{DynamicResource FieldLabel}" />
                                         <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding Roof.Edges}" />
                                     </Grid>
-                                    <TextBlock Text="{Binding Roof.ErrorText}" TextWrapping="Wrap" Margin="0,6,0,0"
+                                    <TextBlock Text="{Binding Roof.ErrorText}" TextWrapping="Wrap" Margin="0,8,0,0"
                                                Style="{DynamicResource ErrorText}"
                                                Visibility="{Binding Roof.HasError, Converter={StaticResource BoolToVis}}" />
                                 </StackPanel>
@@ -189,7 +189,7 @@
                                     </Grid.ColumnDefinitions>
                                     <Grid.RowDefinitions><RowDefinition Height="Auto" /></Grid.RowDefinitions>
                                     <TextBlock Grid.Row="0" Text="Board shape" Style="{DynamicResource FieldLabel}" VerticalAlignment="Center" />
-                                    <ComboBox Grid.Row="0" Grid.Column="1" Margin="0,0,0,6" ItemsSource="{Binding Board.Shapes}" DisplayMemberPath="Label"
+                                    <ComboBox Grid.Row="0" Grid.Column="1" Margin="0,0,0,8" ItemsSource="{Binding Board.Shapes}" DisplayMemberPath="Label"
                                               SelectedItem="{Binding Board.SelectedShape}" ToolTip="Square boards unlock the square laying patterns (group 4)" />
                                 </Grid>
                                     <StackPanel Visibility="{Binding Board.IsRectangular, Converter={StaticResource BoolToVis}}">
@@ -227,27 +227,27 @@
                                     </Grid.ColumnDefinitions>
                                     <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
                                     <TextBlock Grid.Row="0" Text="Grid direction" Style="{DynamicResource FieldLabel}" VerticalAlignment="Center" />
-                                    <ComboBox Grid.Row="0" Grid.Column="1" Margin="0,0,0,6" ItemsSource="{Binding Board.GridDirections}" DisplayMemberPath="Label"
+                                    <ComboBox Grid.Row="0" Grid.Column="1" Margin="0,0,0,8" ItemsSource="{Binding Board.GridDirections}" DisplayMemberPath="Label"
                                               SelectedItem="{Binding Board.SelectedGridDirection}" />
                                     <TextBlock Grid.Row="1" Text="Align to edge" Style="{DynamicResource FieldLabel}" VerticalAlignment="Center" />
-                                    <ComboBox Grid.Row="1" Grid.Column="1" Margin="0,0,0,6" ItemsSource="{Binding Board.Edges}" DisplayMemberPath="Label"
+                                    <ComboBox Grid.Row="1" Grid.Column="1" Margin="0,0,0,8" ItemsSource="{Binding Board.Edges}" DisplayMemberPath="Label"
                                               SelectedItem="{Binding Board.SelectedEdge}" IsEnabled="{Binding Board.IsEdgePickerEnabled}" ToolTip="Single-grid mode: the grid runs parallel to this roof edge" />
                                     <TextBlock Grid.Row="2" Text="Grid origin" Style="{DynamicResource FieldLabel}" VerticalAlignment="Center" />
-                                    <ComboBox Grid.Row="2" Grid.Column="1" Margin="0,0,0,6" ItemsSource="{Binding Board.GridOrigins}" DisplayMemberPath="Label"
+                                    <ComboBox Grid.Row="2" Grid.Column="1" Margin="0,0,0,8" ItemsSource="{Binding Board.GridOrigins}" DisplayMemberPath="Label"
                                               SelectedItem="{Binding Board.SelectedGridOrigin}" />
                                     <TextBlock Grid.Row="3" Text="Row start" Style="{DynamicResource FieldLabel}" VerticalAlignment="Center" />
-                                    <ComboBox Grid.Row="3" Grid.Column="1" Margin="0,0,0,6" ItemsSource="{Binding Board.RowStarts}" DisplayMemberPath="Label"
+                                    <ComboBox Grid.Row="3" Grid.Column="1" Margin="0,0,0,8" ItemsSource="{Binding Board.RowStarts}" DisplayMemberPath="Label"
                                               SelectedItem="{Binding Board.SelectedRowStart}" IsEnabled="{Binding Board.IsRowStartEnabled}" ToolTip="Where each row starts and where its leftover cut goes" />
                                     <TextBlock Grid.Row="4" Text="Middle start" Style="{DynamicResource FieldLabel}" VerticalAlignment="Center" />
-                                    <ComboBox Grid.Row="4" Grid.Column="1" Margin="0,0,0,6" ItemsSource="{Binding Board.MiddleVariants}" DisplayMemberPath="Label"
+                                    <ComboBox Grid.Row="4" Grid.Column="1" Margin="0,0,0,8" ItemsSource="{Binding Board.MiddleVariants}" DisplayMemberPath="Label"
                                               SelectedItem="{Binding Board.SelectedMiddleVariant}" IsEnabled="{Binding Board.IsMiddleVariantEnabled}" />
                                     <TextBlock Grid.Row="5" Text="Joints per side" Style="{DynamicResource FieldLabel}" VerticalAlignment="Center" />
-                                    <ComboBox Grid.Row="5" Grid.Column="1" Margin="0,0,0,6" ItemsSource="{Binding Board.JointPatterns}" DisplayMemberPath="Label"
+                                    <ComboBox Grid.Row="5" Grid.Column="1" Margin="0,0,0,8" ItemsSource="{Binding Board.JointPatterns}" DisplayMemberPath="Label"
                                               SelectedItem="{Binding Board.SelectedJointPattern}" IsEnabled="{Binding Board.IsRowStartEnabled}" ToolTip="As set out, aligned up the slope, or staggered" />
                                 </Grid>
                                     <ContentControl Content="{Binding Board.HipStrip}" IsEnabled="{Binding Board.IsHipStripEnabled}"
                                                     ToolTip="Row start E: extra hip-piece width along the row (factory hip strips). 0 = triangle only" />
-                                    <CheckBox Content="Best-fit joint offset per side" IsChecked="{Binding Board.BestFitOffset}" Margin="0,0,0,6"
+                                    <CheckBox Content="Best-fit joint offset per side" IsChecked="{Binding Board.BestFitOffset}" Margin="0,0,0,8"
                                               IsEnabled="{Binding Board.IsBestFitEnabled}"
                                               ToolTip="Tries 50 joint offsets per side (and the row-start set-out); keeps the fewest slivers, then the most full boards" />
                                     <ContentControl Content="{Binding Board.MinPiece}" IsEnabled="{Binding Board.IsRowStartEnabled}" />
@@ -271,7 +271,7 @@
                                     </Grid.ColumnDefinitions>
                                     <Grid.RowDefinitions><RowDefinition Height="Auto" /></Grid.RowDefinitions>
                                     <TextBlock Grid.Row="0" Text="Laying" Style="{DynamicResource FieldLabel}" VerticalAlignment="Center" />
-                                    <ComboBox Grid.Row="0" Grid.Column="1" Margin="0,0,0,6" ItemsSource="{Binding Board.SquarePatterns}" DisplayMemberPath="Label"
+                                    <ComboBox Grid.Row="0" Grid.Column="1" Margin="0,0,0,8" ItemsSource="{Binding Board.SquarePatterns}" DisplayMemberPath="Label"
                                               SelectedItem="{Binding Board.SelectedSquarePattern}" ToolTip="Square boards are laid in contour rows on every side" />
                                 </Grid>
                                     <ContentControl Content="{Binding Board.MinPiece}" />
@@ -297,22 +297,22 @@
                                     </Grid.ColumnDefinitions>
                                     <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
                                     <TextBlock Grid.Row="0" Text="Colour by" Style="{DynamicResource FieldLabel}" VerticalAlignment="Center" />
-                                    <ComboBox Grid.Row="0" Grid.Column="1" Margin="0,0,0,6" ItemsSource="{Binding Hatching.Modes}" DisplayMemberPath="Label"
+                                    <ComboBox Grid.Row="0" Grid.Column="1" Margin="0,0,0,8" ItemsSource="{Binding Hatching.Modes}" DisplayMemberPath="Label"
                                               SelectedItem="{Binding Hatching.SelectedMode}" />
                                     <TextBlock Grid.Row="1" Text="Fill types" Style="{DynamicResource FieldLabel}" VerticalAlignment="Center" />
-                                    <ComboBox Grid.Row="1" Grid.Column="1" Margin="0,0,0,6" ItemsSource="{Binding Hatching.Sources}" DisplayMemberPath="Label"
+                                    <ComboBox Grid.Row="1" Grid.Column="1" Margin="0,0,0,8" ItemsSource="{Binding Hatching.Sources}" DisplayMemberPath="Label"
                                               SelectedItem="{Binding Hatching.SelectedSource}" IsEnabled="{Binding Hatching.IsEnabled}" />
                                     <TextBlock Grid.Row="2" Text="Slot 1" Style="{DynamicResource FieldLabel}" VerticalAlignment="Center" />
-                                    <ComboBox Grid.Row="2" Grid.Column="1" Margin="0,0,0,6" ItemsSource="{Binding Hatching.FillTypes}" DisplayMemberPath="Name"
+                                    <ComboBox Grid.Row="2" Grid.Column="1" Margin="0,0,0,8" ItemsSource="{Binding Hatching.FillTypes}" DisplayMemberPath="Name"
                                               SelectedItem="{Binding Hatching.Slot1}" IsEnabled="{Binding Hatching.IsSlotPickEnabled}" />
                                     <TextBlock Grid.Row="3" Text="Slot 2" Style="{DynamicResource FieldLabel}" VerticalAlignment="Center" />
-                                    <ComboBox Grid.Row="3" Grid.Column="1" Margin="0,0,0,6" ItemsSource="{Binding Hatching.FillTypes}" DisplayMemberPath="Name"
+                                    <ComboBox Grid.Row="3" Grid.Column="1" Margin="0,0,0,8" ItemsSource="{Binding Hatching.FillTypes}" DisplayMemberPath="Name"
                                               SelectedItem="{Binding Hatching.Slot2}" IsEnabled="{Binding Hatching.IsSlotPickEnabled}" />
                                     <TextBlock Grid.Row="4" Text="Slot 3" Style="{DynamicResource FieldLabel}" VerticalAlignment="Center" />
-                                    <ComboBox Grid.Row="4" Grid.Column="1" Margin="0,0,0,6" ItemsSource="{Binding Hatching.FillTypes}" DisplayMemberPath="Name"
+                                    <ComboBox Grid.Row="4" Grid.Column="1" Margin="0,0,0,8" ItemsSource="{Binding Hatching.FillTypes}" DisplayMemberPath="Name"
                                               SelectedItem="{Binding Hatching.Slot3}" IsEnabled="{Binding Hatching.IsSlotPickEnabled}" />
                                     <TextBlock Grid.Row="5" Text="Slot 4" Style="{DynamicResource FieldLabel}" VerticalAlignment="Center" />
-                                    <ComboBox Grid.Row="5" Grid.Column="1" Margin="0,0,0,6" ItemsSource="{Binding Hatching.FillTypes}" DisplayMemberPath="Name"
+                                    <ComboBox Grid.Row="5" Grid.Column="1" Margin="0,0,0,8" ItemsSource="{Binding Hatching.FillTypes}" DisplayMemberPath="Name"
                                               SelectedItem="{Binding Hatching.Slot4}" IsEnabled="{Binding Hatching.IsSlotPickEnabled}" />
                                 </Grid>
                                     <TextBlock TextWrapping="Wrap" Margin="0,4,0,0" Style="{DynamicResource FieldLabel}"
@@ -336,9 +336,9 @@
                                     <CheckBox Content="Contours follow board rows" IsChecked="{Binding Layers.ContoursFollowRows}"
                                               IsEnabled="{Binding Layers.Contours.IsEnabled}" Margin="0,0,0,2"
                                               ToolTip="Interval = board width × slope, so every row line is a contour" />
-                                    <TextBlock Text="{Binding Layers.LockedIntervalText}" Margin="20,0,0,6" Style="{DynamicResource FieldLabel}" />
+                                    <TextBlock Text="{Binding Layers.LockedIntervalText}" Margin="24,0,0,8" Style="{DynamicResource FieldLabel}" />
                                     <ContentControl Content="{Binding Layers.ContourInterval}" IsEnabled="{Binding Layers.IsIntervalEditable}" />
-                                    <Grid Margin="0,4,0,6">
+                                    <Grid Margin="0,4,0,8">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="140" /><ColumnDefinition Width="*" />
                                         </Grid.ColumnDefinitions>
@@ -373,7 +373,7 @@
                                     </Grid.ColumnDefinitions>
                                     <Grid.RowDefinitions><RowDefinition Height="Auto" /></Grid.RowDefinitions>
                                     <TextBlock Grid.Row="0" Text="Grouping" Style="{DynamicResource FieldLabel}" VerticalAlignment="Center" />
-                                    <ComboBox Grid.Row="0" Grid.Column="1" Margin="0,0,0,6" ItemsSource="{Binding Layers.GroupingModes}" DisplayMemberPath="Label"
+                                    <ComboBox Grid.Row="0" Grid.Column="1" Margin="0,0,0,8" ItemsSource="{Binding Layers.GroupingModes}" DisplayMemberPath="Label"
                                               SelectedItem="{Binding Layers.SelectedGrouping}" ToolTip="Group per side: move, rotate or align each side's boards on its own" />
                                 </Grid>
                                     <CheckBox Content="Replace previous pattern for this roof in this view"
@@ -456,7 +456,7 @@
                         </Grid>
                     </Border>
 
-                    <TextBlock Grid.Row="1" Text="{Binding Preview.HoverText}" Margin="2,6,0,4" Style="{DynamicResource FieldLabel}" />
+                    <TextBlock Grid.Row="1" Text="{Binding Preview.HoverText}" Margin="2,8,0,4" Style="{DynamicResource FieldLabel}" />
 
                     <!-- Legend: what each hatch colour means, and the Revit type it will use -->
                     <Border Grid.Row="2" Style="{DynamicResource Card}" Margin="0,0,0,8"
@@ -472,7 +472,7 @@
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate DataType="{x:Type vm:LegendItemViewModel}">
                                         <StackPanel Orientation="Horizontal" Margin="0,2,16,2" ToolTip="{Binding TypeName}">
-                                            <Border Width="18" Height="12" Margin="0,0,6,0" BorderThickness="1"
+                                            <Border Width="18" Height="12" Margin="0,0,8,0" BorderThickness="1"
                                                     BorderBrush="{StaticResource Eps2D.SwatchBorderBrush}"
                                                     Background="{Binding ColorHex, Converter={StaticResource HexToBrush}}" />
                                             <TextBlock VerticalAlignment="Center">
@@ -498,7 +498,7 @@
                         <DockPanel>
                             <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,4,0,4">
                                 <Button Content="Copy All" Command="{Binding Log.CopyAllCommand}" Style="{DynamicResource SecondaryButton}" />
-                                <Button Content="Copy Selected" Margin="6,0,0,0" Style="{DynamicResource SecondaryButton}"
+                                <Button Content="Copy Selected" Margin="8,0,0,0" Style="{DynamicResource SecondaryButton}"
                                         Command="{Binding Log.CopySelectedCommand}"
                                         CommandParameter="{Binding SelectedItems, ElementName=LogList}" />
                             </StackPanel>

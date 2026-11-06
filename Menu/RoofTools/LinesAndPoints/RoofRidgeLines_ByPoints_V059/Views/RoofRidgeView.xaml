@@ -58,10 +58,10 @@ Changes vs V058 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                 <UniformGrid Rows="1" Margin="0,0,0,8">
 
                     <!-- Card: First Reset -->
-                    <Border Style="{StaticResource MetricCard}" Margin="0,0,6,0">
+                    <Border Style="{StaticResource MetricCard}" Margin="0,0,8,0">
                         <DockPanel>
                             <Border DockPanel.Dock="Top" Height="4" CornerRadius="8,8,0,0"
-                                    Background="{StaticResource BrushNavyPrimary}" Margin="-12,-14,-12,10"/>
+                                    Background="{StaticResource BrushNavyPrimary}" Margin="-12,-14,-12,12"/>
                             <StackPanel>
                                 <TextBlock Text="First Reset" Style="{StaticResource MetricLabel}"/>
                                 <TextBlock Text="{Binding FirstResetStatus}"
@@ -72,10 +72,10 @@ Changes vs V058 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                     </Border>
 
                     <!-- Card: Added Lines -->
-                    <Border Style="{StaticResource MetricCard}" Margin="0,0,6,0">
+                    <Border Style="{StaticResource MetricCard}" Margin="0,0,8,0">
                         <DockPanel>
                             <Border DockPanel.Dock="Top" Height="4" CornerRadius="8,8,0,0"
-                                    Background="{StaticResource BrushStatusOk}" Margin="-12,-14,-12,10"/>
+                                    Background="{StaticResource BrushStatusOk}" Margin="-12,-14,-12,12"/>
                             <StackPanel>
                                 <TextBlock Text="Added Lines" Style="{StaticResource MetricLabel}"/>
                                 <TextBlock Text="{Binding DetailLinesAddedCount}"
@@ -88,7 +88,7 @@ Changes vs V058 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                     <Border Style="{StaticResource MetricCard}" Margin="0,0,0,0">
                         <DockPanel>
                             <Border DockPanel.Dock="Top" Height="4" CornerRadius="8,8,0,0"
-                                    Background="{StaticResource BrushNavyPrimary}" Margin="-12,-14,-12,10"/>
+                                    Background="{StaticResource BrushNavyPrimary}" Margin="-12,-14,-12,12"/>
                             <StackPanel>
                                 <TextBlock Text="Last Reset" Style="{StaticResource MetricLabel}"/>
                                 <TextBlock Text="{Binding LastResetStatus}"
@@ -104,10 +104,10 @@ Changes vs V058 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                 <UniformGrid Rows="1" Margin="0,0,0,8">
 
                     <!-- Card: Calculated Points -->
-                    <Border Style="{StaticResource MetricCard}" Margin="0,0,6,0">
+                    <Border Style="{StaticResource MetricCard}" Margin="0,0,8,0">
                         <DockPanel>
                             <Border DockPanel.Dock="Top" Height="4" CornerRadius="8,8,0,0"
-                                    Background="{StaticResource BrushStatusWarn}" Margin="-12,-14,-12,10"/>
+                                    Background="{StaticResource BrushStatusWarn}" Margin="-12,-14,-12,12"/>
                             <StackPanel>
                                 <TextBlock Text="Calculated Points" Style="{StaticResource MetricLabel}"/>
                                 <TextBlock Text="{Binding TotalCalculatedPoints}" Style="{StaticResource MetricNumber}"/>
@@ -116,10 +116,10 @@ Changes vs V058 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                     </Border>
 
                     <!-- Card: Added -->
-                    <Border Style="{StaticResource MetricCard}" Margin="0,0,6,0">
+                    <Border Style="{StaticResource MetricCard}" Margin="0,0,8,0">
                         <DockPanel>
                             <Border DockPanel.Dock="Top" Height="4" CornerRadius="8,8,0,0"
-                                    Background="{StaticResource BrushStatusOk}" Margin="-12,-14,-12,10"/>
+                                    Background="{StaticResource BrushStatusOk}" Margin="-12,-14,-12,12"/>
                             <StackPanel>
                                 <TextBlock Text="Added ✓" Style="{StaticResource MetricLabel}"/>
                                 <TextBlock Text="{Binding TotalAddedPoints}"
@@ -129,10 +129,10 @@ Changes vs V058 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                     </Border>
 
                     <!-- Card: Failed -->
-                    <Border Style="{StaticResource MetricCard}" Margin="0,0,6,0">
+                    <Border Style="{StaticResource MetricCard}" Margin="0,0,8,0">
                         <DockPanel>
                             <Border DockPanel.Dock="Top" Height="4" CornerRadius="8,8,0,0"
-                                    Background="{StaticResource BrushStatusError}" Margin="-12,-14,-12,10"/>
+                                    Background="{StaticResource BrushStatusError}" Margin="-12,-14,-12,12"/>
                             <StackPanel>
                                 <TextBlock Text="Failed ✗" Style="{StaticResource MetricLabel}"/>
                                 <TextBlock Text="{Binding TotalFailedPoints}"
@@ -145,7 +145,7 @@ Changes vs V058 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                     <Border Style="{StaticResource MetricCard}" Margin="0,0,0,0">
                         <DockPanel>
                             <Border DockPanel.Dock="Top" Height="4" CornerRadius="8,8,0,0"
-                                    Background="{StaticResource BrushStatusWarn}" Margin="-12,-14,-12,10"/>
+                                    Background="{StaticResource BrushStatusWarn}" Margin="-12,-14,-12,12"/>
                             <StackPanel>
                                 <TextBlock Text="Skipped ⊘" Style="{StaticResource MetricLabel}"/>
                                 <TextBlock Text="{Binding TotalSkippedPoints}"
@@ -181,7 +181,7 @@ Changes vs V058 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
 
                         <Border Grid.Row="1" Grid.Column="0"
                                 Background="{StaticResource BrushSystemSecondaryBackground}"
-                                CornerRadius="6" Padding="8,6">
+                                CornerRadius="6" Padding="8,8">
                             <TextBlock Text="{Binding RoofDescription}"
                                        Style="{StaticResource FieldValue}"
                                        TextTrimming="CharacterEllipsis"/>
@@ -193,7 +193,7 @@ Changes vs V058 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
 
                         <Border Grid.Row="1" Grid.Column="2"
                                 Background="{StaticResource BrushSystemSecondaryBackground}"
-                                CornerRadius="6" Padding="8,6" Margin="8,0,0,0">
+                                CornerRadius="6" Padding="8,8" Margin="8,0,0,0">
                             <TextBlock Style="{StaticResource FieldValue}">
                                 <Run Text="{Binding DrainCount}"/>
                                 <Run Text=" drain point(s) selected"/>
@@ -250,7 +250,7 @@ Changes vs V058 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="12,8,12,6">
+                        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="12,8,12,8">
                             <TextBlock Text="Validation Results" Style="{StaticResource SectionTitle}" Margin="0,0,16,0" VerticalAlignment="Center"/>
                             <TextBlock FontSize="11" VerticalAlignment="Center"
                                        Foreground="{StaticResource BrushStatusOk}">
@@ -304,21 +304,21 @@ Changes vs V058 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                 </Border>
 
                 <!-- Pipeline Log (moved from footer) -->
-                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="10,8" Margin="0,0,0,0">
+                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="12,8" Margin="0,0,0,0">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <Grid Margin="0,0,0,6">
+                        <Grid Margin="0,0,0,8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Text="Pipeline Log" Foreground="{StaticResource BrushLogText}"
-                                       FontSize="11.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                       FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
                             <StackPanel Grid.Column="1" Orientation="Horizontal">
-                                <Button Content="Copy All" Style="{StaticResource DarkGhostButton}" Command="{Binding CopyLogCommand}" Margin="0,0,6,0"/>
+                                <Button Content="Copy All" Style="{StaticResource DarkGhostButton}" Command="{Binding CopyLogCommand}" Margin="0,0,8,0"/>
                                 <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Click="CopySelectedLog_Click"/>
                             </StackPanel>
                         </Grid>

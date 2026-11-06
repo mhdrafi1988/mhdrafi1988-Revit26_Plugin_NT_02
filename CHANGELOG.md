@@ -9,6 +9,17 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.39.5] — 2026-11-06
+
+### Roof Tools — spacing and text sizes on the 4 px grid
+
+Auto Slope By Point 33.0.2, Auto Slope By Point (Ridge) 3.1.2, Auto Slope By Point (Multi Copies) 30.1.2, Auto Slope By Drain (Multi-Roof) 13.1.4, Ridge By Openings 70.1.2, Ridge By Points 59.1.1, Creaser Adv 12.0.4, Combined Roof Tools 3.1.3, Roof Points & Slope 1.1.1, Roof Type Manager 3.1.3, Roof Point Elevation Sync 5.0.2, Roof Point Comparison 3.0.2, Tapered EPS 2D Pattern 6.1.1, Roof Name Builder 2.1.2, Island Roof Splitter 2.0.1.
+
+#### Changed
+- Margins and paddings snapped to 2/4/8/12/16/24 and font sizes to 10/11/12/13, matching the other groups already converted.
+
+User note: layout only; controls sit 1–2 px differently and a few small texts are slightly larger. No behaviour change. Older tool versions still installed are not changed.
+
 ## [6.39.4] — 2026-11-06
 
 ### Floor Tools — spacing and text sizes on the 4 px grid

@@ -68,19 +68,19 @@ No inline colours: every brush is a SharedStyles token.
         <!-- ═══ HEADER ═══ -->
         <shell:ToolWindowShell.HeaderContent>
             <StackPanel Orientation="Horizontal">
-                <Border Style="{StaticResource MetricTileInfo}" Margin="0,0,10,0" MinWidth="96">
+                <Border Style="{StaticResource MetricTileInfo}" Margin="0,0,12,0" MinWidth="96">
                     <StackPanel>
                         <TextBlock Text="LOADED" Style="{StaticResource MetricTileLabelInfo}"/>
                         <TextBlock Text="{Binding LoadedCount}" Style="{StaticResource MetricTileNumberInfo}"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricTileSuccess}" Margin="0,0,10,0" MinWidth="96">
+                <Border Style="{StaticResource MetricTileSuccess}" Margin="0,0,12,0" MinWidth="96">
                     <StackPanel>
                         <TextBlock Text="WILL RENAME" Style="{StaticResource MetricTileLabelSuccess}"/>
                         <TextBlock Text="{Binding PendingCount}" Style="{StaticResource MetricTileNumberSuccess}"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricTileDanger}" Margin="0,0,10,0" MinWidth="96">
+                <Border Style="{StaticResource MetricTileDanger}" Margin="0,0,12,0" MinWidth="96">
                     <StackPanel>
                         <TextBlock Text="CONFLICTS" Style="{StaticResource MetricTileLabelDanger}"/>
                         <TextBlock Text="{Binding ConflictCount}" Style="{StaticResource MetricTileNumberDanger}"/>
@@ -115,7 +115,7 @@ No inline colours: every brush is a SharedStyles token.
                                  IsChecked="{Binding Scope, Mode=OneWay, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=CurrentSelection}"
                                  Command="{Binding SetScopeCommand}" CommandParameter="CurrentSelection"/>
 
-                    <TextBlock Text="Mode" Style="{StaticResource SectionLabel}" Margin="18,0,8,0"/>
+                    <TextBlock Text="Mode" Style="{StaticResource SectionLabel}" Margin="16,0,8,0"/>
                     <RadioButton GroupName="Mode" Content="Types" Style="{StaticResource ChipToggle}"
                                  IsChecked="{Binding Mode, Mode=OneWay, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=Types}"
                                  Command="{Binding SetModeCommand}" CommandParameter="Types"/>
@@ -131,9 +131,9 @@ No inline colours: every brush is a SharedStyles token.
                 <DockPanel Margin="0,0,0,8" LastChildFill="False">
                     <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center">
                         <ToggleButton Style="{StaticResource AppleToggleButton}" IsChecked="{Binding PendingOnly}" VerticalAlignment="Center"/>
-                        <TextBlock Text="Will rename only" Style="{StaticResource StatusText}" Margin="6,0,18,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="Will rename only" Style="{StaticResource StatusText}" Margin="8,0,16,0" VerticalAlignment="Center"/>
                         <ToggleButton Style="{StaticResource AppleToggleButton}" IsChecked="{Binding HideCompliant}" VerticalAlignment="Center"/>
-                        <TextBlock Text="Hide up-to-date" Style="{StaticResource StatusText}" Margin="6,0,18,0" VerticalAlignment="Center"
+                        <TextBlock Text="Hide up-to-date" Style="{StaticResource StatusText}" Margin="8,0,16,0" VerticalAlignment="Center"
                                    ToolTip="Hide rows that already carry codes and whose name matches the current parameter values."/>
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" VerticalAlignment="Center">
@@ -146,7 +146,7 @@ No inline colours: every brush is a SharedStyles token.
 
                 <!-- Code definitions (settings) -->
                 <Expander Header="Code Definitions" IsExpanded="{Binding SettingsOpen}" Margin="0,0,0,8">
-                    <Border Style="{StaticResource BaseCard}" Padding="10" Margin="0,6,0,0">
+                    <Border Style="{StaticResource BaseCard}" Padding="12" Margin="0,8,0,0">
                         <StackPanel>
                             <DataGrid x:Name="DefinitionsGrid"
                                       ItemsSource="{Binding CodeDefinitions}" AutoGenerateColumns="False"
@@ -169,15 +169,15 @@ No inline colours: every brush is a SharedStyles token.
                                 </DataGrid.Columns>
                             </DataGrid>
 
-                            <WrapPanel Margin="0,10,0,0">
+                            <WrapPanel Margin="0,12,0,0">
                                 <TextBlock Text="Separator" Style="{StaticResource SectionLabel}"/>
-                                <TextBox Width="40" Style="{StaticResource StyledTextInput}" Margin="0,0,18,0"
+                                <TextBox Width="40" Style="{StaticResource StyledTextInput}" Margin="0,0,16,0"
                                          Text="{Binding TemplateSeparator, UpdateSourceTrigger=PropertyChanged}"/>
                                 <TextBlock Text="Instances write to" Style="{StaticResource SectionLabel}"/>
-                                <TextBox Width="140" Style="{StaticResource StyledTextInput}" Margin="0,0,18,0"
+                                <TextBox Width="140" Style="{StaticResource StyledTextInput}" Margin="0,0,16,0"
                                          Text="{Binding InstanceTargetParameter, UpdateSourceTrigger=PropertyChanged}"/>
                                 <ToggleButton Style="{StaticResource AppleToggleButton}" IsChecked="{Binding ParseExistingCodes}" VerticalAlignment="Center"/>
-                                <TextBlock Text="Recognise codes already in names" Style="{StaticResource StatusText}" Margin="6,0,18,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Recognise codes already in names" Style="{StaticResource StatusText}" Margin="8,0,16,0" VerticalAlignment="Center"/>
                                 <Button Content="Apply &amp; reload" Style="{StaticResource SmallSecondaryButton}"
                                         Command="{Binding ApplyDefinitionsCommand}"/>
                             </WrapPanel>
@@ -189,12 +189,12 @@ No inline colours: every brush is a SharedStyles token.
                 </Expander>
 
                 <!-- Bulk action bar -->
-                <Border Margin="0,0,0,8" Padding="10,8" CornerRadius="6" BorderThickness="1"
+                <Border Margin="0,0,0,8" Padding="12,8" CornerRadius="6" BorderThickness="1"
                         Background="{StaticResource BrushStatusInfoSoft}"
                         BorderBrush="{StaticResource BrushStatusInfoBorder}"
                         Visibility="{Binding HasSelection, Converter={StaticResource BoolToVisibilityConverter}}">
                     <WrapPanel>
-                        <TextBlock VerticalAlignment="Center" Margin="0,0,14,0" FontWeight="SemiBold"
+                        <TextBlock VerticalAlignment="Center" Margin="0,0,16,0" FontWeight="SemiBold"
                                    Foreground="{StaticResource BrushTextPrimary}"
                                    Text="{Binding SelectedCount, StringFormat='{}{0} selected'}"/>
 
@@ -205,7 +205,7 @@ No inline colours: every brush is a SharedStyles token.
                             </ItemsControl.ItemsPanel>
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Button Content="{Binding Code}" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,6,0"
+                                    <Button Content="{Binding Code}" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,8,0"
                                             Command="{Binding DataContext.BulkTickCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                             CommandParameter="{Binding Code}"/>
                                 </DataTemplate>
@@ -219,7 +219,7 @@ No inline colours: every brush is a SharedStyles token.
                             </ItemsControl.ItemsPanel>
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Button Content="{Binding Code}" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,6,0"
+                                    <Button Content="{Binding Code}" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,8,0"
                                             Command="{Binding DataContext.BulkUntickCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                             CommandParameter="{Binding Code}"/>
                                 </DataTemplate>
@@ -281,7 +281,7 @@ No inline colours: every brush is a SharedStyles token.
                 </DataGrid>
 
                 <!-- Activity Log — always-dark panel, collapsed by default (2026-10-04 convention) -->
-                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="10,8">
+                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="12,8">
                     <StackPanel>
                         <DockPanel LastChildFill="False">
                             <ToggleButton x:Name="LogToggle" DockPanel.Dock="Left" Style="{StaticResource LogHeaderToggle}">
@@ -289,9 +289,9 @@ No inline colours: every brush is a SharedStyles token.
                                            Text="{Binding LogEntries.Count, StringFormat='Activity Log ({0})'}"/>
                             </ToggleButton>
                             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                                <Button Content="Copy All" Style="{StaticResource DarkGhostButton}" Margin="0,0,6,0"
+                                <Button Content="Copy All" Style="{StaticResource DarkGhostButton}" Margin="0,0,8,0"
                                         Command="{Binding CopyAllLogCommand}"/>
-                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Margin="0,0,6,0"
+                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Margin="0,0,8,0"
                                         Command="{Binding CopySelectedLogCommand}"/>
                                 <Button Content="Clear" Style="{StaticResource DarkGhostButton}"
                                         Command="{Binding ClearLogCommand}"/>

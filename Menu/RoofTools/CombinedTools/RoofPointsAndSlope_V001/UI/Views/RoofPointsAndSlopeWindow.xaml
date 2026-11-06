@@ -272,7 +272,7 @@ model and the settings file are unchanged.
                                     </Grid>
                                 </RadioButton>
 
-                                <Border Style="{StaticResource SeparatorLine}" Margin="8,4,8,6"/>
+                                <Border Style="{StaticResource SeparatorLine}" Margin="8,4,8,8"/>
 
                                 <RadioButton x:Name="NavStep1" Style="{StaticResource StepNavItem}">
                                     <Grid>
@@ -797,8 +797,8 @@ model and the settings file are unchanged.
                             </Grid.ColumnDefinitions>
                             <ToggleButton x:Name="LogToggle" Style="{StaticResource LogHeaderToggle}" HorizontalAlignment="Left">
                                 <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="Activity log" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource BrushLogText}"/>
-                                    <TextBlock Text="{Binding LogEntries.Count, StringFormat={}{0} lines}" FontSize="10.5" Margin="8,0,0,0"
+                                    <TextBlock Text="Activity log" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource BrushLogText}"/>
+                                    <TextBlock Text="{Binding LogEntries.Count, StringFormat={}{0} lines}" FontSize="11" Margin="8,0,0,0"
                                                VerticalAlignment="Center" Foreground="{StaticResource BrushLogTextDim}"/>
                                 </StackPanel>
                             </ToggleButton>
@@ -815,13 +815,13 @@ model and the settings file are unchanged.
                                  ScrollViewer.VerticalScrollBarVisibility="Auto">
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
-                                    <StackPanel Orientation="Horizontal" Margin="0,1">
+                                    <StackPanel Orientation="Horizontal" Margin="0,2">
                                         <TextBlock Text="{Binding Time, StringFormat=HH:mm:ss}" Foreground="{StaticResource BrushLogTextDim}"
-                                                   FontFamily="Consolas" FontSize="11.5" Margin="0,0,8,0"/>
+                                                   FontFamily="Consolas" FontSize="12" Margin="0,0,8,0"/>
                                         <TextBlock Text="{Binding Level}" Foreground="{Binding Level, Converter={StaticResource LogLevelToColor}}"
-                                                   FontFamily="Consolas" FontSize="11.5" FontWeight="SemiBold" Width="64"/>
+                                                   FontFamily="Consolas" FontSize="12" FontWeight="SemiBold" Width="64"/>
                                         <TextBlock Text="{Binding Message}" Foreground="{StaticResource BrushLogText}"
-                                                   FontFamily="Consolas" FontSize="11.5" TextWrapping="Wrap"/>
+                                                   FontFamily="Consolas" FontSize="12" TextWrapping="Wrap"/>
                                     </StackPanel>
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
