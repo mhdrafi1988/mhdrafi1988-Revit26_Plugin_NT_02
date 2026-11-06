@@ -70,6 +70,9 @@ namespace Revit26_Plugin_Revised.ExportDwgToFolder.V004.Infrastructure.ExternalE
 
         // ---- Output properties read by the ViewModel after completion ----
 
+        /// <summary>Instances left out of the last scan as duplicates of the same source file.</summary>
+        public int DuplicatesSkipped { get; private set; }
+
         /// <summary>DWG instances found by the last scan.</summary>
         public List<DwgInstanceInfo> ScannedInstances { get; private set; } = new List<DwgInstanceInfo>();
 
@@ -200,6 +203,7 @@ namespace Revit26_Plugin_Revised.ExportDwgToFolder.V004.Infrastructure.ExternalE
                 // V004: the output-name pattern is applied at scan time, so the grid shows the
                 // names the export will actually write.
                 (Settings ?? new ExportDwgSettings()).NameTemplate);
+            DuplicatesSkipped = collector.DuplicatesSkipped;
 
             // V004: refresh the export-setup list from the model on every scan, so a setup saved in
             // Revit while the window was open shows up without reopening the tool.
@@ -298,8 +302,18 @@ namespace Revit26_Plugin_Revised.ExportDwgToFolder.V004.Infrastructure.ExternalE
                 if (toDelete.Count > 0)
                     DeleteDecided(doc, toDelete);
 
+                WorksharingGuard.TryCheckout(doc, toConvert.Where(d => d.ElementId != null).Select(d => d.ElementId).ToList());
+
                 foreach (var decision in toConvert)
                 {
+                    if (decision.ElementId != null && !WorksharingGuard.CanEdit(doc, decision.ElementId, out string lockReason))
+                    {
+                        decision.Succeeded = false;
+                        decision.Note = $"Not changed — {lockReason}";
+                        ConvertFailedCount++;
+                        continue;
+                    }
+
                     bool toLink = decision.Action == PostExportAction.ReplaceWithLinkToExported;
                     string label = toLink
                         ? $"Replace CAD with link to exported file — {decision.Name}"
@@ -356,6 +370,8 @@ namespace Revit26_Plugin_Revised.ExportDwgToFolder.V004.Infrastructure.ExternalE
             var requested = new HashSet<long>(toDelete.Select(d => d.ElementIdValue));
             var allRemoved = new HashSet<long>();
 
+            WorksharingGuard.TryCheckout(doc, toDelete.Where(d => d.ElementId != null).Select(d => d.ElementId).ToList());
+
             using (var tx = new Transaction(doc, "Delete Exported CAD Instances"))
             {
                 tx.Start();
@@ -364,6 +380,14 @@ namespace Revit26_Plugin_Revised.ExportDwgToFolder.V004.Infrastructure.ExternalE
                     var id = decision.ElementId;
                     try
                     {
+                        if (id != null && !WorksharingGuard.CanEdit(doc, id, out string lockReason))
+                        {
+                            FailedDeleteIds.Add(decision.ElementIdValue);
+                            decision.Succeeded = false;
+                            decision.Note = $"Not deleted — {lockReason}";
+                            continue;
+                        }
+
                         if (id == null || doc.GetElement(id) == null)
                         {
                             FailedDeleteIds.Add(decision.ElementIdValue);
