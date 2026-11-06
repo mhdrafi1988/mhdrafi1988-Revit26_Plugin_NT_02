@@ -1,0 +1,82 @@
+<title>Export DWG to Folder</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<!-- UI preview (CLAUDE.md "UI previews"): Export DWG to Folder V004 (4.2.0), plugin 6.38.0.
+     Shows the scan log and grid (one export per source file) and the post-export result column
+     (worksharing check). Sample data only.
+     Real windows: Menu/Setup/Project/DWG/ExportDwgToFolder_V004/UI/Views/ExportDwgToFolderWindow.xaml
+                   Menu/Setup/Project/DWG/ExportDwgToFolder_V004/UI/Views/PostExportReviewWindow.xaml
+     Artifact: https://claude.ai/artifact/89dQ5P1uBHGJheaieYNXjp -->
+<style>
+:root{--bg:#f3f5f7;--card:#fff;--fg:#1c2733;--muted:#5d6b7a;--line:#d6dce3;--navy:#1e3a5f;--navy-fg:#fff;
+--ok:#2e7d4f;--ok-soft:#e6f4ec;--warn:#9a5b00;--warn-soft:#fdf1e1;--err:#b23a35;--err-soft:#fbe8e7;--info:#1f5fbf;--info-soft:#e6eefb;
+--new:#1d7a46;--new-fg:#fff}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#11171d;--card:#1a232c;--fg:#e3e9ef;--muted:#92a0ae;--line:#2c3844;--navy:#2b4f7e;--navy-fg:#fff;
+--ok:#6cc18f;--ok-soft:#18301f;--warn:#e5b062;--warn-soft:#33270f;--err:#ee8a85;--err-soft:#3a1a19;--info:#7fb0f5;--info-soft:#15263d;--new:#2f9e63;--new-fg:#fff;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#11171d;--card:#1a232c;--fg:#e3e9ef;--muted:#92a0ae;--line:#2c3844;--navy:#2b4f7e;--navy-fg:#fff;
+--ok:#6cc18f;--ok-soft:#18301f;--warn:#e5b062;--warn-soft:#33270f;--err:#ee8a85;--err-soft:#3a1a19;--info:#7fb0f5;--info-soft:#15263d;--new:#2f9e63;--new-fg:#fff;color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font:14px/1.45 "Segoe UI",system-ui,sans-serif;padding-block:20px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+h1{font-size:20px;margin:0}h2{font-size:15px;margin:0 0 8px}
+.note{color:var(--muted);font-size:13px;margin:4px 0 0}
+.scroll{overflow-x:auto}
+.win{min-width:640px;background:var(--card);border:1px solid var(--line);border-radius:4px;overflow:hidden}
+.title{background:var(--navy);color:var(--navy-fg);padding:8px 12px;font-weight:600}
+.body{padding:12px;display:flex;flex-direction:column;gap:10px}
+.new{background:var(--new);color:var(--new-fg);font-size:11px;font-weight:700;padding:1px 6px;border-radius:3px;margin-left:6px;vertical-align:middle}
+.log{font:12px/1.6 Consolas,monospace;background:var(--bg);border:1px solid var(--line);padding:8px 10px}
+.log .hl{background:var(--info-soft);color:var(--info);display:block}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{text-align:left;padding:5px 8px;border-bottom:1px solid var(--line)}
+th{color:var(--muted);font-weight:600;font-size:12px}
+.pill{font-size:12px;padding:1px 7px;border-radius:9px;white-space:nowrap}
+.p-ok{background:var(--ok-soft);color:var(--ok)}.p-warn{background:var(--warn-soft);color:var(--warn)}.p-err{background:var(--err-soft);color:var(--err)}
+.btn{display:inline-block;background:var(--navy);color:var(--navy-fg);padding:5px 14px;border-radius:3px}
+.tip{border:1px solid var(--line);background:var(--card);padding:8px 12px;max-width:380px;border-radius:3px}
+</style>
+<main>
+<header>
+<h1>Export DWG to Folder <span class="new">4.2.0</span></h1>
+<p class="note">Mock-up with sample data (no real project or client names). Green tags mark what changed in this version.</p>
+</header>
+
+<section>
+<h2>Ribbon tooltip</h2>
+<div class="tip"><b>Export DWG to Folder</b> (4.2.0)<br>Exports each ticked CAD link or import to its own DWG.</div>
+</section>
+
+<section>
+<h2>Main window after Scan <span class="new">new: one row per source file</span></h2>
+<div class="scroll"><div class="win">
+<div class="title">Export DWG to Folder 4.2.0</div>
+<div class="body">
+<div class="log">
+Found 5 DWG instance(s) in scope — 4 linked, 1 imported.
+<span class="hl">2 duplicate instance(s) of the same source file left out — the first one found is exported.</span>
+</div>
+<table>
+<tr><th>Name</th><th>Source</th><th>Host view</th><th>Sheet</th><th>Layers</th><th>Status</th></tr>
+<tr><td>Grid_Setout.dwg</td><td>Link</td><td>Level 1 - Plan</td><td>A101 - Level 1 Plan</td><td>12</td><td><span class="pill p-ok">✔ Ready</span></td></tr>
+<tr><td>Roof_Drains.dwg</td><td>Link</td><td>Roof - Plan</td><td>A104 - Roof Plan</td><td>8</td><td><span class="pill p-ok">✔ Ready</span></td></tr>
+<tr><td>Site_Boundary.dwg</td><td>Link</td><td>Section A</td><td>Not on Sheet</td><td>5</td><td><span class="pill p-ok">✔ Ready</span></td></tr>
+<tr><td>Facade_Detail.dwg</td><td>Import</td><td>Detail 3</td><td>A301 - Details</td><td>21</td><td><span class="pill p-ok">✔ Ready</span></td></tr>
+</table>
+<div><span class="btn">Export (4)</span></div>
+</div></div></div>
+<p class="note">Grid_Setout.dwg is also placed in Level 2 - Plan and Level 3 - Plan; only the first one found is listed.</p>
+</section>
+
+<section>
+<h2>Post-export review, Result column <span class="new">new: worksharing check</span></h2>
+<div class="scroll"><div class="win">
+<div class="title">Export DWG to Folder 4.2.0 — Review</div>
+<div class="body">
+<table>
+<tr><th>Name</th><th>Action</th><th>Result</th></tr>
+<tr><td>Grid_Setout.dwg</td><td>Delete from model</td><td><span class="pill p-ok">Deleted from the model.</span></td></tr>
+<tr><td>Roof_Drains.dwg</td><td>Delete from model</td><td><span class="pill p-warn">Not deleted — Checked out by user.b.</span></td></tr>
+<tr><td>Site_Boundary.dwg</td><td>Convert to import</td><td><span class="pill p-warn">Not changed — Changed in the central model — Reload Latest first.</span></td></tr>
+</table>
+</div></div></div>
+<p class="note">Before deleting, converting or re-linking, the tool tries to check the elements out, then skips any that another user owns or that changed in central.</p>
+</section>
+</main>
