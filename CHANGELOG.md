@@ -9,6 +9,15 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.38.1] — 2026-11-06
+
+### Ribbon panels
+
+#### Changed
+- Renamed four Roof ribbon panels so they are not confused with the Floor panels: Utilities → Roof Utilities, Plan View → Roof Plan View, Compare → Roof Compare, Insulation → Roof Insulation.
+
+User note: only the panel titles changed. Buttons, their names and their order are unchanged.
+
 ## [6.38.0] — 2026-11-06
 
 ### Export DWG to Folder 4.2.0

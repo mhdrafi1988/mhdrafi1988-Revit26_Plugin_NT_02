@@ -42,11 +42,11 @@ Each item is a pulldown unless marked *button*. A pulldown lists its versions hi
 | Floor Edit | Floor Types *button* · Name Builder *button* · Floor Tag *button* · Comparison *button* · Elevation Sync *button* · Floor EPS *button* — each V001 | `FloorToolsRibbon.BuildEditPanel` |
 | Roof Tools | Creaser Adv · Roof Tag · Floor From Rooms · Shape From Link | `RoofToolsRibbon.Build` |
 | Roof Edit | Name Builder · Island Splitter | `BuildEditComparePanels` |
-| Plan View | Island Splitter (large *button*) | `BuildEditComparePanels` |
-| Compare | Comparison · Elevation Sync | `BuildEditComparePanels` |
-| Insulation | EPS 2D Pattern (V006, V005, V004, V002, V001) | `BuildEditComparePanels` |
+| Roof Plan View | Island Splitter (large *button*) | `BuildEditComparePanels` |
+| Roof Compare | Comparison · Elevation Sync | `BuildEditComparePanels` |
+| Roof Insulation | EPS 2D Pattern (V006, V005, V004, V002, V001) | `BuildEditComparePanels` |
 | Detail Lines | From Links · Closed Loop · Line Dims · Line Manager (large) | `DetailLInesRibbon.Build` |
-| Utilities | Combined Tools · Ridge Lines (By Openings V070, V069, By Points V059, V058) · Roof Types | `RoofToolsRibbon.BuildUtilities` |
+| Roof Utilities | Combined Tools · Ridge Lines (By Openings V070, V069, By Points V059, V058) · Roof Types | `RoofToolsRibbon.BuildUtilities` |
 
 ### SloperPro_Rev_88-DCM (Documents)
 
