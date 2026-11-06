@@ -1,0 +1,87 @@
+<title>Ribbon Tabs</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<!-- UI preview (CLAUDE.md "UI previews") for the four-tab ribbon, plugin 6.39.0.
+     Tabs: Rafi_Pro_MOds, Rafi_Pro_MOds2 (model); Rafi_Pro_Docs, Rafi_Pro_Docs2 (sheets).
+     Mirrors: App.cs (tab names, build order), Menu/00_Push_Button_Menu_items/Ribbon/*.cs (panel names), Shared/SharedStyles.xaml (palette).
+     No tool version changed; only which tab each panel sits on.
+     Artifact: https://claude.ai/artifact/BaiMVDXPBdR4iynyTuBBUv -->
+<style>
+:root {
+  --bg: #F3F5F7; --card: #FFFFFF; --fg: #1B2733; --muted: #5B6B7B; --border: #D6DCE3;
+  --panel: #E4E8EC; --navy: #1E3A5F; --navy-fg: #FFFFFF; --tag-bg: #E6F4EC; --tag-fg: #1D6B33;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #12181F; --card: #1B232C; --fg: #E6ECF2; --muted: #93A3B3; --border: #2C3947;
+  --panel: #2C3947; --navy: #2B4C78; --navy-fg: #FFFFFF; --tag-bg: #17301F; --tag-fg: #7FD394; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #12181F; --card: #1B232C; --fg: #E6ECF2; --muted: #93A3B3; --border: #2C3947;
+  --panel: #2C3947; --navy: #2B4C78; --navy-fg: #FFFFFF; --tag-bg: #17301F; --tag-fg: #7FD394; color-scheme: dark; }
+body { background: var(--bg); color: var(--fg); font-family: "Segoe UI", system-ui, sans-serif;
+  padding-block: 20px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+main { max-width: 980px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+h1 { font-size: 1.35rem; margin: 0; text-wrap: balance; }
+p { margin: 0; color: var(--muted); line-height: 1.5; max-width: 65ch; }
+.tag { background: var(--tag-bg); color: var(--tag-fg); font-size: .72rem; font-weight: 600; padding: 2px 8px; border-radius: 3px; vertical-align: middle; }
+.scroll { overflow-x: auto; border: 1px solid var(--border); background: var(--card); border-radius: 4px; }
+.tabs { display: flex; background: var(--panel); min-width: 560px; }
+.tabs span { padding: 6px 14px; font-size: .8rem; color: var(--muted); border-right: 1px solid var(--border); }
+.tabs span.on { background: var(--navy); color: var(--navy-fg); font-weight: 600; }
+.panels { display: flex; gap: 0; min-width: 560px; padding: 8px; }
+.panel { border-right: 1px solid var(--border); padding: 4px 12px 0; display: flex; flex-direction: column; justify-content: space-between; min-height: 86px; }
+.panel:last-child { border-right: 0; }
+.panel .items { font-size: .78rem; line-height: 1.5; }
+.panel .name { font-size: .72rem; color: var(--muted); text-align: center; border-top: 1px solid var(--border); margin-top: 8px; padding-top: 3px; }
+h2 { font-size: .95rem; margin: 0 0 6px; }
+.sample { font-size: .75rem; color: var(--muted); }
+</style>
+<main>
+  <h1>Ribbon Tabs <span class="tag">New in 6.39.0</span></h1>
+  <p>The ribbon now has four tabs: two for model tools and two for sheet tools. Buttons and commands are unchanged; only the tab each panel sits on moved. Panel contents are abbreviated. Sample layout, not a screenshot.</p>
+
+  <section><h2>Model 1 <span class="tag">New</span></h2>
+    <div class="scroll"><div class="tabs"><span class="on">Rafi_Pro_MOds</span><span>Rafi_Pro_MOds2</span><span>Rafi_Pro_Docs</span><span>Rafi_Pro_Docs2</span></div>
+    <div class="panels">
+      <div class="panel"><div class="items">By Point<br>By Drain<br>Points &amp; Slope</div><div class="name">Roof Slope</div></div>
+      <div class="panel"><div class="items">By Drain<br>By Point<br>Points &amp; Slope</div><div class="name">Floor Slope</div></div>
+      <div class="panel"><div class="items">Inner Loops<br>Outer Curve<br>Line Intersect</div><div class="name">Shape Points</div></div>
+      <div class="panel"><div class="items">Inner Loops<br>Outer Curve<br>Multi Points</div><div class="name">Floor Points</div></div>
+      <div class="panel"><div class="items">Crease By Openings<br>Floor Creaser</div><div class="name">Floor Lines</div></div>
+      <div class="panel"><div class="items">Floor Types<br>Name Builder<br>Floor EPS</div><div class="name">Floor Edit</div></div>
+      <div class="panel"><div class="items">Creaser Adv<br>Roof Tag<br>Floor From Rooms</div><div class="name">Roof Tools</div></div>
+    </div></div></section>
+
+  <section><h2>Model 2 <span class="tag">New</span></h2>
+    <div class="scroll"><div class="tabs"><span>Rafi_Pro_MOds</span><span class="on">Rafi_Pro_MOds2</span><span>Rafi_Pro_Docs</span><span>Rafi_Pro_Docs2</span></div>
+    <div class="panels">
+      <div class="panel"><div class="items">Name Builder<br>Island Splitter</div><div class="name">Roof Edit</div></div>
+      <div class="panel"><div class="items">Island Splitter</div><div class="name">Roof Plan View</div></div>
+      <div class="panel"><div class="items">Comparison<br>Elevation Sync</div><div class="name">Roof Compare</div></div>
+      <div class="panel"><div class="items">EPS 2D Pattern</div><div class="name">Roof Insulation</div></div>
+      <div class="panel"><div class="items">From Links<br>Closed Loop<br>Line Dims</div><div class="name">Detail Lines</div></div>
+      <div class="panel"><div class="items">Combined Tools<br>Ridge Lines<br>Roof Types</div><div class="name">Roof Utilities</div></div>
+    </div></div></section>
+
+  <section><h2>Sheets 1 <span class="tag">New</span></h2>
+    <div class="scroll"><div class="tabs"><span>Rafi_Pro_MOds</span><span>Rafi_Pro_MOds2</span><span class="on">Rafi_Pro_Docs</span><span>Rafi_Pro_Docs2</span></div>
+    <div class="panels">
+      <div class="panel"><div class="items">From Lines<br>Around Edges<br>Edge Element</div><div class="name">View Create</div></div>
+      <div class="panel"><div class="items">Floor Around Edges<br>Floor Focus</div><div class="name">Floor Views</div></div>
+      <div class="panel"><div class="items">Place Sections<br>Head Placer<br>View Tagger</div><div class="name">View Place</div></div>
+      <div class="panel"><div class="items">Bubble Renumber<br>Auto Renamer</div><div class="name">View Rename</div></div>
+      <div class="panel"><div class="items">Sheet Placer<br>Section Placer<br>Sections To Sheet</div><div class="name">Sheet Create</div></div>
+      <div class="panel"><div class="items">Text Replace</div><div class="name">Sheet Edit</div></div>
+    </div></div></section>
+
+  <section><h2>Sheets 2 <span class="tag">New</span></h2>
+    <div class="scroll"><div class="tabs"><span>Rafi_Pro_MOds</span><span>Rafi_Pro_MOds2</span><span>Rafi_Pro_Docs</span><span class="on">Rafi_Pro_Docs2</span></div>
+    <div class="panels">
+      <div class="panel"><div class="items">Tag To Text<br>Quick Align<br>Align Spot Elev.</div><div class="name">Tagging</div></div>
+      <div class="panel"><div class="items">DWG To DL(P)<br>Export DWG<br>DWG Manager</div><div class="name">DWG Tools</div></div>
+      <div class="panel"><div class="items">Batch Link DWG<br>DWG To Lines</div><div class="name">Family Tools</div></div>
+      <div class="panel"><div class="items">Overlaps<br>ParaManager<br>Link Check</div><div class="name">Manage</div></div>
+      <div class="panel"><div class="items">WS Browser<br>WS Creator<br>WS Renamer</div><div class="name">Worksets</div></div>
+      <div class="panel"><div class="items">WS Memory<br>Link Memory</div><div class="name">Memory</div></div>
+    </div></div></section>
+
+  <p class="sample">Sample layout. Quick Access Toolbar entries for moved panels must be pinned again.</p>
+</main>

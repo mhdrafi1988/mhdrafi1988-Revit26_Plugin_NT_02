@@ -9,6 +9,20 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.39.0] — 2026-11-06
+
+### Ribbon tabs
+
+#### Changed
+- The ribbon now has four tabs instead of two: `Rafi_Pro_MOds` and `Rafi_Pro_MOds2` for model tools, `Rafi_Pro_Docs` and `Rafi_Pro_Docs2` for sheet tools.
+  - `Rafi_Pro_MOds`: Roof Slope, Floor Slope, Shape Points, Floor Points, Floor Lines, Floor Edit, Roof Tools.
+  - `Rafi_Pro_MOds2`: Roof Edit, Roof Plan View, Roof Compare, Roof Insulation, Detail Lines, Roof Utilities.
+  - `Rafi_Pro_Docs`: View Create, Floor Views, View Place, View Rename, Sheet Create, Sheet Edit.
+  - `Rafi_Pro_Docs2`: Tagging, DWG Tools, Family Tools, Manage, Worksets, Memory.
+
+User note: no tool, button or command changed, only which tab its panel is on. Revit stores Quick Access Toolbar
+entries by tab, panel and button, so a button pinned there from a moved panel must be pinned again.
+
 ## [6.38.2] — 2026-11-06
 
 ### Ribbon panels
