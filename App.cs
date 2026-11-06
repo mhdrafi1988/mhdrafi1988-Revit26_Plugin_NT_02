@@ -10,8 +10,8 @@ namespace Revit26_Plugin_Revised
     /// </summary>
     public partial class App : IExternalApplication
     {
-        private const string ModellingTabName  = "SloperPro_Rev_88-MDL";
-        private const string DocumentsTabName  = "SloperPro_Rev_88-DCM";
+        private const string ModellingTabName  = "Rafi_Pro_MOds";
+        private const string DocumentsTabName  = "Rafi_Pro_Docs";
 
         public Result OnStartup(UIControlledApplication application)
         {
