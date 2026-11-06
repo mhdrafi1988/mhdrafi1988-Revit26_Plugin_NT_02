@@ -68,7 +68,7 @@
         <shell:ToolWindowShell.HeaderContent>
             <UniformGrid Columns="3" HorizontalAlignment="Stretch">
                 <!-- Total -->
-                <Border Style="{StaticResource MetricTile}" Margin="0,0,6,0">
+                <Border Style="{StaticResource MetricTile}" Margin="0,0,8,0">
                     <StackPanel>
                         <TextBlock Text="TOTAL WORKSETS" Style="{StaticResource MetricTileLabel}"
                                    Foreground="{StaticResource BrushTextSecondary}"/>
@@ -76,7 +76,7 @@
                     </StackPanel>
                 </Border>
                 <!-- Deletable -->
-                <Border Style="{StaticResource MetricTileSuccess}" Margin="3,0">
+                <Border Style="{StaticResource MetricTileSuccess}" Margin="4,0">
                     <StackPanel>
                         <TextBlock Text="DELETABLE" Style="{StaticResource MetricTileLabel}"
                                    Foreground="{StaticResource BrushStatusOk}"/>
@@ -84,7 +84,7 @@
                     </StackPanel>
                 </Border>
                 <!-- Non-deletable -->
-                <Border Style="{StaticResource MetricTileDanger}" Margin="6,0,0,0">
+                <Border Style="{StaticResource MetricTileDanger}" Margin="8,0,0,0">
                     <StackPanel>
                         <TextBlock Text="NON-DELETABLE" Style="{StaticResource MetricTileLabel}"
                                    Foreground="{StaticResource BrushStatusError}"/>
@@ -100,7 +100,7 @@
                 <!-- Workset grid -->
                 <!-- Toolbar -->
                 <Border Background="{StaticResource BrushSystemSecondaryBackground}" BorderBrush="{StaticResource BrushBorderDefault}" BorderThickness="1,1,1,0"
-                        CornerRadius="4,4,0,0" Padding="8,6">
+                        CornerRadius="4,4,0,0" Padding="8,8">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
@@ -171,9 +171,9 @@
                                                 Background="{StaticResource BrushSystemTertiaryBackground}"
                                                 BorderBrush="{StaticResource BrushSeparator}"
                                                 BorderThickness="1"
-                                                CornerRadius="3" Padding="5,1" Margin="6,0,0,0"
+                                                CornerRadius="3" Padding="4,2" Margin="8,0,0,0"
                                                 ToolTip="{Binding NonDeletableReason}">
-                                            <TextBlock Text="{Binding StatusBadge}" FontSize="9" FontWeight="SemiBold"
+                                            <TextBlock Text="{Binding StatusBadge}" FontSize="10" FontWeight="SemiBold"
                                                        Foreground="{StaticResource BrushTextSecondary}"/>
                                         </Border>
                                     </StackPanel>
@@ -203,7 +203,7 @@
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <Border CornerRadius="10" Padding="8,2" HorizontalAlignment="Left"
-                                            Margin="6,0">
+                                            Margin="8,0">
                                         <Border.Style>
                                             <Style TargetType="Border">
                                                 <Setter Property="Background" Value="{StaticResource BrushSystemTertiaryBackground}"/>
@@ -241,7 +241,7 @@
                         BorderBrush="{StaticResource BrushBorderDefault}" BorderThickness="1" CornerRadius="4">
                     <StackPanel>
                         <!-- Migration target -->
-                        <Grid Margin="0,0,0,10">
+                        <Grid Margin="0,0,0,12">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="170"/>
                                 <ColumnDefinition Width="*"/>
@@ -262,7 +262,7 @@
 
                         <!-- Options -->
                         <StackPanel>
-                            <CheckBox IsChecked="{Binding HardDeleteUnmigratable}" Margin="0,0,0,6">
+                            <CheckBox IsChecked="{Binding HardDeleteUnmigratable}" Margin="0,0,0,8">
                                 <StackPanel>
                                     <TextBlock Text="Also delete elements that cannot be migrated"
                                                FontSize="12" FontWeight="Medium"
@@ -294,7 +294,7 @@
                         <!-- Log title bar -->
                         <Border DockPanel.Dock="Top"
                                 Background="{StaticResource BrushLogTitleBar}"
-                                CornerRadius="4,4,0,0" Padding="10,6">
+                                CornerRadius="4,4,0,0" Padding="12,8">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
@@ -337,18 +337,18 @@
                             </ListBox.ItemContainerStyle>
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
-                                    <Grid Margin="10,1">
+                                    <Grid Margin="12,2">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="60"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
                                         <TextBlock Grid.Column="0"
                                                    Text="{Binding Time, StringFormat=HH:mm:ss}"
-                                                   FontFamily="Consolas, Courier New" FontSize="10"
+                                                   FontFamily="{DynamicResource MonoFont}" FontSize="10"
                                                    Foreground="{StaticResource BrushLogTextDim}"/>
                                         <TextBlock Grid.Column="1"
                                                    Text="{Binding Message}"
-                                                   FontFamily="Consolas, Courier New" FontSize="10"
+                                                   FontFamily="{DynamicResource MonoFont}" FontSize="10"
                                                    Foreground="{Binding Level, Converter={StaticResource LogLevelToColor}}"
                                                    TextWrapping="Wrap"/>
                                     </Grid>
@@ -375,7 +375,7 @@
                             Style="{StaticResource DangerButton}"
                             Margin="0,0,8,0"
                             IsEnabled="{Binding IsRunning, Converter={StaticResource InverseBool}}"/>
-                    <Button Content="Close" Style="{StaticResource OutlineButton}" Width="90" Click="CloseButton_Click"/>
+                    <Button IsCancel="True" Content="Close" Style="{StaticResource OutlineButton}" Width="90" Click="CloseButton_Click"/>
                 </StackPanel>
             </Grid>
         </shell:ToolWindowShell.FooterContent>

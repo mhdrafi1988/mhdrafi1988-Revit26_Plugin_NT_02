@@ -75,7 +75,7 @@ File: DwgManagerWindow.xaml  (DWG Manager V003 — ToolWindowShell)
             <!-- Active / Inactive pill -->
             <Style x:Key="ActivePill" TargetType="Border">
                 <Setter Property="CornerRadius" Value="8"/>
-                <Setter Property="Padding" Value="8,1"/>
+                <Setter Property="Padding" Value="8,2"/>
                 <Setter Property="HorizontalAlignment" Value="Center"/>
                 <Setter Property="VerticalAlignment" Value="Center"/>
                 <Setter Property="Background" Value="{StaticResource BrushSystemTertiaryBackground}"/>
@@ -110,7 +110,7 @@ File: DwgManagerWindow.xaml  (DWG Manager V003 — ToolWindowShell)
                         <ControlTemplate TargetType="Button">
                             <Border x:Name="Bg" Background="{StaticResource BrushStatusInfoSoft}"
                                     BorderBrush="{StaticResource BrushBorderDefault}" BorderThickness="1"
-                                    CornerRadius="4" Padding="7,2">
+                                    CornerRadius="4" Padding="8,2">
                                 <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
                             <ControlTemplate.Triggers>
@@ -155,12 +155,12 @@ File: DwgManagerWindow.xaml  (DWG Manager V003 — ToolWindowShell)
                     <Setter.Value>
                         <ControlTemplate TargetType="GroupItem">
                             <Expander IsExpanded="True" Background="{StaticResource BrushSystemSecondaryBackground}"
-                                      BorderThickness="0" Margin="14,0,0,0">
+                                      BorderThickness="0" Margin="16,0,0,0">
                                 <Expander.Header>
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="11"
                                                    Foreground="{StaticResource BrushTextPrimary}"/>
-                                        <TextBlock Text="{Binding ItemCount, StringFormat='  ·  {0} row(s)'}" FontSize="10.5"
+                                        <TextBlock Text="{Binding ItemCount, StringFormat='  ·  {0} row(s)'}" FontSize="11"
                                                    Foreground="{StaticResource BrushTextTertiary}" VerticalAlignment="Center"/>
                                     </StackPanel>
                                 </Expander.Header>
@@ -184,25 +184,25 @@ File: DwgManagerWindow.xaml  (DWG Manager V003 — ToolWindowShell)
         <!-- ═══ HEADER ═══════════════════════════════════════════ -->
         <shell:ToolWindowShell.HeaderContent>
             <UniformGrid Columns="4" Margin="0,0,0,8">
-                <Border Style="{StaticResource MetricCard}" Margin="0,0,4,0" Padding="10,8">
+                <Border Style="{StaticResource MetricCard}" Margin="0,0,4,0" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="CAD Files" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding TotalFiles}" Style="{StaticResource MetricNumber}" FontSize="18"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="10,8">
+                <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="Linked" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding LinkedCount}" Style="{StaticResource MetricNumberAccent}" FontSize="18"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="10,8">
+                <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="Imported" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding ImportedCount}" Style="{StaticResource MetricNumberWarning}" FontSize="18"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricCard}" Margin="4,0,0,0" Padding="10,8">
+                <Border Style="{StaticResource MetricCard}" Margin="4,0,0,0" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="Instances" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding TotalInstances}" Style="{StaticResource MetricNumberSuccess}" FontSize="18"/>
@@ -218,7 +218,7 @@ File: DwgManagerWindow.xaml  (DWG Manager V003 — ToolWindowShell)
                 <!-- ══ Toolbar ══ -->
                 <Border Style="{StaticResource ContentCard}" Margin="0,0,0,8">
                     <StackPanel>
-                        <Grid Margin="10,8,10,4">
+                        <Grid Margin="12,8,12,4">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
@@ -234,24 +234,24 @@ File: DwgManagerWindow.xaml  (DWG Manager V003 — ToolWindowShell)
                                      ToolTip="Shows only rows whose file, view or view type contains every word typed."
                                      Text="{Binding FilterText, UpdateSourceTrigger=PropertyChanged}"/>
                             <Button Grid.Column="2" Content="Select All" Style="{StaticResource SmallSecondaryButton}"
-                                    Margin="10,0,0,0" Command="{Binding SelectAllCommand}"
+                                    Margin="12,0,0,0" Command="{Binding SelectAllCommand}"
                                     ToolTip="Tick every row that matches the filter."/>
                             <Button Grid.Column="3" Content="Clear Selection" Style="{StaticResource SmallSecondaryButton}"
-                                    Margin="6,0,0,0" Command="{Binding ClearSelectionCommand}"
+                                    Margin="8,0,0,0" Command="{Binding ClearSelectionCommand}"
                                     ToolTip="Untick every row that matches the filter."/>
                             <Button Grid.Column="4" Content="{Binding DeleteSelectedLabel}" Style="{StaticResource SmallDangerButton}"
-                                    Margin="6,0,0,0" Command="{Binding DeleteSelectedCommand}"
+                                    Margin="8,0,0,0" Command="{Binding DeleteSelectedCommand}"
                                     ToolTip="Delete the CAD instances of every ticked row (asks first). Uses the Purge on delete setting."/>
                             <Button Grid.Column="5" Content="Refresh" Style="{StaticResource SmallSecondaryButton}"
-                                    Margin="6,0,0,0" Command="{Binding RefreshCommand}"
+                                    Margin="8,0,0,0" Command="{Binding RefreshCommand}"
                                     ToolTip="Scan the model again. Ticks are kept."/>
-                            <CheckBox Grid.Column="6" Content="Purge on delete" Margin="14,0,0,0"
+                            <CheckBox Grid.Column="6" Content="Purge on delete" Margin="16,0,0,0"
                                       VerticalAlignment="Center" FontSize="11"
                                       Foreground="{StaticResource BrushTextSecondary}"
                                       IsChecked="{Binding PurgeOnDelete}"
                                       ToolTip="After deleting, also remove a CAD link or import type that has no instances left anywhere in the model."/>
                         </Grid>
-                        <TextBlock Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="10,0,10,8">
+                        <TextBlock Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="12,0,12,8">
                             <Run Text="Active view:"/>
                             <Run Text="{Binding ActiveViewName, Mode=OneWay}" FontWeight="SemiBold"/>
                             <Run Text=" ·  Click IDs to see a row's element IDs; click an ID to select and zoom (only IDs in the active view)."/>
@@ -371,16 +371,16 @@ File: DwgManagerWindow.xaml  (DWG Manager V003 — ToolWindowShell)
                         <!-- Row details: inline delete confirmation + element-ID panel -->
                         <DataGrid.RowDetailsTemplate>
                             <DataTemplate>
-                                <StackPanel Margin="36,0,8,6">
+                                <StackPanel Margin="36,0,8,8">
 
                                     <!-- Inline delete confirmation -->
                                     <Border Background="{StaticResource BrushStatusErrorSoft}"
                                             BorderBrush="{StaticResource BrushStatusError}" BorderThickness="2,0,0,0"
-                                            CornerRadius="4" Padding="10,6" Margin="0,2,0,4"
+                                            CornerRadius="4" Padding="12,8" Margin="0,2,0,4"
                                             Visibility="{Binding IsConfirmingDelete, Converter={StaticResource BoolToVisibilityConverter}}">
                                         <DockPanel LastChildFill="False">
                                             <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center">
-                                                <TextBlock FontSize="11.5" Foreground="{StaticResource BrushTextPrimary}" VerticalAlignment="Center">
+                                                <TextBlock FontSize="12" Foreground="{StaticResource BrushTextPrimary}" VerticalAlignment="Center">
                                                     <Run Text="Delete"/>
                                                     <Run Text="{Binding InstanceCount, Mode=OneWay}" FontWeight="SemiBold"/>
                                                     <Run Text="instance(s) of"/>
@@ -389,7 +389,7 @@ File: DwgManagerWindow.xaml  (DWG Manager V003 — ToolWindowShell)
                                                     <Run Text="{Binding ViewName, Mode=OneWay}" FontWeight="SemiBold"/>
                                                     <Run Text="?"/>
                                                 </TextBlock>
-                                                <CheckBox Content="Purge type if unused" Margin="14,0,0,0" FontSize="11"
+                                                <CheckBox Content="Purge type if unused" Margin="16,0,0,0" FontSize="11"
                                                           VerticalAlignment="Center"
                                                           Foreground="{StaticResource BrushTextSecondary}"
                                                           IsChecked="{Binding PurgeOnConfirm}"
@@ -397,7 +397,7 @@ File: DwgManagerWindow.xaml  (DWG Manager V003 — ToolWindowShell)
                                             </StackPanel>
                                             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
                                                 <Button Content="Delete" Style="{StaticResource SmallDangerButton}"
-                                                        Margin="0,0,6,0" Command="{Binding ConfirmDeleteCommand}"/>
+                                                        Margin="0,0,8,0" Command="{Binding ConfirmDeleteCommand}"/>
                                                 <Button Content="Cancel" Style="{StaticResource SmallSecondaryButton}"
                                                         Command="{Binding CancelDeleteCommand}"/>
                                             </StackPanel>
@@ -433,23 +433,23 @@ File: DwgManagerWindow.xaml  (DWG Manager V003 — ToolWindowShell)
                 </Border>
 
                 <!-- ══ Log ══ -->
-                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="10,8" Margin="0,8,0,0">
+                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="12,8" Margin="0,8,0,0">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <Grid Margin="0,0,0,6">
+                        <Grid Margin="0,0,0,8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Text="Log" FontSize="11.5" FontWeight="SemiBold"
+                            <TextBlock Text="Log" FontSize="12" FontWeight="SemiBold"
                                        Foreground="{StaticResource BrushLogText}" VerticalAlignment="Center"/>
                             <StackPanel Grid.Column="1" Orientation="Horizontal">
                                 <Button Content="Copy All" Style="{StaticResource DarkGhostButton}" Click="CopyAllLog_Click"/>
-                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Margin="6,0,0,0" Click="CopySelectedLog_Click"/>
-                                <Button Content="Clear" Style="{StaticResource DarkGhostButton}" Margin="6,0,0,0"
+                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Margin="8,0,0,0" Click="CopySelectedLog_Click"/>
+                                <Button Content="Clear" Style="{StaticResource DarkGhostButton}" Margin="8,0,0,0"
                                         Command="{Binding ClearLogCommand}"/>
                             </StackPanel>
                         </Grid>
@@ -462,21 +462,21 @@ File: DwgManagerWindow.xaml  (DWG Manager V003 — ToolWindowShell)
                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                             <ListBox.ItemContainerStyle>
                                 <Style TargetType="ListBoxItem">
-                                    <Setter Property="Padding" Value="0,1"/>
+                                    <Setter Property="Padding" Value="0,2"/>
                                     <Setter Property="Background" Value="Transparent"/>
                                 </Style>
                             </ListBox.ItemContainerStyle>
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
-                                    <StackPanel Orientation="Horizontal" Margin="0,1,0,1">
+                                    <StackPanel Orientation="Horizontal" Margin="0,2,0,2">
                                         <TextBlock Text="{Binding Time, StringFormat='HH:mm:ss', Mode=OneWay}"
-                                                   FontFamily="Consolas" FontSize="11"
+                                                   FontFamily="{DynamicResource MonoFont}" FontSize="11"
                                                    Foreground="{StaticResource BrushLogTextDim}" Margin="0,0,8,0"/>
                                         <TextBlock Text="{Binding Level, Mode=OneWay}"
-                                                   FontFamily="Consolas" FontSize="11" FontWeight="Bold" Width="60"
+                                                   FontFamily="{DynamicResource MonoFont}" FontSize="11" FontWeight="Bold" Width="60"
                                                    Foreground="{Binding Level, Converter={StaticResource LogLevelToColorConverter}, Mode=OneWay}"/>
                                         <TextBlock Text="{Binding Message, Mode=OneWay}"
-                                                   FontFamily="Consolas" FontSize="11"
+                                                   FontFamily="{DynamicResource MonoFont}" FontSize="11"
                                                    Foreground="{StaticResource BrushLogText}" TextWrapping="Wrap"/>
                                     </StackPanel>
                                 </DataTemplate>
@@ -501,7 +501,7 @@ File: DwgManagerWindow.xaml  (DWG Manager V003 — ToolWindowShell)
                     <Button Content="{Binding OpenViewsLabel}" Style="{StaticResource PrimaryButton}"
                             Command="{Binding OpenViewsCommand}" MinWidth="150" Margin="0,0,8,0"
                             ToolTip="Open the views of the ticked rows (up to 5)."/>
-                    <Button Content="Close" Style="{StaticResource OutlineButton}" Width="90" Height="38"
+                    <Button IsCancel="True" Content="Close" Style="{StaticResource OutlineButton}" Width="90" Height="38"
                             Click="CloseButton_Click"/>
                 </StackPanel>
             </DockPanel>

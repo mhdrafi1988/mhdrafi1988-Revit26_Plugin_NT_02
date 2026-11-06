@@ -60,21 +60,21 @@ Changes vs V011:
                                         </Grid.ColumnDefinitions>
                                         <TextBlock Grid.Column="0" Text="{Binding Name}"
                                                    FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource BrushNavyPrimary}"
-                                                   VerticalAlignment="Center" Margin="10,0,10,0"/>
+                                                   VerticalAlignment="Center" Margin="12,0,12,0"/>
                                         <Border Grid.Column="1" Background="{StaticResource BrushSurfaceCard}"
-                                                CornerRadius="9" Padding="6,1" VerticalAlignment="Center">
+                                                CornerRadius="9" Padding="8,2" VerticalAlignment="Center">
                                             <TextBlock Text="{Binding ItemCount}"
-                                                       FontSize="10.5" FontWeight="SemiBold" Foreground="{StaticResource BrushNavyPrimary}"/>
+                                                       FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource BrushNavyPrimary}"/>
                                         </Border>
                                         <StackPanel Grid.Column="3" Orientation="Horizontal"
                                                     VerticalAlignment="Center" Margin="0,0,8,0">
                                             <Button Content="Select All"
                                                     Style="{StaticResource SmallSecondaryButton}"
-                                                    Height="22" Padding="8,0" Margin="0,0,6,0" FontSize="10.5"
+                                                    Height="22" Padding="8,0" Margin="0,0,8,0" FontSize="11"
                                                     Click="SelectGroupButton_Click" Tag="{Binding Name}"/>
                                             <Button Content="Select None"
                                                     Style="{StaticResource SmallSecondaryButton}"
-                                                    Height="22" Padding="8,0" FontSize="10.5"
+                                                    Height="22" Padding="8,0" FontSize="11"
                                                     Click="ClearGroupButton_Click" Tag="{Binding Name}"/>
                                         </StackPanel>
                                     </Grid>
@@ -105,14 +105,14 @@ Changes vs V011:
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <Border Grid.Column="0" Style="{StaticResource MetricCard}" Margin="0,0,6,0">
+                <Border Grid.Column="0" Style="{StaticResource MetricCard}" Margin="0,0,8,0">
                     <StackPanel>
                         <TextBlock Text="Selected Shapes" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding SelectedShapeCount}" Style="{StaticResource MetricNumber}"/>
                     </StackPanel>
                 </Border>
 
-                <Border Grid.Column="1" Style="{StaticResource MetricCard}" Margin="0,0,6,0"
+                <Border Grid.Column="1" Style="{StaticResource MetricCard}" Margin="0,0,8,0"
                         ToolTip="Points Apply will add to the selected loops">
                     <StackPanel>
                         <TextBlock Text="New Points" Style="{StaticResource MetricLabel}"/>
@@ -120,7 +120,7 @@ Changes vs V011:
                     </StackPanel>
                 </Border>
 
-                <Border Grid.Column="2" Style="{StaticResource MetricCard}" Margin="0,0,6,0"
+                <Border Grid.Column="2" Style="{StaticResource MetricCard}" Margin="0,0,8,0"
                         ToolTip="Planned points that are already shape points — skipped at Apply">
                     <StackPanel>
                         <TextBlock Text="Already There" Style="{StaticResource MetricLabel}"/>
@@ -141,7 +141,7 @@ Changes vs V011:
         <shell:ToolWindowShell.BodyContent>
             <StackPanel>
                 <!-- ─── DIVISION SETTINGS ───────────────────────────────────────── -->
-                <Border Style="{StaticResource ContentCard}" Margin="0,0,0,8" Padding="14,10">
+                <Border Style="{StaticResource ContentCard}" Margin="0,0,0,8" Padding="16,12">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
@@ -169,7 +169,7 @@ Changes vs V011:
                                  VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
                         <TextBlock Grid.Row="0" Grid.Column="3"
                                    Text="Points around the whole loop, corners included. Rows stay editable."
-                                   Style="{StaticResource HintText}" VerticalAlignment="Center" Margin="14,0,0,0"/>
+                                   Style="{StaticResource HintText}" VerticalAlignment="Center" Margin="16,0,0,0"/>
 
                         <!-- Row 1: spacing mode -->
                         <RadioButton Grid.Row="1" Grid.Column="0" GroupName="DivisionMode"
@@ -185,16 +185,16 @@ Changes vs V011:
                                  VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
                         <TextBlock Grid.Row="1" Grid.Column="3"
                                    Text="No gap along a loop longer than this. Circles get at least 3 points."
-                                   Style="{StaticResource HintText}" VerticalAlignment="Center" Margin="14,8,0,0"/>
+                                   Style="{StaticResource HintText}" VerticalAlignment="Center" Margin="16,8,0,0"/>
 
                         <!-- Row 2: reset -->
                         <CheckBox Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3"
                                   Content="Reset existing offsets to 0 first"
                                   IsChecked="{Binding ResetOffsetsFirst, Mode=TwoWay}"
-                                  VerticalAlignment="Center" Margin="0,10,0,0"/>
+                                  VerticalAlignment="Center" Margin="0,12,0,0"/>
                         <TextBlock Grid.Row="2" Grid.Column="3"
                                    Text="Off by default. Flattens EVERY shape point on the roof, in the same Undo step as Apply."
-                                   Style="{StaticResource HintText}" VerticalAlignment="Center" Margin="14,10,0,0"/>
+                                   Style="{StaticResource HintText}" VerticalAlignment="Center" Margin="16,12,0,0"/>
                     </Grid>
                 </Border>
 
@@ -203,11 +203,11 @@ Changes vs V011:
                     <Button Content="Select All"
                             Style="{StaticResource SmallSecondaryButton}"
                             Command="{Binding SelectAllCommand}"
-                            Margin="0,0,6,0"/>
+                            Margin="0,0,8,0"/>
                     <Button Content="Clear"
                             Style="{StaticResource SmallSecondaryButton}"
                             Command="{Binding ClearSelectionCommand}"
-                            Margin="0,0,6,0"/>
+                            Margin="0,0,8,0"/>
                     <Button Content="Re-analyze"
                             Style="{StaticResource SmallSecondaryButton}"
                             Command="{Binding AnalyzeCommand}"/>
@@ -304,16 +304,16 @@ Changes vs V011:
                 <!-- ─── ACTIVITY LOG (moved from footer) ─── -->
                 <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="12,8" Margin="0,8,0,0">
                     <StackPanel>
-                        <Grid Margin="0,0,0,6">
+                        <Grid Margin="0,0,0,8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Text="Activity Log" Foreground="{StaticResource BrushLogText}"
-                                       FontSize="11.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                       FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
                             <StackPanel Grid.Column="1" Orientation="Horizontal">
-                                <Button Content="Copy All" Style="{StaticResource DarkGhostButton}" Click="CopyAllLog_Click" Margin="0,0,6,0"/>
-                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Click="CopySelectedLog_Click" Margin="0,0,6,0"/>
+                                <Button Content="Copy All" Style="{StaticResource DarkGhostButton}" Click="CopyAllLog_Click" Margin="0,0,8,0"/>
+                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Click="CopySelectedLog_Click" Margin="0,0,8,0"/>
                                 <Button Content="Clear" Style="{StaticResource DarkGhostButton}" Command="{Binding ClearLogCommand}"/>
                             </StackPanel>
                         </Grid>
@@ -322,17 +322,17 @@ Changes vs V011:
                                  ScrollViewer.VerticalScrollBarVisibility="Auto">
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
-                                    <StackPanel Orientation="Horizontal" Margin="0,1">
+                                    <StackPanel Orientation="Horizontal" Margin="0,2">
                                         <TextBlock Text="{Binding Time, StringFormat=HH:mm:ss}"
                                                    Foreground="{StaticResource BrushLogTextDim}"
-                                                   FontFamily="Consolas" FontSize="11.5" Margin="0,0,10,0"/>
+                                                   FontFamily="{DynamicResource MonoFont}" FontSize="12" Margin="0,0,12,0"/>
                                         <TextBlock Text="{Binding Level}"
                                                    Foreground="{Binding Level, Converter={StaticResource LogLevelToColor}}"
-                                                   FontFamily="Consolas" FontSize="11.5" FontWeight="SemiBold"
+                                                   FontFamily="{DynamicResource MonoFont}" FontSize="12" FontWeight="SemiBold"
                                                    Width="64"/>
                                         <TextBlock Text="{Binding Message}"
                                                    Foreground="{StaticResource BrushLogText}"
-                                                   FontFamily="Consolas" FontSize="11.5" TextWrapping="Wrap"/>
+                                                   FontFamily="{DynamicResource MonoFont}" FontSize="12" TextWrapping="Wrap"/>
                                     </StackPanel>
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
@@ -347,7 +347,7 @@ Changes vs V011:
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                 <Button Content="Add Shape Points"
                         Style="{StaticResource PrimaryButton}"
-                        Width="200" Margin="0,0,10,0"
+                        Width="200" Margin="0,0,12,0"
                         Command="{Binding ApplyDivisionCommand}"/>
                 <Button Content="Close"
                         Style="{StaticResource OutlineButton}"

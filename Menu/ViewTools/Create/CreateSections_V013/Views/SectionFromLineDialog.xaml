@@ -118,8 +118,8 @@ Changes vs V012 (layout only):
                         <!-- Section Setup: Type / Template / Prefix, 3-across -->
                         <Border Style="{StaticResource SectionCard}" Margin="0,0,0,4">
                             <StackPanel Margin="0,0,0,2">
-                                <TextBlock Text="Section Setup" Style="{StaticResource SectionTitle}" Margin="10,7,10,3"/>
-                                <Grid Margin="10,0,10,7">
+                                <TextBlock Text="Section Setup" Style="{StaticResource SectionTitle}" Margin="12,8,12,4"/>
+                                <Grid Margin="12,0,12,8">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="10"/>
@@ -163,10 +163,10 @@ Changes vs V012 (layout only):
                         </Border>
 
                         <!-- Host Source: 2x2 checkbox grid -->
-                        <Border Style="{StaticResource SectionCard}" Margin="0,0,0,6">
-                            <StackPanel Margin="0,0,0,6">
-                                <TextBlock Text="Host Source" Style="{StaticResource SectionTitle}" Margin="10,7,10,3"/>
-                                <Grid Margin="10,0,10,0">
+                        <Border Style="{StaticResource SectionCard}" Margin="0,0,0,8">
+                            <StackPanel Margin="0,0,0,8">
+                                <TextBlock Text="Host Source" Style="{StaticResource SectionTitle}" Margin="12,8,12,4"/>
+                                <Grid Margin="12,0,12,0">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="*"/>
@@ -189,16 +189,16 @@ Changes vs V012 (layout only):
                                               IsChecked="{Binding SearchRoofLinked}"
                                               ToolTip="Search for roofs in linked models as the section anchor."/>
                                 </Grid>
-                                <TextBlock Style="{StaticResource HintText}" Margin="10,4,10,0"
+                                <TextBlock Style="{StaticResource HintText}" Margin="12,4,12,0"
                                            Text="Only checked categories are searched. Nearest qualifying element (below the line, or the line passing through it) is used."/>
                             </StackPanel>
                         </Border>
 
                         <!-- Geometry Settings: 2 per row, 3 rows -->
-                        <Border Style="{StaticResource SectionCard}" Margin="0,0,0,6">
-                            <StackPanel Margin="0,0,0,6">
-                                <TextBlock Text="Geometry Settings" Style="{StaticResource SectionTitle}" Margin="10,7,10,3"/>
-                                <Grid Margin="10,0,10,0">
+                        <Border Style="{StaticResource SectionCard}" Margin="0,0,0,8">
+                            <StackPanel Margin="0,0,0,8">
+                                <TextBlock Text="Geometry Settings" Style="{StaticResource SectionTitle}" Margin="12,8,12,4"/>
+                                <Grid Margin="12,0,12,0">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="14"/>
@@ -250,18 +250,18 @@ Changes vs V012 (layout only):
                                     </StackPanel>
                                 </Grid>
 
-                                <Border Style="{StaticResource SeparatorLine}" Margin="10,7,10,7"/>
+                                <Border Style="{StaticResource SeparatorLine}" Margin="12,8,12,8"/>
 
                                 <CheckBox Content="Use Search Threshold if no host found"
                                           IsChecked="{Binding UseThresholdFallback}"
-                                          Margin="10,0,10,4"
+                                          Margin="12,0,12,4"
                                           ToolTip="If no qualifying Floor/Roof is found, still create the section centered on the line's own elevation using Search Threshold (mm) as the height span, instead of skipping it."/>
                                 <Border Background="{StaticResource BrushSystemSecondaryBackground}"
                                         BorderBrush="{StaticResource BrushSeparator}"
                                         BorderThickness="1"
                                         CornerRadius="8"
-                                        Margin="10,0,10,0"
-                                        Padding="8,6">
+                                        Margin="12,0,12,0"
+                                        Padding="8,8">
                                     <TextBlock Style="{StaticResource HintText}" Margin="0" TextWrapping="Wrap">
                                         If no qualifying element is found in the checked categories above, the section
                                         is still created — centered on the line's own elevation, using the
@@ -276,14 +276,14 @@ Changes vs V012 (layout only):
                                 BorderBrush="{StaticResource BrushBorderDefault}"
                                 BorderThickness="1"
                                 CornerRadius="10"
-                                Margin="0,0,0,6">
+                                Margin="0,0,0,8">
                             <Grid>
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
 
-                                <Border Grid.Row="0" Padding="10,7" Cursor="Hand"
+                                <Border Grid.Row="0" Padding="12,8" Cursor="Hand"
                                         MouseLeftButtonUp="ViewCropHeader_MouseLeftButtonUp">
                                     <Grid>
                                         <Grid.ColumnDefinitions>
@@ -292,16 +292,16 @@ Changes vs V012 (layout only):
                                         </Grid.ColumnDefinitions>
                                         <StackPanel Orientation="Horizontal">
                                             <TextBlock x:Name="ViewCropChevron" Text="▶" Foreground="{StaticResource BrushTextTertiary}"
-                                                       FontSize="10" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                                            <TextBlock Text="View Crop" FontSize="11.5" FontWeight="SemiBold"
+                                                       FontSize="10" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                            <TextBlock Text="View Crop" FontSize="12" FontWeight="SemiBold"
                                                        Foreground="{StaticResource BrushNavyPrimary}" VerticalAlignment="Center"/>
                                         </StackPanel>
                                     </Grid>
                                 </Border>
 
-                                <StackPanel x:Name="ViewCropBody" Grid.Row="1" Visibility="Collapsed" Margin="0,0,0,6">
+                                <StackPanel x:Name="ViewCropBody" Grid.Row="1" Visibility="Collapsed" Margin="0,0,0,8">
 
-                                    <Grid Margin="10,0,10,6">
+                                    <Grid Margin="12,0,12,8">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="*"/>
@@ -321,9 +321,9 @@ Changes vs V012 (layout only):
                                                   ToolTip="Enables a separate crop boundary for tags, dimensions, and other annotations, independent from the model geometry crop."/>
                                     </Grid>
 
-                                    <Border Style="{StaticResource SeparatorLine}" Margin="10,0,10,7"/>
+                                    <Border Style="{StaticResource SeparatorLine}" Margin="12,0,12,8"/>
 
-                                    <Grid Margin="10,0,10,0">
+                                    <Grid Margin="12,0,12,0">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="14"/>
@@ -365,17 +365,17 @@ Changes vs V012 (layout only):
                                         </StackPanel>
                                     </Grid>
 
-                                    <TextBlock Style="{StaticResource HintText}" Margin="10,6,10,0" TextWrapping="Wrap"
+                                    <TextBlock Style="{StaticResource HintText}" Margin="12,8,12,0" TextWrapping="Wrap"
                                                Text="Offsets are ≥ 0 only — Revit expands the annotation crop outward from the model crop, it cannot shrink inward. Fields disabled unless Annotation Crop Active is checked. Crop Region Visible / Annotation Crop Active disabled when Crop Box Active is off."/>
                                 </StackPanel>
                             </Grid>
                         </Border>
 
                         <!-- Post Creation Options — both checkboxes same row -->
-                        <Border Style="{StaticResource SectionCard}" Margin="0,0,0,6">
-                            <StackPanel Margin="0,0,0,6">
-                                <TextBlock Text="Post Creation Options" Style="{StaticResource SectionTitle}" Margin="10,7,10,3"/>
-                                <Grid Margin="10,0,10,0">
+                        <Border Style="{StaticResource SectionCard}" Margin="0,0,0,8">
+                            <StackPanel Margin="0,0,0,8">
+                                <TextBlock Text="Post Creation Options" Style="{StaticResource SectionTitle}" Margin="12,8,12,4"/>
+                                <Grid Margin="12,0,12,0">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="*"/>
@@ -388,13 +388,13 @@ Changes vs V012 (layout only):
                                               ToolTip="Delete the original detail lines used to generate sections, after successful creation."/>
                                 </Grid>
 
-                                <Border Style="{StaticResource SeparatorLine}" Margin="10,7,10,7"/>
+                                <Border Style="{StaticResource SeparatorLine}" Margin="12,8,12,8"/>
 
                                 <!-- V010 fix: log export folder — no dialog opens automatically on Create
                                      anymore. Blank = silently uses the default folder under My Documents
                                      (shown via watermark-style placeholder text below). Browse sets a
                                      custom folder, persisted to settings.json. -->
-                                <StackPanel Margin="10,0,10,0">
+                                <StackPanel Margin="12,0,12,0">
                                     <TextBlock Text="Log Save Folder" Style="{StaticResource FieldLabel}"
                                                ToolTip="Folder the run log is auto-saved to on completion. Leave blank to use the default folder under My Documents."/>
                                     <Grid>
@@ -421,7 +421,7 @@ Changes vs V012 (layout only):
 
                     <!-- ============ RIGHT PANE: SECTIONS TO CREATE GRID (V009 — new) ============ -->
                     <Border Grid.Column="2" Style="{StaticResource SectionCard}" Margin="0">
-                        <Grid Margin="0,0,0,6">
+                        <Grid Margin="0,0,0,8">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
@@ -429,10 +429,10 @@ Changes vs V012 (layout only):
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
 
-                            <TextBlock Grid.Row="0" Text="Sections To Create" Style="{StaticResource SectionTitle}" Margin="10,7,10,3"/>
+                            <TextBlock Grid.Row="0" Text="Sections To Create" Style="{StaticResource SectionTitle}" Margin="12,8,12,4"/>
 
                             <!-- Toolbar: filter + Select All/Clear/Refresh -->
-                            <Grid Grid.Row="1" Margin="10,0,10,6">
+                            <Grid Grid.Row="1" Margin="12,0,12,8">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="8"/>
@@ -460,7 +460,7 @@ Changes vs V012 (layout only):
 
                             <!-- Grid — RowHeight trimmed from shared 30px default to 26px for compactness -->
                             <DataGrid Grid.Row="2" MinHeight="220" shell:ShellBehaviors.MaxHeightRatio="0.5" shell:ShellBehaviors.ForwardMouseWheel="True"
-                                      Margin="10,0,10,6"
+                                      Margin="12,0,12,8"
                                       RowHeight="26"
                                       Style="{StaticResource StandardDataGrid}"
                                       ColumnHeaderStyle="{StaticResource StandardDataGridColumnHeader}"
@@ -491,7 +491,7 @@ Changes vs V012 (layout only):
                                     <DataGridTemplateColumn Header="Status" Width="1.1*" CanUserSort="False">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
-                                                <Border CornerRadius="8" Padding="7,2" HorizontalAlignment="Left">
+                                                <Border CornerRadius="8" Padding="8,2" HorizontalAlignment="Left">
                                                     <Border.Style>
                                                         <Style TargetType="Border">
                                                             <Setter Property="Background" Value="{StaticResource BrushStatusOkSoft}"/>
@@ -527,7 +527,7 @@ Changes vs V012 (layout only):
                                 </DataGrid.Columns>
                             </DataGrid>
 
-                            <TextBlock Grid.Row="3" Style="{StaticResource HintText}" Margin="10,0,10,0" TextWrapping="Wrap"
+                            <TextBlock Grid.Row="3" Style="{StaticResource HintText}" Margin="12,0,12,0" TextWrapping="Wrap"
                                        Text="Preview reflects current settings on the left. Section Name follows the live naming pattern (Level_Prefix_ElementId). Click Refresh after changing filters. Unchecked rows are skipped on Create."/>
                         </Grid>
                     </Border>
@@ -542,7 +542,7 @@ Changes vs V012 (layout only):
                         </Grid.RowDefinitions>
 
                         <Border Grid.Row="0" Background="{StaticResource BrushLogTitleBar}" CornerRadius="10,10,0,0"
-                                Padding="10,6" Cursor="Hand"
+                                Padding="12,8" Cursor="Hand"
                                 MouseLeftButtonUp="LogHeader_MouseLeftButtonUp">
                             <Grid>
                                 <Grid.ColumnDefinitions>
@@ -551,14 +551,14 @@ Changes vs V012 (layout only):
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock x:Name="LogChevron" Text="▼" Foreground="{StaticResource BrushLogTextDim}"
-                                               FontSize="10" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                                    <TextBlock Text="Live Log" FontSize="11.5" FontWeight="SemiBold"
+                                               FontSize="10" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                    <TextBlock Text="Live Log" FontSize="12" FontWeight="SemiBold"
                                                Foreground="{StaticResource BrushLogText}" VerticalAlignment="Center"/>
                                 </StackPanel>
                                 <StackPanel Grid.Column="1" Orientation="Horizontal">
-                                    <Button Content="Copy All" Style="{StaticResource DarkGhostButton}" Margin="0,0,6,0"
+                                    <Button Content="Copy All" Style="{StaticResource DarkGhostButton}" Margin="0,0,8,0"
                                             Click="CopyAll_Click"/>
-                                    <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Margin="0,0,6,0"
+                                    <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Margin="0,0,8,0"
                                             Click="CopySelected_Click"/>
                                     <Button Content="Clear" Style="{StaticResource DarkGhostButton}"
                                             Click="Clear_Click"/>
@@ -579,8 +579,8 @@ Changes vs V012 (layout only):
                                 <DataTemplate>
                                     <TextBlock Text="{Binding}"
                                                Foreground="{StaticResource BrushLogText}"
-                                               FontFamily="Consolas"
-                                               FontSize="11.5"/>
+                                               FontFamily="{DynamicResource MonoFont}"
+                                               FontSize="12"/>
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
                         </ListBox>
@@ -610,11 +610,11 @@ Changes vs V012 (layout only):
                             </Style>
                         </Button.Style>
                     </Button>
-                    <Button Content="Close" Style="{StaticResource OutlineButton}" Width="85" Height="38"
+                    <Button IsCancel="True" Content="Close" Style="{StaticResource OutlineButton}" Width="85" Height="38"
                             Command="{Binding CancelDialogCommand}"/>
                 </StackPanel>
                 <TextBlock Text="Metric cards reset to 0 at the start of each Create run"
-                           Style="{StaticResource HintText}" HorizontalAlignment="Center" Margin="0,3,0,0"/>
+                           Style="{StaticResource HintText}" HorizontalAlignment="Center" Margin="0,4,0,0"/>
             </StackPanel>
         </shell:ToolWindowShell.FooterContent>
     </shell:ToolWindowShell>

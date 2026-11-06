@@ -51,7 +51,7 @@ Changes vs V012 (layout only):
                 <Setter Property="IsTextSearchEnabled" Value="False"/>
                 <Setter Property="Height" Value="26"/>
                 <Setter Property="FontSize" Value="11.5"/>
-                <Setter Property="Padding" Value="6,2"/>
+                <Setter Property="Padding" Value="8,2"/>
             </Style>
         </ResourceDictionary>
     </Window.Resources>
@@ -69,7 +69,7 @@ Changes vs V012 (layout only):
                  as rooms load / selection changes / New Level mapping changes). Right group
                  = last-run results (populated after Create Floors/Create Roof; hidden via
                  opacity until a run has completed, per mockup). -->
-            <Border Style="{StaticResource BaseCard}" Margin="0,2,0,0" Padding="14,10">
+            <Border Style="{StaticResource BaseCard}" Margin="0,2,0,0" Padding="16,12">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
@@ -79,15 +79,15 @@ Changes vs V012 (layout only):
 
                     <!-- Live grid stats -->
                     <StackPanel Grid.Column="0" Orientation="Horizontal">
-                        <StackPanel Margin="0,0,22,0">
+                        <StackPanel Margin="0,0,24,0">
                             <TextBlock Text="{Binding MetricTotalRooms}" Style="{StaticResource MetricNumber}"/>
                             <TextBlock Text="TOTAL ROOMS" Style="{StaticResource MetricLabel}" Margin="0"/>
                         </StackPanel>
-                        <StackPanel Margin="0,0,22,0">
+                        <StackPanel Margin="0,0,24,0">
                             <TextBlock Text="{Binding MetricSelectedCount}" Style="{StaticResource MetricNumberAccent}"/>
                             <TextBlock Text="SELECTED" Style="{StaticResource MetricLabel}" Margin="0"/>
                         </StackPanel>
-                        <StackPanel Margin="0,0,22,0">
+                        <StackPanel Margin="0,0,24,0">
                             <TextBlock Text="{Binding MetricMappedCount}" Style="{StaticResource MetricNumberSuccess}"/>
                             <TextBlock Text="MAPPED" Style="{StaticResource MetricLabel}" Margin="0"/>
                         </StackPanel>
@@ -97,7 +97,7 @@ Changes vs V012 (layout only):
                         </StackPanel>
                     </StackPanel>
 
-                    <Border Grid.Column="1" Width="1" Background="{StaticResource BrushSeparatorThin}" Margin="18,0"/>
+                    <Border Grid.Column="1" Width="1" Background="{StaticResource BrushSeparatorThin}" Margin="16,0"/>
 
                     <!-- Last-run results — collapsed to a hint line until HasLastRun is true -->
                     <Grid Grid.Column="2">
@@ -106,20 +106,20 @@ Changes vs V012 (layout only):
                                    Visibility="{Binding HasLastRun, Converter={StaticResource InverseBoolToVisibilityConverter}}"/>
                         <StackPanel Orientation="Horizontal"
                                     Visibility="{Binding HasLastRun, Converter={StaticResource BoolToVisibilityConverter}}">
-                            <StackPanel Margin="0,0,22,0">
+                            <StackPanel Margin="0,0,24,0">
                                 <TextBlock Text="{Binding MetricCreatedCount}" Style="{StaticResource MetricNumberSuccess}"/>
                                 <TextBlock Text="CREATED" Style="{StaticResource MetricLabel}" Margin="0"/>
                             </StackPanel>
-                            <StackPanel Margin="0,0,22,0">
+                            <StackPanel Margin="0,0,24,0">
                                 <TextBlock Text="{Binding MetricSkippedCount}" Style="{StaticResource MetricNumberWarning}"/>
                                 <TextBlock Text="SKIPPED" Style="{StaticResource MetricLabel}" Margin="0"/>
                             </StackPanel>
-                            <StackPanel Margin="0,0,22,0">
+                            <StackPanel Margin="0,0,24,0">
                                 <TextBlock Text="{Binding MetricFailedCount}" Style="{StaticResource MetricNumberDanger}"/>
                                 <TextBlock Text="FAILED" Style="{StaticResource MetricLabel}" Margin="0"/>
                             </StackPanel>
                             <StackPanel VerticalAlignment="Center">
-                                <TextBlock Text="{Binding MetricLastRunLabel}" Style="{StaticResource FieldValue}" FontSize="12.5"/>
+                                <TextBlock Text="{Binding MetricLastRunLabel}" Style="{StaticResource FieldValue}" FontSize="13"/>
                                 <TextBlock Text="LAST RUN" Style="{StaticResource MetricLabel}" Margin="0,2,0,0"/>
                             </StackPanel>
                         </StackPanel>
@@ -139,7 +139,7 @@ Changes vs V012 (layout only):
                     </Grid.ColumnDefinitions>
 
                     <!-- LEFT: DataGrid area -->
-                    <Grid Grid.Column="0" Margin="0,0,10,0">
+                    <Grid Grid.Column="0" Margin="0,0,12,0">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
@@ -147,7 +147,7 @@ Changes vs V012 (layout only):
 
                         <!-- Toolbar: filter + Select All/Clear/Refresh (DATAGRID SPEC item 1) -->
                         <Border Grid.Row="0" Style="{StaticResource BaseCard}" CornerRadius="10,10,0,0"
-                                BorderThickness="1,1,1,0" Padding="8,6">
+                                BorderThickness="1,1,1,0" Padding="8,8">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
@@ -164,7 +164,7 @@ Changes vs V012 (layout only):
                                 <Button Grid.Column="2" Content="Clear" Command="{Binding DeselectAllCommand}"
                                         Style="{StaticResource SmallSecondaryButton}" Margin="0,0,4,0"/>
                                 <Button Grid.Column="3" Content="Refresh" Command="{Binding RefreshCommand}"
-                                        Style="{StaticResource SmallSecondaryButton}" Margin="0,0,10,0"/>
+                                        Style="{StaticResource SmallSecondaryButton}" Margin="0,0,12,0"/>
                                 <TextBlock Grid.Column="4" Style="{StaticResource HintText}" Margin="0" VerticalAlignment="Center">
                                     <Run Text="{Binding FilteredRooms.Count, Mode=OneWay}"/>
                                     <Run Text=" rooms"/>
@@ -238,7 +238,7 @@ Changes vs V012 (layout only):
                                 <DataGridTemplateColumn Header="Linked File Level" Width="150" SortMemberPath="LinkedLevelName">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
-                                            <Border CornerRadius="8" Padding="7,2" HorizontalAlignment="Left">
+                                            <Border CornerRadius="8" Padding="8,2" HorizontalAlignment="Left">
                                                 <Border.Style>
                                                     <Style TargetType="Border">
                                                         <Setter Property="Background" Value="{StaticResource BrushSystemSecondaryBackground}"/>
@@ -302,14 +302,14 @@ Changes vs V012 (layout only):
                                        Margin="0,0,0,8"/>
 
                             <!-- Linked file -->
-                            <Border Style="{StaticResource SectionCard}" Padding="8,10">
+                            <Border Style="{StaticResource SectionCard}" Padding="8,12">
                                 <StackPanel Margin="4,0">
                                     <TextBlock Text="Linked file" Style="{StaticResource SectionTitle}" Margin="0,0,0,4"/>
                                     <TextBlock Text="Linked file" Style="{StaticResource FieldLabel}"/>
                                     <ComboBox ItemsSource="{Binding LinkedDocuments}"
                                               SelectedItem="{Binding SelectedLinkedDocument}"
                                               DisplayMemberPath="DisplayName"
-                                              Style="{StaticResource StandardComboBox}" Margin="0,0,0,6"/>
+                                              Style="{StaticResource StandardComboBox}" Margin="0,0,0,8"/>
 
                                     <TextBlock Text="Link instance" Style="{StaticResource FieldLabel}" Margin="0,0,0,2"
                                                Visibility="{Binding AvailableInstances.Count, Converter={StaticResource IntToVisibilityConverter}}"/>
@@ -327,13 +327,13 @@ Changes vs V012 (layout only):
                                         <StackPanel>
                                             <CheckBox Content="Exact elevation match"
                                                       IsChecked="{Binding ExactElevationMatch}"
-                                                      FontSize="11.5" FontWeight="SemiBold"
+                                                      FontSize="12" FontWeight="SemiBold"
                                                       Foreground="{StaticResource BrushTextPrimary}"
-                                                      Margin="0,0,0,6"/>
+                                                      Margin="0,0,0,8"/>
                                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                                 <TextBox Text="{Binding ToleranceMmText, UpdateSourceTrigger=PropertyChanged}"
                                                          Style="{StaticResource BoxedTextInput}"
-                                                         Width="60" Height="26" FontSize="11.5" MaxLength="10"
+                                                         Width="60" Height="26" FontSize="12" MaxLength="10"
                                                          IsEnabled="{Binding IsToleranceEditable}"/>
                                                 <TextBlock Text="mm tolerance" Style="{StaticResource UnitLabel}"/>
                                             </StackPanel>
@@ -348,20 +348,20 @@ Changes vs V012 (layout only):
                                  V006: explicit IsEnabled bindings removed — CanExecute on the
                                  commands already disables the buttons while IsBusy (the two were
                                  redundant and could fight each other). -->
-                            <Border Style="{StaticResource SectionCard}" Padding="8,10">
+                            <Border Style="{StaticResource SectionCard}" Padding="8,12">
                                 <StackPanel Margin="4,0">
                                     <TextBlock Text="Creation" Style="{StaticResource SectionTitle}" Margin="0,0,0,4"/>
                                     <TextBlock Text="Floor type" Style="{StaticResource FieldLabel}"/>
                                     <ComboBox ItemsSource="{Binding FloorTypes}"
                                               SelectedItem="{Binding SelectedFloorType}"
                                               DisplayMemberPath="Name"
-                                              Style="{StaticResource StandardComboBox}" Margin="0,0,0,6"/>
+                                              Style="{StaticResource StandardComboBox}" Margin="0,0,0,8"/>
 
-                                    <TextBlock Text="Roof type" Style="{StaticResource FieldLabel}" Margin="0,10,0,0"/>
+                                    <TextBlock Text="Roof type" Style="{StaticResource FieldLabel}" Margin="0,12,0,0"/>
                                     <ComboBox ItemsSource="{Binding RoofTypes}"
                                               SelectedItem="{Binding SelectedRoofType}"
                                               DisplayMemberPath="Name"
-                                              Style="{StaticResource StandardComboBox}" Margin="0,0,0,6"/>
+                                              Style="{StaticResource StandardComboBox}" Margin="0,0,0,8"/>
 
                                     <TextBlock Style="{StaticResource HintText}" Margin="0,8,0,0"
                                                Text="Each selected room uses its own New Level mapping from the grid as the target level for creation. Unmapped rooms are skipped."/>
@@ -402,7 +402,7 @@ Changes vs V012 (layout only):
                 </StackPanel>
 
                 <!-- Log panel (moved from the footer) -->
-                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="10,8">
+                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="12,8">
                     <StackPanel>
                         <Grid>
                             <Grid.ColumnDefinitions>
@@ -423,7 +423,7 @@ Changes vs V012 (layout only):
                             </StackPanel>
                         </Grid>
 
-                        <ListBox shell:ShellBehaviors.MaxHeightRatio="0.2" shell:ShellBehaviors.ForwardMouseWheel="True" x:Name="LogListBox" ItemsSource="{Binding Logs}" MinHeight="90" Margin="0,6,0,0"
+                        <ListBox shell:ShellBehaviors.MaxHeightRatio="0.2" shell:ShellBehaviors.ForwardMouseWheel="True" x:Name="LogListBox" ItemsSource="{Binding Logs}" MinHeight="90" Margin="0,8,0,0"
                                  Background="Transparent" BorderThickness="0"
                                  SelectionMode="Extended"
                                  ScrollViewer.CanContentScroll="True"
@@ -431,7 +431,7 @@ Changes vs V012 (layout only):
                                  VirtualizingPanel.VirtualizationMode="Recycling">
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
-                                    <TextBlock FontFamily="Consolas" FontSize="9.5" IsHitTestVisible="True" TextWrapping="Wrap">
+                                    <TextBlock FontFamily="{DynamicResource MonoFont}" FontSize="10" IsHitTestVisible="True" TextWrapping="Wrap">
                                         <Run Text="{Binding Time, StringFormat=HH:mm:ss, Mode=OneWay}" Foreground="{StaticResource BrushLogTextDim}"/>
                                         <Run Text=" "/>
                                         <Run Text="{Binding Level, Mode=OneWay}" Foreground="{Binding Level, Converter={StaticResource LogLevelToColorConverter}}"/>
@@ -464,7 +464,7 @@ Changes vs V012 (layout only):
                             Style="{StaticResource PrimaryButton}" Margin="0,0,8,0"/>
                     <Button Content="Create Roof" Command="{Binding RunRoofCommand}"
                             Style="{StaticResource AccentButton}" Margin="0,0,8,0"/>
-                    <Button Content="Close" Click="Close_Click" Style="{StaticResource SecondaryButton}"/>
+                    <Button IsCancel="True" Content="Close" Click="Close_Click" Style="{StaticResource SecondaryButton}"/>
                 </StackPanel>
             </Grid>
         </shell:ToolWindowShell.FooterContent>

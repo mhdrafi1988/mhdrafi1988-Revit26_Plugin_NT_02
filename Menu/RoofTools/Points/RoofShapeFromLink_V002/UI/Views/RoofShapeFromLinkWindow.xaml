@@ -39,25 +39,25 @@ File: RoofShapeFromLinkWindow.xaml  (V002, ToolWindowShell)
         <!-- ═══ HEADER ═══ -->
         <shell:ToolWindowShell.HeaderContent>
             <UniformGrid Columns="4" Margin="0,0,0,8">
-                <Border Style="{StaticResource MetricCard}" Margin="0,0,4,0" Padding="10,8">
+                <Border Style="{StaticResource MetricCard}" Margin="0,0,4,0" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="Roofs" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding RoofCount}" Style="{StaticResource MetricNumber}" FontSize="18"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="10,8">
+                <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="Points" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding Rows.Count}" Style="{StaticResource MetricNumber}" FontSize="18"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="10,8">
+                <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="With linked elevation" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding MatchedCount}" Style="{StaticResource MetricNumber}" FontSize="18"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricCard}" Margin="4,0,0,0" Padding="10,8">
+                <Border Style="{StaticResource MetricCard}" Margin="4,0,0,0" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="To apply" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding IncludedCount}" Style="{StaticResource MetricNumberAccent}" FontSize="18"/>
@@ -72,7 +72,7 @@ File: RoofShapeFromLinkWindow.xaml  (V002, ToolWindowShell)
 
                 <!-- Roofs -->
                 <TextBlock Text="Roofs" Style="{StaticResource SectionTitle}"/>
-                <Border Style="{StaticResource ContentCard}" Padding="12,10">
+                <Border Style="{StaticResource ContentCard}" Padding="12,12">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
@@ -85,20 +85,20 @@ File: RoofShapeFromLinkWindow.xaml  (V002, ToolWindowShell)
                 </Border>
 
                 <!-- Linked files -->
-                <TextBlock Text="Linked files" Style="{StaticResource SectionTitle}" Margin="0,10,0,0"/>
-                <Border Style="{StaticResource ContentCard}" Padding="12,10">
+                <TextBlock Text="Linked files" Style="{StaticResource SectionTitle}" Margin="0,12,0,0"/>
+                <Border Style="{StaticResource ContentCard}" Padding="12,12">
                     <StackPanel>
-                        <Grid Margin="0,0,0,6">
+                        <Grid Margin="0,0,0,8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <TextBox Style="{StaticResource BoxedTextInput}" Height="26" Padding="6,2"
+                            <TextBox Style="{StaticResource BoxedTextInput}" Height="26" Padding="8,2"
                                      Text="{Binding LinkSearch, UpdateSourceTrigger=PropertyChanged}"
                                      ToolTip="Search linked files by name"/>
                             <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="8,0,0,0">
                                 <Button Content="Select all"  Style="{StaticResource SmallSecondaryButton}" Width="86" Command="{Binding SelectAllLinksCommand}"/>
-                                <Button Content="Select none" Style="{StaticResource SmallSecondaryButton}" Width="86" Margin="6,0,0,0" Command="{Binding SelectNoLinksCommand}"/>
+                                <Button Content="Select none" Style="{StaticResource SmallSecondaryButton}" Width="86" Margin="8,0,0,0" Command="{Binding SelectNoLinksCommand}"/>
                             </StackPanel>
                         </Grid>
                         <ListBox ItemsSource="{Binding LinksView}" MinHeight="70" MaxHeight="150"
@@ -119,26 +119,26 @@ File: RoofShapeFromLinkWindow.xaml  (V002, ToolWindowShell)
                 </Border>
 
                 <!-- Options -->
-                <TextBlock Text="Options" Style="{StaticResource SectionTitle}" Margin="0,10,0,0"/>
-                <Border Style="{StaticResource ContentCard}" Padding="12,10">
+                <TextBlock Text="Options" Style="{StaticResource SectionTitle}" Margin="0,12,0,0"/>
+                <Border Style="{StaticResource ContentCard}" Padding="12,12">
                     <StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
                             <TextBlock Text="Take elevation from:" VerticalAlignment="Center"/>
                             <ComboBox Style="{StaticResource StandardComboBox}" Width="120" Margin="8,0,0,0"
                                       ItemsSource="{Binding GlobalSourceChoices}" SelectedItem="{Binding GlobalSource}"/>
-                            <TextBlock Text="(sets every row; change a single row in the grid)" Style="{StaticResource HintText}" Margin="10,0,0,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="(sets every row; change a single row in the grid)" Style="{StaticResource HintText}" Margin="12,0,0,0" VerticalAlignment="Center"/>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
                             <TextBlock Text="Subtract:" VerticalAlignment="Center"/>
-                            <TextBox Style="{StaticResource BoxedTextInput}" Height="26" Padding="6,2" Width="80" Margin="8,0,0,0"
+                            <TextBox Style="{StaticResource BoxedTextInput}" Height="26" Padding="8,2" Width="80" Margin="8,0,0,0"
                                      Text="{Binding GlobalOffset, StringFormat=F3, UpdateSourceTrigger=LostFocus}"/>
                             <TextBlock Text="{Binding UnitLabel}" Style="{StaticResource UnitLabel}"/>
-                            <TextBlock Text="(New Z = linked Z − thickness − this number; editable per row)" Style="{StaticResource HintText}" Margin="10,0,0,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="(New Z = linked Z − thickness − this number; editable per row)" Style="{StaticResource HintText}" Margin="12,0,0,0" VerticalAlignment="Center"/>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
                             <CheckBox Content="Subtract host roof thickness" VerticalAlignment="Center"
                                       IsChecked="{Binding SubtractThickness}"/>
-                            <TextBlock Text="(New Z = linked Z − roof type thickness − Subtract; the point is then set from the roof base surface)" Style="{StaticResource HintText}" Margin="10,0,0,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="(New Z = linked Z − roof type thickness − Subtract; the point is then set from the roof base surface)" Style="{StaticResource HintText}" Margin="12,0,0,0" VerticalAlignment="Center"/>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal">
                             <CheckBox Content="Nearest point: corner and edge points only" VerticalAlignment="Center"
@@ -150,7 +150,7 @@ File: RoofShapeFromLinkWindow.xaml  (V002, ToolWindowShell)
                 </Border>
 
                 <!-- Shape points -->
-                <Grid Margin="0,10,0,0">
+                <Grid Margin="0,12,0,0">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
@@ -161,24 +161,24 @@ File: RoofShapeFromLinkWindow.xaml  (V002, ToolWindowShell)
                 </Grid>
 
                 <!-- View bar: search, filters, grouping, columns -->
-                <Border Style="{StaticResource ContentCard}" Padding="10,8" Margin="0,6,0,0">
+                <Border Style="{StaticResource ContentCard}" Padding="12,8" Margin="0,8,0,0">
                     <WrapPanel>
-                        <TextBox Style="{StaticResource BoxedTextInput}" Height="26" Padding="6,2" Width="170" Margin="0,0,8,4"
+                        <TextBox Style="{StaticResource BoxedTextInput}" Height="26" Padding="8,2" Width="170" Margin="0,0,8,4"
                                  ToolTip="Search roof, linked roof, note, status and source"
                                  Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"/>
                         <TextBlock Text="Roof" VerticalAlignment="Center" Margin="0,0,4,4"/>
-                        <TextBox Style="{StaticResource BoxedTextInput}" Height="26" Padding="6,2" Width="110" Margin="0,0,10,4"
+                        <TextBox Style="{StaticResource BoxedTextInput}" Height="26" Padding="8,2" Width="110" Margin="0,0,12,4"
                                  Text="{Binding RoofFilter, UpdateSourceTrigger=PropertyChanged}"/>
                         <TextBlock Text="Status" VerticalAlignment="Center" Margin="0,0,4,4"/>
-                        <ComboBox Style="{StaticResource StandardComboBox}" Width="96" Margin="0,0,10,4"
+                        <ComboBox Style="{StaticResource StandardComboBox}" Width="96" Margin="0,0,12,4"
                                   ItemsSource="{Binding StatusChoices}" SelectedItem="{Binding StatusFilter}"/>
                         <TextBlock Text="Source" VerticalAlignment="Center" Margin="0,0,4,4"/>
-                        <ComboBox Style="{StaticResource StandardComboBox}" Width="96" Margin="0,0,14,4"
+                        <ComboBox Style="{StaticResource StandardComboBox}" Width="96" Margin="0,0,16,4"
                                   ItemsSource="{Binding SourceFilterChoices}" SelectedItem="{Binding SourceFilter}"/>
                         <CheckBox Content="Group by roof" IsChecked="{Binding GroupByRoof}" VerticalAlignment="Center" Margin="0,0,12,4"/>
                         <CheckBox Content="Ticked only" IsChecked="{Binding TickedOnly}" VerticalAlignment="Center" Margin="0,0,12,4"/>
                         <CheckBox Content="Compact rows" IsChecked="{Binding CompactRows}" VerticalAlignment="Center" Margin="0,0,12,4"/>
-                        <Button x:Name="ColumnsButton" Content="Columns ▾" Style="{StaticResource SmallSecondaryButton}" Width="86" Margin="0,0,6,4"
+                        <Button x:Name="ColumnsButton" Content="Columns ▾" Style="{StaticResource SmallSecondaryButton}" Width="86" Margin="0,0,8,4"
                                 Click="Columns_Click"/>
                         <Button Content="Reset view" Style="{StaticResource SmallSecondaryButton}" Width="86" Margin="0,0,0,4"
                                 Command="{Binding ResetViewCommand}"/>
@@ -186,24 +186,24 @@ File: RoofShapeFromLinkWindow.xaml  (V002, ToolWindowShell)
                 </Border>
 
                 <!-- Bulk bar: acts on the rows that pass the filters -->
-                <Border Background="{StaticResource BrushStatusInfoSoft}" CornerRadius="6" Padding="10,6" Margin="0,6,0,0">
+                <Border Background="{StaticResource BrushStatusInfoSoft}" CornerRadius="6" Padding="12,8" Margin="0,8,0,0">
                     <WrapPanel>
-                        <TextBlock Text="{Binding VisibleCount, StringFormat='Visible rows ({0}):'}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <TextBlock Text="{Binding VisibleCount, StringFormat='Visible rows ({0}):'}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,12,0"/>
                         <TextBlock Text="Source" VerticalAlignment="Center" Margin="0,0,4,0"/>
                         <ComboBox Style="{StaticResource StandardComboBox}" Width="96"
                                   ItemsSource="{Binding GlobalSourceChoices}" SelectedItem="{Binding BulkSource}"/>
-                        <Button Content="Set" Style="{StaticResource SmallSecondaryButton}" Width="46" Margin="4,0,14,0" Command="{Binding SetVisibleSourceCommand}"/>
+                        <Button Content="Set" Style="{StaticResource SmallSecondaryButton}" Width="46" Margin="4,0,16,0" Command="{Binding SetVisibleSourceCommand}"/>
                         <TextBlock Text="Subtract" VerticalAlignment="Center" Margin="0,0,4,0"/>
-                        <TextBox Style="{StaticResource BoxedTextInput}" Height="26" Padding="6,2" Width="76"
+                        <TextBox Style="{StaticResource BoxedTextInput}" Height="26" Padding="8,2" Width="76"
                                  Text="{Binding BulkOffset, StringFormat=F3, UpdateSourceTrigger=LostFocus}"/>
                         <TextBlock Text="{Binding UnitLabel}" Style="{StaticResource UnitLabel}"/>
-                        <Button Content="Set" Style="{StaticResource SmallSecondaryButton}" Width="46" Margin="4,0,14,0" Command="{Binding SetVisibleOffsetCommand}"/>
+                        <Button Content="Set" Style="{StaticResource SmallSecondaryButton}" Width="46" Margin="4,0,16,0" Command="{Binding SetVisibleOffsetCommand}"/>
                         <Button Content="Tick" Style="{StaticResource SmallSecondaryButton}" Width="56" Command="{Binding TickVisibleCommand}"/>
-                        <Button Content="Untick" Style="{StaticResource SmallSecondaryButton}" Width="56" Margin="6,0,0,0" Command="{Binding UntickVisibleCommand}"/>
+                        <Button Content="Untick" Style="{StaticResource SmallSecondaryButton}" Width="56" Margin="8,0,0,0" Command="{Binding UntickVisibleCommand}"/>
                     </WrapPanel>
                 </Border>
 
-                <DataGrid x:Name="PointsGrid" Margin="0,6,0,0" MinHeight="260"
+                <DataGrid x:Name="PointsGrid" Margin="0,8,0,0" MinHeight="260"
                           shell:ShellBehaviors.MaxHeightRatio="0.5"
                           shell:ShellBehaviors.ForwardMouseWheel="True"
                           VirtualizingStackPanel.IsVirtualizing="True" VirtualizingStackPanel.VirtualizationMode="Recycling"
@@ -261,7 +261,7 @@ File: RoofShapeFromLinkWindow.xaml  (V002, ToolWindowShell)
                         <DataGridTemplateColumn Header="Status" Width="90" SortMemberPath="Status">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <Border CornerRadius="9" Padding="8,1" HorizontalAlignment="Left" VerticalAlignment="Center"
+                                    <Border CornerRadius="9" Padding="8,2" HorizontalAlignment="Left" VerticalAlignment="Center"
                                             Background="{StaticResource BrushStatusOkSoft}">
                                         <TextBlock Text="{Binding Status}" FontSize="11" FontWeight="SemiBold"
                                                    Foreground="{StaticResource BrushStatusOk}"/>
@@ -312,7 +312,7 @@ File: RoofShapeFromLinkWindow.xaml  (V002, ToolWindowShell)
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                                        <Border Height="6" CornerRadius="3" Margin="0,0,6,0" Width="{Binding DeltaBar}">
+                                        <Border Height="6" CornerRadius="3" Margin="0,0,8,0" Width="{Binding DeltaBar}">
                                             <Border.Style>
                                                 <Style TargetType="Border">
                                                     <Setter Property="Background" Value="{StaticResource BrushStatusInfo}"/>
@@ -324,7 +324,7 @@ File: RoofShapeFromLinkWindow.xaml  (V002, ToolWindowShell)
                                                 </Style>
                                             </Border.Style>
                                         </Border>
-                                        <TextBlock Text="{Binding DeltaText}" FontFamily="Consolas"/>
+                                        <TextBlock Text="{Binding DeltaText}" FontFamily="{DynamicResource MonoFont}"/>
                                     </StackPanel>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
@@ -334,25 +334,25 @@ File: RoofShapeFromLinkWindow.xaml  (V002, ToolWindowShell)
                     </DataGrid.Columns>
                 </DataGrid>
 
-                <TextBlock Text="{Binding GridSummary}" Style="{StaticResource HintText}" Margin="2,6,0,0" TextWrapping="Wrap"/>
+                <TextBlock Text="{Binding GridSummary}" Style="{StaticResource HintText}" Margin="2,8,0,0" TextWrapping="Wrap"/>
 
                 <!-- Activity log -->
-                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="10,8" Margin="0,10,0,0">
+                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="12,8" Margin="0,12,0,0">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <Grid Margin="0,0,0,6">
+                        <Grid Margin="0,0,0,8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Text="Activity Log" Foreground="{StaticResource BrushLogText}"
-                                       FontSize="11.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                       FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
                             <StackPanel Grid.Column="1" Orientation="Horizontal">
                                 <Button Content="Copy All" Style="{StaticResource DarkGhostButton}" Click="CopyAllLog_Click"/>
-                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Click="CopySelectedLog_Click" Margin="6,0,0,0"/>
+                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Click="CopySelectedLog_Click" Margin="8,0,0,0"/>
                             </StackPanel>
                         </Grid>
                         <ListBox Grid.Row="1" x:Name="LogList" ItemsSource="{Binding LogEntries}" MinHeight="100"
@@ -363,19 +363,19 @@ File: RoofShapeFromLinkWindow.xaml  (V002, ToolWindowShell)
                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                             <ListBox.ItemContainerStyle>
                                 <Style TargetType="ListBoxItem">
-                                    <Setter Property="Padding" Value="0,1"/>
+                                    <Setter Property="Padding" Value="0,2"/>
                                     <Setter Property="Background" Value="Transparent"/>
                                 </Style>
                             </ListBox.ItemContainerStyle>
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
-                                    <StackPanel Orientation="Horizontal" Margin="0,1">
+                                    <StackPanel Orientation="Horizontal" Margin="0,2">
                                         <TextBlock Text="{Binding Time, StringFormat=HH:mm:ss}"
                                                    Foreground="{StaticResource BrushLogTextDim}"
-                                                   FontFamily="Consolas" FontSize="11" Margin="0,0,10,0"/>
+                                                   FontFamily="{DynamicResource MonoFont}" FontSize="11" Margin="0,0,12,0"/>
                                         <TextBlock Text="{Binding Message}"
                                                    Foreground="{Binding Level, Converter={StaticResource LogLevelToColor}}"
-                                                   FontFamily="Consolas" FontSize="11" TextWrapping="Wrap"/>
+                                                   FontFamily="{DynamicResource MonoFont}" FontSize="11" TextWrapping="Wrap"/>
                                     </StackPanel>
                                 </DataTemplate>
                             </ListBox.ItemTemplate>

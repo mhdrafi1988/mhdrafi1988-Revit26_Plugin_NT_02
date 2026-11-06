@@ -1232,6 +1232,44 @@
     </Style>
 
     <!-- ===== CONVERTER INSTANCE (ADDED) ===== -->
-   
+
+    <!-- ═══════════════════════════════════════════════════════════
+         LAYOUT TOKENS (v4.1) — the UI standard (Claude/UI_STANDARD_AUDIT.md)
+         Spacing grid: 4 / 8 / 12 / 16 / 24 (2 only as a micro-gap).
+         Use these (or the same numbers) in every new/migrated window.
+    ═══════════════════════════════════════════════════════════ -->
+    <system:Double xmlns:system="clr-namespace:System;assembly=mscorlib" x:Key="Space.XS">4</system:Double>
+    <system:Double xmlns:system="clr-namespace:System;assembly=mscorlib" x:Key="Space.S">8</system:Double>
+    <system:Double xmlns:system="clr-namespace:System;assembly=mscorlib" x:Key="Space.M">12</system:Double>
+    <system:Double xmlns:system="clr-namespace:System;assembly=mscorlib" x:Key="Space.L">16</system:Double>
+    <system:Double xmlns:system="clr-namespace:System;assembly=mscorlib" x:Key="Space.XL">24</system:Double>
+
+    <Thickness x:Key="Pad.Window">12,8</Thickness>
+    <Thickness x:Key="Pad.Card">12</Thickness>
+    <Thickness x:Key="Pad.Input">8,4</Thickness>
+    <Thickness x:Key="Pad.Button">12,0</Thickness>
+    <Thickness x:Key="Pad.ButtonCompact">8,0</Thickness>
+    <Thickness x:Key="Pad.Cell">8,4</Thickness>
+    <Thickness x:Key="Gap.Row">0,0,0,8</Thickness>
+    <Thickness x:Key="Gap.Section">0,0,0,12</Thickness>
+    <Thickness x:Key="Gap.Inline">0,0,8,0</Thickness>
+    <Thickness x:Key="Gap.Label">0,0,0,4</Thickness>
+
+    <system:Double xmlns:system="clr-namespace:System;assembly=mscorlib" x:Key="Height.Button">32</system:Double>
+    <system:Double xmlns:system="clr-namespace:System;assembly=mscorlib" x:Key="Height.ButtonCompact">24</system:Double>
+    <system:Double xmlns:system="clr-namespace:System;assembly=mscorlib" x:Key="Height.Input">28</system:Double>
+
+    <CornerRadius x:Key="Radius.Control">4</CornerRadius>
+    <CornerRadius x:Key="Radius.Card">8</CornerRadius>
+    <CornerRadius x:Key="Radius.Pill">12</CornerRadius>
+
+    <system:Double xmlns:system="clr-namespace:System;assembly=mscorlib" x:Key="FontSize.Caption">10</system:Double>
+    <system:Double xmlns:system="clr-namespace:System;assembly=mscorlib" x:Key="FontSize.Secondary">11</system:Double>
+    <system:Double xmlns:system="clr-namespace:System;assembly=mscorlib" x:Key="FontSize.Body">12</system:Double>
+    <system:Double xmlns:system="clr-namespace:System;assembly=mscorlib" x:Key="FontSize.Value">13</system:Double>
+    <system:Double xmlns:system="clr-namespace:System;assembly=mscorlib" x:Key="FontSize.Section">14</system:Double>
+    <system:Double xmlns:system="clr-namespace:System;assembly=mscorlib" x:Key="FontSize.Title">18</system:Double>
+    <system:Double xmlns:system="clr-namespace:System;assembly=mscorlib" x:Key="FontSize.Metric">24</system:Double>
+    <FontFamily x:Key="MonoFont">Consolas, Courier New</FontFamily>
 
 </ResourceDictionary>

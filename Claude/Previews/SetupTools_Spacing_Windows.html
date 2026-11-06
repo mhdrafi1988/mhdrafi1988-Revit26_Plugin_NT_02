@@ -1,0 +1,108 @@
+<title>Setup Tools Windows</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<!-- UI preview (CLAUDE.md "UI previews") for the Setup Tools, plugin 6.40.7 (spacing standard):
+       Batch Link DWG Family BatchDwgFamilyLinker_V002 (2.2.1)
+       DWG To Lines DwgToLines_V007 (7.0.2)
+       DWG To DL(P) DwgToDetailLines_V014 (14.0.2)
+       DWG Manager DwgManager_V003 (3.1.2)
+       DWG Statistics DwgStatistics_V005 (5.1.2)
+       Export DWG to Folder ExportDwgToFolder_V004 (4.2.1)
+     Shows the DWG Manager window as the example (all 6 tools got the same change).
+     Real windows: Menu/Setup/**/*.xaml (highest version of each tool);
+                   Shared/Controls/ToolWindowShellTemplate.xaml; tokens in Shared/SharedStyles.xaml (v4.1).
+     Artifact: https://claude.ai/artifact/C9mPb9ReqsDp7qKxFRidSW (republish to this URL on every update)
+     Colours are the Shared/SharedStyles.xaml tokens. One light look on purpose: it mirrors the light
+     WPF windows in Revit. The window sits in its own horizontal scroll box (.frame). Sample data only. -->
+<style>
+:root{
+  color-scheme:light;
+  --page:#E9EDF1; --win:#F3F5F7; --card:#FFFFFF; --border:#D6DCE3; --input:#B5C2CF;
+  --navy:#1E3A5F; --navy-light:#2C4A6E; --text:#1A2B3C; --text2:#5B7185; --on-dark:#FFFFFF;
+  --ok:#2E7D4F; --ok-soft:#E6F4EC; --ok-border:#9FCFB2; --info:#1F5FBF;
+  --font:"Segoe UI",system-ui,-apple-system,sans-serif; --mono:Consolas,"Courier New",monospace;
+}
+*{box-sizing:border-box}
+body{background:var(--page);color:var(--text);font-family:var(--font);font-size:14px;line-height:1.5;
+  margin:0;padding-block:24px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:860px;margin:0 auto;display:grid;gap:24px}
+h1{font-size:20px;margin:0 0 4px}
+h2{font-size:15px;margin:0 0 8px}
+p{margin:0}
+.sub{color:var(--text2)}
+.tag{display:inline-block;background:var(--ok-soft);color:var(--ok);border:1px solid var(--ok-border);border-radius:12px;padding:2px 8px;font-size:11px;font-weight:600;vertical-align:middle}
+.frame{overflow-x:auto;border:1px solid var(--border);border-radius:8px;background:var(--card)}
+.win{width:560px;margin:0 auto;background:var(--win);font-size:12px}
+.hdr{background:var(--navy);color:var(--on-dark);padding:12px 16px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.hdr b{font-size:18px;font-weight:600}
+.ver{background:var(--navy-light);border-radius:12px;padding:4px 8px;font-size:11px;font-weight:600}
+.body{padding:8px 12px;display:grid;gap:12px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px;display:grid;gap:8px}
+.card h3{margin:0;font-size:14px}
+.row{display:flex;align-items:center;gap:8px}
+.in{border:1px solid var(--input);border-radius:4px;background:#fff;height:28px;padding:4px 8px;min-width:56px;display:inline-flex;align-items:center}
+table{border-collapse:collapse;width:100%;font-size:12px}
+th,td{padding:4px 8px;text-align:left;border-bottom:1px solid var(--border)}
+th{background:var(--win);font-weight:600}
+.ftr{border-top:1px solid var(--border);padding:8px 12px;display:flex;gap:8px;justify-content:space-between;align-items:center}
+.btn{height:32px;padding:0 12px;border-radius:4px;border:1px solid var(--input);background:#fff;display:inline-flex;align-items:center;font-size:12px}
+.btn.p{background:var(--navy);color:#fff;border-color:var(--navy)}
+.legend{display:flex;flex-wrap:wrap;gap:8px}
+.chip{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:4px 8px;font-family:var(--mono);font-size:12px}
+.tools{overflow-x:auto}
+.tools table{background:var(--card);border:1px solid var(--border);border-radius:8px;min-width:480px}
+.tools td:last-child,.tools th:last-child{font-family:var(--mono)}
+</style>
+<main>
+  <header>
+    <h1>Setup Tools windows <span class="tag">Spacing standard</span></h1>
+    <p class="sub">Plugin 6.40.7. Mock-up with sample data. DWG Manager V003 · 3.1.2 is shown; the other 5 tools got the same change.</p>
+  </header>
+
+  <section>
+    <h2>DWG Manager <span class="tag">changed</span></h2>
+    <div class="frame"><div class="win">
+      <div class="hdr"><b>DWG Manager</b><span class="ver">V003 · 3.1.2</span></div>
+      <div class="body">
+        <div class="card">
+          <h3>Actions</h3>
+          <div class="row"><span class="btn">Refresh</span><span class="btn">Select All</span><span class="btn">Clear Selection</span></div>
+          <div class="row"><span>☑ Purge on delete</span><span>☐ Purge type if unused</span></div>
+        </div>
+        <div class="card">
+          <h3>DWG files</h3>
+          <table>
+            <tr><th>Active</th><th>DWG File</th><th>Instances</th><th>Actions</th></tr>
+            <tr><td>☑</td><td>Site_Plan_Sample.dwg</td><td>2</td><td>Delete</td></tr>
+            <tr><td>☑</td><td>Grid_Layout_Sample.dwg</td><td>1</td><td>Delete</td></tr>
+            <tr><td>☐</td><td>Old_Survey_Sample.dwg</td><td>0</td><td>Delete</td></tr>
+            
+          </table>
+        </div>
+      </div>
+      <div class="ftr"><span class="sub">3 DWG files</span><span class="row"><span class="btn p">Delete</span><span class="btn">Close</span></span></div>
+    </div></div>
+  </section>
+
+  <section>
+    <h2>Spacing used <span class="tag">new</span></h2>
+    <div class="legend">
+      <span class="chip">gap 4</span><span class="chip">gap 8</span><span class="chip">card padding 12</span>
+      <span class="chip">section gap 12</span><span class="chip">header 16</span>
+      <span class="chip">input 28 · padding 8,4</span><span class="chip">button 32 · padding 12,0</span>
+      <span class="chip">fonts 10 / 11 / 12 / 13</span>
+    </div>
+  </section>
+
+  <section class="tools">
+    <h2>Tools covered</h2>
+    <table>
+      <tr><th>Tool</th><th>Folder</th><th>Version</th></tr>
+      <tr><td>Batch Link DWG Family</td><td>BatchDwgFamilyLinker_V002</td><td>2.2.1</td></tr>
+      <tr><td>DWG To Lines</td><td>DwgToLines_V007</td><td>7.0.2</td></tr>
+      <tr><td>DWG To DL(P)</td><td>DwgToDetailLines_V014</td><td>14.0.2</td></tr>
+      <tr><td>DWG Manager</td><td>DwgManager_V003</td><td>3.1.2</td></tr>
+      <tr><td>DWG Statistics</td><td>DwgStatistics_V005</td><td>5.1.2</td></tr>
+      <tr><td>Export DWG to Folder</td><td>ExportDwgToFolder_V004</td><td>4.2.1</td></tr>
+    </table>
+  </section>
+</main>

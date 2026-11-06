@@ -45,13 +45,13 @@ Changes vs V008 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
         <!-- ═══ HEADER ═══════════════════════════════════════════ -->
         <shell:ToolWindowShell.HeaderContent>
             <UniformGrid Columns="2" Margin="0,0,0,8">
-                <Border Style="{StaticResource MetricCard}" Margin="0,0,4,0" Padding="10,8">
+                <Border Style="{StaticResource MetricCard}" Margin="0,0,4,0" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="Preview Rows" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding PreviewRows.Count}" Style="{StaticResource MetricNumber}" FontSize="18"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricCard}" Margin="4,0,0,0" Padding="10,8">
+                <Border Style="{StaticResource MetricCard}" Margin="4,0,0,0" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="Log Entries" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding Logs.Count}" Style="{StaticResource MetricNumberAccent}" FontSize="18"/>
@@ -65,29 +65,29 @@ Changes vs V008 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
             <StackPanel>
                 <!-- Selection -->
                 <Border Style="{StaticResource ContentCard}">
-                    <StackPanel Margin="12,10">
-                        <TextBlock Text="Selection" Style="{StaticResource SectionTitle}" Margin="0,0,0,6"/>
+                    <StackPanel Margin="12,12">
+                        <TextBlock Text="Selection" Style="{StaticResource SectionTitle}" Margin="0,0,0,8"/>
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <Button Content="Select Floor" Style="{StaticResource SmallSecondaryButton}" Command="{Binding SelectFloorCommand}"/>
-                            <TextBlock Text="{Binding FloorLabel}" Style="{StaticResource FieldValue}" Margin="10,0,0,0" VerticalAlignment="Center" TextWrapping="Wrap"/>
+                            <TextBlock Text="{Binding FloorLabel}" Style="{StaticResource FieldValue}" Margin="12,0,0,0" VerticalAlignment="Center" TextWrapping="Wrap"/>
                         </StackPanel>
                     </StackPanel>
                 </Border>
 
                 <!-- Settings -->
                 <Border Style="{StaticResource ContentCard}">
-                    <StackPanel Margin="12,10">
-                        <TextBlock Text="Settings" Style="{StaticResource SectionTitle}" Margin="0,0,0,6"/>
+                    <StackPanel Margin="12,12">
+                        <TextBlock Text="Settings" Style="{StaticResource SectionTitle}" Margin="0,0,0,8"/>
 
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,0,8">
-                            <TextBlock Text="Tolerance" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,6,0" Width="94"/>
+                            <TextBlock Text="Tolerance" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,8,0" Width="94"/>
                             <TextBox Style="{StaticResource BoxedTextInput}" Width="60" MaxLength="10" FontSize="10"
                                      Text="{Binding ToleranceMm, UpdateSourceTrigger=PropertyChanged}"/>
                             <TextBlock Text="mm" Style="{StaticResource UnitLabel}"/>
                         </StackPanel>
 
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <TextBlock Text="Neighbor Offset" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,6,0" Width="94"/>
+                            <TextBlock Text="Neighbor Offset" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,8,0" Width="94"/>
                             <TextBox Style="{StaticResource BoxedTextInput}" Width="60" MaxLength="10" FontSize="10"
                                      Text="{Binding NeighborOffset, UpdateSourceTrigger=PropertyChanged}"/>
                             <TextBlock Text="N" Style="{StaticResource UnitLabel}"/>
@@ -99,7 +99,7 @@ Changes vs V008 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
 
                 <!-- Preview grid (scrolls itself) -->
                 <Border Style="{StaticResource ContentCard}">
-                    <Grid Margin="12,10">
+                    <Grid Margin="12,12">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
@@ -127,17 +127,17 @@ Changes vs V008 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                 </Border>
 
                 <!-- Log (moved from footer) -->
-                <Border CornerRadius="10" Background="{StaticResource BrushLogBg}" Padding="10" Margin="0,0,0,0">
+                <Border CornerRadius="10" Background="{StaticResource BrushLogBg}" Padding="12" Margin="0,0,0,0">
                     <StackPanel>
-                        <Grid Margin="0,0,0,6">
+                        <Grid Margin="0,0,0,8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="Log" Foreground="{StaticResource BrushLogText}" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center"/>
                             <StackPanel Grid.Column="1" Orientation="Horizontal">
-                                <Button Content="Copy All" Style="{StaticResource DarkGhostButton}" Command="{Binding CopyAllLogsCommand}" Margin="0,0,6,0"/>
-                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Click="CopySelectedLogs_Click" Margin="0,0,6,0"/>
+                                <Button Content="Copy All" Style="{StaticResource DarkGhostButton}" Command="{Binding CopyAllLogsCommand}" Margin="0,0,8,0"/>
+                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Click="CopySelectedLogs_Click" Margin="0,0,8,0"/>
                                 <Button Content="Clear" Style="{StaticResource DarkGhostButton}" Command="{Binding ClearLogsCommand}"/>
                             </StackPanel>
                         </Grid>
@@ -150,13 +150,13 @@ Changes vs V008 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                  ScrollViewer.VerticalScrollBarVisibility="Auto">
                             <ListBox.ItemContainerStyle>
                                 <Style TargetType="ListBoxItem">
-                                    <Setter Property="Padding" Value="0,1"/>
+                                    <Setter Property="Padding" Value="0,2"/>
                                     <Setter Property="Background" Value="Transparent"/>
                                 </Style>
                             </ListBox.ItemContainerStyle>
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
-                                    <TextBlock FontFamily="Consolas" FontSize="10.5"
+                                    <TextBlock FontFamily="{DynamicResource MonoFont}" FontSize="11"
                                                Text="{Binding}" TextWrapping="Wrap"/>
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
@@ -174,7 +174,7 @@ Changes vs V008 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                         Command="{Binding PreviewCommand}" IsEnabled="{Binding CanPreview}"/>
                 <Button Content="Apply" Style="{StaticResource PrimaryButton}" MinWidth="90" Margin="0,0,8,0"
                         Command="{Binding ApplyCommand}" IsEnabled="{Binding CanApply}"/>
-                <Button Content="Close" Style="{StaticResource OutlineButton}" MinWidth="80" Click="Close_Click"/>
+                <Button IsCancel="True" Content="Close" Style="{StaticResource OutlineButton}" MinWidth="80" Click="Close_Click"/>
             </StackPanel>
         </shell:ToolWindowShell.FooterContent>
     </shell:ToolWindowShell>

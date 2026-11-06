@@ -53,19 +53,19 @@ Changes vs V003 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="2*"/>
                 </Grid.ColumnDefinitions>
-                <Border Grid.Column="0" Style="{StaticResource MetricCard}" Padding="10,8" Margin="0,0,4,0">
+                <Border Grid.Column="0" Style="{StaticResource MetricCard}" Padding="12,8" Margin="0,0,4,0">
                     <StackPanel>
                         <TextBlock Text="Scanned" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding TotalScanned}" Style="{StaticResource MetricNumber}" FontSize="18"/>
                     </StackPanel>
                 </Border>
-                <Border Grid.Column="1" Style="{StaticResource MetricCard}" Padding="10,8" Margin="4,0,4,0">
+                <Border Grid.Column="1" Style="{StaticResource MetricCard}" Padding="12,8" Margin="4,0,4,0">
                     <StackPanel>
                         <TextBlock Text="Overlaps Found" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding TotalOverlaps}" Style="{StaticResource MetricNumberDanger}" FontSize="18"/>
                     </StackPanel>
                 </Border>
-                <Border Grid.Column="2" Style="{StaticResource MetricCard}" Padding="10,8" Margin="4,0,0,0">
+                <Border Grid.Column="2" Style="{StaticResource MetricCard}" Padding="12,8" Margin="4,0,0,0">
                     <StackPanel>
                         <TextBlock Text="Breakdown" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding BreakdownByTypeText}" Style="{StaticResource FieldValue}" FontSize="12" TextWrapping="Wrap"/>
@@ -87,7 +87,7 @@ Changes vs V003 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="Annotation Types To Check" Style="{StaticResource SectionTitle}" Margin="0" VerticalAlignment="Center" />
                             <StackPanel Grid.Column="1" Orientation="Horizontal">
-                                <Button Content="Select All" Style="{StaticResource SmallSecondaryButton}" Command="{Binding SelectAllCommand}" Margin="0,0,6,0" />
+                                <Button Content="Select All" Style="{StaticResource SmallSecondaryButton}" Command="{Binding SelectAllCommand}" Margin="0,0,8,0" />
                                 <Button Content="Clear All" Style="{StaticResource SmallSecondaryButton}" Command="{Binding ClearAllCommand}" />
                             </StackPanel>
                         </Grid>
@@ -100,7 +100,7 @@ Changes vs V003 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                 <DataTemplate>
                                     <StackPanel Orientation="Horizontal" Margin="0,2">
                                         <CheckBox IsChecked="{Binding IsSelected}" VerticalAlignment="Center" />
-                                        <TextBlock Text="{Binding TypeName}" Margin="6,0,4,0" VerticalAlignment="Center" />
+                                        <TextBlock Text="{Binding TypeName}" Margin="8,0,4,0" VerticalAlignment="Center" />
                                         <TextBlock Foreground="{StaticResource BrushTextSecondary}" VerticalAlignment="Center">
                                             <Run Text="(" /><Run Text="{Binding Count, Mode=OneWay}" /><Run Text=" items)" />
                                         </TextBlock>
@@ -172,7 +172,7 @@ Changes vs V003 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                             Command="{Binding CheckOverlapsCommand}"
                             IsEnabled="{Binding IsLoading, Converter={StaticResource InverseBoolConverter}}"
                             MinWidth="150" Margin="0,0,8,0" />
-                    <Button Content="Close" Style="{StaticResource OutlineButton}" Width="90" Height="38" Click="CloseButton_Click"/>
+                    <Button IsCancel="True" Content="Close" Style="{StaticResource OutlineButton}" Width="90" Height="38" Click="CloseButton_Click"/>
                 </StackPanel>
             </StackPanel>
         </shell:ToolWindowShell.FooterContent>

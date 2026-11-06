@@ -79,9 +79,9 @@ Changes vs VA008 (layout only):
                  this expands to show each occurrence with its own Category/Family
                  context, same Select All/None affordance as the By Category tree. -->
             <DataTemplate x:Key="TypeGroupTemplate" DataType="{x:Type models:TypeGroupItem}">
-                <StackPanel Margin="0,3,0,0" Visibility="{Binding IsVisible, Converter={StaticResource BoolToVisibilityConverter}}">
+                <StackPanel Margin="0,4,0,0" Visibility="{Binding IsVisible, Converter={StaticResource BoolToVisibilityConverter}}">
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="{Binding TypeName}" FontSize="12.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding TypeName}" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/>
                         <TextBlock Text="{Binding Members.Count, StringFormat=' ({0})'}" FontSize="11" Foreground="{StaticResource BrushTextTertiary}" VerticalAlignment="Center"/>
                         <Button Content="Select All" Style="{StaticResource SmallSecondaryButton}" Margin="8,0,0,0"
                                 Command="{Binding DataContext.SelectAllInTypeGroupCommand, RelativeSource={RelativeSource AncestorType=Window}}"
@@ -90,12 +90,12 @@ Changes vs VA008 (layout only):
                                 Command="{Binding DataContext.SelectNoneInTypeGroupCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                 CommandParameter="{Binding}"/>
                     </StackPanel>
-                    <ItemsControl ItemsSource="{Binding Members}" Margin="20,2,0,0">
+                    <ItemsControl ItemsSource="{Binding Members}" Margin="24,2,0,0">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate DataType="{x:Type models:TypeTreeItem}">
                                 <CheckBox IsChecked="{Binding IsChecked}"
                                           Visibility="{Binding IsVisible, Converter={StaticResource BoolToVisibilityConverter}}"
-                                          FontSize="12" Foreground="{StaticResource BrushTextSecondary}" Margin="0,1,0,0">
+                                          FontSize="12" Foreground="{StaticResource BrushTextSecondary}" Margin="0,2,0,0">
                                     <TextBlock>
                                         <Run Text="{Binding CategoryName, Mode=OneWay}"/><Run Text=" / "/><Run Text="{Binding FamilyName, Mode=OneWay}"/>
                                     </TextBlock>
@@ -132,10 +132,10 @@ Changes vs VA008 (layout only):
                         <Run Text=" — "/><Run Text="{Binding SelectedElementLevel, Mode=OneWay}"/>
                         <Run Text=" (id "/><Run Text="{Binding SelectedElementId, Mode=OneWay}"/><Run Text=")"/>
                     </TextBlock>
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0,0,0">
-                        <Ellipse Width="6" Height="6" Fill="{StaticResource BrushStatusOk}" VerticalAlignment="Center" Margin="0,0,5,0"
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,0,0">
+                        <Ellipse Width="6" Height="6" Fill="{StaticResource BrushStatusOk}" VerticalAlignment="Center" Margin="0,0,4,0"
                                  Visibility="{Binding SettingsLoaded, Converter={StaticResource BoolToVisibilityConverter}}"/>
-                        <TextBlock Text="Settings loaded" FontSize="10.5" Foreground="{StaticResource BrushTextSecondary}" VerticalAlignment="Center"
+                        <TextBlock Text="Settings loaded" FontSize="11" Foreground="{StaticResource BrushTextSecondary}" VerticalAlignment="Center"
                                    Visibility="{Binding SettingsLoaded, Converter={StaticResource BoolToVisibilityConverter}}"/>
                     </StackPanel>
                 </Grid>
@@ -206,7 +206,7 @@ Changes vs VA008 (layout only):
                     <Border Style="{StaticResource ContentCard}" Margin="0,0,0,8">
                         <StackPanel Orientation="Horizontal" Margin="12,8,12,8">
                             <ToggleButton Style="{StaticResource AppleToggleButton}" IsChecked="{Binding RestrictToBoundary}"/>
-                            <TextBlock Text="Restrict to boundary" FontWeight="SemiBold" FontSize="12" Margin="8,0,10,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Restrict to boundary" FontWeight="SemiBold" FontSize="12" Margin="8,0,12,0" VerticalAlignment="Center"/>
                             <TextBlock Text="{Binding ScopeHelpText}" Style="{StaticResource HintText}" VerticalAlignment="Center" TextWrapping="Wrap"/>
                         </StackPanel>
                     </Border>
@@ -249,7 +249,7 @@ Changes vs VA008 (layout only):
                             <ItemsControl ItemsSource="{Binding LinkedModelsView}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate DataType="{x:Type models:LinkedModelItem}">
-                                        <Border BorderBrush="{StaticResource BrushSeparatorThin}" BorderThickness="0,1,0,0" Padding="14,9">
+                                        <Border BorderBrush="{StaticResource BrushSeparatorThin}" BorderThickness="0,1,0,0" Padding="16,8">
                                             <Grid>
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="Auto"/>
@@ -257,8 +257,8 @@ Changes vs VA008 (layout only):
                                                     <ColumnDefinition Width="Auto"/>
                                                 </Grid.ColumnDefinitions>
                                                 <CheckBox Grid.Column="0" IsChecked="{Binding IsSelected}"
-                                                          VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                                <TextBlock Grid.Column="1" Text="{Binding DocumentTitle}" FontSize="12.5" FontWeight="SemiBold"
+                                                          VerticalAlignment="Center" Margin="0,0,12,0"/>
+                                                <TextBlock Grid.Column="1" Text="{Binding DocumentTitle}" FontSize="13" FontWeight="SemiBold"
                                                            Foreground="{StaticResource BrushTextPrimary}" VerticalAlignment="Center"/>
                                                 <Border Grid.Column="2" Style="{StaticResource BadgePill}">
                                                     <TextBlock Text="{Binding StatusDisplay}">
@@ -306,27 +306,27 @@ Changes vs VA008 (layout only):
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
 
-                                <StackPanel Grid.Column="0" Margin="0,0,6,0">
+                                <StackPanel Grid.Column="0" Margin="0,0,8,0">
                                     <TextBlock Text="Width (ft)" Style="{StaticResource FieldLabel}"/>
-                                    <StackPanel Orientation="Horizontal" Margin="0,3,0,0">
+                                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
                                         <TextBox Style="{StaticResource BoxedTextInput}" Width="52" MaxLength="8" Text="{Binding WidthMinFt, TargetNullValue=''}"/>
                                         <TextBlock Text="–" Margin="4,0" VerticalAlignment="Center" Foreground="{StaticResource BrushTextTertiary}"/>
                                         <TextBox Style="{StaticResource BoxedTextInput}" Width="52" MaxLength="8" Text="{Binding WidthMaxFt, TargetNullValue=''}"/>
                                     </StackPanel>
                                 </StackPanel>
 
-                                <StackPanel Grid.Column="1" Margin="6,0,6,0">
+                                <StackPanel Grid.Column="1" Margin="8,0,8,0">
                                     <TextBlock Text="Height (ft)" Style="{StaticResource FieldLabel}"/>
-                                    <StackPanel Orientation="Horizontal" Margin="0,3,0,0">
+                                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
                                         <TextBox Style="{StaticResource BoxedTextInput}" Width="52" MaxLength="8" Text="{Binding HeightMinFt, TargetNullValue=''}"/>
                                         <TextBlock Text="–" Margin="4,0" VerticalAlignment="Center" Foreground="{StaticResource BrushTextTertiary}"/>
                                         <TextBox Style="{StaticResource BoxedTextInput}" Width="52" MaxLength="8" Text="{Binding HeightMaxFt, TargetNullValue=''}"/>
                                     </StackPanel>
                                 </StackPanel>
 
-                                <StackPanel Grid.Column="2" Margin="6,0,6,0">
+                                <StackPanel Grid.Column="2" Margin="8,0,8,0">
                                     <TextBlock Text="Perimeter (ft)" Style="{StaticResource FieldLabel}" ToolTip="Profile group (Floor/Roof) only"/>
-                                    <StackPanel Orientation="Horizontal" Margin="0,3,0,0">
+                                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
                                         <ComboBox Style="{StaticResource StandardComboBox}" Width="72" FontSize="11"
                                                   ItemsSource="{Binding RangeFilterStepsList}" SelectedValue="{Binding PerimeterMinFt}"/>
                                         <TextBlock Text="–" Margin="4,0" VerticalAlignment="Center" Foreground="{StaticResource BrushTextTertiary}"/>
@@ -335,9 +335,9 @@ Changes vs VA008 (layout only):
                                     </StackPanel>
                                 </StackPanel>
 
-                                <StackPanel Grid.Column="3" Margin="6,0,0,0">
+                                <StackPanel Grid.Column="3" Margin="8,0,0,0">
                                     <TextBlock Text="Area (sq ft)" Style="{StaticResource FieldLabel}" ToolTip="Profile group (Floor/Roof) only"/>
-                                    <StackPanel Orientation="Horizontal" Margin="0,3,0,0">
+                                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
                                         <ComboBox Style="{StaticResource StandardComboBox}" Width="72" FontSize="11"
                                                   ItemsSource="{Binding RangeFilterStepsList}" SelectedValue="{Binding AreaMinSqFt}"/>
                                         <TextBlock Text="–" Margin="4,0" VerticalAlignment="Center" Foreground="{StaticResource BrushTextTertiary}"/>
@@ -347,8 +347,8 @@ Changes vs VA008 (layout only):
                                 </StackPanel>
                             </Grid>
 
-                            <StackPanel Orientation="Horizontal" Margin="12,0,12,10">
-                                <TextBlock Text="Group by:" FontSize="11.5" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                            <StackPanel Orientation="Horizontal" Margin="12,0,12,12">
+                                <TextBlock Text="Group by:" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,8,0"/>
                                 <RadioButton Content="Category" Style="{StaticResource ChipToggle}" GroupName="GroupMode"
                                              IsChecked="{Binding GroupElementsByType, Converter={StaticResource InverseBoolConverter}}"/>
                                 <RadioButton Content="Type" Style="{StaticResource ChipToggle}" GroupName="GroupMode"
@@ -365,18 +365,18 @@ Changes vs VA008 (layout only):
                               BorderBrush="{StaticResource BrushBorderDefault}" BorderThickness="1">
                             <Grid>
                                 <!-- By Category (default) -->
-                                <ItemsControl ItemsSource="{Binding ElementTree}" Margin="14,8,14,8"
+                                <ItemsControl ItemsSource="{Binding ElementTree}" Margin="16,8,16,8"
                                               Visibility="{Binding GroupElementsByType, Converter={StaticResource InverseBoolToVisibilityConverter}}">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate DataType="{x:Type models:LinkTreeNode}">
-                                            <StackPanel Margin="0,6,0,0" Visibility="{Binding HasVisibleProfileCategories, Converter={StaticResource BoolToVisibilityConverter}}">
+                                            <StackPanel Margin="0,8,0,0" Visibility="{Binding HasVisibleProfileCategories, Converter={StaticResource BoolToVisibilityConverter}}">
                                                 <TextBlock Text="{Binding LinkDisplayName}" FontSize="11" FontWeight="Bold" Foreground="{StaticResource BrushNavyPrimary}"/>
-                                                <ItemsControl ItemsSource="{Binding ProfileCategories}" Margin="14,4,0,0">
+                                                <ItemsControl ItemsSource="{Binding ProfileCategories}" Margin="16,4,0,0">
                                                     <ItemsControl.ItemTemplate>
                                                         <DataTemplate DataType="{x:Type models:CategoryTreeItem}">
                                                             <StackPanel Margin="0,4,0,0" Visibility="{Binding IsVisible, Converter={StaticResource BoolToVisibilityConverter}}">
                                                                 <StackPanel Orientation="Horizontal">
-                                                                    <TextBlock Text="{Binding CategoryName}" FontSize="12.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                                                    <TextBlock Text="{Binding CategoryName}" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/>
                                                                     <Button Content="Select All" Style="{StaticResource SmallSecondaryButton}" Margin="8,0,0,0"
                                                                             Command="{Binding DataContext.SelectAllInCategoryCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                                             CommandParameter="{Binding}"/>
@@ -384,17 +384,17 @@ Changes vs VA008 (layout only):
                                                                             Command="{Binding DataContext.SelectNoneInCategoryCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                                             CommandParameter="{Binding}"/>
                                                                 </StackPanel>
-                                                                <ItemsControl ItemsSource="{Binding Families}" Margin="20,2,0,0">
+                                                                <ItemsControl ItemsSource="{Binding Families}" Margin="24,2,0,0">
                                                                     <ItemsControl.ItemTemplate>
                                                                         <DataTemplate DataType="{x:Type models:FamilyTreeItem}">
-                                                                            <StackPanel Margin="0,1,0,0" Visibility="{Binding IsVisible, Converter={StaticResource BoolToVisibilityConverter}}">
-                                                                                <CheckBox IsChecked="{Binding IsChecked}" Content="{Binding FamilyName}" FontSize="12.5"/>
-                                                                                <ItemsControl ItemsSource="{Binding Types}" Margin="20,1,0,0">
+                                                                            <StackPanel Margin="0,2,0,0" Visibility="{Binding IsVisible, Converter={StaticResource BoolToVisibilityConverter}}">
+                                                                                <CheckBox IsChecked="{Binding IsChecked}" Content="{Binding FamilyName}" FontSize="13"/>
+                                                                                <ItemsControl ItemsSource="{Binding Types}" Margin="24,2,0,0">
                                                                                     <ItemsControl.ItemTemplate>
                                                                                         <DataTemplate DataType="{x:Type models:TypeTreeItem}">
                                                                                             <CheckBox IsChecked="{Binding IsChecked}" Content="{Binding TypeName}"
                                                                                                       Visibility="{Binding IsVisible, Converter={StaticResource BoolToVisibilityConverter}}"
-                                                                                                      FontSize="12" Foreground="{StaticResource BrushTextSecondary}" Margin="0,1,0,0"/>
+                                                                                                      FontSize="12" Foreground="{StaticResource BrushTextSecondary}" Margin="0,2,0,0"/>
                                                                                         </DataTemplate>
                                                                                     </ItemsControl.ItemTemplate>
                                                                                 </ItemsControl>
@@ -412,7 +412,7 @@ Changes vs VA008 (layout only):
                                 </ItemsControl>
 
                                 <!-- By Type -->
-                                <ItemsControl ItemsSource="{Binding ProfileTypeGroups}" Margin="14,8,14,8"
+                                <ItemsControl ItemsSource="{Binding ProfileTypeGroups}" Margin="16,8,16,8"
                                               Visibility="{Binding GroupElementsByType, Converter={StaticResource BoolToVisibilityConverter}}"
                                               ItemTemplate="{StaticResource TypeGroupTemplate}"/>
                             </Grid>
@@ -424,18 +424,18 @@ Changes vs VA008 (layout only):
                               Background="{StaticResource BrushSurfaceCard}"
                               BorderBrush="{StaticResource BrushBorderDefault}" BorderThickness="1">
                             <Grid>
-                                <ItemsControl ItemsSource="{Binding ElementTree}" Margin="14,8,14,8"
+                                <ItemsControl ItemsSource="{Binding ElementTree}" Margin="16,8,16,8"
                                               Visibility="{Binding GroupElementsByType, Converter={StaticResource InverseBoolToVisibilityConverter}}">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate DataType="{x:Type models:LinkTreeNode}">
-                                            <StackPanel Margin="0,6,0,0" Visibility="{Binding HasVisibleLinearCategories, Converter={StaticResource BoolToVisibilityConverter}}">
+                                            <StackPanel Margin="0,8,0,0" Visibility="{Binding HasVisibleLinearCategories, Converter={StaticResource BoolToVisibilityConverter}}">
                                                 <TextBlock Text="{Binding LinkDisplayName}" FontSize="11" FontWeight="Bold" Foreground="{StaticResource BrushNavyPrimary}"/>
-                                                <ItemsControl ItemsSource="{Binding LinearCategories}" Margin="14,4,0,0">
+                                                <ItemsControl ItemsSource="{Binding LinearCategories}" Margin="16,4,0,0">
                                                     <ItemsControl.ItemTemplate>
                                                         <DataTemplate DataType="{x:Type models:CategoryTreeItem}">
                                                             <StackPanel Margin="0,4,0,0" Visibility="{Binding IsVisible, Converter={StaticResource BoolToVisibilityConverter}}">
                                                                 <StackPanel Orientation="Horizontal">
-                                                                    <TextBlock Text="{Binding CategoryName}" FontSize="12.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                                                    <TextBlock Text="{Binding CategoryName}" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/>
                                                                     <Button Content="Select All" Style="{StaticResource SmallSecondaryButton}" Margin="8,0,0,0"
                                                                             Command="{Binding DataContext.SelectAllInCategoryCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                                             CommandParameter="{Binding}"/>
@@ -443,17 +443,17 @@ Changes vs VA008 (layout only):
                                                                             Command="{Binding DataContext.SelectNoneInCategoryCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                                             CommandParameter="{Binding}"/>
                                                                 </StackPanel>
-                                                                <ItemsControl ItemsSource="{Binding Families}" Margin="20,2,0,0">
+                                                                <ItemsControl ItemsSource="{Binding Families}" Margin="24,2,0,0">
                                                                     <ItemsControl.ItemTemplate>
                                                                         <DataTemplate DataType="{x:Type models:FamilyTreeItem}">
-                                                                            <StackPanel Margin="0,1,0,0" Visibility="{Binding IsVisible, Converter={StaticResource BoolToVisibilityConverter}}">
-                                                                                <CheckBox IsChecked="{Binding IsChecked}" Content="{Binding FamilyName}" FontSize="12.5"/>
-                                                                                <ItemsControl ItemsSource="{Binding Types}" Margin="20,1,0,0">
+                                                                            <StackPanel Margin="0,2,0,0" Visibility="{Binding IsVisible, Converter={StaticResource BoolToVisibilityConverter}}">
+                                                                                <CheckBox IsChecked="{Binding IsChecked}" Content="{Binding FamilyName}" FontSize="13"/>
+                                                                                <ItemsControl ItemsSource="{Binding Types}" Margin="24,2,0,0">
                                                                                     <ItemsControl.ItemTemplate>
                                                                                         <DataTemplate DataType="{x:Type models:TypeTreeItem}">
                                                                                             <CheckBox IsChecked="{Binding IsChecked}" Content="{Binding TypeName}"
                                                                                                       Visibility="{Binding IsVisible, Converter={StaticResource BoolToVisibilityConverter}}"
-                                                                                                      FontSize="12" Foreground="{StaticResource BrushTextSecondary}" Margin="0,1,0,0"/>
+                                                                                                      FontSize="12" Foreground="{StaticResource BrushTextSecondary}" Margin="0,2,0,0"/>
                                                                                         </DataTemplate>
                                                                                     </ItemsControl.ItemTemplate>
                                                                                 </ItemsControl>
@@ -470,7 +470,7 @@ Changes vs VA008 (layout only):
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
 
-                                <ItemsControl ItemsSource="{Binding LinearTypeGroups}" Margin="14,8,14,8"
+                                <ItemsControl ItemsSource="{Binding LinearTypeGroups}" Margin="16,8,16,8"
                                               Visibility="{Binding GroupElementsByType, Converter={StaticResource BoolToVisibilityConverter}}"
                                               ItemTemplate="{StaticResource TypeGroupTemplate}"/>
                             </Grid>
@@ -482,18 +482,18 @@ Changes vs VA008 (layout only):
                               Background="{StaticResource BrushSurfaceCard}"
                               BorderBrush="{StaticResource BrushBorderDefault}" BorderThickness="1">
                             <Grid>
-                                <ItemsControl ItemsSource="{Binding ElementTree}" Margin="14,8,14,8"
+                                <ItemsControl ItemsSource="{Binding ElementTree}" Margin="16,8,16,8"
                                               Visibility="{Binding GroupElementsByType, Converter={StaticResource InverseBoolToVisibilityConverter}}">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate DataType="{x:Type models:LinkTreeNode}">
-                                            <StackPanel Margin="0,6,0,0" Visibility="{Binding HasVisiblePointCategories, Converter={StaticResource BoolToVisibilityConverter}}">
+                                            <StackPanel Margin="0,8,0,0" Visibility="{Binding HasVisiblePointCategories, Converter={StaticResource BoolToVisibilityConverter}}">
                                                 <TextBlock Text="{Binding LinkDisplayName}" FontSize="11" FontWeight="Bold" Foreground="{StaticResource BrushNavyPrimary}"/>
-                                                <ItemsControl ItemsSource="{Binding PointCategories}" Margin="14,4,0,0">
+                                                <ItemsControl ItemsSource="{Binding PointCategories}" Margin="16,4,0,0">
                                                     <ItemsControl.ItemTemplate>
                                                         <DataTemplate DataType="{x:Type models:CategoryTreeItem}">
                                                             <StackPanel Margin="0,4,0,0" Visibility="{Binding IsVisible, Converter={StaticResource BoolToVisibilityConverter}}">
                                                                 <StackPanel Orientation="Horizontal">
-                                                                    <TextBlock Text="{Binding CategoryName}" FontSize="12.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                                                    <TextBlock Text="{Binding CategoryName}" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/>
                                                                     <Button Content="Select All" Style="{StaticResource SmallSecondaryButton}" Margin="8,0,0,0"
                                                                             Command="{Binding DataContext.SelectAllInCategoryCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                                             CommandParameter="{Binding}"/>
@@ -501,17 +501,17 @@ Changes vs VA008 (layout only):
                                                                             Command="{Binding DataContext.SelectNoneInCategoryCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                                             CommandParameter="{Binding}"/>
                                                                 </StackPanel>
-                                                                <ItemsControl ItemsSource="{Binding Families}" Margin="20,2,0,0">
+                                                                <ItemsControl ItemsSource="{Binding Families}" Margin="24,2,0,0">
                                                                     <ItemsControl.ItemTemplate>
                                                                         <DataTemplate DataType="{x:Type models:FamilyTreeItem}">
-                                                                            <StackPanel Margin="0,1,0,0" Visibility="{Binding IsVisible, Converter={StaticResource BoolToVisibilityConverter}}">
-                                                                                <CheckBox IsChecked="{Binding IsChecked}" Content="{Binding FamilyName}" FontSize="12.5"/>
-                                                                                <ItemsControl ItemsSource="{Binding Types}" Margin="20,1,0,0">
+                                                                            <StackPanel Margin="0,2,0,0" Visibility="{Binding IsVisible, Converter={StaticResource BoolToVisibilityConverter}}">
+                                                                                <CheckBox IsChecked="{Binding IsChecked}" Content="{Binding FamilyName}" FontSize="13"/>
+                                                                                <ItemsControl ItemsSource="{Binding Types}" Margin="24,2,0,0">
                                                                                     <ItemsControl.ItemTemplate>
                                                                                         <DataTemplate DataType="{x:Type models:TypeTreeItem}">
                                                                                             <CheckBox IsChecked="{Binding IsChecked}" Content="{Binding TypeName}"
                                                                                                       Visibility="{Binding IsVisible, Converter={StaticResource BoolToVisibilityConverter}}"
-                                                                                                      FontSize="12" Foreground="{StaticResource BrushTextSecondary}" Margin="0,1,0,0"/>
+                                                                                                      FontSize="12" Foreground="{StaticResource BrushTextSecondary}" Margin="0,2,0,0"/>
                                                                                         </DataTemplate>
                                                                                     </ItemsControl.ItemTemplate>
                                                                                 </ItemsControl>
@@ -528,7 +528,7 @@ Changes vs VA008 (layout only):
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
 
-                                <ItemsControl ItemsSource="{Binding PointTypeGroups}" Margin="14,8,14,8"
+                                <ItemsControl ItemsSource="{Binding PointTypeGroups}" Margin="16,8,16,8"
                                               Visibility="{Binding GroupElementsByType, Converter={StaticResource BoolToVisibilityConverter}}"
                                               ItemTemplate="{StaticResource TypeGroupTemplate}"/>
                             </Grid>
@@ -562,17 +562,17 @@ Changes vs VA008 (layout only):
                                  row's own selection. Per-row combos below are disabled (not
                                  overwritten) while this is on. -->
                             <Border Background="{StaticResource BrushSystemSecondaryBackground}" BorderBrush="{StaticResource BrushSeparatorThin}"
-                                    BorderThickness="0,1,0,1" Margin="0,4,0,4" Padding="14,8">
+                                    BorderThickness="0,1,0,1" Margin="0,4,0,4" Padding="16,8">
                                 <StackPanel Orientation="Horizontal">
                                     <ToggleButton Style="{StaticResource AppleToggleButton}" IsChecked="{Binding GlobalOverride.IsEnabled}"/>
                                     <TextBlock Text="Global Override" FontWeight="SemiBold" FontSize="12" Margin="8,0,16,0" VerticalAlignment="Center"
                                                ToolTip="When enabled, forces the Line Style and Color below across ALL enabled mappings, overriding each row's individual selection"/>
-                                    <TextBlock Text="Line Style" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                    <TextBlock Text="Line Style" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,8,0"/>
                                     <ComboBox Style="{StaticResource StandardComboBox}" Width="140" FontSize="12"
                                               IsEnabled="{Binding GlobalOverride.IsEnabled}"
                                               ItemsSource="{Binding AvailableLineStyleNames}"
                                               SelectedItem="{Binding GlobalOverride.LineStyleName}"/>
-                                    <TextBlock Text="Color" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="14,0,6,0"/>
+                                    <TextBlock Text="Color" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="16,0,8,0"/>
                                     <ComboBox Style="{StaticResource StandardComboBox}" Width="120" FontSize="12"
                                               IsEnabled="{Binding GlobalOverride.IsEnabled}"
                                               ItemsSource="{Binding AvailableColorNames}"
@@ -581,7 +581,7 @@ Changes vs VA008 (layout only):
                             </Border>
 
                             <!-- Column headers, aligned to the row Grid below -->
-                            <Grid Margin="14,0,14,2">
+                            <Grid Margin="16,0,16,2">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="110"/>
                                     <ColumnDefinition Width="110"/>
@@ -617,7 +617,7 @@ Changes vs VA008 (layout only):
                                                                 <Expander.Header>
                                                                     <StackPanel Orientation="Horizontal">
                                                                         <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="12" Foreground="{StaticResource BrushNavyPrimary}"/>
-                                                                        <TextBlock Text="{Binding ItemCount, StringFormat=' — {0} mapping(s)'}" FontSize="10.5" Foreground="{StaticResource BrushTextTertiary}" Margin="6,0,0,0"/>
+                                                                        <TextBlock Text="{Binding ItemCount, StringFormat=' — {0} mapping(s)'}" FontSize="11" Foreground="{StaticResource BrushTextTertiary}" Margin="8,0,0,0"/>
                                                                     </StackPanel>
                                                                 </Expander.Header>
                                                                 <ItemsPresenter/>
@@ -631,7 +631,7 @@ Changes vs VA008 (layout only):
                                 </ItemsControl.GroupStyle>
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate DataType="{x:Type models:ElementMapping}">
-                                        <Grid Margin="14,4,14,4">
+                                        <Grid Margin="16,4,16,4">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="110"/>
                                                 <ColumnDefinition Width="110"/>
@@ -676,7 +676,7 @@ Changes vs VA008 (layout only):
                             </ItemsControl>
 
                             <!-- Grand total row -->
-                            <Border Background="{StaticResource BrushSystemSecondaryBackground}" BorderBrush="{StaticResource BrushSeparatorThin}" BorderThickness="0,1,0,0" Padding="14,8">
+                            <Border Background="{StaticResource BrushSystemSecondaryBackground}" BorderBrush="{StaticResource BrushSeparatorThin}" BorderThickness="0,1,0,0" Padding="16,8">
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                                     <TextBlock Text="Total Mappings: " FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource BrushNavyPrimary}" VerticalAlignment="Center"/>
                                     <TextBlock Text="{Binding TotalMappingCount}" FontSize="15" FontWeight="Bold" Foreground="{StaticResource BrushAppleBlue}" VerticalAlignment="Center"/>
@@ -698,8 +698,8 @@ Changes vs VA008 (layout only):
                             <Border Style="{StaticResource ContentCard}" Margin="0,0,0,8">
                                 <StackPanel>
                                     <TextBlock Text="4a. Point Marker — Circle" Style="{StaticResource SectionTitle}"/>
-                                    <StackPanel Orientation="Horizontal" Margin="12,4,12,10">
-                                        <Ellipse Width="20" Height="20" Stroke="{StaticResource BrushAppleBlue}" StrokeThickness="2" Margin="0,0,10,0"/>
+                                    <StackPanel Orientation="Horizontal" Margin="12,4,12,12">
+                                        <Ellipse Width="20" Height="20" Stroke="{StaticResource BrushAppleBlue}" StrokeThickness="2" Margin="0,0,12,0"/>
                                         <TextBlock Text="Diameter" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,4,0"/>
                                         <TextBox Style="{StaticResource BoxedTextInput}" Width="60" MaxLength="10"
                                                  Text="{Binding CircleMarker.DiameterMm}"/>
@@ -712,7 +712,7 @@ Changes vs VA008 (layout only):
                                 <StackPanel>
                                     <TextBlock Text="4b. Point Marker — Rectangle" Style="{StaticResource SectionTitle}"/>
                                     <StackPanel Orientation="Horizontal" Margin="12,4,12,4">
-                                        <Rectangle Width="20" Height="20" Stroke="{StaticResource BrushAppleBlue}" StrokeThickness="2" Margin="0,0,10,0"/>
+                                        <Rectangle Width="20" Height="20" Stroke="{StaticResource BrushAppleBlue}" StrokeThickness="2" Margin="0,0,12,0"/>
                                         <TextBlock Text="W" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,4,0"/>
                                         <TextBox Style="{StaticResource BoxedTextInput}" Width="50" MaxLength="10"
                                                  Text="{Binding RectangleMarker.WidthMm}" Margin="0,0,8,0"/>
@@ -721,7 +721,7 @@ Changes vs VA008 (layout only):
                                                  Text="{Binding RectangleMarker.HeightMm}"/>
                                         <TextBlock Text="mm" Style="{StaticResource UnitLabel}"/>
                                     </StackPanel>
-                                    <StackPanel Orientation="Horizontal" Margin="12,4,12,10">
+                                    <StackPanel Orientation="Horizontal" Margin="12,4,12,12">
                                         <TextBlock Text="Alignment" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,8,0"/>
                                         <ComboBox Style="{StaticResource StandardComboBox}" Width="190"
                                                   SelectedValue="{Binding RectangleMarker.AlignmentMode}"
@@ -738,7 +738,7 @@ Changes vs VA008 (layout only):
                                                 Command="{Binding PickAxisLineCommand}"
                                                 ToolTip="Pick an existing Detail Line in the view — its direction becomes the alignment axis (sets Manual angle)"/>
                                     </StackPanel>
-                                    <StackPanel Orientation="Horizontal" Margin="12,0,12,10"
+                                    <StackPanel Orientation="Horizontal" Margin="12,0,12,12"
                                                 Visibility="{Binding RectangleMarker.IsManualAlignment, Converter={StaticResource BoolToVisibilityConverter}}">
                                         <TextBlock Text="Angle" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,4,0"/>
                                         <TextBox Style="{StaticResource BoxedTextInput}" Width="60" MaxLength="10"
@@ -751,7 +751,7 @@ Changes vs VA008 (layout only):
                             <Border Style="{StaticResource ContentCard}" Margin="0,0,0,8">
                                 <StackPanel>
                                     <TextBlock Text="4c. Actual Profile — Fallback" Style="{StaticResource SectionTitle}"/>
-                                    <StackPanel Orientation="Horizontal" Margin="12,4,12,10">
+                                    <StackPanel Orientation="Horizontal" Margin="12,4,12,12">
                                         <TextBlock Text="If no profile found" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,8,0"/>
                                         <ComboBox Style="{StaticResource StandardComboBox}" Width="190"
                                                   SelectedValue="{Binding ActualProfile.FallbackShape}"
@@ -771,7 +771,7 @@ Changes vs VA008 (layout only):
                                         <ToggleButton Style="{StaticResource AppleToggleButton}" IsChecked="{Binding ComplexCurve.ReplaceWithFallback}"/>
                                         <TextBlock Text="Replace complex curves with simplified shape" FontSize="12" Margin="8,0,0,0" VerticalAlignment="Center"/>
                                     </StackPanel>
-                                    <StackPanel Orientation="Horizontal" Margin="12,2,12,6">
+                                    <StackPanel Orientation="Horizontal" Margin="12,2,12,8">
                                         <TextBlock Text="Fallback shape" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,8,0"/>
                                         <ComboBox Style="{StaticResource StandardComboBox}" Width="150"
                                                   IsEnabled="{Binding ComplexCurve.ReplaceWithFallback}"
@@ -782,7 +782,7 @@ Changes vs VA008 (layout only):
                                         </ComboBox>
                                     </StackPanel>
                                     <TextBlock Text="When unchecked (default), spline/NURBS edges are tessellated and rebuilt as a smooth HermiteSpline. When checked, they are replaced by the selected simplified shape instead."
-                                               Style="{StaticResource HintText}" Margin="12,2,12,10"/>
+                                               Style="{StaticResource HintText}" Margin="12,2,12,12"/>
                                 </StackPanel>
                             </Border>
                         </StackPanel>
@@ -808,19 +808,19 @@ Changes vs VA008 (layout only):
                                     <TextBlock Text="Remove Engulfed Only" FontSize="12" Margin="8,0,0,0" VerticalAlignment="Center" TextWrapping="Wrap"/>
                                 </StackPanel>
                                 <TextBlock Text="Deletes a shorter segment when it is fully engulfed by a longer overlapping segment on the same axis."
-                                           Style="{StaticResource HintText}" Margin="12,0,12,6"/>
+                                           Style="{StaticResource HintText}" Margin="12,0,12,8"/>
                                 <StackPanel Orientation="Horizontal" Style="{StaticResource AppleToggleRow}">
                                     <ToggleButton Style="{StaticResource AppleToggleButton}" IsChecked="{Binding ProcessingScope.MergePartialOverlaps}"/>
                                     <TextBlock Text="Merge Partial Overlaps" FontSize="12" Margin="8,0,0,0" VerticalAlignment="Center" TextWrapping="Wrap"/>
                                 </StackPanel>
                                 <TextBlock Text="Combines two partially-overlapping segments (neither fully contains the other) into one line covering their full combined extent."
-                                           Style="{StaticResource HintText}" Margin="12,0,12,6"/>
+                                           Style="{StaticResource HintText}" Margin="12,0,12,8"/>
                                 <StackPanel Orientation="Horizontal" Style="{StaticResource AppleToggleRow}">
                                     <ToggleButton Style="{StaticResource AppleToggleButton}" IsChecked="{Binding ProcessingScope.JoinCollinearLines}"/>
                                     <TextBlock Text="Join Collinear Lines" FontSize="12" Margin="8,0,0,0" VerticalAlignment="Center" TextWrapping="Wrap"/>
                                 </StackPanel>
                                 <TextBlock Text="Joins adjacent, non-overlapping segments that share an endpoint or fall within tolerance. Also extends/trims non-collinear segments to meet exactly at their true intersection when they fall short by no more than the tolerance."
-                                           Style="{StaticResource HintText}" Margin="12,0,12,6"/>
+                                           Style="{StaticResource HintText}" Margin="12,0,12,8"/>
                                 <StackPanel Orientation="Horizontal" Margin="12,4,12,4">
                                     <TextBlock Text="Alignment tolerance" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,8,0"/>
                                     <TextBox Style="{StaticResource BoxedTextInput}" Width="60" MaxLength="10"
@@ -828,7 +828,7 @@ Changes vs VA008 (layout only):
                                     <TextBlock Text="mm" Style="{StaticResource UnitLabel}"/>
                                 </StackPanel>
                                 <TextBlock Text="Shared by all three options above. Same-source-element only — lines from different elements are never compared."
-                                           Style="{StaticResource HintText}" Margin="12,2,12,10"/>
+                                           Style="{StaticResource HintText}" Margin="12,2,12,12"/>
 
                                 <!-- Output Generation -->
                                 <TextBlock Text="OUTPUT GENERATION" FontSize="11" FontWeight="SemiBold"
@@ -838,7 +838,7 @@ Changes vs VA008 (layout only):
                                     <TextBlock Text="Create Filled Regions for Closed Loops" FontSize="12" Margin="8,0,0,0" VerticalAlignment="Center" TextWrapping="Wrap"/>
                                 </StackPanel>
                                 <TextBlock Text="When a Profile-group outer boundary loop is closed after clipping, also creates a Filled Region covering that loop's area, in addition to its Detail Lines."
-                                           Style="{StaticResource HintText}" Margin="12,0,12,10"/>
+                                           Style="{StaticResource HintText}" Margin="12,0,12,12"/>
 
                                 <!-- Cleanup -->
                                 <TextBlock Text="CLEANUP" FontSize="11" FontWeight="SemiBold"
@@ -848,18 +848,18 @@ Changes vs VA008 (layout only):
                                     <TextBlock Text="Remove Point Markers" FontSize="12" Margin="8,0,0,0" VerticalAlignment="Center" TextWrapping="Wrap"/>
                                 </StackPanel>
                                 <TextBlock Text="Skips creating Circle/Rectangle point markers entirely for this run — Section 2c selections are ignored."
-                                           Style="{StaticResource HintText}" Margin="12,0,12,6"/>
+                                           Style="{StaticResource HintText}" Margin="12,0,12,8"/>
                                 <StackPanel Orientation="Horizontal" Style="{StaticResource AppleToggleRow}">
                                     <ToggleButton Style="{StaticResource AppleToggleButton}" IsChecked="{Binding ProcessingScope.RemoveIsolatedLinesAndPoints}"/>
                                     <TextBlock Text="Remove Isolated Lines &amp; Points" FontSize="12" Margin="8,0,0,0" VerticalAlignment="Center" TextWrapping="Wrap"/>
                                 </StackPanel>
                                 <TextBlock Text="After this run's Detail Lines and markers are created, deletes any with no connected neighbor. Only affects elements created in this run."
-                                           Style="{StaticResource HintText}" Margin="12,0,12,10"/>
+                                           Style="{StaticResource HintText}" Margin="12,0,12,12"/>
 
                                 <!-- Loop Closing (Outer vs Inner, real TabControl) -->
                                 <TextBlock Text="LOOP CLOSING" FontSize="11" FontWeight="SemiBold"
                                            Foreground="{StaticResource BrushTextTertiary}" Margin="12,4,12,4"/>
-                                <TabControl Background="Transparent" BorderThickness="1" BorderBrush="{StaticResource BrushSeparator}" Margin="12,0,12,10">
+                                <TabControl Background="Transparent" BorderThickness="1" BorderBrush="{StaticResource BrushSeparator}" Margin="12,0,12,12">
                                     <TabItem Header="Outer Loops">
                                         <StackPanel Margin="8">
                                             <StackPanel Orientation="Horizontal" Style="{StaticResource AppleToggleRow}">
@@ -894,9 +894,9 @@ Changes vs VA008 (layout only):
                     </Grid>
 
                     <!-- ── Scope meta info line ── -->
-                    <Border Style="{StaticResource ContentCard}" Padding="14,10">
+                    <Border Style="{StaticResource ContentCard}" Padding="16,12">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock FontSize="11.5" Foreground="{StaticResource BrushTextTertiary}">
+                            <TextBlock FontSize="12" Foreground="{StaticResource BrushTextTertiary}">
                                 <Run Text="Current View: " FontWeight="SemiBold" Foreground="{StaticResource BrushTextSecondary}"/>
                                 <Run Text="{Binding CurrentViewName, Mode=OneWay}"/>
                                 <Run Text="   |   Processing: " FontWeight="SemiBold" Foreground="{StaticResource BrushTextSecondary}"/>
@@ -910,22 +910,22 @@ Changes vs VA008 (layout only):
                 </StackPanel>
 
                 <!-- PROCESSING LOG (moved from footer; outside the locked form so Copy still works after a run) -->
-                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="10,8" Margin="0,8,0,0">
+                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="12,8" Margin="0,8,0,0">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <Grid Margin="0,0,0,6">
+                        <Grid Margin="0,0,0,8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Text="Processing Log" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource BrushLogText}" VerticalAlignment="Center"/>
+                            <TextBlock Text="Processing Log" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource BrushLogText}" VerticalAlignment="Center"/>
                             <StackPanel Grid.Column="1" Orientation="Horizontal">
                                 <Button Content="Copy All" Style="{StaticResource DarkGhostButton}" Click="CopyAllLog_Click"/>
-                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Margin="6,0,0,0" Click="CopySelectedLog_Click"/>
-                                <Button Content="Clear" Style="{StaticResource DarkGhostButton}" Margin="6,0,0,0" Command="{Binding ClearLogCommand}"/>
+                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Margin="8,0,0,0" Click="CopySelectedLog_Click"/>
+                                <Button Content="Clear" Style="{StaticResource DarkGhostButton}" Margin="8,0,0,0" Command="{Binding ClearLogCommand}"/>
                             </StackPanel>
                         </Grid>
                         <ListBox Grid.Row="1" x:Name="LogList" ItemsSource="{Binding LogEntries}" MinHeight="110" shell:ShellBehaviors.MaxHeightRatio="0.2" shell:ShellBehaviors.ForwardMouseWheel="True"
@@ -934,18 +934,18 @@ Changes vs VA008 (layout only):
                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                             <ListBox.ItemContainerStyle>
                                 <Style TargetType="ListBoxItem">
-                                    <Setter Property="Padding" Value="0,1"/>
+                                    <Setter Property="Padding" Value="0,2"/>
                                     <Setter Property="Background" Value="Transparent"/>
                                 </Style>
                             </ListBox.ItemContainerStyle>
                             <ListBox.ItemTemplate>
                                                             <DataTemplate>
-                                                                <StackPanel Orientation="Horizontal" Margin="0,1,0,1">
-                                                                    <TextBlock Text="{Binding Time, StringFormat='HH:mm:ss', Mode=OneWay}" FontFamily="Consolas" FontSize="11"
+                                                                <StackPanel Orientation="Horizontal" Margin="0,2,0,2">
+                                                                    <TextBlock Text="{Binding Time, StringFormat='HH:mm:ss', Mode=OneWay}" FontFamily="{DynamicResource MonoFont}" FontSize="11"
                                                                                Foreground="{StaticResource BrushLogTextDim}" Margin="0,0,8,0"/>
-                                                                    <TextBlock Text="{Binding Level, Mode=OneWay}" FontFamily="Consolas" FontSize="11" FontWeight="Bold" Width="60"
+                                                                    <TextBlock Text="{Binding Level, Mode=OneWay}" FontFamily="{DynamicResource MonoFont}" FontSize="11" FontWeight="Bold" Width="60"
                                                                                Foreground="{Binding Level, Converter={StaticResource LogLevelToColorConverter}, Mode=OneWay}"/>
-                                                                    <TextBlock Text="{Binding Message, Mode=OneWay}" FontFamily="Consolas" FontSize="11"
+                                                                    <TextBlock Text="{Binding Message, Mode=OneWay}" FontFamily="{DynamicResource MonoFont}" FontSize="11"
                                                                                Foreground="{StaticResource BrushLogText}" TextWrapping="Wrap"/>
                                                                 </StackPanel>
                                                             </DataTemplate>
@@ -965,7 +965,7 @@ Changes vs VA008 (layout only):
                 </Grid.ColumnDefinitions>
 
                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Ellipse Width="7" Height="7" VerticalAlignment="Center" Margin="0,0,6,0">
+                    <Ellipse Width="7" Height="7" VerticalAlignment="Center" Margin="0,0,8,0">
                         <Ellipse.Style>
                             <Style TargetType="Ellipse">
                                 <Setter Property="Fill" Value="{StaticResource BrushStatusOk}"/>
@@ -1002,7 +1002,7 @@ Changes vs VA008 (layout only):
                     <Button Content="Reset / New Session" Style="{StaticResource PrimaryButton}" Margin="0,0,8,0"
                             Command="{Binding ResetSessionCommand}"
                             Visibility="{Binding IsFormLocked, Converter={StaticResource BoolToVisibilityConverter}}"/>
-                    <Button Content="Close" Style="{StaticResource SecondaryButton}"
+                    <Button IsCancel="True" Content="Close" Style="{StaticResource SecondaryButton}"
                             Click="CloseButton_Click"/>
                 </StackPanel>
             </Grid>

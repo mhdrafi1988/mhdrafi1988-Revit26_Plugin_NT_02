@@ -1,0 +1,127 @@
+<title>Manage Tools Windows</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<!-- UI preview (CLAUDE.md "UI previews") for the Manage tools, plugin 6.40.2 (spacing standard):
+       Annotation Overlap Detection AnnotationOverlapDetection_V004 (4.1.2)
+       Bulk Rename BulkRename_V001 (1.1.2)
+       Delete Line Styles DeleteLineStyles_V001 (1.2.1)
+       Link Memory LinkMemory_V002 (2.0.1)
+       Link Version Checker LinkVersionChecker_V007 (7.1.2)
+       ParaManager ParaManager_V005 (5.1.2)
+       Schedule Export / Import ScheduleExportImport_V007 (7.1.2)
+       Shared Parameter Studio SharedParamStudio_V001 (1.0.2)
+       Tracker ID TrackerId_V002 (2.0.1)
+       Delete Workset DeleteWorkset_V001 (1.2.1)
+       Workset Creator WorksetCreator_V016 (16.1.2)
+       Workset Manager WorksetManager_V014 (14.1.2)
+       Workset Memory WorksetMemory_V001 (1.0.1)
+       Workset Renamer WorksetRenamer_V005 (5.1.2)
+       Workset Renamer (From Excel) WorksetRenamer_FX05 (5.1.2)
+       Worksets & Elements Browser WorksetsElementsBrowser_WSEB004 (4.3.1)
+     Shows the Bulk Rename window as the example (all sixteen tools, nineteen windows, got the same change).
+     Real windows: Menu/Manage/**/*.xaml (highest wired version of each tool);
+                   Shared/Controls/ToolWindowShellTemplate.xaml; tokens in Shared/SharedStyles.xaml (v4.1).
+     Artifact: https://claude.ai/artifact/WYv5XDE9deqh8zSNBeLk6w (republish to this URL on every update)
+     Colours are the Shared/SharedStyles.xaml tokens. One light look on purpose: it mirrors the light
+     WPF windows in Revit. The window sits in its own horizontal scroll box (.frame). Sample data only. -->
+<style>
+:root{
+  color-scheme:light;
+  --page:#E9EDF1; --win:#F3F5F7; --card:#FFFFFF; --border:#D6DCE3; --input:#B5C2CF;
+  --navy:#1E3A5F; --navy-light:#2C4A6E; --text:#1A2B3C; --text2:#5B7185; --on-dark:#FFFFFF;
+  --ok:#2E7D4F; --ok-soft:#E6F4EC; --ok-border:#9FCFB2; --info:#1F5FBF;
+  --font:"Segoe UI",system-ui,-apple-system,sans-serif; --mono:Consolas,"Courier New",monospace;
+}
+*{box-sizing:border-box}
+body{background:var(--page);color:var(--text);font-family:var(--font);font-size:14px;line-height:1.5;
+  margin:0;padding-block:24px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:860px;margin:0 auto;display:grid;gap:24px}
+h1{font-size:20px;margin:0 0 4px}
+h2{font-size:15px;margin:0 0 8px}
+p{margin:0}
+.sub{color:var(--text2)}
+.tag{display:inline-block;background:var(--ok-soft);color:var(--ok);border:1px solid var(--ok-border);border-radius:12px;padding:2px 8px;font-size:11px;font-weight:600;vertical-align:middle}
+.frame{overflow-x:auto;border:1px solid var(--border);border-radius:8px;background:var(--card)}
+.win{width:560px;margin:0 auto;background:var(--win);font-size:12px}
+.hdr{background:var(--navy);color:var(--on-dark);padding:12px 16px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.hdr b{font-size:18px;font-weight:600}
+.ver{background:var(--navy-light);border-radius:12px;padding:4px 8px;font-size:11px;font-weight:600}
+.body{padding:8px 12px;display:grid;gap:12px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px;display:grid;gap:8px}
+.card h3{margin:0;font-size:14px}
+.row{display:flex;align-items:center;gap:8px}
+.in{border:1px solid var(--input);border-radius:4px;background:#fff;height:28px;padding:4px 8px;min-width:56px;display:inline-flex;align-items:center}
+table{border-collapse:collapse;width:100%;font-size:12px}
+th,td{padding:4px 8px;text-align:left;border-bottom:1px solid var(--border)}
+th{background:var(--win);font-weight:600}
+.ftr{border-top:1px solid var(--border);padding:8px 12px;display:flex;gap:8px;justify-content:space-between;align-items:center}
+.btn{height:32px;padding:0 12px;border-radius:4px;border:1px solid var(--input);background:#fff;display:inline-flex;align-items:center;font-size:12px}
+.btn.p{background:var(--navy);color:#fff;border-color:var(--navy)}
+.legend{display:flex;flex-wrap:wrap;gap:8px}
+.chip{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:4px 8px;font-family:var(--mono);font-size:12px}
+.tools{overflow-x:auto}
+.tools table{background:var(--card);border:1px solid var(--border);border-radius:8px;min-width:480px}
+.tools td:last-child,.tools th:last-child{font-family:var(--mono)}
+</style>
+<main>
+  <header>
+    <h1>Manage tools windows <span class="tag">Spacing standard</span></h1>
+    <p class="sub">Plugin 6.40.2. Mock-up with sample data. Bulk Rename 1.1.2 is shown; the other fifteen tools got the same change.</p>
+  </header>
+
+  <section>
+    <h2>Bulk Rename <span class="tag">changed</span></h2>
+    <div class="frame"><div class="win">
+      <div class="hdr"><b>Bulk Rename</b><span class="ver">V001 · 1.1.2</span></div>
+      <div class="body">
+        <div class="card">
+          <h3>Find</h3>
+          <div class="row"><span class="in" style="min-width:160px">Wall-</span><span>☐ Match case</span><span>☐ Regex</span></div>
+          <div class="row"><span class="btn">UPPER</span><span class="btn">lower</span><span class="btn">Title Case</span><span class="btn">Clean spaces</span></div>
+        </div>
+        <div class="card">
+          <h3>Items</h3>
+          <table>
+            <tr><th>☑</th><th>Current Name</th><th>New Name</th><th>Status</th></tr>
+            <tr><td>☑</td><td>Wall-Ext 200</td><td>Ext 200</td><td>Ready</td></tr>
+            <tr><td>☑</td><td>Wall-Int 100</td><td>Int 100</td><td>Ready</td></tr>
+            <tr><td>☐</td><td>Floor Slab</td><td>Floor Slab</td><td>Unchanged</td></tr>
+          </table>
+        </div>
+      </div>
+      <div class="ftr"><span class="sub">2 of 3 items selected</span><span class="row"><span class="btn p">Apply</span><span class="btn">Close</span></span></div>
+    </div></div>
+  </section>
+
+  <section>
+    <h2>Spacing used <span class="tag">new</span></h2>
+    <div class="legend">
+      <span class="chip">gap 4</span><span class="chip">gap 8</span><span class="chip">card padding 12</span>
+      <span class="chip">section gap 12</span><span class="chip">header 16</span>
+      <span class="chip">input 28 · padding 8,4</span><span class="chip">button 32 · padding 12,0</span>
+      <span class="chip">fonts 10 / 11 / 12 / 13</span>
+    </div>
+  </section>
+
+  <section class="tools">
+    <h2>Tools covered</h2>
+    <table>
+      <tr><th>Tool</th><th>Folder</th><th>Version</th></tr>
+      <tr><td>Annotation Overlap Detection</td><td>AnnotationOverlapDetection_V004</td><td>4.1.2</td></tr>
+      <tr><td>Bulk Rename</td><td>BulkRename_V001</td><td>1.1.2</td></tr>
+      <tr><td>Delete Line Styles</td><td>DeleteLineStyles_V001</td><td>1.2.1</td></tr>
+      <tr><td>Link Memory</td><td>LinkMemory_V002</td><td>2.0.1</td></tr>
+      <tr><td>Link Version Checker</td><td>LinkVersionChecker_V007</td><td>7.1.2</td></tr>
+      <tr><td>ParaManager</td><td>ParaManager_V005</td><td>5.1.2</td></tr>
+      <tr><td>Schedule Export / Import</td><td>ScheduleExportImport_V007</td><td>7.1.2</td></tr>
+      <tr><td>Shared Parameter Studio</td><td>SharedParamStudio_V001</td><td>1.0.2</td></tr>
+      <tr><td>Tracker ID</td><td>TrackerId_V002</td><td>2.0.1</td></tr>
+      <tr><td>Delete Workset</td><td>DeleteWorkset_V001</td><td>1.2.1</td></tr>
+      <tr><td>Workset Creator</td><td>WorksetCreator_V016</td><td>16.1.2</td></tr>
+      <tr><td>Workset Manager</td><td>WorksetManager_V014</td><td>14.1.2</td></tr>
+      <tr><td>Workset Memory</td><td>WorksetMemory_V001</td><td>1.0.1</td></tr>
+      <tr><td>Workset Renamer</td><td>WorksetRenamer_V005</td><td>5.1.2</td></tr>
+      <tr><td>Workset Renamer (From Excel)</td><td>WorksetRenamer_FX05</td><td>5.1.2</td></tr>
+      <tr><td>Worksets & Elements Browser</td><td>WorksetsElementsBrowser_WSEB004</td><td>4.3.1</td></tr>
+    </table>
+  </section>
+</main>

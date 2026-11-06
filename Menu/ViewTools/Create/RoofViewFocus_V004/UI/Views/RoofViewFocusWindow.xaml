@@ -51,7 +51,7 @@ Changes vs V003 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
         <!-- ═══ HEADER ═══════════════════════════════════════════ -->
         <shell:ToolWindowShell.HeaderContent>
             <UniformGrid Columns="4" Margin="-3,0,-3,8">
-                <Border Style="{StaticResource MetricCard}" Margin="3,0" Padding="10,10">
+                <Border Style="{StaticResource MetricCard}" Margin="4,0" Padding="12,12">
                     <StackPanel>
                         <TextBlock Style="{StaticResource MetricLabel}" Text="Roofs Selected"/>
                         <Grid Height="28">
@@ -62,7 +62,7 @@ Changes vs V003 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                     </StackPanel>
                 </Border>
 
-                <Border Style="{StaticResource MetricCard}" Margin="3,0" Padding="10,10">
+                <Border Style="{StaticResource MetricCard}" Margin="4,0" Padding="12,12">
                     <StackPanel>
                         <TextBlock Style="{StaticResource MetricLabel}" Text="Bounding Box"/>
                         <Grid Height="28">
@@ -75,7 +75,7 @@ Changes vs V003 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                     </StackPanel>
                 </Border>
 
-                <Border Style="{StaticResource MetricCard}" Margin="3,0" Padding="10,10">
+                <Border Style="{StaticResource MetricCard}" Margin="4,0" Padding="12,12">
                     <StackPanel>
                         <TextBlock Style="{StaticResource MetricLabel}" Text="Margin Applied"/>
                         <Grid Height="28">
@@ -86,7 +86,7 @@ Changes vs V003 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                     </StackPanel>
                 </Border>
 
-                <Border Style="{StaticResource MetricCard}" Margin="3,0" Padding="10,10">
+                <Border Style="{StaticResource MetricCard}" Margin="4,0" Padding="12,12">
                     <StackPanel>
                         <TextBlock Style="{StaticResource MetricLabel}" Text="View"/>
                         <Grid Height="28">
@@ -107,7 +107,7 @@ Changes vs V003 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                 <Border Style="{StaticResource ContentCard}">
                     <StackPanel>
                         <TextBlock Style="{StaticResource SectionTitle}" Text="Target"/>
-                        <Grid Margin="12,0,12,10">
+                        <Grid Margin="12,0,12,12">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="90"/>
                                 <ColumnDefinition Width="*"/>
@@ -119,11 +119,11 @@ Changes vs V003 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                             </Grid.RowDefinitions>
 
                             <TextBlock Grid.Row="0" Grid.Column="0" Style="{StaticResource FieldLabel}" Margin="0,4" Text="Active View"/>
-                            <TextBlock Grid.Row="0" Grid.Column="1" Style="{StaticResource FieldValue}" FontSize="12.5" Margin="0,3"
+                            <TextBlock Grid.Row="0" Grid.Column="1" Style="{StaticResource FieldValue}" FontSize="13" Margin="0,4"
                                        TextTrimming="CharacterEllipsis" Text="{Binding ViewDisplay, Mode=OneWay}"/>
 
                             <TextBlock Grid.Row="1" Grid.Column="0" Style="{StaticResource FieldLabel}" Margin="0,4" Text="Scope Box"/>
-                            <TextBlock Grid.Row="1" Grid.Column="1" Style="{StaticResource FieldValue}" FontSize="12.5" Margin="0,3"
+                            <TextBlock Grid.Row="1" Grid.Column="1" Style="{StaticResource FieldValue}" FontSize="13" Margin="0,4"
                                        TextTrimming="CharacterEllipsis" Text="{Binding ScopeBoxText, Mode=OneWay}"/>
 
                             <TextBlock Grid.Row="2" Grid.Column="0" Style="{StaticResource FieldLabel}" Margin="0,4" Text="Roofs"/>
@@ -135,9 +135,9 @@ Changes vs V003 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                                 <ColumnDefinition Width="80"/>
                                                 <ColumnDefinition Width="*"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Grid.Column="0" Style="{StaticResource FieldValue}" FontSize="12.5"
+                                            <TextBlock Grid.Column="0" Style="{StaticResource FieldValue}" FontSize="13"
                                                        Foreground="{StaticResource BrushAppleBlue}" Text="{Binding Id, Mode=OneWay}"/>
-                                            <TextBlock Grid.Column="1" Style="{StaticResource FieldValue}" FontSize="12.5"
+                                            <TextBlock Grid.Column="1" Style="{StaticResource FieldValue}" FontSize="13"
                                                        TextTrimming="CharacterEllipsis" Text="{Binding Description, Mode=OneWay}"/>
                                         </Grid>
                                     </DataTemplate>
@@ -162,23 +162,23 @@ Changes vs V003 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
 
-                            <TextBlock Grid.Row="0" Grid.Column="0" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,3" Text="View Crop Margin"/>
-                            <TextBox Grid.Row="0" Grid.Column="1" Style="{StaticResource BoxedTextInput}" Margin="0,3"
-                                     MaxLength="10" TextAlignment="Right" Padding="6,2"
+                            <TextBlock Grid.Row="0" Grid.Column="0" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,4" Text="View Crop Margin"/>
+                            <TextBox Grid.Row="0" Grid.Column="1" Style="{StaticResource BoxedTextInput}" Margin="0,4"
+                                     MaxLength="10" TextAlignment="Right" Padding="8,2"
                                      IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBoolConverter}}"
                                      Text="{Binding ViewMarginText, UpdateSourceTrigger=PropertyChanged}"/>
-                            <TextBlock Grid.Row="0" Grid.Column="2" Style="{StaticResource UnitLabel}" Margin="6,0,0,0" Text="mm"/>
+                            <TextBlock Grid.Row="0" Grid.Column="2" Style="{StaticResource UnitLabel}" Margin="8,0,0,0" Text="mm"/>
 
-                            <TextBlock Grid.Row="1" Grid.Column="0" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,3" Text="Annotation Crop Margin"/>
-                            <TextBox Grid.Row="1" Grid.Column="1" Style="{StaticResource BoxedTextInput}" Margin="0,3"
-                                     MaxLength="10" TextAlignment="Right" Padding="6,2"
+                            <TextBlock Grid.Row="1" Grid.Column="0" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,4" Text="Annotation Crop Margin"/>
+                            <TextBox Grid.Row="1" Grid.Column="1" Style="{StaticResource BoxedTextInput}" Margin="0,4"
+                                     MaxLength="10" TextAlignment="Right" Padding="8,2"
                                      IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBoolConverter}}"
                                      Text="{Binding AnnotationMarginText, UpdateSourceTrigger=PropertyChanged}"/>
-                            <TextBlock Grid.Row="1" Grid.Column="2" Style="{StaticResource UnitLabel}" Margin="6,0,0,0" Text="mm"/>
+                            <TextBlock Grid.Row="1" Grid.Column="2" Style="{StaticResource UnitLabel}" Margin="8,0,0,0" Text="mm"/>
 
-                            <TextBlock Grid.Row="2" Grid.Column="0" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,3" Text="Default Offset"/>
-                            <TextBlock Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Style="{StaticResource FieldValue}" FontSize="12.5"
-                                       HorizontalAlignment="Right" Margin="0,3" Text="{Binding DefaultOffsetText, Mode=OneWay}"/>
+                            <TextBlock Grid.Row="2" Grid.Column="0" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,4" Text="Default Offset"/>
+                            <TextBlock Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Style="{StaticResource FieldValue}" FontSize="13"
+                                       HorizontalAlignment="Right" Margin="0,4" Text="{Binding DefaultOffsetText, Mode=OneWay}"/>
                         </Grid>
 
                         <TextBlock Style="{StaticResource HintText}" Margin="12,0,12,2"
@@ -198,19 +198,19 @@ Changes vs V003 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
 
-                        <Border Grid.Row="0" Background="{StaticResource BrushLogTitleBar}" CornerRadius="10,10,0,0" Padding="10,6">
+                        <Border Grid.Row="0" Background="{StaticResource BrushLogTitleBar}" CornerRadius="10,10,0,0" Padding="12,8">
                             <DockPanel LastChildFill="False">
                                 <TextBlock DockPanel.Dock="Left" Text="Log" FontSize="12" FontWeight="SemiBold"
                                            Foreground="{StaticResource BrushLogText}" VerticalAlignment="Center"/>
                                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                                    <Button Style="{StaticResource DarkGhostButton}" Margin="6,0,0,0" Content="Copy All"
+                                    <Button Style="{StaticResource DarkGhostButton}" Margin="8,0,0,0" Content="Copy All"
                                             Command="{Binding CopyAllCommand}"/>
-                                    <Button Style="{StaticResource DarkGhostButton}" Margin="6,0,0,0" Content="Copy Selected"
+                                    <Button Style="{StaticResource DarkGhostButton}" Margin="8,0,0,0" Content="Copy Selected"
                                             Command="{Binding CopySelectedCommand}"
                                             CommandParameter="{Binding SelectedItems, ElementName=LogList}"/>
-                                    <Button Style="{StaticResource DarkGhostButton}" Margin="6,0,0,0" Content="Export"
+                                    <Button Style="{StaticResource DarkGhostButton}" Margin="8,0,0,0" Content="Export"
                                             Command="{Binding ExportLogCommand}"/>
-                                    <Button Style="{StaticResource DarkGhostButton}" Margin="6,0,0,0" Content="Clear"
+                                    <Button Style="{StaticResource DarkGhostButton}" Margin="8,0,0,0" Content="Clear"
                                             Command="{Binding ClearLogCommand}"/>
                                 </StackPanel>
                             </DockPanel>
@@ -221,7 +221,7 @@ Changes vs V003 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                  shell:ShellBehaviors.ForwardMouseWheel="True"
                                  SelectionMode="Extended" Margin="4"
                                  Background="Transparent" BorderThickness="0"
-                                 FontFamily="Consolas" FontSize="11.5"
+                                 FontFamily="{DynamicResource MonoFont}" FontSize="12"
                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                                  VirtualizingPanel.IsVirtualizing="True"
                                  VirtualizingPanel.VirtualizationMode="Recycling">

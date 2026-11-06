@@ -39,19 +39,19 @@ Previous: three-zone layout on SharedStyles (vs the "_WOrking" build).
         <!-- ═══ HEADER ═══ -->
         <shell:ToolWindowShell.HeaderContent>
             <UniformGrid Columns="3">
-                <Border Style="{StaticResource MetricCard}" Margin="0,0,4,0" Padding="10,8">
+                <Border Style="{StaticResource MetricCard}" Margin="0,0,4,0" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="Total Families" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding TotalFamilies}" Style="{StaticResource MetricNumber}" FontSize="18"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="10,8">
+                <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="Processed" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding ProcessedCount}" Style="{StaticResource MetricNumberSuccess}" FontSize="18"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricCard}" Margin="4,0,0,0" Padding="10,8">
+                <Border Style="{StaticResource MetricCard}" Margin="4,0,0,0" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="Failures" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding FailedCount}" Style="{StaticResource MetricNumberDanger}" FontSize="18"/>
@@ -65,53 +65,53 @@ Previous: three-zone layout on SharedStyles (vs the "_WOrking" build).
             <StackPanel>
                 <Border Style="{StaticResource ContentCard}" Padding="12" Margin="0">
                     <StackPanel>
-                        <TextBlock Text="Revit Family Folder" Style="{StaticResource SectionTitle}" Margin="0,0,0,6"/>
+                        <TextBlock Text="Revit Family Folder" Style="{StaticResource SectionTitle}" Margin="0,0,0,8"/>
                         <DockPanel Margin="0,0,0,12">
                             <Button DockPanel.Dock="Right" Content="Browse" Width="90" Style="{StaticResource SecondaryButton}"
                                     Command="{Binding BrowseFamilyFolderCommand}"/>
                             <TextBox Text="{Binding FamilyFolderPath, UpdateSourceTrigger=PropertyChanged}"
                                      Style="{StaticResource BoxedTextInput}"
                                      ToolTip="Paste or type full folder path"
-                                     VerticalContentAlignment="Center" Margin="0,0,6,0"/>
+                                     VerticalContentAlignment="Center" Margin="0,0,8,0"/>
                         </DockPanel>
 
-                        <TextBlock Text="AutoCAD DWG Folder" Style="{StaticResource SectionTitle}" Margin="0,0,0,6"/>
+                        <TextBlock Text="AutoCAD DWG Folder" Style="{StaticResource SectionTitle}" Margin="0,0,0,8"/>
                         <DockPanel Margin="0,0,0,12">
                             <Button DockPanel.Dock="Right" Content="Browse" Width="90" Style="{StaticResource SecondaryButton}"
                                     Command="{Binding BrowseDwgFolderCommand}"/>
                             <TextBox Text="{Binding DwgFolderPath, UpdateSourceTrigger=PropertyChanged}"
                                      Style="{StaticResource BoxedTextInput}"
                                      ToolTip="Paste or type full folder path"
-                                     VerticalContentAlignment="Center" Margin="0,0,6,0"/>
+                                     VerticalContentAlignment="Center" Margin="0,0,8,0"/>
                         </DockPanel>
 
-                        <TextBlock Text="DWG Placement Mode" Style="{StaticResource SectionTitle}" Margin="0,0,0,6"/>
+                        <TextBlock Text="DWG Placement Mode" Style="{StaticResource SectionTitle}" Margin="0,0,0,8"/>
                         <StackPanel Orientation="Horizontal">
-                            <RadioButton Content="Origin to Origin" IsChecked="{Binding IsOriginToOrigin}" Margin="0,4,20,4"/>
+                            <RadioButton Content="Origin to Origin" IsChecked="{Binding IsOriginToOrigin}" Margin="0,4,24,4"/>
                             <RadioButton Content="Center to Center" IsChecked="{Binding IsCenterToCenter}" Margin="0,4"/>
                         </StackPanel>
                     </StackPanel>
                 </Border>
 
                 <!-- Live log -->
-                <Border Background="{StaticResource BrushLogBg}" CornerRadius="4" Padding="10,8" Margin="0,8,0,0">
+                <Border Background="{StaticResource BrushLogBg}" CornerRadius="4" Padding="12,8" Margin="0,8,0,0">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <Grid Margin="0,0,0,6">
+                        <Grid Margin="0,0,0,8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <ToggleButton x:Name="LogToggle" Style="{StaticResource LogHeaderToggle}" VerticalAlignment="Center" ToolTip="Show / hide the log">
                                 <TextBlock Text="Live Processing Log" Foreground="{StaticResource BrushLogText}"
-                                           FontSize="11.5" FontWeight="SemiBold"/>
+                                           FontSize="12" FontWeight="SemiBold"/>
                             </ToggleButton>
                             <StackPanel Grid.Column="1" Orientation="Horizontal">
                                 <Button Content="Copy All" Style="{StaticResource DarkGhostButton}" Click="CopyAllLog_Click"/>
-                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Click="CopySelectedLog_Click" Margin="6,0,0,0"/>
+                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Click="CopySelectedLog_Click" Margin="8,0,0,0"/>
                             </StackPanel>
                         </Grid>
                         <TextBox Visibility="{Binding IsChecked, ElementName=LogToggle, Converter={StaticResource LogToggleVisibility}}" Grid.Row="1" x:Name="LiveLogBox" Text="{Binding LiveLog}" Height="120"
@@ -120,7 +120,7 @@ Previous: three-zone layout on SharedStyles (vs the "_WOrking" build).
                                  Background="Transparent" BorderThickness="0"
                                  Foreground="{StaticResource BrushLogText}"
                                  VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
-                                 FontFamily="Consolas" FontSize="11"/>
+                                 FontFamily="{DynamicResource MonoFont}" FontSize="11"/>
                     </Grid>
                 </Border>
             </StackPanel>
@@ -140,7 +140,7 @@ Previous: three-zone layout on SharedStyles (vs the "_WOrking" build).
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
                     <Button Content="Start Batch" Style="{StaticResource RunButton}" Margin="0,0,8,0"
                             Command="{Binding StartBatchCommand}" IsEnabled="{Binding CanStart}"/>
-                    <Button Content="Close" Style="{StaticResource OutlineButton}" Width="90" Command="{Binding CloseCommand}"/>
+                    <Button IsCancel="True" Content="Close" Style="{StaticResource OutlineButton}" Width="90" Command="{Binding CloseCommand}"/>
                 </StackPanel>
             </Grid>
         </shell:ToolWindowShell.FooterContent>

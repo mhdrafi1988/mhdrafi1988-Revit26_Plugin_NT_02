@@ -56,7 +56,7 @@ Changes vs V003 (layout only):
         <shell:ToolWindowShell.HeaderContent>
             <!-- SELECTION SUMMARY (compact, single row) -->
             <Border Style="{StaticResource ContentCard}" Margin="0,2,0,0">
-                <Grid Margin="12,7">
+                <Grid Margin="12,8">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="14"/>
@@ -71,7 +71,7 @@ Changes vs V003 (layout only):
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
 
-                    <TextBlock Grid.Column="0" Text="Selection Summary" FontSize="11.5" FontWeight="Bold"
+                    <TextBlock Grid.Column="0" Text="Selection Summary" FontSize="12" FontWeight="Bold"
                                Foreground="{StaticResource BrushNavyPrimary}" VerticalAlignment="Center"/>
 
                     <Border Grid.Column="2" Background="{StaticResource BrushSystemSecondaryBackground}" CornerRadius="6" Padding="8,4">
@@ -121,9 +121,9 @@ Changes vs V003 (layout only):
                     <Expander Header="1. Roofs" IsExpanded="True" Margin="0,0,0,8"
                               Background="{StaticResource BrushSurfaceCard}"
                               BorderBrush="{StaticResource BrushBorderDefault}" BorderThickness="1">
-                        <StackPanel Margin="12,6,12,10">
+                        <StackPanel Margin="12,8,12,12">
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                                <Button Content="Pick Roofs" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,6,0"
+                                <Button Content="Pick Roofs" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,8,0"
                                         Command="{Binding PickRoofsCommand}"
                                         ToolTip="Interactively pick one or more roof elements in the model. The window hides while picking."/>
                                 <Button Content="Clear Roofs" Style="{StaticResource SmallSecondaryButton}"
@@ -134,13 +134,13 @@ Changes vs V003 (layout only):
                             <ItemsControl ItemsSource="{Binding SelectedRoofs}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate DataType="{x:Type local:SelectedRoofItem}">
-                                        <Border BorderBrush="{StaticResource BrushSeparatorThin}" BorderThickness="0,1,0,0" Padding="6,7">
+                                        <Border BorderBrush="{StaticResource BrushSeparatorThin}" BorderThickness="0,1,0,0" Padding="8,8">
                                             <Grid>
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="*"/>
                                                     <ColumnDefinition Width="Auto"/>
                                                 </Grid.ColumnDefinitions>
-                                                <TextBlock Grid.Column="0" Text="{Binding DisplayName}" FontSize="12.5" VerticalAlignment="Center"/>
+                                                <TextBlock Grid.Column="0" Text="{Binding DisplayName}" FontSize="13" VerticalAlignment="Center"/>
                                                 <Button Grid.Column="1" Content="Remove" Style="{StaticResource SmallSecondaryButton}"
                                                         Command="{Binding RemoveCommand}"/>
                                             </Grid>
@@ -149,7 +149,7 @@ Changes vs V003 (layout only):
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
 
-                            <TextBlock Text="No roofs picked yet." Style="{StaticResource HintText}" Margin="0,6,0,0"/>
+                            <TextBlock Text="No roofs picked yet." Style="{StaticResource HintText}" Margin="0,8,0,0"/>
                         </StackPanel>
                     </Expander>
 
@@ -158,11 +158,11 @@ Changes vs V003 (layout only):
                               Background="{StaticResource BrushSurfaceCard}"
                               BorderBrush="{StaticResource BrushBorderDefault}" BorderThickness="1">
                         <StackPanel Margin="0,4,0,4">
-                            <TextBlock Text="Linked Models" FontSize="11" FontWeight="Bold" Foreground="{StaticResource BrushNavyPrimary}" Margin="14,6,14,2"/>
+                            <TextBlock Text="Linked Models" FontSize="11" FontWeight="Bold" Foreground="{StaticResource BrushNavyPrimary}" Margin="16,8,16,2"/>
                             <ItemsControl ItemsSource="{Binding LinkedModels}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate DataType="{x:Type local:LinkedModelItem}">
-                                        <Border BorderBrush="{StaticResource BrushSeparatorThin}" BorderThickness="0,1,0,0" Padding="14,8">
+                                        <Border BorderBrush="{StaticResource BrushSeparatorThin}" BorderThickness="0,1,0,0" Padding="16,8">
                                             <Grid>
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="Auto"/>
@@ -170,10 +170,10 @@ Changes vs V003 (layout only):
                                                     <ColumnDefinition Width="Auto"/>
                                                 </Grid.ColumnDefinitions>
                                                 <CheckBox Grid.Column="0" IsChecked="{Binding IsSelected}" IsEnabled="{Binding IsLoaded}"
-                                                          VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                                          VerticalAlignment="Center" Margin="0,0,12,0"/>
                                                 <StackPanel Grid.Column="1">
-                                                    <TextBlock Text="{Binding DocumentTitle}" FontSize="12.5" FontWeight="SemiBold" Foreground="{StaticResource BrushTextPrimary}"/>
-                                                    <TextBlock FontSize="11" Foreground="{StaticResource BrushTextSecondary}" Margin="0,1,0,0">
+                                                    <TextBlock Text="{Binding DocumentTitle}" FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource BrushTextPrimary}"/>
+                                                    <TextBlock FontSize="11" Foreground="{StaticResource BrushTextSecondary}" Margin="0,2,0,0">
                                                         <Run Text="Instance: "/><Run Text="{Binding InstanceName, Mode=OneWay}"/>
                                                     </TextBlock>
                                                 </StackPanel>
@@ -199,11 +199,11 @@ Changes vs V003 (layout only):
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
 
-                            <Expander Header="Elements to Match" IsExpanded="False" Margin="14,10,14,4"
+                            <Expander Header="Elements to Match" IsExpanded="False" Margin="16,12,16,4"
                                       Background="{StaticResource BrushSystemSecondaryBackground}"
                                       BorderBrush="{StaticResource BrushSeparator}" BorderThickness="1">
-                                <StackPanel Margin="8,6,8,8">
-                                    <Grid Margin="0,4,0,6">
+                                <StackPanel Margin="8,8,8,8">
+                                    <Grid Margin="0,4,0,8">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="10"/>
@@ -237,7 +237,7 @@ Changes vs V003 (layout only):
                                                                 <TextBlock Grid.Column="0" Text="{Binding CategoryFilterSummaryText, RelativeSource={RelativeSource AncestorType=Window}}"
                                                                            FontSize="12" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                                                                 <Path Grid.Column="1" Data="M 0 0 L 4 5 L 8 0" Stroke="{StaticResource BrushTextSecondary}"
-                                                                      StrokeThickness="1.4" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                                                                      StrokeThickness="1.4" VerticalAlignment="Center" Margin="8,0,0,0"/>
                                                             </Grid>
                                                         </Border>
                                                     </ControlTemplate>
@@ -254,7 +254,7 @@ Changes vs V003 (layout only):
                                                         <DropShadowEffect ShadowDepth="2" BlurRadius="10" Opacity="0.22" Color="{StaticResource NavyDark}"/>
                                                     </Border.Effect>
                                                     <StackPanel>
-                                                        <TextBox Style="{StaticResource BoxedTextInput}" Margin="0,0,0,6"
+                                                        <TextBox Style="{StaticResource BoxedTextInput}" Margin="0,0,0,8"
                                                                  Text="{Binding CategoryFilterSearchText, UpdateSourceTrigger=PropertyChanged}"
                                                                  ToolTip="Type to narrow this category list."/>
 
@@ -263,14 +263,14 @@ Changes vs V003 (layout only):
                                                                 <ItemsControl.ItemTemplate>
                                                                     <DataTemplate DataType="{x:Type local:CategoryFilterOption}">
                                                                         <CheckBox IsChecked="{Binding IsChecked}" Content="{Binding CategoryName}"
-                                                                                  FontSize="12.5" Padding="4,3" Margin="0,1,0,0"/>
+                                                                                  FontSize="13" Padding="4,4" Margin="0,2,0,0"/>
                                                                     </DataTemplate>
                                                                 </ItemsControl.ItemTemplate>
                                                             </ItemsControl>
                                                         </ScrollViewer>
 
                                                         <Button Content="Clear Filter" Style="{StaticResource SmallSecondaryButton}"
-                                                                Margin="0,6,0,0" HorizontalAlignment="Left"
+                                                                Margin="0,8,0,0" HorizontalAlignment="Left"
                                                                 Command="{Binding ClearCategoryFilterCommand}"
                                                                 ToolTip="Uncheck every category (shows all categories again)."/>
                                                     </StackPanel>
@@ -279,7 +279,7 @@ Changes vs V003 (layout only):
                                         </StackPanel>
 
                                         <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Bottom">
-                                            <Button Content="Check All" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,6,0"
+                                            <Button Content="Check All" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,8,0"
                                                     Command="{Binding CheckAllVisibleCommand}"
                                                     ToolTip="Check every type currently visible (after search/filter)."/>
                                             <Button Content="Uncheck All" Style="{StaticResource SmallSecondaryButton}"
@@ -336,7 +336,7 @@ Changes vs V003 (layout only):
                                                 <DataGridTextColumn.ElementStyle>
                                                     <Style TargetType="TextBlock">
                                                         <Setter Property="HorizontalAlignment" Value="Right"/>
-                                                        <Setter Property="Margin" Value="0,0,10,0"/>
+                                                        <Setter Property="Margin" Value="0,0,12,0"/>
                                                     </Style>
                                                 </DataGridTextColumn.ElementStyle>
                                             </DataGridTextColumn>
@@ -451,7 +451,7 @@ Changes vs V003 (layout only):
                                 </StackPanel>
                             </Grid>
 
-                            <Grid Margin="12,4,12,10">
+                            <Grid Margin="12,4,12,12">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="12"/>
@@ -471,7 +471,7 @@ Changes vs V003 (layout only):
                             </Grid>
 
                             <TextBlock Text="All fields editable — defaults shown are starting suggestions, not fixed values."
-                                       Style="{StaticResource HintText}" Margin="12,0,12,10"/>
+                                       Style="{StaticResource HintText}" Margin="12,0,12,12"/>
                         </StackPanel>
                     </Border>
 
@@ -481,7 +481,7 @@ Changes vs V003 (layout only):
                               BorderBrush="{StaticResource BrushBorderDefault}" BorderThickness="1">
                         <StackPanel>
                             <TextBlock Text="Click a token to include/exclude it. Order below = order in the built name."
-                                       Style="{StaticResource HintText}" Margin="12,0,12,6"/>
+                                       Style="{StaticResource HintText}" Margin="12,0,12,8"/>
 
                             <Grid Margin="12,0,12,8">
                                 <Grid.ColumnDefinitions>
@@ -498,7 +498,7 @@ Changes vs V003 (layout only):
                                     </ItemsControl.ItemsPanel>
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
-                                            <Button Margin="0,0,8,4" Padding="10,6" Cursor="Hand"
+                                            <Button Margin="0,0,8,4" Padding="12,8" Cursor="Hand"
                                                     Command="{Binding DataContext.ToggleNamingTokenCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                     CommandParameter="{Binding}"
                                                     ToolTip="{Binding DisplayLabel, StringFormat='Click to include/exclude {0} in the section name.'}">
@@ -507,10 +507,10 @@ Changes vs V003 (layout only):
                                                         <Setter Property="Template">
                                                             <Setter.Value>
                                                                 <ControlTemplate TargetType="Button">
-                                                                    <Border x:Name="ChipBg" CornerRadius="8" Padding="10,6">
+                                                                    <Border x:Name="ChipBg" CornerRadius="8" Padding="12,8">
                                                                         <StackPanel Orientation="Horizontal">
-                                                                            <Border x:Name="OrderBadge" CornerRadius="8" Width="16" Height="16" Margin="0,0,6,0">
-                                                                                <TextBlock Text="{Binding Order}" FontSize="9" FontWeight="Bold"
+                                                                            <Border x:Name="OrderBadge" CornerRadius="8" Width="16" Height="16" Margin="0,0,8,0">
+                                                                                <TextBlock Text="{Binding Order}" FontSize="10" FontWeight="Bold"
                                                                                            Foreground="{StaticResource BrushTextOnAccent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                                             </Border>
                                                                             <TextBlock x:Name="ChipText" Text="{Binding DisplayLabel}" FontSize="12" FontWeight="SemiBold"/>
@@ -553,10 +553,10 @@ Changes vs V003 (layout only):
                                 </StackPanel>
                             </Grid>
 
-                            <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Margin="12,0,12,10" Padding="10,8">
+                            <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Margin="12,0,12,12" Padding="12,8">
                                 <StackPanel>
                                     <TextBlock Text="LIVE PREVIEW" FontSize="10" Foreground="{StaticResource BrushLogTextDim}" Margin="0,0,0,4"/>
-                                    <TextBlock Text="{Binding NamingPreviewText}" FontFamily="Consolas" FontSize="12.5"
+                                    <TextBlock Text="{Binding NamingPreviewText}" FontFamily="{DynamicResource MonoFont}" FontSize="13"
                                                Foreground="{StaticResource BrushLogSuccess}"/>
                                 </StackPanel>
                             </Border>
@@ -578,16 +578,16 @@ Changes vs V003 (layout only):
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
-                            <Grid Grid.Row="0" Margin="12,6,12,6">
+                            <Grid Grid.Row="0" Margin="12,8,12,8">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
-                                    <Button Content="Select All" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,6,0"
+                                    <Button Content="Select All" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,8,0"
                                             Command="{Binding SelectAllCommand}"
                                             ToolTip="Check every eligible row (Ready status) so it will be created on Run."/>
-                                    <Button Content="Clear" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,6,0"
+                                    <Button Content="Clear" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,8,0"
                                             Command="{Binding ClearAllCommand}"
                                             ToolTip="Uncheck every row so nothing is created on Run."/>
                                     <Button Content="Refresh" Style="{StaticResource SmallSecondaryButton}"
@@ -649,7 +649,7 @@ Changes vs V003 (layout only):
                                         <DataGridTextColumn.ElementStyle>
                                             <Style TargetType="TextBlock">
                                                 <Setter Property="HorizontalAlignment" Value="Right"/>
-                                                <Setter Property="Margin" Value="0,0,10,0"/>
+                                                <Setter Property="Margin" Value="0,0,12,0"/>
                                             </Style>
                                         </DataGridTextColumn.ElementStyle>
                                     </DataGridTextColumn>
@@ -670,23 +670,23 @@ Changes vs V003 (layout only):
                 </Border>
 
                 <!-- LOG (moved from footer) -->
-                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="10,8">
+                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="12,8">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <Grid Margin="0,0,0,6">
+                        <Grid Margin="0,0,0,8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Text="{Binding LogEntries.Count, StringFormat='Log ({0} entries)'}" Foreground="{StaticResource BrushLogText}"
-                                       FontSize="11.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                       FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
                             <StackPanel Grid.Column="1" Orientation="Horizontal">
-                                <Button Content="Copy All" Style="{StaticResource DarkGhostButton}" Margin="0,0,6,0"
+                                <Button Content="Copy All" Style="{StaticResource DarkGhostButton}" Margin="0,0,8,0"
                                         Command="{Binding CopyAllLogsCommand}"/>
-                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Margin="0,0,6,0"
+                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Margin="0,0,8,0"
                                         Command="{Binding CopySelectedLogsCommand}"
                                         CommandParameter="{Binding SelectedItems, ElementName=LogListBox}"/>
                                 <Button Content="Clear" Style="{StaticResource DarkGhostButton}"
@@ -699,9 +699,9 @@ Changes vs V003 (layout only):
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="{Binding Time, StringFormat={}{0:HH:mm:ss}}" Foreground="{StaticResource BrushLogTextDim}" FontFamily="Consolas" FontSize="11" Width="60"/>
-                                        <TextBlock Text="{Binding Level}" Foreground="{Binding Level, Converter={StaticResource LogLevelToColorConverter}}" FontFamily="Consolas" FontSize="11" FontWeight="SemiBold" Width="60"/>
-                                        <TextBlock Text="{Binding Message}" Foreground="{StaticResource BrushLogText}" FontFamily="Consolas" FontSize="11" TextWrapping="Wrap"/>
+                                        <TextBlock Text="{Binding Time, StringFormat={}{0:HH:mm:ss}}" Foreground="{StaticResource BrushLogTextDim}" FontFamily="{DynamicResource MonoFont}" FontSize="11" Width="60"/>
+                                        <TextBlock Text="{Binding Level}" Foreground="{Binding Level, Converter={StaticResource LogLevelToColorConverter}}" FontFamily="{DynamicResource MonoFont}" FontSize="11" FontWeight="SemiBold" Width="60"/>
+                                        <TextBlock Text="{Binding Message}" Foreground="{StaticResource BrushLogText}" FontFamily="{DynamicResource MonoFont}" FontSize="11" TextWrapping="Wrap"/>
                                     </StackPanel>
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
@@ -727,7 +727,7 @@ Changes vs V003 (layout only):
                             <TextBlock Text="{Binding SuggestedSectionCount, StringFormat='Run ({0})'}"/>
                         </Button.Content>
                     </Button>
-                    <Button Content="Close" Style="{StaticResource OutlineButton}" Width="90" Click="CloseButton_Click"
+                    <Button IsCancel="True" Content="Close" Style="{StaticResource OutlineButton}" Width="90" Click="CloseButton_Click"
                             ToolTip="Close this window without creating any sections."/>
                 </StackPanel>
             </Grid>

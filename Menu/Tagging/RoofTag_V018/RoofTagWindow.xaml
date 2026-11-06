@@ -36,18 +36,18 @@ Changes vs V017 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
             <local:LogLevelToColorConverter         x:Key="LogLevelToColorConverter"/>
 
             <DataTemplate x:Key="LogRowTemplate">
-                <StackPanel Orientation="Horizontal" Margin="0,1">
+                <StackPanel Orientation="Horizontal" Margin="0,2">
                     <TextBlock Text="{Binding Time, StringFormat=HH:mm:ss}"
                                Foreground="{StaticResource BrushLogTextDim}"
-                               FontFamily="Consolas" FontSize="10"
-                               Width="58" Margin="0,0,6,0"/>
+                               FontFamily="{DynamicResource MonoFont}" FontSize="10"
+                               Width="58" Margin="0,0,8,0"/>
                     <TextBlock Text="{Binding Level, StringFormat={}{0,-7}}"
                                Foreground="{Binding Level, Converter={StaticResource LogLevelToColorConverter}}"
-                               FontFamily="Consolas" FontSize="10" FontWeight="SemiBold"
-                               Width="64" Margin="0,0,6,0"/>
+                               FontFamily="{DynamicResource MonoFont}" FontSize="10" FontWeight="SemiBold"
+                               Width="64" Margin="0,0,8,0"/>
                     <TextBlock Text="{Binding Message}"
                                Foreground="{StaticResource BrushLogTextDim}"
-                               FontFamily="Consolas" FontSize="10"
+                               FontFamily="{DynamicResource MonoFont}" FontSize="10"
                                TextWrapping="Wrap"/>
                 </StackPanel>
             </DataTemplate>
@@ -64,13 +64,13 @@ Changes vs V017 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
         <!-- ═══ HEADER ═══════════════════════════════════════════ -->
         <shell:ToolWindowShell.HeaderContent>
             <UniformGrid Columns="2" Margin="0,0,0,8">
-                <Border Style="{StaticResource MetricCard}" Margin="0,0,4,0" Padding="10,8">
+                <Border Style="{StaticResource MetricCard}" Margin="0,0,4,0" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="Placed" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding PlacedCount}" Style="{StaticResource MetricNumberSuccess}" FontSize="18"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricCard}" Margin="4,0,0,0" Padding="10,8">
+                <Border Style="{StaticResource MetricCard}" Margin="4,0,0,0" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="Failed" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding FailedCount}" Style="{StaticResource MetricNumberDanger}" FontSize="18"/>
@@ -84,22 +84,22 @@ Changes vs V017 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
             <StackPanel>
                 <!-- ── WARNING BANNER ──────────────────────────────────────── -->
                 <Border Background="{StaticResource BrushInputBackground}" BorderBrush="{StaticResource BrushStatusWarn}" BorderThickness="1"
-                        CornerRadius="6" Padding="8,6" Margin="0,0,0,6">
+                        CornerRadius="6" Padding="8,8" Margin="0,0,0,8">
                     <TextBlock FontSize="10" Foreground="{StaticResource BrushTextPrimary}" FontWeight="SemiBold" TextWrapping="Wrap"
                                Text="FaceRef method — tags DELETE if slab shape is edited after placement. Place tags after finalizing slope."/>
                 </Border>
 
                 <!-- ── TAG MODE ─────────────────────────────────────────── -->
-                <Border Style="{StaticResource SectionCard}" Margin="0,0,0,6" Padding="10,8">
+                <Border Style="{StaticResource SectionCard}" Margin="0,0,0,8" Padding="12,8">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="Tag Mode" FontSize="10.5" FontWeight="SemiBold"
+                        <TextBlock Grid.Column="0" Text="Tag Mode" FontSize="11" FontWeight="SemiBold"
                                    Foreground="{StaticResource BrushNavyPrimary}" VerticalAlignment="Center"/>
                         <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
-                            <RadioButton Content="Auto" FontSize="10" Margin="0,0,14,0"
+                            <RadioButton Content="Auto" FontSize="10" Margin="0,0,16,0"
                                          IsChecked="{Binding UseManualMode, Converter={StaticResource InverseBoolConverter}}"/>
                             <RadioButton Content="Manual (pick points)" FontSize="10" IsChecked="{Binding UseManualMode}"/>
                         </StackPanel>
@@ -107,12 +107,12 @@ Changes vs V017 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                 </Border>
 
                 <!-- ── LEADER GEOMETRY ──────────────────────────────────── -->
-                <Border Style="{StaticResource SectionCard}" Margin="0,0,0,6" Padding="10,8">
+                <Border Style="{StaticResource SectionCard}" Margin="0,0,0,8" Padding="12,8">
                     <StackPanel>
-                        <TextBlock Text="Leader Geometry" FontSize="10.5" FontWeight="SemiBold"
-                                   Foreground="{StaticResource BrushNavyPrimary}" Margin="0,0,0,6"/>
+                        <TextBlock Text="Leader Geometry" FontSize="11" FontWeight="SemiBold"
+                                   Foreground="{StaticResource BrushNavyPrimary}" Margin="0,0,0,8"/>
 
-                        <Grid Margin="0,0,0,6">
+                        <Grid Margin="0,0,0,8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="Auto"/>
@@ -121,15 +121,15 @@ Changes vs V017 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="Angle" FontSize="10" Foreground="{StaticResource BrushTextSecondary}"
-                                       VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                       VerticalAlignment="Center" Margin="0,0,8,0"/>
                             <StackPanel Grid.Column="1" Orientation="Horizontal">
-                                <RadioButton Content="45°" FontSize="10" Margin="0,0,10,0" IsChecked="{Binding IsAngle45}"/>
+                                <RadioButton Content="45°" FontSize="10" Margin="0,0,12,0" IsChecked="{Binding IsAngle45}"/>
                                 <RadioButton Content="30°" FontSize="10" IsChecked="{Binding IsAngle30}"/>
                             </StackPanel>
                             <TextBlock Grid.Column="3" Text="Bend" FontSize="10" Foreground="{StaticResource BrushTextSecondary}"
-                                       VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                       VerticalAlignment="Center" Margin="0,0,8,0"/>
                             <StackPanel Grid.Column="4" Orientation="Horizontal">
-                                <RadioButton Content="Inward" FontSize="10" Margin="0,0,10,0" IsChecked="{Binding BendInward}"/>
+                                <RadioButton Content="Inward" FontSize="10" Margin="0,0,12,0" IsChecked="{Binding BendInward}"/>
                                 <RadioButton Content="Outward" FontSize="10" IsChecked="{Binding BendOutward}"/>
                             </StackPanel>
                         </Grid>
@@ -170,14 +170,14 @@ Changes vs V017 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                 </Border>
 
                 <!-- ── SPOT TAG TYPE ─────────────────────────────────────── -->
-                <Border Style="{StaticResource SectionCard}" Margin="0,0,0,6" Padding="10,8">
+                <Border Style="{StaticResource SectionCard}" Margin="0,0,0,8" Padding="12,8">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="Spot Tag Type" FontSize="10.5" FontWeight="SemiBold"
-                                   Foreground="{StaticResource BrushNavyPrimary}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <TextBlock Grid.Column="0" Text="Spot Tag Type" FontSize="11" FontWeight="SemiBold"
+                                   Foreground="{StaticResource BrushNavyPrimary}" VerticalAlignment="Center" Margin="0,0,12,0"/>
                         <ComboBox Grid.Column="1" FontSize="10" Height="24"
                                   Background="{StaticResource BrushSurfaceCard}" Foreground="{StaticResource BrushTextPrimary}"
                                   ItemsSource="{Binding SpotTagTypes}"
@@ -187,7 +187,7 @@ Changes vs V017 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                 </Border>
 
                 <!-- ── CLUSTER FILTER (Rule 1) ────────────────────────────── -->
-                <Border Style="{StaticResource SectionCard}" Margin="0,0,0,6" Padding="10,8">
+                <Border Style="{StaticResource SectionCard}" Margin="0,0,0,8" Padding="12,8">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
@@ -198,11 +198,11 @@ Changes vs V017 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                         <CheckBox Grid.Column="0" Content="Cluster filter — avoid clustered tags near drains" FontSize="10"
                                   VerticalAlignment="Center" IsChecked="{Binding ClusterFilterEnabled}"/>
                         <TextBlock Grid.Column="1" Text="Radius" FontSize="10" Foreground="{StaticResource BrushTextSecondary}"
-                                   VerticalAlignment="Center" Margin="8,0,6,0"/>
+                                   VerticalAlignment="Center" Margin="8,0,8,0"/>
                         <TextBox Grid.Column="2" FontSize="10" Height="24" MaxLength="10"
                                  Background="{StaticResource BrushSurfaceCard}" Foreground="{StaticResource BrushTextPrimary}"
                                  BorderBrush="{StaticResource BrushSeparator}" BorderThickness="1"
-                                 VerticalContentAlignment="Center" Padding="6,0"
+                                 VerticalContentAlignment="Center" Padding="8,0"
                                  IsEnabled="{Binding ClusterFilterEnabled}"
                                  Text="{Binding ClusterRadius, UpdateSourceTrigger=PropertyChanged}"/>
                         <TextBlock Grid.Column="3" Text="mm" FontSize="10" Foreground="{StaticResource BrushTextTertiary}"
@@ -211,7 +211,7 @@ Changes vs V017 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                 </Border>
 
                 <!-- ── INTERIOR LOOP REDUCTION (Rule 2) ───────────────────── -->
-                <Border Style="{StaticResource SectionCard}" Margin="0,0,0,6" Padding="10,8">
+                <Border Style="{StaticResource SectionCard}" Margin="0,0,0,8" Padding="12,8">
                     <StackPanel>
                         <CheckBox Content="Interior loop reduction — rule 2" FontSize="10" FontWeight="SemiBold"
                                   Foreground="{StaticResource BrushNavyPrimary}"
@@ -227,32 +227,32 @@ Changes vs V017 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="Spacing" FontSize="10" Foreground="{StaticResource BrushTextSecondary}"
-                                       VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                       VerticalAlignment="Center" Margin="0,0,8,0"/>
                             <TextBox Grid.Column="1" FontSize="10" Height="24" MaxLength="10"
                                      Background="{StaticResource BrushSurfaceCard}" Foreground="{StaticResource BrushTextPrimary}"
                                      BorderBrush="{StaticResource BrushSeparator}" BorderThickness="1"
-                                     VerticalContentAlignment="Center" Padding="6,0"
+                                     VerticalContentAlignment="Center" Padding="8,0"
                                      Text="{Binding InteriorLoopSpacing, UpdateSourceTrigger=PropertyChanged}"/>
                             <TextBlock Grid.Column="2" Text="mm" FontSize="10" Foreground="{StaticResource BrushTextTertiary}"
                                        VerticalAlignment="Center" Margin="4,0,0,0"/>
 
                             <TextBlock Grid.Column="4" Text="Boundary tol." FontSize="10" Foreground="{StaticResource BrushTextSecondary}"
-                                       VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                       VerticalAlignment="Center" Margin="0,0,8,0"/>
                             <TextBox Grid.Column="5" FontSize="10" Height="24" MaxLength="10"
                                      Background="{StaticResource BrushSurfaceCard}" Foreground="{StaticResource BrushTextPrimary}"
                                      BorderBrush="{StaticResource BrushSeparator}" BorderThickness="1"
-                                     VerticalContentAlignment="Center" Padding="6,0"
+                                     VerticalContentAlignment="Center" Padding="8,0"
                                      Text="{Binding InteriorLoopBoundaryTolerance, UpdateSourceTrigger=PropertyChanged}"/>
                             <TextBlock Grid.Column="6" Text="mm" FontSize="10" Foreground="{StaticResource BrushTextTertiary}"
                                        VerticalAlignment="Center" Margin="4,0,0,0"/>
                         </Grid>
-                        <TextBlock FontSize="9.5" Foreground="{StaticResource BrushTextTertiary}" TextWrapping="Wrap" Margin="0,6,0,0"
+                        <TextBlock FontSize="10" Foreground="{StaticResource BrushTextTertiary}" TextWrapping="Wrap" Margin="0,8,0,0"
                                    Text="Top 4 highest points per interior loop, kept only if each neighbor pair is at least the spacing value apart — otherwise only the highest point is kept."/>
                     </StackPanel>
                 </Border>
 
                 <!-- ── EXTERIOR LOOP REDUCTION (Rule 3) ───────────────────── -->
-                <Border Style="{StaticResource SectionCard}" Margin="0,0,0,6" Padding="10,8">
+                <Border Style="{StaticResource SectionCard}" Margin="0,0,0,8" Padding="12,8">
                     <StackPanel>
                         <CheckBox Content="Exterior loop reduction — rule 3" FontSize="10" FontWeight="SemiBold"
                                   Foreground="{StaticResource BrushNavyPrimary}"
@@ -268,47 +268,47 @@ Changes vs V017 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="Spacing" FontSize="10" Foreground="{StaticResource BrushTextSecondary}"
-                                       VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                       VerticalAlignment="Center" Margin="0,0,8,0"/>
                             <TextBox Grid.Column="1" FontSize="10" Height="24" MaxLength="10"
                                      Background="{StaticResource BrushSurfaceCard}" Foreground="{StaticResource BrushTextPrimary}"
                                      BorderBrush="{StaticResource BrushSeparator}" BorderThickness="1"
-                                     VerticalContentAlignment="Center" Padding="6,0"
+                                     VerticalContentAlignment="Center" Padding="8,0"
                                      Text="{Binding ExteriorLoopSpacing, UpdateSourceTrigger=PropertyChanged}"/>
                             <TextBlock Grid.Column="2" Text="mm" FontSize="10" Foreground="{StaticResource BrushTextTertiary}"
                                        VerticalAlignment="Center" Margin="4,0,0,0"/>
 
                             <TextBlock Grid.Column="4" Text="Boundary tol." FontSize="10" Foreground="{StaticResource BrushTextSecondary}"
-                                       VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                       VerticalAlignment="Center" Margin="0,0,8,0"/>
                             <TextBox Grid.Column="5" FontSize="10" Height="24" MaxLength="10"
                                      Background="{StaticResource BrushSurfaceCard}" Foreground="{StaticResource BrushTextPrimary}"
                                      BorderBrush="{StaticResource BrushSeparator}" BorderThickness="1"
-                                     VerticalContentAlignment="Center" Padding="6,0"
+                                     VerticalContentAlignment="Center" Padding="8,0"
                                      Text="{Binding ExteriorLoopBoundaryTolerance, UpdateSourceTrigger=PropertyChanged}"/>
                             <TextBlock Grid.Column="6" Text="mm" FontSize="10" Foreground="{StaticResource BrushTextTertiary}"
                                        VerticalAlignment="Center" Margin="4,0,0,0"/>
                         </Grid>
-                        <TextBlock FontSize="9.5" Foreground="{StaticResource BrushTextTertiary}" TextWrapping="Wrap" Margin="0,6,0,0"
+                        <TextBlock FontSize="10" Foreground="{StaticResource BrushTextTertiary}" TextWrapping="Wrap" Margin="0,8,0,0"
                                    Text="Same mechanism as rule 2, scoped to only the roof's outer boundary loop, with its own spacing and tolerance."/>
                     </StackPanel>
                 </Border>
 
                 <!-- ── LOG (moved from footer) ── -->
-                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="10,8" Margin="0,0,0,0">
+                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="12,8" Margin="0,0,0,0">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <Grid Margin="0,0,0,6">
+                        <Grid Margin="0,0,0,8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Text="Log" Foreground="{StaticResource BrushLogText}"
-                                       FontSize="11.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                       FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
                             <StackPanel Grid.Column="1" Orientation="Horizontal">
                                 <Button Content="Copy All" Style="{StaticResource DarkGhostButton}" Command="{Binding CopyLogCommand}"/>
-                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Click="CopySelectedLog_Click" Margin="6,0,0,0"/>
+                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Click="CopySelectedLog_Click" Margin="8,0,0,0"/>
                             </StackPanel>
                         </Grid>
                         <ListBox Grid.Row="1" x:Name="LogList" ItemsSource="{Binding LogEntries}" MinHeight="90" shell:ShellBehaviors.MaxHeightRatio="0.2" shell:ShellBehaviors.ForwardMouseWheel="True"
@@ -317,22 +317,22 @@ Changes vs V017 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                             <ListBox.ItemContainerStyle>
                                 <Style TargetType="ListBoxItem">
-                                    <Setter Property="Padding" Value="0,1"/>
+                                    <Setter Property="Padding" Value="0,2"/>
                                     <Setter Property="Background" Value="Transparent"/>
                                 </Style>
                             </ListBox.ItemContainerStyle>
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
-                                    <StackPanel Orientation="Horizontal" Margin="0,1">
+                                    <StackPanel Orientation="Horizontal" Margin="0,2">
                                 <TextBlock Text="{Binding Time, StringFormat=HH:mm:ss}"
                                            Foreground="{StaticResource BrushLogTextDim}"
-                                           FontFamily="Consolas" FontSize="11" Margin="0,0,10,0"/>
+                                           FontFamily="{DynamicResource MonoFont}" FontSize="11" Margin="0,0,12,0"/>
                                 <TextBlock Text="{Binding Level}"
                                            Foreground="{Binding Level, Converter={StaticResource LogLevelToColorConverter}}"
-                                           FontFamily="Consolas" FontSize="11" FontWeight="SemiBold" Width="64"/>
+                                           FontFamily="{DynamicResource MonoFont}" FontSize="11" FontWeight="SemiBold" Width="64"/>
                                 <TextBlock Text="{Binding Message}"
                                            Foreground="{StaticResource BrushLogText}"
-                                           FontFamily="Consolas" FontSize="11" TextWrapping="Wrap"/>
+                                           FontFamily="{DynamicResource MonoFont}" FontSize="11" TextWrapping="Wrap"/>
                             </StackPanel>
                                 </DataTemplate>
                             </ListBox.ItemTemplate>

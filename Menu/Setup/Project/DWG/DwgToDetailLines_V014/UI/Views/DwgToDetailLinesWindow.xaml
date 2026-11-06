@@ -53,32 +53,32 @@ Changes vs V012 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
         <shell:ToolWindowShell.HeaderContent>
             <StackPanel>
                 <UniformGrid Columns="5" Margin="0,0,0,0">
-                    <Border Style="{StaticResource MetricCard}" Margin="0,0,4,0" Padding="10,8">
+                    <Border Style="{StaticResource MetricCard}" Margin="0,0,4,0" Padding="12,8">
                         <StackPanel>
                             <TextBlock Text="Layers Found" Style="{StaticResource MetricLabel}"/>
                             <TextBlock Text="{Binding Metrics.LayersFound}" Style="{StaticResource MetricNumber}" FontSize="18"/>
                         </StackPanel>
                     </Border>
-                    <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="10,8">
+                    <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="12,8">
                         <StackPanel>
                             <TextBlock Text="Entities" Style="{StaticResource MetricLabel}"/>
                             <TextBlock Text="{Binding Metrics.Entities}" Style="{StaticResource MetricNumber}" FontSize="18"/>
                         </StackPanel>
                     </Border>
-                    <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="10,8">
+                    <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="12,8">
                         <StackPanel>
                             <TextBlock Text="Placed" Style="{StaticResource MetricLabel}"/>
                             <TextBlock Text="{Binding Metrics.Placed, Converter={StaticResource NullableIntToDash}}" Style="{StaticResource MetricNumberSuccess}" FontSize="18"/>
                         </StackPanel>
                     </Border>
-                    <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="10,8">
+                    <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="12,8">
                         <StackPanel>
                             <TextBlock Text="Skipped" Style="{StaticResource MetricLabel}"/>
                             <TextBlock Text="{Binding Metrics.Skipped, Converter={StaticResource NullableIntToDash}}" Style="{StaticResource MetricNumber}" FontSize="18"
                                        Foreground="{Binding Metrics.Skipped, Converter={StaticResource MetricCountToBrush}, ConverterParameter=Warning}"/>
                         </StackPanel>
                     </Border>
-                    <Border Style="{StaticResource MetricCard}" Margin="4,0,0,0" Padding="10,8">
+                    <Border Style="{StaticResource MetricCard}" Margin="4,0,0,0" Padding="12,8">
                         <StackPanel>
                             <TextBlock Text="Failed" Style="{StaticResource MetricLabel}"/>
                             <TextBlock Text="{Binding Metrics.Failed, Converter={StaticResource NullableIntToDash}}" Style="{StaticResource MetricNumber}" FontSize="18"
@@ -86,10 +86,10 @@ Changes vs V012 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                         </StackPanel>
                     </Border>
                 </UniformGrid>
-                <Grid Margin="0,10,0,8">
+                <Grid Margin="0,12,0,8">
                     <!-- ── Context banner ── -->
                     <Border Background="{StaticResource BrushSystemTertiaryBackground}"
-                            BorderBrush="{StaticResource BrushNavyPrimary}" BorderThickness="1" CornerRadius="6" Padding="10,8">
+                            BorderBrush="{StaticResource BrushNavyPrimary}" BorderThickness="1" CornerRadius="6" Padding="12,8">
                         <TextBlock Text="{Binding ContextBannerText}" FontSize="11" TextWrapping="Wrap"
                                    Foreground="{StaticResource BrushNavyPrimary}"/>
                     </Border>
@@ -113,17 +113,17 @@ Changes vs V012 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                 <StackPanel Grid.Column="0">
                     <!-- ── CAD import ── -->
                     <StackPanel>
-                        <TextBlock Text="CAD Import" Style="{StaticResource FieldLabel}" Margin="0,0,0,6"/>
+                        <TextBlock Text="CAD Import" Style="{StaticResource FieldLabel}" Margin="0,0,0,8"/>
                         <ComboBox Style="{StaticResource StandardComboBox}" Height="32"
                                   ItemsSource="{Binding AvailableCads}"
                                   SelectedItem="{Binding SelectedCad, Mode=TwoWay}"/>
                     </StackPanel>
                     <!-- ── Defaults ── -->
-                    <Border Style="{StaticResource ContentCard}" Margin="0,10,0,0">
-                        <StackPanel Margin="10">
+                    <Border Style="{StaticResource ContentCard}" Margin="0,12,0,0">
+                        <StackPanel Margin="12">
                             <TextBlock Text="Line style / hatch mapping" Style="{StaticResource SectionTitle}" Margin="0,0,0,8"/>
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                                <RadioButton Content="Single (global)" Margin="0,0,18,0"
+                                <RadioButton Content="Single (global)" Margin="0,0,16,0"
                                              IsChecked="{Binding MappingMode, Converter={StaticResource BoolToEnum}, ConverterParameter=Single}"/>
                                 <RadioButton Content="Multiple (per layer)"
                                              IsChecked="{Binding MappingMode, Converter={StaticResource BoolToEnum}, ConverterParameter=Multiple}"/>
@@ -154,11 +154,11 @@ Changes vs V012 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                         </StackPanel>
                     </Border>
                     <!-- ── Spline handling ── -->
-                    <Border Style="{StaticResource ContentCard}" Margin="0,10,0,0">
-                        <StackPanel Margin="10">
+                    <Border Style="{StaticResource ContentCard}" Margin="0,12,0,0">
+                        <StackPanel Margin="12">
                             <TextBlock Text="Spline Handling" Style="{StaticResource SectionTitle}" Margin="0,0,0,8"/>
                             <StackPanel Orientation="Horizontal">
-                                <RadioButton Content="Preserve Splines" Margin="0,0,18,0"
+                                <RadioButton Content="Preserve Splines" Margin="0,0,16,0"
                                              IsChecked="{Binding SplineHandlingMode, Converter={StaticResource BoolToEnum}, ConverterParameter=Preserve}"/>
                                 <RadioButton Content="Tessellate"
                                              IsChecked="{Binding SplineHandlingMode, Converter={StaticResource BoolToEnum}, ConverterParameter=Tessellate}"/>
@@ -166,8 +166,8 @@ Changes vs V012 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                         </StackPanel>
                     </Border>
                     <!-- ── Transform Method (TEMPORARY DIAGNOSTIC) — left as-is, per Rafi ── -->
-                    <Border Style="{StaticResource ContentCard}" Margin="0,10,0,0" BorderThickness="1" BorderBrush="{StaticResource BrushTextTertiary}">
-                        <StackPanel Margin="10">
+                    <Border Style="{StaticResource ContentCard}" Margin="0,12,0,0" BorderThickness="1" BorderBrush="{StaticResource BrushTextTertiary}">
+                        <StackPanel Margin="12">
                             <TextBlock Text="Transform Method (Diagnostic)" Style="{StaticResource SectionTitle}" Margin="0,0,0,8"/>
                             <StackPanel>
                                 <RadioButton Content="None (gi.Transform only)"
@@ -177,7 +177,7 @@ Changes vs V012 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                 <RadioButton Content="GetTotalTransform (incl. true north)" Margin="0,4,0,0"
                                              IsChecked="{Binding TransformMethod, Converter={StaticResource BoolToEnum}, ConverterParameter=GetTotalTransform}"/>
                                 <TextBlock Text="Try each option, Convert, and compare against the DWG's actual position. Report back which one lands exactly."
-                                           Style="{StaticResource HintText}" Margin="0,6,0,0"/>
+                                           Style="{StaticResource HintText}" Margin="0,8,0,0"/>
                             </StackPanel>
                         </StackPanel>
                     </Border>
@@ -185,7 +185,7 @@ Changes vs V012 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
 
                 <!-- ── Layers & Hatches grid ── -->
                 <Border Grid.Column="2" Style="{StaticResource ContentCard}">
-                    <Grid Margin="10">
+                    <Grid Margin="12">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
@@ -196,7 +196,7 @@ Changes vs V012 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
 
                         <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,8">
                             <TextBox Text="{Binding LayerFilterText, UpdateSourceTrigger=PropertyChanged}"
-                                     Style="{StaticResource StyledTextInput}" Width="160" Margin="0,0,6,0"/>
+                                     Style="{StaticResource StyledTextInput}" Width="160" Margin="0,0,8,0"/>
                             <Button Content="Select All" Command="{Binding SelectAllCommand}" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,4,0"/>
                             <Button Content="Clear" Command="{Binding ClearCommand}" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,4,0"/>
                             <Button Content="Refresh" Command="{Binding RefreshCommand}" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,4,0"/>
@@ -224,10 +224,10 @@ Changes vs V012 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                     <GroupStyle.HeaderTemplate>
                                         <DataTemplate>
                                             <TextBlock Text="{Binding Name}"
-                                                       FontWeight="SemiBold" FontSize="10.5"
+                                                       FontWeight="SemiBold" FontSize="11"
                                                        Foreground="{StaticResource BrushNavyPrimary}"
                                                        Background="{StaticResource BrushSystemTertiaryBackground}"
-                                                       Padding="6,3"/>
+                                                       Padding="8,4"/>
                                         </DataTemplate>
                                     </GroupStyle.HeaderTemplate>
                                 </GroupStyle>
@@ -268,7 +268,7 @@ Changes vs V012 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                             </DataGrid.Columns>
                         </DataGrid>
 
-                        <TextBlock Grid.Row="3" Margin="0,6,0,0" FontSize="10.5" Foreground="{StaticResource BrushTextTertiary}">
+                        <TextBlock Grid.Row="3" Margin="0,8,0,0" FontSize="11" Foreground="{StaticResource BrushTextTertiary}">
                             <Run Text="{Binding LayerRows.Count, Mode=OneWay}"/>
                             <Run Text=" layers found"/>
                         </TextBlock>
@@ -276,24 +276,24 @@ Changes vs V012 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                 </Border>
 
                 <!-- ── Activity Log (moved from footer) ── -->
-                <Border Grid.Row="1" Grid.ColumnSpan="3" Margin="0,10,0,0" Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="10,8">
+                <Border Grid.Row="1" Grid.ColumnSpan="3" Margin="0,12,0,0" Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="12,8">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <Grid Margin="0,0,0,6">
+                        <Grid Margin="0,0,0,8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Text="Activity Log" Foreground="{StaticResource BrushLogText}" FontSize="11.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                            <TextBlock Text="Activity Log" Foreground="{StaticResource BrushLogText}" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
                             <StackPanel Grid.Column="1" Orientation="Horizontal">
                                 <Button Content="Copy All" Style="{StaticResource DarkGhostButton}"
                                         Command="{Binding CopyAllLogCommand}" ToolTip="Copy the whole log to the clipboard"/>
-                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Margin="6,0,0,0"
+                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Margin="8,0,0,0"
                                         Command="{Binding CopySelectedLogCommand}" ToolTip="Copy the selected log lines"/>
-                                <Button Content="Export" Style="{StaticResource DarkGhostButton}" Margin="6,0,0,0"
+                                <Button Content="Export" Style="{StaticResource DarkGhostButton}" Margin="8,0,0,0"
                                         Command="{Binding ExportLogCommand}" ToolTip="Save the log to a .txt file"/>
                             </StackPanel>
                         </Grid>
@@ -314,20 +314,20 @@ Changes vs V012 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                      shell:ShellBehaviors.ForwardMouseWheel="True">
                                 <ListBox.ItemContainerStyle>
                                     <Style TargetType="ListBoxItem">
-                                        <Setter Property="Padding" Value="0,1"/>
+                                        <Setter Property="Padding" Value="0,2"/>
                                         <Setter Property="Background" Value="Transparent"/>
                                         <Setter Property="BorderThickness" Value="0"/>
                                     </Style>
                                 </ListBox.ItemContainerStyle>
                                 <ListBox.ItemTemplate>
                                     <DataTemplate>
-                                        <StackPanel Orientation="Horizontal" Margin="0,1">
+                                        <StackPanel Orientation="Horizontal" Margin="0,2">
                                             <TextBlock Text="{Binding Time, StringFormat=HH:mm:ss}"
                                                        Foreground="{StaticResource BrushLogTextDim}"
-                                                       FontFamily="Consolas" FontSize="11.5" Margin="0,0,10,0"/>
+                                                       FontFamily="{DynamicResource MonoFont}" FontSize="12" Margin="0,0,12,0"/>
                                             <TextBlock Text="{Binding Message}"
                                                        Foreground="{Binding Level, Converter={StaticResource LogLevelToColor}}"
-                                                       FontFamily="Consolas" FontSize="11.5" TextWrapping="Wrap"/>
+                                                       FontFamily="{DynamicResource MonoFont}" FontSize="12" TextWrapping="Wrap"/>
                                         </StackPanel>
                                     </DataTemplate>
                                 </ListBox.ItemTemplate>
@@ -344,7 +344,7 @@ Changes vs V012 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                 <Button Content="Convert DWG" Style="{StaticResource PrimaryButton}" Width="140" Margin="0,0,8,0"
                         Command="{Binding ConvertCommand}"
                         IsEnabled="{Binding IsRunning, Converter={StaticResource InverseBoolConverter}}"/>
-                <Button Content="Close" Style="{StaticResource SecondaryButton}" Width="90"
+                <Button IsCancel="True" Content="Close" Style="{StaticResource SecondaryButton}" Width="90"
                         Command="{Binding CloseCommand}"/>
             </StackPanel>
         </shell:ToolWindowShell.FooterContent>

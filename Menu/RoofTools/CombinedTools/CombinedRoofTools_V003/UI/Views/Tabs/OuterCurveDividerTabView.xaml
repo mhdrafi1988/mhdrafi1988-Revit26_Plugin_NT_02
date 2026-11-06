@@ -29,7 +29,7 @@ own ScrollViewer(s) removed, grids and the log cap their height
         </ResourceDictionary>
     </UserControl.Resources>
 
-    <Grid Margin="14">
+    <Grid Margin="16">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>  <!-- Fixed top -->
             <RowDefinition Height="*"/>     <!-- Middle (grids scroll themselves) -->
@@ -40,20 +40,20 @@ own ScrollViewer(s) removed, grids and the log cap their height
         <StackPanel Grid.Row="0">
 
             <!-- Metrics card -->
-            <UniformGrid Columns="3" Margin="0,10,0,10">
-                <Border Style="{StaticResource MetricCard}" Margin="0,0,4,0" Padding="10,8">
+            <UniformGrid Columns="3" Margin="0,12,0,12">
+                <Border Style="{StaticResource MetricCard}" Margin="0,0,4,0" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="Curved Edges" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding Edges.Count}" Style="{StaticResource MetricNumber}" FontSize="18"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="10,8">
+                <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="Edge Types" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding TypeSettings.Count}" Style="{StaticResource MetricNumberAccent}" FontSize="18"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricCard}" Margin="4,0,0,0" Padding="10,8">
+                <Border Style="{StaticResource MetricCard}" Margin="4,0,0,0" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="Log Entries" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding LogEntries.Count}" Style="{StaticResource MetricNumber}" FontSize="18"/>
@@ -80,7 +80,7 @@ own ScrollViewer(s) removed, grids and the log cap their height
                       CellStyle="{StaticResource DataGridCellStyle}"
                       RowStyle="{StaticResource DataGridRowStyle}"
                       AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False"
-                      RowHeight="36" Margin="0,6,0,10">
+                      RowHeight="36" Margin="0,8,0,12">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Edge Type" Binding="{Binding TypeName}" Width="150" IsReadOnly="True"/>
 
@@ -101,7 +101,7 @@ own ScrollViewer(s) removed, grids and the log cap their height
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <TextBox Style="{StaticResource BoxedTextInput}" Height="26" Padding="6,2" Width="62"
+                                    <TextBox Style="{StaticResource BoxedTextInput}" Height="26" Padding="8,2" Width="62"
                                              IsEnabled="{Binding ModeByDistance}"
                                              Text="{Binding TargetMeters, StringFormat=F2, UpdateSourceTrigger=LostFocus}"/>
                                     <TextBlock Text="m" Style="{StaticResource UnitLabel}"/>
@@ -113,7 +113,7 @@ own ScrollViewer(s) removed, grids and the log cap their height
                     <DataGridTemplateColumn Header="Count (pts)" Width="*">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <TextBox Style="{StaticResource BoxedTextInput}" Height="26" Padding="6,2" Width="62"
+                                <TextBox Style="{StaticResource BoxedTextInput}" Height="26" Padding="8,2" Width="62"
                                          HorizontalAlignment="Left"
                                          IsEnabled="{Binding ModeByCount}"
                                          Text="{Binding FixedCount, UpdateSourceTrigger=LostFocus}"/>
@@ -125,13 +125,13 @@ own ScrollViewer(s) removed, grids and the log cap their height
 
             <!-- ── Edges toolbar ── -->
             <StackPanel Grid.Row="2" Orientation="Horizontal" VerticalAlignment="Center">
-                <TextBlock Text="Edges" Style="{StaticResource SectionTitle}" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                <TextBlock Text="Edges" Style="{StaticResource SectionTitle}" Margin="0,0,12,0" VerticalAlignment="Center"/>
                 <Button Content="Select All"  Style="{StaticResource SmallSecondaryButton}" Width="86" Command="{Binding SelectAllCommand}"/>
-                <Button Content="Select None" Style="{StaticResource SmallSecondaryButton}" Width="86" Margin="6,0,0,0" Command="{Binding SelectNoneCommand}"/>
+                <Button Content="Select None" Style="{StaticResource SmallSecondaryButton}" Width="86" Margin="8,0,0,0" Command="{Binding SelectNoneCommand}"/>
             </StackPanel>
 
             <!-- ── Edges grid (override + editable point count) ── -->
-            <DataGrid shell:ShellBehaviors.MaxHeightRatio="0.4" shell:ShellBehaviors.ForwardMouseWheel="True" MinHeight="160" Grid.Row="3" Margin="0,6,0,0"
+            <DataGrid shell:ShellBehaviors.MaxHeightRatio="0.4" shell:ShellBehaviors.ForwardMouseWheel="True" MinHeight="160" Grid.Row="3" Margin="0,8,0,0"
                       VirtualizingStackPanel.IsVirtualizing="True" VirtualizingStackPanel.VirtualizationMode="Recycling"
                       ItemsSource="{Binding Edges}"
                       Style="{StaticResource StandardDataGrid}"
@@ -178,7 +178,7 @@ own ScrollViewer(s) removed, grids and the log cap their height
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <TextBox Style="{StaticResource BoxedTextInput}" Height="26" Padding="6,2" Width="56"
+                                    <TextBox Style="{StaticResource BoxedTextInput}" Height="26" Padding="8,2" Width="56"
                                              IsEnabled="{Binding OverrideDistanceEnabled}"
                                              Text="{Binding OverrideTargetMeters, StringFormat=F2, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
                                     <TextBlock Text="m" Style="{StaticResource UnitLabel}"/>
@@ -192,7 +192,7 @@ own ScrollViewer(s) removed, grids and the log cap their height
                     <DataGridTemplateColumn Header="Points" Width="*">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <TextBox Style="{StaticResource BoxedTextInput}" Height="26" Padding="6,2" Width="64"
+                                <TextBox Style="{StaticResource BoxedTextInput}" Height="26" Padding="8,2" Width="64"
                                          HorizontalAlignment="Left"
                                          IsEnabled="{Binding IsCountDriven}"
                                          Text="{Binding FinalPointCount, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
@@ -204,17 +204,17 @@ own ScrollViewer(s) removed, grids and the log cap their height
         </Grid>
 
         <!-- ═══ FIXED FOOTER (never scrolls) ════════════════════ -->
-        <StackPanel Grid.Row="2" Margin="0,10,0,0">
-            <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="10,8">
+        <StackPanel Grid.Row="2" Margin="0,12,0,0">
+            <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="12,8">
                 <StackPanel>
-                    <Grid Margin="0,0,0,6">
+                    <Grid Margin="0,0,0,8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Text="Activity Log" Foreground="{StaticResource BrushLogText}" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center"/>
                         <StackPanel Grid.Column="1" Orientation="Horizontal">
-                            <Button Content="Copy All" Style="{StaticResource DarkGhostButton}" Click="CopyAllLog_Click" Margin="0,0,6,0"/>
+                            <Button Content="Copy All" Style="{StaticResource DarkGhostButton}" Click="CopyAllLog_Click" Margin="0,0,8,0"/>
                             <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Click="CopySelectedLog_Click"/>
                         </StackPanel>
                     </Grid>
@@ -223,13 +223,13 @@ own ScrollViewer(s) removed, grids and the log cap their height
                              ScrollViewer.VerticalScrollBarVisibility="Auto">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
-                                <StackPanel Orientation="Horizontal" Margin="0,1">
+                                <StackPanel Orientation="Horizontal" Margin="0,2">
                                     <TextBlock Text="{Binding Time, StringFormat=HH:mm:ss}"
                                                Foreground="{StaticResource BrushLogTextDim}"
-                                               FontFamily="Consolas" FontSize="11.5" Margin="0,0,10,0"/>
+                                               FontFamily="{DynamicResource MonoFont}" FontSize="12" Margin="0,0,12,0"/>
                                     <TextBlock Text="{Binding Message}"
                                                Foreground="{Binding Level, Converter={StaticResource LogLevelToColor}}"
-                                               FontFamily="Consolas" FontSize="11.5" TextWrapping="Wrap"/>
+                                               FontFamily="{DynamicResource MonoFont}" FontSize="12" TextWrapping="Wrap"/>
                                 </StackPanel>
                             </DataTemplate>
                         </ListBox.ItemTemplate>

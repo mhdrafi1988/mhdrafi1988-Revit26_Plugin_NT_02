@@ -67,15 +67,15 @@ own ScrollViewer(s) removed, grids and the log cap their height
                                     <DockPanel LastChildFill="False"
                                                Background="{StaticResource BrushSystemTertiaryBackground}"
                                                MinWidth="480">
-                                        <TextBlock DockPanel.Dock="Left" FontWeight="SemiBold" FontSize="10.5"
-                                                   VerticalAlignment="Center" Margin="4,3">
+                                        <TextBlock DockPanel.Dock="Left" FontWeight="SemiBold" FontSize="11"
+                                                   VerticalAlignment="Center" Margin="4,4">
                                             <Run Text="{Binding Name, Mode=OneWay}"/>
                                             <Run Text=" ("/>
                                             <Run Text="{Binding ItemCount, Mode=OneWay}"/>
                                             <Run Text=")"/>
                                         </TextBlock>
                                         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Margin="0,0,4,0">
-                                            <Button Content="All" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,3,0"
+                                            <Button Content="All" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,4,0"
                                                     Command="{Binding DataContext.SelectAllInGroupCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
                                                     CommandParameter="{Binding Name}"/>
                                             <Button Content="None" Style="{StaticResource SmallSecondaryButton}"
@@ -101,7 +101,7 @@ own ScrollViewer(s) removed, grids and the log cap their height
         </Grid.RowDefinitions>
 
         <StackPanel Grid.Row="0">
-            <TextBlock Text="{Binding RoofSubtitle}" Style="{StaticResource AppSubtitle}" FontSize="10.5" Margin="2,0,0,6"/>
+            <TextBlock Text="{Binding RoofSubtitle}" Style="{StaticResource AppSubtitle}" FontSize="11" Margin="2,0,0,8"/>
             <!-- Row 0: all 8 metrics in ONE 4x2 grid (was two separate 4-col rows) -->
             <Grid Margin="0,0,0,8">
                 <Grid.ColumnDefinitions>
@@ -116,61 +116,61 @@ own ScrollViewer(s) removed, grids and the log cap their height
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource MetricCard}" Margin="0,0,2.5,0" Padding="9,7">
+                <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource MetricCard}" Margin="0,0,2,0" Padding="8,8">
                     <StackPanel>
-                        <TextBlock Text="Longest Path" Style="{StaticResource MetricLabel}" FontSize="9.5"/>
+                        <TextBlock Text="Longest Path" Style="{StaticResource MetricLabel}" FontSize="10"/>
                         <TextBlock Text="{Binding LongestPathDisplay}" Style="{StaticResource MetricNumberAccent}" FontSize="19"/>
-                        <TextBlock Text="Meters" Style="{StaticResource MetricUnit}" FontSize="9"/>
+                        <TextBlock Text="Meters" Style="{StaticResource MetricUnit}" FontSize="10"/>
                     </StackPanel>
                 </Border>
-                <Border Grid.Row="0" Grid.Column="1" Style="{StaticResource MetricCard}" Margin="2.5,0,2.5,0" Padding="9,7">
+                <Border Grid.Row="0" Grid.Column="1" Style="{StaticResource MetricCard}" Margin="2,0,2,0" Padding="8,8">
                     <StackPanel>
-                        <TextBlock Text="Max Offset" Style="{StaticResource MetricLabel}" FontSize="9.5"/>
+                        <TextBlock Text="Max Offset" Style="{StaticResource MetricLabel}" FontSize="10"/>
                         <TextBlock Text="{Binding HighestElevationDisplay}" Style="{StaticResource MetricNumber}" FontSize="19"/>
-                        <TextBlock Text="Millimeters" Style="{StaticResource MetricUnit}" FontSize="9"/>
+                        <TextBlock Text="Millimeters" Style="{StaticResource MetricUnit}" FontSize="10"/>
                     </StackPanel>
                 </Border>
-                <Border Grid.Row="0" Grid.Column="2" Style="{StaticResource MetricCard}" Margin="2.5,0,2.5,0" Padding="9,7">
+                <Border Grid.Row="0" Grid.Column="2" Style="{StaticResource MetricCard}" Margin="2,0,2,0" Padding="8,8">
                     <StackPanel>
-                        <TextBlock Text="Drains Selected" Style="{StaticResource MetricLabel}" FontSize="9.5"/>
+                        <TextBlock Text="Drains Selected" Style="{StaticResource MetricLabel}" FontSize="10"/>
                         <TextBlock Text="{Binding SelectedDrainsCount}" Style="{StaticResource MetricNumberSuccess}" FontSize="19"/>
-                        <TextBlock Text="of Detected" Style="{StaticResource MetricUnit}" FontSize="9"/>
+                        <TextBlock Text="of Detected" Style="{StaticResource MetricUnit}" FontSize="10"/>
                     </StackPanel>
                 </Border>
-                <Border Grid.Row="0" Grid.Column="3" Style="{StaticResource MetricCard}" Margin="2.5,0,0,0" Padding="9,7">
+                <Border Grid.Row="0" Grid.Column="3" Style="{StaticResource MetricCard}" Margin="2,0,0,0" Padding="8,8">
                     <StackPanel>
-                        <TextBlock Text="Slope" Style="{StaticResource MetricLabel}" FontSize="9.5"/>
+                        <TextBlock Text="Slope" Style="{StaticResource MetricLabel}" FontSize="10"/>
                         <TextBlock Text="{Binding SlopeInput}" Style="{StaticResource MetricNumber}" FontSize="19"/>
-                        <TextBlock Text="Percent" Style="{StaticResource MetricUnit}" FontSize="9"/>
+                        <TextBlock Text="Percent" Style="{StaticResource MetricUnit}" FontSize="10"/>
                     </StackPanel>
                 </Border>
 
-                <Border Grid.Row="2" Grid.Column="0" Style="{StaticResource MetricCard}" Margin="0,0,2.5,0" Padding="9,7">
+                <Border Grid.Row="2" Grid.Column="0" Style="{StaticResource MetricCard}" Margin="0,0,2,0" Padding="8,8">
                     <StackPanel>
-                        <TextBlock Text="Run Duration" Style="{StaticResource MetricLabel}" FontSize="9.5"/>
+                        <TextBlock Text="Run Duration" Style="{StaticResource MetricLabel}" FontSize="10"/>
                         <TextBlock Text="{Binding RunDuration_sec, FallbackValue=0}" Style="{StaticResource MetricNumberSuccess}" FontSize="19"/>
-                        <TextBlock Text="Seconds" Style="{StaticResource MetricUnit}" FontSize="9"/>
+                        <TextBlock Text="Seconds" Style="{StaticResource MetricUnit}" FontSize="10"/>
                     </StackPanel>
                 </Border>
-                <Border Grid.Row="2" Grid.Column="1" Style="{StaticResource MetricCard}" Margin="2.5,0,2.5,0" Padding="9,7">
+                <Border Grid.Row="2" Grid.Column="1" Style="{StaticResource MetricCard}" Margin="2,0,2,0" Padding="8,8">
                     <StackPanel>
-                        <TextBlock Text="Total Detected" Style="{StaticResource MetricLabel}" FontSize="9.5"/>
+                        <TextBlock Text="Total Detected" Style="{StaticResource MetricLabel}" FontSize="10"/>
                         <TextBlock Text="{Binding TotalDetectedCount, FallbackValue=0}" Style="{StaticResource MetricNumberAccent}" FontSize="19"/>
-                        <TextBlock Text="Drains" Style="{StaticResource MetricUnit}" FontSize="9"/>
+                        <TextBlock Text="Drains" Style="{StaticResource MetricUnit}" FontSize="10"/>
                     </StackPanel>
                 </Border>
-                <Border Grid.Row="2" Grid.Column="2" Style="{StaticResource MetricCard}" Margin="2.5,0,2.5,0" Padding="9,7">
+                <Border Grid.Row="2" Grid.Column="2" Style="{StaticResource MetricCard}" Margin="2,0,2,0" Padding="8,8">
                     <StackPanel>
-                        <TextBlock Text="Selected Count" Style="{StaticResource MetricLabel}" FontSize="9.5"/>
+                        <TextBlock Text="Selected Count" Style="{StaticResource MetricLabel}" FontSize="10"/>
                         <TextBlock Text="{Binding SelectedCount, FallbackValue=0}" Style="{StaticResource MetricNumber}" FontSize="19"/>
-                        <TextBlock Text="Drains" Style="{StaticResource MetricUnit}" FontSize="9"/>
+                        <TextBlock Text="Drains" Style="{StaticResource MetricUnit}" FontSize="10"/>
                     </StackPanel>
                 </Border>
-                <Border Grid.Row="2" Grid.Column="3" Style="{StaticResource MetricCard}" Margin="2.5,0,0,0" Padding="9,7">
+                <Border Grid.Row="2" Grid.Column="3" Style="{StaticResource MetricCard}" Margin="2,0,0,0" Padding="8,8">
                     <StackPanel>
-                        <TextBlock Text="Arcs Calculated" Style="{StaticResource MetricLabel}" FontSize="9.5"/>
+                        <TextBlock Text="Arcs Calculated" Style="{StaticResource MetricLabel}" FontSize="10"/>
                         <TextBlock Text="{Binding ArcsCalculated, FallbackValue=0}" Style="{StaticResource MetricNumberWarning}" FontSize="19"/>
-                        <TextBlock Text="Boundary Arcs" Style="{StaticResource MetricUnit}" FontSize="9"/>
+                        <TextBlock Text="Boundary Arcs" Style="{StaticResource MetricUnit}" FontSize="10"/>
                     </StackPanel>
                 </Border>
             </Grid>
@@ -187,10 +187,10 @@ own ScrollViewer(s) removed, grids and the log cap their height
                     <!-- Slope Section — all 3 fields kept, hints moved to info-dot tooltips -->
                     <Border Style="{StaticResource ContentCard}">
                         <StackPanel>
-                            <TextBlock Text="Slope" Style="{StaticResource SectionTitle}" Margin="10,7,10,3"/>
+                            <TextBlock Text="Slope" Style="{StaticResource SectionTitle}" Margin="12,8,12,4"/>
 
-                            <StackPanel Margin="10,3">
-                                <TextBlock Text="Percentage" Style="{StaticResource FieldLabel}" FontSize="10.5"/>
+                            <StackPanel Margin="12,4">
+                                <TextBlock Text="Percentage" Style="{StaticResource FieldLabel}" FontSize="11"/>
                                 <ComboBox ItemsSource="{Binding SlopeOptions}"
                                           Text="{Binding SlopeInput}"
                                           IsEditable="True"
@@ -199,9 +199,9 @@ own ScrollViewer(s) removed, grids and the log cap their height
 
                             <Border Style="{StaticResource SeparatorLine}"/>
 
-                            <StackPanel Margin="10,3">
-                                <DockPanel LastChildFill="False" Margin="0,0,0,1">
-                                    <TextBlock Text="Max Edge Distance" Style="{StaticResource FieldLabel}" FontSize="10.5"/>
+                            <StackPanel Margin="12,4">
+                                <DockPanel LastChildFill="False" Margin="0,0,0,2">
+                                    <TextBlock Text="Max Edge Distance" Style="{StaticResource FieldLabel}" FontSize="11"/>
                                     <Border Style="{StaticResource InfoDot}"
                                             ToolTip="Two vertices farther apart than this are never linked as graph neighbors. Keeps the pathfinding graph sparse and fast.">
                                         <TextBlock Text="i" Style="{StaticResource InfoDotText}"/>
@@ -217,9 +217,9 @@ own ScrollViewer(s) removed, grids and the log cap their height
 
                             <Border Style="{StaticResource SeparatorLine}"/>
 
-                            <StackPanel Margin="10,3">
-                                <DockPanel LastChildFill="False" Margin="0,0,0,1">
-                                    <TextBlock Text="Max Path Distance" Style="{StaticResource FieldLabel}" FontSize="10.5"/>
+                            <StackPanel Margin="12,4">
+                                <DockPanel LastChildFill="False" Margin="0,0,0,2">
+                                    <TextBlock Text="Max Path Distance" Style="{StaticResource FieldLabel}" FontSize="11"/>
                                     <Border Style="{StaticResource InfoDot}"
                                             ToolTip="A vertex whose total path to its nearest selected drain exceeds this is skipped (no elevation change applied), even if every edge on the path was individually valid.">
                                         <TextBlock Text="i" Style="{StaticResource InfoDotText}"/>
@@ -235,9 +235,9 @@ own ScrollViewer(s) removed, grids and the log cap their height
 
                             <Border Style="{StaticResource SeparatorLine}"/>
 
-                            <StackPanel Margin="10,3,10,7">
-                                <DockPanel LastChildFill="False" Margin="0,0,0,1">
-                                    <TextBlock Text="Path Samples" Style="{StaticResource FieldLabel}" FontSize="10.5"/>
+                            <StackPanel Margin="12,4,12,8">
+                                <DockPanel LastChildFill="False" Margin="0,0,0,2">
+                                    <TextBlock Text="Path Samples" Style="{StaticResource FieldLabel}" FontSize="11"/>
                                     <Border Style="{StaticResource InfoDot}"
                                             ToolTip="Points sampled along each candidate edge to confirm it lies on the roof face. Min 2, recommended 5-20.">
                                         <TextBlock Text="i" Style="{StaticResource InfoDotText}"/>
@@ -256,9 +256,9 @@ own ScrollViewer(s) removed, grids and the log cap their height
                     <!-- Options Section — Curve Handling + Verification MERGED into one card -->
                     <Border Style="{StaticResource ContentCard}">
                         <StackPanel>
-                            <TextBlock Text="Options" Style="{StaticResource SectionTitle}" Margin="10,7,10,3"/>
+                            <TextBlock Text="Options" Style="{StaticResource SectionTitle}" Margin="12,8,12,4"/>
 
-                            <DockPanel Margin="10,5" LastChildFill="False">
+                            <DockPanel Margin="12,4" LastChildFill="False">
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                     <TextBlock Text="Insert curve intersections" Style="{StaticResource FieldValue}" FontSize="11" VerticalAlignment="Center"/>
                                     <Border Style="{StaticResource InfoDot}"
@@ -273,7 +273,7 @@ own ScrollViewer(s) removed, grids and the log cap their height
 
                             <Border Style="{StaticResource SeparatorLine}"/>
 
-                            <DockPanel Margin="10,5,10,9" LastChildFill="False">
+                            <DockPanel Margin="12,4,12,8" LastChildFill="False">
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                     <TextBlock Text="Verify after commit" Style="{StaticResource FieldValue}" FontSize="11" VerticalAlignment="Center"/>
                                     <Border Style="{StaticResource InfoDot}"
@@ -291,16 +291,16 @@ own ScrollViewer(s) removed, grids and the log cap their height
                     <!-- Circle Markers Section — Drain / Highest Point, ported from AutoSlopeByPoint -->
                     <Border Style="{StaticResource ContentCard}">
                         <StackPanel>
-                            <TextBlock Text="Circle Markers" Style="{StaticResource SectionTitle}" Margin="10,7,10,3"
+                            <TextBlock Text="Circle Markers" Style="{StaticResource SectionTitle}" Margin="12,8,12,4"
                                        ToolTip="Placed in the active plan view when Run completes. Skipped with a warning if the active view is not a plan view."/>
 
                             <!-- Group 1: Drain -->
-                            <StackPanel Orientation="Horizontal" Margin="10,0,10,0" VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal" Margin="12,0,12,0" VerticalAlignment="Center">
                                 <CheckBox IsChecked="{Binding DrainMarkerGroup.IsEnabled}" VerticalAlignment="Center"/>
                                 <TextBlock Text="Place Circles on Drains" Style="{StaticResource FieldValue}"
-                                           Margin="6,0,0,0" VerticalAlignment="Center" FontSize="11"/>
+                                           Margin="8,0,0,0" VerticalAlignment="Center" FontSize="11"/>
                             </StackPanel>
-                            <Grid Margin="10,4,10,6" IsEnabled="{Binding DrainMarkerGroup.IsEnabled}">
+                            <Grid Margin="12,4,12,8" IsEnabled="{Binding DrainMarkerGroup.IsEnabled}">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="1.1*"/>
                                     <ColumnDefinition Width="6"/>
@@ -309,7 +309,7 @@ own ScrollViewer(s) removed, grids and the log cap their height
                                     <ColumnDefinition Width="0.7*"/>
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Grid.Column="0">
-                                    <TextBlock Text="Line Style" Style="{StaticResource FieldLabel}" FontSize="9.5"/>
+                                    <TextBlock Text="Line Style" Style="{StaticResource FieldLabel}" FontSize="10"/>
                                     <ComboBox ItemsSource="{Binding LineStyleOptions}"
                                               SelectedValue="{Binding DrainMarkerGroup.LineStyleId, Mode=TwoWay}"
                                               SelectedValuePath="Id"
@@ -317,13 +317,13 @@ own ScrollViewer(s) removed, grids and the log cap their height
                                               Style="{StaticResource StandardComboBox}"/>
                                 </StackPanel>
                                 <StackPanel Grid.Column="2">
-                                    <TextBlock Text="Color" Style="{StaticResource FieldLabel}" FontSize="9.5"/>
+                                    <TextBlock Text="Color" Style="{StaticResource FieldLabel}" FontSize="10"/>
                                     <ComboBox ItemsSource="{Binding ColorPalette}"
                                               SelectedItem="{Binding DrainMarkerGroup.ColorName, Mode=TwoWay}"
                                               Style="{StaticResource StandardComboBox}"/>
                                 </StackPanel>
                                 <StackPanel Grid.Column="4">
-                                    <TextBlock Text="Radius (mm)" Style="{StaticResource FieldLabel}" FontSize="9.5"/>
+                                    <TextBlock Text="Radius (mm)" Style="{StaticResource FieldLabel}" FontSize="10"/>
                                     <TextBox Style="{StaticResource BorderlessTextInput}"
                                              Text="{Binding DrainMarkerGroup.RadiusMm, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                              MaxLength="10"/>
@@ -333,12 +333,12 @@ own ScrollViewer(s) removed, grids and the log cap their height
                             <Border Style="{StaticResource SeparatorLine}"/>
 
                             <!-- Group 2: Highest Point -->
-                            <StackPanel Orientation="Horizontal" Margin="10,4,10,0" VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal" Margin="12,4,12,0" VerticalAlignment="Center">
                                 <CheckBox IsChecked="{Binding HighestPointMarkerGroup.IsEnabled}" VerticalAlignment="Center"/>
                                 <TextBlock Text="Highest Point" Style="{StaticResource FieldValue}"
-                                           Margin="6,0,0,0" VerticalAlignment="Center" FontSize="11"/>
+                                           Margin="8,0,0,0" VerticalAlignment="Center" FontSize="11"/>
                             </StackPanel>
-                            <Grid Margin="10,4,10,9" IsEnabled="{Binding HighestPointMarkerGroup.IsEnabled}">
+                            <Grid Margin="12,4,12,8" IsEnabled="{Binding HighestPointMarkerGroup.IsEnabled}">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="1.1*"/>
                                     <ColumnDefinition Width="6"/>
@@ -347,7 +347,7 @@ own ScrollViewer(s) removed, grids and the log cap their height
                                     <ColumnDefinition Width="0.7*"/>
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Grid.Column="0">
-                                    <TextBlock Text="Line Style" Style="{StaticResource FieldLabel}" FontSize="9.5"/>
+                                    <TextBlock Text="Line Style" Style="{StaticResource FieldLabel}" FontSize="10"/>
                                     <ComboBox ItemsSource="{Binding LineStyleOptions}"
                                               SelectedValue="{Binding HighestPointMarkerGroup.LineStyleId, Mode=TwoWay}"
                                               SelectedValuePath="Id"
@@ -355,13 +355,13 @@ own ScrollViewer(s) removed, grids and the log cap their height
                                               Style="{StaticResource StandardComboBox}"/>
                                 </StackPanel>
                                 <StackPanel Grid.Column="2">
-                                    <TextBlock Text="Color" Style="{StaticResource FieldLabel}" FontSize="9.5"/>
+                                    <TextBlock Text="Color" Style="{StaticResource FieldLabel}" FontSize="10"/>
                                     <ComboBox ItemsSource="{Binding ColorPalette}"
                                               SelectedItem="{Binding HighestPointMarkerGroup.ColorName, Mode=TwoWay}"
                                               Style="{StaticResource StandardComboBox}"/>
                                 </StackPanel>
                                 <StackPanel Grid.Column="4">
-                                    <TextBlock Text="Radius (mm)" Style="{StaticResource FieldLabel}" FontSize="9.5"/>
+                                    <TextBlock Text="Radius (mm)" Style="{StaticResource FieldLabel}" FontSize="10"/>
                                     <TextBox Style="{StaticResource BorderlessTextInput}"
                                              Text="{Binding HighestPointMarkerGroup.RadiusMm, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                              MaxLength="10"/>
@@ -373,7 +373,7 @@ own ScrollViewer(s) removed, grids and the log cap their height
                     <!-- Export Section -->
                     <Border Style="{StaticResource ContentCard}">
                         <StackPanel>
-                            <DockPanel Margin="10,7,10,3" LastChildFill="False">
+                            <DockPanel Margin="12,8,12,4" LastChildFill="False">
                                 <TextBlock Text="Export" Style="{StaticResource SectionTitle}" Margin="0"/>
                                 <Border Style="{StaticResource InfoDot}"
                                         ToolTip="Exports an Excel workbook (Vertex Data + Run Summary sheets) after every run.">
@@ -383,13 +383,13 @@ own ScrollViewer(s) removed, grids and the log cap their height
 
                             <Border Style="{StaticResource SeparatorLine}"/>
 
-                            <StackPanel Margin="10,3,10,9">
-                                <TextBlock Text="Folder" Style="{StaticResource FieldLabel}" FontSize="10.5"/>
+                            <StackPanel Margin="12,4,12,8">
+                                <TextBlock Text="Folder" Style="{StaticResource FieldLabel}" FontSize="11"/>
                                 <DockPanel LastChildFill="True">
                                     <Button Content="Browse"
                                             DockPanel.Dock="Right"
                                             Style="{StaticResource SecondaryButton}"
-                                            Margin="6,0,0,0"
+                                            Margin="8,0,0,0"
                                             Command="{Binding BrowseFolderCommand}"/>
                                     <TextBox Style="{StaticResource BorderlessTextInput}"
                                              Text="{Binding ExportFolderPath, Mode=TwoWay}"
@@ -405,12 +405,12 @@ own ScrollViewer(s) removed, grids and the log cap their height
                     <Button Content="Open Export Folder"
                             Style="{StaticResource SecondaryButton}"
                             Command="{Binding OpenExportFolderCommand}"
-                            Margin="0,0,0,7"/>
+                            Margin="0,0,0,8"/>
 
-                    <DockPanel Margin="10,4,10,7" LastChildFill="False">
+                    <DockPanel Margin="12,4,12,8" LastChildFill="False">
                         <TextBlock Text="Vertices are reset to zero at drains; slope is applied outward from there."
                                    Style="{StaticResource HintText}"
-                                   FontSize="9.5"
+                                   FontSize="10"
                                    Margin="0"
                                    TextWrapping="Wrap"/>
                     </DockPanel>
@@ -428,7 +428,7 @@ own ScrollViewer(s) removed, grids and the log cap their height
                 </Grid.RowDefinitions>
                 <!-- Row 2: Detected Drains grid header (filter + select all/none/invert) -->
                 <Border Grid.Row="0" Style="{StaticResource ContentCard}" Margin="0">
-                    <Grid Margin="10,6,10,6">
+                    <Grid Margin="12,8,12,8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
@@ -439,15 +439,15 @@ own ScrollViewer(s) removed, grids and the log cap their height
                                       SelectedItem="{Binding SelectedSizeFilter}"
                                       Width="118"
                                       Style="{StaticResource StandardComboBox}"
-                                      Margin="0,0,6,0"/>
-                            <Button Content="Select All" Command="{Binding SelectAllCommand}" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,3,0"/>
-                            <Button Content="Select None" Command="{Binding SelectNoneCommand}" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,3,0"/>
+                                      Margin="0,0,8,0"/>
+                            <Button Content="Select All" Command="{Binding SelectAllCommand}" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,4,0"/>
+                            <Button Content="Select None" Command="{Binding SelectNoneCommand}" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,4,0"/>
                             <Button Content="Invert" Command="{Binding InvertSelectionCommand}" Style="{StaticResource SmallSecondaryButton}"/>
                         </StackPanel>
                     </Grid>
                 </Border>
                 <!-- Row 4: Detected Drains DataGrid — sortable, filterable via FilteredDrainsView -->
-                <DataGrid shell:ShellBehaviors.MaxHeightRatio="0.4" shell:ShellBehaviors.ForwardMouseWheel="True" MinHeight="160" Grid.Row="1" Margin="0,6,0,0"
+                <DataGrid shell:ShellBehaviors.MaxHeightRatio="0.4" shell:ShellBehaviors.ForwardMouseWheel="True" MinHeight="160" Grid.Row="1" Margin="0,8,0,0"
                           ItemsSource="{Binding FilteredDrainsView}"
                           AutoGenerateColumns="False"
                           CanUserAddRows="False"
@@ -503,26 +503,26 @@ own ScrollViewer(s) removed, grids and the log cap their height
                  0 drains are selected — not a silent disable. -->
             <TextBlock Text="Select at least one drain to run."
                        Foreground="{StaticResource BrushStatusWarn}"
-                       FontSize="10.5"
-                       Margin="4,0,4,7"
+                       FontSize="11"
+                       Margin="4,0,4,8"
                        TextWrapping="Wrap"
                        Visibility="{Binding ShowNoDrainsSelectedHint, Converter={StaticResource BoolToVisibility}}"/>
-            <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="10,8" Margin="0,0,0,8">
+            <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="12,8" Margin="0,0,0,8">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
-                    <Grid Margin="0,0,0,6">
+                    <Grid Margin="0,0,0,8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Text="Processing Log" Foreground="{StaticResource BrushLogText}"
-                                   FontSize="11.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                   FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
                         <StackPanel Grid.Column="1" Orientation="Horizontal">
-                            <Button Content="Copy All" Command="{Binding CopyAllLogsCommand}" Style="{StaticResource DarkGhostButton}" Margin="0,0,6,0"/>
-                            <Button Content="Copy Selected" Click="CopySelectedLogs_Click" Style="{StaticResource DarkGhostButton}" Margin="0,0,6,0"/>
+                            <Button Content="Copy All" Command="{Binding CopyAllLogsCommand}" Style="{StaticResource DarkGhostButton}" Margin="0,0,8,0"/>
+                            <Button Content="Copy Selected" Click="CopySelectedLogs_Click" Style="{StaticResource DarkGhostButton}" Margin="0,0,8,0"/>
                             <Button Content="Clear" Command="{Binding ClearLogCommand}" Style="{StaticResource DarkGhostButton}"/>
                         </StackPanel>
                     </Grid>
@@ -532,12 +532,12 @@ own ScrollViewer(s) removed, grids and the log cap their height
                              Background="Transparent"
                              BorderThickness="0"
                              ScrollViewer.VerticalScrollBarVisibility="Auto"
-                             FontFamily="Consolas"
-                             FontSize="9.5"
+                             FontFamily="{DynamicResource MonoFont}"
+                             FontSize="10"
                              >
                         <ListBox.ItemContainerStyle>
                             <Style TargetType="ListBoxItem">
-                                <Setter Property="Padding" Value="3,1"/>
+                                <Setter Property="Padding" Value="4,2"/>
                                 <Setter Property="Background" Value="Transparent"/>
                                 <Setter Property="Template">
                                     <Setter.Value>

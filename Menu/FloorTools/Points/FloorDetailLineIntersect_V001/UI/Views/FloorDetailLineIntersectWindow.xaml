@@ -49,31 +49,31 @@ Changes vs V013 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
         <!-- ═══ HEADER ═══════════════════════════════════════════ -->
         <shell:ToolWindowShell.HeaderContent>
             <UniformGrid Columns="5" Margin="0,0,0,8">
-                <Border Style="{StaticResource MetricCard}" Margin="0,0,4,0" Padding="10,8">
+                <Border Style="{StaticResource MetricCard}" Margin="0,0,4,0" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="Lines" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding TotalLines}" Style="{StaticResource MetricNumber}" FontSize="18"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="10,8">
+                <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="Boundary" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding IntersectionsFound}" Style="{StaticResource MetricNumberSuccess}" FontSize="18"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="10,8">
+                <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="Line×Line" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding LineToLineIntersectionsFound}" Style="{StaticResource MetricNumberSuccess}" FontSize="18"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="10,8">
+                <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="Pts Placed" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding PointsPlaced}" Style="{StaticResource MetricNumberSuccess}" FontSize="18"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricCard}" Margin="4,0,0,0" Padding="10,8">
+                <Border Style="{StaticResource MetricCard}" Margin="4,0,0,0" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="Skipped" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding SkippedCount}" Style="{StaticResource MetricNumberWarning}" FontSize="18"/>
@@ -96,7 +96,7 @@ Changes vs V013 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                         <Border Height="1" Background="{StaticResource BrushSeparatorThin}" Margin="12,0"/>
 
                         <!-- Floor row -->
-                        <Grid Margin="12,6,12,4">
+                        <Grid Margin="12,8,12,4">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
@@ -105,7 +105,7 @@ Changes vs V013 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
 
                             <Border Grid.Column="0"
                                     Background="{StaticResource BrushAppleBlue}"
-                                    CornerRadius="8" Padding="7,2" Margin="0,0,8,0"
+                                    CornerRadius="8" Padding="8,2" Margin="0,0,8,0"
                                     VerticalAlignment="Center">
                                 <TextBlock Text="FLOOR" FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrushTextOnDark}"/>
                             </Border>
@@ -124,7 +124,7 @@ Changes vs V013 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                         <Border Height="1" Background="{StaticResource BrushSeparatorThin}" Margin="12,0"/>
 
                         <!-- Detail Lines row -->
-                        <Grid Margin="12,6,12,8">
+                        <Grid Margin="12,8,12,8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
@@ -133,7 +133,7 @@ Changes vs V013 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
 
                             <Border Grid.Column="0"
                                     Background="{StaticResource BrushStatusOk}"
-                                    CornerRadius="8" Padding="7,2" Margin="0,0,8,0"
+                                    CornerRadius="8" Padding="8,2" Margin="0,0,8,0"
                                     VerticalAlignment="Center">
                                 <TextBlock FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrushTextOnDark}">
                                     <Run Text="{Binding TotalLines, Mode=OneWay}"/>
@@ -156,7 +156,7 @@ Changes vs V013 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                 </Border>
 
                 <!-- ── Options  ───────────────────────────────── -->
-                <Border Style="{StaticResource ContentCard}" Margin="0,6,0,0">
+                <Border Style="{StaticResource ContentCard}" Margin="0,8,0,0">
                     <StackPanel>
 
                         <TextBlock Text="Options"
@@ -168,35 +168,35 @@ Changes vs V013 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                         <CheckBox Content="Include Line × Line Intersections"
                                   IsChecked="{Binding IncludeLineToLineIntersections}"
                                   IsEnabled="{Binding IsBusy, Converter={StaticResource InvBool}}"
-                                  Margin="12,10,12,4"
-                                  FontSize="12.5"
+                                  Margin="12,12,12,4"
+                                  FontSize="13"
                                   Foreground="{StaticResource BrushTextPrimary}"/>
 
                         <TextBlock Text="Also places a shape point wherever two of the selected detail lines cross each other, not just where they cross the floor boundary."
                                    Style="{StaticResource FieldLabel}"
                                    TextWrapping="Wrap"
-                                   Margin="30,0,12,10"/>
+                                   Margin="30,0,12,12"/>
 
                     </StackPanel>
                 </Border>
 
                 <!-- ── Run Log (moved from footer) ── -->
-                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="10,8" Margin="0,8,0,0">
+                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="12,8" Margin="0,8,0,0">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <Grid Margin="0,0,0,6">
+                        <Grid Margin="0,0,0,8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Text="Run Log" Foreground="{StaticResource BrushLogText}"
-                                       FontSize="11.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                       FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
                             <StackPanel Grid.Column="1" Orientation="Horizontal">
                                 <Button Content="Copy All" Style="{StaticResource DarkGhostButton}" Command="{Binding CopyLogCommand}"/>
-                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Click="CopySelectedLog_Click" Margin="6,0,0,0"/>
+                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Click="CopySelectedLog_Click" Margin="8,0,0,0"/>
                             </StackPanel>
                         </Grid>
                         <ListBox Grid.Row="1" x:Name="LogList" ItemsSource="{Binding LogEntries}" MinHeight="150"
@@ -207,22 +207,22 @@ Changes vs V013 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                             <ListBox.ItemContainerStyle>
                                 <Style TargetType="ListBoxItem">
-                                    <Setter Property="Padding" Value="0,1"/>
+                                    <Setter Property="Padding" Value="0,2"/>
                                     <Setter Property="Background" Value="Transparent"/>
                                 </Style>
                             </ListBox.ItemContainerStyle>
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
-                                    <StackPanel Orientation="Horizontal" Margin="0,1">
+                                    <StackPanel Orientation="Horizontal" Margin="0,2">
                                 <TextBlock Text="{Binding Time, StringFormat=HH:mm:ss}"
                                            Foreground="{StaticResource BrushLogTextDim}"
-                                           FontFamily="Consolas" FontSize="11" Margin="0,0,10,0"/>
+                                           FontFamily="{DynamicResource MonoFont}" FontSize="11" Margin="0,0,12,0"/>
                                 <TextBlock Text="{Binding Level}"
                                            Foreground="{Binding Level, Converter={StaticResource LogColor}}"
-                                           FontFamily="Consolas" FontSize="11" FontWeight="SemiBold" Width="64"/>
+                                           FontFamily="{DynamicResource MonoFont}" FontSize="11" FontWeight="SemiBold" Width="64"/>
                                 <TextBlock Text="{Binding Message}"
                                            Foreground="{StaticResource BrushLogText}"
-                                           FontFamily="Consolas" FontSize="11" TextWrapping="Wrap"/>
+                                           FontFamily="{DynamicResource MonoFont}" FontSize="11" TextWrapping="Wrap"/>
                             </StackPanel>
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
@@ -240,7 +240,7 @@ Changes vs V013 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                         Command="{Binding RunCommand}"
                         Width="90"
                         Margin="0,0,8,0"/>
-                <Button Content="Close"
+                <Button IsCancel="True" Content="Close"
                         Style="{StaticResource OutlineButton}"
                         Click="CloseButton_Click"
                         Width="80"

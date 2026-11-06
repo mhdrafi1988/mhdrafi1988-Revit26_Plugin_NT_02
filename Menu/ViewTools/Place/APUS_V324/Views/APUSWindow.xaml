@@ -87,25 +87,25 @@ Changes vs V323 (layout only):
         <!-- ═══ HEADER ═══════════════════════════════════════════ -->
         <shell:ToolWindowShell.HeaderContent>
             <UniformGrid Columns="4" Margin="0,2,0,0">
-                <Border Style="{StaticResource MetricCard}" Margin="0,0,4,0" Padding="10,8">
+                <Border Style="{StaticResource MetricCard}" Margin="0,0,4,0" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="Sections" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding FilteredSections.Count}" Style="{StaticResource MetricNumber}" FontSize="18"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="10,8">
+                <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="Placed" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding RunMetrics.Placed}" Style="{StaticResource MetricNumberSuccess}" FontSize="18"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="10,8">
+                <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="Skipped" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding RunMetrics.Skipped}" Style="{StaticResource MetricNumberWarning}" FontSize="18"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricCard}" Margin="4,0,0,0" Padding="10,8">
+                <Border Style="{StaticResource MetricCard}" Margin="4,0,0,0" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="Failed" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding RunMetrics.Failed}" Style="{StaticResource MetricNumberDanger}" FontSize="18"/>
@@ -125,7 +125,7 @@ Changes vs V323 (layout only):
                     </Grid.ColumnDefinitions>
 
                     <!-- ========== LEFT COLUMN: SECTIONS ========== -->
-                    <Border Grid.Column="0" Style="{StaticResource BaseCard}" Padding="10">
+                    <Border Grid.Column="0" Style="{StaticResource BaseCard}" Padding="12">
                         <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
@@ -136,7 +136,7 @@ Changes vs V323 (layout only):
                             </Grid.RowDefinitions>
 
                             <!-- Card header + refresh -->
-                            <Grid Grid.Row="0" Margin="0,0,0,6">
+                            <Grid Grid.Row="0" Margin="0,0,0,8">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
@@ -147,7 +147,7 @@ Changes vs V323 (layout only):
                             </Grid>
 
                             <!-- Search + scope -->
-                            <Grid Grid.Row="1" Margin="0,0,0,6">
+                            <Grid Grid.Row="1" Margin="0,0,0,8">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="8"/>
@@ -158,7 +158,7 @@ Changes vs V323 (layout only):
                                          Text="{Binding NameSearch, UpdateSourceTrigger=PropertyChanged}"
                                          Tag="Search by name..."/>
                                 <Border Grid.Column="2" Background="{StaticResource BrushSystemSecondaryBackground}"
-                                        CornerRadius="5" Padding="8,3">
+                                        CornerRadius="5" Padding="8,4">
                                     <TextBlock Text="Whole model" FontSize="10" VerticalAlignment="Center"
                                                Foreground="{StaticResource BrushTextSecondary}"/>
                                 </Border>
@@ -168,7 +168,7 @@ Changes vs V323 (layout only):
                                  code-behind set PlacementFilter directly (enum binding through XAML-only
                                  RadioButtons is unreliable, so this is handled explicitly instead). -->
                             <Border Grid.Row="2" BorderBrush="{StaticResource BrushSeparator}" BorderThickness="1"
-                                    CornerRadius="5" Margin="0,0,0,6" Padding="1">
+                                    CornerRadius="5" Margin="0,0,0,8" Padding="2">
                                 <UniformGrid Columns="3">
                                     <Button x:Name="FilterAllButton" Content="All" Height="22" FontSize="10"
                                             Background="{StaticResource BrushNavyPrimary}" Foreground="{StaticResource BrushTextOnAccent}"
@@ -191,7 +191,7 @@ Changes vs V323 (layout only):
                                     </Grid.RowDefinitions>
 
                                     <!-- Custom header row with sortable columns -->
-                                    <Border Grid.Row="0" Background="{StaticResource BrushNavyPrimary}" Padding="8,5">
+                                    <Border Grid.Row="0" Background="{StaticResource BrushNavyPrimary}" Padding="8,4">
                                         <Grid>
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="20"/>
@@ -207,7 +207,7 @@ Changes vs V323 (layout only):
                                                     Click="SortByName_Click" HorizontalContentAlignment="Left">
                                                 <StackPanel Orientation="Horizontal">
                                                     <TextBlock Text="Name" Style="{StaticResource SortableHeaderText}"/>
-                                                    <TextBlock Margin="3,0,0,0" Style="{StaticResource SortableHeaderText}">
+                                                    <TextBlock Margin="4,0,0,0" Style="{StaticResource SortableHeaderText}">
                                                         <TextBlock.Text>
                                                             <MultiBinding Converter="{StaticResource SortArrowConverter}">
                                                                 <Binding Path="SortColumn"/>
@@ -223,7 +223,7 @@ Changes vs V323 (layout only):
                                                     Click="SortBySize_Click" HorizontalContentAlignment="Right">
                                                 <StackPanel Orientation="Horizontal">
                                                     <TextBlock Text="Size" Style="{StaticResource SortableHeaderText}"/>
-                                                    <TextBlock Margin="3,0,0,0" Style="{StaticResource SortableHeaderText}">
+                                                    <TextBlock Margin="4,0,0,0" Style="{StaticResource SortableHeaderText}">
                                                         <TextBlock.Text>
                                                             <MultiBinding Converter="{StaticResource SortArrowConverter}">
                                                                 <Binding Path="SortColumn"/>
@@ -239,7 +239,7 @@ Changes vs V323 (layout only):
                                                     Click="SortByPlaced_Click" HorizontalContentAlignment="Center">
                                                 <StackPanel Orientation="Horizontal">
                                                     <TextBlock Text="Placed" Style="{StaticResource SortableHeaderText}"/>
-                                                    <TextBlock Margin="3,0,0,0" Style="{StaticResource SortableHeaderText}">
+                                                    <TextBlock Margin="4,0,0,0" Style="{StaticResource SortableHeaderText}">
                                                         <TextBlock.Text>
                                                             <MultiBinding Converter="{StaticResource SortArrowConverter}">
                                                                 <Binding Path="SortColumn"/>
@@ -255,7 +255,7 @@ Changes vs V323 (layout only):
                                                     Click="SortByDetailNumber_Click" HorizontalContentAlignment="Right">
                                                 <StackPanel Orientation="Horizontal">
                                                     <TextBlock Text="Det#" Style="{StaticResource SortableHeaderText}"/>
-                                                    <TextBlock Margin="3,0,0,0" Style="{StaticResource SortableHeaderText}">
+                                                    <TextBlock Margin="4,0,0,0" Style="{StaticResource SortableHeaderText}">
                                                         <TextBlock.Text>
                                                             <MultiBinding Converter="{StaticResource SortArrowConverter}">
                                                                 <Binding Path="SortColumn"/>
@@ -331,7 +331,7 @@ Changes vs V323 (layout only):
                             </Border>
 
                             <!-- Select all / none / invert + counter -->
-                            <Grid Grid.Row="4" Margin="0,6,0,0">
+                            <Grid Grid.Row="4" Margin="0,8,0,0">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
@@ -363,9 +363,9 @@ Changes vs V323 (layout only):
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
 
-                                <Border Grid.Column="0" Style="{StaticResource BaseCard}" Padding="10">
+                                <Border Grid.Column="0" Style="{StaticResource BaseCard}" Padding="12">
                                     <StackPanel>
-                                        <TextBlock Text="Margins (mm)" Style="{StaticResource SectionTitle}" Margin="0,0,0,6"/>
+                                        <TextBlock Text="Margins (mm)" Style="{StaticResource SectionTitle}" Margin="0,0,0,8"/>
                                         <UniformGrid Columns="2" Rows="2">
                                             <StackPanel Margin="0,0,4,4">
                                                 <TextBlock Text="Left" Style="{StaticResource FieldLabel}"/>
@@ -387,9 +387,9 @@ Changes vs V323 (layout only):
                                     </StackPanel>
                                 </Border>
 
-                                <Border Grid.Column="2" Style="{StaticResource BaseCard}" Padding="10">
+                                <Border Grid.Column="2" Style="{StaticResource BaseCard}" Padding="12">
                                     <StackPanel>
-                                        <TextBlock Text="Gaps (mm)" Style="{StaticResource SectionTitle}" Margin="0,0,0,6"/>
+                                        <TextBlock Text="Gaps (mm)" Style="{StaticResource SectionTitle}" Margin="0,0,0,8"/>
                                         <StackPanel Margin="0,0,0,4">
                                             <TextBlock Text="Horizontal (min)" Style="{StaticResource FieldLabel}"/>
                                             <TextBox Style="{StaticResource MmInput}" Text="{Binding HorizontalGapMm}"/>
@@ -403,9 +403,9 @@ Changes vs V323 (layout only):
                             </Grid>
 
                             <!-- Reading Order card -->
-                            <Border Style="{StaticResource BaseCard}" Padding="10" Margin="0,0,0,8">
+                            <Border Style="{StaticResource BaseCard}" Padding="12" Margin="0,0,0,8">
                                 <StackPanel>
-                                    <TextBlock Text="Reading order" Style="{StaticResource SectionTitle}" Margin="0,0,0,6"/>
+                                    <TextBlock Text="Reading order" Style="{StaticResource SectionTitle}" Margin="0,0,0,8"/>
 
                                     <StackPanel Margin="0,0,0,4">
                                         <TextBlock Text="Reading direction" Style="{StaticResource FieldLabel}"/>
@@ -488,7 +488,7 @@ Changes vs V323 (layout only):
 
                             <!-- Number format preview -->
                             <Border Background="{StaticResource BrushSystemSecondaryBackground}" CornerRadius="5"
-                                    Padding="8,5" Margin="0,0,0,8">
+                                    Padding="8,4" Margin="0,0,0,8">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
@@ -496,7 +496,7 @@ Changes vs V323 (layout only):
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Grid.Column="0" Text="{Binding SheetNumberFormatPreview}" FontSize="10"
                                                Foreground="{StaticResource BrushTextPrimary}" VerticalAlignment="Center"/>
-                                    <TextBlock Grid.Column="1" Text="prefix + dash + 3-digit" FontSize="9"
+                                    <TextBlock Grid.Column="1" Text="prefix + dash + 3-digit" FontSize="10"
                                                Foreground="{StaticResource BrushTextTertiary}" VerticalAlignment="Center"/>
                                 </Grid>
                             </Border>
@@ -504,30 +504,30 @@ Changes vs V323 (layout only):
                             <!-- Multi-sheet toggle -->
                             <StackPanel Orientation="Horizontal" Margin="2,0,0,8">
                                 <CheckBox IsChecked="{Binding PlaceToMultipleSheets}" VerticalAlignment="Center"/>
-                                <TextBlock Text="Place to multiple sheets" FontSize="10" Margin="6,0,0,0"
+                                <TextBlock Text="Place to multiple sheets" FontSize="10" Margin="8,0,0,0"
                                            VerticalAlignment="Center" Foreground="{StaticResource BrushTextPrimary}"/>
                             </StackPanel>
                         </StackPanel>
                 </Grid>
 
                 <!-- LOG (moved from footer) -->
-                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="10,8">
+                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="12,8">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <Grid Margin="0,0,0,6">
+                        <Grid Margin="0,0,0,8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Text="Log" Foreground="{StaticResource BrushLogText}"
-                                       FontSize="11.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                       FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
                             <StackPanel Grid.Column="1" Orientation="Horizontal">
-                                <Button Content="Copy All" Style="{StaticResource DarkGhostButton}" Margin="0,0,6,0"
+                                <Button Content="Copy All" Style="{StaticResource DarkGhostButton}" Margin="0,0,8,0"
                                         Command="{Binding CopyLogsCommand}"/>
-                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Margin="0,0,6,0"
+                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Margin="0,0,8,0"
                                         Click="CopySelectedLog_Click"/>
                                 <Button Content="Clear" Style="{StaticResource DarkGhostButton}"
                                         Command="{Binding ClearLogCommand}"/>
@@ -541,7 +541,7 @@ Changes vs V323 (layout only):
                                  Padding="0">
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding DisplayText}" FontFamily="Consolas" FontSize="10.5"
+                                    <TextBlock Text="{Binding DisplayText}" FontFamily="{DynamicResource MonoFont}" FontSize="11"
                                                TextWrapping="Wrap"
                                                Foreground="{Binding Level, Converter={StaticResource LogLevelToColorConverter}}"/>
                                 </DataTemplate>
@@ -556,11 +556,11 @@ Changes vs V323 (layout only):
         <shell:ToolWindowShell.FooterContent>
             <StackPanel>
                 <!-- Current operation + percentage while placing (the bar itself is the shell's) -->
-                <DockPanel Margin="0,0,0,6" LastChildFill="True"
+                <DockPanel Margin="0,0,0,8" LastChildFill="True"
                            Visibility="{Binding ShowProgress, Converter={StaticResource BoolToVisibilityConverter}}">
-                    <TextBlock DockPanel.Dock="Right" Text="{Binding Progress.Percentage, StringFormat={}{0:F0}%}" FontSize="9"
-                               Foreground="{StaticResource BrushTextSecondary}" Margin="6,0,0,0"/>
-                    <TextBlock Text="{Binding Progress.CurrentOperation}" FontSize="9"
+                    <TextBlock DockPanel.Dock="Right" Text="{Binding Progress.Percentage, StringFormat={}{0:F0}%}" FontSize="10"
+                               Foreground="{StaticResource BrushTextSecondary}" Margin="8,0,0,0"/>
+                    <TextBlock Text="{Binding Progress.CurrentOperation}" FontSize="10"
                                Foreground="{StaticResource BrushTextSecondary}"/>
                 </DockPanel>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
@@ -570,7 +570,7 @@ Changes vs V323 (layout only):
                     <Button Content="Cancel Placement" MinWidth="150" Margin="0,0,8,0" Style="{StaticResource DangerButton}"
                                                     Command="{Binding CancelCommand}"
                                                     Visibility="{Binding ShowCancelButton, Converter={StaticResource BoolToVisibilityConverter}}"/>
-                    <Button Content="Close" Style="{StaticResource OutlineButton}" Width="90" Height="38"
+                    <Button IsCancel="True" Content="Close" Style="{StaticResource OutlineButton}" Width="90" Height="38"
                             Click="CloseButton_Click"/>
                 </StackPanel>
             </StackPanel>

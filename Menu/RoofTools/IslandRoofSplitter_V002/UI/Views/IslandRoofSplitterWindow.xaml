@@ -36,8 +36,8 @@
 
             <!-- local layout styles, all BasedOn shared ones -->
             <Style x:Key="IrsCard" TargetType="Border" BasedOn="{StaticResource BaseCard}">
-                <Setter Property="Padding" Value="12,10" />
-                <Setter Property="Margin" Value="0,0,0,10" />
+                <Setter Property="Padding" Value="12,12" />
+                <Setter Property="Margin" Value="0,0,0,12" />
             </Style>
             <Style x:Key="IrsSectionHeader" TargetType="TextBlock" BasedOn="{StaticResource SectionTitle}">
                 <Setter Property="Margin" Value="0,0,0,8" />
@@ -50,7 +50,7 @@
                 <Setter Property="Margin" Value="0,4,12,4" />
             </Style>
             <Style x:Key="IrsChipRow" TargetType="WrapPanel">
-                <Setter Property="Margin" Value="0,3" />
+                <Setter Property="Margin" Value="0,4" />
             </Style>
         </ResourceDictionary>
     </Window.Resources>
@@ -69,25 +69,25 @@
                     <TextBlock Text="{Binding PhaseText}" Style="{StaticResource BadgeText}" />
                 </Border>
                 <UniformGrid Columns="5">
-                    <Border Style="{StaticResource MetricTileInfo}" Margin="0,0,6,0">
+                    <Border Style="{StaticResource MetricTileInfo}" Margin="0,0,8,0">
                         <StackPanel>
                             <TextBlock Text="ISLANDS DETECTED" Style="{StaticResource MetricTileLabelInfo}" />
                             <TextBlock Text="{Binding AllCount}" Style="{StaticResource MetricTileNumberInfo}" />
                         </StackPanel>
                     </Border>
-                    <Border Style="{StaticResource MetricTileInfo}" Margin="0,0,6,0">
+                    <Border Style="{StaticResource MetricTileInfo}" Margin="0,0,8,0">
                         <StackPanel>
                             <TextBlock Text="VERTICES TOTAL" Style="{StaticResource MetricTileLabelInfo}" />
                             <TextBlock Text="{Binding VerticesTotal, StringFormat=N0}" Style="{StaticResource MetricTileNumberInfo}" />
                         </StackPanel>
                     </Border>
-                    <Border Style="{StaticResource MetricTileWarning}" Margin="0,0,6,0">
+                    <Border Style="{StaticResource MetricTileWarning}" Margin="0,0,8,0">
                         <StackPanel>
                             <TextBlock Text="SKIPPED / UNCLOSED" Style="{StaticResource MetricTileLabelWarning}" />
                             <TextBlock Text="{Binding SkippedCount}" Style="{StaticResource MetricTileNumberWarning}" />
                         </StackPanel>
                     </Border>
-                    <Border Style="{StaticResource MetricTileSuccess}" Margin="0,0,6,0">
+                    <Border Style="{StaticResource MetricTileSuccess}" Margin="0,0,8,0">
                         <StackPanel>
                             <TextBlock Text="CREATED" Style="{StaticResource MetricTileLabelSuccess}" />
                             <TextBlock Text="{Binding CreatedTile}" Style="{StaticResource MetricTileNumberSuccess}" />
@@ -155,7 +155,7 @@
                                          IsChecked="{Binding Output, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=Floor, Mode=OneWay}"
                                          Command="{Binding SetOutputCommand}" CommandParameter="Floor" />
                         </WrapPanel>
-                        <TextBlock Text="{Binding OutputHint}" Style="{StaticResource HintText}" Margin="0,6,0,0" />
+                        <TextBlock Text="{Binding OutputHint}" Style="{StaticResource HintText}" Margin="0,8,0,0" />
                     </StackPanel>
                 </Border>
 
@@ -251,19 +251,19 @@
 
                         <!-- setup banner: level / roof type not detected, or a guessed level awaiting confirmation -->
                         <Border Background="{DynamicResource BrushSoftWarningBackground}" CornerRadius="8"
-                                Padding="10,8" Margin="0,0,0,10"
+                                Padding="12,8" Margin="0,0,0,12"
                                 Visibility="{Binding HasSetupWarning, Converter={StaticResource IrsBoolToVis}}">
                             <TextBlock Text="{Binding SetupMessage}" Style="{StaticResource IrsHint}" />
                         </Border>
 
                         <UniformGrid Columns="3">
-                            <StackPanel Margin="0,0,10,0">
+                            <StackPanel Margin="0,0,12,0">
                                 <TextBlock Text="Roof type" Style="{StaticResource IrsHint}" />
                                 <ComboBox Style="{StaticResource StandardComboBox}" ItemsSource="{Binding RoofTypes}"
                                           SelectedItem="{Binding SelectedRoofType}" DisplayMemberPath="Name"
                                           ToolTip="Type for every new roof. Defaults to the source roof's type when it could be read." />
                             </StackPanel>
-                            <StackPanel Margin="0,0,10,0">
+                            <StackPanel Margin="0,0,12,0">
                                 <TextBlock Text="Floor type (fallback / Floor output)" Style="{StaticResource IrsHint}" />
                                 <ComboBox Style="{StaticResource StandardComboBox}" ItemsSource="{Binding FloorTypes}"
                                           SelectedItem="{Binding SelectedFloorType}" DisplayMemberPath="Name"
@@ -278,17 +278,17 @@
                             </StackPanel>
                         </UniformGrid>
                         <UniformGrid Columns="3" Margin="0,8,0,0">
-                            <StackPanel Margin="0,0,10,0">
+                            <StackPanel Margin="0,0,12,0">
                                 <TextBlock Text="Base offset (mm)" Style="{StaticResource IrsHint}" />
                                 <TextBox Style="{StaticResource BoxedTextInput}" Text="{Binding BaseOffsetMm, UpdateSourceTrigger=LostFocus}" />
                             </StackPanel>
-                            <StackPanel Margin="0,0,10,0">
+                            <StackPanel Margin="0,0,12,0">
                                 <TextBlock Text="Mark prefix" Style="{StaticResource IrsHint}" />
                                 <TextBox Style="{StaticResource BoxedTextInput}" Text="{Binding MarkPrefix, UpdateSourceTrigger=PropertyChanged}" />
                             </StackPanel>
                             <StackPanel />
                         </UniformGrid>
-                        <TextBlock Text="{Binding NewRoofElevationText}" Style="{StaticResource HintText}" Margin="0,6,0,0" />
+                        <TextBlock Text="{Binding NewRoofElevationText}" Style="{StaticResource HintText}" Margin="0,8,0,0" />
                         <TextBlock Text="{Binding MarkExample}" Style="{StaticResource HintText}" Margin="0,2,0,0" />
                     </StackPanel>
                 </Border>
@@ -366,12 +366,12 @@
                             </DataGrid.Columns>
                         </DataGrid>
                         <TextBlock Text="Select a row to highlight and zoom to its detail lines in the active view."
-                                   Style="{StaticResource HintText}" Margin="0,6,0,0" />
+                                   Style="{StaticResource HintText}" Margin="0,8,0,0" />
                     </StackPanel>
                 </Border>
 
                 <!-- Log: always-dark panel, collapsed by default; header (title + copy/clear) stays visible -->
-                <Border Background="{DynamicResource BrushLogBg}" CornerRadius="10" Padding="10,8">
+                <Border Background="{DynamicResource BrushLogBg}" CornerRadius="10" Padding="12,8">
                     <StackPanel>
                         <DockPanel LastChildFill="False">
                             <ToggleButton x:Name="LogToggle" DockPanel.Dock="Left" Style="{StaticResource LogHeaderToggle}">
@@ -380,10 +380,10 @@
                                 </TextBlock>
                             </ToggleButton>
                             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                                <Button Content="Copy All" Command="{Binding CopyAllLogCommand}" Style="{StaticResource DarkGhostButton}" Margin="0,0,6,0" />
-                                <Button Content="Copy Selected" Command="{Binding CopySelectedLogCommand}" Style="{StaticResource DarkGhostButton}" Margin="0,0,6,0" />
+                                <Button Content="Copy All" Command="{Binding CopyAllLogCommand}" Style="{StaticResource DarkGhostButton}" Margin="0,0,8,0" />
+                                <Button Content="Copy Selected" Command="{Binding CopySelectedLogCommand}" Style="{StaticResource DarkGhostButton}" Margin="0,0,8,0" />
                                 <Button Content="Clear" Command="{Binding ClearLogCommand}" Style="{StaticResource DarkGhostButton}" />
-                                <Button Content="Export Log" Style="{StaticResource DarkGhostButton}" Margin="6,0,0,0"
+                                <Button Content="Export Log" Style="{StaticResource DarkGhostButton}" Margin="8,0,0,0"
                                         Click="ExportLog_Click" ToolTip="Save the log to a .txt file" />
                             </StackPanel>
                         </DockPanel>
@@ -393,8 +393,8 @@
                                  SelectionChanged="LogList_SelectionChanged"
                                  Visibility="{Binding IsChecked, ElementName=LogToggle, Converter={StaticResource LogToggleVisibility}}"
                                  Background="{DynamicResource BrushLogBg}"
-                                 BorderThickness="0" Margin="0,6,0,0"
-                                 FontFamily="Consolas" FontSize="11.5"
+                                 BorderThickness="0" Margin="0,8,0,0"
+                                 FontFamily="{DynamicResource MonoFont}" FontSize="12"
                                  shell:ShellBehaviors.MaxHeightRatio="0.25"
                                  shell:ShellBehaviors.ForwardMouseWheel="True">
                             <ListBox.ItemTemplate>

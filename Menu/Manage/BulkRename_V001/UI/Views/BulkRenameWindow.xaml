@@ -98,7 +98,7 @@ File: BulkRenameWindow.xaml  (Bulk Rename V001 — ToolWindowShell)
                 <Setter Property="VerticalAlignment" Value="Center"/>
                 <Setter Property="FontSize" Value="11"/>
                 <Setter Property="Foreground" Value="{StaticResource BrushTextSecondary}"/>
-                <Setter Property="Margin" Value="0,0,10,0"/>
+                <Setter Property="Margin" Value="0,0,12,0"/>
             </Style>
         </ResourceDictionary>
     </Window.Resources>
@@ -114,25 +114,25 @@ File: BulkRenameWindow.xaml  (Bulk Rename V001 — ToolWindowShell)
         <!-- ═══ HEADER ═══════════════════════════════════════════ -->
         <shell:ToolWindowShell.HeaderContent>
             <UniformGrid Columns="4" Margin="0,0,0,8">
-                <Border Style="{StaticResource MetricCard}" Margin="0,0,4,0" Padding="10,8">
+                <Border Style="{StaticResource MetricCard}" Margin="0,0,4,0" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="Items" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding Table.TotalCount}" Style="{StaticResource MetricNumber}" FontSize="18"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="10,8">
+                <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="Ticked" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding Table.TickedCount}" Style="{StaticResource MetricNumberAccent}" FontSize="18"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="10,8">
+                <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="To rename" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding Table.ChangeCount}" Style="{StaticResource MetricNumberSuccess}" FontSize="18"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricCard}" Margin="4,0,0,0" Padding="10,8">
+                <Border Style="{StaticResource MetricCard}" Margin="4,0,0,0" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="Problems" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding Table.ProblemCount}" Style="{StaticResource MetricNumberDanger}" FontSize="18"/>
@@ -151,7 +151,7 @@ File: BulkRenameWindow.xaml  (Bulk Rename V001 — ToolWindowShell)
                     <!-- ══ What to rename + filter ══ -->
                     <Border Style="{StaticResource ContentCard}" Margin="0,0,0,8">
                         <StackPanel>
-                            <Grid Margin="10,8,10,4">
+                            <Grid Margin="12,8,12,4">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="220"/>
@@ -170,11 +170,11 @@ File: BulkRenameWindow.xaml  (Bulk Rename V001 — ToolWindowShell)
                                          ToolTip="Shows only rows whose current name contains this text. The rules act on visible rows only."
                                          Text="{Binding Table.FilterText, UpdateSourceTrigger=PropertyChanged}"/>
                                 <Button Grid.Column="4" Content="Reload" Style="{StaticResource SmallSecondaryButton}"
-                                        Margin="10,0,0,0" Command="{Binding ReloadCommand}"
+                                        Margin="12,0,0,0" Command="{Binding ReloadCommand}"
                                         ToolTip="List the items again from the model. Discards names you have not applied."/>
                             </Grid>
                             <TextBlock Text="{Binding SourceDescription}" Style="{StaticResource HintText}"
-                                       TextWrapping="Wrap" Margin="10,0,10,8"/>
+                                       TextWrapping="Wrap" Margin="12,0,12,8"/>
                         </StackPanel>
                     </Border>
 
@@ -183,7 +183,7 @@ File: BulkRenameWindow.xaml  (Bulk Rename V001 — ToolWindowShell)
                         <StackPanel>
 
                             <!-- Find & Replace -->
-                            <Grid Margin="10,8,10,6">
+                            <Grid Margin="12,8,12,8">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="56"/>
                                     <ColumnDefinition Width="*"/>
@@ -194,11 +194,11 @@ File: BulkRenameWindow.xaml  (Bulk Rename V001 — ToolWindowShell)
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0" Text="Find" Style="{StaticResource FieldLabel}" VerticalAlignment="Center"/>
                                 <TextBox Grid.Column="1" Style="{StaticResource StyledTextInput}"
-                                         Text="{Binding FindText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,10,0"/>
+                                         Text="{Binding FindText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,12,0"/>
                                 <TextBlock Grid.Column="2" Text="Replace with" Style="{StaticResource FieldLabel}"
                                            VerticalAlignment="Center" Margin="0,0,8,0"/>
                                 <TextBox Grid.Column="3" Style="{StaticResource StyledTextInput}"
-                                         Text="{Binding ReplaceText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,10,0"/>
+                                         Text="{Binding ReplaceText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,12,0"/>
                                 <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Center">
                                     <CheckBox Content="Match case" Style="{StaticResource RuleCheckBox}"
                                               IsChecked="{Binding MatchCase}"/>
@@ -213,7 +213,7 @@ File: BulkRenameWindow.xaml  (Bulk Rename V001 — ToolWindowShell)
                             <Border Style="{StaticResource SeparatorLine}"/>
 
                             <!-- Prefix / Suffix -->
-                            <Grid Margin="10,6,10,6">
+                            <Grid Margin="12,8,12,8">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="56"/>
                                     <ColumnDefinition Width="*"/>
@@ -227,7 +227,7 @@ File: BulkRenameWindow.xaml  (Bulk Rename V001 — ToolWindowShell)
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0" Text="Prefix" Style="{StaticResource FieldLabel}" VerticalAlignment="Center"/>
                                 <TextBox Grid.Column="1" Style="{StaticResource StyledTextInput}"
-                                         Text="{Binding Prefix, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,6,0"/>
+                                         Text="{Binding Prefix, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,0"/>
                                 <Button Grid.Column="2" Content="Add" Style="{StaticResource SmallSecondaryButton}"
                                         Command="{Binding AddPrefixCommand}" Margin="0,0,4,0"/>
                                 <Button Grid.Column="3" Content="Remove" Style="{StaticResource SmallSecondaryButton}"
@@ -237,7 +237,7 @@ File: BulkRenameWindow.xaml  (Bulk Rename V001 — ToolWindowShell)
                                 <TextBlock Grid.Column="5" Text="Suffix" Style="{StaticResource FieldLabel}"
                                            VerticalAlignment="Center" Margin="8,0,8,0"/>
                                 <TextBox Grid.Column="6" Style="{StaticResource StyledTextInput}"
-                                         Text="{Binding Suffix, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,6,0"/>
+                                         Text="{Binding Suffix, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,0"/>
                                 <Button Grid.Column="7" Content="Add" Style="{StaticResource SmallSecondaryButton}"
                                         Command="{Binding AddSuffixCommand}" Margin="0,0,4,0"/>
                                 <Button Grid.Column="8" Content="Remove" Style="{StaticResource SmallSecondaryButton}"
@@ -247,7 +247,7 @@ File: BulkRenameWindow.xaml  (Bulk Rename V001 — ToolWindowShell)
                             <Border Style="{StaticResource SeparatorLine}"/>
 
                             <!-- Tidy: spaces and case -->
-                            <StackPanel Orientation="Horizontal" Margin="10,6,10,6">
+                            <StackPanel Orientation="Horizontal" Margin="12,8,12,8">
                                 <TextBlock Text="Tidy" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Width="56"/>
                                 <Button Content="Clean spaces" Style="{StaticResource SmallSecondaryButton}"
                                         Command="{Binding CleanSpacesCommand}" Margin="0,0,4,0"
@@ -265,7 +265,7 @@ File: BulkRenameWindow.xaml  (Bulk Rename V001 — ToolWindowShell)
                             <Border Style="{StaticResource SeparatorLine}"/>
 
                             <!-- Numbering -->
-                            <Grid Margin="10,6,10,8">
+                            <Grid Margin="12,8,12,8">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="56"/>
                                     <ColumnDefinition Width="170"/>
@@ -283,19 +283,19 @@ File: BulkRenameWindow.xaml  (Bulk Rename V001 — ToolWindowShell)
                                          Text="{Binding NumberPattern, UpdateSourceTrigger=PropertyChanged}"
                                          ToolTip="{Binding NumberingHint}"/>
                                 <TextBlock Grid.Column="2" Text="Start" Style="{StaticResource FieldLabel}"
-                                           VerticalAlignment="Center" Margin="10,0,6,0"/>
+                                           VerticalAlignment="Center" Margin="12,0,8,0"/>
                                 <TextBox Grid.Column="3" Style="{StaticResource StyledTextInput}"
                                          Text="{Binding NumberStart, UpdateSourceTrigger=PropertyChanged}"/>
                                 <TextBlock Grid.Column="4" Text="Step" Style="{StaticResource FieldLabel}"
-                                           VerticalAlignment="Center" Margin="10,0,6,0"/>
+                                           VerticalAlignment="Center" Margin="12,0,8,0"/>
                                 <TextBox Grid.Column="5" Style="{StaticResource StyledTextInput}"
                                          Text="{Binding NumberStep, UpdateSourceTrigger=PropertyChanged}"/>
                                 <TextBlock Grid.Column="6" Text="Digits" Style="{StaticResource FieldLabel}"
-                                           VerticalAlignment="Center" Margin="10,0,6,0"/>
+                                           VerticalAlignment="Center" Margin="12,0,8,0"/>
                                 <TextBox Grid.Column="7" Style="{StaticResource StyledTextInput}"
                                          Text="{Binding NumberDigits, UpdateSourceTrigger=PropertyChanged}"/>
                                 <Button Grid.Column="8" Content="Apply" Style="{StaticResource SmallSecondaryButton}"
-                                        Command="{Binding ApplyNumberingCommand}" Margin="10,0,10,0"/>
+                                        Command="{Binding ApplyNumberingCommand}" Margin="12,0,12,0"/>
                                 <TextBlock Grid.Column="9" Text="{Binding NumberingHint}" Style="{StaticResource HintText}"
                                            VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                             </Grid>
@@ -303,12 +303,12 @@ File: BulkRenameWindow.xaml  (Bulk Rename V001 — ToolWindowShell)
                     </Border>
 
                     <!-- ══ Selection row ══ -->
-                    <DockPanel Margin="0,0,0,6" LastChildFill="False">
+                    <DockPanel Margin="0,0,0,8" LastChildFill="False">
                         <StackPanel DockPanel.Dock="Left" Orientation="Horizontal">
                             <Button Content="Select All" Style="{StaticResource SmallSecondaryButton}"
-                                    Command="{Binding SelectAllCommand}" Margin="0,0,6,0"/>
+                                    Command="{Binding SelectAllCommand}" Margin="0,0,8,0"/>
                             <Button Content="Select None" Style="{StaticResource SmallSecondaryButton}"
-                                    Command="{Binding SelectNoneCommand}" Margin="0,0,6,0"/>
+                                    Command="{Binding SelectNoneCommand}" Margin="0,0,8,0"/>
                             <Button Content="Revert names" Style="{StaticResource SmallSecondaryButton}"
                                     Command="{Binding RevertNamesCommand}"
                                     ToolTip="Put every visible row's new name back to its current name."/>
@@ -401,7 +401,7 @@ File: BulkRenameWindow.xaml  (Bulk Rename V001 — ToolWindowShell)
                                         <DataTemplate>
                                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center"
                                                         ToolTip="{Binding StatusMessage}">
-                                                <Ellipse Width="6" Height="6" Margin="0,0,5,0" VerticalAlignment="Center"
+                                                <Ellipse Width="6" Height="6" Margin="0,0,4,0" VerticalAlignment="Center"
                                                          Style="{StaticResource BulkStatusDot}"/>
                                                 <TextBlock Text="{Binding Status}" Style="{StaticResource BulkStatusText}"/>
                                             </StackPanel>
@@ -415,25 +415,25 @@ File: BulkRenameWindow.xaml  (Bulk Rename V001 — ToolWindowShell)
                 </StackPanel>
 
                 <!-- ══ Log ══ -->
-                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="10,8" Margin="0,8,0,0">
+                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="12,8" Margin="0,8,0,0">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <Grid Margin="0,0,0,6">
+                        <Grid Margin="0,0,0,8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Text="Log" FontSize="11.5" FontWeight="SemiBold"
+                            <TextBlock Text="Log" FontSize="12" FontWeight="SemiBold"
                                        Foreground="{StaticResource BrushLogText}" VerticalAlignment="Center"/>
                             <StackPanel Grid.Column="1" Orientation="Horizontal">
                                 <Button Content="Copy All" Style="{StaticResource DarkGhostButton}" Click="CopyAllLog_Click"/>
-                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Margin="6,0,0,0" Click="CopySelectedLog_Click"/>
-                                <Button Content="Clear" Style="{StaticResource DarkGhostButton}" Margin="6,0,0,0"
+                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Margin="8,0,0,0" Click="CopySelectedLog_Click"/>
+                                <Button Content="Clear" Style="{StaticResource DarkGhostButton}" Margin="8,0,0,0"
                                         Command="{Binding ClearLogCommand}"/>
-                                <Button Content="Export Log" Style="{StaticResource DarkGhostButton}" Margin="6,0,0,0"
+                                <Button Content="Export Log" Style="{StaticResource DarkGhostButton}" Margin="8,0,0,0"
                                         Click="ExportLog_Click"/>
                             </StackPanel>
                         </Grid>
@@ -446,21 +446,21 @@ File: BulkRenameWindow.xaml  (Bulk Rename V001 — ToolWindowShell)
                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                             <ListBox.ItemContainerStyle>
                                 <Style TargetType="ListBoxItem">
-                                    <Setter Property="Padding" Value="0,1"/>
+                                    <Setter Property="Padding" Value="0,2"/>
                                     <Setter Property="Background" Value="Transparent"/>
                                 </Style>
                             </ListBox.ItemContainerStyle>
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
-                                    <StackPanel Orientation="Horizontal" Margin="0,1,0,1">
+                                    <StackPanel Orientation="Horizontal" Margin="0,2,0,2">
                                         <TextBlock Text="{Binding Time, StringFormat='HH:mm:ss', Mode=OneWay}"
-                                                   FontFamily="Consolas" FontSize="11"
+                                                   FontFamily="{DynamicResource MonoFont}" FontSize="11"
                                                    Foreground="{StaticResource BrushLogTextDim}" Margin="0,0,8,0"/>
                                         <TextBlock Text="{Binding Level, Mode=OneWay}"
-                                                   FontFamily="Consolas" FontSize="11" FontWeight="Bold" Width="60"
+                                                   FontFamily="{DynamicResource MonoFont}" FontSize="11" FontWeight="Bold" Width="60"
                                                    Foreground="{Binding Level, Converter={StaticResource LogLevelToColorConverter}, Mode=OneWay}"/>
                                         <TextBlock Text="{Binding Message, Mode=OneWay}"
-                                                   FontFamily="Consolas" FontSize="11"
+                                                   FontFamily="{DynamicResource MonoFont}" FontSize="11"
                                                    Foreground="{StaticResource BrushLogText}" TextWrapping="Wrap"/>
                                     </StackPanel>
                                 </DataTemplate>
@@ -479,7 +479,7 @@ File: BulkRenameWindow.xaml  (Bulk Rename V001 — ToolWindowShell)
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
                     <Button Content="Apply" Style="{StaticResource PrimaryButton}"
                             Command="{Binding ApplyCommand}" MinWidth="90" Margin="0,0,8,0"/>
-                    <Button Content="Close" Style="{StaticResource OutlineButton}" Width="90" Height="38"
+                    <Button IsCancel="True" Content="Close" Style="{StaticResource OutlineButton}" Width="90" Height="38"
                             Click="CloseButton_Click"/>
                 </StackPanel>
             </DockPanel>

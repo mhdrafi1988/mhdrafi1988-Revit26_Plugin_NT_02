@@ -53,21 +53,21 @@ own ScrollViewer(s) removed, grids and the log cap their height
                                         </Grid.ColumnDefinitions>
                                         <TextBlock Grid.Column="0" Text="{Binding Name}"
                                                    FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource BrushNavyPrimary}"
-                                                   VerticalAlignment="Center" Margin="10,0,10,0"/>
+                                                   VerticalAlignment="Center" Margin="12,0,12,0"/>
                                         <Border Grid.Column="1" Background="{StaticResource BrushSurfaceCard}"
-                                                CornerRadius="9" Padding="6,1" VerticalAlignment="Center">
+                                                CornerRadius="9" Padding="8,2" VerticalAlignment="Center">
                                             <TextBlock Text="{Binding ItemCount}"
-                                                       FontSize="10.5" FontWeight="SemiBold" Foreground="{StaticResource BrushNavyPrimary}"/>
+                                                       FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource BrushNavyPrimary}"/>
                                         </Border>
                                         <StackPanel Grid.Column="3" Orientation="Horizontal"
                                                     VerticalAlignment="Center" Margin="0,0,8,0">
                                             <Button Content="Select All"
                                                     Style="{StaticResource SmallSecondaryButton}"
-                                                    Height="22" Padding="8,0" Margin="0,0,6,0" FontSize="10.5"
+                                                    Height="22" Padding="8,0" Margin="0,0,8,0" FontSize="11"
                                                     Click="SelectGroupButton_Click" Tag="{Binding Name}"/>
                                             <Button Content="Select None"
                                                     Style="{StaticResource SmallSecondaryButton}"
-                                                    Height="22" Padding="8,0" FontSize="10.5"
+                                                    Height="22" Padding="8,0" FontSize="11"
                                                     Click="ClearGroupButton_Click" Tag="{Binding Name}"/>
                                         </StackPanel>
                                     </Grid>
@@ -91,19 +91,19 @@ own ScrollViewer(s) removed, grids and the log cap their height
         <!-- ═══ FIXED TOP ═══════════════════════════════════════ -->
         <StackPanel Grid.Row="0">
             <UniformGrid Columns="3" Margin="0,0,0,8">
-                <Border Style="{StaticResource MetricCard}" Margin="0,0,4,0" Padding="10,8">
+                <Border Style="{StaticResource MetricCard}" Margin="0,0,4,0" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="Selected Shapes" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding SelectedShapeCount}" Style="{StaticResource MetricNumber}" FontSize="18"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="10,8">
+                <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="Perpendicular Points" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding PerpendicularPointCount}" Style="{StaticResource MetricNumberWarning}" FontSize="18"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricCard}" Margin="4,0,0,0" Padding="10,8">
+                <Border Style="{StaticResource MetricCard}" Margin="4,0,0,0" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="Log Entries" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding Log.Count}" Style="{StaticResource MetricNumberAccent}" FontSize="18"/>
@@ -123,8 +123,8 @@ own ScrollViewer(s) removed, grids and the log cap their height
 
             <!-- ─── TOOLBAR ─── -->
             <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,8">
-                <Button Content="Select All" Style="{StaticResource SmallSecondaryButton}" Command="{Binding SelectAllCommand}" Margin="0,0,6,0"/>
-                <Button Content="Clear" Style="{StaticResource SmallSecondaryButton}" Command="{Binding ClearSelectionCommand}" Margin="0,0,6,0"/>
+                <Button Content="Select All" Style="{StaticResource SmallSecondaryButton}" Command="{Binding SelectAllCommand}" Margin="0,0,8,0"/>
+                <Button Content="Clear" Style="{StaticResource SmallSecondaryButton}" Command="{Binding ClearSelectionCommand}" Margin="0,0,8,0"/>
                 <Button Content="Re-analyze" Style="{StaticResource SmallSecondaryButton}" Command="{Binding AnalyzeCommand}"/>
             </StackPanel>
 
@@ -185,7 +185,7 @@ own ScrollViewer(s) removed, grids and the log cap their height
             </Border>
 
             <!-- ─── TOLERANCE + GENERATE ───────────────────────────────────── -->
-            <Border Grid.Row="2" Style="{StaticResource ContentCard}" Margin="0,8,0,8" Padding="14,10">
+            <Border Grid.Row="2" Style="{StaticResource ContentCard}" Margin="0,8,0,8" Padding="16,12">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
@@ -208,7 +208,7 @@ own ScrollViewer(s) removed, grids and the log cap their height
                                Text="Used to gather adjacent SlabShapeVertices when resolving the lowest elevation for each new point. Only rectangular (4-side) selections produce candidates."
                                Style="{StaticResource HintText}"
                                VerticalAlignment="Center"
-                               Margin="14,0,0,0"/>
+                               Margin="16,0,0,0"/>
 
                     <Button Grid.Column="3" Content="Generate Perpendicular Points"
                             Style="{StaticResource SmallSecondaryButton}"
@@ -247,7 +247,7 @@ own ScrollViewer(s) removed, grids and the log cap their height
             <!-- ─── EMPTY STATE (perpendicular points) ─────────────────────── -->
             <Border Grid.Row="3" Style="{StaticResource ContentCard}"
                     Visibility="{Binding HasPerpendicularPoints, Converter={StaticResource InverseBoolToVis}}">
-                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,20">
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,24">
                     <TextBlock Text="No perpendicular points generated yet"
                                Style="{StaticResource SectionTitle}"
                                HorizontalAlignment="Center"/>
@@ -260,23 +260,23 @@ own ScrollViewer(s) removed, grids and the log cap their height
 
         <!-- ═══ FIXED FOOTER (never scrolls) ════════════════════ -->
         <StackPanel Grid.Row="2" Margin="0,8,0,0">
-            <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="10,8" Margin="0,0,0,10">
+            <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="12,8" Margin="0,0,0,12">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
-                    <Grid Margin="0,0,0,6">
+                    <Grid Margin="0,0,0,8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Text="Activity Log" Foreground="{StaticResource BrushLogText}"
-                                   FontSize="11.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                   FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
                         <StackPanel Grid.Column="1" Orientation="Horizontal">
                             <Button Content="Copy All" Style="{StaticResource DarkGhostButton}" Click="CopyAllLog_Click"/>
-                            <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Click="CopySelectedLog_Click" Margin="6,0,0,0"/>
-                            <Button Content="Clear" Style="{StaticResource DarkGhostButton}" Command="{Binding ClearLogCommand}" Margin="6,0,0,0"/>
+                            <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Click="CopySelectedLog_Click" Margin="8,0,0,0"/>
+                            <Button Content="Clear" Style="{StaticResource DarkGhostButton}" Command="{Binding ClearLogCommand}" Margin="8,0,0,0"/>
                         </StackPanel>
                     </Grid>
                     <ListBox shell:ShellBehaviors.MaxHeightRatio="0.2" shell:ShellBehaviors.ForwardMouseWheel="True" Grid.Row="1" x:Name="LogList" ItemsSource="{Binding Log}" MinHeight="100"
@@ -285,22 +285,22 @@ own ScrollViewer(s) removed, grids and the log cap their height
                              ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                         <ListBox.ItemContainerStyle>
                             <Style TargetType="ListBoxItem">
-                                <Setter Property="Padding" Value="0,1"/>
+                                <Setter Property="Padding" Value="0,2"/>
                                 <Setter Property="Background" Value="Transparent"/>
                             </Style>
                         </ListBox.ItemContainerStyle>
                         <ListBox.ItemTemplate>
                             <DataTemplate>
-                                <StackPanel Orientation="Horizontal" Margin="0,1">
+                                <StackPanel Orientation="Horizontal" Margin="0,2">
                             <TextBlock Text="{Binding Time, StringFormat=HH:mm:ss}"
                                        Foreground="{StaticResource BrushLogTextDim}"
-                                       FontFamily="Consolas" FontSize="11" Margin="0,0,10,0"/>
+                                       FontFamily="{DynamicResource MonoFont}" FontSize="11" Margin="0,0,12,0"/>
                             <TextBlock Text="{Binding Level}"
                                        Foreground="{Binding Level, Converter={StaticResource LogLevelToColor}}"
-                                       FontFamily="Consolas" FontSize="11" FontWeight="SemiBold" Width="64"/>
+                                       FontFamily="{DynamicResource MonoFont}" FontSize="11" FontWeight="SemiBold" Width="64"/>
                             <TextBlock Text="{Binding Message}"
                                        Foreground="{StaticResource BrushLogText}"
-                                       FontFamily="Consolas" FontSize="11" TextWrapping="Wrap"/>
+                                       FontFamily="{DynamicResource MonoFont}" FontSize="11" TextWrapping="Wrap"/>
                         </StackPanel>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
@@ -310,7 +310,7 @@ own ScrollViewer(s) removed, grids and the log cap their height
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                 <Button Content="Apply Perpendicular Points"
                         Style="{StaticResource PrimaryButton}"
-                        Width="210" Margin="0,0,10,0"
+                        Width="210" Margin="0,0,12,0"
                         Command="{Binding ApplyPerpendicularCommand}"/>
             </StackPanel>
         </StackPanel>

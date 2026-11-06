@@ -78,7 +78,7 @@ Layout: shell header (metric tiles) / body (grid) / footer (Apply, Open).
             <DataTemplate x:Key="PathTooltipTemplate" DataType="{x:Type vm:PostExportRowViewModel}">
                         <Border Background="{DynamicResource BrushSurfaceCard}"
                                 BorderBrush="{DynamicResource BrushNavyLight}"
-                                BorderThickness="1" CornerRadius="6" Padding="10,8"
+                                BorderThickness="1" CornerRadius="6" Padding="12,8"
                                 MaxWidth="560">
                             <Grid>
                                 <Grid.ColumnDefinitions>
@@ -91,36 +91,36 @@ Layout: shell header (metric tiles) / body (grid) / footer (Apply, Open).
                                 </Grid.RowDefinitions>
 
                                 <TextBlock Grid.Row="0" Grid.Column="0" Text="Output"
-                                           Style="{StaticResource MetricTileLabel}" Margin="0,0,10,2"/>
+                                           Style="{StaticResource MetricTileLabel}" Margin="0,0,12,2"/>
                                 <TextBlock Grid.Row="0" Grid.Column="1" Margin="0,0,0,2"
                                            Text="{Binding OutputFileName}" TextWrapping="Wrap"
                                            Style="{StaticResource BodyText}"/>
 
                                 <TextBlock Grid.Row="1" Grid.Column="0" Text="Saved to"
-                                           Style="{StaticResource MetricTileLabel}" Margin="0,0,10,2"/>
+                                           Style="{StaticResource MetricTileLabel}" Margin="0,0,12,2"/>
                                 <TextBlock Grid.Row="1" Grid.Column="1" Margin="0,0,0,2"
                                            Text="{Binding DestinationPath}" TextWrapping="Wrap"
-                                           FontFamily="Consolas" FontSize="11.5"
+                                           FontFamily="{DynamicResource MonoFont}" FontSize="12"
                                            Foreground="{DynamicResource BrushTextPrimary}"/>
 
                                 <TextBlock Grid.Row="2" Grid.Column="0" Text="Source"
-                                           Style="{StaticResource MetricTileLabel}" Margin="0,0,10,2"/>
+                                           Style="{StaticResource MetricTileLabel}" Margin="0,0,12,2"/>
                                 <TextBlock Grid.Row="2" Grid.Column="1" Margin="0,0,0,2"
                                            Text="{Binding SourceDescription}" TextWrapping="Wrap"
-                                           FontSize="11.5"
+                                           FontSize="12"
                                            Foreground="{DynamicResource BrushTextSecondary}"/>
 
                                 <TextBlock Grid.Row="3" Grid.Column="0" Text="Host view"
-                                           Style="{StaticResource MetricTileLabel}" Margin="0,0,10,2"/>
+                                           Style="{StaticResource MetricTileLabel}" Margin="0,0,12,2"/>
                                 <TextBlock Grid.Row="3" Grid.Column="1" Margin="0,0,0,2"
                                            Text="{Binding HostView}" TextWrapping="Wrap"
                                            Style="{StaticResource BodyText}"/>
 
                                 <TextBlock Grid.Row="4" Grid.Column="0" Text="Element ID"
-                                           Style="{StaticResource MetricTileLabel}" Margin="0,0,10,0"/>
+                                           Style="{StaticResource MetricTileLabel}" Margin="0,0,12,0"/>
                                 <TextBlock Grid.Row="4" Grid.Column="1"
                                            Text="{Binding ElementIdValue}"
-                                           FontFamily="Consolas" FontSize="11.5"
+                                           FontFamily="{DynamicResource MonoFont}" FontSize="12"
                                            Foreground="{DynamicResource BrushTextPrimary}"/>
                             </Grid>
                         </Border>
@@ -136,25 +136,25 @@ Layout: shell header (metric tiles) / body (grid) / footer (Apply, Open).
         <!-- ═══ HEADER — action tiles ═══════════════════════════════════ -->
         <shell:ToolWindowShell.HeaderContent>
             <UniformGrid Rows="1">
-                <Border Style="{StaticResource MetricTileInfo}" Margin="0,0,6,0">
+                <Border Style="{StaticResource MetricTileInfo}" Margin="0,0,8,0">
                     <StackPanel>
                         <TextBlock Text="EXPORTED" Style="{StaticResource MetricTileLabelInfo}"/>
                         <TextBlock Text="{Binding ExportedCount}" Style="{StaticResource MetricTileNumberInfo}"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricTileDanger}" Margin="0,0,6,0">
+                <Border Style="{StaticResource MetricTileDanger}" Margin="0,0,8,0">
                     <StackPanel>
                         <TextBlock Text="DELETE" Style="{StaticResource MetricTileLabelDanger}"/>
                         <TextBlock Text="{Binding DeleteCount}" Style="{StaticResource MetricTileNumberDanger}"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricTileWarning}" Margin="0,0,6,0">
+                <Border Style="{StaticResource MetricTileWarning}" Margin="0,0,8,0">
                     <StackPanel>
                         <TextBlock Text="CONVERT TO IMPORT" Style="{StaticResource MetricTileLabelWarning}"/>
                         <TextBlock Text="{Binding ConvertCount}" Style="{StaticResource MetricTileNumberWarning}"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricTileInfo}" Margin="0,0,6,0">
+                <Border Style="{StaticResource MetricTileInfo}" Margin="0,0,8,0">
                     <StackPanel>
                         <TextBlock Text="RE-LINK TO EXPORT" Style="{StaticResource MetricTileLabelInfo}"/>
                         <TextBlock Text="{Binding RelinkCount}" Style="{StaticResource MetricTileNumberInfo}"/>
@@ -174,23 +174,23 @@ Layout: shell header (metric tiles) / body (grid) / footer (Apply, Open).
             <StackPanel>
                 <Border Style="{StaticResource ContentCard}">
                     <StackPanel>
-                        <DockPanel LastChildFill="False" Margin="12,10,12,0">
+                        <DockPanel LastChildFill="False" Margin="12,12,12,0">
                             <TextBlock DockPanel.Dock="Left" Text="EXPORTED FILES"
-                                       Style="{StaticResource SectionTitle}" Margin="0,0,10,0"/>
+                                       Style="{StaticResource SectionTitle}" Margin="0,0,12,0"/>
                             <TextBlock DockPanel.Dock="Right" Text="{Binding OpenCountText}"
                                        Style="{StaticResource StatusText}" VerticalAlignment="Center"/>
                         </DockPanel>
 
                         <DockPanel LastChildFill="False" Margin="12,4,12,8">
-                            <Button DockPanel.Dock="Left" Content="All → Keep" Margin="0,0,6,0"
+                            <Button DockPanel.Dock="Left" Content="All → Keep" Margin="0,0,8,0"
                                     Style="{StaticResource SmallSecondaryButton}"
                                     Command="{Binding SetAllKeepCommand}"
                                     ToolTip="Leave every exported CAD instance in the model"/>
-                            <Button DockPanel.Dock="Left" Content="All → Delete" Margin="0,0,6,0"
+                            <Button DockPanel.Dock="Left" Content="All → Delete" Margin="0,0,8,0"
                                     Style="{StaticResource SmallSecondaryButton}"
                                     Command="{Binding SetAllDeleteCommand}"
                                     ToolTip="Delete every exported CAD instance from the model"/>
-                            <Button DockPanel.Dock="Left" Content="All → Convert (links only)" Margin="0,0,6,0"
+                            <Button DockPanel.Dock="Left" Content="All → Convert (links only)" Margin="0,0,8,0"
                                     Style="{StaticResource SmallSecondaryButton}"
                                     Command="{Binding SetAllConvertCommand}"
                                     ToolTip="Replace every exported link with an import of the same file. Rows that cannot be converted keep their current action."/>
@@ -251,9 +251,9 @@ Layout: shell header (metric tiles) / body (grid) / footer (Apply, Open).
                                         <DataTemplate>
                                             <Border Style="{StaticResource BadgePill}"
                                                     Background="{DynamicResource BrushStatusInfoSoft}"
-                                                    Padding="7,2" HorizontalAlignment="Left">
+                                                    Padding="8,2" HorizontalAlignment="Left">
                                                 <TextBlock x:Name="Pill" Text="{Binding SourceGroup}"
-                                                           FontSize="10.5" FontWeight="SemiBold"
+                                                           FontSize="11" FontWeight="SemiBold"
                                                            Foreground="{DynamicResource BrushStatusInfo}"/>
                                             </Border>
                                             <DataTemplate.Triggers>
@@ -296,7 +296,7 @@ Layout: shell header (metric tiles) / body (grid) / footer (Apply, Open).
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
                                             <ComboBox Style="{StaticResource StandardComboBox}"
-                                                      Height="26" Margin="0,1"
+                                                      Height="26" Margin="0,2"
                                                       ItemsSource="{Binding Choices}"
                                                       DisplayMemberPath="Label"
                                                       SelectedItem="{Binding SelectedChoice, Mode=TwoWay}"
@@ -309,12 +309,12 @@ Layout: shell header (metric tiles) / body (grid) / footer (Apply, Open).
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
                                             <StackPanel Orientation="Horizontal">
-                                                <TextBlock Text="{Binding ResultText}" FontSize="11.5"
+                                                <TextBlock Text="{Binding ResultText}" FontSize="12"
                                                            TextTrimming="CharacterEllipsis"
                                                            VerticalAlignment="Center"
                                                            Foreground="{DynamicResource BrushTextSecondary}"
                                                            ToolTip="{Binding ResultText}"/>
-                                                <Button Content="Show" Margin="6,0,0,0"
+                                                <Button Content="Show" Margin="8,0,0,0"
                                                         Style="{StaticResource SmallSecondaryButton}"
                                                         Command="{Binding DataContext.ShowInFolderCommand,
                                                                   RelativeSource={RelativeSource AncestorType=DataGrid}}"
@@ -329,21 +329,21 @@ Layout: shell header (metric tiles) / body (grid) / footer (Apply, Open).
                         </DataGrid>
 
                         <!-- The refused-sixth-tick note. -->
-                        <Border Margin="12,8,12,0" Padding="9,6" CornerRadius="7"
+                        <Border Margin="12,8,12,0" Padding="8,8" CornerRadius="7"
                                 Background="{DynamicResource BrushStatusWarnSoft}"
                                 BorderBrush="{DynamicResource BrushStatusWarnBorder}"
                                 BorderThickness="1"
                                 Visibility="{Binding ShowOpenLimitNote, Converter={StaticResource BoolToVisibilityConverter}}">
-                            <TextBlock TextWrapping="Wrap" FontSize="11.5"
+                            <TextBlock TextWrapping="Wrap" FontSize="12"
                                        Foreground="{DynamicResource BrushStatusWarn}"
                                        Text="Open is limited to 5 files at a time — untick one first. Every exported file stays listed."/>
                         </Border>
 
-                        <Border Margin="12,8,12,12" Padding="9,6" CornerRadius="7"
+                        <Border Margin="12,8,12,12" Padding="8,8" CornerRadius="7"
                                 Background="{DynamicResource BrushStatusWarnSoft}"
                                 BorderBrush="{DynamicResource BrushStatusWarnBorder}"
                                 BorderThickness="1">
-                            <TextBlock TextWrapping="Wrap" FontSize="11.5"
+                            <TextBlock TextWrapping="Wrap" FontSize="12"
                                        Foreground="{DynamicResource BrushStatusWarn}"
                                        Text="Both conversions delete the instance and recreate it — Revit has no API for Manage Links' Import button. Per-view graphic and layer overrides do not carry over, anything dimensioned to the CAD will stop that one row, and the element ID changes; each is named in the log. Replace with link to exported file is the safer direction, since that DWG was written from this instance and lands in the right place. Everything applied here is one undo step."/>
                         </Border>
@@ -359,11 +359,11 @@ Layout: shell header (metric tiles) / body (grid) / footer (Apply, Open).
                         Style="{StaticResource OutlineButton}"
                         Command="{Binding SkipAllCommand}"
                         ToolTip="Leave every exported CAD instance in the model and close"/>
-                <Button DockPanel.Dock="Right" Content="Close"
-                        Style="{StaticResource OutlineButton}" Margin="6,0,0,0"
+                <Button IsCancel="True" DockPanel.Dock="Right" Content="Close"
+                        Style="{StaticResource OutlineButton}" Margin="8,0,0,0"
                         Click="CloseButton_Click"/>
                 <Button DockPanel.Dock="Right" Content="{Binding OpenButtonText}"
-                        Style="{StaticResource OutlineButton}" Margin="6,0,0,0"
+                        Style="{StaticResource OutlineButton}" Margin="8,0,0,0"
                         Command="{Binding OpenSelectedFilesCommand}"/>
                 <Button DockPanel.Dock="Right" Content="Apply to model"
                         Style="{StaticResource RunButton}"

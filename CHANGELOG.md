@@ -9,6 +9,121 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.40.9] — 2026-11-06
+
+### All tool windows — shared monospace font and Esc to close
+
+94 tools got a patch version (every tool bumped in 6.40.0 to 6.40.8 that has a window; see `Claude/Previews/AllTools_UiStandard_Windows.html` for the list).
+
+#### Changed
+- Log and code text now read the font from one shared value (`MonoFont` in `Shared/SharedStyles.xaml`) instead of a hard-coded `Consolas`. Same font as before.
+- The Close button in 77 windows is now the cancel button: pressing Esc closes the window.
+
+User note: Esc now closes these tool windows. Nothing else changes.
+
+## [6.40.8] — 2026-11-06
+
+### Tagging Tools — spacing and text sizes on the 4 px grid
+
+Align Spot Elevations 1.6.1, Floor Tag 1.0.1, Roof Tag 18.1.3, Tag To Text 1.3.1.
+
+#### Changed
+- Margins and paddings snapped to 2/4/8/12/16/24 and font sizes to 10/11/12/13, matching the other groups already converted.
+
+User note: layout only; controls sit 1–2 px differently and a few small texts are slightly larger. No behaviour change. Older tool versions still installed are not changed.
+
+## [6.40.7] — 2026-11-06
+
+### Setup Tools — spacing and text sizes on the 4 px grid
+
+Batch Link DWG Family 2.2.1, DWG To Lines 7.0.2, DWG To DL(P) 14.0.2, DWG Manager 3.1.2, DWG Statistics 5.1.2, Export DWG to Folder 4.2.1.
+
+#### Changed
+- Margins and paddings snapped to 2/4/8/12/16/24 and font sizes to 10/11/12/13, matching the other groups already converted.
+
+User note: layout only; controls sit 1–2 px differently and a few small texts are slightly larger. No behaviour change. Older tool versions still installed are not changed.
+
+## [6.40.6] — 2026-11-06
+
+### Detail Lines and Dimensions — spacing and text sizes on the 4 px grid
+
+Detail Lines From Links 10.1.2, Detail Line Closed Loop 3.0.2, Detail Line Manager 2.0.1, Auto Dim Detail Line 10.1.2.
+
+#### Changed
+- Margins and paddings snapped to 2/4/8/12/16/24 and font sizes to 10/11/12/13, matching the other groups already converted.
+
+User note: layout only; controls sit 1–2 px differently and a few small texts are slightly larger. No behaviour change. Older tool versions still installed are not changed.
+
+## [6.40.5] — 2026-11-06
+
+### Roof Tools — spacing and text sizes on the 4 px grid
+
+Auto Slope By Point 33.0.2, Auto Slope By Point (Ridge) 3.1.2, Auto Slope By Point (Multi Copies) 30.1.2, Auto Slope By Drain (Multi-Roof) 13.1.4, Ridge By Openings 70.1.2, Ridge By Points 59.1.1, Creaser Adv 12.0.4, Combined Roof Tools 3.1.3, Roof Points & Slope 1.1.1, Roof Type Manager 3.1.3, Roof Point Elevation Sync 5.0.2, Roof Point Comparison 3.0.2, Tapered EPS 2D Pattern 6.1.1, Roof Name Builder 2.1.2, Island Roof Splitter 2.0.1.
+
+#### Changed
+- Margins and paddings snapped to 2/4/8/12/16/24 and font sizes to 10/11/12/13, matching the other groups already converted.
+
+User note: layout only; controls sit 1–2 px differently and a few small texts are slightly larger. No behaviour change. Older tool versions still installed are not changed.
+
+## [6.40.4] — 2026-11-06
+
+### Floor Tools — spacing and text sizes on the 4 px grid
+
+Floors And Roof From Linked Rooms 13.1.2, Floors And Roof From Linked Rooms (Via Plan View) 6.1.2, Floor Slope By Drain 1.0.1, Floor Slope By Point 1.0.1, Floor Slope By Point (Ridge) 1.0.1, Floor Slope By Point (Multi Copies) 1.0.1, Floor Points & Slope 1.0.1, Floor Divide Inner Loops 1.0.1, Floor Outer Curve Divider 1.0.1, Floor Detail Line Intersect 1.0.1, Floor Inner Loops And Perpendicular 1.0.1, Floor Edge Vertex Reducer 1.0.1, Floor Multiple Points (1/2–1/4) 1.0.1, Floor Shape From Link 1.0.1, Floor Crease Lines By Openings 1.0.1, Floor Crease Lines By Points 1.0.1, Floor Creaser 1.0.1, Floor Type Manager 1.0.1, Floor Name Builder 1.0.1, Floor Point Comparison 1.0.1, Floor Point Elevation Sync 1.0.1, Floor Tapered EPS 2D Pattern 1.0.1.
+
+#### Changed
+- Margins and paddings snapped to 2/4/8/12/16/24 and font sizes to 10/11/12/13, matching the other groups already converted.
+
+User note: layout only; controls sit 1–2 px differently and a few small texts are slightly larger. No behaviour change. Older tool versions still installed are not changed.
+
+## [6.40.3] — 2026-11-06
+
+### Sheet tools — spacing and text sizes on the 4 px grid
+
+Automated Section Placer 3.1.2, Plan From Scope Box 6.1.3, Sections To Sheet 1.0.1, Sheet Auto Rearrange 28.1.2, Sheet Text Replace 1.0.1, Sheet View Arrange 1.2.2, Smart View To Sheet Placer 224.1.2.
+
+#### Changed
+- Margins and paddings snapped to 2/4/8/12/16/24 and font sizes to 10/11/12/13, matching the Roof Points, View Tools and Manage windows.
+
+User note: layout only; controls sit 1–2 px differently and a few small texts are slightly larger. No behaviour change. Older tool versions still installed are not changed.
+
+## [6.40.2] — 2026-11-06
+
+### Manage tools — spacing and text sizes on the 4 px grid
+
+Annotation Overlap Detection 4.1.2, Bulk Rename 1.1.2, Delete Line Styles 1.2.1, Link Memory 2.0.1, Link Version Checker 7.1.2, ParaManager 5.1.2, Schedule Export / Import 7.1.2, Shared Parameter Studio 1.0.2, Tracker ID 2.0.1, Delete Workset 1.2.1, Workset Creator 16.1.2, Workset Manager 14.1.2, Workset Memory 1.0.1, Workset Renamer 5.1.2, Workset Renamer (From Excel) 5.1.2, Worksets & Elements Browser 4.3.1.
+
+#### Changed
+- Margins and paddings snapped to 2/4/8/12/16/24 and font sizes to 10/11/12/13, matching the Roof Points and View Tools windows.
+
+User note: layout only; controls sit 1–2 px differently and a few small texts are slightly larger. No behaviour change. Older tool versions still installed are not changed. Workset Creator V017 is not on the ribbon yet and was left as is.
+
+## [6.40.1] — 2026-11-06
+
+### View Tools — spacing and text sizes on the 4 px grid
+
+Create Sections From Detail Lines 13.1.3, Floor Edge Around Sections 1.0.1, Floor Edge Element Sections 1.0.1, Floor View Focus 1.0.1, Isolated Section 1.0.1, Roof Edge Around Sections 7.2.1, Roof Edge Element Sections 4.1.3, Roof View Focus 4.1.2, Section View Auto Tagger 6.1.2, Auto Place Sections 324.1.2, Callout To Section View Placement 21.1.2, Reference Section Head Placer 15.1.2, Bubble Auto Renumber 9.1.2, Section Auto Renamer 26.1.4, View Auto Renamer 7.1.3.
+
+#### Changed
+- Margins and paddings snapped to 2/4/8/12/16/24 and font sizes to 10/11/12/13, matching the Roof Points windows (see 6.40.0).
+
+User note: layout only; controls sit 1–2 px differently and a few small texts are slightly larger. No behaviour change. Older tool versions that are still installed are not changed.
+
+## [6.40.0] — 2026-11-06
+
+### Shared UI standard
+
+#### Added
+- Layout tokens in `Shared/SharedStyles.xaml`: spacing (`Space.XS`–`XL`, 4/8/12/16/24), paddings (`Pad.*`), gaps (`Gap.*`), control heights, corner radii, font sizes and `MonoFont`. Standard is described in `Claude/UI_STANDARD_AUDIT.md`.
+
+### Roof Points tools — spacing and text sizes on the 4 px grid
+
+Divide Inner Loops 12.1.2, Outer Curve Divider 6.0.3, Roof Detail Line Intersect 14.1.2, Inner Loops And Perpendicular 7.1.2, Roof Edge Vertex Reducer 9.0.2, Multiple Points 3.0.3, Roof Shape From Link 2.0.2.
+
+#### Changed
+- Margins and paddings snapped to 2/4/8/12/16/24 and font sizes to 10/11/12/13, so text and controls get the same breathing room in every Roof Points window.
+
+User note: layout only; controls sit 1–2 px differently and a few small texts are slightly larger. No behaviour change.
 ## [6.39.0] — 2026-11-06
 
 ### Ribbon tabs

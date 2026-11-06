@@ -53,7 +53,7 @@
 
             <!-- Saved-set row: name / date / count -->
             <DataTemplate x:Key="SetTemplate" DataType="{x:Type vm:SetRow}">
-                <Grid Margin="2,3">
+                <Grid Margin="2,4">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="190"/>
@@ -82,21 +82,21 @@
         <!-- ═══ HEADER ═══ -->
         <shell:ToolWindowShell.HeaderContent>
             <UniformGrid Columns="3">
-                <Border Style="{StaticResource MetricTile}" Margin="0,0,6,0">
+                <Border Style="{StaticResource MetricTile}" Margin="0,0,8,0">
                     <StackPanel>
                         <TextBlock Text="USER WORKSETS" Style="{StaticResource MetricTileLabel}"
                                    Foreground="{StaticResource BrushTextSecondary}"/>
                         <TextBlock Text="{Binding WorksetCount}" Style="{StaticResource MetricTileNumber}"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricTileSuccess}" Margin="3,0">
+                <Border Style="{StaticResource MetricTileSuccess}" Margin="4,0">
                     <StackPanel>
                         <TextBlock Text="OPEN NOW" Style="{StaticResource MetricTileLabel}"
                                    Foreground="{StaticResource BrushStatusOk}"/>
                         <TextBlock Text="{Binding OpenNowCount}" Style="{StaticResource MetricTileNumberSuccess}"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricTileInfo}" Margin="6,0,0,0">
+                <Border Style="{StaticResource MetricTileInfo}" Margin="8,0,0,0">
                     <StackPanel>
                         <TextBlock Text="SAVED SETS" Style="{StaticResource MetricTileLabelInfo}"/>
                         <TextBlock Text="{Binding SavedSetCount}" Style="{StaticResource MetricTileNumberInfo}"/>
@@ -120,10 +120,10 @@
                 </Grid>
 
                 <!-- Saved sets -->
-                <Border Margin="0,0,0,8" Padding="12,10" Background="{StaticResource BrushSurfaceCard}"
+                <Border Margin="0,0,0,8" Padding="12,12" Background="{StaticResource BrushSurfaceCard}"
                         BorderBrush="{StaticResource BrushBorderDefault}" BorderThickness="1" CornerRadius="4">
                     <StackPanel>
-                        <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
                             <TextBlock Text="Saved sets" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource BrushTextPrimary}"/>
                             <TextBlock Text="{Binding ModelLocation}" FontSize="11" Margin="8,0,0,0" TextTrimming="CharacterEllipsis"
                                        Foreground="{StaticResource BrushTextSecondary}" VerticalAlignment="Bottom"/>
@@ -201,7 +201,7 @@
                         <DataGridTemplateColumn Header="On reload" Width="100" SortMemberPath="Change">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <Border CornerRadius="9" Padding="8,1" Margin="6,0" HorizontalAlignment="Left">
+                                    <Border CornerRadius="9" Padding="8,2" Margin="8,0" HorizontalAlignment="Left">
                                         <Border.Style>
                                             <Style TargetType="Border">
                                                 <Setter Property="Background" Value="Transparent"/>
@@ -218,7 +218,7 @@
                                                 </Style.Triggers>
                                             </Style>
                                         </Border.Style>
-                                        <TextBlock Text="{Binding ChangeText}" FontSize="10.5" FontWeight="SemiBold">
+                                        <TextBlock Text="{Binding ChangeText}" FontSize="11" FontWeight="SemiBold">
                                             <TextBlock.Style>
                                                 <Style TargetType="TextBlock">
                                                     <Setter Property="Foreground" Value="{StaticResource BrushTextSecondary}"/>
@@ -243,23 +243,23 @@
                     </DataGrid.Columns>
                 </DataGrid>
 
-                <CheckBox Margin="0,10,0,0" IsChecked="{Binding RestoreActiveWorkset}">
-                    <TextBlock Text="Make the set's active workset current again after reload" FontSize="11.5"
+                <CheckBox Margin="0,12,0,0" IsChecked="{Binding RestoreActiveWorkset}">
+                    <TextBlock Text="Make the set's active workset current again after reload" FontSize="12"
                                Foreground="{StaticResource BrushTextPrimary}"/>
                 </CheckBox>
 
                 <!-- Why the model reopens -->
-                <Border Margin="0,10,0,0" Padding="10,8" CornerRadius="4" BorderThickness="1"
+                <Border Margin="0,12,0,0" Padding="12,8" CornerRadius="4" BorderThickness="1"
                         Background="{StaticResource BrushBannerWarningBackground}"
                         BorderBrush="{StaticResource BrushBannerWarningBorder}">
-                    <TextBlock TextWrapping="Wrap" FontSize="11.5" Foreground="{StaticResource BrushBannerWarningText}">
+                    <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource BrushBannerWarningText}">
                         Revit can't open or close worksets in a model that is already open. <Bold>Reload worksets</Bold>
                         closes this model and reopens it with the saved set. Save or Synchronize first — it is blocked
                         while the model has unsaved changes.
                     </TextBlock>
                 </Border>
 
-                <TextBlock Margin="0,8,0,0" Text="{Binding HintText}" TextWrapping="Wrap" FontSize="11.5" FontWeight="SemiBold"
+                <TextBlock Margin="0,8,0,0" Text="{Binding HintText}" TextWrapping="Wrap" FontSize="12" FontWeight="SemiBold"
                            Foreground="{StaticResource BrushStatusError}">
                     <TextBlock.Style>
                         <Style TargetType="TextBlock">
@@ -279,7 +279,7 @@
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                 <Button Content="Reload worksets" Command="{Binding ReloadCommand}"
                         Style="{StaticResource PrimaryButton}" Margin="0,0,8,0"/>
-                <Button Content="Close" Style="{StaticResource OutlineButton}" Width="90" Click="CloseButton_Click"/>
+                <Button IsCancel="True" Content="Close" Style="{StaticResource OutlineButton}" Width="90" Click="CloseButton_Click"/>
             </StackPanel>
         </shell:ToolWindowShell.FooterContent>
     </shell:ToolWindowShell>

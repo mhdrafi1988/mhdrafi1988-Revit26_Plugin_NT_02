@@ -72,7 +72,7 @@ V004 (behaviour change — new folder + namespace):
             <DataTemplate x:Key="PathTooltipTemplate" DataType="{x:Type vm:DwgRowViewModel}">
                         <Border Background="{DynamicResource BrushSurfaceCard}"
                                 BorderBrush="{DynamicResource BrushNavyLight}"
-                                BorderThickness="1" CornerRadius="6" Padding="10,8" MaxWidth="560">
+                                BorderThickness="1" CornerRadius="6" Padding="12,8" MaxWidth="560">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
@@ -85,48 +85,48 @@ V004 (behaviour change — new folder + namespace):
                                 </Grid.RowDefinitions>
 
                                 <TextBlock Grid.Row="0" Grid.Column="0" Text="OUTPUT"
-                                           Style="{StaticResource MetricTileLabel}" Margin="0,0,10,3"/>
-                                <TextBlock Grid.Row="0" Grid.Column="1" Margin="0,0,0,3"
+                                           Style="{StaticResource MetricTileLabel}" Margin="0,0,12,4"/>
+                                <TextBlock Grid.Row="0" Grid.Column="1" Margin="0,0,0,4"
                                            Text="{Binding OutputFileName}" TextWrapping="Wrap"
                                            Style="{StaticResource BodyText}" FontWeight="SemiBold"/>
 
                                 <TextBlock Grid.Row="1" Grid.Column="0" Text="SAVES TO"
-                                           Style="{StaticResource MetricTileLabel}" Margin="0,0,10,3"/>
-                                <TextBlock Grid.Row="1" Grid.Column="1" Margin="0,0,0,3"
+                                           Style="{StaticResource MetricTileLabel}" Margin="0,0,12,4"/>
+                                <TextBlock Grid.Row="1" Grid.Column="1" Margin="0,0,0,4"
                                            Text="{Binding DestinationPath}" TextWrapping="Wrap"
-                                           FontFamily="Consolas" FontSize="11.5"
+                                           FontFamily="{DynamicResource MonoFont}" FontSize="12"
                                            Foreground="{DynamicResource BrushTextPrimary}"/>
 
                                 <TextBlock Grid.Row="2" Grid.Column="0" Text="SOURCE"
-                                           Style="{StaticResource MetricTileLabel}" Margin="0,0,10,3"/>
-                                <TextBlock Grid.Row="2" Grid.Column="1" Margin="0,0,0,3"
+                                           Style="{StaticResource MetricTileLabel}" Margin="0,0,12,4"/>
+                                <TextBlock Grid.Row="2" Grid.Column="1" Margin="0,0,0,4"
                                            Text="{Binding SourceDescription}" TextWrapping="Wrap"
-                                           FontSize="11.5"
+                                           FontSize="12"
                                            Foreground="{DynamicResource BrushTextSecondary}"/>
 
                                 <TextBlock Grid.Row="3" Grid.Column="0" Text="HOST VIEW"
-                                           Style="{StaticResource MetricTileLabel}" Margin="0,0,10,3"/>
-                                <TextBlock Grid.Row="3" Grid.Column="1" Margin="0,0,0,3"
+                                           Style="{StaticResource MetricTileLabel}" Margin="0,0,12,4"/>
+                                <TextBlock Grid.Row="3" Grid.Column="1" Margin="0,0,0,4"
                                            Text="{Binding HostView}" TextWrapping="Wrap"
                                            Style="{StaticResource BodyText}"/>
 
                                 <TextBlock Grid.Row="4" Grid.Column="0" Text="SHEET"
-                                           Style="{StaticResource MetricTileLabel}" Margin="0,0,10,3"/>
-                                <TextBlock Grid.Row="4" Grid.Column="1" Margin="0,0,0,3"
+                                           Style="{StaticResource MetricTileLabel}" Margin="0,0,12,4"/>
+                                <TextBlock Grid.Row="4" Grid.Column="1" Margin="0,0,0,4"
                                            Text="{Binding Sheet}" TextWrapping="Wrap"
                                            Style="{StaticResource BodyText}"/>
 
                                 <TextBlock Grid.Row="5" Grid.Column="0" Text="LAYERS"
-                                           Style="{StaticResource MetricTileLabel}" Margin="0,0,10,3"/>
-                                <TextBlock Grid.Row="5" Grid.Column="1" Margin="0,0,0,3"
+                                           Style="{StaticResource MetricTileLabel}" Margin="0,0,12,4"/>
+                                <TextBlock Grid.Row="5" Grid.Column="1" Margin="0,0,0,4"
                                            Text="{Binding LayerText}"
                                            Style="{StaticResource BodyText}"/>
 
                                 <TextBlock Grid.Row="6" Grid.Column="0" Text="ELEMENT ID"
-                                           Style="{StaticResource MetricTileLabel}" Margin="0,0,10,0"/>
+                                           Style="{StaticResource MetricTileLabel}" Margin="0,0,12,0"/>
                                 <TextBlock Grid.Row="6" Grid.Column="1"
                                            Text="{Binding ElementIdValue}"
-                                           FontFamily="Consolas" FontSize="11.5"
+                                           FontFamily="{DynamicResource MonoFont}" FontSize="12"
                                            Foreground="{DynamicResource BrushTextPrimary}"/>
                             </Grid>
                         </Border>
@@ -134,10 +134,10 @@ V004 (behaviour change — new folder + namespace):
 
             <!-- Metric tile template -->
             <DataTemplate x:Key="SummaryCardTemplate" DataType="{x:Type vm:SummaryCard}">
-                <Border Style="{StaticResource MetricCard}" Margin="0,0,6,0" Padding="10,8" ToolTip="{Binding Hint}">
+                <Border Style="{StaticResource MetricCard}" Margin="0,0,8,0" Padding="12,8" ToolTip="{Binding Hint}">
                     <StackPanel>
                         <TextBlock x:Name="Num" Text="{Binding Value}" Style="{StaticResource MetricNumber}" FontSize="20"/>
-                        <TextBlock Text="{Binding Label}" Style="{StaticResource MetricLabel}" Margin="0,1,0,0" TextTrimming="CharacterEllipsis"/>
+                        <TextBlock Text="{Binding Label}" Style="{StaticResource MetricLabel}" Margin="0,2,0,0" TextTrimming="CharacterEllipsis"/>
                     </StackPanel>
                 </Border>
                 <DataTemplate.Triggers>
@@ -166,8 +166,8 @@ V004 (behaviour change — new folder + namespace):
                         <ColumnDefinition Width="48"/>
                     </Grid.ColumnDefinitions>
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <Ellipse x:Name="Dot" Width="8" Height="8" Margin="0,0,6,0" Fill="{StaticResource BrushTextDisabled}"/>
-                        <TextBlock Text="{Binding Label}" FontSize="11.5" FontWeight="SemiBold"
+                        <Ellipse x:Name="Dot" Width="8" Height="8" Margin="0,0,8,0" Fill="{StaticResource BrushTextDisabled}"/>
+                        <TextBlock Text="{Binding Label}" FontSize="12" FontWeight="SemiBold"
                                    Foreground="{StaticResource BrushTextPrimary}"/>
                     </StackPanel>
                     <ProgressBar x:Name="Bar" Grid.Column="1" Height="8" Minimum="0" Maximum="100"
@@ -176,9 +176,9 @@ V004 (behaviour change — new folder + namespace):
                                  Background="{StaticResource BrushSeparatorThin}"
                                  BorderThickness="0" VerticalAlignment="Center"/>
                     <TextBlock Grid.Column="2" Text="{Binding CountText}" HorizontalAlignment="Right" VerticalAlignment="Center"
-                               FontFamily="Consolas" FontSize="11" Foreground="{StaticResource BrushTextSecondary}"/>
+                               FontFamily="{DynamicResource MonoFont}" FontSize="11" Foreground="{StaticResource BrushTextSecondary}"/>
                     <TextBlock x:Name="Pct" Grid.Column="3" Text="{Binding PercentText}" HorizontalAlignment="Right" VerticalAlignment="Center"
-                               FontSize="11.5" FontWeight="Bold" Foreground="{StaticResource BrushTextTertiary}"/>
+                               FontSize="12" FontWeight="Bold" Foreground="{StaticResource BrushTextTertiary}"/>
                 </Grid>
                 <DataTemplate.Triggers>
                     <DataTrigger Binding="{Binding State}" Value="Running">
@@ -210,7 +210,7 @@ V004 (behaviour change — new folder + namespace):
                 <Setter Property="FontSize" Value="12"/>
                 <Setter Property="Foreground" Value="{StaticResource BrushTextPrimary}"/>
                 <Setter Property="VerticalAlignment" Value="Center"/>
-                <Setter Property="Margin" Value="0,0,14,0"/>
+                <Setter Property="Margin" Value="0,0,16,0"/>
             </Style>
 
             <!-- Grid header variants -->
@@ -222,7 +222,7 @@ V004 (behaviour change — new folder + namespace):
             </Style>
             <Style x:Key="RightCellText" TargetType="TextBlock">
                 <Setter Property="HorizontalAlignment" Value="Right"/>
-                <Setter Property="Margin" Value="0,0,6,0"/>
+                <Setter Property="Margin" Value="0,0,8,0"/>
             </Style>
 
             <!-- Expand / collapse arrow for group headers -->
@@ -266,14 +266,14 @@ V004 (behaviour change — new folder + namespace):
                                             <RowDefinition Height="Auto"/>
                                             <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
-                                        <Border Padding="4,3" Background="{StaticResource BrushSystemTertiaryBackground}"
+                                        <Border Padding="4,4" Background="{StaticResource BrushSystemTertiaryBackground}"
                                                 BorderBrush="{StaticResource BrushSeparator}" BorderThickness="0,1,0,0">
                                             <StackPanel Orientation="Horizontal">
                                                 <ToggleButton x:Name="ExpandToggle" Tag="GroupToggle" Style="{StaticResource GroupArrowToggle}" IsChecked="True"
                                                               Loaded="GroupToggle_Loaded" Checked="GroupToggle_Changed" Unchecked="GroupToggle_Changed"
                                                               ToolTip="Collapse or expand this group"/>
                                                 <CheckBox x:Name="GroupTick" Tag="GroupTick" IsThreeState="True" Focusable="False" VerticalAlignment="Center"
-                                                          Margin="6,0,2,0" Click="GroupTick_Click"
+                                                          Margin="8,0,2,0" Click="GroupTick_Click"
                                                           IsEnabled="{Binding DataContext.IsBusy, RelativeSource={RelativeSource AncestorType=DataGrid}, Converter={StaticResource InverseBoolConverter}}"
                                                           ToolTip="Tick or untick every row in this group">
                                                     <CheckBox.IsChecked>
@@ -283,9 +283,9 @@ V004 (behaviour change — new folder + namespace):
                                                         </MultiBinding>
                                                     </CheckBox.IsChecked>
                                                 </CheckBox>
-                                                <TextBlock Text="{Binding Name}" Margin="4,0,0,0" FontWeight="Bold" FontSize="12.5"
+                                                <TextBlock Text="{Binding Name}" Margin="4,0,0,0" FontWeight="Bold" FontSize="13"
                                                            Foreground="{StaticResource BrushNavyPrimary}" VerticalAlignment="Center"/>
-                                                <TextBlock Text="{Binding ItemCount, StringFormat=({0})}" Margin="6,0,0,0" FontSize="11.5"
+                                                <TextBlock Text="{Binding ItemCount, StringFormat=({0})}" Margin="8,0,0,0" FontSize="12"
                                                            Foreground="{StaticResource BrushTextSecondary}" VerticalAlignment="Center"/>
                                             </StackPanel>
                                         </Border>
@@ -320,14 +320,14 @@ V004 (behaviour change — new folder + namespace):
                                             <RowDefinition Height="Auto"/>
                                             <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
-                                        <Border Padding="22,2,4,2" Background="{StaticResource BrushSystemSecondaryBackground}"
+                                        <Border Padding="24,2,4,2" Background="{StaticResource BrushSystemSecondaryBackground}"
                                                 BorderBrush="{StaticResource BrushSeparatorThin}" BorderThickness="0,1,0,0">
                                             <StackPanel Orientation="Horizontal">
                                                 <ToggleButton x:Name="ExpandToggle" Tag="GroupToggle" Style="{StaticResource GroupArrowToggle}" IsChecked="True"
                                                               Loaded="GroupToggle_Loaded" Checked="GroupToggle_Changed" Unchecked="GroupToggle_Changed"
                                                               ToolTip="Collapse or expand this group"/>
                                                 <CheckBox x:Name="GroupTick" Tag="GroupTick" IsThreeState="True" Focusable="False" VerticalAlignment="Center"
-                                                          Margin="6,0,2,0" Click="GroupTick_Click"
+                                                          Margin="8,0,2,0" Click="GroupTick_Click"
                                                           IsEnabled="{Binding DataContext.IsBusy, RelativeSource={RelativeSource AncestorType=DataGrid}, Converter={StaticResource InverseBoolConverter}}"
                                                           ToolTip="Tick or untick every row in this group">
                                                     <CheckBox.IsChecked>
@@ -339,7 +339,7 @@ V004 (behaviour change — new folder + namespace):
                                                 </CheckBox>
                                                 <TextBlock Text="{Binding Name}" Margin="4,0,0,0" FontWeight="SemiBold" FontSize="12"
                                                            Foreground="{StaticResource BrushNavyLight}" VerticalAlignment="Center"/>
-                                                <TextBlock Text="{Binding ItemCount, StringFormat=({0})}" Margin="6,0,0,0" FontSize="11.5"
+                                                <TextBlock Text="{Binding ItemCount, StringFormat=({0})}" Margin="8,0,0,0" FontSize="12"
                                                            Foreground="{StaticResource BrushTextSecondary}" VerticalAlignment="Center"/>
                                             </StackPanel>
                                         </Border>
@@ -381,7 +381,7 @@ V004 (behaviour change — new folder + namespace):
 
                 <!-- ── Output folder ── -->
                 <Border Style="{StaticResource ContentCard}" Margin="0,0,0,8">
-                    <StackPanel Margin="12,10">
+                    <StackPanel Margin="12,12">
                         <TextBlock Text="Output Folder" Style="{StaticResource SectionTitle}"/>
                         <DockPanel>
                             <Button DockPanel.Dock="Right" Content="Browse…"
@@ -390,7 +390,7 @@ V004 (behaviour change — new folder + namespace):
                                     Margin="8,0,0,0" Width="80" Height="28"/>
                             <TextBox Text="{Binding OutputFolder, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                      Height="28" Padding="8,4" VerticalContentAlignment="Center"
-                                     FontFamily="Consolas" FontSize="11"
+                                     FontFamily="{DynamicResource MonoFont}" FontSize="11"
                                      IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBoolConverter}}"
                                      ToolTip="Folder where the link / import subfolders are created"/>
                         </DockPanel>
@@ -407,7 +407,7 @@ V004 (behaviour change — new folder + namespace):
 
                     <!-- Scan scope -->
                     <Border Grid.Column="0" Style="{StaticResource ContentCard}">
-                        <StackPanel Margin="12,10"
+                        <StackPanel Margin="12,12"
                                     IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBoolConverter}}">
                             <DockPanel Margin="0,0,0,8">
                                 <Button DockPanel.Dock="Right" Content="⌕  Scan"
@@ -417,7 +417,7 @@ V004 (behaviour change — new folder + namespace):
                                         ToolTip="Scan the document for DWGs in the ticked scope (tick at least one source and one view type)"/>
                                 <TextBlock Text="Scan Scope" Style="{StaticResource SectionTitle}" Margin="0" VerticalAlignment="Center"/>
                             </DockPanel>
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,7">
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
                                 <TextBlock Text="Source" Style="{StaticResource ScopeLabel}"/>
                                 <CheckBox Content="🔗 Linked" IsChecked="{Binding ScanLinked, Mode=TwoWay}" Style="{StaticResource ScopeCheck}"/>
                                 <CheckBox Content="📥 Imported" IsChecked="{Binding ScanImported, Mode=TwoWay}" Style="{StaticResource ScopeCheck}"/>
@@ -430,13 +430,13 @@ V004 (behaviour change — new folder + namespace):
                                 <CheckBox Content="No Views" IsChecked="{Binding ScanNoViews, Mode=TwoWay}" Style="{StaticResource ScopeCheck}"/>
                             </StackPanel>
                             <TextBlock Text="Nothing is scanned until you click Scan. All boxes start unticked."
-                                       Margin="0,7,0,0" FontSize="10.5" Foreground="{StaticResource BrushTextTertiary}" TextWrapping="Wrap"/>
+                                       Margin="0,8,0,0" FontSize="11" Foreground="{StaticResource BrushTextTertiary}" TextWrapping="Wrap"/>
                         </StackPanel>
                     </Border>
 
                     <!-- Export options -->
                     <Border Grid.Column="2" Style="{StaticResource ContentCard}">
-                        <StackPanel Margin="12,10"
+                        <StackPanel Margin="12,12"
                                     IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBoolConverter}}">
                             <TextBlock Text="Export Options" Style="{StaticResource SectionTitle}"/>
 
@@ -444,7 +444,7 @@ V004 (behaviour change — new folder + namespace):
                                  ExportDWGSettings.ListNames(doc); picking one routes the export
                                  through DWGExportOptions.GetPredefinedOptions, which carries that
                                  setup's layer, linetype and pattern tables across. -->
-                            <TextBlock Text="DWG export setup" Style="{StaticResource FieldLabel}" Margin="0,2,0,3"/>
+                            <TextBlock Text="DWG export setup" Style="{StaticResource FieldLabel}" Margin="0,2,0,4"/>
                             <ComboBox Style="{StaticResource StandardComboBox}" Height="28"
                                       ItemsSource="{Binding ExportSetups}"
                                       SelectedItem="{Binding SelectedExportSetup, Mode=TwoWay}"
@@ -453,7 +453,7 @@ V004 (behaviour change — new folder + namespace):
                             <!-- V004: the layer-structure decision. Revit's PropOverrideMode has
                                  three modes and they are not shades of one setting — see the
                                  tooltips. One-way chip binding + command, per UI_UX_PATTERNS. -->
-                            <TextBlock Text="Layer properties" Style="{StaticResource FieldLabel}" Margin="0,8,0,3"/>
+                            <TextBlock Text="Layer properties" Style="{StaticResource FieldLabel}" Margin="0,8,0,4"/>
                             <StackPanel Orientation="Horizontal">
                                 <RadioButton GroupName="LayerProps" Style="{StaticResource ChipToggle}"
                                              Content="Layers 1:1" Margin="0,0,4,0"
@@ -474,19 +474,19 @@ V004 (behaviour change — new folder + namespace):
 
                             <UniformGrid Columns="2" Rows="3" Margin="0,8,0,0">
                                 <CheckBox Content="Copy original file for links" IsChecked="{Binding CopyOriginalForLinks, Mode=TwoWay}"
-                                          Style="{StaticResource ScopeCheck}" Margin="0,0,0,6"
+                                          Style="{StaticResource ScopeCheck}" Margin="0,0,0,8"
                                           ToolTip="A link whose source file resolves is copied rather than re-exported — byte-for-byte identical, so the layer structure is exactly the source's. Turn off to re-export every link through its host view (V003 behaviour)."/>
                                 <CheckBox Content="Subfolders by view type" IsChecked="{Binding SubfoldersByViewType, Mode=TwoWay}"
-                                          Style="{StaticResource ScopeCheck}" Margin="0,0,8,6"
+                                          Style="{StaticResource ScopeCheck}" Margin="0,0,8,8"
                                           ToolTip="link|import \ plan|section|drafting|no_views \ file.dwg"/>
                                 <CheckBox Content="Sidecar .txt per DWG" IsChecked="{Binding GenerateSidecar, Mode=TwoWay}"
-                                          Style="{StaticResource ScopeCheck}" Margin="0,0,0,6"
+                                          Style="{StaticResource ScopeCheck}" Margin="0,0,0,8"
                                           ToolTip="View Name · Sheet · Element ID · Symbol Name"/>
                                 <CheckBox Content="Overwrite existing" IsChecked="{Binding Overwrite, Mode=TwoWay}"
                                           Style="{StaticResource ScopeCheck}" Margin="0,0,8,0"
                                           ToolTip="When off, files that already exist are skipped"/>
                                 <CheckBox Content="Use shared coordinates" IsChecked="{Binding UseSharedCoords, Mode=TwoWay}"
-                                          Style="{StaticResource ScopeCheck}" Margin="0,0,0,6"
+                                          Style="{StaticResource ScopeCheck}" Margin="0,0,0,8"
                                           ToolTip="Export about the shared coordinate origin instead of the project origin"/>
                                 <CheckBox Content="Run manifest CSV" IsChecked="{Binding WriteManifest, Mode=TwoWay}"
                                           Style="{StaticResource ScopeCheck}" Margin="0,0,8,0"
@@ -495,16 +495,16 @@ V004 (behaviour change — new folder + namespace):
 
                             <!-- V004: output-name pattern. Applied at scan time, so the grid's
                                  Output File column shows what the export will actually write. -->
-                            <TextBlock Text="Output name pattern" Style="{StaticResource FieldLabel}" Margin="0,8,0,3"/>
+                            <TextBlock Text="Output name pattern" Style="{StaticResource FieldLabel}" Margin="0,8,0,4"/>
                             <TextBox Style="{StaticResource StyledTextInput}" MaxLength="120"
                                      Text="{Binding NameTemplate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                      ToolTip="Re-scan to apply. An empty pattern, or one whose tokens are all empty, falls back to the CAD type name."/>
-                            <TextBlock Text="{Binding NameTokenHint}" Margin="0,3,0,0" FontSize="10"
-                                       FontFamily="Consolas" Foreground="{StaticResource BrushTextTertiary}"
+                            <TextBlock Text="{Binding NameTokenHint}" Margin="0,4,0,0" FontSize="10"
+                                       FontFamily="{DynamicResource MonoFont}" Foreground="{StaticResource BrushTextTertiary}"
                                        TextWrapping="Wrap"/>
 
                             <TextBlock Text="Folder: link | import \ plan | section | drafting | no_views \ file.dwg"
-                                       Margin="0,7,0,0" FontSize="10.5" Foreground="{StaticResource BrushTextTertiary}" TextWrapping="Wrap"/>
+                                       Margin="0,8,0,0" FontSize="11" Foreground="{StaticResource BrushTextTertiary}" TextWrapping="Wrap"/>
 
                             <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
                                 <TextBlock Text="After export" Style="{StaticResource ScopeLabel}" ToolTip="Whether to offer deleting successfully-exported rows from the model"/>
@@ -530,8 +530,8 @@ V004 (behaviour change — new folder + namespace):
 
                 <!-- ── Scanned DWG grid ── -->
                 <Border Style="{StaticResource ContentCard}" Margin="0,0,0,8">
-                    <StackPanel Margin="12,10,12,8">
-                        <StackPanel Orientation="Horizontal" Margin="0,0,0,7">
+                    <StackPanel Margin="12,12,12,8">
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
                             <TextBlock Text="Scanned DWG Instances" FontSize="12" FontWeight="Bold"
                                        Foreground="{StaticResource BrushTextPrimary}" VerticalAlignment="Center"/>
                             <TextBlock Text="{Binding GridSummaryText}" Margin="8,0,0,0" FontSize="11"
@@ -539,27 +539,27 @@ V004 (behaviour change — new folder + namespace):
                         </StackPanel>
 
                         <!-- Toolbar: filter · Select All · Select None · Collapse All · Refresh -->
-                        <DockPanel Margin="0,0,0,6"
+                        <DockPanel Margin="0,0,0,8"
                                    IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBoolConverter}}">
                             <Button DockPanel.Dock="Right" Content="↻ Refresh" Style="{StaticResource SmallSecondaryButton}"
-                                    Command="{Binding ScanCommand}" Margin="6,0,0,0"
+                                    Command="{Binding ScanCommand}" Margin="8,0,0,0"
                                     ToolTip="Re-scan with the ticked scope (clears the ticks)"/>
                             <Button x:Name="CollapseAllButton" DockPanel.Dock="Right" Content="⊟ Collapse All"
-                                    Style="{StaticResource SmallSecondaryButton}" Margin="6,0,0,0"
+                                    Style="{StaticResource SmallSecondaryButton}" Margin="8,0,0,0"
                                     Click="CollapseAll_Click" ToolTip="Collapse or expand every group"/>
                             <Button DockPanel.Dock="Right" Content="☐ Select None" Style="{StaticResource SmallSecondaryButton}"
-                                    Command="{Binding SelectNoneShownCommand}" Margin="6,0,0,0"
+                                    Command="{Binding SelectNoneShownCommand}" Margin="8,0,0,0"
                                     ToolTip="Untick every row shown by the filter"/>
                             <Button DockPanel.Dock="Right" Content="☑ Select All" Style="{StaticResource SmallSecondaryButton}"
-                                    Command="{Binding SelectAllShownCommand}" Margin="6,0,0,0"
+                                    Command="{Binding SelectAllShownCommand}" Margin="8,0,0,0"
                                     ToolTip="Tick every row shown by the filter"/>
                             <Grid>
                                 <TextBox x:Name="FilterBox" Text="{Binding FilterText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                         MaxLength="25" Height="26" Padding="22,3,6,3" VerticalContentAlignment="Center" FontSize="11.5"
+                                         MaxLength="25" Height="26" Padding="24,4,8,4" VerticalContentAlignment="Center" FontSize="12"
                                          ToolTip="Filter by name, view, sheet, file, element ID or status (every word must match)"/>
-                                <TextBlock Text="🔍" Margin="6,0,0,0" FontSize="11" VerticalAlignment="Center"
+                                <TextBlock Text="🔍" Margin="8,0,0,0" FontSize="11" VerticalAlignment="Center"
                                            IsHitTestVisible="False" Foreground="{StaticResource BrushTextTertiary}"/>
-                                <TextBlock Text="Filter by name, view, sheet…" Margin="24,0,0,0" FontSize="11.5" VerticalAlignment="Center"
+                                <TextBlock Text="Filter by name, view, sheet…" Margin="24,0,0,0" FontSize="12" VerticalAlignment="Center"
                                            IsHitTestVisible="False" Foreground="{StaticResource BrushTextTertiary}">
                                     <TextBlock.Style>
                                         <Style TargetType="TextBlock">
@@ -636,9 +636,9 @@ V004 (behaviour change — new folder + namespace):
                                 <DataGridTemplateColumn Header="Source" Width="72" SortMemberPath="SourceOrder">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
-                                            <Border CornerRadius="8" Padding="7,0" HorizontalAlignment="Left" VerticalAlignment="Center"
+                                            <Border CornerRadius="8" Padding="8,0" HorizontalAlignment="Left" VerticalAlignment="Center"
                                                     Background="{StaticResource BrushStatusInfoSoft}">
-                                                <TextBlock x:Name="Pill" Text="{Binding SourceGroup}" FontSize="10.5" FontWeight="SemiBold"
+                                                <TextBlock x:Name="Pill" Text="{Binding SourceGroup}" FontSize="11" FontWeight="SemiBold"
                                                            Foreground="{StaticResource BrushStatusInfo}"/>
                                             </Border>
                                             <DataTemplate.Triggers>
@@ -661,7 +661,7 @@ V004 (behaviour change — new folder + namespace):
                                         <DataTemplate>
                                             <TextBlock x:Name="LayerCell" Text="{Binding LayerText}"
                                                        HorizontalAlignment="Right" VerticalAlignment="Center"
-                                                       FontSize="11.5"
+                                                       FontSize="12"
                                                        Foreground="{StaticResource BrushTextSecondary}"
                                                        ToolTip="Layer subcategories this CAD instance brings into the model. 1 means it was already flattened on import — no export setting can bring its layers back. ? means the count could not be read."/>
                                             <DataTemplate.Triggers>
@@ -700,7 +700,7 @@ V004 (behaviour change — new folder + namespace):
                                 <DataGridTemplateColumn Header="Status" Width="1.4*" SortMemberPath="Status">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
-                                            <TextBlock x:Name="StatusText" Text="{Binding StatusText}" FontSize="11.5" FontWeight="SemiBold"
+                                            <TextBlock x:Name="StatusText" Text="{Binding StatusText}" FontSize="12" FontWeight="SemiBold"
                                                        VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
                                                        Foreground="{StaticResource BrushTextSecondary}"
                                                        ToolTip="{Binding StatusNote}"/>
@@ -740,7 +740,7 @@ V004 (behaviour change — new folder + namespace):
                         </DataGrid>
 
                         <TextBlock Text="Click a column header to sort (inside the groups). Space ticks the highlighted rows. The checkbox on a group header ticks/unticks every row in that group."
-                                   Margin="0,5,0,0" FontSize="10.5" Foreground="{StaticResource BrushTextTertiary}" TextWrapping="Wrap"/>
+                                   Margin="0,4,0,0" FontSize="11" Foreground="{StaticResource BrushTextTertiary}" TextWrapping="Wrap"/>
                     </StackPanel>
                 </Border>
 
@@ -750,9 +750,9 @@ V004 (behaviour change — new folder + namespace):
                      written at least one DWG. -->
                 <Border Style="{StaticResource ContentCard}" Margin="0,0,0,8"
                         Visibility="{Binding HasLastExport, Converter={StaticResource BoolToVisibilityConverter}}">
-                    <DockPanel LastChildFill="True" Margin="12,10">
+                    <DockPanel LastChildFill="True" Margin="12,12">
                         <Button DockPanel.Dock="Right" Content="Open output folder"
-                                Style="{StaticResource SmallSecondaryButton}" Margin="6,0,0,0"
+                                Style="{StaticResource SmallSecondaryButton}" Margin="8,0,0,0"
                                 Command="{Binding OpenOutputFolderCommand}"
                                 ToolTip="Open the output folder in Explorer"/>
                         <Button DockPanel.Dock="Right" Content="Review / open files…"
@@ -775,13 +775,13 @@ V004 (behaviour change — new folder + namespace):
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
 
-                        <Border Background="{StaticResource BrushLogTitleBar}" CornerRadius="6,6,0,0" Padding="10,4">
+                        <Border Background="{StaticResource BrushLogTitleBar}" CornerRadius="6,6,0,0" Padding="12,4">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock VerticalAlignment="Center" FontSize="10.5" FontWeight="SemiBold"
+                                <TextBlock VerticalAlignment="Center" FontSize="11" FontWeight="SemiBold"
                                            Foreground="{StaticResource BrushLogText}">
                                     <Run Text="Log"/>
                                     <Run Text="{Binding LogEntries.Count, Mode=OneWay}"
@@ -799,7 +799,7 @@ V004 (behaviour change — new folder + namespace):
                                             ToolTip="Copy selected log entries to the clipboard"/>
                                     <Button Content="Export Log"
                                             Style="{StaticResource DarkGhostButton}"
-                                            Margin="6,0,0,0"
+                                            Margin="8,0,0,0"
                                             Click="ExportLog_Click"
                                             ToolTip="Save the log to a .txt file"/>
                                 </StackPanel>
@@ -813,7 +813,7 @@ V004 (behaviour change — new folder + namespace):
                                  shell:ShellBehaviors.MaxHeightRatio="0.25"
                                  shell:ShellBehaviors.ForwardMouseWheel="True"
                                  SelectionMode="Extended"
-                                 Background="Transparent" BorderThickness="0" Padding="6,4"
+                                 Background="Transparent" BorderThickness="0" Padding="8,4"
                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                                  VirtualizingPanel.IsVirtualizing="True">
                             <ListBox.ItemContainerStyle>
@@ -825,7 +825,7 @@ V004 (behaviour change — new folder + namespace):
                             </ListBox.ItemContainerStyle>
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
-                                    <TextBlock FontFamily="Consolas" FontSize="10.5" TextWrapping="Wrap"
+                                    <TextBlock FontFamily="{DynamicResource MonoFont}" FontSize="11" TextWrapping="Wrap"
                                                Foreground="{Binding Level, Converter={StaticResource LogLevelToColorConverter}}"
                                                Text="{Binding Mode=OneWay}"/>
                                 </DataTemplate>
@@ -841,7 +841,7 @@ V004 (behaviour change — new folder + namespace):
         <shell:ToolWindowShell.FooterContent>
             <StackPanel>
                 <Border Background="{StaticResource BrushSurfaceCard}" BorderBrush="{StaticResource BrushBorderDefault}"
-                        BorderThickness="1" CornerRadius="6" Padding="10,5" Margin="0,0,0,8">
+                        BorderThickness="1" CornerRadius="6" Padding="12,4" Margin="0,0,0,8">
                     <ItemsControl ItemsSource="{Binding Phases}" ItemTemplate="{StaticResource PhaseTemplate}"/>
                 </Border>
                 <DockPanel>
@@ -862,7 +862,7 @@ V004 (behaviour change — new folder + namespace):
                                 Command="{Binding ExportCommand}"
                                 MinWidth="110" Height="38" Margin="0,0,8,0"
                                 ToolTip="Export the ticked DWGs to the output folder"/>
-                        <Button Content="Close"
+                        <Button IsCancel="True" Content="Close"
                                 Style="{StaticResource OutlineButton}"
                                 Width="80" Height="38"
                                 Click="CloseButton_Click"/>

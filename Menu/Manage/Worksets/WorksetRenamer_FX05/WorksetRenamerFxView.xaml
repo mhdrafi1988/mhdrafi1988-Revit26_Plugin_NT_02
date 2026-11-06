@@ -64,7 +64,7 @@ Changes vs FX04 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                                 <Border Background="{StaticResource BrushSystemSecondaryBackground}"
                                                         BorderThickness="0,0,0,4"
                                                         BorderBrush="{Binding Tag, RelativeSource={RelativeSource FindAncestor, AncestorType=Expander}}"
-                                                        Padding="10,7">
+                                                        Padding="12,8">
                                                     <ContentPresenter Content="{TemplateBinding Content}"/>
                                                 </Border>
                                             </ControlTemplate>
@@ -153,37 +153,37 @@ Changes vs FX04 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
         <!-- ═══ HEADER ═══════════════════════════════════════════ -->
         <shell:ToolWindowShell.HeaderContent>
             <UniformGrid Columns="6" Margin="0,0,0,8">
-                <Border Style="{StaticResource MetricCard}" Margin="0,0,4,0" Padding="10,8">
+                <Border Style="{StaticResource MetricCard}" Margin="0,0,4,0" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="Total Rows" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding TotalRowsRead}" Style="{StaticResource MetricNumber}" FontSize="18"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="10,8">
+                <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="OK To Rename" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding OkCount}" Style="{StaticResource MetricNumberSuccess}" FontSize="18"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="10,8">
+                <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="Duplicate (Auto)" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding DuplicateCount}" Style="{StaticResource MetricNumberWarning}" FontSize="18"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="10,8">
+                <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="No Match" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding NoMatchCount}" Style="{StaticResource MetricNumber}" FontSize="18"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="10,8">
+                <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="Blank / Invalid" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding InvalidCount}" Style="{StaticResource MetricNumberDanger}" FontSize="18"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricCard}" Margin="4,0,0,0" Padding="10,8">
+                <Border Style="{StaticResource MetricCard}" Margin="4,0,0,0" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="New Worksets" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding NewWorksetCount}" Style="{StaticResource MetricNumberAccent}" FontSize="18"/>
@@ -197,8 +197,8 @@ Changes vs FX04 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
             <StackPanel>
                 <StackPanel>
                     <!-- ══ Row 1: Export ═══════════════════════════════════════ -->
-                    <Border Style="{StaticResource ContentCard}" Margin="0,0,0,6">
-                        <Grid Margin="10,8">
+                    <Border Style="{StaticResource ContentCard}" Margin="0,0,0,8">
+                        <Grid Margin="12,8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
@@ -219,7 +219,7 @@ Changes vs FX04 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                     <!-- ══ Row 2: Import ═══════════════════════════════════════ -->
                     <Border Style="{StaticResource ContentCard}" Margin="0,0,0,8"
                             Drop="Window_Drop" AllowDrop="True">
-                        <Grid Margin="10,8">
+                        <Grid Margin="12,8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
@@ -239,9 +239,9 @@ Changes vs FX04 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                     </Border>
                     <!-- ══ Create-new-for-unmatched option ═════════════════════ -->
                     <Border Style="{StaticResource ContentCard}" Margin="0,0,0,8">
-                        <StackPanel Orientation="Horizontal" Margin="10,6">
+                        <StackPanel Orientation="Horizontal" Margin="12,8">
                             <CheckBox IsChecked="{Binding CreateNewForUnmatched, Mode=TwoWay}" VerticalAlignment="Center"/>
-                            <TextBlock Margin="8,0,0,0" VerticalAlignment="Center" FontSize="11.5" TextWrapping="Wrap">
+                            <TextBlock Margin="8,0,0,0" VerticalAlignment="Center" FontSize="12" TextWrapping="Wrap">
                                 <Run Text="Create new worksets" FontWeight="SemiBold"/>
                                 <Run Text=" for Excel rows whose Old Name has no match in the model"/>
                             </TextBlock>
@@ -262,7 +262,7 @@ Changes vs FX04 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                         Command="{Binding RerunDryRunCommand}"/>
                     <!-- ══ Search / Filter bar ════════════════════════════════ -->
                     <Border Grid.Column="1" Style="{StaticResource ContentCard}" Margin="8,0,0,0">
-                        <Grid Margin="8,6">
+                        <Grid Margin="8,8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
@@ -275,7 +275,7 @@ Changes vs FX04 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                      FontSize="12" VerticalContentAlignment="Center"
                                      Background="{StaticResource BrushSystemSecondaryBackground}"
                                      BorderBrush="{StaticResource BrushSeparatorThin}"
-                                     BorderThickness="1" Padding="6,4"
+                                     BorderThickness="1" Padding="8,4"
                                      x:Name="SearchBox">
                                 <TextBox.Style>
                                     <Style TargetType="TextBox">
@@ -283,7 +283,7 @@ Changes vs FX04 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                         <Setter Property="Foreground" Value="{StaticResource BrushTextPrimary}"/>
                                         <Setter Property="BorderBrush" Value="{StaticResource BrushSeparatorThin}"/>
                                         <Setter Property="BorderThickness" Value="1"/>
-                                        <Setter Property="Padding" Value="6,4"/>
+                                        <Setter Property="Padding" Value="8,4"/>
                                         <Setter Property="FontSize" Value="12"/>
                                         <Setter Property="VerticalContentAlignment" Value="Center"/>
                                         <Style.Triggers>
@@ -294,7 +294,7 @@ Changes vs FX04 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                     </Style>
                                 </TextBox.Style>
                             </TextBox>
-                            <Button Grid.Column="2" Content="✕" Margin="6,0,0,0"
+                            <Button Grid.Column="2" Content="✕" Margin="8,0,0,0"
                                     Style="{StaticResource SmallSecondaryButton}"
                                     Command="{Binding ClearSearchCommand}"
                                     ToolTip="Clear filter"/>
@@ -313,7 +313,7 @@ Changes vs FX04 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0" Text="✅ OK to Rename" FontWeight="SemiBold" FontSize="12"/>
-                                <Border Grid.Column="1" Background="{StaticResource BrushStatusOkSoft}" CornerRadius="9" Padding="8,1">
+                                <Border Grid.Column="1" Background="{StaticResource BrushStatusOkSoft}" CornerRadius="9" Padding="8,2">
                                     <TextBlock Text="{Binding OkCount}" FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrushStatusOk}"/>
                                 </Border>
                             </Grid>
@@ -338,7 +338,7 @@ Changes vs FX04 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                     <Run Text="▲ Duplicate — Auto-suffixed"/>
                                     <Run Text=" (re-checked again at Update)" FontWeight="Normal" FontSize="10" Foreground="{StaticResource BrushTextSecondary}"/>
                                 </TextBlock>
-                                <Border Grid.Column="1" Background="{StaticResource BrushStatusWarnSoft}" CornerRadius="9" Padding="8,1">
+                                <Border Grid.Column="1" Background="{StaticResource BrushStatusWarnSoft}" CornerRadius="9" Padding="8,2">
                                     <TextBlock Text="{Binding DuplicateCount}" FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrushStatusWarn}"/>
                                 </Border>
                             </Grid>
@@ -363,7 +363,7 @@ Changes vs FX04 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                     <Run Text="+ Will Create New Workset"/>
                                     <Run Text=" (Old Name not found in model)" FontWeight="Normal" FontSize="10" Foreground="{StaticResource BrushTextSecondary}"/>
                                 </TextBlock>
-                                <Border Grid.Column="1" Background="{StaticResource BrushStatusInfoSoft}" CornerRadius="9" Padding="8,1">
+                                <Border Grid.Column="1" Background="{StaticResource BrushStatusInfoSoft}" CornerRadius="9" Padding="8,2">
                                     <TextBlock Text="{Binding NewWorksetCount}" FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrushStatusInfo}"/>
                                 </Border>
                             </Grid>
@@ -388,7 +388,7 @@ Changes vs FX04 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                     <Run Text="– No Match — Unchanged"/>
                                     <Run Text=" (model worksets with no Excel row)" FontWeight="Normal" FontSize="10" Foreground="{StaticResource BrushTextSecondary}"/>
                                 </TextBlock>
-                                <Border Grid.Column="1" Background="{StaticResource BrushSystemSecondaryBackground}" CornerRadius="9" Padding="8,1">
+                                <Border Grid.Column="1" Background="{StaticResource BrushSystemSecondaryBackground}" CornerRadius="9" Padding="8,2">
                                     <TextBlock Text="{Binding NoMatchCount}" FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrushTextSecondary}"/>
                                 </Border>
                             </Grid>
@@ -411,7 +411,7 @@ Changes vs FX04 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                     <Run Text="✕ Invalid / Blank"/>
                                     <Run Text=" (cannot be actioned as-is)" FontWeight="Normal" FontSize="10" Foreground="{StaticResource BrushTextSecondary}"/>
                                 </TextBlock>
-                                <Border Grid.Column="1" Background="{StaticResource BrushStatusErrorSoft}" CornerRadius="9" Padding="8,1">
+                                <Border Grid.Column="1" Background="{StaticResource BrushStatusErrorSoft}" CornerRadius="9" Padding="8,2">
                                     <TextBlock Text="{Binding InvalidCount}" FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrushStatusError}"/>
                                 </Border>
                             </Grid>
@@ -443,7 +443,7 @@ Changes vs FX04 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                     <Button Grid.Column="0" Content="Select All Valid"
                             Style="{StaticResource SecondaryButton}"
                             Command="{Binding SelectAllValidCommand}"
-                            Margin="0,0,6,0"/>
+                            Margin="0,0,8,0"/>
                     <Button Grid.Column="1" Content="Clear"
                             Style="{StaticResource SecondaryButton}"
                             Command="{Binding ClearAllCommand}"/>
@@ -452,7 +452,7 @@ Changes vs FX04 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                 Style="{StaticResource PrimaryButton}"
                                 Command="{Binding UpdateCommand}"
                                 MinWidth="100" Margin="0,0,8,0"/>
-                        <Button Content="Close" Style="{StaticResource OutlineButton}" Width="90" Height="38" Click="CloseButton_Click"/>
+                        <Button IsCancel="True" Content="Close" Style="{StaticResource OutlineButton}" Width="90" Height="38" Click="CloseButton_Click"/>
                     </StackPanel>
                 </Grid>
             </StackPanel>

@@ -1,0 +1,167 @@
+<title>Tool Window Standard</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<!-- UI preview (CLAUDE.md "UI previews"), plugin 6.40.9: every tool window converted in 6.40.0-6.40.8.
+     Changes: monospace text reads MonoFont from Shared/SharedStyles.xaml (v4.1); the Close button is the
+     cancel button (Esc closes the window) in 77 windows. Tools and versions are listed on the page.
+     Real windows: Menu/**/*.xaml; Shared/Controls/ToolWindowShellTemplate.xaml.
+     Artifact: https://claude.ai/artifact/CiGKMw6CzJyRLKPnZCkwkR (republish to this URL on every update)
+     Colours are the Shared/SharedStyles.xaml tokens. One light look on purpose. Sample data only. -->
+<style>
+:root{
+  color-scheme:light;
+  --page:#E9EDF1; --win:#F3F5F7; --card:#FFFFFF; --border:#D6DCE3; --input:#B5C2CF;
+  --navy:#1E3A5F; --navy-light:#2C4A6E; --text:#1A2B3C; --text2:#5B7185; --on-dark:#FFFFFF;
+  --ok:#2E7D4F; --ok-soft:#E6F4EC; --ok-border:#9FCFB2; --info:#1F5FBF;
+  --font:"Segoe UI",system-ui,-apple-system,sans-serif; --mono:Consolas,"Courier New",monospace;
+}
+*{box-sizing:border-box}
+body{background:var(--page);color:var(--text);font-family:var(--font);font-size:14px;line-height:1.5;
+  margin:0;padding-block:24px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:860px;margin:0 auto;display:grid;gap:24px}
+h1{font-size:20px;margin:0 0 4px}
+h2{font-size:15px;margin:0 0 8px}
+p{margin:0}
+.sub{color:var(--text2)}
+.tag{display:inline-block;background:var(--ok-soft);color:var(--ok);border:1px solid var(--ok-border);border-radius:12px;padding:2px 8px;font-size:11px;font-weight:600;vertical-align:middle}
+.frame{overflow-x:auto;border:1px solid var(--border);border-radius:8px;background:var(--card)}
+.win{width:560px;margin:0 auto;background:var(--win);font-size:12px}
+.hdr{background:var(--navy);color:var(--on-dark);padding:12px 16px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.hdr b{font-size:18px;font-weight:600}
+.ver{background:var(--navy-light);border-radius:12px;padding:4px 8px;font-size:11px;font-weight:600}
+.body{padding:8px 12px;display:grid;gap:12px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px;display:grid;gap:8px}
+.card h3{margin:0;font-size:14px}
+.row{display:flex;align-items:center;gap:8px}
+.in{border:1px solid var(--input);border-radius:4px;background:#fff;height:28px;padding:4px 8px;min-width:56px;display:inline-flex;align-items:center}
+table{border-collapse:collapse;width:100%;font-size:12px}
+th,td{padding:4px 8px;text-align:left;border-bottom:1px solid var(--border)}
+th{background:var(--win);font-weight:600}
+.ftr{border-top:1px solid var(--border);padding:8px 12px;display:flex;gap:8px;justify-content:space-between;align-items:center}
+.btn{height:32px;padding:0 12px;border-radius:4px;border:1px solid var(--input);background:#fff;display:inline-flex;align-items:center;font-size:12px}
+.btn.p{background:var(--navy);color:#fff;border-color:var(--navy)}
+.legend{display:flex;flex-wrap:wrap;gap:8px}
+.chip{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:4px 8px;font-family:var(--mono);font-size:12px}
+.tools{overflow-x:auto}
+.tools table{background:var(--card);border:1px solid var(--border);border-radius:8px;min-width:480px}
+.tools td:last-child,.tools th:last-child{font-family:var(--mono)}
+</style>
+<main>
+  <header>
+    <h1>Tool window standard <span class="tag">Esc closes</span></h1>
+    <p class="sub">Plugin 6.40.9. Mock-up with sample data. The log below uses the shared monospace font; Close answers to Esc.</p>
+  </header>
+  <section>
+    <h2>Activity Log and Close <span class="tag">changed</span></h2>
+    <div class="frame"><div class="win">
+      <div class="hdr"><b>Bulk Rename</b><span class="ver">V001 · 1.1.3</span></div>
+      <div class="body">
+        <div class="card">
+          <h3>Activity Log</h3>
+          <div style="font-family:var(--mono);font-size:11px;background:#16212E;color:#D7E3F0;border-radius:4px;padding:8px">
+            10:42:07  Loaded 3 items<br>10:42:11  Renamed 2 of 3 (1 unchanged)</div>
+        </div>
+      </div>
+      <div class="ftr"><span class="sub">Done</span><span class="row"><span class="btn p">Apply</span><span class="btn">Close <span class="tag">Esc</span></span></span></div>
+    </div></div>
+  </section>
+  <section class="tools">
+    <h2>Tools covered</h2>
+    <table>
+      <tr><th>Tool</th><th>Catalog entry</th><th>Version</th></tr>
+      <tr><td>Auto Place Sections</td><td>APUS</td><td>324.1.3</td></tr>
+      <tr><td>Annotation Overlap Detection</td><td>AnnotationOverlapDetection</td><td>4.1.3</td></tr>
+      <tr><td>Auto Slope By Point (Multi Copies)</td><td>AutoSlopeByPointMultiCopies</td><td>30.1.3</td></tr>
+      <tr><td>Auto Slope By Point (Ridge)</td><td>AutoSlopeByPointRidge</td><td>3.1.3</td></tr>
+      <tr><td>Auto Slope By Point</td><td>AutoSlopeByPointV033</td><td>33.0.3</td></tr>
+      <tr><td>Automated Section Placer</td><td>AutomatedSectionPlacer</td><td>3.1.3</td></tr>
+      <tr><td>Batch Link DWG Family</td><td>BatchDwgFamilyLinker</td><td>2.2.2</td></tr>
+      <tr><td>Bubble Auto Renumber</td><td>BubbleAutoRenumberV009</td><td>9.1.3</td></tr>
+      <tr><td>Bulk Rename</td><td>BulkRename</td><td>1.1.3</td></tr>
+      <tr><td>Callout To Section View Placement</td><td>CalloutCOP</td><td>21.1.3</td></tr>
+      <tr><td>Combined Roof Tools</td><td>CombinedRoofTools</td><td>3.1.4</td></tr>
+      <tr><td>Creaser Adv</td><td>CreaserAdv</td><td>12.0.5</td></tr>
+      <tr><td>Create Sections From Detail Lines</td><td>CreateSections</td><td>13.1.4</td></tr>
+      <tr><td>Delete Line Styles</td><td>DeleteLineStyles</td><td>1.2.2</td></tr>
+      <tr><td>Delete Workset</td><td>DeleteWorkset</td><td>1.2.2</td></tr>
+      <tr><td>Detail Line Closed Loop</td><td>DetailLineClosedLoop</td><td>3.0.3</td></tr>
+      <tr><td>Detail Line Manager</td><td>DetailLineManagerV002</td><td>2.0.2</td></tr>
+      <tr><td>Auto Dim Detail Line</td><td>DtlLineDim</td><td>10.1.3</td></tr>
+      <tr><td>DWG Manager</td><td>DwgManager</td><td>3.1.3</td></tr>
+      <tr><td>DWG Statistics</td><td>DwgStatistics</td><td>5.1.3</td></tr>
+      <tr><td>DWG To DL(P)</td><td>DwgToDlp</td><td>14.0.3</td></tr>
+      <tr><td>DWG To Lines</td><td>DwgToLines</td><td>7.0.3</td></tr>
+      <tr><td>Export DWG to Folder</td><td>ExportDwgToFolder</td><td>4.2.2</td></tr>
+      <tr><td>Floor Crease Lines By Openings</td><td>FloorCreaseLinesByOpenings</td><td>1.0.2</td></tr>
+      <tr><td>Floor Crease Lines By Points</td><td>FloorCreaseLinesByPoints</td><td>1.0.2</td></tr>
+      <tr><td>Floor Creaser</td><td>FloorCreaser</td><td>1.0.2</td></tr>
+      <tr><td>Floor Detail Line Intersect</td><td>FloorDetailLineIntersect</td><td>1.0.2</td></tr>
+      <tr><td>Floor Edge Around Sections</td><td>FloorEdgeAroundSections</td><td>1.0.2</td></tr>
+      <tr><td>Floor Edge Element Sections</td><td>FloorEdgeElementSections</td><td>1.0.2</td></tr>
+      <tr><td>Floor Edge Vertex Reducer</td><td>FloorEdgeVertexReducer</td><td>1.0.2</td></tr>
+      <tr><td>Floor Divide Inner Loops</td><td>FloorInnerLoopDivider</td><td>1.0.2</td></tr>
+      <tr><td>Floor Inner Loops And Perpendicular</td><td>FloorInnerLoopsAndPerpendicular</td><td>1.0.2</td></tr>
+      <tr><td>Floor Multiple Points (1/2–1/4)</td><td>FloorMultiplePoints</td><td>1.0.2</td></tr>
+      <tr><td>Floor Name Builder</td><td>FloorNameBuilder</td><td>1.0.2</td></tr>
+      <tr><td>Floor Outer Curve Divider</td><td>FloorOuterCurveDivider</td><td>1.0.2</td></tr>
+      <tr><td>Floor Point Comparison</td><td>FloorPointComparison</td><td>1.0.2</td></tr>
+      <tr><td>Floor Point Elevation Sync</td><td>FloorPointElevationSync</td><td>1.0.2</td></tr>
+      <tr><td>Floor Points & Slope</td><td>FloorPointsAndSlope</td><td>1.0.2</td></tr>
+      <tr><td>Floor Shape From Link</td><td>FloorShapeFromLink</td><td>1.0.2</td></tr>
+      <tr><td>Floor Slope By Drain</td><td>FloorSlopeByDrain</td><td>1.0.2</td></tr>
+      <tr><td>Floor Slope By Point</td><td>FloorSlopeByPoint</td><td>1.0.2</td></tr>
+      <tr><td>Floor Slope By Point (Multi Copies)</td><td>FloorSlopeByPointMultiCopies</td><td>1.0.2</td></tr>
+      <tr><td>Floor Slope By Point (Ridge)</td><td>FloorSlopeByPointRidge</td><td>1.0.2</td></tr>
+      <tr><td>Floor Tag</td><td>FloorTag</td><td>1.0.2</td></tr>
+      <tr><td>Floor Tapered EPS 2D Pattern</td><td>FloorTaperedEpsPattern</td><td>1.0.2</td></tr>
+      <tr><td>Floor Type Manager</td><td>FloorTypeManager</td><td>1.0.2</td></tr>
+      <tr><td>Floor View Focus</td><td>FloorViewFocus</td><td>1.0.2</td></tr>
+      <tr><td>Floors And Roof From Linked Rooms</td><td>FloorsAndRoofFromLinkedRooms</td><td>13.1.3</td></tr>
+      <tr><td>Floors And Roof From Linked Rooms (Via Plan View)</td><td>FloorsAndRoofFromLinkedRoomsViaPlanView</td><td>6.1.3</td></tr>
+      <tr><td>Divide Inner Loops</td><td>InnerLoopDivider</td><td>12.1.3</td></tr>
+      <tr><td>Inner Loops And Perpendicular</td><td>InnerLoopsAndPerpendicular</td><td>7.1.3</td></tr>
+      <tr><td>Island Roof Splitter</td><td>IslandRoofSplitterV002</td><td>2.0.2</td></tr>
+      <tr><td>Isolated Section</td><td>IsolatedSection</td><td>1.0.2</td></tr>
+      <tr><td>Link Memory</td><td>LinkMemoryV002</td><td>2.0.2</td></tr>
+      <tr><td>Detail Lines From Links</td><td>LinkedDetailLineGenerator</td><td>10.1.3</td></tr>
+      <tr><td>Auto Slope By Drain (Multi-Roof)</td><td>MultiRoofSlopeByDrainV013</td><td>13.1.5</td></tr>
+      <tr><td>Multiple Points (1/2–1/4)</td><td>MultiplePoints</td><td>3.0.4</td></tr>
+      <tr><td>Outer Curve Divider</td><td>OuterCurveDivider</td><td>6.0.4</td></tr>
+      <tr><td>ParaManager</td><td>ParaManager</td><td>5.1.3</td></tr>
+      <tr><td>Plan From Scope Box</td><td>PlanFromScopeBox</td><td>6.1.4</td></tr>
+      <tr><td>Reference Section Head Placer</td><td>RefSectionHeadPlacer</td><td>15.1.3</td></tr>
+      <tr><td>Ridge By Openings</td><td>RidgeByOpenings</td><td>70.1.3</td></tr>
+      <tr><td>Ridge By Points</td><td>RidgeByPoints</td><td>59.1.2</td></tr>
+      <tr><td>Roof Detail Line Intersect</td><td>RoofDetailLineIntersect</td><td>14.1.3</td></tr>
+      <tr><td>Roof Edge Around Sections</td><td>RoofEdgeAroundSections</td><td>7.2.2</td></tr>
+      <tr><td>Roof Edge Element Sections</td><td>RoofEdgeElementSections</td><td>4.1.4</td></tr>
+      <tr><td>Roof Edge Vertex Reducer</td><td>RoofEdgeVertexReducer</td><td>9.0.3</td></tr>
+      <tr><td>Roof Name Builder</td><td>RoofNameBuilder</td><td>2.1.3</td></tr>
+      <tr><td>Roof Point Comparison</td><td>RoofPointComparison</td><td>3.0.3</td></tr>
+      <tr><td>Roof Point Elevation Sync</td><td>RoofPointElevationSync</td><td>5.0.3</td></tr>
+      <tr><td>Roof Points & Slope</td><td>RoofPointsAndSlope</td><td>1.1.2</td></tr>
+      <tr><td>Roof Shape From Link</td><td>RoofShapeFromLink</td><td>2.0.3</td></tr>
+      <tr><td>Roof Tag</td><td>RoofTag</td><td>18.1.4</td></tr>
+      <tr><td>Roof Type Manager</td><td>RoofTypeManager</td><td>3.1.4</td></tr>
+      <tr><td>Roof View Focus</td><td>RoofViewFocus</td><td>4.1.3</td></tr>
+      <tr><td>Schedule Export / Import</td><td>ScheduleExportImport</td><td>7.1.3</td></tr>
+      <tr><td>Section Auto Renamer</td><td>SectionAutoRenamer</td><td>26.1.5</td></tr>
+      <tr><td>Section View Auto Tagger</td><td>SectionViewAutoTagger</td><td>6.1.3</td></tr>
+      <tr><td>Sections To Sheet</td><td>SectionsToSheet</td><td>1.0.2</td></tr>
+      <tr><td>Shared Parameter Studio</td><td>SharedParamStudio</td><td>1.0.3</td></tr>
+      <tr><td>Sheet Auto Rearrange</td><td>SheetAutoRearrange</td><td>28.1.3</td></tr>
+      <tr><td>Sheet Text Replace</td><td>SheetTextReplace</td><td>1.0.2</td></tr>
+      <tr><td>Sheet View Arrange</td><td>SheetViewArrange</td><td>1.2.3</td></tr>
+      <tr><td>Smart View To Sheet Placer</td><td>SmartViewToSheetPlacer</td><td>224.1.3</td></tr>
+      <tr><td>Tag To Text</td><td>TagToText</td><td>1.3.2</td></tr>
+      <tr><td>Tapered EPS 2D Pattern</td><td>TaperedEpsPattern2D</td><td>6.1.2</td></tr>
+      <tr><td>Tracker ID</td><td>TrackerIdV002</td><td>2.0.2</td></tr>
+      <tr><td>View Auto Renamer</td><td>ViewAutoRenamerV007</td><td>7.1.4</td></tr>
+      <tr><td>Workset Creator</td><td>WorksetCreator</td><td>16.1.3</td></tr>
+      <tr><td>Workset Manager</td><td>WorksetManager</td><td>14.1.3</td></tr>
+      <tr><td>Workset Memory</td><td>WorksetMemory</td><td>1.0.2</td></tr>
+      <tr><td>Workset Renamer</td><td>WorksetRenamer</td><td>5.1.3</td></tr>
+      <tr><td>Workset Renamer (From Excel)</td><td>WorksetRenamerExcel</td><td>5.1.3</td></tr>
+      <tr><td>Worksets & Elements Browser</td><td>WorksetsElementsBrowser</td><td>4.3.2</td></tr>
+    </table>
+  </section>
+</main>

@@ -43,25 +43,25 @@ Changes vs V004 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
         <!-- ═══ HEADER ═══════════════════════════════════════════ -->
         <shell:ToolWindowShell.HeaderContent>
             <UniformGrid Columns="4" Margin="0,0,0,8">
-                <Border Style="{StaticResource MetricCard}" Margin="0,0,6,0">
+                <Border Style="{StaticResource MetricCard}" Margin="0,0,8,0">
                     <StackPanel>
                         <TextBlock Text="Matched Points" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding MatchedCount}" Style="{StaticResource MetricNumber}"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricCard}" Margin="6,0">
+                <Border Style="{StaticResource MetricCard}" Margin="8,0">
                     <StackPanel>
                         <TextBlock Text="To Apply" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding ToApplyCount}" Style="{StaticResource MetricNumber}"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricCard}" Margin="6,0">
+                <Border Style="{StaticResource MetricCard}" Margin="8,0">
                     <StackPanel>
                         <TextBlock Text="Excluded" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding ExcludedCount}" Style="{StaticResource MetricNumber}"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricCard}" Margin="6,0,0,0">
+                <Border Style="{StaticResource MetricCard}" Margin="8,0,0,0">
                     <StackPanel>
                         <TextBlock Text="Max Δ Elevation (mm)" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding MaxDeltaMm, StringFormat={}{0:F0}}" Style="{StaticResource MetricNumber}"/>
@@ -74,7 +74,7 @@ Changes vs V004 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
         <shell:ToolWindowShell.BodyContent>
             <StackPanel>
                 <!-- Selection card -->
-                <Border Style="{StaticResource SectionCard}" Margin="0,0,0,14">
+                <Border Style="{StaticResource SectionCard}" Margin="0,0,0,16">
                     <StackPanel>
                         <TextBlock Text="Selection" Style="{StaticResource SectionTitle}"/>
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom">
@@ -83,7 +83,7 @@ Changes vs V004 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="{Binding FloorAName}" Width="220" VerticalAlignment="Center"
                                                TextTrimming="CharacterEllipsis"/>
-                                    <Button Content="Pick..." Command="{Binding PickFloorACommand}" Style="{StaticResource SecondaryButton}" Padding="10,4" Margin="6,0,0,0"/>
+                                    <Button Content="Pick..." Command="{Binding PickFloorACommand}" Style="{StaticResource SecondaryButton}" Padding="12,4" Margin="8,0,0,0"/>
                                 </StackPanel>
                             </StackPanel>
                             <StackPanel Margin="0,0,16,0">
@@ -91,7 +91,7 @@ Changes vs V004 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="{Binding FloorBName}" Width="220" VerticalAlignment="Center"
                                                TextTrimming="CharacterEllipsis"/>
-                                    <Button Content="Pick..." Command="{Binding PickFloorBCommand}" Style="{StaticResource SecondaryButton}" Padding="10,4" Margin="6,0,0,0"/>
+                                    <Button Content="Pick..." Command="{Binding PickFloorBCommand}" Style="{StaticResource SecondaryButton}" Padding="12,4" Margin="8,0,0,0"/>
                                 </StackPanel>
                             </StackPanel>
                             <StackPanel Margin="0,0,16,0">
@@ -100,7 +100,7 @@ Changes vs V004 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                          MaxLength="10" Width="100" Style="{StaticResource BoxedTextInput}"/>
                             </StackPanel>
                             <Button Content="Find Matching Points" Command="{Binding FindMatchingPointsCommand}"
-                                    Style="{StaticResource SecondaryButton}" Padding="12,6"/>
+                                    Style="{StaticResource SecondaryButton}" Padding="12,8"/>
                         </StackPanel>
                         <TextBlock Style="{StaticResource HintText}" Margin="0,8,0,0"
                                    Text="Tolerance applies to horizontal (XY) distance only; elevation values are compared exactly, not tolerance-matched."/>
@@ -108,7 +108,7 @@ Changes vs V004 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                 </Border>
 
                 <!-- Mapping grid card -->
-                <Border Style="{StaticResource SectionCard}" Margin="0,0,0,10">
+                <Border Style="{StaticResource SectionCard}" Margin="0,0,0,12">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
@@ -121,9 +121,9 @@ Changes vs V004 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                             <TextBox Width="220" Style="{StaticResource BoxedTextInput}"
                                      Text="{Binding FilterText, UpdateSourceTrigger=PropertyChanged}"
                                      Tag="Filter points..."/>
-                            <Button Content="Select All" Command="{Binding SelectAllVisibleCommand}" Style="{StaticResource SecondaryButton}" Padding="10,4" Margin="8,0,0,0"/>
-                            <Button Content="Clear Selection" Command="{Binding ClearSelectionVisibleCommand}" Style="{StaticResource SecondaryButton}" Padding="10,4" Margin="8,0,0,0"/>
-                            <Button Content="Refresh" Command="{Binding RefreshCommand}" Style="{StaticResource SecondaryButton}" Padding="10,4" Margin="8,0,0,0"/>
+                            <Button Content="Select All" Command="{Binding SelectAllVisibleCommand}" Style="{StaticResource SecondaryButton}" Padding="12,4" Margin="8,0,0,0"/>
+                            <Button Content="Clear Selection" Command="{Binding ClearSelectionVisibleCommand}" Style="{StaticResource SecondaryButton}" Padding="12,4" Margin="8,0,0,0"/>
+                            <Button Content="Refresh" Command="{Binding RefreshCommand}" Style="{StaticResource SecondaryButton}" Padding="12,4" Margin="8,0,0,0"/>
                         </StackPanel>
                         <DataGrid Grid.Row="2" ItemsSource="{Binding MatchRowsView}" MinHeight="200" shell:ShellBehaviors.MaxHeightRatio="0.45" shell:ShellBehaviors.ForwardMouseWheel="True"
                                   AutoGenerateColumns="False"
@@ -162,7 +162,7 @@ Changes vs V004 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                     <DataGridTextColumn.ElementStyle>
                                         <Style TargetType="TextBlock">
                                             <Setter Property="HorizontalAlignment" Value="Right"/>
-                                            <Setter Property="Margin" Value="0,0,6,0"/>
+                                            <Setter Property="Margin" Value="0,0,8,0"/>
                                         </Style>
                                     </DataGridTextColumn.ElementStyle>
                                 </DataGridTextColumn>
@@ -170,7 +170,7 @@ Changes vs V004 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                     <DataGridTextColumn.ElementStyle>
                                         <Style TargetType="TextBlock">
                                             <Setter Property="HorizontalAlignment" Value="Right"/>
-                                            <Setter Property="Margin" Value="0,0,6,0"/>
+                                            <Setter Property="Margin" Value="0,0,8,0"/>
                                         </Style>
                                     </DataGridTextColumn.ElementStyle>
                                 </DataGridTextColumn>
@@ -178,7 +178,7 @@ Changes vs V004 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                     <DataGridTextColumn.ElementStyle>
                                         <Style TargetType="TextBlock">
                                             <Setter Property="HorizontalAlignment" Value="Right"/>
-                                            <Setter Property="Margin" Value="0,0,6,0"/>
+                                            <Setter Property="Margin" Value="0,0,8,0"/>
                                         </Style>
                                     </DataGridTextColumn.ElementStyle>
                                 </DataGridTextColumn>
@@ -186,7 +186,7 @@ Changes vs V004 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                     <DataGridTextColumn.ElementStyle>
                                         <Style TargetType="TextBlock">
                                             <Setter Property="HorizontalAlignment" Value="Right"/>
-                                            <Setter Property="Margin" Value="0,0,6,0"/>
+                                            <Setter Property="Margin" Value="0,0,8,0"/>
                                         </Style>
                                     </DataGridTextColumn.ElementStyle>
                                 </DataGridTextColumn>
@@ -195,7 +195,7 @@ Changes vs V004 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                     <DataGridTextColumn.ElementStyle>
                                         <Style TargetType="TextBlock">
                                             <Setter Property="HorizontalAlignment" Value="Right"/>
-                                            <Setter Property="Margin" Value="0,0,6,0"/>
+                                            <Setter Property="Margin" Value="0,0,8,0"/>
                                         </Style>
                                     </DataGridTextColumn.ElementStyle>
                                 </DataGridTextColumn>
@@ -207,23 +207,23 @@ Changes vs V004 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                 </Border>
 
                 <!-- Log (moved from footer) -->
-                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="10,8" Margin="0,0,0,0">
+                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="12,8" Margin="0,0,0,0">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <Grid Margin="0,0,0,6">
+                        <Grid Margin="0,0,0,8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Text="Log" Foreground="{StaticResource BrushLogText}"
-                                       FontSize="11.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                       FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
                             <StackPanel Grid.Column="1" Orientation="Horizontal">
-                                <Button Content="Export Logs (.txt)" Style="{StaticResource DarkGhostButton}" Command="{Binding ExportLogsCommand}" Margin="0,0,6,0"/>
+                                <Button Content="Export Logs (.txt)" Style="{StaticResource DarkGhostButton}" Command="{Binding ExportLogsCommand}" Margin="0,0,8,0"/>
                                 <Button Content="Copy All" Style="{StaticResource DarkGhostButton}" Command="{Binding CopyAllLogCommand}"/>
-                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Command="{Binding CopySelectedLogCommand}" Margin="6,0,0,0"/>
+                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Command="{Binding CopySelectedLogCommand}" Margin="8,0,0,0"/>
                             </StackPanel>
                         </Grid>
                         <ListBox Grid.Row="1" x:Name="LogListBox" ItemsSource="{Binding LogEntries}" MinHeight="100" shell:ShellBehaviors.MaxHeightRatio="0.2" shell:ShellBehaviors.ForwardMouseWheel="True"
@@ -232,19 +232,19 @@ Changes vs V004 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                             <ListBox.ItemContainerStyle>
                                 <Style TargetType="ListBoxItem">
-                                    <Setter Property="Padding" Value="0,1"/>
+                                    <Setter Property="Padding" Value="0,2"/>
                                     <Setter Property="Background" Value="Transparent"/>
                                 </Style>
                             </ListBox.ItemContainerStyle>
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
-                                    <StackPanel Orientation="Horizontal" Margin="0,1">
+                                    <StackPanel Orientation="Horizontal" Margin="0,2">
                                 <TextBlock Text="{Binding Time, StringFormat=HH:mm:ss}"
                                            Foreground="{StaticResource BrushLogTextDim}"
-                                           FontFamily="Consolas" FontSize="11" Margin="0,0,10,0"/>
+                                           FontFamily="{DynamicResource MonoFont}" FontSize="11" Margin="0,0,12,0"/>
                                 <TextBlock Text="{Binding Message}"
                                            Foreground="{StaticResource BrushLogText}"
-                                           FontFamily="Consolas" FontSize="11" TextWrapping="Wrap"/>
+                                           FontFamily="{DynamicResource MonoFont}" FontSize="11" TextWrapping="Wrap"/>
                             </StackPanel>
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
@@ -261,7 +261,7 @@ Changes vs V004 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
                     <Button Content="Apply" Command="{Binding ApplyCommand}" Style="{StaticResource PrimaryButton}" Margin="0,0,8,0"
                             IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}"/>
-                    <Button Content="Close" Click="CloseButton_Click" Style="{StaticResource SecondaryButton}"/>
+                    <Button IsCancel="True" Content="Close" Click="CloseButton_Click" Style="{StaticResource SecondaryButton}"/>
                 </StackPanel>
             </DockPanel>
         </shell:ToolWindowShell.FooterContent>

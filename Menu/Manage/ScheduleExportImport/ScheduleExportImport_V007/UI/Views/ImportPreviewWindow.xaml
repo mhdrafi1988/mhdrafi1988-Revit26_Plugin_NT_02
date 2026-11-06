@@ -36,10 +36,10 @@ File: ImportPreviewWindow.xaml  (V007, per CLAUDE.md v1.1 — ToolWindowShell)
             <converters:InverseBoolConverter      x:Key="InverseBoolConverter"/>
 
             <DataTemplate x:Key="SummaryCardTemplate" DataType="{x:Type vm:SummaryCard}">
-                <Border Style="{StaticResource MetricCard}" Margin="0,0,6,0" Padding="10,8">
+                <Border Style="{StaticResource MetricCard}" Margin="0,0,8,0" Padding="12,8">
                     <StackPanel>
                         <TextBlock x:Name="Num" Text="{Binding Value}" Style="{StaticResource MetricNumber}" FontSize="20"/>
-                        <TextBlock Text="{Binding Label}" Style="{StaticResource MetricLabel}" Margin="0,1,0,0" TextTrimming="CharacterEllipsis"/>
+                        <TextBlock Text="{Binding Label}" Style="{StaticResource MetricLabel}" Margin="0,2,0,0" TextTrimming="CharacterEllipsis"/>
                     </StackPanel>
                 </Border>
                 <DataTemplate.Triggers>
@@ -79,7 +79,7 @@ File: ImportPreviewWindow.xaml  (V007, per CLAUDE.md v1.1 — ToolWindowShell)
 
             <!-- Status pill coloured by ImportChangeStatus (semantic, not accent) -->
             <DataTemplate x:Key="StatusPillTemplate">
-                <Border x:Name="Pill" CornerRadius="9" Padding="7,1" HorizontalAlignment="Left" VerticalAlignment="Center" Background="{StaticResource BrushSystemSecondaryBackground}">
+                <Border x:Name="Pill" CornerRadius="9" Padding="8,2" HorizontalAlignment="Left" VerticalAlignment="Center" Background="{StaticResource BrushSystemSecondaryBackground}">
                     <TextBlock x:Name="Txt" Text="{Binding StatusLabel}" FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource BrushTextSecondary}"/>
                 </Border>
                 <DataTemplate.Triggers>
@@ -137,7 +137,7 @@ File: ImportPreviewWindow.xaml  (V007, per CLAUDE.md v1.1 — ToolWindowShell)
             <StackPanel>
                 <!-- Schedule-name mismatch warning -->
                 <Border Background="{StaticResource BrushStatusWarnSoft}" BorderBrush="{StaticResource BrushStatusWarnBorder}" BorderThickness="1" CornerRadius="6"
-                        Padding="10,6" Margin="0,0,0,8">
+                        Padding="12,8" Margin="0,0,0,8">
                     <Border.Style>
                         <Style TargetType="Border">
                             <Style.Triggers>
@@ -228,9 +228,9 @@ File: ImportPreviewWindow.xaml  (V007, per CLAUDE.md v1.1 — ToolWindowShell)
                         </RadioButton>
                     </WrapPanel>
                     <TextBox Grid.Column="1" Text="{Binding PreviewSearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                             FontSize="12" Padding="6,4" VerticalContentAlignment="Center"
+                             FontSize="12" Padding="8,4" VerticalContentAlignment="Center"
                              ToolTip="Search Element ID, parameter, values or note"/>
-                    <Button Grid.Column="2" Content="✕" Margin="6,0,0,0" Style="{StaticResource SmallSecondaryButton}"
+                    <Button Grid.Column="2" Content="✕" Margin="8,0,0,0" Style="{StaticResource SmallSecondaryButton}"
                             Command="{Binding ClearPreviewSearchCommand}" ToolTip="Clear search"/>
                 </Grid>
                 <Border Style="{StaticResource ContentCard}">
@@ -292,21 +292,21 @@ File: ImportPreviewWindow.xaml  (V007, per CLAUDE.md v1.1 — ToolWindowShell)
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <Button Content="Tick all shown" Style="{StaticResource SecondaryButton}" Margin="0,0,6,0"
+                <Button Content="Tick all shown" Style="{StaticResource SecondaryButton}" Margin="0,0,8,0"
                         Command="{Binding SelectAllVisibleCommand}" ToolTip="Tick every 'Change' row that matches the current filter and search"/>
-                <Button Grid.Column="1" Content="Untick all" Style="{StaticResource SecondaryButton}" Margin="0,0,6,0"
+                <Button Grid.Column="1" Content="Untick all" Style="{StaticResource SecondaryButton}" Margin="0,0,8,0"
                         Command="{Binding ClearSelectionCommand}"/>
-                <Button Grid.Column="2" Content="Copy problem IDs" Style="{StaticResource SecondaryButton}" Margin="0,0,6,0"
+                <Button Grid.Column="2" Content="Copy problem IDs" Style="{StaticResource SecondaryButton}" Margin="0,0,8,0"
                         Command="{Binding CopyNotFoundIdsCommand}" ToolTip="Copy not-found, missing and duplicate Element IDs (tab-separated, paste into Excel)"/>
                 <Button Grid.Column="3" Content="Open report" Style="{StaticResource SecondaryButton}"
                         Command="{Binding OpenReportCommand}"
                         Visibility="{Binding HasApplied, Converter={StaticResource BoolToVisibilityConverter}}"/>
-                <TextBlock Grid.Column="4" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="10,0" FontSize="11"
+                <TextBlock Grid.Column="4" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="12,0" FontSize="11"
                            Foreground="{StaticResource BrushTextSecondary}">
                     <Run Text="{Binding SelectedChangeCount, Mode=OneWay}" FontWeight="SemiBold"/>
                     <Run Text="change(s) ticked · Ctrl+Z in Revit undoes the whole import"/>
                 </TextBlock>
-                <Button Grid.Column="5" Content="Close" Style="{StaticResource SecondaryButton}" Margin="0,0,6,0"
+                <Button IsCancel="True" Grid.Column="5" Content="Close" Style="{StaticResource SecondaryButton}" Margin="0,0,8,0"
                         Click="Close_Click"/>
                 <Button Grid.Column="6" Content="Apply ▶" Style="{StaticResource PrimaryButton}" MinWidth="110"
                         Command="{Binding ApplySelectedCommand}"/>

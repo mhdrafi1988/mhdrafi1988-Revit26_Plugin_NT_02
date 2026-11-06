@@ -21,7 +21,7 @@
         </ResourceDictionary>
     </Window.Resources>
 
-    <Border Style="{StaticResource BaseCard}" Padding="16,14" Margin="10">
+    <Border Style="{StaticResource BaseCard}" Padding="16,16" Margin="12">
         <StackPanel>
             <TextBlock Text="NEW ROOFS — CONFIRM LEVEL AND ROOF TYPE" Style="{StaticResource SectionTitle}"
                        Margin="0,0,0,8" />
@@ -43,7 +43,7 @@
                        Margin="0,0,0,16" />
 
             <TextBlock Text="Nothing is created yet — the window opens next with a preview, and you can change both there."
-                       Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="0,0,0,14" />
+                       Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="0,0,0,16" />
 
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                 <Button x:Name="OkButton" Content="Continue" Style="{StaticResource RunButton}"

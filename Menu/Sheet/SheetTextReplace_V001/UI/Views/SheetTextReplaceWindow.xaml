@@ -47,8 +47,8 @@ ToolWindowShell layout:
 
             <!-- Compact summary card. -->
             <Style x:Key="SummaryCard" TargetType="Border" BasedOn="{StaticResource MetricCard}">
-                <Setter Property="Padding" Value="10,7"/>
-                <Setter Property="Margin" Value="0,0,6,0"/>
+                <Setter Property="Padding" Value="12,8"/>
+                <Setter Property="Margin" Value="0,0,8,0"/>
             </Style>
 
             <!-- Arrow toggle for a collapsible group header (open / closed). -->
@@ -93,7 +93,7 @@ ToolWindowShell layout:
             <!-- Status badge in the preview grid. -->
             <Style x:Key="StatusBadge" TargetType="Border">
                 <Setter Property="CornerRadius" Value="8"/>
-                <Setter Property="Padding" Value="7,1"/>
+                <Setter Property="Padding" Value="8,2"/>
                 <Setter Property="BorderThickness" Value="1"/>
                 <Setter Property="HorizontalAlignment" Value="Left"/>
                 <Setter Property="Background" Value="{StaticResource BrushStatusOkSoft}"/>
@@ -178,9 +178,9 @@ ToolWindowShell layout:
         <!-- ═══ HEADER: summary ══════════════════════════════════ -->
         <shell:ToolWindowShell.HeaderContent>
             <StackPanel Margin="0,0,0,8">
-                <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
                     <TextBlock Text="SUMMARY" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource BrushTextSecondary}" VerticalAlignment="Center"/>
-                    <Border CornerRadius="9" Padding="8,1" Margin="8,0,0,0" BorderThickness="1">
+                    <Border CornerRadius="9" Padding="8,2" Margin="8,0,0,0" BorderThickness="1">
                         <Border.Style>
                             <Style TargetType="Border">
                                 <Setter Property="Background" Value="{StaticResource BrushStatusInfoSoft}"/>
@@ -193,7 +193,7 @@ ToolWindowShell layout:
                                 </Style.Triggers>
                             </Style>
                         </Border.Style>
-                        <TextBlock Text="{Binding PhaseText}" FontSize="10.5" FontWeight="Bold">
+                        <TextBlock Text="{Binding PhaseText}" FontSize="11" FontWeight="Bold">
                             <TextBlock.Style>
                                 <Style TargetType="TextBlock">
                                     <Setter Property="Foreground" Value="{StaticResource BrushStatusInfo}"/>
@@ -302,13 +302,13 @@ ToolWindowShell layout:
                             </StackPanel>
                         </Border>
                     </UniformGrid>
-                    <TextBlock Margin="2,8,0,0" Text="{Binding AfterHeadline}" FontSize="12.5" FontWeight="SemiBold"
+                    <TextBlock Margin="2,8,0,0" Text="{Binding AfterHeadline}" FontSize="13" FontWeight="SemiBold"
                                Foreground="{StaticResource BrushStatusOk}" TextWrapping="Wrap"/>
                     <ScrollViewer MaxHeight="84" VerticalScrollBarVisibility="Auto" Margin="2,4,0,0">
                         <ItemsControl ItemsSource="{Binding ResultLines}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding Text, StringFormat='– {0}'}" FontSize="12" TextWrapping="Wrap" Margin="0,1">
+                                    <TextBlock Text="{Binding Text, StringFormat='– {0}'}" FontSize="12" TextWrapping="Wrap" Margin="0,2">
                                         <TextBlock.Style>
                                             <Style TargetType="TextBlock">
                                                 <Setter Property="Foreground" Value="{StaticResource BrushStatusWarn}"/>
@@ -362,14 +362,14 @@ ToolWindowShell layout:
                                         ToolTip="Pick the sheet. Type to search by number or name.">
                                     <DockPanel>
                                         <TextBlock DockPanel.Dock="Right" Text="&#x25BE;" Margin="8,0,0,0"/>
-                                        <TextBlock Text="{Binding CurrentSheetLabel}" FontSize="12.5" TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Text="{Binding CurrentSheetLabel}" FontSize="13" TextTrimming="CharacterEllipsis"/>
                                     </DockPanel>
                                 </Button>
                                 <Popup x:Name="SheetPopup" PlacementTarget="{Binding ElementName=SheetButton}" Placement="Bottom"
                                        StaysOpen="False" Opened="SheetPopup_Opened">
                                     <Border Style="{StaticResource PopupCard}" Width="{Binding ActualWidth, ElementName=SheetButton}" MinWidth="320">
                                         <StackPanel>
-                                            <TextBox x:Name="SheetSearchBox" Style="{StaticResource StyledTextInput}" Margin="0,0,0,6"
+                                            <TextBox x:Name="SheetSearchBox" Style="{StaticResource StyledTextInput}" Margin="0,0,0,8"
                                                      Text="{Binding SheetSearchText, UpdateSourceTrigger=PropertyChanged}"
                                                      PreviewKeyDown="SheetSearchBox_PreviewKeyDown"
                                                      ToolTip="Type part of the sheet number or name. Enter picks the first match."/>
@@ -382,7 +382,7 @@ ToolWindowShell layout:
                                 </Popup>
                                 <TextBlock Text="{Binding SheetHint}" Style="{StaticResource HintText}"/>
 
-                                <TextBlock Text="Views on this sheet" Style="{StaticResource FieldLabel}" Margin="0,10,0,2"/>
+                                <TextBlock Text="Views on this sheet" Style="{StaticResource FieldLabel}" Margin="0,12,0,2"/>
                                 <Button x:Name="ViewsButton" Content="{Binding ViewsButtonText}" HorizontalAlignment="Left"
                                         Style="{StaticResource SmallSecondaryButton}" Height="28" Click="ViewsButton_Click"
                                         IsEnabled="{Binding HasSheet}"
@@ -390,10 +390,10 @@ ToolWindowShell layout:
                                 <Popup x:Name="ViewsPopup" PlacementTarget="{Binding ElementName=ViewsButton}" Placement="Bottom" StaysOpen="False">
                                     <Border Style="{StaticResource PopupCard}" Width="540">
                                         <StackPanel>
-                                            <DockPanel Margin="0,0,0,6">
+                                            <DockPanel Margin="0,0,0,8">
                                                 <Button DockPanel.Dock="Right" Content="None" Margin="4,0,0,0" Style="{StaticResource SmallSecondaryButton}"
                                                         Command="{Binding SelectNoViewsCommand}" ToolTip="Clear every shown view."/>
-                                                <Button DockPanel.Dock="Right" Content="All" Margin="6,0,0,0" Style="{StaticResource SmallSecondaryButton}"
+                                                <Button DockPanel.Dock="Right" Content="All" Margin="8,0,0,0" Style="{StaticResource SmallSecondaryButton}"
                                                         Command="{Binding SelectAllViewsCommand}" ToolTip="Tick every shown view that has text notes."/>
                                                 <TextBox x:Name="ViewFilterBox" Style="{StaticResource StyledTextInput}"
                                                          Text="{Binding ViewFilterText, UpdateSourceTrigger=PropertyChanged}"
@@ -429,8 +429,8 @@ ToolWindowShell layout:
                                                                                       VerticalAlignment="Center" Margin="4,0,0,0"
                                                                                       ToolTip="Select or clear every view of this type.">
                                                                                 <StackPanel Orientation="Horizontal">
-                                                                                    <TextBlock Text="{Binding TypeLabel}" FontWeight="SemiBold" FontSize="12.5"/>
-                                                                                    <TextBlock Text="{Binding Summary}" Margin="8,0,0,0" FontSize="11.5"
+                                                                                    <TextBlock Text="{Binding TypeLabel}" FontWeight="SemiBold" FontSize="13"/>
+                                                                                    <TextBlock Text="{Binding Summary}" Margin="8,0,0,0" FontSize="12"
                                                                                                Foreground="{StaticResource BrushTextSecondary}"/>
                                                                                 </StackPanel>
                                                                             </CheckBox>
@@ -440,7 +440,7 @@ ToolWindowShell layout:
                                                                                   Visibility="{Binding IsExpanded, Converter={StaticResource BoolToVis}}">
                                                                         <ItemsControl.ItemTemplate>
                                                                             <DataTemplate>
-                                                                                <Border Padding="26,3,4,3" BorderBrush="{StaticResource BrushSeparatorThin}" BorderThickness="0,0,0,1"
+                                                                                <Border Padding="26,4,4,4" BorderBrush="{StaticResource BrushSeparatorThin}" BorderThickness="0,0,0,1"
                                                                                         Visibility="{Binding IsVisible, Converter={StaticResource BoolToVis}}"
                                                                                         ToolTip="{Binding RowTip}" ToolTipService.ShowOnDisabled="True">
                                                                                     <Border.Style>
@@ -460,11 +460,11 @@ ToolWindowShell layout:
                                                                                             <ColumnDefinition Width="40"/>
                                                                                         </Grid.ColumnDefinitions>
                                                                                         <CheckBox Grid.Column="0" IsChecked="{Binding IsChecked}" IsEnabled="{Binding HasNotes}" VerticalAlignment="Center">
-                                                                                            <TextBlock Text="{Binding Name}" FontSize="12.5" TextTrimming="CharacterEllipsis"/>
+                                                                                            <TextBlock Text="{Binding Name}" FontSize="13" TextTrimming="CharacterEllipsis"/>
                                                                                         </CheckBox>
-                                                                                        <TextBlock Grid.Column="1" Text="{Binding ScaleText}" FontSize="11.5" VerticalAlignment="Center"
+                                                                                        <TextBlock Grid.Column="1" Text="{Binding ScaleText}" FontSize="12" VerticalAlignment="Center"
                                                                                                    Foreground="{StaticResource BrushTextSecondary}"/>
-                                                                                        <TextBlock Grid.Column="2" Text="{Binding NoteCount, StringFormat='{}{0} notes'}" FontSize="11.5"
+                                                                                        <TextBlock Grid.Column="2" Text="{Binding NoteCount, StringFormat='{}{0} notes'}" FontSize="12"
                                                                                                    VerticalAlignment="Center" HorizontalAlignment="Right"
                                                                                                    Foreground="{StaticResource BrushTextSecondary}"/>
                                                                                         <StackPanel Grid.Column="3" Orientation="Horizontal" HorizontalAlignment="Right">
@@ -489,7 +489,7 @@ ToolWindowShell layout:
                                 </Popup>
 
                                 <!-- Ticked views per type -->
-                                <ItemsControl ItemsSource="{Binding Groups}" Margin="0,6,0,0">
+                                <ItemsControl ItemsSource="{Binding Groups}" Margin="0,8,0,0">
                                     <ItemsControl.ItemsPanel>
                                         <ItemsPanelTemplate>
                                             <WrapPanel/>
@@ -497,7 +497,7 @@ ToolWindowShell layout:
                                     </ItemsControl.ItemsPanel>
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
-                                            <Border CornerRadius="9" Padding="7,1" Margin="0,0,4,4" BorderThickness="1"
+                                            <Border CornerRadius="9" Padding="8,2" Margin="0,0,4,4" BorderThickness="1"
                                                     Background="{StaticResource BrushStatusInfoSoft}" BorderBrush="{StaticResource BrushStatusInfoBorder}"
                                                     Visibility="{Binding HasChecked, Converter={StaticResource BoolToVis}}">
                                                 <TextBlock Text="{Binding PillText}" FontSize="11" Foreground="{StaticResource BrushStatusInfo}"/>
@@ -549,15 +549,15 @@ ToolWindowShell layout:
                                          ToolTip="Added at the end of each note that changes."/>
                             </Grid>
                             <WrapPanel Margin="12,0,12,0">
-                                <CheckBox Content="Match case" IsChecked="{Binding MatchCase}" Margin="0,0,14,4"/>
-                                <CheckBox Content="Whole word" IsChecked="{Binding WholeWord}" Margin="0,0,14,4"
+                                <CheckBox Content="Match case" IsChecked="{Binding MatchCase}" Margin="0,0,16,4"/>
+                                <CheckBox Content="Whole word" IsChecked="{Binding WholeWord}" Margin="0,0,16,4"
                                           ToolTip="Match only where the text is not part of a longer word."/>
-                                <CheckBox Content="Regex" IsChecked="{Binding UseRegex}" Margin="0,0,14,4"
+                                <CheckBox Content="Regex" IsChecked="{Binding UseRegex}" Margin="0,0,16,4"
                                           ToolTip=".NET regular expression in Find; $1, $2… in Replace with."/>
-                                <CheckBox Content="Trim spaces" IsChecked="{Binding TrimSpaces}" Margin="0,0,14,4"
+                                <CheckBox Content="Trim spaces" IsChecked="{Binding TrimSpaces}" Margin="0,0,16,4"
                                           ToolTip="Removes spaces at the start and end of each line and turns double spaces into one. Line breaks are kept."/>
                             </WrapPanel>
-                            <TextBlock Margin="12,2,12,0" Text="{Binding RegexError}" Foreground="{StaticResource BrushStatusError}" FontSize="11.5"
+                            <TextBlock Margin="12,2,12,0" Text="{Binding RegexError}" Foreground="{StaticResource BrushStatusError}" FontSize="12"
                                        TextWrapping="Wrap" Visibility="{Binding HasRegexError, Converter={StaticResource BoolToVis}}"/>
                             <StackPanel Margin="12,2,12,12">
                                 <TextBlock Style="{StaticResource HintText}" TextWrapping="Wrap"
@@ -576,9 +576,9 @@ ToolWindowShell layout:
                     <StackPanel>
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="Preview" Style="{StaticResource SectionTitle}"/>
-                            <TextBlock Text="{Binding PreviewHint}" Style="{StaticResource HintText}" VerticalAlignment="Center" Margin="0,5,0,0"/>
+                            <TextBlock Text="{Binding PreviewHint}" Style="{StaticResource HintText}" VerticalAlignment="Center" Margin="0,4,0,0"/>
                         </StackPanel>
-                        <DataGrid x:Name="PreviewGrid" Margin="12,0,12,6" MinHeight="140"
+                        <DataGrid x:Name="PreviewGrid" Margin="12,0,12,8" MinHeight="140"
                                   shell:ShellBehaviors.MaxHeightRatio="0.4"
                                   shell:ShellBehaviors.ForwardMouseWheel="True"
                                   ItemsSource="{Binding Rows}"
@@ -649,11 +649,11 @@ ToolWindowShell layout:
                                         <DataTemplate>
                                             <StackPanel VerticalAlignment="Center">
                                                 <TextBlock Style="{StaticResource NoteText}" local:SegmentText.Segments="{Binding NewSegments}"/>
-                                                <Border HorizontalAlignment="Left" Margin="0,3,0,0" Padding="5,0" CornerRadius="3" BorderThickness="1"
+                                                <Border HorizontalAlignment="Left" Margin="0,4,0,0" Padding="4,0" CornerRadius="3" BorderThickness="1"
                                                         BorderBrush="{StaticResource BrushBorderInput}"
                                                         Visibility="{Binding HasFormatting, Converter={StaticResource BoolToVis}}"
                                                         ToolTip="Only the found text is replaced, so the note's formatting stays.">
-                                                    <TextBlock Text="{Binding FormattingText}" FontSize="10.5" Foreground="{StaticResource BrushTextSecondary}"/>
+                                                    <TextBlock Text="{Binding FormattingText}" FontSize="11" Foreground="{StaticResource BrushTextSecondary}"/>
                                                 </Border>
                                             </StackPanel>
                                         </DataTemplate>
@@ -670,7 +670,7 @@ ToolWindowShell layout:
                                 </DataGridTemplateColumn>
                             </DataGrid.Columns>
                         </DataGrid>
-                        <TextBlock Margin="12,0,12,10" Text="{Binding EmptyText}" FontSize="12" Foreground="{StaticResource BrushTextTertiary}"
+                        <TextBlock Margin="12,0,12,12" Text="{Binding EmptyText}" FontSize="12" Foreground="{StaticResource BrushTextTertiary}"
                                    HorizontalAlignment="Center" TextWrapping="Wrap">
                             <TextBlock.Style>
                                 <Style TargetType="TextBlock">
@@ -686,22 +686,22 @@ ToolWindowShell layout:
                 </Border>
 
                 <!-- ── Activity log ────────────────────────────── -->
-                <Border Grid.Row="2" Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="10,8">
+                <Border Grid.Row="2" Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="12,8">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <Grid Margin="0,0,0,6">
+                        <Grid Margin="0,0,0,8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Text="Activity Log" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource BrushLogText}" VerticalAlignment="Center"/>
+                            <TextBlock Text="Activity Log" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource BrushLogText}" VerticalAlignment="Center"/>
                             <StackPanel Grid.Column="1" Orientation="Horizontal">
                                 <Button Content="Copy All" Style="{StaticResource DarkGhostButton}" Command="{Binding CopyAllLogCommand}"/>
-                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Margin="6,0,0,0" Click="CopySelectedLogs_Click"/>
-                                <Button Content="Clear" Style="{StaticResource DarkGhostButton}" Margin="6,0,0,0" Command="{Binding ClearLogCommand}"/>
+                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Margin="8,0,0,0" Click="CopySelectedLogs_Click"/>
+                                <Button Content="Clear" Style="{StaticResource DarkGhostButton}" Margin="8,0,0,0" Command="{Binding ClearLogCommand}"/>
                             </StackPanel>
                         </Grid>
                         <ListBox Grid.Row="1" x:Name="LogListBox"
@@ -723,14 +723,14 @@ ToolWindowShell layout:
                                         </Grid.ColumnDefinitions>
                                         <TextBlock Text="{Binding Time, StringFormat='{}{0:HH:mm:ss}'}"
                                                    Foreground="{StaticResource BrushLogTextDim}"
-                                                   FontFamily="Consolas" FontSize="11" Margin="0,0,8,0"/>
+                                                   FontFamily="{DynamicResource MonoFont}" FontSize="11" Margin="0,0,8,0"/>
                                         <TextBlock Grid.Column="1" Text="{Binding Level}"
                                                    Foreground="{Binding Level, Converter={StaticResource LogLevelToColorConverter}}"
-                                                   FontFamily="Consolas" FontSize="11" FontWeight="SemiBold"
+                                                   FontFamily="{DynamicResource MonoFont}" FontSize="11" FontWeight="SemiBold"
                                                    Width="58" Margin="0,0,8,0"/>
                                         <TextBlock Grid.Column="2" Text="{Binding Message}"
                                                    Foreground="{Binding Level, Converter={StaticResource LogLevelToColorConverter}}"
-                                                   FontFamily="Consolas" FontSize="11" TextWrapping="Wrap"/>
+                                                   FontFamily="{DynamicResource MonoFont}" FontSize="11" TextWrapping="Wrap"/>
                                     </Grid>
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
@@ -746,8 +746,8 @@ ToolWindowShell layout:
                 <Button DockPanel.Dock="Right" Content="Apply" Style="{StaticResource PrimaryButton}" Margin="8,0,0,0"
                         Command="{Binding ApplyCommand}"
                         ToolTip="Change the ticked notes in one transaction (one Undo step in Revit)."/>
-                <Button DockPanel.Dock="Right" Content="Close" Style="{StaticResource SecondaryButton}" Click="CloseButton_Click"/>
-                <TextBlock Text="{Binding FooterText}" VerticalAlignment="Center" FontSize="12.5"
+                <Button IsCancel="True" DockPanel.Dock="Right" Content="Close" Style="{StaticResource SecondaryButton}" Click="CloseButton_Click"/>
+                <TextBlock Text="{Binding FooterText}" VerticalAlignment="Center" FontSize="13"
                            Foreground="{StaticResource BrushTextSecondary}" TextTrimming="CharacterEllipsis"/>
             </DockPanel>
         </shell:ToolWindowShell.FooterContent>

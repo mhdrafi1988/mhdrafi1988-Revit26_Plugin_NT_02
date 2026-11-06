@@ -51,12 +51,12 @@ Changes vs V014 (layout only):
 
             <Style x:Key="CompactDataGridColumnHeader" TargetType="DataGridColumnHeader" BasedOn="{StaticResource StandardDataGridColumnHeader}">
                 <Setter Property="FontSize" Value="10.5"/>
-                <Setter Property="Padding"  Value="6,6"/>
+                <Setter Property="Padding"  Value="8,8"/>
             </Style>
 
             <Style x:Key="CompactDataGridCell" TargetType="DataGridCell" BasedOn="{StaticResource StandardDataGridCell}">
                 <Setter Property="FontSize" Value="10.5"/>
-                <Setter Property="Padding"  Value="6,3"/>
+                <Setter Property="Padding"  Value="8,4"/>
             </Style>
 
             <!-- Local field/label overrides at 11 / 11.5 per tool standard -->
@@ -198,25 +198,25 @@ Changes vs V014 (layout only):
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <Border Grid.Column="0" Style="{StaticResource MetricCard}" Padding="10,8" Margin="0,0,4,0">
+                <Border Grid.Column="0" Style="{StaticResource MetricCard}" Padding="12,8" Margin="0,0,4,0">
                     <StackPanel>
                         <TextBlock Text="Elements" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding ElementCount}" Style="{StaticResource MetricNumber}"/>
                     </StackPanel>
                 </Border>
-                <Border Grid.Column="1" Style="{StaticResource MetricCard}" Padding="10,8" Margin="4,0,4,0">
+                <Border Grid.Column="1" Style="{StaticResource MetricCard}" Padding="12,8" Margin="4,0,4,0">
                     <StackPanel>
                         <TextBlock Text="Mapped" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding MappedCount}" Style="{StaticResource MetricNumberAccent}"/>
                     </StackPanel>
                 </Border>
-                <Border Grid.Column="2" Style="{StaticResource MetricCard}" Padding="10,8" Margin="4,0,4,0">
+                <Border Grid.Column="2" Style="{StaticResource MetricCard}" Padding="12,8" Margin="4,0,4,0">
                     <StackPanel>
                         <TextBlock Text="Placed" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding PlacedCount}" Style="{StaticResource MetricNumberSuccess}"/>
                     </StackPanel>
                 </Border>
-                <Border Grid.Column="3" Style="{StaticResource MetricCard}" Padding="10,8" Margin="4,0,0,0">
+                <Border Grid.Column="3" Style="{StaticResource MetricCard}" Padding="12,8" Margin="4,0,0,0">
                     <StackPanel>
                         <TextBlock Text="Skipped" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding SkippedCount}" Style="{StaticResource MetricNumberWarning}"/>
@@ -237,11 +237,11 @@ Changes vs V014 (layout only):
                     </Grid.ColumnDefinitions>
 
                     <!-- ── LEFT PANEL — Setup / configuration ── -->
-                        <StackPanel Grid.Column="0" Margin="10,10,8,10">
+                        <StackPanel Grid.Column="0" Margin="12,12,8,12">
                             <TextBlock Text="SETUP" Style="{StaticResource PanelSectionLabel}"/>
 
                             <!-- Section type + Tail length — same row -->
-                            <Border Style="{StaticResource SectionCard}" Padding="12,10">
+                            <Border Style="{StaticResource SectionCard}" Padding="12,12">
                                 <StackPanel>
                                     <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
                                         <TextBlock Text="Section type" Style="{StaticResource CompactFieldLabel}"
@@ -268,7 +268,7 @@ Changes vs V014 (layout only):
                                  Grid 2 rows, never merged across links. -->
                             <GroupBox Style="{StaticResource CardGroupBox}">
                                 <GroupBox.Header>
-                                    <Grid Margin="0,0,12,6">
+                                    <Grid Margin="0,0,12,8">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="Auto"/>
@@ -279,10 +279,10 @@ Changes vs V014 (layout only):
                                     </Grid>
                                 </GroupBox.Header>
 
-                                <StackPanel Margin="12,4,12,10">
-                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                <StackPanel Margin="12,4,12,12">
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
                                         <Button Content="Select all" Style="{StaticResource SmallSecondaryButton}"
-                                                Command="{Binding SelectAllLinksCommand}" Margin="0,0,6,0"/>
+                                                Command="{Binding SelectAllLinksCommand}" Margin="0,0,8,0"/>
                                         <Button Content="Clear" Style="{StaticResource SmallSecondaryButton}"
                                                 Command="{Binding ClearLinksCommand}"/>
                                     </StackPanel>
@@ -305,7 +305,7 @@ Changes vs V014 (layout only):
                             <!-- Roof type filter (popover) + Boundary buffer — ticked roof types
                                  anchor the buffer's bounding-box expansion in Grid 2; unticked
                                  roof types are excluded from Grid 2's Roofs rows too. -->
-                            <Border Style="{StaticResource SectionCard}" Padding="12,10">
+                            <Border Style="{StaticResource SectionCard}" Padding="12,12">
                                 <Grid>
                                     <StackPanel>
                                         <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
@@ -340,23 +340,23 @@ Changes vs V014 (layout only):
                                             <StackPanel>
                                                 <TextBox Style="{StaticResource CompactTextInput}" MaxLength="25"
                                                          Text="{Binding RoofTypeSearchText, UpdateSourceTrigger=PropertyChanged}"
-                                                         Tag="Type to search…" Margin="0,0,0,6"/>
+                                                         Tag="Type to search…" Margin="0,0,0,8"/>
                                                 <ItemsControl ItemsSource="{Binding RoofTypeOptions}" MaxHeight="140">
                                                     <ItemsControl.ItemTemplate>
                                                         <DataTemplate>
                                                             <CheckBox Content="{Binding DisplayName}"
                                                                       IsChecked="{Binding IsChecked, Mode=TwoWay}"
-                                                                      FontSize="11" Margin="2,3"/>
+                                                                      FontSize="11" Margin="2,4"/>
                                                         </DataTemplate>
                                                     </ItemsControl.ItemTemplate>
                                                 </ItemsControl>
                                                 <Border BorderBrush="{StaticResource BrushSeparatorThin}"
-                                                        BorderThickness="0,1,0,0" Margin="0,6,0,4"/>
+                                                        BorderThickness="0,1,0,0" Margin="0,8,0,4"/>
                                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                                                     <Button Content="All" Style="{StaticResource SecondaryButton}"
                                                             Command="{Binding SelectAllRoofTypesCommand}"/>
                                                     <Button Content="None" Style="{StaticResource SecondaryButton}"
-                                                            Command="{Binding ClearRoofTypesCommand}" Margin="6,0,0,0"/>
+                                                            Command="{Binding ClearRoofTypesCommand}" Margin="8,0,0,0"/>
                                                 </StackPanel>
                                             </StackPanel>
                                         </Border>
@@ -367,7 +367,7 @@ Changes vs V014 (layout only):
                             <!-- ── 1 · Plan views ── -->
                             <GroupBox Style="{StaticResource CardGroupBox}">
                                 <GroupBox.Header>
-                                    <Grid Margin="0,0,12,6">
+                                    <Grid Margin="0,0,12,8">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="Auto"/>
@@ -378,8 +378,8 @@ Changes vs V014 (layout only):
                                     </Grid>
                                 </GroupBox.Header>
 
-                                <StackPanel Margin="12,4,12,10">
-                                    <Grid Margin="0,0,0,6">
+                                <StackPanel Margin="12,4,12,12">
+                                    <Grid Margin="0,0,0,8">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="Auto"/>
@@ -393,11 +393,11 @@ Changes vs V014 (layout only):
                                                       Style="{StaticResource PlanTypeFilterToggle}"
                                                       Content="{Binding PlanTypeSelectionSummary}"
                                                       IsChecked="{Binding IsPlanTypePopoverOpen, Mode=TwoWay}"
-                                                      Margin="6,0,0,0"/>
+                                                      Margin="8,0,0,0"/>
                                         <Button Grid.Column="2" Content="Select all" Style="{StaticResource SmallSecondaryButton}"
-                                                Command="{Binding SelectAllPlanViewsCommand}" Margin="6,0,0,0"/>
+                                                Command="{Binding SelectAllPlanViewsCommand}" Margin="8,0,0,0"/>
                                         <Button Grid.Column="3" Content="Clear" Style="{StaticResource SmallSecondaryButton}"
-                                                Command="{Binding ClearPlanViewsCommand}" Margin="6,0,0,0"/>
+                                                Command="{Binding ClearPlanViewsCommand}" Margin="8,0,0,0"/>
                                     </Grid>
 
                                     <!-- Plan Type filter popover — anchored under BtnPlanType, closes on
@@ -414,23 +414,23 @@ Changes vs V014 (layout only):
                                             <StackPanel>
                                                 <TextBox Style="{StaticResource CompactTextInput}" MaxLength="25"
                                                          Text="{Binding PlanTypeSearchText, UpdateSourceTrigger=PropertyChanged}"
-                                                         Tag="Type to search…" Margin="0,0,0,6"/>
+                                                         Tag="Type to search…" Margin="0,0,0,8"/>
                                                 <ItemsControl ItemsSource="{Binding PlanTypeOptions}" MaxHeight="140">
                                                     <ItemsControl.ItemTemplate>
                                                         <DataTemplate>
                                                             <CheckBox Content="{Binding DisplayName}"
                                                                       IsChecked="{Binding IsChecked, Mode=TwoWay}"
-                                                                      FontSize="11" Margin="2,3"/>
+                                                                      FontSize="11" Margin="2,4"/>
                                                         </DataTemplate>
                                                     </ItemsControl.ItemTemplate>
                                                 </ItemsControl>
                                                 <Border BorderBrush="{StaticResource BrushSeparatorThin}"
-                                                        BorderThickness="0,1,0,0" Margin="0,6,0,4"/>
+                                                        BorderThickness="0,1,0,0" Margin="0,8,0,4"/>
                                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                                                     <Button Content="All" Style="{StaticResource SecondaryButton}"
                                                             Command="{Binding SelectAllPlanTypesCommand}"/>
                                                     <Button Content="None" Style="{StaticResource SecondaryButton}"
-                                                            Command="{Binding ClearPlanTypesCommand}" Margin="6,0,0,0"/>
+                                                            Command="{Binding ClearPlanTypesCommand}" Margin="8,0,0,0"/>
                                                 </StackPanel>
                                             </StackPanel>
                                         </Border>
@@ -463,13 +463,13 @@ Changes vs V014 (layout only):
                     <Border Grid.Column="1" Width="1" Background="{StaticResource BrushSeparator}"/>
 
                     <!-- ── RIGHT PANEL — Element data / mapping / run output ── -->
-                        <StackPanel Grid.Column="2" Margin="8,10,10,10">
+                        <StackPanel Grid.Column="2" Margin="8,12,12,12">
                             <TextBlock Text="ELEMENT DATA" Style="{StaticResource PanelSectionLabel}"/>
 
                             <!-- ── 2 · Element categories & types ── -->
                             <GroupBox Style="{StaticResource CardGroupBox}">
                                 <GroupBox.Header>
-                                    <Grid Margin="0,0,12,6">
+                                    <Grid Margin="0,0,12,8">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="Auto"/>
@@ -479,8 +479,8 @@ Changes vs V014 (layout only):
                                     </Grid>
                                 </GroupBox.Header>
 
-                                <StackPanel Margin="12,4,12,10">
-                                    <Grid Margin="0,0,0,6">
+                                <StackPanel Margin="12,4,12,12">
+                                    <Grid Margin="0,0,0,8">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="Auto"/>
@@ -490,9 +490,9 @@ Changes vs V014 (layout only):
                                                  Text="{Binding ElementTypeFilter, UpdateSourceTrigger=PropertyChanged}"
                                                  Tag="Filter types…"/>
                                         <Button Grid.Column="1" Content="Select all" Style="{StaticResource SmallSecondaryButton}"
-                                                Command="{Binding SelectAllElementTypesCommand}" Margin="6,0,0,0"/>
+                                                Command="{Binding SelectAllElementTypesCommand}" Margin="8,0,0,0"/>
                                         <Button Grid.Column="2" Content="Clear" Style="{StaticResource SmallSecondaryButton}"
-                                                Command="{Binding ClearElementTypesCommand}" Margin="6,0,0,0"/>
+                                                Command="{Binding ClearElementTypesCommand}" Margin="8,0,0,0"/>
                                     </Grid>
 
                                     <!-- V011: CanUserSortColumns enables WPF's native sort-arrow glyph. -->
@@ -529,7 +529,7 @@ Changes vs V014 (layout only):
                             <!-- ── 3 · Category → drafting view mapping ── -->
                             <GroupBox Style="{StaticResource CardGroupBox}">
                                 <GroupBox.Header>
-                                    <Grid Margin="0,0,12,6">
+                                    <Grid Margin="0,0,12,8">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="Auto"/>
@@ -541,8 +541,8 @@ Changes vs V014 (layout only):
 
                                 <!-- Rows auto-populate from the types checked in Grid 2 (one per type),
                                      so drain vs wash basin can each target a different drafting view. -->
-                                <StackPanel Margin="12,4,12,10">
-                                    <Grid Margin="0,0,0,6">
+                                <StackPanel Margin="12,4,12,12">
+                                    <Grid Margin="0,0,0,8">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="Auto"/>
@@ -552,9 +552,9 @@ Changes vs V014 (layout only):
                                                  Text="{Binding CategoryMappingFilter, UpdateSourceTrigger=PropertyChanged}"
                                                  Tag="Filter mappings…"/>
                                         <Button Grid.Column="1" Content="Select all" Style="{StaticResource SmallSecondaryButton}"
-                                                Command="{Binding SelectAllMappingsCommand}" Margin="6,0,0,0"/>
+                                                Command="{Binding SelectAllMappingsCommand}" Margin="8,0,0,0"/>
                                         <Button Grid.Column="2" Content="Clear" Style="{StaticResource SmallSecondaryButton}"
-                                                Command="{Binding ClearMappingsCommand}" Margin="6,0,0,0"/>
+                                                Command="{Binding ClearMappingsCommand}" Margin="8,0,0,0"/>
                                     </Grid>
 
                                     <!-- V010 (confirmed, Rafi): the V008 popover (button + Popup) is
@@ -632,18 +632,18 @@ Changes vs V014 (layout only):
                 </Grid>
 
                 <!-- ACTIVITY LOG (moved from footer) -->
-                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="10,8">
+                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="12,8">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <Grid Margin="0,0,0,6">
+                        <Grid Margin="0,0,0,8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Text="Activity Log" FontSize="11.5" FontWeight="SemiBold"
+                            <TextBlock Text="Activity Log" FontSize="12" FontWeight="SemiBold"
                                        Foreground="{StaticResource BrushLogText}" VerticalAlignment="Center"/>
                             <StackPanel Grid.Column="1" Orientation="Horizontal">
                                                     <Button Content="Copy All" Style="{StaticResource DarkGhostButton}"
@@ -667,9 +667,9 @@ Changes vs V014 (layout only):
                                                               IsTextSearchEnabled="False" Margin="0">
                                                         <DataGrid.Columns>
                                                             <DataGridTextColumn Binding="{Binding Time, StringFormat='HH:mm:ss'}" Width="55"
-                                                                                 FontSize="10.5" Foreground="{StaticResource BrushLogTextDim}"/>
+                                                                                 FontSize="11" Foreground="{StaticResource BrushLogTextDim}"/>
                                                             <DataGridTextColumn Binding="{Binding Message}" Width="*"
-                                                                                 FontSize="10.5">
+                                                                                 FontSize="11">
                                                                 <DataGridTextColumn.ElementStyle>
                                                                     <Style TargetType="TextBlock">
                                                                         <Setter Property="TextWrapping" Value="Wrap"/>
@@ -704,7 +704,7 @@ Changes vs V014 (layout only):
                 <Button Content="Run" Style="{StaticResource PrimaryButton}"
                         Command="{Binding RunCommand}" Margin="0,0,8,0"
                         IsEnabled="{Binding IsRunning, Converter={StaticResource InverseBoolConverter}}"/>
-                <Button Content="Close" Style="{StaticResource OutlineButton}"
+                <Button IsCancel="True" Content="Close" Style="{StaticResource OutlineButton}"
                         Command="{Binding CloseCommand}"/>
             </StackPanel>
         </shell:ToolWindowShell.FooterContent>
