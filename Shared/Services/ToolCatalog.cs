@@ -58,13 +58,13 @@ namespace Revit26_Plugin_Revised.Shared.Services
         public static readonly ToolInfo DtlLineDim = Add("Auto Dim Detail Line", "10.1.1", "V010", "Revit26_Plugin_Revised.DtlLineDim.V010");
         public static readonly ToolInfo FloorsAndRoofFromLinkedRooms = Add("Floors And Roof From Linked Rooms", "13.1.1", "V013", "Revit26_Plugin_Revised.FloorsAndRoofFromLinkedRooms.V013");
         public static readonly ToolInfo FloorsAndRoofFromLinkedRoomsViaPlanView = Add("Floors And Roof From Linked Rooms (Via Plan View)", "6.1.1", "V006", "Revit26_Plugin_Revised.FloorsAndRoofFromLinkedRoomsViaPlanView.V006");
-        public static readonly ToolInfo ParaManager = Add("ParaManager", "5.1.1", "V005", "Revit26_Plugin_Revised.ParaManager.V005");
-        public static readonly ToolInfo ScheduleExportImport = Add("Schedule Export / Import", "7.1.1", "V007", "Revit26_Plugin_Revised.ScheduleExportImport.V007");
-        public static readonly ToolInfo AnnotationOverlapDetection = Add("Annotation Overlap Detection", "4.1.1", "V004", "Revit26_Plugin_Revised.AnnotationOverlapDetection.V004");
-        public static readonly ToolInfo WorksetsElementsBrowser = Add("Worksets & Elements Browser", "4.3.0", "WSEB004", "Revit26_Plugin_Revised.WorksetsElementsBrowser.WSEB004");
-        public static readonly ToolInfo WorksetManager = Add("Workset Manager", "14.1.1", "V014", "Revit26_Plugin_Revised.WorksetManager.V014");
-        public static readonly ToolInfo WorksetRenamer = Add("Workset Renamer", "5.1.1", "V005", "Revit26_Plugin_Revised.WorksetRenamer.V005");
-        public static readonly ToolInfo WorksetRenamerExcel = Add("Workset Renamer (From Excel)", "5.1.1", "FX05", "Revit26_Plugin_Revised.WorksetRenamer.FX05");
+        public static readonly ToolInfo ParaManager = Add("ParaManager", "5.1.2", "V005", "Revit26_Plugin_Revised.ParaManager.V005");
+        public static readonly ToolInfo ScheduleExportImport = Add("Schedule Export / Import", "7.1.2", "V007", "Revit26_Plugin_Revised.ScheduleExportImport.V007");
+        public static readonly ToolInfo AnnotationOverlapDetection = Add("Annotation Overlap Detection", "4.1.2", "V004", "Revit26_Plugin_Revised.AnnotationOverlapDetection.V004");
+        public static readonly ToolInfo WorksetsElementsBrowser = Add("Worksets & Elements Browser", "4.3.1", "WSEB004", "Revit26_Plugin_Revised.WorksetsElementsBrowser.WSEB004");
+        public static readonly ToolInfo WorksetManager = Add("Workset Manager", "14.1.2", "V014", "Revit26_Plugin_Revised.WorksetManager.V014");
+        public static readonly ToolInfo WorksetRenamer = Add("Workset Renamer", "5.1.2", "V005", "Revit26_Plugin_Revised.WorksetRenamer.V005");
+        public static readonly ToolInfo WorksetRenamerExcel = Add("Workset Renamer (From Excel)", "5.1.2", "FX05", "Revit26_Plugin_Revised.WorksetRenamer.FX05");
         public static readonly ToolInfo AutoSlopeByPoint = Add("Auto Slope By Point", "30.0.1", "V030", "Revit26_Plugin_Revised.AutoSlopeByPoint.V030");
         public static readonly ToolInfo AutoSlopeByPointV032 = Add("Auto Slope By Point", "32.4.0", "V032", "Revit26_Plugin_Revised.AutoSlopeByPoint.V032");
         public static readonly ToolInfo AutoSlopeByPointV033 = Add("Auto Slope By Point", "33.0.1", "V033", "Revit26_Plugin_Revised.AutoSlopeByPoint.V033");
@@ -136,7 +136,7 @@ namespace Revit26_Plugin_Revised.Shared.Services
         public static readonly ToolInfo LinkVersionChecker = Add("Link Version Checker", "3.0.1", "V003", "Revit26_Plugin_Revised.LinkVersionChecker_V003");
         public static readonly ToolInfo LinkVersionCheckerV004 = Add("Link Version Checker", "4.2.0", "V004", "Revit26_Plugin_Revised.LinkVersionChecker_V004");
         public static readonly ToolInfo LinkVersionCheckerV006 = Add("Link Version Checker", "6.1.0", "V006", "Revit26_Plugin_Revised.LinkVersionChecker.V006");
-        public static readonly ToolInfo LinkVersionCheckerV007 = Add("Link Version Checker", "7.1.1", "V007", "Revit26_Plugin_Revised.LinkVersionChecker.V007");
+        public static readonly ToolInfo LinkVersionCheckerV007 = Add("Link Version Checker", "7.1.2", "V007", "Revit26_Plugin_Revised.LinkVersionChecker.V007");
         public static readonly ToolInfo RoofViewFocus = Add("Roof View Focus", "4.1.2", "V004", "Revit26_Plugin_Revised.RoofViewFocus.V004");
         public static readonly ToolInfo FloorViewFocus = Add("Floor View Focus", "1.0.1", "V001", "Revit26_Plugin_Revised.FloorViewFocus.V001");
         public static readonly ToolInfo FloorEdgeAroundSections = Add("Floor Edge Around Sections", "1.0.1", "V001", "Revit26_Plugin_Revised.FloorEdgeAroundSections.V001");
@@ -153,16 +153,16 @@ namespace Revit26_Plugin_Revised.Shared.Services
         public static readonly ToolInfo BubbleAutoRenumber = Add("Bubble Auto Renumber", "8.0.1", "V008", "Revit26_Plugin_Revised.BubbleAutoRenumber.V008");
         public static readonly ToolInfo BubbleAutoRenumberV009 = Add("Bubble Auto Renumber", "9.1.2", "V009", "Revit26_Plugin_Revised.BubbleAutoRenumber.V009");
         public static readonly ToolInfo SectionAutoRenamer = Add("Section Auto Renamer", "26.1.4", "V026", "Revit26_Plugin_Revised.SectionAutoRenamer.V026");
-        public static readonly ToolInfo DeleteWorkset = Add("Delete Workset", "1.2.0", "V001", "Revit26_Plugin_Revised.DeleteWorkset.V001");
-        public static readonly ToolInfo DeleteLineStyles = Add("Delete Line Styles", "1.2.0", "V001", "Revit26_Plugin_Revised.DeleteLineStyles.V001");
-        public static readonly ToolInfo BulkRename = Add("Bulk Rename", "1.1.1", "V001", "Revit26_Plugin_Revised.BulkRename.V001");
-        public static readonly ToolInfo WorksetCreator = Add("Workset Creator", "16.1.1", "V016", "Revit26_Plugin_Revised.WorksetCreator.V016");
+        public static readonly ToolInfo DeleteWorkset = Add("Delete Workset", "1.2.1", "V001", "Revit26_Plugin_Revised.DeleteWorkset.V001");
+        public static readonly ToolInfo DeleteLineStyles = Add("Delete Line Styles", "1.2.1", "V001", "Revit26_Plugin_Revised.DeleteLineStyles.V001");
+        public static readonly ToolInfo BulkRename = Add("Bulk Rename", "1.1.2", "V001", "Revit26_Plugin_Revised.BulkRename.V001");
+        public static readonly ToolInfo WorksetCreator = Add("Workset Creator", "16.1.2", "V016", "Revit26_Plugin_Revised.WorksetCreator.V016");
         public static readonly ToolInfo TrackerId = Add("Tracker ID", "1.0.0", "V001", "Revit26_Plugin_Revised.TrackerId.V001");
-        public static readonly ToolInfo TrackerIdV002 = Add("Tracker ID", "2.0.0", "V002", "Revit26_Plugin_Revised.TrackerId.V002");
-        public static readonly ToolInfo SharedParamStudio = Add("Shared Parameter Studio", "1.0.1", "V001", "Revit26_Plugin_Revised.SharedParamStudio.V001");
-        public static readonly ToolInfo WorksetMemory = Add("Workset Memory", "1.0.0", "V001", "Revit26_Plugin_Revised.WorksetMemory.V001");
+        public static readonly ToolInfo TrackerIdV002 = Add("Tracker ID", "2.0.1", "V002", "Revit26_Plugin_Revised.TrackerId.V002");
+        public static readonly ToolInfo SharedParamStudio = Add("Shared Parameter Studio", "1.0.2", "V001", "Revit26_Plugin_Revised.SharedParamStudio.V001");
+        public static readonly ToolInfo WorksetMemory = Add("Workset Memory", "1.0.1", "V001", "Revit26_Plugin_Revised.WorksetMemory.V001");
         public static readonly ToolInfo LinkMemory = Add("Link Memory", "1.0.0", "V001", "Revit26_Plugin_Revised.LinkMemory.V001");
-        public static readonly ToolInfo LinkMemoryV002 = Add("Link Memory", "2.0.0", "V002", "Revit26_Plugin_Revised.LinkMemory.V002");
+        public static readonly ToolInfo LinkMemoryV002 = Add("Link Memory", "2.0.1", "V002", "Revit26_Plugin_Revised.LinkMemory.V002");
 
         private static ToolInfo Add(string name, string version, string buildTag, string namespacePrefix)
         {

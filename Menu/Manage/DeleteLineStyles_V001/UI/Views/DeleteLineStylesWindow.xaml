@@ -58,21 +58,21 @@
         <!-- ═══ HEADER ═══ -->
         <shell:ToolWindowShell.HeaderContent>
             <UniformGrid Columns="3">
-                <Border Style="{StaticResource MetricTile}" Margin="0,0,6,0">
+                <Border Style="{StaticResource MetricTile}" Margin="0,0,8,0">
                     <StackPanel>
                         <TextBlock Text="CUSTOM STYLES" Style="{StaticResource MetricTileLabel}"
                                    Foreground="{StaticResource BrushTextSecondary}"/>
                         <TextBlock Text="{Binding TotalCount}" Style="{StaticResource MetricTileNumber}"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricTileSuccess}" Margin="3,0">
+                <Border Style="{StaticResource MetricTileSuccess}" Margin="4,0">
                     <StackPanel>
                         <TextBlock Text="UNUSED" Style="{StaticResource MetricTileLabel}"
                                    Foreground="{StaticResource BrushStatusOk}"/>
                         <TextBlock Text="{Binding UnusedCount}" Style="{StaticResource MetricTileNumberSuccess}"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricTileDanger}" Margin="6,0,0,0">
+                <Border Style="{StaticResource MetricTileDanger}" Margin="8,0,0,0">
                     <StackPanel>
                         <TextBlock Text="USED" Style="{StaticResource MetricTileLabel}"
                                    Foreground="{StaticResource BrushStatusError}"/>
@@ -89,7 +89,7 @@
                         BorderBrush="{StaticResource BrushBorderDefault}" BorderThickness="1" CornerRadius="4"
                         IsEnabled="{Binding IsRunning, Converter={StaticResource InverseBool}}">
                     <StackPanel>
-                        <RadioButton GroupName="Mode" IsChecked="{Binding UnusedOnly}" Margin="0,0,0,6">
+                        <RadioButton GroupName="Mode" IsChecked="{Binding UnusedOnly}" Margin="0,0,0,8">
                             <StackPanel>
                                 <TextBlock Text="Unused line styles only" FontSize="12" FontWeight="Medium"
                                            Foreground="{StaticResource BrushTextPrimary}"/>
@@ -105,7 +105,7 @@
                                            FontSize="10" Foreground="{StaticResource BrushTextSecondary}"/>
                             </StackPanel>
                         </RadioButton>
-                        <Grid Margin="22,8,0,0" IsEnabled="{Binding IncludeUsed}">
+                        <Grid Margin="24,8,0,0" IsEnabled="{Binding IncludeUsed}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="140"/>
                                 <ColumnDefinition Width="*"/>
@@ -122,7 +122,7 @@
                 </Border>
 
                 <!-- Line style grid -->
-                <Border Background="{StaticResource BrushSystemSecondaryBackground}" BorderBrush="{StaticResource BrushBorderDefault}" BorderThickness="1,1,1,0" CornerRadius="4,4,0,0" Padding="8,6">
+                <Border Background="{StaticResource BrushSystemSecondaryBackground}" BorderBrush="{StaticResource BrushBorderDefault}" BorderThickness="1,1,1,0" CornerRadius="4,4,0,0" Padding="8,8">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
@@ -188,7 +188,7 @@
                         <DataGridTemplateColumn Header="Status" Width="90" SortMemberPath="Status">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <Border CornerRadius="10" Padding="8,2" Margin="6,0" HorizontalAlignment="Left"
+                                    <Border CornerRadius="10" Padding="8,2" Margin="8,0" HorizontalAlignment="Left"
                                             ToolTip="{Binding StatusTip}">
                                         <Border.Style>
                                             <Style TargetType="Border">
@@ -215,7 +215,7 @@
                 <Border Margin="0,8,0,0" Background="{StaticResource BrushLogBg}" CornerRadius="4">
                     <DockPanel>
                         <Border DockPanel.Dock="Top" Background="{StaticResource BrushLogTitleBar}"
-                                CornerRadius="4,4,0,0" Padding="10,6">
+                                CornerRadius="4,4,0,0" Padding="12,8">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
@@ -246,7 +246,7 @@
                             </ListBox.ItemContainerStyle>
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
-                                    <Grid Margin="10,1">
+                                    <Grid Margin="12,2">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="60"/>
                                             <ColumnDefinition Width="*"/>

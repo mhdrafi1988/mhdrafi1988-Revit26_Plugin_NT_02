@@ -5,7 +5,7 @@
         Title="Link Version Checker — ACC links (Desktop Connector + Cloud)"
         Width="1240" Height="800" MinWidth="900" MinHeight="560"
         WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
-        FontFamily="Segoe UI" FontSize="12.5" Background="White" Foreground="#1F2937">
+        FontFamily="Segoe UI" FontSize="13" Background="White" Foreground="#1F2937">
 
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
@@ -20,7 +20,7 @@
         <!-- Plain button -->
         <Style x:Key="Btn" TargetType="Button">
             <Setter Property="Height" Value="32"/>
-            <Setter Property="Padding" Value="14,0"/>
+            <Setter Property="Padding" Value="16,0"/>
             <Setter Property="Margin" Value="0,0,8,0"/>
             <Setter Property="Background" Value="White"/>
             <Setter Property="BorderBrush" Value="#9CA3AF"/>
@@ -43,7 +43,7 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="Bd" Background="White" BorderBrush="#D1D5DB" BorderThickness="1" CornerRadius="4" Padding="10,6">
+                        <Border x:Name="Bd" Background="White" BorderBrush="#D1D5DB" BorderThickness="1" CornerRadius="4" Padding="12,8">
                             <ContentPresenter/>
                         </Border>
                         <ControlTemplate.Triggers>
@@ -74,7 +74,7 @@
             <Setter Property="FontSize" Value="11"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Foreground" Value="#4B5563"/>
-            <Setter Property="Margin" Value="0,0,0,6"/>
+            <Setter Property="Margin" Value="0,0,0,8"/>
         </Style>
 
         <!-- Desktop Connector icons, 14 x 14, as in Explorer. On a selected grid row they turn white
@@ -162,7 +162,7 @@
         <!-- Pill for the "In model" column -->
         <Style x:Key="ModelPill" TargetType="Border">
             <Setter Property="CornerRadius" Value="9"/>
-            <Setter Property="Padding" Value="8,1"/>
+            <Setter Property="Padding" Value="8,2"/>
             <Setter Property="HorizontalAlignment" Value="Left"/>
             <Setter Property="Background" Value="#F3F4F6"/>
             <Style.Triggers>
@@ -197,7 +197,7 @@
         <!-- Badge for the "Source" column -->
         <Style x:Key="SourceBadge" TargetType="Border">
             <Setter Property="CornerRadius" Value="3"/>
-            <Setter Property="Padding" Value="6,0"/>
+            <Setter Property="Padding" Value="8,0"/>
             <Setter Property="HorizontalAlignment" Value="Left"/>
             <Setter Property="Background" Value="#F3F4F6"/>
             <Style.Triggers>
@@ -232,7 +232,7 @@
 
         <!-- Filter drop-down boxes -->
         <Style x:Key="FilterBox" TargetType="Border">
-            <Setter Property="Margin" Value="0,0,12,6"/>
+            <Setter Property="Margin" Value="0,0,12,8"/>
             <Setter Property="Padding" Value="8,2"/>
             <Setter Property="BorderBrush" Value="#D1D5DB"/>
             <Setter Property="BorderThickness" Value="1"/>
@@ -316,9 +316,9 @@
         </Border>
 
         <!-- Count tiles (each one is a filter) -->
-        <Border Grid.Row="1" BorderBrush="{StaticResource Line}" BorderThickness="0,0,0,1" Padding="16,10">
+        <Border Grid.Row="1" BorderBrush="{StaticResource Line}" BorderThickness="0,0,0,1" Padding="16,12">
             <WrapPanel>
-                <StackPanel Margin="0,0,20,0">
+                <StackPanel Margin="0,0,24,0">
                     <TextBlock Style="{StaticResource GroupLabel}" Text="SOURCE"/>
                     <StackPanel Orientation="Horizontal">
                         <Button Style="{StaticResource Tile}" Tag="SrcDc" ToolTip="Saved path is inside an ACCDocs (Desktop Connector) folder">
@@ -333,7 +333,7 @@
                     </StackPanel>
                 </StackPanel>
 
-                <StackPanel Margin="0,0,20,0">
+                <StackPanel Margin="0,0,24,0">
                     <TextBlock Style="{StaticResource GroupLabel}" Text="IN THE MODEL"/>
                     <StackPanel Orientation="Horizontal">
                         <Button Style="{StaticResource Tile}" Tag="Loaded" ToolTip="Show loaded links">
@@ -348,7 +348,7 @@
                     </StackPanel>
                 </StackPanel>
 
-                <StackPanel Margin="0,0,20,0">
+                <StackPanel Margin="0,0,24,0">
                     <TextBlock Style="{StaticResource GroupLabel}" Text="ON THIS PC (DESKTOP CONNECTOR)"/>
                     <StackPanel Orientation="Horizontal">
                         <Button Style="{StaticResource Tile}" Tag="AlwaysKept" ToolTip="Full green: Always keep on this device">
@@ -407,62 +407,62 @@
         <!-- Filter bar -->
         <Border Grid.Row="2" Background="#F9FAFB" BorderBrush="{StaticResource Line}" BorderThickness="0,0,0,1" Padding="16,8,16,2">
             <DockPanel>
-                <StackPanel DockPanel.Dock="Right" Margin="12,0,0,6" VerticalAlignment="Top">
+                <StackPanel DockPanel.Dock="Right" Margin="12,0,0,8" VerticalAlignment="Top">
                     <TextBlock Foreground="{StaticResource Grey}" HorizontalAlignment="Right" Text="{Binding ShowingText}"/>
-                    <Button Style="{StaticResource Btn}" Height="26" Margin="0,6,0,0" HorizontalAlignment="Right" Content="Clear filters"
+                    <Button Style="{StaticResource Btn}" Height="26" Margin="0,8,0,0" HorizontalAlignment="Right" Content="Clear filters"
                             Command="{Binding ClearFiltersCommand}" ToolTip="Clear every filter and the selected count tile"/>
                 </StackPanel>
                 <WrapPanel>
-                    <StackPanel Orientation="Horizontal" Margin="0,0,12,6">
-                        <TextBlock Text="Search" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,12,8">
+                        <TextBlock Text="Search" VerticalAlignment="Center" Margin="0,0,8,0"/>
                         <TextBox Width="200" Height="26" VerticalContentAlignment="Center" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
                                  ToolTip="Filter by link name or full path"/>
                     </StackPanel>
                     <Border Style="{StaticResource FilterBox}">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="Source" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                            <TextBlock Text="Source" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,8,0"/>
                             <ComboBox Style="{StaticResource FilterCombo}" Width="140" ItemsSource="{Binding SourceOptions}" SelectedValue="{Binding SourceFilter, Mode=TwoWay}"/>
                         </StackPanel>
                     </Border>
                     <Border Style="{StaticResource FilterBox}">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="ACC project" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                            <TextBlock Text="ACC project" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,8,0"/>
                             <ComboBox Style="{StaticResource FilterCombo}" Width="200" ItemsSource="{Binding ProjectOptions}" SelectedValue="{Binding ProjectFilter, Mode=TwoWay}"/>
                         </StackPanel>
                     </Border>
                     <Border Style="{StaticResource FilterBox}">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="Folder" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                            <TextBlock Text="Folder" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,8,0"/>
                             <ComboBox Style="{StaticResource FilterCombo}" Width="180" ItemsSource="{Binding FolderOptions}" SelectedValue="{Binding FolderFilter, Mode=TwoWay}"
                                       ToolTip="A folder and every folder below it"/>
                         </StackPanel>
                     </Border>
                     <Border Style="{StaticResource FilterBox}">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="In model" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                            <TextBlock Text="In model" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,8,0"/>
                             <ComboBox Style="{StaticResource FilterCombo}" Width="130" ItemsSource="{Binding ModelOptions}" SelectedValue="{Binding ModelFilter, Mode=TwoWay}"/>
                         </StackPanel>
                     </Border>
                     <Border Style="{StaticResource FilterBox}">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="Latest" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                            <TextBlock Text="Latest" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,8,0"/>
                             <ComboBox Style="{StaticResource FilterCombo}" Width="170" ItemsSource="{Binding LatestOptions}" SelectedValue="{Binding LatestFilter, Mode=TwoWay}"/>
                         </StackPanel>
                     </Border>
-                    <CheckBox Content="Problems only" IsChecked="{Binding ProblemsOnly}" VerticalAlignment="Center" Margin="0,0,12,6"
+                    <CheckBox Content="Problems only" IsChecked="{Binding ProblemsOnly}" VerticalAlignment="Center" Margin="0,0,12,8"
                               ToolTip="Not loaded, not kept on this PC, sync pending, reload needed, or newer in ACC"/>
-                    <CheckBox Content="Show other links" IsChecked="{Binding ShowOtherLinks}" VerticalAlignment="Center" Margin="0,0,12,6"
+                    <CheckBox Content="Show other links" IsChecked="{Binding ShowOtherLinks}" VerticalAlignment="Center" Margin="0,0,12,8"
                               ToolTip="Also list .rvt links on a network share or this PC (not in ACC). Remembered per user."/>
                     <Border Style="{StaticResource FilterBox}"
                             ToolTip="How the Folder in ACC column is shortened. Hover a folder, or right-click → Copy full path, for the full path.">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="Folder display" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                            <TextBlock Text="Folder display" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,8,0"/>
                             <ComboBox Width="130" Height="26" VerticalContentAlignment="Center" SelectedIndex="{Binding FolderModeIndex, Mode=TwoWay}">
                                 <ComboBoxItem Content="Last N folders"/>
                                 <ComboBoxItem Content="First N folders"/>
                                 <ComboBoxItem Content="Full folder"/>
                             </ComboBox>
-                            <StackPanel Orientation="Horizontal" Margin="6,0,0,0" Visibility="{Binding ShowFolderDepth, Converter={StaticResource BoolToVis}}">
+                            <StackPanel Orientation="Horizontal" Margin="8,0,0,0" Visibility="{Binding ShowFolderDepth, Converter={StaticResource BoolToVis}}">
                                 <Button Width="26" Height="26" Content="−" Command="{Binding FolderLessCommand}" ToolTip="Fewer folder names"/>
                                 <TextBlock Text="{Binding FolderDepth}" MinWidth="22" TextAlignment="Center" FontWeight="Bold" VerticalAlignment="Center"/>
                                 <Button Width="26" Height="26" Content="+" Command="{Binding FolderMoreCommand}" ToolTip="More folder names"/>
@@ -474,7 +474,7 @@
         </Border>
 
         <!-- Active filters as removable chips -->
-        <Border Grid.Row="3" BorderBrush="{StaticResource Line}" BorderThickness="0,0,0,1" Padding="16,5"
+        <Border Grid.Row="3" BorderBrush="{StaticResource Line}" BorderThickness="0,0,0,1" Padding="16,4"
                 Visibility="{Binding HasChips, Converter={StaticResource BoolToVis}}">
             <ItemsControl ItemsSource="{Binding Chips}">
                 <ItemsControl.ItemsPanel>
@@ -482,10 +482,10 @@
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <Border Background="#E6F0FB" CornerRadius="10" Padding="9,1,3,1" Margin="0,0,6,0">
+                        <Border Background="#E6F0FB" CornerRadius="10" Padding="8,2,4,2" Margin="0,0,8,0">
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="{Binding Text}" Foreground="{StaticResource Blue}" VerticalAlignment="Center"/>
-                                <Button Content="✕" Margin="4,0,0,0" Padding="3,0" Background="Transparent" BorderThickness="0"
+                                <Button Content="✕" Margin="4,0,0,0" Padding="4,0" Background="Transparent" BorderThickness="0"
                                         Foreground="{StaticResource Blue}" Cursor="Hand" ToolTip="Remove this filter"
                                         Command="{Binding DataContext.RemoveFilterCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                         CommandParameter="{Binding Key}"/>
@@ -546,7 +546,7 @@
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center" ToolTip="{Binding DcTip}">
-                                    <ContentControl Style="{StaticResource DcIcon}" Content="{Binding}" Margin="0,0,6,0"/>
+                                    <ContentControl Style="{StaticResource DcIcon}" Content="{Binding}" Margin="0,0,8,0"/>
                                     <TextBlock Text="{Binding DcText}"/>
                                 </StackPanel>
                             </DataTemplate>
@@ -564,7 +564,7 @@
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                     <TextBlock Style="{StaticResource LatestText}" Text="{Binding LatestText}" ToolTip="{Binding LatestReason}" MinWidth="96"/>
-                                    <TextBlock Style="{StaticResource LatestDate}" Text="{Binding FileDateText}" ToolTip="{Binding LatestDateTip}" Margin="6,0,0,0"/>
+                                    <TextBlock Style="{StaticResource LatestDate}" Text="{Binding FileDateText}" ToolTip="{Binding LatestDateTip}" Margin="8,0,0,0"/>
                                 </StackPanel>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
@@ -592,20 +592,20 @@
         </Grid>
 
         <!-- Selected link: details and actions -->
-        <Border Grid.Row="5" Background="#F9FAFB" BorderBrush="#D1D5DB" BorderThickness="0,1,0,0" Padding="16,10">
+        <Border Grid.Row="5" Background="#F9FAFB" BorderBrush="#D1D5DB" BorderThickness="0,1,0,0" Padding="16,12">
             <DockPanel>
                 <StackPanel DockPanel.Dock="Right" Width="520" Margin="24,0,0,0">
                     <TextBlock Style="{StaticResource GroupLabel}" Text="ACTIONS ON THE SELECTED LINKS"/>
                     <WrapPanel>
-                        <Button Style="{StaticResource Btn}" Content="Reload" Command="{Binding ReloadCommand}" Margin="0,0,8,6"
+                        <Button Style="{StaticResource Btn}" Content="Reload" Command="{Binding ReloadCommand}" Margin="0,0,8,8"
                                 ToolTip="One link only. Reload the link from its file; a link unloaded only for you is restored."/>
-                        <Button Style="{StaticResource Btn}" Content="Unload" Command="{Binding UnloadCommand}" Margin="0,0,8,6"
+                        <Button Style="{StaticResource Btn}" Content="Unload" Command="{Binding UnloadCommand}" Margin="0,0,8,8"
                                 ToolTip="One link only. Workshared model: unloads for you only. Otherwise unloads for everyone."/>
-                        <Button Style="{StaticResource Btn}" Content="Always keep on this device" Command="{Binding AlwaysKeepCommand}" Margin="0,0,8,6"
+                        <Button Style="{StaticResource Btn}" Content="Always keep on this device" Command="{Binding AlwaysKeepCommand}" Margin="0,0,8,8"
                                 ToolTip="Every selected Desktop Connector file: pin it so Desktop Connector downloads it and keeps it current."/>
-                        <Button Style="{StaticResource Btn}" Content="Open folder" Command="{Binding OpenFolderCommand}" Margin="0,0,8,6"
+                        <Button Style="{StaticResource Btn}" Content="Open folder" Command="{Binding OpenFolderCommand}" Margin="0,0,8,8"
                                 ToolTip="One Explorer window per folder, with the selected files highlighted. Cloud links have no folder on this PC."/>
-                        <Button Style="{StaticResource Btn}" Content="Copy full path" Command="{Binding CopyPathCommand}" Margin="0,0,8,6"
+                        <Button Style="{StaticResource Btn}" Content="Copy full path" Command="{Binding CopyPathCommand}" Margin="0,0,8,8"
                                 ToolTip="Copy the full path of every selected link, one per line."/>
                     </WrapPanel>
                 </StackPanel>
@@ -692,7 +692,7 @@
         </Border>
 
         <!-- Status bar -->
-        <Border Grid.Row="6" BorderBrush="#D1D5DB" BorderThickness="0,1,0,0" Padding="16,6">
+        <Border Grid.Row="6" BorderBrush="#D1D5DB" BorderThickness="0,1,0,0" Padding="16,8">
             <DockPanel>
                 <Button DockPanel.Dock="Right" Style="{StaticResource Btn}" Margin="12,0,0,0" Height="26" Content="Close" Click="Close_Click" IsCancel="True"/>
                 <TextBlock DockPanel.Dock="Right" Foreground="{StaticResource Grey}" FontSize="12" VerticalAlignment="Center" Text="{Binding FooterText}"/>

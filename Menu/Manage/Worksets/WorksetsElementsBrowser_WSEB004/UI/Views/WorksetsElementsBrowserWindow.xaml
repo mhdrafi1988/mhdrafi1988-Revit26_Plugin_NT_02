@@ -46,7 +46,7 @@ Changes vs WSEB003 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
 
             <!-- Recursive template: a workset/category/type row plus its children. -->
             <HierarchicalDataTemplate DataType="{x:Type vm:TreeNodeViewModel}" ItemsSource="{Binding Children}">
-                <Border Padding="2,3" Background="Transparent">
+                <Border Padding="2,4" Background="Transparent">
                     <Border.ContextMenu>
                         <ContextMenu>
                             <MenuItem Header="Check same category / type in all worksets" Click="CheckSameInAllWorksets_Click"/>
@@ -57,7 +57,7 @@ Changes vs WSEB003 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                         <CheckBox IsThreeState="True"
                                   IsChecked="{Binding IsChecked, Mode=TwoWay}"
                                   VerticalAlignment="Center"
-                                  Margin="0,0,6,0"/>
+                                  Margin="0,0,8,0"/>
 
                         <TextBlock Text="{Binding Name}"
                                    VerticalAlignment="Center"
@@ -81,20 +81,20 @@ Changes vs WSEB003 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                         </TextBlock>
 
                         <Border Style="{StaticResource BadgePill}"
-                                Margin="6,0,0,0"
+                                Margin="8,0,0,0"
                                 Visibility="{Binding EditableBadge, Converter={StaticResource StringToVisibilityConverter}, FallbackValue=Collapsed}">
                             <TextBlock Text="{Binding EditableBadge}" Style="{StaticResource BadgeText}"/>
                         </Border>
 
                         <TextBlock Text="{Binding ElementCount, StringFormat={}{0:N0} elements}"
-                                   Margin="10,0,0,0"
+                                   Margin="12,0,0,0"
                                    VerticalAlignment="Center"
                                    FontSize="11"
                                    Foreground="{StaticResource BrushTextTertiary}"
                                    Visibility="{Binding ElementCount, Converter={StaticResource IntToVisibilityConverter}, FallbackValue=Collapsed}"/>
 
                         <TextBlock Text="{Binding Owner}"
-                                   Margin="10,0,0,0"
+                                   Margin="12,0,0,0"
                                    VerticalAlignment="Center"
                                    FontSize="11"
                                    Foreground="{StaticResource BrushTextTertiary}"
@@ -102,17 +102,17 @@ Changes vs WSEB003 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
 
                         <!-- Explicit per-row actions on Category/Type rows (act on every element under the row). -->
                         <Button Content="Select"
-                                Margin="10,0,0,0"
-                                Padding="6,1"
-                                FontSize="10.5"
+                                Margin="12,0,0,0"
+                                Padding="8,2"
+                                FontSize="11"
                                 ToolTip="Select every element of this row in Revit"
                                 Style="{StaticResource SmallSecondaryButton}"
                                 Click="SelectRow_Click"
                                 Visibility="{Binding Kind, Converter={StaticResource KindToTypeVisibilityConverter}, FallbackValue=Collapsed}"/>
                         <Button Content="Show in 3D"
-                                Margin="6,0,0,0"
-                                Padding="6,1"
-                                FontSize="10.5"
+                                Margin="8,0,0,0"
+                                Padding="8,2"
+                                FontSize="11"
                                 Style="{StaticResource SmallSecondaryButton}"
                                 Click="ShowTypeIn3D_Click"
                                 Visibility="{Binding Kind, Converter={StaticResource KindToTypeVisibilityConverter}, FallbackValue=Collapsed}"/>
@@ -138,13 +138,13 @@ Changes vs WSEB003 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
             <!-- ═══ HEADER ═══════════════════════════════════════════ -->
             <shell:ToolWindowShell.HeaderContent>
                 <UniformGrid Columns="2" Margin="0,0,0,8">
-                    <Border Style="{StaticResource MetricCard}" Padding="10,8" Margin="0,0,4,0">
+                    <Border Style="{StaticResource MetricCard}" Padding="12,8" Margin="0,0,4,0">
                         <StackPanel>
                             <TextBlock Text="Model" Style="{StaticResource MetricLabel}"/>
-                            <TextBlock Text="{Binding SummaryText}" Style="{StaticResource FieldValue}" FontSize="12.5" TextWrapping="Wrap"/>
+                            <TextBlock Text="{Binding SummaryText}" Style="{StaticResource FieldValue}" FontSize="13" TextWrapping="Wrap"/>
                         </StackPanel>
                     </Border>
-                    <Border Style="{StaticResource MetricCard}" Padding="10,8" Margin="4,0,0,0">
+                    <Border Style="{StaticResource MetricCard}" Padding="12,8" Margin="4,0,0,0">
                         <StackPanel>
                             <TextBlock Text="Checked" Style="{StaticResource MetricLabel}"/>
                             <TextBlock Text="{Binding CheckedSummaryText}" Style="{StaticResource MetricNumberAccent}" FontSize="16"/>
@@ -159,29 +159,29 @@ Changes vs WSEB003 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                     <!-- Toolbar -->
                     <WrapPanel Orientation="Horizontal" Margin="0,0,0,8">
                         <TextBox Width="260"
-                                  Padding="6,4"
+                                  Padding="8,4"
                                   Style="{StaticResource BorderlessTextInput}"
                                   Background="{StaticResource BrushSystemSecondaryBackground}"
                                   BorderBrush="{StaticResource BrushSeparator}"
                                   BorderThickness="1"
                                   Tag="Filter worksets, categories, types…"
                                   Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"/>
-                        <Button Content="Expand All" Margin="10,0,0,0" Style="{StaticResource SmallSecondaryButton}" Command="{Binding ExpandAllCommand}"/>
-                        <Button Content="Collapse All" Margin="6,0,0,0" Style="{StaticResource SmallSecondaryButton}" Command="{Binding CollapseAllCommand}"/>
-                        <Border Width="1" Margin="10,2" Background="{StaticResource BrushSeparator}"/>
-                        <TextBlock Text="Group by" Margin="10,0,6,0" VerticalAlignment="Center" Foreground="{StaticResource BrushTextSecondary}"/>
+                        <Button Content="Expand All" Margin="12,0,0,0" Style="{StaticResource SmallSecondaryButton}" Command="{Binding ExpandAllCommand}"/>
+                        <Button Content="Collapse All" Margin="8,0,0,0" Style="{StaticResource SmallSecondaryButton}" Command="{Binding CollapseAllCommand}"/>
+                        <Border Width="1" Margin="12,2" Background="{StaticResource BrushSeparator}"/>
+                        <TextBlock Text="Group by" Margin="12,0,8,0" VerticalAlignment="Center" Foreground="{StaticResource BrushTextSecondary}"/>
                         <ComboBox Width="140" VerticalAlignment="Center"
                                   ItemsSource="{Binding GroupByOptions}"
                                   DisplayMemberPath="Label"
                                   SelectedValuePath="Mode"
                                   SelectedValue="{Binding GroupBy, Mode=TwoWay}"/>
-                        <Border Width="1" Margin="10,2" Background="{StaticResource BrushSeparator}"/>
-                        <Button Content="Check All" Margin="10,0,0,0" Style="{StaticResource SmallSecondaryButton}" Command="{Binding CheckAllCommand}"/>
-                        <Button Content="Check Filtered" Margin="6,0,0,0" ToolTip="Check every row currently matching the filter box" Style="{StaticResource SmallSecondaryButton}" Command="{Binding CheckFilteredCommand}"/>
-                        <Button Content="Clear Checks" Margin="6,0,0,0" Style="{StaticResource SmallSecondaryButton}" Command="{Binding ClearChecksCommand}"/>
-                        <Border Width="1" Margin="10,2" Background="{StaticResource BrushSeparator}"/>
+                        <Border Width="1" Margin="12,2" Background="{StaticResource BrushSeparator}"/>
+                        <Button Content="Check All" Margin="12,0,0,0" Style="{StaticResource SmallSecondaryButton}" Command="{Binding CheckAllCommand}"/>
+                        <Button Content="Check Filtered" Margin="8,0,0,0" ToolTip="Check every row currently matching the filter box" Style="{StaticResource SmallSecondaryButton}" Command="{Binding CheckFilteredCommand}"/>
+                        <Button Content="Clear Checks" Margin="8,0,0,0" Style="{StaticResource SmallSecondaryButton}" Command="{Binding ClearChecksCommand}"/>
+                        <Border Width="1" Margin="12,2" Background="{StaticResource BrushSeparator}"/>
                         <CheckBox Content="Hide Empty Worksets"
-                                  Margin="10,0,0,0"
+                                  Margin="12,0,0,0"
                                   VerticalAlignment="Center"
                                   IsChecked="{Binding HideEmptyWorksets, Mode=TwoWay}"/>
                     </WrapPanel>

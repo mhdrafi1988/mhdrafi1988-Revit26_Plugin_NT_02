@@ -43,7 +43,7 @@
 
             <Style x:Key="LmCard" TargetType="Border">
                 <Setter Property="Margin"          Value="0,0,0,8"/>
-                <Setter Property="Padding"         Value="12,10"/>
+                <Setter Property="Padding"         Value="12,12"/>
                 <Setter Property="Background"      Value="{StaticResource BrushSurfaceCard}"/>
                 <Setter Property="BorderBrush"     Value="{StaticResource BrushBorderDefault}"/>
                 <Setter Property="BorderThickness" Value="1"/>
@@ -57,7 +57,7 @@
             </Style>
 
             <Style x:Key="SmallCheck" TargetType="CheckBox">
-                <Setter Property="Margin"            Value="0,0,14,0"/>
+                <Setter Property="Margin"            Value="0,0,16,0"/>
                 <Setter Property="VerticalAlignment" Value="Center"/>
                 <Setter Property="FontSize"          Value="11.5"/>
                 <Setter Property="Foreground"        Value="{StaticResource BrushTextPrimary}"/>
@@ -77,7 +77,7 @@
                         <ControlTemplate TargetType="RadioButton">
                             <Border x:Name="Bg" Background="{StaticResource BrushSurfaceCard}"
                                     BorderBrush="{StaticResource BrushBorderDefault}" BorderThickness="1"
-                                    CornerRadius="4" Padding="10,7">
+                                    CornerRadius="4" Padding="12,8">
                                 <ContentPresenter/>
                             </Border>
                             <ControlTemplate.Triggers>
@@ -104,7 +104,7 @@
             </Style>
 
             <DataTemplate x:Key="MemoryTemplate" DataType="{x:Type vm:MemoryRow}">
-                <Grid Margin="2,3">
+                <Grid Margin="2,4">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="130"/>
@@ -113,7 +113,7 @@
                     </Grid.ColumnDefinitions>
                     <TextBlock Text="{Binding Name}" FontSize="12" FontWeight="Medium" TextTrimming="CharacterEllipsis"
                                Foreground="{StaticResource BrushTextPrimary}"/>
-                    <Border Grid.Column="1" HorizontalAlignment="Left" CornerRadius="8" Padding="7,0"
+                    <Border Grid.Column="1" HorizontalAlignment="Left" CornerRadius="8" Padding="8,0"
                             Background="{StaticResource BrushPillMutedBackground}">
                         <TextBlock Text="{Binding ScopeText}" FontSize="10" Foreground="{StaticResource BrushPillMutedText}"/>
                     </Border>
@@ -126,7 +126,7 @@
 
             <DataTemplate x:Key="ViewTemplate" DataType="{x:Type vm:ViewRow}">
                 <StackPanel Orientation="Horizontal" Margin="{Binding Indent}">
-                    <TextBlock Text="{Binding Name}" FontSize="11.5" Foreground="{StaticResource BrushTextPrimary}">
+                    <TextBlock Text="{Binding Name}" FontSize="12" Foreground="{StaticResource BrushTextPrimary}">
                         <TextBlock.Style>
                             <Style TargetType="TextBlock">
                                 <Style.Triggers>
@@ -137,8 +137,8 @@
                             </Style>
                         </TextBlock.Style>
                     </TextBlock>
-                    <TextBlock Text="{Binding TypeText}" FontSize="10" Margin="6,1,0,0" Foreground="{StaticResource BrushTextTertiary}"/>
-                    <TextBlock Text="{Binding Reason}" FontSize="10" FontStyle="Italic" Margin="6,1,0,0"
+                    <TextBlock Text="{Binding TypeText}" FontSize="10" Margin="8,2,0,0" Foreground="{StaticResource BrushTextTertiary}"/>
+                    <TextBlock Text="{Binding Reason}" FontSize="10" FontStyle="Italic" Margin="8,2,0,0"
                                Foreground="{StaticResource BrushTextSecondary}"/>
                 </StackPanel>
             </DataTemplate>
@@ -159,28 +159,28 @@
         <!-- ═══ HEADER ═══ -->
         <shell:ToolWindowShell.HeaderContent>
             <UniformGrid Columns="4">
-                <Border Style="{StaticResource MetricTile}" Margin="0,0,6,0">
+                <Border Style="{StaticResource MetricTile}" Margin="0,0,8,0">
                     <StackPanel>
                         <TextBlock Text="VIEWS COLLECTED" Style="{StaticResource MetricTileLabel}"
                                    Foreground="{StaticResource BrushTextSecondary}"/>
                         <TextBlock Text="{Binding ViewCount}" Style="{StaticResource MetricTileNumber}"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricTileSuccess}" Margin="3,0">
+                <Border Style="{StaticResource MetricTileSuccess}" Margin="4,0">
                     <StackPanel>
                         <TextBlock Text="LINKS VISIBLE" Style="{StaticResource MetricTileLabel}"
                                    Foreground="{StaticResource BrushStatusOk}"/>
                         <TextBlock Text="{Binding UsedCount}" Style="{StaticResource MetricTileNumberSuccess}"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricTile}" Margin="3,0">
+                <Border Style="{StaticResource MetricTile}" Margin="4,0">
                     <StackPanel>
                         <TextBlock Text="LINKS IN MODEL" Style="{StaticResource MetricTileLabel}"
                                    Foreground="{StaticResource BrushTextSecondary}"/>
                         <TextBlock Text="{Binding ModelLinkCount}" Style="{StaticResource MetricTileNumber}"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricTileInfo}" Margin="6,0,0,0">
+                <Border Style="{StaticResource MetricTileInfo}" Margin="8,0,0,0">
                     <StackPanel>
                         <TextBlock Text="SAVED MEMORIES" Style="{StaticResource MetricTileLabelInfo}"/>
                         <TextBlock Text="{Binding MemoryCount}" Style="{StaticResource MetricTileNumberInfo}"/>
@@ -196,7 +196,7 @@
                 <!-- 1 · What to collect -->
                 <Border Style="{StaticResource LmCard}">
                     <StackPanel>
-                        <TextBlock Text="1 · What to collect" Style="{StaticResource CardTitle}" Margin="0,0,0,6"/>
+                        <TextBlock Text="1 · What to collect" Style="{StaticResource CardTitle}" Margin="0,0,0,8"/>
                         <UniformGrid Columns="2" Margin="0,0,0,8">
                             <RadioButton Style="{StaticResource ScopeOption}" GroupName="Scope" Margin="0,0,4,0"
                                          IsChecked="{Binding IsViewScope}">
@@ -217,13 +217,13 @@
                         </UniformGrid>
 
                         <StackPanel Visibility="{Binding IsViewScope, Converter={StaticResource NativeBoolToVis}}">
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
                                 <TextBlock Text="Active view" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,8,0"/>
                                 <TextBlock Text="{Binding ActiveViewText}" FontSize="12" FontWeight="SemiBold"
                                            Foreground="{StaticResource BrushTextPrimary}" VerticalAlignment="Center"/>
                             </StackPanel>
-                            <WrapPanel Margin="0,0,0,6">
-                                <TextBlock Text="Follow marks of" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <WrapPanel Margin="0,0,0,8">
+                                <TextBlock Text="Follow marks of" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,12,0"/>
                                 <CheckBox Content="Sections" IsChecked="{Binding IncludeSections}" Style="{StaticResource SmallCheck}"/>
                                 <CheckBox Content="Elevations" IsChecked="{Binding IncludeElevations}" Style="{StaticResource SmallCheck}"/>
                                 <CheckBox Content="Callouts" IsChecked="{Binding IncludeCallouts}" Style="{StaticResource SmallCheck}"/>
@@ -231,10 +231,10 @@
                             </WrapPanel>
                         </StackPanel>
 
-                        <WrapPanel Margin="0,0,0,6" Visibility="{Binding IsPrintSetScope, Converter={StaticResource NativeBoolToVis}}">
+                        <WrapPanel Margin="0,0,0,8" Visibility="{Binding IsPrintSetScope, Converter={StaticResource NativeBoolToVis}}">
                             <TextBlock Text="Print set" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,8,0"/>
                             <ComboBox ItemsSource="{Binding PrintSets}" SelectedItem="{Binding SelectedPrintSet}"
-                                      MinWidth="240" FontSize="11.5" Margin="0,0,14,0"/>
+                                      MinWidth="240" FontSize="12" Margin="0,0,16,0"/>
                             <CheckBox Content="Include views placed on sheets" IsChecked="{Binding IncludePlacedViews}" Style="{StaticResource SmallCheck}"/>
                         </WrapPanel>
 
@@ -244,7 +244,7 @@
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <WrapPanel VerticalAlignment="Center">
-                                <TextBlock Text="List" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <TextBlock Text="List" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,12,0"/>
                                 <CheckBox Content="Revit" IsChecked="{Binding KindRevit}" Style="{StaticResource SmallCheck}"/>
                                 <CheckBox Content="CAD links &amp; imports" IsChecked="{Binding KindCad}" Style="{StaticResource SmallCheck}"/>
                                 <CheckBox Content="IFC" IsChecked="{Binding KindIfc}" Style="{StaticResource SmallCheck}"/>
@@ -255,7 +255,7 @@
                                     Style="{StaticResource SmallSecondaryButton}" VerticalAlignment="Center"
                                     ToolTip="Find the views and the links visible in them"/>
                         </Grid>
-                        <TextBlock Margin="0,6,0,0" Style="{StaticResource NoteText}"
+                        <TextBlock Margin="0,8,0,0" Style="{StaticResource NoteText}"
                                    Text="Only links visible in a view count: hidden by Visibility/Graphics, hidden in the view, or outside the view range or crop means not used there."/>
                     </StackPanel>
                 </Border>
@@ -270,7 +270,7 @@
 
                     <Border Style="{StaticResource LmCard}" Margin="0">
                         <DockPanel>
-                            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,6">
+                            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,8">
                                 <TextBlock Text="2 · Views collected" Style="{StaticResource CardTitle}"/>
                                 <TextBlock Text="{Binding WorkingTitle}" FontSize="11" Margin="8,0,0,0" TextTrimming="CharacterEllipsis"
                                            Foreground="{StaticResource BrushTextSecondary}" VerticalAlignment="Bottom"/>
@@ -283,13 +283,13 @@
 
                     <Border Grid.Column="2" Style="{StaticResource LmCard}" Margin="0">
                         <DockPanel>
-                            <TextBlock DockPanel.Dock="Top" Text="Links" Style="{StaticResource CardTitle}" Margin="0,0,0,6"/>
+                            <TextBlock DockPanel.Dock="Top" Text="Links" Style="{StaticResource CardTitle}" Margin="0,0,0,8"/>
                             <StackPanel DockPanel.Dock="Bottom" Margin="0,8,0,0">
                                 <CheckBox IsChecked="{Binding UnloadUnused}" Style="{StaticResource SmallCheck}" Margin="0,0,0,4"
                                           Content="Unload Revit and IFC links this memory doesn't use"/>
                                 <CheckBox IsChecked="{Binding ReloadUsed}" Style="{StaticResource SmallCheck}"
                                           Content="Also reload used links that are already loaded (latest file)"/>
-                                <TextBlock Margin="0,6,0,0" Style="{StaticResource NoteText}"
+                                <TextBlock Margin="0,8,0,0" Style="{StaticResource NoteText}"
                                            Text="CAD links are loaded when used; Revit has no way for add-ins to unload them. Imports, point clouds and images are listed only. In a workshared local copy, links are unloaded for you only."/>
                             </StackPanel>
                             <DataGrid MinHeight="180"
@@ -340,7 +340,7 @@
                                     <DataGridTemplateColumn Header="On reload" Width="150" SortMemberPath="ActionText">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
-                                                <Border CornerRadius="9" Padding="8,1" Margin="6,0" HorizontalAlignment="Left">
+                                                <Border CornerRadius="9" Padding="8,2" Margin="8,0" HorizontalAlignment="Left">
                                                     <Border.Style>
                                                         <Style TargetType="Border">
                                                             <Setter Property="Background" Value="{StaticResource BrushPillMutedBackground}"/>
@@ -357,7 +357,7 @@
                                                             </Style.Triggers>
                                                         </Style>
                                                     </Border.Style>
-                                                    <TextBlock Text="{Binding ActionText}" FontSize="10.5" FontWeight="SemiBold" TextTrimming="CharacterEllipsis">
+                                                    <TextBlock Text="{Binding ActionText}" FontSize="11" FontWeight="SemiBold" TextTrimming="CharacterEllipsis">
                                                         <TextBlock.Style>
                                                             <Style TargetType="TextBlock">
                                                                 <Setter Property="Foreground" Value="{StaticResource BrushPillMutedText}"/>
@@ -388,7 +388,7 @@
                 <!-- 3 · Saved memories -->
                 <Border Style="{StaticResource LmCard}">
                     <StackPanel>
-                        <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
                             <TextBlock Text="3 · Saved memories" Style="{StaticResource CardTitle}"/>
                             <TextBlock Text="{Binding ModelLocation}" FontSize="11" Margin="8,0,0,0" TextTrimming="CharacterEllipsis"
                                        Foreground="{StaticResource BrushTextSecondary}" VerticalAlignment="Bottom"/>
@@ -428,7 +428,7 @@
                                     Style="{StaticResource SmallSecondaryButton}"
                                     ToolTip="Write what is shown above to .xlsx: Links, Views, Link × View and Info sheets"/>
                         </Grid>
-                        <TextBlock Margin="0,6,0,0" Style="{StaticResource NoteText}"
+                        <TextBlock Margin="0,8,0,0" Style="{StaticResource NoteText}"
                                    Text="The name fills in from the print set (or the active view). Update collects the same view or print set again, so new sheets and new links are picked up. Sets from Link Memory V001 appear as whole-model memories."/>
                     </StackPanel>
                 </Border>
@@ -437,7 +437,7 @@
                 <Border Background="{StaticResource BrushLogBg}" CornerRadius="4">
                     <DockPanel>
                         <Border DockPanel.Dock="Top" Background="{StaticResource BrushLogTitleBar}"
-                                CornerRadius="4,4,0,0" Padding="10,6">
+                                CornerRadius="4,4,0,0" Padding="12,8">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
@@ -468,7 +468,7 @@
                             </ListBox.ItemContainerStyle>
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
-                                    <Grid Margin="10,1">
+                                    <Grid Margin="12,2">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="60"/>
                                             <ColumnDefinition Width="*"/>

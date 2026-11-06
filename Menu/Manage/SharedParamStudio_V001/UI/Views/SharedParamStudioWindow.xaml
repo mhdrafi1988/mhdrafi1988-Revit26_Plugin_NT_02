@@ -17,7 +17,7 @@
             </ResourceDictionary.MergedDictionaries>
             <converters:LogLevelToColorConverter x:Key="LogLevelToColorConverter"/>
             <Style x:Key="Field" TargetType="FrameworkElement">
-                <Setter Property="Margin" Value="0,0,0,10"/>
+                <Setter Property="Margin" Value="0,0,0,12"/>
             </Style>
         </ResourceDictionary>
     </Window.Resources>
@@ -51,22 +51,22 @@
 
                                 <StackPanel Grid.Column="0">
                                     <TextBlock Text="Shared parameter file" Style="{StaticResource FieldLabel}"/>
-                                    <Grid Style="{x:Null}" Margin="0,2,0,10">
+                                    <Grid Style="{x:Null}" Margin="0,2,0,12">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
                                         <TextBox Text="{Binding CreateFilePath, UpdateSourceTrigger=LostFocus}" Style="{StaticResource BoxedTextInput}"/>
-                                        <Button Grid.Column="1" Content="Browse…" Style="{StaticResource OutlineButton}" Margin="6,0,0,0" Command="{Binding BrowseCreateFileCommand}"/>
+                                        <Button Grid.Column="1" Content="Browse…" Style="{StaticResource OutlineButton}" Margin="8,0,0,0" Command="{Binding BrowseCreateFileCommand}"/>
                                     </Grid>
 
                                     <TextBlock Text="Group inside the file" Style="{StaticResource FieldLabel}"/>
                                     <ComboBox IsEditable="True" Text="{Binding CreateFileGroup, UpdateSourceTrigger=PropertyChanged}"
-                                              ItemsSource="{Binding FileGroupNames}" Style="{StaticResource StandardComboBox}" Margin="0,2,0,10"/>
+                                              ItemsSource="{Binding FileGroupNames}" Style="{StaticResource StandardComboBox}" Margin="0,2,0,12"/>
 
                                     <TextBlock Text="Parameter name" Style="{StaticResource FieldLabel}"/>
                                     <TextBox Text="{Binding ParamName, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BoxedTextInput}" Margin="0,2,0,2"/>
-                                    <TextBlock Text="{Binding ParamNameError}" Foreground="{StaticResource BrushDanger}" FontSize="11.5" TextWrapping="Wrap" Margin="0,0,0,8">
+                                    <TextBlock Text="{Binding ParamNameError}" Foreground="{StaticResource BrushDanger}" FontSize="12" TextWrapping="Wrap" Margin="0,0,0,8">
                                         <TextBlock.Style>
                                             <Style TargetType="TextBlock">
                                                 <Setter Property="Visibility" Value="Visible"/>
@@ -79,20 +79,20 @@
 
                                     <TextBlock Text="Data type" Style="{StaticResource FieldLabel}"/>
                                     <ComboBox ItemsSource="{Binding DataTypeOptions}" SelectedItem="{Binding SelectedDataType}"
-                                              DisplayMemberPath="Name" Style="{StaticResource StandardComboBox}" Margin="0,2,0,10"/>
+                                              DisplayMemberPath="Name" Style="{StaticResource StandardComboBox}" Margin="0,2,0,12"/>
 
                                     <TextBlock Text="Description (tooltip in Revit)" Style="{StaticResource FieldLabel}"/>
-                                    <TextBox Text="{Binding ParamDescription, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BoxedTextInput}" Margin="0,2,0,10"/>
+                                    <TextBox Text="{Binding ParamDescription, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BoxedTextInput}" Margin="0,2,0,12"/>
 
                                     <TextBlock Text="Binding" Style="{StaticResource FieldLabel}"/>
-                                    <StackPanel Orientation="Horizontal" Margin="0,4,0,10">
+                                    <StackPanel Orientation="Horizontal" Margin="0,4,0,12">
                                         <RadioButton Content="Instance" IsChecked="{Binding IsInstance, Mode=TwoWay}" Margin="0,0,16,0"/>
                                         <RadioButton Content="Type"/>
                                     </StackPanel>
 
                                     <TextBlock Text="Properties group" Style="{StaticResource FieldLabel}"/>
                                     <ComboBox ItemsSource="{Binding PaletteGroups}" SelectedItem="{Binding SelectedPaletteGroup}"
-                                              DisplayMemberPath="Name" Style="{StaticResource StandardComboBox}" Margin="0,2,0,10"/>
+                                              DisplayMemberPath="Name" Style="{StaticResource StandardComboBox}" Margin="0,2,0,12"/>
 
                                     <CheckBox Content="Users can edit the value" IsChecked="{Binding UserModifiable}" Margin="0,0,0,4"/>
                                     <CheckBox Content="Show in the Properties palette" IsChecked="{Binding ShowInProperties}"/>
@@ -101,14 +101,14 @@
                                 <DockPanel Grid.Column="2">
                                     <TextBlock DockPanel.Dock="Top" Text="Categories to bind to" Style="{StaticResource FieldLabel}"/>
                                     <TextBox DockPanel.Dock="Top" Text="{Binding CategoryFilter, UpdateSourceTrigger=PropertyChanged}"
-                                             Style="{StaticResource BoxedTextInput}" Margin="0,2,0,6" ToolTip="Type to filter the list"/>
-                                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,6">
-                                        <Button Content="Tick shown" Style="{StaticResource SmallSecondaryButton}" Command="{Binding SelectVisibleCategoriesCommand}" Margin="0,0,6,0"/>
-                                        <Button Content="Clear" Style="{StaticResource SmallSecondaryButton}" Command="{Binding ClearCategoriesCommand}" Margin="0,0,10,0"/>
+                                             Style="{StaticResource BoxedTextInput}" Margin="0,2,0,8" ToolTip="Type to filter the list"/>
+                                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,8">
+                                        <Button Content="Tick shown" Style="{StaticResource SmallSecondaryButton}" Command="{Binding SelectVisibleCategoriesCommand}" Margin="0,0,8,0"/>
+                                        <Button Content="Clear" Style="{StaticResource SmallSecondaryButton}" Command="{Binding ClearCategoriesCommand}" Margin="0,0,12,0"/>
                                         <TextBlock Text="{Binding SelectedCategoryCount, StringFormat='{}{0} ticked'}" Style="{StaticResource HintText}" VerticalAlignment="Center"/>
                                     </StackPanel>
                                     <Button DockPanel.Dock="Bottom" Content="Create and assign" Style="{StaticResource PrimaryButton}"
-                                            Command="{Binding CreateAndAssignCommand}" HorizontalAlignment="Right" Margin="0,10,0,0"/>
+                                            Command="{Binding CreateAndAssignCommand}" HorizontalAlignment="Right" Margin="0,12,0,0"/>
                                     <ListBox ItemsSource="{Binding CategoriesView}" MinHeight="260" Margin="0">
                                         <ListBox.ItemTemplate>
                                             <DataTemplate>
@@ -127,27 +127,27 @@
                         <ScrollViewer VerticalScrollBarVisibility="Auto">
                             <StackPanel Margin="12">
                                 <TextBlock Text="First file" Style="{StaticResource FieldLabel}"/>
-                                <Grid Margin="0,2,0,10">
+                                <Grid Margin="0,2,0,12">
                                     <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                                     <TextBox Text="{Binding MergeFirstPath, UpdateSourceTrigger=LostFocus}" Style="{StaticResource BoxedTextInput}"/>
-                                    <Button Grid.Column="1" Content="Browse…" Style="{StaticResource OutlineButton}" Margin="6,0,0,0" Command="{Binding BrowseMergeFirstCommand}"/>
+                                    <Button Grid.Column="1" Content="Browse…" Style="{StaticResource OutlineButton}" Margin="8,0,0,0" Command="{Binding BrowseMergeFirstCommand}"/>
                                 </Grid>
                                 <TextBlock Text="Second file" Style="{StaticResource FieldLabel}"/>
-                                <Grid Margin="0,2,0,10">
+                                <Grid Margin="0,2,0,12">
                                     <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                                     <TextBox Text="{Binding MergeSecondPath, UpdateSourceTrigger=LostFocus}" Style="{StaticResource BoxedTextInput}"/>
-                                    <Button Grid.Column="1" Content="Browse…" Style="{StaticResource OutlineButton}" Margin="6,0,0,0" Command="{Binding BrowseMergeSecondCommand}"/>
+                                    <Button Grid.Column="1" Content="Browse…" Style="{StaticResource OutlineButton}" Margin="8,0,0,0" Command="{Binding BrowseMergeSecondCommand}"/>
                                 </Grid>
                                 <TextBlock Text="Save merged file as" Style="{StaticResource FieldLabel}"/>
-                                <Grid Margin="0,2,0,10">
+                                <Grid Margin="0,2,0,12">
                                     <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                                     <TextBox Text="{Binding MergeOutputPath, UpdateSourceTrigger=LostFocus}" Style="{StaticResource BoxedTextInput}"/>
-                                    <Button Grid.Column="1" Content="Browse…" Style="{StaticResource OutlineButton}" Margin="6,0,0,0" Command="{Binding BrowseMergeOutputCommand}"/>
+                                    <Button Grid.Column="1" Content="Browse…" Style="{StaticResource OutlineButton}" Margin="8,0,0,0" Command="{Binding BrowseMergeOutputCommand}"/>
                                 </Grid>
 
                                 <TextBlock Text="When both files define the same parameter differently" Style="{StaticResource FieldLabel}"/>
                                 <ComboBox ItemsSource="{Binding PolicyOptions}" SelectedItem="{Binding SelectedPolicy}"
-                                          Style="{StaticResource StandardComboBox}" Margin="0,2,0,14"/>
+                                          Style="{StaticResource StandardComboBox}" Margin="0,2,0,16"/>
 
                                 <TextBlock Text="New parameters to add to the merged file (GUIDs are generated)" Style="{StaticResource FieldLabel}"/>
                                 <DataGrid ItemsSource="{Binding NewParams}" SelectedItem="{Binding SelectedNewParam}"
@@ -155,7 +155,7 @@
                                           ColumnHeaderStyle="{StaticResource StandardDataGridColumnHeader}"
                                           CellStyle="{StaticResource StandardDataGridCell}"
                                           RowStyle="{StaticResource StandardDataGridRow}"
-                                          AutoGenerateColumns="False" CanUserAddRows="False" MinHeight="90" MaxHeight="180" Margin="0,4,0,6">
+                                          AutoGenerateColumns="False" CanUserAddRows="False" MinHeight="90" MaxHeight="180" Margin="0,4,0,8">
                                     <DataGrid.Columns>
                                         <DataGridTextColumn Header="Name" Binding="{Binding Name, UpdateSourceTrigger=LostFocus}" Width="2*"/>
                                         <DataGridComboBoxColumn Header="Data type" SelectedItemBinding="{Binding DataType, UpdateSourceTrigger=PropertyChanged}"
@@ -172,11 +172,11 @@
                                     </DataGrid.Columns>
                                 </DataGrid>
                                 <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
-                                    <Button Content="Add row" Style="{StaticResource SmallSecondaryButton}" Command="{Binding AddNewParamRowCommand}" Margin="0,0,6,0"/>
+                                    <Button Content="Add row" Style="{StaticResource SmallSecondaryButton}" Command="{Binding AddNewParamRowCommand}" Margin="0,0,8,0"/>
                                     <Button Content="Remove row" Style="{StaticResource SmallSecondaryButton}" Command="{Binding RemoveNewParamRowCommand}"/>
                                 </StackPanel>
 
-                                <Border Style="{StaticResource ContentCard}" Padding="10" Margin="0,0,0,10">
+                                <Border Style="{StaticResource ContentCard}" Padding="12" Margin="0,0,0,12">
                                     <TextBlock Text="{Binding MergePreviewText}" Style="{StaticResource BodyText}" TextWrapping="Wrap"/>
                                 </Border>
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
@@ -191,16 +191,16 @@
                     <TabItem Header="Duplicate Check">
                         <DockPanel Margin="12">
                             <TextBlock DockPanel.Dock="Top" Text="Shared parameter file" Style="{StaticResource FieldLabel}"/>
-                            <Grid DockPanel.Dock="Top" Margin="0,2,0,10">
+                            <Grid DockPanel.Dock="Top" Margin="0,2,0,12">
                                 <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                                 <TextBox Text="{Binding DuplicatePath, UpdateSourceTrigger=LostFocus}" Style="{StaticResource BoxedTextInput}"/>
-                                <Button Grid.Column="1" Content="Browse…" Style="{StaticResource OutlineButton}" Margin="6,0,0,0" Command="{Binding BrowseDuplicateFileCommand}"/>
-                                <Button Grid.Column="2" Content="Scan" Style="{StaticResource PrimaryButton}" Margin="6,0,0,0" Command="{Binding ScanDuplicatesCommand}"/>
+                                <Button Grid.Column="1" Content="Browse…" Style="{StaticResource OutlineButton}" Margin="8,0,0,0" Command="{Binding BrowseDuplicateFileCommand}"/>
+                                <Button Grid.Column="2" Content="Scan" Style="{StaticResource PrimaryButton}" Margin="8,0,0,0" Command="{Binding ScanDuplicatesCommand}"/>
                             </Grid>
-                            <TextBlock DockPanel.Dock="Top" Text="{Binding DuplicateSummary}" Style="{StaticResource BodyText}" Margin="0,0,0,6"/>
+                            <TextBlock DockPanel.Dock="Top" Text="{Binding DuplicateSummary}" Style="{StaticResource BodyText}" Margin="0,0,0,8"/>
                             <TextBox DockPanel.Dock="Top" Text="{Binding DuplicateFilter, UpdateSourceTrigger=PropertyChanged}"
                                      Style="{StaticResource BoxedTextInput}" Margin="0,0,0,8" ToolTip="Filter by name, GUID, group or type"/>
-                            <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+                            <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
                                 <Button Content="Export report (CSV)" Style="{StaticResource SecondaryButton}" Command="{Binding ExportDuplicateCsvCommand}" Margin="0,0,8,0"/>
                                 <Button Content="Save copy without duplicates…" Style="{StaticResource PrimaryButton}" Command="{Binding SaveCleanCopyCommand}"/>
                             </StackPanel>
@@ -229,21 +229,21 @@
                         <DockPanel Margin="12">
                             <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,8">
                                 <Button Content="Refresh" Style="{StaticResource PrimaryButton}" Command="{Binding RefreshRetrievedCommand}" Margin="0,0,8,0"/>
-                                <Button Content="Tick all" Style="{StaticResource SmallSecondaryButton}" Command="{Binding SelectAllRetrievedCommand}" Margin="0,0,6,0"/>
+                                <Button Content="Tick all" Style="{StaticResource SmallSecondaryButton}" Command="{Binding SelectAllRetrievedCommand}" Margin="0,0,8,0"/>
                                 <Button Content="Clear" Style="{StaticResource SmallSecondaryButton}" Command="{Binding ClearRetrievedCommand}" Margin="0,0,12,0"/>
                                 <TextBlock Text="{Binding RetrieveSummary}" Style="{StaticResource BodyText}" VerticalAlignment="Center"/>
                             </StackPanel>
                             <TextBox DockPanel.Dock="Top" Text="{Binding RetrieveFilter, UpdateSourceTrigger=PropertyChanged}"
                                      Style="{StaticResource BoxedTextInput}" Margin="0,0,0,8" ToolTip="Filter by name, GUID, type, group or category. Click a column header to sort."/>
-                            <Grid DockPanel.Dock="Bottom" Margin="0,10,0,0">
+                            <Grid DockPanel.Dock="Bottom" Margin="0,12,0,0">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="160"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <TextBox Text="{Binding RetrieveFilePath, UpdateSourceTrigger=LostFocus}" Style="{StaticResource BoxedTextInput}" ToolTip="Shared parameter file to write to"/>
-                                <Button Grid.Column="1" Content="Browse…" Style="{StaticResource OutlineButton}" Margin="6,0,0,0" Command="{Binding BrowseRetrieveFileCommand}"/>
-                                <TextBox Grid.Column="2" Text="{Binding RetrieveFileGroup, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BoxedTextInput}" Margin="6,0,0,0" ToolTip="Group name inside the file"/>
-                                <Button Grid.Column="3" Content="CSV…" Style="{StaticResource SecondaryButton}" Margin="6,0,0,0" Command="{Binding ExportRetrievedCsvCommand}"/>
-                                <Button Grid.Column="4" Content="Write to file" Style="{StaticResource PrimaryButton}" Margin="6,0,0,0" Command="{Binding WriteRetrievedToFileCommand}"/>
+                                <Button Grid.Column="1" Content="Browse…" Style="{StaticResource OutlineButton}" Margin="8,0,0,0" Command="{Binding BrowseRetrieveFileCommand}"/>
+                                <TextBox Grid.Column="2" Text="{Binding RetrieveFileGroup, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BoxedTextInput}" Margin="8,0,0,0" ToolTip="Group name inside the file"/>
+                                <Button Grid.Column="3" Content="CSV…" Style="{StaticResource SecondaryButton}" Margin="8,0,0,0" Command="{Binding ExportRetrievedCsvCommand}"/>
+                                <Button Grid.Column="4" Content="Write to file" Style="{StaticResource PrimaryButton}" Margin="8,0,0,0" Command="{Binding WriteRetrievedToFileCommand}"/>
                             </Grid>
                             <DataGrid ItemsSource="{Binding RetrievedView}" CanUserSortColumns="True"
                                       Style="{StaticResource StandardDataGrid}"
@@ -266,7 +266,7 @@
                 </TabControl>
 
                 <!-- ═══ ACTIVITY LOG ═══ -->
-                <Border Grid.Row="1" Background="{StaticResource BrushLogBg}" CornerRadius="6" Margin="0,10,0,0" Padding="10,6">
+                <Border Grid.Row="1" Background="{StaticResource BrushLogBg}" CornerRadius="6" Margin="0,12,0,0" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="Activity Log" Foreground="{StaticResource BrushLogText}" FontFamily="Consolas" FontSize="11" Margin="0,0,0,4"/>
                         <ListBox ItemsSource="{Binding LogEntries}" Height="120" Background="Transparent" BorderThickness="0"
@@ -282,7 +282,7 @@
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
                         </ListBox>
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,6,0,0">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8,0,0">
                             <Button Content="Copy Selected" Style="{StaticResource SecondaryButton}" Command="{Binding CopySelectedLogCommand}" Margin="0,0,8,0"/>
                             <Button Content="Copy All" Style="{StaticResource SecondaryButton}" Command="{Binding CopyAllLogCommand}" Margin="0,0,8,0"/>
                             <Button Content="Clear" Style="{StaticResource SecondaryButton}" Command="{Binding ClearLogCommand}"/>

@@ -9,6 +9,17 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.39.2] — 2026-11-06
+
+### Manage tools — spacing and text sizes on the 4 px grid
+
+Annotation Overlap Detection 4.1.2, Bulk Rename 1.1.2, Delete Line Styles 1.2.1, Link Memory 2.0.1, Link Version Checker 7.1.2, ParaManager 5.1.2, Schedule Export / Import 7.1.2, Shared Parameter Studio 1.0.2, Tracker ID 2.0.1, Delete Workset 1.2.1, Workset Creator 16.1.2, Workset Manager 14.1.2, Workset Memory 1.0.1, Workset Renamer 5.1.2, Workset Renamer (From Excel) 5.1.2, Worksets & Elements Browser 4.3.1.
+
+#### Changed
+- Margins and paddings snapped to 2/4/8/12/16/24 and font sizes to 10/11/12/13, matching the Roof Points and View Tools windows.
+
+User note: layout only; controls sit 1–2 px differently and a few small texts are slightly larger. No behaviour change. Older tool versions still installed are not changed. Workset Creator V017 is not on the ribbon yet and was left as is.
+
 ## [6.39.1] — 2026-11-06
 
 ### View Tools — spacing and text sizes on the 4 px grid

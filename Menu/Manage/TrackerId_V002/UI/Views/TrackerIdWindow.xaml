@@ -52,7 +52,7 @@ File: TrackerIdWindow.xaml  (Tracker ID V002 — ToolWindowShell)
 
             <Style x:Key="GridCellNumber" TargetType="TextBlock" BasedOn="{StaticResource GridCellText}">
                 <Setter Property="HorizontalAlignment" Value="Right"/>
-                <Setter Property="Margin" Value="0,0,6,0"/>
+                <Setter Property="Margin" Value="0,0,8,0"/>
             </Style>
 
             <Style x:Key="GridCellId" TargetType="TextBlock" BasedOn="{StaticResource GridCellText}">
@@ -61,13 +61,13 @@ File: TrackerIdWindow.xaml  (Tracker ID V002 — ToolWindowShell)
 
             <Style x:Key="FilterLabel" TargetType="TextBlock" BasedOn="{StaticResource FieldLabel}">
                 <Setter Property="VerticalAlignment" Value="Center"/>
-                <Setter Property="Margin" Value="0,0,6,0"/>
+                <Setter Property="Margin" Value="0,0,8,0"/>
             </Style>
 
             <Style x:Key="StepChip" TargetType="RadioButton" BasedOn="{StaticResource ChipToggle}">
                 <Setter Property="Height" Value="28"/>
                 <Setter Property="FontSize" Value="12"/>
-                <Setter Property="Padding" Value="14,0"/>
+                <Setter Property="Padding" Value="16,0"/>
                 <Setter Property="GroupName" Value="WizardStep"/>
             </Style>
 
@@ -115,7 +115,7 @@ File: TrackerIdWindow.xaml  (Tracker ID V002 — ToolWindowShell)
                 <Setter Property="VerticalAlignment" Value="Center"/>
                 <Setter Property="FontSize" Value="11"/>
                 <Setter Property="Foreground" Value="{StaticResource BrushTextSecondary}"/>
-                <Setter Property="Margin" Value="0,0,14,0"/>
+                <Setter Property="Margin" Value="0,0,16,0"/>
             </Style>
 
             <!-- Colours the Action column by decision -->
@@ -242,17 +242,17 @@ File: TrackerIdWindow.xaml  (Tracker ID V002 — ToolWindowShell)
                                 Command="{Binding RefreshCommand}"
                                 ToolTip="Read the categories again, for example after other users synchronised."/>
                         <Button DockPanel.Dock="Right" Content="What is a Tracker_ID?" Style="{StaticResource SmallSecondaryButton}"
-                                Margin="0,0,6,0" Command="{Binding OpenGuideCommand}"/>
+                                Margin="0,0,8,0" Command="{Binding OpenGuideCommand}"/>
                     </DockPanel>
 
                     <!-- ══ First-run guide ══ -->
                     <Border Style="{StaticResource ContentCard}" Margin="0,0,0,8" Background="{StaticResource BrushTileInfoBackground}"
                             Visibility="{Binding ShowGuide, Converter={StaticResource BoolToVisibilityConverter}}">
-                        <DockPanel Margin="12,10">
+                        <DockPanel Margin="12,12">
                             <Button DockPanel.Dock="Right" Content="Got it" Style="{StaticResource SmallSecondaryButton}"
                                     VerticalAlignment="Top" Command="{Binding CloseGuideCommand}"/>
                             <StackPanel>
-                                <TextBlock Text="Three things to know" Style="{StaticResource SectionTitle}" Margin="0,0,0,6"/>
+                                <TextBlock Text="Three things to know" Style="{StaticResource SectionTitle}" Margin="0,0,0,8"/>
                                 <TextBlock Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="0,0,0,4"
                                            Text="1.  A Tracker_ID is one permanent name per element, e.g. NT02-ARC-ZA-L01-D09-C04-0001. Power BI and the site team use it to follow each item from order to installation."/>
                                 <TextBlock Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="0,0,0,4"
@@ -267,10 +267,10 @@ File: TrackerIdWindow.xaml  (Tracker ID V002 — ToolWindowShell)
                     <StackPanel Visibility="{Binding IsPage1, Converter={StaticResource BoolToVisibilityConverter}}">
                         <Border Style="{StaticResource ContentCard}" Margin="0,0,0,8">
                             <StackPanel>
-                                <ToggleButton x:Name="ScopeSection" Style="{StaticResource StageHeaderToggle}" Padding="10,8" IsChecked="True">
+                                <ToggleButton x:Name="ScopeSection" Style="{StaticResource StageHeaderToggle}" Padding="12,8" IsChecked="True">
                                     <DockPanel LastChildFill="True">
                                         <TextBlock DockPanel.Dock="Left" Style="{StaticResource SectionChevron}"/>
-                                        <Border DockPanel.Dock="Left" Width="22" Height="22" CornerRadius="11" Background="{StaticResource BrushNavyPrimary}" Margin="0,0,10,0">
+                                        <Border DockPanel.Dock="Left" Width="22" Height="22" CornerRadius="11" Background="{StaticResource BrushNavyPrimary}" Margin="0,0,12,0">
                                             <TextBlock Text="1" Style="{StaticResource StageNumberText}"/>
                                         </Border>
                                         <TextBlock DockPanel.Dock="Left" Text="Scope" Style="{StaticResource StageTitleText}" VerticalAlignment="Center"/>
@@ -290,7 +290,7 @@ File: TrackerIdWindow.xaml  (Tracker ID V002 — ToolWindowShell)
                                         <RadioButton GroupName="Scope" Style="{StaticResource ChipToggle}" Content="Active view"
                                                      IsChecked="{Binding ScopeMode, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=ActiveView, Mode=OneWay}"
                                                      Command="{Binding SetScopeCommand}" CommandParameter="ActiveView"/>
-                                        <Button Content="Use current selection" Style="{StaticResource SmallSecondaryButton}" Margin="4,0,10,0"
+                                        <Button Content="Use current selection" Style="{StaticResource SmallSecondaryButton}" Margin="4,0,12,0"
                                                 Command="{Binding UseCurrentSelectionCommand}"
                                                 ToolTip="Select elements in Revit, then click here to work on just those."/>
                                         <TextBlock Text="{Binding ScopeText}" Style="{StaticResource HintText}" VerticalAlignment="Center"/>
@@ -300,10 +300,10 @@ File: TrackerIdWindow.xaml  (Tracker ID V002 — ToolWindowShell)
                         </Border>
                         <Border Style="{StaticResource ContentCard}" Margin="0,0,0,8">
                             <StackPanel>
-                                <ToggleButton x:Name="PickSection" Style="{StaticResource StageHeaderToggle}" Padding="10,8" IsChecked="True">
+                                <ToggleButton x:Name="PickSection" Style="{StaticResource StageHeaderToggle}" Padding="12,8" IsChecked="True">
                                     <DockPanel LastChildFill="True">
                                         <TextBlock DockPanel.Dock="Left" Style="{StaticResource SectionChevron}"/>
-                                        <Border DockPanel.Dock="Left" Width="22" Height="22" CornerRadius="11" Background="{StaticResource BrushNavyPrimary}" Margin="0,0,10,0">
+                                        <Border DockPanel.Dock="Left" Width="22" Height="22" CornerRadius="11" Background="{StaticResource BrushNavyPrimary}" Margin="0,0,12,0">
                                             <TextBlock Text="2" Style="{StaticResource StageNumberText}"/>
                                         </Border>
                                         <TextBlock DockPanel.Dock="Left" Text="Categories &amp; types" Style="{StaticResource StageTitleText}" VerticalAlignment="Center"/>
@@ -328,15 +328,15 @@ File: TrackerIdWindow.xaml  (Tracker ID V002 — ToolWindowShell)
                                                        PlacementTarget="{Binding ElementName=CategoryDropToggle}" Placement="Bottom" StaysOpen="False"
                                                        AllowsTransparency="True" PopupAnimation="Fade" VerticalOffset="2">
                                                     <Border Background="{StaticResource BrushSurfaceCard}" BorderBrush="{StaticResource BrushBorderInput}" BorderThickness="1"
-                                                            CornerRadius="4" Padding="10" Width="900">
+                                                            CornerRadius="4" Padding="12" Width="900">
                                                         <StackPanel>
-                                                            <Grid Margin="0,0,0,6">
+                                                            <Grid Margin="0,0,0,8">
                                                                 <Grid.ColumnDefinitions>
                                                                     <ColumnDefinition Width="*"/>
                                                                     <ColumnDefinition Width="Auto"/>
                                                                     <ColumnDefinition Width="Auto"/>
                                                                 </Grid.ColumnDefinitions>
-                                                                <TextBox Grid.Column="0" Style="{StaticResource StyledTextInput}" Margin="0,0,10,0"
+                                                                <TextBox Grid.Column="0" Style="{StaticResource StyledTextInput}" Margin="0,0,12,0"
                                                                          ToolTip="Search category or discipline names, e.g. door, duct, column."
                                                                          Text="{Binding CategorySearch, UpdateSourceTrigger=PropertyChanged}"/>
                                                                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
@@ -358,15 +358,15 @@ File: TrackerIdWindow.xaml  (Tracker ID V002 — ToolWindowShell)
                                                             </Grid>
 
                                                             <!-- Column filters -->
-                                                            <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                                            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
                                                                 <TextBlock Text="Category" Style="{StaticResource FilterLabel}"/>
-                                                                <TextBox Width="160" Style="{StaticResource StyledTextInput}" Margin="0,0,14,0"
+                                                                <TextBox Width="160" Style="{StaticResource StyledTextInput}" Margin="0,0,16,0"
                                                                          Text="{Binding CategoryNameFilter, UpdateSourceTrigger=PropertyChanged}"/>
                                                                 <TextBlock Text="Types ≥" Style="{StaticResource FilterLabel}"/>
-                                                                <TextBox Width="50" Style="{StaticResource StyledTextInput}" Margin="0,0,14,0"
+                                                                <TextBox Width="50" Style="{StaticResource StyledTextInput}" Margin="0,0,16,0"
                                                                          Text="{Binding MinTypesFilter, UpdateSourceTrigger=PropertyChanged}"/>
                                                                 <TextBlock Text="Elements ≥" Style="{StaticResource FilterLabel}"/>
-                                                                <TextBox Width="60" Style="{StaticResource StyledTextInput}" Margin="0,0,14,0"
+                                                                <TextBox Width="60" Style="{StaticResource StyledTextInput}" Margin="0,0,16,0"
                                                                          Text="{Binding MinElementsFilter, UpdateSourceTrigger=PropertyChanged}"/>
                                                                 <TextBlock Text="Coverage" Style="{StaticResource FilterLabel}"/>
                                                                 <ComboBox Width="100" Style="{StaticResource StandardComboBox}"
@@ -423,11 +423,11 @@ File: TrackerIdWindow.xaml  (Tracker ID V002 — ToolWindowShell)
                                                                 </DataGrid.Columns>
                                                             </DataGrid>
 
-                                                            <DockPanel Margin="0,6,0,0" LastChildFill="False">
+                                                            <DockPanel Margin="0,8,0,0" LastChildFill="False">
                                                                 <TextBlock DockPanel.Dock="Left" Text="{Binding CategoriesShownText}" Style="{StaticResource HintText}" VerticalAlignment="Center"/>
                                                                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
                                                                     <Button Content="Tick all shown" Style="{StaticResource SmallSecondaryButton}"
-                                                                            Command="{Binding SelectAllCategoriesCommand}" Margin="0,0,6,0"/>
+                                                                            Command="{Binding SelectAllCategoriesCommand}" Margin="0,0,8,0"/>
                                                                     <Button Content="Untick all" Style="{StaticResource SmallSecondaryButton}"
                                                                             Command="{Binding SelectNoCategoriesCommand}"/>
                                                                 </StackPanel>
@@ -457,14 +457,14 @@ File: TrackerIdWindow.xaml  (Tracker ID V002 — ToolWindowShell)
                                                        PlacementTarget="{Binding ElementName=TypeDropToggle}" Placement="Bottom" StaysOpen="False"
                                                        AllowsTransparency="True" PopupAnimation="Fade" VerticalOffset="2">
                                                     <Border Background="{StaticResource BrushSurfaceCard}" BorderBrush="{StaticResource BrushBorderInput}" BorderThickness="1"
-                                                            CornerRadius="4" Padding="10" Width="900">
+                                                            CornerRadius="4" Padding="12" Width="900">
                                                         <StackPanel>
-                                                            <Grid Margin="0,0,0,6">
+                                                            <Grid Margin="0,0,0,8">
                                                                 <Grid.ColumnDefinitions>
                                                                     <ColumnDefinition Width="*"/>
                                                                     <ColumnDefinition Width="Auto"/>
                                                                 </Grid.ColumnDefinitions>
-                                                                <TextBox Grid.Column="0" Style="{StaticResource StyledTextInput}" Margin="0,0,10,0"
+                                                                <TextBox Grid.Column="0" Style="{StaticResource StyledTextInput}" Margin="0,0,12,0"
                                                                          ToolTip="Search family, type or type mark."
                                                                          Text="{Binding TypeSearch, UpdateSourceTrigger=PropertyChanged}"/>
                                                                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
@@ -483,13 +483,13 @@ File: TrackerIdWindow.xaml  (Tracker ID V002 — ToolWindowShell)
                                                                 </StackPanel>
                                                             </Grid>
 
-                                                            <DockPanel Margin="0,0,0,6" LastChildFill="False">
+                                                            <DockPanel Margin="0,0,0,8" LastChildFill="False">
                                                                 <StackPanel DockPanel.Dock="Left" Orientation="Horizontal">
                                                                     <TextBlock Text="Family" Style="{StaticResource FilterLabel}"/>
-                                                                    <TextBox Width="150" Style="{StaticResource StyledTextInput}" Margin="0,0,14,0"
+                                                                    <TextBox Width="150" Style="{StaticResource StyledTextInput}" Margin="0,0,16,0"
                                                                              Text="{Binding FamilyFilter, UpdateSourceTrigger=PropertyChanged}"/>
                                                                     <TextBlock Text="Type" Style="{StaticResource FilterLabel}"/>
-                                                                    <TextBox Width="150" Style="{StaticResource StyledTextInput}" Margin="0,0,14,0"
+                                                                    <TextBox Width="150" Style="{StaticResource StyledTextInput}" Margin="0,0,16,0"
                                                                              Text="{Binding TypeNameFilter, UpdateSourceTrigger=PropertyChanged}"/>
                                                                     <TextBlock Text="Type Mark" Style="{StaticResource FilterLabel}"/>
                                                                     <TextBox Width="80" Style="{StaticResource StyledTextInput}"
@@ -497,7 +497,7 @@ File: TrackerIdWindow.xaml  (Tracker ID V002 — ToolWindowShell)
                                                                 </StackPanel>
                                                                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
                                                                     <Button Content="Select all shown" Style="{StaticResource SmallSecondaryButton}"
-                                                                            Command="{Binding SelectAllTypesCommand}" Margin="0,0,6,0"/>
+                                                                            Command="{Binding SelectAllTypesCommand}" Margin="0,0,8,0"/>
                                                                     <Button Content="Select none" Style="{StaticResource SmallSecondaryButton}"
                                                                             Command="{Binding SelectNoTypesCommand}"/>
                                                                 </StackPanel>
@@ -542,7 +542,7 @@ File: TrackerIdWindow.xaml  (Tracker ID V002 — ToolWindowShell)
                                                                 </DataGrid.Columns>
                                                             </DataGrid>
 
-                                                            <DockPanel Margin="0,6,0,0" LastChildFill="False">
+                                                            <DockPanel Margin="0,8,0,0" LastChildFill="False">
                                                                 <TextBlock DockPanel.Dock="Left" Text="{Binding TypesShownText}" Style="{StaticResource HintText}"/>
                                                                 <TextBlock DockPanel.Dock="Right" Text="{Binding TypesSelectedText}" Style="{StaticResource HintText}" FontWeight="SemiBold"/>
                                                             </DockPanel>
@@ -553,7 +553,7 @@ File: TrackerIdWindow.xaml  (Tracker ID V002 — ToolWindowShell)
                                         </ContentControl>
                                     </Grid>
                                     <TextBlock Text="The type list shows the types of the ticked categories. Coverage = placed elements that already have a Tracker_ID."
-                                               Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="0,6,0,0"/>
+                                               Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="0,8,0,0"/>
                                 </StackPanel>
                             </StackPanel>
                         </Border>
@@ -568,10 +568,10 @@ File: TrackerIdWindow.xaml  (Tracker ID V002 — ToolWindowShell)
                         </Border>
                         <Border Style="{StaticResource ContentCard}" Margin="0,0,0,8">
                             <StackPanel>
-                                <ToggleButton x:Name="ResultSection" Style="{StaticResource StageHeaderToggle}" Padding="10,8" IsChecked="{Binding IsResultExpanded, Mode=TwoWay}">
+                                <ToggleButton x:Name="ResultSection" Style="{StaticResource StageHeaderToggle}" Padding="12,8" IsChecked="{Binding IsResultExpanded, Mode=TwoWay}">
                                     <DockPanel LastChildFill="True">
                                         <TextBlock DockPanel.Dock="Left" Style="{StaticResource SectionChevron}"/>
-                                        <Border DockPanel.Dock="Left" Width="22" Height="22" CornerRadius="11" Background="{StaticResource BrushNavyPrimary}" Margin="0,0,10,0">
+                                        <Border DockPanel.Dock="Left" Width="22" Height="22" CornerRadius="11" Background="{StaticResource BrushNavyPrimary}" Margin="0,0,12,0">
                                             <TextBlock Text="3" Style="{StaticResource StageNumberText}"/>
                                         </Border>
                                         <TextBlock DockPanel.Dock="Left" Text="Result" Style="{StaticResource StageTitleText}" VerticalAlignment="Center"/>
@@ -580,8 +580,8 @@ File: TrackerIdWindow.xaml  (Tracker ID V002 — ToolWindowShell)
                                     </DockPanel>
                                 </ToggleButton>
                                 <StackPanel Margin="12,2,12,12" Visibility="{Binding IsChecked, ElementName=ResultSection, Converter={StaticResource BoolToVisibilityConverter}}">
-                                    <StackPanel Margin="10,8,10,10">
-                                        <DockPanel Margin="0,0,0,6" LastChildFill="False">
+                                    <StackPanel Margin="12,8,12,12">
+                                        <DockPanel Margin="0,0,0,8" LastChildFill="False">
                                             <TextBlock DockPanel.Dock="Left" Text="Result" Style="{StaticResource SectionTitle}" Margin="0,0,12,0"
                                                        VerticalAlignment="Center"/>
                                             <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center">
@@ -599,7 +599,7 @@ File: TrackerIdWindow.xaml  (Tracker ID V002 — ToolWindowShell)
                                                              Command="{Binding SetPlanFilterCommand}" CommandParameter="Problems"/>
                                             </StackPanel>
                                             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
-                                                <Button Content="Select shown in Revit" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,6,0"
+                                                <Button Content="Select shown in Revit" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,8,0"
                                                         Command="{Binding SelectShownPlanRowsCommand}"/>
                                                 <Button Content="Zoom to highlighted" Style="{StaticResource SmallSecondaryButton}"
                                                         Command="{Binding ZoomToPlanRowsCommand}"/>
@@ -607,10 +607,10 @@ File: TrackerIdWindow.xaml  (Tracker ID V002 — ToolWindowShell)
                                         </DockPanel>
 
                                         <Border Background="{StaticResource BrushBannerWarningBackground}" BorderBrush="{StaticResource BrushBannerWarningBorder}"
-                                                BorderThickness="1" CornerRadius="4" Padding="10,6" Margin="0,0,0,6"
+                                                BorderThickness="1" CornerRadius="4" Padding="12,8" Margin="0,0,0,8"
                                                 Visibility="{Binding DuplicateCount, Converter={StaticResource IntToVisibilityConverter}}">
                                             <TextBlock Text="{Binding DuplicateWarning}" Foreground="{StaticResource BrushBannerWarningText}"
-                                                       FontSize="11.5" TextWrapping="Wrap"/>
+                                                       FontSize="12" TextWrapping="Wrap"/>
                                         </Border>
 
                                         <DataGrid ItemsSource="{Binding PlanView}"
@@ -652,7 +652,7 @@ File: TrackerIdWindow.xaml  (Tracker ID V002 — ToolWindowShell)
                                             </DataGrid.Columns>
                                         </DataGrid>
 
-                                        <TextBlock Text="{Binding PlanSummaryText}" Style="{StaticResource HintText}" Margin="0,6,0,0" TextWrapping="Wrap"/>
+                                        <TextBlock Text="{Binding PlanSummaryText}" Style="{StaticResource HintText}" Margin="0,8,0,0" TextWrapping="Wrap"/>
                                         <TextBlock Text="{Binding LockedOwnersText}" TextWrapping="Wrap" Margin="0,4,0,0" FontWeight="SemiBold">
                                             <TextBlock.Style>
                                                 <Style TargetType="TextBlock" BasedOn="{StaticResource HintText}">
@@ -671,10 +671,10 @@ File: TrackerIdWindow.xaml  (Tracker ID V002 — ToolWindowShell)
                         </Border>
                         <Border Style="{StaticResource ContentCard}" Margin="0,0,0,8">
                             <StackPanel>
-                                <ToggleButton x:Name="ExportSection" Style="{StaticResource StageHeaderToggle}" Padding="10,8" IsChecked="False">
+                                <ToggleButton x:Name="ExportSection" Style="{StaticResource StageHeaderToggle}" Padding="12,8" IsChecked="False">
                                     <DockPanel LastChildFill="True">
                                         <TextBlock DockPanel.Dock="Left" Style="{StaticResource SectionChevron}"/>
-                                        <Border DockPanel.Dock="Left" Width="22" Height="22" CornerRadius="11" Background="{StaticResource BrushNavyPrimary}" Margin="0,0,10,0">
+                                        <Border DockPanel.Dock="Left" Width="22" Height="22" CornerRadius="11" Background="{StaticResource BrushNavyPrimary}" Margin="0,0,12,0">
                                             <TextBlock Text="4" Style="{StaticResource StageNumberText}"/>
                                         </Border>
                                         <TextBlock DockPanel.Dock="Left" Text="Export" Style="{StaticResource StageTitleText}" VerticalAlignment="Center"/>
@@ -683,8 +683,8 @@ File: TrackerIdWindow.xaml  (Tracker ID V002 — ToolWindowShell)
                                     </DockPanel>
                                 </ToggleButton>
                                 <StackPanel Margin="12,2,12,12" Visibility="{Binding IsChecked, ElementName=ExportSection, Converter={StaticResource BoolToVisibilityConverter}}">
-                                    <StackPanel Margin="10,8,10,10">
-                                        <TextBlock Text="Export for Power BI" Style="{StaticResource SectionTitle}" Margin="0,0,0,6"/>
+                                    <StackPanel Margin="12,8,12,12">
+                                        <TextBlock Text="Export for Power BI" Style="{StaticResource SectionTitle}" Margin="0,0,0,8"/>
                                         <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
                                             <TextBlock Text="Format" Style="{StaticResource FilterLabel}"/>
                                             <RadioButton GroupName="ExportFormat" Style="{StaticResource ChipToggle}" Content="CSV"
@@ -723,8 +723,8 @@ File: TrackerIdWindow.xaml  (Tracker ID V002 — ToolWindowShell)
 
                                         <TextBlock Text="{Binding LastExportText}" Style="{StaticResource HintText}" TextWrapping="Wrap"/>
 
-                                        <Border Style="{StaticResource SeparatorLine}" Margin="0,10,0,10"/>
-                                        <TextBlock Text="Status template for the site team" Style="{StaticResource SectionTitle}" Margin="0,0,0,6"/>
+                                        <Border Style="{StaticResource SeparatorLine}" Margin="0,12,0,12"/>
+                                        <TextBlock Text="Status template for the site team" Style="{StaticResource SectionTitle}" Margin="0,0,0,8"/>
                                         <TextBlock Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="0,0,0,8"
                                                    Text="An Excel file with one row per Tracker_ID and columns Status (drop-down from the colour table in Status), Progress %, Date and Updated by. Put it on SharePoint. Running it again only adds new Tracker_IDs at the bottom; rows the team filled in are never changed."/>
                                         <Grid Margin="0,0,0,8">
@@ -737,7 +737,7 @@ File: TrackerIdWindow.xaml  (Tracker ID V002 — ToolWindowShell)
                                             <TextBlock Grid.Column="0" Text="Template" Style="{StaticResource FilterLabel}"/>
                                             <TextBox Grid.Column="1" Style="{StaticResource StyledTextInput}" Margin="0,0,8,0"
                                                      Text="{Binding StatusTemplatePath, UpdateSourceTrigger=PropertyChanged}"/>
-                                            <Button Grid.Column="2" Content="Browse…" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,6,0"
+                                            <Button Grid.Column="2" Content="Browse…" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,8,0"
                                                     Command="{Binding BrowseTemplateCommand}"/>
                                             <Button Grid.Column="3" Content="Create / update template" Style="{StaticResource SmallSecondaryButton}"
                                                     Command="{Binding WriteStatusTemplateCommand}"/>
@@ -749,10 +749,10 @@ File: TrackerIdWindow.xaml  (Tracker ID V002 — ToolWindowShell)
                         </Border>
                         <Border Style="{StaticResource ContentCard}" Margin="0,0,0,8">
                             <StackPanel>
-                                <ToggleButton x:Name="StatusSection" Style="{StaticResource StageHeaderToggle}" Padding="10,8" IsChecked="False">
+                                <ToggleButton x:Name="StatusSection" Style="{StaticResource StageHeaderToggle}" Padding="12,8" IsChecked="False">
                                     <DockPanel LastChildFill="True">
                                         <TextBlock DockPanel.Dock="Left" Style="{StaticResource SectionChevron}"/>
-                                        <Border DockPanel.Dock="Left" Width="22" Height="22" CornerRadius="11" Background="{StaticResource BrushNavyPrimary}" Margin="0,0,10,0">
+                                        <Border DockPanel.Dock="Left" Width="22" Height="22" CornerRadius="11" Background="{StaticResource BrushNavyPrimary}" Margin="0,0,12,0">
                                             <TextBlock Text="5" Style="{StaticResource StageNumberText}"/>
                                         </Border>
                                         <TextBlock DockPanel.Dock="Left" Text="Status from SharePoint" Style="{StaticResource StageTitleText}" VerticalAlignment="Center"/>
@@ -762,8 +762,8 @@ File: TrackerIdWindow.xaml  (Tracker ID V002 — ToolWindowShell)
                                 </ToggleButton>
                                 <StackPanel Margin="12,2,12,12" Visibility="{Binding IsChecked, ElementName=StatusSection, Converter={StaticResource BoolToVisibilityConverter}}">
                                     <Border Style="{StaticResource ContentCard}" Margin="0,0,0,8">
-                                        <StackPanel Margin="10,8,10,10">
-                                            <TextBlock Text="Status from the team's file" Style="{StaticResource SectionTitle}" Margin="0,0,0,6"/>
+                                        <StackPanel Margin="12,8,12,12">
+                                            <TextBlock Text="Status from the team's file" Style="{StaticResource SectionTitle}" Margin="0,0,0,8"/>
                                             <TextBlock Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="0,0,0,8"
                                                        Text="Excel or CSV with a Tracker_ID and a Status column (Progress and Date are optional). When an ID is listed several times, the latest date wins. Elements not in the file keep their status."/>
                                             <Grid Margin="0,0,0,8">
@@ -776,13 +776,13 @@ File: TrackerIdWindow.xaml  (Tracker ID V002 — ToolWindowShell)
                                                 <TextBlock Grid.Column="0" Text="Status file" Style="{StaticResource FilterLabel}"/>
                                                 <TextBox Grid.Column="1" Style="{StaticResource StyledTextInput}" Margin="0,0,8,0"
                                                          Text="{Binding StatusFilePath, UpdateSourceTrigger=PropertyChanged}"/>
-                                                <Button Grid.Column="2" Content="Browse…" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,6,0"
+                                                <Button Grid.Column="2" Content="Browse…" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,8,0"
                                                         Command="{Binding BrowseStatusFileCommand}"/>
                                                 <Button Grid.Column="3" Content="Read" Style="{StaticResource SmallSecondaryButton}"
                                                         Command="{Binding ReadStatusCommand}"/>
                                             </Grid>
 
-                                            <DockPanel Margin="0,0,0,6" LastChildFill="False">
+                                            <DockPanel Margin="0,0,0,8" LastChildFill="False">
                                                 <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center">
                                                     <RadioButton GroupName="StatusFilter" Style="{StaticResource ChipToggle}" Content="All"
                                                                  IsChecked="{Binding StatusFilter, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=All, Mode=OneWay}"
@@ -798,7 +798,7 @@ File: TrackerIdWindow.xaml  (Tracker ID V002 — ToolWindowShell)
                                                                  Command="{Binding SetStatusFilterCommand}" CommandParameter="NoRow"/>
                                                 </StackPanel>
                                                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
-                                                    <Button Content="Select shown in Revit" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,6,0"
+                                                    <Button Content="Select shown in Revit" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,8,0"
                                                             Command="{Binding SelectShownStatusRowsCommand}"/>
                                                     <Button Content="Zoom to highlighted" Style="{StaticResource SmallSecondaryButton}"
                                                             Command="{Binding ZoomToStatusRowsCommand}"/>
@@ -844,7 +844,7 @@ File: TrackerIdWindow.xaml  (Tracker ID V002 — ToolWindowShell)
                                                 </DataGrid.Columns>
                                             </DataGrid>
 
-                                            <DockPanel Margin="0,6,0,0" LastChildFill="False">
+                                            <DockPanel Margin="0,8,0,0" LastChildFill="False">
                                                 <TextBlock DockPanel.Dock="Left" Text="{Binding StatusSummaryText}" Style="{StaticResource HintText}"
                                                            TextWrapping="Wrap" MaxWidth="640" VerticalAlignment="Center"/>
                                                 <Button DockPanel.Dock="Right" Content="Write status into Revit" Style="{StaticResource PrimaryButton}" MinWidth="170"
@@ -854,8 +854,8 @@ File: TrackerIdWindow.xaml  (Tracker ID V002 — ToolWindowShell)
                                     </Border>
 
                                     <Border Style="{StaticResource ContentCard}">
-                                        <StackPanel Margin="10,8,10,10">
-                                            <TextBlock Text="Colour views by status" Style="{StaticResource SectionTitle}" Margin="0,0,0,6"/>
+                                        <StackPanel Margin="12,8,12,12">
+                                            <TextBlock Text="Colour views by status" Style="{StaticResource SectionTitle}" Margin="0,0,0,8"/>
                                             <TextBlock Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="0,0,0,8"
                                                        Text="One view filter per status (Tracker Status - …) with a solid colour, plus light grey for elements with no status. Colours are #RRGGBB; edit them here."/>
                                             <ItemsControl ItemsSource="{Binding StatusColourRows}">
@@ -867,15 +867,15 @@ File: TrackerIdWindow.xaml  (Tracker ID V002 — ToolWindowShell)
                                                 <ItemsControl.ItemTemplate>
                                                     <DataTemplate>
                                                         <Border BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="1" CornerRadius="4"
-                                                                Padding="6,4" Margin="0,0,8,6">
+                                                                Padding="8,4" Margin="0,0,8,8">
                                                             <StackPanel Orientation="Horizontal">
-                                                                <Border Width="18" Height="18" CornerRadius="3" Margin="0,0,6,0"
+                                                                <Border Width="18" Height="18" CornerRadius="3" Margin="0,0,8,0"
                                                                         Background="{Binding Color}" BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="1"/>
                                                                 <TextBox Width="110" Style="{StaticResource StyledTextInput}" Margin="0,0,4,0"
                                                                          Text="{Binding Status, UpdateSourceTrigger=PropertyChanged}"/>
                                                                 <TextBox Width="72" Style="{StaticResource StyledTextInput}" Margin="0,0,4,0"
                                                                          Text="{Binding Color, UpdateSourceTrigger=PropertyChanged}"/>
-                                                                <Button Content="✕" Style="{StaticResource SmallSecondaryButton}" Padding="6,0"
+                                                                <Button Content="✕" Style="{StaticResource SmallSecondaryButton}" Padding="8,0"
                                                                         ToolTip="Remove this status"
                                                                         Command="{Binding DataContext.RemoveStatusColourCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                                         CommandParameter="{Binding}"/>
@@ -886,13 +886,13 @@ File: TrackerIdWindow.xaml  (Tracker ID V002 — ToolWindowShell)
                                             </ItemsControl>
                                             <DockPanel Margin="0,4,0,0" LastChildFill="False">
                                                 <StackPanel DockPanel.Dock="Left" Orientation="Horizontal">
-                                                    <Button Content="Add status" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,6,0"
+                                                    <Button Content="Add status" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,8,0"
                                                             Command="{Binding AddStatusColourCommand}"/>
                                                     <Button Content="Default colours" Style="{StaticResource SmallSecondaryButton}"
                                                             Command="{Binding ResetStatusColoursCommand}"/>
                                                 </StackPanel>
                                                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                                                    <Button Content="Colour active view" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,6,0"
+                                                    <Button Content="Colour active view" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,8,0"
                                                             Command="{Binding ColourActiveViewCommand}"
                                                             ToolTip="Adds the status filters to the view you have open in Revit."/>
                                                     <Button Content="Colour 'Tracker - Status' 3D view" Style="{StaticResource SmallSecondaryButton}"
@@ -907,10 +907,10 @@ File: TrackerIdWindow.xaml  (Tracker ID V002 — ToolWindowShell)
                         </Border>
                         <Border Style="{StaticResource ContentCard}" Margin="0,0,0,8">
                             <StackPanel>
-                                <ToggleButton x:Name="HealthSection" Style="{StaticResource StageHeaderToggle}" Padding="10,8" IsChecked="False">
+                                <ToggleButton x:Name="HealthSection" Style="{StaticResource StageHeaderToggle}" Padding="12,8" IsChecked="False">
                                     <DockPanel LastChildFill="True">
                                         <TextBlock DockPanel.Dock="Left" Style="{StaticResource SectionChevron}"/>
-                                        <Border DockPanel.Dock="Left" Width="22" Height="22" CornerRadius="11" Background="{StaticResource BrushNavyPrimary}" Margin="0,0,10,0">
+                                        <Border DockPanel.Dock="Left" Width="22" Height="22" CornerRadius="11" Background="{StaticResource BrushNavyPrimary}" Margin="0,0,12,0">
                                             <TextBlock Text="6" Style="{StaticResource StageNumberText}"/>
                                         </Border>
                                         <TextBlock DockPanel.Dock="Left" Text="Health check" Style="{StaticResource StageTitleText}" VerticalAlignment="Center"/>
@@ -919,8 +919,8 @@ File: TrackerIdWindow.xaml  (Tracker ID V002 — ToolWindowShell)
                                     </DockPanel>
                                 </ToggleButton>
                                 <StackPanel Margin="12,2,12,12" Visibility="{Binding IsChecked, ElementName=HealthSection, Converter={StaticResource BoolToVisibilityConverter}}">
-                                    <StackPanel Margin="10,8,10,10">
-                                        <DockPanel Margin="0,0,0,6" LastChildFill="False">
+                                    <StackPanel Margin="12,8,12,12">
+                                        <DockPanel Margin="0,0,0,8" LastChildFill="False">
                                             <TextBlock DockPanel.Dock="Left" Text="Model health check" Style="{StaticResource SectionTitle}" Margin="0,0,12,0"
                                                        VerticalAlignment="Center"/>
                                             <Button DockPanel.Dock="Right" Content="Run health check" Style="{StaticResource PrimaryButton}" MinWidth="150"
@@ -929,7 +929,7 @@ File: TrackerIdWindow.xaml  (Tracker ID V002 — ToolWindowShell)
                                         <TextBlock Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="0,0,0,8"
                                                    Text="Read-only. Looks at every placed element of the categories that have Tracker_ID, in the whole model. Status checks use the status file chosen in Status."/>
 
-                                        <DockPanel Margin="0,0,0,6" LastChildFill="False">
+                                        <DockPanel Margin="0,0,0,8" LastChildFill="False">
                                             <WrapPanel DockPanel.Dock="Left" VerticalAlignment="Center">
                                                 <RadioButton GroupName="HealthFilter" Style="{StaticResource ChipToggle}" Content="{Binding HealthAllChip}"
                                                              IsChecked="{Binding HealthFilter, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=All, Mode=OneWay}"
@@ -988,13 +988,13 @@ File: TrackerIdWindow.xaml  (Tracker ID V002 — ToolWindowShell)
                                             </DataGrid.Columns>
                                         </DataGrid>
 
-                                        <TextBlock Text="{Binding HealthSummaryText}" Style="{StaticResource HintText}" Margin="0,6,0,6" TextWrapping="Wrap"/>
+                                        <TextBlock Text="{Binding HealthSummaryText}" Style="{StaticResource HintText}" Margin="0,8,0,8" TextWrapping="Wrap"/>
                                         <WrapPanel>
-                                            <Button Content="Select shown in Revit" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,6,0"
+                                            <Button Content="Select shown in Revit" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,8,0"
                                                     Command="{Binding SelectShownHealthRowsCommand}"/>
-                                            <Button Content="Zoom to highlighted" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,6,0"
+                                            <Button Content="Zoom to highlighted" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,8,0"
                                                     Command="{Binding ZoomToHealthRowsCommand}"/>
-                                            <Button Content="Export report…" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,6,0"
+                                            <Button Content="Export report…" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,8,0"
                                                     Command="{Binding ExportHealthReportCommand}"/>
                                             <Button Content="Fix in Result" Style="{StaticResource SmallSecondaryButton}"
                                                     Command="{Binding FixInStep3Command}"
@@ -1009,19 +1009,19 @@ File: TrackerIdWindow.xaml  (Tracker ID V002 — ToolWindowShell)
                     <!-- ══ PAGE 2: Tracker ID naming ══ -->
                     <StackPanel Visibility="{Binding IsPage2, Converter={StaticResource BoolToVisibilityConverter}}">
                         <Border Style="{StaticResource ContentCard}" Margin="0,0,0,8">
-                                                    <StackPanel Margin="10,8,10,10">
-                                                        <TextBlock Text="Tracker ID format" Style="{StaticResource SectionTitle}" Margin="0,0,0,6"/>
+                                                    <StackPanel Margin="12,8,12,12">
+                                                        <TextBlock Text="Tracker ID format" Style="{StaticResource SectionTitle}" Margin="0,0,0,8"/>
                                                         <DockPanel Margin="0,0,0,8">
                                                             <TextBlock DockPanel.Dock="Left" Text="Start from" Style="{StaticResource FilterLabel}"/>
                                                             <Button DockPanel.Dock="Right" Content="Use this naming" Style="{StaticResource SmallSecondaryButton}"
-                                                                    Margin="6,0,0,0" Command="{Binding ApplyTemplateCommand}"/>
+                                                                    Margin="8,0,0,0" Command="{Binding ApplyTemplateCommand}"/>
                                                             <ComboBox Style="{StaticResource StandardComboBox}" ItemsSource="{Binding NamingTemplates}"
                                                                       SelectedItem="{Binding SelectedTemplate}"
                                                                       ToolTip="A ready-made naming. Its parts replace the ones below; you can still change them afterwards."/>
                                                         </DockPanel>
 
                                                         <Border Background="{StaticResource BrushSurfaceWindow}" BorderBrush="{StaticResource BrushBorderInput}"
-                                                                BorderThickness="1" CornerRadius="4" Padding="10,6" Margin="0,0,0,8">
+                                                                BorderThickness="1" CornerRadius="4" Padding="12,8" Margin="0,0,0,8">
                                                             <StackPanel>
                                                                 <TextBlock Text="FORMAT PREVIEW · FIRST ELEMENT" Style="{StaticResource MetricTileLabel}"/>
                                                                 <TextBlock Text="{Binding SampleId}" FontFamily="Consolas" FontSize="18" FontWeight="SemiBold"
@@ -1064,11 +1064,11 @@ File: TrackerIdWindow.xaml  (Tracker ID V002 — ToolWindowShell)
                                                                             <CheckBox Grid.Column="0" IsChecked="{Binding IsEnabled}" VerticalAlignment="Center"
                                                                                       ToolTip="Untick to leave this segment out of the ID."/>
                                                                             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                                                                                <Button Content="▲" Style="{StaticResource SmallSecondaryButton}" Padding="6,0" Margin="0,0,2,0"
+                                                                                <Button Content="▲" Style="{StaticResource SmallSecondaryButton}" Padding="8,0" Margin="0,0,2,0"
                                                                                         ToolTip="Move earlier in the ID"
                                                                                         Command="{Binding DataContext.MoveSegmentUpCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                                                         CommandParameter="{Binding}"/>
-                                                                                <Button Content="▼" Style="{StaticResource SmallSecondaryButton}" Padding="6,0"
+                                                                                <Button Content="▼" Style="{StaticResource SmallSecondaryButton}" Padding="8,0"
                                                                                         ToolTip="Move later in the ID"
                                                                                         Command="{Binding DataContext.MoveSegmentDownCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                                                         CommandParameter="{Binding}"/>
@@ -1078,7 +1078,7 @@ File: TrackerIdWindow.xaml  (Tracker ID V002 — ToolWindowShell)
                                                                                            Foreground="{StaticResource BrushTextPrimary}"/>
                                                                                 <TextBlock Text="{Binding Note}" Style="{StaticResource HintText}"/>
                                                                             </StackPanel>
-                                                                            <ComboBox Grid.Column="3" Style="{StaticResource StandardComboBox}" Margin="0,0,10,0"
+                                                                            <ComboBox Grid.Column="3" Style="{StaticResource StandardComboBox}" Margin="0,0,12,0"
                                                                                       ItemsSource="{Binding Sources}" SelectedItem="{Binding SelectedSource, Mode=TwoWay}"
                                                                                       DisplayMemberPath="Label" VerticalAlignment="Center"/>
                                                                             <Grid Grid.Column="4" VerticalAlignment="Center">
@@ -1130,10 +1130,10 @@ File: TrackerIdWindow.xaml  (Tracker ID V002 — ToolWindowShell)
                                                     </StackPanel>
                         </Border>
                         <Border Style="{StaticResource ContentCard}" Margin="0,0,0,8">
-                            <StackPanel Margin="10,8,10,10">
+                            <StackPanel Margin="12,8,12,12">
                                 <TextBlock Text="Type codes" Style="{StaticResource SectionTitle}" Margin="0,0,0,4"/>
                                 <TextBlock Text="A short code per type, used by the Type part of the ID. Leave blank to use the Type part's source (Type Mark, type name or family name)."
-                                           Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="0,0,0,6"/>
+                                           Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="0,0,0,8"/>
                                 <CheckBox Content="Write the whole ID in capitals" Style="{StaticResource OptionCheck}" Margin="0,0,0,8"
                                           IsChecked="{Binding UpperCase}"/>
                                 <DataGrid ItemsSource="{Binding TypeCodeRows}" Height="200"
@@ -1156,12 +1156,12 @@ File: TrackerIdWindow.xaml  (Tracker ID V002 — ToolWindowShell)
                             </StackPanel>
                         </Border>
                         <Border Style="{StaticResource ContentCard}">
-                            <StackPanel Margin="10,8,10,10">
+                            <StackPanel Margin="12,8,12,12">
                                 <TextBlock Text="Next new IDs" Style="{StaticResource SectionTitle}" Margin="0,0,0,4"/>
                                 <ItemsControl ItemsSource="{Binding NextIds}">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
-                                            <TextBlock Text="{Binding}" FontFamily="Consolas" FontSize="12" Foreground="{StaticResource BrushTextPrimary}" Margin="0,1"/>
+                                            <TextBlock Text="{Binding}" FontFamily="Consolas" FontSize="12" Foreground="{StaticResource BrushTextPrimary}" Margin="0,2"/>
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
@@ -1176,7 +1176,7 @@ File: TrackerIdWindow.xaml  (Tracker ID V002 — ToolWindowShell)
                 <Border Style="{StaticResource ContentCard}" Margin="0,8,0,0"
                         Visibility="{Binding IsReading, Converter={StaticResource BoolToVisibilityConverter}}">
                     <DockPanel Margin="12,8">
-                        <Button DockPanel.Dock="Right" Content="Cancel" Style="{StaticResource SmallSecondaryButton}" Margin="10,0,0,0"
+                        <Button DockPanel.Dock="Right" Content="Cancel" Style="{StaticResource SmallSecondaryButton}" Margin="12,0,0,0"
                                 Command="{Binding CancelReadCommand}"/>
                         <StackPanel>
                             <TextBlock Text="{Binding ReadProgressText}" Style="{StaticResource HintText}" Margin="0,0,0,4"/>
@@ -1187,25 +1187,25 @@ File: TrackerIdWindow.xaml  (Tracker ID V002 — ToolWindowShell)
                 </Border>
 
                 <!-- ══ Log ══ -->
-                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="10,8" Margin="0,8,0,0">
+                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="12,8" Margin="0,8,0,0">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <Grid Margin="0,0,0,6">
+                        <Grid Margin="0,0,0,8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Text="Log" FontSize="11.5" FontWeight="SemiBold"
+                            <TextBlock Text="Log" FontSize="12" FontWeight="SemiBold"
                                        Foreground="{StaticResource BrushLogText}" VerticalAlignment="Center"/>
                             <StackPanel Grid.Column="1" Orientation="Horizontal">
                                 <Button Content="Copy All" Style="{StaticResource DarkGhostButton}" Click="CopyAllLog_Click"/>
-                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Margin="6,0,0,0" Click="CopySelectedLog_Click"/>
-                                <Button Content="Clear" Style="{StaticResource DarkGhostButton}" Margin="6,0,0,0"
+                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Margin="8,0,0,0" Click="CopySelectedLog_Click"/>
+                                <Button Content="Clear" Style="{StaticResource DarkGhostButton}" Margin="8,0,0,0"
                                         Command="{Binding ClearLogCommand}"/>
-                                <Button Content="Export Log" Style="{StaticResource DarkGhostButton}" Margin="6,0,0,0"
+                                <Button Content="Export Log" Style="{StaticResource DarkGhostButton}" Margin="8,0,0,0"
                                         Click="ExportLog_Click"/>
                             </StackPanel>
                         </Grid>
@@ -1218,13 +1218,13 @@ File: TrackerIdWindow.xaml  (Tracker ID V002 — ToolWindowShell)
                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                             <ListBox.ItemContainerStyle>
                                 <Style TargetType="ListBoxItem">
-                                    <Setter Property="Padding" Value="0,1"/>
+                                    <Setter Property="Padding" Value="0,2"/>
                                     <Setter Property="Background" Value="Transparent"/>
                                 </Style>
                             </ListBox.ItemContainerStyle>
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
-                                    <StackPanel Orientation="Horizontal" Margin="0,1,0,1">
+                                    <StackPanel Orientation="Horizontal" Margin="0,2,0,2">
                                         <TextBlock Text="{Binding Time, StringFormat='HH:mm:ss', Mode=OneWay}"
                                                    FontFamily="Consolas" FontSize="11"
                                                    Foreground="{StaticResource BrushLogTextDim}" Margin="0,0,8,0"/>

@@ -68,7 +68,7 @@ Changes vs V004 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
         <shell:ToolWindowShell.HeaderContent>
             <StackPanel>
                 <!-- ═══════════ METRICS BAR ═══════════ -->
-                <Border Background="{StaticResource BrushNavyDark}" Padding="16,10" CornerRadius="6,6,0,0">
+                <Border Background="{StaticResource BrushNavyDark}" Padding="16,12" CornerRadius="6,6,0,0">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
@@ -77,31 +77,31 @@ Changes vs V004 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
 
-                        <Border Grid.Column="0" Background="{StaticResource BrushNavyLight}" CornerRadius="6" Padding="10,8" Margin="0,0,6,0">
+                        <Border Grid.Column="0" Background="{StaticResource BrushNavyLight}" CornerRadius="6" Padding="12,8" Margin="0,0,8,0">
                             <StackPanel>
                                 <TextBlock Text="{Binding MetricParamsFileCount}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource BrushTextOnAccent}"/>
-                                <TextBlock Text="Param File Loaded" FontSize="10.5" Foreground="{StaticResource BrushAppleBlueLight}"/>
+                                <TextBlock Text="Param File Loaded" FontSize="11" Foreground="{StaticResource BrushAppleBlueLight}"/>
                             </StackPanel>
                         </Border>
 
-                        <Border Grid.Column="1" Background="{StaticResource BrushNavyLight}" CornerRadius="6" Padding="10,8" Margin="6,0">
+                        <Border Grid.Column="1" Background="{StaticResource BrushNavyLight}" CornerRadius="6" Padding="12,8" Margin="8,0">
                             <StackPanel>
                                 <TextBlock Text="{Binding MetricCategoriesSelected}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource BrushTextOnAccent}"/>
-                                <TextBlock Text="Categories Selected" FontSize="10.5" Foreground="{StaticResource BrushAppleBlueLight}"/>
+                                <TextBlock Text="Categories Selected" FontSize="11" Foreground="{StaticResource BrushAppleBlueLight}"/>
                             </StackPanel>
                         </Border>
 
-                        <Border Grid.Column="2" Background="{StaticResource BrushNavyLight}" CornerRadius="6" Padding="10,8" Margin="6,0">
+                        <Border Grid.Column="2" Background="{StaticResource BrushNavyLight}" CornerRadius="6" Padding="12,8" Margin="8,0">
                             <StackPanel>
                                 <TextBlock Text="{Binding MetricParametersSelected}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource BrushTextOnAccent}"/>
-                                <TextBlock Text="Parameters Selected" FontSize="10.5" Foreground="{StaticResource BrushAppleBlueLight}"/>
+                                <TextBlock Text="Parameters Selected" FontSize="11" Foreground="{StaticResource BrushAppleBlueLight}"/>
                             </StackPanel>
                         </Border>
 
-                        <Border Grid.Column="3" Background="{StaticResource BrushNavyLight}" CornerRadius="6" Padding="10,8" Margin="6,0,0,0">
+                        <Border Grid.Column="3" Background="{StaticResource BrushNavyLight}" CornerRadius="6" Padding="12,8" Margin="8,0,0,0">
                             <StackPanel>
                                 <TextBlock Text="{Binding MetricAssignedThisSession}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource BrushTextOnAccent}"/>
-                                <TextBlock Text="Assigned This Session" FontSize="10.5" Foreground="{StaticResource BrushAppleBlueLight}"/>
+                                <TextBlock Text="Assigned This Session" FontSize="11" Foreground="{StaticResource BrushAppleBlueLight}"/>
                             </StackPanel>
                         </Border>
                     </Grid>
@@ -134,7 +134,7 @@ Changes vs V004 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                     </Border.Style>
                                     <TextBlock Text="1" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="11" FontWeight="Bold" Foreground="{StaticResource BrushTextOnAccent}"/>
                                 </Border>
-                                <TextBlock Text="Source" Style="{StaticResource StepLabel}" Margin="6,0,0,0" Foreground="{StaticResource BrushTextOnDark}"/>
+                                <TextBlock Text="Source" Style="{StaticResource StepLabel}" Margin="8,0,0,0" Foreground="{StaticResource BrushTextOnDark}"/>
                             </StackPanel>
                         </Button>
 
@@ -161,7 +161,7 @@ Changes vs V004 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                     </Border.Style>
                                     <TextBlock Text="2" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="11" FontWeight="Bold" Foreground="{StaticResource BrushTextOnAccent}"/>
                                 </Border>
-                                <TextBlock Text="Scope" Style="{StaticResource StepLabel}" Margin="6,0,0,0" Foreground="{StaticResource BrushTextOnDark}"/>
+                                <TextBlock Text="Scope" Style="{StaticResource StepLabel}" Margin="8,0,0,0" Foreground="{StaticResource BrushTextOnDark}"/>
                             </StackPanel>
                         </Button>
 
@@ -185,7 +185,7 @@ Changes vs V004 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                     </Border.Style>
                                     <TextBlock Text="3" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="11" FontWeight="Bold" Foreground="{StaticResource BrushTextOnAccent}"/>
                                 </Border>
-                                <TextBlock Text="Parameters" Style="{StaticResource StepLabel}" Margin="6,0,0,0" Foreground="{StaticResource BrushTextOnDark}"/>
+                                <TextBlock Text="Parameters" Style="{StaticResource StepLabel}" Margin="8,0,0,0" Foreground="{StaticResource BrushTextOnDark}"/>
                             </StackPanel>
                         </Button>
 
@@ -206,7 +206,7 @@ Changes vs V004 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                     </Border.Style>
                                     <TextBlock Text="4" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="11" FontWeight="Bold" Foreground="{StaticResource BrushTextOnAccent}"/>
                                 </Border>
-                                <TextBlock Text="Review &amp; Run" Style="{StaticResource StepLabel}" Margin="6,0,0,0" Foreground="{StaticResource BrushTextOnDark}"/>
+                                <TextBlock Text="Review &amp; Run" Style="{StaticResource StepLabel}" Margin="8,0,0,0" Foreground="{StaticResource BrushTextOnDark}"/>
                             </StackPanel>
                         </Button>
                     </StackPanel>
@@ -224,7 +224,7 @@ Changes vs V004 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                         <GroupBox Header="Shared Parameter File" Style="{StaticResource CardGroupBox}">
                             <StackPanel Margin="12,8,12,12">
                                 <TextBlock Text="Load the shared parameter file this batch will assign from."
-                                           Style="{StaticResource HintText}" Margin="0,0,0,10"/>
+                                           Style="{StaticResource HintText}" Margin="0,0,0,12"/>
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
@@ -233,13 +233,13 @@ Changes vs V004 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                     </Grid.ColumnDefinitions>
 
                                     <Border Grid.Column="0" Background="{StaticResource BrushSystemSecondaryBackground}"
-                                            CornerRadius="4" Padding="8,6" Margin="0,0,8,0">
+                                            CornerRadius="4" Padding="8,8" Margin="0,0,8,0">
                                         <TextBlock Text="{Binding SharedParameterFilePath, TargetNullValue='No file selected'}"
                                                    Style="{StaticResource BodyText}" TextTrimming="CharacterEllipsis"/>
                                     </Border>
 
                                     <Button Grid.Column="1" Content="Browse…" Style="{StaticResource OutlineButton}"
-                                            Command="{Binding BrowseSharedParameterFileCommand}" Margin="0,0,6,0"/>
+                                            Command="{Binding BrowseSharedParameterFileCommand}" Margin="0,0,8,0"/>
                                     <Button Grid.Column="2" Content="Reload" Style="{StaticResource SecondaryButton}"
                                             Command="{Binding ReloadSharedParameterFileCommand}"/>
                                 </Grid>
@@ -252,7 +252,7 @@ Changes vs V004 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                         <GroupBox Header="Target Categories" Style="{StaticResource CardGroupBox}">
                             <StackPanel Margin="12,8,12,12">
                                 <TextBlock Text="Choose which categories this batch will apply parameters to."
-                                           Style="{StaticResource HintText}" Margin="0,0,0,10"/>
+                                           Style="{StaticResource HintText}" Margin="0,0,0,12"/>
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
@@ -261,7 +261,7 @@ Changes vs V004 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
 
                                     <ToggleButton Grid.Column="0" IsChecked="{Binding IsCategoryPopupOpen}"
                                                   Style="{StaticResource StageHeaderToggle}"
-                                                  HorizontalAlignment="Stretch" Padding="8,6">
+                                                  HorizontalAlignment="Stretch" Padding="8,8">
                                         <Grid>
                                             <TextBlock Text="{Binding SelectedCategories.Count, StringFormat='{}{0} categories selected'}"
                                                        Style="{StaticResource FieldValue}" HorizontalAlignment="Left"/>
@@ -282,7 +282,7 @@ Changes vs V004 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                                                 CommandParameter="{Binding}"
                                                                 Style="{StaticResource SecondaryButton}"
                                                                 HorizontalContentAlignment="Left" HorizontalAlignment="Stretch"
-                                                                Padding="10,6">
+                                                                Padding="12,8">
                                                             <TextBlock Text="{Binding Name}" Style="{StaticResource BodyText}"/>
                                                         </Button>
                                                     </DataTemplate>
@@ -305,12 +305,12 @@ Changes vs V004 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate DataType="{x:Type models:CategoryInfo}">
                                             <Border Background="{StaticResource BrushNavyPrimary}" CornerRadius="10"
-                                                    Padding="8,3" Margin="0,0,6,6">
+                                                    Padding="8,4" Margin="0,0,8,8">
                                                 <StackPanel Orientation="Horizontal">
                                                     <TextBlock Text="{Binding Name}" Foreground="{StaticResource BrushTextOnAccent}" FontSize="11"/>
-                                                    <Button Content="✕" Margin="6,0,0,0" Background="Transparent"
+                                                    <Button Content="✕" Margin="8,0,0,0" Background="Transparent"
                                                             BorderThickness="0" Foreground="{StaticResource BrushTextOnAccent}" Cursor="Hand"
-                                                            FontSize="9"
+                                                            FontSize="10"
                                                             Command="{Binding DataContext.RemoveCategoryCommand,
                                                                       RelativeSource={RelativeSource AncestorType=Window}}"
                                                             CommandParameter="{Binding}"/>
@@ -328,9 +328,9 @@ Changes vs V004 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                         <GroupBox Header="Parameters to Assign" Style="{StaticResource CardGroupBox}">
                             <StackPanel Margin="12,8,12,12">
                                 <TextBlock Text="Binding type is chosen once per Run (applies to the whole batch)."
-                                           Style="{StaticResource HintText}" Margin="0,0,0,10"/>
+                                           Style="{StaticResource HintText}" Margin="0,0,0,12"/>
 
-                                <Grid Margin="0,0,0,10">
+                                <Grid Margin="0,0,0,12">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition Width="*"/>
@@ -351,7 +351,7 @@ Changes vs V004 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate DataType="{x:Type models:ParameterGroupNode}">
                                             <StackPanel>
-                                                <Border Background="{StaticResource BrushSystemSecondaryBackground}" Padding="12,6">
+                                                <Border Background="{StaticResource BrushSystemSecondaryBackground}" Padding="12,8">
                                                     <Grid>
                                                         <Grid.ColumnDefinitions>
                                                             <ColumnDefinition Width="Auto"/>
@@ -360,10 +360,10 @@ Changes vs V004 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                                         </Grid.ColumnDefinitions>
                                                         <CheckBox Grid.Column="0" IsChecked="{Binding IsChecked}" VerticalAlignment="Center"/>
                                                         <TextBlock Grid.Column="1" Text="{Binding GroupName}" FontWeight="SemiBold"
-                                                                   FontSize="11.5" Foreground="{StaticResource BrushNavyPrimary}"
-                                                                   VerticalAlignment="Center" Margin="6,0,0,0"/>
+                                                                   FontSize="12" Foreground="{StaticResource BrushNavyPrimary}"
+                                                                   VerticalAlignment="Center" Margin="8,0,0,0"/>
                                                         <TextBlock Grid.Column="2" Text="{Binding ParameterCount, StringFormat='{}{0} params'}"
-                                                                   Foreground="{StaticResource BrushTextTertiary}" FontSize="10.5"
+                                                                   Foreground="{StaticResource BrushTextTertiary}" FontSize="11"
                                                                    VerticalAlignment="Center"/>
                                                     </Grid>
                                                 </Border>
@@ -373,7 +373,7 @@ Changes vs V004 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                                             <StackPanel Orientation="Horizontal" Margin="26,4,12,4">
                                                                 <CheckBox IsChecked="{Binding IsChecked}" VerticalAlignment="Center"/>
                                                                 <TextBlock Text="{Binding Parameter.Name}" Style="{StaticResource BodyText}"
-                                                                           Margin="6,0,0,0" VerticalAlignment="Center"/>
+                                                                           Margin="8,0,0,0" VerticalAlignment="Center"/>
                                                             </StackPanel>
                                                         </DataTemplate>
                                                     </ItemsControl.ItemTemplate>
@@ -385,7 +385,7 @@ Changes vs V004 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
 
                                 <Button Content="Apply to Queue" Style="{StaticResource PrimaryButton}"
                                         Command="{Binding ApplyParameterPopoverCommand}"
-                                        HorizontalAlignment="Right" Margin="0,10,0,0"/>
+                                        HorizontalAlignment="Right" Margin="0,12,0,0"/>
                             </StackPanel>
                         </GroupBox>
                     </StackPanel>
@@ -402,9 +402,9 @@ Changes vs V004 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                              MaxLength="25"/>
                                     <Button Content="Select All" Style="{StaticResource SmallSecondaryButton}" Margin="8,0,0,0"
                                             Command="{Binding SelectAllQueueRowsCommand}"/>
-                                    <Button Content="Clear Selection" Style="{StaticResource SmallSecondaryButton}" Margin="6,0,0,0"
+                                    <Button Content="Clear Selection" Style="{StaticResource SmallSecondaryButton}" Margin="8,0,0,0"
                                             Command="{Binding ClearQueueSelectionCommand}"/>
-                                    <Button Content="Refresh" Style="{StaticResource SmallSecondaryButton}" Margin="6,0,0,0"
+                                    <Button Content="Refresh" Style="{StaticResource SmallSecondaryButton}" Margin="8,0,0,0"
                                             Command="{Binding RefreshQueueCommand}"/>
                                 </StackPanel>
 
@@ -512,19 +512,19 @@ Changes vs V004 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                     <TextBlock Text="▸" Visibility="{Binding IsLogExpanded, Converter={StaticResource InverseBoolToVisibilityConverter}}"
                                                Foreground="{StaticResource BrushLogTextDim}" FontFamily="Consolas" FontSize="11" Margin="0,0,8,0"/>
                                     <TextBlock Text="Activity Log" Foreground="{StaticResource BrushLogText}" FontFamily="Consolas" FontSize="11"/>
-                                    <Border Background="{StaticResource BrushAppleBlue}" CornerRadius="8" Padding="6,1" Margin="8,0,0,0"
+                                    <Border Background="{StaticResource BrushAppleBlue}" CornerRadius="8" Padding="8,2" Margin="8,0,0,0"
                                             Visibility="{Binding UnreadLogCount, Converter={StaticResource IntToVisibilityConverter}}">
-                                        <TextBlock Text="{Binding UnreadLogCount, StringFormat='{}{0} new'}" Foreground="{StaticResource BrushTextOnDark}" FontSize="9.5" FontFamily="Consolas"/>
+                                        <TextBlock Text="{Binding UnreadLogCount, StringFormat='{}{0} new'}" Foreground="{StaticResource BrushTextOnDark}" FontSize="10" FontFamily="Consolas"/>
                                     </Border>
                                 </StackPanel>
                                 <TextBlock Text="docked · click to expand" Foreground="{StaticResource BrushLogTextDim}"
-                                           FontFamily="Consolas" FontSize="9.5" HorizontalAlignment="Right"/>
+                                           FontFamily="Consolas" FontSize="10" HorizontalAlignment="Right"/>
                             </Grid>
                         </ToggleButton>
 
                         <Border Padding="16,0,16,12" Visibility="{Binding IsLogExpanded, Converter={StaticResource BoolToVisibilityConverter}}">
                             <StackPanel>
-                                <Border Background="{StaticResource BrushLogBg}" CornerRadius="4" Padding="10,0">
+                                <Border Background="{StaticResource BrushLogBg}" CornerRadius="4" Padding="12,0">
                                     <ListBox ItemsSource="{Binding LogEntries}" MinHeight="120" shell:ShellBehaviors.MaxHeightRatio="0.2" shell:ShellBehaviors.ForwardMouseWheel="True"
                                              Background="Transparent" BorderThickness="0"
                                              SelectionMode="Extended"

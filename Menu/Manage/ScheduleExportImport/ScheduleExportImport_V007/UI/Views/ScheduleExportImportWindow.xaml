@@ -40,10 +40,10 @@ Changes vs V006 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
 
             <!-- Metric tile: big number coloured by Tone, label underneath -->
             <DataTemplate x:Key="SummaryCardTemplate" DataType="{x:Type vm:SummaryCard}">
-                <Border Style="{StaticResource MetricCard}" Margin="0,0,6,0" Padding="10,8" ToolTip="{Binding Hint}">
+                <Border Style="{StaticResource MetricCard}" Margin="0,0,8,0" Padding="12,8" ToolTip="{Binding Hint}">
                     <StackPanel>
                         <TextBlock x:Name="Num" Text="{Binding Value}" Style="{StaticResource MetricNumber}" FontSize="20"/>
-                        <TextBlock Text="{Binding Label}" Style="{StaticResource MetricLabel}" Margin="0,1,0,0" TextTrimming="CharacterEllipsis"/>
+                        <TextBlock Text="{Binding Label}" Style="{StaticResource MetricLabel}" Margin="0,2,0,0" TextTrimming="CharacterEllipsis"/>
                     </StackPanel>
                 </Border>
                 <DataTemplate.Triggers>
@@ -140,7 +140,7 @@ Changes vs V006 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
             <StackPanel>
                 <!-- ══ Actions: Export (green) and Import (red) on their own rows, same size, under the metric cards ══ -->
                 <Border Style="{StaticResource ContentCard}" Margin="0,0,0,8">
-                    <Grid Margin="12,10">
+                    <Grid Margin="12,12">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="210"/>
                             <ColumnDefinition Width="12"/>
@@ -170,12 +170,12 @@ Changes vs V006 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                 ToolTip="Save the ticked schedule (Element ID + visible fields) as .xlsx. Green columns are editable, grey are locked."/>
                         <StackPanel Grid.Row="1" Grid.Column="2" VerticalAlignment="Center">
                             <TextBlock Text="1 · Export the ticked schedule, then edit the green columns in Excel and save."
-                                       FontSize="10.5" Foreground="{StaticResource BrushTextSecondary}" TextWrapping="Wrap"/>
+                                       FontSize="11" Foreground="{StaticResource BrushTextSecondary}" TextWrapping="Wrap"/>
                             <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
                                 <Button Content="Open Exported File" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,8,0"
                                         Command="{Binding OpenExportedFileCommand}" ToolTip="Open the last exported workbook in Excel"/>
                                 <CheckBox Content="Include hidden fields" IsChecked="{Binding IncludeHiddenFields, Mode=TwoWay}" VerticalAlignment="Center"
-                                          FontSize="11" Margin="0,0,10,0" Foreground="{StaticResource BrushTextPrimary}"
+                                          FontSize="11" Margin="0,0,12,0" Foreground="{StaticResource BrushTextPrimary}"
                                           ToolTip="Also export the schedule's hidden fields, after the visible columns. Remembered for next time."/>
                                 <TextBlock Text="{Binding LastExportedFile, Mode=OneWay}" FontSize="10" VerticalAlignment="Center"
                                            TextTrimming="CharacterEllipsis" Foreground="{StaticResource BrushAppleBlue}"/>
@@ -186,22 +186,22 @@ Changes vs V006 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                         <Button Grid.Row="3" Grid.Column="0" Content="Import from Excel…" Style="{StaticResource ImportActionButton}"
                                 Command="{Binding ImportScheduleCommand}"
                                 ToolTip="Save your edits in Excel (it can stay open), then import. A preview opens and nothing changes until you click Apply."/>
-                        <TextBlock Grid.Row="3" Grid.Column="2" VerticalAlignment="Center" TextWrapping="Wrap" FontSize="10.5"
+                        <TextBlock Grid.Row="3" Grid.Column="2" VerticalAlignment="Center" TextWrapping="Wrap" FontSize="11"
                                    Foreground="{StaticResource BrushTextSecondary}"
                                    Text="2 · Import the saved file. The schedule is picked from the file; review the preview, then Apply."/>
                     </Grid>
                 </Border>
                 <!-- ══ Schedule list ══ -->
                 <Border Style="{StaticResource ContentCard}" Margin="0,0,0,8">
-                    <Grid Margin="10,8">
+                    <Grid Margin="12,8">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
                         <TextBlock Text="Schedules in Document" FontWeight="SemiBold" FontSize="12"
-                                   Foreground="{StaticResource BrushTextPrimary}" Margin="0,0,0,6"/>
-                        <Grid Grid.Row="1" Margin="0,0,0,6">
+                                   Foreground="{StaticResource BrushTextPrimary}" Margin="0,0,0,8"/>
+                        <Grid Grid.Row="1" Margin="0,0,0,8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
@@ -211,9 +211,9 @@ Changes vs V006 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                        Foreground="{StaticResource BrushTextSecondary}" Margin="0,0,8,0"/>
                             <TextBox Grid.Column="1"
                                      Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                     FontSize="12" Padding="6,4" VerticalContentAlignment="Center"
+                                     FontSize="12" Padding="8,4" VerticalContentAlignment="Center"
                                      ToolTip="Filter by schedule name or category"/>
-                            <Button Grid.Column="2" Content="✕" Margin="6,0,0,0"
+                            <Button Grid.Column="2" Content="✕" Margin="8,0,0,0"
                                     Style="{StaticResource SmallSecondaryButton}"
                                     Command="{Binding ClearSearchCommand}" ToolTip="Clear search"/>
                         </Grid>
@@ -264,13 +264,13 @@ Changes vs V006 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
-                        <Border Background="{StaticResource BrushLogTitleBar}" CornerRadius="6,6,0,0" Padding="10,4">
+                        <Border Background="{StaticResource BrushLogTitleBar}" CornerRadius="6,6,0,0" Padding="12,4">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock VerticalAlignment="Center" FontSize="10.5" FontWeight="SemiBold" Foreground="{StaticResource BrushLogText}">
+                                <TextBlock VerticalAlignment="Center" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource BrushLogText}">
                                     <Run Text="Log"/>
                                     <Run Text="{Binding LogEntries.Count, Mode=OneWay}" Foreground="{StaticResource BrushLogTextDim}"/>
                                 </TextBlock>
@@ -283,7 +283,7 @@ Changes vs V006 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                             </Grid>
                         </Border>
                         <ListBox x:Name="LogList" Grid.Row="1" ItemsSource="{Binding LogEntries}" MinHeight="120" shell:ShellBehaviors.MaxHeightRatio="0.2" shell:ShellBehaviors.ForwardMouseWheel="True" SelectionMode="Extended"
-                                 Background="Transparent" BorderThickness="0" Padding="6,4"
+                                 Background="Transparent" BorderThickness="0" Padding="8,4"
                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                                  VirtualizingPanel.IsVirtualizing="True">
                             <ListBox.ItemContainerStyle>
@@ -295,7 +295,7 @@ Changes vs V006 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                             </ListBox.ItemContainerStyle>
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
-                                    <TextBlock FontFamily="Consolas" FontSize="10.5" TextWrapping="Wrap"
+                                    <TextBlock FontFamily="Consolas" FontSize="11" TextWrapping="Wrap"
                                                Foreground="{Binding Level, Converter={StaticResource LogLevelToColorConverter}}"
                                                Text="{Binding Mode=OneWay}"/>
                                 </DataTemplate>

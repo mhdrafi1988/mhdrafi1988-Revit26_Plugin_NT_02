@@ -49,13 +49,13 @@ Changes vs V004 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
         <!-- ═══ HEADER ═══════════════════════════════════════════ -->
         <shell:ToolWindowShell.HeaderContent>
             <UniformGrid Columns="2" Margin="0,0,0,8">
-                <Border Style="{StaticResource MetricCard}" Margin="0,0,4,0" Padding="10,8">
+                <Border Style="{StaticResource MetricCard}" Margin="0,0,4,0" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="Worksets" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding Rows.Count}" Style="{StaticResource MetricNumber}" FontSize="18"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricCard}" Margin="4,0,0,0" Padding="10,8">
+                <Border Style="{StaticResource MetricCard}" Margin="4,0,0,0" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="Shown" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding FilteredRows.Count}" Style="{StaticResource MetricNumberAccent}" FontSize="18"/>
@@ -72,7 +72,7 @@ Changes vs V004 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                     <StackPanel>
 
                         <!-- Filter -->
-                        <Grid Margin="10,8,10,6">
+                        <Grid Margin="12,8,12,8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
@@ -88,7 +88,7 @@ Changes vs V004 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                         <Border Style="{StaticResource SeparatorLine}"/>
 
                         <!-- Find & Replace -->
-                        <Grid Margin="10,6,10,6">
+                        <Grid Margin="12,8,12,8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
@@ -102,14 +102,14 @@ Changes vs V004 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                             <TextBox Grid.Column="1"
                                      Style="{StaticResource StyledTextInput}"
                                      Text="{Binding FindText, UpdateSourceTrigger=PropertyChanged}"
-                                     Margin="0,0,10,0"/>
+                                     Margin="0,0,12,0"/>
                             <TextBlock Grid.Column="2" Text="Replace"
                                        Style="{StaticResource FieldLabel}"
                                        VerticalAlignment="Center" Margin="0,0,8,0"/>
                             <TextBox Grid.Column="3"
                                      Style="{StaticResource StyledTextInput}"
                                      Text="{Binding ReplaceText, UpdateSourceTrigger=PropertyChanged}"
-                                     Margin="0,0,10,0"/>
+                                     Margin="0,0,12,0"/>
                             <Button Grid.Column="4" Content="Apply F&amp;R"
                                     Style="{StaticResource SmallSecondaryButton}"
                                     Command="{Binding ApplyFindReplaceCommand}"/>
@@ -118,7 +118,7 @@ Changes vs V004 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                         <Border Style="{StaticResource SeparatorLine}"/>
 
                         <!-- Prefix / Suffix -->
-                        <Grid Margin="10,6,10,8">
+                        <Grid Margin="12,8,12,8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
@@ -137,7 +137,7 @@ Changes vs V004 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                             <TextBox Grid.Column="1"
                                      Style="{StaticResource StyledTextInput}"
                                      Text="{Binding Prefix, UpdateSourceTrigger=PropertyChanged}"
-                                     Margin="0,0,6,0"/>
+                                     Margin="0,0,8,0"/>
                             <Button Grid.Column="2" Content="Add"
                                     Style="{StaticResource SmallSecondaryButton}"
                                     Command="{Binding AddPrefixCommand}"
@@ -156,7 +156,7 @@ Changes vs V004 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                             <TextBox Grid.Column="6"
                                      Style="{StaticResource StyledTextInput}"
                                      Text="{Binding Suffix, UpdateSourceTrigger=PropertyChanged}"
-                                     Margin="0,0,6,0"/>
+                                     Margin="0,0,8,0"/>
                             <Button Grid.Column="7" Content="Add"
                                     Style="{StaticResource SmallSecondaryButton}"
                                     Command="{Binding AddSuffixCommand}"
@@ -168,8 +168,8 @@ Changes vs V004 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
 
                     </StackPanel>
                 </Border>
-                <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
-                    <Button Content="Select All" Style="{StaticResource SmallSecondaryButton}" Command="{Binding SelectAllCommand}" Margin="0,0,6,0"/>
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                    <Button Content="Select All" Style="{StaticResource SmallSecondaryButton}" Command="{Binding SelectAllCommand}" Margin="0,0,8,0"/>
                     <Button Content="Select None" Style="{StaticResource SmallSecondaryButton}" Command="{Binding SelectNoneCommand}"/>
                 </StackPanel>
                 <!-- ══ DataGrid ════════════════════════════════════════════ -->
@@ -294,7 +294,7 @@ Changes vs V004 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                            <Ellipse Width="6" Height="6" Margin="0,0,5,0"
+                                            <Ellipse Width="6" Height="6" Margin="0,0,4,0"
                                                      VerticalAlignment="Center"
                                                      Fill="{Binding Status, Converter={StaticResource RenameStatusConverter}}"/>
                                             <TextBlock Text="{Binding Status}"
