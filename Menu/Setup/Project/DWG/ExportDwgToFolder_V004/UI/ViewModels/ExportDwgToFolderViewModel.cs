@@ -847,6 +847,8 @@ namespace Revit26_Plugin_Revised.ExportDwgToFolder.V004.UI.ViewModels
                 ScanPhase.Complete();
                 int linked = items.Count(i => i.SourceType == DwgSourceType.Link);
                 AddLog(LogLevel.Info, $"Found {items.Count:N0} DWG instance(s) in scope — {linked:N0} linked, {items.Count - linked:N0} imported.");
+                if (_handler.DuplicatesSkipped > 0)
+                    AddLog(LogLevel.Info, $"{_handler.DuplicatesSkipped:N0} duplicate instance(s) of the same source file left out — the first one found is exported.");
 
                 // Loading: build each row (pre-checks the linked source file / host view).
                 LoadPhase.Start(items.Count);

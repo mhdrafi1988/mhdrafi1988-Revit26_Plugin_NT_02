@@ -23,6 +23,12 @@ namespace Revit26_Plugin_Revised.ExportDwgToFolder.V004.Core.Services
         /// <summary>Progress stage reported while model-space imports are matched to views.</summary>
         public const string StageFindingViews = "Finding views";
 
+        /// <summary>
+        /// Instances left out of the last <see cref="Collect"/> because another in-scope instance of
+        /// the same source file came first (NEW in 4.2.0).
+        /// </summary>
+        public int DuplicatesSkipped { get; private set; }
+
         /// <summary>Progress stage reported per DWG instance.</summary>
         public const string StageScanning = "Scanning";
 
@@ -50,6 +56,8 @@ namespace Revit26_Plugin_Revised.ExportDwgToFolder.V004.Core.Services
             if (scope == null) throw new ArgumentNullException(nameof(scope));
 
             var result = new List<DwgInstanceInfo>();
+            DuplicatesSkipped = 0;
+            var seenSources = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             if (!scope.IsValid)
             {
                 progress?.Invoke(StageScanning, 0, 0);
@@ -125,6 +133,14 @@ namespace Revit26_Plugin_Revised.ExportDwgToFolder.V004.Core.Services
 
                 if (inst.IsLinked)
                     info.LinkedSourcePath = TryGetLinkedSourcePath(inst);
+
+                // 4.2.0: one export per source file. The first in-scope instance found wins; later
+                // instances of the same file (placed in other views) are left out of the list.
+                if (!seenSources.Add(SourceKey(inst, info)))
+                {
+                    DuplicatesSkipped++;
+                    continue;
+                }
 
                 // Sheet info
                 if (info.OwnerViewId != ElementId.InvalidElementId &&
@@ -252,6 +268,17 @@ namespace Revit26_Plugin_Revised.ExportDwgToFolder.V004.Core.Services
             {
                 return -1;
             }
+        }
+
+        /// <summary>
+        /// Identity of the source file behind an instance: the linked file path for a link (so two
+        /// link types pointing at one file match), otherwise the CAD type id.
+        /// </summary>
+        private static string SourceKey(ImportInstance inst, DwgInstanceInfo info)
+        {
+            if (info.SourceType == DwgSourceType.Link && !string.IsNullOrWhiteSpace(info.LinkedSourcePath))
+                return "L|" + info.LinkedSourcePath.Trim();
+            return (info.SourceType == DwgSourceType.Link ? "LT|" : "I|") + inst.GetTypeId().Value;
         }
 
         private string GetSymbolName(ImportInstance inst)
