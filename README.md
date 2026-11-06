@@ -29,11 +29,11 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 | Floor Edit | Floor Types · Name Builder · Floor Tag · Comparison · Elevation Sync · Floor EPS |
 | Roof Tools | Creaser Adv · Roof Tag · Floor From Rooms · Shape From Link |
 | Roof Edit | Name Builder · Island Splitter |
-| Plan View | Island Splitter |
-| Compare | Comparison · Elevation Sync |
-| Insulation | EPS 2D Pattern |
+| Roof Plan View | Island Splitter |
+| Roof Compare | Comparison · Elevation Sync |
+| Roof Insulation | EPS 2D Pattern |
 | Detail Lines | From Links · Closed Loop · Line Dims · Line Manager |
-| Utilities | Combined Tools · Ridge Lines · Roof Types |
+| Roof Utilities | Combined Tools · Ridge Lines · Roof Types |
 
 **SloperPro_Rev_88-DCM** (Documents)
 
@@ -110,7 +110,7 @@ Where a tool has several versions, its button is a dropdown listing the newest v
   split a sloped roof into one roof per closed detail-line island.
 - **Roof Point Comparison, Elevation Sync**: compare and sync roof point elevations.
 - **Tapered EPS 2D Pattern**: draw the tapered EPS board layout as detail lines on a plan view.
-- **Ridge By Openings / By Points, Combined Roof Tools, Roof Type Manager** (Utilities panel).
+- **Ridge By Openings / By Points, Combined Roof Tools, Roof Type Manager** (Roof Utilities panel).
 
 ### Floors from rooms
 - **Floors And Roof From Linked Rooms** (Roof Tools ▸ Floor From Rooms): create floors or a roof from rooms in linked

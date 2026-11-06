@@ -9,6 +9,37 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.38.1] — 2026-11-06
+
+### Ribbon panels
+
+#### Changed
+- Renamed four Roof ribbon panels so they are not confused with the Floor panels: Utilities → Roof Utilities, Plan View → Roof Plan View, Compare → Roof Compare, Insulation → Roof Insulation.
+
+User note: only the panel titles changed. Buttons, their names and their order are unchanged.
+
+## [6.38.0] — 2026-11-06
+
+### Export DWG to Folder 4.2.0
+
+#### Added
+- One export per source file: when the same DWG is placed in several views, only the first one found is listed and exported. The scan log says how many duplicates were left out.
+- Worksharing check before delete, convert and re-link: elements checked out by another user, or changed in the central model, are skipped with the reason in the Result column. The tool first tries to check the elements out.
+
+User note: the scan list is now shorter if the same DWG file appears in more than one view.
+
+## [6.37.3] — 2026-11-04
+
+### Changed
+
+- The five Floor panel title bars (Floor Slope, Floor Points, Floor Lines, Floor Edit, Floor Views) are now green. User note: colour only; no behaviour change.
+
+## [6.37.2] — 2026-11-04
+
+### Changed
+
+- Floor panels (Floor Slope, Floor Points, Floor Lines, Floor Edit) now use green ribbon icons, separate from the orange Roof tools. User note: icon colour only; no behaviour change.
+
 ## [6.37.1] — 2026-11-03
 
 ### Fixed
