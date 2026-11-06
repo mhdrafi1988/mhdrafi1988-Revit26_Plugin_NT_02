@@ -2,7 +2,6 @@
 using Revit26_Plugin_Revised.Resources.Icons;
 using Revit26_Plugin_Revised.Shared.Services;
 using System.Collections.Generic;
-using System.Windows.Media;
 
 namespace Revit26_Plugin_Revised.Menu.Ribbon
 {
@@ -14,28 +13,6 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
     /// </summary>
     public static class FloorToolsRibbon
     {
-        /// <summary>Green used for the Floor panel title bars, matching the Floor ribbon icons.</summary>
-        private static readonly Color FloorGreen = Color.FromRgb(33, 130, 49);
-
-        /// <summary>
-        /// Colours the title bar of a Floor panel green so the Floor tools stand apart from the Roof tools.
-        /// Cosmetic only: a failure here is ignored and never stops the ribbon from loading.
-        /// </summary>
-        /// <param name="panel">The Floor ribbon panel just created.</param>
-        private static void ApplyFloorPanelColor(RibbonPanel panel)
-        {
-            try
-            {
-                var brush = new SolidColorBrush(FloorGreen);
-                brush.Freeze();
-                panel.CustomPanelTitleBarBackground = brush;
-            }
-            catch
-            {
-                // Cosmetic only.
-            }
-        }
-
         /// <summary>Roof slope icons, reused by the floor slope buttons until floor icons exist.</summary>
         private const string RoofIcons = "Revit26_Plugin_Revised.Resources.Icons.FloorTools.";
 
@@ -48,7 +25,6 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
         public static void BuildSlopePanel(UIControlledApplication app, string tabName, string assemblyPath)
         {
             RibbonPanel panel = app.CreateRibbonPanel(tabName, "Floor Slope");
-            ApplyFloorPanelColor(panel);
 
             var byDrain = new PushButtonData("Btn_FloorSlopeByDrain_V001", "By Drain", assemblyPath,
                 "Revit26_Plugin_Revised.FloorSlopeByDrain.V001.Commands.FloorSlopeByDrainCommand")
@@ -107,7 +83,6 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
         public static void BuildPointsPanel(UIControlledApplication app, string tabName, string assemblyPath)
         {
             RibbonPanel panel = app.CreateRibbonPanel(tabName, "Floor Points");
-            ApplyFloorPanelColor(panel);
             const string ns = "Revit26_Plugin_Revised.";
 
             PushButtonData Btn(string name, string text, string commandClass, string icon, ToolInfo tool, string detail) =>
@@ -155,7 +130,6 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
         public static void BuildLinesPanel(UIControlledApplication app, string tabName, string assemblyPath)
         {
             RibbonPanel panel = app.CreateRibbonPanel(tabName, "Floor Lines");
-            ApplyFloorPanelColor(panel);
 
             var byOpenings = new PushButtonData("Btn_FloorCreaseLinesByOpenings_V001", "Crease By Openings", assemblyPath,
                 "Revit26_Plugin_Revised.FloorCreaseLinesByOpenings.V001.Commands.FloorRidgeCommand")
@@ -193,7 +167,6 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
         public static void BuildEditPanel(UIControlledApplication app, string tabName, string assemblyPath)
         {
             RibbonPanel panel = app.CreateRibbonPanel(tabName, "Floor Edit");
-            ApplyFloorPanelColor(panel);
 
             PushButtonData Btn(string name, string text, string commandClass, string icon, ToolInfo tool, string detail) =>
                 new PushButtonData(name, text, assemblyPath, "Revit26_Plugin_Revised." + commandClass)
@@ -236,7 +209,6 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
         public static void BuildViewsPanel(UIControlledApplication app, string tabName, string assemblyPath)
         {
             RibbonPanel panel = app.CreateRibbonPanel(tabName, "Floor Views");
-            ApplyFloorPanelColor(panel);
             const string viewIcons = "Revit26_Plugin_Revised.Resources.Icons.ViewTools.";
 
             var aroundEdges = new PushButtonData("Btn_FloorEdgeAroundSections_V001", "Floor Around Edges", assemblyPath,
