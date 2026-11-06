@@ -11,7 +11,9 @@ namespace Revit26_Plugin_Revised
     public partial class App : IExternalApplication
     {
         private const string ModellingTabName  = "Rafi_Pro_MOds";
+        private const string Modelling2TabName = "Rafi_Pro_MOds2";
         private const string DocumentsTabName  = "Rafi_Pro_Docs";
+        private const string Documents2TabName = "Rafi_Pro_Docs2";
 
         public Result OnStartup(UIControlledApplication application)
         {
@@ -22,7 +24,9 @@ namespace Revit26_Plugin_Revised
             // styles can break tool windows.
             application.ControlledApplication.ApplicationInitialized += (_, _) => ToolGuard.WarnIfOtherCopiesLoaded();
             EnsureRibbonTabExists(application, ModellingTabName);
+            EnsureRibbonTabExists(application, Modelling2TabName);
             EnsureRibbonTabExists(application, DocumentsTabName);
+            EnsureRibbonTabExists(application, Documents2TabName);
             InitializeRibbonPanels(application);
             return Result.Succeeded;
         }
@@ -48,19 +52,24 @@ namespace Revit26_Plugin_Revised
         {
             string assemblyPath = Assembly.GetExecutingAssembly().Location;
 
-            // ── SloperPro-Modelling ──────────────────────────────────────────
-            // Panels appear in the order they are created: workflow order, Utilities last.
-            RoofToolsRibbon.Build(application, ModellingTabName, assemblyPath);
-            DetailLInesRibbon.Build(application, ModellingTabName, assemblyPath);
-            RoofToolsRibbon.BuildUtilities(application, ModellingTabName, assemblyPath);
+            // Panels appear in the order they are created, so each tab is built in workflow order.
 
-            // ── SloperPro-Documents ──────────────────────────────────────────
-            // Views, then tagging, then sheets, then DWG/family setup, then model management.
+            // ── Modelling 1: roof and floor slope, points, lines, edit ──────
+            RoofToolsRibbon.Build(application, ModellingTabName, assemblyPath);
+
+            // ── Modelling 2: roof edit/compare, detail lines, utilities ─────
+            RoofToolsRibbon.BuildEditComparePanels(application, Modelling2TabName, assemblyPath);
+            DetailLInesRibbon.Build(application, Modelling2TabName, assemblyPath);
+            RoofToolsRibbon.BuildUtilities(application, Modelling2TabName, assemblyPath);
+
+            // ── Documents 1: views, then sheets ─────────────────────────────
             ViewToolsRibbon.Build(application, DocumentsTabName, assemblyPath);
-            TaggingRibbon.Build(application, DocumentsTabName, assemblyPath);
             SheetToolsRibbon.Build(application, DocumentsTabName, assemblyPath);
-            SetupRibbon.Build(application, DocumentsTabName, assemblyPath);
-            ManageRibbon.Build(application, DocumentsTabName, assemblyPath);
+
+            // ── Documents 2: tagging, DWG/family setup, model management ────
+            TaggingRibbon.Build(application, Documents2TabName, assemblyPath);
+            SetupRibbon.Build(application, Documents2TabName, assemblyPath);
+            ManageRibbon.Build(application, Documents2TabName, assemblyPath);
         }
     }
 }
