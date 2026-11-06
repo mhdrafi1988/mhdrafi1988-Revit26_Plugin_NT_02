@@ -44,20 +44,20 @@ The preview canvas is drawn in code-behind from ViewModel.Plan.
             </Style>
 
             <Style x:Key="CardBody" TargetType="StackPanel">
-                <Setter Property="Margin" Value="12,0,12,10"/>
+                <Setter Property="Margin" Value="12,0,12,12"/>
             </Style>
 
             <Style x:Key="Banner" TargetType="Border">
-                <Setter Property="Padding" Value="10,6"/>
+                <Setter Property="Padding" Value="12,8"/>
                 <Setter Property="CornerRadius" Value="6"/>
                 <Setter Property="BorderThickness" Value="1"/>
-                <Setter Property="Margin" Value="12,0,12,6"/>
+                <Setter Property="Margin" Value="12,0,12,8"/>
             </Style>
 
             <Style x:Key="SummaryChip" TargetType="Border">
                 <Setter Property="CornerRadius" Value="10"/>
-                <Setter Property="Padding" Value="9,2"/>
-                <Setter Property="Margin" Value="0,0,6,6"/>
+                <Setter Property="Padding" Value="8,2"/>
+                <Setter Property="Margin" Value="0,0,8,8"/>
                 <Setter Property="Background" Value="{StaticResource BrushSystemSecondaryBackground}"/>
             </Style>
         </ResourceDictionary>
@@ -144,7 +144,7 @@ The preview canvas is drawn in code-behind from ViewModel.Plan.
                         <StackPanel>
                             <Grid Margin="0,0,12,0">
                                 <TextBlock Text="Sections" Style="{StaticResource SectionTitle}"/>
-                                <Button Content="Refresh" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,6,0,0"
+                                <Button Content="Refresh" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,8,0,0"
                                         Style="{StaticResource SmallSecondaryButton}" Command="{Binding RefreshCommand}"
                                         ToolTip="Read the model and the Revit selection again, and measure the views again."/>
                             </Grid>
@@ -153,26 +153,26 @@ The preview canvas is drawn in code-behind from ViewModel.Plan.
                                     <Run Text="From"/> <Run Text="{Binding SourceViewName, Mode=OneWay}" FontWeight="SemiBold"/>
                                 </TextBlock>
                                 <WrapPanel Margin="0,4,0,0">
-                                    <RadioButton GroupName="Source" Style="{StaticResource ChipToggle}" Margin="0,0,6,6"
+                                    <RadioButton GroupName="Source" Style="{StaticResource ChipToggle}" Margin="0,0,8,8"
                                                  Content="{Binding ViewSourceLabel}"
                                                  IsChecked="{Binding SourceMode, Converter={StaticResource EnumMatch}, ConverterParameter=View}"/>
-                                    <RadioButton GroupName="Source" Style="{StaticResource ChipToggle}" Margin="0,0,6,6"
+                                    <RadioButton GroupName="Source" Style="{StaticResource ChipToggle}" Margin="0,0,8,8"
                                                  Content="{Binding SelectionSourceLabel}"
                                                  IsChecked="{Binding SourceMode, Converter={StaticResource EnumMatch}, ConverterParameter=Selection}"/>
-                                    <RadioButton GroupName="Source" Style="{StaticResource ChipToggle}" Margin="0,0,6,6"
+                                    <RadioButton GroupName="Source" Style="{StaticResource ChipToggle}" Margin="0,0,8,8"
                                                  Content="{Binding PickedSourceLabel}"
                                                  Visibility="{Binding HasPicked, Converter={StaticResource BoolToVis}}"
                                                  IsChecked="{Binding SourceMode, Converter={StaticResource EnumMatch}, ConverterParameter=Picked}"/>
-                                    <Button Content="Pick in view…" Margin="0,0,6,6" Style="{StaticResource SmallSecondaryButton}"
+                                    <Button Content="Pick in view…" Margin="0,0,8,8" Style="{StaticResource SmallSecondaryButton}"
                                             Command="{Binding PickInViewCommand}"
                                             ToolTip="The window steps aside: click or box-select section markers in the view, then click Finish on the Options Bar."/>
                                 </WrapPanel>
                                 <TextBlock Text="{Binding SourceNote}" Style="{StaticResource HintText}" Margin="0,0,0,8"/>
 
-                                <DockPanel Margin="0,0,0,6">
-                                    <Button DockPanel.Dock="Right" Content="Untick all" Margin="6,0,0,0" Style="{StaticResource SmallSecondaryButton}"
+                                <DockPanel Margin="0,0,0,8">
+                                    <Button DockPanel.Dock="Right" Content="Untick all" Margin="8,0,0,0" Style="{StaticResource SmallSecondaryButton}"
                                             Command="{Binding UntickAllCommand}" ToolTip="Untick every shown section."/>
-                                    <Button DockPanel.Dock="Right" Content="Tick all" Margin="6,0,0,0" Style="{StaticResource SmallSecondaryButton}"
+                                    <Button DockPanel.Dock="Right" Content="Tick all" Margin="8,0,0,0" Style="{StaticResource SmallSecondaryButton}"
                                             Command="{Binding TickAllCommand}" ToolTip="Tick every shown section."/>
                                     <Grid>
                                         <TextBox Style="{StaticResource StyledTextInput}" MaxLength="60"
@@ -193,7 +193,7 @@ The preview canvas is drawn in code-behind from ViewModel.Plan.
                                         </TextBlock>
                                     </Grid>
                                 </DockPanel>
-                                <TextBlock Text="{Binding ListCountText}" FontSize="11.5" Foreground="{StaticResource BrushTextSecondary}" Margin="0,0,0,4"/>
+                                <TextBlock Text="{Binding ListCountText}" FontSize="12" Foreground="{StaticResource BrushTextSecondary}" Margin="0,0,0,4"/>
 
                                 <ListBox ItemsSource="{Binding RowsView}" MinHeight="200"
                                          shell:ShellBehaviors.MaxHeightRatio="0.58"
@@ -214,7 +214,7 @@ The preview canvas is drawn in code-behind from ViewModel.Plan.
                                     </ListBox.ItemContainerStyle>
                                     <ListBox.ItemTemplate>
                                         <DataTemplate>
-                                            <Border Padding="8,6" BorderBrush="{StaticResource BrushSeparatorThin}" BorderThickness="0,0,0,1">
+                                            <Border Padding="8,8" BorderBrush="{StaticResource BrushSeparatorThin}" BorderThickness="0,0,0,1">
                                                 <Grid>
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="Auto"/>
@@ -225,18 +225,18 @@ The preview canvas is drawn in code-behind from ViewModel.Plan.
                                                               ToolTip="Tick to put this section on the new sheet."/>
                                                     <StackPanel Grid.Column="1">
                                                         <DockPanel>
-                                                            <Border DockPanel.Dock="Right" CornerRadius="8" Padding="7,1" Margin="6,0,0,0"
+                                                            <Border DockPanel.Dock="Right" CornerRadius="8" Padding="8,2" Margin="8,0,0,0"
                                                                     Background="{Binding ChipKind, Converter={StaticResource ChipBrush}}">
-                                                                <TextBlock Text="{Binding Chip}" FontSize="10.5"
+                                                                <TextBlock Text="{Binding Chip}" FontSize="11"
                                                                            Foreground="{Binding ChipKind, Converter={StaticResource ChipBrush}, ConverterParameter=Foreground}"/>
                                                             </Border>
-                                                            <TextBlock Text="{Binding Name}" FontSize="12.5" FontWeight="SemiBold"
+                                                            <TextBlock Text="{Binding Name}" FontSize="13" FontWeight="SemiBold"
                                                                        TextTrimming="CharacterEllipsis" ToolTip="{Binding Name}"
                                                                        Foreground="{StaticResource BrushTextPrimary}"/>
                                                         </DockPanel>
                                                         <TextBlock Text="{Binding Meta}" FontSize="11" Foreground="{StaticResource BrushTextSecondary}"
-                                                                   TextTrimming="CharacterEllipsis" Margin="0,1,0,0"/>
-                                                        <TextBlock Text="{Binding Status}" FontSize="11" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,1,0,0"
+                                                                   TextTrimming="CharacterEllipsis" Margin="0,2,0,0"/>
+                                                        <TextBlock Text="{Binding Status}" FontSize="11" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,2,0,0"
                                                                    Foreground="{Binding StatusKind, Converter={StaticResource StatusBrush}}"
                                                                    Visibility="{Binding HasStatus, Converter={StaticResource BoolToVis}}"/>
                                                     </StackPanel>
@@ -256,9 +256,9 @@ The preview canvas is drawn in code-behind from ViewModel.Plan.
                         <StackPanel>
                             <DockPanel Margin="0,0,12,0">
                                 <TextBlock DockPanel.Dock="Left" Text="Sheet Preview" Style="{StaticResource SectionTitle}"/>
-                                <TextBlock DockPanel.Dock="Left" Text="{Binding PreviewTitle}" FontSize="11.5" VerticalAlignment="Center" Margin="0,5,0,0"
+                                <TextBlock DockPanel.Dock="Left" Text="{Binding PreviewTitle}" FontSize="12" VerticalAlignment="Center" Margin="0,4,0,0"
                                            Foreground="{StaticResource BrushTextSecondary}" TextTrimming="CharacterEllipsis"/>
-                                <ItemsControl DockPanel.Dock="Right" ItemsSource="{Binding PageTabs}" VerticalAlignment="Center" Margin="8,5,0,0"
+                                <ItemsControl DockPanel.Dock="Right" ItemsSource="{Binding PageTabs}" VerticalAlignment="Center" Margin="8,4,0,0"
                                               Visibility="{Binding HasTabs, Converter={StaticResource BoolToVis}}">
                                     <ItemsControl.ItemsPanel>
                                         <ItemsPanelTemplate>
@@ -275,7 +275,7 @@ The preview canvas is drawn in code-behind from ViewModel.Plan.
                                 <Border/>
                             </DockPanel>
 
-                            <Border Margin="12,0,12,6" Height="440" Background="{StaticResource BrushSystemSecondaryBackground}"
+                            <Border Margin="12,0,12,8" Height="440" Background="{StaticResource BrushSystemSecondaryBackground}"
                                     CornerRadius="6" ClipToBounds="True">
                                 <Canvas x:Name="PreviewCanvas" SizeChanged="PreviewCanvas_SizeChanged"/>
                             </Border>
@@ -284,16 +284,16 @@ The preview canvas is drawn in code-behind from ViewModel.Plan.
 
                             <WrapPanel Margin="12,0,12,2">
                                 <Border Style="{StaticResource SummaryChip}">
-                                    <TextBlock FontSize="11.5"><Run Text="Layout" FontWeight="SemiBold"/> <Run Text="{Binding LayoutText, Mode=OneWay}"/></TextBlock>
+                                    <TextBlock FontSize="12"><Run Text="Layout" FontWeight="SemiBold"/> <Run Text="{Binding LayoutText, Mode=OneWay}"/></TextBlock>
                                 </Border>
                                 <Border Style="{StaticResource SummaryChip}">
-                                    <TextBlock FontSize="11.5"><Run Text="Gap side by side" FontWeight="SemiBold"/> <Run Text="{Binding HorizontalGapText, Mode=OneWay}"/></TextBlock>
+                                    <TextBlock FontSize="12"><Run Text="Gap side by side" FontWeight="SemiBold"/> <Run Text="{Binding HorizontalGapText, Mode=OneWay}"/></TextBlock>
                                 </Border>
                                 <Border Style="{StaticResource SummaryChip}">
-                                    <TextBlock FontSize="11.5"><Run Text="Gap between rows" FontWeight="SemiBold"/> <Run Text="{Binding VerticalGapText, Mode=OneWay}"/></TextBlock>
+                                    <TextBlock FontSize="12"><Run Text="Gap between rows" FontWeight="SemiBold"/> <Run Text="{Binding VerticalGapText, Mode=OneWay}"/></TextBlock>
                                 </Border>
                                 <Border Style="{StaticResource SummaryChip}">
-                                    <TextBlock FontSize="11.5"><Run Text="Fill" FontWeight="SemiBold"/> <Run Text="{Binding FillText, Mode=OneWay}"/></TextBlock>
+                                    <TextBlock FontSize="12"><Run Text="Fill" FontWeight="SemiBold"/> <Run Text="{Binding FillText, Mode=OneWay}"/></TextBlock>
                                 </Border>
                                 <Border>
                                     <Border.Style>
@@ -305,7 +305,7 @@ The preview canvas is drawn in code-behind from ViewModel.Plan.
                                             </Style.Triggers>
                                         </Style>
                                     </Border.Style>
-                                    <TextBlock FontSize="11.5"><Run Text="Scales" FontWeight="SemiBold"/> <Run Text="{Binding ScalesText, Mode=OneWay}"/></TextBlock>
+                                    <TextBlock FontSize="12"><Run Text="Scales" FontWeight="SemiBold"/> <Run Text="{Binding ScalesText, Mode=OneWay}"/></TextBlock>
                                 </Border>
                             </WrapPanel>
 
@@ -318,7 +318,7 @@ The preview canvas is drawn in code-behind from ViewModel.Plan.
                                 <TextBlock Text="{Binding InfoText}" TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource BrushStatusInfo}"/>
                             </Border>
                             <Border Style="{StaticResource Banner}" Background="{StaticResource BrushStatusWarnSoft}" BorderBrush="{StaticResource BrushStatusWarnBorder}"
-                                    Margin="12,0,12,10"
+                                    Margin="12,0,12,12"
                                     Visibility="{Binding HasWarnings, Converter={StaticResource BoolToVis}}">
                                 <TextBlock Text="{Binding WarningsText}" TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource BrushStatusWarn}"/>
                             </Border>
@@ -358,9 +358,9 @@ The preview canvas is drawn in code-behind from ViewModel.Plan.
                                     <TextBlock Style="{StaticResource HintText}"
                                                Text="Suggested: the next free number. Extra sheets count up from it, skipping numbers in use."/>
                                 </StackPanel>
-                                <StackPanel Orientation="Horizontal" Style="{StaticResource AppleToggleRow}" Margin="12,0,12,10">
+                                <StackPanel Orientation="Horizontal" Style="{StaticResource AppleToggleRow}" Margin="12,0,12,12">
                                     <ToggleButton Style="{StaticResource AppleToggleButton}" IsChecked="{Binding OpenSheetWhenDone}"/>
-                                    <TextBlock Text="Open the new sheet when done" FontSize="12.5" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Open the new sheet when done" FontSize="13" Margin="8,0,0,0" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </StackPanel>
                         </Border>
@@ -371,60 +371,60 @@ The preview canvas is drawn in code-behind from ViewModel.Plan.
                                 <StackPanel Style="{StaticResource CardBody}">
                                     <TextBlock Text="Arrangement" Style="{StaticResource FieldLabel}"/>
                                     <WrapPanel Margin="0,2,0,0">
-                                        <RadioButton GroupName="Mode" Style="{StaticResource ChipToggle}" Content="Grid (columns line up)" Margin="0,0,6,4"
+                                        <RadioButton GroupName="Mode" Style="{StaticResource ChipToggle}" Content="Grid (columns line up)" Margin="0,0,8,4"
                                                      IsChecked="{Binding Mode, Converter={StaticResource EnumMatch}, ConverterParameter=Grid}"/>
-                                        <RadioButton GroupName="Mode" Style="{StaticResource ChipToggle}" Content="Rows (justified)" Margin="0,0,6,4"
+                                        <RadioButton GroupName="Mode" Style="{StaticResource ChipToggle}" Content="Rows (justified)" Margin="0,0,8,4"
                                                      IsChecked="{Binding Mode, Converter={StaticResource EnumMatch}, ConverterParameter=Rows}"/>
                                     </WrapPanel>
                                     <TextBlock Text="{Binding ModeNote}" Style="{StaticResource HintText}" Margin="0,0,0,8"/>
 
                                     <TextBlock Text="Order" Style="{StaticResource FieldLabel}"/>
                                     <WrapPanel Margin="0,2,0,0">
-                                        <RadioButton GroupName="Order" Style="{StaticResource ChipToggle}" Content="Plan" Margin="0,0,6,4"
+                                        <RadioButton GroupName="Order" Style="{StaticResource ChipToggle}" Content="Plan" Margin="0,0,8,4"
                                                      IsChecked="{Binding Order, Converter={StaticResource EnumMatch}, ConverterParameter=Plan}"/>
-                                        <RadioButton GroupName="Order" Style="{StaticResource ChipToggle}" Content="Number" Margin="0,0,6,4"
+                                        <RadioButton GroupName="Order" Style="{StaticResource ChipToggle}" Content="Number" Margin="0,0,8,4"
                                                      IsChecked="{Binding Order, Converter={StaticResource EnumMatch}, ConverterParameter=Number}"/>
-                                        <RadioButton GroupName="Order" Style="{StaticResource ChipToggle}" Content="Scale" Margin="0,0,6,4"
+                                        <RadioButton GroupName="Order" Style="{StaticResource ChipToggle}" Content="Scale" Margin="0,0,8,4"
                                                      IsChecked="{Binding Order, Converter={StaticResource EnumMatch}, ConverterParameter=Scale}"/>
-                                        <RadioButton GroupName="Order" Style="{StaticResource ChipToggle}" Content="Size" Margin="0,0,6,4"
+                                        <RadioButton GroupName="Order" Style="{StaticResource ChipToggle}" Content="Size" Margin="0,0,8,4"
                                                      IsChecked="{Binding Order, Converter={StaticResource EnumMatch}, ConverterParameter=Size}"/>
                                     </WrapPanel>
                                     <TextBlock Text="{Binding OrderNote}" Style="{StaticResource HintText}" Margin="0,0,0,4"/>
                                     <StackPanel Orientation="Horizontal" Margin="0,2,0,8"
                                                 Visibility="{Binding IsPlanOrder, Converter={StaticResource BoolToVis}}">
                                         <TextBlock Text="Same row if marker heights differ by under" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" TextWrapping="Wrap" Width="150"/>
-                                        <TextBox Style="{StaticResource MmBox}" Text="{Binding RowToleranceMm}" Margin="6,0,0,0"
+                                        <TextBox Style="{StaticResource MmBox}" Text="{Binding RowToleranceMm}" Margin="8,0,0,0"
                                                  ToolTip="Measured on the printed view (paper mm)."/>
                                         <TextBlock Text="mm" Style="{StaticResource UnitLabel}"/>
                                     </StackPanel>
 
                                     <TextBlock Text="Rows on the sheet" Style="{StaticResource FieldLabel}"/>
-                                    <WrapPanel Margin="0,2,0,6">
-                                        <RadioButton GroupName="Vertical" Style="{StaticResource ChipToggle}" Content="From the top" Margin="0,0,6,4"
+                                    <WrapPanel Margin="0,2,0,8">
+                                        <RadioButton GroupName="Vertical" Style="{StaticResource ChipToggle}" Content="From the top" Margin="0,0,8,4"
                                                      IsChecked="{Binding Vertical, Converter={StaticResource EnumMatch}, ConverterParameter=Top}"/>
-                                        <RadioButton GroupName="Vertical" Style="{StaticResource ChipToggle}" Content="Centred" Margin="0,0,6,4"
+                                        <RadioButton GroupName="Vertical" Style="{StaticResource ChipToggle}" Content="Centred" Margin="0,0,8,4"
                                                      IsChecked="{Binding Vertical, Converter={StaticResource EnumMatch}, ConverterParameter=Center}"/>
-                                        <RadioButton GroupName="Vertical" Style="{StaticResource ChipToggle}" Content="Spread" Margin="0,0,6,4"
+                                        <RadioButton GroupName="Vertical" Style="{StaticResource ChipToggle}" Content="Spread" Margin="0,0,8,4"
                                                      IsChecked="{Binding Vertical, Converter={StaticResource EnumMatch}, ConverterParameter=Spread}"/>
                                     </WrapPanel>
 
                                     <StackPanel Visibility="{Binding IsRowsMode, Converter={StaticResource BoolToVis}}">
                                         <TextBlock Text="Short last row" Style="{StaticResource FieldLabel}"/>
-                                        <WrapPanel Margin="0,2,0,6">
-                                            <RadioButton GroupName="LastRow" Style="{StaticResource ChipToggle}" Content="Left" Margin="0,0,6,4"
+                                        <WrapPanel Margin="0,2,0,8">
+                                            <RadioButton GroupName="LastRow" Style="{StaticResource ChipToggle}" Content="Left" Margin="0,0,8,4"
                                                          IsChecked="{Binding LastRow, Converter={StaticResource EnumMatch}, ConverterParameter=Left}"/>
-                                            <RadioButton GroupName="LastRow" Style="{StaticResource ChipToggle}" Content="Centre" Margin="0,0,6,4"
+                                            <RadioButton GroupName="LastRow" Style="{StaticResource ChipToggle}" Content="Centre" Margin="0,0,8,4"
                                                          IsChecked="{Binding LastRow, Converter={StaticResource EnumMatch}, ConverterParameter=Center}"/>
-                                            <RadioButton GroupName="LastRow" Style="{StaticResource ChipToggle}" Content="Stretch" Margin="0,0,6,4"
+                                            <RadioButton GroupName="LastRow" Style="{StaticResource ChipToggle}" Content="Stretch" Margin="0,0,8,4"
                                                          IsChecked="{Binding LastRow, Converter={StaticResource EnumMatch}, ConverterParameter=Justify}"/>
                                         </WrapPanel>
                                     </StackPanel>
 
                                     <TextBlock Text="If it doesn't fit on one sheet" Style="{StaticResource FieldLabel}"/>
                                     <WrapPanel Margin="0,2,0,0">
-                                        <RadioButton GroupName="Overflow" Style="{StaticResource ChipToggle}" Content="Add more sheets" Margin="0,0,6,4"
+                                        <RadioButton GroupName="Overflow" Style="{StaticResource ChipToggle}" Content="Add more sheets" Margin="0,0,8,4"
                                                      IsChecked="{Binding Overflow, Converter={StaticResource EnumMatch}, ConverterParameter=AddSheets}"/>
-                                        <RadioButton GroupName="Overflow" Style="{StaticResource ChipToggle}" Content="Skip and report" Margin="0,0,6,4"
+                                        <RadioButton GroupName="Overflow" Style="{StaticResource ChipToggle}" Content="Skip and report" Margin="0,0,8,4"
                                                      IsChecked="{Binding Overflow, Converter={StaticResource EnumMatch}, ConverterParameter=Skip}"/>
                                     </WrapPanel>
                                 </StackPanel>
@@ -438,20 +438,20 @@ The preview canvas is drawn in code-behind from ViewModel.Plan.
                                     <TextBlock Text="{Binding PlacedSummary}" TextWrapping="Wrap" FontSize="12" Margin="0,0,0,4"
                                                Foreground="{StaticResource BrushTextPrimary}"/>
                                 </StackPanel>
-                                <StackPanel Orientation="Horizontal" Style="{StaticResource AppleToggleRow}" Margin="12,0,12,6">
+                                <StackPanel Orientation="Horizontal" Style="{StaticResource AppleToggleRow}" Margin="12,0,12,8">
                                     <ToggleButton Style="{StaticResource AppleToggleButton}" IsChecked="{Binding RemoveFromOldSheets}"/>
-                                    <TextBlock Text="Take them off their current sheet" FontSize="12.5" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Take them off their current sheet" FontSize="13" Margin="8,0,0,0" VerticalAlignment="Center"/>
                                 </StackPanel>
                                 <StackPanel Orientation="Horizontal" Style="{StaticResource AppleToggleRow}" Margin="12,0,12,4">
                                     <ToggleButton Style="{StaticResource AppleToggleButton}" IsChecked="{Binding DeleteEmptySheets}"/>
-                                    <TextBlock Text="Delete sheets that end up empty" FontSize="12.5" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Delete sheets that end up empty" FontSize="13" Margin="8,0,0,0" VerticalAlignment="Center"/>
                                 </StackPanel>
                                 <StackPanel Style="{StaticResource CardBody}">
-                                    <TextBlock Text="{Binding EmptySheetsText}" Style="{StaticResource HintText}" Margin="0,0,0,6"/>
-                                    <Border Padding="8,5" CornerRadius="5" BorderThickness="1" Margin="0,0,0,6"
+                                    <TextBlock Text="{Binding EmptySheetsText}" Style="{StaticResource HintText}" Margin="0,0,0,8"/>
+                                    <Border Padding="8,4" CornerRadius="5" BorderThickness="1" Margin="0,0,0,8"
                                             Background="{StaticResource BrushStatusErrorSoft}" BorderBrush="{StaticResource BrushStatusErrorBorder}"
                                             Visibility="{Binding HasLocked, Converter={StaticResource BoolToVis}}">
-                                        <TextBlock Text="{Binding LockedText}" TextWrapping="Wrap" FontSize="11.5" Foreground="{StaticResource BrushStatusError}"/>
+                                        <TextBlock Text="{Binding LockedText}" TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource BrushStatusError}"/>
                                     </Border>
                                     <TextBlock Style="{StaticResource HintText}"
                                                Text="A view can be on one sheet only. Only the old viewport is removed: the section view, its marker and its annotations stay. Section heads in your plans point to the new sheet."/>
@@ -486,7 +486,7 @@ The preview canvas is drawn in code-behind from ViewModel.Plan.
                                         <TextBlock Grid.Row="2" Grid.Column="3" Text="Right" Style="{StaticResource FieldLabel}" VerticalAlignment="Center"/>
                                         <TextBox Grid.Row="2" Grid.Column="4" Style="{StaticResource MmBox}" Text="{Binding MarginRightMm}"/>
                                     </Grid>
-                                    <TextBlock Text="Smallest gap between views" Style="{StaticResource FieldLabel}" Margin="0,10,0,4"/>
+                                    <TextBlock Text="Smallest gap between views" Style="{StaticResource FieldLabel}" Margin="0,12,0,4"/>
                                     <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
@@ -508,21 +508,21 @@ The preview canvas is drawn in code-behind from ViewModel.Plan.
                     </StackPanel>
 
                     <!-- ── Activity log ────────────────────────────── -->
-                    <Border Grid.Row="1" Grid.ColumnSpan="5" Margin="0,0,0,0" Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="10,8">
+                    <Border Grid.Row="1" Grid.ColumnSpan="5" Margin="0,0,0,0" Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="12,8">
                         <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
-                            <Grid Margin="0,0,0,6">
+                            <Grid Margin="0,0,0,8">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Text="Activity Log" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource BrushLogText}" VerticalAlignment="Center"/>
+                                <TextBlock Text="Activity Log" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource BrushLogText}" VerticalAlignment="Center"/>
                                 <StackPanel Grid.Column="1" Orientation="Horizontal">
                                     <Button Content="Copy All" Style="{StaticResource DarkGhostButton}" Command="{Binding CopyAllLogsCommand}"/>
-                                    <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Margin="6,0,0,0" Click="CopySelectedLogs_Click"/>
+                                    <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Margin="8,0,0,0" Click="CopySelectedLogs_Click"/>
                                 </StackPanel>
                             </Grid>
                             <ListBox Grid.Row="1" x:Name="LogListBox"
@@ -574,24 +574,24 @@ The preview canvas is drawn in code-behind from ViewModel.Plan.
                     <DropShadowEffect ShadowDepth="3" BlurRadius="18" Opacity="0.3"/>
                 </Border.Effect>
                 <StackPanel>
-                    <TextBlock Text="{Binding ConfirmTitle}" FontSize="15" FontWeight="SemiBold" Foreground="{StaticResource BrushNavyPrimary}" Margin="18,14,18,4"/>
-                    <TextBlock Text="These viewports come off their current sheets and go on the new one." FontSize="12.5"
-                               Foreground="{StaticResource BrushTextSecondary}" Margin="18,0,18,10" TextWrapping="Wrap"/>
-                    <Border Margin="18,0" BorderBrush="{StaticResource BrushSeparator}" BorderThickness="1" CornerRadius="5" MaxHeight="220">
+                    <TextBlock Text="{Binding ConfirmTitle}" FontSize="15" FontWeight="SemiBold" Foreground="{StaticResource BrushNavyPrimary}" Margin="16,16,16,4"/>
+                    <TextBlock Text="These viewports come off their current sheets and go on the new one." FontSize="13"
+                               Foreground="{StaticResource BrushTextSecondary}" Margin="16,0,16,12" TextWrapping="Wrap"/>
+                    <Border Margin="16,0" BorderBrush="{StaticResource BrushSeparator}" BorderThickness="1" CornerRadius="5" MaxHeight="220">
                         <ScrollViewer VerticalScrollBarVisibility="Auto">
                             <ItemsControl ItemsSource="{Binding ConfirmMoves}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                        <Border Padding="10,6" BorderBrush="{StaticResource BrushSeparatorThin}" BorderThickness="0,0,0,1">
+                                        <Border Padding="12,8" BorderBrush="{StaticResource BrushSeparatorThin}" BorderThickness="0,0,0,1">
                                             <DockPanel>
-                                                <Border DockPanel.Dock="Right" CornerRadius="8" Padding="7,1" Background="{StaticResource BrushStatusInfoSoft}">
+                                                <Border DockPanel.Dock="Right" CornerRadius="8" Padding="8,2" Background="{StaticResource BrushStatusInfoSoft}">
                                                     <TextBlock Text="{Binding To}" FontSize="11" Foreground="{StaticResource BrushStatusInfo}"/>
                                                 </Border>
-                                                <TextBlock DockPanel.Dock="Right" Text="→" Margin="6,0" Foreground="{StaticResource BrushTextSecondary}"/>
-                                                <Border DockPanel.Dock="Right" CornerRadius="8" Padding="7,1" Background="{StaticResource BrushStatusWarnSoft}">
+                                                <TextBlock DockPanel.Dock="Right" Text="→" Margin="8,0" Foreground="{StaticResource BrushTextSecondary}"/>
+                                                <Border DockPanel.Dock="Right" CornerRadius="8" Padding="8,2" Background="{StaticResource BrushStatusWarnSoft}">
                                                     <TextBlock Text="{Binding From}" FontSize="11" Foreground="{StaticResource BrushStatusWarn}"/>
                                                 </Border>
-                                                <TextBlock Text="{Binding Name}" FontSize="12.5" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" Margin="0,0,8,0"/>
+                                                <TextBlock Text="{Binding Name}" FontSize="13" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" Margin="0,0,8,0"/>
                                             </DockPanel>
                                         </Border>
                                     </DataTemplate>
@@ -599,17 +599,17 @@ The preview canvas is drawn in code-behind from ViewModel.Plan.
                             </ItemsControl>
                         </ScrollViewer>
                     </Border>
-                    <Border Margin="18,10,18,0" Padding="8,5" CornerRadius="5" BorderThickness="1"
+                    <Border Margin="16,12,16,0" Padding="8,4" CornerRadius="5" BorderThickness="1"
                             Background="{StaticResource BrushStatusErrorSoft}" BorderBrush="{StaticResource BrushStatusErrorBorder}"
                             Visibility="{Binding HasConfirmSkip, Converter={StaticResource BoolToVis}}">
                         <TextBlock Text="{Binding ConfirmSkipText}" TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource BrushStatusError}"/>
                     </Border>
-                    <CheckBox Margin="18,10,18,0" IsChecked="{Binding DeleteEmptySheets}">
-                        <TextBlock Text="{Binding ConfirmEmptyText}" TextWrapping="Wrap" FontSize="12.5"/>
+                    <CheckBox Margin="16,12,16,0" IsChecked="{Binding DeleteEmptySheets}">
+                        <TextBlock Text="{Binding ConfirmEmptyText}" TextWrapping="Wrap" FontSize="13"/>
                     </CheckBox>
-                    <TextBlock Margin="18,8,18,0" FontSize="11.5" Foreground="{StaticResource BrushTextSecondary}" TextWrapping="Wrap"
+                    <TextBlock Margin="16,8,16,0" FontSize="12" Foreground="{StaticResource BrushTextSecondary}" TextWrapping="Wrap"
                                Text="The section views stay in the model, and the section heads in your plans point to the new sheet. One Undo (Ctrl+Z) reverts the whole run."/>
-                    <Border Margin="0,14,0,0" Padding="18,12" Background="{StaticResource BrushSystemBackground}" CornerRadius="0,0,8,8"
+                    <Border Margin="0,16,0,0" Padding="16,12" Background="{StaticResource BrushSystemBackground}" CornerRadius="0,0,8,8"
                             BorderBrush="{StaticResource BrushSeparator}" BorderThickness="0,1,0,0">
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                             <Button Content="Cancel" Style="{StaticResource SecondaryButton}" Margin="0,0,8,0" Command="{Binding CancelConfirmCommand}"/>

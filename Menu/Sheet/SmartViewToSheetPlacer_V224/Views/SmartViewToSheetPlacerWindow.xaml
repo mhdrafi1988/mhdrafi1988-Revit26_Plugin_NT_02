@@ -70,7 +70,7 @@ Changes vs V223 (layout only):
             <Style x:Key="StageHeaderToggle" TargetType="ToggleButton">
                 <Setter Property="Background" Value="Transparent"/>
                 <Setter Property="BorderThickness" Value="0"/>
-                <Setter Property="Padding" Value="14,12"/>
+                <Setter Property="Padding" Value="16,12"/>
                 <Setter Property="Cursor" Value="Hand"/>
                 <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
                 <Setter Property="Template">
@@ -111,7 +111,7 @@ Changes vs V223 (layout only):
                 <Setter Property="FontSize" Value="14"/>
                 <Setter Property="FontWeight" Value="SemiBold"/>
                 <Setter Property="Foreground" Value="{StaticResource BrushTextPrimary}"/>
-                <Setter Property="Margin" Value="0,0,10,0"/>
+                <Setter Property="Margin" Value="0,0,12,0"/>
             </Style>
 
             <Style x:Key="StageSubtitleText" TargetType="TextBlock">
@@ -124,7 +124,7 @@ Changes vs V223 (layout only):
             <Style x:Key="StatusBadgeBase" TargetType="Border">
                 <Setter Property="Background" Value="{StaticResource BrushSystemTertiaryBackground}"/>
                 <Setter Property="CornerRadius" Value="10"/>
-                <Setter Property="Padding" Value="9,3"/>
+                <Setter Property="Padding" Value="8,4"/>
                 <Setter Property="VerticalAlignment" Value="Center"/>
             </Style>
 
@@ -156,13 +156,13 @@ Changes vs V223 (layout only):
             </Style>
             <Style x:Key="CompactFieldLabel" TargetType="TextBlock" BasedOn="{StaticResource FieldLabel}">
                 <Setter Property="FontSize" Value="10.5"/>
-                <Setter Property="Margin" Value="0,0,0,1"/>
+                <Setter Property="Margin" Value="0,0,0,2"/>
             </Style>
             <Style x:Key="CompactGroupLabel" TargetType="TextBlock" BasedOn="{StaticResource FieldLabel}">
                 <Setter Property="FontSize" Value="10.5"/>
                 <Setter Property="FontWeight" Value="SemiBold"/>
                 <Setter Property="Foreground" Value="{StaticResource BrushNavyPrimary}"/>
-                <Setter Property="Margin" Value="0,0,0,1"/>
+                <Setter Property="Margin" Value="0,0,0,2"/>
             </Style>
 
             <!-- Progress bar (Stage 4): slim rounded track, navy fill. -->
@@ -216,7 +216,7 @@ Changes vs V223 (layout only):
                  overflowing, but that contradicts "keep all in same row"). -->
             <Border>
                 <StackPanel>
-                    <TextBlock Text="Placement Metrics" Style="{StaticResource SectionTitle}" Margin="2,0,2,3"/>
+                    <TextBlock Text="Placement Metrics" Style="{StaticResource SectionTitle}" Margin="2,0,2,4"/>
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
                         <!-- V213: placeholder card shown ONLY when no ViewType group
                              exists yet (no views ever selected/packed this session) —
@@ -224,7 +224,7 @@ Changes vs V223 (layout only):
                              replaced by real per-group cards the moment the first
                              group appears. HasInputCounts is a small computed bool on
                              the ViewModel (InputCountsByType.Count > 0). -->
-                        <Border Style="{StaticResource CompactMetricCard}" Margin="0,0,6,0" MinWidth="150"
+                        <Border Style="{StaticResource CompactMetricCard}" Margin="0,0,8,0" MinWidth="150"
                                 Visibility="{Binding HasInputCounts, Converter={StaticResource InverseBoolToVisibilityConverter}}">
                             <StackPanel>
                                 <TextBlock Text="Selected Views" Style="{StaticResource MetricLabel}"/>
@@ -241,7 +241,7 @@ Changes vs V223 (layout only):
                             </ItemsControl.ItemsPanel>
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Border Style="{StaticResource CompactMetricCard}" Margin="0,0,6,0" MinWidth="110">
+                                    <Border Style="{StaticResource CompactMetricCard}" Margin="0,0,8,0" MinWidth="110">
                                         <StackPanel>
                                             <TextBlock Text="{Binding ViewTypeLabel}" Style="{StaticResource MetricLabel}"/>
                                             <TextBlock Text="{Binding Count}" Style="{StaticResource MetricNumber}"/>
@@ -252,19 +252,19 @@ Changes vs V223 (layout only):
                         </ItemsControl>
 
                         <!-- Fixed: always these 4 -->
-                        <Border Style="{StaticResource CompactMetricCard}" Margin="0,0,6,0" MinWidth="110">
+                        <Border Style="{StaticResource CompactMetricCard}" Margin="0,0,8,0" MinWidth="110">
                             <StackPanel>
                                 <TextBlock Text="Placed" Style="{StaticResource MetricLabel}"/>
                                 <TextBlock Text="{Binding TotalPlacedCount}" Style="{StaticResource MetricNumberSuccess}"/>
                             </StackPanel>
                         </Border>
-                        <Border Style="{StaticResource CompactMetricCard}" Margin="0,0,6,0" MinWidth="110">
+                        <Border Style="{StaticResource CompactMetricCard}" Margin="0,0,8,0" MinWidth="110">
                             <StackPanel>
                                 <TextBlock Text="Skipped — Oversized" Style="{StaticResource MetricLabel}"/>
                                 <TextBlock Text="{Binding TotalSkippedOversizedCount}" Style="{StaticResource MetricNumberWarning}"/>
                             </StackPanel>
                         </Border>
-                        <Border Style="{StaticResource CompactMetricCard}" Margin="0,0,6,0" MinWidth="110">
+                        <Border Style="{StaticResource CompactMetricCard}" Margin="0,0,8,0" MinWidth="110">
                             <StackPanel>
                                 <TextBlock Text="Failed — Bad Data" Style="{StaticResource MetricLabel}"/>
                                 <TextBlock Text="{Binding TotalFailedBadDataCount}" Style="{StaticResource MetricNumberDanger}"/>
@@ -272,7 +272,7 @@ Changes vs V223 (layout only):
                         </Border>
                         <!-- V220 NEW: FailedToPlace — algorithm could not fit an in-bounds view.
                              Expected to be 0 in normal operation; see PackResult.FailedToPlace remarks. -->
-                        <Border Style="{StaticResource CompactMetricCard}" Margin="0,0,6,0" MinWidth="110">
+                        <Border Style="{StaticResource CompactMetricCard}" Margin="0,0,8,0" MinWidth="110">
                             <StackPanel>
                                 <TextBlock Text="Failed — Could Not Place" Style="{StaticResource MetricLabel}"/>
                                 <TextBlock Text="{Binding TotalFailedToPlaceCount}" Style="{StaticResource MetricNumberDanger}"/>
@@ -312,7 +312,7 @@ Changes vs V223 (layout only):
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                        <Border Width="24" Height="24" CornerRadius="12" Margin="0,0,10,0">
+                                        <Border Width="24" Height="24" CornerRadius="12" Margin="0,0,12,0">
                                             <Border.Style>
                                                 <Style TargetType="Border" BasedOn="{StaticResource StageNumberCircleBase}">
                                                     <Style.Triggers>
@@ -336,7 +336,7 @@ Changes vs V223 (layout only):
                                         <TextBlock Text="Choose views and titleblock" Style="{StaticResource StageSubtitleText}" VerticalAlignment="Center"/>
                                     </StackPanel>
                                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                                        <Border Margin="0,0,10,0">
+                                        <Border Margin="0,0,12,0">
                                             <Border.Style>
                                                 <Style TargetType="Border" BasedOn="{StaticResource StatusBadgeBase}">
                                                     <Style.Triggers>
@@ -396,35 +396,35 @@ Changes vs V223 (layout only):
                             </ToggleButton>
                             <Border BorderThickness="0,1,0,0" BorderBrush="{StaticResource BrushBorderDefault}"
                                     Visibility="{Binding Stage1Expanded, Converter={StaticResource BoolToVisibilityConverter}}">
-                                <StackPanel Margin="14">
+                                <StackPanel Margin="16">
 
                                 <!-- Titleblock + Margin + Gap — compact single row (V222): dropdown,
                                      Margin group and Gap group side by side; unit moved to the group
                                      headings; tighter inputs/spacing. -->
                                 <Border Style="{StaticResource SectionCard}">
-                                    <StackPanel Margin="10,8">
+                                    <StackPanel Margin="12,8">
                                         <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom">
-                                            <StackPanel Margin="0,0,14,0">
+                                            <StackPanel Margin="0,0,16,0">
                                                 <TextBlock Text="Titleblock (applies to all new sheets)" Style="{StaticResource CompactGroupLabel}"/>
                                                 <ComboBox Width="250" Style="{StaticResource CompactCombo}"
                                                           ItemsSource="{Binding Titleblocks}"
                                                           SelectedItem="{Binding SelectedTitleblock}"
                                                           DisplayMemberPath="Name"/>
                                             </StackPanel>
-                                            <StackPanel Margin="0,0,14,0">
+                                            <StackPanel Margin="0,0,16,0">
                                                 <TextBlock Text="Margin (mm)" Style="{StaticResource CompactGroupLabel}"/>
                                                 <StackPanel Orientation="Horizontal">
-                                                    <StackPanel Margin="0,0,6,0">
+                                                    <StackPanel Margin="0,0,8,0">
                                                         <TextBlock Text="Top" Style="{StaticResource CompactFieldLabel}"/>
                                                         <TextBox Style="{StaticResource CompactBoxedInput}" MaxLength="10"
                                                                  Text="{Binding MarginTopMm, UpdateSourceTrigger=PropertyChanged}"/>
                                                     </StackPanel>
-                                                    <StackPanel Margin="0,0,6,0">
+                                                    <StackPanel Margin="0,0,8,0">
                                                         <TextBlock Text="Bottom" Style="{StaticResource CompactFieldLabel}"/>
                                                         <TextBox Style="{StaticResource CompactBoxedInput}" MaxLength="10"
                                                                  Text="{Binding MarginBottomMm, UpdateSourceTrigger=PropertyChanged}"/>
                                                     </StackPanel>
-                                                    <StackPanel Margin="0,0,6,0">
+                                                    <StackPanel Margin="0,0,8,0">
                                                         <TextBlock Text="Left" Style="{StaticResource CompactFieldLabel}"/>
                                                         <TextBox Style="{StaticResource CompactBoxedInput}" MaxLength="10"
                                                                  Text="{Binding MarginLeftMm, UpdateSourceTrigger=PropertyChanged}"/>
@@ -441,7 +441,7 @@ Changes vs V223 (layout only):
                                             <StackPanel>
                                                 <TextBlock Text="Gap (mm)" Style="{StaticResource CompactGroupLabel}"/>
                                                 <StackPanel Orientation="Horizontal">
-                                                    <StackPanel Margin="0,0,6,0">
+                                                    <StackPanel Margin="0,0,8,0">
                                                         <TextBlock Text="Horizontal" Style="{StaticResource CompactFieldLabel}"/>
                                                         <TextBox Style="{StaticResource CompactBoxedInput}" MaxLength="10"
                                                                  Text="{Binding GlobalHorizontalGapMm, UpdateSourceTrigger=PropertyChanged}"/>
@@ -471,19 +471,19 @@ Changes vs V223 (layout only):
                                              it never touches IsSelected, so the final selection is always exactly
                                              what's checked in the data grid. -->
                                         <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                                            <Button Content="Select All" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,6,0"
+                                            <Button Content="Select All" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,8,0"
                                                     Command="{Binding SelectAllViewsCommand}"/>
-                                            <Button Content="Clear Selection" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,6,0"
+                                            <Button Content="Clear Selection" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,8,0"
                                                     Command="{Binding ClearSelectionCommand}"/>
-                                            <Button Content="Refresh" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,14,0"
+                                            <Button Content="Refresh" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,16,0"
                                                     Command="{Binding RefreshViewsCommand}"/>
 
                                             <!-- V213: All/Placed/Not-Placed toggle — confirmed with Rafi: simple
                                                  two-button-style toggle (three buttons here, same visual pattern),
                                                  not a popover. "Placed" reflects a REAL Revit sheet placement
                                                  (ViewInfo.IsAlreadyPlaced), independent of this session's packing. -->
-                                            <TextBlock Text="Show:" Style="{StaticResource HintText}" Margin="0,0,6,0" VerticalAlignment="Center"/>
-                                            <Button Content="All" Padding="10,4" Margin="0,0,4,0"
+                                            <TextBlock Text="Show:" Style="{StaticResource HintText}" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                            <Button Content="All" Padding="12,4" Margin="0,0,4,0"
                                                     Command="{Binding SetPlacementFilterAllCommand}">
                                                 <Button.Style>
                                                     <Style TargetType="Button" BasedOn="{StaticResource SmallSecondaryButton}">
@@ -496,7 +496,7 @@ Changes vs V223 (layout only):
                                                     </Style>
                                                 </Button.Style>
                                             </Button>
-                                            <Button Content="Placed" Padding="10,4" Margin="0,0,4,0"
+                                            <Button Content="Placed" Padding="12,4" Margin="0,0,4,0"
                                                     Command="{Binding SetPlacementFilterPlacedCommand}">
                                                 <Button.Style>
                                                     <Style TargetType="Button" BasedOn="{StaticResource SmallSecondaryButton}">
@@ -509,7 +509,7 @@ Changes vs V223 (layout only):
                                                     </Style>
                                                 </Button.Style>
                                             </Button>
-                                            <Button Content="Not Placed" Padding="10,4"
+                                            <Button Content="Not Placed" Padding="12,4"
                                                     Command="{Binding SetPlacementFilterNotPlacedCommand}">
                                                 <Button.Style>
                                                     <Style TargetType="Button" BasedOn="{StaticResource SmallSecondaryButton}">
@@ -525,12 +525,12 @@ Changes vs V223 (layout only):
 
                                             <!-- View Name filter: live text box -->
                                             <TextBox Width="150" Style="{StaticResource StyledTextInput}"
-                                                     Margin="14,0,6,0" MaxLength="25" VerticalAlignment="Center"
+                                                     Margin="16,0,8,0" MaxLength="25" VerticalAlignment="Center"
                                                      Text="{Binding ViewNameFilter, UpdateSourceTrigger=PropertyChanged}"/>
 
                                             <!-- View Type filter: button opens popover with checkbox list -->
                                             <ToggleButton x:Name="ViewTypeFilterToggle"
-                                                          Width="110" Margin="0,0,10,0"
+                                                          Width="110" Margin="0,0,12,0"
                                                           Height="28"
                                                           IsChecked="{Binding IsViewTypeFilterOpen, Mode=TwoWay}"
                                                           Background="{StaticResource BrushSurfaceCard}"
@@ -553,7 +553,7 @@ Changes vs V223 (layout only):
                                                    VerticalOffset="2">
                                                 <Border Background="{StaticResource BrushSurfaceCard}"
                                                         BorderBrush="{StaticResource BrushBorderDefault}"
-                                                        BorderThickness="1" CornerRadius="8" Padding="0,6"
+                                                        BorderThickness="1" CornerRadius="8" Padding="0,8"
                                                         Width="190">
                                                     <Border.Effect>
                                                         <DropShadowEffect ShadowDepth="2" BlurRadius="10" Opacity="0.25"/>
@@ -561,12 +561,12 @@ Changes vs V223 (layout only):
                                                     <StackPanel>
                                                         <StackPanel Orientation="Horizontal"
                                                                     HorizontalAlignment="Right"
-                                                                    Margin="10,0,10,6">
+                                                                    Margin="12,0,12,8">
                                                             <Button Content="All" Style="{StaticResource SecondaryButton}"
-                                                                    Height="20" FontSize="10.5" Padding="4,0" Margin="0,0,4,0"
+                                                                    Height="20" FontSize="11" Padding="4,0" Margin="0,0,4,0"
                                                                     Command="{Binding CheckAllViewTypesCommand}"/>
                                                             <Button Content="None" Style="{StaticResource SecondaryButton}"
-                                                                    Height="20" FontSize="10.5" Padding="4,0"
+                                                                    Height="20" FontSize="11" Padding="4,0"
                                                                     Command="{Binding UncheckAllViewTypesCommand}"/>
                                                         </StackPanel>
                                                         <ItemsControl ItemsSource="{Binding ViewTypeFilters}">
@@ -575,7 +575,7 @@ Changes vs V223 (layout only):
                                                                     <CheckBox Content="{Binding Label}"
                                                                               IsChecked="{Binding IsChecked, Mode=TwoWay}"
                                                                               FontSize="12"
-                                                                              Padding="6,0,0,0"
+                                                                              Padding="8,0,0,0"
                                                                               Margin="12,4"/>
                                                                 </DataTemplate>
                                                             </ItemsControl.ItemTemplate>
@@ -621,16 +621,16 @@ Changes vs V223 (layout only):
                                                         <DropShadowEffect ShadowDepth="2" BlurRadius="10" Opacity="0.25"/>
                                                     </Border.Effect>
                                                     <StackPanel>
-                                                        <Grid Margin="0,0,0,6">
+                                                        <Grid Margin="0,0,0,8">
                                                             <Grid.ColumnDefinitions>
                                                                 <ColumnDefinition Width="*"/>
                                                                 <ColumnDefinition Width="Auto"/>
                                                             </Grid.ColumnDefinitions>
                                                             <TextBox Grid.Column="0" Style="{StaticResource StyledTextInput}"
-                                                                     Margin="0,0,6,0"
+                                                                     Margin="0,0,8,0"
                                                                      Text="{Binding FilterParameterSearchText, UpdateSourceTrigger=PropertyChanged}"/>
                                                             <Button Grid.Column="1" Content="Clear" Style="{StaticResource SecondaryButton}"
-                                                                    Height="26" FontSize="10.5" Padding="6,0"
+                                                                    Height="26" FontSize="11" Padding="8,0"
                                                                     Command="{Binding ClearFilterParameterCommand}"/>
                                                         </Grid>
                                                         <ListBox MaxHeight="220" BorderThickness="0" Background="Transparent"
@@ -703,7 +703,7 @@ Changes vs V223 (layout only):
                                             </DataGrid.Columns>
                                         </DataGrid>
 
-                                        <TextBlock Style="{StaticResource HintText}" Margin="0,6,0,0">
+                                        <TextBlock Style="{StaticResource HintText}" Margin="0,8,0,0">
                                             <Run Text="{Binding SelectedViewCount, Mode=OneWay}"/>
                                             <Run Text=" view(s) selected of "/>
                                             <Run Text="{Binding TotalViewCount, Mode=OneWay}"/>
@@ -739,7 +739,7 @@ Changes vs V223 (layout only):
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                        <Border Width="24" Height="24" CornerRadius="12" Margin="0,0,10,0">
+                                        <Border Width="24" Height="24" CornerRadius="12" Margin="0,0,12,0">
                                             <Border.Style>
                                                 <Style TargetType="Border" BasedOn="{StaticResource StageNumberCircleBase}">
                                                     <Style.Triggers>
@@ -763,7 +763,7 @@ Changes vs V223 (layout only):
                                         <TextBlock Text="Set gaps and preview sheet layout" Style="{StaticResource StageSubtitleText}" VerticalAlignment="Center"/>
                                     </StackPanel>
                                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                                        <Border Margin="0,0,10,0">
+                                        <Border Margin="0,0,12,0">
                                             <Border.Style>
                                                 <Style TargetType="Border" BasedOn="{StaticResource StatusBadgeBase}">
                                                     <Style.Triggers>
@@ -823,7 +823,7 @@ Changes vs V223 (layout only):
                             </ToggleButton>
                             <Border BorderThickness="0,1,0,0" BorderBrush="{StaticResource BrushBorderDefault}"
                                     Visibility="{Binding Stage2Expanded, Converter={StaticResource BoolToVisibilityConverter}}">
-                                <StackPanel Margin="14">
+                                <StackPanel Margin="16">
 
                                 <!-- V213: Reading Order + per-ViewType-group gap cards merged into
                                      ONE horizontal row per Rafi's request (previously: Reading Order
@@ -856,20 +856,20 @@ Changes vs V223 (layout only):
 
                                     <!-- Reading Order — global, applies uniformly to all groups -->
                                     <Border Grid.Column="0" Style="{StaticResource SectionCard}" Margin="0,0,8,0">
-                                        <StackPanel Margin="10">
-                                            <TextBlock Text="Reading Order" Style="{StaticResource FieldValue}" FontWeight="SemiBold" Margin="0,0,0,6"/>
+                                        <StackPanel Margin="12">
+                                            <TextBlock Text="Reading Order" Style="{StaticResource FieldValue}" FontWeight="SemiBold" Margin="0,0,0,8"/>
                                             <TextBlock Text="Direction" Style="{StaticResource FieldLabel}"/>
                                             <ComboBox Style="{StaticResource StandardComboBox}" HorizontalAlignment="Stretch"
                                                       ItemsSource="{Binding ReadingDirectionOptions}"
                                                       SelectedItem="{Binding SelectedReadingDirectionOption}"
-                                                      DisplayMemberPath="Label" Margin="0,0,0,6"/>
+                                                      DisplayMemberPath="Label" Margin="0,0,0,8"/>
                                             <!-- V213 UPDATE: Tiebreak + Y-Tolerance paired into one row -->
                                             <Grid>
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="*"/>
                                                     <ColumnDefinition Width="*"/>
                                                 </Grid.ColumnDefinitions>
-                                                <StackPanel Grid.Column="0" Margin="0,0,6,0">
+                                                <StackPanel Grid.Column="0" Margin="0,0,8,0">
                                                     <TextBlock Text="Tiebreak" Style="{StaticResource FieldLabel}"/>
                                                     <ComboBox Style="{StaticResource StandardComboBox}" HorizontalAlignment="Stretch"
                                                               ItemsSource="{Binding RowTiebreakOptions}"
@@ -890,8 +890,8 @@ Changes vs V223 (layout only):
                                          (see SheetGroup.FillStrategy remarks). Per-sheet overrides live in
                                          the Generated Sheets list below, in the Sheet Preview card. -->
                                     <Border Grid.Column="1" Style="{StaticResource SectionCard}">
-                                        <StackPanel Margin="10">
-                                            <TextBlock Text="Placement Algorithm" Style="{StaticResource FieldValue}" FontWeight="SemiBold" Margin="0,0,0,6"/>
+                                        <StackPanel Margin="12">
+                                            <TextBlock Text="Placement Algorithm" Style="{StaticResource FieldValue}" FontWeight="SemiBold" Margin="0,0,0,8"/>
                                             <TextBlock Text="Strategy (default for new sheets)" Style="{StaticResource FieldLabel}"/>
                                             <ComboBox Style="{StaticResource StandardComboBox}" HorizontalAlignment="Stretch"
                                                       ItemsSource="{Binding FillStrategyOptions}"
@@ -923,10 +923,10 @@ Changes vs V223 (layout only):
                                              OnSheetFillStrategyChanged (wired to SheetGroup.PropertyChanged
                                              in RunPacking()), not a full repack. -->
                                         <TextBlock Text="Generated Sheets" Style="{StaticResource FieldLabel}" Margin="0,0,0,4"/>
-                                        <ItemsControl ItemsSource="{Binding SuggestedSheets}" Margin="0,0,0,10">
+                                        <ItemsControl ItemsSource="{Binding SuggestedSheets}" Margin="0,0,0,12">
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate>
-                                                    <Border Style="{StaticResource BaseCard}" Padding="10,6" Margin="0,0,0,4">
+                                                    <Border Style="{StaticResource BaseCard}" Padding="12,8" Margin="0,0,0,4">
                                                         <Grid>
                                                             <Grid.ColumnDefinitions>
                                                                 <ColumnDefinition Width="*"/>
@@ -954,9 +954,9 @@ Changes vs V223 (layout only):
                                             </ItemsControl.ItemTemplate>
                                         </ItemsControl>
                                         <TextBlock Text="Changing a sheet's algorithm re-runs layout for that sheet only."
-                                                   Style="{StaticResource HintText}" Margin="0,0,0,10"/>
+                                                   Style="{StaticResource HintText}" Margin="0,0,0,12"/>
 
-                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
                                             <StackPanel Margin="0,0,16,0">
                                                 <TextBlock Text="Preview Sheet" Style="{StaticResource FieldLabel}"/>
                                                 <ComboBox Width="240" Style="{StaticResource StandardComboBox}"
@@ -985,7 +985,7 @@ Changes vs V223 (layout only):
                                              plain OneWay bindings here, no converters needed. -->
                                         <Border Background="{StaticResource BrushSurfaceWindow}"
                                                 BorderBrush="{StaticResource BrushSeparator}" BorderThickness="1"
-                                                CornerRadius="8" Padding="20" HorizontalAlignment="Center">
+                                                CornerRadius="8" Padding="24" HorizontalAlignment="Center">
                                             <Border Width="{Binding PreviewSheetWidthPx}" Height="{Binding PreviewSheetHeightPx}"
                                                     Background="{StaticResource BrushSurfaceCard}" BorderBrush="{StaticResource BrushTextTertiary}" BorderThickness="1.5">
                                                 <Canvas>
@@ -1021,10 +1021,10 @@ Changes vs V223 (layout only):
                                                                         </Style>
                                                                     </Border.Style>
                                                                     <StackPanel VerticalAlignment="Center" Margin="4">
-                                                                        <TextBlock Text="{Binding View.Name}" FontSize="10.5" FontWeight="SemiBold"
+                                                                        <TextBlock Text="{Binding View.Name}" FontSize="11" FontWeight="SemiBold"
                                                                                    Foreground="{StaticResource BrushTextPrimary}"
                                                                                    TextAlignment="Center" TextWrapping="Wrap" TextTrimming="CharacterEllipsis"/>
-                                                                        <TextBlock FontSize="9.5" Foreground="{StaticResource BrushTextSecondary}" TextAlignment="Center" Margin="0,2,0,0">
+                                                                        <TextBlock FontSize="10" Foreground="{StaticResource BrushTextSecondary}" TextAlignment="Center" Margin="0,2,0,0">
                                                                             <Run Text="{Binding View.WidthMm, Mode=OneWay, StringFormat={}{0:0}}"/>
                                                                             <Run Text=" × "/>
                                                                             <Run Text="{Binding View.HeightMm, Mode=OneWay, StringFormat={}{0:0}}"/>
@@ -1073,7 +1073,7 @@ Changes vs V223 (layout only):
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                        <Border Width="24" Height="24" CornerRadius="12" Margin="0,0,10,0">
+                                        <Border Width="24" Height="24" CornerRadius="12" Margin="0,0,12,0">
                                             <Border.Style>
                                                 <Style TargetType="Border" BasedOn="{StaticResource StageNumberCircleBase}">
                                                     <Style.Triggers>
@@ -1097,7 +1097,7 @@ Changes vs V223 (layout only):
                                         <TextBlock Text="Review auto-packed sheet layout" Style="{StaticResource StageSubtitleText}" VerticalAlignment="Center"/>
                                     </StackPanel>
                                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                                        <Border Margin="0,0,10,0">
+                                        <Border Margin="0,0,12,0">
                                             <Border.Style>
                                                 <Style TargetType="Border" BasedOn="{StaticResource StatusBadgeBase}">
                                                     <Style.Triggers>
@@ -1157,7 +1157,7 @@ Changes vs V223 (layout only):
                             </ToggleButton>
                             <Border BorderThickness="0,1,0,0" BorderBrush="{StaticResource BrushBorderDefault}"
                                     Visibility="{Binding Stage3Expanded, Converter={StaticResource BoolToVisibilityConverter}}">
-                                <StackPanel Margin="14">
+                                <StackPanel Margin="16">
 
                                 <Border Style="{StaticResource SectionCard}">
                                     <StackPanel Margin="12">
@@ -1169,7 +1169,7 @@ Changes vs V223 (layout only):
                                             </ItemsControl.ItemsPanel>
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate>
-                                                    <Border Style="{StaticResource BadgePill}" Margin="0,0,8,6">
+                                                    <Border Style="{StaticResource BadgePill}" Margin="0,0,8,8">
                                                         <TextBlock Style="{StaticResource BadgeText}">
                                                             <Run Text="Sheet "/>
                                                             <Run Text="{Binding SheetIndex, Mode=OneWay}"/>
@@ -1260,7 +1260,7 @@ Changes vs V223 (layout only):
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                        <Border Width="24" Height="24" CornerRadius="12" Margin="0,0,10,0">
+                                        <Border Width="24" Height="24" CornerRadius="12" Margin="0,0,12,0">
                                             <Border.Style>
                                                 <Style TargetType="Border" BasedOn="{StaticResource StageNumberCircleBase}">
                                                     <Style.Triggers>
@@ -1284,7 +1284,7 @@ Changes vs V223 (layout only):
                                         <TextBlock Text="Review final plan and create sheets" Style="{StaticResource StageSubtitleText}" VerticalAlignment="Center"/>
                                     </StackPanel>
                                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                                        <Border Margin="0,0,10,0">
+                                        <Border Margin="0,0,12,0">
                                             <Border.Style>
                                                 <Style TargetType="Border" BasedOn="{StaticResource StatusBadgeBase}">
                                                     <Style.Triggers>
@@ -1344,7 +1344,7 @@ Changes vs V223 (layout only):
                             </ToggleButton>
                             <Border BorderThickness="0,1,0,0" BorderBrush="{StaticResource BrushBorderDefault}"
                                     Visibility="{Binding Stage4Expanded, Converter={StaticResource BoolToVisibilityConverter}}">
-                                <StackPanel Margin="14">
+                                <StackPanel Margin="16">
 
                                 <Border Style="{StaticResource SectionCard}">
                                     <StackPanel Margin="12">
@@ -1403,7 +1403,7 @@ Changes vs V223 (layout only):
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                        <Border Width="24" Height="24" CornerRadius="12" Margin="0,0,10,0">
+                                        <Border Width="24" Height="24" CornerRadius="12" Margin="0,0,12,0">
                                             <Border.Style>
                                                 <Style TargetType="Border" BasedOn="{StaticResource StageNumberCircleBase}">
                                                     <Style.Triggers>
@@ -1420,7 +1420,7 @@ Changes vs V223 (layout only):
                                         <TextBlock Text="Open created sheets in Revit" Style="{StaticResource StageSubtitleText}" VerticalAlignment="Center"/>
                                     </StackPanel>
                                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                                        <Border Margin="0,0,10,0">
+                                        <Border Margin="0,0,12,0">
                                             <Border.Style>
                                                 <Style TargetType="Border" BasedOn="{StaticResource StatusBadgeBase}">
                                                     <Style.Triggers>
@@ -1466,13 +1466,13 @@ Changes vs V223 (layout only):
                             </ToggleButton>
                             <Border BorderThickness="0,1,0,0" BorderBrush="{StaticResource BrushBorderDefault}"
                                     Visibility="{Binding Stage5Expanded, Converter={StaticResource BoolToVisibilityConverter}}">
-                                <StackPanel Margin="14">
+                                <StackPanel Margin="16">
 
                                 <Border Style="{StaticResource SectionCard}">
                                     <StackPanel Margin="12">
                                         <TextBlock Text="Newly Created Sheets" Style="{StaticResource SectionTitle}" Margin="0,0,0,8"/>
                                         <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                                            <Button Content="Select All" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,6,0"
+                                            <Button Content="Select All" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,8,0"
                                                     Command="{Binding SelectAllSheetsToOpenCommand}"/>
                                             <Button Content="Clear Selection" Style="{StaticResource SmallSecondaryButton}"
                                                     Command="{Binding ClearSheetsToOpenCommand}"/>
@@ -1491,8 +1491,8 @@ Changes vs V223 (layout only):
                                         <ItemsControl ItemsSource="{Binding SheetTypeGroups}">
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate>
-                                                    <Border Style="{StaticResource SectionCard}" Margin="0,0,0,6">
-                                                        <StackPanel Margin="10">
+                                                    <Border Style="{StaticResource SectionCard}" Margin="0,0,0,8">
+                                                        <StackPanel Margin="12">
                                                             <ToggleButton IsChecked="{Binding IsExpanded, Mode=TwoWay}"
                                                                           Background="Transparent" BorderThickness="0" Cursor="Hand"
                                                                           HorizontalContentAlignment="Stretch" Padding="0">
@@ -1527,8 +1527,8 @@ Changes vs V223 (layout only):
                                                                     Margin="0,8,0,0" Padding="0,8,0,0"
                                                                     Visibility="{Binding IsExpanded, Converter={StaticResource BoolToVisibilityConverter}}">
                                                                 <StackPanel>
-                                                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
-                                                                        <CheckBox IsChecked="{Binding IsGroupSelectAllChecked, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                                                        <CheckBox IsChecked="{Binding IsGroupSelectAllChecked, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,8,0"/>
                                                                         <TextBlock Text="Select all in this group" Style="{StaticResource HintText}" Margin="0" VerticalAlignment="Center"/>
                                                                     </StackPanel>
 
@@ -1567,7 +1567,7 @@ Changes vs V223 (layout only):
                                             </ItemsControl.ItemTemplate>
                                         </ItemsControl>
 
-                                        <TextBlock Style="{StaticResource HintText}" Margin="0,6,0,0"
+                                        <TextBlock Style="{StaticResource HintText}" Margin="0,8,0,0"
                                                    Text="Check the sheets you want opened in Revit after closing this dialog. Unchecked sheets remain created but closed."/>
                                     </StackPanel>
                                 </Border>
@@ -1600,7 +1600,7 @@ Changes vs V223 (layout only):
                      finishes. -->
                 <Border Style="{StaticResource SectionCard}" Margin="0,8,0,0"
                         Visibility="{Binding HasProgress, Converter={StaticResource BoolToVisibilityConverter}}">
-                    <StackPanel Margin="10,8">
+                    <StackPanel Margin="12,8">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
@@ -1614,7 +1614,7 @@ Changes vs V223 (layout only):
                                        Style="{StaticResource FieldLabel}" Margin="0"
                                        VerticalAlignment="Center"/>
                         </Grid>
-                        <TextBlock Style="{StaticResource HintText}" Margin="0,3,0,0"
+                        <TextBlock Style="{StaticResource HintText}" Margin="0,4,0,0"
                                    TextTrimming="CharacterEllipsis"
                                    Text="{Binding ProgressCurrent, StringFormat='Placing: {0}'}"
                                    Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}}"/>
@@ -1622,26 +1622,26 @@ Changes vs V223 (layout only):
                 </Border>
 
                 <!-- ACTIVITY LOG (moved from footer) -->
-                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="10,8" Margin="0,8,0,0">
+                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="12,8" Margin="0,8,0,0">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <Grid Margin="0,0,0,6">
+                        <Grid Margin="0,0,0,8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Text="Activity Log" Foreground="{StaticResource BrushLogText}" FontSize="11.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                            <TextBlock Text="Activity Log" Foreground="{StaticResource BrushLogText}" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
                             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,12,0">
-                                    <CheckBox IsChecked="{Binding PromptForFolderOnAutoSave}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                    <CheckBox IsChecked="{Binding PromptForFolderOnAutoSave}" VerticalAlignment="Center" Margin="0,0,8,0"/>
                                                                                 <TextBlock Text="Prompt for folder on auto-save" FontSize="11" Foreground="{StaticResource BrushLogTextDim}" VerticalAlignment="Center"/>
                             </StackPanel>
                             <StackPanel Grid.Column="2" Orientation="Horizontal">
                                 <Button Content="Copy All" Style="{StaticResource DarkGhostButton}" Click="CopyAllLog_Click"/>
-                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Click="CopySelectedLog_Click" Margin="6,0,0,0"/>
+                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Click="CopySelectedLog_Click" Margin="8,0,0,0"/>
                             </StackPanel>
                         </Grid>
                         <ListBox shell:ShellBehaviors.MaxHeightRatio="0.2" shell:ShellBehaviors.ForwardMouseWheel="True" Grid.Row="1" x:Name="LogList" ItemsSource="{Binding Logs}" MinHeight="110"

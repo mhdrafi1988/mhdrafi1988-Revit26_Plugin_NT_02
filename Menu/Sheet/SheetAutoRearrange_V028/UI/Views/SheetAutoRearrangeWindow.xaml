@@ -147,7 +147,7 @@ Changes vs V027 (layout only):
                                                   DockPanel.Dock="Top"
                                                   IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
                                                   Background="Transparent" BorderThickness="0"
-                                                  Padding="12,10" Cursor="Hand"
+                                                  Padding="12,12" Cursor="Hand"
                                                   HorizontalContentAlignment="Stretch">
                                         <ToggleButton.Template>
                                             <ControlTemplate TargetType="ToggleButton">
@@ -214,7 +214,7 @@ Changes vs V027 (layout only):
             <Style x:Key="ExpanderHeaderBadge" TargetType="Border">
                 <Setter Property="Background" Value="{StaticResource BrushSystemSecondaryBackground}"/>
                 <Setter Property="CornerRadius" Value="8"/>
-                <Setter Property="Padding" Value="7,2"/>
+                <Setter Property="Padding" Value="8,2"/>
             </Style>
             <Style x:Key="ExpanderHeaderBadgeText" TargetType="TextBlock">
                 <Setter Property="FontSize" Value="9.5"/>
@@ -240,7 +240,7 @@ Changes vs V027 (layout only):
                 <Border Style="{StaticResource BadgePill}" HorizontalAlignment="Left">
                     <TextBlock Text="{Binding SheetChipText}" Style="{StaticResource BadgeText}"/>
                 </Border>
-                <Grid Margin="0,6,0,0">
+                <Grid Margin="0,8,0,0">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>
@@ -304,14 +304,14 @@ Changes vs V027 (layout only):
                             <TextBlock Grid.Row="0" Text="Views on Sheet" Style="{StaticResource SectionTitle}"/>
 
                             <!-- Toolbar -->
-                            <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="12,0,12,6">
+                            <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="12,0,12,8">
                                 <TextBox Width="160" Style="{StaticResource StyledTextInput}"
                                          Text="{Binding FilterText, UpdateSourceTrigger=PropertyChanged}"
-                                         MaxLength="25" Margin="0,0,6,0"/>
-                                <Button Content="View Types ▾" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,6,0"
+                                         MaxLength="25" Margin="0,0,8,0"/>
+                                <Button Content="View Types ▾" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,8,0"
                                         Click="ViewTypesButton_Click"/>
-                                <Button Content="Select All" Style="{StaticResource SmallSecondaryButton}" Command="{Binding SelectAllCommand}" Margin="0,0,6,0"/>
-                                <Button Content="Clear" Style="{StaticResource SmallSecondaryButton}" Command="{Binding ClearAllCommand}" Margin="0,0,6,0"/>
+                                <Button Content="Select All" Style="{StaticResource SmallSecondaryButton}" Command="{Binding SelectAllCommand}" Margin="0,0,8,0"/>
+                                <Button Content="Clear" Style="{StaticResource SmallSecondaryButton}" Command="{Binding ClearAllCommand}" Margin="0,0,8,0"/>
                                 <Button Content="Refresh" Style="{StaticResource SmallSecondaryButton}" Command="{Binding RefreshCommand}"/>
 
                                 <!-- View Type filter popover -->
@@ -323,13 +323,13 @@ Changes vs V027 (layout only):
                                             <DropShadowEffect ShadowDepth="2" BlurRadius="10" Opacity="0.2"/>
                                         </Border.Effect>
                                         <StackPanel>
-                                            <CheckBox Content="Floor Plan" IsChecked="{Binding ShowFloorPlan}" Margin="4,3"/>
-                                            <CheckBox Content="Section" IsChecked="{Binding ShowSection}" Margin="4,3"/>
-                                            <CheckBox Content="Elevation" IsChecked="{Binding ShowElevation}" Margin="4,3"/>
-                                            <CheckBox Content="3D View" IsChecked="{Binding Show3D}" Margin="4,3"/>
-                                            <CheckBox Content="Legend" IsChecked="{Binding ShowLegend}" Margin="4,3"/>
-                                            <CheckBox Content="Schedule" IsChecked="{Binding ShowSchedule}" Margin="4,3"/>
-                                            <CheckBox Content="Drafting View" IsChecked="{Binding ShowDrafting}" Margin="4,3"/>
+                                            <CheckBox Content="Floor Plan" IsChecked="{Binding ShowFloorPlan}" Margin="4,4"/>
+                                            <CheckBox Content="Section" IsChecked="{Binding ShowSection}" Margin="4,4"/>
+                                            <CheckBox Content="Elevation" IsChecked="{Binding ShowElevation}" Margin="4,4"/>
+                                            <CheckBox Content="3D View" IsChecked="{Binding Show3D}" Margin="4,4"/>
+                                            <CheckBox Content="Legend" IsChecked="{Binding ShowLegend}" Margin="4,4"/>
+                                            <CheckBox Content="Schedule" IsChecked="{Binding ShowSchedule}" Margin="4,4"/>
+                                            <CheckBox Content="Drafting View" IsChecked="{Binding ShowDrafting}" Margin="4,4"/>
                                         </StackPanel>
                                     </Border>
                                 </Popup>
@@ -384,11 +384,11 @@ Changes vs V027 (layout only):
                                     <DataGridTemplateColumn Header="Fit" Width="1*" CanUserSort="False">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
-                                                <Border CornerRadius="8" Padding="6,2" HorizontalAlignment="Center"
+                                                <Border CornerRadius="8" Padding="8,2" HorizontalAlignment="Center"
                                                         Background="{Binding FitStatus, Converter={StaticResource StatusToFitBrushConverter}}"
                                                         Opacity="0.15">
                                                     <TextBlock Text="{Binding FitStatus, Converter={StaticResource StatusToFitTextConverter}}"
-                                                               FontSize="9.5" FontWeight="SemiBold"
+                                                               FontSize="10" FontWeight="SemiBold"
                                                                Foreground="{Binding FitStatus, Converter={StaticResource StatusToFitBrushConverter}}"/>
                                                 </Border>
                                             </DataTemplate>
@@ -415,13 +415,13 @@ Changes vs V027 (layout only):
                                     <TextBlock Text="Layout Settings" Style="{StaticResource ExpanderTitleText}"/>
                                 </Expander.Header>
 
-                                <StackPanel Margin="0,0,0,10">
+                                <StackPanel Margin="0,0,0,12">
                                     <StackPanel Orientation="Horizontal" Margin="12,8,12,4">
                                         <TextBlock Text="Row Tolerance" Width="90" Style="{StaticResource FieldLabel}" VerticalAlignment="Center"/>
                                         <TextBox Width="60" MaxLength="10" FontSize="11" Style="{StaticResource StyledTextInput}"
                                                  Text="{Binding RowToleranceMm}"/>
                                         <TextBlock Text="mm — same-row grouping range" Style="{StaticResource HintText}"
-                                                   VerticalAlignment="Center" Margin="6,0,0,0"/>
+                                                   VerticalAlignment="Center" Margin="8,0,0,0"/>
                                     </StackPanel>
 
                                     <StackPanel Orientation="Horizontal" Margin="12,4,12,2">
@@ -430,7 +430,7 @@ Changes vs V027 (layout only):
                                                   ItemsSource="{Binding Source={StaticResource RowAlignmentValues}}"
                                                   SelectedItem="{Binding RowAlignment}"/>
                                     </StackPanel>
-                                    <TextBlock Text="Mixed-height views sharing a normal row." Style="{StaticResource HintText}" Margin="12,0,12,6"/>
+                                    <TextBlock Text="Mixed-height views sharing a normal row." Style="{StaticResource HintText}" Margin="12,0,12,8"/>
 
                                     <!-- V014: "Shelf Sub-Row Align" / "Shelf Sub-Col
                                          Align" REMOVED — those controlled
@@ -442,7 +442,7 @@ Changes vs V027 (layout only):
                                          with no separate user-facing alignment
                                          setting. -->
 
-                                    <Border Height="1" Background="{StaticResource BrushSeparatorThin}" Margin="12,6"/>
+                                    <Border Height="1" Background="{StaticResource BrushSeparatorThin}" Margin="12,8"/>
 
                                     <!-- V024: Group Leftovers By picks whether the two settings
                                          below it (Row Tolerance/Align above, or Column
@@ -454,13 +454,13 @@ Changes vs V027 (layout only):
                                                   ItemsSource="{Binding Source={StaticResource LeftoverGroupModeValues}}"
                                                   SelectedItem="{Binding LeftoverGroupMode}"/>
                                     </StackPanel>
-                                    <TextBlock Text="Views the fill strategy above couldn't place: grouped into rows (Row Tolerance/Align) or columns (Column Tolerance/Align, below)." Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="12,0,12,6"/>
+                                    <TextBlock Text="Views the fill strategy above couldn't place: grouped into rows (Row Tolerance/Align) or columns (Column Tolerance/Align, below)." Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="12,0,12,8"/>
 
                                     <StackPanel Orientation="Horizontal" Margin="12,4,12,4">
                                         <TextBlock Text="Column Tolerance" Width="130" Style="{StaticResource FieldLabel}" VerticalAlignment="Center"/>
                                         <TextBox Width="60" MaxLength="10" FontSize="11" Style="{StaticResource StyledTextInput}"
                                                  Text="{Binding ColumnToleranceMm}"/>
-                                        <TextBlock Text="mm — same-column grouping range" Style="{StaticResource HintText}" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                                        <TextBlock Text="mm — same-column grouping range" Style="{StaticResource HintText}" VerticalAlignment="Center" Margin="8,0,0,0"/>
                                     </StackPanel>
 
                                     <StackPanel Orientation="Horizontal" Margin="12,2,12,2">
@@ -469,7 +469,7 @@ Changes vs V027 (layout only):
                                                   ItemsSource="{Binding Source={StaticResource BlockAlignmentHValues}}"
                                                   SelectedItem="{Binding WithinColumnAlign}"/>
                                     </StackPanel>
-                                    <TextBlock Text="Mixed-width views sharing a column." Style="{StaticResource HintText}" Margin="12,0,12,6"/>
+                                    <TextBlock Text="Mixed-width views sharing a column." Style="{StaticResource HintText}" Margin="12,0,12,8"/>
                                 </StackPanel>
                             </Expander>
 
@@ -479,7 +479,7 @@ Changes vs V027 (layout only):
                                     <TextBlock Text="Sheet Positioning" Style="{StaticResource ExpanderTitleText}"/>
                                 </Expander.Header>
 
-                                <StackPanel Margin="0,0,0,10">
+                                <StackPanel Margin="0,0,0,12">
                                     <StackPanel Orientation="Horizontal" Margin="12,8,12,2">
                                         <TextBlock Text="Sheet Position H" Width="130" Style="{StaticResource FieldLabel}" VerticalAlignment="Center"/>
                                         <ComboBox Width="100" Style="{StaticResource StandardComboBox}"
@@ -509,10 +509,10 @@ Changes vs V027 (layout only):
                                     <TextBlock Text="Priority Groups" Style="{StaticResource ExpanderTitleText}"/>
                                 </Expander.Header>
 
-                                <StackPanel Margin="0,0,0,10">
+                                <StackPanel Margin="0,0,0,12">
                                     <CheckBox Content="Enable Priority Groups" IsChecked="{Binding EnablePriorityGroups}" Margin="12,8,12,4"/>
                                     <TextBlock Text="When on, every view of the 1st group below is placed before any view of the 2nd group, and so on. Reorder with the arrows — a view type not listed here places last, in its original grid order."
-                                               Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="12,0,12,6"/>
+                                               Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="12,0,12,8"/>
 
                                     <ListBox shell:ShellBehaviors.MaxHeightRatio="0.25" shell:ShellBehaviors.ForwardMouseWheel="True" ItemsSource="{Binding PriorityGroups}"
                                              AlternationCount="{Binding PriorityGroups.Count}"
@@ -521,7 +521,7 @@ Changes vs V027 (layout only):
                                              Margin="12,0,12,8" ScrollViewer.VerticalScrollBarVisibility="Auto">
                                         <ListBox.ItemTemplate>
                                             <DataTemplate>
-                                                <Grid Margin="4,3">
+                                                <Grid Margin="4,4">
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="22"/>
                                                         <ColumnDefinition Width="*"/>
@@ -531,10 +531,10 @@ Changes vs V027 (layout only):
                                                     <TextBlock Grid.Column="0" VerticalAlignment="Center" FontWeight="SemiBold"
                                                                Text="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem}, Path=(ItemsControl.AlternationIndex), StringFormat={}{0}.}"/>
                                                     <TextBlock Grid.Column="1" VerticalAlignment="Center" Text="{Binding DisplayName}"/>
-                                                    <Button Grid.Column="2" Content="▲" Padding="6,1" Margin="2,0" Style="{StaticResource SmallSecondaryButton}"
+                                                    <Button Grid.Column="2" Content="▲" Padding="8,2" Margin="2,0" Style="{StaticResource SmallSecondaryButton}"
                                                             Command="{Binding DataContext.MovePriorityGroupUpCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                             CommandParameter="{Binding}"/>
-                                                    <Button Grid.Column="3" Content="▼" Padding="6,1" Style="{StaticResource SmallSecondaryButton}"
+                                                    <Button Grid.Column="3" Content="▼" Padding="8,2" Style="{StaticResource SmallSecondaryButton}"
                                                             Command="{Binding DataContext.MovePriorityGroupDownCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                             CommandParameter="{Binding}"/>
                                                 </Grid>
@@ -567,7 +567,7 @@ Changes vs V027 (layout only):
                                     </Grid>
                                 </Expander.Header>
 
-                                <StackPanel Margin="0,0,0,10">
+                                <StackPanel Margin="0,0,0,12">
 
                                     <TextBlock Text="EXISTING (BAND-BASED)" Style="{StaticResource HintText}"
                                                FontWeight="Bold" FontSize="10" Margin="12,8,12,4"/>
@@ -655,7 +655,7 @@ Changes vs V027 (layout only):
                                     </UniformGrid>
 
                                     <TextBlock Text="NEW (FREE PACKING — NO BANDING)" Style="{StaticResource HintText}"
-                                               FontWeight="Bold" FontSize="10" Margin="12,10,12,4"/>
+                                               FontWeight="Bold" FontSize="10" Margin="12,12,12,4"/>
 
                                     <!-- V022 NEW: 4-way segmented picker for the non-banded strategies -->
                                     <UniformGrid Columns="4" Margin="12,0,12,4">
@@ -766,14 +766,14 @@ Changes vs V027 (layout only):
                                     </UniformGrid>
 
                                     <!-- V022 NEW: Max Fill info note (new default) -->
-                                    <Border Background="{StaticResource BrushStatusInfoSoft}" BorderBrush="{StaticResource BrushStatusInfoBorder}" BorderThickness="1" CornerRadius="6" Margin="12,8,12,4" Padding="8,6">
+                                    <Border Background="{StaticResource BrushStatusInfoSoft}" BorderBrush="{StaticResource BrushStatusInfoBorder}" BorderThickness="1" CornerRadius="6" Margin="12,8,12,4" Padding="8,8">
                                         <TextBlock TextWrapping="Wrap" FontSize="10" Foreground="{StaticResource BrushNavyPrimary}">
                                             <Run FontWeight="SemiBold" Text="Max Fill: "/>
                                             <Run Text="ignores Master Row/Band scaffolding — items sorted smallest-area-first, packed into free rectangles via Best-Short-Side-Fit (ties broken by max resulting free area). New default strategy."/>
                                         </TextBlock>
                                     </Border>
 
-                                    <Border Background="{StaticResource BrushStatusWarnSoft}" BorderBrush="{StaticResource BrushStatusWarnBorder}" BorderThickness="1" CornerRadius="6" Margin="12,4,12,4" Padding="8,6">
+                                    <Border Background="{StaticResource BrushStatusWarnSoft}" BorderBrush="{StaticResource BrushStatusWarnBorder}" BorderThickness="1" CornerRadius="6" Margin="12,4,12,4" Padding="8,8">
                                         <TextBlock TextWrapping="Wrap" FontSize="10" Foreground="{StaticResource BrushStatusWarn}">
                                             <Run FontWeight="SemiBold" Text="Note (Shelf / Guillotine / MaxRects only): "/>
                                             <Run Text="Master Row height is set by the tallest item still unplaced anywhere in the list, not just the tallest item in the current row. With a few unusually tall items in an otherwise short dataset, several rows in a row can end up using that same tall row-height before those items are finally placed. Ported here exactly as specified."/>
@@ -787,7 +787,7 @@ Changes vs V027 (layout only):
                                 <Expander.Header>
                                     <TextBlock Text="Live Sheet Preview" Style="{StaticResource ExpanderTitleText}"/>
                                 </Expander.Header>
-                                <StackPanel Margin="0,0,0,10">
+                                <StackPanel Margin="0,0,0,12">
                                     <Border Margin="12,4,12,4" Height="200" Background="{StaticResource BrushSurfaceWindow}"
                                             BorderBrush="{StaticResource BrushBorderDefault}" BorderThickness="1" CornerRadius="6">
 
@@ -813,29 +813,29 @@ Changes vs V027 (layout only):
                                     </Grid>
                                 </Expander.Header>
 
-                                <StackPanel Margin="0,0,0,10">
+                                <StackPanel Margin="0,0,0,12">
                                     <RadioButton x:Name="OverflowForceFitRadio" GroupName="Overflow" Margin="12,4,12,2"
                                                  Checked="OverflowRadio_Checked" Tag="ForceFit">
                                         <StackPanel Margin="4,0,0,0">
-                                            <TextBlock Text="Force-Fit Anyway" FontSize="12.5" FontWeight="SemiBold"/>
+                                            <TextBlock Text="Force-Fit Anyway" FontSize="13" FontWeight="SemiBold"/>
                                             <TextBlock Text="Not yet implemented in V006 — logs a warning and falls back to Place What's Placeable."
                                                        Style="{StaticResource HintText}" MaxWidth="300"/>
                                         </StackPanel>
                                     </RadioButton>
 
-                                    <RadioButton x:Name="OverflowAutoSheetRadio" GroupName="Overflow" Margin="12,6,12,2"
+                                    <RadioButton x:Name="OverflowAutoSheetRadio" GroupName="Overflow" Margin="12,8,12,2"
                                                  Checked="OverflowRadio_Checked" Tag="AutoOverflowSheet">
                                         <StackPanel Margin="4,0,0,0">
-                                            <TextBlock Text="Auto-Create Overflow Sheet" FontSize="12.5" FontWeight="SemiBold"/>
+                                            <TextBlock Text="Auto-Create Overflow Sheet" FontSize="13" FontWeight="SemiBold"/>
                                             <TextBlock Text="Not yet implemented in V006 — logs a warning and falls back to Place What's Placeable."
                                                        Style="{StaticResource HintText}" MaxWidth="300"/>
                                         </StackPanel>
                                     </RadioButton>
 
-                                    <RadioButton x:Name="OverflowPlaceablePlaceableRadio" GroupName="Overflow" Margin="12,6,12,2" IsChecked="True"
+                                    <RadioButton x:Name="OverflowPlaceablePlaceableRadio" GroupName="Overflow" Margin="12,8,12,2" IsChecked="True"
                                                  Checked="OverflowRadio_Checked" Tag="PlaceWhatsPlaceable">
                                         <StackPanel Margin="4,0,0,0">
-                                            <TextBlock Text="Place What's Placeable" FontSize="12.5" FontWeight="SemiBold"/>
+                                            <TextBlock Text="Place What's Placeable" FontSize="13" FontWeight="SemiBold"/>
                                             <TextBlock Text="Views that don't fit are placed just below the sheet, continuing the layout; they stay ticked but flagged Failed."
                                                        Style="{StaticResource HintText}" MaxWidth="300"/>
                                         </StackPanel>
@@ -849,7 +849,7 @@ Changes vs V027 (layout only):
                                     <TextBlock Text="Gap &amp; Margin Settings" Style="{StaticResource ExpanderTitleText}"/>
                                 </Expander.Header>
 
-                                <StackPanel Margin="0,0,0,10">
+                                <StackPanel Margin="0,0,0,12">
                                     <TextBlock Text="Titleblock margins (usable area offset):" Style="{StaticResource HintText}" Margin="12,2,12,4"/>
                                     <StackPanel Orientation="Horizontal" Margin="12,2,12,2">
                                         <TextBlock Text="Top" Width="46" Style="{StaticResource FieldLabel}" VerticalAlignment="Center"/>
@@ -883,22 +883,22 @@ Changes vs V027 (layout only):
                 </Grid>
 
                 <!-- ACTIVITY LOG + saved-log path (moved from footer) -->
-                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="10,8">
+                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="12,8">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <Grid Margin="0,0,0,6">
+                        <Grid Margin="0,0,0,8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Text="Activity Log" Foreground="{StaticResource BrushLogText}" FontSize="11.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                            <TextBlock Text="Activity Log" Foreground="{StaticResource BrushLogText}" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
                             <StackPanel Grid.Column="1" Orientation="Horizontal">
                                 <Button Content="Copy All" Style="{StaticResource DarkGhostButton}" Click="CopyAllLog_Click"/>
-                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Click="CopySelectedLog_Click" Margin="6,0,0,0"/>
-                                <Button Content="Clear" Style="{StaticResource DarkGhostButton}" Command="{Binding ClearLogCommand}" Margin="6,0,0,0"/>
+                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Click="CopySelectedLog_Click" Margin="8,0,0,0"/>
+                                <Button Content="Clear" Style="{StaticResource DarkGhostButton}" Command="{Binding ClearLogCommand}" Margin="8,0,0,0"/>
                             </StackPanel>
                         </Grid>
                         <ListBox shell:ShellBehaviors.MaxHeightRatio="0.2" shell:ShellBehaviors.ForwardMouseWheel="True" Grid.Row="1" x:Name="LogList" ItemsSource="{Binding Log}" MinHeight="110"
@@ -921,9 +921,9 @@ Changes vs V027 (layout only):
                 <StackPanel Margin="0,4,0,0" Visibility="{Binding LastLogFilePath, Converter={StaticResource StringToVisibilityConverter}}">
                     <TextBlock Text="Log saved to:" Style="{StaticResource HintText}" Margin="0,0,0,2"/>
                     <TextBox Text="{Binding LastLogFilePath, Mode=OneWay}" IsReadOnly="True"
-                             FontSize="10.5" Background="{StaticResource BrushSystemSecondaryBackground}"
+                             FontSize="11" Background="{StaticResource BrushSystemSecondaryBackground}"
                              BorderBrush="{StaticResource BrushSeparator}" BorderThickness="1"
-                             Padding="6,4" TextWrapping="Wrap"/>
+                             Padding="8,4" TextWrapping="Wrap"/>
                 </StackPanel>
             </StackPanel>
         </shell:ToolWindowShell.BodyContent>

@@ -73,7 +73,7 @@ The preview canvas is drawn in code-behind from ViewModel.Plan.
                                                                     <RowDefinition Height="Auto"/>
                                                                     <RowDefinition Height="Auto"/>
                                                                 </Grid.RowDefinitions>
-                                                                <Border Grid.Row="0" Padding="4,3"
+                                                                <Border Grid.Row="0" Padding="4,4"
                                                                         Background="{StaticResource BrushSystemTertiaryBackground}"
                                                                         BorderBrush="{StaticResource BrushSeparator}" BorderThickness="0,1,0,0">
                                                                     <StackPanel Orientation="Horizontal">
@@ -90,9 +90,9 @@ The preview canvas is drawn in code-behind from ViewModel.Plan.
                                                                                 </MultiBinding>
                                                                             </CheckBox.IsChecked>
                                                                         </CheckBox>
-                                                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="12.5"
+                                                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="13"
                                                                                    Foreground="{StaticResource BrushNavyPrimary}" VerticalAlignment="Center"/>
-                                                                        <TextBlock Margin="8,0,0,0" FontSize="11.5" VerticalAlignment="Center"
+                                                                        <TextBlock Margin="8,0,0,0" FontSize="12" VerticalAlignment="Center"
                                                                                    Foreground="{StaticResource BrushTextSecondary}">
                                                                             <TextBlock.Text>
                                                                                 <MultiBinding Converter="{StaticResource GroupSummary}" Mode="OneWay">
@@ -119,10 +119,10 @@ The preview canvas is drawn in code-behind from ViewModel.Plan.
 
             <!-- Removable tag for an active filter. -->
             <DataTemplate x:Key="FilterChipTemplate">
-                <Border CornerRadius="10" Padding="9,1,3,1" Margin="0,0,5,4" Background="{StaticResource BrushStatusInfoSoft}">
+                <Border CornerRadius="10" Padding="8,2,4,2" Margin="0,0,4,4" Background="{StaticResource BrushStatusInfoSoft}">
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="{Binding Text}" FontSize="11.5" Foreground="{StaticResource BrushStatusInfo}" VerticalAlignment="Center"/>
-                        <Button Content="×" Command="{Binding RemoveCommand}" Padding="5,0" Margin="2,0,0,0" Background="Transparent"
+                        <TextBlock Text="{Binding Text}" FontSize="12" Foreground="{StaticResource BrushStatusInfo}" VerticalAlignment="Center"/>
+                        <Button Content="×" Command="{Binding RemoveCommand}" Padding="4,0" Margin="2,0,0,0" Background="Transparent"
                                 BorderThickness="0" Cursor="Hand" FontSize="13" Foreground="{StaticResource BrushStatusInfo}"
                                 ToolTip="Remove this filter"/>
                     </StackPanel>
@@ -131,10 +131,10 @@ The preview canvas is drawn in code-behind from ViewModel.Plan.
 
             <!-- One tick box in a filter pop-up. -->
             <DataTemplate x:Key="FilterOptionTemplate">
-                <CheckBox IsChecked="{Binding IsChecked}" Margin="4,3" HorizontalAlignment="Stretch">
+                <CheckBox IsChecked="{Binding IsChecked}" Margin="4,4" HorizontalAlignment="Stretch">
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="{Binding Label}" MinWidth="110"/>
-                        <TextBlock Text="{Binding Count}" Foreground="{StaticResource BrushTextSecondary}" FontSize="11.5" Margin="8,0,0,0"/>
+                        <TextBlock Text="{Binding Count}" Foreground="{StaticResource BrushTextSecondary}" FontSize="12" Margin="8,0,0,0"/>
                     </StackPanel>
                 </CheckBox>
             </DataTemplate>
@@ -230,7 +230,7 @@ The preview canvas is drawn in code-behind from ViewModel.Plan.
                     <Border Style="{StaticResource SectionCard}">
                         <StackPanel>
                             <TextBlock Text="Sheet" Style="{StaticResource SectionTitle}"/>
-                            <Grid Margin="12,0,12,6">
+                            <Grid Margin="12,0,12,8">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
@@ -242,7 +242,7 @@ The preview canvas is drawn in code-behind from ViewModel.Plan.
                                         Margin="8,0,0,0" Command="{Binding RefreshCommand}"
                                         ToolTip="Re-read the sheet after changing it in Revit."/>
                             </Grid>
-                            <TextBlock Style="{StaticResource HintText}" Margin="12,0,12,10"
+                            <TextBlock Style="{StaticResource HintText}" Margin="12,0,12,12"
                                        Text="Order: by Detail Number (1, 2, 10 … A1, A2, B1). Reading: left → right, then the next row down."/>
                         </StackPanel>
                     </Border>
@@ -280,7 +280,7 @@ The preview canvas is drawn in code-behind from ViewModel.Plan.
                                 <TextBox Grid.Row="2" Grid.Column="5" Style="{StaticResource MmBox}" Text="{Binding MarginRightMm}"/>
                                 <TextBlock Grid.Row="2" Grid.Column="6" Text="mm" Style="{StaticResource UnitLabel}"/>
                             </Grid>
-                            <TextBlock Style="{StaticResource HintText}" Margin="12,2,12,10"
+                            <TextBlock Style="{StaticResource HintText}" Margin="12,2,12,12"
                                        Text="Measured inward from the title block's outer edge. Use Right / Bottom to clear the title strip."/>
                         </StackPanel>
                     </Border>
@@ -325,7 +325,7 @@ The preview canvas is drawn in code-behind from ViewModel.Plan.
                                 <ToggleButton Style="{StaticResource AppleToggleButton}" IsChecked="{Binding MovePinned}"/>
                                 <TextBlock Text="Move pinned views" FontSize="13" Margin="8,0,0,0" VerticalAlignment="Center"/>
                             </StackPanel>
-                            <TextBlock Style="{StaticResource HintText}" Margin="12,-4,12,10"
+                            <TextBlock Style="{StaticResource HintText}" Margin="12,-4,12,12"
                                        Text="On: pinned views are moved and pinned again. Off: they stay where they are and are left out of the order."/>
                         </StackPanel>
                     </Border>
@@ -336,21 +336,21 @@ The preview canvas is drawn in code-behind from ViewModel.Plan.
                     <Border Style="{StaticResource SectionCard}" Margin="0,0,0,8">
                         <StackPanel>
                             <TextBlock Text="Preview" Style="{StaticResource SectionTitle}"/>
-                            <Border Margin="12,0,12,6" Height="300" Background="{StaticResource BrushSystemSecondaryBackground}"
+                            <Border Margin="12,0,12,8" Height="300" Background="{StaticResource BrushSystemSecondaryBackground}"
                                     CornerRadius="6" ClipToBounds="True">
                                 <Canvas x:Name="PreviewCanvas" SizeChanged="PreviewCanvas_SizeChanged"/>
                             </Border>
-                            <TextBlock Style="{StaticResource HintText}" Margin="12,0,12,6"
+                            <TextBlock Style="{StaticResource HintText}" Margin="12,0,12,8"
                                        Text="Blue: new position (number = detail number). Red: does not fit. Grey hatched: skipped, stays put. Dashed: usable area."/>
 
-                            <Border Margin="12,0,12,6" Padding="10,6" CornerRadius="6"
+                            <Border Margin="12,0,12,8" Padding="12,8" CornerRadius="6"
                                     Background="{StaticResource BrushStatusWarnSoft}"
                                     BorderBrush="{StaticResource BrushStatusWarnBorder}" BorderThickness="1"
                                     Visibility="{Binding HasBlocker, Converter={StaticResource BoolToVis}}">
                                 <TextBlock Text="{Binding StatusText}" TextWrapping="Wrap"
                                            Foreground="{StaticResource BrushStatusWarn}" FontSize="12"/>
                             </Border>
-                            <Border Margin="12,0,12,10" Padding="10,6" CornerRadius="6"
+                            <Border Margin="12,0,12,12" Padding="12,8" CornerRadius="6"
                                     Background="{StaticResource BrushStatusWarnSoft}"
                                     BorderBrush="{StaticResource BrushStatusWarnBorder}" BorderThickness="1"
                                     Visibility="{Binding HasWarnings, Converter={StaticResource BoolToVis}}">
@@ -370,7 +370,7 @@ The preview canvas is drawn in code-behind from ViewModel.Plan.
 
                             <!-- Filter: search, Type / Status / Row pop-ups, show mode -->
                             <WrapPanel Margin="12,0,12,4">
-                                <Grid Margin="0,0,6,4">
+                                <Grid Margin="0,0,8,4">
                                     <TextBox Width="200" Style="{StaticResource StyledTextInput}"
                                              Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged, Delay=250}"
                                              MaxLength="60"
@@ -390,7 +390,7 @@ The preview canvas is drawn in code-behind from ViewModel.Plan.
                                     </TextBlock>
                                 </Grid>
 
-                                <Button x:Name="TypeFilterButton" Content="{Binding TypeFilterLabel}" Margin="0,0,6,4"
+                                <Button x:Name="TypeFilterButton" Content="{Binding TypeFilterLabel}" Margin="0,0,8,4"
                                         Style="{StaticResource SmallSecondaryButton}" Click="TypeFilterButton_Click"/>
                                 <Popup x:Name="TypeFilterPopup" PlacementTarget="{Binding ElementName=TypeFilterButton}" Placement="Bottom" StaysOpen="False">
                                     <Border Style="{StaticResource FilterPopupCard}">
@@ -398,7 +398,7 @@ The preview canvas is drawn in code-behind from ViewModel.Plan.
                                     </Border>
                                 </Popup>
 
-                                <Button x:Name="StatusFilterButton" Content="{Binding StatusFilterLabel}" Margin="0,0,6,4"
+                                <Button x:Name="StatusFilterButton" Content="{Binding StatusFilterLabel}" Margin="0,0,8,4"
                                         Style="{StaticResource SmallSecondaryButton}" Click="StatusFilterButton_Click"/>
                                 <Popup x:Name="StatusFilterPopup" PlacementTarget="{Binding ElementName=StatusFilterButton}" Placement="Bottom" StaysOpen="False">
                                     <Border Style="{StaticResource FilterPopupCard}">
@@ -406,7 +406,7 @@ The preview canvas is drawn in code-behind from ViewModel.Plan.
                                     </Border>
                                 </Popup>
 
-                                <Button x:Name="RowFilterButton" Content="{Binding RowFilterLabel}" Margin="0,0,6,4"
+                                <Button x:Name="RowFilterButton" Content="{Binding RowFilterLabel}" Margin="0,0,8,4"
                                         Style="{StaticResource SmallSecondaryButton}" Click="RowFilterButton_Click"/>
                                 <Popup x:Name="RowFilterPopup" PlacementTarget="{Binding ElementName=RowFilterButton}" Placement="Bottom" StaysOpen="False">
                                     <Border Style="{StaticResource FilterPopupCard}">
@@ -414,13 +414,13 @@ The preview canvas is drawn in code-behind from ViewModel.Plan.
                                     </Border>
                                 </Popup>
 
-                                <ComboBox Width="124" Margin="0,0,6,4" Style="{StaticResource StandardComboBox}"
+                                <ComboBox Width="124" Margin="0,0,8,4" Style="{StaticResource StandardComboBox}"
                                           ItemsSource="{Binding ShowModeOptions}"
                                           DisplayMemberPath="Label" SelectedValuePath="Mode"
                                           SelectedValue="{Binding ShowMode}"
                                           ToolTip="Show all views, only the ticked ones or only the unticked ones."/>
 
-                                <Button Content="Clear filters" Margin="0,0,6,4" Style="{StaticResource SmallSecondaryButton}"
+                                <Button Content="Clear filters" Margin="0,0,8,4" Style="{StaticResource SmallSecondaryButton}"
                                         Command="{Binding ClearFiltersCommand}"
                                         Visibility="{Binding HasActiveFilters, Converter={StaticResource BoolToVis}}"/>
                             </WrapPanel>
@@ -433,29 +433,29 @@ The preview canvas is drawn in code-behind from ViewModel.Plan.
                             </ItemsControl>
 
                             <!-- Sort + group (display only) -->
-                            <WrapPanel Margin="12,0,12,6">
+                            <WrapPanel Margin="12,0,12,8">
                                 <TextBlock Text="Sort:" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,4,4"/>
-                                <TextBlock Text="{Binding SortSummary}" FontWeight="SemiBold" FontSize="12" VerticalAlignment="Center" Margin="0,0,6,4"/>
+                                <TextBlock Text="{Binding SortSummary}" FontWeight="SemiBold" FontSize="12" VerticalAlignment="Center" Margin="0,0,8,4"/>
                                 <Button Content="Reset" Margin="0,0,16,4" Style="{StaticResource SmallSecondaryButton}"
                                         Command="{Binding ResetSortCommand}"
                                         Visibility="{Binding HasCustomSort, Converter={StaticResource BoolToVis}}"/>
 
-                                <TextBlock Text="Group by" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,6,4"/>
-                                <ComboBox Width="116" Margin="0,0,6,4" Style="{StaticResource StandardComboBox}"
+                                <TextBlock Text="Group by" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,8,4"/>
+                                <ComboBox Width="116" Margin="0,0,8,4" Style="{StaticResource StandardComboBox}"
                                           ItemsSource="{Binding GroupByOptions}"
                                           DisplayMemberPath="Label" SelectedValuePath="Mode"
                                           SelectedValue="{Binding GroupBy}"
                                           ToolTip="Display only — the layout order stays by detail number."/>
-                                <Button Content="Collapse all" Margin="0,0,6,4" Style="{StaticResource SmallSecondaryButton}"
+                                <Button Content="Collapse all" Margin="0,0,8,4" Style="{StaticResource SmallSecondaryButton}"
                                         Command="{Binding CollapseAllCommand}"
                                         Visibility="{Binding IsGrouped, Converter={StaticResource BoolToVis}}"/>
-                                <Button Content="Expand all" Margin="0,0,6,4" Style="{StaticResource SmallSecondaryButton}"
+                                <Button Content="Expand all" Margin="0,0,8,4" Style="{StaticResource SmallSecondaryButton}"
                                         Command="{Binding ExpandAllCommand}"
                                         Visibility="{Binding IsGrouped, Converter={StaticResource BoolToVis}}"/>
                             </WrapPanel>
 
                             <!-- Tick / untick -->
-                            <Border Margin="12,0,12,8" Padding="8,5" CornerRadius="6"
+                            <Border Margin="12,0,12,8" Padding="8,4" CornerRadius="6"
                                     Background="{StaticResource BrushSystemSecondaryBackground}"
                                     BorderBrush="{StaticResource BrushSeparator}" BorderThickness="1">
                                 <DockPanel LastChildFill="False">
@@ -467,15 +467,15 @@ The preview canvas is drawn in code-behind from ViewModel.Plan.
                                     <TextBlock DockPanel.Dock="Left" Text="{Binding TickSummaryText}" Margin="8,0,0,0"
                                                VerticalAlignment="Center" FontSize="12" Foreground="{StaticResource BrushTextPrimary}"/>
                                     <Button DockPanel.Dock="Right" Content="{Binding InvertShownLabel}" Style="{StaticResource SmallSecondaryButton}"
-                                            Command="{Binding InvertShownCommand}" Margin="6,0,0,0"/>
+                                            Command="{Binding InvertShownCommand}" Margin="8,0,0,0"/>
                                     <Button DockPanel.Dock="Right" Content="{Binding UntickShownLabel}" Style="{StaticResource SmallSecondaryButton}"
-                                            Command="{Binding UntickShownCommand}" Margin="6,0,0,0"/>
+                                            Command="{Binding UntickShownCommand}" Margin="8,0,0,0"/>
                                     <Button DockPanel.Dock="Right" Content="{Binding TickShownLabel}" Style="{StaticResource SmallSecondaryButton}"
-                                            Command="{Binding TickShownCommand}" Margin="6,0,0,0"/>
+                                            Command="{Binding TickShownCommand}" Margin="8,0,0,0"/>
                                 </DockPanel>
                             </Border>
 
-                            <DataGrid x:Name="ViewsGrid" Margin="12,0,12,6" MinHeight="160"
+                            <DataGrid x:Name="ViewsGrid" Margin="12,0,12,8" MinHeight="160"
                                       shell:ShellBehaviors.MaxHeightRatio="0.4"
                                       shell:ShellBehaviors.ForwardMouseWheel="True"
                                       ItemsSource="{Binding RowsView}"
@@ -531,7 +531,7 @@ The preview canvas is drawn in code-behind from ViewModel.Plan.
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
                                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                    <Border CornerRadius="8" Padding="7,1">
+                                                    <Border CornerRadius="8" Padding="8,2">
                                                         <Border.Style>
                                                             <Style TargetType="Border">
                                                                 <Setter Property="Background" Value="{StaticResource BrushStatusInfoSoft}"/>
@@ -551,7 +551,7 @@ The preview canvas is drawn in code-behind from ViewModel.Plan.
                                                         <TextBlock Text="{Binding StatusLabel}" FontSize="11" FontWeight="SemiBold"
                                                                    Foreground="{StaticResource BrushTextPrimary}"/>
                                                     </Border>
-                                                    <TextBlock Text="{Binding Note}" Margin="6,0,0,0" FontSize="11"
+                                                    <TextBlock Text="{Binding Note}" Margin="8,0,0,0" FontSize="11"
                                                                Foreground="{StaticResource BrushTextSecondary}"
                                                                VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                                                 </StackPanel>
@@ -562,7 +562,7 @@ The preview canvas is drawn in code-behind from ViewModel.Plan.
                             </DataGrid>
 
                             <!-- Filters never change what is arranged: say so when ticked views are hidden. -->
-                            <Border Margin="12,0,12,6" Padding="10,6" CornerRadius="6"
+                            <Border Margin="12,0,12,8" Padding="12,8" CornerRadius="6"
                                     Background="{StaticResource BrushStatusInfoSoft}"
                                     BorderBrush="{StaticResource BrushStatusInfoBorder}" BorderThickness="1"
                                     Visibility="{Binding HasHiddenTicked, Converter={StaticResource BoolToVis}}">
@@ -574,29 +574,29 @@ The preview canvas is drawn in code-behind from ViewModel.Plan.
                                 </DockPanel>
                             </Border>
 
-                            <TextBlock Style="{StaticResource HintText}" Margin="12,0,12,10"
+                            <TextBlock Style="{StaticResource HintText}" Margin="12,0,12,12"
                                        Text="Click a row to select it (Ctrl / Shift for several), then press Space to tick or untick. Click a header to sort; Shift+click adds a second sort. Sorting, grouping and filtering only change this list — the layout order stays by detail number. Unticked views stay where they are in Revit."/>
                         </StackPanel>
                     </Border>
                 </StackPanel>
 
                 <!-- ── Activity log ────────────────────────────── -->
-                <Border Grid.Row="1" Grid.ColumnSpan="3" Margin="0,8,0,0" Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="10,8">
+                <Border Grid.Row="1" Grid.ColumnSpan="3" Margin="0,8,0,0" Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="12,8">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <Grid Margin="0,0,0,6">
+                        <Grid Margin="0,0,0,8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Text="Activity Log" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource BrushLogText}" VerticalAlignment="Center"/>
+                            <TextBlock Text="Activity Log" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource BrushLogText}" VerticalAlignment="Center"/>
                             <StackPanel Grid.Column="1" Orientation="Horizontal">
                                 <Button Content="Copy All" Style="{StaticResource DarkGhostButton}"
                                         Command="{Binding CopyAllLogsCommand}"/>
-                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Margin="6,0,0,0"
+                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Margin="8,0,0,0"
                                         Click="CopySelectedLogs_Click"/>
                             </StackPanel>
                         </Grid>

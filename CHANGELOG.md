@@ -9,6 +9,17 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.39.3] — 2026-11-06
+
+### Sheet tools — spacing and text sizes on the 4 px grid
+
+Automated Section Placer 3.1.2, Plan From Scope Box 6.1.3, Sections To Sheet 1.0.1, Sheet Auto Rearrange 28.1.2, Sheet Text Replace 1.0.1, Sheet View Arrange 1.2.2, Smart View To Sheet Placer 224.1.2.
+
+#### Changed
+- Margins and paddings snapped to 2/4/8/12/16/24 and font sizes to 10/11/12/13, matching the Roof Points, View Tools and Manage windows.
+
+User note: layout only; controls sit 1–2 px differently and a few small texts are slightly larger. No behaviour change. Older tool versions still installed are not changed.
+
 ## [6.39.2] — 2026-11-06
 
 ### Manage tools — spacing and text sizes on the 4 px grid

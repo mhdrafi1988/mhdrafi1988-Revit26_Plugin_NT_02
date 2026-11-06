@@ -73,19 +73,19 @@ Changes vs V005 (layout only):
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <Border Grid.Column="0" Style="{StaticResource MetricCard}" Padding="10,8">
+                <Border Grid.Column="0" Style="{StaticResource MetricCard}" Padding="12,8">
                     <StackPanel HorizontalAlignment="Center">
                         <TextBlock Text="Plans Created" Style="{StaticResource MetricLabel}" HorizontalAlignment="Center"/>
                         <TextBlock Text="{Binding PlansCreated}" Style="{StaticResource MetricNumber}" HorizontalAlignment="Center"/>
                     </StackPanel>
                 </Border>
-                <Border Grid.Column="2" Style="{StaticResource MetricCard}" Padding="10,8">
+                <Border Grid.Column="2" Style="{StaticResource MetricCard}" Padding="12,8">
                     <StackPanel HorizontalAlignment="Center">
                         <TextBlock Text="Sheets Created" Style="{StaticResource MetricLabel}" HorizontalAlignment="Center"/>
                         <TextBlock Text="{Binding SheetsCreated}" Style="{StaticResource MetricNumberAccent}" HorizontalAlignment="Center"/>
                     </StackPanel>
                 </Border>
-                <Border Grid.Column="4" Style="{StaticResource MetricCard}" Padding="10,8">
+                <Border Grid.Column="4" Style="{StaticResource MetricCard}" Padding="12,8">
                     <StackPanel HorizontalAlignment="Center">
                         <TextBlock Text="Skipped ⊘" Style="{StaticResource MetricLabel}" HorizontalAlignment="Center"/>
                         <TextBlock Text="{Binding Skipped}" Style="{StaticResource MetricNumberWarning}" HorizontalAlignment="Center"/>
@@ -116,7 +116,7 @@ Changes vs V005 (layout only):
                             <TextBlock Grid.Row="0" Text="Scope Boxes" Style="{StaticResource SectionTitle}"/>
 
                             <!-- toolbar -->
-                            <Grid Grid.Row="1" Margin="12,0,12,7">
+                            <Grid Grid.Row="1" Margin="12,0,12,8">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
@@ -127,11 +127,11 @@ Changes vs V005 (layout only):
                                          Text="{Binding FilterText, UpdateSourceTrigger=PropertyChanged}"
                                          MaxLength="25" VerticalAlignment="Center"/>
                                 <Button Grid.Column="1" Content="Select all" Style="{StaticResource SmallSecondaryButton}"
-                                        Margin="6,0,0,0" Command="{Binding SelectAllCommand}"/>
+                                        Margin="8,0,0,0" Command="{Binding SelectAllCommand}"/>
                                 <Button Grid.Column="2" Content="Clear" Style="{StaticResource SmallSecondaryButton}"
-                                        Margin="5,0,0,0" Command="{Binding ClearSelectionCommand}"/>
+                                        Margin="4,0,0,0" Command="{Binding ClearSelectionCommand}"/>
                                 <Button Grid.Column="3" Content="↻ Refresh" Style="{StaticResource SmallSecondaryButton}"
-                                        Margin="5,0,0,0" Command="{Binding RefreshCommand}"/>
+                                        Margin="4,0,0,0" Command="{Binding RefreshCommand}"/>
                             </Grid>
 
                             <!-- datagrid -->
@@ -283,13 +283,13 @@ Changes vs V005 (layout only):
                                         </StackPanel>
                                     </Grid>
 
-                                    <TextBlock Style="{StaticResource HintText}" Margin="12,3,12,2">
+                                    <TextBlock Style="{StaticResource HintText}" Margin="12,4,12,2">
                                         <Run Text="Sheet size:" Foreground="{StaticResource BrushTextTertiary}"/>
                                         <Run Text="{Binding SheetSizeDisplay, Mode=OneWay}" Foreground="{StaticResource BrushTextSecondary}" FontWeight="SemiBold"/>
                                         <Run Text="· clear zone is manual" Foreground="{StaticResource BrushTextTertiary}"/>
                                     </TextBlock>
 
-                                    <StackPanel Style="{StaticResource FieldRow}" Margin="12,4,12,10">
+                                    <StackPanel Style="{StaticResource FieldRow}" Margin="12,4,12,12">
                                         <TextBlock Text="Active Level (from current view)" Style="{StaticResource FieldLabel}"/>
                                         <TextBox Style="{StaticResource StyledTextInput}" IsEnabled="False"
                                                  Text="{Binding ActiveLevelDisplay, Mode=OneWay}"/>
@@ -338,7 +338,7 @@ Changes vs V005 (layout only):
                                         </StackPanel>
                                     </Grid>
 
-                                    <TextBlock Style="{StaticResource HintText}" Margin="12,3,12,10"
+                                    <TextBlock Style="{StaticResource HintText}" Margin="12,4,12,12"
                                                Text="Tokens: {ScopeBoxName} {Level} {Increment} {Date} · increment skips existing numbers"/>
                                 </StackPanel>
                             </Border>
@@ -347,11 +347,11 @@ Changes vs V005 (layout only):
                             <Border Style="{StaticResource ContentCard}">
                                 <StackPanel>
                                     <TextBlock Text="Options" Style="{StaticResource SectionTitle}"/>
-                                    <StackPanel Style="{StaticResource AppleToggleRow}" Margin="12,4,12,10">
+                                    <StackPanel Style="{StaticResource AppleToggleRow}" Margin="12,4,12,12">
                                         <ToggleButton Style="{StaticResource AppleToggleButton}"
                                                       IsChecked="{Binding OpenSheetsAfter}"/>
                                         <TextBlock Text="Open sheets after creation" VerticalAlignment="Center"
-                                                   Margin="8,0,0,0" FontSize="11.5" Foreground="{StaticResource BrushTextPrimary}"/>
+                                                   Margin="8,0,0,0" FontSize="12" Foreground="{StaticResource BrushTextPrimary}"/>
                                     </StackPanel>
                                 </StackPanel>
                             </Border>
@@ -359,27 +359,27 @@ Changes vs V005 (layout only):
                 </Grid>
 
                 <!-- ACTIVITY LOG (moved from footer) -->
-                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="10,8">
+                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="12,8">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <Grid Margin="0,0,0,6">
+                        <Grid Margin="0,0,0,8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Text="Activity Log" Foreground="{StaticResource BrushLogText}"
-                                       FontSize="11.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                       FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
                             <StackPanel Grid.Column="1" Orientation="Horizontal">
                                                 <Button Content="Copy All" Style="{StaticResource DarkGhostButton}"
                                                         Command="{Binding CopyAllLogsCommand}"/>
-                                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Margin="5,0,0,0"
+                                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Margin="4,0,0,0"
                                                         Command="{Binding CopySelectedLogsCommand}"/>
-                                                <Button Content="Export" Style="{StaticResource DarkGhostButton}" Margin="5,0,0,0"
+                                                <Button Content="Export" Style="{StaticResource DarkGhostButton}" Margin="4,0,0,0"
                                                         Command="{Binding ExportLogsCommand}"/>
-                                                <Button Content="Clear" Style="{StaticResource DarkGhostButton}" Margin="5,0,0,0"
+                                                <Button Content="Clear" Style="{StaticResource DarkGhostButton}" Margin="4,0,0,0"
                                                         Command="{Binding ClearLogsCommand}"/>
                             </StackPanel>
                         </Grid>
@@ -407,7 +407,7 @@ Changes vs V005 (layout only):
                             </ListBox.ItemContainerStyle>
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
-                                    <TextBlock FontFamily="Consolas" FontSize="10.5" Margin="10,1"
+                                    <TextBlock FontFamily="Consolas" FontSize="11" Margin="12,2"
                                                TextWrapping="Wrap"
                                                Foreground="{Binding Level, Converter={StaticResource LogLevelToColorConverter}}">
                                         <Run Text="{Binding Time, StringFormat=HH\\:mm\\:ss, Mode=OneWay}" Foreground="{StaticResource BrushLogTextDim}"/>
