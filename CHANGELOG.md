@@ -9,6 +9,22 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.39.0] — 2026-11-06
+
+### Shared UI standard
+
+#### Added
+- Layout tokens in `Shared/SharedStyles.xaml`: spacing (`Space.XS`–`XL`, 4/8/12/16/24), paddings (`Pad.*`), gaps (`Gap.*`), control heights, corner radii, font sizes and `MonoFont`. Standard is described in `Claude/UI_STANDARD_AUDIT.md`.
+
+### Roof Points tools — spacing and text sizes on the 4 px grid
+
+Divide Inner Loops 12.1.2, Outer Curve Divider 6.0.3, Roof Detail Line Intersect 14.1.2, Inner Loops And Perpendicular 7.1.2, Roof Edge Vertex Reducer 9.0.2, Multiple Points 3.0.3, Roof Shape From Link 2.0.2.
+
+#### Changed
+- Margins and paddings snapped to 2/4/8/12/16/24 and font sizes to 10/11/12/13, so text and controls get the same breathing room in every Roof Points window.
+
+User note: layout only; controls sit 1–2 px differently and a few small texts are slightly larger. No behaviour change.
+
 ## [6.38.0] — 2026-11-06
 
 ### Export DWG to Folder 4.2.0

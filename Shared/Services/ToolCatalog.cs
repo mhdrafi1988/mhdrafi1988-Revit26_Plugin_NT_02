@@ -78,12 +78,12 @@ namespace Revit26_Plugin_Revised.Shared.Services
         public static readonly ToolInfo FloorSlopeByPointRidge = Add("Floor Slope By Point (Ridge)", "1.0.0", "V001", "Revit26_Plugin_Revised.FloorSlopeByPointRidge.V001");
         public static readonly ToolInfo FloorSlopeByPointMultiCopies = Add("Floor Slope By Point (Multi Copies)", "1.0.0", "V001", "Revit26_Plugin_Revised.FloorSlopeByPointMultiCopies.V001");
         public static readonly ToolInfo FloorPointsAndSlope = Add("Floor Points & Slope", "1.0.0", "V001", "Revit26_Plugin_Revised.FloorPointsAndSlope.V001");
-        public static readonly ToolInfo InnerLoopDivider = Add("Divide Inner Loops", "12.1.1", "V012", "Revit26_Plugin_Revised.InnerLoopDivider.V012");
-        public static readonly ToolInfo OuterCurveDivider = Add("Outer Curve Divider", "6.0.2", "V006", "Revit26_Plugin_Revised.OuterCurveDivider.V006");
-        public static readonly ToolInfo RoofDetailLineIntersect = Add("Roof Detail Line Intersect", "14.1.1", "V014", "Revit26_Plugin_Revised.RoofDetailLineIntersect.V014");
-        public static readonly ToolInfo InnerLoopsAndPerpendicular = Add("Inner Loops And Perpendicular", "7.1.1", "V007", "Revit26_Plugin_Revised.InnerLoopsAndPerpendicular.V007");
-        public static readonly ToolInfo RoofEdgeVertexReducer = Add("Roof Edge Vertex Reducer", "9.0.1", "V009", "Revit26_Plugin_Revised.RoofEdgeVertexReducer.V009");
-        public static readonly ToolInfo MultiplePoints = Add("Multiple Points (1/2–1/4)", "3.0.2", "V003", "Revit26_Plugin_Revised.MultiplePoints.V003");
+        public static readonly ToolInfo InnerLoopDivider = Add("Divide Inner Loops", "12.1.2", "V012", "Revit26_Plugin_Revised.InnerLoopDivider.V012");
+        public static readonly ToolInfo OuterCurveDivider = Add("Outer Curve Divider", "6.0.3", "V006", "Revit26_Plugin_Revised.OuterCurveDivider.V006");
+        public static readonly ToolInfo RoofDetailLineIntersect = Add("Roof Detail Line Intersect", "14.1.2", "V014", "Revit26_Plugin_Revised.RoofDetailLineIntersect.V014");
+        public static readonly ToolInfo InnerLoopsAndPerpendicular = Add("Inner Loops And Perpendicular", "7.1.2", "V007", "Revit26_Plugin_Revised.InnerLoopsAndPerpendicular.V007");
+        public static readonly ToolInfo RoofEdgeVertexReducer = Add("Roof Edge Vertex Reducer", "9.0.2", "V009", "Revit26_Plugin_Revised.RoofEdgeVertexReducer.V009");
+        public static readonly ToolInfo MultiplePoints = Add("Multiple Points (1/2–1/4)", "3.0.3", "V003", "Revit26_Plugin_Revised.MultiplePoints.V003");
         public static readonly ToolInfo FloorInnerLoopDivider = Add("Floor Divide Inner Loops", "1.0.0", "V001", "Revit26_Plugin_Revised.FloorInnerLoopDivider.V001");
         public static readonly ToolInfo FloorOuterCurveDivider = Add("Floor Outer Curve Divider", "1.0.0", "V001", "Revit26_Plugin_Revised.FloorOuterCurveDivider.V001");
         public static readonly ToolInfo FloorDetailLineIntersect = Add("Floor Detail Line Intersect", "1.0.0", "V001", "Revit26_Plugin_Revised.FloorDetailLineIntersect.V001");
@@ -131,7 +131,7 @@ namespace Revit26_Plugin_Revised.Shared.Services
         public static readonly ToolInfo RoofNameBuilder = Add("Roof Name Builder", "2.1.1", "V002", "Revit26_Plugin_Revised.RoofNameBuilder.V002");
         public static readonly ToolInfo IslandRoofSplitter = Add("Island Roof Splitter", "0.2.1", "V001 (WIP)", "Revit26_Plugin_Revised.IslandRoofSplitter.V001");
         public static readonly ToolInfo IslandRoofSplitterV002 = Add("Island Roof Splitter", "2.0.0", "V002", "Revit26_Plugin_Revised.IslandRoofSplitter.V002");
-        public static readonly ToolInfo RoofShapeFromLink = Add("Roof Shape From Link", "2.0.1", "V002", "Revit26_Plugin_Revised.RoofShapeFromLink.V002");
+        public static readonly ToolInfo RoofShapeFromLink = Add("Roof Shape From Link", "2.0.2", "V002", "Revit26_Plugin_Revised.RoofShapeFromLink.V002");
         public static readonly ToolInfo RoofPointsAndSlope = Add("Roof Points & Slope", "1.1.0", "V001", "Revit26_Plugin_Revised.RoofPointsAndSlope.V001");
         public static readonly ToolInfo LinkVersionChecker = Add("Link Version Checker", "3.0.1", "V003", "Revit26_Plugin_Revised.LinkVersionChecker_V003");
         public static readonly ToolInfo LinkVersionCheckerV004 = Add("Link Version Checker", "4.2.0", "V004", "Revit26_Plugin_Revised.LinkVersionChecker_V004");

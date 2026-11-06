@@ -47,19 +47,19 @@ Changes vs V002 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
         <!-- ═══ HEADER ═══════════════════════════════════════════ -->
         <shell:ToolWindowShell.HeaderContent>
             <UniformGrid Columns="3" Margin="0,0,0,8">
-                <Border Style="{StaticResource MetricCard}" Margin="0,0,4,0" Padding="10,8">
+                <Border Style="{StaticResource MetricCard}" Margin="0,0,4,0" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="Edges" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding Edges.Count}" Style="{StaticResource MetricNumber}" FontSize="18"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="10,8">
+                <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="Preview Points" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding TotalPreviewPoints}" Style="{StaticResource MetricNumberAccent}" FontSize="18"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricCard}" Margin="4,0,0,0" Padding="10,8">
+                <Border Style="{StaticResource MetricCard}" Margin="4,0,0,0" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="Log Entries" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding LogEntries.Count}" Style="{StaticResource MetricNumber}" FontSize="18"/>
@@ -73,7 +73,7 @@ Changes vs V002 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
             <StackPanel>
                 <TextBlock Text="Points To Add" Style="{StaticResource SectionTitle}"/>
                 <Grid>
-                    <Border Style="{StaticResource ContentCard}" Padding="12,10">
+                    <Border Style="{StaticResource ContentCard}" Padding="12,12">
                         <StackPanel>
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
                                 <CheckBox Content="Midpoint (1/2)" VerticalAlignment="Center"
@@ -84,22 +84,22 @@ Changes vs V002 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
                                 <CheckBox Content="Add extra points on edges longer than:" VerticalAlignment="Center"
                                           IsChecked="{Binding Settings.AddExtraOnLongEdges, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                                <TextBox Style="{StaticResource BoxedTextInput}" Height="26" Padding="6,2" Width="62" Margin="8,0,0,0"
+                                <TextBox Style="{StaticResource BoxedTextInput}" Height="26" Padding="8,2" Width="62" Margin="8,0,0,0"
                                           IsEnabled="{Binding Settings.AddExtraOnLongEdges}"
                                           Text="{Binding Settings.ThresholdMeters, StringFormat=F2, UpdateSourceTrigger=LostFocus}"/>
                                 <TextBlock Text="m" Style="{StaticResource UnitLabel}"/>
                                 <TextBlock Text="(max spacing on that edge is capped at the threshold)"
-                                           Style="{StaticResource HintText}" Margin="10,0,0,0" VerticalAlignment="Center"/>
+                                           Style="{StaticResource HintText}" Margin="12,0,0,0" VerticalAlignment="Center"/>
                             </StackPanel>
                             <StackPanel Orientation="Horizontal">
                                 <CheckBox Content="Limit to roof slope under:" VerticalAlignment="Center"
                                           IsChecked="{Binding Settings.LimitMaxSlope, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                                <TextBox Style="{StaticResource BoxedTextInput}" Height="26" Padding="6,2" Width="62" Margin="8,0,0,0"
+                                <TextBox Style="{StaticResource BoxedTextInput}" Height="26" Padding="8,2" Width="62" Margin="8,0,0,0"
                                           IsEnabled="{Binding Settings.LimitMaxSlope}"
                                           Text="{Binding Settings.MaxSlopePercent, StringFormat=F2, UpdateSourceTrigger=LostFocus}"/>
                                 <TextBlock Text="%" Style="{StaticResource UnitLabel}"/>
                                 <TextBlock Text="(edges on steeper facets are hidden and excluded from Apply)"
-                                           Style="{StaticResource HintText}" Margin="10,0,0,0" VerticalAlignment="Center"/>
+                                           Style="{StaticResource HintText}" Margin="12,0,0,0" VerticalAlignment="Center"/>
                             </StackPanel>
                         </StackPanel>
                     </Border>
@@ -112,15 +112,15 @@ Changes vs V002 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                        <TextBlock Text="Edges" Style="{StaticResource SectionTitle}" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="Edges" Style="{StaticResource SectionTitle}" Margin="0,0,12,0" VerticalAlignment="Center"/>
                         <Button Content="Select All"  Style="{StaticResource SmallSecondaryButton}" Width="86" Command="{Binding SelectAllCommand}"/>
-                        <Button Content="Select None" Style="{StaticResource SmallSecondaryButton}" Width="86" Margin="6,0,0,0" Command="{Binding SelectNoneCommand}"/>
+                        <Button Content="Select None" Style="{StaticResource SmallSecondaryButton}" Width="86" Margin="8,0,0,0" Command="{Binding SelectNoneCommand}"/>
                     </StackPanel>
                     <TextBlock Grid.Column="1" Text="{Binding TotalPreviewPoints, StringFormat='Total preview: {0} point(s)'}"
                                Style="{StaticResource HintText}" VerticalAlignment="Center" HorizontalAlignment="Right"/>
                 </Grid>
 
-                <DataGrid Margin="0,6,0,0" MinHeight="150"
+                <DataGrid Margin="0,8,0,0" MinHeight="150"
                           shell:ShellBehaviors.MaxHeightRatio="0.4"
                           shell:ShellBehaviors.ForwardMouseWheel="True"
                           VirtualizingStackPanel.IsVirtualizing="True" VirtualizingStackPanel.VirtualizationMode="Recycling"
@@ -150,22 +150,22 @@ Changes vs V002 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                 </DataGrid>
 
                 <!-- Activity Log (moved from footer) -->
-                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="10,8" Margin="0,10,0,0">
+                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="12,8" Margin="0,12,0,0">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <Grid Margin="0,0,0,6">
+                        <Grid Margin="0,0,0,8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Text="Activity Log" Foreground="{StaticResource BrushLogText}"
-                                       FontSize="11.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                       FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
                             <StackPanel Grid.Column="1" Orientation="Horizontal">
                                 <Button Content="Copy All" Style="{StaticResource DarkGhostButton}" Click="CopyAllLog_Click"/>
-                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Click="CopySelectedLog_Click" Margin="6,0,0,0"/>
+                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Click="CopySelectedLog_Click" Margin="8,0,0,0"/>
                             </StackPanel>
                         </Grid>
                         <ListBox Grid.Row="1" x:Name="LogList" ItemsSource="{Binding LogEntries}" MinHeight="100"
@@ -176,16 +176,16 @@ Changes vs V002 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                             <ListBox.ItemContainerStyle>
                                 <Style TargetType="ListBoxItem">
-                                    <Setter Property="Padding" Value="0,1"/>
+                                    <Setter Property="Padding" Value="0,2"/>
                                     <Setter Property="Background" Value="Transparent"/>
                                 </Style>
                             </ListBox.ItemContainerStyle>
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
-                                    <StackPanel Orientation="Horizontal" Margin="0,1">
+                                    <StackPanel Orientation="Horizontal" Margin="0,2">
                                 <TextBlock Text="{Binding Time, StringFormat=HH:mm:ss}"
                                            Foreground="{StaticResource BrushLogTextDim}"
-                                           FontFamily="Consolas" FontSize="11" Margin="0,0,10,0"/>
+                                           FontFamily="Consolas" FontSize="11" Margin="0,0,12,0"/>
                                 <TextBlock Text="{Binding Message}"
                                            Foreground="{Binding Level, Converter={StaticResource LogLevelToColor}}"
                                            FontFamily="Consolas" FontSize="11" TextWrapping="Wrap"/>
