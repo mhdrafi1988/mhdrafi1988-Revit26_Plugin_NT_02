@@ -9,6 +9,39 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.39.8] — 2026-11-06
+
+### Tagging Tools — spacing and text sizes on the 4 px grid
+
+Align Spot Elevations 1.6.1, Floor Tag 1.0.1, Roof Tag 18.1.3, Tag To Text 1.3.1.
+
+#### Changed
+- Margins and paddings snapped to 2/4/8/12/16/24 and font sizes to 10/11/12/13, matching the other groups already converted.
+
+User note: layout only; controls sit 1–2 px differently and a few small texts are slightly larger. No behaviour change. Older tool versions still installed are not changed.
+
+## [6.39.7] — 2026-11-06
+
+### Setup Tools — spacing and text sizes on the 4 px grid
+
+Batch Link DWG Family 2.2.1, DWG To Lines 7.0.2, DWG To DL(P) 14.0.2, DWG Manager 3.1.2, DWG Statistics 5.1.2, Export DWG to Folder 4.2.1.
+
+#### Changed
+- Margins and paddings snapped to 2/4/8/12/16/24 and font sizes to 10/11/12/13, matching the other groups already converted.
+
+User note: layout only; controls sit 1–2 px differently and a few small texts are slightly larger. No behaviour change. Older tool versions still installed are not changed.
+
+## [6.39.6] — 2026-11-06
+
+### Detail Lines and Dimensions — spacing and text sizes on the 4 px grid
+
+Detail Lines From Links 10.1.2, Detail Line Closed Loop 3.0.2, Detail Line Manager 2.0.1, Auto Dim Detail Line 10.1.2.
+
+#### Changed
+- Margins and paddings snapped to 2/4/8/12/16/24 and font sizes to 10/11/12/13, matching the other groups already converted.
+
+User note: layout only; controls sit 1–2 px differently and a few small texts are slightly larger. No behaviour change. Older tool versions still installed are not changed.
+
 ## [6.39.5] — 2026-11-06
 
 ### Roof Tools — spacing and text sizes on the 4 px grid

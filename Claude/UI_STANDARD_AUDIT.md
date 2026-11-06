@@ -86,3 +86,16 @@ can't be run).
 1. Tokens + implicit styles (no visual change). One PR.
 2. Convert one group at a time (e.g. RoofTools/Points → ViewTools → Manage → Sheet …), each with a
    build, version bump, changelog and preview, so each group can be checked in Revit before the next.
+
+## 7. Rollout status (2026-11-06)
+
+Tokens added to `Shared/SharedStyles.xaml` (6.39.0). Margins, paddings and font sizes snapped to the
+standard on the current version of every wired tool in: Roof Points (6.39.0), View Tools (6.39.1), Manage
+(6.39.2), Sheet (6.39.3), Floor Tools (6.39.4), Roof Tools other than Points (6.39.5), Detail Lines and
+Dimensions (6.39.6), Setup (6.39.7), Tagging (6.39.8).
+
+Not done yet: older coexisting version folders; Workset Creator V017 and the WIP tools (not wired);
+moving the non-shell windows (e.g. Link Version Checker V007) onto `ToolWindowShell`; implicit styles for
+ComboBox / CheckBox / DataGrid; button and input heights; replacing hard-coded colours and `Consolas`
+with tokens; `IsDefault` / `IsCancel`, `TabIndex`, `AutomationProperties.Name`. None of this was built or
+opened in Revit from the Linux session; check the windows in Revit first.

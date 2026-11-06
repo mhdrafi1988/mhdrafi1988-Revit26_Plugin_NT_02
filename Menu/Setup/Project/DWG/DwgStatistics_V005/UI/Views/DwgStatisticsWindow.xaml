@@ -78,7 +78,7 @@ File: DwgStatisticsWindow.xaml  (DWG Statistics V005 — ToolWindowShell)
 
             <!-- Quick-filter chip (one-way checked state + command, per UI_UX_PATTERNS) -->
             <Style x:Key="FilterChip" TargetType="RadioButton">
-                <Setter Property="Margin" Value="0,0,6,0"/>
+                <Setter Property="Margin" Value="0,0,8,0"/>
                 <Setter Property="Cursor" Value="Hand"/>
                 <Setter Property="FontSize" Value="11"/>
                 <Setter Property="Foreground" Value="{StaticResource BrushTextSecondary}"/>
@@ -87,7 +87,7 @@ File: DwgStatisticsWindow.xaml  (DWG Statistics V005 — ToolWindowShell)
                         <ControlTemplate TargetType="RadioButton">
                             <Border x:Name="Bg" Background="{StaticResource BrushSystemTertiaryBackground}"
                                     BorderBrush="{StaticResource BrushBorderDefault}" BorderThickness="1"
-                                    CornerRadius="11" Padding="10,3">
+                                    CornerRadius="11" Padding="12,4">
                                 <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
                             <ControlTemplate.Triggers>
@@ -109,7 +109,7 @@ File: DwgStatisticsWindow.xaml  (DWG Statistics V005 — ToolWindowShell)
             <!-- Link / Import pill -->
             <Style x:Key="KindPill" TargetType="Border">
                 <Setter Property="CornerRadius" Value="8"/>
-                <Setter Property="Padding" Value="8,1"/>
+                <Setter Property="Padding" Value="8,2"/>
                 <Setter Property="HorizontalAlignment" Value="Center"/>
                 <Setter Property="VerticalAlignment" Value="Center"/>
                 <Setter Property="Background" Value="{StaticResource BrushStatusOkSoft}"/>
@@ -143,8 +143,8 @@ File: DwgStatisticsWindow.xaml  (DWG Statistics V005 — ToolWindowShell)
             <!-- Issue badge, coloured by severity -->
             <Style x:Key="IssueBadge" TargetType="Border">
                 <Setter Property="CornerRadius" Value="8"/>
-                <Setter Property="Padding" Value="6,0"/>
-                <Setter Property="Margin" Value="0,1,4,1"/>
+                <Setter Property="Padding" Value="8,0"/>
+                <Setter Property="Margin" Value="0,2,4,2"/>
                 <Setter Property="Background" Value="{StaticResource BrushStatusInfoSoft}"/>
                 <Style.Triggers>
                     <DataTrigger Binding="{Binding SeverityName}" Value="Warning">
@@ -182,7 +182,7 @@ File: DwgStatisticsWindow.xaml  (DWG Statistics V005 — ToolWindowShell)
                         <ControlTemplate TargetType="Button">
                             <Border x:Name="Bg" Background="{StaticResource BrushStatusInfoSoft}"
                                     BorderBrush="{StaticResource BrushBorderDefault}" BorderThickness="1"
-                                    CornerRadius="4" Padding="7,1">
+                                    CornerRadius="4" Padding="8,2">
                                 <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
                             <ControlTemplate.Triggers>
@@ -198,7 +198,7 @@ File: DwgStatisticsWindow.xaml  (DWG Statistics V005 — ToolWindowShell)
             <!-- V004: "New" / "Changed" pill -->
             <Style x:Key="ChangePill" TargetType="Border">
                 <Setter Property="CornerRadius" Value="8"/>
-                <Setter Property="Padding" Value="8,1"/>
+                <Setter Property="Padding" Value="8,2"/>
                 <Setter Property="HorizontalAlignment" Value="Center"/>
                 <Setter Property="VerticalAlignment" Value="Center"/>
                 <Setter Property="Background" Value="{StaticResource BrushStatusInfoSoft}"/>
@@ -244,58 +244,58 @@ File: DwgStatisticsWindow.xaml  (DWG Statistics V005 — ToolWindowShell)
         <!-- ═══ HEADER ═══════════════════════════════════════════ -->
         <shell:ToolWindowShell.HeaderContent>
             <UniformGrid Columns="9" Margin="0,0,0,8">
-                <Border Style="{StaticResource MetricCard}" Margin="0,0,4,0" Padding="10,8">
+                <Border Style="{StaticResource MetricCard}" Margin="0,0,4,0" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="DWG Files" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding TotalFiles}" Style="{StaticResource MetricNumber}" FontSize="18"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="10,8">
+                <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="Links" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding LinkCount}" Style="{StaticResource MetricNumberAccent}" FontSize="18"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="10,8">
+                <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="Imports" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding ImportCount}" Style="{StaticResource MetricNumberWarning}" FontSize="18"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="10,8">
+                <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="Instances" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding TotalInstances}" Style="{StaticResource MetricNumberSuccess}" FontSize="18"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="10,8"
+                <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="12,8"
                         ToolTip="Distinct views that own or draw at least one CAD instance">
                     <StackPanel>
                         <TextBlock Text="Views" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding ViewsUsed}" Style="{StaticResource MetricNumber}" FontSize="18"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="10,8"
+                <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="12,8"
                         ToolTip="Distinct sheets that show CAD (through a placed view, or directly)">
                     <StackPanel>
                         <TextBlock Text="Sheets" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding SheetsUsed}" Style="{StaticResource MetricNumber}" FontSize="18"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="10,8">
+                <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="Not Loaded" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding NotLoadedCount}" Style="{StaticResource MetricNumberWarning}" FontSize="18"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="10,8"
+                <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="12,8"
                         ToolTip="Files with a warning or broken status (imported, unused, duplicate, shows in 3D, not loaded)">
                     <StackPanel>
                         <TextBlock Text="With Issues" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding IssueFileCount}" Style="{StaticResource MetricNumberWarning}" FontSize="18"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricCard}" Margin="4,0,0,0" Padding="10,8"
+                <Border Style="{StaticResource MetricCard}" Margin="4,0,0,0" Padding="12,8"
                         ToolTip="V004: DWG files new or changed since the scan of the previous session">
                     <StackPanel>
                         <TextBlock Text="Changed" Style="{StaticResource MetricLabel}"/>
@@ -313,7 +313,7 @@ File: DwgStatisticsWindow.xaml  (DWG Statistics V005 — ToolWindowShell)
                 <Border Style="{StaticResource ContentCard}" Margin="0,0,0,8">
                     <StackPanel>
                         <!-- Search + tick + refresh -->
-                        <Grid Margin="10,8,10,4">
+                        <Grid Margin="12,8,12,4">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
@@ -327,18 +327,18 @@ File: DwgStatisticsWindow.xaml  (DWG Statistics V005 — ToolWindowShell)
                                      ToolTip="Shows only files whose name, kind, status, path or issues contain every word typed."
                                      Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"/>
                             <Button Grid.Column="2" Content="Tick All" Style="{StaticResource SmallSecondaryButton}"
-                                    Margin="10,0,0,0" Command="{Binding TickAllCommand}"
+                                    Margin="12,0,0,0" Command="{Binding TickAllCommand}"
                                     ToolTip="Tick every file that passes the filter and search."/>
                             <Button Grid.Column="3" Content="Clear Ticks" Style="{StaticResource SmallSecondaryButton}"
-                                    Margin="6,0,0,0" Command="{Binding ClearTicksCommand}"
+                                    Margin="8,0,0,0" Command="{Binding ClearTicksCommand}"
                                     ToolTip="Untick every file that passes the filter and search."/>
                             <Button Grid.Column="4" Content="Refresh" Style="{StaticResource SmallSecondaryButton}"
-                                    Margin="6,0,0,0" Command="{Binding RefreshCommand}"
+                                    Margin="8,0,0,0" Command="{Binding RefreshCommand}"
                                     ToolTip="Scan the model and every view again. Ticks and the selected file are kept."/>
                         </Grid>
 
                         <!-- Quick-filter chips -->
-                        <WrapPanel Margin="10,4,10,4">
+                        <WrapPanel Margin="12,4,12,4">
                             <RadioButton GroupName="DwgQuickFilter" Style="{StaticResource FilterChip}"
                                          Content="{Binding AllChipText}"
                                          IsChecked="{Binding ActiveQuickFilter, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=All, Mode=OneWay}"
@@ -370,28 +370,28 @@ File: DwgStatisticsWindow.xaml  (DWG Statistics V005 — ToolWindowShell)
                         </WrapPanel>
 
                         <!-- Cleanup actions on ticked files -->
-                        <DockPanel Margin="10,4,10,4" LastChildFill="True">
+                        <DockPanel Margin="12,4,12,4" LastChildFill="True">
                             <TextBlock DockPanel.Dock="Left" Text="Ticked files" Style="{StaticResource FieldLabel}"
                                        VerticalAlignment="Center" Margin="0,0,8,0"/>
                             <Button DockPanel.Dock="Left" Content="{Binding PinAllLabel}" Style="{StaticResource SmallSecondaryButton}"
                                     Command="{Binding PinAllCommand}"
                                     ToolTip="Pin every unpinned instance of the ticked files (asks first)."/>
                             <Button DockPanel.Dock="Left" Content="{Binding ReloadLabel}" Style="{StaticResource SmallSecondaryButton}"
-                                    Margin="6,0,0,0" Command="{Binding ReloadLinksCommand}"
+                                    Margin="8,0,0,0" Command="{Binding ReloadLinksCommand}"
                                     ToolTip="Reload the ticked CAD links from their saved paths (imports are skipped)."/>
                             <Button DockPanel.Dock="Left" Content="{Binding PurgeLabel}" Style="{StaticResource SmallDangerButton}"
-                                    Margin="6,0,0,0" Command="{Binding PurgeUnusedCommand}"
+                                    Margin="8,0,0,0" Command="{Binding PurgeUnusedCommand}"
                                     ToolTip="Delete the ticked CAD types that have no instance (asks first)."/>
                             <!-- V005: Move to Workset (workshared models only) -->
-                            <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" Margin="14,0,0,0"
+                            <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" Margin="16,0,0,0"
                                         Visibility="{Binding IsWorkshared, Converter={StaticResource BoolToVisibilityConverter}}">
-                                <TextBlock Text="Workset" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                <TextBlock Text="Workset" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,8,0"/>
                                 <ComboBox Width="150" VerticalAlignment="Center"
                                           ItemsSource="{Binding Worksets}" SelectedItem="{Binding SelectedWorkset, Mode=TwoWay}"
                                           DisplayMemberPath="Name"
                                           ToolTip="Target workset for Move"/>
                                 <Button Content="{Binding MoveToWorksetLabel}" Style="{StaticResource SmallSecondaryButton}"
-                                        Margin="6,0,0,0" Command="{Binding MoveToWorksetCommand}"
+                                        Margin="8,0,0,0" Command="{Binding MoveToWorksetCommand}"
                                         ToolTip="Move the model-placed instances of the ticked files onto this workset (asks first). 'Current view only' instances follow their view's workset."/>
                             </StackPanel>
                             <TextBlock Style="{StaticResource HintText}" Text="{Binding ScanInfo}" TextTrimming="CharacterEllipsis"
@@ -399,27 +399,27 @@ File: DwgStatisticsWindow.xaml  (DWG Statistics V005 — ToolWindowShell)
                         </DockPanel>
 
                         <!-- V005: rules behind the health checks, and where the history is kept (remembered) -->
-                        <Expander Margin="10,2,10,6" IsExpanded="False">
+                        <Expander Margin="12,2,12,8" IsExpanded="False">
                             <Expander.Header>
                                 <TextBlock Text="Rules &amp; history" Style="{StaticResource FieldLabel}"
                                            ToolTip="Limits for the far-from-origin, layer-count and workset checks, and the shared history option. Changes apply at once to the current results."/>
                             </Expander.Header>
-                            <WrapPanel Margin="0,6,0,0">
-                                <TextBlock Text="Far from origin over" Style="{StaticResource HintText}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                            <WrapPanel Margin="0,8,0,0">
+                                <TextBlock Text="Far from origin over" Style="{StaticResource HintText}" VerticalAlignment="Center" Margin="0,0,8,0"/>
                                 <TextBox Width="56" Style="{StaticResource StyledTextInput}"
                                          Text="{Binding FarFromOriginKm, UpdateSourceTrigger=LostFocus}"
                                          ToolTip="Flag DWGs whose geometry reaches farther than this from the internal origin."/>
-                                <TextBlock Text="km" Style="{StaticResource HintText}" VerticalAlignment="Center" Margin="6,0,18,0"/>
-                                <TextBlock Text="Many layers over" Style="{StaticResource HintText}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                <TextBlock Text="km" Style="{StaticResource HintText}" VerticalAlignment="Center" Margin="8,0,16,0"/>
+                                <TextBlock Text="Many layers over" Style="{StaticResource HintText}" VerticalAlignment="Center" Margin="0,0,8,0"/>
                                 <TextBox Width="56" Style="{StaticResource StyledTextInput}"
                                          Text="{Binding MaxLayers, UpdateSourceTrigger=LostFocus}"
                                          ToolTip="Flag DWGs with more layers than this."/>
-                                <TextBlock Text="CAD worksets contain" Style="{StaticResource HintText}" VerticalAlignment="Center" Margin="18,0,6,0"/>
+                                <TextBlock Text="CAD worksets contain" Style="{StaticResource HintText}" VerticalAlignment="Center" Margin="16,0,8,0"/>
                                 <TextBox Width="130" Style="{StaticResource StyledTextInput}" MaxLength="80"
                                          Text="{Binding CadWorksetPattern, UpdateSourceTrigger=LostFocus}"
                                          ToolTip="Semicolon-separated; a workset whose name contains any of these counts as a CAD workset. Empty = rule off."/>
                                 <CheckBox Content="Shared history next to the project file" VerticalAlignment="Center" FontSize="11"
-                                          Margin="18,0,0,0" Foreground="{StaticResource BrushTextSecondary}"
+                                          Margin="16,0,0,0" Foreground="{StaticResource BrushTextSecondary}"
                                           IsChecked="{Binding SharedHistory}"
                                           ToolTip="Keep the scan history in a _DwgStatistics folder next to the project (central model) so the whole team compares against the same last scan. Applies from the next window opening. Cloud / server models keep it on this computer."/>
                             </WrapPanel>
@@ -605,7 +605,7 @@ File: DwgStatisticsWindow.xaml  (DWG Statistics V005 — ToolWindowShell)
                 </Border>
 
                 <!-- ══ V004: changes since the last scan ══ -->
-                <Border Style="{StaticResource ContentCard}" Margin="0,8,0,0" Padding="10,6">
+                <Border Style="{StaticResource ContentCard}" Margin="0,8,0,0" Padding="12,8">
                     <Expander IsExpanded="{Binding ChangesExpanded, Mode=TwoWay}">
                         <Expander.Header>
                             <StackPanel Orientation="Horizontal">
@@ -617,7 +617,7 @@ File: DwgStatisticsWindow.xaml  (DWG Statistics V005 — ToolWindowShell)
                         </Expander.Header>
                         <DataGrid Style="{StaticResource StatsGrid}"
                                   ItemsSource="{Binding Changes}"
-                                  Margin="0,6,0,0"
+                                  Margin="0,8,0,0"
                                   shell:ShellBehaviors.MaxHeightRatio="0.2"
                                   shell:ShellBehaviors.ForwardMouseWheel="True">
                             <DataGrid.Columns>
@@ -631,7 +631,7 @@ File: DwgStatisticsWindow.xaml  (DWG Statistics V005 — ToolWindowShell)
                 </Border>
 
                 <!-- ══ Detail of the selected file ══ -->
-                <Border Style="{StaticResource ContentCard}" Margin="0,8,0,0" Padding="10,8">
+                <Border Style="{StaticResource ContentCard}" Margin="0,8,0,0" Padding="12,8">
                     <Grid>
                         <TextBlock Style="{StaticResource HintText}"
                                    Text="Click a DWG file above to see the views it is placed in / visible in, and each of its instances."
@@ -639,10 +639,10 @@ File: DwgStatisticsWindow.xaml  (DWG Statistics V005 — ToolWindowShell)
 
                         <StackPanel DataContext="{Binding SelectedFile}"
                                     Visibility="{Binding DataContext.HasSelectedFile, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BoolToVisibilityConverter}}">
-                            <TextBlock Text="{Binding FileName}" FontWeight="Bold" FontSize="12.5"
+                            <TextBlock Text="{Binding FileName}" FontWeight="Bold" FontSize="13"
                                        Foreground="{StaticResource BrushNavyPrimary}" ToolTip="{Binding FileToolTip}"/>
                             <TextBlock Text="{Binding DetailSummary}" Style="{StaticResource HintText}"
-                                       TextWrapping="Wrap" Margin="0,2,0,6"/>
+                                       TextWrapping="Wrap" Margin="0,2,0,8"/>
 
                             <TabControl Background="{StaticResource BrushSurfaceWindow}" BorderBrush="{StaticResource BrushBorderDefault}"
                                         SelectedIndex="{Binding DataContext.SelectedDetailTab, RelativeSource={RelativeSource AncestorType=Window}, Mode=TwoWay}">
@@ -651,13 +651,13 @@ File: DwgStatisticsWindow.xaml  (DWG Statistics V005 — ToolWindowShell)
                                 <TabItem Header="{Binding ViewsTabHeader}">
                                   <StackPanel>
                                     <!-- V002/V004: tick views, then Open / Hide / Unhide / Delete -->
-                                    <StackPanel Margin="4,6,4,6">
+                                    <StackPanel Margin="4,8,4,8">
                                         <!-- Row 1: tick + open -->
                                         <DockPanel LastChildFill="True">
                                             <Button DockPanel.Dock="Left" Content="Tick All" Style="{StaticResource SmallSecondaryButton}"
                                                     Command="{Binding DataContext.TickAllViewsCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                     ToolTip="Tick every view in this list."/>
-                                            <Button DockPanel.Dock="Left" Content="Clear" Style="{StaticResource SmallSecondaryButton}" Margin="6,0,0,0"
+                                            <Button DockPanel.Dock="Left" Content="Clear" Style="{StaticResource SmallSecondaryButton}" Margin="8,0,0,0"
                                                     Command="{Binding DataContext.ClearViewTicksCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                     ToolTip="Untick every view in this list."/>
                                             <Button DockPanel.Dock="Right" Style="{StaticResource PrimaryButton}"
@@ -671,18 +671,18 @@ File: DwgStatisticsWindow.xaml  (DWG Statistics V005 — ToolWindowShell)
                                         </DockPanel>
 
                                         <!-- Row 2: open options (remembered) -->
-                                        <WrapPanel Margin="0,6,0,0">
-                                            <TextBlock Text="Open up to" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                        <WrapPanel Margin="0,8,0,0">
+                                            <TextBlock Text="Open up to" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,8,0"/>
                                             <ComboBox Width="56" VerticalAlignment="Center"
                                                       ItemsSource="{Binding DataContext.MaxOpenViewsOptions, RelativeSource={RelativeSource AncestorType=Window}}"
                                                       SelectedItem="{Binding DataContext.MaxOpenViews, RelativeSource={RelativeSource AncestorType=Window}, Mode=TwoWay}"
                                                       ToolTip="Most views Open Ticked Views opens at once"/>
-                                            <TextBlock Text="views" Style="{StaticResource HintText}" VerticalAlignment="Center" Margin="6,0,16,0"/>
-                                            <CheckBox Content="Zoom to the DWG in each view" VerticalAlignment="Center" FontSize="11" Margin="0,0,14,0"
+                                            <TextBlock Text="views" Style="{StaticResource HintText}" VerticalAlignment="Center" Margin="8,0,16,0"/>
+                                            <CheckBox Content="Zoom to the DWG in each view" VerticalAlignment="Center" FontSize="11" Margin="0,0,16,0"
                                                       Foreground="{StaticResource BrushTextSecondary}"
                                                       IsChecked="{Binding DataContext.ZoomToDwg, RelativeSource={RelativeSource AncestorType=Window}}"
                                                       ToolTip="After opening each view, select this DWG's instances there and zoom to them."/>
-                                            <CheckBox Content="Open the sheet instead" VerticalAlignment="Center" FontSize="11" Margin="0,0,14,0"
+                                            <CheckBox Content="Open the sheet instead" VerticalAlignment="Center" FontSize="11" Margin="0,0,16,0"
                                                       Foreground="{StaticResource BrushTextSecondary}"
                                                       IsChecked="{Binding DataContext.OpenSheetInstead, RelativeSource={RelativeSource AncestorType=Window}}"
                                                       ToolTip="For a view placed on a sheet, open that sheet (first one) instead of the view."/>
@@ -693,17 +693,17 @@ File: DwgStatisticsWindow.xaml  (DWG Statistics V005 — ToolWindowShell)
                                         </WrapPanel>
 
                                         <!-- Row 3: hide / unhide / delete in ticked views -->
-                                        <WrapPanel Margin="0,6,0,0">
+                                        <WrapPanel Margin="0,8,0,0">
                                             <Button Content="{Binding DataContext.HideLabel, RelativeSource={RelativeSource AncestorType=Window}}"
                                                     Style="{StaticResource SmallSecondaryButton}"
                                                     Command="{Binding DataContext.HideInTickedViewsCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                     ToolTip="Hide this DWG in the ticked views that draw it (Hide in View → Elements). One undo step."/>
                                             <Button Content="{Binding DataContext.UnhideLabel, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                    Style="{StaticResource SmallSecondaryButton}" Margin="6,0,0,0"
+                                                    Style="{StaticResource SmallSecondaryButton}" Margin="8,0,0,0"
                                                     Command="{Binding DataContext.UnhideInTickedViewsCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                     ToolTip="Unhide this DWG in the ticked views where it is hidden ('Hidden here' rows). One undo step."/>
                                             <Button Content="{Binding DataContext.DeleteLabel, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                    Style="{StaticResource SmallDangerButton}" Margin="6,0,0,0"
+                                                    Style="{StaticResource SmallDangerButton}" Margin="8,0,0,0"
                                                     Command="{Binding DataContext.DeleteInTickedViewsCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                     ToolTip="Delete this DWG's 'Current view only' instances in the ticked views (asks first). Model-placed instances are never deleted here."/>
                                             <CheckBox Content="Purge type if nothing is left" VerticalAlignment="Center" FontSize="11" Margin="12,0,0,0"
@@ -917,14 +917,14 @@ File: DwgStatisticsWindow.xaml  (DWG Statistics V005 — ToolWindowShell)
                                 <!-- V005: Layers -->
                                 <TabItem Header="{Binding LayersTabHeader}">
                                   <StackPanel>
-                                    <DockPanel Margin="4,6,4,6" LastChildFill="True">
+                                    <DockPanel Margin="4,8,4,8" LastChildFill="True">
                                         <Button DockPanel.Dock="Left" Content="Tick All" Style="{StaticResource SmallSecondaryButton}"
                                                 Command="{Binding DataContext.TickAllLayersCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                 ToolTip="Tick every layer in this list."/>
-                                        <Button DockPanel.Dock="Left" Content="Clear" Style="{StaticResource SmallSecondaryButton}" Margin="6,0,0,0"
+                                        <Button DockPanel.Dock="Left" Content="Clear" Style="{StaticResource SmallSecondaryButton}" Margin="8,0,0,0"
                                                 Command="{Binding DataContext.ClearLayerTicksCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                 ToolTip="Untick every layer."/>
-                                        <Button DockPanel.Dock="Right" Style="{StaticResource SmallSecondaryButton}" Margin="6,0,0,0"
+                                        <Button DockPanel.Dock="Right" Style="{StaticResource SmallSecondaryButton}" Margin="8,0,0,0"
                                                 Content="{Binding DataContext.UnhideLayersLabel, RelativeSource={RelativeSource AncestorType=Window}}"
                                                 Command="{Binding DataContext.UnhideLayersInTickedViewsCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                 ToolTip="Show the ticked layers again in the views ticked in the Views tab. One undo step."/>
@@ -995,23 +995,23 @@ File: DwgStatisticsWindow.xaml  (DWG Statistics V005 — ToolWindowShell)
                 </Border>
 
                 <!-- ══ Log ══ -->
-                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="10,8" Margin="0,8,0,0">
+                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="12,8" Margin="0,8,0,0">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <Grid Margin="0,0,0,6">
+                        <Grid Margin="0,0,0,8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Text="Log" FontSize="11.5" FontWeight="SemiBold"
+                            <TextBlock Text="Log" FontSize="12" FontWeight="SemiBold"
                                        Foreground="{StaticResource BrushLogText}" VerticalAlignment="Center"/>
                             <StackPanel Grid.Column="1" Orientation="Horizontal">
                                 <Button Content="Copy All" Style="{StaticResource DarkGhostButton}" Click="CopyAllLog_Click"/>
-                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Margin="6,0,0,0" Click="CopySelectedLog_Click"/>
-                                <Button Content="Clear" Style="{StaticResource DarkGhostButton}" Margin="6,0,0,0"
+                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Margin="8,0,0,0" Click="CopySelectedLog_Click"/>
+                                <Button Content="Clear" Style="{StaticResource DarkGhostButton}" Margin="8,0,0,0"
                                         Command="{Binding ClearLogCommand}"/>
                             </StackPanel>
                         </Grid>
@@ -1024,13 +1024,13 @@ File: DwgStatisticsWindow.xaml  (DWG Statistics V005 — ToolWindowShell)
                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                             <ListBox.ItemContainerStyle>
                                 <Style TargetType="ListBoxItem">
-                                    <Setter Property="Padding" Value="0,1"/>
+                                    <Setter Property="Padding" Value="0,2"/>
                                     <Setter Property="Background" Value="Transparent"/>
                                 </Style>
                             </ListBox.ItemContainerStyle>
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
-                                    <StackPanel Orientation="Horizontal" Margin="0,1,0,1">
+                                    <StackPanel Orientation="Horizontal" Margin="0,2,0,2">
                                         <TextBlock Text="{Binding Time, StringFormat='HH:mm:ss', Mode=OneWay}"
                                                    FontFamily="Consolas" FontSize="11"
                                                    Foreground="{StaticResource BrushLogTextDim}" Margin="0,0,8,0"/>
@@ -1054,7 +1054,7 @@ File: DwgStatisticsWindow.xaml  (DWG Statistics V005 — ToolWindowShell)
             <DockPanel LastChildFill="False">
                 <StackPanel DockPanel.Dock="Left" Orientation="Horizontal">
                     <!-- V004: visible only while the deep scan runs -->
-                    <Button Content="Cancel Scan" Style="{StaticResource DangerButton}" MinWidth="110" Margin="0,0,10,0"
+                    <Button Content="Cancel Scan" Style="{StaticResource DangerButton}" MinWidth="110" Margin="0,0,12,0"
                             Command="{Binding CancelScanCommand}"
                             Visibility="{Binding IsScanning, Converter={StaticResource BoolToVisibilityConverter}}"
                             ToolTip="Stop after the current batch of views; the previous results stay on screen."/>

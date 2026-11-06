@@ -49,13 +49,13 @@ Changes vs V006 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
         <!-- ═══ HEADER ═══════════════════════════════════════════ -->
         <shell:ToolWindowShell.HeaderContent>
             <UniformGrid Columns="2" Margin="0,0,0,8">
-                <Border Style="{StaticResource MetricCard}" Margin="0,0,4,0" Padding="10,8">
+                <Border Style="{StaticResource MetricCard}" Margin="0,0,4,0" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="CAD Imports" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding AvailableCads.Count}" Style="{StaticResource MetricNumber}" FontSize="18"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricCard}" Margin="4,0,0,0" Padding="10,8">
+                <Border Style="{StaticResource MetricCard}" Margin="4,0,0,0" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="Log Entries" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding LogEntries.Count}" Style="{StaticResource MetricNumberAccent}" FontSize="18"/>
@@ -69,19 +69,19 @@ Changes vs V006 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
             <StackPanel>
                 <!-- ── CAD import picker ── -->
                 <StackPanel>
-                    <TextBlock Text="CAD Import" Style="{StaticResource FieldLabel}" Margin="0,0,0,6"/>
+                    <TextBlock Text="CAD Import" Style="{StaticResource FieldLabel}" Margin="0,0,0,8"/>
                     <ComboBox Style="{StaticResource StandardComboBox}" Height="32"
                               ItemsSource="{Binding AvailableCads}"
                               SelectedItem="{Binding SelectedCad, Mode=TwoWay}"/>
                 </StackPanel>
                 <!-- ── Placement mode ── -->
-                <Border Style="{StaticResource ContentCard}" Margin="0,10,0,0">
-                    <StackPanel Margin="10">
+                <Border Style="{StaticResource ContentCard}" Margin="0,12,0,0">
+                    <StackPanel Margin="12">
                         <TextBlock Text="Placement Mode" Style="{StaticResource SectionTitle}" Margin="0,0,0,8"/>
                         <StackPanel Orientation="Horizontal">
-                            <RadioButton Content="Symbolic Only" Margin="0,0,18,0"
+                            <RadioButton Content="Symbolic Only" Margin="0,0,16,0"
                                          IsChecked="{Binding PlacementMode, Converter={StaticResource BoolToEnum}, ConverterParameter=SymbolicOnly}"/>
-                            <RadioButton Content="Model Only" Margin="0,0,18,0"
+                            <RadioButton Content="Model Only" Margin="0,0,16,0"
                                          IsChecked="{Binding PlacementMode, Converter={StaticResource BoolToEnum}, ConverterParameter=ModelOnly}"/>
                             <RadioButton Content="Symbolic + Model"
                                          IsChecked="{Binding PlacementMode, Converter={StaticResource BoolToEnum}, ConverterParameter=SymbolicAndModel}"/>
@@ -90,10 +90,10 @@ Changes vs V006 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                 </Border>
                 <!-- ── Spline handling ── -->
                 <Border Style="{StaticResource ContentCard}" Margin="0,8,0,0">
-                    <StackPanel Margin="10">
+                    <StackPanel Margin="12">
                         <TextBlock Text="Spline Handling" Style="{StaticResource SectionTitle}" Margin="0,0,0,8"/>
                         <StackPanel Orientation="Horizontal">
-                            <RadioButton Content="Preserve Splines" Margin="0,0,18,0"
+                            <RadioButton Content="Preserve Splines" Margin="0,0,16,0"
                                          IsChecked="{Binding SplineHandlingMode, Converter={StaticResource BoolToEnum}, ConverterParameter=Preserve}"/>
                             <RadioButton Content="Tessellate"
                                          IsChecked="{Binding SplineHandlingMode, Converter={StaticResource BoolToEnum}, ConverterParameter=Tessellate}"/>
@@ -101,29 +101,29 @@ Changes vs V006 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                     </StackPanel>
                 </Border>
                 <!-- ── Extrusion-ready mode ── -->
-                <CheckBox Margin="0,10,0,0"
+                <CheckBox Margin="0,12,0,0"
                           Content="Extrusion-ready mode (snap endpoints, detect loops)"
                           IsChecked="{Binding ExtrusionReadyMode}"/>
 
                 <!-- ── Activity Log (moved from footer) ── -->
-                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="10,8" Margin="0,10,0,0">
+                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="12,8" Margin="0,12,0,0">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <Grid Margin="0,0,0,6">
+                        <Grid Margin="0,0,0,8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Text="Activity Log" Foreground="{StaticResource BrushLogText}" FontSize="11.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                            <TextBlock Text="Activity Log" Foreground="{StaticResource BrushLogText}" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
                             <StackPanel Grid.Column="1" Orientation="Horizontal">
                                 <Button Content="Copy All" Style="{StaticResource DarkGhostButton}"
                                         Command="{Binding CopyAllLogsCommand}" ToolTip="Copy the whole log to the clipboard"/>
-                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Margin="6,0,0,0"
+                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Margin="8,0,0,0"
                                         Command="{Binding CopySelectedLogsCommand}" ToolTip="Copy the selected log lines"/>
-                                <Button Content="Export" Style="{StaticResource DarkGhostButton}" Margin="6,0,0,0"
+                                <Button Content="Export" Style="{StaticResource DarkGhostButton}" Margin="8,0,0,0"
                                         Command="{Binding ExportLogCommand}" ToolTip="Save the log to a .txt file"/>
                             </StackPanel>
                         </Grid>
@@ -144,20 +144,20 @@ Changes vs V006 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                      shell:ShellBehaviors.ForwardMouseWheel="True">
                                 <ListBox.ItemContainerStyle>
                                     <Style TargetType="ListBoxItem">
-                                        <Setter Property="Padding" Value="0,1"/>
+                                        <Setter Property="Padding" Value="0,2"/>
                                         <Setter Property="Background" Value="Transparent"/>
                                         <Setter Property="BorderThickness" Value="0"/>
                                     </Style>
                                 </ListBox.ItemContainerStyle>
                                 <ListBox.ItemTemplate>
                                     <DataTemplate>
-                                        <StackPanel Orientation="Horizontal" Margin="0,1">
+                                        <StackPanel Orientation="Horizontal" Margin="0,2">
                                             <TextBlock Text="{Binding Time, StringFormat=HH:mm:ss}"
                                                        Foreground="{StaticResource BrushLogTextDim}"
-                                                       FontFamily="Consolas" FontSize="11.5" Margin="0,0,10,0"/>
+                                                       FontFamily="Consolas" FontSize="12" Margin="0,0,12,0"/>
                                             <TextBlock Text="{Binding Message}"
                                                        Foreground="{Binding Level, Converter={StaticResource LogLevelToColor}}"
-                                                       FontFamily="Consolas" FontSize="11.5" TextWrapping="Wrap"/>
+                                                       FontFamily="Consolas" FontSize="12" TextWrapping="Wrap"/>
                                         </StackPanel>
                                     </DataTemplate>
                                 </ListBox.ItemTemplate>

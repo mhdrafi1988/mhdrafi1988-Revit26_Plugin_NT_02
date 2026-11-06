@@ -121,14 +121,14 @@ Changes vs V002 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                             <StackPanel Orientation="Horizontal" Margin="12,4,12,4">
                                 <Button Content="Select Detail Lines" Style="{StaticResource AccentButton}"
                                         Command="{Binding SelectLinesCommand}"/>
-                                <Border Style="{StaticResource BadgePill}" Margin="10,0,0,0">
+                                <Border Style="{StaticResource BadgePill}" Margin="12,0,0,0">
                                     <TextBlock Style="{StaticResource BadgeText}">
                                         <Run Text="{Binding SelectedCount, Mode=OneWay}"/>
                                         <Run Text=" lines selected"/>
                                     </TextBlock>
                                 </Border>
                             </StackPanel>
-                            <TextBlock Style="{StaticResource HintText}" Margin="12,0,12,10"
+                            <TextBlock Style="{StaticResource HintText}" Margin="12,0,12,12"
                                        Text="Pick detail lines/arcs in the active view. Only the active view's sketch plane is used — Model Lines are not supported by this tool."/>
                         </StackPanel>
                     </Border>
@@ -141,7 +141,7 @@ Changes vs V002 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                 <ToggleButton Style="{StaticResource AppleToggleButton}" IsChecked="{Binding SnapEndpoints}"/>
                                 <TextBlock Text="Snap Endpoints" FontSize="13" Margin="8,0,0,0" VerticalAlignment="Center"/>
                             </StackPanel>
-                            <TextBlock Style="{StaticResource HintText}" Margin="12,-4,12,6"
+                            <TextBlock Style="{StaticResource HintText}" Margin="12,-4,12,8"
                                        Text="When on, nearby endpoints (within Revit's short curve tolerance) snap together before trim/extend."/>
 
                             <Border Style="{StaticResource SeparatorLine}"/>
@@ -163,7 +163,7 @@ Changes vs V002 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                     <TextBlock Grid.Column="1" Text="mm" Style="{StaticResource UnitLabel}"/>
                                 </Grid>
                             </Grid>
-                            <TextBlock Style="{StaticResource HintText}" Margin="12,4,12,10"
+                            <TextBlock Style="{StaticResource HintText}" Margin="12,4,12,12"
                                        Text="Gaps larger than this remain open and the loop will fail validation instead of being silently bridged."/>
 
                             <Border Style="{StaticResource SeparatorLine}"/>
@@ -172,7 +172,7 @@ Changes vs V002 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                 <ToggleButton Style="{StaticResource AppleToggleButton}" IsChecked="{Binding GroupNewLines}"/>
                                 <TextBlock Text="Group New Lines" FontSize="13" Margin="8,0,0,0" VerticalAlignment="Center"/>
                             </StackPanel>
-                            <TextBlock Style="{StaticResource HintText}" Margin="12,-4,12,6"
+                            <TextBlock Style="{StaticResource HintText}" Margin="12,-4,12,8"
                                        Text="When on, the newly-drawn loop segments are assigned to a Group after creation."/>
 
                             <Grid Margin="12,8,12,0">
@@ -185,7 +185,7 @@ Changes vs V002 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                          Text="{Binding GroupName, UpdateSourceTrigger=PropertyChanged}"
                                          MaxLength="25" IsEnabled="{Binding GroupNewLines}"/>
                             </Grid>
-                            <TextBlock Style="{StaticResource HintText}" Margin="12,4,12,10"
+                            <TextBlock Style="{StaticResource HintText}" Margin="12,4,12,12"
                                        Text="Duplicate names get an incremental numeric suffix automatically (e.g. &quot;ClosedLoop Group 2&quot;)."/>
                         </StackPanel>
                     </Border>
@@ -202,16 +202,16 @@ Changes vs V002 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
                         <TextBlock Grid.Row="0" Text="Created Lines" Style="{StaticResource SectionTitle}"/>
-                        <TextBlock Grid.Row="1" Style="{StaticResource HintText}" Margin="12,0,12,6"
+                        <TextBlock Grid.Row="1" Style="{StaticResource HintText}" Margin="12,0,12,8"
                                    Text="Segments drawn by the most recent run, pre-selected for deletion. Uncheck any you want to keep."/>
 
-                        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="12,0,12,6">
+                        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="12,0,12,8">
                             <TextBox Width="150" Style="{StaticResource StyledTextInput}"
                                      Text="{Binding CreatedLinesFilterText, UpdateSourceTrigger=PropertyChanged}"
-                                     MaxLength="25" Margin="0,0,6,0"/>
-                            <Button Content="Select All" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,6,0"
+                                     MaxLength="25" Margin="0,0,8,0"/>
+                            <Button Content="Select All" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,8,0"
                                     Command="{Binding SelectAllCreatedLinesCommand}"/>
-                            <Button Content="Clear" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,6,0"
+                            <Button Content="Clear" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,8,0"
                                     Command="{Binding ClearCreatedLinesSelectionCommand}"/>
                             <Button Content="Refresh" Style="{StaticResource SmallSecondaryButton}"
                                     Command="{Binding RefreshCreatedLinesCommand}"/>
@@ -259,7 +259,7 @@ Changes vs V002 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                             </DataGrid.Columns>
                         </DataGrid>
 
-                        <Grid Grid.Row="4" Margin="12,8,12,10">
+                        <Grid Grid.Row="4" Margin="12,8,12,12">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
@@ -278,22 +278,22 @@ Changes vs V002 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                 </Border>
 
                 <!-- Processing Log (moved from footer) -->
-                <Border Grid.Row="1" Grid.ColumnSpan="3" Margin="0,8,0,0" Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="10,8">
+                <Border Grid.Row="1" Grid.ColumnSpan="3" Margin="0,8,0,0" Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="12,8">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <Grid Margin="0,0,0,6">
+                        <Grid Margin="0,0,0,8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Text="Processing Log" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource BrushLogText}" VerticalAlignment="Center"/>
+                            <TextBlock Text="Processing Log" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource BrushLogText}" VerticalAlignment="Center"/>
                             <StackPanel Grid.Column="1" Orientation="Horizontal">
                                 <Button Content="Copy All" Style="{StaticResource DarkGhostButton}"
                                         Command="{Binding CopyAllLogsCommand}"/>
-                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Margin="6,0,0,0"
+                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Margin="8,0,0,0"
                                         Click="CopySelectedLogsButton_Click"/>
                             </StackPanel>
                         </Grid>

@@ -45,19 +45,19 @@ Changes vs V009 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
         <shell:ToolWindowShell.HeaderContent>
             <StackPanel>
                 <UniformGrid Columns="3" Margin="0,0,0,0">
-                    <Border Style="{StaticResource MetricCard}" Margin="0,0,4,0" Padding="10,8">
+                    <Border Style="{StaticResource MetricCard}" Margin="0,0,4,0" Padding="12,8">
                         <StackPanel>
                             <TextBlock Text="Detail Item Types" Style="{StaticResource MetricLabel}"/>
                             <TextBlock Text="{Binding DetailItemTypes.Count}" Style="{StaticResource MetricNumber}" FontSize="18"/>
                         </StackPanel>
                     </Border>
-                    <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="10,8">
+                    <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="12,8">
                         <StackPanel>
                             <TextBlock Text="Dimension Types" Style="{StaticResource MetricLabel}"/>
                             <TextBlock Text="{Binding DimensionTypes.Count}" Style="{StaticResource MetricNumber}" FontSize="18"/>
                         </StackPanel>
                     </Border>
-                    <Border Style="{StaticResource MetricCard}" Margin="4,0,0,0" Padding="10,8">
+                    <Border Style="{StaticResource MetricCard}" Margin="4,0,0,0" Padding="12,8">
                         <StackPanel>
                             <TextBlock Text="Log Entries" Style="{StaticResource MetricLabel}"/>
                             <TextBlock Text="{Binding LogEntries.Count}" Style="{StaticResource MetricNumberAccent}" FontSize="18"/>
@@ -66,10 +66,10 @@ Changes vs V009 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                 </UniformGrid>
                 <!-- View validation warning -->
                 <Border Background="{StaticResource BrushInputBackground}" BorderBrush="{StaticResource BrushStatusWarn}" BorderThickness="1"
-                        CornerRadius="8" Padding="10,8" Margin="0,10,0,8"
+                        CornerRadius="8" Padding="12,8" Margin="0,12,0,8"
                         Visibility="{Binding IsViewValid, Converter={StaticResource InverseBoolToVisibilityConverter}}">
                     <TextBlock Text="{Binding ViewValidationMessage, StringFormat='⚠ {0}'}"
-                               FontSize="11.5" Foreground="{StaticResource BrushStatusWarn}" TextWrapping="Wrap"/>
+                               FontSize="12" Foreground="{StaticResource BrushStatusWarn}" TextWrapping="Wrap"/>
                 </Border>
             </StackPanel>
         </shell:ToolWindowShell.HeaderContent>
@@ -90,7 +90,7 @@ Changes vs V009 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                       DisplayMemberPath="Name"/>
                         </StackPanel>
 
-                        <StackPanel Style="{StaticResource FieldRow}" Margin="12,4,12,10">
+                        <StackPanel Style="{StaticResource FieldRow}" Margin="12,4,12,12">
                             <TextBlock Text="Dimension Type" Style="{StaticResource FieldLabel}"/>
                             <ComboBox Style="{StaticResource StandardComboBox}"
                                       ItemsSource="{Binding DimensionTypes}"
@@ -151,24 +151,24 @@ Changes vs V009 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                 </Border>
 
                 <!-- Activity Log (moved from footer) -->
-                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="10,8" Margin="0,8,0,0">
+                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="12,8" Margin="0,8,0,0">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <Grid Margin="0,0,0,6">
+                        <Grid Margin="0,0,0,8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Text="Activity Log" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource BrushLogText}" VerticalAlignment="Center"/>
+                            <TextBlock Text="Activity Log" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource BrushLogText}" VerticalAlignment="Center"/>
                             <StackPanel Grid.Column="1" Orientation="Horizontal">
                                 <Button Content="Copy All" Style="{StaticResource DarkGhostButton}"
                                         Command="{Binding CopyAllLogsCommand}"/>
-                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Margin="6,0,0,0"
+                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Margin="8,0,0,0"
                                         Click="CopySelectedLog_Click"/>
-                                <Button Content="Clear" Style="{StaticResource DarkGhostButton}" Margin="6,0,0,0"
+                                <Button Content="Clear" Style="{StaticResource DarkGhostButton}" Margin="8,0,0,0"
                                         Command="{Binding ClearLogsCommand}"/>
                             </StackPanel>
                         </Grid>

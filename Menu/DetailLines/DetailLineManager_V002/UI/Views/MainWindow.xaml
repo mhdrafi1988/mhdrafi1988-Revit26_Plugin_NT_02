@@ -35,7 +35,7 @@ Layout (ToolWindowShell):
                 <Setter Property="VerticalAlignment" Value="Center"/>
             </Style>
             <Style x:Key="RailRow" TargetType="DockPanel">
-                <Setter Property="Margin" Value="12,0,12,6"/>
+                <Setter Property="Margin" Value="12,0,12,8"/>
                 <Setter Property="LastChildFill" Value="True"/>
             </Style>
             <Style x:Key="Segment" TargetType="RadioButton" BasedOn="{StaticResource ChipToggle}">
@@ -84,7 +84,7 @@ Layout (ToolWindowShell):
                                 <RadioButton GroupName="Scope" Content="Views on sheets" Style="{StaticResource Segment}" IsChecked="{Binding ScopeViewsOnSheets}"/>
                                 <RadioButton GroupName="Scope" Content="Whole project" Style="{StaticResource Segment}" IsChecked="{Binding ScopeWholeProject}"/>
                             </UniformGrid>
-                            <TextBlock Style="{StaticResource HintText}" Margin="12,0,12,10" TextWrapping="Wrap"
+                            <TextBlock Style="{StaticResource HintText}" Margin="12,0,12,12" TextWrapping="Wrap"
                                        Text="{Binding LastScopeText, StringFormat='Last search: {0}'}"/>
                         </StackPanel>
                     </Border>
@@ -124,7 +124,7 @@ Layout (ToolWindowShell):
                                     <ListBox.ItemContainerStyle>
                                         <Style TargetType="ListBoxItem">
                                             <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-                                            <Setter Property="Padding" Value="4,1"/>
+                                            <Setter Property="Padding" Value="4,2"/>
                                         </Style>
                                     </ListBox.ItemContainerStyle>
                                 </ListBox>
@@ -161,7 +161,7 @@ Layout (ToolWindowShell):
                                     <CheckBox Content="Ellipse" IsChecked="{Binding IncludeEllipses}" Margin="0,2"/>
                                 </UniformGrid>
                             </DockPanel>
-                            <DockPanel Style="{StaticResource RailRow}" Margin="12,0,12,10">
+                            <DockPanel Style="{StaticResource RailRow}" Margin="12,0,12,12">
                                 <TextBlock Text="Workset" Style="{StaticResource RailLabel}"/>
                                 <ComboBox Style="{StaticResource StandardComboBox}" ItemsSource="{Binding WorksetOptions}" SelectedItem="{Binding SelectedWorkset}"/>
                             </DockPanel>
@@ -178,7 +178,7 @@ Layout (ToolWindowShell):
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" Style="{StaticResource AppleToggleRow}">
                                 <ToggleButton Style="{StaticResource AppleToggleButton}" IsChecked="{Binding OnlyShort}"/>
-                                <TextBlock Text="Shorter than" Margin="8,0,6,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Shorter than" Margin="8,0,8,0" VerticalAlignment="Center"/>
                                 <TextBox Style="{StaticResource StyledTextInput}" Width="52" HorizontalContentAlignment="Right"
                                          ToolTip="Tolerance (mm) for short lines and duplicate geometry"
                                          Text="{Binding ToleranceMm, UpdateSourceTrigger=PropertyChanged, Delay=400}"/>
@@ -192,12 +192,12 @@ Layout (ToolWindowShell):
                                 <ToggleButton Style="{StaticResource AppleToggleButton}" IsChecked="{Binding OnlyOwnedByOthers}"/>
                                 <TextBlock Text="Owned by other users" Margin="8,0,0,0" VerticalAlignment="Center"/>
                             </StackPanel>
-                            <TextBlock Style="{StaticResource HintText}" Margin="12,2,12,10" TextWrapping="Wrap"
+                            <TextBlock Style="{StaticResource HintText}" Margin="12,2,12,12" TextWrapping="Wrap"
                                        Text="Duplicates and overlaps are checked with the tolerance of the last Find lines."/>
                         </StackPanel>
                     </Border>
 
-                    <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
                         <Button Content="Find lines" Style="{StaticResource PrimaryButton}" Command="{Binding FindLinesCommand}" Margin="0,0,8,0"/>
                         <Button Content="Reset filters" Style="{StaticResource SecondaryButton}" Command="{Binding ResetFiltersCommand}"/>
                     </StackPanel>
@@ -210,17 +210,17 @@ Layout (ToolWindowShell):
                     <!-- Results -->
                     <Border Style="{StaticResource SectionCard}">
                         <StackPanel>
-                            <WrapPanel Margin="12,10,12,6">
-                                <Border Style="{StaticResource BadgePill}" Margin="0,0,6,0">
+                            <WrapPanel Margin="12,12,12,8">
+                                <Border Style="{StaticResource BadgePill}" Margin="0,0,8,0">
                                     <TextBlock Style="{StaticResource BadgeText}"><Run Text="{Binding FoundCount, Mode=OneWay}" FontWeight="Bold"/><Run Text=" found"/></TextBlock>
                                 </Border>
-                                <Border Style="{StaticResource BadgePill}" Background="{StaticResource BrushStatusInfoSoft}" Margin="0,0,6,0">
+                                <Border Style="{StaticResource BadgePill}" Background="{StaticResource BrushStatusInfoSoft}" Margin="0,0,8,0">
                                     <TextBlock Style="{StaticResource BadgeText}" Foreground="{StaticResource BrushStatusInfo}"><Run Text="{Binding CheckedCount, Mode=OneWay}" FontWeight="Bold"/><Run Text=" checked"/></TextBlock>
                                 </Border>
-                                <Border Style="{StaticResource BadgePill}" Background="{StaticResource BrushStatusErrorSoft}" Margin="0,0,6,0">
+                                <Border Style="{StaticResource BadgePill}" Background="{StaticResource BrushStatusErrorSoft}" Margin="0,0,8,0">
                                     <TextBlock Style="{StaticResource BadgeText}" Foreground="{StaticResource BrushStatusError}"><Run Text="{Binding DuplicateCount, Mode=OneWay}" FontWeight="Bold"/><Run Text=" duplicates"/></TextBlock>
                                 </Border>
-                                <Border Style="{StaticResource BadgePill}" Background="{StaticResource BrushStatusWarnSoft}" Margin="0,0,6,0">
+                                <Border Style="{StaticResource BadgePill}" Background="{StaticResource BrushStatusWarnSoft}" Margin="0,0,8,0">
                                     <TextBlock Style="{StaticResource BadgeText}" Foreground="{StaticResource BrushStatusWarn}"><Run Text="{Binding ShortCount, Mode=OneWay}" FontWeight="Bold"/><Run Text=" short"/></TextBlock>
                                 </Border>
                                 <Border Style="{StaticResource BadgePill}" Background="{StaticResource BrushStatusOkSoft}">
@@ -266,7 +266,7 @@ Layout (ToolWindowShell):
                                                             ToolTip="{Binding WeightTip}" ToolTipService.InitialShowDelay="200">
                                                     <TextBlock Text="{Binding EffectiveWeight}"/>
                                                     <Border Background="{StaticResource BrushStatusInfoSoft}" BorderBrush="{StaticResource BrushStatusInfoBorder}"
-                                                            BorderThickness="1" CornerRadius="3" Padding="3,0" Margin="5,0,0,0"
+                                                            BorderThickness="1" CornerRadius="3" Padding="4,0" Margin="4,0,0,0"
                                                             Visibility="{Binding HasWeightMarker, Converter={StaticResource BoolToVisibility}}">
                                                         <TextBlock Text="{Binding WeightMarker}" FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrushStatusInfo}"/>
                                                     </Border>
@@ -296,7 +296,7 @@ Layout (ToolWindowShell):
                                 </DataGrid.Columns>
                             </DataGrid>
 
-                            <DockPanel Margin="12,8,12,10">
+                            <DockPanel Margin="12,8,12,12">
                                 <StackPanel Orientation="Horizontal">
                                     <Button Content="Select in Revit" Style="{StaticResource SecondaryButton}" Command="{Binding SelectInRevitCommand}" Margin="0,0,8,0"
                                             ToolTip="Select the checked lines (or the highlighted row) in Revit"/>
@@ -313,10 +313,10 @@ Layout (ToolWindowShell):
 
                     <!-- Action tabs -->
                     <Border Style="{StaticResource SectionCard}">
-                        <TabControl BorderThickness="0" Background="Transparent" Margin="6" SelectedIndex="{Binding SelectedTabIndex}">
+                        <TabControl BorderThickness="0" Background="Transparent" Margin="8" SelectedIndex="{Binding SelectedTabIndex}">
                             <!-- Delete unused -->
-                            <TabItem Header="Delete unused" Padding="12,5">
-                                <StackPanel Margin="6,10,6,4">
+                            <TabItem Header="Delete unused" Padding="12,4">
+                                <StackPanel Margin="8,12,8,4">
                                     <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
@@ -326,9 +326,9 @@ Layout (ToolWindowShell):
 
                                         <StackPanel Grid.Column="0">
                                             <CheckBox Content="Unused line styles" FontWeight="SemiBold" IsChecked="{Binding DeleteUnusedStyles}"/>
-                                            <TextBlock Style="{StaticResource HintText}" Margin="20,2,0,4" TextWrapping="Wrap"
+                                            <TextBlock Style="{StaticResource HintText}" Margin="24,2,0,4" TextWrapping="Wrap"
                                                        Text="Styles no curve in the project uses (model, detail and sketch lines). Built-in styles are never listed."/>
-                                            <Border BorderBrush="{StaticResource BrushBorderInput}" BorderThickness="1" CornerRadius="4" Margin="20,0,0,0"
+                                            <Border BorderBrush="{StaticResource BrushBorderInput}" BorderThickness="1" CornerRadius="4" Margin="24,0,0,0"
                                                     IsEnabled="{Binding DeleteUnusedStyles}">
                                                 <Grid>
                                                     <ListBox ItemsSource="{Binding UnusedStyles}" MaxHeight="120" MinHeight="40" BorderThickness="0"
@@ -340,7 +340,7 @@ Layout (ToolWindowShell):
                                                             </DataTemplate>
                                                         </ListBox.ItemTemplate>
                                                     </ListBox>
-                                                    <TextBlock Text="{Binding UnusedStylesHint}" Margin="8,10" IsHitTestVisible="False" TextWrapping="Wrap">
+                                                    <TextBlock Text="{Binding UnusedStylesHint}" Margin="8,12" IsHitTestVisible="False" TextWrapping="Wrap">
                                                         <TextBlock.Style>
                                                             <Style TargetType="TextBlock" BasedOn="{StaticResource HintText}">
                                                                 <Style.Triggers>
@@ -353,24 +353,24 @@ Layout (ToolWindowShell):
                                                     </TextBlock>
                                                 </Grid>
                                             </Border>
-                                            <DockPanel Margin="20,8,0,0" IsEnabled="{Binding DeleteUnusedStyles}">
+                                            <DockPanel Margin="24,8,0,0" IsEnabled="{Binding DeleteUnusedStyles}">
                                                 <TextBlock Text="Keep styles matching" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,8,0"/>
                                                 <TextBox Style="{StaticResource StyledTextInput}"
                                                          Text="{Binding KeepStylePatterns, UpdateSourceTrigger=PropertyChanged, Delay=400}"
                                                          ToolTip="Never delete styles whose name matches; separate patterns with ';', use * and ?. Example: A-*;S-*"/>
                                             </DockPanel>
-                                            <Border Margin="20,8,0,0" Padding="8,6" CornerRadius="5" BorderThickness="1"
+                                            <Border Margin="24,8,0,0" Padding="8,8" CornerRadius="5" BorderThickness="1"
                                                     Background="{StaticResource BrushStatusWarnSoft}" BorderBrush="{StaticResource BrushStatusWarnBorder}">
-                                                <TextBlock TextWrapping="Wrap" Foreground="{StaticResource BrushStatusWarn}" FontSize="11.5"
+                                                <TextBlock TextWrapping="Wrap" Foreground="{StaticResource BrushStatusWarn}" FontSize="12"
                                                            Text="Revit does not report styles used only by the Linework tool (Modify → Linework). Such a style looks unused here, and deleting it returns those edges to their normal lines. Add such styles to Keep styles matching."/>
                                             </Border>
                                         </StackPanel>
 
                                         <StackPanel Grid.Column="2">
                                             <CheckBox Content="Duplicate / overlapping lines" FontWeight="SemiBold" IsChecked="{Binding DeleteDuplicates}"/>
-                                            <TextBlock Style="{StaticResource HintText}" Margin="20,2,0,4" TextWrapping="Wrap"
+                                            <TextBlock Style="{StaticResource HintText}" Margin="24,2,0,4" TextWrapping="Wrap"
                                                        Text="Same view and the same geometry within the tolerance. One line of each set is kept."/>
-                                            <StackPanel Orientation="Horizontal" Margin="20,0,0,10" IsEnabled="{Binding DeleteDuplicates}">
+                                            <StackPanel Orientation="Horizontal" Margin="24,0,0,12" IsEnabled="{Binding DeleteDuplicates}">
                                                 <TextBlock Text="Keep:" Style="{StaticResource HintText}" Margin="0,0,8,0" VerticalAlignment="Center"/>
                                                 <RadioButton GroupName="Keep" Content="Oldest ID" IsChecked="{Binding KeepOldest}" Margin="0,0,12,0"/>
                                                 <RadioButton GroupName="Keep" Content="Newest ID" IsChecked="{Binding KeepNewest}" Margin="0,0,12,0"/>
@@ -378,9 +378,9 @@ Layout (ToolWindowShell):
                                             </StackPanel>
 
                                             <CheckBox Content="Overlapping straight lines (same style)" FontWeight="SemiBold" IsChecked="{Binding DeleteOverlaps}"/>
-                                            <TextBlock Style="{StaticResource HintText}" Margin="20,2,0,4" TextWrapping="Wrap"
+                                            <TextBlock Style="{StaticResource HintText}" Margin="24,2,0,4" TextWrapping="Wrap"
                                                        Text="Straight lines of the same style in the same view that lie on top of each other but are not exact copies. Lines in groups are never joined."/>
-                                            <StackPanel Orientation="Horizontal" Margin="20,0,0,10" IsEnabled="{Binding DeleteOverlaps}">
+                                            <StackPanel Orientation="Horizontal" Margin="24,0,0,12" IsEnabled="{Binding DeleteOverlaps}">
                                                 <RadioButton GroupName="Overlap" Content="Delete covered lines" IsChecked="{Binding OverlapDeleteCovered}" Margin="0,0,12,0"
                                                              ToolTip="Delete each line that a longer line of the same style fully covers"/>
                                                 <RadioButton GroupName="Overlap" Content="Join into one line" IsChecked="{Binding OverlapJoin}"
@@ -388,23 +388,23 @@ Layout (ToolWindowShell):
                                             </StackPanel>
 
                                             <CheckBox Content="Short lines" FontWeight="SemiBold" IsChecked="{Binding DeleteShort}"/>
-                                            <TextBlock Style="{StaticResource HintText}" Margin="20,2,0,10" TextWrapping="Wrap"
+                                            <TextBlock Style="{StaticResource HintText}" Margin="24,2,0,12" TextWrapping="Wrap"
                                                        Text="{Binding ToleranceMm, StringFormat='Shorter than the tolerance ({0:0.##} mm).'}"/>
 
                                             <CheckBox IsChecked="{Binding SkipBlocked}">
                                                 <TextBlock TextWrapping="Wrap" Text="Skip lines in groups and lines owned by other users (log them)"/>
                                             </CheckBox>
-                                            <TextBlock Style="{StaticResource HintText}" Margin="20,2,0,0" TextWrapping="Wrap"
+                                            <TextBlock Style="{StaticResource HintText}" Margin="24,2,0,0" TextWrapping="Wrap"
                                                        Text="Lines owned by other users are always skipped; they cannot be changed until released."/>
                                         </StackPanel>
                                     </Grid>
 
                                     <!-- Inline confirmation -->
-                                    <Border Margin="0,12,0,0" Padding="10,8" CornerRadius="5" BorderThickness="1"
+                                    <Border Margin="0,12,0,0" Padding="12,8" CornerRadius="5" BorderThickness="1"
                                             Background="{StaticResource BrushStatusErrorSoft}" BorderBrush="{StaticResource BrushStatusErrorBorder}"
                                             Visibility="{Binding IsConfirmVisible, Converter={StaticResource BoolToVisibility}}">
                                         <DockPanel>
-                                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0,0,0">
+                                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,0,0">
                                                 <Button Content="Cancel" Style="{StaticResource SecondaryButton}" Command="{Binding CancelDeleteCommand}" Margin="0,0,8,0"/>
                                                 <Button Content="Delete" Style="{StaticResource DangerButton}" Command="{Binding ConfirmDeleteCommand}"/>
                                             </StackPanel>
@@ -424,8 +424,8 @@ Layout (ToolWindowShell):
                             </TabItem>
 
                             <!-- Line thickness -->
-                            <TabItem Header="Line thickness" Padding="12,5">
-                                <StackPanel Margin="6,10,6,4">
+                            <TabItem Header="Line thickness" Padding="12,4">
+                                <StackPanel Margin="8,12,8,4">
                                     <UniformGrid Columns="3">
                                         <RadioButton GroupName="Mode" IsChecked="{Binding ModeAssignStyle}" Margin="0,0,12,0">
                                             <StackPanel>
@@ -448,7 +448,7 @@ Layout (ToolWindowShell):
                                     </UniformGrid>
 
                                     <DockPanel Margin="0,12,0,0" Visibility="{Binding ModeAssignStyle, Converter={StaticResource BoolToVisibility}}">
-                                        <TextBlock Text="Line style" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                        <TextBlock Text="Line style" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,12,0"/>
                                         <ComboBox Style="{StaticResource StandardComboBox}" Width="300" HorizontalAlignment="Left"
                                                   ItemsSource="{Binding Styles}" SelectedItem="{Binding SelectedAssignStyle}" DisplayMemberPath="Name"/>
                                     </DockPanel>
@@ -497,7 +497,7 @@ Layout (ToolWindowShell):
                                     <CheckBox Content="Clear existing overrides instead" Margin="0,8,0,0" IsChecked="{Binding ClearOverrides}"
                                               Visibility="{Binding ModeViewOverride, Converter={StaticResource BoolToVisibility}}"/>
 
-                                    <Border Margin="0,10,0,0" Padding="10,8" CornerRadius="5" BorderThickness="1"
+                                    <Border Margin="0,12,0,0" Padding="12,8" CornerRadius="5" BorderThickness="1"
                                             Background="{StaticResource BrushStatusWarnSoft}" BorderBrush="{StaticResource BrushStatusWarnBorder}"
                                             Visibility="{Binding ModeStyleWeight, Converter={StaticResource BoolToVisibility}}">
                                         <TextBlock Text="{Binding StyleWeightWarning}" TextWrapping="Wrap" Foreground="{StaticResource BrushStatusWarn}"/>
@@ -510,8 +510,8 @@ Layout (ToolWindowShell):
                                 </StackPanel>
                             </TabItem>
                             <!-- Rename styles -->
-                            <TabItem Header="Rename styles" Padding="12,5">
-                                <StackPanel Margin="6,10,6,4">
+                            <TabItem Header="Rename styles" Padding="12,4">
+                                <StackPanel Margin="8,12,8,4">
                                     <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="0.8*"/>
@@ -553,8 +553,8 @@ Layout (ToolWindowShell):
                                                 <TextBox Grid.Column="3" Style="{StaticResource StyledTextInput}" Margin="0,0,0,4"
                                                          ToolTip="With Regular expression on, $1, $2 … insert the groups"
                                                          Text="{Binding RenameReplace, UpdateSourceTrigger=PropertyChanged, Delay=300}"/>
-                                                <StackPanel Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="3" Orientation="Horizontal" Margin="0,0,0,6">
-                                                    <CheckBox Content="Regular expression" IsChecked="{Binding RenameUseRegex}" Margin="0,0,14,0"/>
+                                                <StackPanel Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="3" Orientation="Horizontal" Margin="0,0,0,8">
+                                                    <CheckBox Content="Regular expression" IsChecked="{Binding RenameUseRegex}" Margin="0,0,16,0"/>
                                                     <CheckBox Content="Match case" IsChecked="{Binding RenameMatchCase}"/>
                                                 </StackPanel>
                                                 <TextBlock Grid.Row="2" Text="Prefix" Style="{StaticResource FieldLabel}" VerticalAlignment="Center"/>
@@ -567,21 +567,21 @@ Layout (ToolWindowShell):
                                                 <StackPanel Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="3" Orientation="Horizontal">
                                                     <ComboBox Style="{StaticResource StandardComboBox}" Width="120"
                                                               ItemsSource="{Binding NameCaseOptions}" SelectedItem="{Binding RenameCase}"/>
-                                                    <CheckBox Content="Trim and collapse spaces" IsChecked="{Binding RenameTrim}" Margin="14,0,0,0" VerticalAlignment="Center"/>
+                                                    <CheckBox Content="Trim and collapse spaces" IsChecked="{Binding RenameTrim}" Margin="16,0,0,0" VerticalAlignment="Center"/>
                                                 </StackPanel>
                                             </Grid>
                                             <TextBlock Text="{Binding RenameRuleError}" Foreground="{StaticResource BrushStatusWarn}" FontSize="11" TextWrapping="Wrap"/>
                                         </StackPanel>
                                     </Grid>
 
-                                    <WrapPanel Margin="0,10,0,6">
-                                        <Border Style="{StaticResource BadgePill}" Margin="0,0,6,0">
+                                    <WrapPanel Margin="0,12,0,8">
+                                        <Border Style="{StaticResource BadgePill}" Margin="0,0,8,0">
                                             <TextBlock Style="{StaticResource BadgeText}"><Run Text="{Binding RenameTotalCount, Mode=OneWay}" FontWeight="Bold"/><Run Text=" styles"/></TextBlock>
                                         </Border>
-                                        <Border Style="{StaticResource BadgePill}" Background="{StaticResource BrushStatusInfoSoft}" Margin="0,0,6,0">
+                                        <Border Style="{StaticResource BadgePill}" Background="{StaticResource BrushStatusInfoSoft}" Margin="0,0,8,0">
                                             <TextBlock Style="{StaticResource BadgeText}" Foreground="{StaticResource BrushStatusInfo}"><Run Text="{Binding RenameWillCount, Mode=OneWay}" FontWeight="Bold"/><Run Text=" will rename"/></TextBlock>
                                         </Border>
-                                        <Border Style="{StaticResource BadgePill}" Background="{StaticResource BrushStatusErrorSoft}" Margin="0,0,6,0">
+                                        <Border Style="{StaticResource BadgePill}" Background="{StaticResource BrushStatusErrorSoft}" Margin="0,0,8,0">
                                             <TextBlock Style="{StaticResource BadgeText}" Foreground="{StaticResource BrushStatusError}"><Run Text="{Binding RenameProblemCount, Mode=OneWay}" FontWeight="Bold"/><Run Text=" duplicate / invalid"/></TextBlock>
                                         </Border>
                                         <Border Style="{StaticResource BadgePill}" Background="{StaticResource BrushStatusWarnSoft}">
@@ -647,11 +647,11 @@ Layout (ToolWindowShell):
                                                Text="Names are compared ignoring case, as Revit does. \ : { } [ ] | ; &lt; &gt; ? ` ~ are not allowed. Styles owned by other users are skipped and logged. Line counts show after the Delete unused tab has counted usage."/>
 
                                     <!-- Transaction error banner -->
-                                    <Border Margin="0,10,0,0" Padding="10,8" CornerRadius="5" BorderThickness="1"
+                                    <Border Margin="0,12,0,0" Padding="12,8" CornerRadius="5" BorderThickness="1"
                                             Background="{StaticResource BrushStatusErrorSoft}" BorderBrush="{StaticResource BrushStatusErrorBorder}"
                                             Visibility="{Binding HasRenameError, Converter={StaticResource BoolToVisibility}}">
                                         <DockPanel>
-                                            <Button DockPanel.Dock="Right" Content="Dismiss" Style="{StaticResource SecondaryButton}" Command="{Binding DismissRenameErrorCommand}" Margin="10,0,0,0"/>
+                                            <Button DockPanel.Dock="Right" Content="Dismiss" Style="{StaticResource SecondaryButton}" Command="{Binding DismissRenameErrorCommand}" Margin="12,0,0,0"/>
                                             <TextBlock Text="{Binding RenameError}" TextWrapping="Wrap" Foreground="{StaticResource BrushStatusError}" VerticalAlignment="Center"/>
                                         </DockPanel>
                                     </Border>
@@ -671,22 +671,22 @@ Layout (ToolWindowShell):
                 </StackPanel>
 
                 <!-- ═══ Log (full width) ═══ -->
-                <Border Grid.Row="1" Grid.ColumnSpan="3" Margin="0,0,0,0" Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="10,8">
+                <Border Grid.Row="1" Grid.ColumnSpan="3" Margin="0,0,0,0" Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="12,8">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <Grid Margin="0,0,0,6">
+                        <Grid Margin="0,0,0,8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Text="Log" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource BrushLogText}" VerticalAlignment="Center"/>
+                            <TextBlock Text="Log" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource BrushLogText}" VerticalAlignment="Center"/>
                             <StackPanel Grid.Column="1" Orientation="Horizontal">
                                 <Button Content="Copy all" Style="{StaticResource DarkGhostButton}" Command="{Binding CopyAllLogCommand}"/>
-                                <Button Content="Copy selected" Style="{StaticResource DarkGhostButton}" Margin="6,0,0,0" Command="{Binding CopySelectedLogCommand}"/>
-                                <Button Content="Clear" Style="{StaticResource DarkGhostButton}" Margin="6,0,0,0" Command="{Binding ClearLogCommand}"/>
+                                <Button Content="Copy selected" Style="{StaticResource DarkGhostButton}" Margin="8,0,0,0" Command="{Binding CopySelectedLogCommand}"/>
+                                <Button Content="Clear" Style="{StaticResource DarkGhostButton}" Margin="8,0,0,0" Command="{Binding ClearLogCommand}"/>
                             </StackPanel>
                         </Grid>
                         <ListBox Grid.Row="1" x:Name="LogListBox"

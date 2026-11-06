@@ -46,7 +46,7 @@
                             </CheckBox>
                             <TextBlock Text="{Binding Name}" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center"
                                        Foreground="{StaticResource BrushTextPrimary}"/>
-                            <TextBlock FontSize="10.5" VerticalAlignment="Center" Margin="8,0,0,0"
+                            <TextBlock FontSize="11" VerticalAlignment="Center" Margin="8,0,0,0"
                                        Foreground="{StaticResource BrushTextSecondary}">
                                 <TextBlock.Text>
                                     <MultiBinding Converter="{StaticResource GroupTickText}" Mode="OneWay">
@@ -65,7 +65,7 @@
             </Style>
             <!-- Levels 2 and 3 sit inside the heading above them: indent them. -->
             <Style x:Key="TagSubGroupStyle" TargetType="GroupItem" BasedOn="{StaticResource TagGroupStyle}">
-                <Setter Property="Margin" Value="14,0,0,0"/>
+                <Setter Property="Margin" Value="16,0,0,0"/>
             </Style>
 
             <Style x:Key="TagRowStyle" TargetType="DataGridRow" BasedOn="{StaticResource DataGridRowStyle}">
@@ -85,7 +85,7 @@
 
             <Style x:Key="Card" TargetType="Border">
                 <Setter Property="Margin"          Value="0,0,0,8"/>
-                <Setter Property="Padding"         Value="12,10"/>
+                <Setter Property="Padding"         Value="12,12"/>
                 <Setter Property="Background"      Value="{StaticResource BrushSurfaceCard}"/>
                 <Setter Property="BorderBrush"     Value="{StaticResource BrushBorderDefault}"/>
                 <Setter Property="BorderThickness" Value="1"/>
@@ -96,11 +96,11 @@
                 <Setter Property="FontSize"   Value="11"/>
                 <Setter Property="FontWeight" Value="SemiBold"/>
                 <Setter Property="Foreground" Value="{StaticResource BrushTextPrimary}"/>
-                <Setter Property="Margin"     Value="0,0,0,6"/>
+                <Setter Property="Margin"     Value="0,0,0,8"/>
             </Style>
 
             <Style x:Key="Opt" TargetType="Control">
-                <Setter Property="Margin"            Value="0,2,18,2"/>
+                <Setter Property="Margin"            Value="0,2,16,2"/>
                 <Setter Property="FontSize"          Value="11"/>
                 <Setter Property="VerticalAlignment" Value="Center"/>
             </Style>
@@ -122,19 +122,19 @@
         <!-- ═══ HEADER ═══ -->
         <shell:ToolWindowShell.HeaderContent>
             <UniformGrid Columns="3">
-                <Border Style="{StaticResource MetricTile}" Margin="0,0,6,0">
+                <Border Style="{StaticResource MetricTile}" Margin="0,0,8,0">
                     <StackPanel>
                         <TextBlock Text="FOUND" Style="{StaticResource MetricTileLabel}" Foreground="{StaticResource BrushTextSecondary}"/>
                         <TextBlock Text="{Binding FoundCount}" Style="{StaticResource MetricTileNumber}"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricTileSuccess}" Margin="3,0">
+                <Border Style="{StaticResource MetricTileSuccess}" Margin="4,0">
                     <StackPanel>
                         <TextBlock Text="TICKED" Style="{StaticResource MetricTileLabel}" Foreground="{StaticResource BrushStatusOk}"/>
                         <TextBlock Text="{Binding SelectedCount}" Style="{StaticResource MetricTileNumberSuccess}"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricTile}" Margin="6,0,0,0">
+                <Border Style="{StaticResource MetricTile}" Margin="8,0,0,0">
                     <StackPanel>
                         <TextBlock Text="VIEW" Style="{StaticResource MetricTileLabel}" Foreground="{StaticResource BrushTextSecondary}"/>
                         <TextBlock Text="{Binding ViewName}" FontSize="13" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
@@ -160,7 +160,7 @@
                             <Button DockPanel.Dock="Right" Content="Pick Tags…" Command="{Binding PickTagsCommand}"
                                     Style="{StaticResource SmallSecondaryButton}" Margin="0,0,4,0"/>
                         </DockPanel>
-                        <WrapPanel Margin="0,6,0,0">
+                        <WrapPanel Margin="0,8,0,0">
                             <CheckBox Content="Spot Elevation"   IsChecked="{Binding IncludeSpotElevation}"  Style="{StaticResource Opt}"/>
                             <CheckBox Content="Spot Coordinate"  IsChecked="{Binding IncludeSpotCoordinate}" Style="{StaticResource Opt}"/>
                             <CheckBox Content="Spot Slope"       IsChecked="{Binding IncludeSpotSlope}"      Style="{StaticResource Opt}"/>
@@ -172,7 +172,7 @@
 
                 <!-- Tag table -->
                 <Border Background="{StaticResource BrushSystemSecondaryBackground}" BorderBrush="{StaticResource BrushBorderDefault}"
-                        BorderThickness="1,1,1,0" CornerRadius="4,4,0,0" Padding="8,6">
+                        BorderThickness="1,1,1,0" CornerRadius="4,4,0,0" Padding="8,8">
                     <StackPanel>
                         <DockPanel LastChildFill="False">
                             <TextBlock VerticalAlignment="Center" FontSize="11" Foreground="{StaticResource BrushTextSecondary}">
@@ -186,7 +186,7 @@
                                     Style="{StaticResource SmallSecondaryButton}" Margin="0,0,4,0"/>
                         </DockPanel>
                         <!-- By tag type: group the table, or tick / clear one type from the list -->
-                        <DockPanel LastChildFill="False" Margin="0,6,0,0" IsEnabled="{Binding IsIdle}">
+                        <DockPanel LastChildFill="False" Margin="0,8,0,0" IsEnabled="{Binding IsIdle}">
                             <CheckBox Content="Group by type" IsChecked="{Binding GroupByType}" Style="{StaticResource Opt}"
                                       ToolTip="Show the tags under headings, in the levels chosen below. Tick a heading's box to tick or clear every tag under it."/>
                             <Button DockPanel.Dock="Right" Content="Clear Type" Command="{Binding ClearTypeCommand}"
@@ -195,28 +195,28 @@
                             <Button DockPanel.Dock="Right" Content="Select Type" Command="{Binding SelectTypeCommand}"
                                     Style="{StaticResource SmallSecondaryButton}" Margin="0,0,4,0"
                                     ToolTip="Tick every tag of the type picked in the list."/>
-                            <ComboBox DockPanel.Dock="Right" Width="190" Margin="0,0,6,0"
+                            <ComboBox DockPanel.Dock="Right" Width="190" Margin="0,0,8,0"
                                       ItemsSource="{Binding TypeGroupsView}" SelectedItem="{Binding SelectedTypeGroup}"
                                       IsSynchronizedWithCurrentItem="False" DisplayMemberPath="Label"
                                       Style="{StaticResource StandardComboBox}" FontSize="11"
                                       ToolTip="Pick a tag type, then Select Type or Clear Type."/>
                             <TextBlock DockPanel.Dock="Right" Text="Type" Style="{StaticResource FieldLabel}"
-                                       VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                       VerticalAlignment="Center" Margin="0,0,8,0"/>
                         </DockPanel>
                         <!-- Grouping levels: outermost first. A level set to (none), or repeated, is skipped. -->
                         <WrapPanel Margin="0,4,0,0" IsEnabled="{Binding GroupByType}">
-                            <TextBlock Text="Group by" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                            <ComboBox Width="150" Margin="0,0,6,0" ItemsSource="{Binding GroupLevelOptions}"
+                            <TextBlock Text="Group by" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                            <ComboBox Width="150" Margin="0,0,8,0" ItemsSource="{Binding GroupLevelOptions}"
                                       SelectedValuePath="Level" DisplayMemberPath="Label" SelectedValue="{Binding GroupLevel1}"
                                       Style="{StaticResource StandardComboBox}" FontSize="11"
                                       ToolTip="Outer grouping level."/>
-                            <TextBlock Text="then" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                            <ComboBox Width="150" Margin="0,0,6,0" ItemsSource="{Binding GroupLevelOptions}"
+                            <TextBlock Text="then" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                            <ComboBox Width="150" Margin="0,0,8,0" ItemsSource="{Binding GroupLevelOptions}"
                                       SelectedValuePath="Level" DisplayMemberPath="Label" SelectedValue="{Binding GroupLevel2}"
                                       Style="{StaticResource StandardComboBox}" FontSize="11"
                                       ToolTip="Second level, nested under the first."/>
-                            <TextBlock Text="then" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                            <ComboBox Width="150" Margin="0,0,6,0" ItemsSource="{Binding GroupLevelOptions}"
+                            <TextBlock Text="then" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                            <ComboBox Width="150" Margin="0,0,8,0" ItemsSource="{Binding GroupLevelOptions}"
                                       SelectedValuePath="Level" DisplayMemberPath="Label" SelectedValue="{Binding GroupLevel3}"
                                       Style="{StaticResource StandardComboBox}" FontSize="11"
                                       ToolTip="Third level, nested under the second."/>
@@ -323,8 +323,8 @@
                             <ComboBox Grid.Column="1" ItemsSource="{Binding TextTypes}" SelectedItem="{Binding SelectedTextType}"
                                       DisplayMemberPath="Name" Style="{StaticResource StandardComboBox}"
                                       ToolTip="The arrowhead comes from this text type's Leader Arrowhead."/>
-                            <TextBlock Grid.Row="1" Text="Prefix" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,6,0,0"/>
-                            <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,6,0,0">
+                            <TextBlock Grid.Row="1" Text="Prefix" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,8,0,0"/>
+                            <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,8,0,0">
                                 <TextBox Width="130" Text="{Binding Prefix, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource StyledTextInput}"
                                          ToolTip="Added before every line, exactly as typed (include a space if you want one)."/>
                                 <TextBlock Text="Suffix" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="16,0,8,0"/>
@@ -349,7 +349,7 @@
                             <RadioButton GroupName="Target" Content="Same view (current)" IsChecked="{Binding TargetSameView}" Style="{StaticResource Opt}"/>
                             <RadioButton GroupName="Target" Content="New view (duplicate current view)" IsChecked="{Binding TargetNewView}" Style="{StaticResource Opt}"/>
                         </WrapPanel>
-                        <Border Margin="22,6,0,0" Padding="10,8" Background="{StaticResource BrushSystemSecondaryBackground}"
+                        <Border Margin="24,8,0,0" Padding="12,8" Background="{StaticResource BrushSystemSecondaryBackground}"
                                 BorderBrush="{StaticResource BrushBorderDefault}" BorderThickness="1" CornerRadius="4"
                                 IsEnabled="{Binding TargetNewView}">
                             <StackPanel>
@@ -359,12 +359,12 @@
                                     <RadioButton GroupName="Duplicate" Content="With detailing" IsChecked="{Binding DuplicateWithDetailing}" Style="{StaticResource Opt}"
                                                  ToolTip="Copies the view's annotation too, so the tags appear in the new view as well."/>
                                 </WrapPanel>
-                                <DockPanel Margin="0,6,0,0">
+                                <DockPanel Margin="0,8,0,0">
                                     <TextBlock Text="View name" Width="80" Style="{StaticResource FieldLabel}" VerticalAlignment="Center"/>
                                     <TextBox Text="{Binding NewViewName, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource StyledTextInput}"
                                              ToolTip="If the name is taken, (2), (3)… is added."/>
                                 </DockPanel>
-                                <CheckBox Content="Open the new view when done" IsChecked="{Binding OpenNewView}" Style="{StaticResource Opt}" Margin="0,6,0,0"/>
+                                <CheckBox Content="Open the new view when done" IsChecked="{Binding OpenNewView}" Style="{StaticResource Opt}" Margin="0,8,0,0"/>
                             </StackPanel>
                         </Border>
                     </StackPanel>
@@ -385,7 +385,7 @@
                 </Border>
 
                 <!-- Static-text warning -->
-                <Border Margin="0,0,0,8" Padding="10,6" CornerRadius="4" BorderThickness="1"
+                <Border Margin="0,0,0,8" Padding="12,8" CornerRadius="4" BorderThickness="1"
                         Background="{StaticResource BrushBannerWarningBackground}" BorderBrush="{StaticResource BrushBannerWarningBorder}">
                     <TextBlock Text="⚠ The new text is static. It won't update if the model changes."
                                FontSize="11" Foreground="{StaticResource BrushBannerWarningText}" TextWrapping="Wrap"/>
@@ -400,7 +400,7 @@
                                        Foreground="{StaticResource BrushTextSecondary}"/>
                         </DockPanel>
                         <ProgressBar Height="12" Minimum="0" Maximum="100" Value="{Binding ProgressPercent, Mode=OneWay}"/>
-                        <DockPanel Margin="0,6,0,0">
+                        <DockPanel Margin="0,8,0,0">
                             <TextBlock Text="{Binding StepText}" FontSize="11" Foreground="{StaticResource BrushTextSecondary}"
                                        TextTrimming="CharacterEllipsis"/>
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
@@ -421,7 +421,7 @@
                 <!-- Log -->
                 <Border Background="{StaticResource BrushLogBg}" CornerRadius="4">
                     <DockPanel>
-                        <Border DockPanel.Dock="Top" Background="{StaticResource BrushLogTitleBar}" CornerRadius="4,4,0,0" Padding="10,6">
+                        <Border DockPanel.Dock="Top" Background="{StaticResource BrushLogTitleBar}" CornerRadius="4,4,0,0" Padding="12,8">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
@@ -454,7 +454,7 @@
                             </ListBox.ItemContainerStyle>
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
-                                    <Grid Margin="10,1">
+                                    <Grid Margin="12,2">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="60"/>
                                             <ColumnDefinition Width="*"/>
