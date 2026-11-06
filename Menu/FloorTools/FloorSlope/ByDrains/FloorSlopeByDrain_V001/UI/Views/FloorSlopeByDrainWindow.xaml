@@ -75,13 +75,13 @@ Changes vs V012: window 1280×820 (min 1100×640; V012's minimum height of
                 <Setter Property="Foreground" Value="{StaticResource BrushTextSecondary}"/>
                 <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
                 <Setter Property="VerticalAlignment" Value="Center"/>
-                <Setter Property="Margin" Value="8,0,6,0"/>
+                <Setter Property="Margin" Value="8,0,8,0"/>
             </Style>
             <Style x:Key="OptionsTitle" TargetType="TextBlock">
                 <Setter Property="FontSize" Value="10.5"/>
                 <Setter Property="FontWeight" Value="SemiBold"/>
                 <Setter Property="Foreground" Value="{StaticResource BrushNavyPrimary}"/>
-                <Setter Property="Margin" Value="2,2,0,6"/>
+                <Setter Property="Margin" Value="2,2,0,8"/>
             </Style>
             <Style x:Key="ToggleLabel" TargetType="TextBlock" BasedOn="{StaticResource FieldLabel}">
                 <Setter Property="TextWrapping" Value="Wrap"/>
@@ -93,7 +93,7 @@ Changes vs V012: window 1280×820 (min 1100×640; V012's minimum height of
             <Style x:Key="CustomTag" TargetType="Border">
                 <Setter Property="Background" Value="{StaticResource BrushStatusInfoSoft}"/>
                 <Setter Property="CornerRadius" Value="6"/>
-                <Setter Property="Padding" Value="6,1"/>
+                <Setter Property="Padding" Value="8,2"/>
                 <Setter Property="VerticalAlignment" Value="Center"/>
             </Style>
             <Style x:Key="CustomTagText" TargetType="TextBlock">
@@ -108,7 +108,7 @@ Changes vs V012: window 1280×820 (min 1100×640; V012's minimum height of
                 <Setter Property="Height" Value="24"/>
                 <Setter Property="FontSize" Value="11"/>
                 <Setter Property="HorizontalAlignment" Value="Right"/>
-                <Setter Property="Margin" Value="0,6,0,0"/>
+                <Setter Property="Margin" Value="0,8,0,0"/>
             </Style>
 
             <!-- ── Badges ─────────────────────────────────────────── -->
@@ -168,14 +168,14 @@ Changes vs V012: window 1280×820 (min 1100×640; V012's minimum height of
                 <Setter Property="BorderBrush" Value="{StaticResource BrushStatusWarnBorder}"/>
                 <Setter Property="BorderThickness" Value="1"/>
                 <Setter Property="CornerRadius" Value="6"/>
-                <Setter Property="Padding" Value="8,3"/>
+                <Setter Property="Padding" Value="8,4"/>
             </Style>
 
             <!-- Floor tab status pill (DataContext = FloorTabViewModel) -->
             <Style x:Key="TabPill" TargetType="Border">
                 <Setter Property="CornerRadius" Value="8"/>
-                <Setter Property="Padding" Value="6,0"/>
-                <Setter Property="Margin" Value="6,0,0,0"/>
+                <Setter Property="Padding" Value="8,0"/>
+                <Setter Property="Margin" Value="8,0,0,0"/>
                 <Setter Property="VerticalAlignment" Value="Center"/>
                 <Setter Property="Background" Value="{StaticResource BrushSystemSecondaryBackground}"/>
                 <Style.Triggers>
@@ -233,7 +233,7 @@ Changes vs V012: window 1280×820 (min 1100×640; V012's minimum height of
                             <DockPanel LastChildFill="True">
                                 <ToggleButton DockPanel.Dock="Top"
                                               IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
-                                              Background="Transparent" BorderThickness="0" Padding="12,9" Cursor="Hand"
+                                              Background="Transparent" BorderThickness="0" Padding="12,8" Cursor="Hand"
                                               HorizontalContentAlignment="Stretch">
                                     <ToggleButton.Template>
                                         <ControlTemplate TargetType="ToggleButton">
@@ -249,7 +249,7 @@ Changes vs V012: window 1280×820 (min 1100×640; V012's minimum height of
                                     </ToggleButton.Template>
                                     <DockPanel LastChildFill="True">
                                         <TextBlock x:Name="Chevron" DockPanel.Dock="Right" Text="▾" FontSize="12"
-                                                   Foreground="{StaticResource BrushTextSecondary}" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                                                   Foreground="{StaticResource BrushTextSecondary}" VerticalAlignment="Center" Margin="8,0,0,0"/>
                                         <ContentPresenter ContentSource="Header" RecognizesAccessKey="False"/>
                                     </DockPanel>
                                 </ToggleButton>
@@ -272,7 +272,7 @@ Changes vs V012: window 1280×820 (min 1100×640; V012's minimum height of
             <!-- Colour combo item: swatch + name -->
             <DataTemplate x:Key="ColorItemTemplate">
                 <StackPanel Orientation="Horizontal">
-                    <Border Width="12" Height="12" CornerRadius="2" Margin="0,0,6,0"
+                    <Border Width="12" Height="12" CornerRadius="2" Margin="0,0,8,0"
                             BorderBrush="{StaticResource BrushBorderDefault}" BorderThickness="1"
                             Background="{Binding Converter={StaticResource ColorNameToBrush}}"/>
                     <TextBlock Text="{Binding}"/>
@@ -290,12 +290,12 @@ Changes vs V012: window 1280×820 (min 1100×640; V012's minimum height of
                                       Collapsed="DrainGroupExpander_ExpandedOrCollapsed">
                                 <Expander.Header>
                                     <DockPanel LastChildFill="False" Background="{StaticResource BrushSystemTertiaryBackground}" MinWidth="360">
-                                        <TextBlock DockPanel.Dock="Left" FontWeight="SemiBold" FontSize="11" VerticalAlignment="Center" Margin="4,3">
+                                        <TextBlock DockPanel.Dock="Left" FontWeight="SemiBold" FontSize="11" VerticalAlignment="Center" Margin="4,4">
                                             <Run Text="{Binding Name, Mode=OneWay}"/>
                                             <Run Text="("/><Run Text="{Binding ItemCount, Mode=OneWay}"/><Run Text=")"/>
                                         </TextBlock>
                                         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Margin="0,0,4,0">
-                                            <Button Content="All" Style="{StaticResource SmallSecondaryButton}" Height="22" Margin="0,0,3,0"
+                                            <Button Content="All" Style="{StaticResource SmallSecondaryButton}" Height="22" Margin="0,0,4,0"
                                                     Command="{Binding DataContext.SelectAllInGroupCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
                                                     CommandParameter="{Binding Name}"/>
                                             <Button Content="None" Style="{StaticResource SmallSecondaryButton}" Height="22"
@@ -390,52 +390,52 @@ Changes vs V012: window 1280×820 (min 1100×640; V012's minimum height of
         <!-- ═══ HEADER ═══════════════════════════════════════════ -->
         <shell:ToolWindowShell.HeaderContent>
             <StackPanel>
-                <WrapPanel Margin="0,0,0,6">
-                    <Border Style="{StaticResource StateBadge}" Margin="0,0,6,4">
+                <WrapPanel Margin="0,0,0,8">
+                    <Border Style="{StaticResource StateBadge}" Margin="0,0,8,4">
                         <TextBlock Text="{Binding StateText}" Style="{StaticResource StateBadgeText}"/>
                     </Border>
-                    <Border Style="{StaticResource BadgePill}" Margin="0,0,6,4">
+                    <Border Style="{StaticResource BadgePill}" Margin="0,0,8,4">
                         <TextBlock Text="{Binding FloorsBadgeText}" Style="{StaticResource BadgeText}"/>
                     </Border>
-                    <Border Style="{StaticResource ViewBadge}" Margin="0,0,6,4">
+                    <Border Style="{StaticResource ViewBadge}" Margin="0,0,8,4">
                         <TextBlock Text="{Binding ViewBadgeText}" Style="{StaticResource ViewBadgeText}"/>
                     </Border>
                 </WrapPanel>
 
-                <UniformGrid Columns="6" Rows="1" Margin="0,0,0,6">
-                    <Border Style="{StaticResource MetricTileInfo}" Margin="0,0,3,0">
+                <UniformGrid Columns="6" Rows="1" Margin="0,0,0,8">
+                    <Border Style="{StaticResource MetricTileInfo}" Margin="0,0,4,0">
                         <StackPanel>
                             <TextBlock Text="DRAINS SELECTED" Style="{StaticResource MetricTileLabelInfo}"/>
                             <TextBlock Text="{Binding AllSelectedDrainsCount}" Style="{StaticResource MetricTileNumberInfo}"/>
                             <TextBlock Text="{Binding DrainsSubText}" Style="{StaticResource HintText}" Margin="0"/>
                         </StackPanel>
                     </Border>
-                    <Border Style="{StaticResource MetricTileSuccess}" Margin="3,0">
+                    <Border Style="{StaticResource MetricTileSuccess}" Margin="4,0">
                         <StackPanel>
                             <TextBlock Text="PROCESSED" Style="{StaticResource MetricTileLabelSuccess}"/>
                             <TextBlock Text="{Binding ProcessedText}" Style="{StaticResource MetricTileNumberSuccess}"/>
                         </StackPanel>
                     </Border>
-                    <Border Style="{StaticResource MetricTileWarning}" Margin="3,0"
+                    <Border Style="{StaticResource MetricTileWarning}" Margin="4,0"
                             ToolTip="Points left at 0: no path to a drain, or a path longer than the max path distance. Drain points are not counted.">
                         <StackPanel>
                             <TextBlock Text="SKIPPED" Style="{StaticResource MetricTileLabelWarning}"/>
                             <TextBlock Text="{Binding SkippedText}" Style="{StaticResource MetricTileNumberWarning}"/>
                         </StackPanel>
                     </Border>
-                    <Border Style="{StaticResource MetricTileInfo}" Margin="3,0">
+                    <Border Style="{StaticResource MetricTileInfo}" Margin="4,0">
                         <StackPanel>
                             <TextBlock Text="HIGHEST ELEVATION" Style="{StaticResource MetricTileLabelInfo}"/>
                             <TextBlock Text="{Binding HighestText}" Style="{StaticResource MetricTileNumberInfo}"/>
                         </StackPanel>
                     </Border>
-                    <Border Style="{StaticResource MetricTileInfo}" Margin="3,0">
+                    <Border Style="{StaticResource MetricTileInfo}" Margin="4,0">
                         <StackPanel>
                             <TextBlock Text="LONGEST PATH" Style="{StaticResource MetricTileLabelInfo}"/>
                             <TextBlock Text="{Binding LongestPathText}" Style="{StaticResource MetricTileNumberInfo}"/>
                         </StackPanel>
                     </Border>
-                    <Border Style="{StaticResource MetricTile}" Background="{StaticResource BrushSurfaceCard}" Margin="3,0,0,0">
+                    <Border Style="{StaticResource MetricTile}" Background="{StaticResource BrushSurfaceCard}" Margin="4,0,0,0">
                         <StackPanel>
                             <TextBlock Text="RUN TIME" Style="{StaticResource MetricTileLabel}"/>
                             <TextBlock Text="{Binding RunTimeText}" Style="{StaticResource MetricTileNumber}"/>
@@ -466,8 +466,8 @@ Changes vs V012: window 1280×820 (min 1100×640; V012's minimum height of
 
                         <!-- Every run -->
                         <Border Style="{StaticResource ContentCard}">
-                            <StackPanel Margin="12,0,12,10">
-                                <TextBlock Text="Every run · all floors" Style="{StaticResource SectionTitle}" Margin="0,10,0,6"/>
+                            <StackPanel Margin="12,0,12,12">
+                                <TextBlock Text="Every run · all floors" Style="{StaticResource SectionTitle}" Margin="0,12,0,8"/>
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
@@ -492,7 +492,7 @@ Changes vs V012: window 1280×820 (min 1100×640; V012's minimum height of
                                     </StackPanel>
                                 </Grid>
 
-                                <Border Style="{StaticResource WarnLine}" Margin="0,10,0,0">
+                                <Border Style="{StaticResource WarnLine}" Margin="0,12,0,0">
                                     <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="{StaticResource BrushStatusWarn}"
                                                Text="⚠ Run first resets every shape point on each floor to 0. Picking floors no longer changes them, so closing without running leaves them as they were. Ctrl+Z undoes the whole run in one step."/>
                                 </Border>
@@ -520,7 +520,7 @@ Changes vs V012: window 1280×820 (min 1100×640; V012's minimum height of
                                         </Border>
                                     </Grid>
                                 </Expander.Header>
-                                <StackPanel Margin="12,8,12,10">
+                                <StackPanel Margin="12,8,12,12">
                                     <TextBlock Text="Max edge distance (m)" Style="{StaticResource FieldLabel}"/>
                                     <TextBox Style="{StaticResource BorderlessTextInput}" Width="90" HorizontalAlignment="Left" MaxLength="8"
                                              Text="{Binding MaxEdgeText, UpdateSourceTrigger=PropertyChanged}"/>
@@ -535,7 +535,7 @@ Changes vs V012: window 1280×820 (min 1100×640; V012's minimum height of
                                     <TextBlock Style="{StaticResource HintText}"
                                                Text="Points checked along each link to make sure it stays on the floor. 5–20 is typical."/>
 
-                                    <Grid Margin="0,10,0,0">
+                                    <Grid Margin="0,12,0,0">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="Auto"/>
@@ -547,7 +547,7 @@ Changes vs V012: window 1280×820 (min 1100×640; V012's minimum height of
                                     <TextBlock Style="{StaticResource HintText}"
                                                Text="Path lengths follow a curved boundary or opening instead of its chord."/>
 
-                                    <Grid Margin="0,10,0,0">
+                                    <Grid Margin="0,12,0,0">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="Auto"/>
@@ -583,16 +583,16 @@ Changes vs V012: window 1280×820 (min 1100×640; V012's minimum height of
                                         </Border>
                                     </Grid>
                                 </Expander.Header>
-                                <StackPanel Margin="12,8,12,10">
-                                    <TextBlock Style="{StaticResource HintText}" Margin="0,0,0,6"
+                                <StackPanel Margin="12,8,12,12">
+                                    <TextBlock Style="{StaticResource HintText}" Margin="0,0,0,8"
                                                Text="Placed in the active view when it is a plan view; skipped with a warning otherwise."/>
 
                                     <!-- Drains -->
                                     <CheckBox IsChecked="{Binding DrainMarkerGroup.IsEnabled}">
-                                        <TextBlock Text="Drains" Style="{StaticResource FieldValue}" FontWeight="SemiBold" FontSize="12.5"/>
+                                        <TextBlock Text="Drains" Style="{StaticResource FieldValue}" FontWeight="SemiBold" FontSize="13"/>
                                     </CheckBox>
-                                    <TextBlock Text="A circle on each selected drain opening." Style="{StaticResource HintText}" Margin="22,1,0,4"/>
-                                    <Grid Margin="22,0,0,8" IsEnabled="{Binding DrainMarkerGroup.IsEnabled}">
+                                    <TextBlock Text="A circle on each selected drain opening." Style="{StaticResource HintText}" Margin="24,2,0,4"/>
+                                    <Grid Margin="24,0,0,8" IsEnabled="{Binding DrainMarkerGroup.IsEnabled}">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="1.3*"/>
                                             <ColumnDefinition Width="6"/>
@@ -603,12 +603,12 @@ Changes vs V012: window 1280×820 (min 1100×640; V012's minimum height of
                                         <StackPanel Grid.Column="0">
                                             <TextBlock Text="Line style" Style="{StaticResource FieldLabel}"/>
                                             <ComboBox ItemsSource="{Binding LineStyleOptions}" SelectedValuePath="Id" DisplayMemberPath="Name"
-                                                      SelectedValue="{Binding DrainMarkerGroup.LineStyleId}" SelectionChanged="LineStyleCombo_SelectionChanged" Padding="3,2"/>
+                                                      SelectedValue="{Binding DrainMarkerGroup.LineStyleId}" SelectionChanged="LineStyleCombo_SelectionChanged" Padding="4,2"/>
                                         </StackPanel>
                                         <StackPanel Grid.Column="2">
                                             <TextBlock Text="Colour" Style="{StaticResource FieldLabel}"/>
                                             <ComboBox ItemsSource="{Binding ColorPalette}" SelectedItem="{Binding DrainMarkerGroup.ColorName}"
-                                                      ItemTemplate="{StaticResource ColorItemTemplate}" Padding="3,2"/>
+                                                      ItemTemplate="{StaticResource ColorItemTemplate}" Padding="4,2"/>
                                         </StackPanel>
                                         <StackPanel Grid.Column="4">
                                             <TextBlock Text="Radius" Style="{StaticResource FieldLabel}"/>
@@ -621,10 +621,10 @@ Changes vs V012: window 1280×820 (min 1100×640; V012's minimum height of
 
                                     <!-- Highest point -->
                                     <CheckBox IsChecked="{Binding HighestPointMarkerGroup.IsEnabled}">
-                                        <TextBlock Text="Highest point" Style="{StaticResource FieldValue}" FontWeight="SemiBold" FontSize="12.5"/>
+                                        <TextBlock Text="Highest point" Style="{StaticResource FieldValue}" FontWeight="SemiBold" FontSize="13"/>
                                     </CheckBox>
-                                    <TextBlock Text="A circle on every point tied at the highest calculated elevation." Style="{StaticResource HintText}" Margin="22,1,0,4"/>
-                                    <Grid Margin="22,0,0,4" IsEnabled="{Binding HighestPointMarkerGroup.IsEnabled}">
+                                    <TextBlock Text="A circle on every point tied at the highest calculated elevation." Style="{StaticResource HintText}" Margin="24,2,0,4"/>
+                                    <Grid Margin="24,0,0,4" IsEnabled="{Binding HighestPointMarkerGroup.IsEnabled}">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="1.3*"/>
                                             <ColumnDefinition Width="6"/>
@@ -635,12 +635,12 @@ Changes vs V012: window 1280×820 (min 1100×640; V012's minimum height of
                                         <StackPanel Grid.Column="0">
                                             <TextBlock Text="Line style" Style="{StaticResource FieldLabel}"/>
                                             <ComboBox ItemsSource="{Binding LineStyleOptions}" SelectedValuePath="Id" DisplayMemberPath="Name"
-                                                      SelectedValue="{Binding HighestPointMarkerGroup.LineStyleId}" SelectionChanged="LineStyleCombo_SelectionChanged" Padding="3,2"/>
+                                                      SelectedValue="{Binding HighestPointMarkerGroup.LineStyleId}" SelectionChanged="LineStyleCombo_SelectionChanged" Padding="4,2"/>
                                         </StackPanel>
                                         <StackPanel Grid.Column="2">
                                             <TextBlock Text="Colour" Style="{StaticResource FieldLabel}"/>
                                             <ComboBox ItemsSource="{Binding ColorPalette}" SelectedItem="{Binding HighestPointMarkerGroup.ColorName}"
-                                                      ItemTemplate="{StaticResource ColorItemTemplate}" Padding="3,2"/>
+                                                      ItemTemplate="{StaticResource ColorItemTemplate}" Padding="4,2"/>
                                         </StackPanel>
                                         <StackPanel Grid.Column="4">
                                             <TextBlock Text="Radius" Style="{StaticResource FieldLabel}"/>
@@ -648,7 +648,7 @@ Changes vs V012: window 1280×820 (min 1100×640; V012's minimum height of
                                                      Text="{Binding HighestPointMarkerGroup.RadiusMm, UpdateSourceTrigger=PropertyChanged}"/>
                                         </StackPanel>
                                     </Grid>
-                                    <CheckBox Margin="22,2,0,8" IsEnabled="{Binding HighestPointMarkerGroup.IsEnabled}"
+                                    <CheckBox Margin="24,2,0,8" IsEnabled="{Binding HighestPointMarkerGroup.IsEnabled}"
                                               IsChecked="{Binding HighestPointMarkerGroup.ShowOffsetText}">
                                         <TextBlock Text="Add an “Offset: X mm” text note with a leader" Style="{StaticResource FieldValue}" FontSize="12"/>
                                     </CheckBox>
@@ -657,11 +657,11 @@ Changes vs V012: window 1280×820 (min 1100×640; V012's minimum height of
 
                                     <!-- Allowed offset -->
                                     <CheckBox IsChecked="{Binding AllowedOffsetMarkerGroup.IsEnabled}">
-                                        <TextBlock Text="Allowed offset" Style="{StaticResource FieldValue}" FontWeight="SemiBold" FontSize="12.5"/>
+                                        <TextBlock Text="Allowed offset" Style="{StaticResource FieldValue}" FontWeight="SemiBold" FontSize="13"/>
                                     </CheckBox>
                                     <TextBlock Text="A circle on every point at or above the threshold, except points already marked highest."
-                                               Style="{StaticResource HintText}" Margin="22,1,0,4"/>
-                                    <Grid Margin="22,0,0,4" IsEnabled="{Binding AllowedOffsetMarkerGroup.IsEnabled}">
+                                               Style="{StaticResource HintText}" Margin="24,2,0,4"/>
+                                    <Grid Margin="24,0,0,4" IsEnabled="{Binding AllowedOffsetMarkerGroup.IsEnabled}">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="1.3*"/>
                                             <ColumnDefinition Width="6"/>
@@ -672,12 +672,12 @@ Changes vs V012: window 1280×820 (min 1100×640; V012's minimum height of
                                         <StackPanel Grid.Column="0">
                                             <TextBlock Text="Line style" Style="{StaticResource FieldLabel}"/>
                                             <ComboBox ItemsSource="{Binding LineStyleOptions}" SelectedValuePath="Id" DisplayMemberPath="Name"
-                                                      SelectedValue="{Binding AllowedOffsetMarkerGroup.LineStyleId}" SelectionChanged="LineStyleCombo_SelectionChanged" Padding="3,2"/>
+                                                      SelectedValue="{Binding AllowedOffsetMarkerGroup.LineStyleId}" SelectionChanged="LineStyleCombo_SelectionChanged" Padding="4,2"/>
                                         </StackPanel>
                                         <StackPanel Grid.Column="2">
                                             <TextBlock Text="Colour" Style="{StaticResource FieldLabel}"/>
                                             <ComboBox ItemsSource="{Binding ColorPalette}" SelectedItem="{Binding AllowedOffsetMarkerGroup.ColorName}"
-                                                      ItemTemplate="{StaticResource ColorItemTemplate}" Padding="3,2"/>
+                                                      ItemTemplate="{StaticResource ColorItemTemplate}" Padding="4,2"/>
                                         </StackPanel>
                                         <StackPanel Grid.Column="4">
                                             <TextBlock Text="Radius" Style="{StaticResource FieldLabel}"/>
@@ -685,14 +685,14 @@ Changes vs V012: window 1280×820 (min 1100×640; V012's minimum height of
                                                      Text="{Binding AllowedOffsetMarkerGroup.RadiusMm, UpdateSourceTrigger=PropertyChanged}"/>
                                         </StackPanel>
                                     </Grid>
-                                    <StackPanel Orientation="Horizontal" Margin="22,2,0,0" IsEnabled="{Binding AllowedOffsetMarkerGroup.IsEnabled}">
-                                        <TextBlock Text="Offset ≥" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                    <StackPanel Orientation="Horizontal" Margin="24,2,0,0" IsEnabled="{Binding AllowedOffsetMarkerGroup.IsEnabled}">
+                                        <TextBlock Text="Offset ≥" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,8,0"/>
                                         <TextBox Style="{StaticResource BorderlessTextInput}" Width="70" MaxLength="7"
                                                  Text="{Binding AllowedOffsetThresholdText, UpdateSourceTrigger=PropertyChanged}"/>
                                         <TextBlock Text="mm" Style="{StaticResource UnitLabel}"/>
                                     </StackPanel>
 
-                                    <TextBlock Text="{Binding MarkersError}" Style="{StaticResource FieldError}" Margin="0,6,0,0"/>
+                                    <TextBlock Text="{Binding MarkersError}" Style="{StaticResource FieldError}" Margin="0,8,0,0"/>
                                     <Button Content="Reset to defaults" Style="{StaticResource LinkButton}" Command="{Binding ResetMarkersCommand}"/>
                                 </StackPanel>
                             </Expander>
@@ -717,7 +717,7 @@ Changes vs V012: window 1280×820 (min 1100×640; V012's minimum height of
                                         </Border>
                                     </Grid>
                                 </Expander.Header>
-                                <StackPanel Margin="12,8,12,10">
+                                <StackPanel Margin="12,8,12,12">
                                     <TextBlock Text="Excel workbook for each floor, saved to" Style="{StaticResource FieldLabel}"/>
                                     <Grid>
                                         <Grid.ColumnDefinitions>
@@ -732,7 +732,7 @@ Changes vs V012: window 1280×820 (min 1100×640; V012's minimum height of
                                                 Command="{Binding BrowseFolderCommand}"/>
                                     </Grid>
 
-                                    <Grid Margin="0,10,0,0">
+                                    <Grid Margin="0,12,0,0">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="Auto"/>
@@ -779,7 +779,7 @@ Changes vs V012: window 1280×820 (min 1100×640; V012's minimum height of
                         <TabControl.ContentTemplate>
                             <DataTemplate>
                                 <StackPanel Margin="8">
-                                    <Grid Margin="0,0,0,6">
+                                    <Grid Margin="0,0,0,8">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="*"/>
@@ -788,9 +788,9 @@ Changes vs V012: window 1280×820 (min 1100×640; V012's minimum height of
                                         <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right"
                                                     IsEnabled="{Binding DataContext.IsInputEnabled, RelativeSource={RelativeSource AncestorType=Window}}">
                                             <ComboBox ItemsSource="{Binding SizeFilters}" SelectedItem="{Binding SelectedSizeFilter}"
-                                                      Width="120" Height="26" Padding="3,2" Margin="0,0,6,0" FontSize="11.5"/>
-                                            <Button Content="Select all" Command="{Binding SelectAllCommand}" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,3,0"/>
-                                            <Button Content="None" Command="{Binding SelectNoneCommand}" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,3,0"/>
+                                                      Width="120" Height="26" Padding="4,2" Margin="0,0,8,0" FontSize="12"/>
+                                            <Button Content="Select all" Command="{Binding SelectAllCommand}" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,4,0"/>
+                                            <Button Content="None" Command="{Binding SelectNoneCommand}" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,4,0"/>
                                             <Button Content="Invert" Command="{Binding InvertSelectionCommand}" Style="{StaticResource SmallSecondaryButton}"/>
                                         </StackPanel>
                                     </Grid>
@@ -806,7 +806,7 @@ Changes vs V012: window 1280×820 (min 1100×640; V012's minimum height of
                                               ColumnHeaderStyle="{StaticResource StandardDataGridColumnHeader}"
                                               CellStyle="{StaticResource StandardDataGridCell}"
                                               RowStyle="{StaticResource StandardDataGridRow}"
-                                              RowHeight="26" FontSize="11.5">
+                                              RowHeight="26" FontSize="12">
                                         <DataGrid.GroupStyle>
                                             <GroupStyle ContainerStyle="{StaticResource DrainGroupHeaderStyle}"/>
                                         </DataGrid.GroupStyle>
@@ -832,7 +832,7 @@ Changes vs V012: window 1280×820 (min 1100×640; V012's minimum height of
                                     </DataGrid>
 
                                     <!-- Selection note: warning look when nothing is checked -->
-                                    <Border Margin="0,6,0,0" Padding="7,3" CornerRadius="6">
+                                    <Border Margin="0,8,0,0" Padding="8,4" CornerRadius="6">
                                         <Border.Style>
                                             <Style TargetType="Border">
                                                 <Setter Property="Background" Value="Transparent"/>
@@ -847,7 +847,7 @@ Changes vs V012: window 1280×820 (min 1100×640; V012's minimum height of
                                     </Border>
 
                                     <!-- Per-floor banner: shown once this floor has a status from a run -->
-                                    <Border Margin="0,6,0,0" Padding="8,5" CornerRadius="6"
+                                    <Border Margin="0,8,0,0" Padding="8,4" CornerRadius="6"
                                             Background="{StaticResource BrushSystemSecondaryBackground}"
                                             Visibility="{Binding HasRunResult, Converter={StaticResource BoolToVisibility}}">
                                         <Grid>
@@ -857,7 +857,7 @@ Changes vs V012: window 1280×820 (min 1100×640; V012's minimum height of
                                             </Grid.ColumnDefinitions>
                                             <TextBlock Text="{Binding BannerText}" FontSize="11" TextWrapping="Wrap"
                                                        Foreground="{StaticResource BrushTextPrimary}"/>
-                                            <TextBlock Grid.Column="1" Text="{Binding TimingDisplay}" FontSize="10.5" Margin="8,0,0,0"
+                                            <TextBlock Grid.Column="1" Text="{Binding TimingDisplay}" FontSize="11" Margin="8,0,0,0"
                                                        Foreground="{StaticResource BrushTextSecondary}"/>
                                         </Grid>
                                     </Border>
@@ -874,10 +874,10 @@ Changes vs V012: window 1280×820 (min 1100×640; V012's minimum height of
                     <Expander.Header>
                         <TextBlock VerticalAlignment="Center">
                             <Run Text="{Binding ResultsTitle, Mode=OneWay}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource BrushNavyPrimary}"/>
-                            <Run Text="{Binding ResultsForText, Mode=OneWay}" FontSize="10.5" Foreground="{StaticResource BrushTextSecondary}"/>
+                            <Run Text="{Binding ResultsForText, Mode=OneWay}" FontSize="11" Foreground="{StaticResource BrushTextSecondary}"/>
                         </TextBlock>
                     </Expander.Header>
-                        <StackPanel Margin="12,8,12,10">
+                        <StackPanel Margin="12,8,12,12">
                             <Grid Margin="0,0,0,8">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
@@ -927,7 +927,7 @@ Changes vs V012: window 1280×820 (min 1100×640; V012's minimum height of
                                 </DataGrid>
 
                                 <!-- Empty state over the grid body -->
-                                <TextBlock Text="{Binding ResultsEmptyText}" Style="{StaticResource HintText}" FontSize="11.5"
+                                <TextBlock Text="{Binding ResultsEmptyText}" Style="{StaticResource HintText}" FontSize="12"
                                            HorizontalAlignment="Center" VerticalAlignment="Top" Margin="12,48,12,0" TextAlignment="Center"
                                            IsHitTestVisible="False"
                                            Visibility="{Binding ShowResultsEmpty, Converter={StaticResource BoolToVisibility}}"/>
@@ -940,7 +940,7 @@ Changes vs V012: window 1280×820 (min 1100×640; V012's minimum height of
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Text="{Binding ResultsHint}" Style="{StaticResource HintText}" Margin="0,0,8,0" VerticalAlignment="Center"/>
                                 <StackPanel Grid.Column="1" Orientation="Horizontal">
-                                    <Button Content="Copy rows" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,6,0"
+                                    <Button Content="Copy rows" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,8,0"
                                             Command="{Binding CopyResultRowsCommand}"
                                             ToolTip="Copy the selected rows (or the whole table) as columns you can paste into Excel."/>
                                     <Button Content="Zoom to" Style="{StaticResource SmallSecondaryButton}"
@@ -955,7 +955,7 @@ Changes vs V012: window 1280×820 (min 1100×640; V012's minimum height of
                 </Grid>
 
                 <!-- Processing log: always dark, closed by default -->
-                <Border Grid.Row="1" Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="10,8" Margin="0,4,0,0">
+                <Border Grid.Row="1" Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="12,8" Margin="0,4,0,0">
                     <StackPanel>
                         <Grid>
                             <Grid.ColumnDefinitions>
@@ -964,8 +964,8 @@ Changes vs V012: window 1280×820 (min 1100×640; V012's minimum height of
                             </Grid.ColumnDefinitions>
                             <ToggleButton x:Name="LogToggle" Style="{StaticResource LogHeaderToggle}" HorizontalAlignment="Left">
                                 <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="Processing log" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource BrushLogText}"/>
-                                    <TextBlock Text="{Binding LogSummaryText}" FontSize="10.5" Margin="8,0,0,0"
+                                    <TextBlock Text="Processing log" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource BrushLogText}"/>
+                                    <TextBlock Text="{Binding LogSummaryText}" FontSize="11" Margin="8,0,0,0"
                                                VerticalAlignment="Center" Foreground="{StaticResource BrushLogTextDim}"/>
                                 </StackPanel>
                             </ToggleButton>
@@ -992,34 +992,34 @@ Changes vs V012: window 1280×820 (min 1100×640; V012's minimum height of
                                         </TextBlock>
                                     </RadioButton>
                                 </StackPanel>
-                                <Button Content="Copy all" Style="{StaticResource DarkGhostButton}" Command="{Binding CopyAllLogCommand}" Margin="0,0,6,0"/>
-                                <Button Content="Copy selected" Style="{StaticResource DarkGhostButton}" Command="{Binding CopySelectedLogCommand}" Margin="0,0,6,0"/>
-                                <Button Content="Save log…" Style="{StaticResource DarkGhostButton}" Command="{Binding SaveLogCommand}" Margin="0,0,6,0"/>
+                                <Button Content="Copy all" Style="{StaticResource DarkGhostButton}" Command="{Binding CopyAllLogCommand}" Margin="0,0,8,0"/>
+                                <Button Content="Copy selected" Style="{StaticResource DarkGhostButton}" Command="{Binding CopySelectedLogCommand}" Margin="0,0,8,0"/>
+                                <Button Content="Save log…" Style="{StaticResource DarkGhostButton}" Command="{Binding SaveLogCommand}" Margin="0,0,8,0"/>
                                 <Button Content="Clear" Style="{StaticResource DarkGhostButton}" Command="{Binding ClearLogCommand}"/>
                             </StackPanel>
                         </Grid>
 
                         <!-- Closed: latest line only -->
                         <TextBlock Text="{Binding LatestLogText}" Margin="17,4,0,0" FontFamily="Cascadia Mono, Consolas, Courier New"
-                                   FontSize="10.5" Foreground="{StaticResource BrushLogTextDim}" TextTrimming="CharacterEllipsis"
+                                   FontSize="11" Foreground="{StaticResource BrushLogTextDim}" TextTrimming="CharacterEllipsis"
                                    Visibility="{Binding IsChecked, ElementName=LogToggle, Converter={StaticResource InverseBoolToVisibility}}"/>
 
                         <!-- Open: full list -->
-                        <ListBox x:Name="LogListBox" Margin="0,6,0,0"
+                        <ListBox x:Name="LogListBox" Margin="0,8,0,0"
                                  ItemsSource="{Binding LogView}"
                                  SelectionMode="Extended"
                                  SelectionChanged="LogListBox_SelectionChanged"
                                  Background="Transparent" BorderThickness="0"
                                  ScrollViewer.VerticalScrollBarVisibility="Auto"
                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                                 FontFamily="Cascadia Mono, Consolas, Courier New" FontSize="10.5"
+                                 FontFamily="Cascadia Mono, Consolas, Courier New" FontSize="11"
                                  MinHeight="110"
                                  shell:ShellBehaviors.MaxHeightRatio="0.25"
                                  shell:ShellBehaviors.ForwardMouseWheel="True"
                                  Visibility="{Binding IsChecked, ElementName=LogToggle, Converter={StaticResource BoolToVisibility}}">
                             <ListBox.ItemContainerStyle>
                                 <Style TargetType="ListBoxItem">
-                                    <Setter Property="Padding" Value="4,3"/>
+                                    <Setter Property="Padding" Value="4,4"/>
                                     <Setter Property="Background" Value="Transparent"/>
                                     <Setter Property="Template">
                                         <Setter.Value>

@@ -54,8 +54,8 @@ Changes vs V002 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
         <!-- ═══ HEADER ═══════════════════════════════════════════ -->
         <shell:ToolWindowShell.HeaderContent>
             <StackPanel>
-                        <UniformGrid Columns="5" Rows="1" Margin="0,0,0,6">
-                            <Border Style="{StaticResource MetricCard}" Padding="10,8" Margin="0,0,3,0">
+                        <UniformGrid Columns="5" Rows="1" Margin="0,0,0,8">
+                            <Border Style="{StaticResource MetricCard}" Padding="12,8" Margin="0,0,4,0">
                                 <StackPanel>
                                     <TextBlock Text="Total Points — A / B" Style="{StaticResource MetricLabel}"/>
                                     <TextBlock FontSize="18" Style="{StaticResource MetricNumberAccent}">
@@ -64,28 +64,28 @@ Changes vs V002 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                     <TextBlock Text="Shape points" Style="{StaticResource MetricUnit}"/>
                                 </StackPanel>
                             </Border>
-                            <Border Style="{StaticResource MetricCard}" Padding="10,8" Margin="3,0,3,0">
+                            <Border Style="{StaticResource MetricCard}" Padding="12,8" Margin="4,0,4,0">
                                 <StackPanel>
                                     <TextBlock Text="Differences Found" Style="{StaticResource MetricLabel}"/>
                                     <TextBlock Text="{Binding Metrics.DifferencesCount, Mode=OneWay}" FontSize="18" Style="{StaticResource MetricNumberDanger}"/>
                                     <TextBlock Text="Missing + Mismatched" Style="{StaticResource MetricUnit}"/>
                                 </StackPanel>
                             </Border>
-                            <Border Style="{StaticResource MetricCard}" Padding="10,8" Margin="3,0,3,0">
+                            <Border Style="{StaticResource MetricCard}" Padding="12,8" Margin="4,0,4,0">
                                 <StackPanel>
                                     <TextBlock Text="Matched Points" Style="{StaticResource MetricLabel}"/>
                                     <TextBlock Text="{Binding Metrics.MatchedCount, Mode=OneWay}" FontSize="18" Style="{StaticResource MetricNumberSuccess}"/>
                                     <TextBlock Text="Same position &amp; elevation" Style="{StaticResource MetricUnit}"/>
                                 </StackPanel>
                             </Border>
-                            <Border Style="{StaticResource MetricCard}" Padding="10,8" Margin="3,0,3,0">
+                            <Border Style="{StaticResource MetricCard}" Padding="12,8" Margin="4,0,4,0">
                                 <StackPanel>
                                     <TextBlock Text="Match Percentage" Style="{StaticResource MetricLabel}"/>
                                     <TextBlock Text="{Binding Metrics.MatchPercentage, StringFormat=F1, Mode=OneWay}" FontSize="18" Style="{StaticResource MetricNumberWarning}"/>
                                     <TextBlock Text="Percent" Style="{StaticResource MetricUnit}"/>
                                 </StackPanel>
                             </Border>
-                            <Border Style="{StaticResource MetricCard}" Padding="10,8" Margin="3,0,0,0">
+                            <Border Style="{StaticResource MetricCard}" Padding="12,8" Margin="4,0,0,0">
                         <StackPanel>
                             <TextBlock Text="Avg Elev. Diff (Matched, B − A)" Style="{StaticResource MetricLabel}"/>
                             <TextBlock Text="{Binding Metrics.AverageElevationDiffMatched_mm, StringFormat=F2, Mode=OneWay}" FontSize="18" Style="{StaticResource MetricNumberAccent}"/>
@@ -95,7 +95,7 @@ Changes vs V002 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                 </UniformGrid>
 
                 <UniformGrid Columns="5" Rows="1" Margin="0,0,0,8">
-                    <Border Style="{StaticResource MetricCard}" Padding="10,8" Margin="0,0,3,0">
+                    <Border Style="{StaticResource MetricCard}" Padding="12,8" Margin="0,0,4,0">
                         <StackPanel>
                             <TextBlock Text="Highest Elevation A / B" Style="{StaticResource MetricLabel}"/>
                             <TextBlock FontSize="18" Style="{StaticResource MetricNumberAccent}">
@@ -104,7 +104,7 @@ Changes vs V002 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                             <TextBlock Text="Millimeters" Style="{StaticResource MetricUnit}"/>
                         </StackPanel>
                     </Border>
-                    <Border Style="{StaticResource MetricCard}" Padding="10,8" Margin="3,0,3,0">
+                    <Border Style="{StaticResource MetricCard}" Padding="12,8" Margin="4,0,4,0">
                         <StackPanel>
                             <TextBlock Text="Lowest Elevation A / B" Style="{StaticResource MetricLabel}"/>
                             <TextBlock FontSize="18" Style="{StaticResource MetricNumberAccent}">
@@ -113,7 +113,7 @@ Changes vs V002 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                             <TextBlock Text="Millimeters" Style="{StaticResource MetricUnit}"/>
                         </StackPanel>
                     </Border>
-                    <Border Style="{StaticResource MetricCard}" Padding="10,8" Margin="3,0,3,0">
+                    <Border Style="{StaticResource MetricCard}" Padding="12,8" Margin="4,0,4,0">
                         <StackPanel>
                             <TextBlock Text="Average Elevation A / B" Style="{StaticResource MetricLabel}"/>
                             <TextBlock FontSize="18" Style="{StaticResource MetricNumberAccent}">
@@ -122,7 +122,7 @@ Changes vs V002 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                             <TextBlock Text="Millimeters" Style="{StaticResource MetricUnit}"/>
                         </StackPanel>
                     </Border>
-                    <Border Style="{StaticResource MetricCard}" Padding="10,8" Margin="3,0,3,0">
+                    <Border Style="{StaticResource MetricCard}" Padding="12,8" Margin="4,0,4,0">
                         <StackPanel>
                             <TextBlock Text="Elevation Range A / B" Style="{StaticResource MetricLabel}"/>
                             <TextBlock FontSize="18" Style="{StaticResource MetricNumberWarning}">
@@ -131,7 +131,7 @@ Changes vs V002 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                             <TextBlock Text="Millimeters" Style="{StaticResource MetricUnit}"/>
                         </StackPanel>
                     </Border>
-                    <Border Style="{StaticResource MetricCard}" Padding="10,8" Margin="3,0,0,0">
+                    <Border Style="{StaticResource MetricCard}" Padding="12,8" Margin="4,0,0,0">
                         <StackPanel>
                             <TextBlock Text="Std Dev A / B" Style="{StaticResource MetricLabel}"/>
                             <TextBlock FontSize="18" Style="{StaticResource MetricNumberAccent}">
@@ -150,7 +150,7 @@ Changes vs V002 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                 <Border Style="{StaticResource ContentCard}" Padding="12">
                     <StackPanel>
                         <TextBlock Text="Comparison Tolerances" Style="{StaticResource SectionTitle}"/>
-                        <Grid Margin="4,0,4,10">
+                        <Grid Margin="4,0,4,12">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="12"/>
@@ -199,7 +199,7 @@ Changes vs V002 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
 
                         <!-- Mismatched Elevation marker -->
                         <TextBlock Text="Mismatched Elevation" Style="{StaticResource FieldValue}" FontWeight="SemiBold" Margin="4,0,4,0"/>
-                        <Grid Margin="4,4,4,10">
+                        <Grid Margin="4,4,4,12">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="8"/>
@@ -222,23 +222,23 @@ Changes vs V002 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                 </Border>
 
                 <!-- Processing Log (moved from footer) -->
-                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="10,8" Margin="0,8,0,0">
+                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="12,8" Margin="0,8,0,0">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <Grid Margin="0,0,0,6">
+                        <Grid Margin="0,0,0,8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Text="Processing Log" Foreground="{StaticResource BrushLogText}"
-                                       FontSize="11.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                       FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
                             <StackPanel Grid.Column="1" Orientation="Horizontal">
                                 <Button Content="Copy All" Style="{StaticResource DarkGhostButton}" Click="CopyAllLog_Click"/>
-                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Click="CopySelectedLog_Click" Margin="6,0,0,0"/>
-                                <Button Content="Clear" Style="{StaticResource DarkGhostButton}" Command="{Binding ClearLogCommand}" Margin="6,0,0,0"/>
+                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Click="CopySelectedLog_Click" Margin="8,0,0,0"/>
+                                <Button Content="Clear" Style="{StaticResource DarkGhostButton}" Command="{Binding ClearLogCommand}" Margin="8,0,0,0"/>
                             </StackPanel>
                         </Grid>
                         <ListBox Grid.Row="1" x:Name="LogListBox" ItemsSource="{Binding LogEntries}" MinHeight="110" shell:ShellBehaviors.MaxHeightRatio="0.2" shell:ShellBehaviors.ForwardMouseWheel="True"
@@ -247,16 +247,16 @@ Changes vs V002 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                             <ListBox.ItemContainerStyle>
                                 <Style TargetType="ListBoxItem">
-                                    <Setter Property="Padding" Value="0,1"/>
+                                    <Setter Property="Padding" Value="0,2"/>
                                     <Setter Property="Background" Value="Transparent"/>
                                 </Style>
                             </ListBox.ItemContainerStyle>
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
-                                    <StackPanel Orientation="Horizontal" Margin="0,1">
+                                    <StackPanel Orientation="Horizontal" Margin="0,2">
                                 <TextBlock Text="{Binding Time, StringFormat=HH:mm:ss}"
                                            Foreground="{StaticResource BrushLogTextDim}"
-                                           FontFamily="Consolas" FontSize="11" Margin="0,0,10,0"/>
+                                           FontFamily="Consolas" FontSize="11" Margin="0,0,12,0"/>
                                 <TextBlock Text="{Binding Message}"
                                            Foreground="{Binding Level, Converter={StaticResource LogLevelToColor}}"
                                            FontFamily="Consolas" FontSize="11" TextWrapping="Wrap"/>

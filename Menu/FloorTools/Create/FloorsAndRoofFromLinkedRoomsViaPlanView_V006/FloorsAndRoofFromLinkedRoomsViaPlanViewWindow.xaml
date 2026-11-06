@@ -48,19 +48,19 @@ Changes vs V005 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
         <!-- ═══ HEADER ═══════════════════════════════════════════ -->
         <shell:ToolWindowShell.HeaderContent>
             <UniformGrid Columns="3" Margin="0,0,0,8">
-                <Border Style="{StaticResource MetricCard}" Margin="0,0,4,0" Padding="10,8">
+                <Border Style="{StaticResource MetricCard}" Margin="0,0,4,0" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="Rooms Found" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding Rooms.Count}" Style="{StaticResource MetricNumber}" FontSize="18"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="10,8">
+                <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="Processed" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding ProcessedCount}" Style="{StaticResource MetricNumberSuccess}" FontSize="18"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricCard}" Margin="4,0,0,0" Padding="10,8">
+                <Border Style="{StaticResource MetricCard}" Margin="4,0,0,0" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="Total To Process" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding TotalCount}" Style="{StaticResource MetricNumberAccent}" FontSize="18"/>
@@ -85,7 +85,7 @@ Changes vs V005 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                    Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}"
                                    Margin="0,0,0,8"/>
                         <!-- Linked file -->
-                        <Border Style="{StaticResource SectionCard}" Padding="8,10">
+                        <Border Style="{StaticResource SectionCard}" Padding="8,12">
                             <StackPanel Margin="4,0">
                                 <TextBlock Text="Linked file" Style="{StaticResource FieldLabel}"/>
                                 <ComboBox ItemsSource="{Binding LinkedDocuments}"
@@ -93,7 +93,7 @@ Changes vs V005 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                           DisplayMemberPath="DisplayName"
                                           Style="{StaticResource StandardComboBox}"/>
 
-                                <TextBlock Text="Link instance" Style="{StaticResource FieldLabel}" Margin="0,6,0,2"
+                                <TextBlock Text="Link instance" Style="{StaticResource FieldLabel}" Margin="0,8,0,2"
                                            Visibility="{Binding AvailableInstances.Count, Converter={StaticResource IntToVisibilityConverter}}"/>
                                 <ComboBox ItemsSource="{Binding AvailableInstances}"
                                           SelectedItem="{Binding SelectedInstance}"
@@ -102,7 +102,7 @@ Changes vs V005 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                             </StackPanel>
                         </Border>
                         <!-- Floor type + Create floors -->
-                        <Border Style="{StaticResource SectionCard}" Padding="8,10">
+                        <Border Style="{StaticResource SectionCard}" Padding="8,12">
                             <StackPanel Margin="4,0">
                                 <TextBlock Text="Floor type" Style="{StaticResource FieldLabel}"/>
                                 <ComboBox ItemsSource="{Binding FloorTypes}"
@@ -112,7 +112,7 @@ Changes vs V005 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                             </StackPanel>
                         </Border>
                         <!-- Roof type + Create roof -->
-                        <Border Style="{StaticResource SectionCard}" Padding="8,10">
+                        <Border Style="{StaticResource SectionCard}" Padding="8,12">
                             <StackPanel Margin="4,0">
                                 <TextBlock Text="Roof type" Style="{StaticResource FieldLabel}"/>
                                 <ComboBox ItemsSource="{Binding RoofTypes}"
@@ -124,7 +124,7 @@ Changes vs V005 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                     </StackPanel>
 
                     <!-- Rooms -->
-                    <Border Grid.Column="2" Style="{StaticResource SectionCard}" Padding="8,10" Margin="0">
+                    <Border Grid.Column="2" Style="{StaticResource SectionCard}" Padding="8,12" Margin="0">
                         <Grid Margin="4,0">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
@@ -156,7 +156,7 @@ Changes vs V005 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                             </Grid.ColumnDefinitions>
                                             <CheckBox Grid.Column="0" IsChecked="{Binding IsSelected}" VerticalAlignment="Center"/>
                                             <TextBlock Grid.Column="1" Text="{Binding DisplayName}" Style="{StaticResource FieldValue}"
-                                                       FontSize="11.5" Margin="6,0" VerticalAlignment="Center"/>
+                                                       FontSize="12" Margin="8,0" VerticalAlignment="Center"/>
                                             <TextBlock Grid.Column="2" Style="{StaticResource HintText}" Margin="0" VerticalAlignment="Center">
                                                 <Run Text="{Binding AreaDisplay, StringFormat={}{0:0.0}}"/>
                                                 <Run Text=" "/>
@@ -167,9 +167,9 @@ Changes vs V005 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                 </ListBox.ItemTemplate>
                             </ListBox>
 
-                            <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,6,0,0">
+                            <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,8,0,0">
                                 <Button Content="Select all" Command="{Binding SelectAllCommand}"
-                                        Style="{StaticResource SmallSecondaryButton}" Margin="0,0,6,0"/>
+                                        Style="{StaticResource SmallSecondaryButton}" Margin="0,0,8,0"/>
                                 <Button Content="Deselect all" Command="{Binding DeselectAllCommand}"
                                         Style="{StaticResource SmallSecondaryButton}"/>
                             </StackPanel>
@@ -178,7 +178,7 @@ Changes vs V005 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                 </Grid>
 
                 <!-- Run summaries + toast (moved from footer) -->
-                <StackPanel Margin="0,10,0,0">
+                <StackPanel Margin="0,12,0,0">
                     <Grid Margin="0,0,0,4">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
@@ -209,7 +209,7 @@ Changes vs V005 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                 </StackPanel>
 
                 <!-- Log panel -->
-                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="10,8" Margin="0,0,0,0">
+                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="12,8" Margin="0,0,0,0">
                     <StackPanel>
                         <Grid>
                             <Grid.ColumnDefinitions>
@@ -230,7 +230,7 @@ Changes vs V005 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                             </StackPanel>
                         </Grid>
 
-                        <ListBox x:Name="LogListBox" ItemsSource="{Binding Logs}" MinHeight="110" shell:ShellBehaviors.MaxHeightRatio="0.2" shell:ShellBehaviors.ForwardMouseWheel="True" Margin="0,6,0,0"
+                        <ListBox x:Name="LogListBox" ItemsSource="{Binding Logs}" MinHeight="110" shell:ShellBehaviors.MaxHeightRatio="0.2" shell:ShellBehaviors.ForwardMouseWheel="True" Margin="0,8,0,0"
                                  Background="Transparent" BorderThickness="0"
                                  SelectionMode="Extended"
                                  ScrollViewer.CanContentScroll="True"

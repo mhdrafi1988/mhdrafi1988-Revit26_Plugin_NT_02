@@ -71,20 +71,20 @@ converters declared here.
                 <Setter Property="Foreground" Value="{StaticResource BrushTextSecondary}"/>
                 <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
                 <Setter Property="VerticalAlignment" Value="Center"/>
-                <Setter Property="Margin" Value="10,0,8,0"/>
+                <Setter Property="Margin" Value="12,0,8,0"/>
             </Style>
             <Style x:Key="OptionsTitle" TargetType="TextBlock">
                 <Setter Property="FontSize" Value="10.5"/>
                 <Setter Property="FontWeight" Value="SemiBold"/>
                 <Setter Property="Foreground" Value="{StaticResource BrushNavyPrimary}"/>
-                <Setter Property="Margin" Value="2,2,0,6"/>
+                <Setter Property="Margin" Value="2,2,0,8"/>
             </Style>
 
             <!-- "Custom" tag on a section header -->
             <Style x:Key="CustomTag" TargetType="Border">
                 <Setter Property="Background" Value="{StaticResource BrushStatusInfoSoft}"/>
                 <Setter Property="CornerRadius" Value="6"/>
-                <Setter Property="Padding" Value="6,1"/>
+                <Setter Property="Padding" Value="8,2"/>
                 <Setter Property="VerticalAlignment" Value="Center"/>
             </Style>
             <Style x:Key="CustomTagText" TargetType="TextBlock">
@@ -165,7 +165,7 @@ converters declared here.
                 <Setter Property="BorderBrush" Value="{StaticResource BrushStatusWarnBorder}"/>
                 <Setter Property="BorderThickness" Value="1"/>
                 <Setter Property="CornerRadius" Value="6"/>
-                <Setter Property="Padding" Value="8,3"/>
+                <Setter Property="Padding" Value="8,4"/>
             </Style>
 
             <!-- ── Option section (card expander, closed by default) ── -->
@@ -176,7 +176,7 @@ converters declared here.
                             <DockPanel LastChildFill="True">
                                 <ToggleButton DockPanel.Dock="Top"
                                               IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
-                                              Background="Transparent" BorderThickness="0" Padding="7,3" Cursor="Hand"
+                                              Background="Transparent" BorderThickness="0" Padding="8,4" Cursor="Hand"
                                               HorizontalContentAlignment="Stretch">
                                     <ToggleButton.Template>
                                         <ControlTemplate TargetType="ToggleButton">
@@ -192,7 +192,7 @@ converters declared here.
                                     </ToggleButton.Template>
                                     <DockPanel LastChildFill="True">
                                         <TextBlock x:Name="Chevron" DockPanel.Dock="Right" Text="▾" FontSize="12"
-                                                   Foreground="{StaticResource BrushTextSecondary}" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                                                   Foreground="{StaticResource BrushTextSecondary}" VerticalAlignment="Center" Margin="8,0,0,0"/>
                                         <ContentPresenter ContentSource="Header" RecognizesAccessKey="False"/>
                                     </DockPanel>
                                 </ToggleButton>
@@ -234,16 +234,16 @@ converters declared here.
                     <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
                         <CheckBox IsChecked="{Binding IsEnabled}" VerticalAlignment="Center"/>
                         <TextBlock Text="{Binding Label}" Style="{StaticResource FieldValue}" FontWeight="SemiBold"
-                                   Margin="6,0,0,0" VerticalAlignment="Center" ToolTip="{Binding Description}"/>
+                                   Margin="8,0,0,0" VerticalAlignment="Center" ToolTip="{Binding Description}"/>
                     </StackPanel>
-                    <ComboBox Grid.Row="0" Grid.Column="1" IsEnabled="{Binding IsEnabled}" VerticalContentAlignment="Center" Padding="3,1"
+                    <ComboBox Grid.Row="0" Grid.Column="1" IsEnabled="{Binding IsEnabled}" VerticalContentAlignment="Center" Padding="4,2"
                               ItemsSource="{Binding LineStyleOptions}" SelectedItem="{Binding SelectedLineStyle}" DisplayMemberPath="Name"/>
-                    <ComboBox Grid.Row="0" Grid.Column="3" IsEnabled="{Binding IsEnabled}" VerticalContentAlignment="Center" Padding="3,1"
+                    <ComboBox Grid.Row="0" Grid.Column="3" IsEnabled="{Binding IsEnabled}" VerticalContentAlignment="Center" Padding="4,2"
                               ItemsSource="{Binding ColorPalette}" SelectedItem="{Binding ColorName}">
                         <ComboBox.ItemTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal">
-                                    <Border Width="12" Height="12" CornerRadius="2" Margin="0,0,6,0"
+                                    <Border Width="12" Height="12" CornerRadius="2" Margin="0,0,8,0"
                                             BorderBrush="{StaticResource BrushBorderDefault}" BorderThickness="1"
                                             Background="{Binding Converter={StaticResource ColorNameToBrush}}"/>
                                     <TextBlock Text="{Binding}"/>
@@ -256,18 +256,18 @@ converters declared here.
                              Text="{Binding RadiusText, UpdateSourceTrigger=PropertyChanged}"/>
 
                     <TextBlock Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="5" Text="{Binding Description}" Style="{StaticResource HintText}"
-                               Margin="0,1,0,0" TextTrimming="CharacterEllipsis"/>
+                               Margin="0,2,0,0" TextTrimming="CharacterEllipsis"/>
                     <TextBlock Grid.Row="1" Grid.Column="5" Text="{Binding RadiusError}" Style="{StaticResource FieldError}" HorizontalAlignment="Right" Margin="0"/>
 
                     <!-- Options on one line, under the controls -->
                     <StackPanel Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="5" Orientation="Horizontal" IsEnabled="{Binding IsEnabled}">
                         <CheckBox Margin="0,2,16,0" VerticalAlignment="Center" IsChecked="{Binding ShowOffsetText}"
                                   Visibility="{Binding HasOffsetTextOption, Converter={StaticResource BoolToVisibility}}">
-                            <TextBlock Text="Add an “Offset: X mm” text note with a leader" Style="{StaticResource FieldValue}" FontSize="11.5"/>
+                            <TextBlock Text="Add an “Offset: X mm” text note with a leader" Style="{StaticResource FieldValue}" FontSize="12"/>
                         </CheckBox>
                         <StackPanel Orientation="Horizontal" Margin="0,2,0,0" VerticalAlignment="Center"
                                     Visibility="{Binding HasThresholdOption, Converter={StaticResource BoolToVisibility}}">
-                            <TextBlock Text="Circle points with offset ≥" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                            <TextBlock Text="Circle points with offset ≥" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,8,0"/>
                             <TextBox Style="{StaticResource BorderlessTextInput}" Width="60"
                                      Text="{Binding ThresholdText, UpdateSourceTrigger=PropertyChanged}" MaxLength="8"/>
                             <TextBlock Text="mm" Style="{StaticResource UnitLabel}"/>
@@ -281,7 +281,7 @@ converters declared here.
                         <CheckBox Margin="0,2,0,0" VerticalAlignment="Center" IsChecked="{Binding ShowCornerOffsetText}"
                                   IsEnabled="{Binding ShowOffsetText}"
                                   ToolTip="Also places the Offset text note, with a leader, at every corner of the floor's outer boundary, using that corner's elevation.">
-                            <TextBlock Text="Also add it at every floor boundary corner" Style="{StaticResource FieldValue}" FontSize="11.5"/>
+                            <TextBlock Text="Also add it at every floor boundary corner" Style="{StaticResource FieldValue}" FontSize="12"/>
                         </CheckBox>
                     </StackPanel>
                 </Grid>
@@ -384,54 +384,54 @@ converters declared here.
         <!-- ═══ HEADER ═══════════════════════════════════════════ -->
         <shell:ToolWindowShell.HeaderContent>
             <StackPanel>
-                <WrapPanel Margin="0,0,0,6">
-                    <Border Style="{StaticResource StateBadge}" Margin="0,0,6,4">
+                <WrapPanel Margin="0,0,0,8">
+                    <Border Style="{StaticResource StateBadge}" Margin="0,0,8,4">
                         <TextBlock Text="{Binding StateText}" Style="{StaticResource StateBadgeText}"/>
                     </Border>
-                    <Border Style="{StaticResource BadgePill}" Margin="0,0,6,4">
+                    <Border Style="{StaticResource BadgePill}" Margin="0,0,8,4">
                         <TextBlock Style="{StaticResource BadgeText}">
                             <Run Text="Floor ·"/>
                             <Run Text="{Binding FloorText, Mode=OneWay}"/>
                         </TextBlock>
                     </Border>
-                    <Border Style="{StaticResource ViewBadge}" Margin="0,0,6,4">
+                    <Border Style="{StaticResource ViewBadge}" Margin="0,0,8,4">
                         <TextBlock Text="{Binding ViewBadgeText}" Style="{StaticResource ViewBadgeText}"/>
                     </Border>
                 </WrapPanel>
 
-                <UniformGrid Columns="6" Rows="1" Margin="0,0,0,6">
-                    <Border Style="{StaticResource MetricTileSuccess}" Margin="0,0,3,0">
+                <UniformGrid Columns="6" Rows="1" Margin="0,0,0,8">
+                    <Border Style="{StaticResource MetricTileSuccess}" Margin="0,0,4,0">
                         <StackPanel>
                             <TextBlock Text="PROCESSED" Style="{StaticResource MetricTileLabelSuccess}"/>
                             <TextBlock Text="{Binding ProcessedText}" Style="{StaticResource MetricTileNumberSuccess}"/>
                         </StackPanel>
                     </Border>
-                    <Border Style="{StaticResource MetricTileWarning}" Margin="3,0">
+                    <Border Style="{StaticResource MetricTileWarning}" Margin="4,0">
                         <StackPanel>
                             <TextBlock Text="SKIPPED" Style="{StaticResource MetricTileLabelWarning}"/>
                             <TextBlock Text="{Binding SkippedText}" Style="{StaticResource MetricTileNumberWarning}"/>
                         </StackPanel>
                     </Border>
-                    <Border Style="{StaticResource MetricTileInfo}" Margin="3,0">
+                    <Border Style="{StaticResource MetricTileInfo}" Margin="4,0">
                         <StackPanel>
                             <TextBlock Text="DRAINS PICKED → USED" Style="{StaticResource MetricTileLabelInfo}"/>
                             <TextBlock Text="{Binding DrainsText}" Style="{StaticResource MetricTileNumberInfo}"/>
                         </StackPanel>
                     </Border>
-                    <Border Style="{StaticResource MetricTileInfo}" Margin="3,0"
+                    <Border Style="{StaticResource MetricTileInfo}" Margin="4,0"
                             ToolTip="Read back from the model after the run, relative to the drains.">
                         <StackPanel>
                             <TextBlock Text="HIGHEST ELEVATION" Style="{StaticResource MetricTileLabelInfo}"/>
                             <TextBlock Text="{Binding HighestText}" Style="{StaticResource MetricTileNumberInfo}"/>
                         </StackPanel>
                     </Border>
-                    <Border Style="{StaticResource MetricTileInfo}" Margin="3,0">
+                    <Border Style="{StaticResource MetricTileInfo}" Margin="4,0">
                         <StackPanel>
                             <TextBlock Text="LONGEST PATH" Style="{StaticResource MetricTileLabelInfo}"/>
                             <TextBlock Text="{Binding LongestPathText}" Style="{StaticResource MetricTileNumberInfo}"/>
                         </StackPanel>
                     </Border>
-                    <Border Style="{StaticResource MetricTile}" Background="{StaticResource BrushSurfaceCard}" Margin="3,0,0,0">
+                    <Border Style="{StaticResource MetricTile}" Background="{StaticResource BrushSurfaceCard}" Margin="4,0,0,0">
                         <StackPanel>
                             <TextBlock Text="RUN TIME" Style="{StaticResource MetricTileLabel}"/>
                             <TextBlock Text="{Binding RunTimeText}" Style="{StaticResource MetricTileNumber}"/>
@@ -462,8 +462,8 @@ converters declared here.
 
                         <!-- Every run -->
                         <Border Style="{StaticResource ContentCard}">
-                            <StackPanel Margin="7,0,7,4">
-                                <TextBlock Text="Every run" Style="{StaticResource SectionTitle}" Margin="0,4,0,3"/>
+                            <StackPanel Margin="8,0,8,4">
+                                <TextBlock Text="Every run" Style="{StaticResource SectionTitle}" Margin="0,4,0,4"/>
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
@@ -493,7 +493,7 @@ converters declared here.
                                             <TextBlock Text="{Binding DrainCountText}" Style="{StaticResource FieldValue}" FontWeight="SemiBold"
                                                        TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
                                         </Border>
-                                        <Button Grid.Column="1" Content="Re-pick" Style="{StaticResource SmallSecondaryButton}" Margin="6,0,0,0"
+                                        <Button Grid.Column="1" Content="Re-pick" Style="{StaticResource SmallSecondaryButton}" Margin="8,0,0,0"
                                                 Command="{Binding RepickDrainsCommand}"
                                                 ToolTip="Pick new drain points in the Revit view without closing this window."/>
                                     </Grid>
@@ -543,7 +543,7 @@ converters declared here.
                                         </Border>
                                     </Grid>
                                 </Expander.Header>
-                                <StackPanel Margin="7,3,7,4">
+                                <StackPanel Margin="8,4,8,4">
                                     <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="110"/>
@@ -554,14 +554,14 @@ converters declared here.
                                             <RowDefinition Height="Auto"/>
                                             <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
-                                        <TextBlock Grid.Row="0" Text="Drain mode" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,3,0,3"/>
-                                        <ComboBox Grid.Row="0" Grid.Column="1" Margin="0,3" ItemsSource="{Binding DrainModeOptions}" SelectedItem="{Binding SelectedDrainMode}"
+                                        <TextBlock Grid.Row="0" Text="Drain mode" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,4,0,4"/>
+                                        <ComboBox Grid.Row="0" Grid.Column="1" Margin="0,4" ItemsSource="{Binding DrainModeOptions}" SelectedItem="{Binding SelectedDrainMode}"
                                                   DisplayMemberPath="Label" Style="{StaticResource StandardComboBox}"/>
                                         <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding SelectedDrainMode.Hint}" Style="{StaticResource HintText}" Margin="0,0,0,4"/>
-                                        <TextBlock Grid.Row="2" Text="Use nearby shape points" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,3,0,3"/>
-                                        <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Margin="0,3">
+                                        <TextBlock Grid.Row="2" Text="Use nearby shape points" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,4,0,4"/>
+                                        <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Margin="0,4">
                                             <ToggleButton Style="{StaticResource AppleToggleButton}" IsChecked="{Binding IncludeNearbyPoints}" VerticalAlignment="Center"/>
-                                            <StackPanel Orientation="Horizontal" Margin="14,0,0,0" IsEnabled="{Binding IncludeNearbyPoints}" VerticalAlignment="Center">
+                                            <StackPanel Orientation="Horizontal" Margin="16,0,0,0" IsEnabled="{Binding IncludeNearbyPoints}" VerticalAlignment="Center">
                                                 <TextBox Style="{StaticResource BorderlessTextInput}" Width="80" MaxLength="8"
                                                          Text="{Binding SnapRadiusText, UpdateSourceTrigger=PropertyChanged}"/>
                                                 <TextBlock Text="mm radius" Style="{StaticResource UnitLabel}"/>
@@ -592,7 +592,7 @@ converters declared here.
                                         </Border>
                                     </Grid>
                                 </Expander.Header>
-                                <StackPanel Margin="7,3,7,4">
+                                <StackPanel Margin="8,4,8,4">
                                     <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="110"/>
@@ -603,18 +603,18 @@ converters declared here.
                                             <RowDefinition Height="Auto"/>
                                             <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
-                                        <TextBlock Grid.Row="0" Text="Max link length (m)" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,3,0,3"/>
-                                        <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Margin="0,3">
+                                        <TextBlock Grid.Row="0" Text="Max link length (m)" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,4,0,4"/>
+                                        <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Margin="0,4">
                                             <TextBox Style="{StaticResource BorderlessTextInput}" Width="80" MaxLength="8"
                                                      Text="{Binding MaxEdgeLengthText, UpdateSourceTrigger=PropertyChanged}"/>
                                             <TextBlock Text="{Binding MaxEdgeLengthError}" Style="{StaticResource FieldError}" Margin="8,0,0,0" VerticalAlignment="Center"/>
                                         </StackPanel>
                                         <TextBlock Grid.Row="1" Grid.Column="1" Style="{StaticResource HintText}" Margin="0,0,0,4"
                                                    Text="0 = same as the drainage distance (V030 behaviour). Shorter is faster on large floors, but points further apart than this are not linked directly."/>
-                                        <TextBlock Grid.Row="2" Text="Insert arc points" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,3,0,3"/>
-                                        <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Margin="0,3">
+                                        <TextBlock Grid.Row="2" Text="Insert arc points" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,4,0,4"/>
+                                        <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Margin="0,4">
                                             <ToggleButton Style="{StaticResource AppleToggleButton}" IsChecked="{Binding InsertCurveIntersectionPoints}" VerticalAlignment="Center"/>
-                                            <TextBlock Style="{StaticResource HintText}" Margin="14,0,0,0" VerticalAlignment="Center"
+                                            <TextBlock Style="{StaticResource HintText}" Margin="16,0,0,0" VerticalAlignment="Center"
                                                        Text="Path lengths follow the arc instead of its chord."/>
                                         </StackPanel>
                                     </Grid>
@@ -641,7 +641,7 @@ converters declared here.
                                         </Border>
                                     </Grid>
                                 </Expander.Header>
-                                <StackPanel Margin="7,3,7,4">
+                                <StackPanel Margin="8,4,8,4">
                                     <Grid Margin="0,0,0,0">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="110"/>
@@ -679,7 +679,7 @@ converters declared here.
                                         </Border>
                                     </Grid>
                                 </Expander.Header>
-                                <StackPanel Margin="7,3,7,4">
+                                <StackPanel Margin="8,4,8,4">
                                     <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="110"/>
@@ -690,13 +690,13 @@ converters declared here.
                                             <RowDefinition Height="Auto"/>
                                             <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
-                                        <TextBlock Grid.Row="0" Text="Ridge lines" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,3,0,3"/>
-                                        <CheckBox Grid.Row="0" Grid.Column="1" Margin="0,3" VerticalAlignment="Center" IsChecked="{Binding DrawRidgeLines}"
+                                        <TextBlock Grid.Row="0" Text="Ridge lines" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,4,0,4"/>
+                                        <CheckBox Grid.Row="0" Grid.Column="1" Margin="0,4" VerticalAlignment="Center" IsChecked="{Binding DrawRidgeLines}"
                                                   ToolTip="Draws detail lines in the active plan view, joining the highest shape points between each pair of neighbouring drain groups.">
                                             <TextBlock Text="Draw ridge lines between drain groups" Style="{StaticResource FieldValue}" FontSize="12"/>
                                         </CheckBox>
-                                        <TextBlock Grid.Row="1" Text="Line style" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,3,0,3"/>
-                                        <ComboBox Grid.Row="1" Grid.Column="1" Margin="0,3" Width="220" HorizontalAlignment="Left"
+                                        <TextBlock Grid.Row="1" Text="Line style" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,4,0,4"/>
+                                        <ComboBox Grid.Row="1" Grid.Column="1" Margin="0,4" Width="220" HorizontalAlignment="Left"
                                                   IsEnabled="{Binding DrawRidgeLines}" Style="{StaticResource StandardComboBox}"
                                                   ItemsSource="{Binding RidgeLineStyleOptions}" SelectedItem="{Binding SelectedRidgeLineStyle}" DisplayMemberPath="Name"/>
                                         <TextBlock Grid.Row="2" Grid.Column="1" Style="{StaticResource HintText}" Margin="0,0,0,4"
@@ -725,7 +725,7 @@ converters declared here.
                                         </Border>
                                     </Grid>
                                 </Expander.Header>
-                                <StackPanel Margin="7,3,7,4">
+                                <StackPanel Margin="8,4,8,4">
                                     <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="110"/>
@@ -737,11 +737,11 @@ converters declared here.
                                             <RowDefinition Height="Auto"/>
                                             <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
-                                        <TextBlock Grid.Row="0" Text="Export to Excel" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,3,0,3"/>
-                                        <ToggleButton Grid.Row="0" Grid.Column="1" Style="{StaticResource AppleToggleButton}" HorizontalAlignment="Left" Margin="0,3"
+                                        <TextBlock Grid.Row="0" Text="Export to Excel" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,4,0,4"/>
+                                        <ToggleButton Grid.Row="0" Grid.Column="1" Style="{StaticResource AppleToggleButton}" HorizontalAlignment="Left" Margin="0,4"
                                                       IsChecked="{Binding ExportToExcel}"/>
-                                        <TextBlock Grid.Row="1" Text="Export folder" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,3,0,3"/>
-                                        <Grid Grid.Row="1" Grid.Column="1" Margin="0,3">
+                                        <TextBlock Grid.Row="1" Text="Export folder" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,4,0,4"/>
+                                        <Grid Grid.Row="1" Grid.Column="1" Margin="0,4">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="6"/>
@@ -753,12 +753,12 @@ converters declared here.
                                             <Button Grid.Column="2" Content="Browse…" Style="{StaticResource OutlineButton}"
                                                     Command="{Binding BrowseFolderCommand}"/>
                                         </Grid>
-                                        <TextBlock Grid.Row="2" Text="After export" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,3,0,3"/>
-                                        <CheckBox Grid.Row="2" Grid.Column="1" Margin="0,3" IsChecked="{Binding AskToOpenAfterExport}" IsEnabled="{Binding CanAskToOpen}">
+                                        <TextBlock Grid.Row="2" Text="After export" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,4,0,4"/>
+                                        <CheckBox Grid.Row="2" Grid.Column="1" Margin="0,4" IsChecked="{Binding AskToOpenAfterExport}" IsEnabled="{Binding CanAskToOpen}">
                                             <TextBlock Text="Ask before opening the exported file" Style="{StaticResource FieldValue}" FontSize="12"/>
                                         </CheckBox>
-                                        <TextBlock Grid.Row="3" Text="Floor parameters" Style="{StaticResource FieldLabel}" Margin="0,3"/>
-                                        <TextBlock Grid.Row="3" Grid.Column="1" Style="{StaticResource HintText}" Margin="0,3"
+                                        <TextBlock Grid.Row="3" Text="Floor parameters" Style="{StaticResource FieldLabel}" Margin="0,4"/>
+                                        <TextBlock Grid.Row="3" Grid.Column="1" Style="{StaticResource HintText}" Margin="0,4"
                                                    Text="Each run writes the AutoSlope_* parameters to the floor (slope, drainage distance, drains, highest point, status, tool version) when the floor type has them."/>
                                     </Grid>
                                     <Button Content="Reset to defaults" Style="{StaticResource LinkButton}" Command="{Binding ResetExportCommand}"/>
@@ -769,7 +769,7 @@ converters declared here.
 
                     <!-- ── RIGHT: results side panel (Excel-like) ── -->
                     <Border Grid.Column="2" Style="{StaticResource ContentCard}" VerticalAlignment="Top">
-                        <StackPanel Margin="10,0,10,6">
+                        <StackPanel Margin="12,0,12,8">
                             <Grid Margin="0,4,0,4">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
@@ -825,7 +825,7 @@ converters declared here.
                                 </DataGrid>
 
                                 <!-- Empty state over the grid body -->
-                                <TextBlock Text="{Binding ResultsEmptyText}" Style="{StaticResource HintText}" FontSize="11.5"
+                                <TextBlock Text="{Binding ResultsEmptyText}" Style="{StaticResource HintText}" FontSize="12"
                                            HorizontalAlignment="Center" VerticalAlignment="Top" Margin="12,48,12,0" TextAlignment="Center"
                                            IsHitTestVisible="False"
                                            Visibility="{Binding ShowResultsEmpty, Converter={StaticResource BoolToVisibility}}"/>
@@ -838,7 +838,7 @@ converters declared here.
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Text="{Binding ResultsHint}" Style="{StaticResource HintText}" Margin="0,0,8,0" VerticalAlignment="Center"/>
                                 <StackPanel Grid.Column="1" Orientation="Horizontal">
-                                    <Button Content="Copy rows" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,6,0"
+                                    <Button Content="Copy rows" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,8,0"
                                             Command="{Binding CopyResultRowsCommand}"
                                             ToolTip="Copy the selected rows (or the whole table) as columns you can paste into Excel."/>
                                     <Button Content="Zoom to" Style="{StaticResource SmallSecondaryButton}"
@@ -851,7 +851,7 @@ converters declared here.
                 </Grid>
 
                 <!-- Processing log: always dark, closed by default -->
-                <Border Grid.Row="1" Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="6,3" Margin="0,0,0,0">
+                <Border Grid.Row="1" Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="8,4" Margin="0,0,0,0">
                     <StackPanel>
                         <Grid>
                             <Grid.ColumnDefinitions>
@@ -860,8 +860,8 @@ converters declared here.
                             </Grid.ColumnDefinitions>
                             <ToggleButton x:Name="LogToggle" Style="{StaticResource LogHeaderToggle}" HorizontalAlignment="Left">
                                 <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="Processing log" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource BrushLogText}"/>
-                                    <TextBlock Text="{Binding LogSummaryText}" FontSize="10.5" Margin="8,0,0,0"
+                                    <TextBlock Text="Processing log" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource BrushLogText}"/>
+                                    <TextBlock Text="{Binding LogSummaryText}" FontSize="11" Margin="8,0,0,0"
                                                VerticalAlignment="Center" Foreground="{StaticResource BrushLogTextDim}"/>
                                 </StackPanel>
                             </ToggleButton>
@@ -888,16 +888,16 @@ converters declared here.
                                         </TextBlock>
                                     </RadioButton>
                                 </StackPanel>
-                                <Button Content="Copy all" Style="{StaticResource DarkGhostButton}" Command="{Binding CopyAllLogCommand}" Margin="0,0,6,0"/>
-                                <Button Content="Copy selected" Style="{StaticResource DarkGhostButton}" Command="{Binding CopySelectedLogCommand}" Margin="0,0,6,0"/>
-                                <Button Content="Save log…" Style="{StaticResource DarkGhostButton}" Command="{Binding SaveLogCommand}" Margin="0,0,6,0"/>
+                                <Button Content="Copy all" Style="{StaticResource DarkGhostButton}" Command="{Binding CopyAllLogCommand}" Margin="0,0,8,0"/>
+                                <Button Content="Copy selected" Style="{StaticResource DarkGhostButton}" Command="{Binding CopySelectedLogCommand}" Margin="0,0,8,0"/>
+                                <Button Content="Save log…" Style="{StaticResource DarkGhostButton}" Command="{Binding SaveLogCommand}" Margin="0,0,8,0"/>
                                 <Button Content="Clear" Style="{StaticResource DarkGhostButton}" Command="{Binding ClearLogCommand}"/>
                             </StackPanel>
                         </Grid>
 
                         <!-- Closed: latest line only -->
                         <TextBlock Text="{Binding LatestLogText}" Margin="17,4,0,0" FontFamily="Cascadia Mono, Consolas, Courier New"
-                                   FontSize="10.5" Foreground="{StaticResource BrushLogTextDim}" TextTrimming="CharacterEllipsis"
+                                   FontSize="11" Foreground="{StaticResource BrushLogTextDim}" TextTrimming="CharacterEllipsis"
                                    Visibility="{Binding IsChecked, ElementName=LogToggle, Converter={StaticResource InverseBoolToVisibility}}"/>
 
                         <!-- Open: full list -->
@@ -908,14 +908,14 @@ converters declared here.
                                  Background="Transparent" BorderThickness="0"
                                  ScrollViewer.VerticalScrollBarVisibility="Auto"
                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                                 FontFamily="Cascadia Mono, Consolas, Courier New" FontSize="10.5"
+                                 FontFamily="Cascadia Mono, Consolas, Courier New" FontSize="11"
                                  MinHeight="80"
                                  shell:ShellBehaviors.MaxHeightRatio="0.25"
                                  shell:ShellBehaviors.ForwardMouseWheel="True"
                                  Visibility="{Binding IsChecked, ElementName=LogToggle, Converter={StaticResource BoolToVisibility}}">
                             <ListBox.ItemContainerStyle>
                                 <Style TargetType="ListBoxItem">
-                                    <Setter Property="Padding" Value="4,3"/>
+                                    <Setter Property="Padding" Value="4,4"/>
                                     <Setter Property="Background" Value="Transparent"/>
                                     <Setter Property="Template">
                                         <Setter.Value>

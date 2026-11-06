@@ -9,6 +9,17 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.39.4] — 2026-11-06
+
+### Floor Tools — spacing and text sizes on the 4 px grid
+
+Floors And Roof From Linked Rooms 13.1.2, Floors And Roof From Linked Rooms (Via Plan View) 6.1.2, Floor Slope By Drain 1.0.1, Floor Slope By Point 1.0.1, Floor Slope By Point (Ridge) 1.0.1, Floor Slope By Point (Multi Copies) 1.0.1, Floor Points & Slope 1.0.1, Floor Divide Inner Loops 1.0.1, Floor Outer Curve Divider 1.0.1, Floor Detail Line Intersect 1.0.1, Floor Inner Loops And Perpendicular 1.0.1, Floor Edge Vertex Reducer 1.0.1, Floor Multiple Points (1/2–1/4) 1.0.1, Floor Shape From Link 1.0.1, Floor Crease Lines By Openings 1.0.1, Floor Crease Lines By Points 1.0.1, Floor Creaser 1.0.1, Floor Type Manager 1.0.1, Floor Name Builder 1.0.1, Floor Point Comparison 1.0.1, Floor Point Elevation Sync 1.0.1, Floor Tapered EPS 2D Pattern 1.0.1.
+
+#### Changed
+- Margins and paddings snapped to 2/4/8/12/16/24 and font sizes to 10/11/12/13, matching the other groups already converted.
+
+User note: layout only; controls sit 1–2 px differently and a few small texts are slightly larger. No behaviour change. Older tool versions still installed are not changed.
+
 ## [6.39.3] — 2026-11-06
 
 ### Sheet tools — spacing and text sizes on the 4 px grid

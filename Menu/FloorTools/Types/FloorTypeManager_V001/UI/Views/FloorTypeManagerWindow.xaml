@@ -42,7 +42,7 @@ Changes vs V002 (layout only):
             <!-- Status pill style -->
             <Style x:Key="StatusPillBorder" TargetType="Border">
                 <Setter Property="CornerRadius" Value="8"/>
-                <Setter Property="Padding"      Value="7,2"/>
+                <Setter Property="Padding"      Value="8,2"/>
                 <Setter Property="HorizontalAlignment" Value="Center"/>
                 <Setter Property="VerticalAlignment"   Value="Center"/>
             </Style>
@@ -97,7 +97,7 @@ Changes vs V002 (layout only):
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <Border Grid.Column="0" Style="{StaticResource MetricCard}" Padding="10,8">
+                <Border Grid.Column="0" Style="{StaticResource MetricCard}" Padding="12,8">
                     <StackPanel HorizontalAlignment="Center">
                         <TextBlock Text="Total Floor Types" Style="{StaticResource MetricLabel}" HorizontalAlignment="Center"/>
                         <TextBlock Text="{Binding TotalFloorTypes}" Style="{StaticResource MetricNumberAccent}" HorizontalAlignment="Center"/>
@@ -105,7 +105,7 @@ Changes vs V002 (layout only):
                     </StackPanel>
                 </Border>
 
-                <Border Grid.Column="2" Style="{StaticResource MetricCard}" Padding="10,8">
+                <Border Grid.Column="2" Style="{StaticResource MetricCard}" Padding="12,8">
                     <StackPanel HorizontalAlignment="Center">
                         <TextBlock Text="Last Export" Style="{StaticResource MetricLabel}" HorizontalAlignment="Center"/>
                         <TextBlock Text="{Binding LastExportDate}" Style="{StaticResource MetricNumber}"
@@ -113,7 +113,7 @@ Changes vs V002 (layout only):
                     </StackPanel>
                 </Border>
 
-                <Border Grid.Column="4" Style="{StaticResource MetricCard}" Padding="10,8">
+                <Border Grid.Column="4" Style="{StaticResource MetricCard}" Padding="12,8">
                     <StackPanel HorizontalAlignment="Center">
                         <TextBlock Text="Last Import File" Style="{StaticResource MetricLabel}" HorizontalAlignment="Center"/>
                         <TextBlock Text="{Binding LastImportFile}" Style="{StaticResource MetricValue}"
@@ -127,7 +127,7 @@ Changes vs V002 (layout only):
         <shell:ToolWindowShell.BodyContent>
             <StackPanel>
                 <!-- Export / Import tabs in workflow order -->
-                <TabControl Margin="0,0,0,10" Background="{StaticResource BrushSurfaceCard}"
+                <TabControl Margin="0,0,0,12" Background="{StaticResource BrushSurfaceCard}"
                             BorderBrush="{StaticResource BrushBorderDefault}">
                     <TabItem Header="Export">
                         <Grid>
@@ -138,7 +138,7 @@ Changes vs V002 (layout only):
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
                             <!-- Section header -->
-                            <Grid Grid.Row="0" Margin="12,10,12,6">
+                            <Grid Grid.Row="0" Margin="12,12,12,8">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
@@ -153,7 +153,7 @@ Changes vs V002 (layout only):
                             </Grid>
 
                             <!-- Toolbar -->
-                            <Grid Grid.Row="1" Margin="12,0,12,6">
+                            <Grid Grid.Row="1" Margin="12,0,12,8">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
@@ -163,18 +163,18 @@ Changes vs V002 (layout only):
                                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
                                     <TextBox Style="{StaticResource StyledTextInput}" Width="180"
                                              Text="{Binding FilterText, UpdateSourceTrigger=PropertyChanged}"
-                                             MaxLength="60" Margin="0,0,6,0"/>
+                                             MaxLength="60" Margin="0,0,8,0"/>
                                     <Button Content="Select All"  Style="{StaticResource SmallSecondaryButton}"
                                             Command="{Binding SelectAllCommand}" Margin="0,0,4,0"/>
                                     <Button Content="Clear"       Style="{StaticResource SmallSecondaryButton}"
                                             Command="{Binding ClearSelectionCommand}" Margin="0,0,4,0"/>
-                                    <Border Width="1" Background="{StaticResource BrushSeparatorThin}" Margin="4,3"/>
+                                    <Border Width="1" Background="{StaticResource BrushSeparatorThin}" Margin="4,4"/>
                                     <Button Content="↺  Refresh" Style="{StaticResource SmallSecondaryButton}"
                                             Command="{Binding RefreshCommand}"/>
                                 </StackPanel>
 
                                 <TextBlock Grid.Column="2" VerticalAlignment="Center"
-                                           Foreground="{StaticResource BrushTextSecondary}" FontSize="11.5">
+                                           Foreground="{StaticResource BrushTextSecondary}" FontSize="12">
                                     <Run Text="{Binding SelectedExportCount, Mode=OneWay}"/>
                                     <Run Text=" of "/>
                                     <Run Text="{Binding TotalFloorTypes, Mode=OneWay}"/>
@@ -200,7 +200,7 @@ Changes vs V002 (layout only):
                                 <!-- Row details: layer stack -->
                                 <DataGrid.RowDetailsTemplate>
                                     <DataTemplate DataType="models:FloorTypeItem">
-                                        <Border Background="{StaticResource BrushNavyDark}" Padding="40,8,12,10" BorderThickness="0,1,0,0"
+                                        <Border Background="{StaticResource BrushNavyDark}" Padding="40,8,12,12" BorderThickness="0,1,0,0"
                                                 BorderBrush="{StaticResource BrushNavyLight}">
                                             <StackPanel>
                                                 <!-- Column headers -->
@@ -222,7 +222,7 @@ Changes vs V002 (layout only):
                                                 <ItemsControl ItemsSource="{Binding Layers}">
                                                     <ItemsControl.ItemTemplate>
                                                         <DataTemplate DataType="models:LayerData">
-                                                            <Grid Margin="0,1">
+                                                            <Grid Margin="0,2">
                                                                 <Grid.ColumnDefinitions>
                                                                     <ColumnDefinition Width="180"/>
                                                                     <ColumnDefinition Width="90"/>
@@ -307,10 +307,10 @@ Changes vs V002 (layout only):
                                     <DataGridTextColumn Header="Type Mark"     Binding="{Binding TypeMark}"            Width="80"  MinWidth="60"  IsReadOnly="True" SortMemberPath="TypeMark"/>
                                     <DataGridTextColumn Header="Function"      Binding="{Binding Function}"            Width="90"  MinWidth="70"  IsReadOnly="True" SortMemberPath="Function"/>
                                     <DataGridTextColumn Header="Layer Count"   Binding="{Binding LayerCount}"          Width="80"  MinWidth="60"  IsReadOnly="True" SortMemberPath="LayerCount">
-                                        <DataGridTextColumn.ElementStyle><Style TargetType="TextBlock"><Setter Property="TextAlignment" Value="Right"/><Setter Property="Padding" Value="0,0,6,0"/></Style></DataGridTextColumn.ElementStyle>
+                                        <DataGridTextColumn.ElementStyle><Style TargetType="TextBlock"><Setter Property="TextAlignment" Value="Right"/><Setter Property="Padding" Value="0,0,8,0"/></Style></DataGridTextColumn.ElementStyle>
                                     </DataGridTextColumn>
                                     <DataGridTextColumn Header="Thickness (mm)" Binding="{Binding TotalThicknessMm, StringFormat=F1}" Width="100" MinWidth="80" IsReadOnly="True" SortMemberPath="TotalThicknessMm">
-                                        <DataGridTextColumn.ElementStyle><Style TargetType="TextBlock"><Setter Property="TextAlignment" Value="Right"/><Setter Property="Padding" Value="0,0,6,0"/></Style></DataGridTextColumn.ElementStyle>
+                                        <DataGridTextColumn.ElementStyle><Style TargetType="TextBlock"><Setter Property="TextAlignment" Value="Right"/><Setter Property="Padding" Value="0,0,8,0"/></Style></DataGridTextColumn.ElementStyle>
                                     </DataGridTextColumn>
                                 </DataGrid.Columns>
                             </DataGrid>
@@ -324,14 +324,14 @@ Changes vs V002 (layout only):
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <TextBox Grid.Column="0" Style="{StaticResource BoxedTextInput}"
-                                         Text="{Binding ExportFilePath}" IsReadOnly="True" Margin="0,0,6,0"/>
+                                         Text="{Binding ExportFilePath}" IsReadOnly="True" Margin="0,0,8,0"/>
                                 <Button  Grid.Column="1" Content="Browse…" Style="{StaticResource OutlineButton}"
-                                         Command="{Binding BrowseExportCommand}" Margin="0,0,6,0"/>
+                                         Command="{Binding BrowseExportCommand}" Margin="0,0,8,0"/>
                                 <!-- Open in Excel — visible only after a successful export -->
                                 <Button  Grid.Column="2" Content="📂  Open in Excel"
                                          Style="{StaticResource SmallSecondaryButton}"
                                          Command="{Binding OpenExportFileCommand}"
-                                         Margin="0,0,6,0"
+                                         Margin="0,0,8,0"
                                          Visibility="{Binding LastExportPath, Converter={StaticResource BoolToVisibilityConverter}}"
                                          ToolTip="{Binding LastExportPath}"/>
                                 <Button  Grid.Column="3" Style="{StaticResource AccentButton}"
@@ -354,7 +354,7 @@ Changes vs V002 (layout only):
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
                             <!-- Section header with Download Template button -->
-                            <Grid Grid.Row="0" Margin="12,10,12,6">
+                            <Grid Grid.Row="0" Margin="12,12,12,8">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
@@ -374,7 +374,7 @@ Changes vs V002 (layout only):
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <TextBox Grid.Column="0" Style="{StaticResource BoxedTextInput}"
-                                         Text="{Binding ImportFilePath}" IsReadOnly="True" Margin="0,0,6,0"/>
+                                         Text="{Binding ImportFilePath}" IsReadOnly="True" Margin="0,0,8,0"/>
                                 <Button  Grid.Column="1" Content="Browse…" Style="{StaticResource OutlineButton}"
                                          Command="{Binding BrowseImportCommand}"/>
                             </Grid>
@@ -398,7 +398,7 @@ Changes vs V002 (layout only):
                                 <!-- Row details: layer stack -->
                                 <DataGrid.RowDetailsTemplate>
                                     <DataTemplate DataType="models:ImportPreviewItem">
-                                        <Border Background="{StaticResource BrushNavyDark}" Padding="40,8,12,10" BorderThickness="0,1,0,0"
+                                        <Border Background="{StaticResource BrushNavyDark}" Padding="40,8,12,12" BorderThickness="0,1,0,0"
                                                 BorderBrush="{StaticResource BrushNavyLight}">
                                             <StackPanel>
                                                 <Grid Margin="0,0,0,4">
@@ -418,7 +418,7 @@ Changes vs V002 (layout only):
                                                 <ItemsControl ItemsSource="{Binding Layers}">
                                                     <ItemsControl.ItemTemplate>
                                                         <DataTemplate DataType="models:LayerData">
-                                                            <Grid Margin="0,1">
+                                                            <Grid Margin="0,2">
                                                                 <Grid.ColumnDefinitions>
                                                                     <ColumnDefinition Width="180"/>
                                                                     <ColumnDefinition Width="90"/>
@@ -487,10 +487,10 @@ Changes vs V002 (layout only):
                                     <DataGridTextColumn Header="Sheet"         Binding="{Binding SheetName}"       Width="90"  MinWidth="70"  SortMemberPath="SheetName"/>
                                     <DataGridTextColumn Header="Type Name"     Binding="{Binding TypeName}"        Width="2*"  MinWidth="130" SortMemberPath="TypeName"/>
                                     <DataGridTextColumn Header="Layer Count"   Binding="{Binding LayerCount}"      Width="80"  MinWidth="60"  SortMemberPath="LayerCount">
-                                        <DataGridTextColumn.ElementStyle><Style TargetType="TextBlock"><Setter Property="TextAlignment" Value="Right"/><Setter Property="Padding" Value="0,0,6,0"/></Style></DataGridTextColumn.ElementStyle>
+                                        <DataGridTextColumn.ElementStyle><Style TargetType="TextBlock"><Setter Property="TextAlignment" Value="Right"/><Setter Property="Padding" Value="0,0,8,0"/></Style></DataGridTextColumn.ElementStyle>
                                     </DataGridTextColumn>
                                     <DataGridTextColumn Header="Thickness (mm)" Binding="{Binding TotalThicknessMm, StringFormat=F1}" Width="100" MinWidth="80" SortMemberPath="TotalThicknessMm">
-                                        <DataGridTextColumn.ElementStyle><Style TargetType="TextBlock"><Setter Property="TextAlignment" Value="Right"/><Setter Property="Padding" Value="0,0,6,0"/></Style></DataGridTextColumn.ElementStyle>
+                                        <DataGridTextColumn.ElementStyle><Style TargetType="TextBlock"><Setter Property="TextAlignment" Value="Right"/><Setter Property="Padding" Value="0,0,8,0"/></Style></DataGridTextColumn.ElementStyle>
                                     </DataGridTextColumn>
 
                                     <!-- Status pill -->
@@ -564,7 +564,7 @@ Changes vs V002 (layout only):
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="Operation Log" FontSize="11.5" FontWeight="SemiBold"
+                                    <TextBlock Text="Operation Log" FontSize="12" FontWeight="SemiBold"
                                                Foreground="{StaticResource BrushTextOnDark}"
                                                VerticalAlignment="Center"/>
                                     <Border Style="{StaticResource BadgePill}"
@@ -578,7 +578,7 @@ Changes vs V002 (layout only):
                                 </StackPanel>
                                 <StackPanel Grid.Column="1" Orientation="Horizontal">
                                     <Button Content="Copy All" Style="{StaticResource DarkGhostButton}"
-                                            Command="{Binding CopyAllLogsCommand}" Margin="0,0,6,0"/>
+                                            Command="{Binding CopyAllLogsCommand}" Margin="0,0,8,0"/>
                                     <Button x:Name="CopySelectedBtn"
                                             Content="Copy Selected" Style="{StaticResource DarkGhostButton}"
                                             Click="CopySelectedBtn_Click"/>
@@ -596,7 +596,7 @@ Changes vs V002 (layout only):
                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                             <ListBox.ItemContainerStyle>
                                 <Style TargetType="ListBoxItem">
-                                    <Setter Property="Padding"         Value="0,1"/>
+                                    <Setter Property="Padding"         Value="0,2"/>
                                     <Setter Property="Background"      Value="Transparent"/>
                                     <Setter Property="BorderThickness" Value="0"/>
                                     <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
@@ -627,7 +627,7 @@ Changes vs V002 (layout only):
                         </ListBox>
 
                         <!-- Completion summary bar -->
-                        <Border Background="{StaticResource BrushNavyDark}" CornerRadius="0,0,10,10" Padding="12,7">
+                        <Border Background="{StaticResource BrushNavyDark}" CornerRadius="0,0,10,10" Padding="12,8">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>

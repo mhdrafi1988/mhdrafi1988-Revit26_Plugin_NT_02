@@ -89,7 +89,7 @@ Roof MultiCopies30 notes, changes vs MultiCopies29 (layout only, per CLAUDE.md v
                                 <ToggleButton DockPanel.Dock="Top"
                                               IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
                                               Background="Transparent" BorderThickness="0"
-                                              Padding="12,10" Cursor="Hand"
+                                              Padding="12,12" Cursor="Hand"
                                               HorizontalContentAlignment="Stretch">
                                     <ToggleButton.Template>
                                         <ControlTemplate TargetType="ToggleButton">
@@ -101,7 +101,7 @@ Roof MultiCopies30 notes, changes vs MultiCopies29 (layout only, per CLAUDE.md v
                                     <DockPanel LastChildFill="True">
                                         <TextBlock x:Name="Chevron" DockPanel.Dock="Right" Text="▾"
                                                    Foreground="{StaticResource BrushTextSecondary}"
-                                                   FontSize="12" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                                                   FontSize="12" VerticalAlignment="Center" Margin="8,0,0,0"/>
                                         <ContentPresenter ContentSource="Header" RecognizesAccessKey="False"/>
                                     </DockPanel>
                                 </ToggleButton>
@@ -125,7 +125,7 @@ Roof MultiCopies30 notes, changes vs MultiCopies29 (layout only, per CLAUDE.md v
             <Style x:Key="SummaryChip" TargetType="Border">
                 <Setter Property="Background" Value="{StaticResource BrushSystemTertiaryBackground}"/>
                 <Setter Property="CornerRadius" Value="6"/>
-                <Setter Property="Padding" Value="5,0"/>
+                <Setter Property="Padding" Value="4,0"/>
                 <Setter Property="Margin" Value="4,0,0,0"/>
                 <Setter Property="VerticalAlignment" Value="Center"/>
             </Style>
@@ -149,8 +149,8 @@ Roof MultiCopies30 notes, changes vs MultiCopies29 (layout only, per CLAUDE.md v
         <shell:ToolWindowShell.HeaderContent>
             <StackPanel>
                 <!-- Row 0: LIVE metrics — recalculated as checkboxes/combos change, before Run -->
-                <UniformGrid Columns="4" Rows="1" Margin="0,0,0,6">
-                    <Border Style="{StaticResource MetricCard}" Padding="10,6" Margin="0,0,3,0">
+                <UniformGrid Columns="4" Rows="1" Margin="0,0,0,8">
+                    <Border Style="{StaticResource MetricCard}" Padding="12,8" Margin="0,0,4,0">
                         <StackPanel>
                             <TextBlock Text="Selected Floor" Style="{StaticResource MetricLabel}"/>
                             <TextBlock Text="{Binding SelectedFloorLabel, FallbackValue='—'}"
@@ -158,7 +158,7 @@ Roof MultiCopies30 notes, changes vs MultiCopies29 (layout only, per CLAUDE.md v
                             <TextBlock Text="Source" Style="{StaticResource MetricUnit}"/>
                         </StackPanel>
                     </Border>
-                    <Border Style="{StaticResource MetricCard}" Padding="10,6" Margin="3,0,3,0">
+                    <Border Style="{StaticResource MetricCard}" Padding="12,8" Margin="4,0,4,0">
                         <StackPanel>
                             <TextBlock Text="Active Slopes" Style="{StaticResource MetricLabel}"/>
                             <TextBlock Text="{Binding ActiveSlopeCount, FallbackValue=0}"
@@ -166,7 +166,7 @@ Roof MultiCopies30 notes, changes vs MultiCopies29 (layout only, per CLAUDE.md v
                             <TextBlock Text="Of 4 rows" Style="{StaticResource MetricUnit}"/>
                         </StackPanel>
                     </Border>
-                    <Border Style="{StaticResource MetricCard}" Padding="10,6" Margin="3,0,3,0">
+                    <Border Style="{StaticResource MetricCard}" Padding="12,8" Margin="4,0,4,0">
                         <StackPanel>
                             <TextBlock Text="Copies to Create" Style="{StaticResource MetricLabel}"/>
                             <TextBlock Text="{Binding CopiesToCreate, FallbackValue=0}"
@@ -174,7 +174,7 @@ Roof MultiCopies30 notes, changes vs MultiCopies29 (layout only, per CLAUDE.md v
                             <TextBlock Text="Floors" Style="{StaticResource MetricUnit}"/>
                         </StackPanel>
                     </Border>
-                    <Border Style="{StaticResource MetricCard}" Padding="10,6" Margin="3,0,0,0">
+                    <Border Style="{StaticResource MetricCard}" Padding="12,8" Margin="4,0,0,0">
                         <StackPanel>
                             <TextBlock Text="Worksets New" Style="{StaticResource MetricLabel}"/>
                             <TextBlock Text="{Binding WorksetsNewCount, FallbackValue=0}"
@@ -185,8 +185,8 @@ Roof MultiCopies30 notes, changes vs MultiCopies29 (layout only, per CLAUDE.md v
                 </UniformGrid>
 
                 <!-- Row 4: Longest Path | Highest Elevation | Last Completed Slope | Run Duration | Tolerance Applied -->
-                <UniformGrid Columns="5" Rows="1" Margin="0,0,0,6">
-                    <Border Style="{StaticResource MetricCard}" Padding="10,6" Margin="0,0,3,0">
+                <UniformGrid Columns="5" Rows="1" Margin="0,0,0,8">
+                    <Border Style="{StaticResource MetricCard}" Padding="12,8" Margin="0,0,4,0">
                         <StackPanel>
                             <TextBlock Text="Longest Path" Style="{StaticResource MetricLabel}"/>
                             <TextBlock Text="{Binding LongestPath_m, StringFormat=F2, FallbackValue=0.00}"
@@ -194,7 +194,7 @@ Roof MultiCopies30 notes, changes vs MultiCopies29 (layout only, per CLAUDE.md v
                             <TextBlock Text="Meters" Style="{StaticResource MetricUnit}"/>
                         </StackPanel>
                     </Border>
-                    <Border Style="{StaticResource MetricCard}" Padding="10,6" Margin="3,0,3,0">
+                    <Border Style="{StaticResource MetricCard}" Padding="12,8" Margin="4,0,4,0">
                         <StackPanel>
                             <TextBlock Text="Highest elevation" Style="{StaticResource MetricLabel}"/>
                             <TextBlock Text="{Binding HighestElevation_mm, StringFormat=F0, FallbackValue=0}"
@@ -202,7 +202,7 @@ Roof MultiCopies30 notes, changes vs MultiCopies29 (layout only, per CLAUDE.md v
                             <TextBlock Text="Millimeters" Style="{StaticResource MetricUnit}"/>
                         </StackPanel>
                     </Border>
-                    <Border Style="{StaticResource MetricCard}" Padding="10,6" Margin="3,0,3,0">
+                    <Border Style="{StaticResource MetricCard}" Padding="12,8" Margin="4,0,4,0">
                         <StackPanel>
                             <TextBlock Text="Last Completed Slope" Style="{StaticResource MetricLabel}"/>
                             <TextBlock Text="{Binding LastResultPercent, FallbackValue=0, StringFormat=F1}"
@@ -210,7 +210,7 @@ Roof MultiCopies30 notes, changes vs MultiCopies29 (layout only, per CLAUDE.md v
                             <TextBlock Text="Percent" Style="{StaticResource MetricUnit}"/>
                         </StackPanel>
                     </Border>
-                    <Border Style="{StaticResource MetricCard}" Padding="10,6" Margin="3,0,3,0">
+                    <Border Style="{StaticResource MetricCard}" Padding="12,8" Margin="4,0,4,0">
                         <StackPanel>
                             <TextBlock Text="Run duration" Style="{StaticResource MetricLabel}"/>
                             <TextBlock Text="{Binding RunDuration_ms, FallbackValue=0}"
@@ -218,7 +218,7 @@ Roof MultiCopies30 notes, changes vs MultiCopies29 (layout only, per CLAUDE.md v
                             <TextBlock Text="Milliseconds" Style="{StaticResource MetricUnit}"/>
                         </StackPanel>
                     </Border>
-                    <Border Style="{StaticResource MetricCard}" Padding="10,6" Margin="3,0,0,0">
+                    <Border Style="{StaticResource MetricCard}" Padding="12,8" Margin="4,0,0,0">
                         <StackPanel>
                             <TextBlock Text="Tolerance Applied" Style="{StaticResource MetricLabel}"/>
                             <TextBlock Text="{Binding DrainToleranceMm, StringFormat=F0, FallbackValue=0}"
@@ -229,8 +229,8 @@ Roof MultiCopies30 notes, changes vs MultiCopies29 (layout only, per CLAUDE.md v
                 </UniformGrid>
 
                 <!-- Row 6: Vertices Processed | Vertices Skipped | Picked Drain | Final Drain Count | Curves Calculated -->
-                <UniformGrid Columns="5" Rows="1" Margin="0,0,0,6">
-                    <Border Style="{StaticResource MetricCard}" Padding="10,6" Margin="0,0,3,0">
+                <UniformGrid Columns="5" Rows="1" Margin="0,0,0,8">
+                    <Border Style="{StaticResource MetricCard}" Padding="12,8" Margin="0,0,4,0">
                         <StackPanel>
                             <TextBlock Text="Vertices processed" Style="{StaticResource MetricLabel}"/>
                             <TextBlock Text="{Binding VerticesProcessed, FallbackValue=0}"
@@ -238,7 +238,7 @@ Roof MultiCopies30 notes, changes vs MultiCopies29 (layout only, per CLAUDE.md v
                             <TextBlock Text="Vertices" Style="{StaticResource MetricUnit}"/>
                         </StackPanel>
                     </Border>
-                    <Border Style="{StaticResource MetricCard}" Padding="10,6" Margin="3,0,3,0">
+                    <Border Style="{StaticResource MetricCard}" Padding="12,8" Margin="4,0,4,0">
                         <StackPanel>
                             <TextBlock Text="Vertices skipped" Style="{StaticResource MetricLabel}"/>
                             <TextBlock Text="{Binding VerticesSkipped, FallbackValue=0}"
@@ -246,7 +246,7 @@ Roof MultiCopies30 notes, changes vs MultiCopies29 (layout only, per CLAUDE.md v
                             <TextBlock Text="Boundary" Style="{StaticResource MetricUnit}"/>
                         </StackPanel>
                     </Border>
-                    <Border Style="{StaticResource MetricCard}" Padding="10,6" Margin="3,0,3,0">
+                    <Border Style="{StaticResource MetricCard}" Padding="12,8" Margin="4,0,4,0">
                         <StackPanel>
                             <TextBlock Text="Picked Drain" Style="{StaticResource MetricLabel}"/>
                             <TextBlock Text="{Binding PickedDrainCount, FallbackValue=0}"
@@ -254,7 +254,7 @@ Roof MultiCopies30 notes, changes vs MultiCopies29 (layout only, per CLAUDE.md v
                             <TextBlock Text="Detected" Style="{StaticResource MetricUnit}"/>
                         </StackPanel>
                     </Border>
-                    <Border Style="{StaticResource MetricCard}" Padding="10,6" Margin="3,0,3,0">
+                    <Border Style="{StaticResource MetricCard}" Padding="12,8" Margin="4,0,4,0">
                         <StackPanel>
                             <TextBlock Text="Final Drain Count" Style="{StaticResource MetricLabel}"/>
                             <TextBlock Text="{Binding FinalDrainCount, FallbackValue=0}"
@@ -262,7 +262,7 @@ Roof MultiCopies30 notes, changes vs MultiCopies29 (layout only, per CLAUDE.md v
                             <TextBlock Text="Detected" Style="{StaticResource MetricUnit}"/>
                         </StackPanel>
                     </Border>
-                    <Border Style="{StaticResource MetricCard}" Padding="10,6" Margin="3,0,0,0">
+                    <Border Style="{StaticResource MetricCard}" Padding="12,8" Margin="4,0,0,0">
                         <StackPanel>
                             <TextBlock Text="Curves Calculated" Style="{StaticResource MetricLabel}"/>
                             <TextBlock Text="{Binding CurvesCalculated, FallbackValue=0}"
@@ -301,10 +301,10 @@ Roof MultiCopies30 notes, changes vs MultiCopies29 (layout only, per CLAUDE.md v
                             <TextBlock Text="Multi-Slope Floor Variants" Style="{StaticResource SectionTitle}"
                                        ToolTip="One floor copy is created per checked row, at the same location as the source floor — footprint and drain point XY are unchanged, only slope/Z."/>
 
-                            <ItemsControl ItemsSource="{Binding SlopeRows}" Margin="4,2,4,6">
+                            <ItemsControl ItemsSource="{Binding SlopeRows}" Margin="4,2,4,8">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                        <Grid Margin="0,3,0,3">
+                                        <Grid Margin="0,4,0,4">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="70"/>
@@ -338,7 +338,7 @@ Roof MultiCopies30 notes, changes vs MultiCopies29 (layout only, per CLAUDE.md v
 
                             <Border Style="{StaticResource SeparatorLine}" Margin="12,0,12,8"/>
 
-                            <Grid Margin="12,0,12,10">
+                            <Grid Margin="12,0,12,12">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
@@ -358,7 +358,7 @@ Roof MultiCopies30 notes, changes vs MultiCopies29 (layout only, per CLAUDE.md v
                             <TextBlock Text="Drain Detection" Style="{StaticResource SectionTitle}"
                                        ToolTip="Note: Ensure floor shape editing is enabled in Revit before running."/>
 
-                            <Grid Margin="12,0,12,10">
+                            <Grid Margin="12,0,12,12">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="8"/>
@@ -408,7 +408,7 @@ Roof MultiCopies30 notes, changes vs MultiCopies29 (layout only, per CLAUDE.md v
                                             <Run Text="{Binding AllowedOffsetThresholdMm, Mode=OneWay, StringFormat={}{0:0.#}}"/>
                                         </TextBlock>
                                     </Border>
-                                    <TextBlock Text="Off" Margin="6,0,0,0" FontSize="10" VerticalAlignment="Center"
+                                    <TextBlock Text="Off" Margin="8,0,0,0" FontSize="10" VerticalAlignment="Center"
                                                Foreground="{StaticResource BrushTextSecondary}">
                                         <TextBlock.Style>
                                             <Style TargetType="TextBlock">
@@ -434,7 +434,7 @@ Roof MultiCopies30 notes, changes vs MultiCopies29 (layout only, per CLAUDE.md v
                             <StackPanel Orientation="Horizontal" Margin="4,4,4,0" VerticalAlignment="Center">
                                 <CheckBox IsChecked="{Binding DrainMarkerGroup.IsEnabled}" VerticalAlignment="Center"/>
                                 <TextBlock Text="Place Circles on Drains" Style="{StaticResource FieldValue}"
-                                           Margin="6,0,0,0" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                                           Margin="8,0,0,0" VerticalAlignment="Center" FontWeight="SemiBold"/>
                             </StackPanel>
                             <Grid Margin="4,4,4,4" IsEnabled="{Binding DrainMarkerGroup.IsEnabled}">
                                 <Grid.ColumnDefinitions>
@@ -472,7 +472,7 @@ Roof MultiCopies30 notes, changes vs MultiCopies29 (layout only, per CLAUDE.md v
                             <StackPanel Orientation="Horizontal" Margin="4,0,4,0" VerticalAlignment="Center">
                                 <CheckBox IsChecked="{Binding HighestPointMarkerGroup.IsEnabled}" VerticalAlignment="Center"/>
                                 <TextBlock Text="Highest Point" Style="{StaticResource FieldValue}"
-                                           Margin="6,0,0,0" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                                           Margin="8,0,0,0" VerticalAlignment="Center" FontWeight="SemiBold"/>
                             </StackPanel>
                             <Grid Margin="4,4,4,4" IsEnabled="{Binding HighestPointMarkerGroup.IsEnabled}">
                                 <Grid.ColumnDefinitions>
@@ -507,7 +507,7 @@ Roof MultiCopies30 notes, changes vs MultiCopies29 (layout only, per CLAUDE.md v
                                         IsEnabled="{Binding HighestPointMarkerGroup.IsEnabled}">
                                 <CheckBox IsChecked="{Binding HighestPointMarkerGroup.ShowOffsetText}" VerticalAlignment="Center"/>
                                 <TextBlock Text="Show offset text label" Style="{StaticResource FieldValue}"
-                                           Margin="6,0,0,0" VerticalAlignment="Center"
+                                           Margin="8,0,0,0" VerticalAlignment="Center"
                                            ToolTip="Places a red &quot;Offset: X mm&quot; text note with a leader next to the Highest Point circle."/>
                             </StackPanel>
 
@@ -517,7 +517,7 @@ Roof MultiCopies30 notes, changes vs MultiCopies29 (layout only, per CLAUDE.md v
                             <StackPanel Orientation="Horizontal" Margin="4,0,4,0" VerticalAlignment="Center">
                                 <CheckBox IsChecked="{Binding AllowedOffsetMarkerGroup.IsEnabled}" VerticalAlignment="Center"/>
                                 <TextBlock Text="Allowed Offset (Visual Clamping Offset)" Style="{StaticResource FieldValue}"
-                                           Margin="6,0,0,0" VerticalAlignment="Center" FontWeight="SemiBold"
+                                           Margin="8,0,0,0" VerticalAlignment="Center" FontWeight="SemiBold"
                                            ToolTip="Circles processed vertices with offset ≥ threshold. Excludes vertices already marked Highest Point."/>
                             </StackPanel>
                             <Grid Margin="4,4,4,4" IsEnabled="{Binding AllowedOffsetMarkerGroup.IsEnabled}"
@@ -532,7 +532,7 @@ Roof MultiCopies30 notes, changes vs MultiCopies29 (layout only, per CLAUDE.md v
                                              MaxLength="10" Padding="2"/>
                                 </StackPanel>
                             </Grid>
-                            <Grid Margin="4,0,4,10" IsEnabled="{Binding AllowedOffsetMarkerGroup.IsEnabled}"
+                            <Grid Margin="4,0,4,12" IsEnabled="{Binding AllowedOffsetMarkerGroup.IsEnabled}"
                                   Visibility="{Binding AllowedOffsetMarkerGroup.IsEnabled, Converter={StaticResource BoolToVisibility}}">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="1.1*"/>
@@ -595,10 +595,10 @@ Roof MultiCopies30 notes, changes vs MultiCopies29 (layout only, per CLAUDE.md v
                         <Border Style="{StaticResource SeparatorLine}" Margin="0,0,0,8"/>
 
                         <!-- Export -->
-                        <TextBlock Text="Export" Style="{StaticResource SectionTitle}" Margin="0,0,0,5"/>
+                        <TextBlock Text="Export" Style="{StaticResource SectionTitle}" Margin="0,0,0,4"/>
 
                         <!-- Row 1: Export to Excel (left) + Browse + Folder address + Export Results -->
-                        <Grid Margin="0,0,0,10">
+                        <Grid Margin="0,0,0,12">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="12"/>
@@ -613,7 +613,7 @@ Roof MultiCopies30 notes, changes vs MultiCopies29 (layout only, per CLAUDE.md v
                                 <TextBlock Text="Export to Excel" Style="{StaticResource FieldValue}" VerticalAlignment="Center"/>
                                 <ToggleButton Style="{StaticResource AppleToggleButton}"
                                               IsChecked="{Binding ExportToExcel}"
-                                              Margin="6,0,0,0"/>
+                                              Margin="8,0,0,0"/>
                             </StackPanel>
 
                             <Button Grid.Column="2" Content="Browse"
@@ -636,13 +636,13 @@ Roof MultiCopies30 notes, changes vs MultiCopies29 (layout only, per CLAUDE.md v
                         <!-- Row 1b: Ask to open file after export — unchecked/disabled by default;
                              enabled only when Export to Excel is on; when checked, a Yes/No prompt
                              appears after a successful export (Run-completion or manual Export). -->
-                        <StackPanel Orientation="Horizontal" Margin="0,0,0,10" VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,12" VerticalAlignment="Center">
                             <CheckBox IsChecked="{Binding AskToOpenAfterExport}"
                                       IsEnabled="{Binding CanAskToOpenAfterExport}"
                                       VerticalAlignment="Center"/>
                             <TextBlock Text="Ask to open file after export"
                                        Style="{StaticResource FieldValue}"
-                                       Margin="6,0,0,0"
+                                       Margin="8,0,0,0"
                                        VerticalAlignment="Center"/>
                         </StackPanel>
 
@@ -650,22 +650,22 @@ Roof MultiCopies30 notes, changes vs MultiCopies29 (layout only, per CLAUDE.md v
                 </Border>
 
                 <!-- Processing Log (moved from footer) -->
-                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Grid.Row="1" Grid.ColumnSpan="3" Padding="10,8" Margin="0,10,0,0">
+                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Grid.Row="1" Grid.ColumnSpan="3" Padding="12,8" Margin="0,12,0,0">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <Grid Margin="0,0,0,6">
+                        <Grid Margin="0,0,0,8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Text="Processing Log" Foreground="{StaticResource BrushLogText}"
-                                       FontSize="11.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                       FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
                             <StackPanel Grid.Column="1" Orientation="Horizontal">
-                                <Button Content="Copy All" Style="{StaticResource DarkGhostButton}" Click="CopyAllLogs_Click" Margin="0,0,6,0"/>
-                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Click="CopySelectedLogs_Click" Margin="0,0,6,0"/>
+                                <Button Content="Copy All" Style="{StaticResource DarkGhostButton}" Click="CopyAllLogs_Click" Margin="0,0,8,0"/>
+                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Click="CopySelectedLogs_Click" Margin="0,0,8,0"/>
                                 <Button Content="Clear" Style="{StaticResource DarkGhostButton}" Command="{Binding ClearLogCommand}"/>
                             </StackPanel>
                         </Grid>
@@ -720,7 +720,7 @@ Roof MultiCopies30 notes, changes vs MultiCopies29 (layout only, per CLAUDE.md v
         <shell:ToolWindowShell.FooterContent>
             <StackPanel>
                 <TextBlock Text="{Binding CompletionSummaryText}" Style="{StaticResource FieldValue}"
-                                           HorizontalAlignment="Left" Margin="2,0,0,6"/>
+                                           HorizontalAlignment="Left" Margin="2,0,0,8"/>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                     <!-- NEW: Cancel sits next to Run, enabled only while a run
                          is in progress (see CanCancelRun). -->
