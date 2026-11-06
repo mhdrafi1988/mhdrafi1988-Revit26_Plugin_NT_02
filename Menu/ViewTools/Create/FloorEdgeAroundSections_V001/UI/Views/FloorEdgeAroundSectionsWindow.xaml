@@ -70,35 +70,35 @@ Tool v7.2.0:
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <Border Grid.Column="0" Style="{StaticResource MetricCard}" Padding="10,8">
+                <Border Grid.Column="0" Style="{StaticResource MetricCard}" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="Total Floors" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding TotalFloorsCount}" Style="{StaticResource MetricNumber}"/>
                     </StackPanel>
                 </Border>
 
-                <Border Grid.Column="2" Style="{StaticResource MetricCard}" Padding="10,8">
+                <Border Grid.Column="2" Style="{StaticResource MetricCard}" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="Sections Detected" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding SectionsDetectedCount}" Style="{StaticResource MetricNumber}"/>
                     </StackPanel>
                 </Border>
 
-                <Border Grid.Column="4" Style="{StaticResource MetricCard}" Padding="10,8">
+                <Border Grid.Column="4" Style="{StaticResource MetricCard}" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="Sections Suggested" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding SectionsSuggestedCount}" Style="{StaticResource MetricNumberAccent}"/>
                     </StackPanel>
                 </Border>
 
-                <Border Grid.Column="6" Style="{StaticResource MetricCard}" Padding="10,8">
+                <Border Grid.Column="6" Style="{StaticResource MetricCard}" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="Finally Created" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding FinallyCreatedCount}" Style="{StaticResource MetricNumberSuccess}"/>
                     </StackPanel>
                 </Border>
 
-                <Border Grid.Column="8" Style="{StaticResource MetricCard}" Padding="10,8">
+                <Border Grid.Column="8" Style="{StaticResource MetricCard}" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="Skipped" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding SkippedCount}" Style="{StaticResource MetricNumberWarning}"/>
@@ -218,7 +218,7 @@ Tool v7.2.0:
                             </Grid>
 
                             <TextBlock Text="All fields editable — defaults shown are starting suggestions, not fixed values."
-                                       Style="{StaticResource HintText}" Margin="12,0,12,10"/>
+                                       Style="{StaticResource HintText}" Margin="12,0,12,12"/>
                         </StackPanel>
                     </Border>
 
@@ -227,7 +227,7 @@ Tool v7.2.0:
                         <StackPanel>
                             <TextBlock Text="Section Naming Pattern" Style="{StaticResource SectionTitle}"/>
                             <TextBlock Text="Click a token to include/exclude it. Order below = order in the built name."
-                                       Style="{StaticResource HintText}" Margin="12,0,12,6"/>
+                                       Style="{StaticResource HintText}" Margin="12,0,12,8"/>
 
                             <!-- Tokens and Separator on one row — tokens take remaining width, separator pinned right -->
                             <Grid Margin="12,0,12,8">
@@ -245,7 +245,7 @@ Tool v7.2.0:
                                     </ItemsControl.ItemsPanel>
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
-                                            <Button Margin="0,0,8,4" Padding="10,6" Cursor="Hand"
+                                            <Button Margin="0,0,8,4" Padding="12,8" Cursor="Hand"
                                                     Command="{Binding DataContext.ToggleNamingTokenCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                     CommandParameter="{Binding}"
                                                     ToolTip="{Binding DisplayLabel, StringFormat='Click to include/exclude {0} in the section name. The number badge shows its position in the built name.'}">
@@ -254,10 +254,10 @@ Tool v7.2.0:
                                                         <Setter Property="Template">
                                                             <Setter.Value>
                                                                 <ControlTemplate TargetType="Button">
-                                                                    <Border x:Name="ChipBg" CornerRadius="8" Padding="10,6">
+                                                                    <Border x:Name="ChipBg" CornerRadius="8" Padding="12,8">
                                                                         <StackPanel Orientation="Horizontal">
-                                                                            <Border x:Name="OrderBadge" CornerRadius="8" Width="16" Height="16" Margin="0,0,6,0">
-                                                                                <TextBlock Text="{Binding Order}" FontSize="9" FontWeight="Bold"
+                                                                            <Border x:Name="OrderBadge" CornerRadius="8" Width="16" Height="16" Margin="0,0,8,0">
+                                                                                <TextBlock Text="{Binding Order}" FontSize="10" FontWeight="Bold"
                                                                                            Foreground="{StaticResource BrushTextOnAccent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                                             </Border>
                                                                             <TextBlock x:Name="ChipText" Text="{Binding DisplayLabel}" FontSize="12" FontWeight="SemiBold"/>
@@ -300,15 +300,15 @@ Tool v7.2.0:
                                 </StackPanel>
                             </Grid>
 
-                            <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Margin="12,0,12,10" Padding="10,8">
+                            <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Margin="12,0,12,12" Padding="12,8">
                                 <StackPanel>
                                     <TextBlock Text="LIVE PREVIEW" FontSize="10" Foreground="{StaticResource BrushLogTextDim}" Margin="0,0,0,4"/>
-                                    <TextBlock Text="{Binding NamingPreviewText}" FontFamily="Consolas" FontSize="12.5"
+                                    <TextBlock Text="{Binding NamingPreviewText}" FontFamily="Consolas" FontSize="13"
                                                Foreground="{StaticResource BrushLogSuccess}"/>
                                 </StackPanel>
                             </Border>
 
-                            <Border Background="{StaticResource BrushSystemSecondaryBackground}" CornerRadius="6" Margin="12,0,12,12" Padding="10,8">
+                            <Border Background="{StaticResource BrushSystemSecondaryBackground}" CornerRadius="6" Margin="12,0,12,12" Padding="12,8">
                                 <TextBlock Style="{StaticResource HintText}" Margin="0" TextWrapping="Wrap">
                                     On duplicate name: a D-series suffix (D1, D2, ...) is appended automatically and the view is still created — no view is ever skipped or overwritten.
                                 </TextBlock>
@@ -328,7 +328,7 @@ Tool v7.2.0:
 
                         <TextBlock Grid.Row="0" Text="Planned Sections" Style="{StaticResource SectionTitle}"/>
 
-                        <Grid Grid.Row="1" Margin="12,0,12,6">
+                        <Grid Grid.Row="1" Margin="12,0,12,8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
@@ -338,10 +338,10 @@ Tool v7.2.0:
                                      Tag="Filter floor / direction..."
                                      ToolTip="Type part of a floor name or direction (e.g. North) to show only matching rows below."/>
                             <StackPanel Grid.Column="1" Orientation="Horizontal">
-                                <Button Content="Select All" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,6,0"
+                                <Button Content="Select All" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,8,0"
                                         Command="{Binding SelectAllCommand}"
                                         ToolTip="Check every eligible row (Ready status) so it will be created on Run."/>
-                                <Button Content="Clear" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,6,0"
+                                <Button Content="Clear" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,8,0"
                                         Command="{Binding ClearAllCommand}"
                                         ToolTip="Uncheck every row so nothing is created on Run."/>
                                 <Button Content="Refresh" Style="{StaticResource SmallSecondaryButton}"
@@ -403,7 +403,7 @@ Tool v7.2.0:
                                     <DataGridTextColumn.ElementStyle>
                                         <Style TargetType="TextBlock">
                                             <Setter Property="HorizontalAlignment" Value="Right"/>
-                                            <Setter Property="Margin" Value="0,0,10,0"/>
+                                            <Setter Property="Margin" Value="0,0,12,0"/>
                                         </Style>
                                     </DataGridTextColumn.ElementStyle>
                                 </DataGridTextColumn>
@@ -418,23 +418,23 @@ Tool v7.2.0:
                 </Border>
 
                 <!-- LOG (moved from footer) -->
-                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="10,8">
+                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="12,8">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <Grid Margin="0,0,0,6">
+                        <Grid Margin="0,0,0,8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Text="{Binding LogEntries.Count, StringFormat='Log ({0} entries)'}" Foreground="{StaticResource BrushLogText}"
-                                       FontSize="11.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                       FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
                             <StackPanel Grid.Column="1" Orientation="Horizontal">
-                                <Button Content="Copy All" Style="{StaticResource DarkGhostButton}" Margin="0,0,6,0"
+                                <Button Content="Copy All" Style="{StaticResource DarkGhostButton}" Margin="0,0,8,0"
                                         Command="{Binding CopyAllLogsCommand}"/>
-                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Margin="0,0,6,0"
+                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Margin="0,0,8,0"
                                         Command="{Binding CopySelectedLogsCommand}"
                                         CommandParameter="{Binding SelectedItems, ElementName=LogListBox}"/>
                                 <Button Content="Clear" Style="{StaticResource DarkGhostButton}"
@@ -512,7 +512,7 @@ Tool v7.2.0:
                 <TextBlock Grid.Row="1" Style="{StaticResource HintText}" Margin="12,0,12,8"
                            Text="Tick the sections to open. Each one opens as a tab in Revit."/>
 
-                <Grid Grid.Row="2" Margin="12,0,12,6">
+                <Grid Grid.Row="2" Margin="12,0,12,8">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
@@ -523,7 +523,7 @@ Tool v7.2.0:
                              Text="{Binding CreatedSectionsFilter, UpdateSourceTrigger=PropertyChanged}"
                              ToolTip="Type part of a section name, floor name or direction to show only matching rows."/>
                     <StackPanel Grid.Column="2" Orientation="Horizontal">
-                        <Button Content="Select All" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,6,0"
+                        <Button Content="Select All" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,8,0"
                                 Command="{Binding SelectAllCreatedCommand}"
                                 ToolTip="Tick every row shown below."/>
                         <Button Content="Clear" Style="{StaticResource SmallSecondaryButton}"
@@ -546,9 +546,9 @@ Tool v7.2.0:
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="80"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="1" Text="Section View Name" Style="{StaticResource FieldLabel}" Margin="0,6"/>
-                            <TextBlock Grid.Column="2" Text="Floor" Style="{StaticResource FieldLabel}" Margin="0,6"/>
-                            <TextBlock Grid.Column="3" Text="Direction" Style="{StaticResource FieldLabel}" Margin="0,6"/>
+                            <TextBlock Grid.Column="1" Text="Section View Name" Style="{StaticResource FieldLabel}" Margin="0,8"/>
+                            <TextBlock Grid.Column="2" Text="Floor" Style="{StaticResource FieldLabel}" Margin="0,8"/>
+                            <TextBlock Grid.Column="3" Text="Direction" Style="{StaticResource FieldLabel}" Margin="0,8"/>
                         </Grid>
 
                         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
@@ -583,7 +583,7 @@ Tool v7.2.0:
                     </Grid>
                 </Border>
 
-                <Grid Grid.Row="4" Margin="12,10,12,0">
+                <Grid Grid.Row="4" Margin="12,12,12,0">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>

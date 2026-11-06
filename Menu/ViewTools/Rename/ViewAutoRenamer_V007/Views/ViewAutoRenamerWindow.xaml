@@ -51,7 +51,7 @@ Changes vs V005 (layout only):
                  Kept local to this Window per shared-converters convention (not in SharedStyles). -->
             <Style x:Key="ViewTypePillBorder" TargetType="Border">
                 <Setter Property="CornerRadius" Value="8"/>
-                <Setter Property="Padding" Value="6,1"/>
+                <Setter Property="Padding" Value="8,2"/>
                 <Setter Property="HorizontalAlignment" Value="Left"/>
                 <Setter Property="VerticalAlignment" Value="Center"/>
             </Style>
@@ -73,18 +73,18 @@ Changes vs V005 (layout only):
         <shell:ToolWindowShell.HeaderContent>
             <StackPanel>
                 <WrapPanel Margin="0,0,0,8" VerticalAlignment="Center">
-                    <Border Style="{StaticResource BadgePill}" Margin="0,0,6,0"
+                    <Border Style="{StaticResource BadgePill}" Margin="0,0,8,0"
                             Background="{StaticResource BrushInputBackground}" BorderBrush="{StaticResource BrushStatusWarn}" BorderThickness="1"
                             Visibility="{Binding IsDryRun, Converter={StaticResource BoolToVisibilityConverter}}">
                         <TextBlock Text="Dry run on" Style="{StaticResource BadgeText}" Foreground="{StaticResource BrushTextPrimary}"/>
                     </Border>
-                    <Border Style="{StaticResource BadgePill}" Margin="0,0,6,0">
+                    <Border Style="{StaticResource BadgePill}" Margin="0,0,8,0">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Style="{StaticResource BadgeText}" Text="{Binding Views.Count, Mode=OneWay}"/>
                             <TextBlock Style="{StaticResource BadgeText}" Text=" views loaded"/>
                         </StackPanel>
                     </Border>
-                    <Border Style="{StaticResource BadgePill}" Margin="0,0,6,0">
+                    <Border Style="{StaticResource BadgePill}" Margin="0,0,8,0">
                         <CheckBox Content="Standardize Names"
                                   IsChecked="{Binding StandardizeEnabled}"
                                   Foreground="{StaticResource BrushNavyPrimary}" FontSize="11"
@@ -92,31 +92,31 @@ Changes vs V005 (layout only):
                     </Border>
                 </WrapPanel>
                 <UniformGrid Columns="5" Margin="0,0,0,8">
-                    <Border Style="{StaticResource MetricCard}" Margin="0,0,4,0" Padding="10,8">
+                    <Border Style="{StaticResource MetricCard}" Margin="0,0,4,0" Padding="12,8">
                         <StackPanel>
                             <TextBlock Text="Total" Style="{StaticResource MetricLabel}"/>
                             <TextBlock Text="{Binding TotalCount}" Style="{StaticResource MetricNumber}" FontSize="18"/>
                         </StackPanel>
                     </Border>
-                    <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="10,8">
+                    <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="12,8">
                         <StackPanel>
                             <TextBlock Text="Selected" Style="{StaticResource MetricLabel}"/>
                             <TextBlock Text="{Binding SelectedCount}" Style="{StaticResource MetricNumberAccent}" FontSize="18"/>
                         </StackPanel>
                     </Border>
-                    <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="10,8">
+                    <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="12,8">
                         <StackPanel>
                             <TextBlock Text="Duplicates" Style="{StaticResource MetricLabel}"/>
                             <TextBlock Text="{Binding DuplicatesCount}" Style="{StaticResource MetricNumberDanger}" FontSize="18"/>
                         </StackPanel>
                     </Border>
-                    <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="10,8">
+                    <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="12,8">
                         <StackPanel>
                             <TextBlock Text="Unplaced" Style="{StaticResource MetricLabel}"/>
                             <TextBlock Text="{Binding UnplacedCount}" Style="{StaticResource MetricNumberWarning}" FontSize="18"/>
                         </StackPanel>
                     </Border>
-                    <Border Style="{StaticResource MetricCard}" Margin="4,0,0,0" Padding="10,8">
+                    <Border Style="{StaticResource MetricCard}" Margin="4,0,0,0" Padding="12,8">
                         <StackPanel>
                             <TextBlock Text="Active Filters" Style="{StaticResource MetricLabel}"/>
                             <TextBlock Text="{Binding ActiveFilterCount}" Style="{StaticResource MetricNumber}" FontSize="18"/>
@@ -143,7 +143,7 @@ Changes vs V005 (layout only):
                             Background="{StaticResource BrushSystemSecondaryBackground}"
                             BorderBrush="{StaticResource BrushBorderDefault}"
                             BorderThickness="0,0,0,1"
-                            Padding="12,7">
+                            Padding="12,8">
                         <Grid>
                             <WrapPanel Orientation="Horizontal" VerticalAlignment="Center">
 
@@ -153,10 +153,10 @@ Changes vs V005 (layout only):
                                         Margin="0,0,12,0">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="⏷ Filters" FontSize="12"/>
-                                        <Border Margin="6,0,0,0" CornerRadius="8" Background="{StaticResource BrushSystemAccent}"
-                                                Padding="6,0" VerticalAlignment="Center"
+                                        <Border Margin="8,0,0,0" CornerRadius="8" Background="{StaticResource BrushSystemAccent}"
+                                                Padding="8,0" VerticalAlignment="Center"
                                                 Visibility="{Binding HasActiveFilters, Converter={StaticResource BoolToVisibilityConverter}}">
-                                            <TextBlock Text="{Binding ActiveFilterCount}" FontSize="9.5" FontWeight="Bold" Foreground="{StaticResource BrushTextOnAccent}"/>
+                                            <TextBlock Text="{Binding ActiveFilterCount}" FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrushTextOnAccent}"/>
                                         </Border>
                                     </StackPanel>
                                 </Button>
@@ -164,7 +164,7 @@ Changes vs V005 (layout only):
                                 <Border Width="0.5" Height="18" Background="{StaticResource BrushBorderDefault}" Margin="0,0,12,0"/>
 
                                 <TextBlock Text="Sheet" Style="{StaticResource FieldLabel}"
-                                           VerticalAlignment="Center" Margin="0,0,5,0"/>
+                                           VerticalAlignment="Center" Margin="0,0,4,0"/>
                                 <ComboBox Width="140" Margin="0,0,12,0" FontSize="12"
                                           ItemsSource="{Binding SheetFilters}"
                                           SelectedItem="{Binding SelectedSheetFilter}"/>
@@ -172,7 +172,7 @@ Changes vs V005 (layout only):
                                 <Border Width="0.5" Height="18" Background="{StaticResource BrushBorderDefault}" Margin="0,0,12,0"/>
 
                                 <TextBlock Text="Search" Style="{StaticResource FieldLabel}"
-                                           VerticalAlignment="Center" Margin="0,0,5,0"/>
+                                           VerticalAlignment="Center" Margin="0,0,4,0"/>
                                 <TextBox Width="140" Margin="0,0,12,0"
                                          Style="{StaticResource StyledTextInput}"
                                          Tag="View name…"
@@ -181,7 +181,7 @@ Changes vs V005 (layout only):
                                 <Border Width="0.5" Height="18" Background="{StaticResource BrushBorderDefault}" Margin="0,0,12,0"/>
 
                                 <TextBlock Text="Dup. fix" Style="{StaticResource FieldLabel}"
-                                           VerticalAlignment="Center" Margin="0,0,5,0"/>
+                                           VerticalAlignment="Center" Margin="0,0,4,0"/>
                                 <ComboBox Width="155" Margin="0,0,12,0" FontSize="12"
                                           ItemsSource="{Binding DuplicateFixStrategies}"
                                           SelectedItem="{Binding DuplicateStrategy}"/>
@@ -205,9 +205,9 @@ Changes vs V005 (layout only):
                                     </Border.Effect>
                                     <StackPanel>
                                         <!-- Popover header -->
-                                        <Border Padding="14,10" BorderBrush="{StaticResource BrushBorderDefault}" BorderThickness="0,0,0,1">
+                                        <Border Padding="16,12" BorderBrush="{StaticResource BrushBorderDefault}" BorderThickness="0,0,0,1">
                                             <DockPanel>
-                                                <TextBlock Text="View filters" FontSize="12.5" FontWeight="SemiBold"/>
+                                                <TextBlock Text="View filters" FontSize="13" FontWeight="SemiBold"/>
                                                 <TextBlock DockPanel.Dock="Right" Text="Clear all" FontSize="11"
                                                            Foreground="{StaticResource BrushSystemAccent}" Cursor="Hand"
                                                            HorizontalAlignment="Right">
@@ -225,24 +225,24 @@ Changes vs V005 (layout only):
                                                 <!-- View Name search -->
                                                 <TextBlock Text="VIEW NAME" FontSize="11" FontWeight="Bold"
                                                            Foreground="{StaticResource BrushTextSecondary}"
-                                                           Margin="14,4,14,4"/>
-                                                <TextBox Margin="14,2,14,10" Style="{StaticResource StyledTextInput}"
+                                                           Margin="16,4,16,4"/>
+                                                <TextBox Margin="16,2,16,12" Style="{StaticResource StyledTextInput}"
                                                          Text="{Binding ViewNameSearchText, UpdateSourceTrigger=PropertyChanged}"
                                                          Tag="Filter by name…"/>
 
-                                                <Border Height="1" Background="{StaticResource BrushBorderDefault}" Margin="14,0,14,8"/>
+                                                <Border Height="1" Background="{StaticResource BrushBorderDefault}" Margin="16,0,16,8"/>
 
                                                 <!-- View Type — grouped categories with expand -->
                                                 <TextBlock Text="VIEW TYPE" FontSize="11" FontWeight="Bold"
                                                            Foreground="{StaticResource BrushTextSecondary}"
-                                                           Margin="14,4,14,4"/>
+                                                           Margin="16,4,16,4"/>
 
                                                 <ItemsControl ItemsSource="{Binding ViewTypeFilterGroups}">
                                                     <ItemsControl.ItemTemplate>
                                                         <DataTemplate DataType="{x:Type local:ViewTypeFilterGroup}">
                                                             <StackPanel Margin="0,2">
                                                                 <!-- Group header row: expand chevron + group checkbox + label + total count -->
-                                                                <Grid Margin="14,3,14,3">
+                                                                <Grid Margin="16,4,16,4">
                                                                     <Grid.ColumnDefinitions>
                                                                         <ColumnDefinition Width="Auto"/>
                                                                         <ColumnDefinition Width="Auto"/>
@@ -250,14 +250,14 @@ Changes vs V005 (layout only):
                                                                         <ColumnDefinition Width="Auto"/>
                                                                     </Grid.ColumnDefinitions>
                                                                     <ToggleButton Grid.Column="0" IsChecked="{Binding IsExpanded}"
-                                                                                  VerticalAlignment="Center" Margin="0,0,5,0" Cursor="Hand"
+                                                                                  VerticalAlignment="Center" Margin="0,0,4,0" Cursor="Hand"
                                                                                   Background="Transparent" BorderThickness="0" Padding="0" Width="14">
                                                                         <ToggleButton.Style>
                                                                             <Style TargetType="ToggleButton">
                                                                                 <Setter Property="Template">
                                                                                     <Setter.Value>
                                                                                         <ControlTemplate TargetType="ToggleButton">
-                                                                                            <TextBlock Text="▾" FontSize="9" Foreground="{StaticResource BrushTextTertiary}"/>
+                                                                                            <TextBlock Text="▾" FontSize="10" Foreground="{StaticResource BrushTextTertiary}"/>
                                                                                         </ControlTemplate>
                                                                                     </Setter.Value>
                                                                                 </Setter>
@@ -266,7 +266,7 @@ Changes vs V005 (layout only):
                                                                                         <Setter Property="Template">
                                                                                             <Setter.Value>
                                                                                                 <ControlTemplate TargetType="ToggleButton">
-                                                                                                    <TextBlock Text="▸" FontSize="9" Foreground="{StaticResource BrushTextTertiary}"/>
+                                                                                                    <TextBlock Text="▸" FontSize="10" Foreground="{StaticResource BrushTextTertiary}"/>
                                                                                                 </ControlTemplate>
                                                                                             </Setter.Value>
                                                                                         </Setter>
@@ -275,9 +275,9 @@ Changes vs V005 (layout only):
                                                                             </Style>
                                                                         </ToggleButton.Style>
                                                                     </ToggleButton>
-                                                                    <CheckBox Grid.Column="1" IsChecked="{Binding IsChecked}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                                                    <CheckBox Grid.Column="1" IsChecked="{Binding IsChecked}" VerticalAlignment="Center" Margin="0,0,8,0"/>
                                                                     <TextBlock Grid.Column="2" Text="{Binding Label}" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                                                                    <TextBlock Grid.Column="3" Text="{Binding TotalCount}" FontSize="10.5"
+                                                                    <TextBlock Grid.Column="3" Text="{Binding TotalCount}" FontSize="11"
                                                                                Foreground="{StaticResource BrushTextTertiary}" VerticalAlignment="Center"/>
                                                                 </Grid>
 
@@ -286,15 +286,15 @@ Changes vs V005 (layout only):
                                                                               Visibility="{Binding IsExpanded, Converter={StaticResource BoolToVisibilityConverter}}">
                                                                     <ItemsControl.ItemTemplate>
                                                                         <DataTemplate DataType="{x:Type local:ViewTypeFilterRow}">
-                                                                            <Grid Margin="34,2,14,2">
+                                                                            <Grid Margin="34,2,16,2">
                                                                                 <Grid.ColumnDefinitions>
                                                                                     <ColumnDefinition Width="Auto"/>
                                                                                     <ColumnDefinition Width="*"/>
                                                                                     <ColumnDefinition Width="Auto"/>
                                                                                 </Grid.ColumnDefinitions>
-                                                                                <CheckBox Grid.Column="0" IsChecked="{Binding IsChecked}" VerticalAlignment="Center" Margin="0,0,7,0"/>
+                                                                                <CheckBox Grid.Column="0" IsChecked="{Binding IsChecked}" VerticalAlignment="Center" Margin="0,0,8,0"/>
                                                                                 <TextBlock Grid.Column="1" Text="{Binding Label}" FontSize="12" VerticalAlignment="Center"/>
-                                                                                <TextBlock Grid.Column="2" Text="{Binding Count}" FontSize="10.5"
+                                                                                <TextBlock Grid.Column="2" Text="{Binding Count}" FontSize="11"
                                                                                            Foreground="{StaticResource BrushTextTertiary}" VerticalAlignment="Center"/>
                                                                             </Grid>
                                                                         </DataTemplate>
@@ -305,24 +305,24 @@ Changes vs V005 (layout only):
                                                     </ItemsControl.ItemTemplate>
                                                 </ItemsControl>
 
-                                                <Border Height="1" Background="{StaticResource BrushBorderDefault}" Margin="14,10"/>
+                                                <Border Height="1" Background="{StaticResource BrushBorderDefault}" Margin="16,12"/>
 
                                                 <!-- Sheet -->
                                                 <TextBlock Text="SHEET" FontSize="11" FontWeight="Bold"
                                                            Foreground="{StaticResource BrushTextSecondary}"
-                                                           Margin="14,4,14,4"/>
+                                                           Margin="16,4,16,4"/>
                                                 <CheckBox Content="Placed on sheet" IsChecked="{Binding ShowPlacedOnSheet}"
-                                                          Margin="14,3,14,3" FontSize="12"/>
+                                                          Margin="16,4,16,4" FontSize="12"/>
                                                 <CheckBox Content="Not placed" IsChecked="{Binding ShowNotPlaced}"
-                                                          Margin="14,3,14,3" FontSize="12"/>
-                                                <TextBox Margin="14,6,14,2" Style="{StaticResource StyledTextInput}"
+                                                          Margin="16,4,16,4" FontSize="12"/>
+                                                <TextBox Margin="16,8,16,2" Style="{StaticResource StyledTextInput}"
                                                          Text="{Binding SheetSearchText, UpdateSourceTrigger=PropertyChanged}"
                                                          Tag="Sheet number contains…"/>
                                             </StackPanel>
                                         </ScrollViewer>
 
                                         <!-- Popover footer -->
-                                        <Border Padding="14,10" BorderBrush="{StaticResource BrushBorderDefault}" BorderThickness="0,1,0,0">
+                                        <Border Padding="16,12" BorderBrush="{StaticResource BrushBorderDefault}" BorderThickness="0,1,0,0">
                                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                                                 <Button Content="Reset" Style="{StaticResource SmallSecondaryButton}"
                                                         Command="{Binding ResetFilterPopoverCommand}" Margin="0,0,8,0"/>
@@ -356,7 +356,7 @@ Changes vs V005 (layout only):
                                     <TextBlock Text="PREFIX / POSTFIX"
                                                FontSize="10" FontWeight="SemiBold"
                                                Foreground="{StaticResource BrushTextSecondary}"
-                                               Margin="0,0,0,5"/>
+                                               Margin="0,0,0,4"/>
                                     <Grid Margin="0,0,0,4">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="52"/>
@@ -385,7 +385,7 @@ Changes vs V005 (layout only):
                                     <TextBlock Text="FIND / REPLACE"
                                                FontSize="10" FontWeight="SemiBold"
                                                Foreground="{StaticResource BrushTextSecondary}"
-                                               Margin="0,0,0,5"/>
+                                               Margin="0,0,0,4"/>
                                     <Grid Margin="0,0,0,4">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="52"/>
@@ -414,8 +414,8 @@ Changes vs V005 (layout only):
                                     <TextBlock Text="OPTIONS"
                                                FontSize="10" FontWeight="SemiBold"
                                                Foreground="{StaticResource BrushTextSecondary}"
-                                               Margin="0,0,0,5"/>
-                                    <WrapPanel Orientation="Horizontal" Margin="0,0,0,5">
+                                               Margin="0,0,0,4"/>
+                                    <WrapPanel Orientation="Horizontal" Margin="0,0,0,4">
                                         <CheckBox Content="Serial" Margin="0,0,8,0"
                                                   IsChecked="{Binding AddSerial}" VerticalAlignment="Center"/>
                                         <TextBox Width="48" Style="{StaticResource StyledTextInput}" MaxLength="10"
@@ -445,10 +445,10 @@ Changes vs V005 (layout only):
                                     <TextBlock Text="STANDARDIZE"
                                                FontSize="10" FontWeight="SemiBold"
                                                Foreground="{StaticResource BrushStatusOk}"
-                                               Margin="0,0,0,6"/>
+                                               Margin="0,0,0,8"/>
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="Case" Style="{StaticResource FieldLabel}"
-                                                   VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                                   VerticalAlignment="Center" Margin="0,0,8,0"/>
                                         <ComboBox Width="130" Margin="0,0,16,0" FontSize="12"
                                                   ItemsSource="{Binding StandardizeCaseOptions}"
                                                   SelectedItem="{Binding StandardizeCase}"/>
@@ -465,26 +465,26 @@ Changes vs V005 (layout only):
                             Background="{StaticResource BrushSurfaceWindow}"
                             BorderBrush="{StaticResource BrushBorderDefault}"
                             BorderThickness="0,0,0,1"
-                            Padding="12,5">
+                            Padding="12,4">
                         <DockPanel>
                             <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
-                                <Button Content="Load all views" Margin="0,0,10,0"
+                                <Button Content="Load all views" Margin="0,0,12,0"
                                         Command="{Binding LoadAllViewsCommand}"
                                         Style="{StaticResource SmallSecondaryButton}"
                                         ToolTip="Loads every view in the project. Opening loads only the current sheet's views."/>
-                                <Button Content="Select all"  Margin="0,0,5,0"
+                                <Button Content="Select all"  Margin="0,0,4,0"
                                         Command="{Binding SelectAllCommand}"
                                         Style="{StaticResource SmallSecondaryButton}"/>
-                                <Button Content="Select none" Margin="0,0,5,0"
+                                <Button Content="Select none" Margin="0,0,4,0"
                                         Command="{Binding SelectNoneCommand}"
                                         Style="{StaticResource SmallSecondaryButton}"/>
-                                <Button Content="Invert"      Margin="0,0,5,0"
+                                <Button Content="Invert"      Margin="0,0,4,0"
                                         Command="{Binding InvertSelectionCommand}"
                                         Style="{StaticResource SmallSecondaryButton}"/>
-                                <Button Content="Reset selected names" Margin="0,0,5,0"
+                                <Button Content="Reset selected names" Margin="0,0,4,0"
                                         Command="{Binding ResetSelectedNamesCommand}"
                                         Style="{StaticResource SmallSecondaryButton}"/>
-                                <Button Content="Truncate last number" Margin="0,0,5,0"
+                                <Button Content="Truncate last number" Margin="0,0,4,0"
                                         Command="{Binding TruncateLastNumberCommand}"
                                         Style="{StaticResource SmallSecondaryButton}"/>
                                 <Button Content="Truncate last text"
@@ -495,11 +495,11 @@ Changes vs V005 (layout only):
                             <!-- Keyboard hints -->
                             <StackPanel Orientation="Horizontal" DockPanel.Dock="Right"
                                         HorizontalAlignment="Right" VerticalAlignment="Center">
-                                <TextBlock Text="↑↓ navigate"     FontSize="10" Margin="0,0,10,0"
+                                <TextBlock Text="↑↓ navigate"     FontSize="10" Margin="0,0,12,0"
                                            Foreground="{StaticResource BrushTextTertiary}"/>
-                                <TextBlock Text="Space toggle"    FontSize="10" Margin="0,0,10,0"
+                                <TextBlock Text="Space toggle"    FontSize="10" Margin="0,0,12,0"
                                            Foreground="{StaticResource BrushTextTertiary}"/>
-                                <TextBlock Text="Shift+Click range" FontSize="10" Margin="0,0,10,0"
+                                <TextBlock Text="Shift+Click range" FontSize="10" Margin="0,0,12,0"
                                            Foreground="{StaticResource BrushTextTertiary}"/>
                                 <TextBlock Text="Ctrl+Click multi"  FontSize="10"
                                            Foreground="{StaticResource BrushTextTertiary}"/>
@@ -511,9 +511,9 @@ Changes vs V005 (layout only):
                             Background="{StaticResource BrushSystemSecondaryBackground}"
                             BorderBrush="{StaticResource BrushBorderDefault}"
                             BorderThickness="0,0,0,1"
-                            Padding="12,6">
+                            Padding="12,8">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="QUICK FILTER" FontSize="10.5" FontWeight="Bold"
+                            <TextBlock Text="QUICK FILTER" FontSize="11" FontWeight="Bold"
                                        Foreground="{StaticResource BrushTextTertiary}"
                                        VerticalAlignment="Center" Margin="0,0,8,0"/>
 
@@ -636,9 +636,9 @@ Changes vs V005 (layout only):
                                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="4,0">
                                             <TextBlock Text="{Binding PreviewName}"
                                                     VerticalAlignment="Center"/>
-                                            <Border Margin="5,0,0,0" CornerRadius="8"
+                                            <Border Margin="4,0,0,0" CornerRadius="8"
                                                     Background="{StaticResource BrushInputBackground}" BorderBrush="{StaticResource BrushStatusError}" BorderThickness="0.5"
-                                                    Padding="5,1"
+                                                    Padding="4,2"
                                                     Visibility="{Binding IsDuplicate, Converter={StaticResource BoolToVisibilityConverter}}"
                                                     VerticalAlignment="Center">
                                                 <TextBlock Text="dup" FontSize="10" Foreground="{StaticResource BrushStatusError}"/>
@@ -670,21 +670,21 @@ Changes vs V005 (layout only):
                 </Grid>
 
                 <!-- LOG (moved from footer) -->
-                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="10,8" Margin="0,8,0,0">
+                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="12,8" Margin="0,8,0,0">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <Grid Margin="0,0,0,6">
+                        <Grid Margin="0,0,0,8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Text="Log" Foreground="{StaticResource BrushLogText}"
-                                       FontSize="11.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                       FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
                             <StackPanel Grid.Column="1" Orientation="Horizontal">
-                                <Button Content="Copy All" Style="{StaticResource DarkGhostButton}" Click="CopyAllLog_Click" Margin="0,0,6,0"/>
+                                <Button Content="Copy All" Style="{StaticResource DarkGhostButton}" Click="CopyAllLog_Click" Margin="0,0,8,0"/>
                                 <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Click="CopySelectedLog_Click"/>
                             </StackPanel>
                         </Grid>
@@ -696,9 +696,9 @@ Changes vs V005 (layout only):
                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
-                                    <DockPanel Margin="0,1">
+                                    <DockPanel Margin="0,2">
                                         <Ellipse DockPanel.Dock="Left"
-                                                 Width="6" Height="6" Margin="0,0,7,0"
+                                                 Width="6" Height="6" Margin="0,0,8,0"
                                                  Fill="{Binding Level, Converter={StaticResource LogLevelToColorConverter}}"
                                                  VerticalAlignment="Center" />
                                         <TextBlock Text="{Binding Message}"
@@ -728,7 +728,7 @@ Changes vs V005 (layout only):
                                 </Button>
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal"
                             HorizontalAlignment="Right" VerticalAlignment="Center">
-                    <Border CornerRadius="10" Margin="0,0,10,0" Padding="9,3" VerticalAlignment="Center"
+                    <Border CornerRadius="10" Margin="0,0,12,0" Padding="8,4" VerticalAlignment="Center"
                             Background="{StaticResource BrushInputBackground}" BorderBrush="{StaticResource BrushStatusWarn}" BorderThickness="1"
                             Visibility="{Binding IsDryRun, Converter={StaticResource BoolToVisibilityConverter}}">
                         <TextBlock FontSize="11" Foreground="{StaticResource BrushTextPrimary}"

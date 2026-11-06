@@ -9,6 +9,17 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.39.1] — 2026-11-06
+
+### View Tools — spacing and text sizes on the 4 px grid
+
+Create Sections From Detail Lines 13.1.3, Floor Edge Around Sections 1.0.1, Floor Edge Element Sections 1.0.1, Floor View Focus 1.0.1, Isolated Section 1.0.1, Roof Edge Around Sections 7.2.1, Roof Edge Element Sections 4.1.3, Roof View Focus 4.1.2, Section View Auto Tagger 6.1.2, Auto Place Sections 324.1.2, Callout To Section View Placement 21.1.2, Reference Section Head Placer 15.1.2, Bubble Auto Renumber 9.1.2, Section Auto Renamer 26.1.4, View Auto Renamer 7.1.3.
+
+#### Changed
+- Margins and paddings snapped to 2/4/8/12/16/24 and font sizes to 10/11/12/13, matching the Roof Points windows (see 6.39.0).
+
+User note: layout only; controls sit 1–2 px differently and a few small texts are slightly larger. No behaviour change. Older tool versions that are still installed are not changed.
+
 ## [6.39.0] — 2026-11-06
 
 ### Shared UI standard

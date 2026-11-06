@@ -54,7 +54,7 @@ Changes vs V005 (layout only):
                 <Setter Property="BorderThickness" Value="1"/>
                 <Setter Property="CornerRadius" Value="8"/>
                 <Setter Property="Background" Value="{StaticResource BrushSurfaceCard}"/>
-                <Setter Property="Padding" Value="8,6"/>
+                <Setter Property="Padding" Value="8,8"/>
                 <Setter Property="Cursor" Value="Hand"/>
                 <Setter Property="MinHeight" Value="34"/>
             </Style>
@@ -80,19 +80,19 @@ Changes vs V005 (layout only):
         <!-- ═══ HEADER ═══════════════════════════════════════════ -->
         <shell:ToolWindowShell.HeaderContent>
             <UniformGrid Columns="3" Margin="0,2,0,0">
-                <Border Style="{StaticResource MetricCard}" Margin="0,0,4,0" Padding="10,8">
+                <Border Style="{StaticResource MetricCard}" Margin="0,0,4,0" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="Section Views On Sheet" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding SectionViewsOnSheet.Count}" Style="{StaticResource MetricNumber}" FontSize="18"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="10,8">
+                <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="Worklist" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding Worklist.Count}" Style="{StaticResource MetricNumberAccent}" FontSize="18"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricCard}" Margin="4,0,0,0" Padding="10,8">
+                <Border Style="{StaticResource MetricCard}" Margin="4,0,0,0" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="Log Entries" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding LogEntries.Count}" Style="{StaticResource MetricNumber}" FontSize="18"/>
@@ -124,9 +124,9 @@ Changes vs V005 (layout only):
                                                   SelectedItem="{Binding SelectedSheet}"
                                                   DisplayMemberPath="DisplayName"/>
                                     </StackPanel>
-                                    <TextBlock Text="Selection persists after Add to Worklist / Run." Style="{StaticResource HintText}" Margin="12,0,12,6"/>
+                                    <TextBlock Text="Selection persists after Add to Worklist / Run." Style="{StaticResource HintText}" Margin="12,0,12,8"/>
 
-                                    <TextBlock Text="Section Views on Sheet" Style="{StaticResource FieldLabel}" Margin="12,6,12,2"/>
+                                    <TextBlock Text="Section Views on Sheet" Style="{StaticResource FieldLabel}" Margin="12,8,12,2"/>
 
                                     <!-- ═══ Advanced multi-select popover ═══ -->
                                     <Grid Margin="12,0,12,4">
@@ -147,7 +147,7 @@ Changes vs V005 (layout only):
                                                                        TextTrimming="CharacterEllipsis"
                                                                        VerticalAlignment="Center"/>
                                                             <TextBlock Grid.Column="1" Text="▾" Foreground="{StaticResource BrushTextTertiary}"
-                                                                       VerticalAlignment="Center" Margin="6,0,0,0"/>
+                                                                       VerticalAlignment="Center" Margin="8,0,0,0"/>
                                                         </Grid>
                                                     </Border>
                                                 </ControlTemplate>
@@ -167,7 +167,7 @@ Changes vs V005 (layout only):
                                                     <DropShadowEffect ShadowDepth="2" BlurRadius="10" Opacity="0.2"/>
                                                 </Border.Effect>
                                                 <StackPanel>
-                                                    <Grid Margin="0,0,0,6">
+                                                    <Grid Margin="0,0,0,8">
                                                         <TextBox x:Name="SearchBox" Style="{StaticResource StyledTextInput}"/>
                                                         <TextBlock Text="Search section views..." IsHitTestVisible="False"
                                                                    Foreground="{StaticResource BrushTextTertiary}"
@@ -184,7 +184,7 @@ Changes vs V005 (layout only):
                                                             </TextBlock.Style>
                                                         </TextBlock>
                                                     </Grid>
-                                                    <Grid Margin="0,0,0,6">
+                                                    <Grid Margin="0,0,0,8">
                                                         <Grid.ColumnDefinitions>
                                                             <ColumnDefinition Width="*"/>
                                                             <ColumnDefinition Width="Auto"/>
@@ -203,7 +203,7 @@ Changes vs V005 (layout only):
                                                             <ItemsControl x:Name="ResultsListBox" ItemsSource="{Binding SectionViewsOnSheet}">
                                                                 <ItemsControl.ItemTemplate>
                                                                     <DataTemplate>
-                                                                        <StackPanel Orientation="Horizontal" Margin="4,6">
+                                                                        <StackPanel Orientation="Horizontal" Margin="4,8">
                                                                             <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}" VerticalAlignment="Center"/>
                                                                             <TextBlock Text="{Binding ViewName}" Style="{StaticResource BodyText}" Margin="8,0,0,0"/>
                                                                         </StackPanel>
@@ -213,13 +213,13 @@ Changes vs V005 (layout only):
                                                         </ScrollViewer>
                                                     </Border>
                                                     <Button Content="Done" Style="{StaticResource SmallSecondaryButton}"
-                                                            HorizontalAlignment="Right" Margin="0,6,0,0"
+                                                            HorizontalAlignment="Right" Margin="0,8,0,0"
                                                             Click="DonePopoverButton_Click"/>
                                                 </StackPanel>
                                             </Border>
                                         </Popup>
                                     </Grid>
-                                    <TextBlock Text="Searchable multi-select — filter, then check the views to include." Style="{StaticResource HintText}" Margin="12,0,12,10"/>
+                                    <TextBlock Text="Searchable multi-select — filter, then check the views to include." Style="{StaticResource HintText}" Margin="12,0,12,12"/>
                                 </StackPanel>
                             </Border>
 
@@ -227,11 +227,11 @@ Changes vs V005 (layout only):
                             <Border Style="{StaticResource ContentCard}">
                                 <StackPanel>
                                     <TextBlock Text="Categories in Selected View(s)" Style="{StaticResource SectionTitle}"/>
-                                    <Border BorderBrush="{StaticResource BrushSeparatorThin}" BorderThickness="1" CornerRadius="8" Margin="12,0,12,6">
+                                    <Border BorderBrush="{StaticResource BrushSeparatorThin}" BorderThickness="1" CornerRadius="8" Margin="12,0,12,8">
                                             <ItemsControl ItemsSource="{Binding Categories}">
                                                 <ItemsControl.ItemTemplate>
                                                     <DataTemplate>
-                                                        <Grid Margin="10,6">
+                                                        <Grid Margin="12,8">
                                                             <Grid.ColumnDefinitions>
                                                                 <ColumnDefinition Width="Auto"/>
                                                                 <ColumnDefinition Width="*"/>
@@ -247,7 +247,7 @@ Changes vs V005 (layout only):
                                                             <TextBlock Grid.Column="1" Text="{Binding CategoryName}" Style="{StaticResource BodyText}" Margin="8,0,0,0" VerticalAlignment="Center"/>
 
                                                             <!-- V003: Tag Type — dropdown when 2+ options, plain text when only 1 -->
-                                                            <Grid Grid.Column="2" Margin="6,0">
+                                                            <Grid Grid.Column="2" Margin="8,0">
                                                                 <ComboBox Height="26" FontSize="11"
                                                                           ItemsSource="{Binding AvailableTagTypes}"
                                                                           SelectedItem="{Binding SelectedTagType, Mode=TwoWay}"
@@ -264,7 +264,7 @@ Changes vs V005 (layout only):
                                                                     </ComboBox.Style>
                                                                 </ComboBox>
                                                                 <TextBlock Text="{Binding SelectedTagType.DisplayName}"
-                                                                           FontSize="11.5" Foreground="{StaticResource BrushTextPrimary}"
+                                                                           FontSize="12" Foreground="{StaticResource BrushTextPrimary}"
                                                                            VerticalAlignment="Center" TextTrimming="CharacterEllipsis">
                                                                     <TextBlock.Style>
                                                                         <Style TargetType="TextBlock">
@@ -279,7 +279,7 @@ Changes vs V005 (layout only):
                                                                 </TextBlock>
                                                             </Grid>
 
-                                                            <Border Grid.Column="3" CornerRadius="8" Padding="7,2">
+                                                            <Border Grid.Column="3" CornerRadius="8" Padding="8,2">
                                                                 <Border.Style>
                                                                     <Style TargetType="Border">
                                                                         <Setter Property="Background" Value="{StaticResource BrushStatusOkSoft}"/>
@@ -290,7 +290,7 @@ Changes vs V005 (layout only):
                                                                         </Style.Triggers>
                                                                     </Style>
                                                                 </Border.Style>
-                                                                <TextBlock FontSize="10.5" FontWeight="SemiBold">
+                                                                <TextBlock FontSize="11" FontWeight="SemiBold">
                                                                     <TextBlock.Style>
                                                                         <Style TargetType="TextBlock">
                                                                             <Setter Property="Text" Value="Taggable"/>
@@ -311,9 +311,9 @@ Changes vs V005 (layout only):
                                             </ItemsControl>
                                     </Border>
                                     <TextBlock Text="Detail line tagging feasibility not yet confirmed — excluded from this list for now."
-                                               Style="{StaticResource HintText}" Margin="12,0,12,6"/>
-                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="12,0,12,10">
-                                        <Button Content="Select All" Style="{StaticResource SmallSecondaryButton}" Command="{Binding SelectAllCategoriesCommand}" Margin="0,0,6,0"/>
+                                               Style="{StaticResource HintText}" Margin="12,0,12,8"/>
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="12,0,12,12">
+                                        <Button Content="Select All" Style="{StaticResource SmallSecondaryButton}" Command="{Binding SelectAllCategoriesCommand}" Margin="0,0,8,0"/>
                                         <Button Content="Clear" Style="{StaticResource SmallSecondaryButton}" Command="{Binding ClearCategoriesCommand}"/>
                                     </StackPanel>
                                 </StackPanel>
@@ -355,7 +355,7 @@ Changes vs V005 (layout only):
                                     </ItemsControl>
 
                                     <TextBlock Text="No views queued yet. Add a sheet/view above."
-                                               HorizontalAlignment="Center" Margin="0,14,0,14" FontStyle="Italic">
+                                               HorizontalAlignment="Center" Margin="0,16,0,16" FontStyle="Italic">
                                         <TextBlock.Style>
                                             <Style TargetType="TextBlock" BasedOn="{StaticResource HintText}">
                                                 <Setter Property="Visibility" Value="Collapsed"/>
@@ -384,20 +384,20 @@ Changes vs V005 (layout only):
                         <StackPanel Grid.Column="2">
                             <!-- Settings card -->
                             <Border Style="{StaticResource ContentCard}">
-                                <StackPanel Margin="0,0,0,10">
+                                <StackPanel Margin="0,0,0,12">
                                     <TextBlock Text="Tag Placement Settings (Global)" Style="{StaticResource SectionTitle}"/>
 
                                     <TextBlock Text="Alignment Side" Style="{StaticResource FieldLabel}" Margin="12,4,12,4"/>
-                                    <StackPanel Orientation="Horizontal" Margin="12,0,12,10">
-                                        <RadioButton Content="Left" GroupName="AlignSide" Margin="0,0,14,0"
+                                    <StackPanel Orientation="Horizontal" Margin="12,0,12,12">
+                                        <RadioButton Content="Left" GroupName="AlignSide" Margin="0,0,16,0"
                                                      IsChecked="{Binding IsLeftSelected, Mode=TwoWay}"/>
                                         <RadioButton Content="Right" GroupName="AlignSide"
                                                      IsChecked="{Binding IsRightSelected, Mode=TwoWay}"/>
                                     </StackPanel>
 
                                     <TextBlock Text="Leader End" Style="{StaticResource FieldLabel}" Margin="12,4,12,4"/>
-                                    <StackPanel Orientation="Horizontal" Margin="12,0,12,10">
-                                        <RadioButton Content="Free End" GroupName="LeaderEnd" Margin="0,0,14,0"
+                                    <StackPanel Orientation="Horizontal" Margin="12,0,12,12">
+                                        <RadioButton Content="Free End" GroupName="LeaderEnd" Margin="0,0,16,0"
                                                      IsChecked="{Binding IsFreeEndSelected, Mode=TwoWay}"/>
                                         <RadioButton Content="Attached End" GroupName="LeaderEnd"
                                                      IsChecked="{Binding IsAttachedEndSelected, Mode=TwoWay}"/>
@@ -423,22 +423,22 @@ Changes vs V005 (layout only):
                 </Grid>
 
                 <!-- LOG (moved from footer) -->
-                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="10,8">
+                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="12,8">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <Grid Margin="0,0,0,6">
+                        <Grid Margin="0,0,0,8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Text="Log" Foreground="{StaticResource BrushLogText}"
-                                       FontSize="11.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                       FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
                             <StackPanel Grid.Column="1" Orientation="Horizontal">
-                                <Button Content="Copy All" Style="{StaticResource DarkGhostButton}" Command="{Binding CopyAllCommand}" Margin="0,0,6,0"/>
-                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Command="{Binding CopySelectedCommand}" Margin="0,0,6,0"/>
+                                <Button Content="Copy All" Style="{StaticResource DarkGhostButton}" Command="{Binding CopyAllCommand}" Margin="0,0,8,0"/>
+                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Command="{Binding CopySelectedCommand}" Margin="0,0,8,0"/>
                                 <Button Content="Export .txt" Style="{StaticResource DarkGhostButton}" Command="{Binding ExportLogCommand}"/>
                             </StackPanel>
                         </Grid>
@@ -473,10 +473,10 @@ Changes vs V005 (layout only):
                     </TextBlock.Visibility>
                 </TextBlock>
                 <TextBox Text="{Binding SavedLogPath, Mode=OneWay}"
-                         IsReadOnly="True" FontSize="10.5"
+                         IsReadOnly="True" FontSize="11"
                          Background="{StaticResource BrushSystemSecondaryBackground}"
                          BorderBrush="{StaticResource BrushSeparator}" BorderThickness="1"
-                         Padding="6,4" Margin="0,0,0,8"
+                         Padding="8,4" Margin="0,0,0,8"
                          Cursor="IBeam">
                     <TextBox.Visibility>
                         <Binding Path="HasSavedLogPath" Converter="{StaticResource BoolToVisibilityConverter}"/>

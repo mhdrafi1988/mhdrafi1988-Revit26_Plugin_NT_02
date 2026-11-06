@@ -35,18 +35,18 @@ File: IsolatedSectionWindow.xaml  (Isolated Section V001 — ToolWindowShell)
 
             <Style x:Key="FormLabel" TargetType="TextBlock" BasedOn="{StaticResource FieldLabel}">
                 <Setter Property="VerticalAlignment" Value="Center"/>
-                <Setter Property="Margin" Value="0,4,10,4"/>
+                <Setter Property="Margin" Value="0,4,12,4"/>
             </Style>
 
             <Style x:Key="FormCombo" TargetType="ComboBox" BasedOn="{StaticResource StandardComboBox}">
-                <Setter Property="Margin" Value="0,3"/>
+                <Setter Property="Margin" Value="0,4"/>
                 <Setter Property="DisplayMemberPath" Value="Label"/>
             </Style>
 
             <Style x:Key="MarginBox" TargetType="TextBox" BasedOn="{StaticResource BoxedTextInput}">
                 <Setter Property="Width" Value="70"/>
-                <Setter Property="Margin" Value="0,3"/>
-                <Setter Property="Padding" Value="6,2"/>
+                <Setter Property="Margin" Value="0,4"/>
+                <Setter Property="Padding" Value="8,2"/>
                 <Setter Property="TextAlignment" Value="Right"/>
                 <Setter Property="MaxLength" Value="9"/>
             </Style>
@@ -115,7 +115,7 @@ File: IsolatedSectionWindow.xaml  (Isolated Section V001 — ToolWindowShell)
                     <Border Style="{StaticResource ContentCard}">
                         <StackPanel>
                             <TextBlock Style="{StaticResource SectionTitle}" Text="Selection"/>
-                            <DataGrid Style="{StaticResource StandardDataGrid}" Margin="12,0,12,6" MinHeight="90"
+                            <DataGrid Style="{StaticResource StandardDataGrid}" Margin="12,0,12,8" MinHeight="90"
                                       ItemsSource="{Binding Rows}" SelectedItem="{Binding SelectedRow}"
                                       AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single"
                                       HeadersVisibility="Column" CanUserAddRows="False"
@@ -153,15 +153,15 @@ File: IsolatedSectionWindow.xaml  (Isolated Section V001 — ToolWindowShell)
                                 </DataGrid.Columns>
                             </DataGrid>
                             <WrapPanel Margin="12,0,12,4">
-                                <Button Style="{StaticResource SecondaryButton}" Content="Pick elements…" Margin="0,0,6,4" Padding="12,0"
+                                <Button Style="{StaticResource SecondaryButton}" Content="Pick elements…" Margin="0,0,8,4" Padding="12,0"
                                         Command="{Binding PickElementsCommand}" ToolTip="Pick model elements in the host model"/>
-                                <Button Style="{StaticResource SecondaryButton}" Content="Pick in link…" Margin="0,0,6,4" Padding="12,0"
+                                <Button Style="{StaticResource SecondaryButton}" Content="Pick in link…" Margin="0,0,8,4" Padding="12,0"
                                         Command="{Binding PickLinkedCommand}" ToolTip="Pick elements inside linked Revit models"/>
-                                <Button Style="{StaticResource SecondaryButton}" Content="Pick face…" Margin="0,0,6,4" Padding="12,0"
+                                <Button Style="{StaticResource SecondaryButton}" Content="Pick face…" Margin="0,0,8,4" Padding="12,0"
                                         Command="{Binding PickFaceCommand}" ToolTip="Pick the face the view should look at"/>
-                                <Button Style="{StaticResource SecondaryButton}" Content="Remove" Margin="0,0,6,4" Padding="12,0"
+                                <Button Style="{StaticResource SecondaryButton}" Content="Remove" Margin="0,0,8,4" Padding="12,0"
                                         Command="{Binding RemoveSelectedCommand}"/>
-                                <Button Style="{StaticResource SecondaryButton}" Content="Clear" Margin="0,0,6,4" Padding="12,0"
+                                <Button Style="{StaticResource SecondaryButton}" Content="Clear" Margin="0,0,8,4" Padding="12,0"
                                         Command="{Binding ClearElementsCommand}"/>
                             </WrapPanel>
                             <TextBlock Style="{StaticResource HintText}" Margin="12,0,12,8" TextWrapping="Wrap"
@@ -255,18 +255,18 @@ File: IsolatedSectionWindow.xaml  (Isolated Section V001 — ToolWindowShell)
                                 <WrapPanel Grid.Row="5" Grid.Column="1" VerticalAlignment="Center">
                                     <TextBlock Style="{StaticResource FormLabel}" Text="sides"/>
                                     <TextBox Style="{StaticResource MarginBox}" Text="{Binding SideMarginText, UpdateSourceTrigger=PropertyChanged}"/>
-                                    <TextBlock Style="{StaticResource FormLabel}" Margin="14,4,10,4" Text="top / bottom"/>
+                                    <TextBlock Style="{StaticResource FormLabel}" Margin="16,4,12,4" Text="top / bottom"/>
                                     <TextBox Style="{StaticResource MarginBox}" Text="{Binding TopBottomMarginText, UpdateSourceTrigger=PropertyChanged}"/>
-                                    <TextBlock Style="{StaticResource FormLabel}" Margin="14,4,10,4" Text="front / back"/>
+                                    <TextBlock Style="{StaticResource FormLabel}" Margin="16,4,12,4" Text="front / back"/>
                                     <TextBox Style="{StaticResource MarginBox}" Text="{Binding DepthMarginText, UpdateSourceTrigger=PropertyChanged}"/>
                                 </WrapPanel>
 
                                 <TextBlock Grid.Row="6" Style="{StaticResource FormLabel}" Text="View name"/>
-                                <TextBox Grid.Row="6" Grid.Column="1" Style="{StaticResource BoxedTextInput}" Margin="0,3" Padding="6,2"
+                                <TextBox Grid.Row="6" Grid.Column="1" Style="{StaticResource BoxedTextInput}" Margin="0,4" Padding="8,2"
                                          Text="{Binding NamePattern, UpdateSourceTrigger=PropertyChanged}"
                                          ToolTip="Tokens: {Category} {Id} {Count} {Side} {Date}"/>
 
-                                <CheckBox Grid.Row="7" Grid.Column="1" Margin="0,6,0,0" Content="Open the new view and zoom to fit"
+                                <CheckBox Grid.Row="7" Grid.Column="1" Margin="0,8,0,0" Content="Open the new view and zoom to fit"
                                           IsChecked="{Binding OpenView}" Foreground="{StaticResource BrushTextPrimary}"/>
                             </Grid>
                             <TextBlock Style="{StaticResource HintText}" Margin="12,2,12,2" TextWrapping="Wrap"
@@ -280,25 +280,25 @@ File: IsolatedSectionWindow.xaml  (Isolated Section V001 — ToolWindowShell)
                 </StackPanel>
 
                 <!-- ══ Log ══ -->
-                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="10,8" Margin="0,8,0,0">
+                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="12,8" Margin="0,8,0,0">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <Grid Margin="0,0,0,6">
+                        <Grid Margin="0,0,0,8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Text="Log" FontSize="11.5" FontWeight="SemiBold"
+                            <TextBlock Text="Log" FontSize="12" FontWeight="SemiBold"
                                        Foreground="{StaticResource BrushLogText}" VerticalAlignment="Center"/>
                             <StackPanel Grid.Column="1" Orientation="Horizontal">
                                 <Button Content="Copy All" Style="{StaticResource DarkGhostButton}" Click="CopyAllLog_Click"/>
-                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Margin="6,0,0,0" Click="CopySelectedLog_Click"/>
-                                <Button Content="Clear" Style="{StaticResource DarkGhostButton}" Margin="6,0,0,0"
+                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Margin="8,0,0,0" Click="CopySelectedLog_Click"/>
+                                <Button Content="Clear" Style="{StaticResource DarkGhostButton}" Margin="8,0,0,0"
                                         Command="{Binding ClearLogCommand}"/>
-                                <Button Content="Export Log" Style="{StaticResource DarkGhostButton}" Margin="6,0,0,0"
+                                <Button Content="Export Log" Style="{StaticResource DarkGhostButton}" Margin="8,0,0,0"
                                         Click="ExportLog_Click"/>
                             </StackPanel>
                         </Grid>
@@ -311,13 +311,13 @@ File: IsolatedSectionWindow.xaml  (Isolated Section V001 — ToolWindowShell)
                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                             <ListBox.ItemContainerStyle>
                                 <Style TargetType="ListBoxItem">
-                                    <Setter Property="Padding" Value="0,1"/>
+                                    <Setter Property="Padding" Value="0,2"/>
                                     <Setter Property="Background" Value="Transparent"/>
                                 </Style>
                             </ListBox.ItemContainerStyle>
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
-                                    <StackPanel Orientation="Horizontal" Margin="0,1,0,1">
+                                    <StackPanel Orientation="Horizontal" Margin="0,2,0,2">
                                         <TextBlock Text="{Binding Time, StringFormat='HH:mm:ss', Mode=OneWay}"
                                                    FontFamily="Consolas" FontSize="11"
                                                    Foreground="{StaticResource BrushLogTextDim}" Margin="0,0,8,0"/>

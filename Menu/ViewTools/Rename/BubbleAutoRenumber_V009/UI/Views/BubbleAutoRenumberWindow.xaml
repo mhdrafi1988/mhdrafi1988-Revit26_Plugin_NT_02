@@ -57,31 +57,31 @@ Changes vs V008:
         <!-- ═══ HEADER ═══════════════════════════════════════════ -->
         <shell:ToolWindowShell.HeaderContent>
             <UniformGrid Columns="5" Margin="0,0,0,8">
-                <Border Style="{StaticResource MetricCard}" Margin="0,0,4,0" Padding="10,8">
+                <Border Style="{StaticResource MetricCard}" Margin="0,0,4,0" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="On Sheet" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding OnSheetCount}" Style="{StaticResource MetricNumber}" FontSize="18"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="10,8">
+                <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="To Renumber" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding TargetCount}" Style="{StaticResource MetricNumberAccent}" FontSize="18"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="10,8">
+                <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="Renumbered" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding RenumberedCount}" Style="{StaticResource MetricNumberSuccess}" FontSize="18"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="10,8">
+                <Border Style="{StaticResource MetricCard}" Margin="4,0,4,0" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="Skipped" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding SkippedCount}" Style="{StaticResource MetricNumberWarning}" FontSize="18"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricCard}" Margin="4,0,0,0" Padding="10,8">
+                <Border Style="{StaticResource MetricCard}" Margin="4,0,0,0" Padding="12,8">
                     <StackPanel>
                         <TextBlock Text="Failed" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding FailedCount}" Style="{StaticResource MetricNumberDanger}" FontSize="18"/>
@@ -138,7 +138,7 @@ Changes vs V008:
                             <TextBlock Text="mm" Style="{StaticResource UnitLabel}"/>
                             <TextBlock Text="how far two bubbles' bottom edges may differ and still count as one row"
                                        Style="{StaticResource HintText}"
-                                       VerticalAlignment="Center" Margin="10,0,0,0"
+                                       VerticalAlignment="Center" Margin="12,0,0,0"
                                        MaxWidth="260"/>
                         </StackPanel>
 
@@ -150,31 +150,31 @@ Changes vs V008:
                         <StackPanel Style="{StaticResource FieldRow}" Orientation="Horizontal"
                                     IsEnabled="{Binding AnyNumberedView, Converter={StaticResource InverseBoolConverter}}">
                             <CheckBox Content="Sections" IsChecked="{Binding IncludeSections}"
-                                      Foreground="{StaticResource BrushTextPrimary}" FontSize="11.5"
-                                      VerticalAlignment="Center" Margin="0,0,14,0"/>
+                                      Foreground="{StaticResource BrushTextPrimary}" FontSize="12"
+                                      VerticalAlignment="Center" Margin="0,0,16,0"/>
                             <CheckBox Content="Drafting views" IsChecked="{Binding IncludeDrafting}"
-                                      Foreground="{StaticResource BrushTextPrimary}" FontSize="11.5"
-                                      VerticalAlignment="Center" Margin="0,0,14,0"/>
+                                      Foreground="{StaticResource BrushTextPrimary}" FontSize="12"
+                                      VerticalAlignment="Center" Margin="0,0,16,0"/>
                             <CheckBox Content="Detail views" IsChecked="{Binding IncludeDetail}"
-                                      Foreground="{StaticResource BrushTextPrimary}" FontSize="11.5"
-                                      VerticalAlignment="Center" Margin="0,0,14,0"/>
+                                      Foreground="{StaticResource BrushTextPrimary}" FontSize="12"
+                                      VerticalAlignment="Center" Margin="0,0,16,0"/>
                             <CheckBox Content="Elevations" IsChecked="{Binding IncludeElevations}"
-                                      Foreground="{StaticResource BrushTextPrimary}" FontSize="11.5"
+                                      Foreground="{StaticResource BrushTextPrimary}" FontSize="12"
                                       VerticalAlignment="Center"/>
                         </StackPanel>
 
                         <StackPanel Style="{StaticResource FieldRow}" Orientation="Horizontal">
                             <CheckBox Content="Any view with a detail number"
                                       IsChecked="{Binding AnyNumberedView}"
-                                      Foreground="{StaticResource BrushTextSecondary}" FontSize="11.5"
+                                      Foreground="{StaticResource BrushTextSecondary}" FontSize="12"
                                       VerticalAlignment="Center"/>
                             <TextBlock Text="ignores the filter above — includes plans, 3D views and legends"
                                        Style="{StaticResource HintText}"
-                                       VerticalAlignment="Center" Margin="10,0,0,0"
+                                       VerticalAlignment="Center" Margin="12,0,0,0"
                                        MaxWidth="280"/>
                         </StackPanel>
 
-                        <TextBlock Text="{Binding ValidationMessage}" Margin="12,2,12,10">
+                        <TextBlock Text="{Binding ValidationMessage}" Margin="12,2,12,12">
                             <TextBlock.Style>
                                 <Style TargetType="TextBlock" BasedOn="{StaticResource HintText}">
                                     <Setter Property="Foreground" Value="{StaticResource BrushStatusError}"/>
@@ -243,7 +243,7 @@ Changes vs V008:
                                                     Width="80">
                                     <DataGridTextColumn.ElementStyle>
                                         <Style TargetType="TextBlock">
-                                            <Setter Property="Padding"           Value="8,5"/>
+                                            <Setter Property="Padding"           Value="8,4"/>
                                             <Setter Property="FontSize"          Value="11"/>
                                             <Setter Property="Foreground"        Value="{StaticResource BrushTextSecondary}"/>
                                             <Setter Property="VerticalAlignment" Value="Center"/>
@@ -256,7 +256,7 @@ Changes vs V008:
                                                     Width="90">
                                     <DataGridTextColumn.ElementStyle>
                                         <Style TargetType="TextBlock">
-                                            <Setter Property="Padding"           Value="8,5"/>
+                                            <Setter Property="Padding"           Value="8,4"/>
                                             <Setter Property="FontSize"          Value="11"/>
                                             <Setter Property="FontWeight"        Value="SemiBold"/>
                                             <Setter Property="Foreground"        Value="{StaticResource BrushAppleBlue}"/>
@@ -277,8 +277,8 @@ Changes vs V008:
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
                                             <Border Style="{StaticResource BadgePill}"
-                                                    Margin="6,3"
-                                                    Padding="7,2"
+                                                    Margin="8,4"
+                                                    Padding="8,2"
                                                     HorizontalAlignment="Left"
                                                     Background="{Binding PillGroup, Converter={StaticResource ViewTypeGroupToBrushConverter}}">
                                                 <TextBlock Text="{Binding KindLabel}"
@@ -295,7 +295,7 @@ Changes vs V008:
                                                     Width="*">
                                     <DataGridTextColumn.ElementStyle>
                                         <Style TargetType="TextBlock">
-                                            <Setter Property="Padding"           Value="8,5"/>
+                                            <Setter Property="Padding"           Value="8,4"/>
                                             <Setter Property="FontSize"          Value="11"/>
                                             <Setter Property="Foreground"        Value="{StaticResource BrushTextPrimary}"/>
                                             <Setter Property="VerticalAlignment" Value="Center"/>
@@ -316,14 +316,14 @@ Changes vs V008:
                 </Border>
 
                 <!-- ── Log — shared LogEntries, dark, collapsed by default ── -->
-                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="10,8">
+                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="12,8">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
 
-                        <Grid Margin="0,0,0,6">
+                        <Grid Margin="0,0,0,8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
@@ -331,14 +331,14 @@ Changes vs V008:
 
                             <ToggleButton x:Name="LogToggle" Style="{StaticResource LogHeaderToggle}">
                                 <TextBlock Text="Log" Foreground="{StaticResource BrushLogText}"
-                                           FontSize="11.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                           FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
                             </ToggleButton>
 
                             <StackPanel Grid.Column="1" Orientation="Horizontal">
                                 <Button Content="Copy All" Style="{StaticResource DarkGhostButton}"
-                                        Command="{Binding CopyAllLogCommand}" Margin="0,0,6,0"/>
+                                        Command="{Binding CopyAllLogCommand}" Margin="0,0,8,0"/>
                                 <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}"
-                                        Command="{Binding CopySelectedLogCommand}" Margin="0,0,6,0"/>
+                                        Command="{Binding CopySelectedLogCommand}" Margin="0,0,8,0"/>
                                 <Button Content="Clear" Style="{StaticResource DarkGhostButton}"
                                         Command="{Binding ClearLogCommand}"/>
                             </StackPanel>
@@ -359,7 +359,7 @@ Changes vs V008:
                             <ListBox.ItemContainerStyle>
                                 <Style TargetType="ListBoxItem">
                                     <Setter Property="Background" Value="Transparent"/>
-                                    <Setter Property="Padding"    Value="0,1"/>
+                                    <Setter Property="Padding"    Value="0,2"/>
                                     <Setter Property="BorderThickness" Value="0"/>
                                 </Style>
                             </ListBox.ItemContainerStyle>
