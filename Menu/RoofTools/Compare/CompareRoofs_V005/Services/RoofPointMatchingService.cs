@@ -1,4 +1,5 @@
 using System;
+using Revit26_Plugin_Revised.Shared.Services;
 using System.Collections.Generic;
 using System.Linq;
 using Autodesk.Revit.DB;
@@ -45,6 +46,7 @@ namespace Revit26_Plugin_Revised.RoofPointElevationSync.V005
 
             foreach (var va in vertsA)
             {
+                ToolCancellation.CheckCurrent();
                 double bestDist = double.MaxValue;
                 int bestIndex = -1;
 
@@ -109,6 +111,7 @@ namespace Revit26_Plugin_Revised.RoofPointElevationSync.V005
         {
             foreach (var row in rows.Where(r => r.IsIncluded && !r.IsEqual))
             {
+                ToolCancellation.CheckCurrent();
                 double targetElevationFeet = UnitUtils.ConvertToInternalUnits(row.HigherElevation, UnitTypeId.Millimeters);
 
                 if (row.ElevationA < row.ElevationB)

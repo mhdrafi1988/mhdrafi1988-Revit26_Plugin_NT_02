@@ -21,13 +21,29 @@ Each release lists every tool whose version changed, under the plugin version.
   second run cannot be started by accident.
 - A user cancel is not an error: no error dialog and no entry in the error log.
 - View Auto Renamer 7.2.0: Esc / Cancel while "Load all views" or "Commit selected" runs.
+- **Roof Tools group** (all tools in `Menu/RoofTools`, latest version of each): Esc / Cancel with a Yes / No confirm while the tool works.
+  - Combined Roof Tools 3.2.0 (cancel while a roof is analysed; the tabs' own Run buttons call older tool versions and are not covered yet)
+  - Roof Points & Slope 1.2.0, Roof Point Elevation Sync 5.1.0, Roof Point Comparison 3.1.0, Creaser Adv 12.1.0
+  - Ridge By Openings 70.2.0, Ridge By Points 59.2.0, Tapered EPS 2D Pattern 6.2.0
+  - Divide Inner Loops 12.2.0, Inner Loops And Perpendicular 7.2.0, Multiple Points 3.1.0, Outer Curve Divider 6.1.0,
+    Roof Detail Line Intersect 14.2.0, Roof Shape From Link 2.1.0, Roof Edge Vertex Reducer 9.1.0
+  - Auto Slope By Drain (Multi-Roof) 13.2.0, Auto Slope By Drain 7.3.0, Auto Slope By Point 33.1.0,
+    Auto Slope By Point (Ridge) 3.2.0, Auto Slope By Point (Multi Copies) 30.2.0
+  - Roof Type Manager 3.2.0, Island Roof Splitter 2.1.0, Roof Name Builder 2.2.0
 
 #### Changed
 - View Auto Renamer 7.2.0: the rename now runs in one transaction group.
+- Auto Slope By Drain (Multi-Roof) 13.2.0 and Auto Slope By Point (Multi Copies) 30.2.0: a cancel now undoes the whole run.
+  Before, roofs or copies that had already finished stayed applied. Auto Slope By Drain 7.3.0, Auto Slope By Point 33.1.0 and
+  Auto Slope By Point (Ridge) 3.2.0 already rolled the roof back; their Cancel button is now the shared one in the status strip
+  and asks for confirmation.
+- Roof Points & Slope 1.2.0: the separate "Cancel Run" button is replaced by the shared Cancel button; it asks for confirmation.
 
 User note: cancelling a run undoes every model change made by that run (a cancelled rename leaves all view names as they
 were). Files already exported or written stay. A single long Revit call cannot be interrupted, so the dialog can take a
-moment to appear. Only View Auto Renamer has this so far; the other tools follow group by group.
+moment to appear. Excel files written before a cancel are kept. View Auto Renamer and the Roof Tools group have this so far; the other
+tool groups follow. Ridge By Openings / Ridge By Points compute the ridge geometry on a background thread; that calculation cannot be
+cancelled, only the Revit steps after it (reading the roof, adding points, drawing lines).
 
 ## [6.39.0] — 2026-11-06
 

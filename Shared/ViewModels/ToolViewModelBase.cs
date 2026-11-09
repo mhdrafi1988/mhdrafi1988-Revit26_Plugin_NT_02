@@ -92,9 +92,9 @@ namespace Revit26_Plugin_Revised.Shared.ViewModels
                 ? $"Cancelled by user after {done} of {total}. Model changes made by this run were undone."
                 : "Cancelled by user. Model changes made by this run were undone.");
 
-        /// <summary>Cancel button: asks the active run to cancel (a Yes/No confirmation follows).</summary>
+        /// <summary>Cancel button (<c>RequestCancelRunCommand</c>): asks the active run to cancel (a Yes/No confirmation follows).</summary>
         [RelayCommand]
-        private void CancelRun() => _activeRun?.RequestCancel();
+        private void RequestCancelRun() => _activeRun?.RequestCancel();
 
         // ── Log helper ────────────────────────────────────────────────────────
         protected void AddLog(LogLevel level, string message)

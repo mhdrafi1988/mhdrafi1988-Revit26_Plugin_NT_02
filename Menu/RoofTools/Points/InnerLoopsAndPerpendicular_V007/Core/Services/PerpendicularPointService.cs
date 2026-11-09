@@ -10,6 +10,7 @@
 // TransactionGroup pattern).
 // =======================================================
 
+using Revit26_Plugin_Revised.Shared.Services;
 using Autodesk.Revit.DB;
 using Revit26_Plugin_Revised.InnerLoopsAndPerpendicular.V007.Core.Models;
 using System;
@@ -95,6 +96,7 @@ namespace Revit26_Plugin_Revised.InnerLoopsAndPerpendicular.V007.Core.Services
             // ── 4. Per group: cast perpendicular feet onto the outer boundary, bucketed into 8 directions relative to orientation ──
             for (int g = 0; g < groups.Count; g++)
             {
+                ToolCancellation.CheckCurrent();
                 var group = groups[g];
                 XYZ centroid = GroupCentroid(group);
                 double elevationZ = group.Min(p => p.Z);
@@ -210,6 +212,7 @@ namespace Revit26_Plugin_Revised.InnerLoopsAndPerpendicular.V007.Core.Services
 
                     foreach (var p in validPoints)
                     {
+                        ToolCancellation.CheckCurrent();
                         string lastError = null;
                         bool placed = false;
 
@@ -253,6 +256,10 @@ namespace Revit26_Plugin_Revised.InnerLoopsAndPerpendicular.V007.Core.Services
                     tx.Commit();
                     return pointsAdded;
                 }
+            }
+            catch (OperationCanceledException)
+            {
+                throw; // user cancel: never swallowed as a failure
             }
             catch (Exception)
             {

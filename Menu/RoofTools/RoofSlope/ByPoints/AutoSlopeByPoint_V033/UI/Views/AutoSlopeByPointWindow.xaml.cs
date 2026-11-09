@@ -79,9 +79,8 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V033.UI.Views
             if (e.Key != Key.Escape) return;
             e.Handled = true;
 
-            if (_vm.CancelRunCommand.CanExecute(null))
-                _vm.CancelRunCommand.Execute(null);
-            else if (_vm.State != RunState.Picking)
+            // While a run is active Esc is handled by ToolCancellation (Yes/No confirm); this is the idle case.
+            if (_vm.State != RunState.Picking)
                 Close();
         }
 

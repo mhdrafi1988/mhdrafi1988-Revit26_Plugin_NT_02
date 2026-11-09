@@ -1,3 +1,4 @@
+using Revit26_Plugin_Revised.Shared.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -136,6 +137,7 @@ namespace Revit26_Plugin_Revised.RoofEdgeVertexReducer.V009.Core.Services
 
             foreach (var v in vertices)
             {
+                ToolCancellation.CheckCurrent();
                 XYZ p = Flatten(v.Position);
                 RoofSegment best = null;
                 double bestDist = double.MaxValue;
@@ -186,6 +188,7 @@ namespace Revit26_Plugin_Revised.RoofEdgeVertexReducer.V009.Core.Services
 
             foreach (var kv in bySegment)
             {
+                ToolCancellation.CheckCurrent();
                 var seg = kv.Key;
                 var ordered = kv.Value.OrderBy(x => x.t).ToList();
                 if (ordered.Count == 0) continue;
@@ -308,6 +311,7 @@ namespace Revit26_Plugin_Revised.RoofEdgeVertexReducer.V009.Core.Services
             int removed = 0;
             foreach (var d in decisions.Where(d => d.WillRemove))
             {
+                ToolCancellation.CheckCurrent();
                 try
                 {
                     // Use DeletePoint instead of RemovePoint

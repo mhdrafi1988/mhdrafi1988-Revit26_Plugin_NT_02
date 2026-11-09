@@ -62,6 +62,7 @@ namespace Revit26_Plugin_Revised.Shared.Services
         private readonly int _threadId = Environment.CurrentManagedThreadId;
         private readonly bool _drivesShell;
         private Action<double, string> _shellProgress;
+        private bool _wasRunning;
 
         private bool _requested;
         private bool _asking;
@@ -92,6 +93,7 @@ namespace Revit26_Plugin_Revised.Shared.Services
                     if (_drivesShell)
                     {
                         // SetCurrentValue keeps the view model's bindings on these properties intact.
+                        _wasRunning = _shell.IsRunning; // a tool whose run spans several event calls keeps its own state
                         _shell.SetCurrentValue(ToolWindowShell.IsRunningProperty, true);
                         _shell.SetCurrentValue(ToolWindowShell.ProgressProperty, 0.0);
                         _shellProgress = (percent, text) =>
@@ -187,6 +189,13 @@ namespace Revit26_Plugin_Revised.Shared.Services
             run.RequestCancel();
             return true;
         }
+
+        /// <summary>
+        /// Asks the active run of <paramref name="tool"/> to cancel, finding the tool's open window.
+        /// For tool windows that keep their own Cancel button: the button's command calls this.
+        /// Returns false when that tool has no active run.
+        /// </summary>
+        public static bool RequestFor(ToolInfo tool) => RequestFor(FindWindow(tool));
 
         /// <summary>Token for work that runs on background threads; cancelled when the user answers Yes. Never call the Revit API from a background thread.</summary>
         public CancellationToken Token => _cts.Token;
@@ -284,7 +293,7 @@ namespace Revit26_Plugin_Revised.Shared.Services
                     _shell.IsCancellable = false;
                     if (_drivesShell)
                     {
-                        _shell.SetCurrentValue(ToolWindowShell.IsRunningProperty, false);
+                        _shell.SetCurrentValue(ToolWindowShell.IsRunningProperty, _wasRunning);
                         if (_cts.IsCancellationRequested)
                             _shell.SetCurrentValue(ToolWindowShell.SummaryTextProperty, "Cancelled by user.");
                     }
