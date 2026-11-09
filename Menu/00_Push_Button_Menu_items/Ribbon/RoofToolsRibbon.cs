@@ -228,7 +228,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
         /// <summary>Creates the Roof Edit, Plan View, Compare and Insulation panels, in that order.</summary>
         public static void BuildEditComparePanels(UIControlledApplication app, string tabName, string assemblyPath)
         {
-            // Roof Edit — Roof Name Builder (V002), Island Roof Splitter (V002, V001 WIP) and Merge Roofs (V001).
+            // Roof Edit — Roof Name Builder (V002), Island Roof Splitter (V002, V001 WIP) Merge Roofs (V001) and Split Roof (V001).
             RibbonPanel roofEditPanel = app.CreateRibbonPanel(tabName, "Roof Edit");
             var nameBuilderV002 = Btn(assemblyPath, "Btn_RoofNameBuilder_V002", "Name Builder V002", "Revit26_Plugin_Revised.RoofNameBuilder.V002.Commands.RoofNameBuilderCommand",
                 "CreateRoofromLInes_16.png", "Roof Name Builder", "V002", "Bulk rename roof types/instances with configurable INS/SLP/MAT codes; re-runs update existing codes.");
@@ -240,11 +240,16 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                 "DetailLineIntersect_16.png", "Merge Roofs", "V001");
             mergeRoofs.ToolTip = Revit26_Plugin_Revised.Shared.Services.ToolCatalog.MergeRoofs.Tip(
                 "Select several footprint roofs and create one new roof from their combined outline. The original roofs are kept.");
+            var splitRoof = Btn(assemblyPath, "Btn_SplitRoof_V001", "Split Roof", "Revit26_Plugin_Revised.SplitRoof.V001.Commands.SplitRoofCommand",
+                "DetailLineIntersect_16.png", "Split Roof", "V001");
+            splitRoof.ToolTip = Revit26_Plugin_Revised.Shared.Services.ToolCatalog.SplitRoof.Tip(
+                "Split one footprint roof into several along straight detail or model lines. The original roof is kept unless you choose to delete it.");
             var roofEditItems = RibbonLayoutHelper.AddStackedButtons(roofEditPanel, new List<RibbonItemData>
             {
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_RoofNameBuilder", "Name Builder", nameBuilderV002),
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_IslandRoofSplitter", "Island Splitter", islandSplitterV002),
                 mergeRoofs,
+                splitRoof,
             });
             RibbonLayoutHelper.WirePulldownButton(roofEditItems, "Pulldown_RoofNameBuilder", nameBuilderV002);
             RibbonLayoutHelper.WirePulldownButton(roofEditItems, "Pulldown_IslandRoofSplitter", islandSplitterV002, islandSplitterV001);

@@ -9,6 +9,19 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.42.0] — 2026-11-09
+
+### Split Roof 1.0.0 (new)
+
+#### Added
+- **Split Roof** (Roof Edit panel): select one footprint roof and one or more straight detail or model lines, then split the roof into separate footprint roofs along those lines.
+  - Each line is extended past its ends and cuts the whole roof; a line that does not cross it is ignored and listed in the window.
+  - **Check** previews the pieces with their plan areas and warns about a piece with no sloped edge (it would be flat).
+  - Every piece takes the roof's type, level and base offset, and each edge keeps the slope of the roof edge it came from. New edges along a cut are flat. Arcs are kept when possible, otherwise the pieces are created once more with straight segments.
+  - All pieces are created in one transaction: if Revit rejects any, nothing is changed.
+
+User note: the original roof is kept unless you tick "Delete the original roof after splitting". Shape-editing points and sub-elements are not copied to the pieces.
+
 ## [6.41.0] — 2026-11-09
 
 ### Merge Roofs 1.0.0 (new)

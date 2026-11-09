@@ -1,0 +1,108 @@
+<title>Split Roof Window</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<!-- UI preview (CLAUDE.md "UI previews"): Split Roof V001, tool 1.0.0 (new), plugin 6.42.0.
+     Shows: the Roof Edit ribbon button and tooltip, and the Split Roof window after Check and after Split roof.
+     Mirrors: Menu/RoofTools/Modelling/SplitRoof_V001/UI/Views/SplitRoofWindow.xaml (+ SplitRoofViewModel),
+              Menu/00_Push_Button_Menu_items/Ribbon/RoofToolsRibbon.cs
+     Artifact: https://claude.ai/artifact/TaTWzKTZUk7YZDPpwAh33t (republish to this URL on every update)
+     Colours: Shared/SharedStyles.xaml tokens, one light look on purpose (mirrors the light WPF window). -->
+<style>
+/* Layout: one column of captioned mock-ups; each fixed-width Revit piece scrolls in its own frame. */
+:root{--surface-window:#F3F5F7;--surface-card:#FFFFFF;--navy:#1E3A5F;--border:#D6DCE3;--text:#1A2B3C;--text-2:#5B7185;
+--new:#1F8A4C;--new-bg:#E3F4EA;--warn:#B26A00;--warn-bg:#FFF1D6;--bad:#B3261E;--page:#E9EDF1;
+--font:"Segoe UI",system-ui,-apple-system,sans-serif;--mono:ui-monospace,Consolas,monospace;color-scheme:light}
+html{background:var(--page)}
+body{margin:0;background:var(--page);color:var(--text);font:14px/1.45 var(--font);
+padding-block:20px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+h1{font-size:22px;margin:0;color:var(--navy);text-wrap:balance}
+h2{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-2);margin:0 0 8px}
+p{margin:0}.muted{color:var(--text-2)}
+.tag{display:inline-block;font-size:11px;font-weight:600;color:var(--new);background:var(--new-bg);border-radius:3px;padding:1px 6px;margin-left:6px;vertical-align:middle}
+.frame{overflow-x:auto}
+.win{width:520px;background:var(--surface-window);border:1px solid var(--border);box-shadow:0 4px 14px rgba(0,0,0,.15)}
+.title{background:var(--navy);color:#fff;padding:7px 12px;font-size:12.5px}
+.body{padding:14px;display:flex;flex-direction:column;gap:10px}
+.list{background:var(--surface-card);border:1px solid var(--border);padding:4px 0;min-height:48px}
+.list div{padding:3px 8px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.input{background:var(--surface-card);border:1px solid var(--border);padding:3px 8px;width:54px;text-align:right}
+.chk{width:13px;height:13px;border:1px solid var(--navy);background:var(--navy);display:inline-block;position:relative}
+.chk::after{content:"";position:absolute;left:3px;top:0;width:3px;height:7px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}
+.note{color:var(--text-2);font-size:12.5px}
+.issues{background:var(--surface-card);border:1px solid var(--border);padding:6px 8px;display:flex;flex-direction:column;gap:3px;min-height:64px}
+.status{font-size:13px}
+.btns{display:flex;gap:8px;justify-content:flex-end}
+.btn{border:1px solid var(--border);background:var(--surface-card);padding:5px 0;text-align:center;font-weight:600;font-size:12.5px}
+.btn.p{background:var(--navy);color:#fff;border-color:var(--navy)}
+.ribbon{display:inline-flex;gap:0;background:var(--surface-card);border:1px solid var(--border);padding:8px 10px}
+.rb{display:flex;align-items:center;gap:6px;padding:3px 8px;font-size:12px;border:1px solid transparent}
+.rb.hot{border-color:var(--navy);background:#E6EEF7}
+.panel-name{border-top:1px solid var(--border);margin-top:6px;padding-top:3px;text-align:center;font-size:11px;color:var(--text-2)}
+.tip{width:340px;background:#FFFFF4;border:1px solid #B8B8A0;padding:8px 10px;font-size:12px;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+.dlg{width:430px;background:var(--surface-card);border:1px solid var(--border);box-shadow:0 4px 14px rgba(0,0,0,.15)}
+.dlg .h{padding:12px 14px 4px;color:var(--navy);font-size:15px}
+.dlg .c{padding:0 14px 12px;font-size:12.5px;color:var(--text-2)}
+.dlg .f{background:var(--surface-window);padding:8px 14px;display:flex;gap:8px;justify-content:flex-end}
+.dlg .f span{border:1px solid var(--border);background:var(--surface-card);padding:3px 18px;font-size:12.5px}
+.warn{color:var(--warn)}
+.plan{background:var(--surface-card);border:1px solid var(--border);display:block}
+</style>
+<main>
+<header>
+  <h1>Split Roof <span class="tag">New in 1.0.0</span></h1>
+  <p class="muted">Static mock-up of what you see in Revit. All roof and line ids, areas and sizes are sample data.</p>
+</header>
+
+<section>
+  <h2>Ribbon: Rafi_Pro_MOds2 &gt; Roof Edit</h2>
+  <div class="frame">
+    <div class="ribbon"><div>
+      <div style="display:flex;gap:6px">
+        <div class="rb">Name Builder ▾</div><div class="rb">Island Splitter ▾</div>
+        <div class="rb">Merge Roofs</div><div class="rb hot">Split Roof <span class="tag">New</span></div>
+      </div>
+      <div class="panel-name">Roof Edit</div></div></div>
+    <div class="tip" style="margin-top:6px"><b>Split Roof — v1.0.0 (build V001)</b><br>Split one footprint roof into several along straight detail or model lines. The original roof is kept unless you choose to delete it.</div>
+  </div>
+</section>
+
+<section>
+  <h2>How it works <span class="tag">New</span></h2>
+  <p class="muted" style="margin-bottom:8px">Select a footprint roof, then the straight lines to cut along. Each line is extended past its ends. Two lines make four pieces here.</p>
+  <div class="frame"><svg class="plan" width="360" height="190" viewBox="0 0 360 190" role="img" aria-label="Roof outline cut by two lines into four pieces">
+    <polygon points="30,30 330,30 330,160 30,160" fill="#E6EEF7" stroke="#1E3A5F" stroke-width="2"/>
+    <line x1="150" y1="10" x2="150" y2="180" stroke="#B3261E" stroke-width="2" stroke-dasharray="6 4"/>
+    <line x1="10" y1="95" x2="350" y2="95" stroke="#B3261E" stroke-width="2" stroke-dasharray="6 4"/>
+    <g font-family="Segoe UI,system-ui,sans-serif" font-size="12" fill="#1A2B3C"><text x="82" y="66">Piece 1</text><text x="82" y="134">Piece 2</text><text x="222" y="66">Piece 3</text><text x="222" y="134">Piece 4</text></g>
+  </svg></div>
+</section>
+
+<section>
+  <h2>Window after Check</h2>
+  <div class="frame"><div class="win">
+    <div class="title">Split Roof — v1.0.0</div>
+    <div class="body">
+      <b>Roof to split</b>
+      <div>Roof 482113 — Roof Main</div>
+      <b>Cut lines</b>
+      <div class="list"><div>Line 491002</div><div>Line 491007</div></div>
+      <b>Pieces <span class="tag">New</span></b>
+      <div class="issues"><span>Piece 1  —  96.40 m²</span><span>Piece 2  —  88.15 m²</span><span>Piece 3  —  141.72 m²</span><span class="warn">Piece 4  —  62.03 m²  (flat)</span></div>
+      <div class="row"><span class="chk" style="background:var(--surface-card)"></span> Delete the original roof after splitting <span class="tag">New</span></div>
+      <div class="note">Each line is extended past its ends and cuts the whole roof. Shape-editing points and sub-elements are not copied to the pieces.</div>
+      <div class="note warn">Piece 4 has no sloped edge and will be created flat.</div>
+      <div class="status">The roof will be split into 4 pieces. Ready to split.</div>
+      <div class="btns"><span class="btn" style="width:90px">Check</span><span class="btn p" style="width:110px">Split roof</span><span class="btn" style="width:80px">Close</span></div>
+    </div>
+  </div></div>
+</section>
+
+<section>
+  <h2>After Split roof</h2>
+  <div class="frame"><div class="win">
+    <div class="title">Split Roof — v1.0.0</div>
+    <div class="body"><div class="status">Created 4 roofs (arcs kept). The original roof was kept: hide or delete it yourself.</div></div>
+  </div></div>
+</section>
+</main>
