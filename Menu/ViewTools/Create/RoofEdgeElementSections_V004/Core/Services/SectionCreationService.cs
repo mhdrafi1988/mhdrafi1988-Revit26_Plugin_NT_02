@@ -1,3 +1,4 @@
+using Revit26_Plugin_Revised.Shared.Services;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -39,6 +40,7 @@ namespace Revit26_Plugin_Revised.RoofEdgeElementSections.V004
 
             foreach (var roofGroup in byRoof)
             {
+                ToolCancellation.CheckCurrent();
                 using (Transaction t = new Transaction(doc, $"Create Roof Edge Element Sections — Roof {roofGroup.Key.Value}"))
                 {
                     t.Start();
@@ -47,6 +49,7 @@ namespace Revit26_Plugin_Revised.RoofEdgeElementSections.V004
                     {
                         foreach (PlannedSection row in roofGroup)
                         {
+                            ToolCancellation.CheckCurrent();
                             log.Add(new LogEntry(LogLevel.Info,
                                 $"Creating {row.SectionViewName} ({row.MatchedCategoryName}, {row.MatchedElementCount} element(s))..."));
 
@@ -69,6 +72,10 @@ namespace Revit26_Plugin_Revised.RoofEdgeElementSections.V004
 
                                 log.Add(new LogEntry(LogLevel.Success, $"{row.SectionViewName} created (View Id {view.Id.Value})."));
                             }
+                            catch (OperationCanceledException)
+                            {
+                                throw; // user cancel: never swallowed as a failure
+                            }
                             catch (Exception exRow)
                             {
                                 result.FailedCount++;
@@ -87,6 +94,10 @@ namespace Revit26_Plugin_Revised.RoofEdgeElementSections.V004
                                 result.CreatedViewIds.Count - thisRoofCreated, thisRoofCreated);
                             result.FailedCount += roofGroup.Count();
                         }
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        throw; // user cancel: never swallowed as a failure
                     }
                     catch (Exception exRoof)
                     {

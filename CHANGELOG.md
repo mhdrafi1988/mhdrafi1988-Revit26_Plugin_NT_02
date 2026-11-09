@@ -33,6 +33,11 @@ Each release lists every tool whose version changed, under the plugin version.
 - **Floor Tools group** (all tools in `Menu/FloorTools`, latest version of each): Esc / Cancel with a Yes / No confirm while the tool works,
   same behaviour as the Roof Tools: Floors And Roof From Linked Rooms 13.2.0, Floors And Roof From Linked Rooms (Via Plan View) 6.2.0, Floor Slope By Drain 1.1.0, Floor Slope By Point 1.1.0, Floor Slope By Point (Ridge) 1.1.0, Floor Slope By Point (Multi Copies) 1.1.0, Floor Points & Slope 1.1.0, Floor Divide Inner Loops 1.1.0, Floor Outer Curve Divider 1.1.0, Floor Detail Line Intersect 1.1.0, Floor Inner Loops And Perpendicular 1.1.0, Floor Edge Vertex Reducer 1.1.0, Floor Multiple Points (1/2–1/4) 1.1.0, Floor Shape From Link 1.1.0, Floor Crease Lines By Openings 1.1.0, Floor Crease Lines By Points 1.1.0, Floor Creaser 1.1.0, Floor Type Manager 1.1.0, Floor Name Builder 1.1.0, Floor Point Comparison 1.1.0, Floor Point Elevation Sync 1.1.0, Floor Tapered EPS 2D Pattern 1.1.0.
 
+- **View Tools group** (all tools in `Menu/ViewTools`, latest version of each; View Auto Renamer was the pilot): Esc / Cancel with a Yes / No confirm
+  while the tool works: Create Sections From Detail Lines 13.2.0, Floor Edge Around Sections 1.1.0, Floor Edge Element Sections 1.1.0, Floor View Focus 1.1.0, Isolated Section 1.1.0, Roof Edge Around Sections 7.3.0, Roof Edge Element Sections 4.2.0, Roof View Focus 4.2.0, Section View Auto Tagger 6.2.0, Auto Place Sections 324.2.0, Callout To Section View Placement 21.2.0, Reference Section Head Placer 15.2.0, Bubble Auto Renumber 9.2.0, Section Auto Renamer 26.2.0.
+  Create Sections From Detail Lines, Auto Place Sections and the Roof / Floor Edge Sections tools create their sections in one group, so a cancel removes every
+  section or viewport of the run.
+
 #### Changed
 - View Auto Renamer 7.2.0: the rename now runs in one transaction group.
 - Auto Slope By Drain (Multi-Roof) 13.2.0 and Auto Slope By Point (Multi Copies) 30.2.0: a cancel now undoes the whole run.
@@ -42,6 +47,8 @@ Each release lists every tool whose version changed, under the plugin version.
 - Floor Slope By Drain 1.1.0 and Floor Slope By Point (Multi Copies) 1.1.0: a cancel now undoes the whole run (before, finished floors or copies stayed).
   Floors And Roof From Linked Rooms 13.2.0 and (Via Plan View) 6.2.0: a cancel now removes every element the run created (before, the ones already made were kept).
   Their separate "Cancel" / "Cancel Run" buttons are replaced by the shared Cancel button, which asks for confirmation.
+- Create Sections From Detail Lines 13.2.0: a cancel now undoes the whole run (before, the sections already created stayed).
+  Reference Section Head Placer 15.2.0: the disabled Cancel button is replaced by the shared one, which works.
 - Roof Points & Slope 1.2.0: the separate "Cancel Run" button is replaced by the shared Cancel button; it asks for confirmation.
 
 User note: cancelling a run undoes every model change made by that run (a cancelled rename leaves all view names as they
