@@ -74,6 +74,10 @@ namespace Revit26_Plugin_Revised.SheetAutoRearrange.V028.Infrastructure.External
         {
             var doc = app.ActiveUIDocument.Document;
 
+            // Esc / Cancel with a Yes-No confirm while Run rearranges; the engine's transaction is rolled back.
+            using ToolCancellation cancel = Action == SheetAutoRearrangeAction.RunRearrange
+                ? ToolCancellation.BeginFor(ToolCatalog.SheetAutoRearrange, app)
+                : null;
             try
             {
                 switch (Action)
@@ -86,6 +90,12 @@ namespace Revit26_Plugin_Revised.SheetAutoRearrange.V028.Infrastructure.External
                         ExecuteRun(doc);
                         break;
                 }
+            }
+            catch (OperationCanceledException)
+            {
+                LastRunResult = new RunResult { Success = false, ErrorMessage = "Cancelled by user. Nothing was changed." };
+                Log?.Add(new LogEntry(LogLevel.Warning, "Cancelled by user. Nothing was changed."));
+                throw; // ToolGuard treats it as a user cancel; finally still completes the request
             }
             finally
             {

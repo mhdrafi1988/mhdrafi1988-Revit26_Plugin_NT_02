@@ -57,8 +57,15 @@ namespace Revit26_Plugin_Revised.RoofTools.LineAndPoints.RoofRidgeLines.V059.Ser
             {
                 try
                 {
-                    item.Work(app);
+                    // Esc / Cancel with a Yes-No confirm while this piece of Revit work runs.
+                    using (ToolCancellation.BeginFor(ToolCatalog.RidgeByPoints, app))
+                        item.Work(app);
                     item.Tcs.TrySetResult(true);
+                }
+                catch (OperationCanceledException)
+                {
+                    // The awaiting view model sees a cancelled task and reports "Cancelled by user".
+                    item.Tcs.TrySetCanceled();
                 }
                 catch (Exception ex)
                 {

@@ -144,6 +144,8 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Commands
         /// <summary>Applies <paramref name="plan"/> as one Undo step and reports the result.</summary>
         public static Result Apply(AlignContext ctx, ArrangePlan plan, string whatHappened)
         {
+            // Esc / Cancel with a Yes-No confirm; the move transaction rolls back on cancel.
+            using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.AlignSpotElevations, ctx.UiDoc?.Application);
             int moved = SpotAlignService.Apply(ctx.Doc, ctx.View, plan.Entries, ctx.Read.Scale, ctx.Title,
                 out string error, out int endsShort);
             if (error != null)

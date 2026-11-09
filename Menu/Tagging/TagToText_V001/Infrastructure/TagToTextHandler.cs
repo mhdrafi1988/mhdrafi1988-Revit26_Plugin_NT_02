@@ -22,7 +22,11 @@ namespace Revit26_Plugin_Revised.TagToText.V001.Infrastructure
         {
             var action = _pending;
             _pending = null;
-            action?.Invoke(app);
+            if (action == null) return;
+
+            // Esc / Cancel with a Yes-No confirm; the service rolls its group back and reports the cancel.
+            using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.TagToText, app);
+            action.Invoke(app);
         }
 
         /// <inheritdoc/>

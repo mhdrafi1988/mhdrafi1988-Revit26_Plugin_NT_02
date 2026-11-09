@@ -5,6 +5,7 @@
 
 using Autodesk.Revit.DB;
 using System;
+using Revit26_Plugin_Revised.Shared.Services;
 using System.Collections.Generic;
 
 namespace Revit26_Plugin_Revised.CreaserAdv.V012.Services
@@ -68,6 +69,7 @@ namespace Revit26_Plugin_Revised.CreaserAdv.V012.Services
 
             for (int i = 0; i < lines.Count; i++)
             {
+                ToolCancellation.CheckCurrent(); // user cancel: the caller's transaction group rolls everything back
                 Line line = lines[i];
 
                 if (line == null)

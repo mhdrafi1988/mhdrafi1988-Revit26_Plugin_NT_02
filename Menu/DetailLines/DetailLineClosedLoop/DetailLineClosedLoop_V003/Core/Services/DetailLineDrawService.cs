@@ -1,3 +1,4 @@
+using Revit26_Plugin_Revised.Shared.Services;
 using System.Collections.Generic;
 using Autodesk.Revit.DB;
 
@@ -11,6 +12,7 @@ namespace Revit26_Plugin_Revised.DetailLineClosedLoop.V003.Core.Services
             var ids = new List<ElementId>();
             foreach (Curve c in loop)
             {
+                ToolCancellation.CheckCurrent();
                 DetailCurve dc = doc.Create.NewDetailCurve(view, c);
                 ids.Add(dc.Id);
             }

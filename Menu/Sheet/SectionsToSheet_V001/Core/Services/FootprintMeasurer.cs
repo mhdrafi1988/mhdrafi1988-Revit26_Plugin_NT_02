@@ -1,3 +1,4 @@
+using Revit26_Plugin_Revised.Shared.Services;
 using Autodesk.Revit.DB;
 using Revit26_Plugin_Revised.SectionsToSheet.V001.Core.Layout;
 using Revit26_Plugin_Revised.SectionsToSheet.V001.Core.Models;
@@ -61,6 +62,7 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.Core.Services
                 // Views on a sheet now are measured as they will be after the move: off their old sheet first.
                 foreach (var section in list.Where(s => s.IsOnSheet))
                 {
+                    ToolCancellation.CheckCurrent();
                     try
                     {
                         RemoveExistingViewport(doc, new ElementId(section.Key));

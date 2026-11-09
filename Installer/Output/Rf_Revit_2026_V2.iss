@@ -46,6 +46,7 @@ Source: "{#SourceBase}\Revit26_Plugin_Revised.deps.json";    DestDir: "{app}"; F
 
 ; --- CommunityToolkit ---
 Source: "{#SourceBase}\CommunityToolkit.Mvvm.dll";   DestDir: "{app}"; Flags: ignoreversion
+Source: "{#SourceBase}\Clipper2Lib.dll";   DestDir: "{app}"; Flags: ignoreversion
 
 ; --- ControlzEx ---
 Source: "{#SourceBase}\ControlzEx.dll";              DestDir: "{app}"; Flags: ignoreversion

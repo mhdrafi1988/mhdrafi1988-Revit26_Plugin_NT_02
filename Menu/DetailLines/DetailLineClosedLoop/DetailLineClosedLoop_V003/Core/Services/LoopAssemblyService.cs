@@ -1,3 +1,4 @@
+using Revit26_Plugin_Revised.Shared.Services;
 using System;
 using System.Collections.Generic;
 using Autodesk.Revit.DB;
@@ -28,6 +29,7 @@ namespace Revit26_Plugin_Revised.DetailLineClosedLoop.V003.Core.Services
 
             for (int n = 0; n < graph.Nodes.Count; n++)
             {
+                ToolCancellation.CheckCurrent();
                 int degree = graph.Degree(n);
                 if (degree != 2)
                 {
@@ -86,6 +88,7 @@ namespace Revit26_Plugin_Revised.DetailLineClosedLoop.V003.Core.Services
             int count = ordered.Count;
             for (int i = 0; i < count; i++)
             {
+                ToolCancellation.CheckCurrent();
                 for (int j = i + 2; j < count; j++)
                 {
                     if (i == 0 && j == count - 1) continue; // adjacent via wraparound

@@ -20,6 +20,7 @@
 //     curves survived each stage, so a run that places nothing says why.
 // =======================================================
 
+using Revit26_Plugin_Revised.Shared.Services;
 using Autodesk.Revit.DB;
 using Revit26_Plugin_Revised.FloorCreaser.V001.Core.Models;
 using Revit26_Plugin_Revised.FloorCreaser.V001.Services;
@@ -64,6 +65,7 @@ namespace Revit26_Plugin_Revised.FloorCreaser.V001.Core.Engine
             var funnel = new Funnel();
 
             // ── 1. Extract crease (+ optional boundary) curves ────────────────
+            ToolCancellation.CheckCurrent();
             log.Section($"Step 1/{TotalSteps} — Floor curves");
             FloorCurveSet curveSet = new FloorSharedTopFaceCreaseService(log)
                 .Extract(floor, payload.IncludeBoundaryLines);
@@ -87,6 +89,7 @@ namespace Revit26_Plugin_Revised.FloorCreaser.V001.Core.Engine
                 log.Warning("No crease edges on this floor — continuing with boundary lines only.");
 
             // ── 1b. Drop horizontal creases (always) ──────────────────────────
+            ToolCancellation.CheckCurrent();
             log.Section($"Step 2/{TotalSteps} — Horizontal crease filter");
             creaseCurves = new HorizontalCreaseFilterService(log).FilterOutHorizontalCreases(creaseCurves);
             funnel.Add("non-horizontal", creaseCurves.Count);
@@ -101,6 +104,7 @@ namespace Revit26_Plugin_Revised.FloorCreaser.V001.Core.Engine
 
             if (payload.EnableDijkstraPathFilter)
             {
+                ToolCancellation.CheckCurrent();
                 log.Section($"Step 3/{TotalSteps} — Drain path (Dijkstra) filter");
                 var dijkstraResult = new DijkstraPathValidityService(log).FilterByPathValidity(
                     creaseCurves, boundaryCurves, payload.MinimumSlopePercent, payload.EnableMinimumSlope);
@@ -123,6 +127,7 @@ namespace Revit26_Plugin_Revised.FloorCreaser.V001.Core.Engine
             }
 
             // ── 3. Project to the plan view ───────────────────────────────────
+            ToolCancellation.CheckCurrent();
             log.Section($"Step 4/{TotalSteps} — Project to plan view '{planView.Name}'");
             (creaseCurves, IList<Line> creaseLines2d) = ProjectToPlanView(doc, log, creaseCurves, planView, "crease");
 
@@ -142,6 +147,7 @@ namespace Revit26_Plugin_Revised.FloorCreaser.V001.Core.Engine
             // ── 4. Minimum length (optional, crease only) ─────────────────────
             if (payload.EnableMinimumLength)
             {
+                ToolCancellation.CheckCurrent();
                 log.Section($"Step 5a/{TotalSteps} — Minimum length filter");
                 (creaseCurves, creaseLines2d) = new MinimumLengthFilterService(log)
                     .FilterByMinimumLength(creaseCurves, creaseLines2d, payload.MinimumLengthMm);
@@ -157,6 +163,7 @@ namespace Revit26_Plugin_Revised.FloorCreaser.V001.Core.Engine
             // ── 5. Drain proximity grouping (optional, crease only) ───────────
             if (payload.EnableDrainGrouping && creaseLines2d.Count > 0)
             {
+                ToolCancellation.CheckCurrent();
                 log.Section($"Step 5b/{TotalSteps} — Drain proximity grouping ({payload.DrainGroupingRadiusMm:F0} mm)");
                 double radiusFt = payload.DrainGroupingRadiusMm / FtToMm;
 
@@ -171,6 +178,7 @@ namespace Revit26_Plugin_Revised.FloorCreaser.V001.Core.Engine
             }
 
             // ── 6. Place detail items (the only step that edits the model) ────
+            ToolCancellation.CheckCurrent();
             log.Section($"Step 6/{TotalSteps} — Place detail items");
             var allLines = creaseLines2d.Concat(boundaryLines2d).ToList();
             funnel.Add("to place", allLines.Count);
@@ -191,6 +199,7 @@ namespace Revit26_Plugin_Revised.FloorCreaser.V001.Core.Engine
                     return Summary(creaseCurves.Count, boundaryCurves.Count, 0, failed, ridgePointCount, disconnectedPointCount);
                 }
 
+                ToolCancellation.CheckCurrent(); // last chance to cancel before the commit
                 TransactionStatus status = tx.Commit();
                 if (status != TransactionStatus.Committed)
                 {
@@ -271,6 +280,7 @@ namespace Revit26_Plugin_Revised.FloorCreaser.V001.Core.Engine
 
             foreach (Curve curve in curves)
             {
+                ToolCancellation.CheckCurrent();
                 XYZ a = curve.GetEndPoint(0);
                 XYZ b = curve.GetEndPoint(1);
 

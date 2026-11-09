@@ -72,6 +72,11 @@ namespace Revit26_Plugin_Revised.CreateSections.V013.Services
 
                 orchestrator.Start(_references);
             }
+            catch (OperationCanceledException)
+            {
+                _viewModel.IsRunning = false;
+                throw; // user cancel: ToolGuard reports nothing
+            }
             catch (Exception ex)
             {
                 _viewModel.IsRunning = false;

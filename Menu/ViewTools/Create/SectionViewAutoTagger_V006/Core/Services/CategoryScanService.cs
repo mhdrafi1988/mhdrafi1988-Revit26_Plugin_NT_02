@@ -1,3 +1,4 @@
+using Revit26_Plugin_Revised.Shared.Services;
 using System.Collections.Generic;
 using System.Linq;
 using Autodesk.Revit.DB;
@@ -28,6 +29,7 @@ namespace Revit26_Plugin_Revised.SectionViewAutoTagger.V006
 
             foreach (var viewId in viewIds)
             {
+                ToolCancellation.CheckCurrent();
                 var collector = new FilteredElementCollector(doc, viewId)
                     .WhereElementIsNotElementType();
 

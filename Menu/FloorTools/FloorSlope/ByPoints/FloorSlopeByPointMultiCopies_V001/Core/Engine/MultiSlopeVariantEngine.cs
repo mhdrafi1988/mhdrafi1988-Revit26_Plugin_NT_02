@@ -22,6 +22,7 @@
 //     back — the loop continues to the next slope.
 // =======================================================
 
+using Revit26_Plugin_Revised.Shared.Services;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using Revit26_Plugin_Revised.FloorSlopeByPointMultiCopies.V001.Core.Models;
@@ -84,11 +85,11 @@ namespace Revit26_Plugin_Revised.FloorSlopeByPointMultiCopies.V001.Core.Engine
                 {
                     SlopeRowSetting row = activeRows[rowPos];
 
-                    if (data.CancelToken.IsCancellationRequested)
+                    try { ToolCancellation.CheckCurrent(); }
+                    catch (OperationCanceledException) { wasCancelled = true; }
+                    if (wasCancelled || data.CancelToken.IsCancellationRequested)
                     {
                         wasCancelled = true;
-                        data.Log?.Invoke(new LogEntry(LogLevel.Warning,
-                            $"Cancelled — {results.Count(r => r.Success)} of {totalActive} slope(s) had already committed and stay applied; the rest were not run."));
                         break;
                     }
 
@@ -103,13 +104,30 @@ namespace Revit26_Plugin_Revised.FloorSlopeByPointMultiCopies.V001.Core.Engine
                     if (rowResult.WasCancelled)
                     {
                         wasCancelled = true;
-                        data.Log?.Invoke(new LogEntry(LogLevel.Warning,
-                            $"Cancelled — {results.Count(r => r.Success)} of {totalActive} slope(s) had already committed and stay applied; the rest were not run."));
                         break;
                     }
                 }
 
-                tg.Assimilate();
+                if (wasCancelled)
+                {
+                    // Undo-all: copies that had already committed are rolled back with the rest.
+                    int exported = results.Count(r => !string.IsNullOrEmpty(r.EngineResult?.ExportedFilePath));
+                    int done = results.Count(r => r.Success);
+                    tg.RollBack();
+                    foreach (var r in results.Where(r => r.Success))
+                    {
+                        r.Success = false;
+                        r.WasCancelled = true;
+                        r.ErrorMessage = "Rolled back: the run was cancelled.";
+                    }
+                    data.Log?.Invoke(new LogEntry(LogLevel.Warning,
+                        $"Cancelled: {done} of {totalActive} slope(s) had been created; all of them were undone. " +
+                        $"{exported} Excel file(s) had already been written and are kept."));
+                }
+                else
+                {
+                    tg.Assimilate();
+                }
             }
 
             int copiesCreated = results.Count(r => r.Success);
@@ -193,7 +211,7 @@ namespace Revit26_Plugin_Revised.FloorSlopeByPointMultiCopies.V001.Core.Engine
                             if (info.PercentWithinPhase.HasValue)
                                 onRowProgress?.Invoke(info.PercentWithinPhase.Value);
                             data.Log?.Invoke(new LogEntry(LogLevel.Info, $"[{row.Percent}%] {info.PhaseLabel}"));
-                            UiPumpHelper.DoEvents();
+                            ToolCancellation.CheckCurrent(); // pumps the window and asks "Cancel the process?"
                         }
                     };
 

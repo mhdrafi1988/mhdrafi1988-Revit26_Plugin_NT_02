@@ -1,3 +1,4 @@
+using Revit26_Plugin_Revised.Shared.Services;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using Revit26_Plugin_Revised.SheetViewArrange.V001.Core.Models;
@@ -92,7 +93,7 @@ namespace Revit26_Plugin_Revised.SheetViewArrange.V001.Infrastructure
                 }
                 finally
                 {
-                    done(result ?? Failed("Unexpected error — see the error dialog. Nothing was moved."));
+                    done(result ?? Failed(ToolCancellation.CancelledOr("Unexpected error — see the error dialog. Nothing was moved.", "Cancelled by user. Nothing was moved.")));
                 }
             });
             return _externalEvent.Raise() == ExternalEventRequest.Accepted;

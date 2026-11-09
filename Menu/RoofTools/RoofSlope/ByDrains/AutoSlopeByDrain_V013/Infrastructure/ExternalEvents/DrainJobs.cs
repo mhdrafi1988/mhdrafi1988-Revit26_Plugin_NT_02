@@ -17,6 +17,7 @@
 //                   chosen in the results panel.
 // =======================================================
 
+using Revit26_Plugin_Revised.Shared.Services;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using Revit26_Plugin_Revised.MultiRoofSlopeByDrain.V013.Core.Engine;
@@ -45,19 +46,25 @@ namespace Revit26_Plugin_Revised.MultiRoofSlopeByDrain.V013.Infrastructure.Exter
             var log = _batch.Log ?? (_ => { });
             var roofResults = new List<AutoSlopeDrainRoofResult>();
 
+            // Esc / Cancel with a Yes-No confirm. A cancel undoes the WHOLE run (every roof), not only the
+            // roof in progress; Excel files already written are kept.
+            using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.MultiRoofSlopeByDrainV013, app);
+
             try
             {
                 Document doc = app.ActiveUIDocument?.Document
                     ?? throw new InvalidOperationException("No document is open.");
 
                 bool anySuccess = false;
+                bool cancelled = false;
                 using (var outer = new TransactionGroup(doc, "AutoSlope By Drain"))
                 {
                     outer.Start();
 
                     foreach (AutoSlopeDrainPayload roofPayload in _batch.RoofPayloads ?? new List<AutoSlopeDrainPayload>())
                     {
-                        if (roofPayload.CancelToken.IsCancellationRequested) break; // later roofs never start
+                        if (roofPayload.CancelToken.IsCancellationRequested || cancel.IsCancelled) break; // later roofs never start
+                        ToolCancellation.CheckCurrent();
 
                         AutoSlopeDrainResult result;
                         using (var perRoof = new TransactionGroup(doc, $"AutoSlope By Drain – {roofPayload.RoofName}"))
@@ -89,17 +96,41 @@ namespace Revit26_Plugin_Revised.MultiRoofSlopeByDrain.V013.Infrastructure.Exter
                         if (result.WasCancelled) break;
                     }
 
-                    if (anySuccess) outer.Assimilate();
+                    cancelled = cancel.IsCancelled || roofResults.Any(r => r.Result?.WasCancelled == true);
+                    if (cancelled)
+                    {
+                        // Undo-all: roofs that had already finished are rolled back too.
+                        outer.RollBack();
+                        foreach (var r in roofResults.Where(r => r.Result?.Success == true))
+                        {
+                            r.Result.Success = false;
+                            r.Result.WasCancelled = true;
+                            r.Result.ErrorMessage = "Rolled back: the run was cancelled.";
+                        }
+                    }
+                    else if (anySuccess) outer.Assimilate();
                     else outer.RollBack();
                 }
 
-                if (_batch.WriteCombinedSummary && roofResults.Count(r => r.Result?.Success == true) > 1)
+                if (!cancelled && _batch.WriteCombinedSummary && roofResults.Count(r => r.Result?.Success == true) > 1)
                 {
                     string combinedPath = ExcelExportService.ExportCombinedSummary(
                         roofResults, _batch.ExportFolderPath, _batch.ProjectTitle, log);
                     if (!string.IsNullOrEmpty(combinedPath))
                         log(new LogEntry(LogLevel.Success, $"Combined summary saved: {combinedPath}"));
                 }
+            }
+            catch (OperationCanceledException)
+            {
+                // Cancelled between roofs: the using blocks rolled every group back.
+                foreach (var r in roofResults.Where(r => r.Result != null))
+                {
+                    r.Result.Success = false;
+                    r.Result.WasCancelled = true;
+                    r.Result.ErrorMessage = "Rolled back: the run was cancelled.";
+                }
+                _batch.OnAllCompleted?.Invoke(roofResults);
+                throw; // ToolGuard treats it as a user cancel
             }
             catch (Exception ex)
             {

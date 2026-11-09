@@ -50,7 +50,12 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                 "SetupTools.WorksetRename_16.png", "Workset Renamer", "V005", "V004 on the shared ToolWindowShell (capped grid).");
 
             // Newest build first. "#" at the end of the label marks the version added last.
-            var worksetCreatorV016 = Btn(assemblyPath, "Btn_WorksetCreator_V016", "Workset Creator V016 #",
+            var worksetCreatorV017 = Btn(assemblyPath, "Btn_WorksetCreator_V017", "Workset Creator V017 #",
+                "Revit26_Plugin_Revised.WorksetCreator.V017.Commands.WorksetCreatorCommand",
+                "SetupTools.WorksetManager_16.png", "Workset Creator", "V017",
+                "V016 plus Esc / Cancel with a Yes / No confirm; a cancel undoes the whole run.");
+
+            var worksetCreatorV016 = Btn(assemblyPath, "Btn_WorksetCreator_V016", "Workset Creator V016",
                 "Revit26_Plugin_Revised.WorksetCreator.V016.Commands.WorksetCreatorCommand",
                 "SetupTools.WorksetManager_16.png", "Workset Creator", "V016",
                 "V015 with its own tool name/version source (WorksetCreatorTool).");
@@ -222,7 +227,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             var worksetItems = RibbonLayoutHelper.AddStackedButtonsWithSlideOut(worksetPanel, new List<RibbonItemData>
             {
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_WorksetsElementsBrowser", "WS Browser", wsebV004),
-                RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_WorksetCreator", "WS Creator", worksetCreatorV016),
+                RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_WorksetCreator", "WS Creator", worksetCreatorV017),
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_WorksetRenamer", "WS Renamer", worksetRenamerV005),
             }, new List<RibbonItemData>
             {
@@ -230,7 +235,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_DeleteWorkset", "Delete Workset", deleteWorksetV001),
             });
             RibbonLayoutHelper.WirePulldownButton(worksetItems, "Pulldown_WorksetsElementsBrowser", wsebV004, wsebV003);
-            RibbonLayoutHelper.WirePulldownButton(worksetItems, "Pulldown_WorksetCreator", worksetCreatorV016, worksetCreatorV015);
+            RibbonLayoutHelper.WirePulldownButton(worksetItems, "Pulldown_WorksetCreator", worksetCreatorV017, worksetCreatorV016, worksetCreatorV015);
             RibbonLayoutHelper.WirePulldownButton(worksetItems, "Pulldown_WorksetRenamer", worksetRenamerV005);
             RibbonLayoutHelper.WirePulldownButton(worksetItems, "Pulldown_WorksetRenamerFx", worksetRenamerFx05);
             RibbonLayoutHelper.WirePulldownButton(worksetItems, "Pulldown_DeleteWorkset", deleteWorksetV001);

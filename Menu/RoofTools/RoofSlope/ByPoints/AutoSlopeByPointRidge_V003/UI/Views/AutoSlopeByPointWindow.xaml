@@ -740,15 +740,6 @@ Changes vs V002 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
         <!-- ═══ FOOTER ═══════════════════════════════════════════ -->
         <shell:ToolWindowShell.FooterContent>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <!-- NEW: Cancel sits next to Run, enabled only while a run
-                     is in progress (see CanCancelRun). -->
-                <Button Content="Cancel"
-                        Command="{Binding CancelRunCommand}"
-                        ToolTip="Stop the run. Nothing has been written to the model yet, so cancelling is a true no-op."
-                        Style="{StaticResource SecondaryButton}"
-                        Height="32"
-                        Width="70"
-                        Margin="0,0,8,0"/>
                 <Button Command="{Binding RunCommand}"
                         ToolTip="Calculate and apply slope to roof"
                         Height="32"

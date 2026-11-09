@@ -76,6 +76,10 @@ namespace Revit26_Plugin_Revised.RoofEdgeAroundSections.V007
         {
             var log = new ObservableCollection<LogEntry>();
 
+            // Esc / Cancel with a Yes-No confirm while the plan is built or the sections are created.
+            using ToolCancellation cancel = RequestedAction == RoofEdgeSectionsAction.OpenViews
+                ? null
+                : ToolCancellation.BeginFor(ToolCatalog.RoofEdgeAroundSections, app);
             try
             {
                 Document doc = app.ActiveUIDocument?.Document;
@@ -101,6 +105,13 @@ namespace Revit26_Plugin_Revised.RoofEdgeAroundSections.V007
                         ExecuteOpenViews(app.ActiveUIDocument, log);
                         break;
                 }
+            }
+            catch (OperationCanceledException)
+            {
+                // Each create step was rolled back; the window is told so it never stays busy.
+                log.Add(new LogEntry(LogLevel.Warning, "Cancelled by user. No section views were created."));
+                NotifyFailed(log);
+                throw; // ToolGuard treats it as a user cancel
             }
             catch (Exception ex)
             {
@@ -190,7 +201,23 @@ namespace Revit26_Plugin_Revised.RoofEdgeAroundSections.V007
             }
 
             var creationService = new SectionCreationService();
-            RunResult result = creationService.CreateSections(doc, RowsToProcess, Settings, sectionVft, ViewTemplate, log);
+            RunResult result;
+            // One group around the per-roof transactions, so a cancel removes every section of this run.
+            using (var group = new TransactionGroup(doc, "Create Roof Edge Sections"))
+            {
+                group.Start();
+                try
+                {
+                    result = creationService.CreateSections(doc, RowsToProcess, Settings, sectionVft, ViewTemplate, log);
+                    ToolCancellation.CheckCurrent();
+                    group.Assimilate();
+                }
+                catch
+                {
+                    if (group.GetStatus() == TransactionStatus.Started) group.RollBack();
+                    throw;
+                }
+            }
 
             OnRunComplete?.Invoke(result, log);
         }

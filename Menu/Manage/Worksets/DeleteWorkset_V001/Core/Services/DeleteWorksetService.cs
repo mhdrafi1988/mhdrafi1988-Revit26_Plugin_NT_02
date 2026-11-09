@@ -1,3 +1,4 @@
+using Revit26_Plugin_Revised.Shared.Services;
 using Autodesk.Revit.DB;
 using Revit26_Plugin_Revised.DeleteWorkset.V001.Core.Models;
 using Revit26_Plugin_Revised.Shared.Models;
@@ -36,6 +37,7 @@ namespace Revit26_Plugin_Revised.DeleteWorkset.V001.Core.Services
 
             foreach (var ws in allUser)
             {
+                ToolCancellation.CheckCurrent();
                 int elementCount = CountElements(doc, ws.Id);
                 string owner = ws.Owner ?? string.Empty;
                 bool ownedByOther = owner.Length > 0
@@ -133,6 +135,7 @@ namespace Revit26_Plugin_Revised.DeleteWorkset.V001.Core.Services
 
             foreach (var row in toDelete)
             {
+                ToolCancellation.CheckCurrent();
                 if (confirmCallback != null && !confirmCallback(row))
                 {
                     _log(new LogEntry(LogLevel.Warning, $"Skipped workset '{row.Name}' (not confirmed)."));
@@ -173,6 +176,7 @@ namespace Revit26_Plugin_Revised.DeleteWorkset.V001.Core.Services
                     // 3. Migrate migratable elements.
                     foreach (var id in canMigrate)
                     {
+                        ToolCancellation.CheckCurrent();
                         var el = doc.GetElement(id);
                         if (el == null) continue;
                         var param = el.get_Parameter(BuiltInParameter.ELEM_PARTITION_PARAM);
@@ -222,6 +226,10 @@ namespace Revit26_Plugin_Revised.DeleteWorkset.V001.Core.Services
 
                     tx.Commit();
                 }
+                catch (OperationCanceledException)
+                {
+                    throw; // user cancel: never swallowed as a failure
+                }
                 catch (Exception ex)
                 {
                     tx.RollBack();
@@ -239,6 +247,10 @@ namespace Revit26_Plugin_Revised.DeleteWorkset.V001.Core.Services
         private static bool CanDelete(Document doc, WorksetId id)
         {
             try { return WorksetTable.CanDeleteWorkset(doc, id, new DeleteWorksetSettings()); }
+            catch (OperationCanceledException)
+            {
+                throw; // user cancel: never swallowed as a failure
+            }
             catch (Exception) { return true; } // let the run report the real failure
         }
 
@@ -259,6 +271,7 @@ namespace Revit26_Plugin_Revised.DeleteWorkset.V001.Core.Services
 
             foreach (var id in ids)
             {
+                ToolCancellation.CheckCurrent();
                 var el = doc.GetElement(id);
                 if (el == null) continue;
 

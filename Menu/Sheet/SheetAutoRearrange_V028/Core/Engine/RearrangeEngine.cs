@@ -1,3 +1,4 @@
+using Revit26_Plugin_Revised.Shared.Services;
 using Autodesk.Revit.DB;
 using Revit26_Plugin_Revised.SheetAutoRearrange.V028.Core.Models;
 using Revit26_Plugin_Revised.SheetAutoRearrange.V028.Core.Services;
@@ -101,12 +102,17 @@ namespace Revit26_Plugin_Revised.SheetAutoRearrange.V028.Core.Engine
 
                 foreach (var item in unticked)
                 {
+                    ToolCancellation.CheckCurrent();
                     try
                     {
                         doc.Delete(item.ViewportId);
                         item.FitStatus = ViewFitStatus.NotSelected;
                         result.Removed++;
                         log.Add(new LogEntry(LogLevel.Info, $"Removed from sheet: {item.ViewName} (viewport {item.ViewportId.Value})."));
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        throw; // user cancel: never swallowed as a failure
                     }
                     catch (Exception ex)
                     {
@@ -124,6 +130,7 @@ namespace Revit26_Plugin_Revised.SheetAutoRearrange.V028.Core.Engine
 
                 foreach (var placement in placements)
                 {
+                    ToolCancellation.CheckCurrent();
                     try
                     {
                         if (doc.GetElement(placement.Item.ViewportId) is Viewport vp)
@@ -146,6 +153,10 @@ namespace Revit26_Plugin_Revised.SheetAutoRearrange.V028.Core.Engine
                             }
                         }
                     }
+                    catch (OperationCanceledException)
+                    {
+                        throw; // user cancel: never swallowed as a failure
+                    }
                     catch (Exception ex)
                     {
                         placement.Item.FitStatus = ViewFitStatus.Overflow;
@@ -167,6 +178,10 @@ namespace Revit26_Plugin_Revised.SheetAutoRearrange.V028.Core.Engine
                 log.Add(new LogEntry(LogLevel.Success,
                     $"Run complete — {result.PlacedSuccessfully} placed | {result.Removed} removed | {result.FailedToFit} failed."));
                 return result;
+            }
+            catch (OperationCanceledException)
+            {
+                throw; // user cancel: never swallowed as a failure
             }
             catch (Exception ex)
             {

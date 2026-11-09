@@ -11,6 +11,7 @@
 // shared Action<LogEntry> used across the rest of the suite.
 // ==============================================
 
+using Revit26_Plugin_Revised.Shared.Services;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using System.Collections.Generic;
@@ -113,6 +114,7 @@ namespace Revit26_Plugin_Revised.DwgToDetailLines.V014.Core.Services
 
                 foreach (string msg in preprocessorResult.ResolvedMessages)
                 {
+                    ToolCancellation.CheckCurrent();
                     _log(new LogEntry(LogLevel.Warning, $"Element auto-removed at commit: {msg}"));
                 }
             }
@@ -162,11 +164,13 @@ namespace Revit26_Plugin_Revised.DwgToDetailLines.V014.Core.Services
 
             foreach (var layerGroup in byLayer)
             {
+                ToolCancellation.CheckCurrent();
                 int shortCount = 0;
                 var usable = new List<Curve>();
 
                 foreach (var c in layerGroup)
                 {
+                    ToolCancellation.CheckCurrent();
                     if (c.Curve.Length < tol)
                     {
                         shortCount++;
@@ -199,6 +203,7 @@ namespace Revit26_Plugin_Revised.DwgToDetailLines.V014.Core.Services
 
                 foreach (var c in usable)
                 {
+                    ToolCancellation.CheckCurrent();
                     // Pre-filter above catches raw curve.Length < tol, but Revit's
                     // actual endpoint-distance check inside NewDetailCurve can still
                     // reject curves that pass that filter (e.g. arcs, post-transform
@@ -258,6 +263,7 @@ namespace Revit26_Plugin_Revised.DwgToDetailLines.V014.Core.Services
 
             foreach (var layerGroup in byLayer)
             {
+                ToolCancellation.CheckCurrent();
                 FilledRegionType type = styleService.GetOrResolve(
                     layerGroup.Key, MappedName(hatchTypeMap, layerGroup.Key));
 
@@ -275,6 +281,7 @@ namespace Revit26_Plugin_Revised.DwgToDetailLines.V014.Core.Services
 
                 foreach (var h in layerGroup)
                 {
+                    ToolCancellation.CheckCurrent();
                     // A degenerate or self-intersecting boundary loop (rare, but
                     // possible from faceted DWG solids) throws inside NewFilledRegion.
                     // Isolate per-hatch so one bad boundary doesn't abort the layer.

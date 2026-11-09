@@ -22,7 +22,11 @@ namespace Revit26_Plugin_Revised.DeleteLineStyles.V001.Core.Services
         {
             var action = _pending;
             _pending = null;
-            action?.Invoke(app);
+            if (action == null) return;
+
+            // Esc / Cancel with a Yes-No confirm while the queued Revit work runs; the service rolls back on cancel.
+            using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.DeleteLineStyles, app);
+            action.Invoke(app);
         }
 
         /// <inheritdoc/>

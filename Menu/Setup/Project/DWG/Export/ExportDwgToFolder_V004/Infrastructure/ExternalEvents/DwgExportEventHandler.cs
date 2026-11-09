@@ -157,6 +157,9 @@ namespace Revit26_Plugin_Revised.ExportDwgToFolder.V004.Infrastructure.ExternalE
             ErrorMessage = string.Empty;
             LastRunSucceeded = false;
 
+            // Esc / Cancel with a Yes-No confirm during a scan, an export or the post-export review.
+            using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.ExportDwgToFolder, app);
+            cancel.ConfirmMessage = "Cancel the process?\nModel changes made by this run will be undone. DWG files already exported are kept.";
             try
             {
                 var doc = app.ActiveUIDocument?.Document;
@@ -176,6 +179,14 @@ namespace Revit26_Plugin_Revised.ExportDwgToFolder.V004.Infrastructure.ExternalE
                 }
 
                 LastRunSucceeded = true;
+            }
+            catch (OperationCanceledException)
+            {
+                // DWG files already written stay on disk; model changes of the post-export review were rolled back.
+                ErrorMessage = Request == DwgExportRequest.Export
+                    ? $"Cancelled: {ExportedCount} of {(ToExport?.Count ?? 0)} file(s) exported. Files already written are kept."
+                    : "Cancelled by user. Nothing was changed.";
+                throw; // ToolGuard treats it as a user cancel; finally still completes the request
             }
             catch (Exception ex)
             {
@@ -229,7 +240,9 @@ namespace Revit26_Plugin_Revised.ExportDwgToFolder.V004.Infrastructure.ExternalE
 
             for (int i = 0; i < total; i++)
             {
+                ToolCancellation.CheckCurrent();
                 var info = items[i];
+                ToolCancellation.ReportCurrent(i, total, $"Exporting DWG {i + 1} of {total}…");
                 ExportItemStarted?.Invoke(i, total);
 
                 string destPath = BuildDestPath(OutputFolder, info, settings);
@@ -306,6 +319,7 @@ namespace Revit26_Plugin_Revised.ExportDwgToFolder.V004.Infrastructure.ExternalE
 
                 foreach (var decision in toConvert)
                 {
+                    ToolCancellation.CheckCurrent();
                     if (decision.ElementId != null && !WorksharingGuard.CanEdit(doc, decision.ElementId, out string lockReason))
                     {
                         decision.Succeeded = false;
@@ -331,6 +345,10 @@ namespace Revit26_Plugin_Revised.ExportDwgToFolder.V004.Infrastructure.ExternalE
                             ok = toLink
                                 ? CadInstanceConverter.ReplaceWithLinkToExportedFile(doc, decision, fallbackViewId)
                                 : CadInstanceConverter.ConvertLinkToImport(doc, decision, fallbackViewId);
+                        }
+                        catch (OperationCanceledException)
+                        {
+                            throw; // user cancel: never swallowed as a failure
                         }
                         catch (Exception ex)
                         {
@@ -377,6 +395,7 @@ namespace Revit26_Plugin_Revised.ExportDwgToFolder.V004.Infrastructure.ExternalE
                 tx.Start();
                 foreach (var decision in toDelete)
                 {
+                    ToolCancellation.CheckCurrent();
                     var id = decision.ElementId;
                     try
                     {
@@ -405,6 +424,10 @@ namespace Revit26_Plugin_Revised.ExportDwgToFolder.V004.Infrastructure.ExternalE
                         DeletedCount++;
                         decision.Succeeded = true;
                         decision.Note = "Deleted from the model.";
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        throw; // user cancel: never swallowed as a failure
                     }
                     catch (Exception ex)
                     {

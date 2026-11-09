@@ -7,6 +7,7 @@
 // payload.Operation.
 // =======================================================
 
+using Revit26_Plugin_Revised.Shared.Services;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using Revit26_Plugin_Revised.FloorInnerLoopsAndPerpendicular.V001.Core.Models;
@@ -83,6 +84,7 @@ namespace Revit26_Plugin_Revised.FloorInnerLoopsAndPerpendicular.V001.Core.Engin
 
             foreach (var shape in payload.SelectedLoops)
             {
+                ToolCancellation.CheckCurrent();
                 var sideCandidates = service.GenerateCandidates(
                     floor, shape, payload.OuterLoop, payload.ToleranceMm, payload.GroupProximityMm);
 
@@ -132,6 +134,7 @@ namespace Revit26_Plugin_Revised.FloorInnerLoopsAndPerpendicular.V001.Core.Engin
 
             if (placed >= 0)
             {
+                ToolCancellation.CheckCurrent();
                 log(new LogEntry(LogLevel.Success, $"Done — {placed} perpendicular point(s) added."));
                 return new InnerLoopsAndPerpendicularResult
                 {

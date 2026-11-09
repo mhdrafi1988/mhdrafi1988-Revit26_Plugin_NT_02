@@ -1,3 +1,4 @@
+using Revit26_Plugin_Revised.Shared.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -76,6 +77,7 @@ namespace Revit26_Plugin_Revised.TaperedEpsPattern2D.V006.Revit
                         {
                             foreach (HatchRegion h in request.Pattern.Hatches)
                             {
+                                ToolCancellation.CheckCurrent();
                                 CurveLoop? loop = ToCurveLoop(h.Polygon, z, shortTol);
                                 if (loop == null)
                                 {
@@ -99,6 +101,7 @@ namespace Revit26_Plugin_Revised.TaperedEpsPattern2D.V006.Revit
 
                     foreach (PatternSegment seg in request.Pattern.Segments)
                     {
+                        ToolCancellation.CheckCurrent();
                         XYZ a = UnitConverter.ToModel(seg.Segment.Start, z);
                         XYZ b = UnitConverter.ToModel(seg.Segment.End, z);
                         if (a.DistanceTo(b) < shortTol)
@@ -142,6 +145,7 @@ namespace Revit26_Plugin_Revised.TaperedEpsPattern2D.V006.Revit
 
                         foreach (PatternLabel label in request.Pattern.Labels)
                         {
+                            ToolCancellation.CheckCurrent();
                             TextNote note = TextNote.Create(doc, view.Id, UnitConverter.ToModel(label.Position, z), label.Text, options);
                             created.Add(note.Id);
                             Bucket(buckets, request.Grouping == GroupingMode.GroupPerSide && label.EdgeIndex.HasValue
@@ -168,10 +172,15 @@ namespace Revit26_Plugin_Revised.TaperedEpsPattern2D.V006.Revit
                         }
                     }
 
+                    ToolCancellation.CheckCurrent(); // last chance to cancel before the commit
                     if (t.Commit() != TransactionStatus.Committed)
                     {
                         return PatternWriteResult.Failed("Revit did not commit the transaction; nothing was created.");
                     }
+                }
+                catch (OperationCanceledException)
+                {
+                    throw; // user cancel: never swallowed as a failure
                 }
                 catch (Exception ex)
                 {

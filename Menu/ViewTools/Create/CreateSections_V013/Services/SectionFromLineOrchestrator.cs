@@ -1,4 +1,5 @@
-﻿using Autodesk.Revit.DB;
+﻿using Revit26_Plugin_Revised.Shared.Services;
+using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using System;
 using System.Collections.Generic;
@@ -153,17 +154,17 @@ namespace Revit26_Plugin_Revised.CreateSections.V013.Services
             var created = new List<ElementId>();
             UIDocument uiDoc = new UIDocument(_doc);
 
+            // Esc / Cancel with a Yes-No confirm; a cancel rolls the group back, so no section of this run stays.
+            using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.CreateSections);
             using TransactionGroup tg =
                 new(_doc, "Create Sections From Lines");
             tg.Start();
 
+            try
+            {
             foreach (var r in included)
             {
-                if (_vm.Execution.Token.IsCancellationRequested)
-                {
-                    _log.Warn("Cancelled by user.");
-                    break;
-                }
+                ToolCancellation.CheckCurrent(); // outside the per-line transaction
 
                 if (_doc.GetElement(r) is not DetailLine dl ||
                     dl.GeometryCurve is not Line line)
@@ -235,6 +236,17 @@ namespace Revit26_Plugin_Revised.CreateSections.V013.Services
 
                 if (options.OpenAfterCreate)
                     uiDoc.ActiveView = result.Section;
+            }
+
+            ToolCancellation.CheckCurrent(); // last chance to cancel before the group is kept
+            }
+            catch (OperationCanceledException)
+            {
+                // Undo-all: the group is rolled back, the detail lines stay, no section remains.
+                if (tg.GetStatus() == TransactionStatus.Started) tg.RollBack();
+                _log.Warn($"Cancelled by user after {_vm.CreatedCount} of {included.Count} sections: all sections of this run were undone.");
+                UpdateUi(() => _vm.IsRunning = false);
+                throw; // ToolGuard treats it as a user cancel
             }
 
             tg.Assimilate();

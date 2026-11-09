@@ -49,6 +49,10 @@ namespace Revit26_Plugin_Revised.RoofShapeFromLink.V002.Infrastructure.ExternalE
         public void Execute(UIApplication app) =>
             ToolGuard.RunHandler(GetType(), app, a =>
             {
+                // Esc / Cancel with a Yes-No confirm for reading and applying (picking keeps Revit's own Esc).
+                using ToolCancellation cancel = Pending == Job.PickRoofs
+                    ? null
+                    : ToolCancellation.BeginFor(ToolCatalog.RoofShapeFromLink, a);
                 try
                 {
                     switch (Pending)
@@ -62,7 +66,8 @@ namespace Revit26_Plugin_Revised.RoofShapeFromLink.V002.Infrastructure.ExternalE
                 {
                     _vm.SetBusy(false, null);
                 }
-            });
+            },
+            onCancelled: () => _vm.Log(LogLevel.Warning, "Cancelled by user. Nothing was changed."));
 
         /// <inheritdoc/>
         public string GetName() => "Roof Shape From Link";
@@ -125,6 +130,7 @@ namespace Revit26_Plugin_Revised.RoofShapeFromLink.V002.Infrastructure.ExternalE
             int done = 0;
             foreach (FootPrintRoof roof in roofs)
             {
+                ToolCancellation.CheckCurrent();
                 List<HostPoint> points = HostRoofService.ReadPoints(roof, out string reason);
                 if (points.Count == 0)
                     _vm.Log(LogLevel.Warning, $"{HostRoofService.Label(roof)}: skipped, {reason}.");
@@ -230,6 +236,7 @@ namespace Revit26_Plugin_Revised.RoofShapeFromLink.V002.Infrastructure.ExternalE
                 tg.Start();
                 foreach (var group in groups)
                 {
+                    ToolCancellation.CheckCurrent();
                     _vm.Progress = step++ * 100.0 / groups.Count;
                     var roof = doc.GetElement(new ElementId(group.Key)) as FootPrintRoof;
                     string blocker = HostRoofService.EditBlocker(doc, roof);
@@ -258,6 +265,10 @@ namespace Revit26_Plugin_Revised.RoofShapeFromLink.V002.Infrastructure.ExternalE
                             pointsDone += ok;
                             pointsFailed += failed;
                             roofsDone++;
+                        }
+                        catch (OperationCanceledException)
+                        {
+                            throw; // user cancel: never swallowed as a failure
                         }
                         catch (Exception ex)
                         {
@@ -302,6 +313,7 @@ namespace Revit26_Plugin_Revised.RoofShapeFromLink.V002.Infrastructure.ExternalE
             var warnedBase = new HashSet<long>();
             foreach (var (vertex, row) in fresh)
             {
+                ToolCancellation.CheckCurrent();
                 double baseZ = vertex.Position.Z;
                 if (Math.Abs(baseZ - _vm.ToFeet(row.BaseZ)) > ReadbackToleranceFt && warnedBase.Add(row.RoofId))
                     _vm.Log(LogLevel.Warning, $"{row.RoofLabel}: base surface at a point differs from base level + offset (sloped base); the measured base was used, so the final elevations are still exact.");

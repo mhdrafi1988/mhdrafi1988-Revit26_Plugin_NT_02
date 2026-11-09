@@ -25,6 +25,9 @@ public class RenameSectionsHandler : IExternalEventHandler
 
         int ok = 0, fixedDup = 0, fail = 0;
 
+        // Esc / Cancel with a Yes-No confirm; a cancel undoes every rename of this run.
+        using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.SectionAutoRenamer, app);
+
         using var tx = new Transaction(doc, "SAR12 Rename Sections");
 
         try
@@ -44,8 +47,12 @@ public class RenameSectionsHandler : IExternalEventHandler
                     .Select(v => v.Name),
                 StringComparer.OrdinalIgnoreCase);
 
+            int index = 0;
             foreach (var s in Payload)
             {
+                // Outside the per-item try below, so a cancel is never counted as a failed item.
+                cancel.Step(index++, Payload.Count, $"Renaming sections… {index} of {Payload.Count}");
+
                 try
                 {
                     var v = doc.GetElement(s.ElementId) as ViewSection;
@@ -80,6 +87,7 @@ public class RenameSectionsHandler : IExternalEventHandler
                 }
             }
 
+            cancel.Check(); // last chance to cancel before the commit
             var status = tx.Commit();
             if (status != TransactionStatus.Committed)
             {
@@ -89,6 +97,13 @@ public class RenameSectionsHandler : IExternalEventHandler
 
             Dispatch(() => Vm.LogSuccess(
                 $"Rename complete — OK: {ok}  |  Duplicates fixed: {fixedDup}  |  Failed: {fail}"));
+        }
+        catch (OperationCanceledException)
+        {
+            // User cancelled: undo every rename of this run, then let ToolGuard report the cancel.
+            if (tx.GetStatus() == TransactionStatus.Started) tx.RollBack();
+            Dispatch(() => Vm.LogWarning($"Cancelled by user after {cancel.LastDone} of {Payload.Count} sections: all renames of this run were undone."));
+            throw;
         }
         catch (Exception ex)
         {

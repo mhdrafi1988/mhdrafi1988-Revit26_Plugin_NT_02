@@ -7,6 +7,7 @@
 // nests inside it (standard nested Transaction/TransactionGroup pattern).
 // =======================================================
 
+using Revit26_Plugin_Revised.Shared.Services;
 using Autodesk.Revit.DB;
 using Revit26_Plugin_Revised.FloorOuterCurveDivider.V001.Core.Models;
 using Revit26_Plugin_Revised.Shared.Models;
@@ -112,6 +113,7 @@ namespace Revit26_Plugin_Revised.FloorOuterCurveDivider.V001.Core.Services
 
                 foreach (var edge in selected)
                 {
+                    ToolCancellation.CheckCurrent();
                     try
                     {
                         int n = edge.FinalPointCount;
@@ -137,6 +139,10 @@ namespace Revit26_Plugin_Revised.FloorOuterCurveDivider.V001.Core.Services
                         double spacingM = UnitUtils.ConvertFromInternalUnits(edge.Geometry.Length / (n + 1), UnitTypeId.Meters);
 
                         Add(LogLevel.Success, $"Edge {edge.Index} ({edge.CurveTypeName}, {rule}): {added} point(s) @ {spacingM:F3} m equalized spacing.");
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        throw; // user cancel: never swallowed as a failure
                     }
                     catch (Exception ex)
                     {

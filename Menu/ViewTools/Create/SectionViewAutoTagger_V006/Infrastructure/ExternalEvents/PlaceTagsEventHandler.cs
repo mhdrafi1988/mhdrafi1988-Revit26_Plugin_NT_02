@@ -41,6 +41,9 @@ namespace Revit26_Plugin_Revised.SectionViewAutoTagger.V006
 
             void Log(LogLevel level, string message) => LogSink?.Invoke(level, message);
 
+            // Esc / Cancel with a Yes-No confirm; the tag transaction is rolled back on cancel.
+            using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.SectionViewAutoTagger, app);
+
             using (var tx = new Transaction(doc, "Section View Auto Tagger — Place Tags"))
             {
                 try
@@ -53,6 +56,7 @@ namespace Revit26_Plugin_Revised.SectionViewAutoTagger.V006
                     }
 
                     Result = _engine.RunBatch(doc, Worklist, Settings, Log);
+                    ToolCancellation.CheckCurrent(); // last chance to cancel before the commit
 
                     if (tx.Commit() != TransactionStatus.Committed)
                     {
@@ -63,6 +67,15 @@ namespace Revit26_Plugin_Revised.SectionViewAutoTagger.V006
                     {
                         Log(LogLevel.Success, $"Batch complete — {Result}");
                     }
+                }
+                catch (OperationCanceledException)
+                {
+                    if (tx.GetStatus() == TransactionStatus.Started)
+                        tx.RollBack();
+
+                    Log(LogLevel.Warning, "Cancelled by user. No tags were placed.");
+                    Result = new RunResult(new List<TagResult>());
+                    throw; // ToolGuard treats it as a user cancel; finally still completes the request
                 }
                 catch (Exception ex)
                 {

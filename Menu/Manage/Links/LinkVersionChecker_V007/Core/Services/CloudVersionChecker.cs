@@ -1,3 +1,4 @@
+using Revit26_Plugin_Revised.Shared.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -51,6 +52,7 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V007.Core.Services
 
                 foreach (var kv in refs)
                 {
+                    ToolCancellation.CheckCurrent();
                     ExternalResourceReference err = kv.Value;
                     if (err == null) continue;
 

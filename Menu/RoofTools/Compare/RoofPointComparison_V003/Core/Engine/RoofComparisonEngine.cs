@@ -1,6 +1,7 @@
 using Autodesk.Revit.DB;
 using Revit26_Plugin_Revised.RoofPointComparison.V003.Core.Models;
 using System;
+using Revit26_Plugin_Revised.Shared.Services;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -33,6 +34,7 @@ namespace Revit26_Plugin_Revised.RoofPointComparison.V003.Core.Engine
 
             for (int i = 0; i < pointsA.Count; i++)
             {
+                ToolCancellation.CheckCurrent();
                 int bestJ = -1;
                 double bestDist = double.MaxValue;
 

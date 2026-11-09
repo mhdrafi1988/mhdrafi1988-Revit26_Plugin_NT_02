@@ -1,3 +1,4 @@
+using Revit26_Plugin_Revised.Shared.Services;
 using Autodesk.Revit.DB;
 using Revit26_Plugin_Revised.DetailLineManager.V002.Infrastructure;
 using Revit26_Plugin_Revised.Shared.Models;
@@ -187,6 +188,7 @@ namespace Revit26_Plugin_Revised.DetailLineManager.V002.Core.Services
                 var styleGs = new Dictionary<ElementId, ElementId>();
                 foreach (var s in styles)
                 {
+                    ToolCancellation.CheckCurrent();
                     var gs = Category.GetCategory(_doc, s.Id)?.GetGraphicsStyle(GraphicsStyleType.Projection);
                     if (gs != null) { styleGs[gs.Id] = s.Id; wanted.Add(gs.Id); }
                 }
@@ -243,6 +245,7 @@ namespace Revit26_Plugin_Revised.DetailLineManager.V002.Core.Services
                 }
                 foreach (var j in joins)
                 {
+                    ToolCancellation.CheckCurrent();
                     if (_doc.GetElement(j.Keeper) is not CurveElement keeper)
                         throw new InvalidOperationException($"Line {j.Keeper.Value} disappeared during the join.");
                     keeper.SetGeometryCurve(j.NewLine, true);
@@ -280,6 +283,7 @@ namespace Revit26_Plugin_Revised.DetailLineManager.V002.Core.Services
             int unchanged = 0;
             foreach (var id in ids.Distinct())
             {
+                ToolCancellation.CheckCurrent();
                 var e = _doc.GetElement(id);
                 string reason = LineBlockReason(e, skipGroups: true);
                 if (reason != null) { Skip($"Line {id.Value}", reason); continue; }
@@ -322,6 +326,7 @@ namespace Revit26_Plugin_Revised.DetailLineManager.V002.Core.Services
             int unchanged = 0;
             foreach (var catId in styleCategoryIds.Where(id => id != null).Distinct())
             {
+                ToolCancellation.CheckCurrent();
                 var sub = Category.GetCategory(_doc, catId);
                 if (sub == null) { Skip($"Line style {catId.Value}", "it no longer exists"); continue; }
                 var gs = sub.GetGraphicsStyle(GraphicsStyleType.Projection);
@@ -346,6 +351,7 @@ namespace Revit26_Plugin_Revised.DetailLineManager.V002.Core.Services
             {
                 foreach (var t in targets)
                 {
+                    ToolCancellation.CheckCurrent();
                     var sub = Category.GetCategory(_doc, t.Id)
                         ?? throw new InvalidOperationException($"Line style '{t.Name}' disappeared during the change.");
                     sub.SetLineWeight(weight, GraphicsStyleType.Projection);
@@ -375,6 +381,7 @@ namespace Revit26_Plugin_Revised.DetailLineManager.V002.Core.Services
 
             foreach (var id in ids.Distinct())
             {
+                ToolCancellation.CheckCurrent();
                 var e = _doc.GetElement(id);
                 if (e == null || !DetailLineScanner.IsDetailLine(e)) { Skip($"Line {id.Value}", "it no longer exists"); continue; }
 
@@ -405,6 +412,7 @@ namespace Revit26_Plugin_Revised.DetailLineManager.V002.Core.Services
             {
                 foreach (var (view, id) in targets)
                 {
+                    ToolCancellation.CheckCurrent();
                     var ogs = view.GetElementOverrides(id);
                     ogs.SetProjectionLineWeight(pen);
                     view.SetElementOverrides(id, ogs);
@@ -448,6 +456,7 @@ namespace Revit26_Plugin_Revised.DetailLineManager.V002.Core.Services
             var targets = new List<(ElementId CatId, ElementId GsId, string OldName, string NewName)>();
             foreach (var r in renames.Where(r => r?.CategoryId != null).GroupBy(r => r.CategoryId).Select(g => g.First()))
             {
+                ToolCancellation.CheckCurrent();
                 var sub = Category.GetCategory(_doc, r.CategoryId);
                 string label = $"Line style '{r.ExpectedName}'";
                 if (sub == null || !linesCat.Id.Equals(sub.Parent?.Id)) { Skip(label, "it no longer exists"); continue; }
@@ -468,11 +477,13 @@ namespace Revit26_Plugin_Revised.DetailLineManager.V002.Core.Services
             bool changed = true;
             while (changed)
             {
+                ToolCancellation.CheckCurrent();
                 changed = false;
                 var moving = new HashSet<ElementId>(targets.Where(t => !duplicates.Contains(t.CatId)).Select(t => t.CatId));
                 var claimed = new Dictionary<string, string>(cmp);
                 foreach (var t in targets.Where(t => moving.Contains(t.CatId)))
                 {
+                    ToolCancellation.CheckCurrent();
                     string clash = liveNames.TryGetValue(t.NewName, out var holder) && !moving.Contains(holder)
                         ? $"'{t.NewName}' already exists"
                         : claimed.TryGetValue(t.NewName, out var other) ? $"'{other}' gets the same new name" : null;
@@ -494,6 +505,7 @@ namespace Revit26_Plugin_Revised.DetailLineManager.V002.Core.Services
                 targets.RemoveAll(t => blocked.Contains(t.GsId));
                 foreach (var t in targets.Where(t => kept.Contains(t.NewName)).ToList())
                 {
+                    ToolCancellation.CheckCurrent();
                     Skip($"Line style '{t.OldName}'", $"'{t.NewName}' stays in use by a style owned by another user");
                     targets.Remove(t);
                 }
@@ -521,12 +533,14 @@ namespace Revit26_Plugin_Revised.DetailLineManager.V002.Core.Services
                         int i = 0;
                         foreach (var t in targets)
                         {
+                            ToolCancellation.CheckCurrent();
                             current = t.OldName;
                             GetStyle(t.GsId, t.OldName).Name = $"~rename-{tag}-{i++}";
                         }
                     }
                     foreach (var t in targets)
                     {
+                        ToolCancellation.CheckCurrent();
                         current = t.OldName;
                         GetStyle(t.GsId, t.OldName).Name = t.NewName;
                     }
@@ -554,6 +568,7 @@ namespace Revit26_Plugin_Revised.DetailLineManager.V002.Core.Services
             int mismatched = 0;
             foreach (var t in targets)
             {
+                ToolCancellation.CheckCurrent();
                 string now = Category.GetCategory(_doc, t.CatId)?.Name;
                 if (string.Equals(now, t.NewName, StringComparison.Ordinal)) continue;
                 mismatched++;
@@ -599,6 +614,7 @@ namespace Revit26_Plugin_Revised.DetailLineManager.V002.Core.Services
             var ownedSet = new HashSet<ElementId>(owned ?? Array.Empty<ElementId>());
             foreach (var id in distinct.Where(id => !ownedSet.Contains(id)))
             {
+                ToolCancellation.CheckCurrent();
                 blocked.Add(id);
                 string owner = _edit.OwnedByOther(_doc.GetElement(id)) ?? "another user, or changed in central";
                 Skip(describe(id), $"owned by {owner}");
@@ -626,10 +642,12 @@ namespace Revit26_Plugin_Revised.DetailLineManager.V002.Core.Services
 
             foreach (var group in plan.JoinGroups)
             {
+                ToolCancellation.CheckCurrent();
                 var members = new List<(CurveElement Curve, Line Line)>();
                 string block = null;
                 foreach (var id in group.Distinct())
                 {
+                    ToolCancellation.CheckCurrent();
                     if (deleteSet.Contains(id)) continue;
                     var e = _doc.GetElement(id);
                     string reason = LineBlockReason(e, skipGroups: true);
@@ -656,8 +674,10 @@ namespace Revit26_Plugin_Revised.DetailLineManager.V002.Core.Services
                 bool collinear = true;
                 foreach (var m in members)
                 {
+                    ToolCancellation.CheckCurrent();
                     foreach (var p in new[] { m.Line.GetEndPoint(0), m.Line.GetEndPoint(1) })
                     {
+                        ToolCancellation.CheckCurrent();
                         var v = p - origin;
                         if (v.CrossProduct(axis).GetLength() > tol) { collinear = false; break; }
                         double t = v.DotProduct(axis);
@@ -691,6 +711,7 @@ namespace Revit26_Plugin_Revised.DetailLineManager.V002.Core.Services
             var linesCat = LineStyleService.GetLinesCategory(_doc);
             foreach (var catId in styleIds.Distinct())
             {
+                ToolCancellation.CheckCurrent();
                 var sub = Category.GetCategory(_doc, catId);
                 if (sub == null || linesCat == null || !linesCat.Id.Equals(sub.Parent?.Id))
                 {
@@ -720,6 +741,7 @@ namespace Revit26_Plugin_Revised.DetailLineManager.V002.Core.Services
                 var own = new HashSet<ElementId>(removed);
                 foreach (var id in deleted.Where(id => !own.Contains(id)))
                 {
+                    ToolCancellation.CheckCurrent();
                     var e = _doc.GetElement(id);
                     // Skip internal parts (sketch planes, references) that have no category.
                     string category = e?.Category?.Name;
