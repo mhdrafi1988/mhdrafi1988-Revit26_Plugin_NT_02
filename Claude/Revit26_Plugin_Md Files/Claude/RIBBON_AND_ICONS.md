@@ -43,7 +43,7 @@ Each item is a pulldown unless marked *button*. A pulldown lists its versions hi
 | Rafi_Pro_MOds | Floor Lines | Crease By Openings *button* · Crease By Points *button* · Floor Creaser *button* — each V001 | `FloorToolsRibbon.BuildLinesPanel` |
 | Rafi_Pro_MOds | Floor Edit | Floor Types *button* · Name Builder *button* · Floor Tag *button* · Comparison *button* · Elevation Sync *button* · Floor EPS *button* — each V001 | `FloorToolsRibbon.BuildEditPanel` |
 | Rafi_Pro_MOds | Roof Tools | Creaser Adv · Roof Tag · Floor From Rooms · Shape From Link | `RoofToolsRibbon.Build` |
-| Rafi_Pro_MOds2 | Roof Edit | Name Builder · Island Splitter | `BuildEditComparePanels` |
+| Rafi_Pro_MOds2 | Roof Edit | Name Builder · Island Splitter · Merge Roofs | `BuildEditComparePanels` |
 | Rafi_Pro_MOds2 | Roof Plan View | Island Splitter (large *button*) | `BuildEditComparePanels` |
 | Rafi_Pro_MOds2 | Roof Compare | Comparison · Elevation Sync | `BuildEditComparePanels` |
 | Rafi_Pro_MOds2 | Roof Insulation | EPS 2D Pattern (V006, V005, V004, V002, V001) | `BuildEditComparePanels` |

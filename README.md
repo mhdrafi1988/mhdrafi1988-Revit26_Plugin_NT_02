@@ -28,7 +28,7 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 | Rafi_Pro_MOds | Floor Lines | Crease By Openings · Crease By Points · Floor Creaser |
 | Rafi_Pro_MOds | Floor Edit | Floor Types · Name Builder · Floor Tag · Comparison · Elevation Sync · Floor EPS |
 | Rafi_Pro_MOds | Roof Tools | Creaser Adv · Roof Tag · Floor From Rooms · Shape From Link |
-| Rafi_Pro_MOds2 | Roof Edit | Name Builder · Island Splitter |
+| Rafi_Pro_MOds2 | Roof Edit | Name Builder · Island Splitter · Merge Roofs |
 | Rafi_Pro_MOds2 | Roof Plan View | Island Splitter |
 | Rafi_Pro_MOds2 | Roof Compare | Comparison · Elevation Sync |
 | Rafi_Pro_MOds2 | Roof Insulation | EPS 2D Pattern |
@@ -108,6 +108,8 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 - **Creaser Adv, Roof Tag**: crease lines on roofs, and roof tagging.
 - **Roof Name Builder, Island Roof Splitter**: bulk-rename roof types and instances with INS/SLP/MAT codes, and
   split a sloped roof into one roof per closed detail-line island.
+- **Merge Roofs** (Roof Edit panel): select several footprint roofs and create one new roof from their combined outline
+  (outer boundary and interior loops). It checks for overlap, crossing edges and gaps first; the original roofs are kept.
 - **Roof Point Comparison, Elevation Sync**: compare and sync roof point elevations.
 - **Tapered EPS 2D Pattern**: draw the tapered EPS board layout as detail lines on a plan view.
 - **Ridge By Openings / By Points, Combined Roof Tools, Roof Type Manager** (Roof Utilities panel).
