@@ -9,6 +9,26 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.40.0] — 2026-11-09
+
+### Cancel a running tool (rollout started)
+
+#### Added
+- Shared cancel support (`ToolCancellation`): while a tool runs, Esc or a **Cancel** button in the window's status strip asks
+  "Cancel the process? Yes / No". Yes stops the run; No carries on. Esc works while Revit is the foreground application
+  (the tool window or the Revit main window has focus). Tools without a window get a small progress pop-up with a Cancel button.
+- The shared window shell shows the Cancel button and disables the window content while a cancellable run is active, so a
+  second run cannot be started by accident.
+- A user cancel is not an error: no error dialog and no entry in the error log.
+- View Auto Renamer 7.2.0: Esc / Cancel while "Load all views" or "Commit selected" runs.
+
+#### Changed
+- View Auto Renamer 7.2.0: the rename now runs in one transaction group.
+
+User note: cancelling a run undoes every model change made by that run (a cancelled rename leaves all view names as they
+were). Files already exported or written stay. A single long Revit call cannot be interrupted, so the dialog can take a
+moment to appear. Only View Auto Renamer has this so far; the other tools follow group by group.
+
 ## [6.39.0] — 2026-11-06
 
 ### Ribbon tabs

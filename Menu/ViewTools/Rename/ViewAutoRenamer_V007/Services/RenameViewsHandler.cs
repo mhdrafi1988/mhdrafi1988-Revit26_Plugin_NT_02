@@ -1,5 +1,6 @@
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
+using Revit26_Plugin_Revised.Shared.Services;
 using Revit26_Plugin_Revised.ViewAutoRenamer.V007.Models;
 using Revit26_Plugin_Revised.ViewAutoRenamer.V007.ViewModels;
 using System;
@@ -14,33 +15,55 @@ public class RenameViewsHandler : IExternalEventHandler
     public List<ViewItemViewModel> Payload { get; set; } = new();
     public ViewsListViewModel      Vm      { get; set; } = null!;
 
-    /// <summary>Runs the rename through ToolGuard so no exception reaches Revit.</summary>
-    public void Execute(UIApplication app) =>
-        Revit26_Plugin_Revised.Shared.Services.ToolGuard.RunHandler(typeof(RenameViewsHandler), app, Run);
+    /// <summary>
+    /// Runs the rename through ToolGuard so no exception reaches Revit. Esc or the Cancel button asks
+    /// "Cancel the process?"; Yes undoes every rename made by this run.
+    /// </summary>
+    public void Execute(UIApplication app)
+    {
+        var vm = Vm;
+        ToolCancellation? cancel = null;
+        ToolGuard.RunHandler(typeof(RenameViewsHandler), app, a =>
+        {
+            cancel = vm.BeginRun(ToolCatalog.ViewAutoRenamerV007);
+            try { Run(a, cancel); }
+            finally { vm.EndRun(cancel); }
+        },
+        onCancelled: () => vm.OnRenameCancelled(cancel?.LastDone ?? 0, cancel?.LastTotal ?? 0));
+    }
 
-    private void Run(UIApplication app)
+    private void Run(UIApplication app, ToolCancellation cancel)
     {
         var doc = app.ActiveUIDocument.Document;
 
         int ok = 0, fixedDup = 0, fail = 0;
 
+        // One outer group per run: a cancel rolls back everything, not just the open transaction.
+        using var group = new TransactionGroup(doc, "VAR02 Rename Views");
         using var tx = new Transaction(doc, "VAR02 Rename Views");
 
         try
         {
+            group.Start();
             if (tx.Start() != TransactionStatus.Started)
             {
                 Dispatch(() => Vm.LogError("Could not start transaction — no changes made."));
+                group.RollBack();
                 return;
             }
 
+            cancel.Report(0, Payload.Count, "Reading existing view names…");
             // Snapshot of all current view names, grouped PER ViewTypeGroup —
             // matches Revit's actual name-uniqueness rule (Section+Callout
             // share one namespace; each other view-type family independent).
-            var existingNamesByGroup = BuildExistingNamesByGroup(doc);
+            var existingNamesByGroup = BuildExistingNamesByGroup(doc, cancel);
 
+            int index = 0;
             foreach (var item in Payload)
             {
+                // Outside the per-item try below, so a cancel is never counted as a failed item.
+                cancel.Step(index++, Payload.Count, $"Renaming views… {index} of {Payload.Count}");
+
                 try
                 {
                     var v = doc.GetElement(item.ElementId) as View;
@@ -81,15 +104,27 @@ public class RenameViewsHandler : IExternalEventHandler
                 }
             }
 
+            cancel.Report(Payload.Count, Payload.Count, "Saving renames…");
+            cancel.Check(); // last chance to cancel; the commit itself cannot be interrupted
+
             var status = tx.Commit();
             if (status != TransactionStatus.Committed)
             {
                 Dispatch(() => Vm.LogError($"Transaction failed to commit (status: {status}) — no changes were saved."));
+                group.RollBack();
                 return;
             }
+            group.Assimilate();
 
             Dispatch(() => Vm.LogSuccess(
                 $"Rename complete — OK: {ok}  |  Duplicates fixed: {fixedDup}  |  Failed: {fail}"));
+        }
+        catch (OperationCanceledException)
+        {
+            // User cancelled: undo every rename of this run, then let ToolGuard report the cancel.
+            if (tx.GetStatus() == TransactionStatus.Started) tx.RollBack();
+            if (group.GetStatus() == TransactionStatus.Started) group.RollBack();
+            throw;
         }
         catch (Exception ex)
         {
@@ -97,6 +132,8 @@ public class RenameViewsHandler : IExternalEventHandler
             // Roll back so the model is never left half-renamed.
             if (tx.GetStatus() == TransactionStatus.Started)
                 tx.RollBack();
+            if (group.GetStatus() == TransactionStatus.Started)
+                group.RollBack();
 
             Dispatch(() => Vm.LogError($"Rename transaction failed and was rolled back: {ex.Message}"));
         }
@@ -108,7 +145,7 @@ public class RenameViewsHandler : IExternalEventHandler
     /// logic in OpenViewAutoRenamerCommand.ClassifyView so collision checks
     /// stay consistent between load and commit.
     /// </summary>
-    private static Dictionary<ViewTypeGroup, HashSet<string>> BuildExistingNamesByGroup(Document doc)
+    private static Dictionary<ViewTypeGroup, HashSet<string>> BuildExistingNamesByGroup(Document doc, ToolCancellation cancel)
     {
         var result = new Dictionary<ViewTypeGroup, HashSet<string>>();
 
@@ -119,6 +156,7 @@ public class RenameViewsHandler : IExternalEventHandler
 
         foreach (var v in allViews)
         {
+            cancel.Check();
             var group = MapViewTypeToGroup(v.ViewType);
             if (group == null) continue; // out-of-scope view type — ignore for collision purposes
 

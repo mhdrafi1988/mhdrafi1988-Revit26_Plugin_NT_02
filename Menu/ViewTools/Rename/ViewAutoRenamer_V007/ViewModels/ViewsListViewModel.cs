@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using Revit26_Plugin_Revised.ViewAutoRenamer.V007.Models;
 using Revit26_Plugin_Revised.ViewAutoRenamer.V007.Services;
 using Revit26_Plugin_Revised.Shared.Models;
+using Revit26_Plugin_Revised.Shared.Services;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -130,6 +131,54 @@ public partial class ViewsListViewModel : ObservableObject
     [ObservableProperty] private bool   isRunning;
     [ObservableProperty] private double progress;
     [ObservableProperty] private string summaryText = "";
+
+    // ── Cancellable run (Esc / Cancel button) ────────────────────────────────
+    private ToolCancellation? _activeRun;
+
+    /// <summary>The tool window; set by its code-behind so the Yes/No dialog and the Escape key use it.</summary>
+    public System.Windows.Window? OwnerWindow { get; set; }
+
+    /// <summary>
+    /// Starts a cancellable run on the Revit thread: shows the Cancel button, reports into
+    /// <see cref="Progress"/> / <see cref="SummaryText"/>. Pair with <see cref="EndRun"/> in a finally block.
+    /// </summary>
+    public ToolCancellation BeginRun(ToolInfo tool)
+    {
+        _activeRun = ToolCancellation.Begin(tool, OwnerWindow, (percent, text) =>
+        {
+            Progress = percent;
+            SummaryText = text;
+        });
+        Progress = 0;
+        IsRunning = true;
+        return _activeRun;
+    }
+
+    /// <summary>Ends the run started by <see cref="BeginRun"/>.</summary>
+    public void EndRun(ToolCancellation run)
+    {
+        IsRunning = false;
+        SummaryText = "";
+        run?.Dispose();
+        if (ReferenceEquals(_activeRun, run)) _activeRun = null;
+    }
+
+    /// <summary>Cancel button: asks the running operation to cancel (a Yes/No confirmation follows).</summary>
+    [RelayCommand]
+    private void CancelRun() => _activeRun?.RequestCancel();
+
+    /// <summary>Called when the user cancelled "Load all views". Nothing in the model was changed.</summary>
+    public void OnLoadAllCancelled(int done, int total)
+    {
+        IsLoadingViews = false;
+        LogWarning(total > 0
+            ? $"Cancelled by user: loading stopped after {done} of {total} views. No views were added."
+            : "Cancelled by user: loading stopped. No views were added.");
+    }
+
+    /// <summary>Called when the user cancelled a rename run. Every rename of the run was undone.</summary>
+    public void OnRenameCancelled(int done, int total) =>
+        LogWarning($"Cancelled by user after {done} of {total} views: all renames of this run were undone.");
 
     // ── Derived summary ─────────────────────────────────────────────────────
     [ObservableProperty]
