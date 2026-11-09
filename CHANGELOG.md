@@ -9,6 +9,20 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.41.0] — 2026-11-09
+
+### Merge Roofs 1.0.0 (new)
+
+#### Added
+- **Merge Roofs** (Roof Edit panel): select two or more footprint roofs and create one new footprint roof from their combined outline (outer boundary plus interior loops).
+  - Checks for overlap, crossing edges, gaps and roofs that are not joined. Gaps up to a tolerance you set (default 5 mm) are closed; the optional checkbox "Place connecting lines across gaps" draws detail lines across them.
+  - The new roof takes the first selected roof's type and level, and each edge keeps the slope of the roof edge it came from.
+  - Arcs are kept when possible; if Revit rejects them the roof is created once more with straight segments. The window says which was used.
+  - If the roof cannot be created, you are asked whether to place the outline as detail lines in the current view, and separately whether to mark the problem areas with circles. Nothing else changes.
+- The plugin now ships the Clipper2 library (`Clipper2Lib.dll`) for the polygon union.
+
+User note: the original roofs are not changed or deleted. Hide or delete them yourself once you are happy with the new roof.
+
 ## [6.40.0] — 2026-11-09
 
 ### Cancel a running tool (rollout started)

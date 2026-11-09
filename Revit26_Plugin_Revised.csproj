@@ -9,7 +9,7 @@
 		<AssemblyName>Revit26_Plugin_Revised</AssemblyName>
 		<RootNamespace>Revit26_Plugin_Revised</RootNamespace>
 		<!-- Plugin version (SemVer). Per-tool versions live in Shared/Services/ToolCatalog.cs. -->
-		<Version>6.40.0</Version>
+		<Version>6.41.0</Version>
 		<BaseOutputPath>D:\Plugin\mhdrafi1988\Revit26_Plugin\bin\118</BaseOutputPath>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -39,6 +39,7 @@
 	</ItemGroup>
 	<ItemGroup>
 	  <PackageReference Include="Autodesk.Revit.SDK" Version="2026.0.0.9999" />
+	  <PackageReference Include="Clipper2" Version="1.4.0" />
 	  <PackageReference Include="ClosedXML" Version="0.105.0" />
 	  <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
 	  <PackageReference Include="EPPlus" Version="5.8.0" />
