@@ -52,6 +52,17 @@ namespace Revit26_Plugin_Revised.Shared.Services
         private readonly ToolProgressWindow _progressWindow;
         private readonly ToolWindowShell _shell;
 
+        // Open tool windows (registered by ToolGuard when a window loads), so BeginFor can find a tool's window.
+        private static readonly List<Window> OpenToolWindows = new();
+
+        // The innermost active run on the Revit thread, so deep engine code can call CheckCurrent()
+        // without every method taking a ToolCancellation parameter.
+        private static ToolCancellation _current;
+        private readonly ToolCancellation _previous;
+        private readonly int _threadId = Environment.CurrentManagedThreadId;
+        private readonly bool _drivesShell;
+        private Action<double, string> _shellProgress;
+
         private bool _requested;
         private bool _asking;
         private bool _escapeWasDown;
@@ -59,8 +70,11 @@ namespace Revit26_Plugin_Revised.Shared.Services
         private bool _disposed;
 
         private ToolCancellation(ToolInfo tool, Window owner, Action<double, string> progress,
-            ToolProgressWindow progressWindow)
+            ToolProgressWindow progressWindow, bool drivesShell = false)
         {
+            _previous = _current;
+            _current = this;
+            _drivesShell = drivesShell;
             _tool = tool;
             _owner = owner;
             _progress = progress;
@@ -72,11 +86,69 @@ namespace Revit26_Plugin_Revised.Shared.Services
             {
                 ActiveByWindow[_owner] = this;
                 _shell = ToolWindowShell.FindIn(_owner);
-                if (_shell != null) _shell.IsCancellable = true;
+                if (_shell != null)
+                {
+                    _shell.IsCancellable = true;
+                    if (_drivesShell)
+                    {
+                        // SetCurrentValue keeps the view model's bindings on these properties intact.
+                        _shell.SetCurrentValue(ToolWindowShell.IsRunningProperty, true);
+                        _shell.SetCurrentValue(ToolWindowShell.ProgressProperty, 0.0);
+                        _shellProgress = (percent, text) =>
+                        {
+                            _shell.SetCurrentValue(ToolWindowShell.ProgressProperty, percent);
+                            _shell.SetCurrentValue(ToolWindowShell.SummaryTextProperty, text ?? string.Empty);
+                        };
+                    }
+                }
                 _owner.PreviewKeyDown += OnOwnerPreviewKeyDown;
                 _owner.Closing += OnOwnerClosing;
             }
         }
+
+        /// <summary>
+        /// Starts cancel handling for a run without touching the tool's view model: finds the tool's open
+        /// window (so Esc, the window's Cancel button and window-close work), shows running state and
+        /// progress in the window's shell, and when the tool has no open window shows the small
+        /// <see cref="ToolProgressWindow"/> instead (needs <paramref name="app"/>).
+        /// Call on the Revit main thread and dispose in a <c>using</c>.
+        /// </summary>
+        /// <param name="tool">Tool entry from <see cref="ToolCatalog"/>.</param>
+        /// <param name="app">Revit application; used to own the progress pop-up when the tool has no window. May be null.</param>
+        /// <param name="initialText">Pop-up text before the first <see cref="Report"/>.</param>
+        public static ToolCancellation BeginFor(ToolInfo tool, UIApplication app = null, string initialText = "Working…")
+        {
+            Window window = FindWindow(tool);
+            if (window != null) return new ToolCancellation(tool, window, null, null, drivesShell: true);
+            if (app != null) return BeginWithProgressWindow(tool, app, initialText);
+            return new ToolCancellation(tool, null, null, null);
+        }
+
+        /// <summary>Called by <see cref="ToolGuard"/> when a tool window loads; the window is forgotten when it closes.</summary>
+        internal static void RegisterWindow(Window window)
+        {
+            if (window == null || OpenToolWindows.Contains(window)) return;
+            OpenToolWindows.Add(window);
+            window.Closed += (_, _) => OpenToolWindows.Remove(window);
+        }
+
+        private static Window FindWindow(ToolInfo tool)
+        {
+            if (tool == null) return null;
+            for (int i = OpenToolWindows.Count - 1; i >= 0; i--)
+                if (ReferenceEquals(ToolCatalog.Find(OpenToolWindows[i].GetType()), tool)) return OpenToolWindows[i];
+            return null;
+        }
+
+        /// <summary>
+        /// Checks the innermost active run (see <see cref="Check"/>); does nothing when no run is active.
+        /// Off the Revit thread it only throws if the user already confirmed a cancel. Lets engine code deep
+        /// in a tool call it without being handed the run.
+        /// </summary>
+        public static void CheckCurrent() => _current?.Check();
+
+        /// <summary>Reports progress on the innermost active run (see <see cref="Report"/>); does nothing when none is active.</summary>
+        public static void ReportCurrent(int done, int total, string text) => _current?.Report(done, total, text);
 
         /// <summary>
         /// Starts cancel handling for a run on a tool window. Call on the Revit main thread, before the
@@ -143,7 +215,8 @@ namespace Revit26_Plugin_Revised.Shared.Services
             LastDone = done;
             LastTotal = total;
             double percent = total <= 0 ? 0 : Math.Min(100.0, 100.0 * done / total);
-            try { _progress?.Invoke(percent, text ?? string.Empty); }
+            if (Environment.CurrentManagedThreadId != _threadId) return;
+            try { (_progress ?? _shellProgress)?.Invoke(percent, text ?? string.Empty); }
             catch { /* a UI binding failure must not stop the run */ }
         }
 
@@ -163,7 +236,7 @@ namespace Revit26_Plugin_Revised.Shared.Services
         public void Check()
         {
             if (_disposed) return;
-            if (!_cts.IsCancellationRequested && _sinceCheck.ElapsedMilliseconds >= CheckIntervalMs)
+            if (Environment.CurrentManagedThreadId == _threadId && !_cts.IsCancellationRequested && _sinceCheck.ElapsedMilliseconds >= CheckIntervalMs)
             {
                 _sinceCheck.Restart();
                 PumpDispatcher();
@@ -206,12 +279,24 @@ namespace Revit26_Plugin_Revised.Shared.Services
             {
                 _owner.PreviewKeyDown -= OnOwnerPreviewKeyDown;
                 _owner.Closing -= OnOwnerClosing;
-                if (_shell != null) _shell.IsCancellable = false;
+                if (_shell != null)
+                {
+                    _shell.IsCancellable = false;
+                    if (_drivesShell)
+                    {
+                        _shell.SetCurrentValue(ToolWindowShell.IsRunningProperty, false);
+                        if (_cts.IsCancellationRequested)
+                            _shell.SetCurrentValue(ToolWindowShell.SummaryTextProperty, "Cancelled by user.");
+                    }
+                }
                 if (ActiveByWindow.TryGetValue(_owner, out var current) && ReferenceEquals(current, this))
                     ActiveByWindow.Remove(_owner);
             }
 
             _progressWindow?.CloseFromHost();
+            if (ReferenceEquals(_current, this)) _current = _previous;
+            if (_cts.IsCancellationRequested && _owner?.DataContext is Revit26_Plugin_Revised.Shared.ViewModels.ToolViewModelBase vm)
+                vm.NotifyCancelled(LastDone, LastTotal);
 
             if (_closeOwnerWhenUnwound && _owner != null && _progressWindow == null)
             {

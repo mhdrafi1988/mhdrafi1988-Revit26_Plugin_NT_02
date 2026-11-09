@@ -86,6 +86,12 @@ namespace Revit26_Plugin_Revised.Shared.ViewModels
             if (ReferenceEquals(_activeRun, run)) _activeRun = null;
         }
 
+        /// <summary>Writes "Cancelled by user" to the log after a confirmed cancel (called by <see cref="ToolCancellation"/>).</summary>
+        public void NotifyCancelled(int done, int total) =>
+            AddLog(LogLevel.Warning, total > 0
+                ? $"Cancelled by user after {done} of {total}. Model changes made by this run were undone."
+                : "Cancelled by user. Model changes made by this run were undone.");
+
         /// <summary>Cancel button: asks the active run to cancel (a Yes/No confirmation follows).</summary>
         [RelayCommand]
         private void CancelRun() => _activeRun?.RequestCancel();

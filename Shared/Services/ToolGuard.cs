@@ -274,6 +274,7 @@ namespace Revit26_Plugin_Revised.Shared.Services
 
                 ToolInfo tool = ToolCatalog.Find(window.GetType());
                 if (tool == null) return;
+                ToolCancellation.RegisterWindow(window);
 
                 string suffix = $" — v{tool.Version}";
                 string title = window.Title ?? string.Empty;
