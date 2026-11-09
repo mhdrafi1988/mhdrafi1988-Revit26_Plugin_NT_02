@@ -47,6 +47,7 @@ Each release lists every tool whose version changed, under the plugin version.
 - **Setup Tools group** (all tools in `Menu/Setup`, latest version of each): Esc / Cancel with a Yes / No confirm while the tool works: Batch Link DWG Family 2.3.0, DWG To Lines 7.1.0, DWG To DL(P) 14.1.0, DWG Manager 3.2.0, DWG Statistics 5.2.0, Export DWG to Folder 4.3.0.
 
 #### Changed
+- Manage ribbon: the **WS Creator** dropdown now lists Workset Creator V017 first (the button's own icon and click run V017), then V016 and V015. The "#" marker moved from V016 to V017.
 - Tag To Text 1.4.0: the separate Cancel button is replaced by the shared Cancel button, which asks for confirmation (the run already undid everything).
 - View Auto Renamer 7.2.0: the rename now runs in one transaction group.
 - Auto Slope By Drain (Multi-Roof) 13.2.0 and Auto Slope By Point (Multi Copies) 30.2.0: a cancel now undoes the whole run.
