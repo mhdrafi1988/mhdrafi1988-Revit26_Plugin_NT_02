@@ -17,16 +17,12 @@ SloperPro adds four ribbon tabs (two for model tools, two for sheet tools). Pane
 A **▸ slide-out** is the arrow on a panel's title bar; the tools listed after it sit in the slide-out.
 Where a tool has several versions, its button is a dropdown listing the newest version first.
 
-**Rafi_Pro_MOds** and **Rafi_Pro_MOds2** (Modelling)
+**Rafi_Pro_MOds** and **Rafi_Pro_MOds2** (Roof modelling), **Rafi_Pro_Floors** (Floor modelling)
 
 | Tab | Panel | Tools |
 |---|---|---|
 | Rafi_Pro_MOds | Roof Slope | By Point · By Drain · Points & Slope |
-| Rafi_Pro_MOds | Floor Slope | By Drain · By Point (By Point, Ridge, Multi Copies) · Points & Slope |
 | Rafi_Pro_MOds | Shape Points | Inner Loops · Outer Curve · Line Intersect · Loops + Perp. ▸ slide-out: Vertex Reducer · Multi Points · Shape From Link |
-| Rafi_Pro_MOds | Floor Points | Inner Loops · Outer Curve · Line Intersect · Loops + Perp. · Vertex Reducer · Multi Points · Shape From Link |
-| Rafi_Pro_MOds | Floor Lines | Crease By Openings · Crease By Points · Floor Creaser |
-| Rafi_Pro_MOds | Floor Edit | Floor Types · Name Builder · Floor Tag · Comparison · Elevation Sync · Floor EPS |
 | Rafi_Pro_MOds | Roof Tools | Creaser Adv · Roof Tag · Floor From Rooms · Shape From Link |
 | Rafi_Pro_MOds2 | Roof Edit | Name Builder · Island Splitter · Merge Roofs |
 | Rafi_Pro_MOds2 | Roof Plan View | Island Splitter |
@@ -35,12 +31,21 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 | Rafi_Pro_MOds2 | Detail Lines | From Links · Closed Loop · Line Dims · Line Manager |
 | Rafi_Pro_MOds2 | Roof Utilities | Combined Tools · Ridge Lines · Roof Types |
 
+**Rafi_Pro_Floors** (Floor modelling)
+
+| Tab | Panel | Tools |
+|---|---|---|
+| Rafi_Pro_Floors | Floor Slope | By Drain · By Point (By Point, Ridge, Multi Copies) · Points & Slope |
+| Rafi_Pro_Floors | Floor Points | Inner Loops · Outer Curve · Line Intersect · Loops + Perp. · Vertex Reducer · Multi Points · Shape From Link |
+| Rafi_Pro_Floors | Floor Lines | Crease By Openings · Crease By Points · Floor Creaser |
+| Rafi_Pro_Floors | Floor Edit | Floor Types · Name Builder · Floor Tag · Comparison · Elevation Sync · Floor EPS |
+| Rafi_Pro_Floors | Floor Views | Floor Around Edges · Floor Edge Element · Floor Focus |
+
 **Rafi_Pro_Docs** and **Rafi_Pro_Docs2** (Documents)
 
 | Tab | Panel | Tools |
 |---|---|---|
 | Rafi_Pro_Docs | View Create | From Lines · Around Edges · Edge Element ▸ slide-out: Roof Focus · Isolated Section |
-| Rafi_Pro_Docs | Floor Views | Floor Around Edges · Floor Edge Element · Floor Focus |
 | Rafi_Pro_Docs | View Place | Place Sections · Callout To Section · Head Placer · View Tagger |
 | Rafi_Pro_Docs | View Rename | Bubble Renumber · Section Renamer · Auto Renamer |
 | Rafi_Pro_Docs2 | Tagging | Tag To Text · Align Spot Elevations · Align to Detail Line · Quick Align (vertical / horizontal, ends, bends, ends / bends to tag) |
@@ -96,7 +101,7 @@ Where a tool has several versions, its button is a dropdown listing the newest v
   between matching points (asks before changing a floor type with no Variable layer).
 
 ### Floor views and insulation (new in 6.37.0)
-- **Floor Views** panel (Documents tab): **Floor Edge Around Sections**, **Floor Edge Element Sections** and
+- **Floor Views** panel (Floors tab since 6.42.0): **Floor Edge Around Sections**, **Floor Edge Element Sections** and
   **Floor View Focus**, the floor versions of the roof section and view-focus tools.
 - **Floor EPS** (Floor Edit panel): the floor version of Tapered EPS 2D Pattern. It draws the tapered insulation
   layout as a 2D detail pattern for a floor with a single outer loop.
@@ -169,7 +174,7 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 See [CHANGELOG.md](CHANGELOG.md) for the full history and per-tool versions.
 
 ### 6.37.0 — 2026-11-03
-- New **Floor Views** panel (Documents tab) and **Floor EPS** on Floor Edit.
+- New **Floor Views** panel (Floors tab since 6.42.0) and **Floor EPS** on Floor Edit.
 
 ### 6.36.0 — 2026-11-03
 - New **Floor Edit** panel: Floor Types, Name Builder, Floor Tag, Comparison and Elevation Sync.

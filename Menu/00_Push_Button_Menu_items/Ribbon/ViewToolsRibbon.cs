@@ -73,9 +73,6 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             RibbonLayoutHelper.WirePulldownButton(createItems, "Pulldown_RoofEdgeElementSections", edgeElementV004, edgeElementV003);
             RibbonLayoutHelper.WirePulldownButton(createItems, "Pulldown_RoofViewFocus", roofViewFocusV004, roofViewFocusV003);
 
-            // Floor Views — floor versions of Around Edges, Edge Element and Roof Focus, next to View Create (plugin 6.37.0).
-            FloorToolsRibbon.BuildViewsPanel(app, tabName, assemblyPath);
-
             RibbonPanel placePanel = app.CreateRibbonPanel(tabName, "View Place");
 
             var placeSectionsV323 = Btn(assemblyPath, "Btn_AutoPlaceSectionsCommand_V323", "Place Sections V323", "Revit26_Plugin_Revised.APUS.V323.Commands.AutoPlaceSectionsCommand",

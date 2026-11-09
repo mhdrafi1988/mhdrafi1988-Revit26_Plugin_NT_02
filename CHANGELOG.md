@@ -9,6 +9,17 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.42.0] — 2026-11-09
+
+### Ribbon: roof tools and floor tools on separate tabs
+
+#### Changed
+- New ribbon tab **Rafi_Pro_Floors** holds every floor panel: Floor Slope, Floor Points, Floor Lines, Floor Edit and Floor Views.
+- **Rafi_Pro_MOds** now holds only roof panels (Roof Slope, Shape Points, Roof Tools). Floor Views left the Documents tab.
+- No tool version changed; button internal names, commands and settings are unchanged.
+
+User note: the floor buttons moved tabs. A Quick Access Toolbar item or keyboard shortcut you set on a floor button may need to be re-added.
+
 ## [6.41.0] — 2026-11-09
 
 ### Merge Roofs 1.0.0 (new)

@@ -13,6 +13,20 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
     /// </summary>
     public static class FloorToolsRibbon
     {
+        /// <summary>
+        /// Creates every floor panel on <paramref name="tabName"/>, in workflow order: Floor Slope, Floor Points,
+        /// Floor Lines, Floor Edit and Floor Views. They had been spread over the roof and documents tabs; plugin 6.42.0
+        /// gathered them on a tab of their own.
+        /// </summary>
+        public static void Build(UIControlledApplication app, string tabName, string assemblyPath)
+        {
+            BuildSlopePanel(app, tabName, assemblyPath);
+            BuildPointsPanel(app, tabName, assemblyPath);
+            BuildLinesPanel(app, tabName, assemblyPath);
+            BuildEditPanel(app, tabName, assemblyPath);
+            BuildViewsPanel(app, tabName, assemblyPath);
+        }
+
         /// <summary>Roof slope icons, reused by the floor slope buttons until floor icons exist.</summary>
         private const string RoofIcons = "Revit26_Plugin_Revised.Resources.Icons.FloorTools.";
 
