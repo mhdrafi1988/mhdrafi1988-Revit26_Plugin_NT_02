@@ -31,7 +31,10 @@ Select two or more footprint roofs and create ONE new footprint roof from their 
 
 ## Geometry
 Pure `Core` class (no Revit types) for testability: Clipper2 polygon union (NuGet). Arcs are
-flattened to short segments; straight edges stay straight. Gap snapping uses the tolerance.
+flattened for the union only; straight edges stay straight. Gap snapping uses the tolerance.
+Arc handling: after the union, runs of segments that lie on an original arc are re-fitted back into
+that arc and the roof is created ONCE with arcs. If that attempt fails (fit or Revit sketch error),
+retry once with the flattened segments. The result window states which was used.
 
 ## Errors
 All failures shown in the window or logged via `ToolGuard.Report`. No silent failures.
@@ -41,4 +44,4 @@ All failures shown in the window or logged via `ToolGuard.Report`. No silent fai
 holes, disjoint roofs.
 
 ## Out of scope
-Extrusion roofs, deleting originals, preserving arcs, linked-model roofs.
+Extrusion roofs, deleting originals, linked-model roofs.
