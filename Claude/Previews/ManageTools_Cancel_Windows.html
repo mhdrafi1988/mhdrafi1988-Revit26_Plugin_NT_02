@@ -2,7 +2,7 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <!-- UI preview (CLAUDE.md "UI previews"): Manage Tools group, Esc / Cancel with Yes-No confirm. Plugin 6.40.0.
      Tools covered (latest version of each; tool versions in the table below): Workset Creator (V017), Annotation Overlap Detection, Bulk Rename, Delete Line Styles, Link Memory, Link Version Checker, ParaManager, Schedule Export / Import, Shared Parameter Studio, Tracker ID, Delete Workset, Workset Manager, Workset Renamer, Workset Renamer (From Excel), Worksets & Elements Browser.
-     Mirrors: Shared/Controls/ToolWindowShellTemplate.xaml (status strip + Cancel), Shared/Services/ToolCancellation.cs (dialog text),
+     Mirrors: Menu/00_Push_Button_Menu_items/Ribbon/ManageRibbon.cs (WS Creator dropdown), Shared/Controls/ToolWindowShellTemplate.xaml (status strip + Cancel), Shared/Services/ToolCancellation.cs (dialog text),
               Menu/Manage/ScheduleExportImport/ScheduleExportImport_V007 window as the example.
      Artifact: https://claude.ai/artifact/JT4G1k1dVzZZSYxCHAz2mP (republish to this URL on every update)
      Colours: Shared/SharedStyles.xaml tokens, one light look on purpose (mirrors the light WPF window). -->
@@ -71,12 +71,50 @@ p{margin:0;line-height:1.5;max-width:75ch}
 .tbl th,.tbl td{border:1px solid var(--border);padding:4px 8px;text-align:left;vertical-align:top}
 .tbl th{background:var(--bg2);font-weight:600;white-space:nowrap}
 .tbl td.v{white-space:nowrap;font-variant-numeric:tabular-nums}
+
+.rib{width:760px;background:var(--ribbon-bg);border:1px solid var(--border)}
+.rtabs{background:#1C2B3A;color:#EAF1F8;padding:4px 10px;font-size:11.5px}
+.rpanel{display:flex;gap:6px;padding:6px 8px 0;align-items:stretch}
+.rbig{width:78px;text-align:center;padding:4px 2px;font-size:11px;line-height:1.2}
+.rbig .ico{width:32px;height:32px;margin:0 auto 4px;border-radius:4px;background:var(--navy)}
+.rbig.new{background:var(--new-soft);outline:1px solid var(--new)}
+.rbig.new .ico{background:var(--new)}
+.rtitle{text-align:center;color:var(--text2);border-top:1px solid var(--border);margin-top:6px;padding:2px;font-size:11px}
+.drop{width:300px;background:var(--card);border:1px solid var(--input);box-shadow:0 4px 14px rgba(16,32,48,.18);margin-top:6px;font-size:12px}
+.drop div{padding:5px 10px;border-bottom:1px solid var(--border)}
+.drop div:last-child{border-bottom:0}
+.drop .first{background:var(--new-soft);font-weight:600}
+.tip{width:400px;background:var(--card);border:1px solid var(--input);padding:10px 12px;box-shadow:0 4px 14px rgba(16,32,48,.18);display:grid;gap:6px;margin-top:8px}
+.tip .gray{color:var(--text2)}
 </style>
 <div class="page">
   <header>
     <h1>Manage Tools: Esc / Cancel <span class="tag">NEW</span></h1>
     <p class="muted">Every Manage Tools tool now cancels a running step. Esc, or the Cancel button in the status strip, asks for confirmation. Yes stops the run and undoes the model changes it made. No carries on. Esc works while Revit is the foreground application. Tools without a window show a small progress pop-up with the same Cancel button. <span class="sample">Sample data: names are made up.</span></p>
   </header>
+  <section>
+    <h2>Ribbon: WS Creator now opens V017 <span class="tag">CHANGED</span></h2>
+    <p class="muted">Rafi_Pro_Docs2 tab, Worksets panel. The button keeps its name; the dropdown lists V017 first and V017 supplies the button's own icon and click. The # marks the newest version.</p>
+    <div class="frame"><div class="rib">
+      <div class="rtabs">Rafi_Pro_Docs2 · Tagging · DWG Tools · Family Tools · Manage · <b>Worksets</b> · Memory</div>
+      <div class="rpanel">
+        <div class="rbig"><div class="ico"></div>WS Browser</div>
+        <div class="rbig new"><div class="ico"></div>WS Creator ▾</div>
+        <div class="rbig"><div class="ico"></div>WS Renamer ▾</div>
+      </div>
+      <div class="rtitle">Worksets ▾ (slide-out: WS Renamer XL · Delete Workset)</div>
+    </div></div>
+    <div class="frame"><div class="drop">
+      <div class="first">Workset Creator V017 # <span class="tag">NEW</span></div>
+      <div>Workset Creator V016</div>
+      <div>Workset Creator V015</div>
+    </div></div>
+    <div class="frame"><div class="tip">
+      <b>Workset Creator — v17.1.0 (build V017)<span class="tag">NEW</span></b>
+      <span>V016 plus Esc / Cancel with a Yes / No confirm; a cancel undoes the whole run.</span>
+      <span class="gray">Newest first; older versions stay in the dropdown. Tab and panel names are sample text from the Manage ribbon file.</span>
+    </div></div>
+  </section>
   <section>
     <h2>1. Window while a run is in progress (example: Schedule Export / Import 7.2.0)</h2>
     <p class="muted">The Cancel button appears in the status strip and the rest of the window is disabled.</p>
