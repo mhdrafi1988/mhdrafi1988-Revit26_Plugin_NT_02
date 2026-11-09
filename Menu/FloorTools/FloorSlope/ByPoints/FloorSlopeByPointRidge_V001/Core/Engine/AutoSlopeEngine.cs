@@ -50,6 +50,7 @@ namespace Revit26_Plugin_Revised.FloorSlopeByPointRidge.V001.Core.Engine
                     PickedDrainCount = 0,
                     FinalDrainCount = 0
                 });
+                throw; // the handler rolls the group back; ToolGuard treats it as a user cancel
             }
         }
 

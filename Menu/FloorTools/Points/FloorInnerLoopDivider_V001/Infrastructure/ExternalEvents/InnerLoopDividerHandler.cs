@@ -36,6 +36,9 @@ namespace Revit26_Plugin_Revised.FloorInnerLoopDivider.V001.Infrastructure.Exter
             Payload = null;
             if (current == null) return;
 
+            // Esc / Cancel with a Yes-No confirm; a cancelled run rolls the group back (see Run).
+            using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.FloorInnerLoopDivider, app);
+
             if (current.Operation == InnerLoopDividerOperation.Analyze)
             {
                 Run(app, current, null);
@@ -67,6 +70,21 @@ namespace Revit26_Plugin_Revised.FloorInnerLoopDivider.V001.Infrastructure.Exter
                     if (result.Success) tg.Assimilate();
                     else tg.RollBack();
                 }
+            }
+            catch (OperationCanceledException)
+            {
+                if (tg != null && tg.GetStatus() == TransactionStatus.Started)
+                    tg.RollBack();
+
+                current.Log?.Invoke(new LogEntry(LogLevel.Warning, "Cancelled by user. Nothing was changed."));
+                current.OnCompleted?.Invoke(new InnerLoopDividerResult
+                {
+                    Success = false,
+                    ErrorMessage = "Cancelled by user.",
+                    Operation = current.Operation,
+                    PointsAdded = -1
+                });
+                throw; // ToolGuard treats it as a user cancel
             }
             catch (Exception ex)
             {

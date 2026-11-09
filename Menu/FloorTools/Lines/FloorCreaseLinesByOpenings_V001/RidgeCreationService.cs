@@ -1,3 +1,4 @@
+using Revit26_Plugin_Revised.Shared.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -145,6 +146,10 @@ namespace Revit26_Plugin_Revised.FloorCreaseLinesByOpenings.V001.Services
                 if (!ed.IsEnabled)
                 {
                     try { ed.Enable(); }
+                    catch (OperationCanceledException)
+                    {
+                        throw; // user cancel: never swallowed as a failure
+                    }
                     catch (Exception ex)
                     {
                         System.Diagnostics.Debug.WriteLine(
@@ -154,6 +159,10 @@ namespace Revit26_Plugin_Revised.FloorCreaseLinesByOpenings.V001.Services
 
                 tx.Commit();
                 return true;
+            }
+            catch (OperationCanceledException)
+            {
+                throw; // user cancel: never swallowed as a failure
             }
             catch (Exception ex)
             {
@@ -223,6 +232,7 @@ namespace Revit26_Plugin_Revised.FloorCreaseLinesByOpenings.V001.Services
                 // Voronoi vertices + inner-loop intersections first, then edge midpoints.
                 foreach (var pt in shapePoints.Concat(midPoints))
                 {
+                    ToolCancellation.CheckCurrent();
                     try
                     {
                         XYZ checkedPt = EnsureOnTopFace(pt, topFace, result.BoundaryPolygon);
@@ -251,6 +261,10 @@ namespace Revit26_Plugin_Revised.FloorCreaseLinesByOpenings.V001.Services
                                 $"[TX-02] Revit rejected the point at X={pt.X * 304.8:F0} Y={pt.Y * 304.8:F0} mm, even nudged up to 60 mm.");
                         }
                     }
+                    catch (OperationCanceledException)
+                    {
+                        throw; // user cancel: never swallowed as a failure
+                    }
                     catch (Exception ex)
                     {
                         TotalFailed++;
@@ -267,6 +281,10 @@ namespace Revit26_Plugin_Revised.FloorCreaseLinesByOpenings.V001.Services
                 // Forward any slab warnings collected during commit to the pipeline log
                 foreach (var warning in preprocessor.CapturedWarnings)
                     OnSlabWarning?.Invoke(warning);
+            }
+            catch (OperationCanceledException)
+            {
+                throw; // user cancel: never swallowed as a failure
             }
             catch (Exception ex)
             {
@@ -385,6 +403,10 @@ namespace Revit26_Plugin_Revised.FloorCreaseLinesByOpenings.V001.Services
                 }
 
                 return best;
+            }
+            catch (OperationCanceledException)
+            {
+                throw; // user cancel: never swallowed as a failure
             }
             catch (Exception ex)
             {
@@ -608,6 +630,7 @@ namespace Revit26_Plugin_Revised.FloorCreaseLinesByOpenings.V001.Services
 
             foreach (var edge in result.ClippedEdges)
             {
+                ToolCancellation.CheckCurrent();
                 try
                 {
                     if (edge.Start.DistanceTo(edge.End) < 1.0 / 304.8) continue;
@@ -618,6 +641,10 @@ namespace Revit26_Plugin_Revised.FloorCreaseLinesByOpenings.V001.Services
                         dl.LineStyle = doc.GetElement(lineStyleId) as GraphicsStyle;
                     activeView.SetElementOverrides(dl.Id, ogs);
                     result.CreatedDetailLineIds.Add(dl.Id);
+                }
+                catch (OperationCanceledException)
+                {
+                    throw; // user cancel: never swallowed as a failure
                 }
                 catch (Exception ex)
                 {

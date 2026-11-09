@@ -30,6 +30,8 @@ Each release lists every tool whose version changed, under the plugin version.
   - Auto Slope By Drain (Multi-Roof) 13.2.0, Auto Slope By Drain 7.3.0, Auto Slope By Point 33.1.0,
     Auto Slope By Point (Ridge) 3.2.0, Auto Slope By Point (Multi Copies) 30.2.0
   - Roof Type Manager 3.2.0, Island Roof Splitter 2.1.0, Roof Name Builder 2.2.0
+- **Floor Tools group** (all tools in `Menu/FloorTools`, latest version of each): Esc / Cancel with a Yes / No confirm while the tool works,
+  same behaviour as the Roof Tools: Floors And Roof From Linked Rooms 13.2.0, Floors And Roof From Linked Rooms (Via Plan View) 6.2.0, Floor Slope By Drain 1.1.0, Floor Slope By Point 1.1.0, Floor Slope By Point (Ridge) 1.1.0, Floor Slope By Point (Multi Copies) 1.1.0, Floor Points & Slope 1.1.0, Floor Divide Inner Loops 1.1.0, Floor Outer Curve Divider 1.1.0, Floor Detail Line Intersect 1.1.0, Floor Inner Loops And Perpendicular 1.1.0, Floor Edge Vertex Reducer 1.1.0, Floor Multiple Points (1/2–1/4) 1.1.0, Floor Shape From Link 1.1.0, Floor Crease Lines By Openings 1.1.0, Floor Crease Lines By Points 1.1.0, Floor Creaser 1.1.0, Floor Type Manager 1.1.0, Floor Name Builder 1.1.0, Floor Point Comparison 1.1.0, Floor Point Elevation Sync 1.1.0, Floor Tapered EPS 2D Pattern 1.1.0.
 
 #### Changed
 - View Auto Renamer 7.2.0: the rename now runs in one transaction group.
@@ -37,12 +39,15 @@ Each release lists every tool whose version changed, under the plugin version.
   Before, roofs or copies that had already finished stayed applied. Auto Slope By Drain 7.3.0, Auto Slope By Point 33.1.0 and
   Auto Slope By Point (Ridge) 3.2.0 already rolled the roof back; their Cancel button is now the shared one in the status strip
   and asks for confirmation.
+- Floor Slope By Drain 1.1.0 and Floor Slope By Point (Multi Copies) 1.1.0: a cancel now undoes the whole run (before, finished floors or copies stayed).
+  Floors And Roof From Linked Rooms 13.2.0 and (Via Plan View) 6.2.0: a cancel now removes every element the run created (before, the ones already made were kept).
+  Their separate "Cancel" / "Cancel Run" buttons are replaced by the shared Cancel button, which asks for confirmation.
 - Roof Points & Slope 1.2.0: the separate "Cancel Run" button is replaced by the shared Cancel button; it asks for confirmation.
 
 User note: cancelling a run undoes every model change made by that run (a cancelled rename leaves all view names as they
 were). Files already exported or written stay. A single long Revit call cannot be interrupted, so the dialog can take a
-moment to appear. Excel files written before a cancel are kept. View Auto Renamer and the Roof Tools group have this so far; the other
-tool groups follow. Ridge By Openings / Ridge By Points compute the ridge geometry on a background thread; that calculation cannot be
+moment to appear. Excel files written before a cancel are kept. View Auto Renamer, the Roof Tools and the Floor Tools have this so far;
+the other tool groups follow. Ridge By Openings / Ridge By Points compute the ridge geometry on a background thread; that calculation cannot be
 cancelled, only the Revit steps after it (reading the roof, adding points, drawing lines).
 
 ## [6.39.0] — 2026-11-06

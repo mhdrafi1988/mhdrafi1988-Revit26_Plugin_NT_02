@@ -261,11 +261,6 @@ Changes vs V005 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <Grid Grid.Column="0">
-                    <Button Content="Cancel" Command="{Binding CancelCommand}"
-                            Style="{StaticResource OutlineButton}"
-                            Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}}"/>
-                </Grid>
                 <StackPanel Grid.Column="2" Orientation="Horizontal">
                     <Button Content="Create Floors" Command="{Binding RunFloorCommand}"
                             Style="{StaticResource PrimaryButton}" Margin="0,0,8,0"/>

@@ -61,6 +61,10 @@ namespace Revit26_Plugin_Revised.FloorEdgeVertexReducer.V001.Infrastructure.Exte
 
         private void ExecuteCore(UIApplication app)
         {
+            // Esc / Cancel with a Yes-No confirm during Preview and Apply (picking keeps Revit's own Esc).
+            using ToolCancellation cancel = PendingRequest is ReducerRequest.Preview or ReducerRequest.Apply
+                ? ToolCancellation.BeginFor(ToolCatalog.FloorEdgeVertexReducer, app)
+                : null;
             try
             {
                 switch (PendingRequest)
@@ -79,6 +83,12 @@ namespace Revit26_Plugin_Revised.FloorEdgeVertexReducer.V001.Infrastructure.Exte
             catch (Autodesk.Revit.Exceptions.OperationCanceledException)
             {
                 // user cancelled the pick — no log needed
+            }
+            catch (OperationCanceledException)
+            {
+                // The transaction group in HandleApply is rolled back as the exception unwinds.
+                _vm.AddLog(LogLevel.Warning, "Cancelled by user. Nothing was changed.");
+                throw; // ToolGuard treats it as a user cancel
             }
             catch (Exception ex)
             {

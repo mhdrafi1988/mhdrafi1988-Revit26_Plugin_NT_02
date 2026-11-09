@@ -29,11 +29,18 @@ namespace Revit26_Plugin_Revised.FloorTaperedEpsPattern.V001.Events
             Pending = null;
 
             PatternWriteResult result;
+            // Esc / Cancel with a Yes-No confirm; the writer's transaction rolls back on cancel.
+            using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.FloorTaperedEpsPattern, app);
             try
             {
                 result = request == null
                     ? PatternWriteResult.Failed("Nothing to run.")
                     : DetailPatternWriter.Write(request);
+            }
+            catch (OperationCanceledException)
+            {
+                Completed?.Invoke(PatternWriteResult.Failed("Cancelled by user. Nothing was created."));
+                throw; // ToolGuard treats it as a user cancel
             }
             catch (Exception ex)
             {
