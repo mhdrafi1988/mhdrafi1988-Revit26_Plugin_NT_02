@@ -14,12 +14,13 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
     public static class FloorToolsRibbon
     {
         /// <summary>
-        /// Creates every floor panel on <paramref name="tabName"/>, in workflow order: Floor Slope, Floor Points,
+        /// Creates every floor panel on <paramref name="tabName"/>, in workflow order: Floor Create, Floor Slope, Floor Points,
         /// Floor Lines, Floor Edit and Floor Views. They had been spread over the roof and documents tabs; plugin 6.42.0
         /// gathered them on a tab of their own.
         /// </summary>
         public static void Build(UIControlledApplication app, string tabName, string assemblyPath)
         {
+            BuildCreatePanel(app, tabName, assemblyPath);
             BuildSlopePanel(app, tabName, assemblyPath);
             BuildPointsPanel(app, tabName, assemblyPath);
             BuildLinesPanel(app, tabName, assemblyPath);
@@ -252,6 +253,20 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
 
         /// <summary>Internal name of the pulldown (unchanged since it lived in Floor Tools).</summary>
         public const string FromRoomsPulldownName = "Pulldown_FloorsAndRoofFromLinkedRooms";
+
+        /// <summary>
+        /// Creates the "Floor Create" panel on <paramref name="tabName"/>: the Floor From Rooms pulldown, moved here
+        /// from the Roof Tools panel in plugin 6.43.0. Its internal name and versions are unchanged.
+        /// </summary>
+        public static void BuildCreatePanel(UIControlledApplication app, string tabName, string assemblyPath)
+        {
+            RibbonPanel panel = app.CreateRibbonPanel(tabName, "Floor Create");
+            var items = RibbonLayoutHelper.AddStackedButtons(panel, new List<RibbonItemData>
+            {
+                CreateFromRoomsPulldown(assemblyPath, out var fromRoomsVersions),
+            });
+            RibbonLayoutHelper.WirePulldownButton(items, FromRoomsPulldownName, fromRoomsVersions);
+        }
 
         /// <summary>
         /// Returns the "Floor From Rooms" pulldown data to stack in a panel, and in

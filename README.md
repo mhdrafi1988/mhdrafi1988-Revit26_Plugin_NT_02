@@ -23,7 +23,7 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 |---|---|---|
 | Rafi_Pro_MOds | Roof Slope | By Point · By Drain · Points & Slope |
 | Rafi_Pro_MOds | Shape Points | Inner Loops · Outer Curve · Line Intersect · Loops + Perp. ▸ slide-out: Vertex Reducer · Multi Points · Shape From Link |
-| Rafi_Pro_MOds | Roof Tools | Creaser Adv · Roof Tag · Floor From Rooms · Shape From Link |
+| Rafi_Pro_MOds | Roof Tools | Creaser Adv · Roof Tag · Shape From Link |
 | Rafi_Pro_MOds2 | Roof Edit | Name Builder · Island Splitter · Merge Roofs |
 | Rafi_Pro_MOds2 | Roof Plan View | Island Splitter |
 | Rafi_Pro_MOds2 | Roof Compare | Comparison · Elevation Sync |
@@ -35,6 +35,7 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 
 | Tab | Panel | Tools |
 |---|---|---|
+| Rafi_Pro_Floors | Floor Create | Floor From Rooms (V013, V012, Rooms Plan View V006, V005) |
 | Rafi_Pro_Floors | Floor Slope | By Drain · By Point (By Point, Ridge, Multi Copies) · Points & Slope |
 | Rafi_Pro_Floors | Floor Points | Inner Loops · Outer Curve · Line Intersect · Loops + Perp. · Vertex Reducer · Multi Points · Shape From Link |
 | Rafi_Pro_Floors | Floor Lines | Crease By Openings · Crease By Points · Floor Creaser |
@@ -120,7 +121,7 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 - **Ridge By Openings / By Points, Combined Roof Tools, Roof Type Manager** (Roof Utilities panel).
 
 ### Floors from rooms
-- **Floors And Roof From Linked Rooms** (Roof Tools ▸ Floor From Rooms): create floors or a roof from rooms in linked
+- **Floors And Roof From Linked Rooms** (Floors tab ▸ Floor Create ▸ Floor From Rooms): create floors or a roof from rooms in linked
   models, directly or through a plan view.
 
 ### Views and sections

@@ -38,7 +38,7 @@ Each item is a pulldown unless marked *button*. A pulldown lists its versions hi
 |---|---|---|---|
 | Rafi_Pro_MOds | Roof Slope | By Point (V033, V032, V030, Ridge V003, Multi Copies 30) · By Drain (V013, V012, V011, V007) · Points & Slope (V001) | `RoofToolsRibbon.Build` |
 | Rafi_Pro_MOds | Shape Points | Inner Loops · Outer Curve · Line Intersect · Loops + Perp. ▸ Vertex Reducer · Multi Points · Shape From Link | `RoofToolsRibbon.Build` |
-| Rafi_Pro_MOds | Roof Tools | Creaser Adv · Roof Tag · Floor From Rooms · Shape From Link | `RoofToolsRibbon.Build` |
+| Rafi_Pro_MOds | Roof Tools | Creaser Adv · Roof Tag · Shape From Link | `RoofToolsRibbon.Build` |
 | Rafi_Pro_MOds2 | Roof Edit | Name Builder · Island Splitter · Merge Roofs | `BuildEditComparePanels` |
 | Rafi_Pro_MOds2 | Roof Plan View | Island Splitter (large *button*) | `BuildEditComparePanels` |
 | Rafi_Pro_MOds2 | Roof Compare | Comparison · Elevation Sync | `BuildEditComparePanels` |
@@ -52,6 +52,7 @@ Built by `FloorToolsRibbon.Build` (6.42.0; before that the floor panels sat on t
 
 | Tab | Panel | Items | Builder |
 |---|---|---|---|
+| Rafi_Pro_Floors | Floor Create | Floor From Rooms (V013, V012, Rooms Plan View V006, V005) | `FloorToolsRibbon.BuildCreatePanel` |
 | Rafi_Pro_Floors | Floor Slope | By Drain *button* (Floor Slope By Drain V001) · By Point (By Point V001, Ridge V001, Multi Copies V001) · Points & Slope *button* (Floor Points & Slope V001) | `FloorToolsRibbon.BuildSlopePanel` |
 | Rafi_Pro_Floors | Floor Points | Inner Loops *button* · Outer Curve *button* · Line Intersect *button* · Loops + Perp. *button* · Vertex Reducer *button* · Multi Points *button* · Shape From Link (large *button*) — each V001 | `FloorToolsRibbon.BuildPointsPanel` |
 | Rafi_Pro_Floors | Floor Lines | Crease By Openings *button* · Crease By Points *button* · Floor Creaser *button* — each V001 | `FloorToolsRibbon.BuildLinesPanel` |
@@ -74,7 +75,7 @@ Built by `FloorToolsRibbon.Build` (6.42.0; before that the floor panels sat on t
 | Rafi_Pro_Docs2 | Worksets | WS Browser · WS Creator · WS Renamer ▸ WS Renamer XL · Delete Workset | `ManageRibbon` |
 | Rafi_Pro_Docs2 | Memory | WS Memory (large *button*) · Link Memory (large; V002, V001) | `ManageRibbon` |
 
-The latest change was plugin 6.42.0, which moved every Floor panel onto the new Floors tab. Before that, 6.37.0 added the **Floor Views** panel (Documents tab, after View Create) and
+The latest change was plugin 6.43.0, which moved Floor From Rooms onto the Floors tab (new Floor Create panel). 6.42.0 moved every Floor panel onto the new Floors tab. Before that, 6.37.0 added the **Floor Views** panel (Documents tab, after View Create) and
 Floor EPS on Floor Edit. 6.36.0 added the **Floor Edit** panel (floor versions of Roof Types, Name
 Builder, Roof Tag, Point Comparison and Elevation Sync) after Floor Lines. 6.35.0 added the **Floor Lines** panel (floor versions of Ridge By Openings,
 Ridge By Points and Creaser Adv) after Floor Points. 6.34.0 added the **Floor Points** panel (floor versions of

@@ -130,7 +130,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             RibbonLayoutHelper.WirePulldownButton(shapePointsItems, "Pulldown_MultiplePoints", multiPointsV003, multiPointsV002);
             RibbonLayoutHelper.WirePulldownButton(shapePointsItems, "Pulldown_RoofShapeFromLink", shapeFromLinkV001);
 
-            // Slope Liner + Tag + Floor From Rooms in one stack
+            // Creaser Adv + Roof Tag + Shape From Link in one stack (Floor From Rooms moved to the Floors tab in plugin 6.43.0)
             // (Revit's stacked-item limit is exactly 3 per column).
             RibbonPanel roofToolsPanel = app.CreateRibbonPanel(tabName, "Roof Tools");
 
@@ -156,13 +156,10 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             {
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_CreaserAdv", "Creaser Adv", creaserV012),
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_RoofTag", "Roof Tag", roofTagV018),
-                // Moved here from the removed Floor Tools panel (plugin 2.4.0).
-                FloorToolsRibbon.CreateFromRoomsPulldown(assemblyPath, out var fromRoomsVersions),
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_RoofToolsPanel_RoofShapeFromLink", "Shape From Link", shapeFromLinkRoofPanelV001),
             });
             RibbonLayoutHelper.WirePulldownButton(roofToolsItems, "Pulldown_CreaserAdv", creaserV012, creaserV011);
             RibbonLayoutHelper.WirePulldownButton(roofToolsItems, "Pulldown_RoofTag", roofTagV018, roofTagV017);
-            RibbonLayoutHelper.WirePulldownButton(roofToolsItems, FloorToolsRibbon.FromRoomsPulldownName, fromRoomsVersions);
             RibbonLayoutHelper.WirePulldownButton(roofToolsItems, "Pulldown_RoofToolsPanel_RoofShapeFromLink", shapeFromLinkRoofPanelV001);
         }
 

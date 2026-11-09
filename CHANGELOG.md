@@ -9,6 +9,16 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.43.0] — 2026-11-09
+
+### Floor From Rooms moved to the Floors tab
+
+#### Changed
+- The **Floor From Rooms** pulldown moved from the Roof Tools panel (Rafi_Pro_MOds) to a new **Floor Create** panel, the first panel on Rafi_Pro_Floors. Roof Tools now holds Creaser Adv, Roof Tag and Shape From Link.
+- No tool version changed; button internal names and commands are unchanged.
+
+User note: a Quick Access Toolbar item or shortcut set on a From Rooms button may need to be re-added.
+
 ## [6.42.0] — 2026-11-09
 
 ### Ribbon: roof tools and floor tools on separate tabs
