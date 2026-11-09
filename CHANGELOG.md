@@ -37,8 +37,13 @@ Each release lists every tool whose version changed, under the plugin version.
   while the tool works: Create Sections From Detail Lines 13.2.0, Floor Edge Around Sections 1.1.0, Floor Edge Element Sections 1.1.0, Floor View Focus 1.1.0, Isolated Section 1.1.0, Roof Edge Around Sections 7.3.0, Roof Edge Element Sections 4.2.0, Roof View Focus 4.2.0, Section View Auto Tagger 6.2.0, Auto Place Sections 324.2.0, Callout To Section View Placement 21.2.0, Reference Section Head Placer 15.2.0, Bubble Auto Renumber 9.2.0, Section Auto Renamer 26.2.0.
   Create Sections From Detail Lines, Auto Place Sections and the Roof / Floor Edge Sections tools create their sections in one group, so a cancel removes every
   section or viewport of the run.
+- **Sheet Tools group** (all tools in `Menu/Sheet`, latest version of each): Esc / Cancel with a Yes / No confirm while the tool works: Automated Section Placer 3.2.0, Plan From Scope Box 6.2.0, Sections To Sheet 1.1.0, Sheet Auto Rearrange 28.2.0, Sheet Text Replace 1.1.0, Sheet View Arrange 1.3.0, Smart View To Sheet Placer 224.2.0.
+- **Tagging Tools group** (all tools in `Menu/Tagging`, latest version of each): Esc / Cancel with a Yes / No confirm while the tool works: Align Spot Elevations 1.7.0, Floor Tag 1.1.0, Roof Tag 18.2.0, Tag To Text 1.4.0.
+- **Detail Lines Tools group** (all tools in `Menu/DetailLines`, latest version of each): Esc / Cancel with a Yes / No confirm while the tool works: Detail Lines From Links 10.2.0, Detail Line Closed Loop 3.1.0, Detail Line Manager 2.1.0.
+- **Dimensions group** (all tools in `Menu/Dimensions`, latest version of each): Esc / Cancel with a Yes / No confirm while the tool works: Auto Dim Detail Line 10.2.0.
 
 #### Changed
+- Tag To Text 1.4.0: the separate Cancel button is replaced by the shared Cancel button, which asks for confirmation (the run already undid everything).
 - View Auto Renamer 7.2.0: the rename now runs in one transaction group.
 - Auto Slope By Drain (Multi-Roof) 13.2.0 and Auto Slope By Point (Multi Copies) 30.2.0: a cancel now undoes the whole run.
   Before, roofs or copies that had already finished stayed applied. Auto Slope By Drain 7.3.0, Auto Slope By Point 33.1.0 and

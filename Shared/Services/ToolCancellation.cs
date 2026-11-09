@@ -190,6 +190,16 @@ namespace Revit26_Plugin_Revised.Shared.Services
             return true;
         }
 
+        /// <summary>True while the innermost active run has a confirmed user cancel (usable in <c>finally</c> blocks while the cancel unwinds).</summary>
+        public static bool CurrentIsCancelled => _current?.IsCancelled == true;
+
+        /// <summary>
+        /// Message for a completion callback that found no result: the cancel text when the user cancelled,
+        /// otherwise <paramref name="fallback"/>.
+        /// </summary>
+        public static string CancelledOr(string fallback, string cancelled = "Cancelled by user. Nothing was changed.") =>
+            CurrentIsCancelled ? cancelled : fallback;
+
         /// <summary>
         /// Asks the active run of <paramref name="tool"/> to cancel, finding the tool's open window.
         /// For tool windows that keep their own Cancel button: the button's command calls this.

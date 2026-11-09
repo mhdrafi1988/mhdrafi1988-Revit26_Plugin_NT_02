@@ -108,6 +108,10 @@ namespace Revit26_Plugin_Revised.SmartViewToSheetPlacer.V224.Infrastructure.Exte
 
         private void ExecuteCore(UIApplication app)
         {
+            // Esc / Cancel with a Yes-No confirm while views load or are placed (opening sheets is instant).
+            using ToolCancellation cancel = Request == SmartViewToSheetPlacerRequest.OpenSheets
+                ? null
+                : ToolCancellation.BeginFor(ToolCatalog.SmartViewToSheetPlacer, app);
             try
             {
                 switch (Request)
@@ -122,6 +126,13 @@ namespace Revit26_Plugin_Revised.SmartViewToSheetPlacer.V224.Infrastructure.Exte
                         ExecuteOpenSheets();
                         break;
                 }
+            }
+            catch (OperationCanceledException)
+            {
+                // The placement transaction was rolled back as the exception unwound.
+                Logs.Add(new LogEntry(LogLevel.Warning, "Cancelled by user. No views were placed."));
+                LastRunSucceeded = false;
+                throw; // ToolGuard treats it as a user cancel; finally still completes the request
             }
             catch (Exception ex)
             {
@@ -157,6 +168,7 @@ namespace Revit26_Plugin_Revised.SmartViewToSheetPlacer.V224.Infrastructure.Exte
 
             foreach (var v in views)
             {
+                ToolCancellation.CheckCurrent();
                 try
                 {
                     var (widthMm, heightMm) = ComputeSizeOnSheetMm(v);
@@ -207,6 +219,10 @@ namespace Revit26_Plugin_Revised.SmartViewToSheetPlacer.V224.Infrastructure.Exte
                         parameterValues: CollectParameterValues(v));
                     LoadedViews.Add(info);
                 }
+                catch (OperationCanceledException)
+                {
+                    throw; // user cancel: never swallowed as a failure
+                }
                 catch (Exception ex)
                 {
                     Logs.Add(new LogEntry(LogLevel.Warning, $"LoadViews: skipped view '{v.Name}' — {ex.Message}"));
@@ -234,6 +250,10 @@ namespace Revit26_Plugin_Revised.SmartViewToSheetPlacer.V224.Infrastructure.Exte
                     }
                     string name = $"{ts.Family.Name} - {ts.Name}";
                     LoadedTitleblocks.Add(new TitleblockOption(ts.Id, name, wMm, hMm));
+                }
+                catch (OperationCanceledException)
+                {
+                    throw; // user cancel: never swallowed as a failure
                 }
                 catch (Exception ex)
                 {
@@ -280,6 +300,7 @@ namespace Revit26_Plugin_Revised.SmartViewToSheetPlacer.V224.Infrastructure.Exte
 
                 foreach (var sheet in SheetsToPlace)
                 {
+                    ToolCancellation.CheckCurrent();
                     int processedBeforeSheet = _processedCount;
                     try
                     {
@@ -316,9 +337,14 @@ namespace Revit26_Plugin_Revised.SmartViewToSheetPlacer.V224.Infrastructure.Exte
 
                         foreach (var placement in sheet.Placements)
                         {
+                            ToolCancellation.CheckCurrent();
                             PlaceSingleViewport(doc, newSheet, placement, usableOrigin ?? XYZ.Zero);
                             ReportProgress(1, placement.View.Name);
                         }
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        throw; // user cancel: never swallowed as a failure
                     }
                     catch (Exception ex)
                     {
@@ -336,10 +362,15 @@ namespace Revit26_Plugin_Revised.SmartViewToSheetPlacer.V224.Infrastructure.Exte
                     }
                 }
 
+                ToolCancellation.CheckCurrent(); // last chance to cancel before the commit
                 tx.Commit();
                 LastRunSucceeded = true;
                 Logs.Add(new LogEntry(LogLevel.Success,
                     $"PlaceViews complete: {SheetsToPlace.Count} sheet(s) attempted ({FailedSheetCount} failed) | {PlacedCount} view(s) placed | {SkippedCount} skipped | {FailedCount} failed."));
+            }
+            catch (OperationCanceledException)
+            {
+                throw; // user cancel: never swallowed as a failure
             }
             catch (Exception ex)
             {
@@ -425,6 +456,10 @@ namespace Revit26_Plugin_Revised.SmartViewToSheetPlacer.V224.Infrastructure.Exte
             {
                 vp = Viewport.Create(doc, sheet.Id, view.Id, defaultPoint);
             }
+            catch (OperationCanceledException)
+            {
+                throw; // user cancel: never swallowed as a failure
+            }
             catch (Exception ex)
             {
                 FailedCount++;
@@ -476,6 +511,10 @@ namespace Revit26_Plugin_Revised.SmartViewToSheetPlacer.V224.Infrastructure.Exte
                     var view = doc.GetElement(id) as View;
                     if (view != null)
                         _uiDoc.ActiveView = view;
+                }
+                catch (OperationCanceledException)
+                {
+                    throw; // user cancel: never swallowed as a failure
                 }
                 catch (Exception ex)
                 {

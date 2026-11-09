@@ -40,6 +40,7 @@ namespace Revit26_Plugin_Revised.SheetTextReplace.V001.Core.Services
                     t.Start();
                     foreach (var change in request.Changes)
                     {
+                        ToolCancellation.CheckCurrent();
                         if (doc.GetElement(new ElementId(change.NoteId)) is not TextNote note)
                         {
                             skipped.Add(Issue(change, "Deleted since preview"));
@@ -92,6 +93,10 @@ namespace Revit26_Plugin_Revised.SheetTextReplace.V001.Core.Services
 
                 group.Assimilate();
                 return Result(true, null, changed, skipped, failed, formattingReset, watch);
+            }
+            catch (OperationCanceledException)
+            {
+                throw; // user cancel: never swallowed as a failure
             }
             catch (Exception ex)
             {

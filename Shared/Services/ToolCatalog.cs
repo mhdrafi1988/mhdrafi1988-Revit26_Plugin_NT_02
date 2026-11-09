@@ -51,11 +51,11 @@ namespace Revit26_Plugin_Revised.Shared.Services
     {
         private static readonly List<ToolInfo> All = new();
 
-        public static readonly ToolInfo LinkedDetailLineGenerator = Add("Detail Lines From Links", "10.1.1", "VA010", "Revit26_Plugin_Revised.LinkedDetailLineGenerator.VA010");
-        public static readonly ToolInfo DetailLineClosedLoop = Add("Detail Line Closed Loop", "3.0.1", "V003", "Revit26_Plugin_Revised.DetailLineClosedLoop.V003");
+        public static readonly ToolInfo LinkedDetailLineGenerator = Add("Detail Lines From Links", "10.2.0", "VA010", "Revit26_Plugin_Revised.LinkedDetailLineGenerator.VA010");
+        public static readonly ToolInfo DetailLineClosedLoop = Add("Detail Line Closed Loop", "3.1.0", "V003", "Revit26_Plugin_Revised.DetailLineClosedLoop.V003");
         public static readonly ToolInfo DetailLineManager = Add("Detail Line Manager", "1.1.1", "V001", "Revit26_Plugin_Revised.DetailLineManager.V001");
-        public static readonly ToolInfo DetailLineManagerV002 = Add("Detail Line Manager", "2.0.0", "V002", "Revit26_Plugin_Revised.DetailLineManager.V002");
-        public static readonly ToolInfo DtlLineDim = Add("Auto Dim Detail Line", "10.1.1", "V010", "Revit26_Plugin_Revised.DtlLineDim.V010");
+        public static readonly ToolInfo DetailLineManagerV002 = Add("Detail Line Manager", "2.1.0", "V002", "Revit26_Plugin_Revised.DetailLineManager.V002");
+        public static readonly ToolInfo DtlLineDim = Add("Auto Dim Detail Line", "10.2.0", "V010", "Revit26_Plugin_Revised.DtlLineDim.V010");
         public static readonly ToolInfo FloorsAndRoofFromLinkedRooms = Add("Floors And Roof From Linked Rooms", "13.2.0", "V013", "Revit26_Plugin_Revised.FloorsAndRoofFromLinkedRooms.V013");
         public static readonly ToolInfo FloorsAndRoofFromLinkedRoomsViaPlanView = Add("Floors And Roof From Linked Rooms (Via Plan View)", "6.2.0", "V006", "Revit26_Plugin_Revised.FloorsAndRoofFromLinkedRoomsViaPlanView.V006");
         public static readonly ToolInfo ParaManager = Add("ParaManager", "5.1.1", "V005", "Revit26_Plugin_Revised.ParaManager.V005");
@@ -97,9 +97,9 @@ namespace Revit26_Plugin_Revised.Shared.Services
         public static readonly ToolInfo FloorCreaseLinesByOpenings = Add("Floor Crease Lines By Openings", "1.1.0", "V001", "Revit26_Plugin_Revised.FloorCreaseLinesByOpenings.V001");
         public static readonly ToolInfo FloorCreaseLinesByPoints = Add("Floor Crease Lines By Points", "1.1.0", "V001", "Revit26_Plugin_Revised.FloorCreaseLinesByPoints.V001");
         public static readonly ToolInfo FloorCreaser = Add("Floor Creaser", "1.1.0", "V001", "Revit26_Plugin_Revised.FloorCreaser.V001");
-        public static readonly ToolInfo RoofTag = Add("Roof Tag", "18.1.2", "V018", "Revit26_Plugin_Revised.RoofTag.V018");
-        public static readonly ToolInfo TagToText = Add("Tag To Text", "1.3.0", "V001", "Revit26_Plugin_Revised.TagToText.V001");
-        public static readonly ToolInfo AlignSpotElevations = Add("Align Spot Elevations", "1.6.0", "V001", "Revit26_Plugin_Revised.AlignSpotElevations.V001");
+        public static readonly ToolInfo RoofTag = Add("Roof Tag", "18.2.0", "V018", "Revit26_Plugin_Revised.RoofTag.V018");
+        public static readonly ToolInfo TagToText = Add("Tag To Text", "1.4.0", "V001", "Revit26_Plugin_Revised.TagToText.V001");
+        public static readonly ToolInfo AlignSpotElevations = Add("Align Spot Elevations", "1.7.0", "V001", "Revit26_Plugin_Revised.AlignSpotElevations.V001");
         // Source not in the repository; removed from the ribbon in plugin 3.10.0. Kept so logs stay readable.
         public static readonly ToolInfo RoofFromDetailLines = Add("Roof From Detail Lines", "9.0.0", "V009", "Revit26_Plugin_Revised.RoofFromDetailLines.V009");
         public static readonly ToolInfo CombinedRoofTools = Add("Combined Roof Tools", "3.2.0", "V003", "Revit26_Plugin_Revised.CombinedRoofTools.V003");
@@ -108,7 +108,7 @@ namespace Revit26_Plugin_Revised.Shared.Services
         public static readonly ToolInfo RoofPointComparison = Add("Roof Point Comparison", "3.1.0", "V003", "Revit26_Plugin_Revised.RoofPointComparison.V003");
         public static readonly ToolInfo FloorTypeManager = Add("Floor Type Manager", "1.1.0", "V001", "Revit26_Plugin_Revised.FloorTypeManager.V001");
         public static readonly ToolInfo FloorNameBuilder = Add("Floor Name Builder", "1.1.0", "V001", "Revit26_Plugin_Revised.FloorNameBuilder.V001");
-        public static readonly ToolInfo FloorTag = Add("Floor Tag", "1.0.0", "V001", "Revit26_Plugin_Revised.FloorTag.V001");
+        public static readonly ToolInfo FloorTag = Add("Floor Tag", "1.1.0", "V001", "Revit26_Plugin_Revised.FloorTag.V001");
         public static readonly ToolInfo FloorPointComparison = Add("Floor Point Comparison", "1.1.0", "V001", "Revit26_Plugin_Revised.FloorPointComparison.V001");
         public static readonly ToolInfo FloorPointElevationSync = Add("Floor Point Elevation Sync", "1.1.0", "V001", "Revit26_Plugin_Revised.FloorPointElevationSync.V001");
         public static readonly ToolInfo TaperedEpsPattern2D = Add("Tapered EPS 2D Pattern", "6.2.0", "V006", "Revit26_Plugin_Revised.TaperedEpsPattern2D.V006");
@@ -119,13 +119,13 @@ namespace Revit26_Plugin_Revised.Shared.Services
         public static readonly ToolInfo DwgManager = Add("DWG Manager", "3.1.1", "V003", "Revit26_Plugin_Revised.DwgManager.V003");
         public static readonly ToolInfo DwgStatistics = Add("DWG Statistics", "5.1.1", "V005", "Revit26_Plugin_Revised.DwgStatistics.V005");
         public static readonly ToolInfo ExportDwgToFolder = Add("Export DWG to Folder", "4.2.0", "V004", "Revit26_Plugin_Revised.ExportDwgToFolder.V004");
-        public static readonly ToolInfo PlanFromScopeBox = Add("Plan From Scope Box", "6.1.2", "V006", "Revit26_Plugin_Revised.PlanFromScopeBox.V006");
-        public static readonly ToolInfo SmartViewToSheetPlacer = Add("Smart View To Sheet Placer", "224.1.1", "V224", "Revit26_Plugin_Revised.SmartViewToSheetPlacer.V224");
-        public static readonly ToolInfo AutomatedSectionPlacer = Add("Automated Section Placer", "3.1.1", "V003", "Revit26_Plugin_Revised.AutomatedSectionPlacer.V003");
-        public static readonly ToolInfo SheetAutoRearrange = Add("Sheet Auto Rearrange", "28.1.1", "V028", "Revit26_Plugin_Revised.SheetAutoRearrange.V028");
-        public static readonly ToolInfo SheetViewArrange = Add("Sheet View Arrange", "1.2.1", "V001", "Revit26_Plugin_Revised.SheetViewArrange.V001");
-        public static readonly ToolInfo SectionsToSheet = Add("Sections To Sheet", "1.0.0", "V001", "Revit26_Plugin_Revised.SectionsToSheet.V001");
-        public static readonly ToolInfo SheetTextReplace = Add("Sheet Text Replace", "1.0.0", "V001", "Revit26_Plugin_Revised.SheetTextReplace.V001");
+        public static readonly ToolInfo PlanFromScopeBox = Add("Plan From Scope Box", "6.2.0", "V006", "Revit26_Plugin_Revised.PlanFromScopeBox.V006");
+        public static readonly ToolInfo SmartViewToSheetPlacer = Add("Smart View To Sheet Placer", "224.2.0", "V224", "Revit26_Plugin_Revised.SmartViewToSheetPlacer.V224");
+        public static readonly ToolInfo AutomatedSectionPlacer = Add("Automated Section Placer", "3.2.0", "V003", "Revit26_Plugin_Revised.AutomatedSectionPlacer.V003");
+        public static readonly ToolInfo SheetAutoRearrange = Add("Sheet Auto Rearrange", "28.2.0", "V028", "Revit26_Plugin_Revised.SheetAutoRearrange.V028");
+        public static readonly ToolInfo SheetViewArrange = Add("Sheet View Arrange", "1.3.0", "V001", "Revit26_Plugin_Revised.SheetViewArrange.V001");
+        public static readonly ToolInfo SectionsToSheet = Add("Sections To Sheet", "1.1.0", "V001", "Revit26_Plugin_Revised.SectionsToSheet.V001");
+        public static readonly ToolInfo SheetTextReplace = Add("Sheet Text Replace", "1.1.0", "V001", "Revit26_Plugin_Revised.SheetTextReplace.V001");
         public static readonly ToolInfo RoofEdgeAroundSections = Add("Roof Edge Around Sections", "7.3.0", "V007", "Revit26_Plugin_Revised.RoofEdgeAroundSections.V007");
         public static readonly ToolInfo RoofEdgeElementSections = Add("Roof Edge Element Sections", "4.2.0", "V004", "Revit26_Plugin_Revised.RoofEdgeElementSections.V004");
         public static readonly ToolInfo RoofNameBuilder = Add("Roof Name Builder", "2.2.0", "V002", "Revit26_Plugin_Revised.RoofNameBuilder.V002");
