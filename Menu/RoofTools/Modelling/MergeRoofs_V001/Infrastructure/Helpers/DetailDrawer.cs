@@ -25,12 +25,18 @@ namespace Revit26_Plugin_Revised.MergeRoofs.V001.Infrastructure.Helpers
             Draw(doc, view, "Merge roofs: gap links", z =>
                 links.Select(g => (Curve?)Line.CreateBound(new XYZ(g.A.X, g.A.Y, z), new XYZ(g.B.X, g.B.Y, z))));
 
-        /// <summary>Draws a circle at each issue location.</summary>
+        /// <summary>Draws a circle at each issue location (two half arcs: Revit cannot create a single 360-degree arc).</summary>
         public static void DrawCircles(Document doc, View view, IReadOnlyList<Issue> issues) =>
             Draw(doc, view, "Merge roofs: issue circles", z =>
-                issues.Select(i => (Curve?)Arc.Create(
-                    Plane.CreateByNormalAndOrigin(XYZ.BasisZ, new XYZ(i.Location.X, i.Location.Y, z)),
-                    CircleRadius, 0, 2 * Math.PI)));
+                issues.SelectMany(i =>
+                {
+                    Plane plane = Plane.CreateByNormalAndOrigin(XYZ.BasisZ, new XYZ(i.Location.X, i.Location.Y, z));
+                    return new Curve?[]
+                    {
+                        Arc.Create(plane, CircleRadius, 0, Math.PI),
+                        Arc.Create(plane, CircleRadius, Math.PI, 2 * Math.PI),
+                    };
+                }));
 
         private static void Draw(Document doc, View view, string name, Func<double, IEnumerable<Curve?>> curves)
         {
