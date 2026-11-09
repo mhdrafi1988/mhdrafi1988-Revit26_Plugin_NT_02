@@ -22,7 +22,11 @@ namespace Revit26_Plugin_Revised.SheetTextReplace.V001.Infrastructure
         {
             var action = _pending;
             _pending = null;
-            action?.Invoke(app);
+            if (action == null) return;
+
+            // Esc / Cancel with a Yes-No confirm while the queued Revit work runs; each service rolls its group back on cancel.
+            using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.SheetTextReplace, app);
+            action.Invoke(app);
         }
 
         /// <summary>Name shown by Revit for this handler.</summary>

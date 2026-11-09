@@ -44,6 +44,9 @@ namespace Revit26_Plugin_Revised.FloorSlopeByPointRidge.V001.Infrastructure.Exte
             // by the next invocation while this one is still running.
             AutoSlopePayload current = Payload;
 
+            // Esc / Cancel with a Yes-No confirm; the engine reports the cancel to the window, then the group is rolled back.
+            using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.FloorSlopeByPointRidge, app);
+
             using (TransactionGroup tg = new TransactionGroup(
                 app.ActiveUIDocument.Document, "Floor Slope By Point (Ridge)"))
             {
@@ -53,6 +56,11 @@ namespace Revit26_Plugin_Revised.FloorSlopeByPointRidge.V001.Infrastructure.Exte
                 {
                     AutoSlopeEngine.Execute(app, current);
                     tg.Assimilate();
+                }
+                catch (OperationCanceledException)
+                {
+                    tg.RollBack(); // the engine already told the window; ToolGuard treats this as a user cancel
+                    throw;
                 }
                 catch (Exception ex)
                 {

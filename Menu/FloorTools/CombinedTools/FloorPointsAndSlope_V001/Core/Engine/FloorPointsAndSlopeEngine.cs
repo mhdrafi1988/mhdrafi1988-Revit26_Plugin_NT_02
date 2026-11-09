@@ -127,7 +127,13 @@ namespace Revit26_Plugin_Revised.FloorPointsAndSlope.V001.Core.Engine
         private static RunResult ExecuteSteps(UIApplication app, RunPayload payload, RunResult result)
         {
             var log = payload.Log ?? (_ => { });
-            var progress = payload.Progress ?? ((_, __) => { });
+            var report = payload.Progress ?? ((_, __) => { });
+            // Every progress tick is also a cancel point: it pumps the window and polls Esc.
+            Action<double, string> progress = (pct, text) =>
+            {
+                report(pct, text);
+                ToolCancellation.CheckCurrent();
+            };
             CancellationToken cancel = payload.Cancel;
 
             Floor floor = ValidateFloor(app, payload.Document, payload.FloorId, out string error);
@@ -154,6 +160,7 @@ namespace Revit26_Plugin_Revised.FloorPointsAndSlope.V001.Core.Engine
                 settings.ClearExistingFirst = false; // the floor now really has only its corners
             }
 
+            ToolCancellation.CheckCurrent();
             cancel.ThrowIfCancellationRequested();
 
             // ── Steps 1–4 ────────────────────────────────────────────────────
@@ -166,7 +173,8 @@ namespace Revit26_Plugin_Revised.FloorPointsAndSlope.V001.Core.Engine
             foreach (StepPlan step in plan.Steps)
             {
                 stepNo++;
-                cancel.ThrowIfCancellationRequested();
+                ToolCancellation.CheckCurrent();
+            cancel.ThrowIfCancellationRequested();
                 if (step.TooClose > 0)
                     log(new LogEntry(LogLevel.Info,
                         $"Step {stepNo} · {StepNames[step.Step]}: {step.TooClose} point(s) skipped, closer than {settings.MinPointSpacingMm:0} mm to another point."));
@@ -197,6 +205,7 @@ namespace Revit26_Plugin_Revised.FloorPointsAndSlope.V001.Core.Engine
                 log(new LogEntry(LogLevel.Info, "Point steps: nothing new to add — every planned point is already there."));
 
             // ── Step 5: ridge ────────────────────────────────────────────────
+            ToolCancellation.CheckCurrent();
             cancel.ThrowIfCancellationRequested();
             if (settings.RidgeEnabled)
             {
@@ -206,6 +215,7 @@ namespace Revit26_Plugin_Revised.FloorPointsAndSlope.V001.Core.Engine
             }
 
             // ── Step 6: slope ────────────────────────────────────────────────
+            ToolCancellation.CheckCurrent();
             cancel.ThrowIfCancellationRequested();
             if (settings.SlopeEnabled)
             {

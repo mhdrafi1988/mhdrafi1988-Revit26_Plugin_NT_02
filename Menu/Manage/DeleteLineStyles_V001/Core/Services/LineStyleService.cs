@@ -1,3 +1,4 @@
+using Revit26_Plugin_Revised.Shared.Services;
 using Autodesk.Revit.DB;
 using Revit26_Plugin_Revised.DeleteLineStyles.V001.Core.Models;
 using Revit26_Plugin_Revised.Shared.Models;
@@ -94,6 +95,7 @@ namespace Revit26_Plugin_Revised.DeleteLineStyles.V001.Core.Services
 
             foreach (Category sub in lines.SubCategories)
             {
+                ToolCancellation.CheckCurrent();
                 if (sub == null || IsBuiltIn(sub)) continue;
 
                 usage.TryGetValue(sub.Id, out var lineIds);
@@ -119,6 +121,7 @@ namespace Revit26_Plugin_Revised.DeleteLineStyles.V001.Core.Services
 
             foreach (Category sub in lines.SubCategories)
             {
+                ToolCancellation.CheckCurrent();
                 if (sub == null) continue;
                 var gs = sub.GetGraphicsStyle(GraphicsStyleType.Projection);
                 if (gs == null) continue;
@@ -160,6 +163,7 @@ namespace Revit26_Plugin_Revised.DeleteLineStyles.V001.Core.Services
 
             foreach (var row in rows)
             {
+                ToolCancellation.CheckCurrent();
                 var sub = Category.GetCategory(doc, row.CategoryId);
                 if (sub == null || !linesId.Equals(sub.Parent?.Id))
                 {
@@ -212,6 +216,10 @@ namespace Revit26_Plugin_Revised.DeleteLineStyles.V001.Core.Services
                         ? $"Deleted '{name}' ({moved} line(s) moved to '{replacement.Name}')."
                         : $"Deleted '{name}'."));
                 }
+                catch (OperationCanceledException)
+                {
+                    throw; // user cancel: never swallowed as a failure
+                }
                 catch (Exception ex) when (ex is Autodesk.Revit.Exceptions.ArgumentException
                                               || ex is Autodesk.Revit.Exceptions.InvalidOperationException)
                 {
@@ -250,6 +258,7 @@ namespace Revit26_Plugin_Revised.DeleteLineStyles.V001.Core.Services
             int moved = 0;
             foreach (var id in lineIds)
             {
+                ToolCancellation.CheckCurrent();
                 if (doc.GetElement(id) is not CurveElement curve) continue;
 
                 if (!curve.GetLineStyleIds().Contains(gs.Id))
@@ -297,6 +306,7 @@ namespace Revit26_Plugin_Revised.DeleteLineStyles.V001.Core.Services
             var curveFilter = new ElementClassFilter(typeof(CurveElement));
             foreach (var region in new FilteredElementCollector(doc).OfClass(typeof(FilledRegion)))
             {
+                ToolCancellation.CheckCurrent();
                 foreach (var id in region.GetDependentElements(curveFilter))
                     Add(doc.GetElement(id) as CurveElement);
             }

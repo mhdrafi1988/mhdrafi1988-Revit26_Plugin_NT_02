@@ -3,6 +3,7 @@ using Revit26_Plugin_Revised.RoofPointComparison.V003.Core.Models;
 using Revit26_Plugin_Revised.RoofPointComparison.V003.Infrastructure.Helpers;
 using Revit26_Plugin_Revised.Shared.Models;
 using System;
+using Revit26_Plugin_Revised.Shared.Services;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -46,6 +47,7 @@ namespace Revit26_Plugin_Revised.RoofPointComparison.V003.Core.Engine
             int missingPlaced = 0;
             foreach (XYZ pt in missingPoints)
             {
+                ToolCancellation.CheckCurrent();
                 if (PlaceOneCircle(doc, activeView, pt, viewElevFt, missingGroup, "Missing Point", log))
                     missingPlaced++;
             }
@@ -54,6 +56,7 @@ namespace Revit26_Plugin_Revised.RoofPointComparison.V003.Core.Engine
             int mismatchPlaced = 0;
             foreach (XYZ pt in mismatchPoints)
             {
+                ToolCancellation.CheckCurrent();
                 if (PlaceOneCircle(doc, activeView, pt, viewElevFt, mismatchGroup, "Mismatched Elevation", log))
                     mismatchPlaced++;
             }

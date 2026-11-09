@@ -113,6 +113,8 @@ namespace Revit26_Plugin_Revised.FloorTypeManager.V001.Infrastructure.ExternalEv
         private void ExecuteImport(Document doc)
         {
             var result = new ImportResult();
+            // Esc / Cancel with a Yes-No confirm; the import transaction below is rolled back on cancel.
+            using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.FloorTypeManager, null);
             try
             {
                 var allItems = ItemsToImport ?? new List<ImportPreviewItem>();
@@ -148,6 +150,7 @@ namespace Revit26_Plugin_Revised.FloorTypeManager.V001.Infrastructure.ExternalEv
                     tx.Start();
                     foreach (var item in allItems)
                     {
+                        ToolCancellation.CheckCurrent();
                         // Resolve name: New → use as-is; Dup/Renamed → find unique suffix
                         string targetName = item.TypeName;
                         if (item.Status == ImportStatus.Dup || item.Status == ImportStatus.Renamed)
@@ -201,6 +204,12 @@ namespace Revit26_Plugin_Revised.FloorTypeManager.V001.Infrastructure.ExternalEv
                 }
 
                 Log("Info", $"{result.Created} created | {result.Renamed} renamed | {result.Failed} failed");
+            }
+            catch (OperationCanceledException)
+            {
+                Log("Warning", "Cancelled by user. No floor types were created.");
+                OnImportDone?.Invoke(new ImportResult());
+                throw; // ToolGuard treats it as a user cancel
             }
             catch (Exception ex) { Log("Error", $"Import failed: {ex.Message}"); }
 

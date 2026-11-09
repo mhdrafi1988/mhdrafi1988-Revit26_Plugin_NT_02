@@ -8,7 +8,7 @@ Control template for Shared/Controls/ToolWindowShell. Three zones:
           ScrollViewer. DataGrids and logs cap their height with
           ShellBehaviors.MaxHeightRatio and pass the wheel back with
           ShellBehaviors.ForwardMouseWheel.
-  FOOTER  status strip (SummaryText + ProgressBar while IsRunning) and
+  FOOTER  status strip (SummaryText + ProgressBar while IsRunning; Cancel button while a cancellable run is active) and
           FooterContent (secondary actions left, Primary → Close right).
           Never scrolls.
 A template (not a UserControl) so tool content can use x:Name freely.
@@ -61,7 +61,7 @@ A template (not a UserControl) so tool content can use x:Name freely.
                           HorizontalScrollBarVisibility="Disabled"
                           CanContentScroll="False"
                           Padding="12,8,12,8">
-                <ContentPresenter Content="{TemplateBinding BodyContent}"/>
+                <ContentPresenter x:Name="PART_BodyContent" Content="{TemplateBinding BodyContent}"/>
             </ScrollViewer>
 
             <!-- ═══ FOOTER ═════════════════════════════════════ -->
@@ -75,6 +75,7 @@ A template (not a UserControl) so tool content can use x:Name freely.
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="220"/>
+                            <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Text="{TemplateBinding SummaryText}"
                                    Style="{StaticResource HintText}"
@@ -86,12 +87,30 @@ A template (not a UserControl) so tool content can use x:Name freely.
                                      Background="{StaticResource BrushSeparatorThin}"
                                      BorderThickness="0" VerticalAlignment="Center"
                                      Visibility="{Binding IsRunning, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource ShellBoolToVisibility}}"/>
+                        <!-- Cancel: only while a run is in progress (Esc does the same) -->
+                        <Button x:Name="PART_CancelButton" Grid.Column="2" Content="Cancel"
+                                Style="{StaticResource SmallSecondaryButton}" Margin="10,0,0,0"
+                                ToolTip="Cancel the run (Esc). Asks for confirmation, then undoes this run's model changes."
+                                Visibility="Collapsed"/>
                     </Grid>
-                    <ContentPresenter Content="{TemplateBinding FooterContent}"/>
+                    <ContentPresenter x:Name="PART_FooterContent" Content="{TemplateBinding FooterContent}"/>
                 </StackPanel>
             </Border>
         </Grid>
         <ControlTemplate.Triggers>
+            <!-- While a cancellable run is in progress (ToolCancellation sets IsCancellable) the Cancel
+                 button shows and nothing in the body or footer can be clicked: the dispatcher is pumped
+                 during the run, so a second Run click would otherwise start a nested run. Tools that
+                 have not adopted ToolCancellation are unaffected. -->
+            <MultiTrigger>
+                <MultiTrigger.Conditions>
+                    <Condition Property="IsRunning" Value="True"/>
+                    <Condition Property="IsCancellable" Value="True"/>
+                </MultiTrigger.Conditions>
+                <Setter TargetName="PART_CancelButton" Property="Visibility" Value="Visible"/>
+                <Setter TargetName="PART_BodyContent" Property="IsEnabled" Value="False"/>
+                <Setter TargetName="PART_FooterContent" Property="IsEnabled" Value="False"/>
+            </MultiTrigger>
             <!-- No subtitle → no empty line under the title -->
             <Trigger Property="Subtitle" Value="{x:Null}">
                 <Setter TargetName="PART_Subtitle" Property="Visibility" Value="Collapsed"/>

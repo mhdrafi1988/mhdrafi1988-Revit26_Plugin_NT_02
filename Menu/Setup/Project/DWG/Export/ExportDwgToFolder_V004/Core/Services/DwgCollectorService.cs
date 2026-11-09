@@ -1,3 +1,4 @@
+using Revit26_Plugin_Revised.Shared.Services;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -97,6 +98,7 @@ namespace Revit26_Plugin_Revised.ExportDwgToFolder.V004.Core.Services
 
             for (int n = 0; n < instances.Count; n++)
             {
+                ToolCancellation.CheckCurrent();
                 var inst = instances[n];
                 progress?.Invoke(StageScanning, n + 1, instances.Count);
 
@@ -257,6 +259,7 @@ namespace Revit26_Plugin_Revised.ExportDwgToFolder.V004.Core.Services
                 string wanted = GetSymbolName(inst);
                 foreach (Category fileCategory in importStyles.SubCategories)
                 {
+                    ToolCancellation.CheckCurrent();
                     if (!string.Equals(fileCategory?.Name, wanted, StringComparison.OrdinalIgnoreCase))
                         continue;
                     return fileCategory.SubCategories?.Size ?? 0;
@@ -369,6 +372,7 @@ namespace Revit26_Plugin_Revised.ExportDwgToFolder.V004.Core.Services
         {
             foreach (var view in views)
             {
+                ToolCancellation.CheckCurrent();
                 if (map.Count == targetIds.Count) break; // all resolved
 
                 done++;
@@ -405,6 +409,7 @@ namespace Revit26_Plugin_Revised.ExportDwgToFolder.V004.Core.Services
 
                 foreach (var vp in viewports)
                 {
+                    ToolCancellation.CheckCurrent();
                     try
                     {
                         if (map.ContainsKey(vp.ViewId)) continue;

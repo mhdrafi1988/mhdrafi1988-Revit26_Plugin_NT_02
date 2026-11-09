@@ -14,6 +14,7 @@
 // Must run inside a valid API context (ExternalEvent handler or command).
 // =======================================================
 
+using Revit26_Plugin_Revised.Shared.Services;
 using Autodesk.Revit.DB;
 using Revit26_Plugin_Revised.InnerLoopDivider.V012.Core.Geometry;
 using Revit26_Plugin_Revised.InnerLoopDivider.V012.Core.Models;
@@ -79,10 +80,12 @@ namespace Revit26_Plugin_Revised.InnerLoopDivider.V012.Infrastructure.Revit
 
                     foreach (RoofLoopModel loop in selected)
                     {
+                        ToolCancellation.CheckCurrent();
                         DivisionPlan plan = DivisionPlanner.Plan(loop.Loop, mode, loop.RecommendedPoints, spacingFeet, existing, tol);
                         result.SkippedExisting += plan.ExistingPoints;
                         foreach (PlannedPoint p in plan.Points.Where(p => !p.AlreadyExists))
                         {
+                            ToolCancellation.CheckCurrent();
                             try
                             {
                                 editor.AddPoint(surface.PointOn(p.Position));
@@ -116,6 +119,10 @@ namespace Revit26_Plugin_Revised.InnerLoopDivider.V012.Infrastructure.Revit
                     {
                         result.Success = true;
                     }
+                }
+                catch (OperationCanceledException)
+                {
+                    throw; // user cancel: never swallowed as a failure
                 }
                 catch (Exception ex)
                 {

@@ -1,3 +1,4 @@
+using Revit26_Plugin_Revised.Shared.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -109,6 +110,7 @@ namespace Revit26_Plugin_Revised.PlanFromScopeBox.V006.Core.Engine
             List<PackedSheet> sheets = packer.Pack(packItems);
             PlaceSheets(req, sheets, naming, viewByScopeBox, summary);
 
+            ToolCancellation.CheckCurrent(); // last chance to cancel before the group is kept
             tg.Assimilate();
             return summary;
         }
@@ -127,6 +129,7 @@ namespace Revit26_Plugin_Revised.PlanFromScopeBox.V006.Core.Engine
 
             foreach (ScopeBoxRow row in req.SelectedRows)
             {
+                ToolCancellation.CheckCurrent();
                 try
                 {
                     ViewPlan view = ViewPlan.Create(_doc, planVft.Id, req.LevelId);
@@ -179,6 +182,10 @@ namespace Revit26_Plugin_Revised.PlanFromScopeBox.V006.Core.Engine
                     else
                         _log(LogLevel.Success, $"Plan created · {row.Name} → \"{vName}\"");
                 }
+                catch (OperationCanceledException)
+                {
+                    throw; // user cancel: never swallowed as a failure
+                }
                 catch (Exception ex)
                 {
                     summary.Results.Add(new PlanCreationResult
@@ -208,10 +215,15 @@ namespace Revit26_Plugin_Revised.PlanFromScopeBox.V006.Core.Engine
 
             foreach (PackedSheet packed in sheets)
             {
+                ToolCancellation.CheckCurrent();
                 ViewSheet sheet;
                 try
                 {
                     sheet = ViewSheet.Create(_doc, req.TitleBlockTypeId);
+                }
+                catch (OperationCanceledException)
+                {
+                    throw; // user cancel: never swallowed as a failure
                 }
                 catch (Exception ex)
                 {
@@ -227,6 +239,7 @@ namespace Revit26_Plugin_Revised.PlanFromScopeBox.V006.Core.Engine
                 int placedOnSheet = 0;
                 foreach (PackSlot slot in packed.Slots)
                 {
+                    ToolCancellation.CheckCurrent();
                     if (!viewByScopeBox.TryGetValue(slot.Item.ScopeBoxId, out ElementId viewId))
                         continue;
 
@@ -255,6 +268,10 @@ namespace Revit26_Plugin_Revised.PlanFromScopeBox.V006.Core.Engine
                             .FirstOrDefault(r => r.ViewId == viewId.Value && string.IsNullOrEmpty(r.SheetNumber));
                         if (match != null)
                             match.SheetNumber = sheetNum;
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        throw; // user cancel: never swallowed as a failure
                     }
                     catch (Exception ex)
                     {
@@ -317,6 +334,10 @@ namespace Revit26_Plugin_Revised.PlanFromScopeBox.V006.Core.Engine
                 {
                     // Duplicate name — try next suffix.
                 }
+                catch (OperationCanceledException)
+                {
+                    throw; // user cancel: never swallowed as a failure
+                }
                 catch (Exception ex)
                 {
                     _log(LogLevel.Warning, $"{scopeBoxName}: could not set view name — {ex.Message}");
@@ -329,9 +350,17 @@ namespace Revit26_Plugin_Revised.PlanFromScopeBox.V006.Core.Engine
         private void SetSheetIdentity(ViewSheet sheet, string number, string name)
         {
             try { if (!string.IsNullOrWhiteSpace(number)) sheet.SheetNumber = number; }
+            catch (OperationCanceledException)
+            {
+                throw; // user cancel: never swallowed as a failure
+            }
             catch (Exception ex) { _log(LogLevel.Warning, $"Sheet number \"{number}\" rejected — {ex.Message}"); }
 
             try { if (!string.IsNullOrWhiteSpace(name)) sheet.Name = name; }
+            catch (OperationCanceledException)
+            {
+                throw; // user cancel: never swallowed as a failure
+            }
             catch (Exception ex) { _log(LogLevel.Warning, $"Sheet name \"{name}\" rejected — {ex.Message}"); }
         }
 
@@ -342,6 +371,10 @@ namespace Revit26_Plugin_Revised.PlanFromScopeBox.V006.Core.Engine
             {
                 Parameter p = vp.get_Parameter(BuiltInParameter.VIEWPORT_DETAIL_NUMBER);
                 if (p != null && !p.IsReadOnly) p.Set(number);
+            }
+            catch (OperationCanceledException)
+            {
+                throw; // user cancel: never swallowed as a failure
             }
             catch (Exception ex)
             {

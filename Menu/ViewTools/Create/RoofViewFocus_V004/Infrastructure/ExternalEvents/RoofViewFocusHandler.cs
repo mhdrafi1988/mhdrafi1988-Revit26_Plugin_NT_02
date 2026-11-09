@@ -35,6 +35,8 @@ namespace Revit26_Plugin_Revised.RoofViewFocus.V004.Infrastructure.ExternalEvent
 
             var result = new FocusResult();
             var sw = Stopwatch.StartNew();
+            // Esc / Cancel with a Yes-No confirm; the focus transaction is rolled back on cancel.
+            using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.RoofViewFocus, app);
             Log(request, LogLevel.Info, "Handler entered");
 
             try
@@ -42,6 +44,14 @@ namespace Revit26_Plugin_Revised.RoofViewFocus.V004.Infrastructure.ExternalEvent
                 Document doc = app.ActiveUIDocument?.Document
                     ?? throw new InvalidOperationException("No active document.");
                 RunFocus(doc, request, result);
+            }
+            catch (OperationCanceledException)
+            {
+                result.Success = false;
+                result.ErrorMessage = "Cancelled by user. The view was not changed.";
+                result.Included = 0;
+                Log(request, LogLevel.Warning, "Cancelled by user. The view was not changed.");
+                throw; // ToolGuard treats it as a user cancel; finally still completes the request
             }
             catch (Exception ex)
             {
@@ -89,6 +99,7 @@ namespace Revit26_Plugin_Revised.RoofViewFocus.V004.Infrastructure.ExternalEvent
                     // 1 — Scope Box → None
                     ResetScopeBox(doc, view, req);
 
+                    ToolCancellation.CheckCurrent();
                     // 2 — Union bounds of all roofs, in view-local coordinates
                     Bounds2D union = CollectRoofBounds(doc, view, req, result);
                     result.BoxWidthMm = CropBoundsCalculator.FeetToMm(union.Width);
@@ -96,15 +107,18 @@ namespace Revit26_Plugin_Revised.RoofViewFocus.V004.Infrastructure.ExternalEvent
                     Log(req, LogLevel.Info,
                         $"Union bounding box: {result.BoxWidthMm:N0} × {result.BoxHeightMm:N0} mm ({result.Included} roof(s))");
 
+                    ToolCancellation.CheckCurrent();
                     // 3 — Crop box + margin
                     Bounds2D expanded = CropBoundsCalculator.Expand(union, CropBoundsCalculator.MmToFeet(viewTotalMm));
                     ApplyCropBox(view, expanded, viewTotalMm, req);
                     result.ViewMarginTotalMm = viewTotalMm;
 
+                    ToolCancellation.CheckCurrent();
                     // 4 — Annotation crop + margin
                     ApplyAnnotationCrop(view, annTotalMm, req);
                     result.AnnotationMarginTotalMm = annTotalMm;
 
+                    ToolCancellation.CheckCurrent(); // last chance to cancel before the commit
                     TransactionStatus status = tx.Commit();
                     if (status != TransactionStatus.Committed)
                         throw new InvalidOperationException($"Transaction did not commit (status: {status}).");
@@ -169,6 +183,7 @@ namespace Revit26_Plugin_Revised.RoofViewFocus.V004.Infrastructure.ExternalEvent
             var bounds = new List<Bounds2D>();
             foreach (string uid in req.RoofUniqueIds)
             {
+                ToolCancellation.CheckCurrent();
                 if (doc.GetElement(uid) is not RoofBase roof)
                 {
                     result.Skipped++;

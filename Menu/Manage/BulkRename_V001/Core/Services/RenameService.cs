@@ -1,3 +1,4 @@
+using Revit26_Plugin_Revised.Shared.Services;
 using Autodesk.Revit.DB;
 using Revit26_Plugin_Revised.BulkRename.V001.Core.Models;
 using Revit26_Plugin_Revised.BulkRename.V001.Core.Sources;
@@ -39,6 +40,7 @@ namespace Revit26_Plugin_Revised.BulkRename.V001.Core.Services
 
             foreach (var request in requests ?? Array.Empty<RenameRequest>())
             {
+                ToolCancellation.CheckCurrent();
                 string reason = WhyLeaveAlone(doc, source, request);
                 if (reason != null) outcomes.Add(RenameOutcome.Skip(request.CurrentName, request.NewName, reason));
                 else work.Add(request);
@@ -60,6 +62,7 @@ namespace Revit26_Plugin_Revised.BulkRename.V001.Core.Services
 
             foreach (var step in steps)
             {
+                ToolCancellation.CheckCurrent();
                 if (failed.Contains(step.Key)) continue;
 
                 var request = work[step.Key];

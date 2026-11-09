@@ -79,6 +79,11 @@ namespace Revit26_Plugin_Revised.PlanFromScopeBox.V006.Infrastructure.ExternalEv
                             break;
                     }
                 }
+                catch (OperationCanceledException)
+                {
+                    ClearPending(); // a cancelled run drops whatever was queued behind it
+                    throw;
+                }
                 catch (Exception ex)
                 {
                     Log?.Invoke(LogLevel.Error, $"Request failed: {ex.Message}");
@@ -104,6 +109,8 @@ namespace Revit26_Plugin_Revised.PlanFromScopeBox.V006.Infrastructure.ExternalEv
         {
             try
             {
+                // Esc / Cancel with a Yes-No confirm; the generator's group rolls back every view and sheet on cancel.
+                using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.PlanFromScopeBox, null);
                 var generator = new PlanSheetGenerator(doc, Log);
                 GenerationSummary summary = generator.Run(req.Payload);
 
@@ -115,6 +122,12 @@ namespace Revit26_Plugin_Revised.PlanFromScopeBox.V006.Infrastructure.ExternalEv
                 }
 
                 req.OnComplete?.Invoke(summary);
+            }
+            catch (OperationCanceledException)
+            {
+                Log?.Invoke(LogLevel.Warning, "Cancelled by user. No plan views or sheets were created.");
+                req.OnComplete?.Invoke(new GenerationSummary());
+                throw; // ToolGuard treats it as a user cancel
             }
             catch (Exception ex)
             {

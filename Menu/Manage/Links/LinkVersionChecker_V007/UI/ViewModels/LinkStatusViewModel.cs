@@ -1,3 +1,4 @@
+using Revit26_Plugin_Revised.Shared.Services;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -602,7 +603,10 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V007.UI.ViewModels
             var keepIds = new HashSet<ElementId>(_selection.Select(r => r.TypeId));
             LinkStatusScan scan;
             Mouse.OverrideCursor = Cursors.Wait;
+            // Esc / Cancel with a Yes-No confirm while the links are read (nothing in the model changes).
+            using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.LinkVersionCheckerV007, null);
             try { scan = LinkStatusCollector.Scan(_doc, _settings.DesktopConnectorRoots); }
+            catch (OperationCanceledException) { Status = "Cancelled by user. The list was not refreshed."; return; }
             finally { Mouse.OverrideCursor = null; }
 
             Rows.Clear();
@@ -634,7 +638,9 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V007.UI.ViewModels
         private void CheckCloud()
         {
             Mouse.OverrideCursor = Cursors.Wait;
+            using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.LinkVersionCheckerV007, null);
             try { Status = CloudVersionChecker.Check(_doc, Rows); }
+            catch (OperationCanceledException) { Status = "Cancelled by user. Cloud versions were not checked."; }
             finally { Mouse.OverrideCursor = null; }
             ApplyFilter();
         }

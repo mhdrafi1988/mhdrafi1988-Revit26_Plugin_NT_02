@@ -43,6 +43,10 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Infrastructure.External
             if (current == null) return;
 
             RunResult result = null;
+            // Esc / Cancel with a Yes-No confirm while Analyze or Run is working (markers are quick).
+            using ToolCancellation cancel = current.Operation is RunOperation.ShowMarkers or RunOperation.ClearMarkers
+                ? null
+                : ToolCancellation.BeginFor(ToolCatalog.RoofPointsAndSlope, app);
             try
             {
                 result = current.Operation switch
@@ -52,6 +56,12 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Infrastructure.External
                     RunOperation.ClearMarkers => ClearMarkers(current),
                     _ => Run(app, current)
                 };
+            }
+            catch (OperationCanceledException)
+            {
+                current.Log?.Invoke(new LogEntry(LogLevel.Warning, "Cancelled by user. Nothing was changed."));
+                result = new RunResult { Success = false, WasCancelled = true, ErrorMessage = "Cancelled." };
+                throw; // ToolGuard treats it as a user cancel
             }
             catch (Exception ex)
             {
@@ -136,8 +146,11 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Infrastructure.External
             using (var tg = new TransactionGroup(doc, name))
             {
                 tg.Start();
+                try
+                {
                 foreach (RunPayload roof in roofs)
                 {
+                    ToolCancellation.CheckCurrent();
                     RunResult r = RoofPointsAndSlopeEngine.Execute(app, roof);
                     r.RoofId = roof.RoofId;
                     total.PerRoof.Add(r);
@@ -155,6 +168,14 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Infrastructure.External
                     total.Sloped |= r.Sloped;
                     total.HighestElevationMm = Math.Max(total.HighestElevationMm, r.HighestElevationMm);
                 }
+                }
+                catch (OperationCanceledException)
+                {
+                    // Undo the whole run, then let ToolGuard report the cancel.
+                    if (tg.GetStatus() == TransactionStatus.Started) tg.RollBack();
+                    throw;
+                }
+                ToolCancellation.CheckCurrent();
 
                 if (total.Success)
                 {

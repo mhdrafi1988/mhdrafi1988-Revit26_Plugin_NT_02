@@ -1,5 +1,6 @@
 using Autodesk.Revit.DB;
 using Revit26_Plugin_Revised.ViewAutoRenamer.V007.Models;
+using Revit26_Plugin_Revised.Shared.Services;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -70,7 +71,9 @@ public static class ViewClassificationService
     /// ScheduleSheetInstance). Section/Callout/Elevation/Plan/Drafting views
     /// use the simpler VIEWER_SHEET_NUMBER parameter directly (single place).
     /// </summary>
-    public static Dictionary<ElementId, List<string>> BuildPlacedSheetsLookup(Document doc)
+    /// <param name="doc">The project document.</param>
+    /// <param name="cancel">Optional cancel helper; checked in every loop so a long lookup can be cancelled.</param>
+    public static Dictionary<ElementId, List<string>> BuildPlacedSheetsLookup(Document doc, ToolCancellation? cancel = null)
     {
         var result = new Dictionary<ElementId, List<string>>();
 
@@ -101,6 +104,7 @@ public static class ViewClassificationService
                      .OfClass(typeof(Viewport))
                      .Cast<Viewport>())
         {
+            cancel?.Check();
             if (sheetNumbers.TryGetValue(vp.SheetId, out var number))
                 Add(vp.ViewId, number);
         }
@@ -110,6 +114,7 @@ public static class ViewClassificationService
                      .OfClass(typeof(ScheduleSheetInstance))
                      .Cast<ScheduleSheetInstance>())
         {
+            cancel?.Check();
             if (sheetNumbers.TryGetValue(si.OwnerViewId, out var number))
                 Add(si.ScheduleId, number);
         }
@@ -121,7 +126,10 @@ public static class ViewClassificationService
             .GroupBy(x => x.number)
             .ToDictionary(g => g.Key, g => g.Min(x => x.i));
         foreach (var list in result.Values)
+        {
+            cancel?.Check();
             list.Sort((a, b) => sheetOrder[a].CompareTo(sheetOrder[b]));
+        }
 
         return result;
     }

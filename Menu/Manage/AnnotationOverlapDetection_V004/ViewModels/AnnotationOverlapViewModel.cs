@@ -1,3 +1,4 @@
+using Revit26_Plugin_Revised.Shared.Services;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -113,10 +114,17 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V004.ViewModels
             }
 
             IsLoading = true;
+            // Esc / Cancel with a Yes-No confirm during the (read-only) overlap scan.
+            using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.AnnotationOverlapDetection, null);
             try
             {
                 RunOverlapDetection(selectedTypes);
                 UpdateSummaryCard();
+            }
+            catch (OperationCanceledException)
+            {
+                // Nothing in the model changes in this tool; the grid keeps its previous results.
+                ErrorMessage = "Cancelled by user.";
             }
             catch (Exception ex)
             {

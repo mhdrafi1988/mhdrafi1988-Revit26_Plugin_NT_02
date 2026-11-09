@@ -45,6 +45,9 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.MultiCopies30.Infrastructure.E
             // by the next invocation while this one is still running.
             MultiSlopePayload current = Payload;
 
+            // Esc / Cancel with a Yes-No confirm; a cancel undoes every copy made by this run.
+            using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.AutoSlopeByPointMultiCopies, app);
+
             using (TransactionGroup tg = new TransactionGroup(
                 app.ActiveUIDocument.Document, "Multi-Slope Roof Variants"))
             {

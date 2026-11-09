@@ -58,7 +58,6 @@ namespace Revit26_Plugin_Revised.FloorSlopeByPoint.V001.UI.ViewModels
     public sealed partial class AutoSlopeViewModel : ToolViewModelBase, IDisposable
     {
         private const string Dash = "—";
-        private const int PumpIntervalMs = 100;
 
         private readonly UIApplication _app;
         private readonly Dispatcher _dispatcher;
@@ -68,7 +67,6 @@ namespace Revit26_Plugin_Revised.FloorSlopeByPoint.V001.UI.ViewModels
         private CancellationTokenSource _cts;
         private AutoSlopeResult _lastResult;
         private DateTime _runStart;
-        private DateTime _lastPump = DateTime.MinValue;
         private RunState _stateBeforePicking = RunState.Ready;
         private bool _loading = true;
         private bool _disposed;
@@ -143,7 +141,6 @@ namespace Revit26_Plugin_Revised.FloorSlopeByPoint.V001.UI.ViewModels
         [NotifyPropertyChangedFor(nameof(IsInputEnabled))]
         [NotifyPropertyChangedFor(nameof(IsCancelVisible))]
         [NotifyCanExecuteChangedFor(nameof(RunCommand))]
-        [NotifyCanExecuteChangedFor(nameof(CancelRunCommand))]
         [NotifyCanExecuteChangedFor(nameof(RepickDrainsCommand))]
         [NotifyCanExecuteChangedFor(nameof(ExportResultsCommand))]
         [NotifyCanExecuteChangedFor(nameof(BrowseFolderCommand))]
@@ -417,7 +414,6 @@ namespace Revit26_Plugin_Revised.FloorSlopeByPoint.V001.UI.ViewModels
             LogEntries.Clear();
             _cts = new CancellationTokenSource();
             _runStart = DateTime.Now;
-            _lastPump = DateTime.MinValue;
 
             State = RunState.Running;
             IsRunning = true;
@@ -477,11 +473,9 @@ namespace Revit26_Plugin_Revised.FloorSlopeByPoint.V001.UI.ViewModels
                 ? "Cancelling…"
                 : $"Started {_runStart:HH:mm:ss} · {info.PhaseLabel}{within}";
 
-            if ((DateTime.Now - _lastPump).TotalMilliseconds >= PumpIntervalMs)
-            {
-                _lastPump = DateTime.Now;
-                UiPumpHelper.DoEvents(); // repaint + let a Cancel click through
-            }
+            // Repaints the bar, delivers Esc / the Cancel button and asks "Cancel the process?".
+            // A confirmed cancel throws here and the runner rolls the floor back.
+            ToolCancellation.CheckCurrent();
         }
 
         private void Log(LogLevel level, string message) => AddLog(level, message);
@@ -526,17 +520,6 @@ namespace Revit26_Plugin_Revised.FloorSlopeByPoint.V001.UI.ViewModels
                     ? $"Cancelled at {result.EndTime:HH:mm:ss} (started {result.StartTime:HH:mm:ss}) · nothing was changed in the model"
                     : $"Failed · {result.ErrorMessage} · nothing was changed in the model";
             }
-        }
-
-        private bool CanCancelRun() => State == RunState.Running;
-
-        [RelayCommand(CanExecute = nameof(CanCancelRun))]
-        private void CancelRun()
-        {
-            if (_cts == null || _cts.IsCancellationRequested) return;
-            _cts.Cancel();
-            SummaryText = "Cancelling…";
-            AddLog(LogLevel.Warning, "Cancel requested. The run stops at the next check and every change is rolled back.");
         }
 
         // ══ Re-pick drains ═══════════════════════════════════════════════════

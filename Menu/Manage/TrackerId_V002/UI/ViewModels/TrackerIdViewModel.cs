@@ -211,7 +211,13 @@ namespace Revit26_Plugin_Revised.TrackerId.V002.UI.ViewModels
         private void Run(string summary, Action<UIApplication> body)
         {
             SummaryText = summary;
-            if (_jobs.TryRun(body, OnJobFailed)) return;
+            // Esc / Cancel with a Yes-No confirm; each service rolls its transaction back on cancel.
+            void Guarded(UIApplication app)
+            {
+                using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.TrackerIdV002, app);
+                body(app);
+            }
+            if (_jobs.TryRun(Guarded, OnJobFailed)) return;
 
             SummaryText = "Revit is busy. Close any open dialog and try again.";
             AddLog(LogLevel.Warning, SummaryText);
@@ -219,6 +225,16 @@ namespace Revit26_Plugin_Revised.TrackerId.V002.UI.ViewModels
 
         private void OnJobFailed(Exception ex)
         {
+            if (ex is OperationCanceledException)
+            {
+                // A user cancel is not an error: the change was rolled back.
+                OnUi(() =>
+                {
+                    SummaryText = "Cancelled by user. Nothing was changed.";
+                    AddLog(LogLevel.Warning, SummaryText);
+                });
+                return;
+            }
             OnUi(() =>
             {
                 SummaryText = "Stopped, nothing was changed: " + ex.Message;

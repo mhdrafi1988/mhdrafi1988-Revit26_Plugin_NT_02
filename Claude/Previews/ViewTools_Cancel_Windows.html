@@ -1,0 +1,130 @@
+<title>View Tools Cancel</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<!-- UI preview (CLAUDE.md "UI previews"): View Tools group, Esc / Cancel with Yes-No confirm. Plugin 6.40.0.
+     Tools covered (latest version of each; tool versions in the table below): View Auto Renamer, Create Sections From Detail Lines, Floor Edge Around Sections, Floor Edge Element Sections, Floor View Focus, Isolated Section, Roof Edge Around Sections, Roof Edge Element Sections, Roof View Focus, Section View Auto Tagger, Auto Place Sections, Callout To Section View Placement, Reference Section Head Placer, Bubble Auto Renumber, Section Auto Renamer.
+     Mirrors: Shared/Controls/ToolWindowShellTemplate.xaml (status strip + Cancel), Shared/Services/ToolCancellation.cs (dialog text),
+              Menu/ViewTools/Create/RoofEdgeAroundSections_V007 window as the example.
+     Artifact: https://claude.ai/artifact/EjTkEMehdh1rLBv4oyYSfy (republish to this URL on every update)
+     Colours: Shared/SharedStyles.xaml tokens, one light look on purpose (mirrors the light WPF window). -->
+<style>
+/* Layout: one column of captioned mock-ups; each fixed-width Revit piece scrolls in its own frame. */
+:root{
+  color-scheme:light;
+  --page:#E9EDF1; --window:#F3F5F7; --card:#FFFFFF; --border:#D6DCE3; --input:#B5C2CF;
+  --navy:#1E3A5F; --navy-light:#2C4F7C; --on-dark:#FFFFFF;
+  --text:#1A2B3C; --text2:#5B7185; --disabled:#C3CFDB; --bg2:#ECEFF3;
+  --blue:#1F5FBF; --warn:#9A5B00; --warn-soft:#FDF1E1; --ok:#0E7C66; --err:#B42318;
+  --new:#0E7C66; --new-soft:#E0F4EF;
+  --ui:'Segoe UI',system-ui,-apple-system,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--text);font-family:var(--ui);font-size:12.5px;
+  padding-block:24px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.page{max-width:980px;margin:0 auto;display:grid;gap:22px}
+h1{font-size:20px;margin:0 0 4px;font-weight:600;text-wrap:balance}
+h2{font-size:14px;margin:0 0 8px;font-weight:600}
+p{margin:0;line-height:1.5;max-width:75ch}
+.muted{color:var(--text2)}
+.tag{display:inline-block;background:var(--new);color:#FFFFFF;font-size:10px;font-weight:600;letter-spacing:.04em;
+  padding:1px 6px;border-radius:3px;vertical-align:middle;margin-left:6px}
+.sample{display:inline-block;background:var(--warn-soft);color:var(--warn);border:1px solid #E8B66B;border-radius:3px;padding:2px 8px;font-size:11.5px}
+.frame{overflow-x:auto;padding-bottom:4px}
+/* Tool window */
+.win{width:760px;background:var(--window);border:1px solid var(--input);box-shadow:0 6px 20px rgba(16,32,48,.18)}
+.tbar{background:var(--card);border-bottom:1px solid var(--border);padding:7px 10px;display:flex;justify-content:space-between}
+.hdr{background:var(--navy);color:var(--on-dark);padding:10px 12px;display:flex;justify-content:space-between;align-items:center}
+.hdr b{font-size:15px;font-weight:600;display:block}
+.hdr span.s{font-size:11px;opacity:.8}
+.badge{background:var(--navy-light);border-radius:10px;padding:3px 8px;font-size:11px;font-weight:600}
+.body{padding:10px 12px;display:grid;gap:8px}
+.body.off{opacity:.55}
+.bar{display:flex;gap:6px;flex-wrap:wrap}
+.sbtn{border:1px solid var(--input);background:var(--bg2);height:26px;padding:0 9px;display:inline-flex;align-items:center;font-size:11px}
+.grid{width:100%;border-collapse:collapse;background:var(--card);font-size:12px}
+.grid th,.grid td{border:1px solid var(--border);padding:3px 8px;text-align:left;white-space:nowrap}
+.grid th{background:var(--bg2);font-weight:600}
+.foot{border-top:1px solid var(--border);padding:8px 12px;display:grid;gap:6px;background:var(--window)}
+.status{display:grid;grid-template-columns:1fr 220px auto;align-items:center;gap:0 10px;min-height:26px}
+.status .txt{color:var(--text2);font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pb{height:6px;background:#E1E6EC;position:relative}
+.pb i{position:absolute;inset:0 auto 0 0;background:var(--blue)}
+.cancel{border:1px solid var(--input);background:var(--bg2);height:26px;padding:0 12px;display:inline-flex;align-items:center;font-size:11px;font-weight:600}
+.acts{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.acts.off{opacity:.55}
+.pill{border:1px solid #E8B66B;background:var(--card);border-radius:10px;padding:3px 9px;font-size:11px;margin-right:8px}
+.pbtn{background:var(--navy);color:var(--on-dark);padding:9px 14px;margin-right:8px;display:inline-block}
+.obtn{border:1px solid var(--navy);color:var(--navy);padding:9px 0;width:90px;text-align:center;display:inline-block}
+.reset{color:var(--err);border:1px solid var(--input);background:var(--bg2);height:26px;padding:0 9px;display:inline-flex;align-items:center;font-size:11px}
+/* Confirm dialog */
+.dlg{width:420px;background:var(--card);border:1px solid var(--input);box-shadow:0 6px 20px rgba(16,32,48,.25)}
+.dlg .t{padding:7px 10px;border-bottom:1px solid var(--border);background:var(--card)}
+.dlg .c{padding:16px;display:flex;gap:12px;align-items:flex-start;white-space:pre-line;line-height:1.45}
+.q{flex:none;width:28px;height:28px;border-radius:50%;background:var(--blue);color:#fff;display:grid;place-items:center;font-weight:700}
+.dlg .f{background:var(--window);padding:10px 12px;display:flex;justify-content:flex-end;gap:8px;border-top:1px solid var(--border)}
+.dlg .f span{border:1px solid var(--input);background:var(--bg2);width:76px;text-align:center;padding:3px 0}
+.dlg .f span.def{border-color:var(--blue);box-shadow:0 0 0 1px var(--blue) inset}
+/* Log */
+.log{width:760px;background:var(--card);border:1px solid var(--border);font-family:Consolas,'Cascadia Mono',monospace;font-size:11.5px;padding:6px 10px;display:grid;gap:2px}
+.log .i{color:var(--text2)} .log .w{color:var(--warn)} .log .s{color:var(--ok)}
+
+.tbl{width:100%;border-collapse:collapse;background:var(--card);font-size:12px}
+.tbl th,.tbl td{border:1px solid var(--border);padding:4px 8px;text-align:left;vertical-align:top}
+.tbl th{background:var(--bg2);font-weight:600;white-space:nowrap}
+.tbl td.v{white-space:nowrap;font-variant-numeric:tabular-nums}
+</style>
+<div class="page">
+  <header>
+    <h1>View Tools: Esc / Cancel <span class="tag">NEW</span></h1>
+    <p class="muted">Every View Tools window now cancels a running step. Esc, or the Cancel button in the status strip, asks for confirmation. Yes stops the run and undoes the model changes it made. No carries on. Esc works while Revit is the foreground application. <span class="sample">Sample data: view and sheet names are made up.</span></p>
+  </header>
+  <section>
+    <h2>1. Window while a run is in progress (example: Roof Edge Around Sections 7.3.0)</h2>
+    <p class="muted">The Cancel button appears in the status strip and the rest of the window is disabled.</p>
+    <div class="frame"><div class="win">
+      <div class="tbar"><span>Roof Edge Around Sections — v7.3.0</span><span>—  ☐  ✕</span></div>
+      <div class="hdr"><div><b>Roof Edge Around Sections</b><span class="s">Create section views along each roof edge</span></div><span class="badge">v7.3.0</span></div>
+      <div class="body off">
+        <table class="grid">
+          <tr><th>☑</th><th>Section name</th><th>Roof</th><th>Status</th></tr>
+          <tr><td>☑</td><td>RES-N-01</td><td>Roof A</td><td>created</td></tr>
+          <tr><td>☑</td><td>RES-E-01</td><td>Roof A</td><td>creating</td></tr>
+          <tr><td>☑</td><td>RES-N-02</td><td>Roof B</td><td>waiting</td></tr>
+        </table>
+      </div>
+      <div class="foot">
+        <div class="status">
+          <span class="txt">Creating sections… 2 of 6</span>
+          <div class="pb"><i style="width:33%"></i></div>
+          <span class="cancel">Cancel <span class="tag">NEW</span></span>
+        </div>
+        <div class="acts off">
+          <span class="reset">Build plan</span>
+          <span><span class="pbtn">Create sections</span><span class="obtn">Close</span></span>
+        </div>
+      </div>
+    </div></div>
+  </section>
+  <section>
+    <h2>2. Confirmation <span class="tag">NEW</span></h2>
+    <div class="frame"><div class="dlg">
+      <div class="t">Roof Edge Around Sections — v7.3.0</div>
+      <div class="c"><span class="q">?</span><span>Cancel the process?
+All changes made by this run will be undone. Files already exported are kept.</span></div>
+      <div class="f"><span>Yes</span><span class="def">No</span></div>
+    </div></div>
+  </section>
+  <section>
+    <h2>3. Log after Yes <span class="tag">NEW</span></h2>
+    <div class="frame"><div class="log">
+      <span class="i">RES-N-01 created (View Id 1201).</span>
+      <span class="w">Cancelled by user. No section views were created.</span>
+    </div></div>
+  </section>
+  <section>
+    <h2>What each tool cancels</h2>
+    <div class="frame"><table class="tbl">
+      <tr><th>Tool</th><th>Version</th><th>Cancellable step</th><th>On Yes</th></tr>
+<tr><td>View Auto Renamer</td><td class="v">7.2.0</td><td>Load all views, Commit selected</td><td>Renames rolled back (pilot)</td></tr><tr><td>Create Sections From Detail Lines</td><td class="v">13.2.0</td><td>Create (all lines)</td><td><b>Changed:</b> every section of the run rolled back; detail lines stay</td></tr><tr><td>Floor Edge Around Sections</td><td class="v">1.1.0</td><td>Build plan, Create</td><td>Every section view of the run removed</td></tr><tr><td>Floor Edge Element Sections</td><td class="v">1.1.0</td><td>Build plan, Create</td><td>Every section view of the run removed</td></tr><tr><td>Floor View Focus</td><td class="v">1.1.0</td><td>Run</td><td>View crop changes rolled back</td></tr><tr><td>Isolated Section</td><td class="v">1.1.0</td><td>Create 3D view</td><td>3D view not created</td></tr><tr><td>Roof Edge Around Sections</td><td class="v">7.3.0</td><td>Build plan, Create</td><td>Every section view of the run removed</td></tr><tr><td>Roof Edge Element Sections</td><td class="v">4.2.0</td><td>Build plan, Create</td><td>Every section view of the run removed</td></tr><tr><td>Roof View Focus</td><td class="v">4.2.0</td><td>Run</td><td>View crop changes rolled back</td></tr><tr><td>Section View Auto Tagger</td><td class="v">6.2.0</td><td>Place tags; category scan</td><td>Tags rolled back</td></tr><tr><td>Auto Place Sections</td><td class="v">324.2.0</td><td>Place (sheets and viewports)</td><td>All sheets and viewports of the run rolled back</td></tr><tr><td>Callout To Section View Placement</td><td class="v">21.2.0</td><td>Place callouts</td><td>Callouts rolled back</td></tr><tr><td>Reference Section Head Placer</td><td class="v">15.2.0</td><td>Run</td><td><b>Changed:</b> the disabled Cancel button now works; placed sections rolled back</td></tr><tr><td>Bubble Auto Renumber</td><td class="v">9.2.0</td><td>Renumber (both passes)</td><td>Numbers rolled back</td></tr><tr><td>Section Auto Renamer</td><td class="v">26.2.0</td><td>Commit renames</td><td>Renames rolled back</td></tr>
+    </table></div>
+  </section>
+</div>

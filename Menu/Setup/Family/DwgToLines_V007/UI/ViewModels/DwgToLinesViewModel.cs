@@ -13,6 +13,7 @@
 //        convention from MasterGuide.md section 10).
 // ==============================================
 
+using Revit26_Plugin_Revised.Shared.Services;
 using Autodesk.Revit.UI;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -84,6 +85,8 @@ namespace Revit26_Plugin_Revised.DwgToLines.V007.UI.ViewModels
 
         private void Convert()
         {
+            // Esc / Cancel with a Yes-No confirm; the conversion transaction is rolled back on cancel.
+            using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.DwgToLines, _uiApp);
             try
             {
                 new CadConversionService(_uiApp, entry => AddLog(entry.Level, entry.Message))
@@ -92,6 +95,10 @@ namespace Revit26_Plugin_Revised.DwgToLines.V007.UI.ViewModels
                         PlacementMode,
                         SplineHandlingMode,
                         ExtrusionReadyMode);
+            }
+            catch (OperationCanceledException)
+            {
+                AddLog(LogLevel.Warning, "Cancelled by user. Nothing was placed.");
             }
             catch (Exception ex)
             {

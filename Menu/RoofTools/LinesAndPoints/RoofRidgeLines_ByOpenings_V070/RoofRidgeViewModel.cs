@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Revit26_Plugin_Revised.Shared.Services;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
@@ -578,7 +579,20 @@ namespace Revit26_Plugin_Revised.RoofRidgeLines.V070.ViewModels
                 {
                     ElementId selectedLineStyleId = RidgeCreationService.GetLineStyleIdByName(_doc, SelectedLineStyleName);
 
-                    _creationSvc.CreateAll(_doc, _uiDoc.ActiveView, _selectedRoof, _lastResult, AddDetailLines, AddShapePoints, selectedLineStyleId);
+                    // One group around TX-01..03, so a cancel undoes the whole run.
+                    using var group = new TransactionGroup(_doc, "Ridge By Openings");
+                    group.Start();
+                    try
+                    {
+                        _creationSvc.CreateAll(_doc, _uiDoc.ActiveView, _selectedRoof, _lastResult, AddDetailLines, AddShapePoints, selectedLineStyleId);
+                        ToolCancellation.CheckCurrent();
+                    }
+                    catch
+                    {
+                        if (group.GetStatus() == TransactionStatus.Started) group.RollBack();
+                        throw;
+                    }
+                    group.Assimilate();
                 });
 
                 Log($"  Detail lines created: {_lastResult.CreatedDetailLineIds.Count}");
@@ -597,6 +611,12 @@ namespace Revit26_Plugin_Revised.RoofRidgeLines.V070.ViewModels
                     $"Done. {_lastResult.ClippedEdges.Count} ridge lines, " +
                     $"{TotalAddedPoints}/{_creationSvc.TotalCalculated} shape points added. " +
                     $"Validation: {PassCount} PASS / {FailCount} FAIL. ({elapsed.TotalSeconds:F1}s)";
+            }
+            catch (OperationCanceledException)
+            {
+                // Esc / Cancel confirmed: the transaction group inside CreateAll was rolled back.
+                Log("[CANCELLED]  Cancelled by user. Everything this run changed was undone.");
+                StatusMessage = "Cancelled by user. Nothing was changed.";
             }
             catch (Exception ex)
             {

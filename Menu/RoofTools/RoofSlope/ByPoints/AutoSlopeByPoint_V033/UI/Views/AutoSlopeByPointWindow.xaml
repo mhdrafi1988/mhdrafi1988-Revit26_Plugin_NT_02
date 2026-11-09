@@ -960,10 +960,6 @@ converters declared here.
                         ToolTip="Save the last run's full workbook (Vertex Data + Run Summary) to a file you choose."/>
 
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
-                    <Button Content="Cancel" Style="{StaticResource OutlineButton}" Width="80" Margin="0,0,8,0"
-                            Command="{Binding CancelRunCommand}"
-                            Visibility="{Binding IsCancelVisible, Converter={StaticResource BoolToVisibility}}"
-                            ToolTip="Stop the run (Esc). Every change is rolled back, so the roof stays as it was."/>
                     <Button Content="{Binding RunButtonText}" Style="{StaticResource RunButton}" MinWidth="150" Margin="0,0,8,0"
                             Command="{Binding RunCommand}"
                             ToolTip="Reset the roof's shape points and apply the slope towards the drains."/>

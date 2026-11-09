@@ -1,3 +1,4 @@
+using Revit26_Plugin_Revised.Shared.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -53,6 +54,7 @@ namespace Revit26_Plugin_Revised.IsolatedSection.V001.Infrastructure.Revit
             var elements = new List<PickedElement>();
             foreach (PickedElement p in request.Elements)
             {
+                ToolCancellation.CheckCurrent();
                 PickedElement fresh = SelectionService.Refresh(doc, p, out string reason);
                 if (fresh != null) elements.Add(fresh);
                 else result.Warnings.Add($"{p.Category} {p.ElementId} skipped: {reason}");
@@ -116,6 +118,7 @@ namespace Revit26_Plugin_Revised.IsolatedSection.V001.Infrastructure.Revit
                 // Isolation
                 Isolate(view, elements, request.Isolation, result);
 
+                ToolCancellation.CheckCurrent(); // last chance to cancel before the commit
                 TransactionStatus status = tx.Commit();
                 if (status != TransactionStatus.Committed)
                     throw new InvalidOperationException($"Revit did not accept the new view (transaction {status}).");
