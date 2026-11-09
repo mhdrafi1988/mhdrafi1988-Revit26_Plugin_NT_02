@@ -40,8 +40,10 @@ namespace Revit26_Plugin_Revised.Shared.Services
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Revit26_Plugin_Revised", "Logs");
 
         /// <summary>
-        /// Runs a command body. Cancellation returns <see cref="Result.Cancelled"/>; any other
-        /// exception is logged, shown, and returned as <see cref="Result.Failed"/>.
+        /// Runs a command body. A user cancel (<see cref="OperationCanceledException"/>, see
+        /// <see cref="ToolCancellation"/>) returns <see cref="Result.Cancelled"/> with no error dialog
+        /// and no error-log entry; any other exception is logged, shown, and returned as
+        /// <see cref="Result.Failed"/>.
         /// </summary>
         public static Result RunCommand(Type commandType, ExternalCommandData commandData, ref string message,
             ElementSet elements, CommandBody body)
@@ -68,9 +70,17 @@ namespace Revit26_Plugin_Revised.Shared.Services
 
         /// <summary>
         /// Runs an external-event handler body; any exception is logged and shown instead of
-        /// propagating into Revit's idling loop.
+        /// propagating into Revit's idling loop. A user cancel (<see cref="OperationCanceledException"/>,
+        /// see <see cref="ToolCancellation"/>) is not an error: nothing is logged to the error log and no
+        /// dialog is shown; <paramref name="onCancelled"/> lets the tool write "Cancelled by user" to its
+        /// own log or UI.
         /// </summary>
-        public static void RunHandler(Type handlerType, UIApplication app, Action<UIApplication> body)
+        /// <param name="handlerType">Handler type, used to find the owning tool.</param>
+        /// <param name="app">Revit application passed to the handler.</param>
+        /// <param name="body">The handler's work.</param>
+        /// <param name="onCancelled">Optional; called (on the Revit thread) when the run was cancelled by the user.</param>
+        public static void RunHandler(Type handlerType, UIApplication app, Action<UIApplication> body,
+            Action onCancelled = null)
         {
             try
             {
@@ -78,14 +88,22 @@ namespace Revit26_Plugin_Revised.Shared.Services
             }
             catch (Autodesk.Revit.Exceptions.OperationCanceledException)
             {
+                NotifyCancelled(onCancelled);
             }
             catch (OperationCanceledException)
             {
+                NotifyCancelled(onCancelled);
             }
             catch (Exception ex)
             {
                 Report(handlerType, ex);
             }
+        }
+
+        private static void NotifyCancelled(Action onCancelled)
+        {
+            try { onCancelled?.Invoke(); }
+            catch { /* reporting the cancel is best effort */ }
         }
 
         /// <summary>

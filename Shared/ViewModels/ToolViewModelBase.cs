@@ -5,6 +5,7 @@ using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Revit26_Plugin_Revised.Shared.Models;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace Revit26_Plugin_Revised.Shared.ViewModels
 {
@@ -53,6 +54,41 @@ namespace Revit26_Plugin_Revised.Shared.ViewModels
             if (string.IsNullOrEmpty(text)) return;
             try { Clipboard.SetText(text); } catch { /* clipboard busy */ }
         }
+
+        // ── Cancellable run ───────────────────────────────────────────────────
+        private ToolCancellation _activeRun;
+
+        /// <summary>The tool window; set by the window's code-behind so the Yes/No dialog and Escape key use it. May stay null.</summary>
+        public Window OwnerWindow { get; set; }
+
+        /// <summary>
+        /// Starts a cancellable run: sets <see cref="IsRunning"/>, routes <c>Report</c> to
+        /// <see cref="Progress"/> / <see cref="SummaryText"/> and lets <see cref="CancelRunCommand"/> and the
+        /// shell's Cancel button stop it. Call on the Revit thread; always pair with <see cref="EndRun"/> in a <c>finally</c>.
+        /// </summary>
+        protected ToolCancellation BeginRun(ToolInfo tool)
+        {
+            _activeRun = ToolCancellation.Begin(tool, OwnerWindow, (percent, text) =>
+            {
+                Progress = percent;
+                SummaryText = text;
+            });
+            Progress = 0;
+            IsRunning = true;
+            return _activeRun;
+        }
+
+        /// <summary>Ends the run started by <see cref="BeginRun"/> (clears <see cref="IsRunning"/>, releases the window).</summary>
+        protected void EndRun(ToolCancellation run)
+        {
+            IsRunning = false;
+            run?.Dispose();
+            if (ReferenceEquals(_activeRun, run)) _activeRun = null;
+        }
+
+        /// <summary>Cancel button: asks the active run to cancel (a Yes/No confirmation follows).</summary>
+        [RelayCommand]
+        private void CancelRun() => _activeRun?.RequestCancel();
 
         // ── Log helper ────────────────────────────────────────────────────────
         protected void AddLog(LogLevel level, string message)
