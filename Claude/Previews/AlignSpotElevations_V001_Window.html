@@ -1,7 +1,8 @@
 <title>Align Spot Elevations Window</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<!-- UI preview (CLAUDE.md "UI previews"): Align Spot Elevations V001, tool 1.6.0, plugin 6.32.0.
-     New in 1.6.0: "Pick tag…" for the bend point and end point lines in Align to detail lines mode
+<!-- UI preview (CLAUDE.md "UI previews"): Align Spot Elevations V001, tool 1.7.1, plugin 6.42.0.
+     New in 1.7.1: the eight Quick Align buttons became three small split buttons (Vertical, Horizontal, to Tag); each runs the item used last.
+     Earlier, 1.6.0: "Pick tag…" for the bend point and end point lines in Align to detail lines mode
      (vertical / horizontal line through the clicked tag's point), and two quick ribbon buttons
      (Quick Align Ends to Tag, Quick Align Bends to Tag).
      Mirrors: Menu/Tagging/AlignSpotElevations_V001/UI/Views/AlignWindow.xaml (+ LinePickViewModel, AlignViewModel),
@@ -78,7 +79,7 @@ ul{margin:0;padding-left:18px;line-height:1.6}
 
 <div class="page">
   <header>
-    <h1>Align Spot Elevations v1.6.0 — align to a tag</h1>
+    <h1>Align Spot Elevations v1.7.1 — align to a tag · quick-align split buttons</h1>
     <p class="muted">Click one spot elevation; its leader end point or bend point gives a vertical or horizontal line, and the selected spots move the same part onto it. Pick the same tag for both boxes to line up bends and ends together. Green tags mark what is new.</p>
     <p style="margin-top:8px"><span class="sample">Sample data: spot labels and positions are made up.</span></p>
   </header>
@@ -87,7 +88,7 @@ ul{margin:0;padding-left:18px;line-height:1.6}
   <section>
     <h2>1 · Window, Align to detail lines mode</h2>
     <div class="frame"><div class="win">
-      <div class="tbar"><span>Align Spot Elevations — v1.6.0</span><span class="x">✕</span></div>
+      <div class="tbar"><span>Align Spot Elevations — v1.7.1</span><span class="x">✕</span></div>
       <div class="wbody">
         <div>5 spot elevation(s) selected · view 1:100. Distances are paper mm. The measured point never moves.</div>
 
@@ -179,7 +180,7 @@ ul{margin:0;padding-left:18px;line-height:1.6}
   <!-- 3. Ribbon -->
   <section>
     <h2>3 · Ribbon, Tagging panel</h2>
-    <p class="muted" style="margin-bottom:8px">Two new small buttons, stacked after the existing quick-align buttons. Select the spots, click the button, click one tag, done. One Undo step.</p>
+    <p class="muted" style="margin-bottom:8px">The eight Quick Align buttons are now three small split buttons. The main click runs the item used last (the first item until you pick another); the arrow lists the rest.</p>
     <div class="frame">
       <div class="rib">
         <div class="tabs">… · Tagging · …</div>
@@ -187,23 +188,31 @@ ul{margin:0;padding-left:18px;line-height:1.6}
           <div class="big"><div class="ico"></div>Tag To Text</div>
           <div class="big"><div class="ico"></div>Align Spot Elevations</div>
           <div class="big"><div class="ico"></div>Align to Detail Line</div>
-          <div class="stack"><span class="small"><i></i>Quick Align Vertical</span><span class="small"><i></i>Quick Align Horizontal</span></div>
-          <div class="stack"><span class="small"><i></i>Quick Align Ends Vertical</span><span class="small"><i></i>Quick Align Ends Horizontal</span></div>
-          <div class="stack"><span class="small"><i></i>Quick Align Bends Vertical</span><span class="small"><i></i>Quick Align Bends Horizontal</span></div>
-          <div class="stack"><span class="small new"><i></i>Quick Align Ends to Tag</span><span class="small new"><i></i>Quick Align Bends to Tag</span></div>
+          <div class="stack">
+            <span class="small new"><i></i>Quick Align Vertical ▾</span>
+            <span class="small new"><i></i>Quick Align Horizontal ▾</span>
+            <span class="small new"><i></i>Quick Align to Tag ▾</span>
+          </div>
         </div>
         <div class="ptitle">Tagging</div>
       </div>
       <div class="tip">
-        <b>Quick Align Ends to Tag<span class="tag">NEW</span></b>
-        <span>Lines up the leader end points of the selected spot elevations with the end point of one spot elevation you click, right away. The text moves with each end. Uses the line direction (vertical or horizontal) last used in the window. One Undo step.</span>
-        <span class="gray">Align Spot Elevations v1.6.0</span>
+        <b>Arrow lists<span class="tag">NEW</span></b>
+        <span><b>Vertical ▾</b> Quick Align Vertical · Quick Align Ends Vertical · Quick Align Bends Vertical</span>
+        <span><b>Horizontal ▾</b> Quick Align Horizontal · Quick Align Ends Horizontal · Quick Align Bends Horizontal</span>
+        <span><b>to Tag ▾</b> Quick Align Ends to Tag · Quick Align Bends to Tag</span>
+        <span class="gray">Align Spot Elevations v1.7.1 · sample layout</span>
       </div>
-      <div class="prompt">Status bar: <b>Click the spot elevation to line the end points up with (Esc cancels)</b><span class="tag">NEW</span></div>
+      <div class="prompt">Status bar (to Tag): <b>Click the spot elevation to line the end points up with (Esc cancels)</b></div>
     </div>
   </section>
 
   <section class="q">
+    <h2>What changed in 1.7.1</h2>
+    <ul>
+      <li>Ribbon only: 8 Quick Align buttons became 3 split buttons by direction. Same commands, same results.</li>
+      <li>Each split button remembers the item you used last until Revit closes.</li>
+    </ul>
     <h2>What changed in 1.6.0</h2>
     <ul>
       <li><b>Pick tag…</b> on the bend point and end point lines (not the text line). Vertical = same X, Horizontal = same Y; each line remembers its own direction.</li>

@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using Autodesk.Revit.UI;
 using Revit26_Plugin_Revised.Resources.Icons;
 using Revit26_Plugin_Revised.Shared.Services;
@@ -9,7 +11,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
     {
         private const string Icons = "Revit26_Plugin_Revised.Resources.Icons.Tagging.";
 
-        /// <summary>Creates the Tagging panel on <paramref name="tabName"/> with the Tag To Text, Align Spot Elevations and Align to Detail Line buttons (plus the eight quick-align buttons).</summary>
+        /// <summary>Creates the Tagging panel on <paramref name="tabName"/> with the Tag To Text, Align Spot Elevations and Align to Detail Line buttons plus three quick-align split buttons (Vertical, Horizontal, to Tag).</summary>
         public static void Build(UIControlledApplication app, string tabName, string assemblyPath)
         {
             RibbonPanel panel = app.CreateRibbonPanel(tabName, "Tagging");
@@ -53,8 +55,8 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             };
             panel.AddItem(alignToLine);
 
-            // Quick align: same tool, no window, last-used options. Stacked small buttons, not a dropdown
-            // (dropdowns are only for grouping different tools).
+            // Quick align: same tool, no window, last-used options. Three small split buttons grouped by direction.
+            // Revit runs the item last picked in each split button on its main click (kept for the Revit session).
             var quickVertical = new PushButtonData("Btn_AlignSpotElevations_QuickVertical_V001", "Quick Align Vertical",
                 assemblyPath, "Revit26_Plugin_Revised.AlignSpotElevations.V001.Commands.AlignSpotElevationsQuickVerticalCommand")
             {
@@ -73,44 +75,65 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                     "Lines the selected spot elevation tags up in one row right away, with the parts, line position and " +
                     "spacing last used in the Align Spot Elevations window. One Undo step.")
             };
-            RibbonLayoutHelper.AddStackedButtons(panel, new RibbonItemData[] { quickVertical, quickHorizontal });
 
-            // Quick align of one leader part. Text follows a moved end or bend point, as in Revit.
-            RibbonLayoutHelper.AddStackedButtons(panel, new RibbonItemData[]
-            {
-                QuickPart(assemblyPath, "QuickEndsVertical", "Quick Align Ends Vertical", "EndsVertical",
-                    "Lines the leader end points of the selected spot elevations up in one column right away. The text " +
-                    "moves with each end. A leader with a bend only lets its end slide along the bend-to-end segment. " +
-                    "Uses the line position and spacing last used in the window. One Undo step."),
-                QuickPart(assemblyPath, "QuickEndsHorizontal", "Quick Align Ends Horizontal", "EndsHorizontal",
-                    "Lines the leader end points of the selected spot elevations up in one row right away. The text " +
-                    "moves with each end. A leader with a bend only lets its end slide along the bend-to-end segment. " +
-                    "Uses the line position and spacing last used in the window. One Undo step.")
-            });
-            RibbonLayoutHelper.AddStackedButtons(panel, new RibbonItemData[]
-            {
-                QuickPart(assemblyPath, "QuickBendsVertical", "Quick Align Bends Vertical", "BendsVertical",
-                    "Lines the leader bend points (shoulders) of the selected spot elevations up in one column right away. " +
-                    "The leader end and text move with each bend. Uses the line position and spacing last used in the " +
-                    "window. One Undo step."),
-                QuickPart(assemblyPath, "QuickBendsHorizontal", "Quick Align Bends Horizontal", "BendsHorizontal",
-                    "Lines the leader bend points (shoulders) of the selected spot elevations up in one row right away. " +
-                    "The leader end and text move with each bend. Uses the line position and spacing last used in the " +
-                    "window. One Undo step.")
-            });
+            // Text follows a moved end or bend point, as in Revit.
+            var endsVertical = QuickPart(assemblyPath, "QuickEndsVertical", "Quick Align Ends Vertical", "EndsVertical",
+                "Lines the leader end points of the selected spot elevations up in one column right away. The text " +
+                "moves with each end. A leader with a bend only lets its end slide along the bend-to-end segment. " +
+                "Uses the line position and spacing last used in the window. One Undo step.");
+            var endsHorizontal = QuickPart(assemblyPath, "QuickEndsHorizontal", "Quick Align Ends Horizontal", "EndsHorizontal",
+                "Lines the leader end points of the selected spot elevations up in one row right away. The text " +
+                "moves with each end. A leader with a bend only lets its end slide along the bend-to-end segment. " +
+                "Uses the line position and spacing last used in the window. One Undo step.");
+            var bendsVertical = QuickPart(assemblyPath, "QuickBendsVertical", "Quick Align Bends Vertical", "BendsVertical",
+                "Lines the leader bend points (shoulders) of the selected spot elevations up in one column right away. " +
+                "The leader end and text move with each bend. Uses the line position and spacing last used in the " +
+                "window. One Undo step.");
+            var bendsHorizontal = QuickPart(assemblyPath, "QuickBendsHorizontal", "Quick Align Bends Horizontal", "BendsHorizontal",
+                "Lines the leader bend points (shoulders) of the selected spot elevations up in one row right away. " +
+                "The leader end and text move with each bend. Uses the line position and spacing last used in the " +
+                "window. One Undo step.");
 
             // Quick align to a tag: click one spot elevation; the parts line up with its point.
-            RibbonLayoutHelper.AddStackedButtons(panel, new RibbonItemData[]
+            var endsToTag = QuickPart(assemblyPath, "QuickEndsToTag", "Quick Align Ends to Tag", "EndsToTag",
+                "Lines up the leader end points of the selected spot elevations with the end point of one spot " +
+                "elevation you click, right away. The text moves with each end. Uses the line direction (vertical " +
+                "or horizontal) last used in the window. One Undo step.");
+            var bendsToTag = QuickPart(assemblyPath, "QuickBendsToTag", "Quick Align Bends to Tag", "BendsToTag",
+                "Lines up the leader bend points (shoulders) of the selected spot elevations with the bend point of " +
+                "one spot elevation you click, right away. The leader end and text move with each bend. Uses the " +
+                "line direction (vertical or horizontal) last used in the window. One Undo step.");
+
+            var splitVertical = QuickSplit("Split_AlignSpotElevations_QuickVertical", "Quick Align Vertical", quickVertical,
+                "Quick align in one column: tags, leader ends or leader bends. The button runs the one you used last.");
+            var splitHorizontal = QuickSplit("Split_AlignSpotElevations_QuickHorizontal", "Quick Align Horizontal", quickHorizontal,
+                "Quick align in one row: tags, leader ends or leader bends. The button runs the one you used last.");
+            var splitToTag = QuickSplit("Split_AlignSpotElevations_QuickToTag", "Quick Align to Tag", endsToTag,
+                "Quick align to a spot elevation you click: leader ends or leader bends. The button runs the one you used last.");
+
+            IList<RibbonItem> created = RibbonLayoutHelper.AddStackedButtons(panel,
+                new RibbonItemData[] { splitVertical, splitHorizontal, splitToTag });
+            AddSplitItems(created, splitVertical.Name, quickVertical, endsVertical, bendsVertical);
+            AddSplitItems(created, splitHorizontal.Name, quickHorizontal, endsHorizontal, bendsHorizontal);
+            AddSplitItems(created, splitToTag.Name, endsToTag, bendsToTag);
+        }
+
+        /// <summary>Creates a small split button that shows <paramref name="primary"/>'s icon until the user picks another item.</summary>
+        private static SplitButtonData QuickSplit(string name, string label, PushButtonData primary, string tip)
+            => new SplitButtonData(name, label)
             {
-                QuickPart(assemblyPath, "QuickEndsToTag", "Quick Align Ends to Tag", "EndsToTag",
-                    "Lines up the leader end points of the selected spot elevations with the end point of one spot " +
-                    "elevation you click, right away. The text moves with each end. Uses the line direction (vertical " +
-                    "or horizontal) last used in the window. One Undo step."),
-                QuickPart(assemblyPath, "QuickBendsToTag", "Quick Align Bends to Tag", "BendsToTag",
-                    "Lines up the leader bend points (shoulders) of the selected spot elevations with the bend point of " +
-                    "one spot elevation you click, right away. The leader end and text move with each bend. Uses the " +
-                    "line direction (vertical or horizontal) last used in the window. One Undo step.")
-            });
+                Image = primary.Image,
+                LargeImage = primary.LargeImage,
+                ToolTip = ToolCatalog.AlignSpotElevations.Tip(tip)
+            };
+
+        /// <summary>Adds <paramref name="items"/> to the split button called <paramref name="name"/>; the first stays the default until another is used (Revit remembers the last used item for the session).</summary>
+        private static void AddSplitItems(IList<RibbonItem> created, string name, params PushButtonData[] items)
+        {
+            var split = created.OfType<SplitButton>().FirstOrDefault(s => s.Name == name);
+            if (split == null) return;
+            foreach (var item in items) split.AddPushButton(item);
+            split.IsSynchronizedWithCurrentItem = true;
         }
 
         /// <summary>One small quick-align button for a leader part of Align Spot Elevations.</summary>

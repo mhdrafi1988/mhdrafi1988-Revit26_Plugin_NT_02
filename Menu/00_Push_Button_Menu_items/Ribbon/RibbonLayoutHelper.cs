@@ -96,6 +96,13 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                     if (!string.IsNullOrEmpty(buttonData.ToolTip))
                         createdItems[j].ToolTip = buttonData.ToolTip;
                 }
+                else if (sourceData[j] is SplitButtonData splitData)
+                {
+                    if (!string.IsNullOrEmpty(splitData.Text))
+                        createdItems[j].ItemText = splitData.Text;
+                    if (!string.IsNullOrEmpty(splitData.ToolTip))
+                        createdItems[j].ToolTip = splitData.ToolTip;
+                }
             }
         }
 
