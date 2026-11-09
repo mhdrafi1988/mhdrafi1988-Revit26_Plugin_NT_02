@@ -1,3 +1,4 @@
+using Revit26_Plugin_Revised.Shared.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -41,6 +42,7 @@ namespace Revit26_Plugin_Revised.DwgStatistics.V005.Infrastructure.RevitApi
                 t.Start();
                 foreach (var inst in targets)
                 {
+                    ToolCancellation.CheckCurrent();
                     if (inst.Pinned)
                     {
                         result.Skipped++;
@@ -92,6 +94,7 @@ namespace Revit26_Plugin_Revised.DwgStatistics.V005.Infrastructure.RevitApi
 
             foreach (long id in typeIds)
             {
+                ToolCancellation.CheckCurrent();
                 var typeId = new ElementId(id);
                 if (doc.GetElement(typeId) is not CADLinkType type || !ExternalFileUtils.IsExternalFileReference(doc, typeId))
                 {
@@ -196,6 +199,7 @@ namespace Revit26_Plugin_Revised.DwgStatistics.V005.Infrastructure.RevitApi
                 t.Start();
                 foreach (long id in typeIds)
                 {
+                    ToolCancellation.CheckCurrent();
                     var typeId = new ElementId(id);
                     var type = doc.GetElement(typeId);
                     if (type == null)
@@ -280,6 +284,7 @@ namespace Revit26_Plugin_Revised.DwgStatistics.V005.Infrastructure.RevitApi
                 t.Start();
                 foreach (var inst in targets)
                 {
+                    ToolCancellation.CheckCurrent();
                     if (inst.WorksetId.IntegerValue == worksetId)
                     {
                         result.Skipped++;

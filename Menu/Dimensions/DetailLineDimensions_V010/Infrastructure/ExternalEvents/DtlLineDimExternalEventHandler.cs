@@ -42,6 +42,10 @@ namespace Revit26_Plugin_Revised.DtlLineDim.V010.Infrastructure.ExternalEvents
                     return;
                 }
 
+                // Esc / Cancel with a Yes-No confirm while the dimensions are created.
+                using ToolCancellation cancel = PendingRequest == DtlLineDimRequest.GenerateDimensions
+                    ? ToolCancellation.BeginFor(ToolCatalog.DtlLineDim, app)
+                    : null;
                 switch (PendingRequest)
                 {
                     case DtlLineDimRequest.Initialize:
@@ -52,6 +56,12 @@ namespace Revit26_Plugin_Revised.DtlLineDim.V010.Infrastructure.ExternalEvents
                         RunGenerate(doc, view);
                         break;
                 }
+            }
+            catch (OperationCanceledException)
+            {
+                // The dimension transaction was rolled back as the exception unwound.
+                _vm.LogError("Cancelled by user. No dimensions were created.");
+                throw; // ToolGuard treats it as a user cancel; finally resets the busy state
             }
             catch (Exception ex)
             {

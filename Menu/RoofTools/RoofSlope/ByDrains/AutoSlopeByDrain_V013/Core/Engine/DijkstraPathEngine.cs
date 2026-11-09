@@ -14,7 +14,7 @@
 // meaningfully slows the loop down) and a CancellationToken, checked right
 // after each throttled report — i.e. right after the UI has had a chance to
 // pump a queued Cancel-button click (see AutoSlopeDrainViewModel/
-// UiPumpHelper). BuildGraph never writes to the model, so a cancellation here
+// the shared ToolCancellation). BuildGraph never writes to the model, so a cancellation here
 // costs nothing to unwind — the caller's transaction rolls back a true no-op.
 using Autodesk.Revit.DB;
 using System;

@@ -9,7 +9,7 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
-## [6.40.0] — 2026-11-09
+## [6.41.0] — 2026-11-09
 
 ### Merge Roofs 1.0.0 (new)
 
@@ -22,6 +22,64 @@ Each release lists every tool whose version changed, under the plugin version.
 - The plugin now ships the Clipper2 library (`Clipper2Lib.dll`) for the polygon union.
 
 User note: the original roofs are not changed or deleted. Hide or delete them yourself once you are happy with the new roof.
+
+## [6.40.0] — 2026-11-09
+
+### Cancel a running tool (rollout started)
+
+#### Added
+- Shared cancel support (`ToolCancellation`): while a tool runs, Esc or a **Cancel** button in the window's status strip asks
+  "Cancel the process? Yes / No". Yes stops the run; No carries on. Esc works while Revit is the foreground application
+  (the tool window or the Revit main window has focus). Tools without a window get a small progress pop-up with a Cancel button.
+- The shared window shell shows the Cancel button and disables the window content while a cancellable run is active, so a
+  second run cannot be started by accident.
+- A user cancel is not an error: no error dialog and no entry in the error log.
+- View Auto Renamer 7.2.0: Esc / Cancel while "Load all views" or "Commit selected" runs.
+- **Roof Tools group** (all tools in `Menu/RoofTools`, latest version of each): Esc / Cancel with a Yes / No confirm while the tool works.
+  - Combined Roof Tools 3.2.0 (cancel while a roof is analysed; the tabs' own Run buttons call older tool versions and are not covered yet)
+  - Roof Points & Slope 1.2.0, Roof Point Elevation Sync 5.1.0, Roof Point Comparison 3.1.0, Creaser Adv 12.1.0
+  - Ridge By Openings 70.2.0, Ridge By Points 59.2.0, Tapered EPS 2D Pattern 6.2.0
+  - Divide Inner Loops 12.2.0, Inner Loops And Perpendicular 7.2.0, Multiple Points 3.1.0, Outer Curve Divider 6.1.0,
+    Roof Detail Line Intersect 14.2.0, Roof Shape From Link 2.1.0, Roof Edge Vertex Reducer 9.1.0
+  - Auto Slope By Drain (Multi-Roof) 13.2.0, Auto Slope By Drain 7.3.0, Auto Slope By Point 33.1.0,
+    Auto Slope By Point (Ridge) 3.2.0, Auto Slope By Point (Multi Copies) 30.2.0
+  - Roof Type Manager 3.2.0, Island Roof Splitter 2.1.0, Roof Name Builder 2.2.0
+- **Floor Tools group** (all tools in `Menu/FloorTools`, latest version of each): Esc / Cancel with a Yes / No confirm while the tool works,
+  same behaviour as the Roof Tools: Floors And Roof From Linked Rooms 13.2.0, Floors And Roof From Linked Rooms (Via Plan View) 6.2.0, Floor Slope By Drain 1.1.0, Floor Slope By Point 1.1.0, Floor Slope By Point (Ridge) 1.1.0, Floor Slope By Point (Multi Copies) 1.1.0, Floor Points & Slope 1.1.0, Floor Divide Inner Loops 1.1.0, Floor Outer Curve Divider 1.1.0, Floor Detail Line Intersect 1.1.0, Floor Inner Loops And Perpendicular 1.1.0, Floor Edge Vertex Reducer 1.1.0, Floor Multiple Points (1/2–1/4) 1.1.0, Floor Shape From Link 1.1.0, Floor Crease Lines By Openings 1.1.0, Floor Crease Lines By Points 1.1.0, Floor Creaser 1.1.0, Floor Type Manager 1.1.0, Floor Name Builder 1.1.0, Floor Point Comparison 1.1.0, Floor Point Elevation Sync 1.1.0, Floor Tapered EPS 2D Pattern 1.1.0.
+
+- **View Tools group** (all tools in `Menu/ViewTools`, latest version of each; View Auto Renamer was the pilot): Esc / Cancel with a Yes / No confirm
+  while the tool works: Create Sections From Detail Lines 13.2.0, Floor Edge Around Sections 1.1.0, Floor Edge Element Sections 1.1.0, Floor View Focus 1.1.0, Isolated Section 1.1.0, Roof Edge Around Sections 7.3.0, Roof Edge Element Sections 4.2.0, Roof View Focus 4.2.0, Section View Auto Tagger 6.2.0, Auto Place Sections 324.2.0, Callout To Section View Placement 21.2.0, Reference Section Head Placer 15.2.0, Bubble Auto Renumber 9.2.0, Section Auto Renamer 26.2.0.
+  Create Sections From Detail Lines, Auto Place Sections and the Roof / Floor Edge Sections tools create their sections in one group, so a cancel removes every
+  section or viewport of the run.
+- **Sheet Tools group** (all tools in `Menu/Sheet`, latest version of each): Esc / Cancel with a Yes / No confirm while the tool works: Automated Section Placer 3.2.0, Plan From Scope Box 6.2.0, Sections To Sheet 1.1.0, Sheet Auto Rearrange 28.2.0, Sheet Text Replace 1.1.0, Sheet View Arrange 1.3.0, Smart View To Sheet Placer 224.2.0.
+- **Tagging Tools group** (all tools in `Menu/Tagging`, latest version of each): Esc / Cancel with a Yes / No confirm while the tool works: Align Spot Elevations 1.7.0, Floor Tag 1.1.0, Roof Tag 18.2.0, Tag To Text 1.4.0.
+- **Detail Lines Tools group** (all tools in `Menu/DetailLines`, latest version of each): Esc / Cancel with a Yes / No confirm while the tool works: Detail Lines From Links 10.2.0, Detail Line Closed Loop 3.1.0, Detail Line Manager 2.1.0.
+- **Dimensions group** (all tools in `Menu/Dimensions`, latest version of each): Esc / Cancel with a Yes / No confirm while the tool works: Auto Dim Detail Line 10.2.0.
+- **Manage Tools group** (all tools in `Menu/Manage`, latest version of each): Esc / Cancel with a Yes / No confirm while the tool works: Annotation Overlap Detection 4.2.0, Bulk Rename 1.2.0, Delete Line Styles 1.3.0, Link Memory 2.1.0, Link Version Checker 7.2.0, ParaManager 5.2.0, Schedule Export / Import 7.2.0, Shared Parameter Studio 1.1.0, Tracker ID 2.1.0, Delete Workset 1.3.0, Workset Manager 14.2.0, Workset Renamer 5.2.0, Workset Renamer (From Excel) 5.2.0, Worksets & Elements Browser 4.4.0.
+  Workset Creator 17.1.0 (new catalog entry for the V017 code: it has no ribbon button yet, so the ribbon still opens V016): Esc / Cancel while worksets are created or resynced; a cancel rolls the whole run back.
+  Link Memory 2.1.0 cannot undo a link load or unload (Revit does not allow it inside a transaction): its confirm says so, and a cancel only stops before the next link.
+- **Setup Tools group** (all tools in `Menu/Setup`, latest version of each): Esc / Cancel with a Yes / No confirm while the tool works: Batch Link DWG Family 2.3.0, DWG To Lines 7.1.0, DWG To DL(P) 14.1.0, DWG Manager 3.2.0, DWG Statistics 5.2.0, Export DWG to Folder 4.3.0.
+
+#### Changed
+- Manage ribbon: the **WS Creator** dropdown now lists Workset Creator V017 first (the button's own icon and click run V017), then V016 and V015. The "#" marker moved from V016 to V017.
+- Tag To Text 1.4.0: the separate Cancel button is replaced by the shared Cancel button, which asks for confirmation (the run already undid everything).
+- View Auto Renamer 7.2.0: the rename now runs in one transaction group.
+- Auto Slope By Drain (Multi-Roof) 13.2.0 and Auto Slope By Point (Multi Copies) 30.2.0: a cancel now undoes the whole run.
+  Before, roofs or copies that had already finished stayed applied. Auto Slope By Drain 7.3.0, Auto Slope By Point 33.1.0 and
+  Auto Slope By Point (Ridge) 3.2.0 already rolled the roof back; their Cancel button is now the shared one in the status strip
+  and asks for confirmation.
+- Floor Slope By Drain 1.1.0 and Floor Slope By Point (Multi Copies) 1.1.0: a cancel now undoes the whole run (before, finished floors or copies stayed).
+  Floors And Roof From Linked Rooms 13.2.0 and (Via Plan View) 6.2.0: a cancel now removes every element the run created (before, the ones already made were kept).
+  Their separate "Cancel" / "Cancel Run" buttons are replaced by the shared Cancel button, which asks for confirmation.
+- Create Sections From Detail Lines 13.2.0: a cancel now undoes the whole run (before, the sections already created stayed).
+  Reference Section Head Placer 15.2.0: the disabled Cancel button is replaced by the shared one, which works.
+- Roof Points & Slope 1.2.0: the separate "Cancel Run" button is replaced by the shared Cancel button; it asks for confirmation.
+
+User note: cancelling a run undoes every model change made by that run (a cancelled rename leaves all view names as they
+were). Files already exported or written stay. A single long Revit call cannot be interrupted, so the dialog can take a
+moment to appear. Excel files written before a cancel are kept. View Auto Renamer, the Roof Tools and the Floor Tools have this so far;
+the other tool groups follow. Ridge By Openings / Ridge By Points compute the ridge geometry on a background thread; that calculation cannot be
+cancelled, only the Revit steps after it (reading the roof, adding points, drawing lines).
 
 ## [6.39.0] — 2026-11-06
 

@@ -1,3 +1,4 @@
+using Revit26_Plugin_Revised.Shared.Services;
 using Autodesk.Revit.DB;
 using System;
 using System.Collections.Generic;
@@ -83,6 +84,8 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.Core.Services
                 int placed = 0;
                 foreach (var plannedSheet in plan.Sheets)
                 {
+                    ToolCancellation.CheckCurrent();
+                    ToolCancellation.CheckCurrent();
                     var sheet = ViewSheet.Create(doc, titleBlock.Id);
                     sheet.SheetNumber = plannedSheet.Number;
                     sheet.Name = plannedSheet.Name;
@@ -91,6 +94,7 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.Core.Services
                     var viewports = new List<(Viewport Viewport, int Detail)>();
                     foreach (var planned in plannedSheet.Viewports)
                     {
+                        ToolCancellation.CheckCurrent();
                         var viewId = new ElementId(planned.Section.Key);
                         if (!Viewport.CanAddViewToSheet(doc, sheet.Id, viewId))
                             throw new InvalidOperationException($"Revit can’t put '{planned.Section.Name}' on sheet {plannedSheet.Number}.");
@@ -144,6 +148,10 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.Core.Services
                     DeletedSheets = deleted,
                     KeptSheets = kept
                 };
+            }
+            catch (OperationCanceledException)
+            {
+                throw; // user cancel: never swallowed as a failure
             }
             catch (Exception ex) when (ex is InvalidOperationException || ex is ArgumentException || ex is Autodesk.Revit.Exceptions.ApplicationException)
             {

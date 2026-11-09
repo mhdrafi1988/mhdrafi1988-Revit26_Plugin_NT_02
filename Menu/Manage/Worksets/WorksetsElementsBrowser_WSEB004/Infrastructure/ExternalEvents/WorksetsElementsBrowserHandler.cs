@@ -74,6 +74,10 @@ namespace Revit26_Plugin_Revised.WorksetsElementsBrowser.WSEB004.Infrastructure.
         {
             WsebDebugLog.Write($"Execute() entered, Request={Request}");
             ErrorMessage = string.Empty;
+            // Esc / Cancel with a Yes-No confirm while the workset tree loads (the other requests are instant).
+            using ToolCancellation cancel = Request == WorksetsElementsBrowserRequest.LoadTree
+                ? ToolCancellation.BeginFor(ToolCatalog.WorksetsElementsBrowser, app)
+                : null;
             try
             {
                 switch (Request)
@@ -96,6 +100,12 @@ namespace Revit26_Plugin_Revised.WorksetsElementsBrowser.WSEB004.Infrastructure.
                 }
                 LastRunSucceeded = true;
                 WsebDebugLog.Write($"Execute() finished OK, Request={Request}");
+            }
+            catch (OperationCanceledException)
+            {
+                LastRunSucceeded = false;
+                ErrorMessage = "Cancelled by user.";
+                throw; // ToolGuard treats it as a user cancel; finally still completes the request
             }
             catch (Exception ex)
             {

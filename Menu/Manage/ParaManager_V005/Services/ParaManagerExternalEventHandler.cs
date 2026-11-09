@@ -29,6 +29,8 @@ namespace Revit26_Plugin_Revised.ParaManager.V005.Services
             List<RowResult> results = null;
             Exception failure = null;
 
+            // Esc / Cancel with a Yes-No confirm; the service's transaction group rolls back on cancel.
+            using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.ParaManager, app);
             try
             {
                 var doc = app.ActiveUIDocument?.Document;
@@ -37,6 +39,11 @@ namespace Revit26_Plugin_Revised.ParaManager.V005.Services
 
                 var service = new ParameterAssignmentService(doc, SharedParameterFilePath);
                 results = service.RunBatch(RowsToAssign, Binding);
+            }
+            catch (OperationCanceledException ex)
+            {
+                Completed?.Invoke(null, ex); // the window is told, so it never stays busy
+                throw; // ToolGuard treats it as a user cancel
             }
             catch (Exception ex)
             {

@@ -1,3 +1,4 @@
+using Revit26_Plugin_Revised.Shared.Services;
 using Autodesk.Revit.DB;
 using System;
 using System.Linq;
@@ -46,6 +47,7 @@ namespace Revit26_Plugin_Revised.SheetViewArrange.V001.Core.Services
 
                 foreach (var move in moves)
                 {
+                    ToolCancellation.CheckCurrent();
                     if (doc.GetElement(move.Viewport.ViewportId) is not Viewport vp)
                         throw new InvalidOperationException(
                             $"View '{move.Viewport.ViewName}' is no longer on the sheet — press Refresh and try again.");
@@ -64,6 +66,10 @@ namespace Revit26_Plugin_Revised.SheetViewArrange.V001.Core.Services
                     return new ApplyResult { Error = "Revit did not commit the change; nothing was moved." };
 
                 return new ApplyResult { Success = true, Moved = moves.Count };
+            }
+            catch (OperationCanceledException)
+            {
+                throw; // user cancel: never swallowed as a failure
             }
             catch (Exception ex) when (ex is InvalidOperationException || ex is Autodesk.Revit.Exceptions.ApplicationException)
             {

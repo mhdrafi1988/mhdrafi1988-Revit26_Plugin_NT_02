@@ -109,6 +109,8 @@ namespace Revit26_Plugin_Revised.RoofTypeCreator.V003.Infrastructure.ExternalEve
         private void ExecuteImport(Document doc)
         {
             var result = new ImportResult();
+            // Esc / Cancel with a Yes-No confirm; the import transaction below is rolled back on cancel.
+            using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.RoofTypeManager, null);
             try
             {
                 var allItems = ItemsToImport ?? new List<ImportPreviewItem>();
@@ -144,6 +146,7 @@ namespace Revit26_Plugin_Revised.RoofTypeCreator.V003.Infrastructure.ExternalEve
                     tx.Start();
                     foreach (var item in allItems)
                     {
+                        ToolCancellation.CheckCurrent();
                         // Resolve name: New → use as-is; Dup/Renamed → find unique suffix
                         string targetName = item.TypeName;
                         if (item.Status == ImportStatus.Dup || item.Status == ImportStatus.Renamed)
@@ -197,6 +200,12 @@ namespace Revit26_Plugin_Revised.RoofTypeCreator.V003.Infrastructure.ExternalEve
                 }
 
                 Log("Info", $"{result.Created} created | {result.Renamed} renamed | {result.Failed} failed");
+            }
+            catch (OperationCanceledException)
+            {
+                Log("Warning", "Cancelled by user. No roof types were created.");
+                OnImportDone?.Invoke(new ImportResult());
+                throw; // ToolGuard treats it as a user cancel
             }
             catch (Exception ex) { Log("Error", $"Import failed: {ex.Message}"); }
 

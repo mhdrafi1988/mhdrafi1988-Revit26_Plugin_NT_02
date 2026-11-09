@@ -75,14 +75,12 @@ namespace Revit26_Plugin_Revised.MultiRoofSlopeByDrain.V013.UI.ViewModels
     public sealed partial class AutoSlopeDrainViewModel : ToolViewModelBase, IDisposable
     {
         private const string Dash = "—";
-        private const int PumpIntervalMs = 100;
 
         private readonly UIApplication _app;
         private readonly Dispatcher _dispatcher;
         private readonly string _projectTitle;
         private CancellationTokenSource _cts;
         private DateTime _runStart;
-        private DateTime _lastPump = DateTime.MinValue;
         private bool _loading = true;
         private bool _disposed;
 
@@ -152,7 +150,6 @@ namespace Revit26_Plugin_Revised.MultiRoofSlopeByDrain.V013.UI.ViewModels
         [NotifyPropertyChangedFor(nameof(IsInputEnabled))]
         [NotifyPropertyChangedFor(nameof(IsCancelVisible))]
         [NotifyCanExecuteChangedFor(nameof(RunCommand))]
-        [NotifyCanExecuteChangedFor(nameof(CancelRunCommand))]
         [NotifyCanExecuteChangedFor(nameof(BrowseFolderCommand))]
         [NotifyCanExecuteChangedFor(nameof(ZoomToRowsCommand))]
         private DrainRunState state = DrainRunState.Ready;
@@ -485,7 +482,6 @@ namespace Revit26_Plugin_Revised.MultiRoofSlopeByDrain.V013.UI.ViewModels
             LogEntries.Clear();
             _cts = new CancellationTokenSource();
             _runStart = DateTime.Now;
-            _lastPump = DateTime.MinValue;
             AppliedRoofCount = 0;
 
             State = DrainRunState.Running;
@@ -604,11 +600,9 @@ namespace Revit26_Plugin_Revised.MultiRoofSlopeByDrain.V013.UI.ViewModels
                 ? "Cancelling…"
                 : $"Started {_runStart:HH:mm:ss} · {prefix}{info.PhaseLabel}{within}";
 
-            if ((DateTime.Now - _lastPump).TotalMilliseconds >= PumpIntervalMs)
-            {
-                _lastPump = DateTime.Now;
-                UiPumpHelper.DoEvents(); // repaint + let a Cancel click through
-            }
+            // Repaints the bar, delivers Esc / the Cancel button and asks "Cancel the process?".
+            // A confirmed cancel throws here and the engine rolls the roof back.
+            ToolCancellation.CheckCurrent();
         }
 
         private void FinishRun(List<AutoSlopeDrainRoofResult> roofResults)
@@ -647,8 +641,9 @@ namespace Revit26_Plugin_Revised.MultiRoofSlopeByDrain.V013.UI.ViewModels
             if (cancelled)
             {
                 State = DrainRunState.Cancelled;
-                SummaryText = $"Cancelled at {end:HH:mm:ss} (started {_runStart:HH:mm:ss}) · {succeeded.Count} roof(s) applied, the roof in progress rolled back";
-                AddLog(LogLevel.Warning, $"Cancelled. {succeeded.Count} roof(s) had already finished and stay applied; the rest were not started.");
+                int exported = roofResults.Count(r => !string.IsNullOrEmpty(r.Result?.ExportedFilePath));
+                SummaryText = $"Cancelled at {end:HH:mm:ss} (started {_runStart:HH:mm:ss}) · every roof of this run was rolled back";
+                AddLog(LogLevel.Warning, $"Cancelled: all roof changes of this run were undone. {exported} of {roofResults.Count} Excel file(s) had already been written and are kept.");
             }
             else if (succeeded.Count == 0)
             {
@@ -683,17 +678,6 @@ namespace Revit26_Plugin_Revised.MultiRoofSlopeByDrain.V013.UI.ViewModels
             var answer = MessageBox.Show("Excel export finished. Open the export folder now?", ToolTitle,
                 MessageBoxButton.YesNo, MessageBoxImage.Question);
             if (answer == MessageBoxResult.Yes) OpenExportFolder();
-        }
-
-        private bool CanCancelRun() => State == DrainRunState.Running;
-
-        [RelayCommand(CanExecute = nameof(CanCancelRun))]
-        private void CancelRun()
-        {
-            if (_cts == null || _cts.IsCancellationRequested) return;
-            _cts.Cancel();
-            SummaryText = "Cancelling…";
-            AddLog(LogLevel.Warning, "Cancel requested. The roof in progress stops at the next check and is rolled back; finished roofs stay applied.");
         }
 
         // ══ Export folder ════════════════════════════════════════════════════

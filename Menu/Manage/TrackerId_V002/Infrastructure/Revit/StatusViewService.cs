@@ -1,3 +1,4 @@
+using Revit26_Plugin_Revised.Shared.Services;
 using Autodesk.Revit.DB;
 using Revit26_Plugin_Revised.TrackerId.V002.Core.Models;
 using Revit26_Plugin_Revised.TrackerId.V002.Core.Services;
@@ -94,6 +95,7 @@ namespace Revit26_Plugin_Revised.TrackerId.V002.Infrastructure.Revit
 
             foreach (var colour in colours.Where(c => !string.IsNullOrWhiteSpace(c.Status)))
             {
+                ToolCancellation.CheckCurrent();
                 var rule = ParameterFilterRuleFactory.CreateEqualsRule(statusDefinition.Id, colour.Status.Trim());
                 var filter = Upsert(doc, existing, FilterPrefix + SafeName(colour.Status), categoryIds, new ElementParameterFilter(rule));
                 Show(view, filter.Id, colour.Color, solid);

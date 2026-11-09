@@ -42,10 +42,22 @@ namespace Revit26_Plugin_Revised.FloorInnerLoopsAndPerpendicular.V001.Infrastruc
 
             if (current.Operation != InnerLoopsAndPerpendicularOperation.Apply)
             {
+                using ToolCancellation analyzeCancel = ToolCancellation.BeginFor(ToolCatalog.FloorInnerLoopsAndPerpendicular, app);
                 try
                 {
                     var result = InnerLoopsAndPerpendicularEngine.Execute(app, current);
                     current.OnCompleted?.Invoke(result);
+                }
+                catch (OperationCanceledException)
+                {
+                    current.Log?.Invoke(new LogEntry(LogLevel.Warning, "Cancelled by user."));
+                    current.OnCompleted?.Invoke(new InnerLoopsAndPerpendicularResult
+                    {
+                        Success = false,
+                        ErrorMessage = "Cancelled by user.",
+                        Operation = current.Operation
+                    });
+                    throw; // ToolGuard treats it as a user cancel
                 }
                 catch (Exception ex)
                 {
@@ -60,6 +72,9 @@ namespace Revit26_Plugin_Revised.FloorInnerLoopsAndPerpendicular.V001.Infrastruc
                 }
                 return;
             }
+
+            // Esc / Cancel with a Yes-No confirm; the transaction group below is rolled back on cancel.
+            using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.FloorInnerLoopsAndPerpendicular, app);
 
             using (TransactionGroup tg = new TransactionGroup(
                 app.ActiveUIDocument.Document, "Inner Loops And Perpendicular"))
@@ -76,6 +91,18 @@ namespace Revit26_Plugin_Revised.FloorInnerLoopsAndPerpendicular.V001.Infrastruc
                         tg.RollBack();
 
                     current.OnCompleted?.Invoke(result);
+                }
+                catch (OperationCanceledException)
+                {
+                    if (tg.GetStatus() == TransactionStatus.Started) tg.RollBack();
+                    current.Log?.Invoke(new LogEntry(LogLevel.Warning, "Cancelled by user. Nothing was changed."));
+                    current.OnCompleted?.Invoke(new InnerLoopsAndPerpendicularResult
+                    {
+                        Success = false,
+                        ErrorMessage = "Cancelled by user.",
+                        Operation = current.Operation
+                    });
+                    throw; // ToolGuard treats it as a user cancel
                 }
                 catch (Exception ex)
                 {

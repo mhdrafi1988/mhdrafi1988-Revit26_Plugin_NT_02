@@ -42,7 +42,6 @@ namespace Revit26_Plugin_Revised.RefSectionHeadPlacer.V015.UI.ViewModels
         private readonly Dispatcher _uiDispatcher;
 
         private List<PlanViewRow> _allPlanViews = new();
-        private volatile bool _cancelRequested; // written on UI thread, read on API thread
         private bool _disposed;
 
         /// <summary>Raised when the Close command runs; the window subscribes and closes itself.</summary>
@@ -692,7 +691,6 @@ namespace Revit26_Plugin_Revised.RefSectionHeadPlacer.V015.UI.ViewModels
                 $"Run Â· {selectedTypes.Count} type(s) selected, {selectedTypes.Sum(t => t.Count)} element(s) total, " +
                 $"section type '{SelectedSectionType?.Name ?? "(none)"}', tail {TailLengthMm:F0}mm.");
 
-            _cancelRequested = false;
             IsRunning = true;
             PlacedCount = 0; SkippedCount = 0; ProgressPercent = 0;
             ProgressStatusText = "Startingâ€¦";
@@ -702,16 +700,12 @@ namespace Revit26_Plugin_Revised.RefSectionHeadPlacer.V015.UI.ViewModels
                 SelectedTypes = selectedTypes,
                 Mappings = _allCategoryMappingRows.ToList(),
                 SectionViewFamilyTypeId = SelectedSectionType?.Id ?? ElementId.InvalidElementId,
-                TailLengthFeet = TailLengthMm / MmPerFoot,
-                CancellationRequested = () => _cancelRequested
+                TailLengthFeet = TailLengthMm / MmPerFoot
             };
             _externalEvent.Raise();
         }
 
         private bool CanRun() => !IsRunning;
-
-        [RelayCommand]
-        private void Cancel() => _cancelRequested = true;
 
         [RelayCommand]
         private void Close() => CloseRequested?.Invoke();

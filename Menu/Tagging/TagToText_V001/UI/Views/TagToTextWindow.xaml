@@ -476,8 +476,6 @@
         <shell:ToolWindowShell.FooterContent>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                 <Button Content="Create Text" Command="{Binding CreateTextCommand}" Style="{StaticResource PrimaryButton}" Margin="0,0,8,0"/>
-                <Button Content="Cancel" Command="{Binding CancelRunCommand}" Style="{StaticResource OutlineButton}" Width="90" Margin="0,0,8,0"
-                        ToolTip="Stops the run and rolls back everything it did."/>
                 <Button Content="Close" Style="{StaticResource OutlineButton}" Width="90" Click="CloseButton_Click"/>
             </StackPanel>
         </shell:ToolWindowShell.FooterContent>

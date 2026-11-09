@@ -1,3 +1,4 @@
+using Revit26_Plugin_Revised.Shared.Services;
 using System;
 using System.Collections.Generic;
 using Autodesk.Revit.DB;
@@ -39,9 +40,14 @@ namespace Revit26_Plugin_Revised.BubbleAutoRenumber.V009.Infrastructure.Helpers
             // ── Pass 1 — placeholders ────────────────────────────────────────────
             foreach (RenumberAssignment assignment in plan.Assignments)
             {
+                ToolCancellation.CheckCurrent();
                 try
                 {
                     Set(doc, assignment.ViewId, assignment.TempNumber);
+                }
+                catch (OperationCanceledException)
+                {
+                    throw; // user cancel: never swallowed as a failure
                 }
                 catch (Exception ex)
                 {
@@ -59,6 +65,7 @@ namespace Revit26_Plugin_Revised.BubbleAutoRenumber.V009.Infrastructure.Helpers
             // ── Pass 2 — final numbers ───────────────────────────────────────────
             foreach (RenumberAssignment assignment in plan.Assignments)
             {
+                ToolCancellation.CheckCurrent();
                 if (failures.ContainsKey(assignment.ViewId))
                 {
                     onProgress?.Invoke(++done, total);
@@ -72,6 +79,10 @@ namespace Revit26_Plugin_Revised.BubbleAutoRenumber.V009.Infrastructure.Helpers
                     outcomes[assignment.ViewId] = assignment.IsUnchanged
                         ? RenumberOutcome.Unchanged
                         : RenumberOutcome.Renumbered;
+                }
+                catch (OperationCanceledException)
+                {
+                    throw; // user cancel: never swallowed as a failure
                 }
                 catch (Exception ex)
                 {

@@ -36,6 +36,7 @@
 // ExternalEvent, the run summary — is V015 behaviour.
 // ==============================================
 
+using Revit26_Plugin_Revised.Shared.Services;
 using Autodesk.Revit.UI;
 using Autodesk.Revit.DB;
 using CommunityToolkit.Mvvm.Input;
@@ -826,13 +827,19 @@ namespace Revit26_Plugin_Revised.WorksetCreator.V017.UI.ViewModels
             SummaryText     = $"{summary.Mode} running — {toProcess.Count} link(s)...";
             RefreshCommandStates();
 
-            _handler.Queue(_ =>
+            _handler.Queue(app =>
             {
                 RunSummary result = summary;
+                // Esc / Cancel with a Yes-No confirm; a cancel rolls the run's transaction group back.
+                using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.WorksetCreatorV017, app);
                 try
                 {
                     result = _service.CreateAndAssign(_doc, toProcess, summary, ReportProgress);
                     Log(LogLevel.Info, doneMessage);
+                }
+                catch (OperationCanceledException)
+                {
+                    Log(LogLevel.Warning, "Cancelled by user. Every workset change of this run was undone.");
                 }
                 catch (Exception ex)
                 {
@@ -867,7 +874,7 @@ namespace Revit26_Plugin_Revised.WorksetCreator.V017.UI.ViewModels
         private void ReportProgress(int processed, int total)
         {
             if (total > 0) Progress = processed * 100.0 / total;
-            if (processed % 5 == 0) KeepUIResponsive();
+            ToolCancellation.CheckCurrent(); // repaints, delivers Esc / Cancel and asks "Cancel the process?"
         }
 
         /// <summary>

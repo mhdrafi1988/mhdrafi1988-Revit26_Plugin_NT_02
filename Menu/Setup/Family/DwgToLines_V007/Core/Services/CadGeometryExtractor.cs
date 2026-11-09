@@ -1,3 +1,4 @@
+using Revit26_Plugin_Revised.Shared.Services;
 using Autodesk.Revit.DB;
 using System;
 using System.Collections.Generic;
@@ -25,12 +26,14 @@ namespace Revit26_Plugin_Revised.DwgToLines.V007.Core.Services
 
             foreach (GeometryObject g in import.get_Geometry(opt))
             {
+                ToolCancellation.CheckCurrent();
                 if (g is GeometryInstance gi)
                 {
                     DBTransform t = t0.Multiply(gi.Transform);
 
                     foreach (GeometryObject o in gi.GetInstanceGeometry())
                     {
+                        ToolCancellation.CheckCurrent();
                         string layer = ResolveLayer(o, doc);
 
                         if (o is Curve c)

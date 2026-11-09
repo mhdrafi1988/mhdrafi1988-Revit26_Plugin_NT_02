@@ -1,3 +1,4 @@
+using Revit26_Plugin_Revised.Shared.Services;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -397,6 +398,9 @@ namespace Revit26_Plugin_Revised.WorksetRenamer.FX05.ViewModels
 
             int renamed = 0, created = 0, errors = 0;
 
+            // Esc / Cancel with a Yes-No confirm; a cancel rolls the rename/create transaction back.
+            using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.WorksetRenamerExcel, null);
+
             using (var tx = new Transaction(_doc, "Workset Renamer FX03 — Rename/Create From Excel"))
             {
                 tx.Start();
@@ -404,6 +408,7 @@ namespace Revit26_Plugin_Revised.WorksetRenamer.FX05.ViewModels
                 {
                     foreach (var row in candidates)
                     {
+                        ToolCancellation.CheckCurrent();
                         try
                         {
                             if (row.Kind == RowKind.Rename)
@@ -426,7 +431,15 @@ namespace Revit26_Plugin_Revised.WorksetRenamer.FX05.ViewModels
                             errors++;
                         }
                     }
+                    ToolCancellation.CheckCurrent(); // last chance to cancel before the commit
                     tx.Commit();
+                }
+                catch (OperationCanceledException)
+                {
+                    // The transaction rolls back as the exception unwinds; the grid is reloaded from the model.
+                    foreach (var row in candidates) row.Status = RowRenameStatus.Pending;
+                    StatusMessage = "Cancelled by user. Nothing was renamed or created.";
+                    throw; // ToolGuard treats it as a user cancel
                 }
                 catch (Exception ex)
                 {

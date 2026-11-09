@@ -40,6 +40,7 @@
 // link, roll-back-and-continue, the run-wide TransactionGroup — is V015.
 // ==============================================
 
+using Revit26_Plugin_Revised.Shared.Services;
 using Autodesk.Revit.DB;
 using Revit26_Plugin_Revised.Shared.Models;
 using Revit26_Plugin_Revised.WorksetCreator.V017.Core.Models;
@@ -223,6 +224,10 @@ namespace Revit26_Plugin_Revised.WorksetCreator.V017.Core.Services
                             .WherePasses(new ElementWorksetFilter(workset.Id))
                             .GetElementCount();
                     }
+                    catch (OperationCanceledException)
+                    {
+                        throw; // user cancel: never swallowed as a failure
+                    }
                     catch (Exception)
                     {
                         // A count is a nicety; never let it cost us the workset itself.
@@ -238,6 +243,10 @@ namespace Revit26_Plugin_Revised.WorksetCreator.V017.Core.Services
                 }
 
                 _log(new LogEntry(LogLevel.Info, $"Read {result.Count} user workset(s) for matching."));
+            }
+            catch (OperationCanceledException)
+            {
+                throw; // user cancel: never swallowed as a failure
             }
             catch (Exception ex)
             {
@@ -412,6 +421,7 @@ namespace Revit26_Plugin_Revised.WorksetCreator.V017.Core.Services
 
             foreach (WorksetRequest request in queue)
             {
+                ToolCancellation.CheckCurrent(); // outside the per-link transaction; the group rolls every link back
                 processed++;
 
                 var outcome = new LinkOutcome
@@ -592,6 +602,10 @@ namespace Revit26_Plugin_Revised.WorksetCreator.V017.Core.Services
                     // then threw does not exist, so it must not be counted.
                     outcome.WorksetWasCreated = createdNew;
                 }
+                catch (OperationCanceledException)
+                {
+                    throw; // user cancel: never swallowed as a failure
+                }
                 catch (Exception ex)
                 {
                     tx.RollBack();
@@ -608,6 +622,7 @@ namespace Revit26_Plugin_Revised.WorksetCreator.V017.Core.Services
                 onProgress?.Invoke(processed, total);
             }
 
+            ToolCancellation.CheckCurrent(); // last chance to cancel before the group is kept
             if (committed > 0) group.Assimilate();
             else               group.RollBack();
 
@@ -653,6 +668,10 @@ namespace Revit26_Plugin_Revised.WorksetCreator.V017.Core.Services
                 {
                     if (param.Set(worksetId.IntegerValue)) assigned++;
                     else blocked++;
+                }
+                catch (OperationCanceledException)
+                {
+                    throw; // user cancel: never swallowed as a failure
                 }
                 catch (Exception)
                 {
@@ -753,6 +772,10 @@ namespace Revit26_Plugin_Revised.WorksetCreator.V017.Core.Services
                     }
                 }
             }
+            catch (OperationCanceledException)
+            {
+                throw; // user cancel: never swallowed as a failure
+            }
             catch (Exception)
             {
                 // An unresolvable reference tells us nothing either way — fall through.
@@ -795,6 +818,10 @@ namespace Revit26_Plugin_Revised.WorksetCreator.V017.Core.Services
         private static bool IsNestedLink(RevitLinkType type)
         {
             try { return type.IsNestedLink; }
+            catch (OperationCanceledException)
+            {
+                throw; // user cancel: never swallowed as a failure
+            }
             catch (Exception) { return false; }
         }
 
@@ -834,6 +861,10 @@ namespace Revit26_Plugin_Revised.WorksetCreator.V017.Core.Services
                 if (Path.GetFileNameWithoutExtension(path)
                         .EndsWith(".ifc", StringComparison.OrdinalIgnoreCase)) return true;
             }
+            catch (OperationCanceledException)
+            {
+                throw; // user cancel: never swallowed as a failure
+            }
             catch (Exception)
             {
                 // An unresolvable reference tells us nothing about the format —
@@ -863,6 +894,10 @@ namespace Revit26_Plugin_Revised.WorksetCreator.V017.Core.Services
 
                 // "Invalid" and anything new: not loaded, but not provably missing.
                 return LinkLoadState.Unloaded;
+            }
+            catch (OperationCanceledException)
+            {
+                throw; // user cancel: never swallowed as a failure
             }
             catch (Exception)
             {

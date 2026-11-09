@@ -1,5 +1,6 @@
 using Autodesk.Revit.DB;
 using Revit26_Plugin_Revised.ViewAutoRenamer.V007.ViewModels;
+using Revit26_Plugin_Revised.Shared.Services;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -68,25 +69,32 @@ public static class ViewLoadService
     }
 
     /// <summary>Loads every in-scope view in the project with its full sheet placement.</summary>
-    public static List<ViewItemViewModel> LoadAll(Document doc)
+    /// <param name="doc">The project document.</param>
+    /// <param name="cancel">Optional cancel helper; checked in every loop and reports progress. Throws <see cref="System.OperationCanceledException"/> after the user confirms a cancel.</param>
+    public static List<ViewItemViewModel> LoadAll(Document doc, ToolCancellation? cancel = null)
     {
-        var placed = ViewClassificationService.BuildPlacedSheetsLookup(doc);
+        cancel?.Report(0, 0, "Reading sheet placements…");
+        var placed = ViewClassificationService.BuildPlacedSheetsLookup(doc, cancel);
         var views = new FilteredElementCollector(doc)
             .OfClass(typeof(View))
             .Cast<View>()
             .Where(IsInScope);
 
-        return Build(views, v => placed.TryGetValue(v.Id, out var list) ? list : new List<string>());
+        return Build(views, v => placed.TryGetValue(v.Id, out var list) ? list : new List<string>(), cancel);
     }
 
     private static bool IsInScope(View v) => !v.IsTemplate && InScopeViewTypes.Contains(v.ViewType);
 
     private static List<ViewItemViewModel> Build(
-        IEnumerable<View> views, System.Func<View, List<string>> multiSheetPlacement)
+        IEnumerable<View> views, System.Func<View, List<string>> multiSheetPlacement,
+        ToolCancellation? cancel = null)
     {
         var items = new List<ViewItemViewModel>();
-        foreach (var v in views)
+        var all = views as IList<View> ?? views.ToList();
+        int done = 0;
+        foreach (var v in all)
         {
+            cancel?.Step(done++, all.Count, $"Reading view names… {done} of {all.Count}");
             var (group, display) = ViewClassificationService.ClassifyView(v);
 
             IReadOnlyList<string> placedSheets;
