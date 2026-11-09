@@ -29,6 +29,10 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             // and a Memory panel for the remember-and-restore tools.
             RibbonPanel panel = app.CreateRibbonPanel(tabName, "Manage");
 
+            var overlapV005 = Btn(assemblyPath, "Btn_AnnotationOverlapDetection_V005", "Overlap Detection V005", "Revit26_Plugin_Revised.AnnotationOverlapDetection.V005.Command",
+                "Manage.AnnotationOverlapDetection_16.png", "Annotation Overlap Detection", "V005");
+            overlapV005.ToolTip = Revit26_Plugin_Revised.Shared.Services.ToolCatalog.AnnotationOverlapDetectionV005.Tip(
+                "Find overlapping annotations in the active floor plan, then move them apart: Move Up, Move Down or Distribute.");
             var overlapV004 = Btn(assemblyPath, "Btn_AnnotationOverlapDetection_V004", "Overlap Detection V004", "Revit26_Plugin_Revised.AnnotationOverlapDetection.V004.Command",
                 "Manage.AnnotationOverlapDetection_16.png", "Annotation Overlap Detection", "V004", "V003 on the shared ToolWindowShell (capped lists).");
 
@@ -189,7 +193,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             // Slide-out (plugin 6.13.0): cleanup and rename tools that change many elements sit inside the arrow.
             var manageItems = RibbonLayoutHelper.AddStackedButtonsWithSlideOut(panel, new List<RibbonItemData>
             {
-                RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_AnnotationOverlapDetection", "Overlaps", overlapV004),
+                RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_AnnotationOverlapDetection", "Overlaps", overlapV005),
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_ParaManager", "ParaManager", paraManagerV005),
                 sharedParamStudioV001,
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_ScheduleExportImport", "Schedule I/O", scheduleExportImportV007),
@@ -201,7 +205,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_BulkRename", "Bulk Rename", bulkRenameV001),
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_TrackerId", "Tracker ID", trackerIdV002),
             });
-            RibbonLayoutHelper.WirePulldownButton(manageItems, "Pulldown_AnnotationOverlapDetection", overlapV004);
+            RibbonLayoutHelper.WirePulldownButton(manageItems, "Pulldown_AnnotationOverlapDetection", overlapV005, overlapV004);
             RibbonLayoutHelper.WirePulldownButton(manageItems, "Pulldown_ParaManager", paraManagerV005);
             RibbonLayoutHelper.WirePulldownButton(manageItems, "Pulldown_DeleteLineStyles", deleteLineStylesV001);
             RibbonLayoutHelper.WirePulldownButton(manageItems, "Pulldown_BulkRename", bulkRenameV001);
