@@ -440,9 +440,15 @@ namespace Revit26_Plugin_Revised.DwgManager.V003.UI.ViewModels
             {
                 if (job.Cancelled) return;
 
+                // Esc / Cancel with a Yes-No confirm; the service rolls its transaction back on cancel.
+                using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.DwgManager, app);
                 try
                 {
                     body(app);
+                }
+                catch (OperationCanceledException)
+                {
+                    OnUi(() => AddLog(LogLevel.Warning, "Cancelled by user. Nothing was changed."));
                 }
                 catch (Exception ex)
                 {

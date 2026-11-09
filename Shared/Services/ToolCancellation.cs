@@ -210,6 +210,12 @@ namespace Revit26_Plugin_Revised.Shared.Services
         /// <summary>Token for work that runs on background threads; cancelled when the user answers Yes. Never call the Revit API from a background thread.</summary>
         public CancellationToken Token => _cts.Token;
 
+        /// <summary>
+        /// Text of the Yes/No dialog. Tools whose changes cannot be rolled back (for example link load/unload)
+        /// set this to say what stays; the default says all changes are undone.
+        /// </summary>
+        public string ConfirmMessage { get; set; } = ConfirmText;
+
         /// <summary>True once the user confirmed the cancel.</summary>
         public bool IsCancelled => _cts.IsCancellationRequested;
 
@@ -350,8 +356,8 @@ namespace Revit26_Plugin_Revised.Shared.Services
             try
             {
                 MessageBoxResult answer = (_owner != null && _owner.IsLoaded)
-                    ? MessageBox.Show(_owner, ConfirmText, _tool?.Title ?? "SloperPro", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No)
-                    : MessageBox.Show(ConfirmText, _tool?.Title ?? "SloperPro", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No);
+                    ? MessageBox.Show(_owner, ConfirmMessage, _tool?.Title ?? "SloperPro", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No)
+                    : MessageBox.Show(ConfirmMessage, _tool?.Title ?? "SloperPro", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No);
 
                 _requested = false;
                 _escapeWasDown = IsEscapeDown();

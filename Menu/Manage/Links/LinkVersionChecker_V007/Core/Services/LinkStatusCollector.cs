@@ -1,3 +1,4 @@
+using Revit26_Plugin_Revised.Shared.Services;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -65,6 +66,7 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V007.Core.Services
             var linkDocs = new Dictionary<ElementId, Document>();
             foreach (RevitLinkInstance inst in new FilteredElementCollector(doc).OfClass(typeof(RevitLinkInstance)))
             {
+                ToolCancellation.CheckCurrent();
                 ElementId typeId = inst.GetTypeId();
                 instanceCount[typeId] = instanceCount.TryGetValue(typeId, out int n) ? n + 1 : 1;
                 if (!linkDocs.ContainsKey(typeId))
@@ -80,6 +82,7 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V007.Core.Services
             var refs = new List<(RevitLinkType Type, LinkRef Ref)>();
             foreach (RevitLinkType type in new FilteredElementCollector(doc).OfClass(typeof(RevitLinkType)))
             {
+                ToolCancellation.CheckCurrent();
                 try
                 {
                     if (type.IsNestedLink) continue;
@@ -113,6 +116,7 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V007.Core.Services
 
             foreach (var (type, lr) in refs)
             {
+                ToolCancellation.CheckCurrent();
                 try
                 {
                     ModelLoadState model = MapStatus(type);
@@ -275,6 +279,7 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker.V007.Core.Services
 
             foreach (var kv in res)
             {
+                ToolCancellation.CheckCurrent();
                 ExternalResourceReference err = kv.Value;
                 if (err == null) continue;
                 try { r.Path = err.InSessionPath ?? ""; } catch { /* optional */ }

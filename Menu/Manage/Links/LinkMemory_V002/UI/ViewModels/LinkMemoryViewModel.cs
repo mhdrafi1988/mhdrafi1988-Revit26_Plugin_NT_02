@@ -402,11 +402,19 @@ namespace Revit26_Plugin_Revised.LinkMemory.V002.UI.ViewModels
             if (Ask(sb.ToString()) != MessageBoxResult.Yes) return;
 
             IsRunning = true;
+            // Esc / Cancel with a Yes-No confirm. Revit cannot roll a link load or unload back, so links already
+            // processed stay as they are; the run just stops before the next one.
+            using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.LinkMemoryV002, null);
+            cancel.ConfirmMessage = "Stop applying the links?\nLinks already loaded or unloaded stay as they are (Revit cannot undo them). The rest are not touched.";
             try
             {
                 AddLog(LogLevel.Info, $"Applying '{_working.Name}'…");
                 ReloadResult result = LinkApplier.Apply(_doc, _working, CurrentReloadOptions(), AddLog);
                 AddLog(result.Skipped > 0 ? LogLevel.Warning : LogLevel.Success, "— " + result);
+            }
+            catch (OperationCanceledException)
+            {
+                AddLog(LogLevel.Warning, "Stopped by user. Links already loaded or unloaded stay as they are; the rest were not touched.");
             }
             catch (Exception ex) when (ex is Autodesk.Revit.Exceptions.ApplicationException || ex is InvalidOperationException)
             {

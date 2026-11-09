@@ -1,3 +1,4 @@
+using Revit26_Plugin_Revised.Shared.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -35,6 +36,7 @@ namespace Revit26_Plugin_Revised.DwgManager.V003.Core.Services
 
             foreach (var group in instances.GroupBy(i => (TypeId: i.GetTypeId(), ViewId: i.OwnerViewId ?? ElementId.InvalidElementId)))
             {
+                ToolCancellation.CheckCurrent();
                 var typeId = group.Key.TypeId;
                 if (typeId == null || typeId == ElementId.InvalidElementId)
                 {

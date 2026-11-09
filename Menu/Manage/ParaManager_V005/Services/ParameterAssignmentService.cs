@@ -1,3 +1,4 @@
+using Revit26_Plugin_Revised.Shared.Services;
 using Autodesk.Revit.DB;
 using Revit26_Plugin_Revised.ParaManager.V005.Models;
 using System;
@@ -75,11 +76,16 @@ namespace Revit26_Plugin_Revised.ParaManager.V005.Services
                         {
                             foreach (var row in rows)
                             {
+                                ToolCancellation.CheckCurrent();
                                 var rowResult = AssignSingleRow(defFile, row, binding);
                                 results.Add(rowResult);
                             }
 
                             t.Commit();
+                        }
+                        catch (OperationCanceledException)
+                        {
+                            throw; // user cancel: never swallowed as a failure
                         }
                         catch (Exception ex)
                         {
@@ -93,6 +99,10 @@ namespace Revit26_Plugin_Revised.ParaManager.V005.Services
                     }
 
                     tg.Assimilate();
+                }
+                catch (OperationCanceledException)
+                {
+                    throw; // user cancel: never swallowed as a failure
                 }
                 catch (Exception ex)
                 {
@@ -172,6 +182,10 @@ namespace Revit26_Plugin_Revised.ParaManager.V005.Services
                 row.BindingTypeDisplay = binding.ToString();
                 return new RowResult(row, RowOutcome.Assigned,
                     $"'{row.ParameterName}' bound to {row.CategoryDisplay} as {binding} (group: {(row.TargetGroup ?? RevitGroupOption.Default).Name}).");
+            }
+            catch (OperationCanceledException)
+            {
+                throw; // user cancel: never swallowed as a failure
             }
             catch (Exception ex)
             {

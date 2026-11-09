@@ -41,6 +41,9 @@ Each release lists every tool whose version changed, under the plugin version.
 - **Tagging Tools group** (all tools in `Menu/Tagging`, latest version of each): Esc / Cancel with a Yes / No confirm while the tool works: Align Spot Elevations 1.7.0, Floor Tag 1.1.0, Roof Tag 18.2.0, Tag To Text 1.4.0.
 - **Detail Lines Tools group** (all tools in `Menu/DetailLines`, latest version of each): Esc / Cancel with a Yes / No confirm while the tool works: Detail Lines From Links 10.2.0, Detail Line Closed Loop 3.1.0, Detail Line Manager 2.1.0.
 - **Dimensions group** (all tools in `Menu/Dimensions`, latest version of each): Esc / Cancel with a Yes / No confirm while the tool works: Auto Dim Detail Line 10.2.0.
+- **Manage Tools group** (all tools in `Menu/Manage`, latest version of each): Esc / Cancel with a Yes / No confirm while the tool works: Annotation Overlap Detection 4.2.0, Bulk Rename 1.2.0, Delete Line Styles 1.3.0, Link Memory 2.1.0, Link Version Checker 7.2.0, ParaManager 5.2.0, Schedule Export / Import 7.2.0, Shared Parameter Studio 1.1.0, Tracker ID 2.1.0, Delete Workset 1.3.0, Workset Manager 14.2.0, Workset Renamer 5.2.0, Workset Renamer (From Excel) 5.2.0, Worksets & Elements Browser 4.4.0.
+  Link Memory 2.1.0 cannot undo a link load or unload (Revit does not allow it inside a transaction): its confirm says so, and a cancel only stops before the next link.
+- **Setup Tools group** (all tools in `Menu/Setup`, latest version of each): Esc / Cancel with a Yes / No confirm while the tool works: Batch Link DWG Family 2.3.0, DWG To Lines 7.1.0, DWG To DL(P) 14.1.0, DWG Manager 3.2.0, DWG Statistics 5.2.0, Export DWG to Folder 4.3.0.
 
 #### Changed
 - Tag To Text 1.4.0: the separate Cancel button is replaced by the shared Cancel button, which asks for confirmation (the run already undid everything).

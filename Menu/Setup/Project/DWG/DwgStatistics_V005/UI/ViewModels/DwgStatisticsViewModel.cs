@@ -576,9 +576,19 @@ namespace Revit26_Plugin_Revised.DwgStatistics.V005.UI.ViewModels
         {
             _handler.Queue(app =>
             {
+                // Esc / Cancel with a Yes-No confirm while the project is scanned (nothing is changed).
+                using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.DwgStatistics, app);
                 try
                 {
                     body(app);
+                }
+                catch (OperationCanceledException)
+                {
+                    OnUi(() =>
+                    {
+                        AddLog(LogLevel.Warning, "Cancelled by user. The scan was stopped.");
+                        EndScan("Scan cancelled. Press Refresh to scan again.");
+                    });
                 }
                 catch (Exception ex)
                 {
@@ -1254,9 +1264,15 @@ namespace Revit26_Plugin_Revised.DwgStatistics.V005.UI.ViewModels
             {
                 if (job.Cancelled) return;
 
+                // Esc / Cancel with a Yes-No confirm; the service rolls its transaction back on cancel.
+                using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.DwgStatistics, app);
                 try
                 {
                     body(app);
+                }
+                catch (OperationCanceledException)
+                {
+                    OnUi(() => AddLog(LogLevel.Warning, "Cancelled by user. Nothing was changed."));
                 }
                 catch (Exception ex)
                 {

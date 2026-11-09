@@ -1,3 +1,4 @@
+using Revit26_Plugin_Revised.Shared.Services;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -280,6 +281,10 @@ namespace Revit26_Plugin_Revised.WorksetRenamer.V005.ViewModels
 
             int renamed = 0, errors = 0;
 
+            // Esc / Cancel with a Yes-No confirm; a cancel rolls the rename transaction back.
+            using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.WorksetRenamer, null);
+            var oldNames = candidates.ToDictionary(c => c, c => c.CurrentName);
+
             using (var tx = new Transaction(_doc, "Bulk Rename Worksets"))
             {
                 tx.Start();
@@ -287,6 +292,7 @@ namespace Revit26_Plugin_Revised.WorksetRenamer.V005.ViewModels
                 {
                     foreach (var row in candidates)
                     {
+                        ToolCancellation.CheckCurrent();
                         try
                         {
                             WorksetTable.RenameWorkset(_doc, row.WorksetId, row.NewName);
@@ -301,7 +307,19 @@ namespace Revit26_Plugin_Revised.WorksetRenamer.V005.ViewModels
                             errors++;
                         }
                     }
+                    ToolCancellation.CheckCurrent(); // last chance to cancel before the commit
                     tx.Commit();
+                }
+                catch (OperationCanceledException)
+                {
+                    if (tx.GetStatus() == TransactionStatus.Started) tx.RollBack();
+                    foreach (var kv in oldNames)
+                    {
+                        kv.Key.CurrentName = kv.Value; // the rows show the model as it is again
+                        kv.Key.Status = RenameStatus.Pending;
+                    }
+                    StatusMessage = "Cancelled by user. No workset was renamed.";
+                    throw; // ToolGuard treats it as a user cancel
                 }
                 catch (Exception ex)
                 {

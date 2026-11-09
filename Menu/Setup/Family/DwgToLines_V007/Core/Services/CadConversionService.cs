@@ -13,6 +13,7 @@
 //        per-curve try/catch so one bad curve can't abort the whole layer.
 // ==============================================
 
+using Revit26_Plugin_Revised.Shared.Services;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using System;
@@ -62,11 +63,13 @@ namespace Revit26_Plugin_Revised.DwgToLines.V007.Core.Services
 
                 foreach (var layerGroup in byLayer)
                 {
+                    ToolCancellation.CheckCurrent();
                     int shortCount = 0;
                     var usable = new List<Curve>();
 
                     foreach (var c in layerGroup)
                     {
+                        ToolCancellation.CheckCurrent();
                         if (c.Curve.Length < tol)
                         {
                             shortCount++;
@@ -100,6 +103,7 @@ namespace Revit26_Plugin_Revised.DwgToLines.V007.Core.Services
 
                     foreach (var c in usable)
                     {
+                        ToolCancellation.CheckCurrent();
                         try
                         {
                             if (placement != PlacementMode.ModelOnly)
