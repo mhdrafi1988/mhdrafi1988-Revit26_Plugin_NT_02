@@ -48,7 +48,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             var dwgToLinesV007 = new PushButtonData("Btn_DwgToLines_V007", "DWG To Lines V007", assemblyPath, "Revit26_Plugin_Revised.DwgToLines.V007.Commands.DwgToLinesCommand")
             {
                 Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SetupTools.DwgToLines_16.png"),
-                ToolTip = RibbonLayoutHelper.VersionTip("DWG To Lines", "V007", "V006 on the shared ToolWindowShell (log in body).")
+                ToolTip = RibbonLayoutHelper.VersionTip("DWG To Lines", "V007", "Converts a DWG to Revit lines and hatches.")
             };
             var dwgToLinesPulldownData = RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_DwgToLines", "DWG To Lines", dwgToLinesV007);
 
@@ -73,7 +73,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             var dwgLinesV013 = new PushButtonData("Btn_DwgToDetailLines_V013", "DWG To DL(P) V013", assemblyPath, "Revit26_Plugin_Revised.DwgToDetailLines.V013.Commands.DwgToDetailLinesCommand")
             {
                 Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SetupTools.DwgToDetailLines_V011_16.png"),
-                ToolTip = RibbonLayoutHelper.VersionTip("DWG To Detail Lines", "V013", "V012 on the shared ToolWindowShell (log in body, capped grid).")
+                ToolTip = RibbonLayoutHelper.VersionTip("DWG To Detail Lines", "V013", "Converts a CAD import to detail curves and filled regions.")
             };
             var dwgLinesV014 = new PushButtonData("Btn_DwgToDetailLines_V014", "DWG To DL(P) V014", assemblyPath, "Revit26_Plugin_Revised.DwgToDetailLines.V014.Commands.DwgToDetailLinesCommand")
             {

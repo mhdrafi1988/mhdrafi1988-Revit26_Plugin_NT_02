@@ -259,7 +259,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             {
                 Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.FloorTools.FloorRoofFromRooms_16.png"),
                 ToolTip = RibbonLayoutHelper.VersionTip("Floors And Roof From Linked Rooms", "V013",
-                    "V012 on the shared ToolWindowShell (summaries and log in body, capped room grid).")
+                    "Creates floors and roofs from room boundaries in linked models, with level mapping.")
             };
             var fromRoomsPlanViewV005 = new PushButtonData("Btn_FloorsAndRoofFromLinkedRoomsViaPlanViewV005", "Rooms Plan View V005", assemblyPath, "Revit26_Plugin_Revised.FloorsAndRoofFromLinkedRoomsViaPlanView.V005.Command")
             {
@@ -271,7 +271,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             {
                 Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.FloorTools.FloorRoofFromRoomsPlanView_16.png"),
                 ToolTip = RibbonLayoutHelper.VersionTip("Floors And Roof From Linked Rooms (Via Plan View)", "V006",
-                    "V005 on the shared ToolWindowShell (summaries and log in body, capped room list).")
+                    "Creates floors and roofs from room boundaries in linked models, chosen through a plan view.")
             };
             versions = new[] { fromRoomsV013, fromRoomsV012, fromRoomsPlanViewV006, fromRoomsPlanViewV005 };
             return RibbonLayoutHelper.CreatePulldownButtonData(FromRoomsPulldownName, "Floor From Rooms", fromRoomsV013);

@@ -10,7 +10,6 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
         // Every Manage button is a pulldown: highest version number first,
         // every older version below it in descending order. Each tool lists only
         // its latest two versions.
-        private const string Rebuilt = " with the standard three-zone window layout.";
 
         private static PushButtonData Btn(string assemblyPath, string name, string text, string commandClass,
                                           string icon, string tool, string version, string detail = null)
@@ -30,24 +29,27 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             RibbonPanel panel = app.CreateRibbonPanel(tabName, "Manage");
 
             var overlapV004 = Btn(assemblyPath, "Btn_AnnotationOverlapDetection_V004", "Overlap Detection V004", "Revit26_Plugin_Revised.AnnotationOverlapDetection.V004.Command",
-                "Manage.AnnotationOverlapDetection_16.png", "Annotation Overlap Detection", "V004", "V003 on the shared ToolWindowShell (capped lists).");
+                "Manage.AnnotationOverlapDetection_16.png", "Annotation Overlap Detection", "V004", "Finds overlapping annotations in the active view. Click a result to zoom to it.");
 
             var paraManagerV005 = Btn(assemblyPath, "Btn_ParaManager_V005", "ParaManager V005", "Revit26_Plugin_Revised.ParaManager.V005.ParaManagerCommand",
-                "Manage.ParaManager_16.png", "ParaManager", "V005", "V004 on the shared ToolWindowShell (log in body, capped queue grid).");
+                "Manage.ParaManager_16.png", "ParaManager", "V005", "Assigns shared parameters from a shared parameter file to the categories you choose, in a batch.");
 
             var sharedParamStudioV001 = Btn(assemblyPath, "Btn_SharedParamStudio_V001", "Shared Params", "Revit26_Plugin_Revised.SharedParamStudio.V001.Commands.SharedParamStudioCommand",
                 "Manage.ParaManager_16.png", "Shared Parameter Studio", "V001", "Create and assign shared parameters on the go, merge two shared parameter files, check a file for duplicates, retrieve the project's shared parameters.");
 
             var wsebV003 = Btn(assemblyPath, "Btn_WorksetsElementsBrowser_WSEB003", "Worksets & Elements WSEB003", "Revit26_Plugin_Revised.WorksetsElementsBrowser.WSEB003.Commands.WorksetsElementsBrowserCommand",
-                "Manage.WorksetsElementsBrowser_16.png", "Worksets & Elements Browser", "WSEB003", "WSEB002" + Rebuilt);
+                "Manage.WorksetsElementsBrowser_16.png", "Worksets & Elements Browser", "WSEB003", "Browse every workset with its categories, types and element counts.");
             var wsebV004 = Btn(assemblyPath, "Btn_WorksetsElementsBrowser_WSEB004", "Worksets & Elements WSEB004", "Revit26_Plugin_Revised.WorksetsElementsBrowser.WSEB004.Commands.WorksetsElementsBrowserCommand",
-                "Manage.WorksetsElementsBrowser_16.png", "Worksets & Elements Browser", "WSEB004", "WSEB003 on the shared ToolWindowShell (capped tree).");
+                "Manage.WorksetsElementsBrowser_16.png", "Worksets & Elements Browser", "WSEB004",
+                "Browse every workset with its categories, types and element counts, and see which worksets are open or closed. " +
+                "Isolate, select or show the checked elements in a 3D view, or save them as a selection set. " +
+                "Opens Revit's Worksets dialog to open or close worksets.");
 
             // Workset Manager is intentionally NOT on the ribbon — its commands and code
             // remain in the project (and in ToolCatalog) so it can be re-added later.
 
             var worksetRenamerV005 = Btn(assemblyPath, "Btn_WorksetRenamer_V005", "Workset Renamer V005", "Revit26_Plugin_Revised.WorksetRenamer.V005.Command",
-                "SetupTools.WorksetRename_16.png", "Workset Renamer", "V005", "V004 on the shared ToolWindowShell (capped grid).");
+                "SetupTools.WorksetRename_16.png", "Workset Renamer", "V005", "Renames worksets in bulk.");
 
             // Newest build first. "#" at the end of the label marks the version added last.
             var worksetCreatorV017 = Btn(assemblyPath, "Btn_WorksetCreator_V017", "Workset Creator V017 #",
@@ -58,7 +60,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             var worksetCreatorV016 = Btn(assemblyPath, "Btn_WorksetCreator_V016", "Workset Creator V016",
                 "Revit26_Plugin_Revised.WorksetCreator.V016.Commands.WorksetCreatorCommand",
                 "SetupTools.WorksetManager_16.png", "Workset Creator", "V016",
-                "V015 with its own tool name/version source (WorksetCreatorTool).");
+                "Creates a workset per linked file and assigns the link instances to it.");
 
             var worksetCreatorV015 = Btn(assemblyPath, "Btn_WorksetCreator_V015", "Workset Creator V015",
                 "Revit26_Plugin_Revised.WorksetCreator.V015.Commands.WorksetCreatorCommand",
@@ -105,14 +107,14 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             // Workset Renamer V004 and FX04.
 
             var worksetRenamerFx05 = Btn(assemblyPath, "Btn_WorksetRenamer_FX05", "Workset Renamer (Excel) FX05", "Revit26_Plugin_Revised.WorksetRenamer.FX05.Command",
-                "SetupTools.WorksetRename_16.png", "Workset Renamer (Excel)", "FX05", "FX04 on the shared ToolWindowShell (capped group grids, shared group colours).");
+                "SetupTools.WorksetRename_16.png", "Workset Renamer (Excel)", "FX05", "Export the model's worksets, edit New Name in Excel, import, review, then update.");
 
-            // Schedule Export/Import — latest two versions: V007 (ToolWindowShell) first,
-            // then V006 (its three-zone-layout predecessor).
+            // Schedule Export/Import — latest two versions: V007 first,
+            // then V006.
             var scheduleExportImportV006 = Btn(assemblyPath, "Btn_ScheduleExportImport_V006", "Schedule Export/Import V006", "Revit26_Plugin_Revised.ScheduleExportImport.V006.Commands.ScheduleExportImportCommand",
-                "Manage.ScheduleExportImport_16.png", "Schedule Export / Import", "V006", "V005" + Rebuilt);
+                "Manage.ScheduleExportImport_16.png", "Schedule Export / Import", "V006", "Export a schedule to Excel, edit the green columns, then import. You review every change before it is applied.");
             var scheduleExportImportV007 = Btn(assemblyPath, "Btn_ScheduleExportImport_V007", "Schedule Export/Import V007", "Revit26_Plugin_Revised.ScheduleExportImport.V007.Commands.ScheduleExportImportCommand",
-                "Manage.ScheduleExportImport_16.png", "Schedule Export / Import", "V007", "V006 on the shared ToolWindowShell (log in body, capped grids).");
+                "Manage.ScheduleExportImport_16.png", "Schedule Export / Import", "V007", "Export a schedule to Excel, edit the green columns, then import. You review every change before it is applied.");
             // Link Version Checker — one tool, three scan modes per version. Pre-Open and Folder
             // Audit stay enabled with no project open. The load-time logger the checker reads is
             // registered once, from V004: both versions share

@@ -9,6 +9,16 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.45.1] — 2026-11-10
+
+### Ribbon tooltips
+
+#### Changed
+- 75 ribbon tooltips, on every panel, now say what the tool does. They used to carry build notes such as "V004 on the shared ToolWindowShell" or "with the standard three-zone window layout". Older versions in a dropdown get the same description as the current one.
+- Worksets & Elements Browser: the tooltip also mentions the open / closed badge and the Open / Close Worksets button.
+
+User note: tooltip text only. No button, label, place on the ribbon or tool behaviour changed, so no tool version changed.
+
 ## [6.45.0] — 2026-11-10
 
 ### Worksets & Elements Browser 4.5.0

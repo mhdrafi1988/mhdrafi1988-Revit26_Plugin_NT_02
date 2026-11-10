@@ -40,7 +40,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             // V029, V031, Ridge V002 and MultiCopies29 were removed in plugin 4.2.1: their source
             // is not in the repository, so their buttons could only raise an error.
             var byPointV030 = Btn(assemblyPath, "Btn_AutoSlopeByPoint_030", "By Point V030", "Revit26_Plugin_Revised.AutoSlopeByPoint.V030.Commands.AutoSlopeCommand",
-                "by_point_16.png", "Auto Slope By Point", "V030", "V029 on the shared ToolWindowShell (log in body).");
+                "by_point_16.png", "Auto Slope By Point", "V030", "Pick a roof, then click the drain points on it: the roof's shape points are sloped down to them.");
             var byPointV032 = Btn(assemblyPath, "Btn_AutoSlopeByPoint_032", "By Point V032", "Revit26_Plugin_Revised.AutoSlopeByPoint.V032.Commands.AutoSlopeCommand",
                 "by_point_16.png", "Auto Slope By Point", "V032", "V031 with ToolGuard.RunCommand, single-instance window, and shape editing guarded inside the TransactionGroup.");
             var byPointV033 = Btn(assemblyPath, "Btn_AutoSlopeByPoint_033", "By Point V033", "Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Commands.AutoSlopeCommand",
@@ -48,15 +48,15 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             byPointV033.ToolTip = Revit26_Plugin_Revised.Shared.Services.ToolCatalog.AutoSlopeByPointV033.Tip(
                 "V032 plus optional ridge lines: detail lines joining the highest points between drain groups.");
             var byPointRidgeV003 = Btn(assemblyPath, "Btn_AutoSlopeByPointRidge_003", "By Point Ridge V003", "Revit26_Plugin_Revised.AutoSlopeByPointRidge.V003.Commands.AutoSlopeCommand",
-                "AutoSlopeByPoint_Ridge_16.png", "Auto Slope By Point (Ridge)", "V003", "Ridge V002 on the shared ToolWindowShell (log in body).");
+                "AutoSlopeByPoint_Ridge_16.png", "Auto Slope By Point (Ridge)", "V003", "Pick a roof, then click the drain points on it. Groups the drains, lifts the ridge points between the groups so every point drains at the given slope, then slopes the roof.");
             var byPointMultiCopies30 = Btn(assemblyPath, "Btn_AutoSlopeByPoint_MultiCopies30", "By Point Multi Copies 30", "Revit26_Plugin_Revised.AutoSlopeByPoint.MultiCopies30.Commands.AutoSlopeCommand",
-                "by_point_16.png", "Auto Slope By Point (Multi Copies)", "MultiCopies30", "MultiCopies29 on the shared ToolWindowShell (log in body).");
+                "by_point_16.png", "Auto Slope By Point (Multi Copies)", "MultiCopies30", "Pick a roof and its drain points, then tick several slopes: the roof is copied once per slope, each copy is sloped to the drains and put on its own workset. Needs a workshared model.");
             var byPointPulldownData = RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_AutoSlopeByPoint", "By Point", byPointV033);
 
             var byDrainV011 = Btn(assemblyPath, "Btn_AutoSlopeByDrain_V011", "By Drain V011", "Revit26_Plugin_Revised.MultiRoofSlopeByDrain.V011.Commands.AutoSlopeByDrain",
-                "AutoSlopeByDrain_MultiRoof_16.png", "Auto Slope By Drain (Multi-Roof)", "V011", "V010 with the standard three-zone window layout.");
+                "AutoSlopeByDrain_MultiRoof_16.png", "Auto Slope By Drain (Multi-Roof)", "V011", "Pick one or more roofs and slope each one down to the drain openings in its sketch, with circle markers, Excel export and AutoSlope_* parameters.");
             var byDrainV012 = Btn(assemblyPath, "Btn_AutoSlopeByDrain_V012", "By Drain V012", "Revit26_Plugin_Revised.MultiRoofSlopeByDrain.V012.Commands.AutoSlopeByDrain",
-                "AutoSlopeByDrain_MultiRoof_16.png", "Auto Slope By Drain (Multi-Roof)", "V012", "V011 on the shared ToolWindowShell (log in body, capped drains grid).");
+                "AutoSlopeByDrain_MultiRoof_16.png", "Auto Slope By Drain (Multi-Roof)", "V012", "Pick one or more roofs and slope each one down to the drain openings in its sketch, with circle markers, Excel export and AutoSlope_* parameters.");
             var byDrainV013 = Btn(assemblyPath, "Btn_AutoSlopeByDrain_V013", "By Drain V013", "Revit26_Plugin_Revised.MultiRoofSlopeByDrain.V013.Commands.AutoSlopeByDrain",
                 "AutoSlopeByDrain_MultiRoof_16.png", "Auto Slope By Drain (Multi-Roof)", "V013", "V012 with ToolGuard.RunCommand, single-instance window, and reset-on-run (no longer resets on pick).");
             var byDrainV007 = Btn(assemblyPath, "Btn_AutoSlopeByDrain_V007", "By Drain V007", "Revit26_Plugin_Revised.AutoSlopeByDrain.V007.Commands.AutoSlopeByDrain",
@@ -82,31 +82,31 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             RibbonPanel shapePointsPanel = app.CreateRibbonPanel(tabName, "Shape Points");
 
             var innerLoopsV010 = Btn(assemblyPath, "Btn_InnerLoopDivider_V010", "Inner Loops V010", "Revit26_Plugin_Revised.InnerLoopDivider.V010.Commands.InnerLoopDividerCommand",
-                "InnerLoopDivider_16.png", "Divide Inner Loops", "V010", "V009 with the standard three-zone window layout.");
+                "InnerLoopDivider_16.png", "Divide Inner Loops", "V010", "Pick a roof: adds shape points around its openings, by count or spacing per opening.");
             var innerLoopsV011 = Btn(assemblyPath, "Btn_InnerLoopDivider_V011", "Inner Loops V011", "Revit26_Plugin_Revised.InnerLoopDivider.V011.Commands.InnerLoopDividerCommand",
-                "InnerLoopDivider_16.png", "Divide Inner Loops", "V011", "V010 on the shared ToolWindowShell (log in body, capped grid).");
+                "InnerLoopDivider_16.png", "Divide Inner Loops", "V011", "Pick a roof: adds shape points around its openings, by count or spacing per opening.");
             var innerLoopsV012 = Btn(assemblyPath, "Btn_InnerLoopDivider_V012", "Inner Loops V012", "Revit26_Plugin_Revised.InnerLoopDivider.V012.Commands.InnerLoopDividerCommand",
                 "InnerLoopDivider_16.png", "Divide Inner Loops", "V012", "V011 improvements.");
             var outerCurveV005 = Btn(assemblyPath, "Btn_OuterCurveDivider_V005", "Outer Curve V005", "Revit26_Plugin_Revised.OuterCurveDivider.V005.Commands.CurveDividerCommand",
-                "OuterCurveDivider_16.png", "Outer Curve Divider", "V005", "V004 with the standard three-zone window layout.");
+                "OuterCurveDivider_16.png", "Outer Curve Divider", "V005", "Pick a roof: divides its curved boundary edges with shape points.");
             var outerCurveV006 = Btn(assemblyPath, "Btn_OuterCurveDivider_V006", "Outer Curve V006", "Revit26_Plugin_Revised.OuterCurveDivider.V006.Commands.CurveDividerCommand",
-                "OuterCurveDivider_16.png", "Outer Curve Divider", "V006", "V005 on the shared ToolWindowShell (log in body, capped grids).");
+                "OuterCurveDivider_16.png", "Outer Curve Divider", "V006", "Pick a roof: divides its curved boundary edges with shape points.");
             var lineIntersectV013 = Btn(assemblyPath, "Btn_RoofDetailLineIntersect_V013", "Line Intersect V013", "Revit26_Plugin_Revised.RoofDetailLineIntersect.V013.Commands.RoofDetailLineIntersectCommand",
-                "DetailLineIntersect_16.png", "Roof Detail Line Intersect", "V013", "V012 with the standard three-zone window layout.");
+                "DetailLineIntersect_16.png", "Roof Detail Line Intersect", "V013", "In a plan view, pick a roof and detail lines: adds shape points where the lines cross the roof's edges.");
             var lineIntersectV014 = Btn(assemblyPath, "Btn_RoofDetailLineIntersect_V014", "Line Intersect V014", "Revit26_Plugin_Revised.RoofDetailLineIntersect.V014.Commands.RoofDetailLineIntersectCommand",
-                "DetailLineIntersect_16.png", "Roof Detail Line Intersect", "V014", "V013 on the shared ToolWindowShell (log in body).");
+                "DetailLineIntersect_16.png", "Roof Detail Line Intersect", "V014", "In a plan view, pick a roof and detail lines: adds shape points where the lines cross the roof's edges.");
             var loopsPerpV006 = Btn(assemblyPath, "Btn_InnerLoopsAndPerpendicular_V006", "Loops + Perp. V006", "Revit26_Plugin_Revised.InnerLoopsAndPerpendicular.V006.Commands.InnerLoopsAndPerpendicularCommand",
-                "InnerLoopsPerpendicular_16.png", "Inner Loops And Perpendicular", "V006", "V005 with the standard three-zone window layout.");
+                "InnerLoopsPerpendicular_16.png", "Inner Loops And Perpendicular", "V006", "Pick a roof: adds shape points around its openings plus perpendicular points to the boundary.");
             var loopsPerpV007 = Btn(assemblyPath, "Btn_InnerLoopsAndPerpendicular_V007", "Loops + Perp. V007", "Revit26_Plugin_Revised.InnerLoopsAndPerpendicular.V007.Commands.InnerLoopsAndPerpendicularCommand",
-                "InnerLoopsPerpendicular_16.png", "Inner Loops And Perpendicular", "V007", "V006 on the shared ToolWindowShell (log in body, capped grids).");
+                "InnerLoopsPerpendicular_16.png", "Inner Loops And Perpendicular", "V007", "Pick a roof: adds shape points around its openings plus perpendicular points to the boundary.");
             var vertexReducerV008 = Btn(assemblyPath, "Btn_VertexReducer_V008", "Vertex Reducer V008", "Revit26_Plugin_Revised.RoofEdgeVertexReducer.V008.Commands.RoofEdgeVertexReducerCommand",
-                "VertexReducer_16.png", "Roof Edge Vertex Reducer", "V008", "V007 with the standard three-zone window layout.");
+                "VertexReducer_16.png", "Roof Edge Vertex Reducer", "V008", "Removes extra shape points along the straight edges of a roof.");
             var vertexReducerV009 = Btn(assemblyPath, "Btn_VertexReducer_V009", "Vertex Reducer V009", "Revit26_Plugin_Revised.RoofEdgeVertexReducer.V009.Commands.RoofEdgeVertexReducerCommand",
-                "VertexReducer_16.png", "Roof Edge Vertex Reducer", "V009", "V008 on the shared ToolWindowShell (log in body, capped grid).");
+                "VertexReducer_16.png", "Roof Edge Vertex Reducer", "V009", "Removes extra shape points along the straight edges of a roof.");
             var multiPointsV002 = Btn(assemblyPath, "Btn_MultiplePoints_V002", "Multi Points V002", "Revit26_Plugin_Revised.MultiplePoints.V002.Commands.MultiplePointsCommand",
-                "MultiplePoints_16.png", "Multiple Points (1/2–1/4)", "V002", "V001 with the standard three-zone window layout.");
+                "MultiplePoints_16.png", "Multiple Points (1/2–1/4)", "V002", "Pick a roof: adds shape points at the half and quarter points of the edges you choose.");
             var multiPointsV003 = Btn(assemblyPath, "Btn_MultiplePoints_V003", "Multi Points V003", "Revit26_Plugin_Revised.MultiplePoints.V003.Commands.MultiplePointsCommand",
-                "MultiplePoints_16.png", "Multiple Points (1/2–1/4)", "V003", "V002 on the shared ToolWindowShell (log in body, capped grid).");
+                "MultiplePoints_16.png", "Multiple Points (1/2–1/4)", "V003", "Pick a roof: adds shape points at the half and quarter points of the edges you choose.");
 
             var shapeFromLinkV001 = Btn(assemblyPath, "Btn_RoofShapeFromLink_V001", "Shape From Link", "Revit26_Plugin_Revised.RoofShapeFromLink.V002.Commands.RoofShapeFromLinkCommand",
                 "ElevationSync_16.png", "Roof Shape From Link", "V002");
@@ -148,13 +148,13 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             RibbonPanel roofToolsPanel = app.CreateRibbonPanel(tabName, "Roof Tools");
 
             var creaserV011 = Btn(assemblyPath, "Btn_CreaserAdvCommand_V011", "Creaser Adv V011", "Revit26_Plugin_Revised.CreaserAdv.V011.Commands.CreaserAdvCommand",
-                "CreaserAdv_16.png", "Creaser Adv", "V011", "V010 with the standard three-zone window layout.");
+                "CreaserAdv_16.png", "Creaser Adv", "V011", "Pick a sloped roof in a plan view: places detail items along its creases in the active view.");
             var creaserV012 = Btn(assemblyPath, "Btn_CreaserAdvCommand_V012", "Creaser Adv V012", "Revit26_Plugin_Revised.CreaserAdv.V012.Commands.CreaserAdvCommand",
-                "CreaserAdv_16.png", "Creaser Adv", "V012", "V011 on the shared ToolWindowShell (log in body).");
+                "CreaserAdv_16.png", "Creaser Adv", "V012", "Pick a sloped roof in a plan view: places detail items along its creases in the active view.");
             var roofTagV017 = Btn(assemblyPath, "Btn_RoofTagCommand_V017", "Roof Tag V017", "Revit26_Plugin_Revised.RoofTag.V017.RoofTagCommand",
-                "RoofTag_16.png", "Roof Tag", "V017", "V016 with the standard three-zone window layout.");
+                "RoofTag_16.png", "Roof Tag", "V017", "Pick a roof: places spot elevations at its shape points.");
             var roofTagV018 = Btn(assemblyPath, "Btn_RoofTagCommand_V018", "Roof Tag V018", "Revit26_Plugin_Revised.RoofTag.V018.RoofTagCommand",
-                "RoofTag_16.png", "Roof Tag", "V018", "V017 on the shared ToolWindowShell (log in body).");
+                "RoofTag_16.png", "Roof Tag", "V018", "Pick a roof: places spot elevations at its shape points.");
 
             // Roof Shape From Link also sits in Shape Points; this is a second button for the same command,
             // so it needs its own internal name.
@@ -188,13 +188,13 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             RibbonPanel utilitiesPanel = app.CreateRibbonPanel(tabName, "Roof Utilities");
 
             var ridgeLinesMultiShapeV069 = Btn(assemblyPath, "Btn_RoofRidgeLines_V69", "Ridge By Openings V069", "Revit26_Plugin_Revised.RoofRidgeLines.V069.Commands.RoofRidgeCommand",
-                "RidgeLinesMultiShape_16.png", "Ridge By Openings", "V069", "V068 with the standard three-zone window layout.");
+                "RidgeLinesMultiShape_16.png", "Ridge By Openings", "V069", "Pick a roof and choose openings as drains: draws the ridge lines midway between them as shape points + split lines and/or detail lines.");
             var ridgeLinesMultiShapeV070 = Btn(assemblyPath, "Btn_RoofRidgeLines_V70", "Ridge By Openings V070", "Revit26_Plugin_Revised.RoofRidgeLines.V070.Commands.RoofRidgeCommand",
-                "RidgeLinesMultiShape_16.png", "Ridge By Openings", "V070", "V069 on the shared ToolWindowShell (log in body, capped grid).");
+                "RidgeLinesMultiShape_16.png", "Ridge By Openings", "V070", "Pick a roof and choose openings as drains: draws the ridge lines midway between them as shape points + split lines and/or detail lines.");
             var ridgeLinesByPointsV058 = Btn(assemblyPath, "Btn_RoofRidgeLines_V58", "Ridge By Points V058", "Revit26_Plugin_Revised.RoofTools.LineAndPoints.RoofRidgeLines.V058.Commands.RoofRidgeCommand",
-                "RidgeLinesByPoints_16.png", "Ridge By Points", "V058", "V057 with the standard three-zone window layout.");
+                "RidgeLinesByPoints_16.png", "Ridge By Points", "V058", "Pick a roof and click drain points on it: draws the ridge lines midway between them as shape points + split lines and/or detail lines.");
             var ridgeLinesByPointsV059 = Btn(assemblyPath, "Btn_RoofRidgeLines_V59", "Ridge By Points V059", "Revit26_Plugin_Revised.RoofTools.LineAndPoints.RoofRidgeLines.V059.Commands.RoofRidgeCommand",
-                "RidgeLinesByPoints_16.png", "Ridge By Points", "V059", "V058 on the shared ToolWindowShell (log in body, capped grid).");
+                "RidgeLinesByPoints_16.png", "Ridge By Points", "V059", "Pick a roof and click drain points on it: draws the ridge lines midway between them as shape points + split lines and/or detail lines.");
             var ridgeLinesPulldownData = RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_RoofRidgeLines", "Ridge Lines", ridgeLinesMultiShapeV070);
 
             const string combinedDetail =
@@ -202,17 +202,17 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                 "Auto Slope By Drain, and Creaser Adv — combined in one window with one shared roof pick. " +
                 "Opens on Auto Slope By Drain; use Run All to run every tool in order with one click.";
             var combinedV002 = Btn(assemblyPath, "Btn_CombinedRoofTools_V002", "Combined Roof Tools V002", "Revit26_Plugin_Revised.CombinedRoofTools.V002.Commands.CombinedRoofToolsCommand",
-                "CombinedTools_16.png", "Combined Roof Tools", "V002", combinedDetail + " Standard three-zone window layout.");
+                "CombinedTools_16.png", "Combined Roof Tools", "V002", combinedDetail);
             var combinedV003 = Btn(assemblyPath, "Btn_CombinedRoofTools_V003", "Combined Roof Tools V003", "Revit26_Plugin_Revised.CombinedRoofTools.V003.Commands.CombinedRoofToolsCommand",
-                "CombinedTools_16.png", "Combined Roof Tools", "V003", "V002 on the shared ToolWindowShell (tab logs in body, capped grids).");
+                "CombinedTools_16.png", "Combined Roof Tools", "V003", combinedDetail);
 
             const string typeManagerDetail =
                 "Export roof type definitions to Excel (type mark, function, compound-structure layers) " +
                 "and re-import them into the model. Modeless — stays open while you work.";
             var typeManagerV002 = Btn(assemblyPath, "Btn_RoofTypeManager_V002", "Roof Type Manager V002", "Revit26_Plugin_Revised.RoofTypeCreator.V002.Commands.RoofTypeManagerCommand",
-                "CreateRoofromLInes_16.png", "Roof Type Manager", "V002", typeManagerDetail + " Standard three-zone window layout.");
+                "CreateRoofromLInes_16.png", "Roof Type Manager", "V002", typeManagerDetail);
             var typeManagerV003 = Btn(assemblyPath, "Btn_RoofTypeManager_V003", "Roof Type Manager V003", "Revit26_Plugin_Revised.RoofTypeCreator.V003.Commands.RoofTypeManagerCommand",
-                "CreateRoofromLInes_16.png", "Roof Type Manager", "V003", "V002 on the shared ToolWindowShell (log in body, capped grids).");
+                "CreateRoofromLInes_16.png", "Roof Type Manager", "V003", typeManagerDetail);
 
             var utilitiesItems = RibbonLayoutHelper.AddStackedButtons(utilitiesPanel, new List<RibbonItemData>
             {
@@ -262,14 +262,14 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             RibbonPanel comparePanel = app.CreateRibbonPanel(tabName, "Roof Compare");
 
             var comparisonV002 = Btn(assemblyPath, "Btn_RoofPointComparison_V002", "Comparison V002", "Revit26_Plugin_Revised.RoofPointComparison.V002.Commands.RoofComparisonCommand",
-                "PointComparison_16.png", "Roof Point Comparison", "V002", "V001 with the standard three-zone window layout.");
+                "PointComparison_16.png", "Roof Point Comparison", "V002", "Pick roof A and roof B: compares their shape-point heights point by point.");
             var comparisonV003 = Btn(assemblyPath, "Btn_RoofPointComparison_V003", "Comparison V003", "Revit26_Plugin_Revised.RoofPointComparison.V003.Commands.RoofComparisonCommand",
-                "PointComparison_16.png", "Roof Point Comparison", "V003", "V002 on the shared ToolWindowShell (log in body).");
+                "PointComparison_16.png", "Roof Point Comparison", "V003", "Pick roof A and roof B: compares their shape-point heights point by point.");
 
             var elevationSyncV004 = Btn(assemblyPath, "Btn_RoofPointElevationSync_V004", "Elevation Sync V004", "Revit26_Plugin_Revised.RoofPointElevationSync.V004.Command",
-                "ElevationSync_16.png", "Roof Point Elevation Sync", "V004", "V003 with the standard three-zone window layout.");
+                "ElevationSync_16.png", "Roof Point Elevation Sync", "V004", "Pick roof A and roof B: matches their shape points by plan position and sets the chosen heights.");
             var elevationSyncV005 = Btn(assemblyPath, "Btn_RoofPointElevationSync_V005", "Elevation Sync V005", "Revit26_Plugin_Revised.RoofPointElevationSync.V005.Command",
-                "ElevationSync_16.png", "Roof Point Elevation Sync", "V005", "V004 on the shared ToolWindowShell (log in body, capped grid).");
+                "ElevationSync_16.png", "Roof Point Elevation Sync", "V005", "Pick roof A and roof B: matches their shape points by plan position and sets the chosen heights.");
             var elevationSyncPulldownData = RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_RoofPointElevationSync", "Elevation Sync", elevationSyncV005);
 
             var compareItems = RibbonLayoutHelper.AddStackedButtons(comparePanel, new List<RibbonItemData>

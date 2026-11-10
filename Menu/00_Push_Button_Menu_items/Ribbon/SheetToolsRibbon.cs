@@ -22,7 +22,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             var scopeBoxV006 = new PushButtonData("Btn_PlanFromScopeBox.V006", "Scope Box V006", assemblyPath, "Revit26_Plugin_Revised.PlanFromScopeBox.V006.Commands.PlanFromScopeBoxCommand")
             {
                 Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SheetTools.PlanFromScopeBox_V004_16.png"),
-                ToolTip = RibbonLayoutHelper.VersionTip("Plan From Scope Box", "V006", "V005 on the shared ToolWindowShell (log in body, capped grid).")
+                ToolTip = RibbonLayoutHelper.VersionTip("Plan From Scope Box", "V006", "Creates plan views from scope boxes, places them on sheets and groups them.")
             };
             var scopeBoxPulldownData = RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_PlanFromScopeBox", "Scope Box", scopeBoxV006);
 
@@ -34,7 +34,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             var sheetPlacerV224 = new PushButtonData("Btn_SmartViewToSheetPlacer.V224", "Sheet Placer V224", assemblyPath, "Revit26_Plugin_Revised.SmartViewToSheetPlacer.V224.SmartViewToSheetPlacerCommand")
             {
                 Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SheetTools.SmartViewToSheetPlacer_V222_16.png"),
-                ToolTip = RibbonLayoutHelper.VersionTip("Smart View To Sheet Placer", "V224", "V223 on the shared ToolWindowShell (progress and log in body, capped grids).")
+                ToolTip = RibbonLayoutHelper.VersionTip("Smart View To Sheet Placer", "V224", "Places views on sheets in guided stages.")
             };
             var sheetPlacerPulldownData = RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_SmartViewToSheetPlacer", "Sheet Placer", sheetPlacerV224);
 
@@ -50,7 +50,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             var autoSectionPlacerV003 = new PushButtonData("Btn_AutomatedSectionPlacer_V003", "Auto Section Placer V003", assemblyPath, "Revit26_Plugin_Revised.AutomatedSectionPlacer.V003.AutomatedSectionPlacerCommand")
             {
                 Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SheetTools.SmartViewToSheetPlacer_V222_16.png"),
-                ToolTip = RibbonLayoutHelper.VersionTip("Automated Section Placer", "V003", "V002 on the shared ToolWindowShell (progress and log in body, capped grids).")
+                ToolTip = RibbonLayoutHelper.VersionTip("Automated Section Placer", "V003", "Places section views on sheets automatically, packed to fit.")
             };
             var autoSectionPlacerPulldownData = RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_AutomatedSectionPlacer", "Section Placer", autoSectionPlacerV003);
 
@@ -85,7 +85,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             var rearrangeV028 = new PushButtonData("Btn_SheetAutoRearrange.V028", "Rearrange V028", assemblyPath, "Revit26_Plugin_Revised.SheetAutoRearrange.V028.Commands.SheetAutoRearrangeCommand")
             {
                 Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SheetTools.SheetAutoRearrange_V026_16.png"),
-                ToolTip = RibbonLayoutHelper.VersionTip("Sheet Auto Rearrange", "V028", "V027 on the shared ToolWindowShell (log in body, capped grid).")
+                ToolTip = RibbonLayoutHelper.VersionTip("Sheet Auto Rearrange", "V028", "Reselect, remove and repack the views on the active sheet.")
             };
             var rearrangePulldownData = RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_SheetAutoRearrange", "Rearrange", rearrangeV028);
 
