@@ -7,25 +7,14 @@ using System.Linq;
 namespace Revit26_Plugin_Revised.ViewAutoRenamer.V007.Services;
 
 /// <summary>
-/// Collects the views shown in the grid. 7.1.0 loads the current sheet's views
-/// first (cheap) and the rest of the project only when the user asks.
+/// Collects the views shown in the grid. The current sheet's views load first (cheap) and the
+/// rest of the project only when the user asks.
+/// 7.3.0: sheet number and detail number come from the viewports, which are read once, instead
+/// of two parameter reads per view; each view's type is read once; no view-scoped collector.
 /// </summary>
 public static class ViewLoadService
 {
-    // Sections & Callouts, Plans (Floor/Ceiling/Structural/Area), Elevations,
-    // Drafting, Legends, Schedules. Callouts report ViewType.Section.
-    private static readonly HashSet<Autodesk.Revit.DB.ViewType> InScopeViewTypes = new()
-    {
-        Autodesk.Revit.DB.ViewType.Section,
-        Autodesk.Revit.DB.ViewType.Elevation,
-        Autodesk.Revit.DB.ViewType.FloorPlan,
-        Autodesk.Revit.DB.ViewType.CeilingPlan,
-        Autodesk.Revit.DB.ViewType.EngineeringPlan,
-        Autodesk.Revit.DB.ViewType.AreaPlan,
-        Autodesk.Revit.DB.ViewType.DraftingView,
-        Autodesk.Revit.DB.ViewType.Legend,
-        Autodesk.Revit.DB.ViewType.Schedule,
-    };
+    private static readonly IReadOnlyList<string> NoSheets = new List<string>();
 
     /// <summary>
     /// Finds the sheet to load first: the active sheet, or the sheet the active
@@ -39,8 +28,12 @@ public static class ViewLoadService
         var number = activeView.get_Parameter(BuiltInParameter.VIEWER_SHEET_NUMBER)?.AsString();
         if (string.IsNullOrWhiteSpace(number)) return null;
 
+        // Revit filters the sheets by number itself, so only the matching sheet is opened
+        // (before, every sheet in the project was read to compare its number).
+        var rule = ParameterFilterRuleFactory.CreateEqualsRule(new ElementId(BuiltInParameter.SHEET_NUMBER), number);
         return new FilteredElementCollector(doc)
             .OfClass(typeof(ViewSheet))
+            .WherePasses(new ElementParameterFilter(rule))
             .Cast<ViewSheet>()
             .FirstOrDefault(s => s.SheetNumber == number);
     }
@@ -48,24 +41,33 @@ public static class ViewLoadService
     /// <summary>Loads only the in-scope views placed on <paramref name="sheet"/>.</summary>
     public static List<ViewItemViewModel> LoadForSheet(Document doc, ViewSheet sheet)
     {
-        var viewIds = new HashSet<ElementId>();
+        // Legends/Schedules show only this sheet until "Load all views" fills in the rest.
+        IReadOnlyList<string> onThisSheet = new List<string> { sheet.SheetNumber };
+        var items = new List<ViewItemViewModel>();
+        var seen = new HashSet<ElementId>();
 
         foreach (var vpId in sheet.GetAllViewports())
-            if (doc.GetElement(vpId) is Viewport vp) viewIds.Add(vp.ViewId);
+        {
+            if (doc.GetElement(vpId) is not Viewport vp || !seen.Add(vp.ViewId)) continue;
+            if (doc.GetElement(vp.ViewId) is not View v) continue;
+            var item = BuildItem(v, onThisSheet, DetailNumberOf(vp));
+            if (item != null) items.Add(item);
+        }
 
-        foreach (var si in new FilteredElementCollector(doc, sheet.Id)
+        // Project-wide collector narrowed by Revit to this sheet's schedules. A collector
+        // scoped to the sheet view makes Revit work out everything visible on the sheet first.
+        foreach (var si in new FilteredElementCollector(doc)
                      .OfClass(typeof(ScheduleSheetInstance))
+                     .OwnedByView(sheet.Id)
                      .Cast<ScheduleSheetInstance>())
-            viewIds.Add(si.ScheduleId);
+        {
+            if (!seen.Add(si.ScheduleId)) continue;
+            if (doc.GetElement(si.ScheduleId) is not View v) continue;
+            var item = BuildItem(v, onThisSheet, null);
+            if (item != null) items.Add(item);
+        }
 
-        // Legends/Schedules show only this sheet until "Load all views" fills in the rest.
-        var onThisSheet = new List<string> { sheet.SheetNumber };
-        var views = viewIds
-            .Select(id => doc.GetElement(id) as View)
-            .Where(v => v != null && IsInScope(v!))
-            .Cast<View>();
-
-        return Build(views, _ => onThisSheet);
+        return items;
     }
 
     /// <summary>Loads every in-scope view in the project with its full sheet placement.</summary>
@@ -74,47 +76,47 @@ public static class ViewLoadService
     public static List<ViewItemViewModel> LoadAll(Document doc, ToolCancellation? cancel = null)
     {
         cancel?.Report(0, 0, "Reading sheet placements…");
-        var placed = ViewClassificationService.BuildPlacedSheetsLookup(doc, cancel);
+        var placed = ViewClassificationService.BuildPlacementLookup(doc, cancel);
+
+        cancel?.Report(0, 0, "Reading views…");
         var views = new FilteredElementCollector(doc)
             .OfClass(typeof(View))
-            .Cast<View>()
-            .Where(IsInScope);
+            .ToElements();
 
-        return Build(views, v => placed.TryGetValue(v.Id, out var list) ? list : new List<string>(), cancel);
-    }
-
-    private static bool IsInScope(View v) => !v.IsTemplate && InScopeViewTypes.Contains(v.ViewType);
-
-    private static List<ViewItemViewModel> Build(
-        IEnumerable<View> views, System.Func<View, List<string>> multiSheetPlacement,
-        ToolCancellation? cancel = null)
-    {
-        var items = new List<ViewItemViewModel>();
-        var all = views as IList<View> ?? views.ToList();
-        int done = 0;
-        foreach (var v in all)
+        var items = new List<ViewItemViewModel>(views.Count);
+        for (int i = 0; i < views.Count; i++)
         {
-            cancel?.Step(done++, all.Count, $"Reading view names… {done} of {all.Count}");
-            var (group, display) = ViewClassificationService.ClassifyView(v);
+            cancel?.Step(i, views.Count, "Reading view names…");
+            if (views[i] is not View v) continue;
 
-            IReadOnlyList<string> placedSheets;
-            string? detailNumber = null;
-
-            if (v.ViewType == Autodesk.Revit.DB.ViewType.Legend || v.ViewType == Autodesk.Revit.DB.ViewType.Schedule)
-            {
-                placedSheets = multiSheetPlacement(v);
-            }
-            else
-            {
-                var sheetNum = v.get_Parameter(BuiltInParameter.VIEWER_SHEET_NUMBER)?.AsString();
-                detailNumber = v.get_Parameter(BuiltInParameter.VIEWER_DETAIL_NUMBER)?.AsString();
-                placedSheets = string.IsNullOrWhiteSpace(sheetNum)
-                    ? new List<string>()
-                    : new List<string> { sheetNum! };
-            }
-
-            items.Add(new ViewItemViewModel(v, group, display, placedSheets, detailNumber));
+            ViewItemViewModel? item = placed.TryGetValue(v.Id, out var p)
+                ? BuildItem(v, p.Sheets, p.DetailNumber)
+                : BuildItem(v, NoSheets, null);
+            if (item != null) items.Add(item);
         }
         return items;
     }
+
+    /// <summary>
+    /// Builds one grid row, or null for a view the tool does not rename (templates, sheets,
+    /// 3D views…). Reads the view's type once.
+    /// </summary>
+    private static ViewItemViewModel? BuildItem(View v, IReadOnlyList<string> sheets, string? detailNumber)
+    {
+        if (v.IsTemplate) return null;
+        var viewType = v.ViewType;
+        var classified = ViewClassificationService.Classify(viewType);
+        if (classified == null) return null;
+
+        // As before: Legends and Schedules can sit on several sheets, so they carry no detail number.
+        bool multiPlaced = viewType == ViewType.Legend || viewType == ViewType.Schedule;
+
+        return new ViewItemViewModel(
+            v.Id, v.Name, viewType, classified.Value.group, classified.Value.display,
+            sheets, multiPlaced ? null : detailNumber, v.Pinned);
+    }
+
+    /// <summary>The viewport's "Detail Number" (the same value the placed view reports).</summary>
+    internal static string? DetailNumberOf(Viewport vp) =>
+        vp.get_Parameter(BuiltInParameter.VIEWPORT_DETAIL_NUMBER)?.AsString();
 }

@@ -52,22 +52,29 @@ public partial class ViewItemViewModel : ObservableObject
     [ObservableProperty] private string previewName;
     [ObservableProperty] private bool   isDuplicate;
 
+    /// <summary>
+    /// Creates a row from values already read from Revit (7.3.0: the loader reads each value
+    /// once and passes it in, instead of this constructor reading the view again).
+    /// </summary>
     public ViewItemViewModel(
-        View view,
+        ElementId elementId,
+        string originalName,
+        ViewType viewType,
         ViewTypeGroup typeGroup,
         string viewTypeDisplay,
         IReadOnlyList<string> placedSheetNumbers,
-        string? detailNumber)
+        string? detailNumber,
+        bool isPinned)
     {
-        ElementId          = view.Id;
-        OriginalName       = view.Name;
-        ViewType           = view.ViewType;
+        ElementId          = elementId;
+        OriginalName       = originalName;
+        ViewType           = viewType;
         TypeGroup          = typeGroup;
         ViewTypeDisplay    = viewTypeDisplay;
         PlacedSheetNumbers = placedSheetNumbers;
         SheetNumber        = placedSheetNumbers.Count > 0 ? placedSheetNumbers[0] : null;
         DetailNumber       = detailNumber;
-        IsPinned           = view.Pinned;
+        IsPinned           = isPinned;
 
         editableName = OriginalName;
         previewName  = OriginalName;

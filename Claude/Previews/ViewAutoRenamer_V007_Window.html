@@ -1,11 +1,10 @@
 <title>View Auto Renamer Window</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<!-- UI preview (CLAUDE.md "UI previews"): View Auto Renamer V007, tool 7.2.0, plugin 6.40.0.
-     New in 7.2.0: Esc or the Cancel button while "Load all views" or "Commit selected" runs asks
-     "Cancel the process? Yes / No". Yes stops the run; a rename run is rolled back completely.
-     While a run is active the window content is disabled and the Cancel button shows in the status strip.
+<!-- UI preview (CLAUDE.md "UI previews"): View Auto Renamer V007, tool 7.3.0, plugin 7.0.0.
+     New in 7.3.0: faster loading (placements read once from the viewports, one grid update per load),
+     faster bulk selection, load time in the log. Ribbon: Auto Renamer is a plain button; V005 and V006 removed.
      Mirrors: Menu/ViewTools/Rename/ViewAutoRenamer_V007/Views/ViewAutoRenamerWindow.xaml,
-              Shared/Controls/ToolWindowShellTemplate.xaml (status strip + Cancel), Shared/Services/ToolCancellation.cs (dialog text)
+              Menu/00_Push_Button_Menu_items/Ribbon/ViewToolsRibbon.cs (View Rename panel, tooltip)
      Artifact: https://claude.ai/artifact/SyDfzePBpEeb8WkiyU5uUD (republish to this URL on every update)
      Colours: Shared/SharedStyles.xaml tokens, one light look on purpose (mirrors the light WPF window). -->
 <style>
@@ -68,65 +67,92 @@ p{margin:0;line-height:1.5;max-width:75ch}
 /* Log */
 .log{width:760px;background:var(--card);border:1px solid var(--border);font-family:Consolas,'Cascadia Mono',monospace;font-size:11.5px;padding:6px 10px;display:grid;gap:2px}
 .log .i{color:var(--text2)} .log .w{color:var(--warn)} .log .s{color:var(--ok)}
+/* Ribbon panel + tooltip */
+.rib{width:430px;display:flex;gap:14px;align-items:flex-start}
+.panel{background:var(--card);border:1px solid var(--border);width:170px}
+.panel .items{padding:8px 10px;display:grid;gap:6px}
+.panel .it{display:flex;align-items:center;gap:6px;font-size:11.5px;white-space:nowrap}
+.panel .ic{flex:none;width:16px;height:16px;background:var(--navy-light);border-radius:2px}
+.panel .ttl{border-top:1px solid var(--border);background:var(--bg2);text-align:center;font-size:11px;padding:2px 0;color:var(--text2)}
+.tip{background:var(--card);border:1px solid var(--input);box-shadow:0 3px 10px rgba(16,32,48,.2);padding:8px 10px;width:246px;font-size:11.5px;line-height:1.45}
+.tip b{display:block;margin-bottom:3px}
+.cmp{width:100%;border-collapse:collapse;background:var(--card);font-size:12px;min-width:560px}
+.cmp th,.cmp td{border:1px solid var(--border);padding:5px 8px;text-align:left;vertical-align:top}
+.cmp th{background:var(--bg2);font-weight:600}
 </style>
 <div class="page">
   <header>
-    <h1>View Auto Renamer 7.2.0 <span class="tag">NEW: Esc / Cancel</span></h1>
-    <p class="muted">Pressing Esc, or clicking Cancel in the status strip, while a run is in progress asks for confirmation. Yes stops the run and, for a rename, undoes every rename of that run. No carries on. Esc works while Revit is the foreground application. <span class="sample">Sample data: view names are made up.</span></p>
+    <h1>View Auto Renamer 7.3.0 <span class="tag">NEW: faster loading</span></h1>
+    <p class="muted">The window looks the same. Loading reads less from Revit, the grid is rebuilt once per load, and the log shows how long loading took. Versions V005 and V006 are removed, so the ribbon has one Auto Renamer button. <span class="sample">Sample data: view names, counts and times are made up.</span></p>
   </header>
 
   <section>
-    <h2>1. Window while "Commit selected" runs</h2>
-    <p class="muted">The Cancel button appears in the status strip. Everything else is disabled until the run ends, so a second run cannot start.</p>
+    <h2>1. Window after "Load all views"</h2>
+    <p class="muted">Same layout as 7.2.0. Only the version in the title bar and the log lines change.</p>
     <div class="frame"><div class="win">
-      <div class="tbar"><span>View Auto Renamer — v7.2.0</span><span>—  ☐  ✕</span></div>
-      <div class="hdr"><div><b>View Auto Renamer</b><span class="s">Prefix, find/replace and standardize view names</span></div><span class="badge">v7.2.0</span></div>
-      <div class="body off">
-        <div class="bar"><span class="sbtn">Load all views</span><span class="sbtn">Select all</span><span class="sbtn">Select none</span><span class="sbtn">Invert</span></div>
+      <div class="tbar"><span>View Auto Renamer — v7.3.0</span><span>—  ☐  ✕</span></div>
+      <div class="hdr"><div><b>View Auto Renamer</b><span class="s">Prefix, find/replace and standardize view names</span></div><span class="badge">v7.3.0</span></div>
+      <div class="body">
+        <div class="bar"><span class="sbtn" style="color:var(--disabled)">Load all views</span><span class="sbtn">Select all</span><span class="sbtn">Select none</span><span class="sbtn">Invert</span></div>
         <table class="grid">
-          <tr><th>☑</th><th>Original name</th><th>New name</th><th>Type</th><th>Sheet</th></tr>
-          <tr><td>☑</td><td>Level 1 Plan</td><td>A-101 Level 1 Plan</td><td>Floor Plan</td><td>A-101</td></tr>
-          <tr><td>☑</td><td>Section 3</td><td>A-301 Section 3</td><td>Section</td><td>A-301</td></tr>
-          <tr><td>☑</td><td>Roof Detail</td><td>A-501 Roof Detail</td><td>Drafting View</td><td>A-501</td></tr>
+          <tr><th>☑</th><th>View Type</th><th>Original name</th><th>Edit name</th><th>Preview</th><th>Sheet no.</th></tr>
+          <tr><td>☑</td><td>Floor Plan</td><td>Level 1 Plan</td><td>Level 1 Plan</td><td>A-101 Level 1 Plan</td><td>A-101</td></tr>
+          <tr><td>☑</td><td>Section</td><td>Section 3</td><td>Section 3</td><td>A-301 Section 3</td><td>A-301</td></tr>
+          <tr><td>☐</td><td>Drafting View</td><td>Roof Detail</td><td>Roof Detail</td><td>Roof Detail</td><td></td></tr>
+          <tr><td>☐</td><td>Legend</td><td>Symbol Legend</td><td>Symbol Legend</td><td>Symbol Legend</td><td>A-001</td></tr>
         </table>
       </div>
       <div class="foot">
-        <div class="status">
-          <span class="txt">Renaming views… 412 of 1,000</span>
-          <div class="pb"><i style="width:41%"></i></div>
-          <span class="cancel">Cancel <span class="tag">NEW</span></span>
-        </div>
-        <div class="acts off">
+        <div class="acts">
           <span class="reset">↺  Reset all names</span>
-          <span><span class="pill">Dry run — no changes will be saved</span><span class="pbtn">Commit selected (1000)</span><span class="obtn">Close</span></span>
+          <span><span class="pill">Dry run — no changes will be saved</span><span class="pbtn">Commit selected (2)</span><span class="obtn">Close</span></span>
         </div>
       </div>
     </div></div>
   </section>
 
   <section>
-    <h2>2. Confirmation after Esc or Cancel <span class="tag">NEW</span></h2>
-    <p class="muted">Title is the tool name and version. No is the default button.</p>
-    <div class="frame"><div class="dlg">
-      <div class="t">View Auto Renamer — v7.2.0</div>
-      <div class="c"><span class="q">?</span><span>Cancel the process?
-All changes made by this run will be undone. Files already exported are kept.</span></div>
-      <div class="f"><span>Yes</span><span class="def">No</span></div>
+    <h2>2. Log with load times <span class="tag">NEW</span></h2>
+    <p class="muted">Both loads report their time. If a project is still slow, this number says which step it is.</p>
+    <div class="frame"><div class="log">
+      <span class="i">Loaded 14 views from sheet A-101 in 0.1 s. Click "Load all views" to load the rest of the project.</span>
+      <span class="i">Loading all views…</span>
+      <span class="s">Loaded 4798 more views in 1.4 s — 4812 in total.</span>
     </div></div>
   </section>
 
   <section>
-    <h2>3. Log after Yes <span class="tag">NEW</span></h2>
-    <p class="muted">The window returns to normal. No error dialog and no error-log entry: a cancel is not a failure.</p>
-    <div class="frame"><div class="log">
-      <span class="i">Loaded 14 views from sheet A-101. Click "Load all views" to load the rest of the project.</span>
-      <span class="w">Cancelled by user after 412 of 1000 views: all renames of this run were undone.</span>
+    <h2>3. Ribbon: View Rename panel <span class="tag">CHANGED</span></h2>
+    <p class="muted">Auto Renamer was a dropdown listing V007, V006 and V005. It is now a plain button that opens the tool directly. The other two items are unchanged.</p>
+    <div class="frame"><div class="rib">
+      <div class="panel">
+        <div class="items">
+          <span class="it"><span class="ic"></span>Bubble Renumber ▾</span>
+          <span class="it"><span class="ic"></span>Section Renamer ▾</span>
+          <span class="it"><span class="ic"></span>Auto Renamer <span class="tag">BUTTON</span></span>
+        </div>
+        <div class="ttl">View Rename</div>
+      </div>
+      <div class="tip"><b>View Auto Renamer — v7.3.0 (build V007)</b>Batch rename views: prefix, find/replace, standardize.<br>Opens with the current sheet's views; "Load all views" brings in the rest of the project.</div>
     </div></div>
-    <p class="muted" style="margin-top:8px">Cancelling "Load all views" reads: "Cancelled by user: loading stopped after 380 of 1000 views. No views were added."</p>
+  </section>
+
+  <section>
+    <h2>4. What is faster <span class="tag">NEW</span></h2>
+    <div class="frame"><table class="cmp">
+      <tr><th>Step</th><th>7.2.0</th><th>7.3.0</th></tr>
+      <tr><td>Sheet and detail number</td><td>Two parameter reads on every view</td><td>Read once from the viewports; unplaced views cost nothing</td></tr>
+      <tr><td>View type</td><td>Read four times per view</td><td>Read once per view</td></tr>
+      <tr><td>Finding the current sheet</td><td>Every sheet in the project is read</td><td>Revit filters by sheet number</td></tr>
+      <tr><td>Schedules on the current sheet</td><td>Search scoped to the sheet view</td><td>Project search narrowed to the sheet's schedules</td></tr>
+      <tr><td>Adding rows after "Load all views"</td><td>One grid update per view, three grid rebuilds</td><td>One update, one rebuild</td></tr>
+      <tr><td>Header check box, Select all / none, Invert</td><td>Counts and previews recalculated per row</td><td>Recalculated once</td></tr>
+    </table></div>
+    <p class="muted" style="margin-top:8px">These are code changes checked by a build. They have not been timed in Revit yet.</p>
   </section>
 
   <section>
     <h2>Plugin change</h2>
-    <p class="muted">Tool version 7.1.2 → 7.2.0 (plugin 6.40.0). The ribbon button, tooltip and window layout are otherwise unchanged.</p>
+    <p class="muted">Tool version 7.2.0 → 7.3.0, plugin 6.43.0 → 7.0.0 (V005 and V006 removed). Renaming, filters, Esc / Cancel and the settings file are unchanged.</p>
   </section>
 </div>

@@ -37,17 +37,10 @@ public partial class ViewsListWindow : Window
     }
 
     // ── Header checkbox ──────────────────────────────────────────────────────
-    private void HeaderCheckBox_Checked(object sender, RoutedEventArgs e)
-    {
-        foreach (var item in ViewsGridControl.Items.OfType<ViewItemViewModel>())
-            item.IsSelected = true;
-    }
+    // Through the view model's bulk path: counts and previews update once, not once per row.
+    private void HeaderCheckBox_Checked(object sender, RoutedEventArgs e) => Vm.SetSelection(_ => true);
 
-    private void HeaderCheckBox_Unchecked(object sender, RoutedEventArgs e)
-    {
-        foreach (var item in ViewsGridControl.Items.OfType<ViewItemViewModel>())
-            item.IsSelected = false;
-    }
+    private void HeaderCheckBox_Unchecked(object sender, RoutedEventArgs e) => Vm.SetSelection(_ => false);
 
     // ── Row click — Ctrl+Click / Shift+Click extend checkbox selection.
     // A PLAIN click does NOT clear existing selections — selection state is

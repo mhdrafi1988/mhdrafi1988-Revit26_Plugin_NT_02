@@ -32,6 +32,7 @@ public class LoadAllViewsHandler : IExternalEventHandler
     private static void Run(UIApplication app, ViewsListViewModel vm, ToolCancellation cancel)
     {
         List<ViewItemViewModel> items;
+        var timer = System.Diagnostics.Stopwatch.StartNew(); // shown in the log, so a slow project can be reported with a number
         try
         {
             var doc = app.ActiveUIDocument?.Document;
@@ -48,7 +49,7 @@ public class LoadAllViewsHandler : IExternalEventHandler
             throw; // ToolGuard logs it
         }
 
-        System.Windows.Application.Current?.Dispatcher.Invoke(() => vm.MergeLoadedViews(items));
+        System.Windows.Application.Current?.Dispatcher.Invoke(() => vm.MergeLoadedViews(items, timer));
     }
 
     public string GetName() => "VAR02 Load All Views Handler";

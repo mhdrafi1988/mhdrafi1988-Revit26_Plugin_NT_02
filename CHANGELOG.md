@@ -9,6 +9,34 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [7.0.0] — 2026-11-10
+
+### View Auto Renamer 7.3.0 (V007)
+
+#### Changed
+- **Faster loading.** Opening on a sheet and **Load all views** both do less work in Revit:
+  - Sheet number and detail number are read once from the viewports, instead of two parameter reads on every view.
+    Views that are not on a sheet now cost no parameter reads at all.
+  - Each view's type is read once instead of four times.
+  - The current sheet is found by a sheet-number filter inside Revit instead of reading every sheet in the project.
+  - Schedules on the current sheet are found without a sheet-scoped search (which made Revit work out everything
+    visible on the sheet first).
+  - **Load all views** adds all rows to the grid in one step instead of one grid update per view, and rebuilds the
+    grid once instead of three times.
+- **Faster selection.** The header check box, **Select all**, **Select none** and **Invert** update the counts and
+  previews once instead of once per row; ticking one row no longer recounts every row.
+- The log now shows how long loading took, for example `Loaded 4,812 more views in 1.4 s`.
+- View Rename panel: **Auto Renamer** is now a plain button (one version) instead of a dropdown.
+
+#### Removed
+- **View Auto Renamer V005 and V006** (ribbon buttons, code and the V006 catalog entry). V007 is the only version.
+
+User note: V007 does everything V005 and V006 did and uses the same settings file
+(`%AppData%\Revit26_Plugin_Revised\ViewAutoRenamer\settings.json`), so nothing needs to be set up again. A keyboard
+shortcut assigned to the V005 or V006 button must be re-assigned to **Auto Renamer**. The plugin goes to 7.0.0 because
+tool versions were removed. A view counts as placed when it has a viewport on a sheet; the Sheet and Detail columns
+show the same values as before for placed views. If loading is still slow on your project, send the time from the log.
+
 ## [6.43.0] — 2026-11-10
 
 ### Align Spot Elevations 1.8.0
