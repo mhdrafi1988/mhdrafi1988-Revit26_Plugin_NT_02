@@ -102,6 +102,46 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Commands
             return AlignRunner.Apply(ctx, plan, $"aligned: {what} in {where} with {line.TagLabel}");
         }
 
+        /// <summary>
+        /// Quick Distribute: spaces the selected tags along their column (<paramref name="direction"/> =
+        /// Vertical, up-down) or row (Horizontal, left-right) without lining them up, using the parts and
+        /// spacing last saved by the window. "Keep current spacing" counts as even spacing. Even keeps the
+        /// first and last tag; a fixed gap keeps the top / left tag.
+        /// </summary>
+        public static Result RunDistribute(ExternalCommandData commandData, AlignDirection direction)
+        {
+            AlignContext ctx = AlignRunner.Prepare(commandData);
+            if (ctx == null) return Result.Cancelled;
+
+            AlignOptions o = AlignSettingsStore.Load().Clone();
+            o.Mode = ArrangeMode.DistributeOnly;
+            o.Direction = direction;
+            o.ReferenceId = null;
+            if (o.Distribute == DistributeMode.None) o.Distribute = DistributeMode.Even;
+            if (!o.MovesAnything) o.MoveText = true;
+
+            if (o.Distribute == DistributeMode.Even && ctx.Read.Items.Count < 3)
+            {
+                TaskDialog.Show(ctx.Title, "Even spacing needs at least three spot elevations: the first and last stay " +
+                    "and the others are spaced between them. Select more, or choose a fixed gap in the Align Spot Elevations window.");
+                return Result.Cancelled;
+            }
+
+            ArrangePlan plan = AlignEngine.Plan(ctx.Read.Items, o);
+            string where = direction == AlignDirection.Vertical ? "down their column" : "along their row";
+            string spacing = o.Distribute == DistributeMode.FixedGap ? $"{o.GapMm:0.#} mm gap" : "even spacing";
+            if (plan.MoveCount == 0)
+            {
+                TaskDialog.Show(ctx.Title, $"The selected spot elevations are already spaced {where} ({spacing}).");
+                return Result.Cancelled;
+            }
+            var parts = new System.Collections.Generic.List<string>();
+            if (o.MoveText) parts.Add("text");
+            if (o.MoveLeaderEnd) parts.Add("leader ends");
+            if (o.MoveLeaderShoulder) parts.Add("bend points");
+            return AlignRunner.Apply(ctx, plan, $"spaced {where} ({string.Join(" + ", parts)}, {spacing})");
+        }
+
         private static string Describe(AlignOptions o)
         {
             string target = o.Target switch
@@ -244,5 +284,27 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Commands
                     QuickSplitMemory.Remember(QuickSplitMemory.SplitToTag, "Btn_AlignSpotElevations_QuickBendsToTag_V001");
                     return QuickAlign.RunToTag(d, SpotPart.LeaderShoulder);
                 });
+    }
+
+    /// <summary>Quick Distribute Vertical: spaces the selected spot elevation tags up-down along their column, no window.</summary>
+    [Transaction(TransactionMode.Manual)]
+    [Regeneration(RegenerationOption.Manual)]
+    public class AlignSpotElevationsQuickDistributeVerticalCommand : IExternalCommand
+    {
+        /// <summary>Revit entry point — delegates to <see cref="ToolGuard.RunCommand"/>.</summary>
+        public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
+            => ToolGuard.RunCommand(GetType(), commandData, ref message, elements,
+                (ExternalCommandData d, ref string m, ElementSet e) => QuickAlign.RunDistribute(d, AlignDirection.Vertical));
+    }
+
+    /// <summary>Quick Distribute Horizontal: spaces the selected spot elevation tags left-right along their row, no window.</summary>
+    [Transaction(TransactionMode.Manual)]
+    [Regeneration(RegenerationOption.Manual)]
+    public class AlignSpotElevationsQuickDistributeHorizontalCommand : IExternalCommand
+    {
+        /// <summary>Revit entry point — delegates to <see cref="ToolGuard.RunCommand"/>.</summary>
+        public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
+            => ToolGuard.RunCommand(GetType(), commandData, ref message, elements,
+                (ExternalCommandData d, ref string m, ElementSet e) => QuickAlign.RunDistribute(d, AlignDirection.Horizontal));
     }
 }

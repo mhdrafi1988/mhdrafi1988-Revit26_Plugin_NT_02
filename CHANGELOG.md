@@ -9,6 +9,16 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.43.0] — 2026-11-10
+
+### Align Spot Elevations 1.8.0
+
+#### Added
+- **Distribute Spot Elev.** (Tagging panel, large button): opens the Align Spot Elevations window in *Distribute only*. The selected spot elevations are spaced along their column or row, evenly (first and last stay) or at a fixed gap in paper mm (top / left stays), and keep their other coordinate. Works on the text, the leader end points and the bend points.
+- **Quick Distribute Vertical** and **Quick Distribute Horizontal** (Tagging panel, small buttons): the same without the window, with the parts and spacing last used in the window. If the window was last left on "Keep current spacing", even spacing is used. Even spacing needs at least three spot elevations. One Undo step.
+
+User note: nothing existing changed. The Distribute only mode was already in the window; these buttons are shortcuts to it. Settings files are unchanged.
+
 ## [6.42.0] — 2026-11-09
 
 ### Align Spot Elevations 1.7.1

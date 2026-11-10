@@ -12,7 +12,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
     {
         private const string Icons = "Revit26_Plugin_Revised.Resources.Icons.Tagging.";
 
-        /// <summary>Creates the Tagging panel on <paramref name="tabName"/> with the Tag To Text, Align Spot Elevations and Align to Detail Line buttons plus three quick-align split buttons (Vertical, Horizontal, to Tag).</summary>
+        /// <summary>Creates the Tagging panel on <paramref name="tabName"/> with the Tag To Text, Align Spot Elevations, Align to Detail Line and Distribute buttons, three quick-align split buttons (Vertical, Horizontal, to Tag) and two quick-distribute buttons.</summary>
         public static void Build(UIControlledApplication app, string tabName, string assemblyPath)
         {
             RibbonPanel panel = app.CreateRibbonPanel(tabName, "Tagging");
@@ -55,6 +55,19 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                     "One Undo step.")
             };
             panel.AddItem(alignToLine);
+
+            var distribute = new PushButtonData("Btn_AlignSpotElevations_Distribute_V001", "Distribute\nSpot Elev.", assemblyPath,
+                "Revit26_Plugin_Revised.AlignSpotElevations.V001.Commands.AlignSpotElevationsDistributeCommand")
+            {
+                Image = ImageUtils.Load(Icons + "AlignSpotElevationsDistribute_16.png"),
+                LargeImage = ImageUtils.Load(Icons + "AlignSpotElevationsDistribute_32.png"),
+                ToolTip = ToolCatalog.AlignSpotElevations.Tip(
+                    "Spaces the selected spot elevations along their column or row without lining them up: evenly " +
+                    "(first and last stay) or at a fixed gap in paper mm (top / left stays). Works on the text, the " +
+                    "leader end points and the bend points. Opens the Align Spot Elevations window in Distribute only. " +
+                    "One Undo step.")
+            };
+            panel.AddItem(distribute);
 
             // Quick align: same tool, no window, last-used options. Three small split buttons grouped by direction.
             // Revit runs the item last picked in each split button on its main click (kept for the Revit session).
@@ -117,6 +130,17 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             AddSplitItems(created, splitVertical.Name, quickVertical, endsVertical, bendsVertical);
             AddSplitItems(created, splitHorizontal.Name, quickHorizontal, endsHorizontal, bendsHorizontal);
             AddSplitItems(created, splitToTag.Name, endsToTag, bendsToTag);
+
+            // Quick distribute: no window, parts and spacing last used in the window (Keep current spacing = even).
+            var distributeVertical = QuickPart(assemblyPath, "QuickDistributeVertical", "Quick Distribute Vertical", "DistributeVertical",
+                "Spaces the selected spot elevations up-down along their column right away; they keep their left-right " +
+                "position. Uses the parts and spacing (even or fixed gap) last used in the Align Spot Elevations window. " +
+                "One Undo step.");
+            var distributeHorizontal = QuickPart(assemblyPath, "QuickDistributeHorizontal", "Quick Distribute Horizontal", "DistributeHorizontal",
+                "Spaces the selected spot elevations left-right along their row right away; they keep their up-down " +
+                "position. Uses the parts and spacing (even or fixed gap) last used in the Align Spot Elevations window. " +
+                "One Undo step.");
+            RibbonLayoutHelper.AddStackedButtons(panel, new RibbonItemData[] { distributeVertical, distributeHorizontal });
         }
 
         /// <summary>Creates a small split button that shows <paramref name="primary"/>'s icon until the user picks another item.</summary>
@@ -142,7 +166,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             if (remembered != null) split.CurrentButton = remembered;
         }
 
-        /// <summary>One small quick-align button for a leader part of Align Spot Elevations.</summary>
+        /// <summary>One small quick-align or quick-distribute button of Align Spot Elevations.</summary>
         private static PushButtonData QuickPart(string assemblyPath, string key, string label, string icon, string tip)
             => new PushButtonData($"Btn_AlignSpotElevations_{key}_V001", label, assemblyPath,
                 $"Revit26_Plugin_Revised.AlignSpotElevations.V001.Commands.AlignSpotElevations{key}Command")
