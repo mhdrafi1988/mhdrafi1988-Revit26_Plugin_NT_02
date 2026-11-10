@@ -32,6 +32,17 @@ public partial class ViewsListWindow : Window
                     LogList.ScrollIntoView(LogList.Items[^1]);
             }));
 
+        // 7.3.0: the log starts minimised; when it is expanded, show the latest line.
+        vm.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName != nameof(ViewsListViewModel.IsLogExpanded) || !vm.IsLogExpanded) return;
+            Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Background, new System.Action(() =>
+            {
+                if (LogList.Items.Count > 0)
+                    LogList.ScrollIntoView(LogList.Items[^1]);
+            }));
+        };
+
         // Save filter/rename settings on close, per project convention.
         Closing += (_, _) => Vm.SaveSettings();
     }

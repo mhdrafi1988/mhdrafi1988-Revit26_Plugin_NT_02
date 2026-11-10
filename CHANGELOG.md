@@ -9,6 +9,17 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.44.0] — 2026-11-10
+
+### View Auto Renamer 7.3.0
+
+#### Changed
+- **Grouped list:** the views are listed under a header per view type (Sections & Callouts, Floor Plans, Ceiling Plans, … with a count), in the same order as the filter popover. The window still opens with the current sheet's views. A new **Group by type** checkbox in the filter bar turns the grouping off; the choice is saved.
+- **Taller list:** the view list is twice as tall (minimum 320 px instead of 160, and up to 1.1 × the window height instead of 0.55). A long list scrolls with the window body.
+- **Log minimised:** the log opens as one bar that shows the latest line and the line count. Click **Log** to expand it (the Copy buttons appear then); it starts minimised on every open.
+
+User note: renaming, filters, Load all views and Cancel work as before. Clicking a column header still sorts, now inside each group. The settings file gained a `Version` and a `GroupByViewType` field; older files load unchanged and start grouped.
+
 ## [6.43.0] — 2026-11-10
 
 ### Align Spot Elevations 1.8.0

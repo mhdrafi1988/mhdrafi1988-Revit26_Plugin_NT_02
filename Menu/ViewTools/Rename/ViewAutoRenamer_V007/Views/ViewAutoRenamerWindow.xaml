@@ -15,6 +15,10 @@ Changes vs V005 (layout only):
   - Popover shadow uses the DropShadowEffect default colour (black) instead
     of an inline hex.
   - No behaviour change — every binding/command/handler is the V005 one.
+7.3.0:
+  - Views grid is grouped by view type ("Group by type", on by default).
+  - Views grid is twice as tall (MinHeight 320, MaxHeightRatio 1.1).
+  - Log starts minimised: one bar with the latest line; click it to expand.
 =======================================================
 -->
 <Window x:Class="Revit26_Plugin_Revised.ViewAutoRenamer.V007.Views.ViewsListWindow"
@@ -135,7 +139,7 @@ Changes vs V005 (layout only):
                         <RowDefinition Height="Auto"/>  <!-- Rename panel       -->
                         <RowDefinition Height="Auto"/>  <!-- Selection toolbar  -->
                         <RowDefinition Height="Auto"/>  <!-- Quick filter chips -->
-                        <RowDefinition Height="*" MinHeight="160"/>  <!-- DataGrid -->
+                        <RowDefinition Height="*" MinHeight="320"/>  <!-- DataGrid -->
                     </Grid.RowDefinitions>
 
                     <Border Grid.Row="0"
@@ -191,6 +195,14 @@ Changes vs V005 (layout only):
                                 <CheckBox Content="Dry run"
                                           IsChecked="{Binding IsDryRun}"
                                           VerticalAlignment="Center"/>
+
+                                <Border Width="0.5" Height="18" Background="{StaticResource BrushBorderDefault}" Margin="12,0,12,0"/>
+
+                                <!-- 7.3.0: group the grid rows under a header per view type -->
+                                <CheckBox Content="Group by type"
+                                          IsChecked="{Binding GroupByViewType}"
+                                          VerticalAlignment="Center"
+                                          ToolTip="Lists the views under a header per view type (Sections &amp; Callouts, Floor Plans, …)."/>
                             </WrapPanel>
 
                             <!-- ═══ POPOVER — anchored to top-left of DataGrid ═══ -->
@@ -544,11 +556,13 @@ Changes vs V005 (layout only):
                             </RadioButton>
                         </StackPanel>
                     </Border>
-                    <!-- V007: MaxHeight="500" caps the FIRST layout pass. MaxHeightRatio only
+                    <!-- V007: MaxHeight="1000" caps the FIRST layout pass. MaxHeightRatio only
                          applies after Loaded; without a cap the grid is measured with infinite
                          height inside the shell's ScrollViewer and builds a row for every view,
-                         which made the window slow to open. MaxHeightRatio replaces it on Loaded. -->
-                    <DataGrid Grid.Row="4" MinHeight="160" MaxHeight="500" shell:ShellBehaviors.MaxHeightRatio="0.55" shell:ShellBehaviors.ForwardMouseWheel="True"
+                         which made the window slow to open. MaxHeightRatio replaces it on Loaded.
+                         7.3.0: the list is twice as tall (min 160 -> 320, cap 500 -> 1000,
+                         ratio 0.55 -> 1.1 of the window height); a long list scrolls with the body. -->
+                    <DataGrid Grid.Row="4" MinHeight="320" MaxHeight="1000" shell:ShellBehaviors.MaxHeightRatio="1.1" shell:ShellBehaviors.ForwardMouseWheel="True"
                               x:Name="ViewsGridControl"
                               ItemsSource="{Binding ViewsGrid}"
                               AutoGenerateColumns="False"
@@ -567,10 +581,32 @@ Changes vs V005 (layout only):
                               BorderThickness="0"
                               VirtualizingPanel.IsVirtualizing="True"
                               VirtualizingPanel.VirtualizationMode="Recycling"
-                              VirtualizingPanel.IsVirtualizingWhenGrouping="False"
+                              VirtualizingPanel.IsVirtualizingWhenGrouping="True"
                               ScrollViewer.CanContentScroll="True"
                               EnableRowVirtualization="True"
                               EnableColumnVirtualization="True">
+
+                        <!-- 7.3.0: header row per view-type group (shown while "Group by type" is ticked) -->
+                        <DataGrid.GroupStyle>
+                            <GroupStyle>
+                                <GroupStyle.HeaderTemplate>
+                                    <DataTemplate>
+                                        <Border Background="{StaticResource BrushSurfaceCard}"
+                                                BorderBrush="{StaticResource BrushBorderDefault}"
+                                                BorderThickness="0,1,0,1" Padding="10,4">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="{Binding Items[0].TypeGroupLabel}"
+                                                           FontSize="11.5" FontWeight="SemiBold"
+                                                           Foreground="{StaticResource BrushNavyPrimary}"/>
+                                                <TextBlock Text="{Binding ItemCount}" Margin="8,0,0,0"
+                                                           FontSize="10.5" VerticalAlignment="Center"
+                                                           Foreground="{StaticResource BrushTextSecondary}"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </GroupStyle.HeaderTemplate>
+                            </GroupStyle>
+                        </DataGrid.GroupStyle>
 
                         <DataGrid.Columns>
 
@@ -669,27 +705,56 @@ Changes vs V005 (layout only):
                     </DataGrid>
                 </Grid>
 
-                <!-- LOG (moved from footer) -->
-                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="10,8" Margin="0,8,0,0">
+                <!-- LOG (moved from footer). 7.3.0: starts minimised: one bar with the latest
+                     line; clicking "Log" expands the list and the copy buttons. -->
+                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="10,6" Margin="0,8,0,0">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <Grid Margin="0,0,0,6">
+                        <Grid>
                             <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Text="Log" Foreground="{StaticResource BrushLogText}"
-                                       FontSize="11.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                            <ToggleButton IsChecked="{Binding IsLogExpanded}" Cursor="Hand"
+                                          VerticalAlignment="Center" ToolTip="Show or hide the log">
+                                <ToggleButton.Template>
+                                    <ControlTemplate TargetType="ToggleButton">
+                                        <StackPanel Orientation="Horizontal" Background="Transparent">
+                                            <TextBlock x:Name="Chevron" Text="▸" FontSize="11" Width="14"
+                                                       Foreground="{StaticResource BrushLogText}" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Log" Foreground="{StaticResource BrushLogText}"
+                                                       FontSize="11.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                            <TextBlock Text="{Binding Logs.Count, StringFormat={}({0})}" Margin="5,0,0,0"
+                                                       Foreground="{StaticResource BrushLogTextDim}"
+                                                       FontSize="10.5" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsChecked" Value="True">
+                                                <Setter TargetName="Chevron" Property="Text" Value="▾"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </ToggleButton.Template>
+                            </ToggleButton>
+                            <!-- Latest line, shown only while the log is minimised -->
+                            <TextBlock Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center"
+                                       Text="{Binding LatestLog.Message}"
+                                       Foreground="{Binding LatestLog.Level, Converter={StaticResource LogLevelToColorConverter}}"
+                                       FontSize="11" TextTrimming="CharacterEllipsis"
+                                       Visibility="{Binding IsLogExpanded, Converter={StaticResource InverseBoolToVisibilityConverter}}"/>
+                            <StackPanel Grid.Column="2" Orientation="Horizontal"
+                                        Visibility="{Binding IsLogExpanded, Converter={StaticResource BoolToVisibilityConverter}}">
                                 <Button Content="Copy All" Style="{StaticResource DarkGhostButton}" Click="CopyAllLog_Click" Margin="0,0,6,0"/>
                                 <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Click="CopySelectedLog_Click"/>
                             </StackPanel>
                         </Grid>
-                        <ListBox Grid.Row="1" x:Name="LogList" MinHeight="100" shell:ShellBehaviors.MaxHeightRatio="0.2" shell:ShellBehaviors.ForwardMouseWheel="True" SelectionMode="Extended"
+                        <ListBox Grid.Row="1" x:Name="LogList" Margin="0,6,0,0" MinHeight="100" shell:ShellBehaviors.MaxHeightRatio="0.2" shell:ShellBehaviors.ForwardMouseWheel="True" SelectionMode="Extended"
                                  ItemsSource="{Binding Logs}"
+                                 Visibility="{Binding IsLogExpanded, Converter={StaticResource BoolToVisibilityConverter}}"
                                  Background="Transparent"
                                  BorderThickness="0"
                                  Padding="0"

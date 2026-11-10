@@ -132,6 +132,42 @@ public partial class ViewsListViewModel : ObservableObject
     [ObservableProperty] private double progress;
     [ObservableProperty] private string summaryText = "";
 
+    // ── Grid grouping and log panel (7.3.0) ──────────────────────────────────
+    /// <summary>True: the grid lists the views under a header per view-type group. On by default; saved in settings.</summary>
+    [ObservableProperty] private bool groupByViewType = true;
+
+    /// <summary>False (default): the log shows as one bar with the latest line. Not saved: every open starts minimised.</summary>
+    [ObservableProperty] private bool isLogExpanded;
+
+    /// <summary>The newest log line, shown in the bar while the log is minimised.</summary>
+    [ObservableProperty] private LogEntry? latestLog;
+
+    partial void OnGroupByViewTypeChanged(bool value) => ApplyGrouping();
+
+    /// <summary>Header text for a view-type group, e.g. "Floor Plans".</summary>
+    public static string GroupLabel(ViewTypeGroup group)
+    {
+        foreach (var (g, label) in GroupOrder)
+            if (g == group) return label;
+        return group.ToString();
+    }
+
+    // Groups the grid by ViewTypeGroup (the same buckets as the filter popover and the
+    // duplicate check), in the popover's order, or removes the grouping.
+    private void ApplyGrouping()
+    {
+        using (ViewsGrid.DeferRefresh())
+        {
+            ViewsGrid.GroupDescriptions.Clear();
+            if (!GroupByViewType) return;
+
+            var byGroup = new PropertyGroupDescription(nameof(ViewItemViewModel.TypeGroup));
+            // The group name is the enum value, declared in the same order as GroupOrder.
+            byGroup.SortDescriptions.Add(new SortDescription("Name", ListSortDirection.Ascending));
+            ViewsGrid.GroupDescriptions.Add(byGroup);
+        }
+    }
+
     // ── Cancellable run (Esc / Cancel button) ────────────────────────────────
     private ToolCancellation? _activeRun;
 
@@ -216,6 +252,7 @@ public partial class ViewsListViewModel : ObservableObject
 
         ViewsGrid        = CollectionViewSource.GetDefaultView(Views);
         ViewsGrid.Filter = PassesAllFilters;
+        Logs.CollectionChanged += (_, _) => LatestLog = Logs.Count > 0 ? Logs[^1] : null;
 
         BuildSheetFilters();
 
@@ -241,6 +278,8 @@ public partial class ViewsListViewModel : ObservableObject
         StandardizeEnabled         = settings.StandardizeEnabled;
         StandardizeCase            = settings.StandardizeCase;
         CleanWhitespacePunctuation = settings.CleanWhitespacePunctuation;
+        GroupByViewType            = settings.GroupByViewType;
+        ApplyGrouping(); // the setter above does not fire when the saved value equals the default
 
         SelectedSheetFilter =
             !string.IsNullOrWhiteSpace(activeSheetNumber) && SheetFilters.Contains(activeSheetNumber)
@@ -823,6 +862,7 @@ public partial class ViewsListViewModel : ObservableObject
     {
         var settings = new ViewAutoRenamerSettings
         {
+            Version = ViewAutoRenamerSettings.CurrentVersion,
             CheckedViewTypeNames = ViewTypeFilterGroups
                 .SelectMany(g => g.Rows)
                 .Where(r => r.IsChecked)
@@ -836,6 +876,7 @@ public partial class ViewsListViewModel : ObservableObject
             StandardizeEnabled         = StandardizeEnabled,
             StandardizeCase            = StandardizeCase,
             CleanWhitespacePunctuation = CleanWhitespacePunctuation,
+            GroupByViewType            = GroupByViewType,
         };
         ViewAutoRenamerSettingsService.Save(settings);
     }
