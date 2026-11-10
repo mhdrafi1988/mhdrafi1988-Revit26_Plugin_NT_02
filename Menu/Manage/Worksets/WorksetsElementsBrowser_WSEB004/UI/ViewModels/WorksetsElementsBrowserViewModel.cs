@@ -276,6 +276,24 @@ namespace Revit26_Plugin_Revised.WorksetsElementsBrowser.WSEB004.UI.ViewModels
             }
         }
 
+        /// <summary>
+        /// Opens Revit's own Worksets dialog, where worksets are opened and closed. The browser stays
+        /// open; press Reload afterwards to list the elements of the worksets that are now open.
+        /// </summary>
+        [RelayCommand]
+        private void OpenWorksetsDialog()
+        {
+            RaiseRequest(WorksetsElementsBrowserRequest.OpenWorksetsDialog, () =>
+            {
+                if (!_handler.LastRunSucceeded)
+                    TaskDialog.Show("Worksets & Elements Browser", $"Could not open the Worksets dialog: {_handler.ErrorMessage}");
+            });
+        }
+
+        /// <summary>Reads the worksets and elements from the model again (checks are cleared).</summary>
+        [RelayCommand]
+        private void Reload() => RunLoadTree();
+
         // ─────────────────────────────────────────────────────────────
         // Checked-rows actions
         // ─────────────────────────────────────────────────────────────

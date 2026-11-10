@@ -184,6 +184,9 @@ Changes vs WSEB003 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                   Margin="10,0,0,0"
                                   VerticalAlignment="Center"
                                   IsChecked="{Binding HideEmptyWorksets, Mode=TwoWay}"/>
+                        <Border Width="1" Margin="10,2" Background="{StaticResource BrushSeparator}"/>
+                        <Button Content="Open / Close Worksets…" Margin="10,0,0,0" ToolTip="Open Revit's Worksets dialog to open or close worksets. Press Reload afterwards." Style="{StaticResource SmallSecondaryButton}" Command="{Binding OpenWorksetsDialogCommand}"/>
+                        <Button Content="Reload" Margin="6,0,0,0" ToolTip="Read the worksets and elements from the model again (checks are cleared)" Style="{StaticResource SmallSecondaryButton}" Command="{Binding ReloadCommand}"/>
                     </WrapPanel>
                     <!-- Tree -->
                     <Border Margin="0" Background="{StaticResource BrushSurfaceCard}" BorderBrush="{StaticResource BrushSeparator}" BorderThickness="1" CornerRadius="4">

@@ -1,0 +1,132 @@
+<title>Worksets &amp; Elements Browser Window</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<!-- UI preview (CLAUDE.md "UI previews"): Worksets & Elements Browser WSEB004, tool 4.5.0, plugin 6.44.0.
+     Shows: the browser window with the new "Open / Close Worksets…" and "Reload" toolbar buttons, and the
+     message shown when Revit's Worksets dialog cannot be opened.
+     Mirrors: Menu/Manage/Worksets/WorksetsElementsBrowser_WSEB004/UI/Views/WorksetsElementsBrowserWindow.xaml
+              (+ WorksetsElementsBrowserViewModel, WorksetsElementsBrowserHandler)
+     Artifact: https://claude.ai/artifact/Us63t9FGL1D2jfRLwQpFx9 (republish to this URL on every update)
+     Colours: Shared/SharedStyles.xaml tokens, one light look on purpose (mirrors the light WPF window). -->
+<style>
+/* Layout: one column of captioned mock-ups; each fixed-width Revit piece scrolls in its own frame. */
+:root{--surface-window:#F3F5F7;--surface-card:#FFFFFF;--surface-2:#ECEFF3;--navy:#1E3A5F;--navy-dark:#14283F;--blue:#2D6CDF;
+--border:#D6DCE3;--text:#1A2B3C;--text-2:#5B7185;--text-3:#8FA3B8;--on-dark:#EAF1F8;
+--new:#1F8A4C;--new-bg:#E3F4EA;--page:#E9EDF1;
+--font:"Segoe UI",system-ui,-apple-system,sans-serif;color-scheme:light}
+html{background:var(--page)}
+body{margin:0;background:var(--page);color:var(--text);font:14px/1.45 var(--font);
+padding-block:20px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:920px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+h1{font-size:22px;margin:0;color:var(--navy);text-wrap:balance}
+h2{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-2);margin:0 0 8px}
+p{margin:0}.muted{color:var(--text-2)}
+ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px;max-width:65ch}
+.tag{display:inline-block;font-size:11px;font-weight:600;color:var(--new);background:var(--new-bg);border-radius:3px;padding:1px 6px;vertical-align:middle;white-space:nowrap}
+.frame{overflow-x:auto}
+.win{width:900px;background:var(--surface-window);border:1px solid var(--border);box-shadow:0 4px 14px rgba(0,0,0,.15)}
+.title{background:var(--surface-card);border-bottom:1px solid var(--border);padding:6px 12px;font-size:12.5px;display:flex;justify-content:space-between}
+.head{background:var(--navy);color:var(--on-dark);padding:12px 16px;display:flex;justify-content:space-between;align-items:baseline}
+.head b{font-size:16px}.head small{opacity:.8;margin-left:10px}
+.body{padding:12px 16px;display:flex;flex-direction:column;gap:8px}
+.metrics{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.metric{background:var(--surface-card);border:1px solid var(--border);border-radius:4px;padding:8px 10px}
+.metric span{display:block;font-size:11px;color:var(--text-2)}
+.metric b.acc{color:var(--blue);font-size:16px}
+.toolbar{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.search{width:240px;background:var(--surface-2);border:1px solid var(--border);padding:4px 6px;color:var(--text-3);font-size:12.5px}
+.sb{border:1px solid var(--border);background:var(--surface-card);border-radius:4px;padding:3px 9px;font-size:12px;white-space:nowrap}
+.sb.new{border-color:var(--new);box-shadow:0 0 0 2px var(--new-bg)}
+.sep{width:1px;align-self:stretch;background:var(--border);margin:0 4px}
+.combo{border:1px solid var(--border);background:var(--surface-card);padding:3px 8px;font-size:12px;width:124px;display:flex;justify-content:space-between}
+.chk{width:13px;height:13px;border:1px solid var(--navy);background:var(--navy);display:inline-block;position:relative;flex:none}
+.chk::after{content:"";position:absolute;left:3px;top:0;width:3px;height:7px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}
+.chk.off{background:var(--surface-card)}.chk.off::after{display:none}
+.lbl{display:flex;gap:6px;align-items:center;font-size:12.5px}
+.tree{background:var(--surface-card);border:1px solid var(--border);border-radius:4px;padding:6px 8px;min-height:230px;display:flex;flex-direction:column;gap:5px}
+.r{display:flex;gap:6px;align-items:center;font-size:12.5px}
+.r.l1{padding-left:22px}.r.l2{padding-left:44px}
+.r .ws{font-weight:600}.r .ty{color:var(--blue);text-decoration:underline}
+.pill{font-size:10.5px;background:var(--surface-2);border-radius:8px;padding:0 7px;color:var(--text-2)}
+.cnt{font-size:11px;color:var(--text-3);font-variant-numeric:tabular-nums}
+.foot{border-top:1px solid var(--border);padding:10px 16px;display:flex;justify-content:space-between;gap:8px;align-items:center}
+.foot div{display:flex;gap:8px}
+.btn{border:1px solid var(--border);background:var(--surface-card);border-radius:4px;padding:6px 12px;font-size:12.5px;font-weight:600;white-space:nowrap}
+.btn.p{background:var(--navy);color:#fff;border-color:var(--navy)}
+.tip{width:330px;background:#FFFFF4;border:1px solid #B8B8A0;padding:6px 10px;font-size:12px;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+.dlg{width:430px;background:var(--surface-card);border:1px solid var(--border);box-shadow:0 4px 14px rgba(0,0,0,.15)}
+.dlg .h{padding:12px 14px 4px;color:var(--navy);font-size:15px}
+.dlg .c{padding:0 14px 12px;font-size:12.5px;color:var(--text-2)}
+.dlg .f{background:var(--surface-window);padding:8px 14px;display:flex;justify-content:flex-end}
+.dlg .f span{border:1px solid var(--border);background:var(--surface-card);padding:3px 18px;font-size:12.5px}
+.stack{display:flex;flex-direction:column;gap:10px}
+</style>
+<main>
+<header class="stack">
+  <h1>Worksets &amp; Elements Browser <span class="tag">4.5.0</span></h1>
+  <p class="muted">Static mock-up of what you see in Revit. Model name, worksets, owners and counts are sample data.</p>
+  <ul>
+    <li><b>Open / Close Worksets…</b> <span class="tag">New</span> opens Revit's own Worksets dialog. Revit's API cannot open or close a workset in a model that is already open, so you do it there.</li>
+    <li><b>Reload</b> <span class="tag">New</span> reads the worksets and elements again afterwards. Checks are cleared.</li>
+  </ul>
+</header>
+
+<section>
+  <h2>Tool window</h2>
+  <div class="frame">
+    <div class="win">
+      <div class="title"><span>Worksets &amp; Elements Browser v4.5.0</span><span>— ☐ ✕</span></div>
+      <div class="head"><span><b>Worksets &amp; Elements Browser</b><small>Sample_Tower_A</small></span><span>v4.5.0</span></div>
+      <div class="body">
+        <div class="metrics">
+          <div class="metric"><span>Model</span>4 worksets · 6 categories · 14 types · 2,318 elements</div>
+          <div class="metric"><span>Checked</span><b class="acc">2 rows checked · 164 elements</b></div>
+        </div>
+        <div class="toolbar">
+          <span class="search">Filter worksets, categories, types…</span>
+          <span class="sb">Expand All</span><span class="sb">Collapse All</span>
+          <span class="sep"></span>
+          <span class="muted" style="font-size:12.5px">Group by</span><span class="combo">Category › Type <span>▾</span></span>
+          <span class="sep"></span>
+          <span class="sb">Check All</span><span class="sb">Check Filtered</span><span class="sb">Clear Checks</span>
+          <span class="sep"></span>
+          <span class="lbl"><span class="chk"></span>Hide Empty Worksets</span>
+          <span class="sep"></span>
+          <span class="sb new">Open / Close Worksets…</span><span class="tag">New</span>
+          <span class="sb new">Reload</span><span class="tag">New</span>
+        </div>
+        <div class="tree">
+          <div class="r"><span>▾</span><span class="chk"></span><span class="ws">A-Envelope</span><span class="pill">editable</span><span class="cnt">842 elements</span><span class="cnt">user.one</span></div>
+          <div class="r l1"><span>▾</span><span class="chk"></span><span>Walls</span><span class="cnt">164 elements</span><span class="sb">Select</span><span class="sb">Show in 3D</span></div>
+          <div class="r l2"><span class="chk"></span><span class="ty">Basic Wall: Ext 300</span><span class="cnt">96 elements</span><span class="sb">Select</span><span class="sb">Show in 3D</span></div>
+          <div class="r l2"><span class="chk"></span><span class="ty">Curtain Wall: Storefront</span><span class="cnt">68 elements</span><span class="sb">Select</span><span class="sb">Show in 3D</span></div>
+          <div class="r l1"><span>▸</span><span class="chk off"></span><span>Roofs</span><span class="cnt">12 elements</span><span class="sb">Select</span><span class="sb">Show in 3D</span></div>
+          <div class="r"><span>▸</span><span class="chk off"></span><span class="ws">A-Interior</span><span class="pill">not editable</span><span class="cnt">1,104 elements</span><span class="cnt">user.two</span></div>
+          <div class="r"><span>▸</span><span class="chk off"></span><span class="ws">S-Structure</span><span class="pill">not editable</span><span class="cnt">372 elements</span></div>
+        </div>
+      </div>
+      <div class="foot">
+        <div><span class="btn">Isolate Checked</span><span class="btn">Select Checked</span><span class="btn">Isolate + Select Checked</span><span class="btn">Save as Selection Set…</span></div>
+        <div><span class="btn p">Show Checked In 3D</span><span class="btn">Close</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>Button tooltips <span class="tag">New</span></h2>
+  <div class="stack">
+    <div class="frame"><div class="tip">Open Revit's Worksets dialog to open or close worksets. Press Reload afterwards.</div></div>
+    <div class="frame"><div class="tip">Read the worksets and elements from the model again (checks are cleared)</div></div>
+  </div>
+</section>
+
+<section>
+  <h2>When the dialog cannot be opened <span class="tag">New</span></h2>
+  <div class="stack">
+    <div class="frame"><div class="dlg"><div class="h">Worksets &amp; Elements Browser</div>
+      <div class="c">Could not open the Worksets dialog: This model is not workshared, so it has no worksets to open or close.</div>
+      <div class="f"><span>Close</span></div></div></div>
+    <p class="muted">Other messages: “Make "Sample_Tower_A" the active model first, then try again.” and “Revit cannot open the Worksets dialog right now. Finish the current command and try again.”</p>
+  </div>
+</section>
+</main>

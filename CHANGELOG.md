@@ -9,6 +9,16 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.44.0] — 2026-11-10
+
+### Worksets & Elements Browser 4.5.0
+
+#### Added
+- **Open / Close Worksets…** (toolbar): opens Revit's own Worksets dialog, where you open and close worksets. Revit has no API to open or close a workset in a model that is already open, so the browser hands over to Revit's dialog. The button says why when the model is not workshared, is not the active model, or another command is running.
+- **Reload** (toolbar): reads the worksets and elements from the model again, for example after opening or closing worksets. Checks are cleared.
+
+User note: nothing existing changed. The browser stays open while Revit's Worksets dialog is shown; press Reload afterwards.
+
 ## [6.43.0] — 2026-11-10
 
 ### Align Spot Elevations 1.8.0
