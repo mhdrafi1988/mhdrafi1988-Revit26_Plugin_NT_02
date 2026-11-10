@@ -43,7 +43,7 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 | Rafi_Pro_Docs | Floor Views | Floor Around Edges · Floor Edge Element · Floor Focus |
 | Rafi_Pro_Docs | View Place | Place Sections · Callout To Section · Head Placer · View Tagger |
 | Rafi_Pro_Docs | View Rename | Bubble Renumber · Section Renamer · Auto Renamer |
-| Rafi_Pro_Docs2 | Tagging | Tag To Text · Align Spot Elevations · Align to Detail Line · Quick Align split buttons: Vertical · Horizontal · to Tag (each lists tags, ends, bends) |
+| Rafi_Pro_Docs2 | Tagging | Tag To Text · Align Spot Elevations · Align to Detail Line · Distribute Spot Elev. · Quick Align split buttons: Vertical · Horizontal · to Tag (each lists tags, ends, bends) · Quick Distribute split buttons: Vertical · Horizontal (each lists tags, ends, bends) |
 | Rafi_Pro_Docs | Sheet Create | Scope Box · Sheet Placer · Section Placer · Sections To Sheet ▸ slide-out: Rearrange · Arrange Views |
 | Rafi_Pro_Docs | Sheet Edit | Text Replace |
 | Rafi_Pro_Docs2 | DWG Tools | DWG To DL(P) · Export DWG · DWG Manager · DWG Statistics |
@@ -130,6 +130,8 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 - **Tag To Text**: copy spot elevations, coordinates, slopes and tags into text notes with leaders.
 - **Align Spot Elevations**: line spot elevation tags up in a column or row, onto detail lines, or with the end or
   bend point of a tag you click. The Quick Align buttons do it in one click with the last-used settings.
+  **Distribute Spot Elev.** spaces them evenly or at a fixed gap along their column or row; the Quick Distribute
+  buttons do that in one click.
 
 ### Sheets
 - **Plan From Scope Box, Smart View To Sheet Placer, Automated Section Placer, Sections To Sheet**: create plans and

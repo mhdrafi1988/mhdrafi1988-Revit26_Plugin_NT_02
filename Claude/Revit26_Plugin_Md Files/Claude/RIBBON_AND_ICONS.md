@@ -58,7 +58,7 @@ Each item is a pulldown unless marked *button*. A pulldown lists its versions hi
 | Rafi_Pro_Docs | Floor Views | Floor Around Edges *button* · Floor Edge Element *button* · Floor Focus *button* — each V001 | `FloorToolsRibbon.BuildViewsPanel` (called from `ViewToolsRibbon`) |
 | Rafi_Pro_Docs | View Place | Place Sections · Callout To Section · Head Placer · View Tagger | `ViewToolsRibbon` |
 | Rafi_Pro_Docs | View Rename | Bubble Renumber · Section Renamer · Auto Renamer | `ViewToolsRibbon` |
-| Rafi_Pro_Docs2 | Tagging | Tag To Text, Align Spot Elevations, Align to Detail Line (large *buttons*) · 3 small *split buttons* (last used item runs, kept across restarts): Quick Align Vertical ▾ (tags / ends / bends) · Quick Align Horizontal ▾ (tags / ends / bends) · Quick Align to Tag ▾ (ends / bends) | `TaggingRibbon` |
+| Rafi_Pro_Docs2 | Tagging | Tag To Text, Align Spot Elevations, Align to Detail Line, Distribute Spot Elev. (large *buttons*) · 3 small *split buttons* (last used item runs, kept across restarts): Quick Align Vertical ▾ (tags / ends / bends) · Quick Align Horizontal ▾ (tags / ends / bends) · Quick Align to Tag ▾ (ends / bends) · 2 small *split buttons* (same memory): Quick Distribute Vertical ▾ (tags / ends / bends) · Quick Distribute Horizontal ▾ (tags / ends / bends) | `TaggingRibbon` |
 | Rafi_Pro_Docs | Sheet Create | Scope Box · Sheet Placer · Section Placer · Sections To Sheet *button* ▸ Rearrange · Arrange Views *button* | `SheetToolsRibbon` |
 | Rafi_Pro_Docs | Sheet Edit | Text Replace *button* (large) | `SheetToolsRibbon` |
 | Rafi_Pro_Docs2 | DWG Tools | DWG To DL(P) · Export DWG · DWG Manager · DWG Statistics | `SetupRibbon` |
@@ -73,7 +73,7 @@ Builder, Roof Tag, Point Comparison and Elevation Sync) after Floor Lines. 6.35.
 Ridge By Points and Creaser Adv) after Floor Points. 6.34.0 added the **Floor Points** panel (floor versions of
 the Shape Points tools) after Shape Points. Before it, 6.33.0 added the floor Ridge, Multi Copies and Points & Slope tools to the
 **Floor Slope** panel (By Point became a pulldown, as on Roof Slope). 6.32.0 added Quick Align Ends / Bends to Tag to
-the Tagging panel. When you change the ribbon, update the
+the Tagging panel; 6.43.0 added Distribute Spot Elev. and the two Quick Distribute split buttons there. When you change the ribbon, update the
 tables above, `README.md` (Ribbon section) and the tool's UI preview (root `CLAUDE.md`, UI previews).
 
 ## Adding a new icon
@@ -157,7 +157,7 @@ agreement** on which panel and which tools go inside it (root `CLAUDE.md`, Slide
 Points, View Create, Sheet Create, Manage, Worksets.
 
 **Large buttons:** `panel.AddItem(...)` gives a full-size button. Use it deliberately and set `LargeImage`. Current
-uses: Tagging (Tag To Text, Align Spot Elevations, Align to Detail Line), Memory (WS Memory, Link Memory), Detail
+uses: Tagging (Tag To Text, Align Spot Elevations, Align to Detail Line, Distribute Spot Elev.), Memory (WS Memory, Link Memory), Detail
 Lines (Line Manager), Plan View (Island Splitter) and Sheet Edit (Text Replace).
 
 ## Panel layout — keep the tabs narrow

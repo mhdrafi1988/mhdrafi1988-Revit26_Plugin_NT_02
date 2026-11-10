@@ -99,7 +99,7 @@ namespace Revit26_Plugin_Revised.Shared.Services
         public static readonly ToolInfo FloorCreaser = Add("Floor Creaser", "1.1.0", "V001", "Revit26_Plugin_Revised.FloorCreaser.V001");
         public static readonly ToolInfo RoofTag = Add("Roof Tag", "18.2.0", "V018", "Revit26_Plugin_Revised.RoofTag.V018");
         public static readonly ToolInfo TagToText = Add("Tag To Text", "1.4.0", "V001", "Revit26_Plugin_Revised.TagToText.V001");
-        public static readonly ToolInfo AlignSpotElevations = Add("Align Spot Elevations", "1.7.1", "V001", "Revit26_Plugin_Revised.AlignSpotElevations.V001");
+        public static readonly ToolInfo AlignSpotElevations = Add("Align Spot Elevations", "1.8.0", "V001", "Revit26_Plugin_Revised.AlignSpotElevations.V001");
         // Source not in the repository; removed from the ribbon in plugin 3.10.0. Kept so logs stay readable.
         public static readonly ToolInfo RoofFromDetailLines = Add("Roof From Detail Lines", "9.0.0", "V009", "Revit26_Plugin_Revised.RoofFromDetailLines.V009");
         public static readonly ToolInfo CombinedRoofTools = Add("Combined Roof Tools", "3.2.0", "V003", "Revit26_Plugin_Revised.CombinedRoofTools.V003");
