@@ -52,13 +52,30 @@ namespace Revit26_Plugin_Revised.MergeRoofs.V001.UI.ViewModels
         [ObservableProperty] private string _status = "";
         [ObservableProperty, NotifyCanExecuteChangedFor(nameof(CreateCommand))] private bool _checked;
         [ObservableProperty, NotifyCanExecuteChangedFor(nameof(CreateCommand))] private bool _created;
+        [ObservableProperty, NotifyCanExecuteChangedFor(nameof(CheckCommand)), NotifyCanExecuteChangedFor(nameof(CreateCommand)), NotifyCanExecuteChangedFor(nameof(CancelRunCommand))]
+        private bool _isRunning;
 
-        /// <summary>Analyses the roofs with the current tolerance.</summary>
-        [RelayCommand]
+        private const string CancelledText = "Cancelled by user. Nothing was changed.";
+
+        /// <summary>Analyses the roofs with the current tolerance. Esc or Cancel run asks to stop it.</summary>
+        [RelayCommand(CanExecute = nameof(CanStart))]
         private void Check()
         {
             if (!(ToleranceMm >= 0 && ToleranceMm <= 1000)) { Status = "Gap tolerance must be between 0 and 1000 mm."; return; }
-            _result = MergeAnalyzer.Analyze(_footprints, ToleranceMm / MergeSettings.MmPerFoot);
+            IsRunning = true;
+            Status = "Checking… press Esc or Cancel run to stop.";
+            try
+            {
+                using var cancel = ToolCancellation.BeginFor(ToolCatalog.MergeRoofs, _uidoc.Application);
+                _result = MergeAnalyzer.Analyze(_footprints, ToleranceMm / MergeSettings.MmPerFoot, ToolCancellation.CheckCurrent);
+            }
+            catch (OperationCanceledException)
+            {
+                Status = CancelledText;
+                return;
+            }
+            finally { IsRunning = false; }
+
             Issues.Clear();
             foreach (var i in _result.Issues) Issues.Add($"{i.Kind}: {i.Message}");
             Status = _result.CanCreate
@@ -68,33 +85,59 @@ namespace Revit26_Plugin_Revised.MergeRoofs.V001.UI.ViewModels
             Created = false;
         }
 
-        /// <summary>Creates the merged roof, or runs the failure prompts.</summary>
+        /// <summary>Creates the merged roof, or runs the failure prompts. Esc or Cancel run undoes everything this run did.</summary>
         [RelayCommand(CanExecute = nameof(CanCreateRoof))]
         private void Create()
         {
             var result = _result!;
             SaveSettings();
             if (!result.CanCreate) { OfferMarkup(result, null); return; }
+
+            string? error = null;
+            IsRunning = true;
+            Status = "Creating the roof… press Esc or Cancel run to stop.";
             try
             {
-                var (roof, usedArcs) = RoofBuilder.Create(_uidoc.Document, _roofs[0], result, _footprints, ToleranceMm / MergeSettings.MmPerFoot);
-                Status = $"Created roof {roof.Id} ({(usedArcs ? "arcs kept" : "arcs flattened to segments")}). The original roofs were kept.";
-                Created = true;
-                if (PlaceGapLinks && result.GapLinks.Count > 0) DrawGapLinks(result);
+                using var cancel = ToolCancellation.BeginFor(ToolCatalog.MergeRoofs, _uidoc.Application);
+                Document doc = _uidoc.Document;
+                using var group = new TransactionGroup(doc, "Merge roofs");
+                group.Start();
+                try
+                {
+                    var (roof, usedArcs) = RoofBuilder.Create(doc, _roofs[0], result, _footprints,
+                        ToleranceMm / MergeSettings.MmPerFoot, ToolCancellation.CheckCurrent);
+                    string gap = "";
+                    if (PlaceGapLinks && result.GapLinks.Count > 0)
+                    {
+                        try { DetailDrawer.DrawGapLinks(doc, _uidoc.ActiveGraphicalView, result.GapLinks, ToolCancellation.CheckCurrent); }
+                        catch (Exception ex) when (ex is not OperationCanceledException) { gap = "  Gap links not placed: " + ex.Message; }
+                    }
+                    group.Assimilate();
+                    Status = $"Created roof {roof.Id} ({(usedArcs ? "arcs kept" : "arcs flattened to segments")}). The original roofs were kept." + gap;
+                    Created = true;
+                }
+                catch (OperationCanceledException)
+                {
+                    if (group.HasStarted() && !group.HasEnded()) group.RollBack();
+                    Status = CancelledText;
+                }
+                catch (Exception ex)
+                {
+                    if (group.HasStarted() && !group.HasEnded()) group.RollBack();
+                    error = ex.Message;
+                }
             }
-            catch (Exception ex)
-            {
-                OfferMarkup(result, ex.Message);
-            }
+            finally { IsRunning = false; }
+
+            if (error != null) OfferMarkup(result, error);
         }
 
-        private bool CanCreateRoof() => Checked && !Created;
+        /// <summary>Asks the running Check or Create to cancel (same as pressing Esc).</summary>
+        [RelayCommand(CanExecute = nameof(IsRunning))]
+        private void CancelRun() => ToolCancellation.RequestFor(ToolCatalog.MergeRoofs);
 
-        private void DrawGapLinks(MergeResult result)
-        {
-            try { DetailDrawer.DrawGapLinks(_uidoc.Document, _uidoc.ActiveGraphicalView, result.GapLinks); }
-            catch (Exception ex) { Status += "  Gap links not placed: " + ex.Message; }
-        }
+        private bool CanStart() => !IsRunning;
+        private bool CanCreateRoof() => Checked && !Created && !IsRunning;
 
         private void OfferMarkup(MergeResult result, string? revitError)
         {
@@ -102,16 +145,24 @@ namespace Revit26_Plugin_Revised.MergeRoofs.V001.UI.ViewModels
             View view = _uidoc.ActiveGraphicalView;
             if (Ask("Place the profile as detail lines in the current view?",
                     "The merged outline is drawn so you can inspect it. No roof is created."))
-                Try(() => DetailDrawer.DrawProfile(_uidoc.Document, view, result), "Profile lines");
+                Try(check => DetailDrawer.DrawProfile(_uidoc.Document, view, result, check), "Profile lines");
             var located = result.Issues.Where(i => i.Kind != IssueKind.Gap).ToList();
             if (located.Count > 0 && Ask("Mark issue areas with circles?", $"{located.Count} circle(s) will be drawn at the problem areas."))
-                Try(() => DetailDrawer.DrawCircles(_uidoc.Document, view, located), "Circles");
+                Try(check => DetailDrawer.DrawCircles(_uidoc.Document, view, located, check), "Circles");
         }
 
-        private void Try(Action draw, string what)
+        private void Try(Action<Action> draw, string what)
         {
-            try { draw(); Status += $"  {what} placed."; }
+            IsRunning = true;
+            try
+            {
+                using var cancel = ToolCancellation.BeginFor(ToolCatalog.MergeRoofs, _uidoc.Application);
+                draw(ToolCancellation.CheckCurrent);
+                Status += $"  {what} placed.";
+            }
+            catch (OperationCanceledException) { Status += $"  {what} cancelled; nothing placed."; }
             catch (Exception ex) { Status += $"  {what} not placed: {ex.Message}"; }
+            finally { IsRunning = false; }
         }
 
         private static bool Ask(string title, string detail)
