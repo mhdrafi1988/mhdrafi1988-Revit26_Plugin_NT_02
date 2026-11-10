@@ -14,9 +14,11 @@ Each release lists every tool whose version changed, under the plugin version.
 ### Align Spot Elevations 1.7.1
 
 #### Changed
-- Tagging panel: the eight Quick Align buttons are now three small split buttons: **Quick Align Vertical** (tags, ends, bends), **Quick Align Horizontal** (tags, ends, bends) and **Quick Align to Tag** (ends, bends). The main click runs the item used last; the arrow lists the others. The commands themselves are unchanged.
+- Tagging panel: the eight Quick Align buttons are now three small split buttons: **Quick Align Vertical** (tags, ends, bends), **Quick Align Horizontal** (tags, ends, bends) and **Quick Align to Tag** (ends, bends). The main click runs the item used last (kept across restarts); the arrow lists the others. The commands themselves are unchanged.
 
-User note: the quick-align buttons moved into the arrows. The split buttons remember your last pick until you close Revit and start on the first item again after a restart.
+- The split buttons remember the last item you used, also after Revit restarts (saved in `%AppData%\Revit26_Plugin_Revised\AlignSpotElevations\quicksplit.json`; versioned, and a missing or unreadable file just starts on the first item).
+
+User note: the quick-align buttons moved into the arrows. Until you pick an item, each split button runs its first one.
 
 ## [6.41.0] — 2026-11-09
 

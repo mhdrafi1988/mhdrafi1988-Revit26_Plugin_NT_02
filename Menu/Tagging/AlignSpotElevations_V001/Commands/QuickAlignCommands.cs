@@ -134,7 +134,11 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Commands
         /// <summary>Revit entry point — delegates to <see cref="ToolGuard.RunCommand"/>.</summary>
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
             => ToolGuard.RunCommand(GetType(), commandData, ref message, elements,
-                (ExternalCommandData d, ref string m, ElementSet e) => QuickAlign.Run(d, AlignDirection.Vertical));
+                (ExternalCommandData d, ref string m, ElementSet e) =>
+                {
+                    QuickSplitMemory.Remember(QuickSplitMemory.SplitVertical, "Btn_AlignSpotElevations_QuickVertical_V001");
+                    return QuickAlign.Run(d, AlignDirection.Vertical);
+                });
     }
 
     /// <summary>Quick Align Horizontal: lines the selected spot elevation tags up in one row, no window.</summary>
@@ -145,7 +149,11 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Commands
         /// <summary>Revit entry point — delegates to <see cref="ToolGuard.RunCommand"/>.</summary>
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
             => ToolGuard.RunCommand(GetType(), commandData, ref message, elements,
-                (ExternalCommandData d, ref string m, ElementSet e) => QuickAlign.Run(d, AlignDirection.Horizontal));
+                (ExternalCommandData d, ref string m, ElementSet e) =>
+                {
+                    QuickSplitMemory.Remember(QuickSplitMemory.SplitHorizontal, "Btn_AlignSpotElevations_QuickHorizontal_V001");
+                    return QuickAlign.Run(d, AlignDirection.Horizontal);
+                });
     }
 
     /// <summary>Quick Align Ends Vertical: lines the selected leader end points up in one column, no window.</summary>
@@ -156,7 +164,11 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Commands
         /// <summary>Revit entry point — delegates to <see cref="ToolGuard.RunCommand"/>.</summary>
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
             => ToolGuard.RunCommand(GetType(), commandData, ref message, elements,
-                (ExternalCommandData d, ref string m, ElementSet e) => QuickAlign.Run(d, AlignDirection.Vertical, SpotPart.LeaderEnd));
+                (ExternalCommandData d, ref string m, ElementSet e) =>
+                {
+                    QuickSplitMemory.Remember(QuickSplitMemory.SplitVertical, "Btn_AlignSpotElevations_QuickEndsVertical_V001");
+                    return QuickAlign.Run(d, AlignDirection.Vertical, SpotPart.LeaderEnd);
+                });
     }
 
     /// <summary>Quick Align Ends Horizontal: lines the selected leader end points up in one row, no window.</summary>
@@ -167,7 +179,11 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Commands
         /// <summary>Revit entry point — delegates to <see cref="ToolGuard.RunCommand"/>.</summary>
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
             => ToolGuard.RunCommand(GetType(), commandData, ref message, elements,
-                (ExternalCommandData d, ref string m, ElementSet e) => QuickAlign.Run(d, AlignDirection.Horizontal, SpotPart.LeaderEnd));
+                (ExternalCommandData d, ref string m, ElementSet e) =>
+                {
+                    QuickSplitMemory.Remember(QuickSplitMemory.SplitHorizontal, "Btn_AlignSpotElevations_QuickEndsHorizontal_V001");
+                    return QuickAlign.Run(d, AlignDirection.Horizontal, SpotPart.LeaderEnd);
+                });
     }
 
     /// <summary>Quick Align Bends Vertical: lines the selected leader bend points up in one column, no window.</summary>
@@ -178,7 +194,11 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Commands
         /// <summary>Revit entry point — delegates to <see cref="ToolGuard.RunCommand"/>.</summary>
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
             => ToolGuard.RunCommand(GetType(), commandData, ref message, elements,
-                (ExternalCommandData d, ref string m, ElementSet e) => QuickAlign.Run(d, AlignDirection.Vertical, SpotPart.LeaderShoulder));
+                (ExternalCommandData d, ref string m, ElementSet e) =>
+                {
+                    QuickSplitMemory.Remember(QuickSplitMemory.SplitVertical, "Btn_AlignSpotElevations_QuickBendsVertical_V001");
+                    return QuickAlign.Run(d, AlignDirection.Vertical, SpotPart.LeaderShoulder);
+                });
     }
 
     /// <summary>Quick Align Bends Horizontal: lines the selected leader bend points up in one row, no window.</summary>
@@ -189,7 +209,11 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Commands
         /// <summary>Revit entry point — delegates to <see cref="ToolGuard.RunCommand"/>.</summary>
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
             => ToolGuard.RunCommand(GetType(), commandData, ref message, elements,
-                (ExternalCommandData d, ref string m, ElementSet e) => QuickAlign.Run(d, AlignDirection.Horizontal, SpotPart.LeaderShoulder));
+                (ExternalCommandData d, ref string m, ElementSet e) =>
+                {
+                    QuickSplitMemory.Remember(QuickSplitMemory.SplitHorizontal, "Btn_AlignSpotElevations_QuickBendsHorizontal_V001");
+                    return QuickAlign.Run(d, AlignDirection.Horizontal, SpotPart.LeaderShoulder);
+                });
     }
 
     /// <summary>Quick Align Ends to Tag: lines the selected leader end points up with the end point of a clicked tag, no window.</summary>
@@ -200,7 +224,11 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Commands
         /// <summary>Revit entry point — delegates to <see cref="ToolGuard.RunCommand"/>.</summary>
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
             => ToolGuard.RunCommand(GetType(), commandData, ref message, elements,
-                (ExternalCommandData d, ref string m, ElementSet e) => QuickAlign.RunToTag(d, SpotPart.LeaderEnd));
+                (ExternalCommandData d, ref string m, ElementSet e) =>
+                {
+                    QuickSplitMemory.Remember(QuickSplitMemory.SplitToTag, "Btn_AlignSpotElevations_QuickEndsToTag_V001");
+                    return QuickAlign.RunToTag(d, SpotPart.LeaderEnd);
+                });
     }
 
     /// <summary>Quick Align Bends to Tag: lines the selected leader bend points up with the bend point of a clicked tag, no window.</summary>
@@ -211,6 +239,10 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Commands
         /// <summary>Revit entry point — delegates to <see cref="ToolGuard.RunCommand"/>.</summary>
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
             => ToolGuard.RunCommand(GetType(), commandData, ref message, elements,
-                (ExternalCommandData d, ref string m, ElementSet e) => QuickAlign.RunToTag(d, SpotPart.LeaderShoulder));
+                (ExternalCommandData d, ref string m, ElementSet e) =>
+                {
+                    QuickSplitMemory.Remember(QuickSplitMemory.SplitToTag, "Btn_AlignSpotElevations_QuickBendsToTag_V001");
+                    return QuickAlign.RunToTag(d, SpotPart.LeaderShoulder);
+                });
     }
 }

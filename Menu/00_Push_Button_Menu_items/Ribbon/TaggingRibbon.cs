@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Autodesk.Revit.UI;
+using Revit26_Plugin_Revised.AlignSpotElevations.V001.Infrastructure;
 using Revit26_Plugin_Revised.Resources.Icons;
 using Revit26_Plugin_Revised.Shared.Services;
 
@@ -104,11 +105,11 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                 "one spot elevation you click, right away. The leader end and text move with each bend. Uses the " +
                 "line direction (vertical or horizontal) last used in the window. One Undo step.");
 
-            var splitVertical = QuickSplit("Split_AlignSpotElevations_QuickVertical", "Quick Align Vertical", quickVertical,
+            var splitVertical = QuickSplit(QuickSplitMemory.SplitVertical, "Quick Align Vertical", quickVertical,
                 "Quick align in one column: tags, leader ends or leader bends. The button runs the one you used last.");
-            var splitHorizontal = QuickSplit("Split_AlignSpotElevations_QuickHorizontal", "Quick Align Horizontal", quickHorizontal,
+            var splitHorizontal = QuickSplit(QuickSplitMemory.SplitHorizontal, "Quick Align Horizontal", quickHorizontal,
                 "Quick align in one row: tags, leader ends or leader bends. The button runs the one you used last.");
-            var splitToTag = QuickSplit("Split_AlignSpotElevations_QuickToTag", "Quick Align to Tag", endsToTag,
+            var splitToTag = QuickSplit(QuickSplitMemory.SplitToTag, "Quick Align to Tag", endsToTag,
                 "Quick align to a spot elevation you click: leader ends or leader bends. The button runs the one you used last.");
 
             IList<RibbonItem> created = RibbonLayoutHelper.AddStackedButtons(panel,
@@ -127,13 +128,18 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                 ToolTip = ToolCatalog.AlignSpotElevations.Tip(tip)
             };
 
-        /// <summary>Adds <paramref name="items"/> to the split button called <paramref name="name"/>; the first stays the default until another is used (Revit remembers the last used item for the session).</summary>
+        /// <summary>Adds <paramref name="items"/> to the split button called <paramref name="name"/>; the item used last (saved in <see cref="QuickSplitMemory"/>) becomes the current one, else the first stays the default.</summary>
         private static void AddSplitItems(IList<RibbonItem> created, string name, params PushButtonData[] items)
         {
             var split = created.OfType<SplitButton>().FirstOrDefault(s => s.Name == name);
             if (split == null) return;
-            foreach (var item in items) split.AddPushButton(item);
+            var added = items.Select(split.AddPushButton).ToList();
             split.IsSynchronizedWithCurrentItem = true;
+
+            // Start on the item used last, also across Revit restarts (see QuickSplitMemory).
+            string last = QuickSplitMemory.GetLast(name);
+            PushButton remembered = last == null ? null : added.FirstOrDefault(b => b.Name == last);
+            if (remembered != null) split.CurrentButton = remembered;
         }
 
         /// <summary>One small quick-align button for a leader part of Align Spot Elevations.</summary>
