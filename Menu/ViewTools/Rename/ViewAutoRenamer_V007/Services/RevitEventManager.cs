@@ -29,10 +29,27 @@ public static class RevitEventManager
         _event!.Raise();
     }
 
-    /// <summary>Asks Revit to load every remaining view into <paramref name="vm"/>.</summary>
-    public static void RequestLoadAll(ViewsListViewModel vm)
+    /// <summary>
+    /// Asks Revit to load views into <paramref name="vm"/>: every remaining view, or only the
+    /// view-type groups in <paramref name="groups"/>.
+    /// </summary>
+    public static void RequestLoadAll(ViewsListViewModel vm, HashSet<Models.ViewTypeGroup>? groups = null)
     {
         _loadHandler!.Vm = vm;
+        _loadHandler.InitialSheetLoad = false;
+        _loadHandler.Groups = groups;
+        _loadEvent!.Raise();
+    }
+
+    /// <summary>
+    /// Asks Revit to load the current sheet's views into <paramref name="vm"/>. Raised by the
+    /// command right after the window is shown, so the window appears before any view is read.
+    /// </summary>
+    public static void RequestInitialLoad(ViewsListViewModel vm)
+    {
+        _loadHandler!.Vm = vm;
+        _loadHandler.InitialSheetLoad = true;
+        _loadHandler.Groups = null;
         _loadEvent!.Raise();
     }
 }

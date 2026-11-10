@@ -9,7 +9,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
     {
         // View Tools buttons with several versions are pulldowns: highest version number
         // first, every older version below it in descending order (latest two versions).
-        // A tool with one version (View Auto Renamer) is a plain button.
+        // A tool with one version (the three View Rename tools) is a plain button.
         private const string Icons = "Revit26_Plugin_Revised.Resources.Icons.ViewTools.";
         private const string Rebuilt = " with the standard three-zone window layout.";
         private const string OnShell = " on the shared ToolWindowShell (log in body, capped grids).";
@@ -110,33 +110,34 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
 
             RibbonPanel renamePanel = app.CreateRibbonPanel(tabName, "View Rename");
 
-            var bubbleV007 = Btn(assemblyPath, "Btn_BubbleAutoRenumber_V007", "Bubble Renumber V007", "Revit26_Plugin_Revised.BubbleAutoRenumber.V007.Commands.SectionAutoRenumberCommand",
-                "BubbleAutoRenumber_16.png", "Bubble Auto Renumber", "V007", "V006" + Rebuilt);
-            var bubbleV008 = Btn(assemblyPath, "Btn_BubbleAutoRenumber_V008", "Bubble Renumber V008", "Revit26_Plugin_Revised.BubbleAutoRenumber.V008.Commands.SectionAutoRenumberCommand",
-                "BubbleAutoRenumber_16.png", "Bubble Auto Renumber", "V008", "V007" + OnShell);
-            var bubbleV009 = Btn(assemblyPath, "Btn_BubbleAutoRenumber_V009", "Bubble Renumber V009", "Revit26_Plugin_Revised.BubbleAutoRenumber.V009.Commands.BubbleAutoRenumberCommand",
-                "BubbleAutoRenumber_16.png", "Bubble Auto Renumber", "V009", "V008 with the bubble renumber command renamed.");
-            var sectionRenamerV025 = Btn(assemblyPath, "Btn_SectionAutoRenamer_V025", "Section Renamer V025", "Revit26_Plugin_Revised.SectionAutoRenamer.V025.Commands.OpenSectionManagerCommand",
-                "SectionAutoRenamer_16.png", "Section Auto Renamer", "V025", "V024" + Rebuilt);
-            var sectionRenamerV026 = Btn(assemblyPath, "Btn_SectionAutoRenamer_V026", "Section Renamer V026", "Revit26_Plugin_Revised.SectionAutoRenamer.V026.Commands.OpenSectionManagerCommand",
-                "SectionAutoRenamer_16.png", "Section Auto Renamer", "V026", "V025" + OnShell);
-            // One version only (V005 and V006 were removed in plugin 7.0.0), so a plain button, not a dropdown.
+            // The three View Rename tools have one version each (older versions were removed in
+            // plugin 7.0.0), so they are plain buttons, not dropdowns.
+            var bubbleRenumber = new PushButtonData("Btn_BubbleAutoRenumber_V009", "Bubble Renumber", assemblyPath,
+                "Revit26_Plugin_Revised.BubbleAutoRenumber.V009.Commands.BubbleAutoRenumberCommand")
+            {
+                Image = ImageUtils.Load(Icons + "BubbleAutoRenumber_16.png"),
+                ToolTip = ToolCatalog.BubbleAutoRenumberV009.Tip("Renumbers section and callout bubbles in one run.")
+            };
+            var sectionRenamer = new PushButtonData("Btn_SectionAutoRenamer_V026", "Section Renamer", assemblyPath,
+                "Revit26_Plugin_Revised.SectionAutoRenamer.V026.Commands.OpenSectionManagerCommand")
+            {
+                Image = ImageUtils.Load(Icons + "SectionAutoRenamer_16.png"),
+                ToolTip = ToolCatalog.SectionAutoRenamer.Tip("Batch rename section views.")
+            };
             var autoRenamer = new PushButtonData("Btn_ViewAutoRenamer_V007", "Auto Renamer", assemblyPath,
                 "Revit26_Plugin_Revised.ViewAutoRenamer.V007.Commands.OpenViewAutoRenamerCommand")
             {
                 Image = ImageUtils.Load(Icons + "ViewAutoRenamer_V004_16.png"),
                 ToolTip = ToolCatalog.ViewAutoRenamerV007.Tip(
-                    "Batch rename views: prefix, find/replace, standardize.\nOpens with the current sheet's views; \"Load all views\" brings in the rest of the project.")
+                    "Batch rename views: prefix, find/replace, standardize.\nOpens with the current sheet's views; \"Load all views\" or \"Load by type\" brings in the rest of the project.")
             };
 
-            var renameItems = RibbonLayoutHelper.AddStackedButtons(renamePanel, new List<RibbonItemData>
+            RibbonLayoutHelper.AddStackedButtons(renamePanel, new List<RibbonItemData>
             {
-                RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_BubbleAutoRenumber", "Bubble Renumber", bubbleV009),
-                RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_SectionAutoRenamer", "Section Renamer", sectionRenamerV026),
+                bubbleRenumber,
+                sectionRenamer,
                 autoRenamer,
             });
-            RibbonLayoutHelper.WirePulldownButton(renameItems, "Pulldown_BubbleAutoRenumber", bubbleV009, bubbleV008, bubbleV007);
-            RibbonLayoutHelper.WirePulldownButton(renameItems, "Pulldown_SectionAutoRenamer", sectionRenamerV026, sectionRenamerV025);
         }
     }
 }

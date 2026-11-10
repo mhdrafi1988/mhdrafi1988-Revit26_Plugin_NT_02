@@ -11,31 +11,47 @@ Each release lists every tool whose version changed, under the plugin version.
 
 ## [7.0.0] — 2026-11-10
 
-### View Auto Renamer 7.3.0 (V007)
+### View Auto Renamer 7.4.0 (V007)
+
+#### Added
+- **Load by type:** a new **Load by type** button next to **Load all views** opens a list of the nine view types
+  (Sections & Callouts, Floor Plans, … Schedules). Tick the ones you want and click **Load ticked types**; only those
+  views are read from the project. Types already loaded show "loaded". Loading only sections, plans, drafting views or
+  schedules skips the other views entirely; Legends have no class of their own in Revit, so loading them reads all views.
+- The log shows how long each load took, for example `Loaded 1,204 more views (Sections & Callouts) in 0.4 s`.
 
 #### Changed
-- **Faster loading.** Opening on a sheet and **Load all views** both do less work in Revit:
-  - Sheet number and detail number are read once from the viewports, instead of two parameter reads on every view.
-    Views that are not on a sheet now cost no parameter reads at all.
-  - Each view's type is read once instead of four times.
-  - The current sheet is found by a sheet-number filter inside Revit instead of reading every sheet in the project.
-  - Schedules on the current sheet are found without a sheet-scoped search (which made Revit work out everything
-    visible on the sheet first).
-  - **Load all views** adds all rows to the grid in one step instead of one grid update per view, and rebuilds the
-    grid once instead of three times.
+- **The window opens first.** It appears at once and the current sheet's views fill in right after, instead of the
+  window waiting for them.
+- **Grouped list:** the views are listed under a header per view type (with a count), in the same order as the filter
+  popover. A new **Group by type** checkbox in the filter bar turns the grouping off; the choice is saved.
+- **Taller list:** the view list is twice as tall (minimum 320 px instead of 160, and up to 1.1 × the window height
+  instead of 0.55). A long list scrolls with the window body.
+- **Log minimised:** the log opens as one bar that shows the latest line and the line count. Click **Log** to expand it
+  (the Copy buttons appear then); it starts minimised on every open.
+- **Faster loading.** Sheet number and detail number are read once from the viewports instead of two parameter reads on
+  every view; each view's type is read once; the current sheet is found by a sheet-number filter inside Revit; schedules
+  on the current sheet are found without a sheet-scoped search. **Load all views** adds all rows in one step and
+  rebuilds the grid once.
 - **Faster selection.** The header check box, **Select all**, **Select none** and **Invert** update the counts and
-  previews once instead of once per row; ticking one row no longer recounts every row.
-- The log now shows how long loading took, for example `Loaded 4,812 more views in 1.4 s`.
-- View Rename panel: **Auto Renamer** is now a plain button (one version) instead of a dropdown.
+  previews once instead of once per row.
+
+### View Rename panel
+
+#### Changed
+- **Bubble Renumber**, **Section Renamer** and **Auto Renamer** are now plain buttons (one version each) instead of
+  dropdowns. Their tools are unchanged: Bubble Auto Renumber 9.2.0 (V009) and Section Auto Renamer 26.2.0 (V026).
 
 #### Removed
-- **View Auto Renamer V005 and V006** (ribbon buttons, code and the V006 catalog entry). V007 is the only version.
+- **View Auto Renamer V005 and V006**, **Section Auto Renamer V025**, **Bubble Auto Renumber V007 and V008**: ribbon
+  buttons, code, and the catalog entries of View Auto Renamer V006 and Bubble Auto Renumber V008.
 
-User note: V007 does everything V005 and V006 did and uses the same settings file
-(`%AppData%\Revit26_Plugin_Revised\ViewAutoRenamer\settings.json`), so nothing needs to be set up again. A keyboard
-shortcut assigned to the V005 or V006 button must be re-assigned to **Auto Renamer**. The plugin goes to 7.0.0 because
-tool versions were removed. A view counts as placed when it has a viewport on a sheet; the Sheet and Detail columns
-show the same values as before for placed views. If loading is still slow on your project, send the time from the log.
+User note: the remaining versions do everything the removed ones did and use the same settings files, so nothing needs
+to be set up again. A keyboard shortcut assigned to a removed button must be re-assigned to the remaining one. The
+plugin goes to 7.0.0 because tool versions were removed. In View Auto Renamer the grid is empty for a moment after the
+window opens, then shows the current sheet's views. The settings file gained a `Version` and a `GroupByViewType` field;
+older files load unchanged and start grouped. Clicking a column header sorts inside each group. If loading is still
+slow on your project, send the time from the log.
 
 ## [6.43.0] — 2026-11-10
 

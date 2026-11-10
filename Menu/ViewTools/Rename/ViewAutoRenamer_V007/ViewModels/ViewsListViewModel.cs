@@ -77,6 +77,27 @@ public partial class ViewTypeFilterGroup : ObservableObject
     partial void OnIsCheckedChanged(bool value) => SetAllRows(value);
 }
 
+/// <summary>One tick box in the "Load by type" list: a view-type group that can be loaded on its own.</summary>
+public partial class LoadTypeOption : ObservableObject
+{
+    /// <summary>The view-type group this row loads.</summary>
+    public ViewTypeGroup Group { get; }
+    /// <summary>Text shown next to the tick box, e.g. "Floor Plans".</summary>
+    public string Label { get; }
+
+    /// <summary>Ticked by the user to include the group in the next load.</summary>
+    [ObservableProperty] private bool isChecked;
+    /// <summary>True once the whole group has been loaded from the project.</summary>
+    [ObservableProperty] private bool isLoaded;
+
+    /// <summary>Creates the row for <paramref name="group"/>.</summary>
+    public LoadTypeOption(ViewTypeGroup group, string label)
+    {
+        Group = group;
+        Label = label;
+    }
+}
+
 /// <summary>ObservableCollection that can take many items with one change notification.</summary>
 public sealed class BulkObservableCollection<T> : ObservableCollection<T>
 {
@@ -154,6 +175,42 @@ public partial class ViewsListViewModel : ObservableObject
     [ObservableProperty] private double progress;
     [ObservableProperty] private string summaryText = "";
 
+    // ── Grid grouping and log panel (7.3.0) ──────────────────────────────────
+    /// <summary>True: the grid lists the views under a header per view-type group. On by default; saved in settings.</summary>
+    [ObservableProperty] private bool groupByViewType = true;
+
+    /// <summary>False (default): the log shows as one bar with the latest line. Not saved: every open starts minimised.</summary>
+    [ObservableProperty] private bool isLogExpanded;
+
+    /// <summary>The newest log line, shown in the bar while the log is minimised.</summary>
+    [ObservableProperty] private LogEntry? latestLog;
+
+    partial void OnGroupByViewTypeChanged(bool value) => ApplyGrouping();
+
+    /// <summary>Header text for a view-type group, e.g. "Floor Plans".</summary>
+    public static string GroupLabel(ViewTypeGroup group)
+    {
+        foreach (var (g, label) in GroupOrder)
+            if (g == group) return label;
+        return group.ToString();
+    }
+
+    // Groups the grid by ViewTypeGroup (the same buckets as the filter popover and the
+    // duplicate check), in the popover's order, or removes the grouping.
+    private void ApplyGrouping()
+    {
+        using (ViewsGrid.DeferRefresh())
+        {
+            ViewsGrid.GroupDescriptions.Clear();
+            if (!GroupByViewType) return;
+
+            var byGroup = new PropertyGroupDescription(nameof(ViewItemViewModel.TypeGroup));
+            // The group name is the enum value, declared in the same order as GroupOrder.
+            byGroup.SortDescriptions.Add(new SortDescription("Name", ListSortDirection.Ascending));
+            ViewsGrid.GroupDescriptions.Add(byGroup);
+        }
+    }
+
     // ── Cancellable run (Esc / Cancel button) ────────────────────────────────
     private ToolCancellation? _activeRun;
 
@@ -211,12 +268,21 @@ public partial class ViewsListViewModel : ObservableObject
     // 7.1.0: false until "Load all views" has brought in the rest of the project.
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(LoadAllViewsCommand))]
+    [NotifyCanExecuteChangedFor(nameof(LoadTickedTypesCommand))]
     private bool allViewsLoaded;
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(LoadAllViewsCommand))]
+    [NotifyCanExecuteChangedFor(nameof(LoadTickedTypesCommand))]
     private bool isLoadingViews;
 
-    private readonly string _activeSheetNumber;
+    private string _activeSheetNumber;
+    private ViewAutoRenamerSettings _openSettings = new();
+
+    // ── Load by type (7.4.0) ────────────────────────────────────────────────
+    /// <summary>The view-type groups offered in the "Load by type" list.</summary>
+    public ObservableCollection<LoadTypeOption> LoadTypeOptions { get; } = new();
+    /// <summary>True while the "Load by type" list is open.</summary>
+    [ObservableProperty] private bool isLoadTypePopupOpen;
     private readonly DispatcherTimer _previewTimer;
     private bool _suppressSelectionPreview;
 
@@ -230,8 +296,12 @@ public partial class ViewsListViewModel : ObservableObject
     /// <param name="activeSheetNumber">Sheet the tool was started on; empty when none.</param>
     /// <param name="allViewsLoaded">False while the rest of the project is still to be loaded.</param>
     /// <param name="loadTime">How long reading <paramref name="views"/> from Revit took; shown in the log.</param>
-    public ViewsListViewModel(IEnumerable<ViewItemViewModel> views, string activeSheetNumber, bool allViewsLoaded = true, TimeSpan? loadTime = null)
+    /// <param name="initialLoadPending">True when the window opens empty and <see cref="SetInitialViews"/> follows (7.4.0).</param>
+    public ViewsListViewModel(IEnumerable<ViewItemViewModel> views, string activeSheetNumber, bool allViewsLoaded = true, TimeSpan? loadTime = null, bool initialLoadPending = false)
     {
+        isLoadingViews = initialLoadPending;
+        foreach (var (group, label) in GroupOrder)
+            LoadTypeOptions.Add(new LoadTypeOption(group, label) { IsLoaded = allViewsLoaded });
         this.allViewsLoaded = allViewsLoaded;
         _activeSheetNumber = activeSheetNumber;
         _refreshTimer.Tick += (_, _) => { _refreshTimer.Stop(); ViewsGrid.Refresh(); RecalculateActiveFilterCount(); };
@@ -243,6 +313,7 @@ public partial class ViewsListViewModel : ObservableObject
 
         ViewsGrid        = CollectionViewSource.GetDefaultView(Views);
         ViewsGrid.Filter = PassesAllFilters;
+        Logs.CollectionChanged += (_, _) => LatestLog = Logs.Count > 0 ? Logs[^1] : null;
 
         BuildSheetFilters();
 
@@ -258,6 +329,7 @@ public partial class ViewsListViewModel : ObservableObject
         _previewTimer.Tick += (_, _) => { _previewTimer.Stop(); RunPreview(); };
 
         var settings = ViewAutoRenamerSettingsService.Load();
+        _openSettings = settings;
         BuildViewTypeFilterGroups(settings);
 
         ShowPlacedOnSheet          = settings.ShowPlacedOnSheet;
@@ -268,6 +340,8 @@ public partial class ViewsListViewModel : ObservableObject
         StandardizeEnabled         = settings.StandardizeEnabled;
         StandardizeCase            = settings.StandardizeCase;
         CleanWhitespacePunctuation = settings.CleanWhitespacePunctuation;
+        GroupByViewType            = settings.GroupByViewType;
+        ApplyGrouping(); // the setter above does not fire when the saved value equals the default
 
         SelectedSheetFilter =
             !string.IsNullOrWhiteSpace(activeSheetNumber) && SheetFilters.Contains(activeSheetNumber)
@@ -278,7 +352,9 @@ public partial class ViewsListViewModel : ObservableObject
 
         UpdateSelectedCount();
         RecalculateQuickFilterCounts();
-        if (allViewsLoaded)
+        if (initialLoadPending)
+            LogInfo("Reading the current sheet's views…");
+        else if (allViewsLoaded)
             LogInfo($"Loaded {Views.Count} views across {ViewTypeFilterGroups.Count} categories. Active sheet: {SelectedSheetFilter}");
         else if (string.IsNullOrWhiteSpace(activeSheetNumber))
             LogInfo("The active view is not on a sheet — no views loaded yet. Click \"Load all views\" to load the project's views.");
@@ -291,10 +367,83 @@ public partial class ViewsListViewModel : ObservableObject
 
     private bool CanLoadAllViews() => !AllViewsLoaded && !IsLoadingViews;
 
+    /// <summary>
+    /// Fills the grid with the current sheet's views. Called once, right after the window is
+    /// shown (7.4.0: the window opens first, the views follow).
+    /// </summary>
+    /// <param name="items">In-scope views on the sheet; empty when the tool was not started on a sheet.</param>
+    /// <param name="activeSheetNumber">Number of that sheet; empty when none.</param>
+    /// <param name="timer">Started when the load began; its elapsed time is written to the log.</param>
+    public void SetInitialViews(IReadOnlyCollection<ViewItemViewModel> items, string activeSheetNumber, System.Diagnostics.Stopwatch? timer = null)
+    {
+        _activeSheetNumber = activeSheetNumber ?? "";
+        foreach (var item in items)
+            item.PropertyChanged += OnItemPropertyChanged;
+
+        AddSheetFilters(items);
+        using (ViewsGrid.DeferRefresh())
+        {
+            _views.AddRange(items);
+            BuildViewTypeFilterGroups(_openSettings); // the saved view-type ticks apply to the first load
+            SelectedSheetFilter =
+                !string.IsNullOrWhiteSpace(_activeSheetNumber) && SheetFilters.Contains(_activeSheetNumber)
+                    ? _activeSheetNumber
+                    : "All";
+            _refreshTimer.Stop(); // the deferred refresh below already covers it
+            RecalculateActiveFilterCount();
+            UpdateSelectedCount();
+            RecalculateQuickFilterCounts();
+            RunPreview();
+        }
+
+        IsLoadingViews = false;
+        if (string.IsNullOrWhiteSpace(_activeSheetNumber))
+            LogInfo("The active view is not on a sheet — no views loaded yet. Click \"Load all views\" or \"Load by type\" to load the project's views.");
+        else
+            LogInfo($"Loaded {Views.Count} views from sheet {_activeSheetNumber}{Took(timer?.Elapsed)}. Click \"Load all views\" or \"Load by type\" to load the rest of the project.");
+    }
+
+    // Adds new sheet numbers in place — clearing the list would null the combo's selection.
+    private void AddSheetFilters(IEnumerable<ViewItemViewModel> items)
+    {
+        var knownSheets = new HashSet<string>(SheetFilters);
+        foreach (var item in items)
+        {
+            if (!item.IsPlaced || !knownSheets.Add(item.SheetNumber!)) continue;
+            int at = 2;
+            while (at < SheetFilters.Count && string.CompareOrdinal(SheetFilters[at], item.SheetNumber) < 0) at++;
+            SheetFilters.Insert(at, item.SheetNumber!);
+        }
+    }
+
+    /// <summary>Opens or closes the "Load by type" list.</summary>
+    [RelayCommand]
+    private void ToggleLoadTypePopup() => IsLoadTypePopupOpen = !IsLoadTypePopupOpen;
+
+    /// <summary>Asks Revit to load only the view-type groups ticked in the "Load by type" list.</summary>
+    [RelayCommand(CanExecute = nameof(CanLoadAllViews))]
+    private void LoadTickedTypes()
+    {
+        var groups = new HashSet<ViewTypeGroup>(
+            LoadTypeOptions.Where(o => o.IsChecked && !o.IsLoaded).Select(o => o.Group));
+        if (groups.Count == 0)
+        {
+            LogWarning("Load by type: tick at least one view type that is not loaded yet.");
+            return;
+        }
+
+        IsLoadTypePopupOpen = false;
+        IsLoadingViews = true;
+        LogInfo($"Loading {string.Join(", ", groups.Select(GroupLabel))}…");
+        try { RevitEventManager.RequestLoadAll(this, groups); }
+        catch (Exception ex) { OnLoadAllFailed(ex.Message); }
+    }
+
     /// <summary>Asks Revit (via an external event) to load every remaining view.</summary>
     [RelayCommand(CanExecute = nameof(CanLoadAllViews))]
     private void LoadAllViews()
     {
+        IsLoadTypePopupOpen = false;
         IsLoadingViews = true;
         LogInfo("Loading all views…");
         try { RevitEventManager.RequestLoadAll(this); }
@@ -312,9 +461,10 @@ public partial class ViewsListViewModel : ObservableObject
     /// Merges the full project view list into the grid: new views are appended,
     /// existing rows keep their edits and selection but get complete sheet placements.
     /// </summary>
-    /// <param name="loaded">Every in-scope view of the project.</param>
+    /// <param name="loaded">The loaded views: every in-scope view, or those of <paramref name="groups"/>.</param>
     /// <param name="timer">Started when the load began; its elapsed time is written to the log.</param>
-    public void MergeLoadedViews(IEnumerable<ViewItemViewModel> loaded, System.Diagnostics.Stopwatch? timer = null)
+    /// <param name="groups">The view-type groups that were loaded; null when the whole project was.</param>
+    public void MergeLoadedViews(IEnumerable<ViewItemViewModel> loaded, System.Diagnostics.Stopwatch? timer = null, ISet<ViewTypeGroup>? groups = null)
     {
         var existing = Views.ToDictionary(v => v.ElementId);
         var added = new List<ViewItemViewModel>();
@@ -330,15 +480,7 @@ public partial class ViewsListViewModel : ObservableObject
             added.Add(item);
         }
 
-        // Add new sheet numbers in place — clearing the list would null the combo's selection.
-        var knownSheets = new HashSet<string>(SheetFilters);
-        foreach (var item in added)
-        {
-            if (!item.IsPlaced || !knownSheets.Add(item.SheetNumber!)) continue;
-            int at = 2;
-            while (at < SheetFilters.Count && string.CompareOrdinal(SheetFilters[at], item.SheetNumber) < 0) at++;
-            SheetFilters.Insert(at, item.SheetNumber!);
-        }
+        AddSheetFilters(added);
 
         // One grid rebuild for the whole load: the rows arrive as a single change, and the
         // filter / preview updates below all land in the same deferred refresh.
@@ -355,9 +497,16 @@ public partial class ViewsListViewModel : ObservableObject
             RunPreview();
         }
 
-        AllViewsLoaded = true;
+        foreach (var option in LoadTypeOptions)
+        {
+            if (groups != null && !groups.Contains(option.Group)) continue;
+            option.IsLoaded = true;
+            option.IsChecked = false;
+        }
+        AllViewsLoaded = LoadTypeOptions.All(o => o.IsLoaded);
         IsLoadingViews = false;
-        LogSuccess($"Loaded {added.Count} more views{Took(timer?.Elapsed)} — {Views.Count} in total.");
+        string what = groups == null ? "" : $" ({string.Join(", ", groups.Select(GroupLabel))})";
+        LogSuccess($"Loaded {added.Count} more views{what}{Took(timer?.Elapsed)} — {Views.Count} in total.");
     }
 
     // Keeps the user's current ticks; view types seen for the first time start ticked.
@@ -857,6 +1006,7 @@ public partial class ViewsListViewModel : ObservableObject
     {
         var settings = new ViewAutoRenamerSettings
         {
+            Version = ViewAutoRenamerSettings.CurrentVersion,
             CheckedViewTypeNames = ViewTypeFilterGroups
                 .SelectMany(g => g.Rows)
                 .Where(r => r.IsChecked)
@@ -870,6 +1020,7 @@ public partial class ViewsListViewModel : ObservableObject
             StandardizeEnabled         = StandardizeEnabled,
             StandardizeCase            = StandardizeCase,
             CleanWhitespacePunctuation = CleanWhitespacePunctuation,
+            GroupByViewType            = GroupByViewType,
         };
         ViewAutoRenamerSettingsService.Save(settings);
     }

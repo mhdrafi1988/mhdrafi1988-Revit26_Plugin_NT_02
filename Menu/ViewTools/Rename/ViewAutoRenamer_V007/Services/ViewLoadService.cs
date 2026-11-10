@@ -1,4 +1,5 @@
 using Autodesk.Revit.DB;
+using Revit26_Plugin_Revised.ViewAutoRenamer.V007.Models;
 using Revit26_Plugin_Revised.ViewAutoRenamer.V007.ViewModels;
 using Revit26_Plugin_Revised.Shared.Services;
 using System.Collections.Generic;
@@ -70,18 +71,20 @@ public static class ViewLoadService
         return items;
     }
 
-    /// <summary>Loads every in-scope view in the project with its full sheet placement.</summary>
+    /// <summary>
+    /// Loads the project's in-scope views with their full sheet placement: all of them, or
+    /// (7.4.0) only the view-type groups in <paramref name="groups"/>.
+    /// </summary>
     /// <param name="doc">The project document.</param>
+    /// <param name="groups">View-type groups to load; null loads every group.</param>
     /// <param name="cancel">Optional cancel helper; checked in every loop and reports progress. Throws <see cref="System.OperationCanceledException"/> after the user confirms a cancel.</param>
-    public static List<ViewItemViewModel> LoadAll(Document doc, ToolCancellation? cancel = null)
+    public static List<ViewItemViewModel> LoadAll(Document doc, ToolCancellation? cancel = null, ISet<ViewTypeGroup>? groups = null)
     {
         cancel?.Report(0, 0, "Reading sheet placements…");
         var placed = ViewClassificationService.BuildPlacementLookup(doc, cancel);
 
         cancel?.Report(0, 0, "Reading views…");
-        var views = new FilteredElementCollector(doc)
-            .OfClass(typeof(View))
-            .ToElements();
+        var views = CollectViews(doc, groups);
 
         var items = new List<ViewItemViewModel>(views.Count);
         for (int i = 0; i < views.Count; i++)
@@ -90,8 +93,8 @@ public static class ViewLoadService
             if (views[i] is not View v) continue;
 
             ViewItemViewModel? item = placed.TryGetValue(v.Id, out var p)
-                ? BuildItem(v, p.Sheets, p.DetailNumber)
-                : BuildItem(v, NoSheets, null);
+                ? BuildItem(v, p.Sheets, p.DetailNumber, groups)
+                : BuildItem(v, NoSheets, null, groups);
             if (item != null) items.Add(item);
         }
         return items;
@@ -101,12 +104,14 @@ public static class ViewLoadService
     /// Builds one grid row, or null for a view the tool does not rename (templates, sheets,
     /// 3D views…). Reads the view's type once.
     /// </summary>
-    private static ViewItemViewModel? BuildItem(View v, IReadOnlyList<string> sheets, string? detailNumber)
+    private static ViewItemViewModel? BuildItem(View v, IReadOnlyList<string> sheets, string? detailNumber,
+        ISet<ViewTypeGroup>? groups = null)
     {
         if (v.IsTemplate) return null;
         var viewType = v.ViewType;
         var classified = ViewClassificationService.Classify(viewType);
         if (classified == null) return null;
+        if (groups != null && !groups.Contains(classified.Value.group)) return null;
 
         // As before: Legends and Schedules can sit on several sheets, so they carry no detail number.
         bool multiPlaced = viewType == ViewType.Legend || viewType == ViewType.Schedule;
@@ -114,6 +119,41 @@ public static class ViewLoadService
         return new ViewItemViewModel(
             v.Id, v.Name, viewType, classified.Value.group, classified.Value.display,
             sheets, multiPlaced ? null : detailNumber, v.Pinned);
+    }
+
+    /// <summary>
+    /// Collects the candidate views. When only some groups are wanted, Revit hands back only the
+    /// view classes those groups use (sections, plans, drafting views, schedules), so the other
+    /// views are never opened. Legends have no class of their own, so asking for them reads all views.
+    /// </summary>
+    private static IList<Element> CollectViews(Document doc, ISet<ViewTypeGroup>? groups)
+    {
+        var collector = new FilteredElementCollector(doc);
+        if (groups == null || groups.Contains(ViewTypeGroup.Legend))
+            return collector.OfClass(typeof(View)).ToElements();
+
+        var classes = new List<System.Type>();
+        void Need(System.Type t) { if (!classes.Contains(t)) classes.Add(t); }
+        foreach (var g in groups)
+        {
+            switch (g)
+            {
+                case ViewTypeGroup.SectionOrCallout:
+                case ViewTypeGroup.Elevation:
+                    Need(typeof(ViewSection)); break;
+                case ViewTypeGroup.FloorPlan:
+                case ViewTypeGroup.CeilingPlan:
+                case ViewTypeGroup.StructuralPlan:
+                case ViewTypeGroup.AreaPlan:
+                    Need(typeof(ViewPlan)); break;
+                case ViewTypeGroup.Drafting:
+                    Need(typeof(ViewDrafting)); break;
+                case ViewTypeGroup.Schedule:
+                    Need(typeof(ViewSchedule)); break;
+            }
+        }
+        if (classes.Count == 0) return new List<Element>();
+        return collector.WherePasses(new ElementMulticlassFilter(classes)).ToElements();
     }
 
     /// <summary>The viewport's "Detail Number" (the same value the placed view reports).</summary>

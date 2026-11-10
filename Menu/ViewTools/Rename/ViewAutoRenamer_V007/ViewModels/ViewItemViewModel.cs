@@ -14,6 +14,9 @@ public partial class ViewItemViewModel : ObservableObject
     public ViewType     ViewType     { get; }
     public ViewTypeGroup TypeGroup   { get; }
 
+    /// <summary>Header text of this row's group in the grid (e.g. "Floor Plans"); 7.3.0.</summary>
+    public string TypeGroupLabel => ViewsListViewModel.GroupLabel(TypeGroup);
+
     /// <summary>Display label for the View Type pill/column (e.g. "Floor Plan").</summary>
     public string ViewTypeDisplay { get; }
 

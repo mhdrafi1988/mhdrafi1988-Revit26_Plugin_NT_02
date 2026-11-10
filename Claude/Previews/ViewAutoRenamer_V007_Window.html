@@ -1,9 +1,11 @@
 <title>View Auto Renamer Window</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<!-- UI preview (CLAUDE.md "UI previews"): View Auto Renamer V007, tool 7.3.0, plugin 7.0.0.
-     New in 7.3.0: faster loading (placements read once from the viewports, one grid update per load),
-     faster bulk selection, load time in the log. Ribbon: Auto Renamer is a plain button; V005 and V006 removed.
+<!-- UI preview (CLAUDE.md "UI previews"): View Auto Renamer V007, tool 7.4.0, plugin 7.0.0.
+     New in 7.4.0: "Load by type" button and list, window opens before the views are read, load times in
+     the log, faster loading; plus the grouped list, taller list and minimised log (merged from the 7.3.0 branch).
+     Ribbon: Bubble Renumber, Section Renamer and Auto Renamer are plain buttons; their older versions are removed.
      Mirrors: Menu/ViewTools/Rename/ViewAutoRenamer_V007/Views/ViewAutoRenamerWindow.xaml,
+              Shared/Controls/ToolWindowShellTemplate.xaml (status strip),
               Menu/00_Push_Button_Menu_items/Ribbon/ViewToolsRibbon.cs (View Rename panel, tooltip)
      Artifact: https://claude.ai/artifact/SyDfzePBpEeb8WkiyU5uUD (republish to this URL on every update)
      Colours: Shared/SharedStyles.xaml tokens, one light look on purpose (mirrors the light WPF window). -->
@@ -16,6 +18,7 @@
   --text:#1A2B3C; --text2:#5B7185; --disabled:#C3CFDB; --bg2:#ECEFF3;
   --blue:#1F5FBF; --warn:#9A5B00; --warn-soft:#FDF1E1; --ok:#0E7C66; --err:#B42318;
   --new:#0E7C66; --new-soft:#E0F4EF;
+  --chip:#DCE6F2; --log-bg:#14283F; --log-text:#EAF1F8; --log-dim:#7E94AA; --log-info:#64D2FF; --log-warn:#FF9F0A; --log-ok:#4CC18A;
   --ui:'Segoe UI',system-ui,-apple-system,sans-serif;
 }
 *{box-sizing:border-box}
@@ -56,103 +59,133 @@ p{margin:0;line-height:1.5;max-width:75ch}
 .pbtn{background:var(--navy);color:var(--on-dark);padding:9px 14px;margin-right:8px;display:inline-block}
 .obtn{border:1px solid var(--navy);color:var(--navy);padding:9px 0;width:90px;text-align:center;display:inline-block}
 .reset{color:var(--err);border:1px solid var(--input);background:var(--bg2);height:26px;padding:0 9px;display:inline-flex;align-items:center;font-size:11px}
-/* Confirm dialog */
-.dlg{width:420px;background:var(--card);border:1px solid var(--input);box-shadow:0 6px 20px rgba(16,32,48,.25)}
-.dlg .t{padding:7px 10px;border-bottom:1px solid var(--border);background:var(--card)}
-.dlg .c{padding:16px;display:flex;gap:12px;align-items:flex-start;white-space:pre-line;line-height:1.45}
-.q{flex:none;width:28px;height:28px;border-radius:50%;background:var(--blue);color:#fff;display:grid;place-items:center;font-weight:700}
-.dlg .f{background:var(--window);padding:10px 12px;display:flex;justify-content:flex-end;gap:8px;border-top:1px solid var(--border)}
-.dlg .f span{border:1px solid var(--input);background:var(--bg2);width:76px;text-align:center;padding:3px 0}
-.dlg .f span.def{border-color:var(--blue);box-shadow:0 0 0 1px var(--blue) inset}
-/* Log */
-.log{width:760px;background:var(--card);border:1px solid var(--border);font-family:Consolas,'Cascadia Mono',monospace;font-size:11.5px;padding:6px 10px;display:grid;gap:2px}
-.log .i{color:var(--text2)} .log .w{color:var(--warn)} .log .s{color:var(--ok)}
-/* Ribbon panel + tooltip */
-.rib{width:430px;display:flex;gap:14px;align-items:flex-start}
-.panel{background:var(--card);border:1px solid var(--border);width:170px}
+/* Filter bar, group headers, pills */
+.fbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;background:var(--bg2);border:1px solid var(--border);padding:6px 10px;font-size:11.5px}
+.fbar .in{border:1px solid var(--input);background:var(--card);padding:2px 8px;min-width:70px;display:inline-block}
+.grid tr.grp td{background:var(--card);color:var(--navy);font-weight:600;font-size:11.5px;border-left:0;border-right:0;padding:4px 10px}
+.grid tr.grp td span{color:var(--text2);font-weight:400;font-size:10.5px;margin-left:8px}
+.grid tr.alt td{background:var(--bg2)}
+.vt{border-radius:8px;padding:1px 6px;font-size:10px;font-weight:600;background:var(--chip);color:var(--navy)}
+.grid td.empty{height:150px;color:var(--text2);text-align:center;font-size:11px}
+/* Log bar (dark, as in the window) */
+.logbar{background:var(--log-bg);color:var(--log-text);border-radius:8px;padding:6px 10px;display:grid;gap:6px;font-size:11px}
+.logbar .top{display:flex;align-items:center;gap:12px;min-width:0}
+.logbar .top b{font-size:11.5px;font-weight:600;white-space:nowrap}
+.logbar .top b i{font-style:normal;font-weight:400;color:var(--log-dim);font-size:10.5px;margin-left:4px}
+.logbar .last{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:1}
+.logbar .gb{border:1px solid var(--log-dim);padding:2px 8px;white-space:nowrap}
+.logbar .i{color:var(--log-info)} .logbar .w{color:var(--log-warn)} .logbar .s{color:var(--log-ok)}
+.logbar .lines{display:grid;gap:2px}
+/* Load-by-type list, ribbon panel, tooltip */
+.pop{width:250px;background:var(--card);border:1px solid var(--border);border-radius:8px;box-shadow:0 6px 20px rgba(16,32,48,.18);font-size:12px}
+.pop .ph{padding:10px 14px;border-bottom:1px solid var(--border);font-weight:600;font-size:12.5px}
+.pop .rows{padding:8px 14px;display:grid;gap:6px}
+.pop .rows span{display:flex;justify-content:space-between}
+.pop .rows .done{color:var(--disabled)} .pop .rows i{font-style:normal;color:var(--text2);font-size:11px}
+.pop .pf{padding:10px 14px;border-top:1px solid var(--border);text-align:right}
+.pop .pf b{background:var(--navy);color:var(--on-dark);padding:6px 12px;font-weight:600;display:inline-block}
+.rib{width:440px;display:flex;gap:14px;align-items:flex-start}
+.panel{background:var(--card);border:1px solid var(--border);width:180px}
 .panel .items{padding:8px 10px;display:grid;gap:6px}
 .panel .it{display:flex;align-items:center;gap:6px;font-size:11.5px;white-space:nowrap}
 .panel .ic{flex:none;width:16px;height:16px;background:var(--navy-light);border-radius:2px}
 .panel .ttl{border-top:1px solid var(--border);background:var(--bg2);text-align:center;font-size:11px;padding:2px 0;color:var(--text2)}
 .tip{background:var(--card);border:1px solid var(--input);box-shadow:0 3px 10px rgba(16,32,48,.2);padding:8px 10px;width:246px;font-size:11.5px;line-height:1.45}
 .tip b{display:block;margin-bottom:3px}
-.cmp{width:100%;border-collapse:collapse;background:var(--card);font-size:12px;min-width:560px}
-.cmp th,.cmp td{border:1px solid var(--border);padding:5px 8px;text-align:left;vertical-align:top}
-.cmp th{background:var(--bg2);font-weight:600}
 </style>
 <div class="page">
   <header>
-    <h1>View Auto Renamer 7.3.0 <span class="tag">NEW: faster loading</span></h1>
-    <p class="muted">The window looks the same. Loading reads less from Revit, the grid is rebuilt once per load, and the log shows how long loading took. Versions V005 and V006 are removed, so the ribbon has one Auto Renamer button. <span class="sample">Sample data: view names, counts and times are made up.</span></p>
+    <h1>View Auto Renamer 7.4.0 <span class="tag">NEW: load by type</span></h1>
+    <p class="muted">The window now appears first and the current sheet's views fill in right after. A new "Load by type" button loads only the view types you tick. The views are listed in groups by view type, the list is twice as tall, and the log starts minimised. <span class="sample">Sample data: view names and sheet numbers are made up.</span></p>
   </header>
 
   <section>
-    <h2>1. Window after "Load all views"</h2>
-    <p class="muted">Same layout as 7.2.0. Only the version in the title bar and the log lines change.</p>
+    <h2>1. Window after the current sheet has loaded</h2>
+    <p class="muted">The header (badges and count cards), the rename panel and the quick-filter chips are unchanged and left out here.</p>
     <div class="frame"><div class="win">
-      <div class="tbar"><span>View Auto Renamer — v7.3.0</span><span>—  ☐  ✕</span></div>
-      <div class="hdr"><div><b>View Auto Renamer</b><span class="s">Prefix, find/replace and standardize view names</span></div><span class="badge">v7.3.0</span></div>
+      <div class="tbar"><span>View Auto Renamer — v7.4.0</span><span>—  ☐  ✕</span></div>
+      <div class="hdr"><div><b>View Auto Renamer</b><span class="s">Prefix, find/replace and standardize view names</span></div><span class="badge">v7.4.0</span></div>
       <div class="body">
-        <div class="bar"><span class="sbtn" style="color:var(--disabled)">Load all views</span><span class="sbtn">Select all</span><span class="sbtn">Select none</span><span class="sbtn">Invert</span></div>
+        <div class="fbar"><span class="sbtn">⏷ Filters</span><span>Sheet <span class="in">A-101</span></span><span>Search <span class="in">View name…</span></span><span>Dup. fix <span class="in">NumberedBrackets</span></span><span>☑ Dry run</span><span>☑ Group by type <span class="tag">NEW</span></span></div>
+        <div class="bar"><span class="sbtn">Load all views</span><span class="sbtn">Load by type ▾ <span class="tag">NEW</span></span><span class="sbtn">Select all</span><span class="sbtn">Select none</span><span class="sbtn">Invert</span><span class="sbtn">Reset selected names</span><span class="sbtn">Truncate last number</span><span class="sbtn">Truncate last text</span></div>
         <table class="grid">
-          <tr><th>☑</th><th>View Type</th><th>Original name</th><th>Edit name</th><th>Preview</th><th>Sheet no.</th></tr>
-          <tr><td>☑</td><td>Floor Plan</td><td>Level 1 Plan</td><td>Level 1 Plan</td><td>A-101 Level 1 Plan</td><td>A-101</td></tr>
-          <tr><td>☑</td><td>Section</td><td>Section 3</td><td>Section 3</td><td>A-301 Section 3</td><td>A-301</td></tr>
-          <tr><td>☐</td><td>Drafting View</td><td>Roof Detail</td><td>Roof Detail</td><td>Roof Detail</td><td></td></tr>
-          <tr><td>☐</td><td>Legend</td><td>Symbol Legend</td><td>Symbol Legend</td><td>Symbol Legend</td><td>A-001</td></tr>
+          <tr><th>☐</th><th>View Type</th><th>Original name</th><th>Edit name</th><th>Preview</th><th>Sheet no.</th></tr>
+          <tr class="grp"><td colspan="6">Sections &amp; Callouts<span>3</span> <span class="tag">NEW</span></td></tr>
+          <tr><td>☐</td><td><span class="vt">Section</span></td><td>Section 3</td><td>Section 3</td><td>Section 3</td><td>A-101</td></tr>
+          <tr class="alt"><td>☐</td><td><span class="vt">Section</span></td><td>Section 4</td><td>Section 4</td><td>Section 4</td><td>A-101</td></tr>
+          <tr><td>☐</td><td><span class="vt">Callout</span></td><td>Stair callout</td><td>Stair callout</td><td>Stair callout</td><td>A-101</td></tr>
+          <tr class="grp"><td colspan="6">Floor Plans<span>2</span></td></tr>
+          <tr class="alt"><td>☐</td><td><span class="vt">Floor Plan</span></td><td>Level 1 Plan</td><td>Level 1 Plan</td><td>Level 1 Plan</td><td>A-101</td></tr>
+          <tr><td>☐</td><td><span class="vt">Floor Plan</span></td><td>Level 1 enlarged</td><td>Level 1 enlarged</td><td>Level 1 enlarged</td><td>A-101</td></tr>
+          <tr class="grp"><td colspan="6">Drafting Views<span>1</span></td></tr>
+          <tr class="alt"><td>☐</td><td><span class="vt">Drafting View</span></td><td>Roof Detail</td><td>Roof Detail</td><td>Roof Detail</td><td>A-101</td></tr>
+          <tr class="grp"><td colspan="6">Legends<span>1</span></td></tr>
+          <tr><td>☐</td><td><span class="vt">Legend</span></td><td>Symbol legend</td><td>Symbol legend</td><td>Symbol legend</td><td>A-101</td></tr>
+          <tr><td colspan="6" class="empty">The list is twice as tall: at least 320 px (was 160), up to 1.1 × the window height (was 0.55) <span class="tag">NEW</span></td></tr>
         </table>
+        <div class="logbar"><div class="top"><b>▸ Log<i>(1)</i></b><span class="last i">Loaded 7 views from sheet A-101 in 0.1 s. Click "Load all views" or "Load by type" to load the rest of the project.</span><span class="tag">NEW</span></div></div>
       </div>
       <div class="foot">
         <div class="acts">
           <span class="reset">↺  Reset all names</span>
-          <span><span class="pill">Dry run — no changes will be saved</span><span class="pbtn">Commit selected (2)</span><span class="obtn">Close</span></span>
+          <span><span class="pill">Dry run — no changes will be saved</span><span class="pbtn">Commit selected (0)</span><span class="obtn">Close</span></span>
         </div>
       </div>
     </div></div>
   </section>
 
   <section>
-    <h2>2. Log with load times <span class="tag">NEW</span></h2>
-    <p class="muted">Both loads report their time. If a project is still slow, this number says which step it is.</p>
-    <div class="frame"><div class="log">
-      <span class="i">Loaded 14 views from sheet A-101 in 0.1 s. Click "Load all views" to load the rest of the project.</span>
-      <span class="i">Loading all views…</span>
-      <span class="s">Loaded 4798 more views in 1.4 s — 4812 in total.</span>
+    <h2>2. Load by type <span class="tag">NEW</span></h2>
+    <p class="muted">Click "Load by type", tick the view types you want, then "Load ticked types". Only those views are read from the project. A type that is already loaded is greyed and marked "loaded". Legends have no class of their own in Revit, so loading them reads all views.</p>
+    <div class="frame"><div class="pop">
+      <div class="ph">Load by type</div>
+      <div class="rows">
+        <span>☑ Sections &amp; Callouts</span><span>☑ Floor Plans</span><span>☐ Ceiling Plans</span><span>☐ Structural Plans</span><span>☐ Area Plans</span><span>☐ Elevations</span><span class="done">☐ Drafting Views <i>loaded</i></span><span>☐ Legends</span><span>☐ Schedules</span>
+      </div>
+      <div class="pf"><b>Load ticked types</b></div>
     </div></div>
   </section>
 
   <section>
-    <h2>3. Ribbon: View Rename panel <span class="tag">CHANGED</span></h2>
-    <p class="muted">Auto Renamer was a dropdown listing V007, V006 and V005. It is now a plain button that opens the tool directly. The other two items are unchanged.</p>
+    <h2>3. Group headers <span class="tag">NEW</span></h2>
+    <p class="muted">One header per view type that has views, with a count, in the order of the filter popover: Sections &amp; Callouts, Floor Plans, Ceiling Plans, Structural Plans, Area Plans, Elevations, Drafting Views, Legends, Schedules. These are the groups the duplicate check uses. Clicking a column header sorts inside each group. Untick "Group by type" for the flat list of 7.2.0; the choice is saved. After "Load all views" the whole project is grouped the same way.</p>
+  </section>
+
+  <section>
+    <h2>4. Log, minimised and expanded <span class="tag">NEW</span></h2>
+    <p class="muted">Minimised (every time the window opens): one bar with the line count and the latest line in its colour, so a warning or error still shows.</p>
+    <div class="frame"><div class="logbar" style="width:760px"><div class="top"><b>▸ Log<i>(5)</i></b><span class="last w">Dry run is ON — no changes committed.</span></div></div></div>
+    <p class="muted" style="margin:10px 0 8px">Click "Log" to expand. The Copy buttons show only then.</p>
+    <div class="frame"><div class="logbar" style="width:760px">
+      <div class="top"><b>▾ Log<i>(5)</i></b><span class="last"></span><span class="gb">Copy All</span><span class="gb">Copy Selected</span></div>
+      <div class="lines">
+        <span class="i">● Reading the current sheet's views…</span>
+        <span class="i">● Loaded 7 views from sheet A-101 in 0.1 s. Click "Load all views" or "Load by type" to load the rest of the project.</span>
+        <span class="i">● Loading Sections &amp; Callouts, Floor Plans…</span>
+        <span class="s">● Loaded 412 more views (Sections &amp; Callouts, Floor Plans) in 0.4 s — 419 in total.</span>
+        <span class="w">● Dry run is ON — no changes committed.</span>
+      </div>
+    </div></div>
+  </section>
+
+  <section>
+    <h2>5. Ribbon: View Rename panel <span class="tag">CHANGED</span></h2>
+    <p class="muted">All three items were dropdowns listing old versions. Each tool now has one version, so each is a plain button that opens the tool directly.</p>
     <div class="frame"><div class="rib">
       <div class="panel">
         <div class="items">
-          <span class="it"><span class="ic"></span>Bubble Renumber ▾</span>
-          <span class="it"><span class="ic"></span>Section Renamer ▾</span>
+          <span class="it"><span class="ic"></span>Bubble Renumber <span class="tag">BUTTON</span></span>
+          <span class="it"><span class="ic"></span>Section Renamer <span class="tag">BUTTON</span></span>
           <span class="it"><span class="ic"></span>Auto Renamer <span class="tag">BUTTON</span></span>
         </div>
         <div class="ttl">View Rename</div>
       </div>
-      <div class="tip"><b>View Auto Renamer — v7.3.0 (build V007)</b>Batch rename views: prefix, find/replace, standardize.<br>Opens with the current sheet's views; "Load all views" brings in the rest of the project.</div>
+      <div class="tip"><b>View Auto Renamer — v7.4.0 (build V007)</b>Batch rename views: prefix, find/replace, standardize.<br>Opens with the current sheet's views; "Load all views" or "Load by type" brings in the rest of the project.</div>
     </div></div>
   </section>
 
   <section>
-    <h2>4. What is faster <span class="tag">NEW</span></h2>
-    <div class="frame"><table class="cmp">
-      <tr><th>Step</th><th>7.2.0</th><th>7.3.0</th></tr>
-      <tr><td>Sheet and detail number</td><td>Two parameter reads on every view</td><td>Read once from the viewports; unplaced views cost nothing</td></tr>
-      <tr><td>View type</td><td>Read four times per view</td><td>Read once per view</td></tr>
-      <tr><td>Finding the current sheet</td><td>Every sheet in the project is read</td><td>Revit filters by sheet number</td></tr>
-      <tr><td>Schedules on the current sheet</td><td>Search scoped to the sheet view</td><td>Project search narrowed to the sheet's schedules</td></tr>
-      <tr><td>Adding rows after "Load all views"</td><td>One grid update per view, three grid rebuilds</td><td>One update, one rebuild</td></tr>
-      <tr><td>Header check box, Select all / none, Invert</td><td>Counts and previews recalculated per row</td><td>Recalculated once</td></tr>
-    </table></div>
-    <p class="muted" style="margin-top:8px">These are code changes checked by a build. They have not been timed in Revit yet.</p>
-  </section>
-
-  <section>
     <h2>Plugin change</h2>
-    <p class="muted">Tool version 7.2.0 → 7.3.0, plugin 6.43.0 → 7.0.0 (V005 and V006 removed). Renaming, filters, Esc / Cancel and the settings file are unchanged.</p>
+    <p class="muted">Tool version 7.2.0 → 7.4.0, plugin 6.43.0 → 7.0.0. Removed: View Auto Renamer V005 and V006, Section Auto Renamer V025, Bubble Auto Renumber V007 and V008. Loading also reads less from Revit (sheet and detail numbers come from the viewports, one grid rebuild per load). Renaming, filters and Esc / Cancel work as in 7.2.0. The speed changes are checked by a build and have not been timed in Revit yet.</p>
   </section>
 </div>

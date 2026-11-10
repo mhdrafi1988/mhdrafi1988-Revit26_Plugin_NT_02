@@ -12,8 +12,8 @@ using Revit26_Plugin_Revised.Shared.Services;
 namespace Revit26_Plugin_Revised.ViewAutoRenamer.V007.Commands;
 
 /// <summary>
-/// Opens View Auto Renamer V007. Loads the current sheet's views first; the rest of the
-/// project is loaded on demand from the window.
+/// Opens View Auto Renamer V007. The window is shown first; the current sheet's views are read
+/// right after, and the rest of the project is loaded on demand from the window.
 /// </summary>
 [Transaction(TransactionMode.Manual)]
 [Regeneration(RegenerationOption.Manual)]
@@ -35,16 +35,12 @@ public class OpenViewAutoRenamerCommand : IExternalCommand
 
         RevitEventManager.Initialize();
 
-        // 7.1.0: open fast with only the current sheet's views; the rest of the
-        // project loads when the user clicks "Load all views".
-        var timer = System.Diagnostics.Stopwatch.StartNew();
-        var currentSheet = ViewLoadService.FindCurrentSheet(doc, uidoc.ActiveView);
-        var items = currentSheet != null
-            ? ViewLoadService.LoadForSheet(doc, currentSheet)
-            : new List<ViewItemViewModel>();
-
-        var vm = new ViewsListViewModel(items, currentSheet?.SheetNumber ?? "", allViewsLoaded: false, loadTime: timer.Elapsed);
+        // 7.4.0: show the window first, then read the current sheet's views in an external
+        // event, so the window appears at once. The rest of the project loads on request
+        // ("Load all views" / "Load by type").
+        var vm = new ViewsListViewModel(new List<ViewItemViewModel>(), "", allViewsLoaded: false, initialLoadPending: true);
         new ViewsListWindow(vm).Show();
+        RevitEventManager.RequestInitialLoad(vm);
 
         return Result.Succeeded;
     }
