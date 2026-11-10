@@ -9,6 +9,20 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.45.0] — 2026-11-10
+
+### Worksets & Elements Browser 4.5.0
+
+#### Added
+- **Open / Close Worksets…** (toolbar): opens Revit's own Worksets dialog, where you open and close worksets. Revit has no API to open or close a workset in a model that is already open, so the browser hands over to Revit's dialog. The button says why when the model is not workshared, is not the active model, or another command is running.
+- **Reload** (toolbar): reads the worksets and elements from the model again, for example after opening or closing worksets. Checks are cleared.
+- **open / closed badge** on each workset row; "closed" is shown in the warning colour. The Model card also counts the closed worksets.
+
+#### Changed
+- **Hide Empty Worksets** no longer hides closed worksets. A closed workset lists no elements only because Revit has not loaded it, so it stays in the tree with its "closed" badge.
+
+User note: the browser stays open while Revit's Worksets dialog is shown; press Reload afterwards. With "Hide Empty Worksets" ticked you now also see closed worksets (with no elements under them); open worksets that are empty are hidden as before.
+
 ## [6.44.0] — 2026-11-10
 
 ### Merge Roofs 1.1.0
