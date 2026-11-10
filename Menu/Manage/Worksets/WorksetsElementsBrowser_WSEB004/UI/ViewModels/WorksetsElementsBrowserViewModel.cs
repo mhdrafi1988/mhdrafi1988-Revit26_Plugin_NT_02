@@ -85,7 +85,8 @@ namespace Revit26_Plugin_Revised.WorksetsElementsBrowser.WSEB004.UI.ViewModels
         {
             foreach (var root in RootNodes)
             {
-                if (root.Kind == ElementTreeNodeKind.Workset && root.Children.Count == 0)
+                // A closed workset lists no elements only because it is not loaded: keep it visible so it can be seen as closed.
+                if (root.Kind == ElementTreeNodeKind.Workset && root.Children.Count == 0 && !root.IsClosed)
                     root.IsVisible = !hideEmpty;
             }
         }
@@ -162,7 +163,8 @@ namespace Revit26_Plugin_Revised.WorksetsElementsBrowser.WSEB004.UI.ViewModels
                     worksetData.Name,
                     elementCount: worksetElementCount,
                     editableBadge: worksetData.IsEditable ? "editable" : "not editable",
-                    owner: worksetData.Owner)
+                    owner: worksetData.Owner,
+                    isOpen: worksetData.IsOpen)
                 {
                     IsExpanded = false
                 };
@@ -187,7 +189,8 @@ namespace Revit26_Plugin_Revised.WorksetsElementsBrowser.WSEB004.UI.ViewModels
                 RootNodes.Add(worksetNode);
             }
 
-            SummaryText = $"{worksetCount} workset{(worksetCount == 1 ? "" : "s")} · " +
+            int closedCount = _loadedTree.Count(w => !w.IsOpen);
+            SummaryText = $"{worksetCount} workset{(worksetCount == 1 ? "" : "s")}{(closedCount > 0 ? $" ({closedCount} closed)" : "")} · " +
                            $"{categories.Count} categor{(categories.Count == 1 ? "y" : "ies")} · " +
                            $"{types.Count} type{(types.Count == 1 ? "" : "s")} · " +
                            $"{elementCount:N0} elements";
@@ -275,6 +278,24 @@ namespace Revit26_Plugin_Revised.WorksetsElementsBrowser.WSEB004.UI.ViewModels
                 SetExpandedRecursive(node.Children, expanded);
             }
         }
+
+        /// <summary>
+        /// Opens Revit's own Worksets dialog, where worksets are opened and closed. The browser stays
+        /// open; press Reload afterwards to list the elements of the worksets that are now open.
+        /// </summary>
+        [RelayCommand]
+        private void OpenWorksetsDialog()
+        {
+            RaiseRequest(WorksetsElementsBrowserRequest.OpenWorksetsDialog, () =>
+            {
+                if (!_handler.LastRunSucceeded)
+                    TaskDialog.Show("Worksets & Elements Browser", $"Could not open the Worksets dialog: {_handler.ErrorMessage}");
+            });
+        }
+
+        /// <summary>Reads the worksets and elements from the model again (checks are cleared).</summary>
+        [RelayCommand]
+        private void Reload() => RunLoadTree();
 
         // ─────────────────────────────────────────────────────────────
         // Checked-rows actions

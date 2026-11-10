@@ -88,7 +88,8 @@ namespace Revit26_Plugin_Revised.WorksetsElementsBrowser.WSEB004.Core.Services
                     ws.Id.IntegerValue,
                     ws.IsEditable,
                     ws.Owner ?? string.Empty,
-                    categories));
+                    categories,
+                    ws.IsOpen));
             }
 
             return result;

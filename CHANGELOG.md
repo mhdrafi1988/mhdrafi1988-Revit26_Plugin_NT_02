@@ -9,7 +9,7 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
-## [6.45.0] — 2026-11-10
+## [6.46.0] — 2026-11-10
 
 ### Auto Slope By Point 34.0.0 (V034)
 
@@ -21,6 +21,20 @@ Each release lists every tool whose version changed, under the plugin version.
 - **By Point** pulldown: order is now V034, V033, V032, V030, Ridge V003, Multi Copies 30. V034 supplies the pulldown's icon.
 
 User note: 75 mm is the spacing V033 uses, so V034 at the default gives the same slope as V033. At 40 mm the path graph step takes about twice as long. An opening narrower than the chosen spacing can still be missed. V033 is unchanged and stays in the pulldown. V034 saves to its own `settings.v034.json`; the first time it opens it reads V033's settings (else V032's), with the sample spacing at 75 mm.
+
+## [6.45.0] — 2026-11-10
+
+### Worksets & Elements Browser 4.5.0
+
+#### Added
+- **Open / Close Worksets…** (toolbar): opens Revit's own Worksets dialog, where you open and close worksets. Revit has no API to open or close a workset in a model that is already open, so the browser hands over to Revit's dialog. The button says why when the model is not workshared, is not the active model, or another command is running.
+- **Reload** (toolbar): reads the worksets and elements from the model again, for example after opening or closing worksets. Checks are cleared.
+- **open / closed badge** on each workset row; "closed" is shown in the warning colour. The Model card also counts the closed worksets.
+
+#### Changed
+- **Hide Empty Worksets** no longer hides closed worksets. A closed workset lists no elements only because Revit has not loaded it, so it stays in the tree with its "closed" badge.
+
+User note: the browser stays open while Revit's Worksets dialog is shown; press Reload afterwards. With "Hide Empty Worksets" ticked you now also see closed worksets (with no elements under them); open worksets that are empty are hidden as before.
 
 ## [6.44.0] — 2026-11-10
 
