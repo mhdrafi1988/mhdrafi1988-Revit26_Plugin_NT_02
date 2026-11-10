@@ -9,7 +9,7 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
-## [6.42.0] — 2026-11-09
+## [6.44.0] — 2026-11-10
 
 ### Merge Roofs 1.1.0
 
@@ -21,6 +21,27 @@ Each release lists every tool whose version changed, under the plugin version.
 - Check, Create roof and Cancel run are disabled or enabled to match whether a run is active.
 
 User note: the union calculation and the single Revit call that creates the roof cannot be interrupted; Esc is acted on just before and after them.
+
+## [6.43.0] — 2026-11-10
+
+### Align Spot Elevations 1.8.0
+
+#### Added
+- **Distribute Spot Elev.** (Tagging panel, large button): opens the Align Spot Elevations window in *Distribute only*. The selected spot elevations are spaced along their column or row, evenly (first and last stay) or at a fixed gap in paper mm (top / left stays), and keep their other coordinate. Works on the text, the leader end points and the bend points.
+- **Quick Distribute Vertical** and **Quick Distribute Horizontal** (Tagging panel, two small split buttons): the same without the window. Each lists three items: tags (the parts last ticked in the window), **Ends** (leader end points only) and **Bends** (leader bend points only). The main click runs the item used last, kept across restarts. All use the spacing last used in the window; if it was left on "Keep current spacing", even spacing is used. Even spacing needs at least three spots that have the part. One Undo step.
+
+User note: nothing existing changed. The Distribute only mode was already in the window; these buttons are shortcuts to it. Settings files are unchanged.
+
+## [6.42.0] — 2026-11-09
+
+### Align Spot Elevations 1.7.1
+
+#### Changed
+- Tagging panel: the eight Quick Align buttons are now three small split buttons: **Quick Align Vertical** (tags, ends, bends), **Quick Align Horizontal** (tags, ends, bends) and **Quick Align to Tag** (ends, bends). The main click runs the item used last (kept across restarts); the arrow lists the others. The commands themselves are unchanged.
+
+- The split buttons remember the last item you used, also after Revit restarts (saved in `%AppData%\Revit26_Plugin_Revised\AlignSpotElevations\quicksplit.json`; versioned, and a missing or unreadable file just starts on the first item).
+
+User note: the quick-align buttons moved into the arrows. Until you pick an item, each split button runs its first one.
 
 ## [6.41.0] — 2026-11-09
 
