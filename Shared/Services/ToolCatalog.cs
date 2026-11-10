@@ -61,7 +61,7 @@ namespace Revit26_Plugin_Revised.Shared.Services
         public static readonly ToolInfo ParaManager = Add("ParaManager", "5.2.0", "V005", "Revit26_Plugin_Revised.ParaManager.V005");
         public static readonly ToolInfo ScheduleExportImport = Add("Schedule Export / Import", "7.2.0", "V007", "Revit26_Plugin_Revised.ScheduleExportImport.V007");
         public static readonly ToolInfo AnnotationOverlapDetection = Add("Annotation Overlap Detection", "4.2.0", "V004", "Revit26_Plugin_Revised.AnnotationOverlapDetection.V004");
-        public static readonly ToolInfo WorksetsElementsBrowser = Add("Worksets & Elements Browser", "4.4.0", "WSEB004", "Revit26_Plugin_Revised.WorksetsElementsBrowser.WSEB004");
+        public static readonly ToolInfo WorksetsElementsBrowser = Add("Worksets & Elements Browser", "4.5.0", "WSEB004", "Revit26_Plugin_Revised.WorksetsElementsBrowser.WSEB004");
         public static readonly ToolInfo WorksetManager = Add("Workset Manager", "14.2.0", "V014", "Revit26_Plugin_Revised.WorksetManager.V014");
         public static readonly ToolInfo WorksetRenamer = Add("Workset Renamer", "5.2.0", "V005", "Revit26_Plugin_Revised.WorksetRenamer.V005");
         public static readonly ToolInfo WorksetRenamerExcel = Add("Workset Renamer (From Excel)", "5.2.0", "FX05", "Revit26_Plugin_Revised.WorksetRenamer.FX05");
@@ -133,7 +133,7 @@ namespace Revit26_Plugin_Revised.Shared.Services
         public static readonly ToolInfo IslandRoofSplitterV002 = Add("Island Roof Splitter", "2.1.0", "V002", "Revit26_Plugin_Revised.IslandRoofSplitter.V002");
         public static readonly ToolInfo RoofShapeFromLink = Add("Roof Shape From Link", "2.1.0", "V002", "Revit26_Plugin_Revised.RoofShapeFromLink.V002");
         public static readonly ToolInfo RoofPointsAndSlope = Add("Roof Points & Slope", "1.2.0", "V001", "Revit26_Plugin_Revised.RoofPointsAndSlope.V001");
-        public static readonly ToolInfo MergeRoofs = Add("Merge Roofs", "1.0.0", "V001", "Revit26_Plugin_Revised.MergeRoofs.V001");
+        public static readonly ToolInfo MergeRoofs = Add("Merge Roofs", "1.1.0", "V001", "Revit26_Plugin_Revised.MergeRoofs.V001");
         public static readonly ToolInfo LinkVersionChecker = Add("Link Version Checker", "3.0.1", "V003", "Revit26_Plugin_Revised.LinkVersionChecker_V003");
         public static readonly ToolInfo LinkVersionCheckerV004 = Add("Link Version Checker", "4.2.0", "V004", "Revit26_Plugin_Revised.LinkVersionChecker_V004");
         public static readonly ToolInfo LinkVersionCheckerV006 = Add("Link Version Checker", "6.1.0", "V006", "Revit26_Plugin_Revised.LinkVersionChecker.V006");

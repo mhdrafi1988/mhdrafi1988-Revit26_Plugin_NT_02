@@ -9,7 +9,7 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
-## [6.44.0] — 2026-11-10
+## [6.46.0] — 2026-11-10
 
 ### Smart View To Sheet Placer 224.3.0
 
@@ -25,6 +25,32 @@ Each release lists every tool whose version changed, under the plugin version.
 - **On Sheet** column in the view list: "Yes – skipped" for a view already on a sheet, "Yes – reusable" for a legend already on a sheet.
 
 User note: view sizes can differ slightly from 224.2.0, so the same selection may pack differently. Selected views that are already on a sheet are now left out before packing instead of being skipped at the end. The settings file gains `LastTitleSpaceMm`; older files load unchanged.
+## [6.45.0] — 2026-11-10
+
+### Worksets & Elements Browser 4.5.0
+
+#### Added
+- **Open / Close Worksets…** (toolbar): opens Revit's own Worksets dialog, where you open and close worksets. Revit has no API to open or close a workset in a model that is already open, so the browser hands over to Revit's dialog. The button says why when the model is not workshared, is not the active model, or another command is running.
+- **Reload** (toolbar): reads the worksets and elements from the model again, for example after opening or closing worksets. Checks are cleared.
+- **open / closed badge** on each workset row; "closed" is shown in the warning colour. The Model card also counts the closed worksets.
+
+#### Changed
+- **Hide Empty Worksets** no longer hides closed worksets. A closed workset lists no elements only because Revit has not loaded it, so it stays in the tree with its "closed" badge.
+
+User note: the browser stays open while Revit's Worksets dialog is shown; press Reload afterwards. With "Hide Empty Worksets" ticked you now also see closed worksets (with no elements under them); open worksets that are empty are hidden as before.
+
+## [6.44.0] — 2026-11-10
+
+### Merge Roofs 1.1.0
+
+#### Added
+- Esc or the new **Cancel run** button stops a running Check or Create roof. It asks "Cancel the process? Yes / No"; Yes undoes everything the run did (the new roof and any gap links are rolled back together), No carries on. The status line then reads "Cancelled by user. Nothing was changed." The detail lines and circles offered after a failed merge can be cancelled the same way.
+- The Merge Roofs ribbon button has its own icon (two roofs joined into one).
+
+#### Changed
+- Check, Create roof and Cancel run are disabled or enabled to match whether a run is active.
+
+User note: the union calculation and the single Revit call that creates the roof cannot be interrupted; Esc is acted on just before and after them.
 
 ## [6.43.0] — 2026-11-10
 
