@@ -6,7 +6,7 @@ using System.Text.Json;
 namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Infrastructure
 {
     /// <summary>
-    /// Remembers which item of each Quick Align split button on the Tagging panel was used last, in
+    /// Remembers which item of each Quick Align / Quick Distribute split button on the Tagging panel was used last, in
     /// <c>%AppData%\Revit26_Plugin_Revised\AlignSpotElevations\quicksplit.json</c>, so the split button
     /// shows and runs it again after Revit restarts. A missing, unreadable or newer file means "no
     /// memory": the split buttons start on their first item. Nothing here ever throws.
@@ -24,6 +24,10 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Infrastructure
         public const string SplitHorizontal = "Split_AlignSpotElevations_QuickHorizontal";
         /// <summary>Internal name of the Quick Align to Tag split button.</summary>
         public const string SplitToTag = "Split_AlignSpotElevations_QuickToTag";
+        /// <summary>Internal name of the Quick Distribute Vertical split button.</summary>
+        public const string SplitDistributeVertical = "Split_AlignSpotElevations_QuickDistributeVertical";
+        /// <summary>Internal name of the Quick Distribute Horizontal split button.</summary>
+        public const string SplitDistributeHorizontal = "Split_AlignSpotElevations_QuickDistributeHorizontal";
 
         /// <summary>Full path of the memory file.</summary>
         public static string FilePath { get; } = Path.Combine(

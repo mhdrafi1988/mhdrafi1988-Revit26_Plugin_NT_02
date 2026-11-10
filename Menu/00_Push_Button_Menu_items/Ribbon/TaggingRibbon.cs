@@ -12,7 +12,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
     {
         private const string Icons = "Revit26_Plugin_Revised.Resources.Icons.Tagging.";
 
-        /// <summary>Creates the Tagging panel on <paramref name="tabName"/> with the Tag To Text, Align Spot Elevations, Align to Detail Line and Distribute buttons, three quick-align split buttons (Vertical, Horizontal, to Tag) and two quick-distribute buttons.</summary>
+        /// <summary>Creates the Tagging panel on <paramref name="tabName"/> with the Tag To Text, Align Spot Elevations, Align to Detail Line and Distribute buttons, three quick-align split buttons (Vertical, Horizontal, to Tag) and two quick-distribute split buttons (Vertical, Horizontal).</summary>
         public static void Build(UIControlledApplication app, string tabName, string assemblyPath)
         {
             RibbonPanel panel = app.CreateRibbonPanel(tabName, "Tagging");
@@ -140,7 +140,31 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                 "Spaces the selected spot elevations left-right along their row right away; they keep their up-down " +
                 "position. Uses the parts and spacing (even or fixed gap) last used in the Align Spot Elevations window. " +
                 "One Undo step.");
-            RibbonLayoutHelper.AddStackedButtons(panel, new RibbonItemData[] { distributeVertical, distributeHorizontal });
+            var distEndsVertical = QuickPart(assemblyPath, "QuickDistributeEndsVertical", "Quick Distribute Ends Vertical", "DistributeEndsVertical",
+                "Spaces the leader end points of the selected spot elevations up-down along their column right away. " +
+                "The text moves with each end. A leader with a bend only lets its end slide along the bend-to-end " +
+                "segment. Uses the spacing last used in the window. One Undo step.");
+            var distEndsHorizontal = QuickPart(assemblyPath, "QuickDistributeEndsHorizontal", "Quick Distribute Ends Horizontal", "DistributeEndsHorizontal",
+                "Spaces the leader end points of the selected spot elevations left-right along their row right away. " +
+                "The text moves with each end. A leader with a bend only lets its end slide along the bend-to-end " +
+                "segment. Uses the spacing last used in the window. One Undo step.");
+            var distBendsVertical = QuickPart(assemblyPath, "QuickDistributeBendsVertical", "Quick Distribute Bends Vertical", "DistributeBendsVertical",
+                "Spaces the leader bend points (shoulders) of the selected spot elevations up-down along their column " +
+                "right away. The leader end and text move with each bend. Uses the spacing last used in the window. " +
+                "One Undo step.");
+            var distBendsHorizontal = QuickPart(assemblyPath, "QuickDistributeBendsHorizontal", "Quick Distribute Bends Horizontal", "DistributeBendsHorizontal",
+                "Spaces the leader bend points (shoulders) of the selected spot elevations left-right along their row " +
+                "right away. The leader end and text move with each bend. Uses the spacing last used in the window. " +
+                "One Undo step.");
+
+            var splitDistVertical = QuickSplit(QuickSplitMemory.SplitDistributeVertical, "Quick Distribute Vertical", distributeVertical,
+                "Quick distribute up-down along the column: tags, leader ends or leader bends. The button runs the one you used last.");
+            var splitDistHorizontal = QuickSplit(QuickSplitMemory.SplitDistributeHorizontal, "Quick Distribute Horizontal", distributeHorizontal,
+                "Quick distribute left-right along the row: tags, leader ends or leader bends. The button runs the one you used last.");
+            IList<RibbonItem> createdDist = RibbonLayoutHelper.AddStackedButtons(panel,
+                new RibbonItemData[] { splitDistVertical, splitDistHorizontal });
+            AddSplitItems(createdDist, splitDistVertical.Name, distributeVertical, distEndsVertical, distBendsVertical);
+            AddSplitItems(createdDist, splitDistHorizontal.Name, distributeHorizontal, distEndsHorizontal, distBendsHorizontal);
         }
 
         /// <summary>Creates a small split button that shows <paramref name="primary"/>'s icon until the user picks another item.</summary>

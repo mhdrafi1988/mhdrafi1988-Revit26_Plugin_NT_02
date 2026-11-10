@@ -1,8 +1,8 @@
 <title>Align Spot Elevations Window</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <!-- UI preview (CLAUDE.md "UI previews"): Align Spot Elevations V001, tool 1.8.0, plugin 6.43.0.
-     New in 1.8.0: Distribute Spot Elev. button (opens the window in Distribute only) and two quick buttons
-     (Quick Distribute Vertical, Quick Distribute Horizontal). The window itself is unchanged.
+     New in 1.8.0: Distribute Spot Elev. button (opens the window in Distribute only) and two quick split buttons
+     (Quick Distribute Vertical, Quick Distribute Horizontal; each lists tags, ends, bends). The window itself is unchanged.
      Earlier, 1.7.1: the eight Quick Align buttons became three small split buttons (Vertical, Horizontal, to Tag).
      Earlier, 1.6.0: "Pick tag…" for the bend point and end point lines in Align to detail lines mode.
      Mirrors: Menu/Tagging/AlignSpotElevations_V001/UI/Views/AlignWindow.xaml (+ AlignViewModel),
@@ -84,14 +84,14 @@ ul{margin:0;padding-left:18px;line-height:1.6}
 <div class="page">
   <header>
     <h1>Align Spot Elevations v1.8.0 — distribute buttons</h1>
-    <p class="muted">Three new ribbon buttons space the selected spot elevations along their column or row without lining them up: one opens the window in Distribute only, two do it in one click. Green tags mark what is new.</p>
+    <p class="muted">Three new ribbon buttons space the selected spot elevations along their column or row without lining them up: one opens the window in Distribute only, two split buttons do it in one click for the tags, the leader ends or the leader bends. Green tags mark what is new.</p>
     <p style="margin-top:8px"><span class="sample">Sample data: spot labels and positions are made up.</span></p>
   </header>
 
   <!-- 1. Ribbon -->
   <section>
     <h2>1 · Ribbon, Tagging panel</h2>
-    <p class="muted" style="margin-bottom:8px">One new large button and one new stack of two small buttons, after the Quick Align split buttons.</p>
+    <p class="muted" style="margin-bottom:8px">One new large button and one new stack of two small split buttons, after the Quick Align split buttons. The main click runs the item used last (the first until you pick another); the arrow lists the rest.</p>
     <div class="frame">
       <div class="rib">
         <div class="tabs">… · Tagging · …</div>
@@ -106,15 +106,17 @@ ul{margin:0;padding-left:18px;line-height:1.6}
             <span class="small"><i></i>Quick Align to Tag ▾</span>
           </div>
           <div class="stack">
-            <span class="small new"><i></i>Quick Distribute Vertical</span>
-            <span class="small new"><i></i>Quick Distribute Horizontal</span>
+            <span class="small new"><i></i>Quick Distribute Vertical ▾</span>
+            <span class="small new"><i></i>Quick Distribute Horizontal ▾</span>
           </div>
         </div>
         <div class="ptitle">Tagging</div>
       </div>
       <div class="tip">
-        <b>Quick Distribute Vertical<span class="tag">NEW</span></b>
-        <span>Spaces the selected spot elevations up-down along their column right away; they keep their left-right position. Uses the parts and spacing (even or fixed gap) last used in the Align Spot Elevations window. One Undo step.</span>
+        <b>Arrow lists<span class="tag">NEW</span></b>
+        <span><b>Vertical ▾</b> Quick Distribute Vertical · Quick Distribute Ends Vertical · Quick Distribute Bends Vertical</span>
+        <span><b>Horizontal ▾</b> Quick Distribute Horizontal · Quick Distribute Ends Horizontal · Quick Distribute Bends Horizontal</span>
+        <span><b>Quick Distribute Ends Vertical</b>: Spaces the leader end points of the selected spot elevations up-down along their column right away. The text moves with each end. A leader with a bend only lets its end slide along the bend-to-end segment. Uses the spacing last used in the window. One Undo step.</span>
         <span class="gray">Align Spot Elevations v1.8.0</span>
       </div>
     </div>
@@ -204,7 +206,8 @@ ul{margin:0;padding-left:18px;line-height:1.6}
     <h2>What changed in 1.8.0</h2>
     <ul>
       <li><b>Distribute Spot Elev.</b>: opens the window with Distribute only chosen. Even spacing or a fixed gap; text, leader ends and bend points.</li>
-      <li><b>Quick Distribute Vertical / Horizontal</b>: one click, with the parts and spacing last used in the window. "Keep current spacing" counts as even. Even spacing needs at least three spots.</li>
+      <li><b>Quick Distribute Vertical / Horizontal</b> split buttons: one click. Each lists tags (parts last ticked in the window), <b>Ends</b> (leader end points only) and <b>Bends</b> (bend points only), and remembers the item used last.</li>
+      <li>All use the spacing last used in the window. "Keep current spacing" counts as even. Even spacing needs at least three spots that have the part.</li>
       <li>The window, its settings file and the Quick Align buttons are unchanged.</li>
     </ul>
     <h2>Earlier</h2>

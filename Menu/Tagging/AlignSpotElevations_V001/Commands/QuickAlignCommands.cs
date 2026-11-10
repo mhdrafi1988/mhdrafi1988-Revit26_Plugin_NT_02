@@ -106,9 +106,10 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Commands
         /// Quick Distribute: spaces the selected tags along their column (<paramref name="direction"/> =
         /// Vertical, up-down) or row (Horizontal, left-right) without lining them up, using the parts and
         /// spacing last saved by the window. "Keep current spacing" counts as even spacing. Even keeps the
-        /// first and last tag; a fixed gap keeps the top / left tag.
+        /// first and last tag; a fixed gap keeps the top / left tag. With <paramref name="only"/> set, only
+        /// that part is spaced (the text follows a moved leader end or bend point, as in Revit).
         /// </summary>
-        public static Result RunDistribute(ExternalCommandData commandData, AlignDirection direction)
+        public static Result RunDistribute(ExternalCommandData commandData, AlignDirection direction, SpotPart? only = null)
         {
             AlignContext ctx = AlignRunner.Prepare(commandData);
             if (ctx == null) return Result.Cancelled;
@@ -119,11 +120,24 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Commands
             o.ReferenceId = null;
             if (o.Distribute == DistributeMode.None) o.Distribute = DistributeMode.Even;
             if (!o.MovesAnything) o.MoveText = true;
-
-            if (o.Distribute == DistributeMode.Even && ctx.Read.Items.Count < 3)
+            string what = "spot elevations";
+            int have = ctx.Read.Items.Count;
+            if (only.HasValue)
             {
-                TaskDialog.Show(ctx.Title, "Even spacing needs at least three spot elevations: the first and last stay " +
-                    "and the others are spaced between them. Select more, or choose a fixed gap in the Align Spot Elevations window.");
+                o.MoveText = only.Value == SpotPart.Text;
+                o.MoveLeaderEnd = only.Value == SpotPart.LeaderEnd;
+                o.MoveLeaderShoulder = only.Value == SpotPart.LeaderShoulder;
+                if (only.Value == SpotPart.LeaderEnd) { what = "leader end points"; have = ctx.Read.Items.Count(i => i.HasEnd); }
+                else if (only.Value == SpotPart.LeaderShoulder) { what = "leader bend points"; have = ctx.Read.Items.Count(i => i.HasShoulder); }
+            }
+
+            int need = o.Distribute == DistributeMode.Even ? 3 : 2;
+            if (have < need)
+            {
+                TaskDialog.Show(ctx.Title, o.Distribute == DistributeMode.Even
+                    ? $"Even spacing needs at least three {what}: the first and last stay and the others are spaced " +
+                      $"between them. The selection has {have}. Select more, or choose a fixed gap in the Align Spot Elevations window."
+                    : $"Fewer than two of the selected spot elevations have {what} to space.");
                 return Result.Cancelled;
             }
 
@@ -132,7 +146,7 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Commands
             string spacing = o.Distribute == DistributeMode.FixedGap ? $"{o.GapMm:0.#} mm gap" : "even spacing";
             if (plan.MoveCount == 0)
             {
-                TaskDialog.Show(ctx.Title, $"The selected spot elevations are already spaced {where} ({spacing}).");
+                TaskDialog.Show(ctx.Title, $"The selected {what} are already spaced {where} ({spacing}).");
                 return Result.Cancelled;
             }
             var parts = new System.Collections.Generic.List<string>();
@@ -294,7 +308,41 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Commands
         /// <summary>Revit entry point — delegates to <see cref="ToolGuard.RunCommand"/>.</summary>
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
             => ToolGuard.RunCommand(GetType(), commandData, ref message, elements,
-                (ExternalCommandData d, ref string m, ElementSet e) => QuickAlign.RunDistribute(d, AlignDirection.Vertical));
+                (ExternalCommandData d, ref string m, ElementSet e) =>
+                {
+                    QuickSplitMemory.Remember(QuickSplitMemory.SplitDistributeVertical, "Btn_AlignSpotElevations_QuickDistributeVertical_V001");
+                    return QuickAlign.RunDistribute(d, AlignDirection.Vertical);
+                });
+    }
+
+    /// <summary>Quick Distribute Ends Vertical: spaces the selected leader end points up-down along their column, no window.</summary>
+    [Transaction(TransactionMode.Manual)]
+    [Regeneration(RegenerationOption.Manual)]
+    public class AlignSpotElevationsQuickDistributeEndsVerticalCommand : IExternalCommand
+    {
+        /// <summary>Revit entry point — delegates to <see cref="ToolGuard.RunCommand"/>.</summary>
+        public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
+            => ToolGuard.RunCommand(GetType(), commandData, ref message, elements,
+                (ExternalCommandData d, ref string m, ElementSet e) =>
+                {
+                    QuickSplitMemory.Remember(QuickSplitMemory.SplitDistributeVertical, "Btn_AlignSpotElevations_QuickDistributeEndsVertical_V001");
+                    return QuickAlign.RunDistribute(d, AlignDirection.Vertical, SpotPart.LeaderEnd);
+                });
+    }
+
+    /// <summary>Quick Distribute Bends Vertical: spaces the selected leader bend points up-down along their column, no window.</summary>
+    [Transaction(TransactionMode.Manual)]
+    [Regeneration(RegenerationOption.Manual)]
+    public class AlignSpotElevationsQuickDistributeBendsVerticalCommand : IExternalCommand
+    {
+        /// <summary>Revit entry point — delegates to <see cref="ToolGuard.RunCommand"/>.</summary>
+        public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
+            => ToolGuard.RunCommand(GetType(), commandData, ref message, elements,
+                (ExternalCommandData d, ref string m, ElementSet e) =>
+                {
+                    QuickSplitMemory.Remember(QuickSplitMemory.SplitDistributeVertical, "Btn_AlignSpotElevations_QuickDistributeBendsVertical_V001");
+                    return QuickAlign.RunDistribute(d, AlignDirection.Vertical, SpotPart.LeaderShoulder);
+                });
     }
 
     /// <summary>Quick Distribute Horizontal: spaces the selected spot elevation tags left-right along their row, no window.</summary>
@@ -305,6 +353,40 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Commands
         /// <summary>Revit entry point — delegates to <see cref="ToolGuard.RunCommand"/>.</summary>
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
             => ToolGuard.RunCommand(GetType(), commandData, ref message, elements,
-                (ExternalCommandData d, ref string m, ElementSet e) => QuickAlign.RunDistribute(d, AlignDirection.Horizontal));
+                (ExternalCommandData d, ref string m, ElementSet e) =>
+                {
+                    QuickSplitMemory.Remember(QuickSplitMemory.SplitDistributeHorizontal, "Btn_AlignSpotElevations_QuickDistributeHorizontal_V001");
+                    return QuickAlign.RunDistribute(d, AlignDirection.Horizontal);
+                });
+    }
+
+    /// <summary>Quick Distribute Ends Horizontal: spaces the selected leader end points left-right along their row, no window.</summary>
+    [Transaction(TransactionMode.Manual)]
+    [Regeneration(RegenerationOption.Manual)]
+    public class AlignSpotElevationsQuickDistributeEndsHorizontalCommand : IExternalCommand
+    {
+        /// <summary>Revit entry point — delegates to <see cref="ToolGuard.RunCommand"/>.</summary>
+        public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
+            => ToolGuard.RunCommand(GetType(), commandData, ref message, elements,
+                (ExternalCommandData d, ref string m, ElementSet e) =>
+                {
+                    QuickSplitMemory.Remember(QuickSplitMemory.SplitDistributeHorizontal, "Btn_AlignSpotElevations_QuickDistributeEndsHorizontal_V001");
+                    return QuickAlign.RunDistribute(d, AlignDirection.Horizontal, SpotPart.LeaderEnd);
+                });
+    }
+
+    /// <summary>Quick Distribute Bends Horizontal: spaces the selected leader bend points left-right along their row, no window.</summary>
+    [Transaction(TransactionMode.Manual)]
+    [Regeneration(RegenerationOption.Manual)]
+    public class AlignSpotElevationsQuickDistributeBendsHorizontalCommand : IExternalCommand
+    {
+        /// <summary>Revit entry point — delegates to <see cref="ToolGuard.RunCommand"/>.</summary>
+        public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
+            => ToolGuard.RunCommand(GetType(), commandData, ref message, elements,
+                (ExternalCommandData d, ref string m, ElementSet e) =>
+                {
+                    QuickSplitMemory.Remember(QuickSplitMemory.SplitDistributeHorizontal, "Btn_AlignSpotElevations_QuickDistributeBendsHorizontal_V001");
+                    return QuickAlign.RunDistribute(d, AlignDirection.Horizontal, SpotPart.LeaderShoulder);
+                });
     }
 }
