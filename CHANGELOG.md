@@ -9,6 +9,19 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.44.0] — 2026-11-10
+
+### Auto Slope By Point 34.0.0 (V034)
+
+#### Added
+- **Auto Slope By Point V034**: new version of By Point, first in the **Roof Slope ▸ By Point** pulldown. Same as V033, plus a **Sample spacing** combo box in **Path options**: 40, 50, 75 (default) or 100 mm. The tool keeps a straight water-path link between two shape points only when check points along it all lie on the roof's top face; this sets how far apart those check points are. A smaller value finds narrower openings.
+- The chosen spacing is shown in the log line for the path graph and written as a new last row, **Sample spacing (mm)**, in the Excel Run Summary.
+
+#### Changed
+- **By Point** pulldown: order is now V034, V033, V032, V030, Ridge V003, Multi Copies 30. V034 supplies the pulldown's icon.
+
+User note: 75 mm is the spacing V033 uses, so V034 at the default gives the same slope as V033. At 40 mm the path graph step takes about twice as long. An opening narrower than the chosen spacing can still be missed. V033 is unchanged and stays in the pulldown. V034 saves to its own `settings.v034.json`; the first time it opens it reads V033's settings (else V032's), with the sample spacing at 75 mm.
+
 ## [6.43.0] — 2026-11-10
 
 ### Align Spot Elevations 1.8.0

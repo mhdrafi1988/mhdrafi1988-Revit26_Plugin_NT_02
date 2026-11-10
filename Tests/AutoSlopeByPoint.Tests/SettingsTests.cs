@@ -1,14 +1,14 @@
 using System;
 using System.IO;
-using Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Core.Models;
-using Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Infrastructure.Helpers;
+using Revit26_Plugin_Revised.AutoSlopeByPoint.V034.Core.Models;
+using Revit26_Plugin_Revised.AutoSlopeByPoint.V034.Infrastructure.Helpers;
 using Xunit;
 
 namespace AutoSlopeByPoint.Tests
 {
     public class SettingsTests : IDisposable
     {
-        private readonly string _dir = Path.Combine(Path.GetTempPath(), "AutoSlopeV033Tests_" + Guid.NewGuid().ToString("N"));
+        private readonly string _dir = Path.Combine(Path.GetTempPath(), "AutoSlopeV034Tests_" + Guid.NewGuid().ToString("N"));
 
         public SettingsTests() => Directory.CreateDirectory(_dir);
 
@@ -54,6 +54,30 @@ namespace AutoSlopeByPoint.Tests
             Assert.Equal(1.0, s.SlopePercent);
             Assert.True(s.DrawRidgeLines);
             Assert.Equal("Medium Lines", s.RidgeLineStyleName);
+        }
+
+        [Fact]
+        public void V033File_Loads_WithDefaultSampleSpacing()
+        {
+            string v033 = Write("settings.v033.json", "{ \"SlopePercent\": 1.0, \"DrawRidgeLines\": true }");
+            string v032 = Write("settings.v032.json", "{ \"SlopePercent\": 2.5 }");
+
+            AutoSlopeSettings s = AutoSlopeSettingsStore.LoadFrom(Path.Combine(_dir, "settings.v034.json"), v033, v032);
+
+            Assert.Equal(1.0, s.SlopePercent);
+            Assert.True(s.DrawRidgeLines);
+            Assert.Equal(AutoSlopeConstants.DefaultSampleSpacingMm, s.SampleSpacingMm);
+        }
+
+        [Fact]
+        public void V034File_KeepsSampleSpacing()
+        {
+            string v034 = Write("settings.v034.json", "{ \"SampleSpacingMm\": 40 }");
+            string v033 = Write("settings.v033.json", "{ \"SlopePercent\": 2.5 }");
+
+            AutoSlopeSettings s = AutoSlopeSettingsStore.LoadFrom(v034, v033);
+
+            Assert.Equal(40, s.SampleSpacingMm);
         }
 
         [Fact]

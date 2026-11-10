@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Core.Services;
+using Revit26_Plugin_Revised.AutoSlopeByPoint.V034.Core.Services;
 using Xunit;
 
 namespace AutoSlopeByPoint.Tests
@@ -136,7 +136,7 @@ namespace AutoSlopeByPoint.Tests
         {
             var r = RidgeFinder.Find(new RidgeInput
             {
-                Positions = new List<Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Core.Models.Point3>(),
+                Positions = new List<Revit26_Plugin_Revised.AutoSlopeByPoint.V034.Core.Models.Point3>(),
                 Graph = new PathGraph(0),
                 GroupOf = new int[0],
                 Elevation = new double[0],

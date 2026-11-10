@@ -74,7 +74,7 @@ Core/             → plain .NET where possible; many tools also use Revit types
 
 `Core/` is meant for the tool's logic. It is **not** reliably free of the Revit API: 85 of the 105 `Core/` folders
 outside WIP use Revit types (`XYZ`, `SlabShapeVertex`, `Element`…). The newer split, seen in Auto Slope By Point
-V033 and Floor Slope By Point V001, keeps pure maths in `Core/Services` (`ShortestPathSolver`, `RidgeFinder`,
+V033 / V034 and Floor Slope By Point V001, keeps pure maths in `Core/Services` (`ShortestPathSolver`, `RidgeFinder`,
 `SpatialGrid2D`) and Revit calls in `Infrastructure/` (`RoofOps` / `FloorOps`). The unit tests in `Tests/` link
 exactly those Revit-free files. Copy that split when a tool's logic needs tests.
 

@@ -36,7 +36,7 @@ Since plugin 3.10.0 (2026-10-19), **git is the version history**:
 
 Before 3.10.0, a behaviour change usually meant a new `_V0xx` folder, wired into the ribbon next to the old one so
 users could fall back. That is why many tools still have two or more coexisting folders (`AutoSlopeByPoint_V030`,
-`_V032`, `_V033`). They stay until they are retired as below.
+`_V032`, `_V033`, `_V034`; V034 was added in 6.44.0 at the owner's request). They stay until they are retired as below.
 
 ## Floor versions of roof tools (plugins 6.31.0–6.37.0)
 
@@ -79,7 +79,7 @@ Detail Lines. Each floor tool's folder has a `README_V001.md` with the differenc
 ## A higher build is not always a replacement
 
 Some pulldowns hold genuinely different implementations, not generations of one tool. **Roof Slope ▸ By Point**
-lists V033, V032 and V030 (one lineage), plus **Ridge V003** (ridge-aware) and **Multi Copies 30** (multi-copy).
+lists V034, V033, V032 and V030 (one lineage), plus **Ridge V003** (ridge-aware) and **Multi Copies 30** (multi-copy).
 Before assuming the highest build is "the" tool and the rest are dead weight, check whether the ribbon groups them
 as alternatives.
 

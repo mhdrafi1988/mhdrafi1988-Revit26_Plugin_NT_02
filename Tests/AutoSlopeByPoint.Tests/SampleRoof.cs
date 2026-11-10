@@ -2,13 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Core.Models;
-using Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Core.Services;
+using Revit26_Plugin_Revised.AutoSlopeByPoint.V034.Core.Models;
+using Revit26_Plugin_Revised.AutoSlopeByPoint.V034.Core.Services;
 
 namespace AutoSlopeByPoint.Tests
 {
     /// <summary>
-    /// A rectangular roof with shape points on a regular grid, sloped the way V033 does it:
+    /// A rectangular roof with shape points on a regular grid, sloped the way V033 and V034 do it:
     /// elevation = path length to the nearest drain. Same sample roofs as the design preview.
     /// </summary>
     internal sealed class SampleRoof

@@ -1,0 +1,229 @@
+<title>Auto Slope By Point V034</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<!-- UI preview (CLAUDE.md "UI previews"): Auto Slope By Point 34.0.0 (V034). Plugin 6.44.0.
+     Mirrors: Menu/RoofTools/RoofSlope/ByPoints/AutoSlopeByPoint_V034/UI/Views/AutoSlopeByPointWindow.xaml,
+              UI/ViewModels/AutoSlopeViewModel.cs (summaries, labels), Core/Services/SampleSpacing.cs (combo items),
+              Menu/00_Push_Button_Menu_items/Ribbon/RoofToolsRibbon.cs (By Point pulldown, tooltip).
+     Artifact: https://claude.ai/artifact/GHfEuygCguPosC6nPoK5VC (republish to this URL on every update)
+     Colours: Shared/SharedStyles.xaml tokens, one light look on purpose (mirrors the light WPF window). -->
+<style>
+/* Layout: one column of captioned mock-ups; each fixed-width Revit piece scrolls in its own frame. */
+:root{
+  color-scheme:light;
+  --page:#E9EDF1; --window:#F3F5F7; --card:#FFFFFF; --border:#D6DCE3; --input:#B5C2CF;
+  --navy:#1E3A5F; --navy-light:#2C4F7C; --on-dark:#FFFFFF;
+  --text:#1A2B3C; --text2:#5B7185; --bg2:#ECEFF3;
+  --blue:#1F5FBF; --blue-soft:#E3EDFB; --warn:#9A5B00; --warn-soft:#FDF1E1; --warn-line:#E8B66B; --ok:#0E7C66; --ok-soft:#E0F4EF;
+  --new:#0E7C66; --new-soft:#E0F4EF; --shadow:rgba(16,32,48,.18);
+  --ui:'Segoe UI',system-ui,-apple-system,sans-serif;
+  --mono:Consolas,'Cascadia Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--text);font-family:var(--ui);font-size:12.5px;
+  padding-block:24px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.page{max-width:1040px;margin:0 auto;display:grid;gap:24px}
+.page>*{min-width:0}
+h1{font-size:20px;margin:0 0 6px;font-weight:600;text-wrap:balance}
+h2{font-size:14px;margin:0 0 6px;font-weight:600}
+p{margin:0 0 8px;line-height:1.5;max-width:75ch}
+.muted{color:var(--text2)}
+.tag{display:inline-block;background:var(--new);color:var(--on-dark);font-size:10px;font-weight:600;letter-spacing:.04em;
+  padding:1px 6px;border-radius:3px;vertical-align:middle;margin-left:6px;white-space:nowrap}
+.sample{display:inline-block;background:var(--warn-soft);color:var(--warn);border:1px solid var(--warn-line);border-radius:3px;padding:2px 8px;font-size:11.5px}
+.frame{overflow-x:auto;padding:2px 2px 8px}
+.changes{margin:0;padding-left:18px;line-height:1.6;max-width:75ch}
+
+/* Ribbon pulldown */
+.rib{width:560px;display:flex;gap:18px;align-items:flex-start}
+.menu{width:230px;background:var(--card);border:1px solid var(--input);box-shadow:0 4px 14px var(--shadow)}
+.menu .top{background:var(--bg2);border-bottom:1px solid var(--border);padding:6px 9px;font-weight:600}
+.menu div.it{padding:6px 9px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.menu div.it.new{background:var(--new-soft)}
+.tip{width:310px;background:var(--card);border:1px solid var(--input);box-shadow:0 4px 14px var(--shadow);padding:9px 11px;line-height:1.45}
+.tip b{display:block;margin-bottom:3px}
+
+/* Tool window */
+.win{width:1000px;background:var(--window);border:1px solid var(--input);box-shadow:0 6px 20px var(--shadow)}
+.tbar{background:var(--card);border-bottom:1px solid var(--border);padding:7px 10px;display:flex;justify-content:space-between}
+.hdr{background:var(--navy);color:var(--on-dark);padding:9px 12px;display:flex;gap:10px;align-items:center}
+.hdr b{font-size:15px;font-weight:600;margin-right:auto}
+.badge{background:var(--navy-light);border-radius:10px;padding:3px 9px;font-size:11px;font-weight:600;white-space:nowrap}
+.tiles{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;padding:8px 12px 0}
+.tile{background:var(--card);border:1px solid var(--border);padding:6px 8px}
+.tile span{display:block;font-size:9.5px;font-weight:600;letter-spacing:.05em;color:var(--text2)}
+.tile b{font-size:16px;font-weight:600;font-variant-numeric:tabular-nums}
+.tile.ok b{color:var(--ok)} .tile.wa b{color:var(--warn)} .tile.in b{color:var(--blue)}
+.cols{display:grid;grid-template-columns:1.15fr 1fr;gap:8px;padding:8px 12px}
+.card{background:var(--card);border:1px solid var(--border);padding:7px 9px}
+.card.hl{border-color:var(--new);box-shadow:0 0 0 2px var(--new-soft)}
+.stitle{font-weight:600;margin-bottom:5px}
+.three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px 12px}
+.lbl{color:var(--text2);font-size:11.5px}
+.inp{border:1px solid var(--input);background:var(--card);height:24px;padding:0 7px;display:flex;align-items:center;justify-content:space-between;font-variant-numeric:tabular-nums}
+.hint{color:var(--text2);font-size:11px;line-height:1.4}
+.warnline{background:var(--warn-soft);color:var(--warn);border:1px solid var(--warn-line);padding:4px 8px;font-size:11.5px;margin-top:6px}
+.opt{font-size:10px;font-weight:600;letter-spacing:.06em;color:var(--text2);margin:9px 0 4px}
+.left{display:grid;gap:5px;align-content:start}
+.sec{display:grid;grid-template-columns:14px 110px 1fr auto;gap:0 4px;align-items:center}
+.sec b{font-weight:600}
+.custom{background:var(--blue-soft);color:var(--blue);font-size:10px;font-weight:600;padding:1px 6px;border-radius:8px}
+.form{display:grid;grid-template-columns:110px 1fr;gap:3px 0;align-items:center;margin:7px 0 2px 18px}
+.row{display:flex;align-items:center;gap:10px}
+.combo{position:relative;width:140px}
+.drop{position:absolute;left:0;top:25px;width:140px;background:var(--card);border:1px solid var(--input);box-shadow:0 4px 12px var(--shadow);z-index:2}
+.drop div{padding:4px 8px}
+.drop div.sel{background:var(--blue);color:var(--on-dark)}
+.spacer{height:92px}
+.toggle{width:30px;height:16px;border-radius:8px;background:var(--ok);position:relative;flex:none}
+.toggle::after{content:"";position:absolute;right:2px;top:2px;width:12px;height:12px;border-radius:50%;background:var(--card)}
+.link{color:var(--blue);font-size:11.5px;margin:4px 0 0 18px}
+.grid{width:100%;border-collapse:collapse;background:var(--card);font-size:11.5px;font-variant-numeric:tabular-nums}
+.grid th,.grid td{border:1px solid var(--border);padding:3px 7px;text-align:right;white-space:nowrap}
+.grid th{background:var(--bg2);font-weight:600}
+.pills{display:flex;gap:6px;margin-bottom:6px;align-items:center}
+.pills b{margin-right:auto}
+.pill{border:1px solid var(--input);background:var(--bg2);padding:2px 9px;font-size:11px}
+.pill.on{background:var(--navy);color:var(--on-dark);border-color:var(--navy)}
+.log{margin:0 12px 8px;background:var(--card);border:1px solid var(--border);padding:6px 9px;font-family:var(--mono);font-size:11.5px;line-height:1.55}
+.log .hlrow{background:var(--new-soft)}
+.foot{border-top:1px solid var(--border);padding:8px 12px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.btn{border:1px solid var(--input);background:var(--bg2);height:28px;padding:0 13px;display:inline-flex;align-items:center;font-size:11.5px;font-weight:600;margin-left:6px}
+.btn.pri{background:var(--navy);color:var(--on-dark);border-color:var(--navy)}
+
+/* Excel */
+.xl{width:520px;border-collapse:collapse;background:var(--card);font-size:12px}
+.xl td{border:1px solid var(--border);padding:3px 8px}
+.xl td:first-child{font-weight:600;width:210px}
+.xl tr.new td{background:var(--new-soft)}
+</style>
+
+<div class="page">
+  <header>
+    <h1>Auto Slope By Point 34.0.0 (V034)</h1>
+    <p class="muted">Plugin 6.44.0. New version next to V033. It adds one option: the sample spacing for the check that keeps water paths on the roof.</p>
+    <span class="sample">Sample data. The roof, numbers and log lines below are made up for this preview.</span>
+  </header>
+
+  <section>
+    <h2>What changed</h2>
+    <ul class="changes">
+      <li><b>Sample spacing</b> combo box in <b>Path &amp; curves</b>: 40, 50, 75 (default) or 100 mm.</li>
+      <li>75 mm is what V033 uses, so the default gives the same slope as V033. 40 mm finds narrower openings and takes about twice as long on the path graph step.</li>
+      <li>The section summary shows the spacing, and the <b>Custom</b> tag appears when it is not 75 mm.</li>
+      <li>The log line for the path graph and the Excel Run Summary show the spacing used.</li>
+      <li><b>By Point V034</b> is first in the By Point pulldown. V033 is unchanged below it.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Ribbon: Roof Slope ▸ By Point</h2>
+    <div class="frame">
+      <div class="rib">
+        <div class="menu">
+          <div class="top">By Point ▾</div>
+          <div class="it new"><span>By Point V034</span><span class="tag">NEW</span></div>
+          <div class="it"><span>By Point V033</span></div>
+          <div class="it"><span>By Point V032</span></div>
+          <div class="it"><span>By Point V030</span></div>
+          <div class="it"><span>By Point Ridge V003</span></div>
+          <div class="it"><span>By Point Multi Copies 30</span></div>
+        </div>
+        <div class="tip">
+          <b>By Point V034 <span class="tag">NEW</span></b>
+          Auto Slope By Point v34.0.0 (V034)<br>
+          V033 plus a sample spacing choice (40 / 50 / 75 / 100 mm) for the check that keeps water paths on the roof.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Tool window, Path &amp; curves open, 40 mm chosen</h2>
+    <div class="frame">
+      <div class="win">
+        <div class="tbar"><span>Auto Slope By Point — v34.0.0 <span class="tag">CHANGED</span></span><span class="muted">—&nbsp;&nbsp;☐&nbsp;&nbsp;✕</span></div>
+        <div class="hdr"><b>Auto Slope By Point</b><span class="badge">Done</span><span class="badge">Roof · 412873 · Flat Roof 200</span><span class="badge">Plan view</span></div>
+        <div class="tiles">
+          <div class="tile ok"><span>PROCESSED</span><b>1 284</b></div>
+          <div class="tile wa"><span>SKIPPED</span><b>0</b></div>
+          <div class="tile in"><span>DRAINS PICKED → USED</span><b>4 → 9</b></div>
+          <div class="tile in"><span>HIGHEST ELEVATION</span><b>186 mm</b></div>
+          <div class="tile in"><span>LONGEST PATH</span><b>12.40 m</b></div>
+          <div class="tile"><span>RUN TIME</span><b>21.6 s</b></div>
+        </div>
+        <div class="cols">
+          <div class="left">
+            <div class="card">
+              <div class="stitle">Every run</div>
+              <div class="three">
+                <span class="lbl">Drains</span><span class="lbl">Slope (%)</span><span class="lbl">Drainage Distance (m)</span>
+                <div class="inp"><b>4 picked</b><span class="pill">Re-pick</span></div>
+                <div class="inp"><span>1.5</span><span>▾</span></div>
+                <div class="inp"><span>100</span></div>
+                <span class="hint">Level 05 Roof</span><span class="hint">150 mm rise per 10 m</span><span class="hint">Points further from every drain stay at 0.</span>
+              </div>
+              <div class="warnline">⚠ Run resets every existing shape-point elevation on this roof. Ctrl+Z undoes the whole run in one step.</div>
+            </div>
+            <div class="opt">OPTIONS · SET ONCE, KEPT BETWEEN SESSIONS</div>
+            <div class="card sec"><span>▸</span><b>Drain options</b><span class="muted">Snap to nearest point · nearby 500 mm</span><span></span></div>
+            <div class="card hl">
+              <div class="sec"><span>▾</span><b>Path &amp; curves</b><span class="muted">Max link: automatic · sample 40 mm · arc points on <span class="tag">CHANGED</span></span><span class="custom">Custom</span></div>
+              <div class="form">
+                <span class="lbl">Max link length (m)</span><div class="inp" style="width:80px"><span>0</span></div>
+                <span></span><span class="hint">0 = same as the drainage distance (V030 behaviour). Shorter is faster on large roofs, but points further apart than this are not linked directly.</span>
+                <span class="lbl">Sample spacing <span class="tag">NEW</span></span>
+                <div class="combo">
+                  <div class="inp"><span>40 mm</span><span>▾</span></div>
+                  <div class="drop"><div class="sel">40 mm</div><div>50 mm</div><div>75 mm (default)</div><div>100 mm</div></div>
+                </div>
+                <span></span><div class="spacer"></div>
+                <span></span><span class="hint">Each path link is checked at points this far apart to see that it stays on the roof. Smaller finds narrower openings but takes longer (40 mm is about twice as slow as 75 mm). 75 mm is the V033 behaviour.</span>
+                <span class="lbl">Insert arc points</span><div class="row"><span class="toggle"></span><span class="hint">Path lengths follow the arc instead of its chord.</span></div>
+              </div>
+              <div class="link">Reset to defaults</div>
+            </div>
+            <div class="card sec"><span>▸</span><b>Circle markers</b><span class="muted">Drains · Highest · Offset · plan view only</span><span></span></div>
+            <div class="card sec"><span>▸</span><b>Ridge lines</b><span class="muted">Off</span><span></span></div>
+            <div class="card sec"><span>▸</span><b>Export &amp; parameters</b><span class="muted">Excel after each run · …\AutoSlope_Reports</span><span></span></div>
+          </div>
+          <div class="card">
+            <div class="pills"><b>Longest 10 paths</b><span class="pill on">Longest 10</span><span class="pill">Skipped (0)</span></div>
+            <table class="grid">
+              <tr><th>#</th><th>PathLength_m</th><th>ElevModel_mm</th><th>1 % (mm)</th><th>1.5 % (mm)</th><th>2 % (mm)</th></tr>
+              <tr><td>1</td><td>12.40</td><td>186</td><td>124</td><td>186</td><td>248</td></tr>
+              <tr><td>2</td><td>12.12</td><td>182</td><td>121</td><td>182</td><td>242</td></tr>
+              <tr><td>3</td><td>11.87</td><td>178</td><td>119</td><td>178</td><td>237</td></tr>
+              <tr><td>4</td><td>11.60</td><td>174</td><td>116</td><td>174</td><td>232</td></tr>
+              <tr><td>5</td><td>11.31</td><td>170</td><td>113</td><td>170</td><td>226</td></tr>
+              <tr><td>6</td><td>10.96</td><td>164</td><td>110</td><td>164</td><td>219</td></tr>
+            </table>
+            <p class="hint" style="margin-top:6px">Select rows to copy them or zoom to the roof.</p>
+          </div>
+        </div>
+        <div class="log">
+          <div>14:02:11&nbsp; Run started on roof 412873 (Flat Roof 200). Slope 1.5%, max drainage distance 100 m.</div>
+          <div class="hlrow">14:02:29&nbsp; Path graph: 1284 points, 96412 links (max link 100 m, sample spacing 40 mm), built in 17.8 s. <span class="tag">CHANGED</span></div>
+          <div>14:02:32&nbsp; Applied 1.5% slope to 1284 point(s).</div>
+        </div>
+        <div class="foot">
+          <span class="muted">Start 14:02:11 · End 14:02:33 · Total 21.6 s</span>
+          <span><span class="btn">Export results…</span><span class="btn">Cancel</span><span class="btn pri">Run AutoSlope</span><span class="btn">Close</span></span>
+        </div>
+      </div>
+    </div>
+    <p class="muted">The combo box is shown open. It is a fixed list; nothing can be typed in it.</p>
+  </section>
+
+  <section>
+    <h2>Excel Run Summary: new last row</h2>
+    <div class="frame">
+      <table class="xl">
+        <tr><td>Max link length (m)</td><td>same as drainage distance (100)</td></tr>
+        <tr><td>…</td><td class="muted">existing rows, same order as V033</td></tr>
+        <tr><td>Export folder</td><td>…\Documents\AutoSlope_Reports</td></tr>
+        <tr><td>Ridge lines</td><td>Off</td></tr>
+        <tr class="new"><td>Sample spacing (mm) <span class="tag">NEW</span></td><td>40</td></tr>
+      </table>
+    </div>
+  </section>
+</div>
