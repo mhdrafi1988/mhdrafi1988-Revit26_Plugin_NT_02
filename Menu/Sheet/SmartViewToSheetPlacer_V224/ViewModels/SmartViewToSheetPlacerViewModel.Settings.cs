@@ -30,6 +30,7 @@ namespace Revit26_Plugin_Revised.SmartViewToSheetPlacer.V224.ViewModels
                     MarginRightMm = _settings.LastMarginRightMm;
                     GlobalHorizontalGapMm = _settings.LastHorizontalGapMm;
                     GlobalVerticalGapMm = _settings.LastVerticalGapMm;
+                    TitleSpaceMm = _settings.LastTitleSpaceMm;
 
                     if (Enum.TryParse<Models.ReadingDirection>(_settings.LastReadingDirection, out var rd))
                         ReadingDirection = rd;
@@ -58,6 +59,7 @@ namespace Revit26_Plugin_Revised.SmartViewToSheetPlacer.V224.ViewModels
                 _settings.LastMarginRightMm = MarginRightMm;
                 _settings.LastHorizontalGapMm = GlobalHorizontalGapMm;
                 _settings.LastVerticalGapMm = GlobalVerticalGapMm;
+                _settings.LastTitleSpaceMm = TitleSpaceMm;
 
                 _settings.LastReadingDirection = ReadingDirection.ToString();
                 _settings.LastRowTiebreak = RowTiebreak.ToString();

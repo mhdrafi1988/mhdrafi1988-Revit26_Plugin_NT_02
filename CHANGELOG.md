@@ -9,6 +9,23 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.44.0] — 2026-11-10
+
+### Smart View To Sheet Placer 224.3.0
+
+#### Fixed
+- **A sheet that fails partway is removed again.** Before, the sheet and the viewports already on it stayed in the model although the run reported them as failed. The other sheets of the run are kept, and the counts and the "Created" status now match the model.
+- **Views marked Overflow are no longer placed without asking.** Place Views shows a Yes / No question when any view is flagged Overflow (default No).
+- **View size on the sheet** is now read from the view's own paper-space outline instead of crop box ÷ scale, so views without a crop are sized as Revit draws them. Crop box ÷ scale stays as the fallback. After placing, any view whose real size differs from the estimate by more than 2 mm is listed in the log as a warning.
+- **The view list only offers views that can go on a sheet.** Sheets, schedules and reports are left out (the log says how many).
+- **Views already on a sheet** (legends excepted) are left out of the packing, so they no longer leave empty slots on the new sheets. The log names them.
+
+#### Added
+- **Title space (mm)** on the Titleblock card: height kept free below every view for its viewport title. Default 0 = none, the earlier behaviour.
+- **On Sheet** column in the view list: "Yes – skipped" for a view already on a sheet, "Yes – reusable" for a legend already on a sheet.
+
+User note: view sizes can differ slightly from 224.2.0, so the same selection may pack differently. Selected views that are already on a sheet are now left out before packing instead of being skipped at the end. The settings file gains `LastTitleSpaceMm`; older files load unchanged.
+
 ## [6.43.0] — 2026-11-10
 
 ### Align Spot Elevations 1.8.0

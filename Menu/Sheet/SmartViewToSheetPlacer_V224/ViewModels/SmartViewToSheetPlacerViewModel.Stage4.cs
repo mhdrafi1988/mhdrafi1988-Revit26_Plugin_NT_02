@@ -98,6 +98,27 @@ namespace Revit26_Plugin_Revised.SmartViewToSheetPlacer.V224.ViewModels
         {
             if (SelectedTitleblock == null) return;
 
+            // Views flagged Overflow no longer fit their sheet: ask before placing them.
+            int overflow = SuggestedSheets.Sum(sh => sh.Placements.Count(p => !p.Fits));
+            if (overflow > 0)
+            {
+                var dialog = new Autodesk.Revit.UI.TaskDialog(Revit26_Plugin_Revised.Shared.Services.ToolCatalog.SmartViewToSheetPlacer.Title)
+                {
+                    MainInstruction = $"{overflow} view(s) are marked Overflow",
+                    MainContent = "They no longer fit their sheet and may overlap other views or run past the margin.\n\n" +
+                                  "Place them anyway? Choose No to go back and move them to another sheet.",
+                    CommonButtons = Autodesk.Revit.UI.TaskDialogCommonButtons.Yes | Autodesk.Revit.UI.TaskDialogCommonButtons.No,
+                    DefaultButton = Autodesk.Revit.UI.TaskDialogResult.No
+                };
+                if (dialog.Show() != Autodesk.Revit.UI.TaskDialogResult.Yes)
+                {
+                    Logs.Add(new LogEntry(LogLevel.Warning,
+                        $"Placement not started: {overflow} view(s) are marked Overflow. Move them to another sheet in Suggested Placement, or place anyway."));
+                    return;
+                }
+                Logs.Add(new LogEntry(LogLevel.Warning, $"Placing with {overflow} Overflow view(s), as confirmed."));
+            }
+
             IsBusy = true;
             BusyMessage = "Creating sheets and placing views...";
             ResetProgress(SuggestedSheets.Sum(sh => sh.Placements.Count));
