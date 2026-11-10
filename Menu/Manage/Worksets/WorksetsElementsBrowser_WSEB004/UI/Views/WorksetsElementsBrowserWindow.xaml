@@ -86,6 +86,31 @@ Changes vs WSEB003 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                             <TextBlock Text="{Binding EditableBadge}" Style="{StaticResource BadgeText}"/>
                         </Border>
 
+                        <!-- Open / closed state of the workset (Workset rows only). Closed is shown in the warning colours. -->
+                        <Border Margin="6,0,0,0"
+                                Visibility="{Binding OpenBadge, Converter={StaticResource StringToVisibilityConverter}, FallbackValue=Collapsed}">
+                            <Border.Style>
+                                <Style TargetType="Border" BasedOn="{StaticResource BadgePill}">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsClosed}" Value="True">
+                                            <Setter Property="Background" Value="{StaticResource BrushStatusWarnSoft}"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                            <TextBlock Text="{Binding OpenBadge}">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock" BasedOn="{StaticResource BadgeText}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsClosed}" Value="True">
+                                                <Setter Property="Foreground" Value="{StaticResource BrushStatusWarn}"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </Border>
+
                         <TextBlock Text="{Binding ElementCount, StringFormat={}{0:N0} elements}"
                                    Margin="10,0,0,0"
                                    VerticalAlignment="Center"

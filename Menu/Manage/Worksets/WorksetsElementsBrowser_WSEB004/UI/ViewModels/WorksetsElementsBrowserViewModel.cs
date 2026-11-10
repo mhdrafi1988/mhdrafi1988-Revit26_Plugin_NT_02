@@ -85,7 +85,8 @@ namespace Revit26_Plugin_Revised.WorksetsElementsBrowser.WSEB004.UI.ViewModels
         {
             foreach (var root in RootNodes)
             {
-                if (root.Kind == ElementTreeNodeKind.Workset && root.Children.Count == 0)
+                // A closed workset lists no elements only because it is not loaded: keep it visible so it can be seen as closed.
+                if (root.Kind == ElementTreeNodeKind.Workset && root.Children.Count == 0 && !root.IsClosed)
                     root.IsVisible = !hideEmpty;
             }
         }
@@ -162,7 +163,8 @@ namespace Revit26_Plugin_Revised.WorksetsElementsBrowser.WSEB004.UI.ViewModels
                     worksetData.Name,
                     elementCount: worksetElementCount,
                     editableBadge: worksetData.IsEditable ? "editable" : "not editable",
-                    owner: worksetData.Owner)
+                    owner: worksetData.Owner,
+                    isOpen: worksetData.IsOpen)
                 {
                     IsExpanded = false
                 };
@@ -187,7 +189,8 @@ namespace Revit26_Plugin_Revised.WorksetsElementsBrowser.WSEB004.UI.ViewModels
                 RootNodes.Add(worksetNode);
             }
 
-            SummaryText = $"{worksetCount} workset{(worksetCount == 1 ? "" : "s")} · " +
+            int closedCount = _loadedTree.Count(w => !w.IsOpen);
+            SummaryText = $"{worksetCount} workset{(worksetCount == 1 ? "" : "s")}{(closedCount > 0 ? $" ({closedCount} closed)" : "")} · " +
                            $"{categories.Count} categor{(categories.Count == 1 ? "y" : "ies")} · " +
                            $"{types.Count} type{(types.Count == 1 ? "" : "s")} · " +
                            $"{elementCount:N0} elements";
