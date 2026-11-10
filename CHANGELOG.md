@@ -9,7 +9,7 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
-## [6.44.0] — 2026-11-10
+## [6.45.0] — 2026-11-10
 
 ### Auto Slope By Point 34.0.0 (V034)
 
@@ -21,6 +21,19 @@ Each release lists every tool whose version changed, under the plugin version.
 - **By Point** pulldown: order is now V034, V033, V032, V030, Ridge V003, Multi Copies 30. V034 supplies the pulldown's icon.
 
 User note: 75 mm is the spacing V033 uses, so V034 at the default gives the same slope as V033. At 40 mm the path graph step takes about twice as long. An opening narrower than the chosen spacing can still be missed. V033 is unchanged and stays in the pulldown. V034 saves to its own `settings.v034.json`; the first time it opens it reads V033's settings (else V032's), with the sample spacing at 75 mm.
+
+## [6.44.0] — 2026-11-10
+
+### Merge Roofs 1.1.0
+
+#### Added
+- Esc or the new **Cancel run** button stops a running Check or Create roof. It asks "Cancel the process? Yes / No"; Yes undoes everything the run did (the new roof and any gap links are rolled back together), No carries on. The status line then reads "Cancelled by user. Nothing was changed." The detail lines and circles offered after a failed merge can be cancelled the same way.
+- The Merge Roofs ribbon button has its own icon (two roofs joined into one).
+
+#### Changed
+- Check, Create roof and Cancel run are disabled or enabled to match whether a run is active.
+
+User note: the union calculation and the single Revit call that creates the roof cannot be interrupted; Esc is acted on just before and after them.
 
 ## [6.43.0] — 2026-11-10
 

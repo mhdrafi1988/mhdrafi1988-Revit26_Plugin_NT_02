@@ -15,19 +15,19 @@ namespace Revit26_Plugin_Revised.MergeRoofs.V001.Infrastructure.Helpers
         /// <summary>Radius of an issue-marking circle, in feet (about 150 mm).</summary>
         public const double CircleRadius = 0.5;
 
-        /// <summary>Draws the merged outer and interior loops as detail lines/arcs.</summary>
-        public static void DrawProfile(Document doc, View view, MergeResult merged) =>
-            Draw(doc, view, "Merge roofs: profile lines", z =>
+        /// <summary>Draws the merged outer and interior loops as detail lines/arcs. <paramref name="check"/> (optional) lets the caller cancel; a cancel rolls the drawing back.</summary>
+        public static void DrawProfile(Document doc, View view, MergeResult merged, Action? check = null) =>
+            Draw(doc, view, "Merge roofs: profile lines", check, z =>
                 merged.Outer.Concat(merged.Holes).SelectMany(l => l.Edges).Select(e => EdgeCurve(e, z)));
 
         /// <summary>Draws the connecting lines across snapped gaps.</summary>
-        public static void DrawGapLinks(Document doc, View view, IReadOnlyList<GapLink> links) =>
-            Draw(doc, view, "Merge roofs: gap links", z =>
+        public static void DrawGapLinks(Document doc, View view, IReadOnlyList<GapLink> links, Action? check = null) =>
+            Draw(doc, view, "Merge roofs: gap links", check, z =>
                 links.Select(g => (Curve?)Line.CreateBound(new XYZ(g.A.X, g.A.Y, z), new XYZ(g.B.X, g.B.Y, z))));
 
         /// <summary>Draws a circle at each issue location (two half arcs: Revit cannot create a single 360-degree arc).</summary>
-        public static void DrawCircles(Document doc, View view, IReadOnlyList<Issue> issues) =>
-            Draw(doc, view, "Merge roofs: issue circles", z =>
+        public static void DrawCircles(Document doc, View view, IReadOnlyList<Issue> issues, Action? check = null) =>
+            Draw(doc, view, "Merge roofs: issue circles", check, z =>
                 issues.SelectMany(i =>
                 {
                     Plane plane = Plane.CreateByNormalAndOrigin(XYZ.BasisZ, new XYZ(i.Location.X, i.Location.Y, z));
@@ -38,7 +38,7 @@ namespace Revit26_Plugin_Revised.MergeRoofs.V001.Infrastructure.Helpers
                     };
                 }));
 
-        private static void Draw(Document doc, View view, string name, Func<double, IEnumerable<Curve?>> curves)
+        private static void Draw(Document doc, View view, string name, Action? check, Func<double, IEnumerable<Curve?>> curves)
         {
             if (view is not ViewPlan)
                 throw new InvalidOperationException("Detail lines can only be placed in a plan view. Open a plan view and try again.");
@@ -48,7 +48,10 @@ namespace Revit26_Plugin_Revised.MergeRoofs.V001.Infrastructure.Helpers
             try
             {
                 foreach (Curve? c in curves(z))
+                {
+                    check?.Invoke();
                     if (c != null && c.Length >= MergeAnalyzer.ShortCurve) doc.Create.NewDetailCurve(view, c);
+                }
                 t.Commit();
             }
             catch

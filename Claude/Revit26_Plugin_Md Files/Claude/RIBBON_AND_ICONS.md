@@ -73,7 +73,7 @@ Builder, Roof Tag, Point Comparison and Elevation Sync) after Floor Lines. 6.35.
 Ridge By Points and Creaser Adv) after Floor Points. 6.34.0 added the **Floor Points** panel (floor versions of
 the Shape Points tools) after Shape Points. Before it, 6.33.0 added the floor Ridge, Multi Copies and Points & Slope tools to the
 **Floor Slope** panel (By Point became a pulldown, as on Roof Slope). 6.32.0 added Quick Align Ends / Bends to Tag to
-the Tagging panel; 6.43.0 added Distribute Spot Elev. and the two Quick Distribute split buttons there. 6.44.0 added By Point V034 at the top of the
+the Tagging panel; 6.43.0 added Distribute Spot Elev. and the two Quick Distribute split buttons there. 6.45.0 added By Point V034 at the top of the
 **Roof Slope ▸ By Point** pulldown. When you change the ribbon, update the
 tables above, `README.md` (Ribbon section) and the tool's UI preview (root `CLAUDE.md`, UI previews).
 
