@@ -1,0 +1,259 @@
+<title>Auto Slope By Point window</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<!-- UI preview (CLAUDE.md "UI previews") for Auto Slope By Point V033, tool 33.1.0.
+     First preview of this tool: no code change, it shows the window as it is today
+     (state: Completed, Circle markers and Ridge lines sections open, log closed).
+     Real window: Menu/RoofTools/RoofSlope/ByPoints/AutoSlopeByPoint_V033/UI/Views/AutoSlopeByPointWindow.xaml
+     View model:  Menu/RoofTools/RoofSlope/ByPoints/AutoSlopeByPoint_V033/UI/ViewModels/AutoSlopeViewModel.cs
+     Ribbon: Roof Tools > By Point pulldown > "By Point V033" (RoofToolsRibbon.cs)
+     Artifact: https://claude.ai/artifact/AYVBHAR13ADqNxpBJsVzop (republish to this URL on every update)
+     Colours are the Shared/SharedStyles.xaml v4.0 tokens. One light look on purpose: it mirrors the
+     light WPF window in Revit, so every colour is set explicitly. The window sits in its own
+     horizontal scroll box (.frame). All values are sample data. -->
+<style>
+/* Layout: page note on top, then one fixed-width window mock-up inside a scroll box. */
+:root{
+  --page:#E9EDF1; --surface-window:#F3F5F7; --card:#FFFFFF; --border:#D6DCE3; --border-input:#B5C2CF;
+  --action:#1E3A5F; --navy-light:#2C4A6E; --text:#1A2B3C; --text2:#5B7185; --text3:#8FA3B8;
+  --text-disabled:#C3CFDB; --bg2:#ECEFF3; --sep-thin:#E6EAEF;
+  --info:#1F5FBF; --info-soft:#E6EEFB; --ok:#1E7A4C; --ok-soft:#E4F4EB;
+  --warn:#9A5B00; --warn-soft:#FDF1E1; --warn-border:#E8B66B;
+  --log-bg:#14283F; --log-text:#EAF1F8; --log-dim:#7E94AA; --on-dark:#EAF1F8; --on-dark-dim:#C9D6E3;
+  --blue:#2F6FDE; --red:#D64545; --orange:#E8892B;
+  --ui:'Segoe UI',system-ui,-apple-system,sans-serif; --mono:'Cascadia Mono',Consolas,'Courier New',monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--text);font-family:var(--ui);font-size:12.5px;
+  padding-block:16px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.note{max-width:1000px;margin:0 0 12px}
+.note h1{font-size:17px;font-weight:600;margin:0 0 4px;color:var(--action)}
+.note p{margin:0;color:var(--text2);font-size:12.5px;line-height:1.45}
+.sample{display:inline-block;background:var(--warn-soft);border:1px solid var(--warn-border);color:var(--warn);
+  border-radius:10px;padding:1px 8px;font-size:11px;font-weight:600;margin-right:6px}
+.frame{overflow-x:auto;padding-bottom:6px}
+.win{width:1000px;background:var(--surface-window);border:1px solid var(--border-input);display:flex;flex-direction:column}
+.titlebar{height:32px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;background:var(--card);border-bottom:1px solid var(--border);font-size:12px}
+.titlebar span:last-child{color:var(--text2);letter-spacing:14px}
+.shellhead{background:var(--action);color:var(--card);padding:10px 14px;display:flex;align-items:center}
+.shellhead .t{font-size:17px;font-weight:600}
+.shellhead .s{font-size:11.5px;color:var(--on-dark-dim);margin-top:2px}
+.shellhead .v{margin-left:auto;background:var(--navy-light);border-radius:10px;padding:3px 8px;font-size:11px;font-weight:600;color:var(--on-dark)}
+.pad{padding:8px 12px 0}
+.badges{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}
+.badge{border-radius:10px;padding:3px 9px;font-size:11px;font-weight:600}
+.badge.state{background:var(--ok-soft);color:var(--ok)}
+.badge.pill{background:var(--bg2);color:var(--action)}
+.badge.view{background:var(--info-soft);color:var(--info)}
+.tiles{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-bottom:6px}
+.tile{border-radius:6px;padding:5px 8px;background:var(--card);border:1px solid var(--border)}
+.tile .l{font-size:9.5px;font-weight:600;letter-spacing:.4px;color:var(--text2)}
+.tile .n{font-size:16px;font-weight:600;font-variant-numeric:tabular-nums}
+.tile .h{font-size:10.5px;color:var(--text3)}
+.tile.ok{background:var(--ok-soft);border-color:var(--ok-soft)} .tile.ok .l,.tile.ok .n{color:var(--ok)}
+.tile.warn{background:var(--warn-soft);border-color:var(--warn-soft)} .tile.warn .l,.tile.warn .n{color:var(--warn)}
+.tile.info{background:var(--info-soft);border-color:var(--info-soft)} .tile.info .l,.tile.info .n{color:var(--info)}
+.body{display:grid;grid-template-columns:1.15fr 1fr;gap:8px;align-items:start;padding:0 12px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;margin-bottom:6px}
+.inner{padding:4px 7px}
+.section{font-size:12px;font-weight:600;color:var(--action);margin:2px 0 4px}
+.lbl{font-size:11.5px;color:var(--text2)}
+.hint{font-size:10.5px;color:var(--text3);line-height:1.35}
+.calc{font-size:10.5px;color:var(--info)}
+.every{display:grid;grid-template-columns:1fr 1fr 1fr;column-gap:12px;row-gap:2px}
+.ctl{height:28px;display:flex;align-items:center}
+.box{flex:1;height:28px;border:1px solid var(--border-input);border-radius:5px;background:var(--card);display:flex;align-items:center;justify-content:space-between;padding:0 8px;font-size:12.5px;min-width:0}
+.box.ro{background:var(--surface-window);border-color:var(--border);font-weight:600}
+.box.combo:after{content:"▾";color:var(--text2);font-size:10px;margin-left:6px}
+.box.dis{color:var(--text-disabled);background:var(--surface-window)}
+.sbtn{height:24px;padding:0 9px;font-size:11px;border:1px solid var(--border-input);border-radius:4px;background:var(--card);color:var(--text);display:inline-flex;align-items:center;margin-left:6px;white-space:nowrap}
+.warnline{background:var(--warn-soft);border:1px solid var(--warn-border);border-radius:4px;padding:3px 8px;color:var(--warn);font-size:11px;margin-top:4px;line-height:1.35}
+.opt-title{font-size:9.5px;font-weight:600;letter-spacing:.5px;color:var(--text3);margin:6px 2px 4px}
+.exp{display:grid;grid-template-columns:110px 1fr auto auto;align-items:center;gap:6px;padding:6px 9px}
+.exp .h{font-size:12px;font-weight:600}
+.exp .sum{font-size:11px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.exp .chev{font-size:12px;color:var(--text2)}
+.custom{background:var(--info-soft);color:var(--info);border-radius:8px;padding:1px 7px;font-size:10px;font-weight:600}
+.exp-body{border-top:1px solid var(--sep-thin);padding:5px 9px 6px}
+.mk{display:grid;grid-template-columns:110px 1.3fr 1fr .8fr;column-gap:6px;row-gap:1px;align-items:center;margin:2px 0 5px}
+.mk .name{font-size:12px;font-weight:600;display:flex;align-items:center}
+.mk .wide{grid-column:2 / 5}
+.mk .box{height:26px;font-size:12px}
+.sw{width:12px;height:12px;border-radius:2px;border:1px solid var(--border);margin-right:6px;flex:none}
+.chk{display:inline-block;width:13px;height:13px;border:1px solid var(--border-input);border-radius:2px;background:var(--card);margin-right:6px;vertical-align:-2px;text-align:center;font-size:10px;line-height:11px;color:var(--card)}
+.chk.on{background:var(--action);border-color:var(--action)}
+.opt{font-size:11.5px;margin-top:2px}
+.link{color:var(--info);font-size:11px;margin-top:4px;display:inline-block}
+.row2{display:grid;grid-template-columns:110px 1fr;align-items:center;row-gap:4px}
+.rhead{display:flex;align-items:center;justify-content:space-between;margin:4px 0}
+.chip{border:1px solid var(--border-input);border-radius:10px;padding:2px 9px;font-size:11px;color:var(--text2);background:var(--card);margin-left:4px}
+.chip.on{background:var(--action);border-color:var(--action);color:var(--on-dark)}
+table{width:100%;border-collapse:collapse;font-size:11px;font-variant-numeric:tabular-nums;border:1px solid var(--border)}
+th{background:var(--bg2);color:var(--text2);font-weight:600;padding:3px 4px;border:1px solid var(--sep-thin);text-align:left;white-space:nowrap}
+th.model{background:var(--info-soft)} th.calcH{background:var(--ok-soft)}
+td{height:20px;padding:0 4px;border:1px solid var(--sep-thin);text-align:right}
+td.rn{text-align:center;color:var(--text3);font-weight:400}
+tr.top td{font-weight:600}
+.rfoot{display:flex;align-items:center;justify-content:space-between;margin:4px 0 2px;gap:8px}
+.log{background:var(--log-bg);border-radius:8px;padding:5px 8px;margin:0 12px 8px;color:var(--log-text)}
+.loghead{display:flex;align-items:center}
+.loghead b{font-size:11.5px}.loghead .dim{color:var(--log-dim);font-size:10.5px;margin-left:8px}
+.loghead .r{margin-left:auto;display:flex;gap:6px}
+.ghost{height:22px;padding:0 9px;border:1px solid var(--log-dim);border-radius:4px;color:var(--log-text);display:inline-flex;align-items:center;font-size:11px}
+.latest{font-family:var(--mono);font-size:10.5px;color:var(--log-dim);margin:4px 0 0 17px}
+.footer{border-top:1px solid var(--border);padding:6px 12px 8px;background:var(--card)}
+.status{font-size:11.5px;color:var(--text2);margin-bottom:6px}
+.bar{height:3px;background:var(--ok);border-radius:2px;margin-bottom:6px}
+.btns{display:flex;align-items:center}
+.btn{height:30px;padding:0 12px;border-radius:4px;font-size:12.5px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--action);color:var(--action);background:var(--card)}
+.btn.sec{border-color:var(--border-input);color:var(--text)}
+.btn.run{background:var(--text-disabled);border-color:var(--text-disabled);color:var(--card);min-width:150px;font-weight:600;margin:0 8px 0 auto}
+.btn.close{width:90px}
+</style>
+
+<div class="note">
+  <h1>Auto Slope By Point · v33.1.0</h1>
+  <p><span class="sample">Sample data</span>Static mock-up of the tool window after a finished run, with the Circle markers and Ridge lines sections open.
+  Open it in Revit from Roof Tools › By Point › By Point V033. Nothing in the tool changed; this is its first preview page.</p>
+</div>
+
+<div class="frame">
+<div class="win">
+  <div class="titlebar"><span>Auto Slope By Point — v33.1.0</span><span>—□✕</span></div>
+
+  <div class="shellhead">
+    <div><div class="t">Auto Slope By Point</div><div class="s">Revit 2026 · slopes a roof towards the picked drain points</div></div>
+    <div class="v">v33.1.0</div>
+  </div>
+
+  <!-- HEADER -->
+  <div class="pad">
+    <div class="badges">
+      <span class="badge state">Completed</span>
+      <span class="badge pill">Roof · Generic Roof 300mm · Id 345678</span>
+      <span class="badge view">Plan view · Roof Plan – Level 05</span>
+    </div>
+    <div class="tiles">
+      <div class="tile ok"><div class="l">PROCESSED</div><div class="n">1,248</div></div>
+      <div class="tile warn"><div class="l">SKIPPED</div><div class="n">3</div></div>
+      <div class="tile info"><div class="l">DRAINS PICKED → USED</div><div class="n">4 → 4</div></div>
+      <div class="tile info"><div class="l">HIGHEST ELEVATION</div><div class="n">276 mm</div></div>
+      <div class="tile info"><div class="l">LONGEST PATH</div><div class="n">18.42 m</div></div>
+      <div class="tile"><div class="l">RUN TIME</div><div class="n">2.4 s</div><div class="h">10:14:06 → 10:14:08</div></div>
+    </div>
+  </div>
+
+  <!-- BODY -->
+  <div class="body">
+    <!-- LEFT: inputs -->
+    <div>
+      <div class="card"><div class="inner">
+        <div class="section">Every run</div>
+        <div class="every">
+          <div class="lbl">Drains</div><div class="lbl">Slope (%)</div><div class="lbl">Drainage Distance (m)</div>
+          <div class="ctl"><div class="box ro">4 Drains Picked</div><span class="sbtn">Re-pick</span></div>
+          <div class="ctl"><div class="box combo">1.5</div></div>
+          <div class="ctl"><div class="box">100</div></div>
+          <div class="hint">Level: Level 05</div>
+          <div class="calc">≈ 150 mm rise per 10 m</div>
+          <div class="hint">Points further from every drain stay at 0.</div>
+        </div>
+        <div class="warnline">⚠ Run resets every existing shape-point elevation on this roof. Ctrl+Z undoes the whole run in one step.</div>
+      </div></div>
+
+      <div class="opt-title">OPTIONS · SET ONCE, KEPT BETWEEN SESSIONS</div>
+
+      <div class="card"><div class="exp"><span class="h">Drain options</span><span class="sum">Snap to nearest point · nearby 500 mm</span><span></span><span class="chev">▸</span></div></div>
+
+      <div class="card"><div class="exp"><span class="h">Path &amp; curves</span><span class="sum">Max link: automatic · arc points on</span><span></span><span class="chev">▸</span></div></div>
+
+      <div class="card">
+        <div class="exp"><span class="h">Circle markers</span><span class="sum">Drains · Highest point · Offset ≥ 500 mm · plan view only</span><span></span><span class="chev">▾</span></div>
+        <div class="exp-body">
+          <div class="mk"><span></span><span class="lbl">Line style</span><span class="lbl">Colour</span><span class="lbl">Radius (mm)</span></div>
+
+          <div class="mk">
+            <span class="name"><span class="chk on">✓</span>Drains</span>
+            <div class="box combo">Thin Lines</div>
+            <div class="box combo"><span style="display:flex;align-items:center"><span class="sw" style="background:var(--blue)"></span>Blue</span></div>
+            <div class="box">250</div>
+            <span></span><span class="hint wide">A circle on each drain point.</span>
+          </div>
+
+          <div class="mk">
+            <span class="name"><span class="chk on">✓</span>Highest point</span>
+            <div class="box combo">Thin Lines</div>
+            <div class="box combo"><span style="display:flex;align-items:center"><span class="sw" style="background:var(--red)"></span>Red</span></div>
+            <div class="box">250</div>
+            <span></span><span class="hint wide">A circle on every point tied at the highest calculated elevation.</span>
+            <span></span><span class="opt wide"><span class="chk on">✓</span>Add an “Offset: X mm” text note with a leader</span>
+            <span></span><span class="opt wide"><span class="chk"></span>Also add it at every roof boundary corner</span>
+          </div>
+
+          <div class="mk">
+            <span class="name"><span class="chk on">✓</span>Allowed offset</span>
+            <div class="box combo">Thin Lines</div>
+            <div class="box combo"><span style="display:flex;align-items:center"><span class="sw" style="background:var(--orange)"></span>Orange</span></div>
+            <div class="box">250</div>
+            <span></span><span class="hint wide">A circle on every point at or above the threshold, except points already marked highest.</span>
+            <span></span><span class="opt wide" style="display:flex;align-items:center;gap:6px"><span class="lbl">Circle points with offset ≥</span><span class="box" style="flex:none;width:60px;height:24px">500</span><span class="hint">mm</span></span>
+          </div>
+          <span class="link">Reset to defaults</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="exp"><span class="h">Ridge lines</span><span class="sum">On · Thin Lines · plan view only</span><span class="custom">Custom</span><span class="chev">▾</span></div>
+        <div class="exp-body">
+          <div class="row2">
+            <span class="lbl">Ridge lines</span><span style="font-size:12px"><span class="chk on">✓</span>Draw ridge lines between drain groups</span>
+            <span class="lbl">Line style</span><div class="box combo" style="width:220px;flex:none;height:26px">Thin Lines</div>
+            <span></span><span class="hint">Joins the highest shape points between each pair of neighbouring drain groups. Elevations are not changed. Needs 2 or more drain groups and a plan view. If the chosen line style can't be used, Thin Lines is used.</span>
+          </div>
+          <span class="link">Reset to defaults</span>
+        </div>
+      </div>
+
+      <div class="card"><div class="exp"><span class="h">Export &amp; parameters</span><span class="sum">Excel after each run · …\AutoSlope_Reports</span><span></span><span class="chev">▸</span></div></div>
+    </div>
+
+    <!-- RIGHT: results -->
+    <div class="card"><div class="inner" style="padding:0 10px 6px">
+      <div class="rhead"><span class="section" style="margin:0">Longest 10 paths</span>
+        <span><span class="chip on">Longest 10</span><span class="chip">Skipped (3)</span></span></div>
+      <table>
+        <tr><th>#</th><th>PathLength_m</th><th class="model">ElevModel_mm</th><th class="calcH">1 % (mm)</th><th class="calcH">1.5 % (mm)</th><th class="calcH">2 % (mm)</th></tr>
+        <tr class="top"><td class="rn">1</td><td>18.42</td><td>276</td><td>184</td><td>276</td><td>368</td></tr>
+        <tr><td class="rn">2</td><td>18.10</td><td>272</td><td>181</td><td>272</td><td>362</td></tr>
+        <tr><td class="rn">3</td><td>17.86</td><td>268</td><td>179</td><td>268</td><td>357</td></tr>
+        <tr><td class="rn">4</td><td>17.31</td><td>260</td><td>173</td><td>260</td><td>346</td></tr>
+        <tr><td class="rn">5</td><td>16.95</td><td>254</td><td>170</td><td>254</td><td>339</td></tr>
+        <tr><td class="rn">6</td><td>16.40</td><td>246</td><td>164</td><td>246</td><td>328</td></tr>
+        <tr><td class="rn">7</td><td>15.88</td><td>238</td><td>159</td><td>238</td><td>318</td></tr>
+        <tr><td class="rn">8</td><td>15.22</td><td>228</td><td>152</td><td>228</td><td>304</td></tr>
+        <tr><td class="rn">9</td><td>14.76</td><td>221</td><td>148</td><td>221</td><td>295</td></tr>
+        <tr><td class="rn">10</td><td>14.05</td><td>211</td><td>141</td><td>211</td><td>281</td></tr>
+      </table>
+      <div class="rfoot"><span class="hint">Same columns as the Excel “Vertex Data” sheet. Select rows, then Zoom to.</span>
+        <span style="display:flex"><span class="sbtn">Copy rows</span><span class="sbtn">Zoom to</span></span></div>
+    </div></div>
+  </div>
+
+  <!-- LOG (closed) -->
+  <div class="log">
+    <div class="loghead"><span style="font-size:10px;margin-right:6px">▸</span><b>Processing log</b><span class="dim">42 lines · 3 warnings</span>
+      <span class="r"><span class="ghost">Copy all</span><span class="ghost">Copy selected</span><span class="ghost">Save log…</span><span class="ghost">Clear</span></span></div>
+    <div class="latest">[10:14:08] Excel exported to AutoSlope_Reports.</div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <div class="status">Done · 1248 processed, 3 skipped · Start 10:14:06 · End 10:14:08 · Total 2.4 s · Excel exported</div>
+    <div class="bar"></div>
+    <div class="btns">
+      <span class="btn sec">Export results…</span>
+      <span class="btn run">Done · re-pick to run</span>
+      <span class="btn close">Close</span>
+    </div>
+  </div>
+</div>
+</div>
