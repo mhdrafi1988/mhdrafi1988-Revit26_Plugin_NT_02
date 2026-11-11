@@ -43,6 +43,10 @@ namespace Revit26_Plugin_Revised.IslandRoofSplitter.V002.Infrastructure.External
             Request = null;
             if (req == null) return;
 
+            // Esc / Cancel with a Yes-No confirm while the commit runs (picking keeps Revit's own Esc).
+            using ToolCancellation cancel = req.Kind == SplitterRequestKind.Commit
+                ? ToolCancellation.BeginFor(ToolCatalog.IslandRoofSplitterV002, app)
+                : null;
             try
             {
                 var uidoc = app.ActiveUIDocument ?? throw new InvalidOperationException("No active document.");
@@ -66,7 +70,9 @@ namespace Revit26_Plugin_Revised.IslandRoofSplitter.V002.Infrastructure.External
             }
             catch (OperationCanceledException)
             {
-                req.Error?.Invoke("Cancelled.");
+                // The commit's transaction group was rolled back: no island roof or floor stays.
+                req.Error?.Invoke("Cancelled by user. Nothing was created.");
+                throw; // ToolGuard treats it as a user cancel
             }
             catch (Exception ex)
             {
@@ -148,11 +154,21 @@ namespace Revit26_Plugin_Revised.IslandRoofSplitter.V002.Infrastructure.External
             using var group = new TransactionGroup(doc, "Island Roof Splitter V002");
             group.Start();
 
+            try
+            {
             foreach (var isl in c.Islands)
             {
+                ToolCancellation.CheckCurrent();
                 var result = CommitIsland(doc, c, isl, level, roofType, floorType, floorPossible, floorNote, shortTolFt);
                 results.Add(result);
                 req.IslandDone?.Invoke(result, results.Count, total);
+            }
+            ToolCancellation.CheckCurrent();
+            }
+            catch (OperationCanceledException)
+            {
+                if (group.GetStatus() == TransactionStatus.Started) group.RollBack();
+                throw;
             }
 
             bool any = results.Any(r => r.Status == IslandStatus.Created);
@@ -205,6 +221,7 @@ namespace Revit26_Plugin_Revised.IslandRoofSplitter.V002.Infrastructure.External
             int failedBefore = 0;
             foreach (var a in ladder)
             {
+                ToolCancellation.CheckCurrent();
                 var collector = new FailureCollector();
                 using var t = new Transaction(doc, $"Island Roof Splitter — {isl.Name} · {a.Label}");
                 var opts = t.GetFailureHandlingOptions();
@@ -267,6 +284,10 @@ namespace Revit26_Plugin_Revised.IslandRoofSplitter.V002.Infrastructure.External
                                      ? $" · after {failedBefore} failed attempt{(failedBefore == 1 ? "" : "s")}"
                                      : "")
                     };
+                }
+                catch (OperationCanceledException)
+                {
+                    throw; // user cancel: never swallowed as a failure
                 }
                 catch (Exception ex)
                 {

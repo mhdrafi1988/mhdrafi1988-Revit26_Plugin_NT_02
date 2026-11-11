@@ -1,3 +1,4 @@
+using Revit26_Plugin_Revised.Shared.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -191,6 +192,10 @@ namespace Revit26_Plugin_Revised.FloorCreaseLinesByPoints.V001.Services
                 if (!ed.IsEnabled)
                 {
                     try { ed.Enable(); }
+                    catch (OperationCanceledException)
+                    {
+                        throw; // user cancel: never swallowed as a failure
+                    }
                     catch (Exception ex)
                     {
                         System.Diagnostics.Debug.WriteLine(
@@ -199,6 +204,10 @@ namespace Revit26_Plugin_Revised.FloorCreaseLinesByPoints.V001.Services
                 }
                 tx.Commit();
                 return true;
+            }
+            catch (OperationCanceledException)
+            {
+                throw; // user cancel: never swallowed as a failure
             }
             catch (Exception ex)
             {
@@ -281,6 +290,7 @@ namespace Revit26_Plugin_Revised.FloorCreaseLinesByPoints.V001.Services
                 // ── ShapePoints (Voronoi vertices + inner-loop intersections) ─────
                 foreach (var pt in shapePoints)
                 {
+                    ToolCancellation.CheckCurrent();
                     if (TryProcessPoint(floor, ref ed, pt, topFace, result, "ShapePoint"))
                         added++;
                     else
@@ -290,6 +300,7 @@ namespace Revit26_Plugin_Revised.FloorCreaseLinesByPoints.V001.Services
                 // ── Mid-points: one per clipped ridge edge ────────────────────────
                 foreach (var pt in midPoints)
                 {
+                    ToolCancellation.CheckCurrent();
                     if (TryProcessPoint(floor, ref ed, pt, topFace, result, "MidPoint"))
                         added++;
                     else
@@ -305,6 +316,10 @@ namespace Revit26_Plugin_Revised.FloorCreaseLinesByPoints.V001.Services
                 // Forward any slab warnings collected during commit to the pipeline log.
                 foreach (var warning in preprocessor.CapturedWarnings)
                     OnSlabWarning?.Invoke(warning);
+            }
+            catch (OperationCanceledException)
+            {
+                throw; // user cancel: never swallowed as a failure
             }
             catch (Exception ex)
             {
@@ -363,6 +378,10 @@ namespace Revit26_Plugin_Revised.FloorCreaseLinesByPoints.V001.Services
                 return TryAddPointWithNudge(ed, checkedPt, slabZ, result.FloorCentroid,
                                              result.BoundaryPolygon);
             }
+            catch (OperationCanceledException)
+            {
+                throw; // user cancel: never swallowed as a failure
+            }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine(
@@ -400,6 +419,7 @@ namespace Revit26_Plugin_Revised.FloorCreaseLinesByPoints.V001.Services
 
                 foreach (var v in allVertices)
                 {
+                    ToolCancellation.CheckCurrent();
                     XYZ pos = v.Position;
                     if (pos == null) continue;
 
@@ -414,6 +434,10 @@ namespace Revit26_Plugin_Revised.FloorCreaseLinesByPoints.V001.Services
                             ed.ModifySubElement(v, 0.0);
                             zeroed++;
                         }
+                        catch (OperationCanceledException)
+                        {
+                            throw; // user cancel: never swallowed as a failure
+                        }
                         catch (Exception ex)
                         {
                             System.Diagnostics.Debug.WriteLine(
@@ -424,6 +448,10 @@ namespace Revit26_Plugin_Revised.FloorCreaseLinesByPoints.V001.Services
 
                 LastResetStatus = $"Success ({zeroed} new vertices zeroed)";
                 tx.Commit();
+            }
+            catch (OperationCanceledException)
+            {
+                throw; // user cancel: never swallowed as a failure
             }
             catch (Exception ex)
             {
@@ -546,6 +574,10 @@ namespace Revit26_Plugin_Revised.FloorCreaseLinesByPoints.V001.Services
 
                 return best;
             }
+            catch (OperationCanceledException)
+            {
+                throw; // user cancel: never swallowed as a failure
+            }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine(
@@ -586,6 +618,10 @@ namespace Revit26_Plugin_Revised.FloorCreaseLinesByPoints.V001.Services
             if (leftV == null || rightV == null) return;
 
             try { ed.AddSplitLine(leftV, rightV); }
+            catch (OperationCanceledException)
+            {
+                throw; // user cancel: never swallowed as a failure
+            }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine(
@@ -610,6 +646,7 @@ namespace Revit26_Plugin_Revised.FloorCreaseLinesByPoints.V001.Services
 
             foreach (var edge in result.ClippedEdges)
             {
+                ToolCancellation.CheckCurrent();
                 try
                 {
                     if (edge.Start.DistanceTo(edge.End) < 1.0 / 304.8) continue;
@@ -620,6 +657,10 @@ namespace Revit26_Plugin_Revised.FloorCreaseLinesByPoints.V001.Services
                         dl.LineStyle = doc.GetElement(lineStyleId) as GraphicsStyle;
                     activeView.SetElementOverrides(dl.Id, ogs);
                     result.CreatedDetailLineIds.Add(dl.Id);
+                }
+                catch (OperationCanceledException)
+                {
+                    throw; // user cancel: never swallowed as a failure
                 }
                 catch (Exception ex)
                 {

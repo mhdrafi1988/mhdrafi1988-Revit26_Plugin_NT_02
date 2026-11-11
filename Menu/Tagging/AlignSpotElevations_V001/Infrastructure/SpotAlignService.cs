@@ -1,3 +1,4 @@
+using Revit26_Plugin_Revised.Shared.Services;
 using Autodesk.Revit.DB;
 using Revit26_Plugin_Revised.AlignSpotElevations.V001.Core.Models;
 using System;
@@ -90,6 +91,10 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Infrastructure
                 {
                     result.Items.Add(ToItem(doc, (SpotDimension)e, right, up, toPaper));
                 }
+                catch (OperationCanceledException)
+                {
+                    throw; // user cancel: never swallowed as a failure
+                }
                 catch (Exception ex)
                 {
                     result.Skipped.Add($"Element {id.Value}: cannot read its position ({ex.Message})");
@@ -111,6 +116,10 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Infrastructure
             try
             {
                 return ToItem(doc, (SpotDimension)e, view.RightDirection, view.UpDirection, MmPerFoot / Math.Max(1, scale));
+            }
+            catch (OperationCanceledException)
+            {
+                throw; // user cancel: never swallowed as a failure
             }
             catch (Exception ex)
             {
@@ -246,6 +255,7 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Infrastructure
                 {
                     foreach (PlannedMove m in moves.Where(x => x.Moves))
                     {
+                        ToolCancellation.CheckCurrent();
                         var sd = doc.GetElement(new ElementId(m.Item.Id)) as SpotDimension;
                         if (sd == null) throw new InvalidOperationException($"Element {m.Item.Id} no longer exists.");
 
@@ -267,6 +277,10 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Infrastructure
                         moved++;
                     }
                     t.Commit();
+                }
+                catch (OperationCanceledException)
+                {
+                    throw; // user cancel: never swallowed as a failure
                 }
                 catch (Exception ex)
                 {

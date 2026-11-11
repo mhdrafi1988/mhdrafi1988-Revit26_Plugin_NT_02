@@ -1,3 +1,4 @@
+using Revit26_Plugin_Revised.Shared.Services;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -28,6 +29,7 @@ namespace Revit26_Plugin_Revised.DetailLineClosedLoop.V003.Core.Services
 
                 foreach (var group in groups)
                 {
+                    ToolCancellation.CheckCurrent();
                     XYZ groupDir = CanonicalDirection(group[0].Direction);
                     bool parallel = dir.CrossProduct(groupDir).GetLength() < 1e-6;
                     if (!parallel) continue;

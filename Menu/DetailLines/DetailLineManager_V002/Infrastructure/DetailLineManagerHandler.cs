@@ -22,7 +22,11 @@ namespace Revit26_Plugin_Revised.DetailLineManager.V002.Infrastructure
         {
             var action = _pending;
             _pending = null;
-            action?.Invoke(app);
+            if (action == null) return;
+
+            // Esc / Cancel with a Yes-No confirm; TransactionRunner rolls the change back on cancel.
+            using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.DetailLineManagerV002, app);
+            action.Invoke(app);
         }
 
         /// <inheritdoc/>

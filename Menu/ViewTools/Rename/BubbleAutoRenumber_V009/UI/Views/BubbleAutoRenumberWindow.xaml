@@ -18,6 +18,9 @@ Changes vs V008:
     2026-10-04 convention; V008 used PrimaryButton.
   - MinHeight 720 → 620 so the window fits 1366x768 at 150% scaling.
   - No inline colours: every brush is a SharedStyles token (Transparent aside).
+
+9.3.0: Numbering row (Numbers / Letters chips) and "Starting Number" relabelled
+       "Start At", which takes 1, 2, 3 or A, B, C to match the chosen style.
 =======================================================
 -->
 <Window x:Class="Revit26_Plugin_Revised.BubbleAutoRenumber.V009.UI.Views.BubbleAutoRenumberWindow"
@@ -119,12 +122,32 @@ Changes vs V008:
 
                         <Border Style="{StaticResource SeparatorLine}"/>
 
+                        <!-- ── Numbering style (NEW in 9.3.0): numbers or letters ── -->
                         <StackPanel Style="{StaticResource FieldRow}" Orientation="Horizontal">
-                            <TextBlock Text="Starting Number" Style="{StaticResource FieldLabel}"
+                            <TextBlock Text="Numbering" Style="{StaticResource FieldLabel}"
+                                       VerticalAlignment="Center" Width="130"/>
+                            <RadioButton Content="Numbers  1, 2, 3" Style="{StaticResource ChipToggle}"
+                                         GroupName="BubbleNumberingStyle"
+                                         VerticalAlignment="Center"
+                                         IsChecked="{Binding UseLetters, Converter={StaticResource InverseBoolConverter}}"/>
+                            <RadioButton Content="Letters  A, B, C" Style="{StaticResource ChipToggle}"
+                                         GroupName="BubbleNumberingStyle"
+                                         VerticalAlignment="Center"
+                                         IsChecked="{Binding UseLetters}"/>
+                        </StackPanel>
+
+                        <Border Style="{StaticResource SeparatorLine}"/>
+
+                        <StackPanel Style="{StaticResource FieldRow}" Orientation="Horizontal">
+                            <TextBlock Text="Start At" Style="{StaticResource FieldLabel}"
                                        VerticalAlignment="Center" Width="130"/>
                             <TextBox Text="{Binding StartingNumber, UpdateSourceTrigger=PropertyChanged}"
                                      Style="{StaticResource StyledTextInput}"
+                                     CharacterCasing="Upper"
                                      Width="80"/>
+                            <TextBlock Text="{Binding StartHint}"
+                                       Style="{StaticResource HintText}"
+                                       VerticalAlignment="Center" Margin="10,0,0,0"/>
                         </StackPanel>
 
                         <Border Style="{StaticResource SeparatorLine}"/>

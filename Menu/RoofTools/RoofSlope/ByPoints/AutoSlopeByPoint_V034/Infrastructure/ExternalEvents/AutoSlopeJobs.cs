@@ -11,6 +11,7 @@
 //                not elements, so the API cannot select them one by one.)
 // =======================================================
 
+using Revit26_Plugin_Revised.Shared.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -54,6 +55,8 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V034.Infrastructure.ExternalEv
         public override void Execute(UIApplication app)
         {
             AutoSlopeResult result;
+            // Esc / Cancel with a Yes-No confirm; the runner reports a cancel as WasCancelled and the group is rolled back.
+            using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.AutoSlopeByPointV034, app);
             try
             {
                 Document doc = app.ActiveUIDocument?.Document

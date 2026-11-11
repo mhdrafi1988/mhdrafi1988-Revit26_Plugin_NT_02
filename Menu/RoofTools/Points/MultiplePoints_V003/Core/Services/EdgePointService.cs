@@ -27,6 +27,7 @@
 // roof is still flat, and generalizes correctly to any slope percentage.
 // =======================================================
 
+using Revit26_Plugin_Revised.Shared.Services;
 using Autodesk.Revit.DB;
 using Revit26_Plugin_Revised.MultiplePoints.V003.Core.Models;
 using Revit26_Plugin_Revised.Shared.Models;
@@ -181,6 +182,7 @@ namespace Revit26_Plugin_Revised.MultiplePoints.V003.Core.Services
 
                 foreach (var edge in selected)
                 {
+                    ToolCancellation.CheckCurrent();
                     try
                     {
                         List<double> fractions = GetTargetFractions(edge.LengthM, settings);
@@ -201,6 +203,10 @@ namespace Revit26_Plugin_Revised.MultiplePoints.V003.Core.Services
                         grandTotal += added;
 
                         Add(LogLevel.Success, $"Edge {edge.Index} ({edge.CurveTypeName}, {edge.LengthM:F3} m): {added} point(s) placed.");
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        throw; // user cancel: never swallowed as a failure
                     }
                     catch (Exception ex)
                     {

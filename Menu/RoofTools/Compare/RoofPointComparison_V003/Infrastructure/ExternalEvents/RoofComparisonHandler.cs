@@ -24,6 +24,8 @@ namespace Revit26_Plugin_Revised.RoofPointComparison.V003.Infrastructure.Externa
             Document doc = app.ActiveUIDocument?.Document;
             if (doc == null) return;
 
+            // Esc / Cancel with a Yes-No confirm; a cancelled marker placement is rolled back by its transaction.
+            using var cancel = ToolCancellation.BeginFor(ToolCatalog.RoofPointComparison, app);
             try
             {
                 RoofBase roofA = doc.GetElement(current.RoofAId) as RoofBase;
@@ -60,6 +62,12 @@ namespace Revit26_Plugin_Revised.RoofPointComparison.V003.Infrastructure.Externa
                 }
 
                 current.OnRecalculated?.Invoke(result);
+            }
+            catch (OperationCanceledException)
+            {
+                current.Log?.Invoke(new LogEntry(LogLevel.Warning, "Cancelled by user. Nothing was changed."));
+                current.OnRecalculated?.Invoke(new ComparisonResult { Success = false, ErrorMessage = "Cancelled by user." });
+                throw; // ToolGuard treats it as a user cancel
             }
             catch (Exception ex)
             {

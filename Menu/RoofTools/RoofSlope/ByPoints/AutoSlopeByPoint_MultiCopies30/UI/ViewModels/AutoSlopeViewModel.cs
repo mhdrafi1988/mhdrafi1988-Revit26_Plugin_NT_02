@@ -8,6 +8,7 @@
 // fields are now source-generated instead of hand-written.
 // =======================================================
 
+using Revit26_Plugin_Revised.Shared.Services;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -42,7 +43,6 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.MultiCopies30.UI.ViewModels
                 OnPropertyChanged(nameof(StatusColor));
                 RunCommand.NotifyCanExecuteChanged();
                 ExportResultsCommand.NotifyCanExecuteChanged();
-                CancelRunCommand.NotifyCanExecuteChanged();
             }
         }
 
@@ -205,17 +205,6 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.MultiCopies30.UI.ViewModels
         private string progressPhaseText = "";
 
         private CancellationTokenSource _runCts;
-
-        private bool CanCancelRun() => _state == RunState.Running;
-
-        [RelayCommand(CanExecute = nameof(CanCancelRun))]
-        private void CancelRun()
-        {
-            if (_runCts == null || _runCts.IsCancellationRequested) return;
-            _runCts.Cancel();
-            ProgressPhaseText = "Cancellingâ€¦";
-            AddLog(new LogEntry(LogLevel.Warning, "Cancel requested â€” finishing the current slope's in-progress work, then stopping."));
-        }
 
         // â”€â”€ Result properties â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         [ObservableProperty]
@@ -595,7 +584,9 @@ Circles Placed           : {DrainCirclesPlaced} drain / {HighestCirclesPlaced} h
                         ProgressIsIndeterminate = true;
                     }
 
-                    UiPumpHelper.DoEvents();
+                    // Repaints the bar, delivers Esc / the Cancel button and asks "Cancel the process?".
+                    // A confirmed cancel throws here and the engine rolls the run back.
+                    ToolCancellation.CheckCurrent();
                 },
 
                 OnCompleted = summary =>

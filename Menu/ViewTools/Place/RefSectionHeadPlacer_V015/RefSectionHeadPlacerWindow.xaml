@@ -689,18 +689,6 @@ Changes vs V014 (layout only):
         <shell:ToolWindowShell.FooterContent>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
 
-                <!-- V011: disabled permanently (not just visually) — Execute() runs
-                     synchronously on Revit's API thread for the whole run, so the WPF
-                     window is frozen and this can never be clicked while IsRunning is
-                     true anyway. IsEnabled bound straight to False rather than to
-                     IsRunning so the state is honest instead of implying a live control.
-                     Tooltip explains why; command/plumbing kept for a future async engine. -->
-                <Button Content="Cancel" Style="{StaticResource OutlineButton}"
-                        Foreground="{StaticResource BrushStatusError}" BorderBrush="{StaticResource BrushStatusError}"
-                        Command="{Binding CancelCommand}" Margin="0,0,8,0"
-                        IsEnabled="False"
-                        ToolTip="Cancel isn't available yet — the run executes on Revit's own thread, which freezes this window until it finishes."
-                        Visibility="{Binding IsRunning, Converter={StaticResource BoolToVisibilityConverter}}"/>
                 <Button Content="Run" Style="{StaticResource PrimaryButton}"
                         Command="{Binding RunCommand}" Margin="0,0,8,0"
                         IsEnabled="{Binding IsRunning, Converter={StaticResource InverseBoolConverter}}"/>

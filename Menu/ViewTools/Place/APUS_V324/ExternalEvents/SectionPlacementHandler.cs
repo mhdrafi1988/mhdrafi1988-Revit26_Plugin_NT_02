@@ -90,6 +90,9 @@ namespace Revit26_Plugin_Revised.APUS.V324.ExternalEvents
 
             var placementService = new EvenGapPlacementService((level, msg) => Log(level, msg));
 
+            // Esc / Cancel with a Yes-No confirm; a cancel rolls the whole group back (no sheet, no viewport stays).
+            using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.APUS, app);
+
             using var transactionGroup = new TransactionGroup(doc, "APUS V321 - Auto Place Sections");
             try
             {
@@ -123,6 +126,7 @@ namespace Revit26_Plugin_Revised.APUS.V324.ExternalEvents
                 var candidates = new List<PlacementCandidate>();
                 foreach (var section in selected)
                 {
+                    ToolCancellation.CheckCurrent();
                     var (point, resolved) = ResolveMarker(section.View, ViewModel.MarkerSource);
                     candidates.Add(new PlacementCandidate
                     {
@@ -155,6 +159,7 @@ namespace Revit26_Plugin_Revised.APUS.V324.ExternalEvents
 
                     foreach (var c in sorted)
                     {
+                        ToolCancellation.CheckCurrent();
                         try
                         {
                             var tempVp = Viewport.Create(doc, scratchSheet.Id, c.SectionView.Id,
@@ -203,6 +208,7 @@ namespace Revit26_Plugin_Revised.APUS.V324.ExternalEvents
 
                 for (int sheetIndex = 0; sheetIndex < plan.SheetGroups.Count; sheetIndex++)
                 {
+                    ToolCancellation.CheckCurrent();
                     var rows = plan.SheetGroups[sheetIndex];
                     var sheetCandidates = rows.SelectMany(row => row).ToList();
 
@@ -241,6 +247,7 @@ namespace Revit26_Plugin_Revised.APUS.V324.ExternalEvents
 
                     foreach (var result in results)
                     {
+                        ToolCancellation.CheckCurrent();
                         using var vpTx = new SubTransaction(doc);
                         try
                         {
@@ -272,6 +279,7 @@ namespace Revit26_Plugin_Revised.APUS.V324.ExternalEvents
                     Log(LogLevel.Info, $"Sheet {sheet.SheetNumber}: {sheetCandidates.Count} views placed, utilization {utilization:F0}% (report only).");
                 }
 
+                ToolCancellation.CheckCurrent(); // last chance to cancel before the group is kept
                 transactionGroup.Assimilate();
 
                 PostPlacementOperations(uidoc, createdSheetNumbers);
@@ -279,6 +287,13 @@ namespace Revit26_Plugin_Revised.APUS.V324.ExternalEvents
                     $"{placedCount} sections placed on {createdSheetNumbers.Count} sheet(s), " +
                     $"{failedCount} failed, {plan.Oversized.Count} oversized skipped, " +
                     $"{plan.Unmeasurable.Count} unmeasurable skipped.");
+            }
+            catch (OperationCanceledException)
+            {
+                if (transactionGroup.GetStatus() == TransactionStatus.Started) transactionGroup.RollBack();
+                ViewModel?.LogWarning("Cancelled by user. All sheets and viewports of this run were undone.");
+                ViewModel?.OnPlacementComplete(false, "Cancelled by user. Nothing was placed.");
+                throw; // ToolGuard treats it as a user cancel
             }
             catch (Exception ex)
             {

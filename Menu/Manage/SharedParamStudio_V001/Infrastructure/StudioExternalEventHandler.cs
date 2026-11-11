@@ -22,11 +22,18 @@ namespace Revit26_Plugin_Revised.SharedParamStudio.V001.Infrastructure
             => ToolGuard.RunHandler(GetType(), app, a =>
             {
                 Exception failure = null;
+                // Esc / Cancel with a Yes-No confirm; the service's transaction rolls back on cancel.
+                using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.SharedParamStudio, a);
                 try
                 {
                     Document doc = a.ActiveUIDocument?.Document
                         ?? throw new InvalidOperationException("No active Revit document.");
                     Job?.Invoke(doc);
+                }
+                catch (OperationCanceledException ex)
+                {
+                    Completed?.Invoke(ex); // the window is told, so it never stays busy
+                    throw; // ToolGuard treats it as a user cancel
                 }
                 catch (Exception ex)
                 {

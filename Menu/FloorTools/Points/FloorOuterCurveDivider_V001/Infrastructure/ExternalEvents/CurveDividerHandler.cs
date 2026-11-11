@@ -39,6 +39,9 @@ namespace Revit26_Plugin_Revised.FloorOuterCurveDivider.V001.Infrastructure.Exte
 
             CurveDividerPayload current = Payload;
 
+            // Esc / Cancel with a Yes-No confirm; the transaction group below is rolled back on cancel.
+            using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.FloorOuterCurveDivider, app);
+
             using (TransactionGroup tg = new TransactionGroup(
                 app.ActiveUIDocument.Document, "Curve Point Divider"))
             {
@@ -54,6 +57,17 @@ namespace Revit26_Plugin_Revised.FloorOuterCurveDivider.V001.Infrastructure.Exte
                         tg.RollBack();
 
                     current.OnCompleted?.Invoke(result);
+                }
+                catch (OperationCanceledException)
+                {
+                    if (tg.GetStatus() == TransactionStatus.Started) tg.RollBack();
+                    current.Log?.Invoke(new LogEntry(LogLevel.Warning, "Cancelled by user. Nothing was changed."));
+                    current.OnCompleted?.Invoke(new CurveDividerResult
+                    {
+                        Success = false,
+                        ErrorMessage = "Cancelled by user."
+                    });
+                    throw; // ToolGuard treats it as a user cancel
                 }
                 catch (Exception ex)
                 {

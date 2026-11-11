@@ -6,6 +6,7 @@ ToolWindowShell layout:
   BODY    left: sheet picker + Views popover (grouped by view type)
           right: Find / Replace / Prefix / Suffix + options
           below: preview grid, then the activity log
+          below the grid: Found text (whole text of the picked note, Copy buttons)
   FOOTER  "N changes will be made…", Close, Apply
 =======================================================
 -->
@@ -588,12 +589,23 @@ ToolWindowShell layout:
                                   AutoGenerateColumns="False" IsReadOnly="True"
                                   CanUserAddRows="False" CanUserDeleteRows="False" CanUserSortColumns="False"
                                   SelectionMode="Single" HeadersVisibility="Column"
+                                  SelectedItem="{Binding SelectedRow, Mode=TwoWay}"
                                   EnableRowVirtualization="True"
                                   MouseDoubleClick="PreviewGrid_MouseDoubleClick"
                                   IsEnabled="{Binding IsRunning, Converter={StaticResource InverseBool}}">
                             <DataGrid.RowStyle>
                                 <Style TargetType="DataGridRow" BasedOn="{StaticResource StandardDataGridRow}">
-                                    <Setter Property="ToolTip" Value="Double-click to show this note in Revit."/>
+                                    <Setter Property="ToolTip" Value="Click to see the whole text below. Double-click to show this note in Revit."/>
+                                    <Setter Property="ContextMenu">
+                                        <Setter.Value>
+                                            <ContextMenu>
+                                                <MenuItem Header="Copy full text"
+                                                          Command="{Binding PlacementTarget.Tag.CopyRowTextCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                                          CommandParameter="{Binding}"/>
+                                            </ContextMenu>
+                                        </Setter.Value>
+                                    </Setter>
+                                    <Setter Property="Tag" Value="{Binding DataContext, RelativeSource={RelativeSource AncestorType=DataGrid}}"/>
                                     <Style.Triggers>
                                         <DataTrigger Binding="{Binding Status}" Value="{x:Static vm:RowStatus.Excluded}">
                                             <Setter Property="Opacity" Value="0.55"/>
@@ -682,6 +694,36 @@ ToolWindowShell layout:
                                 </Style>
                             </TextBlock.Style>
                         </TextBlock>
+
+                        <!-- Found text: the whole text of the picked note, to read and copy. -->
+                        <Border Margin="12,0,12,12" Padding="8" CornerRadius="6" BorderThickness="1"
+                                Background="{StaticResource BrushSystemSecondaryBackground}" BorderBrush="{StaticResource BrushBorderDefault}">
+                            <StackPanel>
+                                <DockPanel Margin="0,0,0,6">
+                                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                        <Button Content="Copy text" Style="{StaticResource SmallSecondaryButton}"
+                                                Command="{Binding CopySelectedTextCommand}"
+                                                ToolTip="Copy the whole current text of the picked note (every line, not only the found part)."/>
+                                        <Button Content="Copy new text" Style="{StaticResource SmallSecondaryButton}" Margin="6,0,0,0"
+                                                Command="{Binding CopySelectedNewTextCommand}"
+                                                ToolTip="Copy the whole text the picked note will have after Apply."/>
+                                        <Button Content="Copy all found" Style="{StaticResource SmallSecondaryButton}" Margin="6,0,0,0"
+                                                Command="{Binding CopyAllFoundTextCommand}"
+                                                ToolTip="Copy the whole text of every note in the preview, separated by a blank line."/>
+                                    </StackPanel>
+                                    <StackPanel>
+                                        <TextBlock Text="Found text" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource BrushTextPrimary}"/>
+                                        <TextBlock Text="{Binding SelectedRowCaption}" Style="{StaticResource HintText}" Margin="0,1,0,0"/>
+                                    </StackPanel>
+                                </DockPanel>
+                                <TextBox Text="{Binding SelectedFullText, Mode=OneWay}" IsReadOnly="True"
+                                         FontFamily="Consolas" FontSize="12" TextWrapping="Wrap" AcceptsReturn="True"
+                                         MinHeight="54" MaxHeight="120" Padding="4,3"
+                                         VerticalScrollBarVisibility="Auto"
+                                         Background="{StaticResource BrushInputBackground}" BorderBrush="{StaticResource BrushBorderInput}"
+                                         ToolTip="The whole text of the picked note. Select part of it and press Ctrl+C, or use Copy text."/>
+                            </StackPanel>
+                        </Border>
                     </StackPanel>
                 </Border>
 

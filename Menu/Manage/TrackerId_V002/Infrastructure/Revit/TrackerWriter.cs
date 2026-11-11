@@ -1,3 +1,4 @@
+using Revit26_Plugin_Revised.Shared.Services;
 using Autodesk.Revit.DB;
 using Revit26_Plugin_Revised.TrackerId.V002.Core.Models;
 using System;
@@ -86,6 +87,7 @@ namespace Revit26_Plugin_Revised.TrackerId.V002.Infrastructure.Revit
 
             foreach (var row in writable)
             {
+                ToolCancellation.CheckCurrent();
                 var element = doc.GetElement(new ElementId(row.Element.ElementId));
                 if (element == null)
                 {

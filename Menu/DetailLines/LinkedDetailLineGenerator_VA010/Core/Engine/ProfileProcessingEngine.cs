@@ -1,3 +1,4 @@
+using Revit26_Plugin_Revised.Shared.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -96,6 +97,7 @@ namespace Revit26_Plugin_Revised.LinkedDetailLineGenerator.VA010.Core.Engine
 
             foreach (var elem in spatialCandidates)
             {
+                ToolCancellation.CheckCurrent();
                 try
                 {
                     ProcessSingleElement(

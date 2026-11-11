@@ -16,6 +16,7 @@
 // other tools still work normally.
 // =======================================================
 
+using Revit26_Plugin_Revised.Shared.Services;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using Revit26_Plugin_Revised.AutoSlopeByDrain.V007.Core.Models;
@@ -61,9 +62,16 @@ namespace Revit26_Plugin_Revised.CombinedRoofTools.V003.Core
                     if (!editor.IsEnabled)
                         editor.Enable();
                     foreach (SlabShapeVertex v in editor.SlabShapeVertices)
+                    {
+                        ToolCancellation.CheckCurrent();
                         editor.ModifySubElement(v, 0.0);
+                    }
                     tx.Commit();
                 }
+            }
+            catch (OperationCanceledException)
+            {
+                throw; // user cancel: the transaction above is rolled back, nothing was flattened
             }
             catch (Exception ex)
             {

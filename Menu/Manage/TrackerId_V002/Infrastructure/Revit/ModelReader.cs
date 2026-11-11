@@ -47,6 +47,7 @@ namespace Revit26_Plugin_Revised.TrackerId.V002.Infrastructure.Revit
 
             foreach (Element e in PlacedElements(doc, scope))
             {
+                Revit26_Plugin_Revised.Shared.Services.ToolCancellation.CheckCurrent();
                 var cat = e.Category;
                 if (!IsTrackable(cat)) continue;
 
@@ -60,6 +61,7 @@ namespace Revit26_Plugin_Revised.TrackerId.V002.Infrastructure.Revit
 
             foreach (Category cat in doc.Settings.Categories)
             {
+                Revit26_Plugin_Revised.Shared.Services.ToolCancellation.CheckCurrent();
                 if (IsTrackable(cat) && !stats.ContainsKey(cat.Id.Value))
                     stats[cat.Id.Value] = (cat, new HashSet<long>(), 0, 0);
             }
@@ -79,6 +81,7 @@ namespace Revit26_Plugin_Revised.TrackerId.V002.Infrastructure.Revit
             var stats = new Dictionary<long, (int Count, int WithId, Category Cat)>();
             foreach (Element e in PlacedElements(doc, scope, categoryIds))
             {
+                Revit26_Plugin_Revised.Shared.Services.ToolCancellation.CheckCurrent();
                 long typeId = e.GetTypeId().Value;
                 stats.TryGetValue(typeId, out var s);
                 stats[typeId] = (s.Count + 1, s.WithId + (HasTrackerId(e) ? 1 : 0), e.Category);
@@ -87,6 +90,7 @@ namespace Revit26_Plugin_Revised.TrackerId.V002.Infrastructure.Revit
             var types = new List<TypeInfo>();
             foreach (var pair in stats)
             {
+                Revit26_Plugin_Revised.Shared.Services.ToolCancellation.CheckCurrent();
                 var type = doc.GetElement(new ElementId(pair.Key)) as ElementType;
                 types.Add(new TypeInfo(pair.Key, type?.FamilyName ?? string.Empty, type?.Name ?? $"Type {pair.Key}",
                                        TypeMark(type), pair.Value.Count, pair.Value.WithId,
@@ -141,6 +145,7 @@ namespace Revit26_Plugin_Revised.TrackerId.V002.Infrastructure.Revit
 
             foreach (Element e in elements)
             {
+                Revit26_Plugin_Revised.Shared.Services.ToolCancellation.CheckCurrent();
                 long typeId = e.GetTypeId().Value;
                 if (typeIds != null && !typeIds.Contains(typeId)) continue;
 
@@ -189,6 +194,7 @@ namespace Revit26_Plugin_Revised.TrackerId.V002.Infrastructure.Revit
                     s.LevelElevationMm = UnitUtils.ConvertFromInternalUnits(level.ProjectElevation, UnitTypeId.Millimeters);
                     foreach (string name in levelParameterNames)
                     {
+                        Revit26_Plugin_Revised.Shared.Services.ToolCancellation.CheckCurrent();
                         string v = ParameterText(level.LookupParameter(name));
                         if (v != null) s.LevelParameterValues[name] = v;
                     }
@@ -196,6 +202,7 @@ namespace Revit26_Plugin_Revised.TrackerId.V002.Infrastructure.Revit
 
                 foreach (string name in parameterNames)
                 {
+                    Revit26_Plugin_Revised.Shared.Services.ToolCancellation.CheckCurrent();
                     string v = ParameterText(e.LookupParameter(name)) ?? ParameterText(type?.LookupParameter(name));
                     if (v != null) s.ParameterValues[name] = v;
                 }
@@ -217,6 +224,7 @@ namespace Revit26_Plugin_Revised.TrackerId.V002.Infrastructure.Revit
 
             foreach (string name in projectParameterNames)
             {
+                Revit26_Plugin_Revised.Shared.Services.ToolCancellation.CheckCurrent();
                 string v = ParameterText(info.LookupParameter(name));
                 if (v != null) identity.ProjectParameterValues[name] = v;
             }
@@ -229,6 +237,7 @@ namespace Revit26_Plugin_Revised.TrackerId.V002.Infrastructure.Revit
             var grids = new List<GridLine2D>();
             foreach (Grid g in new FilteredElementCollector(doc).OfClass(typeof(Grid)).Cast<Grid>())
             {
+                Revit26_Plugin_Revised.Shared.Services.ToolCancellation.CheckCurrent();
                 switch (g.Curve)
                 {
                     case Line line:
@@ -253,12 +262,14 @@ namespace Revit26_Plugin_Revised.TrackerId.V002.Infrastructure.Revit
 
             foreach (Element box in boxElements)
             {
+                Revit26_Plugin_Revised.Shared.Services.ToolCancellation.CheckCurrent();
                 var points = new List<XYZ>();
                 XYZ axis = null;
                 if (box.get_Geometry(new Options()) is GeometryElement geometry)
                 {
                     foreach (GeometryObject obj in geometry)
                     {
+                        Revit26_Plugin_Revised.Shared.Services.ToolCancellation.CheckCurrent();
                         if (obj is not Line line) continue;
                         points.Add(line.GetEndPoint(0));
                         points.Add(line.GetEndPoint(1));
@@ -298,6 +309,7 @@ namespace Revit26_Plugin_Revised.TrackerId.V002.Infrastructure.Revit
             var holders = new List<TrackerIdHolder>();
             foreach (Element e in ElementsWithTrackerId(doc))
             {
+                Revit26_Plugin_Revised.Shared.Services.ToolCancellation.CheckCurrent();
                 string id = Text(e, TrackerParameters.TrackerId);
                 if (id.Length > 0)
                     holders.Add(new TrackerIdHolder(e.Id.Value, e.UniqueId, id, Text(e, TrackerParameters.SourceGuid)));
@@ -321,6 +333,7 @@ namespace Revit26_Plugin_Revised.TrackerId.V002.Infrastructure.Revit
             var typeCache = new Dictionary<long, ElementType>();
             foreach (Element e in elements)
             {
+                Revit26_Plugin_Revised.Shared.Services.ToolCancellation.CheckCurrent();
                 string id = Text(e, TrackerParameters.TrackerId);
                 if (id.Length == 0) continue;
 
@@ -458,6 +471,7 @@ namespace Revit26_Plugin_Revised.TrackerId.V002.Infrastructure.Revit
 
             foreach (var bip in LevelParameters)
             {
+                Revit26_Plugin_Revised.Shared.Services.ToolCancellation.CheckCurrent();
                 var p = e.get_Parameter(bip);
                 if (p != null && p.StorageType == StorageType.ElementId && doc.GetElement(p.AsElementId()) is Level byParam)
                     return byParam;
@@ -471,6 +485,7 @@ namespace Revit26_Plugin_Revised.TrackerId.V002.Infrastructure.Revit
         {
             foreach (var bip in parameters)
             {
+                Revit26_Plugin_Revised.Shared.Services.ToolCancellation.CheckCurrent();
                 var p = e.get_Parameter(bip);
                 if (p == null || !p.HasValue || p.StorageType != StorageType.Double) continue;
                 double v = p.AsDouble();

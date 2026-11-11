@@ -42,6 +42,8 @@ namespace Revit26_Plugin_Revised.FloorNameBuilder.V001.Infrastructure.ExternalEv
             var results = new List<RenameRowResult>();
             var finished = false;
 
+            // Esc / Cancel with a Yes-No confirm; a cancelled run leaves every floor as it was.
+            using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.FloorNameBuilder, app);
             try
             {
                 if (payload == null) { finished = true; return; }
@@ -60,6 +62,7 @@ namespace Revit26_Plugin_Revised.FloorNameBuilder.V001.Infrastructure.ExternalEv
 
                 foreach (var item in payload.Items)
                 {
+                    ToolCancellation.CheckCurrent();
                     var collector = new WarningCollector();
                     using var t = new Transaction(doc, $"Rename floor {item.ElementId}");
                     var options = t.GetFailureHandlingOptions();
@@ -105,6 +108,10 @@ namespace Revit26_Plugin_Revised.FloorNameBuilder.V001.Infrastructure.ExternalEv
                         });
                         anySucceeded = true;
                     }
+                    catch (OperationCanceledException)
+                    {
+                        throw; // user cancel: never swallowed as a failure
+                    }
                     catch (Exception ex)
                     {
                         if (t.HasStarted() && !t.HasEnded()) t.RollBack();
@@ -112,6 +119,7 @@ namespace Revit26_Plugin_Revised.FloorNameBuilder.V001.Infrastructure.ExternalEv
                     }
                 }
 
+                ToolCancellation.CheckCurrent(); // last chance before the group is kept
                 if (anySucceeded) group.Assimilate();
                 else group.RollBack();
 
@@ -123,7 +131,9 @@ namespace Revit26_Plugin_Revised.FloorNameBuilder.V001.Infrastructure.ExternalEv
                 {
                     // Something outside the per-row try failed; the group was disposed (rolled back),
                     // so nothing from this batch is in the model.
-                    results = payload.Items.Select(i => Fail(i, "Batch aborted — no changes were kept.")).ToList();
+                    results = payload.Items.Select(i => Fail(i, cancel.IsCancelled
+                        ? "Cancelled by user — no changes were kept."
+                        : "Batch aborted — no changes were kept.")).ToList();
                 }
                 onCompleted?.Invoke(results);
             }

@@ -11,21 +11,36 @@ public class LoadAllViewsHandler : IExternalEventHandler
 {
     public ViewsListViewModel? Vm { get; set; }
 
-    /// <summary>Runs through ToolGuard so no exception reaches Revit.</summary>
-    public void Execute(UIApplication app) =>
-        ToolGuard.RunHandler(typeof(LoadAllViewsHandler), app, Run);
-
-    private void Run(UIApplication app)
+    /// <summary>
+    /// Runs through ToolGuard so no exception reaches Revit. Esc or the Cancel button asks
+    /// "Cancel the process?"; Yes stops the load (a read-only run, so nothing needs undoing).
+    /// </summary>
+    public void Execute(UIApplication app)
     {
         var vm = Vm;
-        if (vm == null) return;
+        ToolCancellation? cancel = null;
+        ToolGuard.RunHandler(typeof(LoadAllViewsHandler), app, a =>
+        {
+            if (vm == null) return;
+            cancel = vm.BeginRun(ToolCatalog.ViewAutoRenamerV007);
+            try { Run(a, vm, cancel); }
+            finally { vm.EndRun(cancel); }
+        },
+        onCancelled: () => vm?.OnLoadAllCancelled(cancel?.LastDone ?? 0, cancel?.LastTotal ?? 0));
+    }
 
+    private static void Run(UIApplication app, ViewsListViewModel vm, ToolCancellation cancel)
+    {
         List<ViewItemViewModel> items;
         try
         {
             var doc = app.ActiveUIDocument?.Document;
             if (doc == null) throw new InvalidOperationException("No project is open.");
-            items = ViewLoadService.LoadAll(doc);
+            items = ViewLoadService.LoadAll(doc, cancel);
+        }
+        catch (OperationCanceledException)
+        {
+            throw; // a user cancel is not a load failure: ToolGuard reports it as cancelled
         }
         catch (Exception ex)
         {
