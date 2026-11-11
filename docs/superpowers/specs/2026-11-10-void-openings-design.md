@@ -1,6 +1,6 @@
 # Void Openings — design (first deliverable, A–G)
 
-Status: **awaiting owner approval. No product code is written yet.**
+Status: **approved by the owner on 2026-11-11. Phase 1 (domain engine and tests) is implemented.**
 Date: 2026-11-10 · Target: Revit 2026, .NET 8, WPF, plugin `Revit26_Plugin_Revised`.
 
 UI wireframe (deliverable C): `Claude/Previews/VoidOpenings_V001_Window.html`, published at
@@ -20,7 +20,8 @@ One structural model and one MEP model per run; the run is repeatable.
 | D1 | Built as a tool inside `Revit26_Plugin_Revised` (not a separate `BIMPlatform.sln`). The brief's layers are kept as folders and namespaces. |
 | D2 | The void family is built by the plugin through the API by default; the window also accepts a custom `.rfa` that has the required parameters. |
 
-**Assumptions — please confirm or correct (section 9 lists them as questions)**
+**Working assumptions.** The owner approved the spec without answering the questions in section 9, so
+these recommended answers are in force until the owner says otherwise.
 
 - A1. Both selectors also offer **"(Active model)"**, so host structure (Scenario A) and host MEP work.
 - A2. Ribbon: a new one-button panel **Coordination** on `Rafi_Pro_Docs2`, button label **Void Openings**.
@@ -297,8 +298,9 @@ tessellated, so entry points on curved structure carry a small tolerance (risk R
 ### F3. Opening dimensions
 
 - Size key: diameter for round MEP, the larger side for rectangular. `ClearanceRuleSet.Resolve`
-  takes the first rule of that category whose range contains the size, else the category default,
-  else the global default.
+  takes the first rule of that category whose range contains the size; a fitting or accessory with no
+  rule of its own uses its base category's rules (pipe, duct, cable tray, conduit); otherwise the
+  global default. The rule is chosen by nominal size, without insulation.
 - `PerSide`: opening = size + 2 × clearance. `Total`: opening = size + clearance.
   Check from the brief: conduit 40 mm, 30 mm per side → 100 mm.
 - Shape: round MEP → circular, rectangular MEP → rectangular; each rule can override.
@@ -307,7 +309,8 @@ tessellated, so entry points on curved structure carry a small tolerance (risk R
 - Oblique crossings (sloped pipe through a slab): with a perpendicular axis the opening must cover
   the MEP footprint at both faces. Along the slope direction the size becomes
   `d / cos θ + t · tan θ + clearance`, across it `d + clearance` (θ = angle between MEP and axis,
-  t = thickness). Circular openings turn rectangular (or a larger circle, by rule) past an angle limit.
+  t = thickness). A round element keeps a circular opening, enlarged to cover the slope, up to
+  15° (setting); beyond that the opening is rectangular unless the rule forces a shape.
 - Depth = penetration length along the axis + overshoot each side (default 50 mm) so the void always
   passes clean through. Sizes can be rounded up to a module (for example 10 mm).
 
@@ -399,7 +402,7 @@ CHANGELOG entry. Phases marked *Revit* need the owner to test in Revit on Window
 
 | Phase | Scope | Testable milestone |
 |---|---|---|
-| 1 | Domain: geometry primitives, `SpatialGrid`, `ClashEngine`, `ClearanceRuleSet`, `OpeningCalculator`, `ClashKey` | Unit tests: perpendicular / sloped / vertical crossings, multi-penetration, grazing, duplicates, the 40 + 2×30 = 100 case. Runs on Linux. |
+| 1 ✅ done | Domain: geometry primitives, `SpatialGrid`, `ClashEngine`, `ClearanceRuleSet`, `OpeningCalculator`, `ClashKey` | Unit tests: perpendicular / sloped / vertical crossings, multi-penetration, grazing, duplicates, the 40 + 2×30 = 100 case. Runs on Linux. |
 | 2 | Tool shell: command, DI root, ribbon button, window, model + category selection with counts | *Revit*: links listed with loaded state; counts match a schedule; selection changes without reopening. |
 | 3 | Clearance rules UI, validation, settings file (versioned) | Unit tests for rules + settings round-trip. *Revit*: rules survive a restart. |
 | 4 | Extractors, Analyze, results table, zoom / highlight, approve / reject | *Revit*: clashes on a test model match a manual count; rotated and moved links give correct points. |
@@ -424,6 +427,8 @@ CHANGELOG entry. Phases marked *Revit* need the owner to test in Revit on Window
 | R10 | Unhosted voids do not move with the structure | Reconciler detects drift on the next Analyze. |
 
 ## 9. Open questions for the owner
+
+Not answered yet; the proposed answer to each is being used (see section 0).
 
 1. A1 — offer "(Active model)" in both selectors?
 2. A2 — ribbon panel **Coordination** on `Rafi_Pro_Docs2`, or another panel?
