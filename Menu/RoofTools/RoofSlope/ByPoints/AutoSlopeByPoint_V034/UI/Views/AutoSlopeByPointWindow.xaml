@@ -605,6 +605,7 @@ converters declared here.
                                             <RowDefinition Height="Auto"/>
                                             <RowDefinition Height="Auto"/>
                                             <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
                                         <TextBlock Grid.Row="0" Text="Max link length (m)" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,3,0,3"/>
                                         <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Margin="0,3">
@@ -636,6 +637,12 @@ converters declared here.
                                         </StackPanel>
                                         <TextBlock Grid.Row="6" Grid.Column="1" Style="{StaticResource HintText}" Margin="0,0,0,4"
                                                    Text="Height margin (default 1 mm = V033) when a point is matched to the roof top face. Raise it if points on sloped or curved roofs are wrongly rejected; too high can accept points just outside the roof."/>
+                                        <TextBlock Grid.Row="7" Text="Exact segment test" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,3,0,3"/>
+                                        <StackPanel Grid.Row="7" Grid.Column="1" Orientation="Horizontal" Margin="0,3">
+                                            <ToggleButton Style="{StaticResource AppleToggleButton}" IsChecked="{Binding ExactSegmentTest}" VerticalAlignment="Center"/>
+                                            <TextBlock Style="{StaticResource HintText}" Margin="14,0,0,0" VerticalAlignment="Center" TextWrapping="Wrap"
+                                                       Text="Also checks every link against the roof outline and opening edges, so no gap is missed whatever its width. Slower on big roofs."/>
+                                        </StackPanel>
                                     </Grid>
                                     <Button Content="Reset to defaults" Style="{StaticResource LinkButton}" Command="{Binding ResetPathOptionsCommand}"/>
                                 </StackPanel>

@@ -20,7 +20,9 @@ Each release lists every tool whose version changed, under the plugin version.
     value, 4 per foot); range 10–2000 mm; every link still gets at least 10 checks.
   - **Projection tolerance (mm)**: height margin used when a point is matched to the roof top face. Default 1 mm
     (the V033 value); range 0.1–50 mm.
-- Both values are saved in `settings.v034.json`, written to the Excel report and to the run log.
+  - **Exact segment test** (toggle, off by default): also checks each link against the roof outline and every opening
+    edge, then tests each piece between crossings, so a gap is caught whatever its width. Slower on big roofs.
+- All three values are saved in `settings.v034.json`, written to the Excel report and to the run log.
 
 #### Changed
 - The By Point dropdown lists V034 first (also the button icon), then V033, V032, V030, Ridge V003, Multi Copies 30.

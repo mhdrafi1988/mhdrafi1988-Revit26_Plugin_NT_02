@@ -106,11 +106,11 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V034.Infrastructure.RoofOps
             var graphClock = Stopwatch.StartNew();
             var builder = new PathGraphBuilder(
                 prep.Positions, prep.TopFace, maxEdgeFt, prep.Arcs, curveTolFt,
-                RevitConvert.MmToFt(request.PathCheckSpacingMm), RevitConvert.MmToFt(request.ProjectionToleranceMm),
+                RevitConvert.MmToFt(request.PathCheckSpacingMm), RevitConvert.MmToFt(request.ProjectionToleranceMm), request.ExactSegmentTest,
                 pct => progress(RunPhases.Report(RunPhase.BuildingGraph, pct)),
                 cancel);
             PathGraph graph = builder.Build();
-            log(LogLevel.Info, $"Path graph: {graph.VertexCount} points, {graph.EdgeCount} links (max link {request.EffectiveMaxEdgeLengthM:0.##} m), built in {graphClock.Elapsed.TotalSeconds:0.0} s. Path check every {request.PathCheckSpacingMm:0.#} mm, projection tolerance {request.ProjectionToleranceMm:0.##} mm.");
+            log(LogLevel.Info, $"Path graph: {graph.VertexCount} points, {graph.EdgeCount} links (max link {request.EffectiveMaxEdgeLengthM:0.##} m), built in {graphClock.Elapsed.TotalSeconds:0.0} s. Path check every {request.PathCheckSpacingMm:0.#} mm, projection tolerance {request.ProjectionToleranceMm:0.##} mm, exact segment test {(request.ExactSegmentTest ? "on" : "off")}.");
 
             progress(RunPhases.Report(RunPhase.ComputingPaths));
             ShortestPathResult paths = ShortestPathSolver.Solve(graph, drains.DrainVertices, cancel);

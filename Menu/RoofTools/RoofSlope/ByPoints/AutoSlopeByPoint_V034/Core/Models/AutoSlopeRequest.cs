@@ -55,6 +55,9 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V034.Core.Models
         /// <summary>V034: vertical retry offset when projecting a point on the roof top face (mm).</summary>
         public double ProjectionToleranceMm { get; init; } = AutoSlopeConstants.DefaultProjectionToleranceMm;
 
+        /// <summary>V034: also test every link exactly against the roof outline and opening edges (any gap width). Off = V033 behaviour.</summary>
+        public bool ExactSegmentTest { get; init; }
+
         public bool ExportToExcel { get; init; }
         public string ExportFolder { get; init; }
 

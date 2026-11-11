@@ -37,6 +37,8 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V034.Infrastructure.RoofOps
         private readonly double _curveTolFt;
         private readonly double _checkSpacingFt;
         private readonly double _projectionTolFt;
+        private readonly bool _exactSegmentTest;
+        private readonly List<BoundarySegment> _boundary;
         private readonly Dictionary<int, List<VertexCurveInfo>> _curveMap;
         private readonly Action<double> _onProgress;
         private readonly CancellationToken _cancel;
@@ -49,6 +51,7 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V034.Infrastructure.RoofOps
             double curveTolFt,
             double checkSpacingFt,
             double projectionTolFt,
+            bool exactSegmentTest,
             Action<double> onProgress,
             CancellationToken cancel)
         {
@@ -59,6 +62,8 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V034.Infrastructure.RoofOps
             _curveTolFt = curveTolFt;
             _checkSpacingFt = checkSpacingFt;
             _projectionTolFt = projectionTolFt;
+            _exactSegmentTest = exactSegmentTest;
+            _boundary = exactSegmentTest ? ReadBoundary(topFace) : null;
             _onProgress = onProgress;
             _cancel = cancel;
             _curveMap = CurveIntersectionHelper.MapVerticesOnCurves(_positions, _arcs, _curveTolFt);
@@ -214,6 +219,8 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V034.Infrastructure.RoofOps
 
         private bool IsValidEdge(XYZ a, XYZ b)
         {
+            if (_exactSegmentTest && _boundary != null && !ExactSegmentOnFace(a, b)) return false;
+
             Line ln = Line.CreateBound(a, b);
             double len = a.DistanceTo(b);
             int samples = Math.Max(AutoSlopeConstants.MinPathChecksPerLink, (int)(len / _checkSpacingFt));
@@ -221,6 +228,79 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V034.Infrastructure.RoofOps
 
             for (double t = step; t < 1.0; t += step)
                 if (!PointOnTopFace(ln.Evaluate(t, true))) return false;
+            return true;
+        }
+
+        // ── V034: exact segment test (opt-in) ───────────────────────────────
+
+        /// <summary>One straight piece of the top face's outline (outer edge or opening), in plan (feet).</summary>
+        private readonly struct BoundarySegment
+        {
+            public readonly double X1, Y1, X2, Y2, MinX, MaxX, MinY, MaxY;
+            public BoundarySegment(double x1, double y1, double x2, double y2)
+            {
+                X1 = x1; Y1 = y1; X2 = x2; Y2 = y2;
+                MinX = Math.Min(x1, x2); MaxX = Math.Max(x1, x2);
+                MinY = Math.Min(y1, y2); MaxY = Math.Max(y1, y2);
+            }
+        }
+
+        /// <summary>Outer boundary and opening edges of the top face as plan segments (curves are tessellated). Null if unreadable.</summary>
+        private static List<BoundarySegment> ReadBoundary(Face face)
+        {
+            try
+            {
+                var list = new List<BoundarySegment>();
+                foreach (CurveLoop loop in face.GetEdgesAsCurveLoops())
+                    foreach (Curve c in loop)
+                    {
+                        IList<XYZ> pts = c.Tessellate();
+                        for (int k = 1; k < pts.Count; k++)
+                            list.Add(new BoundarySegment(pts[k - 1].X, pts[k - 1].Y, pts[k].X, pts[k].Y));
+                    }
+                return list.Count > 0 ? list : null;
+            }
+            catch
+            {
+                return null; // fall back to the sampled test only
+            }
+        }
+
+        /// <summary>
+        /// Exact test, whatever the gap width: finds every place the link crosses the roof outline or an
+        /// opening edge, then checks the midpoint of each piece between crossings. The in/out state cannot
+        /// change inside a piece, so one point per piece is enough.
+        /// </summary>
+        private bool ExactSegmentOnFace(XYZ a, XYZ b)
+        {
+            double dx = b.X - a.X, dy = b.Y - a.Y;
+            double minX = Math.Min(a.X, b.X), maxX = Math.Max(a.X, b.X);
+            double minY = Math.Min(a.Y, b.Y), maxY = Math.Max(a.Y, b.Y);
+            const double endEps = 1e-9;
+
+            var ts = new List<double> { 0.0, 1.0 };
+            foreach (BoundarySegment s in _boundary)
+            {
+                if (s.MaxX < minX || s.MinX > maxX || s.MaxY < minY || s.MinY > maxY) continue;
+
+                double ex = s.X2 - s.X1, ey = s.Y2 - s.Y1;
+                double denom = dx * ey - dy * ex;
+                if (Math.Abs(denom) < 1e-12) continue; // parallel: covered by the piece midpoints
+
+                double t = ((s.X1 - a.X) * ey - (s.Y1 - a.Y) * ex) / denom;
+                double u = ((s.X1 - a.X) * dy - (s.Y1 - a.Y) * dx) / denom;
+                if (u < 0.0 || u > 1.0 || t <= endEps || t >= 1.0 - endEps) continue;
+                ts.Add(t);
+            }
+
+            ts.Sort();
+            for (int k = 1; k < ts.Count; k++)
+            {
+                if (ts[k] - ts[k - 1] < 1e-7) continue; // two crossings at the same spot
+                double mid = 0.5 * (ts[k - 1] + ts[k]);
+                if (!PointOnTopFace(new XYZ(a.X + (b.X - a.X) * mid, a.Y + (b.Y - a.Y) * mid, a.Z + (b.Z - a.Z) * mid)))
+                    return false;
+            }
             return true;
         }
 

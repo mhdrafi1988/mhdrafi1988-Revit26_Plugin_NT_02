@@ -64,6 +64,9 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V034.Core.Models
         /// <summary>Vertical retry offset when projecting a point on the roof top face, in mm.</summary>
         public double ProjectionToleranceMm { get; set; } = AutoSlopeConstants.DefaultProjectionToleranceMm;
 
+        /// <summary>Exact link-vs-outline test (any gap width). Off by default; missing in older files = off.</summary>
+        public bool ExactSegmentTest { get; set; }
+
         // ── Ridge lines (V033) ─────────────────────────────────────────────
         /// <summary>Draw detail lines along the ridges between drain groups. Off by default.</summary>
         public bool DrawRidgeLines { get; set; }

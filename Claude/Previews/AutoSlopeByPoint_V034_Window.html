@@ -62,6 +62,7 @@ h2{font-size:13px;margin:18px 0 6px;color:var(--text2);font-weight:600}
       <div class="row hint"><span></span><span class="hintt">How far apart the on-roof checks are along each link (default 76.2 mm = V033). Smaller catches narrow openings and thin roof strips but is slower; larger is faster but can let a link cross them. At least 10 checks per link.</span></div>
       <div class="row"><span class="lbl">Projection tolerance (mm)<span class="tag">NEW</span></span><span><span class="inp">1</span></span></div>
       <div class="row hint"><span></span><span class="hintt">Height margin (default 1 mm = V033) when a point is matched to the roof top face. Raise it if points on sloped or curved roofs are wrongly rejected; too high can accept points just outside the roof.</span></div>
+      <div class="row"><span class="lbl">Exact segment test<span class="tag">NEW</span></span><span class="hintt">○ off — Also checks every link against the roof outline and opening edges, so no gap is missed whatever its width. Slower on big roofs.</span></div>
       <span class="link">Reset to defaults</span>
     </div>
   </div>

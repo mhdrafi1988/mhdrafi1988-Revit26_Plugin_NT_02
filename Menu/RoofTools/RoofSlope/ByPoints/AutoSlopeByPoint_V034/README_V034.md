@@ -33,6 +33,8 @@ is dropped if any check point falls outside the face or inside an opening):
 | Path check spacing (mm) | 76.2 | 10–2000 | Distance between the checks along a link (at least 10 per link). |
 | Projection tolerance (mm) | 1 | 0.1–50 | Height margin when a point is projected on the top face. |
 
+| Exact segment test | Off | on/off | Also finds every crossing of a link with the roof outline and opening edges (plan view, curves tessellated), then tests the midpoint of each piece between crossings. Catches gaps of any width; the spacing check still runs. |
+
 Defaults equal V033's fixed values, so results are unchanged until the user edits them. Saved in `settings.v034.json`
 (reads `settings.v033.json` the first time); logged and written to the Excel report.
 

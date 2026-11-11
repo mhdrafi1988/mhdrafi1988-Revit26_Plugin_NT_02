@@ -221,6 +221,7 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V034.UI.ViewModels
         [ObservableProperty] private string pathCheckSpacingError;
         [ObservableProperty] private string projectionToleranceText;
         [ObservableProperty] private string projectionToleranceError;
+        [ObservableProperty] private bool exactSegmentTest;
 
         public ObservableCollection<CircleMarkerGroupViewModel> MarkerGroups { get; }
 
@@ -266,10 +267,11 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V034.UI.ViewModels
 
             bool autoEdge = string.IsNullOrWhiteSpace(MaxEdgeLengthText) || Same(MaxEdgeLengthText, 0);
             PathOptionsSummary = $"Max link: {(autoEdge ? "automatic" : MaxEdgeLengthText + " m")} · arc points {(InsertCurveIntersectionPoints ? "on" : "off")}"
-                + $" · check every {PathCheckSpacingText} mm · tol {ProjectionToleranceText} mm";
+                + (ExactSegmentTest ? " · exact test on" : $" · check every {PathCheckSpacingText} mm · tol {ProjectionToleranceText} mm");
             IsPathOptionsCustom = !autoEdge || !InsertCurveIntersectionPoints
                 || !Same(PathCheckSpacingText, AutoSlopeConstants.DefaultPathCheckSpacingMm)
-                || !Same(ProjectionToleranceText, AutoSlopeConstants.DefaultProjectionToleranceMm);
+                || !Same(ProjectionToleranceText, AutoSlopeConstants.DefaultProjectionToleranceMm)
+                || ExactSegmentTest;
 
             var on = MarkerGroups.Where(g => g.IsEnabled).Select(g => g.ChipText).ToList();
             MarkersSummary = (on.Count == 0 ? "Off" : string.Join(" · ", on)) + " · plan view only";
@@ -302,6 +304,7 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V034.UI.ViewModels
             InsertCurveIntersectionPoints = true;
             PathCheckSpacingText = InputParsing.Format(AutoSlopeConstants.DefaultPathCheckSpacingMm);
             ProjectionToleranceText = InputParsing.Format(AutoSlopeConstants.DefaultProjectionToleranceMm);
+            ExactSegmentTest = false;
         }
 
         [RelayCommand]
@@ -347,6 +350,7 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V034.UI.ViewModels
         partial void OnSnapRadiusTextChanged(string value) => Revalidate();
         partial void OnPathCheckSpacingTextChanged(string value) => Revalidate();
         partial void OnProjectionToleranceTextChanged(string value) => Revalidate();
+        partial void OnExactSegmentTestChanged(bool value) => Revalidate();
         partial void OnExportToExcelChanged(bool value) => Revalidate();
         partial void OnExportFolderPathChanged(string value) => Revalidate();
         partial void OnSelectedDrainModeChanged(DrainModeOption value) => Revalidate();
@@ -483,6 +487,7 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V034.UI.ViewModels
                 InsertCurveIntersectionPoints = InsertCurveIntersectionPoints,
                 PathCheckSpacingMm = checkSpacing,
                 ProjectionToleranceMm = projTol,
+                ExactSegmentTest = ExactSegmentTest,
                 ExportToExcel = ExportToExcel,
                 ExportFolder = ExportFolderPath,
                 Markers = MarkerGroups.Select(g => g.ToStyle()).ToList(),
@@ -908,6 +913,7 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V034.UI.ViewModels
             InsertCurveIntersectionPoints = s.InsertCurveIntersectionPoints;
             PathCheckSpacingText = InputParsing.Format(s.PathCheckSpacingMm > 0 ? s.PathCheckSpacingMm : AutoSlopeConstants.DefaultPathCheckSpacingMm);
             ProjectionToleranceText = InputParsing.Format(s.ProjectionToleranceMm > 0 ? s.ProjectionToleranceMm : AutoSlopeConstants.DefaultProjectionToleranceMm);
+            ExactSegmentTest = s.ExactSegmentTest;
 
             ExportFolderPath = string.IsNullOrWhiteSpace(s.ExportFolderPath)
                 ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), AutoSlopeConstants.DefaultExportFolder)
@@ -955,6 +961,7 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V034.UI.ViewModels
                 InsertCurveIntersectionPoints = InsertCurveIntersectionPoints,
                 PathCheckSpacingMm = checkSpacing > 0 ? checkSpacing : d.PathCheckSpacingMm,
                 ProjectionToleranceMm = projTol > 0 ? projTol : d.ProjectionToleranceMm,
+                ExactSegmentTest = ExactSegmentTest,
                 ExportFolderPath = ExportFolderPath,
                 ExportToExcel = ExportToExcel,
                 AskToOpenAfterExport = AskToOpenAfterExport,
