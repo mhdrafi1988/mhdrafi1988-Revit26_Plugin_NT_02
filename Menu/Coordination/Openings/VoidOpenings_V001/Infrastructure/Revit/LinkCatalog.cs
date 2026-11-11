@@ -76,6 +76,18 @@ namespace Revit26_Plugin_Revised.VoidOpenings.V001.Infrastructure.Revit
             return instance?.GetLinkDocument();
         }
 
+        /// <summary>
+        /// Transform of a model into the host: identity for the host, the link instance's total
+        /// transform (position, rotation, shared coordinates) for a link.
+        /// </summary>
+        public static Transform TransformOf(Document host, ModelRef model)
+        {
+            if (model == null || model.IsHost || string.IsNullOrEmpty(model.LinkInstanceUniqueId))
+                return Transform.Identity;
+            var instance = host.GetElement(model.LinkInstanceUniqueId) as RevitLinkInstance;
+            return instance?.GetTotalTransform() ?? Transform.Identity;
+        }
+
         private static string KeyOf(Document document)
         {
             ModelIdentity identity = ModelIdentity.FromDocument(document);

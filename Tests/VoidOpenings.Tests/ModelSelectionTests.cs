@@ -23,6 +23,13 @@ namespace VoidOpenings.Tests
             public IReadOnlyDictionary<StructuralCategory, int> CountStructural(ModelRef model) { CountCalls++; return Structural; }
 
             public IReadOnlyDictionary<MepCategory, int> CountMep(ModelRef model) { CountCalls++; return Mep; }
+
+            public MepModel ReadMep(ModelRef model, IReadOnlyList<MepCategory> categories, ICollection<string> notes) => null;
+
+            public StructuralModel ReadStructural(ModelRef model, IReadOnlyList<StructuralCategory> categories,
+                Revit26_Plugin_Revised.VoidOpenings.V001.Core.Domain.Geometry.Aabb? hostBoundsMm, ICollection<string> notes) => null;
+
+            public IReadOnlyList<StoredOpening> ReadStoredOpenings(ModelRef structuralModel) => new StoredOpening[0];
         }
 
         private sealed class InlineDispatcher : IRevitDispatcher
