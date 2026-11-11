@@ -47,11 +47,15 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                 "by_point_16.png", "Auto Slope By Point", "V033", "V032 plus optional ridge lines: detail lines joining the highest points between drain groups.");
             byPointV033.ToolTip = Revit26_Plugin_Revised.Shared.Services.ToolCatalog.AutoSlopeByPointV033.Tip(
                 "V032 plus optional ridge lines: detail lines joining the highest points between drain groups.");
+            var byPointV034 = Btn(assemblyPath, "Btn_AutoSlopeByPoint_034", "By Point V034", "Revit26_Plugin_Revised.AutoSlopeByPoint.V034.Commands.AutoSlopeCommand",
+                "by_point_16.png", "Auto Slope By Point", "V034", "V033 plus user-set path checking: spacing of the on-roof checks and projection tolerance.");
+            byPointV034.ToolTip = Revit26_Plugin_Revised.Shared.Services.ToolCatalog.AutoSlopeByPointV034.Tip(
+                "V033 plus user-set path checking: spacing of the on-roof checks along each link and the projection tolerance.");
             var byPointRidgeV003 = Btn(assemblyPath, "Btn_AutoSlopeByPointRidge_003", "By Point Ridge V003", "Revit26_Plugin_Revised.AutoSlopeByPointRidge.V003.Commands.AutoSlopeCommand",
                 "AutoSlopeByPoint_Ridge_16.png", "Auto Slope By Point (Ridge)", "V003", "Ridge V002 on the shared ToolWindowShell (log in body).");
             var byPointMultiCopies30 = Btn(assemblyPath, "Btn_AutoSlopeByPoint_MultiCopies30", "By Point Multi Copies 30", "Revit26_Plugin_Revised.AutoSlopeByPoint.MultiCopies30.Commands.AutoSlopeCommand",
                 "by_point_16.png", "Auto Slope By Point (Multi Copies)", "MultiCopies30", "MultiCopies29 on the shared ToolWindowShell (log in body).");
-            var byPointPulldownData = RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_AutoSlopeByPoint", "By Point", byPointV033);
+            var byPointPulldownData = RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_AutoSlopeByPoint", "By Point", byPointV034);
 
             var byDrainV011 = Btn(assemblyPath, "Btn_AutoSlopeByDrain_V011", "By Drain V011", "Revit26_Plugin_Revised.MultiRoofSlopeByDrain.V011.Commands.AutoSlopeByDrain",
                 "AutoSlopeByDrain_MultiRoof_16.png", "Auto Slope By Drain (Multi-Roof)", "V011", "V010 with the standard three-zone window layout.");
@@ -71,7 +75,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             var pointsAndSlopePulldownData = RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_RoofPointsAndSlope", "Points & Slope", pointsAndSlopeV001);
 
             var slopeItems = RibbonLayoutHelper.AddStackedButtons(slopePanel, new List<RibbonItemData> { byPointPulldownData, byDrainPulldownData, pointsAndSlopePulldownData });
-            RibbonLayoutHelper.WirePulldownButton(slopeItems, "Pulldown_AutoSlopeByPoint", byPointV033, byPointV032, byPointV030, byPointRidgeV003, byPointMultiCopies30);
+            RibbonLayoutHelper.WirePulldownButton(slopeItems, "Pulldown_AutoSlopeByPoint", byPointV034, byPointV033, byPointV032, byPointV030, byPointRidgeV003, byPointMultiCopies30);
             RibbonLayoutHelper.WirePulldownButton(slopeItems, "Pulldown_AutoSlopeByDrain", byDrainV013, byDrainV012, byDrainV011, byDrainV007);
             RibbonLayoutHelper.WirePulldownButton(slopeItems, "Pulldown_RoofPointsAndSlope", pointsAndSlopeV001);
 

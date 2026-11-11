@@ -1,0 +1,82 @@
+<title>Auto Slope By Point V034</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<!-- UI preview (CLAUDE.md "UI previews"): Auto Slope By Point V034 (34.0.0), plugin 6.40.0.
+     Mirrors: Menu/RoofTools/RoofSlope/ByPoints/AutoSlopeByPoint_V034/UI/Views/AutoSlopeByPointWindow.xaml
+     (Path options section) and Menu/00_Push_Button_Menu_items/Ribbon/RoofToolsRibbon.cs (By Point dropdown).
+     Artifact: https://claude.ai/artifact/A7AkjHQBWUws7Ka3foJG1p -->
+<style>
+:root{
+  --surface-window:#F3F5F7; --card:#FFFFFF; --border:#D6DCE3; --border-input:#B5C2CF;
+  --action:#1E3A5F; --navy-light:#2C4A6E; --text:#1A2B3C; --text2:#5B7185; --text3:#8FA3B8;
+  --bg2:#ECEFF3; --new:#1E7B4B; --new-soft:#E3F4EA; --warn:#9A5B00; --on-dark:#EAF1F8; --page:#E9EDF1;
+  --input:#FFFFFF; --shadow:rgba(0,0,0,.15);
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --surface-window:#1B2735; --card:#223244; --border:#34475B; --border-input:#4A6076;
+  --action:#2C4A6E; --navy-light:#3A5C85; --text:#E4ECF4; --text2:#9DB1C4; --text3:#7E94AA;
+  --bg2:#2A3C50; --new:#5FD39A; --new-soft:#173A2B; --page:#121C27; --input:#1B2735; --shadow:rgba(0,0,0,.5); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --surface-window:#1B2735; --card:#223244; --border:#34475B; --border-input:#4A6076;
+  --action:#2C4A6E; --navy-light:#3A5C85; --text:#E4ECF4; --text2:#9DB1C4; --text3:#7E94AA;
+  --bg2:#2A3C50; --new:#5FD39A; --new-soft:#173A2B; --page:#121C27; --input:#1B2735; --shadow:rgba(0,0,0,.5); color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);padding-block:16px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--text);font-size:12.5px}
+h2{font-size:13px;margin:18px 0 6px;color:var(--text2);font-weight:600}
+.note{font-size:11.5px;color:var(--text2);margin:0 0 10px}
+.scroll{overflow-x:auto;padding-bottom:6px}
+.win{width:560px;background:var(--surface-window);border:1px solid var(--border-input)}
+.titlebar{height:32px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;background:var(--card);border-bottom:1px solid var(--border);font-size:12px}
+.header{background:var(--action);color:var(--on-dark);padding:10px 16px;display:flex;align-items:center}
+.header .t{font-size:16px;font-weight:600}
+.header .v{margin-left:auto;background:var(--navy-light);border-radius:10px;padding:3px 8px;font-size:11px;font-weight:600;color:var(--on-dark)}
+.pad{padding:10px 12px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:4px;margin-bottom:8px}
+.exp{padding:7px 10px;display:flex;justify-content:space-between;font-weight:600}
+.exp small{font-weight:400;color:var(--text2)}
+.row{display:grid;grid-template-columns:150px 1fr;align-items:center;padding:3px 10px}
+.row.hint{padding-top:0}
+.lbl{font-size:11.5px;color:var(--text2)}
+.inp{width:80px;height:24px;border:1px solid var(--border-input);border-radius:2px;background:var(--input);padding:3px 6px;font-size:13px}
+.hintt{font-size:11px;color:var(--text3)}
+.tag{display:inline-block;background:var(--new-soft);color:var(--new);border:1px solid var(--new);border-radius:9px;padding:0 7px;font-size:10px;font-weight:700;margin-left:6px;vertical-align:1px}
+.link{color:var(--action);text-decoration:underline;font-size:11.5px;padding:2px 10px 8px;display:block}
+.menu{width:300px;background:var(--card);border:1px solid var(--border-input);box-shadow:0 2px 6px var(--shadow)}
+.menu div{padding:6px 12px;border-bottom:1px solid var(--bg2)}
+.menu div.first{background:var(--new-soft)}
+.menu small{color:var(--text2)}
+</style>
+
+<h2>Auto Slope By Point — Path options (expanded)</h2>
+<p class="note">Sample data only. Defaults shown equal V033's fixed values, so results are unchanged until the user edits them.</p>
+<div class="scroll">
+<div class="win">
+  <div class="titlebar"><span>Auto Slope By Point — v34.0.0</span><span>— ☐ ✕</span></div>
+  <div class="header"><span class="t">Auto Slope By Point</span><span class="v">v34.0.0</span></div>
+  <div class="pad">
+    <div class="card">
+      <div class="exp"><span>Path options</span><small>Max link: automatic · arc points on · check every 76.2 mm · tol 1 mm</small></div>
+      <div class="row"><span class="lbl">Max link length (m)</span><span><span class="inp">0</span></span></div>
+      <div class="row hint"><span></span><span class="hintt">0 = same as the drainage distance (V030 behaviour).</span></div>
+      <div class="row"><span class="lbl">Insert arc points</span><span class="hintt">● on — Path lengths follow the arc instead of its chord.</span></div>
+      <div class="row"><span class="lbl">Path check spacing (mm)<span class="tag">NEW</span></span><span><span class="inp">76.2</span></span></div>
+      <div class="row hint"><span></span><span class="hintt">How far apart the on-roof checks are along each link (default 76.2 mm = V033). Smaller catches narrow openings and thin roof strips but is slower; larger is faster but can let a link cross them. At least 10 checks per link.</span></div>
+      <div class="row"><span class="lbl">Projection tolerance (mm)<span class="tag">NEW</span></span><span><span class="inp">1</span></span></div>
+      <div class="row hint"><span></span><span class="hintt">Height margin (default 1 mm = V033) when a point is matched to the roof top face. Raise it if points on sloped or curved roofs are wrongly rejected; too high can accept points just outside the roof.</span></div>
+      <span class="link">Reset to defaults</span>
+    </div>
+  </div>
+</div>
+</div>
+
+<h2>Ribbon — Roof Slope panel, By Point dropdown</h2>
+<p class="note">Highest version first; V034 also supplies the dropdown button's icon.</p>
+<div class="scroll">
+<div class="menu">
+  <div class="first"><b>By Point V034</b> <span class="tag">NEW</span><br><small>V033 plus user-set path checking: spacing of the on-roof checks and projection tolerance.</small></div>
+  <div><b>By Point V033</b></div>
+  <div><b>By Point V032</b></div>
+  <div><b>By Point V030</b></div>
+  <div><b>By Point Ridge V003</b></div>
+  <div><b>By Point Multi Copies 30</b></div>
+</div>
+</div>
