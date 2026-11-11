@@ -1,6 +1,6 @@
 <title>Auto Slope By Point V034</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<!-- UI preview (CLAUDE.md "UI previews"): Auto Slope By Point V034 (34.0.0), released in plugin 6.49.0; current plugin 6.50.0.
+<!-- UI preview (CLAUDE.md "UI previews"): Auto Slope By Point V034 (34.0.1), plugin 6.50.1 (V034 first released as 34.0.0 in 6.49.0).
      Mirrors: Menu/RoofTools/RoofSlope/ByPoints/AutoSlopeByPoint_V034/UI/Views/AutoSlopeByPointWindow.xaml (whole window,
               Path & curves section open), UI/ViewModels/AutoSlopeViewModel.cs (title, state, summaries, run button),
               Infrastructure/RoofOps/AutoSlopeRunner.cs (path graph log line), Infrastructure/Helpers/ExcelExportService.cs
@@ -104,8 +104,8 @@ ul{margin:0;padding-left:18px;line-height:1.6;max-width:75ch}
 
 <div class="page">
   <header>
-    <h1>Auto Slope By Point 34.0.0 (V034)</h1>
-    <p>New version next to V033, released in plugin 6.49.0. It adds three Path options that control the check that each path link stays on the roof surface. The defaults are V033's fixed values, so results only change when you edit them.</p>
+    <h1>Auto Slope By Point 34.0.1 (V034)</h1>
+    <p>New version next to V033, first released in plugin 6.49.0. It adds three Path options that control the check that each path link stays on the roof surface. The defaults are V033's fixed values, so results only change when you edit them.</p>
     <span class="sample">Sample data. The roof, numbers and log lines are made up for this preview.</span>
   </header>
 
@@ -135,7 +135,7 @@ ul{margin:0;padding-left:18px;line-height:1.6;max-width:75ch}
         </div>
         <div class="tip">
           <b>By Point V034</b>
-          Auto Slope By Point v34.0.0 (V034)<br>
+          Auto Slope By Point v34.0.1 (V034)<br>
           V033 plus user-set path checking: spacing of the on-roof checks along each link and the projection tolerance.
         </div>
       </div>
@@ -147,7 +147,7 @@ ul{margin:0;padding-left:18px;line-height:1.6;max-width:75ch}
     <h2>Tool window after a run, Path &amp; curves open with a 40 mm check spacing</h2>
     <div class="frame">
       <div class="win">
-        <div class="tbar"><span>Auto Slope By Point — v34.0.0</span><span class="muted">—&nbsp;&nbsp;☐&nbsp;&nbsp;✕</span></div>
+        <div class="tbar"><span>Auto Slope By Point — v34.0.1</span><span class="muted">—&nbsp;&nbsp;☐&nbsp;&nbsp;✕</span></div>
         <div class="hdr"><b>Auto Slope By Point</b><span class="badge">Completed</span><span class="badge">Roof · 412873 · Flat Roof 200</span><span class="badge">Plan view</span></div>
         <div class="tiles">
           <div class="tile ok"><span>PROCESSED</span><b>1 284</b></div>
@@ -224,14 +224,15 @@ ul{margin:0;padding-left:18px;line-height:1.6;max-width:75ch}
       <table class="xl">
         <tr><td>Slope (%)</td><td>1.5</td></tr>
         <tr><td>Max drainage distance (m)</td><td>100</td></tr>
-        <tr class="new"><td>Path check spacing (mm) <span class="tag">NEW</span></td><td>40</td></tr>
-        <tr class="new"><td>Projection tolerance (mm) <span class="tag">NEW</span></td><td>1</td></tr>
-        <tr class="new"><td>Exact segment test <span class="tag">NEW</span></td><td>Off</td></tr>
         <tr><td>Max link length (m)</td><td>same as drainage distance (100)</td></tr>
-        <tr><td>Drain mode</td><td>Snap to nearest shape point</td></tr>
-        <tr><td>…</td><td class="muted">other rows as in V033</td></tr>
+        <tr><td>…</td><td class="muted">every other row in the same place as V033</td></tr>
+        <tr><td>Export folder</td><td>…\Documents\AutoSlope_Reports</td></tr>
+        <tr><td>Ridge lines</td><td>Off</td></tr>
+        <tr class="new"><td>Path check spacing (mm) <span class="tag">MOVED</span></td><td>40</td></tr>
+        <tr class="new"><td>Projection tolerance (mm) <span class="tag">MOVED</span></td><td>1</td></tr>
+        <tr class="new"><td>Exact segment test <span class="tag">MOVED</span></td><td>Off</td></tr>
       </table>
     </div>
-    <p>The three new rows sit after "Max drainage distance (m)", as the export code writes them.</p>
+    <p>34.0.1: the three V034 rows are now the last rows, after "Ridge lines", so every V033 row keeps its place. In 34.0.0 they sat after "Max drainage distance (m)".</p>
   </section>
 </div>
