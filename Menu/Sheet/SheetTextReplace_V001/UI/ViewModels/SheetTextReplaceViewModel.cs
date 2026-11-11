@@ -331,6 +331,93 @@ namespace Revit26_Plugin_Revised.SheetTextReplace.V001.UI.ViewModels
             if (!accepted) AddLog(LogLevel.Error, NotAccepted);
         }
 
+        // ── Found text (copy) ───────────────────────────────────────────────
+
+        /// <summary>Row picked in the preview grid; its whole note text shows in the Found text box.</summary>
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(HasSelectedRow), nameof(SelectedFullText), nameof(SelectedNewText), nameof(SelectedRowCaption))]
+        [NotifyCanExecuteChangedFor(nameof(CopySelectedTextCommand), nameof(CopySelectedNewTextCommand))]
+        private PreviewRowViewModel selectedRow;
+
+        /// <summary>True when a preview row is picked.</summary>
+        public bool HasSelectedRow => SelectedRow != null;
+
+        /// <summary>The whole current text of the picked note (not only the found part), with real line breaks.</summary>
+        public string SelectedFullText => SelectedRow == null ? string.Empty : ToClipboardText(SelectedRow.Note.Text);
+
+        /// <summary>The whole text the picked note will have after Apply.</summary>
+        public string SelectedNewText => SelectedRow == null ? string.Empty : ToClipboardText(SelectedRow.Outcome.NewText);
+
+        /// <summary>"Sheet · A-101 Plan · 3 lines · 142 characters", or a hint when nothing is picked.</summary>
+        public string SelectedRowCaption
+        {
+            get
+            {
+                if (SelectedRow == null)
+                    return Rows.Count > 0 ? "Click a row in the preview to see and copy the whole text of that note." : "Search with Find: the whole text of a matching note shows here.";
+                string text = SelectedFullText;
+                int lines = text.Length == 0 ? 0 : text.Split(Environment.NewLine).Length;
+                return $"{SelectedRow.ViewName} · {lines} line{(lines == 1 ? "" : "s")} · {text.Length} characters";
+            }
+        }
+
+        /// <summary>Copies the whole current text of the picked note.</summary>
+        [RelayCommand(CanExecute = nameof(HasSelectedRow))]
+        private void CopySelectedText()
+            => CopyToClipboard(SelectedFullText, $"Copied the whole text of the note in {SelectedRow?.ViewName} ({SelectedFullText.Length} characters).");
+
+        /// <summary>Copies the whole new text (after replace) of the picked note.</summary>
+        [RelayCommand(CanExecute = nameof(HasSelectedRow))]
+        private void CopySelectedNewText()
+            => CopyToClipboard(SelectedNewText, $"Copied the new text of the note in {SelectedRow?.ViewName} ({SelectedNewText.Length} characters).");
+
+        /// <summary>Copies the whole text of every note in the preview, one block per note, separated by a blank line.</summary>
+        [RelayCommand(CanExecute = nameof(HasRows))]
+        private void CopyAllFoundText()
+        {
+            var blocks = Rows.Select(r => ToClipboardText(r.Note.Text)).ToList();
+            CopyToClipboard(string.Join(Environment.NewLine + Environment.NewLine, blocks),
+                $"Copied the whole text of {blocks.Count} found note(s).");
+        }
+
+        /// <summary>Copies the whole current text of <paramref name="row"/> (row right-click menu).</summary>
+        [RelayCommand]
+        private void CopyRowText(PreviewRowViewModel row)
+        {
+            if (row == null) return;
+            string text = ToClipboardText(row.Note.Text);
+            CopyToClipboard(text, $"Copied the whole text of the note in {row.ViewName} ({text.Length} characters).");
+        }
+
+        partial void OnHasRowsChanged(bool value)
+        {
+            CopyAllFoundTextCommand.NotifyCanExecuteChanged();
+            OnPropertyChanged(nameof(SelectedRowCaption));
+        }
+
+        private void CopyToClipboard(string text, string logMessage)
+        {
+            if (string.IsNullOrEmpty(text))
+            {
+                AddLog(LogLevel.Warning, "Nothing to copy: the note is empty.");
+                return;
+            }
+            try
+            {
+                System.Windows.Clipboard.SetText(text);
+                AddLog(LogLevel.Info, logMessage);
+            }
+            catch (Exception ex)
+            {
+                // Another program holds the clipboard; the text stays selectable in the Found text box.
+                AddLog(LogLevel.Warning, $"Could not copy: the clipboard is busy ({ex.Message}). Select the text in the Found text box and press Ctrl+C.");
+            }
+        }
+
+        /// <summary>Revit note text ("\r" line breaks) as text with Windows line breaks, for the box and the clipboard.</summary>
+        public static string ToClipboardText(string text)
+            => (text ?? string.Empty).Replace("\r\n", "\r").Replace('\n', '\r').TrimEnd('\r').Replace("\r", Environment.NewLine);
+
         // ── Summary ─────────────────────────────────────────────────────────
 
         /// <summary>True after Apply until an input, option or view tick changes.</summary>

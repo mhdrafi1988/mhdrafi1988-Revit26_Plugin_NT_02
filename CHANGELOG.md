@@ -9,6 +9,17 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.48.0] — 2026-11-11
+
+### Sheet Text Replace 1.2.0
+
+#### Added
+- **Found text** area under the preview grid. Click a row and the **whole text** of that note shows there (every line, not only the part Find matched), with its view, line count and character count. The text can be selected and copied with Ctrl+C.
+- **Copy text** copies the whole current text of the picked note; **Copy new text** copies the whole text it will have after Apply; **Copy all found** copies the whole text of every note in the preview, one block per note with a blank line between them.
+- **Copy full text** on the right-click menu of each preview row.
+
+User note: copying only reads the notes; nothing in the model changes. Line breaks in a note are kept in the copied text. Every copy is written to the Activity Log.
+
 ## [6.47.0] — 2026-11-11
 
 ### Bubble Auto Renumber 9.3.0
