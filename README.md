@@ -162,9 +162,10 @@ Where a tool has several versions, its button is a dropdown listing the newest v
   *Link Memory (classic)* (V001) remembers which Revit links are loaded as named sets.
 
 ### Coordination
-- **Void Openings** (in development): openings for MEP through structure. So far: choose the structural model and
-  the MEP model (the active model or a Revit link) and their categories, with element counts. Clash analysis, void
-  placement and cutting follow.
+- **Void Openings**: finds where MEP passes through structure (each may be the active model or a Revit link), sizes
+  each opening from clearance rules, places a void family with a Job ID and cuts the structure when it is the active
+  model. For a linked structure it writes an opening package that is applied inside the structural file. Results
+  export to Excel and JSON; re-runs recognise existing, moved and orphaned openings.
 
 ## Installation
 

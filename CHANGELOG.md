@@ -9,6 +9,22 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.47.0] — 2026-11-11
+
+### Void Openings 0.9.0 (feature-complete, awaiting the first Revit test)
+
+#### Added
+- **Opening clearance** section: add, edit and delete clearance rules per MEP category and size range (mm), offset applied **each side** or as a **total**, opening shape per rule (same as MEP, circular, rectangular), a default offset when no rule fits, overshoot, rounding, insulation on/off, opening axis (perpendicular to structure or follow MEP) and the angle up to which a round pipe keeps a circular opening. Starts with the example rules of the brief; saved to `%AppData%\Revit26_Plugin_Revised\VoidOpenings\settings.json`.
+- **ANALYZE**: reads both models (link transforms included), filters by bounding boxes, then finds real intersections between MEP centrelines / bodies and the structural geometry, and sizes each opening. Handles straight, sloped and vertical runs, several crossings per element, and fittings through their connectors. Progress bar and **Cancel**.
+- **Results table** with the brief's columns plus Tracking and Note: approve / reject per row or all, find by Job ID, clash ID, element ID, status or category, **Zoom to**, **Highlight MEP**, **Highlight structure**.
+- **GENERATE VOID** (structure in the active model): places a work-plane-based void family on the opening axis, cuts the structural element where Revit allows it, checks that the element's volume really went down, and gives each opening a Job ID `VOID-<year>-000001`. Each opening has its own transaction; the run is one undo step. Elements in groups, owned by another user, or of a category Revit cannot cut (stairs, landings, ramps) are placed as markers or reported, not cut.
+- **Void family**: `BIM_Void_DummySplice_Round` and `BIM_Void_DummySplice_Rect` are built and loaded on first use (Generic Model, work-plane-based, Cut with Voids When Loaded, instance size parameters and text parameters for Job ID, Clash ID, element IDs, categories, date and status). If the parametric family does not pass its own flex check, one fixed-size family per opening size is used instead. A custom family can be named per shape.
+- **Tracking**: every void stores its clash and geometry in the model (Extensible Storage). Analyze marks openings as New, Existing, Updated (source moved; regenerated with the same Job ID), Manually modified or Source deleted, and never places a second void for the same clash.
+- **Linked structure**: **Opening package** writes the approved openings (in the structural model's coordinates) to a JSON file; **Apply package…**, run inside the structural file, places and cuts them.
+- **Export Excel** and **Export JSON** of the results table (the table's columns first, extra columns appended).
+
+User note: nothing has been run in Revit yet. Test on a copy of a model first. The version becomes 1.0.0 once the Revit test passes.
+
 ## [6.46.0] — 2026-11-11
 
 ### Void Openings 0.2.0 (new tool, in development)

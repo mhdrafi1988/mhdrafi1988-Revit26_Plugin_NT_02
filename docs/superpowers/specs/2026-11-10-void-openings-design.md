@@ -1,6 +1,6 @@
 # Void Openings — design (first deliverable, A–G)
 
-Status: **approved by the owner on 2026-11-11. Phases 1 and 2 are implemented; phase 2 awaits the owner's test in Revit.**
+Status: **approved by the owner on 2026-11-11. All phases are implemented (tool 0.9.0, plugin 6.47.0); none is tested in Revit yet.**
 Date: 2026-11-10 · Target: Revit 2026, .NET 8, WPF, plugin `Revit26_Plugin_Revised`.
 
 UI wireframe (deliverable C): `Claude/Previews/VoidOpenings_V001_Window.html`, published at
@@ -404,12 +404,12 @@ CHANGELOG entry. Phases marked *Revit* need the owner to test in Revit on Window
 |---|---|---|
 | 1 ✅ done | Domain: geometry primitives, `SpatialGrid`, `ClashEngine`, `ClearanceRuleSet`, `OpeningCalculator`, `ClashKey` | Unit tests: perpendicular / sloped / vertical crossings, multi-penetration, grazing, duplicates, the 40 + 2×30 = 100 case. Runs on Linux. |
 | 2 ✅ built, Revit test pending | Tool shell: command, DI root, ribbon button, window, model + category selection with counts | *Revit*: links listed with loaded state; counts match a schedule; selection changes without reopening. |
-| 3 | Clearance rules UI, validation, settings file (versioned) | Unit tests for rules + settings round-trip. *Revit*: rules survive a restart. |
-| 4 | Extractors, Analyze, results table, zoom / highlight, approve / reject | *Revit*: clashes on a test model match a manual count; rotated and moved links give correct points. |
-| 5 | Void families (build + custom), placement, cutting, verification, Job IDs, records | *Revit*: cut-compatibility matrix filled in per category; every instance has a unique Job ID. |
-| 6 | Re-run reconciliation: Existing / Updated / Manually modified / Source deleted; find by Job ID | Unit tests for the reconciler. *Revit*: move a pipe, re-run, opening updates and keeps its ID. |
-| 7 | Linked-structure workflow: export package, Apply package, result file | Unit tests for the package. *Revit*: round trip host → structural RVT → host. |
-| 8 | Excel / JSON export, nested links, polish, final docs | *Revit*: export columns match the results table; pre-release checklist. |
+| 3 ✅ built, Revit test pending | Clearance rules UI, validation, settings file (versioned) | Unit tests for rules + settings round-trip. *Revit*: rules survive a restart. |
+| 4 ✅ built, Revit test pending | Extractors, Analyze, results table, zoom / highlight, approve / reject | *Revit*: clashes on a test model match a manual count; rotated and moved links give correct points. |
+| 5 ✅ built, Revit test pending | Void families (build + custom), placement, cutting, verification, Job IDs, records | *Revit*: cut-compatibility matrix filled in per category; every instance has a unique Job ID. |
+| 6 ✅ built, Revit test pending | Re-run reconciliation: Existing / Updated / Manually modified / Source deleted; find by Job ID | Unit tests for the reconciler. *Revit*: move a pipe, re-run, opening updates and keeps its ID. |
+| 7 ✅ built without the result file (re-Analyze reads the records stored in the reloaded link instead), Revit test pending | Linked-structure workflow: export package, Apply package, result file | Unit tests for the package. *Revit*: round trip host → structural RVT → host. |
+| 8 ✅ built except nested links, Revit test pending | Excel / JSON export, nested links, polish, final docs | *Revit*: export columns match the results table; pre-release checklist. |
 
 ## 7. Risks and limits
 
@@ -436,3 +436,14 @@ Not answered yet; the proposed answer to each is being used (see section 0).
 4. A4 — combined openings for grouped MEP: later version, or needed in v1?
 5. A5 — include insulation thickness in the MEP size by default?
 6. F3 — default opening axis for walls and floors: perpendicular to the face (proposed) or along the MEP?
+
+## 10. Implementation notes (0.9.0)
+
+- After a cut, the MEP element passes through the hole and is no longer a clash. A stored opening whose clash is not
+  found again is therefore checked against the opening itself: the MEP still runs through it and is cleared
+  (Existing), runs through it but is no longer cleared (Updated, delete and re-analyse), or not at all (Source deleted).
+- Generate deletes and replaces the void of an Updated or approved Manually modified opening, keeping its Job ID.
+- Voids are placed with `NewFamilyInstance(SketchPlane.GetPlaneReference(), point, widthDirection, symbol)` on a sketch
+  plane normal to the opening axis, so sloped axes work.
+- The built family checks itself by flexing each size parameter; if that fails, fixed-size families are built per size.
+- Nested links are not listed (top-level link instances only).
