@@ -9,6 +9,28 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.49.0] — 2026-11-11
+
+### Auto Slope By Point 34.0.0 (V034)
+
+#### Added
+- New build `AutoSlopeByPoint_V034` next to V033 (includes V033 33.1.0: Esc / Cancel with a Yes-No confirm) (V033 stays as the fallback in the dropdown). It is V033 plus two
+  settings in **Path options** that control the check that a path link stays on the roof surface:
+  - **Path check spacing (mm)**: distance between the on-roof checks along each link. Default 76.2 mm (the V033
+    value, 4 per foot); range 10–2000 mm; every link still gets at least 10 checks.
+  - **Projection tolerance (mm)**: height margin used when a point is matched to the roof top face. Default 1 mm
+    (the V033 value); range 0.1–50 mm.
+  - **Exact segment test** (toggle, off by default): also checks each link against the roof outline and every opening
+    edge, then tests each piece between crossings, so a gap is caught whatever its width. Slower on big roofs.
+- All three values are saved in `settings.v034.json`, written to the Excel report and to the run log.
+
+#### Changed
+- The By Point dropdown lists V034 first (also the button icon), then V033, V032, V030, Ridge V003, Multi Copies 30.
+
+User note: with the defaults V034 gives the same results as V033. A smaller spacing catches narrow openings and
+thin roof strips but builds the path graph more slowly; a larger one is faster but a link can cross them. Settings
+are read from V033's file the first time, so nothing is lost.
+
 ## [6.48.0] — 2026-11-11
 
 ### Sheet Text Replace 1.2.0
