@@ -24,6 +24,16 @@ Each release lists every tool whose version changed, under the plugin version.
 - **Export Excel** and **Export JSON** of the results table (the table's columns first, extra columns appended).
 
 User note: nothing has been run in Revit yet. Test on a copy of a model first. The version becomes 1.0.0 once the Revit test passes.
+
+## [6.50.1] — 2026-11-11
+
+### Auto Slope By Point 34.0.1 (V034)
+
+#### Fixed
+- Excel Run Summary: the three V034 rows (**Path check spacing (mm)**, **Projection tolerance (mm)**, **Exact segment test**) are now written after the last V033 row (**Ridge lines**). In 34.0.0 they sat after **Max drainage distance (m)** and pushed every later row down, so a V034 report no longer lined up with a V033 one.
+
+User note: reports from 34.0.1 have the same rows in the same places as V033, with the three V034 rows added at the end. Reports already exported by 34.0.0 are not changed.
+
 ## [6.50.0] — 2026-11-11
 
 ### Annotation Overlap Detection 5.0.0 (V005, new)
