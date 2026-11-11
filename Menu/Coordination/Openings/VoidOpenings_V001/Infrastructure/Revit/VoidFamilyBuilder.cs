@@ -121,7 +121,9 @@ namespace Revit26_Plugin_Revised.VoidOpenings.V001.Infrastructure.Revit
             var loop = new CurveArray();
             if (round)
             {
-                loop.Append(Arc.Create(XYZ.Zero, halfWidth, 0, 2 * Math.PI, XYZ.BasisX, XYZ.BasisY));
+                // Two half circles: a sketch loop made of one closed arc is not accepted everywhere.
+                loop.Append(Arc.Create(XYZ.Zero, halfWidth, 0, Math.PI, XYZ.BasisX, XYZ.BasisY));
+                loop.Append(Arc.Create(XYZ.Zero, halfWidth, Math.PI, 2 * Math.PI, XYZ.BasisX, XYZ.BasisY));
             }
             else
             {

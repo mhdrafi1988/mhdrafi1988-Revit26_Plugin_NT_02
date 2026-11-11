@@ -32,13 +32,19 @@ namespace VoidOpenings.Tests
             {
                 ClashKey = opening.Clash.Key.ToString(), ClashId = opening.ClashId, JobId = "VOID-2026-000004",
                 Signature = signature, CurrentSignature = signature, InstanceUniqueId = "inst-1", Status = status,
-                MepModelKey = MepRef.ModelKey, StructuralCategory = "Wall", MepCategory = "Pipe",
+                MepModelKey = MepRef.ModelKey, MepUniqueId = "P1", StructuralCategory = "Wall", MepCategory = "Pipe",
             };
         }
 
-        private static List<StoredOpening> Reconcile(OpeningData opening, params StoredOpening[] stored)
+        private static List<StoredOpeningCheck> Reconcile(OpeningData opening, params StoredOpening[] stored)
+            => ReconcileWith(opening, null, stored);
+
+        private static List<StoredOpeningCheck> ReconcileWith(OpeningData opening, MepModel mep, params StoredOpening[] stored)
             => OpeningReconciler.Reconcile(opening == null ? new OpeningData[0] : new[] { opening }, stored,
-                Transform3.Identity, MepRef.ModelKey, AllStructural, AllMep).ToList();
+                Transform3.Identity, MepRef.ModelKey, AllStructural, AllMep, mep).ToList();
+
+        private static MepModel PipeAt(double y)
+            => Mep(Round("P1", MepCategory.Pipe, 100, new Vec3(-500, y, 1500), new Vec3(700, y, 1500)));
 
         [Fact]
         public void Transform_inverse_undoes_the_transform()
@@ -136,7 +142,42 @@ namespace VoidOpenings.Tests
 
             var orphans = Reconcile(null, record);
 
-            Assert.Same(record, Assert.Single(orphans));
+            StoredOpeningCheck check = Assert.Single(orphans);
+            Assert.Same(record, check.Record);
+            Assert.Equal(TrackingState.SourceDeleted, check.State);
+        }
+
+        [Fact]
+        public void Record_not_detected_again_because_the_pipe_runs_through_the_cut_hole_is_existing()
+        {
+            // After the cut the wall has a hole, so the pipe no longer clashes; it still runs through the opening.
+            StoredOpening record = StoredFor(PipeOpening());
+
+            StoredOpeningCheck check = Assert.Single(ReconcileWith(null, PipeAt(500), record));
+
+            Assert.Equal(TrackingState.Existing, check.State);
+        }
+
+        [Fact]
+        public void Pipe_that_moved_inside_the_hole_but_no_longer_fits_is_reported_as_updated()
+        {
+            // Opening diameter 180 (radius 90); pipe radius 50 moved 60 sideways: 110 > 90.
+            StoredOpening record = StoredFor(PipeOpening());
+
+            StoredOpeningCheck check = Assert.Single(ReconcileWith(null, PipeAt(560), record));
+
+            Assert.Equal(TrackingState.Updated, check.State);
+            Assert.Contains("no longer clears", check.Note);
+        }
+
+        [Fact]
+        public void Pipe_that_moved_away_from_the_opening_leaves_it_source_deleted()
+        {
+            StoredOpening record = StoredFor(PipeOpening());
+
+            StoredOpeningCheck check = Assert.Single(ReconcileWith(null, PipeAt(900), record));
+
+            Assert.Equal(TrackingState.SourceDeleted, check.State);
         }
 
         [Fact]

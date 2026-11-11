@@ -56,8 +56,8 @@ namespace Revit26_Plugin_Revised.VoidOpenings.V001.Core.Application.Features.Cla
         /// <summary>Openings of this run, in host coordinates, already compared with stored records.</summary>
         public IReadOnlyList<OpeningData> Openings { get; set; }
 
-        /// <summary>Stored openings whose clash no longer exists.</summary>
-        public IReadOnlyList<StoredOpening> Orphans { get; set; }
+        /// <summary>Stored openings whose clash was not found again, each with its state (cut and still used, moved, or gone).</summary>
+        public IReadOnlyList<StoredOpeningCheck> StoredOnly { get; set; }
 
         /// <summary>Things the user should know: skipped elements, unreadable geometry.</summary>
         public IReadOnlyList<string> Notes { get; set; }
@@ -103,7 +103,7 @@ namespace Revit26_Plugin_Revised.VoidOpenings.V001.Core.Application.Features.Cla
 
             var result = new AnalysisResult
             {
-                Request = request, Notes = notes, Openings = new List<OpeningData>(), Orphans = new List<StoredOpening>(),
+                Request = request, Notes = notes, Openings = new List<OpeningData>(), StoredOnly = new List<StoredOpeningCheck>(),
                 StructuralToHost = Transform3.Identity, MepElementCount = mep.Elements.Count,
             };
 
@@ -126,8 +126,8 @@ namespace Revit26_Plugin_Revised.VoidOpenings.V001.Core.Application.Features.Cla
                 ? new List<OpeningData>()
                 : await Task.Run(() => DetectAndSize(structural, mep, request.Settings, progress, cancellationToken), cancellationToken);
 
-            result.Orphans = OpeningReconciler.Reconcile(openings, stored, result.StructuralToHost, request.Mep.ModelKey,
-                request.StructuralCategories, request.MepCategories);
+            result.StoredOnly = OpeningReconciler.Reconcile(openings, stored, result.StructuralToHost, request.Mep.ModelKey,
+                request.StructuralCategories, request.MepCategories, mep);
             result.Openings = openings;
             return result;
         }

@@ -7,6 +7,7 @@ using Revit26_Plugin_Revised.VoidOpenings.V001.Core.Application.Dtos;
 using Revit26_Plugin_Revised.VoidOpenings.V001.Core.Application.Features.ModelSelection;
 using Revit26_Plugin_Revised.VoidOpenings.V001.Core.Domain.Entities;
 using Revit26_Plugin_Revised.VoidOpenings.V001.Core.Domain.Geometry;
+using Revit26_Plugin_Revised.VoidOpenings.V001.Core.Domain.Services;
 
 namespace Revit26_Plugin_Revised.VoidOpenings.V001.Core.Application.Features.Reporting
 {
@@ -169,9 +170,12 @@ namespace Revit26_Plugin_Revised.VoidOpenings.V001.Core.Application.Features.Rep
             };
         }
 
-        /// <summary>Row for a stored opening whose clash no longer exists.</summary>
-        public static ExportRow FromOrphan(StoredOpening record) => new ExportRow
+        /// <summary>Row for a stored opening whose clash was not found again.</summary>
+        public static ExportRow FromStored(StoredOpeningCheck check)
         {
+            StoredOpening record = check.Record;
+            return new ExportRow
+            {
             ClashId = record.ClashId, JobId = record.JobId,
             StructuralModel = record.StructuralModelName,
             StructuralCategory = Name<StructuralCategory>(record.StructuralCategory, CategoryCatalog.NameOf),
@@ -181,9 +185,10 @@ namespace Revit26_Plugin_Revised.VoidOpenings.V001.Core.Application.Features.Rep
             MepElementId = record.MepElementId,
             WidthMm = record.WidthMm, HeightMm = record.HeightMm, DiameterMm = record.DiameterMm,
             ClearanceMm = record.ClearanceMm, Status = record.Status,
-            Tracking = TrackingText(TrackingState.SourceDeleted), DepthMm = record.DepthMm,
-            Note = "The clash this opening was made for no longer exists.",
-        };
+            Tracking = TrackingText(check.State), DepthMm = record.DepthMm,
+            Note = check.Note,
+            };
+        }
 
         /// <summary>Tracking state as shown to the user.</summary>
         public static string TrackingText(TrackingState state)

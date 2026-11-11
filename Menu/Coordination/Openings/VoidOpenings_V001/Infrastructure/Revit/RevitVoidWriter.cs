@@ -211,7 +211,7 @@ namespace Revit26_Plugin_Revised.VoidOpenings.V001.Infrastructure.Revit
             {
                 // A work plane whose normal is the cut direction lets the void point any way, including sloped.
                 SketchPlane sketchPlane = SketchPlane.Create(document, Plane.CreateByOriginAndBasis(origin, widthDirection, heightDirection));
-                instance = document.Create.NewFamilyInstance(origin, symbol, sketchPlane, StructuralType.NonStructural);
+                instance = document.Create.NewFamilyInstance(sketchPlane.GetPlaneReference(), origin, widthDirection, symbol);
             }
             else
             {

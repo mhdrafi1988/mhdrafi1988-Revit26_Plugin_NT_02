@@ -2,7 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Void Openings"
-        Width="1000" Height="600" MinWidth="760" MinHeight="460"
+        Width="1240" Height="900" MinWidth="980" MinHeight="680"
         WindowStartupLocation="CenterScreen"
         Background="{DynamicResource BrushSurfaceWindow}">
     <Window.Resources>
@@ -12,47 +12,76 @@
             </ResourceDictionary.MergedDictionaries>
             <BooleanToVisibilityConverter x:Key="BoolToVisibility"/>
 
+            <Style x:Key="CardHeader" TargetType="Border">
+                <Setter Property="Background" Value="{DynamicResource BrushSurfaceHeader}"/>
+                <Setter Property="Padding" Value="10,6"/>
+            </Style>
+            <Style x:Key="CardHeaderTitle" TargetType="TextBlock">
+                <Setter Property="Foreground" Value="{DynamicResource BrushTextOnDark}"/>
+                <Setter Property="FontWeight" Value="SemiBold"/>
+            </Style>
+            <Style x:Key="CardHeaderNote" TargetType="TextBlock">
+                <Setter Property="Foreground" Value="{DynamicResource BrushTextOnDark}"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+                <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+                <Setter Property="Margin" Value="12,0,0,0"/>
+            </Style>
+            <Style x:Key="Card" TargetType="Border">
+                <Setter Property="Background" Value="{DynamicResource BrushSurfaceCard}"/>
+                <Setter Property="BorderBrush" Value="{DynamicResource BrushBorderDefault}"/>
+                <Setter Property="BorderThickness" Value="1"/>
+            </Style>
+            <Style x:Key="FieldLabel" TargetType="TextBlock">
+                <Setter Property="Foreground" Value="{DynamicResource BrushTextSecondary}"/>
+                <Setter Property="FontWeight" Value="SemiBold"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+                <Setter Property="Margin" Value="0,0,6,0"/>
+            </Style>
+            <Style x:Key="NumberBox" TargetType="TextBox">
+                <Setter Property="Width" Value="56"/>
+                <Setter Property="TextAlignment" Value="Right"/>
+                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                <Setter Property="Margin" Value="0,0,14,0"/>
+            </Style>
+            <Style x:Key="RightCell" TargetType="TextBlock">
+                <Setter Property="HorizontalAlignment" Value="Right"/>
+                <Setter Property="Margin" Value="0,0,6,0"/>
+            </Style>
+
             <!-- One model panel; used for both the structural and the MEP side. -->
             <DataTemplate x:Key="ModelPanelTemplate">
-                <Border Background="{DynamicResource BrushSurfaceCard}" BorderBrush="{DynamicResource BrushBorderDefault}" BorderThickness="1">
+                <Border Style="{StaticResource Card}">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
-
-                        <Border Grid.Row="0" Background="{DynamicResource BrushSurfaceHeader}" Padding="10,6">
+                        <Border Grid.Row="0" Style="{StaticResource CardHeader}">
                             <DockPanel>
-                                <TextBlock DockPanel.Dock="Right" Text="{Binding Summary}" Foreground="{DynamicResource BrushTextOnDark}"
-                                           VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="12,0,0,0"/>
-                                <TextBlock Text="{Binding Title}" Foreground="{DynamicResource BrushTextOnDark}" FontWeight="SemiBold"/>
+                                <TextBlock DockPanel.Dock="Right" Text="{Binding Summary}" Style="{StaticResource CardHeaderNote}"/>
+                                <TextBlock Text="{Binding Title}" Style="{StaticResource CardHeaderTitle}"/>
                             </DockPanel>
                         </Border>
-
-                        <StackPanel Grid.Row="1" Margin="10,10,10,6">
-                            <TextBlock Text="{Binding ModelLabel}" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" Margin="0,0,0,4"/>
-                            <DockPanel>
-                                <TextBlock DockPanel.Dock="Right" Text="{Binding ModelStatus}" FontWeight="SemiBold"
-                                           VerticalAlignment="Center" Margin="10,0,0,0" MinWidth="84">
-                                    <TextBlock.Style>
-                                        <Style TargetType="TextBlock">
-                                            <Setter Property="Foreground" Value="{DynamicResource BrushStatusWarn}"/>
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding IsModelUsable}" Value="True">
-                                                    <Setter Property="Foreground" Value="{DynamicResource BrushStatusOk}"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </TextBlock.Style>
-                                </TextBlock>
-                                <ComboBox ItemsSource="{Binding Models}" SelectedItem="{Binding SelectedModel, Mode=TwoWay}"
-                                          DisplayMemberPath="DisplayName" MinHeight="26" VerticalContentAlignment="Center"
-                                          ToolTip="The active model or one Revit link. One model at a time."/>
-                            </DockPanel>
-                            <TextBlock Text="Categories" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" Margin="0,10,0,0"/>
-                        </StackPanel>
-
+                        <DockPanel Grid.Row="1" Margin="10,8,10,6">
+                            <TextBlock DockPanel.Dock="Left" Text="{Binding ModelLabel}" Style="{StaticResource FieldLabel}"/>
+                            <TextBlock DockPanel.Dock="Right" Text="{Binding ModelStatus}" FontWeight="SemiBold"
+                                       VerticalAlignment="Center" Margin="10,0,0,0" MinWidth="84">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Foreground" Value="{DynamicResource BrushStatusWarn}"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsModelUsable}" Value="True">
+                                                <Setter Property="Foreground" Value="{DynamicResource BrushStatusOk}"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                            <ComboBox ItemsSource="{Binding Models}" SelectedItem="{Binding SelectedModel, Mode=TwoWay}"
+                                      DisplayMemberPath="DisplayName" MinHeight="26" VerticalContentAlignment="Center"
+                                      ToolTip="The active model or one Revit link. One model at a time."/>
+                        </DockPanel>
                         <DataGrid Grid.Row="2" Margin="10,0,10,10" ItemsSource="{Binding Categories}"
                                   Style="{StaticResource StandardDataGrid}"
                                   ColumnHeaderStyle="{StaticResource StandardDataGridColumnHeader}"
@@ -68,14 +97,8 @@
                                     </DataGridTemplateColumn.CellTemplate>
                                 </DataGridTemplateColumn>
                                 <DataGridTextColumn Header="Category" Binding="{Binding Name}" IsReadOnly="True" Width="*"/>
-                                <DataGridTextColumn Header="Elements" Binding="{Binding Count, StringFormat=N0}" IsReadOnly="True" Width="76">
-                                    <DataGridTextColumn.ElementStyle>
-                                        <Style TargetType="TextBlock">
-                                            <Setter Property="HorizontalAlignment" Value="Right"/>
-                                            <Setter Property="Margin" Value="0,0,8,0"/>
-                                        </Style>
-                                    </DataGridTextColumn.ElementStyle>
-                                </DataGridTextColumn>
+                                <DataGridTextColumn Header="Elements" Binding="{Binding Count, StringFormat=N0}" IsReadOnly="True" Width="72"
+                                                    ElementStyle="{StaticResource RightCell}"/>
                                 <DataGridTextColumn Header="Link" Binding="{Binding ModelName}" IsReadOnly="True" Width="*"/>
                                 <DataGridTextColumn Header="Status" Binding="{Binding Status}" IsReadOnly="True" Width="*"/>
                             </DataGrid.Columns>
@@ -88,11 +111,15 @@
 
     <Grid Margin="12">
         <Grid.RowDefinitions>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="2*" MinHeight="200"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="3*" MinHeight="200"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
+        <!-- 1. Model panels -->
         <Grid Grid.Row="0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
@@ -103,8 +130,120 @@
             <ContentControl Grid.Column="2" Content="{Binding Mep}" ContentTemplate="{StaticResource ModelPanelTemplate}" Focusable="False"/>
         </Grid>
 
-        <!-- Notification strip: messages appear here instead of in pop-up dialogs. -->
-        <Border Grid.Row="1" Margin="0,10,0,0" Padding="10,6" BorderThickness="1"
+        <!-- 2. Opening clearance -->
+        <Border Grid.Row="1" Margin="0,10,0,0" Style="{StaticResource Card}" DataContext="{Binding Clearance}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Border Grid.Row="0" Style="{StaticResource CardHeader}">
+                    <DockPanel>
+                        <TextBlock DockPanel.Dock="Right" Text="millimetres · saved when you Analyze or close" Style="{StaticResource CardHeaderNote}"/>
+                        <TextBlock Text="OPENING CLEARANCE" Style="{StaticResource CardHeaderTitle}"/>
+                    </DockPanel>
+                </Border>
+
+                <DataGrid Grid.Row="1" Margin="10,8,10,6" Height="150" ItemsSource="{Binding Rules}" SelectedItem="{Binding SelectedRule, Mode=TwoWay}"
+                          Style="{StaticResource StandardDataGrid}" ColumnHeaderStyle="{StaticResource StandardDataGridColumnHeader}"
+                          AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" CanUserSortColumns="False"
+                          HeadersVisibility="Column" SelectionMode="Single">
+                    <DataGrid.Columns>
+                        <DataGridTemplateColumn Header="MEP category" Width="2*">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <ComboBox ItemsSource="{Binding DataContext.CategoryOptions, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                              DisplayMemberPath="Label" SelectedValuePath="Key"
+                                              SelectedValue="{Binding Category, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTextColumn Header="Size from" Width="*" ElementStyle="{StaticResource RightCell}"
+                                            Binding="{Binding FromMm, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+                        <DataGridTextColumn Header="Size to" Width="*" ElementStyle="{StaticResource RightCell}"
+                                            Binding="{Binding ToMm, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+                        <DataGridTextColumn Header="Offset" Width="*" ElementStyle="{StaticResource RightCell}"
+                                            Binding="{Binding ClearanceMm, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+                        <DataGridTemplateColumn Header="Applies" Width="1.3*">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <ComboBox ItemsSource="{Binding DataContext.ModeOptions, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                              DisplayMemberPath="Label" SelectedValuePath="Key"
+                                              SelectedValue="{Binding Mode, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="Opening shape" Width="1.5*">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <ComboBox ItemsSource="{Binding DataContext.ShapeOptions, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                              DisplayMemberPath="Label" SelectedValuePath="Key"
+                                              SelectedValue="{Binding Shape, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+
+                <WrapPanel Grid.Row="2" Margin="10,0,10,4" Orientation="Horizontal">
+                    <Button Content="+ Add rule" Command="{Binding AddRuleCommand}" Style="{DynamicResource SmallSecondaryButton}" Margin="0,0,6,4"/>
+                    <Button Content="Delete rule" Command="{Binding DeleteRuleCommand}" Style="{DynamicResource SmallSecondaryButton}" Margin="0,0,16,4"/>
+                    <TextBlock Text="Default offset" Style="{StaticResource FieldLabel}"
+                               ToolTip="Used when no rule covers the MEP category and size."/>
+                    <TextBox Text="{Binding DefaultClearanceMm, UpdateSourceTrigger=LostFocus}" Style="{StaticResource NumberBox}" Margin="0,0,4,4"/>
+                    <ComboBox ItemsSource="{Binding ModeOptions}" DisplayMemberPath="Label" SelectedValuePath="Key"
+                              SelectedValue="{Binding DefaultMode}" Width="90" Margin="0,0,14,4"/>
+                    <TextBlock Text="Overshoot" Style="{StaticResource FieldLabel}"
+                               ToolTip="How far the void passes beyond the structure on each side, so it always cuts clean through."/>
+                    <TextBox Text="{Binding OvershootMm, UpdateSourceTrigger=LostFocus}" Style="{StaticResource NumberBox}"/>
+                    <TextBlock Text="Round up to" Style="{StaticResource FieldLabel}" ToolTip="Opening sizes are rounded up to a multiple of this. 0 turns rounding off."/>
+                    <TextBox Text="{Binding RoundUpToMm, UpdateSourceTrigger=LostFocus}" Style="{StaticResource NumberBox}"/>
+                    <CheckBox Content="Include insulation" IsChecked="{Binding IncludeInsulation}" VerticalAlignment="Center" Margin="0,0,14,4"/>
+                    <TextBlock Text="Opening axis" Style="{StaticResource FieldLabel}"/>
+                    <ComboBox ItemsSource="{Binding AxisOptions}" DisplayMemberPath="Label" SelectedValuePath="Key"
+                              SelectedValue="{Binding AxisMode}" Width="190" Margin="0,0,14,4"/>
+                    <TextBlock Text="Circular up to (°)" Style="{StaticResource FieldLabel}"
+                               ToolTip="A round pipe crossing at a larger angle than this gets a rectangular opening."/>
+                    <TextBox Text="{Binding MaxCircularAngleDeg, UpdateSourceTrigger=LostFocus}" Style="{StaticResource NumberBox}"/>
+                </WrapPanel>
+
+                <DockPanel Grid.Row="3" Margin="10,0,10,8">
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                        <TextBlock Text="Custom family: circular" Style="{StaticResource FieldLabel}"
+                                   ToolTip="Name of a loaded work-plane-based void family. Leave empty to use the built-in BIM_Void_DummySplice family."/>
+                        <TextBox Text="{Binding CustomRoundFamily, UpdateSourceTrigger=LostFocus}" Width="150" Margin="0,0,10,0" VerticalContentAlignment="Center"/>
+                        <TextBlock Text="rectangular" Style="{StaticResource FieldLabel}"/>
+                        <TextBox Text="{Binding CustomRectFamily, UpdateSourceTrigger=LostFocus}" Width="150" VerticalContentAlignment="Center"/>
+                    </StackPanel>
+                    <TextBlock Text="{Binding SelectedRuleExample}" VerticalAlignment="Center" Foreground="{DynamicResource BrushTextSecondary}"/>
+                </DockPanel>
+            </Grid>
+        </Border>
+
+        <!-- 3. Actions -->
+        <DockPanel Grid.Row="2" Margin="0,10,0,0">
+            <StackPanel DockPanel.Dock="Left" Orientation="Horizontal">
+                <Button Content="ANALYZE" Command="{Binding AnalyzeCommand}" Style="{DynamicResource PrimaryButton}" Width="110" Margin="0,0,8,0"
+                        ToolTip="Finds where the selected MEP elements pass through the selected structural elements and sizes the openings."/>
+                <Button Content="GENERATE VOID" Command="{Binding GenerateCommand}" Style="{DynamicResource PrimaryButton}" Width="130" Margin="0,0,8,0"
+                        ToolTip="Places the approved openings in the active model, cuts the structure and assigns Job IDs. Only when the structure is the active model."/>
+                <Button Content="Cancel" Command="{Binding CancelCommand}" Style="{DynamicResource SecondaryButton}" Width="80" Margin="0,0,16,0"/>
+                <Button Content="Export Excel" Command="{Binding ExportExcelCommand}" Style="{DynamicResource SecondaryButton}" Margin="0,0,6,0"/>
+                <Button Content="Export JSON" Command="{Binding ExportJsonCommand}" Style="{DynamicResource SecondaryButton}" Margin="0,0,6,0"/>
+                <Button Content="Opening package" Command="{Binding ExportPackageCommand}" Style="{DynamicResource SecondaryButton}" Margin="0,0,6,0"
+                        ToolTip="For a linked structural model: writes the approved openings to a file, to be applied inside the structural file."/>
+                <Button Content="Apply package…" Command="{Binding ApplyPackageCommand}" Style="{DynamicResource SecondaryButton}" Margin="0,0,12,0"
+                        ToolTip="In the structural file: places and cuts the openings of a package written from the coordination model."/>
+            </StackPanel>
+            <ProgressBar Height="10" VerticalAlignment="Center" Minimum="0" Maximum="100"
+                         Value="{Binding Progress, Mode=OneWay}" IsIndeterminate="{Binding ProgressIsIndeterminate, Mode=OneWay}"
+                         Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibility}}"/>
+        </DockPanel>
+
+        <!-- 4. Notification strip: messages appear here instead of in pop-up dialogs. -->
+        <Border Grid.Row="3" Margin="0,10,0,0" Padding="10,6" BorderThickness="1"
                 Visibility="{Binding HasNotification, Converter={StaticResource BoolToVisibility}}">
             <Border.Style>
                 <Style TargetType="Border">
@@ -121,19 +260,77 @@
             <DockPanel>
                 <Button DockPanel.Dock="Right" Content="Dismiss" Command="{Binding DismissNotificationCommand}"
                         Style="{DynamicResource SmallSecondaryButton}" Margin="10,0,0,0" VerticalAlignment="Center"/>
-                <TextBlock Text="{Binding Notification}" TextWrapping="Wrap" VerticalAlignment="Center"
-                           Foreground="{DynamicResource BrushTextPrimary}"/>
+                <TextBlock Text="{Binding Notification}" TextWrapping="Wrap" VerticalAlignment="Center" Foreground="{DynamicResource BrushTextPrimary}"/>
             </DockPanel>
         </Border>
 
-        <DockPanel Grid.Row="2" Margin="0,10,0,0">
+        <!-- 5. Results -->
+        <Border Grid.Row="4" Margin="0,10,0,0" Style="{StaticResource Card}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Border Grid.Row="0" Style="{StaticResource CardHeader}">
+                    <DockPanel>
+                        <TextBlock DockPanel.Dock="Right" Text="{Binding ResultsSummary}" Style="{StaticResource CardHeaderNote}"/>
+                        <TextBlock Text="RESULTS" Style="{StaticResource CardHeaderTitle}"/>
+                    </DockPanel>
+                </Border>
+                <DockPanel Grid.Row="1" Margin="10,8,10,6">
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                        <Button Content="Zoom to" Command="{Binding ZoomCommand}" Style="{DynamicResource SmallSecondaryButton}" Margin="0,0,6,0"/>
+                        <Button Content="Highlight MEP" Command="{Binding HighlightMepCommand}" Style="{DynamicResource SmallSecondaryButton}" Margin="0,0,6,0"/>
+                        <Button Content="Highlight structure" Command="{Binding HighlightStructureCommand}" Style="{DynamicResource SmallSecondaryButton}" Margin="0,0,12,0"/>
+                        <Button Content="Approve all" Command="{Binding ApproveAllCommand}" Style="{DynamicResource SmallSecondaryButton}" Margin="0,0,6,0"/>
+                        <Button Content="Reject all" Command="{Binding RejectAllCommand}" Style="{DynamicResource SmallSecondaryButton}"/>
+                    </StackPanel>
+                    <TextBlock Text="Find" Style="{StaticResource FieldLabel}"/>
+                    <TextBox Text="{Binding Filter, UpdateSourceTrigger=PropertyChanged}" Width="220" HorizontalAlignment="Left" VerticalContentAlignment="Center"
+                             ToolTip="Job ID, clash ID, element ID, status or category."/>
+                </DockPanel>
+                <DataGrid Grid.Row="2" Margin="10,0,10,10" ItemsSource="{Binding Rows}" SelectedItem="{Binding SelectedRow, Mode=TwoWay}"
+                          Style="{StaticResource StandardDataGrid}" ColumnHeaderStyle="{StaticResource StandardDataGridColumnHeader}"
+                          AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" IsReadOnly="False"
+                          HeadersVisibility="Column" SelectionMode="Single" HorizontalScrollBarVisibility="Auto">
+                    <DataGrid.Columns>
+                        <DataGridTemplateColumn Header="Approve" Width="62" CanUserResize="False">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <CheckBox IsChecked="{Binding IsApproved, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                              IsEnabled="{Binding CanApprove}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTextColumn Header="Clash ID" Binding="{Binding ClashId}" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="Job ID" Binding="{Binding JobId}" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="Structural Model" Binding="{Binding StructuralModel}" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="Structural Category" Binding="{Binding StructuralCategory}" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="Structural Element" Binding="{Binding StructuralElementId}" IsReadOnly="True" ElementStyle="{StaticResource RightCell}"/>
+                        <DataGridTextColumn Header="MEP Model" Binding="{Binding MepModel}" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="MEP Category" Binding="{Binding MepCategory}" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="MEP Element" Binding="{Binding MepElementId}" IsReadOnly="True" ElementStyle="{StaticResource RightCell}"/>
+                        <DataGridTextColumn Header="Opening Width" Binding="{Binding Width}" IsReadOnly="True" ElementStyle="{StaticResource RightCell}"/>
+                        <DataGridTextColumn Header="Opening Height" Binding="{Binding Height}" IsReadOnly="True" ElementStyle="{StaticResource RightCell}"/>
+                        <DataGridTextColumn Header="Diameter" Binding="{Binding Diameter}" IsReadOnly="True" ElementStyle="{StaticResource RightCell}"/>
+                        <DataGridTextColumn Header="Clearance" Binding="{Binding Clearance}" IsReadOnly="True" ElementStyle="{StaticResource RightCell}"/>
+                        <DataGridTextColumn Header="Status" Binding="{Binding Status}" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="Tracking" Binding="{Binding Tracking}" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="Note" Binding="{Binding Note}" IsReadOnly="True" Width="*" MinWidth="200"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+        </Border>
+
+        <!-- 6. Status bar -->
+        <DockPanel Grid.Row="5" Margin="0,10,0,0">
             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
                 <Button Content="Refresh" Command="{Binding RefreshCommand}" Style="{DynamicResource SecondaryButton}" Width="90" Margin="0,0,8,0"
                         ToolTip="Reads the links and element counts of the active project again."/>
                 <Button Content="Close" Click="OnCloseClick" IsCancel="True" Style="{DynamicResource SecondaryButton}" Width="80"/>
             </StackPanel>
-            <TextBlock Text="{Binding StatusLine}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
-                       Foreground="{DynamicResource BrushTextSecondary}"/>
+            <TextBlock Text="{Binding StatusLine}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource BrushTextSecondary}"/>
         </DockPanel>
     </Grid>
 </Window>

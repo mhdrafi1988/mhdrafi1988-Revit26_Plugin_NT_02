@@ -10,8 +10,8 @@ using Revit26_Plugin_Revised.VoidOpenings.V001.UI.Views;
 namespace Revit26_Plugin_Revised.VoidOpenings.V001.Commands
 {
     /// <summary>
-    /// Opens the Void Openings window (modeless). This version covers choosing the structural and MEP
-    /// models and their categories; analysis and void placement are added in later versions.
+    /// Opens the Void Openings window (modeless): choose the structural and MEP models, set clearances,
+    /// analyse the clashes, generate and cut the voids, export the results.
     /// </summary>
     [Transaction(TransactionMode.Manual)]
     [Regeneration(RegenerationOption.Manual)]
