@@ -48,6 +48,10 @@ Source: "{#SourceBase}\Revit26_Plugin_Revised.deps.json";    DestDir: "{app}"; F
 Source: "{#SourceBase}\CommunityToolkit.Mvvm.dll";   DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourceBase}\Clipper2Lib.dll";   DestDir: "{app}"; Flags: ignoreversion
 
+; --- Microsoft.Extensions.DependencyInjection (Void Openings) ---
+Source: "{#SourceBase}\Microsoft.Extensions.DependencyInjection.dll";              DestDir: "{app}"; Flags: ignoreversion
+Source: "{#SourceBase}\Microsoft.Extensions.DependencyInjection.Abstractions.dll"; DestDir: "{app}"; Flags: ignoreversion
+
 ; --- ControlzEx ---
 Source: "{#SourceBase}\ControlzEx.dll";              DestDir: "{app}"; Flags: ignoreversion
 

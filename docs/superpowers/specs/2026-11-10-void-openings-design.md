@@ -1,6 +1,6 @@
 # Void Openings — design (first deliverable, A–G)
 
-Status: **approved by the owner on 2026-11-11. Phase 1 (domain engine and tests) is implemented.**
+Status: **approved by the owner on 2026-11-11. Phases 1 and 2 are implemented; phase 2 awaits the owner's test in Revit.**
 Date: 2026-11-10 · Target: Revit 2026, .NET 8, WPF, plugin `Revit26_Plugin_Revised`.
 
 UI wireframe (deliverable C): `Claude/Previews/VoidOpenings_V001_Window.html`, published at
@@ -23,8 +23,8 @@ One structural model and one MEP model per run; the run is repeatable.
 **Working assumptions.** The owner approved the spec without answering the questions in section 9, so
 these recommended answers are in force until the owner says otherwise.
 
-- A1. Both selectors also offer **"(Active model)"**, so host structure (Scenario A) and host MEP work.
-- A2. Ribbon: a new one-button panel **Coordination** on `Rafi_Pro_Docs2`, button label **Void Openings**.
+- A1. Both selectors also offer **"(Active model)"**, so host structure (Scenario A) and host MEP work. *Confirmed by the owner 2026-11-11.*
+- A2. Ribbon: a new one-button panel **Coordination** on `Rafi_Pro_Docs2`, button label **Void Openings**. *Confirmed by the owner 2026-11-11.*
 - A3. When the structure is a link, the host gets **no void instances** by default; the openings are kept as
   records and exported as a package. An option places uncut reference markers in the host.
 - A4. v1 makes one opening per MEP element per penetration. Merging nearby openings into one combined
@@ -88,7 +88,7 @@ Rules that keep the layers honest:
 ## B. Folder and project structure
 
 No new solution. One new tool folder, one new test project, one `ToolCatalog` entry
-(`VoidOpenings`, `1.0.0`, `V001`, namespace `Revit26_Plugin_Revised.VoidOpenings.V001`).
+(`VoidOpenings`, `0.2.0` while in development and `1.0.0` when all phases are done, `V001`, namespace `Revit26_Plugin_Revised.VoidOpenings.V001`).
 
 ```
 Menu/Coordination/Openings/VoidOpenings_V001/
@@ -403,7 +403,7 @@ CHANGELOG entry. Phases marked *Revit* need the owner to test in Revit on Window
 | Phase | Scope | Testable milestone |
 |---|---|---|
 | 1 ✅ done | Domain: geometry primitives, `SpatialGrid`, `ClashEngine`, `ClearanceRuleSet`, `OpeningCalculator`, `ClashKey` | Unit tests: perpendicular / sloped / vertical crossings, multi-penetration, grazing, duplicates, the 40 + 2×30 = 100 case. Runs on Linux. |
-| 2 | Tool shell: command, DI root, ribbon button, window, model + category selection with counts | *Revit*: links listed with loaded state; counts match a schedule; selection changes without reopening. |
+| 2 ✅ built, Revit test pending | Tool shell: command, DI root, ribbon button, window, model + category selection with counts | *Revit*: links listed with loaded state; counts match a schedule; selection changes without reopening. |
 | 3 | Clearance rules UI, validation, settings file (versioned) | Unit tests for rules + settings round-trip. *Revit*: rules survive a restart. |
 | 4 | Extractors, Analyze, results table, zoom / highlight, approve / reject | *Revit*: clashes on a test model match a manual count; rotated and moved links give correct points. |
 | 5 | Void families (build + custom), placement, cutting, verification, Job IDs, records | *Revit*: cut-compatibility matrix filled in per category; every instance has a unique Job ID. |

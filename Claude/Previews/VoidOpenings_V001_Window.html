@@ -1,11 +1,14 @@
 <title>Void Openings Window</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<!-- UI wireframe (CLAUDE.md "UI previews"): Void Openings V001, planned tool 1.0.0, plugin 6.45.0 today.
-     DESIGN STAGE: the tool is not built yet. This is deliverable C of
-     docs/superpowers/specs/2026-11-10-void-openings-design.md. Everything on it is new.
-     Shows: the proposed ribbon button and tooltip, the Void Openings window after Analyze (two model
-     panels, clearance rules, action bar, results table, notification), and the linked-structure note.
-     Mirrors (planned): Menu/Coordination/Openings/VoidOpenings_V001/UI/Views/VoidOpeningsWindow.xaml
+<!-- UI preview (CLAUDE.md "UI previews"): Void Openings V001, tool 0.2.0, plugin 6.46.0.
+     New in 0.2.0 (first version with a button): the Coordination ribbon panel and the Void Openings window with
+     the STRUCTURAL MODEL and MEP MODEL panels (model list, status, categories with element counts, Refresh).
+     Shows: the ribbon button and tooltip, the window as built in 0.2.0, the same window with an unloaded link,
+     and below them the planned full window (design wireframe, not built yet) from
+     docs/superpowers/specs/2026-11-10-void-openings-design.md.
+     Mirrors: Menu/Coordination/Openings/VoidOpenings_V001/UI/Views/VoidOpeningsWindow.xaml
+              (+ MainViewModel, ModelPanelViewModel, CategoryItemViewModel),
+              Menu/00_Push_Button_Menu_items/Ribbon/CoordinationRibbon.cs
      Artifact: https://claude.ai/artifact/Ch9vZ7dfEa5kHAksAE9GQH (republish to this URL on every update)
      Colours: Shared/SharedStyles.xaml tokens, one light look on purpose (mirrors the light WPF window). -->
 <style>
@@ -80,22 +83,105 @@ ul{margin:0;padding-left:18px;max-width:72ch}
 </style>
 <main>
 <section>
-  <h1>Void Openings <span class="tag">new tool · wireframe</span></h1>
-  <p class="muted">Design-stage wireframe for approval, planned version 1.0.0. Nothing is built yet. All names, counts and IDs below are sample data.</p>
+  <h1>Void Openings <span class="tag">new tool · 0.2.0</span></h1>
+  <p class="muted">Tool in development. Version 0.2.0 adds the ribbon button and the model and category selection. Analyze, Generate Void and Export come in later versions. All names and counts below are sample data.</p>
 </section>
 
 <section>
-  <h2>Ribbon · Rafi_Pro_Docs2 tab <span class="tag">new panel (proposed)</span></h2>
+  <h2>Ribbon · Rafi_Pro_Docs2 tab, after Memory <span class="tag">new panel</span></h2>
   <div class="frame"><div class="row" style="align-items:flex-start;flex-wrap:nowrap;width:max-content">
     <div class="ribbon"><div class="panel"><div class="big"><span class="ico"></span>Void<br>Openings</div><span class="pname">Coordination</span></div></div>
-    <div class="tip"><b>Void Openings</b><span>Finds where MEP passes through structure, sizes the openings from your clearance rules, places void families with Job IDs and cuts the structure.</span><span class="muted">Void Openings 1.0.0 · V001</span></div>
+    <div class="tip"><b>Void Openings — v0.2.0 (build V001)</b><span>Openings for MEP through structure. In this version: choose the structural model and the MEP model (the active model or a Revit link) and their categories, and see how many elements each has. Clash analysis and void placement follow in later versions.</span></div>
   </div></div>
 </section>
 
 <section>
-  <h2>Window after Analyze <span class="tag">new</span></h2>
+  <h2>Window as built in 0.2.0 <span class="tag">new</span></h2>
   <div class="frame"><div class="win">
-    <div class="title"><span>Void Openings 1.0.0</span><span>—  ☐  ✕</span></div>
+    <div class="title"><span>Void Openings — v0.2.0</span><span>—  ☐  ✕</span></div>
+    <div class="body">
+      <div class="cols">
+        <div class="card">
+          <header>STRUCTURAL MODEL <span>4 of 9 categories · 1,933 elements selected</span></header>
+          <div class="pad">
+            <div class="lbl">Structural link</div>
+            <div class="row"><div class="combo">Sample_Tower_STR.rvt</div><b style="color:var(--ok);min-width:84px">Loaded</b></div>
+            <div class="lbl">Categories</div>
+            <div class="scroll"><table>
+              <tr><th></th><th>Category</th><th class="n">Elements</th><th>Link</th><th>Status</th></tr>
+              <tr><td><span class="chk on"></span></td><td>Floors</td><td class="n">84</td><td>Sample_Tower_STR.rvt</td><td>Selected</td></tr>
+              <tr><td><span class="chk on"></span></td><td>Walls</td><td class="n">612</td><td>Sample_Tower_STR.rvt</td><td>Selected</td></tr>
+              <tr><td><span class="chk on"></span></td><td>Structural Framing</td><td class="n">1,216</td><td>Sample_Tower_STR.rvt</td><td>Selected</td></tr>
+              <tr><td><span class="chk"></span></td><td>Structural Columns</td><td class="n">298</td><td>Sample_Tower_STR.rvt</td><td>Not selected</td></tr>
+              <tr><td><span class="chk on"></span></td><td>Stairs</td><td class="n">21</td><td>Sample_Tower_STR.rvt</td><td>Selected · Marker only, no cut</td></tr>
+              <tr><td><span class="chk"></span></td><td>Landings</td><td class="n">12</td><td>Sample_Tower_STR.rvt</td><td>Not selected</td></tr>
+              <tr><td><span class="chk"></span></td><td>Ramps</td><td class="n">4</td><td>Sample_Tower_STR.rvt</td><td>Not selected</td></tr>
+              <tr><td><span class="chk"></span></td><td>Structural Foundations</td><td class="n">46</td><td>Sample_Tower_STR.rvt</td><td>Not selected</td></tr>
+              <tr class="dim"><td><span class="chk"></span></td><td>Generic Models</td><td class="n">0</td><td>Sample_Tower_STR.rvt</td><td>Empty</td></tr>
+            </table></div>
+          </div>
+        </div>
+        <div class="card">
+          <header>MEP MODEL <span>3 of 10 categories · 5,430 elements selected</span></header>
+          <div class="pad">
+            <div class="lbl">MEP link</div>
+            <div class="row"><div class="combo">Sample_Tower_MEP.rvt</div><b style="color:var(--ok);min-width:84px">Loaded</b></div>
+            <div class="lbl">Categories</div>
+            <div class="scroll"><table>
+              <tr><th></th><th>Category</th><th class="n">Elements</th><th>Link</th><th>Status</th></tr>
+              <tr><td><span class="chk on"></span></td><td>Pipes</td><td class="n">2,140</td><td>Sample_Tower_MEP.rvt</td><td>Selected</td></tr>
+              <tr><td><span class="chk"></span></td><td>Pipe Accessories</td><td class="n">310</td><td>Sample_Tower_MEP.rvt</td><td>Not selected</td></tr>
+              <tr><td><span class="chk"></span></td><td>Pipe Fittings</td><td class="n">3,010</td><td>Sample_Tower_MEP.rvt</td><td>Not selected</td></tr>
+              <tr><td><span class="chk on"></span></td><td>Ducts</td><td class="n">890</td><td>Sample_Tower_MEP.rvt</td><td>Selected</td></tr>
+              <tr><td><span class="chk"></span></td><td>Duct Accessories</td><td class="n">95</td><td>Sample_Tower_MEP.rvt</td><td>Not selected</td></tr>
+              <tr><td><span class="chk"></span></td><td>Duct Fittings</td><td class="n">1,010</td><td>Sample_Tower_MEP.rvt</td><td>Not selected</td></tr>
+              <tr><td><span class="chk"></span></td><td>Cable Trays</td><td class="n">260</td><td>Sample_Tower_MEP.rvt</td><td>Not selected</td></tr>
+              <tr><td><span class="chk"></span></td><td>Cable Tray Fittings</td><td class="n">150</td><td>Sample_Tower_MEP.rvt</td><td>Not selected</td></tr>
+              <tr><td><span class="chk on"></span></td><td>Conduits</td><td class="n">2,400</td><td>Sample_Tower_MEP.rvt</td><td>Selected</td></tr>
+              <tr><td><span class="chk"></span></td><td>Conduit Fittings</td><td class="n">1,870</td><td>Sample_Tower_MEP.rvt</td><td>Not selected</td></tr>
+            </table></div>
+          </div>
+        </div>
+      </div>
+      <div class="row"><span class="status" style="flex:1">(Active model) Sample_Tower_COORD · 3 Revit link(s), 1 not loaded</span><span class="btn">Refresh</span><span class="btn">Close</span></div>
+    </div>
+  </div></div>
+  <ul>
+    <li>Each model list holds <b>(Active model)</b> first, then every Revit link by name. One model per side.</li>
+    <li>A category with no elements shows <b>Empty</b> and cannot be ticked. Ticks are kept when you press Refresh.</li>
+    <li>Stairs, Landings and Ramps show "Marker only, no cut" once ticked.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>Unloaded link and messages <span class="tag">new</span></h2>
+  <div class="frame"><div class="win" style="width:520px">
+    <div class="title"><span>Void Openings — v0.2.0</span><span>—  ☐  ✕</span></div>
+    <div class="body">
+        <div class="card">
+          <header>STRUCTURAL MODEL <span>Link not loaded</span></header>
+          <div class="pad">
+            <div class="lbl">Structural link</div>
+            <div class="row"><div class="combo">Sample_Podium_STR.rvt</div><b style="color:var(--warn);min-width:84px">Not loaded</b></div>
+            <div class="lbl">Categories</div>
+            <div class="scroll"><table>
+              <tr><th></th><th>Category</th><th class="n">Elements</th><th>Link</th><th>Status</th></tr>
+              <tr class="dim"><td><span class="chk"></span></td><td>Floors</td><td class="n">0</td><td>Sample_Podium_STR.rvt</td><td>Empty</td></tr>
+              <tr class="dim"><td><span class="chk"></span></td><td>Walls</td><td class="n">0</td><td>Sample_Podium_STR.rvt</td><td>Empty</td></tr>
+              <tr class="dim"><td><span class="chk"></span></td><td>Structural Framing</td><td class="n">0</td><td>Sample_Podium_STR.rvt</td><td>Empty</td></tr>
+            </table></div>
+          </div>
+        </div>
+      <div class="note" style="border-color:var(--bad-bd);background:var(--bad-bg);color:var(--text)">Revit is busy and could not run the request. Close any open Revit dialog or command, then try again. <span class="btn s" style="margin-left:8px">Dismiss</span></div>
+    </div>
+  </div></div>
+  <p class="muted">Messages appear in this strip inside the window (red for errors, blue for information), not in pop-up dialogs.</p>
+</section>
+
+<section>
+  <h2>Planned full window (design wireframe, not built yet)</h2>
+  <div class="frame"><div class="win">
+    <div class="title"><span>Void Openings — planned 1.0.0</span><span>—  ☐  ✕</span></div>
     <div class="body">
 
       <div class="cols">

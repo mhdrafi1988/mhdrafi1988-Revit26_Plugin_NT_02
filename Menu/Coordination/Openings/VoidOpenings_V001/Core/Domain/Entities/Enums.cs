@@ -13,8 +13,10 @@ namespace Revit26_Plugin_Revised.VoidOpenings.V001.Core.Domain.Entities
         StructuralColumn,
         /// <summary>Foundations.</summary>
         StructuralFoundation,
-        /// <summary>Stairs, including runs and landings.</summary>
+        /// <summary>Stairs and stair runs.</summary>
         Stair,
+        /// <summary>Stair landings.</summary>
+        Landing,
         /// <summary>Ramps.</summary>
         Ramp,
         /// <summary>Generic models.</summary>
