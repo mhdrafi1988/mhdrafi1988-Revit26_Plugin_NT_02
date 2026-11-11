@@ -9,7 +9,7 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
-## [6.46.0] — 2026-11-10
+## [6.47.0] — 2026-11-11
 
 ### Auto Slope By Point 34.0.0 (V034)
 
@@ -21,6 +21,17 @@ Each release lists every tool whose version changed, under the plugin version.
 - **By Point** pulldown: order is now V034, V033, V032, V030, Ridge V003, Multi Copies 30. V034 supplies the pulldown's icon.
 
 User note: 75 mm is the spacing V033 uses, so V034 at the default gives the same slope as V033. At 40 mm the path graph step takes about twice as long. An opening narrower than the chosen spacing can still be missed. V033 is unchanged and stays in the pulldown. V034 saves to its own `settings.v034.json`; the first time it opens it reads V033's settings (else V032's), with the sample spacing at 75 mm.
+
+## [6.46.0] — 2026-11-11
+
+### Void Openings 0.2.0 (new tool, in development)
+
+#### Added
+- **Void Openings** button on a new **Coordination** panel (Rafi_Pro_Docs2 tab, after Memory). The finished tool will find where MEP passes through structure, size the openings from clearance rules, place void families with Job IDs and cut the structure. It is being built in phases; the version stays below 1.0.0 until all of them are done.
+- In this version the window covers **model and category selection**: a STRUCTURAL MODEL panel and an MEP MODEL panel. Each lists the active model and every Revit link (with Loaded / Not loaded status), and shows the element count of each category of the chosen model. You can change model and categories at any time; **Refresh** reads the project again.
+- Stairs, landings and ramps are marked "Marker only, no cut": Revit is not expected to let a void family cut them.
+
+User note: Analyze, Generate Void and Export are not in the window yet. Nothing in the model is changed by this version. The installer now also copies `Microsoft.Extensions.DependencyInjection.dll` and `Microsoft.Extensions.DependencyInjection.Abstractions.dll`.
 
 ## [6.45.0] — 2026-11-10
 

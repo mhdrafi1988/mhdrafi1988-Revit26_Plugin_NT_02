@@ -134,6 +134,7 @@ namespace Revit26_Plugin_Revised.Shared.Services
         public static readonly ToolInfo IslandRoofSplitterV002 = Add("Island Roof Splitter", "2.1.0", "V002", "Revit26_Plugin_Revised.IslandRoofSplitter.V002");
         public static readonly ToolInfo RoofShapeFromLink = Add("Roof Shape From Link", "2.1.0", "V002", "Revit26_Plugin_Revised.RoofShapeFromLink.V002");
         public static readonly ToolInfo RoofPointsAndSlope = Add("Roof Points & Slope", "1.2.0", "V001", "Revit26_Plugin_Revised.RoofPointsAndSlope.V001");
+        public static readonly ToolInfo VoidOpenings = Add("Void Openings", "0.2.0", "V001", "Revit26_Plugin_Revised.VoidOpenings.V001");
         public static readonly ToolInfo MergeRoofs = Add("Merge Roofs", "1.1.0", "V001", "Revit26_Plugin_Revised.MergeRoofs.V001");
         public static readonly ToolInfo LinkVersionChecker = Add("Link Version Checker", "3.0.1", "V003", "Revit26_Plugin_Revised.LinkVersionChecker_V003");
         public static readonly ToolInfo LinkVersionCheckerV004 = Add("Link Version Checker", "4.2.0", "V004", "Revit26_Plugin_Revised.LinkVersionChecker_V004");

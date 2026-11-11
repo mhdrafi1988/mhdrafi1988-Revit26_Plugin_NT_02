@@ -66,14 +66,16 @@ Each item is a pulldown unless marked *button*. A pulldown lists its versions hi
 | Rafi_Pro_Docs2 | Manage | Overlaps · ParaManager · Shared Params *button* · Schedule I/O · Link Check (8 entries: V007, V006, then V004 and V003 scan modes) ▸ Del. Line Styles · Bulk Rename · Tracker ID | `ManageRibbon` |
 | Rafi_Pro_Docs2 | Worksets | WS Browser · WS Creator · WS Renamer ▸ WS Renamer XL · Delete Workset | `ManageRibbon` |
 | Rafi_Pro_Docs2 | Memory | WS Memory (large *button*) · Link Memory (large; V002, V001) | `ManageRibbon` |
+| Rafi_Pro_Docs2 | Coordination | Void Openings (large *button*) | `CoordinationRibbon` |
 
-The latest change was plugin 6.37.0, which added the **Floor Views** panel (Documents tab, after View Create) and
+The latest change was plugin 6.46.0, which added the **Coordination** panel (Documents 2 tab, after Memory) with
+Void Openings; its icons are in `Resources/Icons/Coordination`. Before it, 6.37.0 added the **Floor Views** panel (Documents tab, after View Create) and
 Floor EPS on Floor Edit. 6.36.0 added the **Floor Edit** panel (floor versions of Roof Types, Name
 Builder, Roof Tag, Point Comparison and Elevation Sync) after Floor Lines. 6.35.0 added the **Floor Lines** panel (floor versions of Ridge By Openings,
 Ridge By Points and Creaser Adv) after Floor Points. 6.34.0 added the **Floor Points** panel (floor versions of
 the Shape Points tools) after Shape Points. Before it, 6.33.0 added the floor Ridge, Multi Copies and Points & Slope tools to the
 **Floor Slope** panel (By Point became a pulldown, as on Roof Slope). 6.32.0 added Quick Align Ends / Bends to Tag to
-the Tagging panel; 6.43.0 added Distribute Spot Elev. and the two Quick Distribute split buttons there. 6.46.0 added By Point V034 at the top of the
+the Tagging panel; 6.43.0 added Distribute Spot Elev. and the two Quick Distribute split buttons there. 6.47.0 added By Point V034 at the top of the
 **Roof Slope ▸ By Point** pulldown. When you change the ribbon, update the
 tables above, `README.md` (Ribbon section) and the tool's UI preview (root `CLAUDE.md`, UI previews).
 
@@ -158,7 +160,7 @@ agreement** on which panel and which tools go inside it (root `CLAUDE.md`, Slide
 Points, View Create, Sheet Create, Manage, Worksets.
 
 **Large buttons:** `panel.AddItem(...)` gives a full-size button. Use it deliberately and set `LargeImage`. Current
-uses: Tagging (Tag To Text, Align Spot Elevations, Align to Detail Line, Distribute Spot Elev.), Memory (WS Memory, Link Memory), Detail
+uses: Tagging (Tag To Text, Align Spot Elevations, Align to Detail Line, Distribute Spot Elev.), Memory (WS Memory, Link Memory), Coordination (Void Openings), Detail
 Lines (Line Manager), Plan View (Island Splitter) and Sheet Edit (Text Replace).
 
 ## Panel layout — keep the tabs narrow

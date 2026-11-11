@@ -51,6 +51,7 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 | Rafi_Pro_Docs2 | Manage | Overlaps · ParaManager · Shared Params · Schedule I/O · Link Check ▸ slide-out: Del. Line Styles · Bulk Rename · Tracker ID |
 | Rafi_Pro_Docs2 | Worksets | WS Browser · WS Creator · WS Renamer ▸ slide-out: WS Renamer XL · Delete Workset |
 | Rafi_Pro_Docs2 | Memory | WS Memory · Link Memory |
+| Rafi_Pro_Docs2 | Coordination | Void Openings |
 
 ## Features
 
@@ -160,6 +161,11 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 - **Link Memory** (dropdown): V002 remembers which links (Revit, IFC, CAD, point clouds, images/PDF) the active view
   and its related views, or a print set, show, loads them back in one click, and exports the list to Excel.
   *Link Memory (classic)* (V001) remembers which Revit links are loaded as named sets.
+
+### Coordination
+- **Void Openings** (in development): openings for MEP through structure. So far: choose the structural model and
+  the MEP model (the active model or a Revit link) and their categories, with element counts. Clash analysis, void
+  placement and cutting follow.
 
 ## Installation
 
