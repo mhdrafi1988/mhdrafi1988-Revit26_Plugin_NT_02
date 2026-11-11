@@ -9,7 +9,7 @@
 		<AssemblyName>Revit26_Plugin_Revised</AssemblyName>
 		<RootNamespace>Revit26_Plugin_Revised</RootNamespace>
 		<!-- Plugin version (SemVer). Per-tool versions live in Shared/Services/ToolCatalog.cs. -->
-		<Version>6.39.0</Version>
+		<Version>6.46.0</Version>
 		<BaseOutputPath>D:\Plugin\mhdrafi1988\Revit26_Plugin\bin\123</BaseOutputPath>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -48,6 +48,7 @@
 	  <PackageReference Include="MaterialDesignColors" Version="5.3.0" />
 	  <PackageReference Include="MaterialDesignThemes" Version="5.3.0" />
 	  <PackageReference Include="MIConvexHull" Version="1.1.19.1019" />
+	  <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
 	</ItemGroup>
 	<ItemGroup>
 	  <Folder Include="Menu\RoofTools\Lines\Creaser\" />
