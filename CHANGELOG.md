@@ -15,10 +15,16 @@ Each release lists every tool whose version changed, under the plugin version.
 
 #### Changed
 - **Grouped list:** the views are listed under a header per view type (Sections & Callouts, Floor Plans, Ceiling Plans, … with a count), in the same order as the filter popover. The window still opens with the current sheet's views. A new **Group by type** checkbox in the filter bar turns the grouping off; the choice is saved.
-- **Taller list:** the view list is twice as tall (minimum 320 px instead of 160, and up to 1.1 × the window height instead of 0.55). A long list scrolls with the window body.
+- **Groups fold:** click a group header to fold or unfold it; **Expand all** and **Collapse all** are in the selection toolbar. The checkbox in a group header ticks every view listed in that group, or unticks them when all were ticked (it shows a dash when only some are ticked).
+- **List fills the window:** the view list takes all the height the window has left (at least 320 px, was a fixed share of the window), and grows when the window is enlarged or when the rename panel or the log is folded.
+- **Rename panel folds:** click **RENAME OPTIONS** to fold the Prefix / Find / Options / Standardize panel to one bar that lists the options in use. Unfolded by default; the choice is saved.
 - **Log minimised:** the log opens as one bar that shows the latest line and the line count. Click **Log** to expand it (the Copy buttons appear then); it starts minimised on every open.
 
-User note: renaming, filters, Load all views and Cancel work as before. Clicking a column header still sorts, now inside each group. The settings file gained a `Version` and a `GroupByViewType` field; older files load unchanged and start grouped.
+#### Fixed
+- **Reset all names** (footer) now resets every row's edit name. It reset only the ticked rows, the same as "Reset selected names".
+
+User note: renaming, filters, Load all views and Cancel work as before. Clicking a column header still sorts, now inside each group. "Select all" and the group checkboxes also tick rows inside folded groups. "Reset all names" now also undoes edits on rows that are not ticked. The settings file gained `Version`, `GroupByViewType` and `IsRenamePanelExpanded`; older files load unchanged.
+
 ## [6.50.0] — 2026-11-11
 
 ### Annotation Overlap Detection 5.0.0 (V005, new)

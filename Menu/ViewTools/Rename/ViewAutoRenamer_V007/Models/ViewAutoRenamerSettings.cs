@@ -39,5 +39,8 @@ namespace Revit26_Plugin_Revised.ViewAutoRenamer.V007.Models
 
         /// <summary>7.3.0: list the views under a header per view-type group. Missing in older files: grouped.</summary>
         public bool GroupByViewType { get; set; } = true;
+
+        /// <summary>7.3.0: the rename panel is unfolded. Missing in older files: unfolded, as before.</summary>
+        public bool IsRenamePanelExpanded { get; set; } = true;
     }
 }

@@ -17,7 +17,11 @@ Changes vs V005 (layout only):
   - No behaviour change — every binding/command/handler is the V005 one.
 7.3.0:
   - Views grid is grouped by view type ("Group by type", on by default).
-  - Views grid is twice as tall (MinHeight 320, MaxHeightRatio 1.1).
+  - Views grid fills the height left in the window (at least 320 px); the
+    code-behind sizes it from the shell's body ScrollViewer.
+  - Groups fold (chevron) and have a header checkbox that ticks the whole group.
+  - Rename panel folds to one bar with a summary of the options in use.
+  - Footer "Reset all names" resets every row (it reset only the ticked rows).
   - Log starts minimised: one bar with the latest line; click it to expand.
 =======================================================
 -->
@@ -59,6 +63,49 @@ Changes vs V005 (layout only):
                 <Setter Property="HorizontalAlignment" Value="Left"/>
                 <Setter Property="VerticalAlignment" Value="Center"/>
             </Style>
+            <!-- 7.3.0: group header of the views grid. A real Expander (with a "HeaderSite"
+                 ToggleButton) because the DataGrid's virtualised grouping reads the header
+                 size and the fold state from it. -->
+            <Style x:Key="GridGroupExpander" TargetType="Expander">
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Expander">
+                            <StackPanel>
+                                <ToggleButton x:Name="HeaderSite" Cursor="Hand" Focusable="False"
+                                              Content="{TemplateBinding Header}"
+                                              IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
+                                    <ToggleButton.Template>
+                                        <ControlTemplate TargetType="ToggleButton">
+                                            <Border Background="{StaticResource BrushSurfaceCard}"
+                                                    BorderBrush="{StaticResource BrushBorderDefault}"
+                                                    BorderThickness="0,1,0,1" Padding="10,4">
+                                                <DockPanel>
+                                                    <TextBlock x:Name="Chevron" DockPanel.Dock="Left" Text="▸" Width="16"
+                                                               FontSize="11" VerticalAlignment="Center"
+                                                               Foreground="{StaticResource BrushTextSecondary}"/>
+                                                    <ContentPresenter VerticalAlignment="Center"/>
+                                                </DockPanel>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsChecked" Value="True">
+                                                    <Setter TargetName="Chevron" Property="Text" Value="▾"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </ToggleButton.Template>
+                                </ToggleButton>
+                                <ContentPresenter x:Name="ExpandSite" Visibility="Collapsed"/>
+                            </StackPanel>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsExpanded" Value="True">
+                                    <Setter TargetName="ExpandSite" Property="Visibility" Value="Visible"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
             <Style x:Key="ViewTypePillText" TargetType="TextBlock">
                 <Setter Property="FontSize" Value="10"/>
                 <Setter Property="FontWeight" Value="SemiBold"/>
@@ -66,7 +113,7 @@ Changes vs V005 (layout only):
         </ResourceDictionary>
     </Window.Resources>
 
-    <shell:ToolWindowShell Title="View Auto Renamer"
+    <shell:ToolWindowShell x:Name="Shell" Title="View Auto Renamer"
                            Subtitle="Prefix, find/replace and standardize view names"
                            Version="{Binding Source={x:Static svc:ToolCatalog.ViewAutoRenamerV007}, Path=Version, StringFormat=v{0}}"
                            IsRunning="{Binding IsRunning}"
@@ -139,7 +186,7 @@ Changes vs V005 (layout only):
                         <RowDefinition Height="Auto"/>  <!-- Rename panel       -->
                         <RowDefinition Height="Auto"/>  <!-- Selection toolbar  -->
                         <RowDefinition Height="Auto"/>  <!-- Quick filter chips -->
-                        <RowDefinition Height="*" MinHeight="320"/>  <!-- DataGrid -->
+                        <RowDefinition Height="Auto"/>  <!-- DataGrid -->
                     </Grid.RowDefinitions>
 
                     <Border Grid.Row="0"
@@ -353,8 +400,36 @@ Changes vs V005 (layout only):
                             BorderThickness="0,0,0,1">
                         <StackPanel>
 
+                            <!-- 7.3.0: fold bar. Folded, it shows the options in use. -->
+                            <ToggleButton IsChecked="{Binding IsRenamePanelExpanded}" Cursor="Hand"
+                                          ToolTip="Show or hide the rename options">
+                                <ToggleButton.Template>
+                                    <ControlTemplate TargetType="ToggleButton">
+                                        <Border Background="Transparent" Padding="12,5">
+                                            <DockPanel>
+                                                <TextBlock x:Name="Chevron" DockPanel.Dock="Left" Text="▸" Width="16" FontSize="11"
+                                                           VerticalAlignment="Center" Foreground="{StaticResource BrushTextSecondary}"/>
+                                                <TextBlock DockPanel.Dock="Left" Text="RENAME OPTIONS" FontSize="10" FontWeight="SemiBold"
+                                                           VerticalAlignment="Center" Foreground="{StaticResource BrushTextSecondary}"/>
+                                                <TextBlock x:Name="Summary" Margin="12,0,0,0" FontSize="11" VerticalAlignment="Center"
+                                                           Text="{Binding RenameSummary}" TextTrimming="CharacterEllipsis"
+                                                           Foreground="{StaticResource BrushTextPrimary}"/>
+                                            </DockPanel>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsChecked" Value="True">
+                                                <Setter TargetName="Chevron" Property="Text" Value="▾"/>
+                                                <Setter TargetName="Summary" Property="Visibility" Value="Collapsed"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </ToggleButton.Template>
+                            </ToggleButton>
+
+                            <StackPanel Visibility="{Binding IsRenamePanelExpanded, Converter={StaticResource BoolToVisibilityConverter}}">
+
                             <!-- Row A: 3 equal columns -->
-                            <Grid Margin="0,8,0,0">
+                            <Grid Margin="0,2,0,0">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="0.5"/>
@@ -471,6 +546,7 @@ Changes vs V005 (layout only):
                                 </StackPanel>
                             </Border>
 
+                            </StackPanel>
                         </StackPanel>
                     </Border>
                     <Border Grid.Row="2"
@@ -499,8 +575,17 @@ Changes vs V005 (layout only):
                                 <Button Content="Truncate last number" Margin="0,0,5,0"
                                         Command="{Binding TruncateLastNumberCommand}"
                                         Style="{StaticResource SmallSecondaryButton}"/>
-                                <Button Content="Truncate last text"
+                                <Button Content="Truncate last text" Margin="0,0,10,0"
                                         Command="{Binding TruncateLastTextCommand}"
+                                        Style="{StaticResource SmallSecondaryButton}"/>
+                                <!-- 7.3.0: fold / unfold every group of the grid -->
+                                <Button Content="Expand all" Margin="0,0,5,0"
+                                        Command="{Binding ExpandAllGroupsCommand}"
+                                        IsEnabled="{Binding GroupByViewType}"
+                                        Style="{StaticResource SmallSecondaryButton}"/>
+                                <Button Content="Collapse all"
+                                        Command="{Binding CollapseAllGroupsCommand}"
+                                        IsEnabled="{Binding GroupByViewType}"
                                         Style="{StaticResource SmallSecondaryButton}"/>
                             </StackPanel>
 
@@ -556,13 +641,12 @@ Changes vs V005 (layout only):
                             </RadioButton>
                         </StackPanel>
                     </Border>
-                    <!-- V007: MaxHeight="1000" caps the FIRST layout pass. MaxHeightRatio only
-                         applies after Loaded; without a cap the grid is measured with infinite
-                         height inside the shell's ScrollViewer and builds a row for every view,
-                         which made the window slow to open. MaxHeightRatio replaces it on Loaded.
-                         7.3.0: the list is twice as tall (min 160 -> 320, cap 500 -> 1000,
-                         ratio 0.55 -> 1.1 of the window height); a long list scrolls with the body. -->
-                    <DataGrid Grid.Row="4" MinHeight="320" MaxHeight="1000" shell:ShellBehaviors.MaxHeightRatio="1.1" shell:ShellBehaviors.ForwardMouseWheel="True"
+                    <!-- Height="320" is the size of the FIRST layout pass only: without a fixed
+                         height the grid is measured with infinite height inside the shell's
+                         ScrollViewer and builds a row for every view, which made the window slow
+                         to open. 7.3.0: once loaded, the code-behind (FitViewsGrid) sets Height so
+                         the grid fills what is left of the window, never below MinHeight. -->
+                    <DataGrid Grid.Row="4" MinHeight="320" Height="320" shell:ShellBehaviors.ForwardMouseWheel="True"
                               x:Name="ViewsGridControl"
                               ItemsSource="{Binding ViewsGrid}"
                               AutoGenerateColumns="False"
@@ -586,25 +670,40 @@ Changes vs V005 (layout only):
                               EnableRowVirtualization="True"
                               EnableColumnVirtualization="True">
 
-                        <!-- 7.3.0: header row per view-type group (shown while "Group by type" is ticked) -->
+                        <!-- 7.3.0: one foldable header per view-type group (while "Group by type" is
+                             ticked). The group's Name is the rows' ViewGroupState. -->
                         <DataGrid.GroupStyle>
                             <GroupStyle>
-                                <GroupStyle.HeaderTemplate>
-                                    <DataTemplate>
-                                        <Border Background="{StaticResource BrushSurfaceCard}"
-                                                BorderBrush="{StaticResource BrushBorderDefault}"
-                                                BorderThickness="0,1,0,1" Padding="10,4">
-                                            <StackPanel Orientation="Horizontal">
-                                                <TextBlock Text="{Binding Items[0].TypeGroupLabel}"
-                                                           FontSize="11.5" FontWeight="SemiBold"
-                                                           Foreground="{StaticResource BrushNavyPrimary}"/>
-                                                <TextBlock Text="{Binding ItemCount}" Margin="8,0,0,0"
-                                                           FontSize="10.5" VerticalAlignment="Center"
-                                                           Foreground="{StaticResource BrushTextSecondary}"/>
-                                            </StackPanel>
-                                        </Border>
-                                    </DataTemplate>
-                                </GroupStyle.HeaderTemplate>
+                                <GroupStyle.ContainerStyle>
+                                    <Style TargetType="GroupItem">
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="GroupItem">
+                                                    <Expander Style="{StaticResource GridGroupExpander}"
+                                                              IsExpanded="{Binding Name.IsExpanded, Mode=TwoWay}">
+                                                        <Expander.Header>
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <CheckBox VerticalAlignment="Center" Margin="0,0,8,0"
+                                                                          IsThreeState="False"
+                                                                          IsChecked="{Binding Name.IsChecked, Mode=OneWay}"
+                                                                          Command="{Binding DataContext.ToggleGroupSelectionCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                                          CommandParameter="{Binding Name}"
+                                                                          ToolTip="Tick or untick every view listed in this group"/>
+                                                                <TextBlock Text="{Binding Name.Label}"
+                                                                           FontSize="11.5" FontWeight="SemiBold" VerticalAlignment="Center"
+                                                                           Foreground="{StaticResource BrushNavyPrimary}"/>
+                                                                <TextBlock Text="{Binding ItemCount}" Margin="8,0,0,0"
+                                                                           FontSize="10.5" VerticalAlignment="Center"
+                                                                           Foreground="{StaticResource BrushTextSecondary}"/>
+                                                            </StackPanel>
+                                                        </Expander.Header>
+                                                        <ItemsPresenter/>
+                                                    </Expander>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </GroupStyle.ContainerStyle>
                             </GroupStyle>
                         </DataGrid.GroupStyle>
 
@@ -783,7 +882,8 @@ Changes vs V005 (layout only):
         <shell:ToolWindowShell.FooterContent>
             <DockPanel>
                 <Button DockPanel.Dock="Left"
-                                        Command="{Binding ResetSelectedNamesCommand}"
+                                        ToolTip="Puts every row's edit name back to the original name, ticked or not."
+                                        Command="{Binding ResetAllNamesCommand}"
                                         Style="{StaticResource SmallSecondaryButton}">
                                     <Button.Foreground>
                                         <SolidColorBrush Color="{StaticResource StatusError}"/>

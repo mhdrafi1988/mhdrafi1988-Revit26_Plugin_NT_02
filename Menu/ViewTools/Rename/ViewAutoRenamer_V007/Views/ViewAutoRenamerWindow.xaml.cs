@@ -43,8 +43,41 @@ public partial class ViewsListWindow : Window
             }));
         };
 
+        // 7.3.0: the views grid fills the height left in the window.
+        Loaded += (_, _) =>
+        {
+            var body = Shell.BodyScrollViewer;
+            if (body == null) return;
+            body.ScrollChanged += (_, e) =>
+            {
+                // Inner lists (grid, log) bubble their own ScrollChanged; only the body's size matters.
+                if (!ReferenceEquals(e.OriginalSource, body)) return;
+                if (e.ExtentHeightChange == 0 && e.ViewportHeightChange == 0) return;
+                FitViewsGrid(body);
+            };
+            FitViewsGrid(body);
+        };
+
         // Save filter/rename settings on close, per project convention.
         Closing += (_, _) => Vm.SaveSettings();
+    }
+
+    // ── Views grid height ────────────────────────────────────────────────────
+    // The shell body is one ScrollViewer, so a list in it has no "fill" size of its own.
+    // Give the grid whatever the viewport has left after the other body content (filter
+    // bar, rename panel, toolbar, chips, log), never less than its MinHeight; below that
+    // the body scrolls. Re-run whenever the viewport or the content height changes
+    // (window resize, rename panel or log folded). Setting the height changes the extent
+    // once more, but the second pass computes the same value and stops.
+    private void FitViewsGrid(ScrollViewer body)
+    {
+        double others = body.ExtentHeight - ViewsGridControl.ActualHeight;
+        double target = Math.Floor(body.ViewportHeight - others);
+        if (double.IsNaN(target) || double.IsInfinity(target)) return;
+
+        target = Math.Max(ViewsGridControl.MinHeight, target);
+        if (double.IsNaN(ViewsGridControl.Height) || Math.Abs(ViewsGridControl.Height - target) > 0.5)
+            ViewsGridControl.Height = target;
     }
 
     // ── Header checkbox ──────────────────────────────────────────────────────

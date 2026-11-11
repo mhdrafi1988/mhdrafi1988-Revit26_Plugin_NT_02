@@ -1,8 +1,9 @@
 <title>View Auto Renamer Window</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<!-- UI preview (CLAUDE.md "UI previews"): View Auto Renamer V007, tool 7.3.0, plugin 6.44.0.
-     New in 7.3.0: the view list is grouped by view type ("Group by type", on by default), is twice
-     as tall, and the log starts minimised as one bar with the latest line.
+<!-- UI preview (CLAUDE.md "UI previews"): View Auto Renamer V007, tool 7.3.0, plugin 6.51.0.
+     New in 7.3.0: the view list is grouped by view type ("Group by type", on by default); groups fold
+     and have a header checkbox; the list fills the window; the rename panel folds to a summary bar;
+     the log starts minimised as one bar with the latest line; footer "Reset all names" resets every row.
      Mirrors: Menu/ViewTools/Rename/ViewAutoRenamer_V007/Views/ViewAutoRenamerWindow.xaml,
               Shared/Controls/ToolWindowShellTemplate.xaml (status strip)
      Artifact: https://claude.ai/artifact/SyDfzePBpEeb8WkiyU5uUD (republish to this URL on every update)
@@ -64,7 +65,12 @@ p{margin:0;line-height:1.5;max-width:75ch}
 .grid tr.grp td span{color:var(--text2);font-weight:400;font-size:10.5px;margin-left:8px}
 .grid tr.alt td{background:var(--bg2)}
 .vt{border-radius:8px;padding:1px 6px;font-size:10px;font-weight:600;background:var(--chip);color:var(--navy)}
-.grid td.empty{height:150px;color:var(--text2);text-align:center;font-size:11px}
+.grid td.empty{height:90px;color:var(--text2);text-align:center;font-size:11px}
+.rbar{background:var(--bg2);border:1px solid var(--border);padding:5px 10px;font-size:11px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.rbar b{font-size:10px;color:var(--text2);letter-spacing:.04em}
+.rpanel{background:var(--bg2);border:1px solid var(--border);border-top:0;padding:8px 10px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;font-size:11px}
+.rpanel b{display:block;font-size:10px;color:var(--text2);letter-spacing:.04em;margin-bottom:4px}
+.rpanel .in{border:1px solid var(--input);background:var(--card);padding:2px 8px;display:inline-block;min-width:80px}
 /* Log bar (dark, as in the window) */
 .logbar{background:var(--log-bg);color:var(--log-text);border-radius:8px;padding:6px 10px;display:grid;gap:6px;font-size:11px}
 .logbar .top{display:flex;align-items:center;gap:12px;min-width:0}
@@ -78,39 +84,39 @@ p{margin:0;line-height:1.5;max-width:75ch}
 <div class="page">
   <header>
     <h1>View Auto Renamer 7.3.0 <span class="tag">NEW: grouped list</span></h1>
-    <p class="muted">The window still opens with the views of the current sheet. They are now listed in groups by view type, the list is twice as tall, and the log starts minimised. <span class="sample">Sample data: view names and sheet numbers are made up.</span></p>
+    <p class="muted">The window still opens with the views of the current sheet. They are now listed in groups by view type that fold, the list fills the window, the rename panel folds, and the log starts minimised. <span class="sample">Sample data: view names and sheet numbers are made up.</span></p>
   </header>
 
   <section>
     <h2>1. Window as it opens</h2>
-    <p class="muted">The header (badges and count cards), the rename panel and the quick-filter chips are unchanged and left out here.</p>
+    <p class="muted">Shown with the rename panel folded. The header (badges and count cards) and the quick-filter chips are unchanged and left out here.</p>
     <div class="frame"><div class="win">
       <div class="tbar"><span>View Auto Renamer — v7.3.0</span><span>—  ☐  ✕</span></div>
       <div class="hdr"><div><b>View Auto Renamer</b><span class="s">Prefix, find/replace and standardize view names</span></div><span class="badge">v7.3.0</span></div>
       <div class="body">
         <div class="fbar"><span class="sbtn">⏷ Filters</span><span>Sheet <span class="in">A-101</span></span><span>Search <span class="in">View name…</span></span><span>Dup. fix <span class="in">NumberedBrackets</span></span><span>☑ Dry run</span><span>☑ Group by type <span class="tag">NEW</span></span></div>
-        <div class="bar"><span class="sbtn">Load all views</span><span class="sbtn">Select all</span><span class="sbtn">Select none</span><span class="sbtn">Invert</span><span class="sbtn">Reset selected names</span><span class="sbtn">Truncate last number</span><span class="sbtn">Truncate last text</span></div>
+        <div class="rbar"><span>▸ <b>RENAME OPTIONS</b></span><span>Prefix "A-"  ·  Standardize: TitleCase, clean</span><span class="tag">NEW</span></div>
+        <div class="bar"><span class="sbtn">Load all views</span><span class="sbtn">Select all</span><span class="sbtn">Select none</span><span class="sbtn">Invert</span><span class="sbtn">Reset selected names</span><span class="sbtn">Truncate last number</span><span class="sbtn">Truncate last text</span><span class="sbtn">Expand all</span><span class="sbtn">Collapse all</span><span class="tag">NEW</span></div>
         <table class="grid">
           <tr><th>☐</th><th>View Type</th><th>Original name</th><th>Edit name</th><th>Preview</th><th>Sheet no.</th></tr>
-          <tr class="grp"><td colspan="6">Sections &amp; Callouts<span>3</span> <span class="tag">NEW</span></td></tr>
+          <tr class="grp"><td colspan="6">▾ ☐ Sections &amp; Callouts<span>3</span> <span class="tag">NEW</span></td></tr>
           <tr><td>☐</td><td><span class="vt">Section</span></td><td>Section 3</td><td>Section 3</td><td>Section 3</td><td>A-101</td></tr>
           <tr class="alt"><td>☐</td><td><span class="vt">Section</span></td><td>Section 4</td><td>Section 4</td><td>Section 4</td><td>A-101</td></tr>
           <tr><td>☐</td><td><span class="vt">Callout</span></td><td>Stair callout</td><td>Stair callout</td><td>Stair callout</td><td>A-101</td></tr>
-          <tr class="grp"><td colspan="6">Floor Plans<span>2</span></td></tr>
-          <tr class="alt"><td>☐</td><td><span class="vt">Floor Plan</span></td><td>Level 1 Plan</td><td>Level 1 Plan</td><td>Level 1 Plan</td><td>A-101</td></tr>
-          <tr><td>☐</td><td><span class="vt">Floor Plan</span></td><td>Level 1 enlarged</td><td>Level 1 enlarged</td><td>Level 1 enlarged</td><td>A-101</td></tr>
-          <tr class="grp"><td colspan="6">Drafting Views<span>1</span></td></tr>
-          <tr class="alt"><td>☐</td><td><span class="vt">Drafting View</span></td><td>Roof Detail</td><td>Roof Detail</td><td>Roof Detail</td><td>A-101</td></tr>
-          <tr class="grp"><td colspan="6">Legends<span>1</span></td></tr>
+          <tr class="grp"><td colspan="6">▾ ☑ Floor Plans<span>2</span></td></tr>
+          <tr class="alt"><td>☑</td><td><span class="vt">Floor Plan</span></td><td>Level 1 Plan</td><td>Level 1 Plan</td><td>A-Level 1 Plan</td><td>A-101</td></tr>
+          <tr><td>☑</td><td><span class="vt">Floor Plan</span></td><td>Level 1 enlarged</td><td>Level 1 enlarged</td><td>A-Level 1 Enlarged</td><td>A-101</td></tr>
+          <tr class="grp"><td colspan="6">▸ ☐ Drafting Views<span>1</span> &nbsp;(folded)</td></tr>
+          <tr class="grp"><td colspan="6">▾ ☐ Legends<span>1</span></td></tr>
           <tr><td>☐</td><td><span class="vt">Legend</span></td><td>Symbol legend</td><td>Symbol legend</td><td>Symbol legend</td><td>A-101</td></tr>
-          <tr><td colspan="6" class="empty">The list is twice as tall: at least 320 px (was 160), up to 1.1 × the window height (was 0.55) <span class="tag">NEW</span></td></tr>
+          <tr><td colspan="6" class="empty">The list fills the height the window has left, at least 320 px <span class="tag">NEW</span></td></tr>
         </table>
         <div class="logbar"><div class="top"><b>▸ Log<i>(1)</i></b><span class="last i">Loaded 7 views from sheet A-101. Click "Load all views" to load the rest of the project.</span><span class="tag">NEW</span></div></div>
       </div>
       <div class="foot">
         <div class="acts">
-          <span class="reset">↺  Reset all names</span>
-          <span><span class="pill">Dry run — no changes will be saved</span><span class="pbtn">Commit selected (0)</span><span class="obtn">Close</span></span>
+          <span class="reset">↺  Reset all names</span> <span class="tag">FIXED</span>
+          <span><span class="pill">Dry run — no changes will be saved</span><span class="pbtn">Commit selected (2)</span><span class="obtn">Close</span></span>
         </div>
       </div>
     </div></div>
@@ -118,11 +124,25 @@ p{margin:0;line-height:1.5;max-width:75ch}
 
   <section>
     <h2>2. Group headers <span class="tag">NEW</span></h2>
-    <p class="muted">One header per view type that has views, with a count, in the order of the filter popover: Sections &amp; Callouts, Floor Plans, Ceiling Plans, Structural Plans, Area Plans, Elevations, Drafting Views, Legends, Schedules. These are the groups the duplicate check uses. Clicking a column header sorts inside each group. Untick "Group by type" for the flat list of 7.2.0; the choice is saved. After "Load all views" the whole project is grouped the same way.</p>
+    <p class="muted">One header per view type that has views, with a count, in the order of the filter popover: Sections &amp; Callouts, Floor Plans, Ceiling Plans, Structural Plans, Area Plans, Elevations, Drafting Views, Legends, Schedules. These are the groups the duplicate check uses. Click a header to fold or unfold the group; "Expand all" and "Collapse all" do every group. The header checkbox ticks every view listed in the group, unticks them when all were ticked, and shows a dash when only some are ticked. Clicking a column header sorts inside each group. Untick "Group by type" for the flat list of 7.2.0; the choice is saved. After "Load all views" the whole project is grouped the same way.</p>
   </section>
 
   <section>
-    <h2>3. Log, minimised and expanded <span class="tag">NEW</span></h2>
+    <h2>3. Rename panel, unfolded <span class="tag">NEW</span></h2>
+    <p class="muted">Unfolded is the default, as in 7.2.0. Click "RENAME OPTIONS" to fold it to the one bar shown in section 1; the list takes the freed height. The choice is saved.</p>
+    <div class="frame"><div style="width:760px">
+      <div class="rbar"><span>▾ <b>RENAME OPTIONS</b></span></div>
+      <div class="rpanel">
+        <div><b>PREFIX / POSTFIX</b>Prefix <span class="in">A-</span><br><br>Postfix <span class="in">&nbsp;</span></div>
+        <div><b>FIND / REPLACE</b>Find <span class="in">&nbsp;</span><br><br>Replace <span class="in">&nbsp;</span></div>
+        <div><b>OPTIONS</b>☐ Serial <span class="in" style="min-width:40px">00</span> ☐ Detail no.<br><br>Set selected <span class="in">&nbsp;</span></div>
+        <div style="grid-column:1/-1"><b>STANDARDIZE</b>Case <span class="in">TitleCase</span> &nbsp; ☑ Clean whitespace/punctuation</div>
+      </div>
+    </div></div>
+  </section>
+
+  <section>
+    <h2>4. Log, minimised and expanded <span class="tag">NEW</span></h2>
     <p class="muted">Minimised (every time the window opens): one bar with the line count and the latest line in its colour, so a warning or error still shows.</p>
     <div class="frame"><div class="logbar" style="width:760px"><div class="top"><b>▸ Log<i>(4)</i></b><span class="last w">Dry run is ON — no changes committed.</span></div></div></div>
     <p class="muted" style="margin:10px 0 8px">Click "Log" to expand. The Copy buttons show only then.</p>
@@ -139,6 +159,6 @@ p{margin:0;line-height:1.5;max-width:75ch}
 
   <section>
     <h2>Plugin change</h2>
-    <p class="muted">Tool version 7.2.0 → 7.3.0 (plugin 6.44.0). The ribbon button and tooltip are unchanged; the tooltip shows the new version. Renaming, filters, Load all views and Esc / Cancel work as in 7.2.0.</p>
+    <p class="muted">Tool version 7.2.0 → 7.3.0 (plugin 6.51.0). The ribbon button and tooltip are unchanged; the tooltip shows the new version. Renaming, filters, Load all views and Esc / Cancel work as in 7.2.0. Fixed: the footer button "Reset all names" now resets every row; it reset only the ticked rows.</p>
   </section>
 </div>

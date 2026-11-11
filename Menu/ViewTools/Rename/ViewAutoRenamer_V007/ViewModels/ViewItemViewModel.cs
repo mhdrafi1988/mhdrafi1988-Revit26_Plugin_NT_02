@@ -14,8 +14,12 @@ public partial class ViewItemViewModel : ObservableObject
     public ViewType     ViewType     { get; }
     public ViewTypeGroup TypeGroup   { get; }
 
-    /// <summary>Header text of this row's group in the grid (e.g. "Floor Plans"); 7.3.0.</summary>
-    public string TypeGroupLabel => ViewsListViewModel.GroupLabel(TypeGroup);
+    /// <summary>
+    /// The grid group this row is listed under (7.3.0). Set by the list view model when the
+    /// row is added; one shared object per <see cref="TypeGroup"/>, so every row of a group
+    /// lands in the same group and the header can read its label, fold state and tick from it.
+    /// </summary>
+    public ViewGroupState? GroupState { get; set; }
 
     /// <summary>Display label for the View Type pill/column (e.g. "Floor Plan").</summary>
     public string ViewTypeDisplay { get; }

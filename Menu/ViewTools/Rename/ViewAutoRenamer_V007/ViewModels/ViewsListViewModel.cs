@@ -77,6 +77,39 @@ public partial class ViewTypeFilterGroup : ObservableObject
     partial void OnIsCheckedChanged(bool value) => SetAllRows(value);
 }
 
+/// <summary>
+/// One group of the views grid (7.3.0): its header label, whether it is unfolded, and the
+/// header checkbox. The grid groups rows by this object, so it sorts in view-type order.
+/// </summary>
+public partial class ViewGroupState : ObservableObject, IComparable
+{
+    /// <summary>The view-type bucket this group lists.</summary>
+    public ViewTypeGroup Group { get; }
+
+    /// <summary>Header text, e.g. "Floor Plans".</summary>
+    public string Label { get; }
+
+    /// <summary>True: the group's rows are shown. False: only the header row.</summary>
+    [ObservableProperty] private bool isExpanded = true;
+
+    /// <summary>Header checkbox: true = every listed row ticked, false = none, null = some.</summary>
+    [ObservableProperty] private bool? isChecked = false;
+
+    /// <summary>Creates the state for one view-type group.</summary>
+    public ViewGroupState(ViewTypeGroup group, string label)
+    {
+        Group = group;
+        Label = label;
+    }
+
+    /// <summary>Orders groups like the filter popover (the enum's declaration order).</summary>
+    public int CompareTo(object? obj) =>
+        obj is ViewGroupState other ? Group.CompareTo(other.Group) : 1;
+
+    /// <summary>The label, so UI automation and debuggers show a readable name.</summary>
+    public override string ToString() => Label;
+}
+
 public partial class ViewsListViewModel : ObservableObject
 {
     // ── Collections ─────────────────────────────────────────────────────────
@@ -142,7 +175,103 @@ public partial class ViewsListViewModel : ObservableObject
     /// <summary>The newest log line, shown in the bar while the log is minimised.</summary>
     [ObservableProperty] private LogEntry? latestLog;
 
+    /// <summary>True (default): the Prefix / Find / Options / Standardize panel is shown. False: one bar with a summary. Saved in settings.</summary>
+    [ObservableProperty] private bool isRenamePanelExpanded = true;
+
+    /// <summary>The rename options in use, shown in the bar while the rename panel is folded.</summary>
+    [ObservableProperty] private string renameSummary = "";
+
+    // One state object per view-type group, shared by that group's rows.
+    private readonly Dictionary<ViewTypeGroup, ViewGroupState> _groupStates = new();
+    private bool _groupChecksPending;
+
     partial void OnGroupByViewTypeChanged(bool value) => ApplyGrouping();
+
+    private ViewGroupState GroupStateFor(ViewTypeGroup group)
+    {
+        if (!_groupStates.TryGetValue(group, out var state))
+            _groupStates[group] = state = new ViewGroupState(group, GroupLabel(group));
+        return state;
+    }
+
+    // Wires a row into the list: its group object and the selection listener.
+    private void Attach(ViewItemViewModel item)
+    {
+        item.GroupState = GroupStateFor(item.TypeGroup);
+        item.PropertyChanged += OnItemPropertyChanged;
+    }
+
+    /// <summary>Group header checkbox: ticks every listed row of the group, or unticks them when all were ticked.</summary>
+    [RelayCommand]
+    private void ToggleGroupSelection(ViewGroupState? group)
+    {
+        if (group == null) return;
+        bool select = group.IsChecked != true;
+
+        _suppressSelectionPreview = true;
+        foreach (var v in Views.Where(x => x.TypeGroup == group.Group && PassesAllFilters(x)))
+            v.IsSelected = select;
+        _suppressSelectionPreview = false;
+
+        group.IsChecked = select;
+        UpdateSelectedCount();
+        RunPreview();
+    }
+
+    /// <summary>Unfolds every group of the grid.</summary>
+    [RelayCommand]
+    private void ExpandAllGroups()
+    {
+        foreach (var g in _groupStates.Values) g.IsExpanded = true;
+    }
+
+    /// <summary>Folds every group of the grid down to its header row.</summary>
+    [RelayCommand]
+    private void CollapseAllGroups()
+    {
+        foreach (var g in _groupStates.Values) g.IsExpanded = false;
+    }
+
+    // Header ticks follow the listed (filtered) rows. Coalesced: a bulk select changes
+    // thousands of rows, and one pass after it is enough.
+    private void ScheduleGroupChecks()
+    {
+        if (_groupChecksPending) return;
+        _groupChecksPending = true;
+        Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Background, new Action(UpdateGroupChecks));
+    }
+
+    private void UpdateGroupChecks()
+    {
+        _groupChecksPending = false;
+        var total = new Dictionary<ViewTypeGroup, int>();
+        var ticked = new Dictionary<ViewTypeGroup, int>();
+        foreach (var v in Views)
+        {
+            if (!PassesAllFilters(v)) continue;
+            total[v.TypeGroup] = total.GetValueOrDefault(v.TypeGroup) + 1;
+            if (v.IsSelected) ticked[v.TypeGroup] = ticked.GetValueOrDefault(v.TypeGroup) + 1;
+        }
+        foreach (var g in _groupStates.Values)
+        {
+            int n = total.GetValueOrDefault(g.Group), on = ticked.GetValueOrDefault(g.Group);
+            g.IsChecked = on == 0 ? false : on == n ? true : null;
+        }
+    }
+
+    // Text for the folded rename bar: only the options that currently do something.
+    private void UpdateRenameSummary()
+    {
+        var parts = new List<string>();
+        if (!string.IsNullOrEmpty(Prefix))   parts.Add($"Prefix \"{Prefix}\"");
+        if (!string.IsNullOrEmpty(Postfix))  parts.Add($"Postfix \"{Postfix}\"");
+        if (!string.IsNullOrEmpty(FindText)) parts.Add($"Find \"{FindText}\" → \"{ReplaceText}\"");
+        if (AddSerial)                       parts.Add($"Serial {SerialFormat}");
+        if (IncludeDetailNumber)             parts.Add("Detail no.");
+        if (StandardizeEnabled)
+            parts.Add(CleanWhitespacePunctuation ? $"Standardize: {StandardizeCase}, clean" : $"Standardize: {StandardizeCase}");
+        RenameSummary = parts.Count == 0 ? "No rename options set" : string.Join("  ·  ", parts);
+    }
 
     /// <summary>Header text for a view-type group, e.g. "Floor Plans".</summary>
     public static string GroupLabel(ViewTypeGroup group)
@@ -161,8 +290,8 @@ public partial class ViewsListViewModel : ObservableObject
             ViewsGrid.GroupDescriptions.Clear();
             if (!GroupByViewType) return;
 
-            var byGroup = new PropertyGroupDescription(nameof(ViewItemViewModel.TypeGroup));
-            // The group name is the enum value, declared in the same order as GroupOrder.
+            // The group name is the row's ViewGroupState, which compares in view-type order.
+            var byGroup = new PropertyGroupDescription(nameof(ViewItemViewModel.GroupState));
             byGroup.SortDescriptions.Add(new SortDescription("Name", ListSortDirection.Ascending));
             ViewsGrid.GroupDescriptions.Add(byGroup);
         }
@@ -244,15 +373,17 @@ public partial class ViewsListViewModel : ObservableObject
     {
         this.allViewsLoaded = allViewsLoaded;
         _activeSheetNumber = activeSheetNumber;
-        _refreshTimer.Tick += (_, _) => { _refreshTimer.Stop(); ViewsGrid.Refresh(); RecalculateActiveFilterCount(); };
+        _refreshTimer.Tick += (_, _) => { _refreshTimer.Stop(); ViewsGrid.Refresh(); RecalculateActiveFilterCount(); ScheduleGroupChecks(); };
 
         Views = new ObservableCollection<ViewItemViewModel>(views);
         foreach (var v in Views)
-            v.PropertyChanged += OnItemPropertyChanged;
+            Attach(v);
 
         ViewsGrid        = CollectionViewSource.GetDefaultView(Views);
         ViewsGrid.Filter = PassesAllFilters;
         Logs.CollectionChanged += (_, _) => LatestLog = Logs.Count > 0 ? Logs[^1] : null;
+        // Any re-filter changes which rows a group header's tick stands for.
+        ((System.Collections.Specialized.INotifyCollectionChanged)ViewsGrid).CollectionChanged += (_, _) => ScheduleGroupChecks();
 
         BuildSheetFilters();
 
@@ -279,6 +410,8 @@ public partial class ViewsListViewModel : ObservableObject
         StandardizeCase            = settings.StandardizeCase;
         CleanWhitespacePunctuation = settings.CleanWhitespacePunctuation;
         GroupByViewType            = settings.GroupByViewType;
+        IsRenamePanelExpanded      = settings.IsRenamePanelExpanded;
+        UpdateRenameSummary();
         ApplyGrouping(); // the setter above does not fire when the saved value equals the default
 
         SelectedSheetFilter =
@@ -335,7 +468,7 @@ public partial class ViewsListViewModel : ObservableObject
                 current.UpdatePlacement(item.PlacedSheetNumbers);
                 continue;
             }
-            item.PropertyChanged += OnItemPropertyChanged;
+            Attach(item);
             Views.Add(item);
             added++;
         }
@@ -357,6 +490,7 @@ public partial class ViewsListViewModel : ObservableObject
         RecalculateQuickFilterCounts();
         RunPreview();
         ViewsGrid.Refresh();
+        ScheduleGroupChecks();
 
         AllViewsLoaded = true;
         IsLoadingViews = false;
@@ -529,7 +663,7 @@ public partial class ViewsListViewModel : ObservableObject
     partial void OnViewNameSearchTextChanged(string value)   => ScheduleGridRefresh();
     partial void OnShowPlacedOnSheetChanged(bool value)      => ScheduleGridRefresh();
     partial void OnShowNotPlacedChanged(bool value)          => ScheduleGridRefresh();
-    partial void OnActiveQuickFilterChanged(QuickFilterMode value) => ViewsGrid.Refresh();
+    partial void OnActiveQuickFilterChanged(QuickFilterMode value) { ViewsGrid.Refresh(); ScheduleGroupChecks(); }
 
     private void RecalculateActiveFilterCount()
     {
@@ -628,6 +762,26 @@ public partial class ViewsListViewModel : ObservableObject
         DetectDuplicates();
     }
 
+    /// <summary>
+    /// Footer "Reset all names": puts every loaded row's edit name back to its original name,
+    /// ticked or not, filtered out or not. Until 7.3.0 this button reset only the ticked rows.
+    /// </summary>
+    [RelayCommand]
+    private void ResetAllNames()
+    {
+        int changed = 0;
+        foreach (var v in Views)
+        {
+            if (v.EditableName == v.OriginalName) continue;
+            v.EditableName = v.OriginalName;
+            changed++;
+        }
+        LogInfo(changed == 0
+            ? "Reset all names: no edited names to reset."
+            : $"Reset all names: {changed} edited name(s) put back to the original.");
+        RunPreview();
+    }
+
     private bool HasSelection() => SelectedCount > 0;
 
     // Truncate edits EditableName (the pipeline's base name), not PreviewName —
@@ -688,6 +842,7 @@ public partial class ViewsListViewModel : ObservableObject
 
     private void SchedulePreview()
     {
+        UpdateRenameSummary();
         _previewTimer.Stop();
         _previewTimer.Start();
     }
@@ -877,6 +1032,7 @@ public partial class ViewsListViewModel : ObservableObject
             StandardizeCase            = StandardizeCase,
             CleanWhitespacePunctuation = CleanWhitespacePunctuation,
             GroupByViewType            = GroupByViewType,
+            IsRenamePanelExpanded      = IsRenamePanelExpanded,
         };
         ViewAutoRenamerSettingsService.Save(settings);
     }
@@ -902,8 +1058,11 @@ public partial class ViewsListViewModel : ObservableObject
         }
     }
 
-    private void UpdateSelectedCount() =>
+    private void UpdateSelectedCount()
+    {
         SelectedCount = Views.Count(v => v.IsSelected);
+        ScheduleGroupChecks();
+    }
 
     // ── Log helpers ──────────────────────────────────────────────────────────
     public void LogInfo(string m)    => Logs.Add(new LogEntry(LogLevel.Info,    m));
