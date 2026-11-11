@@ -47,6 +47,9 @@ namespace Revit26_Plugin_Revised.VoidOpenings.V001.Core.Domain.Entities
         /// <summary>The elements to check.</summary>
         public IReadOnlyList<StructuralElementData> Elements { get; }
 
+        /// <summary>Transform from this model's coordinates to the host's; identity for the host itself.</summary>
+        public Transform3 ToHost { get; set; } = Transform3.Identity;
+
         /// <summary>Creates the structural side of a run.</summary>
         public StructuralModel(ModelRef modelRef, IReadOnlyList<StructuralElementData> elements)
         {

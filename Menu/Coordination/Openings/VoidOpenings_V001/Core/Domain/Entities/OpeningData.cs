@@ -17,6 +17,12 @@ namespace Revit26_Plugin_Revised.VoidOpenings.V001.Core.Domain.Entities
         /// <summary>Centre of the opening, mid-depth in the structure.</summary>
         public Vec3 Center => Orientation.Origin;
 
+        /// <summary>UniqueId of the void instance that realises this opening; null until one exists.</summary>
+        public string InstanceUniqueId { get; set; }
+
+        /// <summary>What happened when the opening was generated or cut; empty when there is nothing to say.</summary>
+        public string ResultNote { get; set; } = string.Empty;
+
         /// <summary>Position and orientation of the opening.</summary>
         public Frame3 Orientation { get; set; }
 
