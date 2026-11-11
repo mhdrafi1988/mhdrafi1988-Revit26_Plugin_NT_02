@@ -48,7 +48,7 @@ namespace Revit26_Plugin_Revised.BubbleAutoRenumber.V009.Core.Services
             }
 
             List<string> finals = DetailNumberAllocator.Allocate(
-                targets.Count, options.StartNumber, reserved);
+                targets.Count, options.StartNumber, reserved, options.Style);
 
             List<string> temporaries = DetailNumberAllocator.AllocateTemporaries(
                 targets.Count, reserved, finals);

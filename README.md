@@ -57,7 +57,7 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 
 ### Roof slope
 - **Auto Slope By Point**: slope a roof's shape points down to drain points you pick. V033 adds optional ridge
-  lines between drain groups. The dropdown also has the Ridge and Multi Copies variants.
+  lines between drain groups; V034 lets you set the on-roof path check spacing and projection tolerance. The dropdown also has the Ridge and Multi Copies variants.
 - **Auto Slope By Drain (Multi-Roof)**: pick one or more roofs and slope each one down to the drain openings in its
   sketch, with circle markers, Excel export and `AutoSlope_*` parameters.
 - **Roof Points & Slope**: shape points around openings, perpendicular to the boundary, at mid/quarter points and in
