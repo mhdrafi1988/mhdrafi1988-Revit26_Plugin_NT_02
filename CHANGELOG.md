@@ -9,6 +9,38 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.50.0] — 2026-11-11
+
+### Annotation Overlap Detection 5.0.0 (V005, new)
+
+#### Added
+- Resolve Overlaps: fix clashing annotations from the results grid.
+  - **Move Up**: the upper element of each pair moves up until the pair is clear.
+  - **Move Down**: the lower element moves down until the pair is clear.
+  - **Distribute**: both move apart, half the distance each.
+  - **Clear gap (mm)**: extra space left between the two (default 1.00).
+  - **Resolve Selected** (the grid is now multi-select) and **Resolve All**.
+- Status column (last column) with the result of each pair: Moved, Already clear, Skipped (pinned, in a group,
+  owned by another user, changed in central) or Failed.
+- After each run the view is re-scanned and checked again; a green banner sums up the run.
+- Esc / Cancel with a Yes / No confirm (the shared cancel support from 6.40.0) while the scan or a resolve runs.
+  A cancelled resolve moves nothing.
+- Mode and gap are remembered in `%AppData%\Revit26_Plugin_Revised\AnnotationOverlapDetection\settings.json`.
+
+#### Changed
+- Runs in every 2D view, not only floor plans: floor, ceiling, structural and area plans, sections, elevations,
+  detail and drafting views, legends and sheets. 3D views and schedules are not supported (V004: floor plans only).
+- Boxes are measured along the view's own right / up directions, so "up" is up on screen in every view
+  (in a section or elevation that is the model's height, in a rotated plan it is screen-up).
+  In unrotated plans the X / Y values are the same as V004.
+
+### Ribbon
+- The Overlaps pulldown lists V005 first, then V004.
+
+User note: V005 changes the model. All moves of one run are one transaction, so one Undo reverts the run.
+Text notes and tags move as a whole (a tag's leader stays on its host); a dimension moves as a whole where
+Revit allows it, otherwise only its text moves. V004 is unchanged and stays available.
+
 ## [6.49.0] — 2026-11-11
 
 ### Auto Slope By Point 34.0.0 (V034)

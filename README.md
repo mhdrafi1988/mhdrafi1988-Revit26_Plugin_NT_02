@@ -48,7 +48,7 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 | Rafi_Pro_Docs | Sheet Edit | Text Replace |
 | Rafi_Pro_Docs2 | DWG Tools | DWG To DL(P) · Export DWG · DWG Manager · DWG Statistics |
 | Rafi_Pro_Docs2 | Family Tools | Batch Link DWG · DWG To Lines |
-| Rafi_Pro_Docs2 | Manage | Overlaps · ParaManager · Shared Params · Schedule I/O · Link Check ▸ slide-out: Del. Line Styles · Bulk Rename · Tracker ID |
+| Rafi_Pro_Docs2 | Manage | Overlaps (V005, V004) · ParaManager · Shared Params · Schedule I/O · Link Check ▸ slide-out: Del. Line Styles · Bulk Rename · Tracker ID |
 | Rafi_Pro_Docs2 | Worksets | WS Browser · WS Creator · WS Renamer ▸ slide-out: WS Renamer XL · Delete Workset |
 | Rafi_Pro_Docs2 | Memory | WS Memory · Link Memory |
 | Rafi_Pro_Docs2 | Coordination | Void Openings |
@@ -151,7 +151,10 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 - **Detail Line Manager**: find, clean up and join detail lines, and rename line styles.
 
 ### Manage, worksets and memory
-- **Annotation Overlap Detection, ParaManager, Shared Parameter Studio, Schedule Export / Import**.
+- **Annotation Overlap Detection**: find overlapping text notes, tags, room tags and dimensions, then move them
+  apart (V005: Move Up, Move Down or Distribute; runs in plans, sections, elevations, drafting views, legends and
+  sheets. V004: floor plans only).
+- **ParaManager, Shared Parameter Studio, Schedule Export / Import**.
 - **Link Version Checker**: status of RVT links, including ACC Desktop Connector and Autodesk Docs cloud links.
 - **Delete Line Styles, Bulk Rename, Tracker ID**: clean up and rename styles and patterns, and give elements a
   permanent tracker ID.

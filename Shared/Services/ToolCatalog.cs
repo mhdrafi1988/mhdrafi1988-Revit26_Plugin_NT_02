@@ -61,6 +61,7 @@ namespace Revit26_Plugin_Revised.Shared.Services
         public static readonly ToolInfo ParaManager = Add("ParaManager", "5.2.0", "V005", "Revit26_Plugin_Revised.ParaManager.V005");
         public static readonly ToolInfo ScheduleExportImport = Add("Schedule Export / Import", "7.2.0", "V007", "Revit26_Plugin_Revised.ScheduleExportImport.V007");
         public static readonly ToolInfo AnnotationOverlapDetection = Add("Annotation Overlap Detection", "4.2.0", "V004", "Revit26_Plugin_Revised.AnnotationOverlapDetection.V004");
+        public static readonly ToolInfo AnnotationOverlapDetectionV005 = Add("Annotation Overlap Detection", "5.0.0", "V005", "Revit26_Plugin_Revised.AnnotationOverlapDetection.V005");
         public static readonly ToolInfo WorksetsElementsBrowser = Add("Worksets & Elements Browser", "4.5.0", "WSEB004", "Revit26_Plugin_Revised.WorksetsElementsBrowser.WSEB004");
         public static readonly ToolInfo WorksetManager = Add("Workset Manager", "14.2.0", "V014", "Revit26_Plugin_Revised.WorksetManager.V014");
         public static readonly ToolInfo WorksetRenamer = Add("Workset Renamer", "5.2.0", "V005", "Revit26_Plugin_Revised.WorksetRenamer.V005");
