@@ -1,6 +1,6 @@
 # Void Openings — design (first deliverable, A–G)
 
-Status: **approved by the owner on 2026-11-11. All phases are implemented (tool 0.9.0, plugin 6.47.0); none is tested in Revit yet.**
+Status: **approved by the owner on 2026-11-11. All phases are implemented (tool 0.9.0, plugin 6.51.0); none is tested in Revit yet.**
 Date: 2026-11-10 · Target: Revit 2026, .NET 8, WPF, plugin `Revit26_Plugin_Revised`.
 
 UI wireframe (deliverable C): `Claude/Previews/VoidOpenings_V001_Window.html`, published at

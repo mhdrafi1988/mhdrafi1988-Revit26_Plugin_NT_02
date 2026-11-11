@@ -9,7 +9,7 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
-## [6.47.0] — 2026-11-11
+## [6.51.0] — 2026-11-11
 
 ### Void Openings 0.9.0 (feature-complete, awaiting the first Revit test)
 
@@ -24,6 +24,83 @@ Each release lists every tool whose version changed, under the plugin version.
 - **Export Excel** and **Export JSON** of the results table (the table's columns first, extra columns appended).
 
 User note: nothing has been run in Revit yet. Test on a copy of a model first. The version becomes 1.0.0 once the Revit test passes.
+## [6.50.0] — 2026-11-11
+
+### Annotation Overlap Detection 5.0.0 (V005, new)
+
+#### Added
+- Resolve Overlaps: fix clashing annotations from the results grid.
+  - **Move Up**: the upper element of each pair moves up until the pair is clear.
+  - **Move Down**: the lower element moves down until the pair is clear.
+  - **Distribute**: both move apart, half the distance each.
+  - **Clear gap (mm)**: extra space left between the two (default 1.00).
+  - **Resolve Selected** (the grid is now multi-select) and **Resolve All**.
+- Status column (last column) with the result of each pair: Moved, Already clear, Skipped (pinned, in a group,
+  owned by another user, changed in central) or Failed.
+- After each run the view is re-scanned and checked again; a green banner sums up the run.
+- Esc / Cancel with a Yes / No confirm (the shared cancel support from 6.40.0) while the scan or a resolve runs.
+  A cancelled resolve moves nothing.
+- Mode and gap are remembered in `%AppData%\Revit26_Plugin_Revised\AnnotationOverlapDetection\settings.json`.
+
+#### Changed
+- Runs in every 2D view, not only floor plans: floor, ceiling, structural and area plans, sections, elevations,
+  detail and drafting views, legends and sheets. 3D views and schedules are not supported (V004: floor plans only).
+- Boxes are measured along the view's own right / up directions, so "up" is up on screen in every view
+  (in a section or elevation that is the model's height, in a rotated plan it is screen-up).
+  In unrotated plans the X / Y values are the same as V004.
+
+### Ribbon
+- The Overlaps pulldown lists V005 first, then V004.
+
+User note: V005 changes the model. All moves of one run are one transaction, so one Undo reverts the run.
+Text notes and tags move as a whole (a tag's leader stays on its host); a dimension moves as a whole where
+Revit allows it, otherwise only its text moves. V004 is unchanged and stays available.
+
+## [6.49.0] — 2026-11-11
+
+### Auto Slope By Point 34.0.0 (V034)
+
+#### Added
+- New build `AutoSlopeByPoint_V034` next to V033 (includes V033 33.1.0: Esc / Cancel with a Yes-No confirm) (V033 stays as the fallback in the dropdown). It is V033 plus two
+  settings in **Path options** that control the check that a path link stays on the roof surface:
+  - **Path check spacing (mm)**: distance between the on-roof checks along each link. Default 76.2 mm (the V033
+    value, 4 per foot); range 10–2000 mm; every link still gets at least 10 checks.
+  - **Projection tolerance (mm)**: height margin used when a point is matched to the roof top face. Default 1 mm
+    (the V033 value); range 0.1–50 mm.
+  - **Exact segment test** (toggle, off by default): also checks each link against the roof outline and every opening
+    edge, then tests each piece between crossings, so a gap is caught whatever its width. Slower on big roofs.
+- All three values are saved in `settings.v034.json`, written to the Excel report and to the run log.
+
+#### Changed
+- The By Point dropdown lists V034 first (also the button icon), then V033, V032, V030, Ridge V003, Multi Copies 30.
+
+User note: with the defaults V034 gives the same results as V033. A smaller spacing catches narrow openings and
+thin roof strips but builds the path graph more slowly; a larger one is faster but a link can cross them. Settings
+are read from V033's file the first time, so nothing is lost.
+
+## [6.48.0] — 2026-11-11
+
+### Sheet Text Replace 1.2.0
+
+#### Added
+- **Found text** area under the preview grid. Click a row and the **whole text** of that note shows there (every line, not only the part Find matched), with its view, line count and character count. The text can be selected and copied with Ctrl+C.
+- **Copy text** copies the whole current text of the picked note; **Copy new text** copies the whole text it will have after Apply; **Copy all found** copies the whole text of every note in the preview, one block per note with a blank line between them.
+- **Copy full text** on the right-click menu of each preview row.
+
+User note: copying only reads the notes; nothing in the model changes. Line breaks in a note are kept in the copied text. Every copy is written to the Activity Log.
+
+## [6.47.0] — 2026-11-11
+
+### Bubble Auto Renumber 9.3.0
+
+#### Added
+- **Numbering: Numbers or Letters.** A new Numbering row in the window chooses how the detail numbers are written: **Numbers** (1, 2, 3, as before) or **Letters** (A, B, C … Z, then AA, AB …). The preview's New # column shows the chosen style before anything is written.
+
+#### Changed
+- **Ribbon tooltip** of View Rename ▸ Bubble Renumber ▸ V009 now reads "Numbers detail bubbles 1, 2, 3 or A, B, C, top-left to bottom-right."
+- **Starting Number** is now labelled **Start At**. It takes a whole number in Numbers, or one to three letters in Letters (for example A, C or AA; lower case is accepted). Switching style carries the value over: 3 becomes C, and C becomes 3.
+
+User note: Numbers is the default, so the tool renumbers exactly as before unless you pick Letters. A letter already used by a view you left out of the run gets the usual "(D)" suffix, the same as a number does.
 
 ## [6.46.0] — 2026-11-11
 
