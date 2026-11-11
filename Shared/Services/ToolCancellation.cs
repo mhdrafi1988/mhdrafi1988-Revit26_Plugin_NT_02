@@ -294,6 +294,17 @@ namespace Revit26_Plugin_Revised.Shared.Services
             task.GetAwaiter().GetResult();
         }
 
+        /// <summary>
+        /// Puts a shell property back under its view-model binding (re-reads the source), or, when the
+        /// property is not bound, sets <paramref name="fallback"/> (nothing when it is null).
+        /// </summary>
+        private void RestoreShellValue(DependencyProperty property, object fallback)
+        {
+            var binding = System.Windows.Data.BindingOperations.GetBindingExpressionBase(_shell, property);
+            if (binding != null) binding.UpdateTarget();
+            else if (fallback != null) _shell.SetCurrentValue(property, fallback);
+        }
+
         /// <summary>Ends cancel handling: detaches from the window and closes the progress pop-up. If the user cancelled while closing the window, the window closes now.</summary>
         public void Dispose()
         {
@@ -309,7 +320,12 @@ namespace Revit26_Plugin_Revised.Shared.Services
                     _shell.IsCancellable = false;
                     if (_drivesShell)
                     {
-                        _shell.SetCurrentValue(ToolWindowShell.IsRunningProperty, _wasRunning);
+                        // Hand the strip back to the view model. Restoring the value seen at the start
+                        // left the bar spinning for tools that set IsRunning before raising the event and
+                        // cleared it in their completion callback (which runs before this Dispose).
+                        RestoreShellValue(ToolWindowShell.IsRunningProperty, _wasRunning);
+                        RestoreShellValue(ToolWindowShell.ProgressProperty, null);
+                        RestoreShellValue(ToolWindowShell.SummaryTextProperty, null);
                         if (_cts.IsCancellationRequested)
                             _shell.SetCurrentValue(ToolWindowShell.SummaryTextProperty, "Cancelled by user.");
                     }

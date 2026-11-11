@@ -11,8 +11,19 @@ namespace Revit26_Plugin_Revised.SheetTextReplace.V001.Infrastructure
     {
         private Action<UIApplication> _pending;
 
-        /// <summary>Queues the action to run the next time the event is raised.</summary>
-        public void Queue(Action<UIApplication> action) => _pending = action;
+        /// <summary>
+        /// Queues the action to run the next time the event is raised. Returns false (and queues
+        /// nothing) while an earlier action is still waiting, so its completion callback is never lost.
+        /// </summary>
+        public bool TryQueue(Action<UIApplication> action)
+        {
+            if (_pending != null) return false;
+            _pending = action;
+            return true;
+        }
+
+        /// <summary>Drops a queued action that Revit did not accept.</summary>
+        public void ClearPending() => _pending = null;
 
         /// <summary>Revit entry point — guarded so no exception reaches Revit.</summary>
         public void Execute(UIApplication app)

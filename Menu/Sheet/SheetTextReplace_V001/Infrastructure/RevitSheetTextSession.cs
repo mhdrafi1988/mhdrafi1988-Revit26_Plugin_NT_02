@@ -115,8 +115,12 @@ namespace Revit26_Plugin_Revised.SheetTextReplace.V001.Infrastructure
 
         private bool Raise(Action<UIApplication> work)
         {
-            _handler.Queue(work);
-            return _externalEvent.Raise() == ExternalEventRequest.Accepted;
+            // One request at a time: a second one would replace the first, whose callback would then
+            // never run and the window would stay busy.
+            if (!_handler.TryQueue(work)) return false;
+            if (_externalEvent.Raise() == ExternalEventRequest.Accepted) return true;
+            _handler.ClearPending();
+            return false;
         }
 
         private ViewSheet GetSheet(long sheetId, out string error)

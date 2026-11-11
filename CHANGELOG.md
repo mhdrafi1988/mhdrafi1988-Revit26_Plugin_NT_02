@@ -17,7 +17,16 @@ Each release lists every tool whose version changed, under the plugin version.
 - **Search is kept for next time.** Find, Replace with, Prefix, Suffix and the options (Match case, Whole word, Regex, Trim spaces) are saved when the window closes and after Apply, and filled in again when the tool opens, even after Revit is closed. They are saved in `%AppData%\Revit26_Plugin_Revised\SheetTextReplace\settings.json`.
 - **Recent ▾** button on the Find & Replace card: lists the last 10 searches (newest first). Click one to fill the boxes and options again; **Clear list** forgets them.
 
+#### Fixed
+- **Progress bar never stopped** after Refresh, picking a sheet or Apply: the work was done, but the bar at the bottom of the window kept running. The shared Esc / Cancel helper put the bar back to "running" after the tool had already switched it off.
+- A second request sent before Revit ran the first (for example a quick double-click while a sheet was loading) replaced the first one, and the window could stay busy. Now the second request is refused with a message in the log.
+
 User note: the first time you open 1.3.0 the boxes are empty, as before. From then on the tool opens with your last search, and the preview shows its matches straight away. Nothing changes in the model until you press Apply.
+
+### All tools with a window (shared fix)
+
+#### Fixed
+- The progress bar and status text at the bottom of a tool window could stay on after a job finished in Revit. The Esc / Cancel helper (`ToolCancellation`) now hands them back to the tool when the job ends, instead of restoring what they showed when it started.
 
 ## [6.48.0] — 2026-11-11
 
