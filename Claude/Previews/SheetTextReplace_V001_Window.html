@@ -1,0 +1,181 @@
+<title>Sheet Text Replace</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<!-- UI preview (CLAUDE.md "UI previews"): Sheet Text Replace 1.2.0 (V001). Plugin 6.48.0.
+     Change shown: new "Found text" area under the preview grid (whole note text + Copy text / Copy new text / Copy all found)
+     and "Copy full text" on the row right-click menu.
+     Mirrors: Menu/Sheet/SheetTextReplace_V001/UI/Views/SheetTextReplaceWindow.xaml
+              (labels from it and UI/ViewModels/SheetTextReplaceViewModel.cs; version from Shared/Services/ToolCatalog.cs).
+     Artifact: https://claude.ai/artifact/V4REBoQPBDr9wvrAxBjXgs (republish to this URL on every update)
+     Colours: Shared/SharedStyles.xaml tokens, one light look on purpose (mirrors the light WPF window). -->
+<style>
+/* Layout: one column; the fixed-width WPF window scrolls inside its own frame, notes sit under it. */
+:root{
+  color-scheme:light;
+  --page:#E9EDF1; --window:#F3F5F7; --card:#FFFFFF; --border:#D6DCE3; --input:#B5C2CF; --sep:#E6EAEF;
+  --navy:#1E3A5F; --navy-dark:#14283F; --navy-light:#2C4A6E; --on-dark:#EAF1F8;
+  --text:#1A2B3C; --text2:#5B7185; --text3:#8FA3B8; --bg2:#ECEFF3; --bg3:#E1E6EC;
+  --info:#1F5FBF; --info-soft:#E6EEFB; --info-border:#A9C3EE;
+  --ok:#2E7D4F; --ok-soft:#E6F4EC; --ok-border:#9FCFB2;
+  --warn:#9A5B00; --warn-soft:#FDF1E1; --warn-border:#E8B66B;
+  --err:#B23A35; --err-soft:#FBE8E7;
+  --log-text:#EAF1F8; --log-dim:#7E94AA; --log-ok:#4CC18A;
+  --new:#2E7D4F;
+  --ui:'Segoe UI',system-ui,-apple-system,sans-serif; --mono:Consolas,'Cascadia Mono',Menlo,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--text);font-family:var(--ui);font-size:12.5px;
+  padding-block:24px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.page{max-width:1000px;margin:0 auto;display:grid;gap:18px}
+h1{font-size:20px;margin:0 0 4px;font-weight:600;text-wrap:balance}
+h2{font-size:14px;margin:0 0 8px;font-weight:600}
+p{margin:0;line-height:1.5;max-width:75ch}
+.muted{color:var(--text2)}
+.tag{display:inline-block;background:var(--new);color:#FFFFFF;font-size:10px;font-weight:600;letter-spacing:.04em;
+  padding:1px 6px;border-radius:3px;vertical-align:middle;margin-left:6px}
+.sample{display:inline-block;background:var(--warn-soft);color:var(--warn);border:1px solid var(--warn-border);border-radius:3px;padding:2px 8px;font-size:11.5px}
+.frame{overflow-x:auto;padding-bottom:4px}
+.win{width:940px;background:var(--window);border:1px solid var(--input);box-shadow:0 6px 20px rgba(16,32,48,.18)}
+.tbar{background:var(--card);border-bottom:1px solid var(--border);padding:7px 10px}
+.hdr{background:var(--navy);color:var(--on-dark);padding:10px 12px;display:flex;justify-content:space-between;align-items:center}
+.hdr b{font-size:15px;font-weight:600;display:block}
+.hdr .s{font-size:11px;opacity:.8}
+.badge{background:var(--navy-light);border-radius:10px;padding:3px 8px;font-size:11px;font-weight:600}
+.body{padding:10px 12px;display:grid;gap:8px}
+.lbl{font-size:11px;font-weight:600;color:var(--text2);display:flex;align-items:center;gap:8px}
+.phase{background:var(--info-soft);border:1px solid var(--info-border);color:var(--info);border-radius:9px;padding:0 8px;font-size:10.5px;font-weight:700}
+.cards{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.mc{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:7px 10px}
+.mc span{display:block;font-size:11px;color:var(--text2)}
+.mc b{font-size:18px;font-variant-numeric:tabular-nums}
+.sec{background:var(--card);border:1px solid var(--border);border-radius:8px}
+.st{font-size:13px;font-weight:600;padding:9px 12px 6px;display:flex;gap:10px;align-items:baseline}
+.st small{font-weight:400;font-size:10.5px;color:var(--text3)}
+.two{display:grid;grid-template-columns:1.05fr 1fr;gap:10px}
+.fld{padding:0 12px 10px;display:grid;gap:4px}
+.fl{font-size:11.5px;color:var(--text2)}
+.in{border:1px solid var(--input);background:var(--card);border-radius:4px;height:26px;padding:0 6px;display:flex;align-items:center;font-family:var(--mono);font-size:12px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sbtn{border:1px solid var(--border);background:var(--bg2);border-radius:4px;height:26px;padding:0 9px;display:inline-flex;align-items:center;font-size:11px;white-space:nowrap}
+.sbtn.on{outline:2px solid var(--new);outline-offset:1px}
+.chips{display:flex;gap:4px;flex-wrap:wrap}
+.chip{background:var(--info-soft);border:1px solid var(--info-border);color:var(--info);border-radius:9px;padding:0 7px;font-size:11px}
+table.g{width:calc(100% - 24px);margin:0 12px 8px;border-collapse:collapse;font-size:12px}
+.g th{background:var(--bg2);text-align:left;font-weight:600;padding:5px 8px;border-bottom:1px solid var(--border)}
+.g td{padding:6px 8px;border-bottom:1px solid var(--sep);vertical-align:top}
+.g tr.sel td{background:var(--info-soft)}
+.mono{font-family:var(--mono)}
+.rm{color:var(--err);text-decoration:line-through;background:var(--err-soft)}
+.add{color:var(--ok);background:var(--ok-soft)}
+.vt{font-size:11px;color:var(--text3)}
+.sb{display:inline-block;border-radius:8px;padding:1px 7px;border:1px solid var(--ok-border);background:var(--ok-soft);color:var(--ok);font-size:11px;font-weight:600}
+.found{margin:0 12px 12px;padding:8px;border:2px solid var(--new);border-radius:6px;background:var(--bg2);display:grid;gap:6px;position:relative}
+.found .hd{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.found .t{font-size:12px;font-weight:600}
+.found .c{font-size:10.5px;color:var(--text3)}
+.box{background:var(--card);border:1px solid var(--input);border-radius:4px;padding:4px 6px;font-family:var(--mono);font-size:12px;white-space:pre-wrap;min-height:54px;line-height:1.45}
+.box .hl{background:var(--info-soft)}
+.btns{display:flex;gap:6px}
+.ctx{position:absolute;right:220px;top:-58px;background:var(--card);border:1px solid var(--input);box-shadow:0 4px 12px rgba(16,32,48,.2);padding:3px 0;font-size:12px}
+.ctx div{padding:4px 22px 4px 12px}
+.ctx div:hover{background:var(--info-soft)}
+.log{background:var(--navy-dark);border-radius:8px;padding:8px 10px;font-family:var(--mono);font-size:11px;color:var(--log-text);display:grid;gap:3px}
+.log .h{font-family:var(--ui);font-weight:600;font-size:11.5px;margin-bottom:3px}
+.log .d{color:var(--log-dim)}
+.log .n{background:rgba(76,193,138,.12);outline:1px dashed var(--log-ok)}
+.foot{border-top:1px solid var(--border);padding:8px 12px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.pbtn{background:var(--navy);color:#FFFFFF;padding:7px 18px;border-radius:4px}
+.obtn{border:1px solid var(--navy);color:var(--navy);padding:6px 16px;border-radius:4px;margin-right:8px}
+ul{margin:0;padding-left:18px;line-height:1.6;max-width:80ch}
+</style>
+
+<div class="page">
+  <header>
+    <h1>Sheet Text Replace <span class="muted" style="font-weight:400;font-size:14px">v1.2.0 · plugin 6.48.0</span></h1>
+    <p class="muted">When Find matches a text note, the <b>whole</b> note text can now be read and copied, not only the found part. <span class="sample">Sample data: sheets, views and notes are made up.</span></p>
+  </header>
+
+  <section>
+    <h2>Tool window <span class="tag">NEW: Found text</span></h2>
+    <div class="frame">
+      <div class="win">
+        <div class="tbar">Sheet Text Replace</div>
+        <div class="hdr"><div><b>Sheet Text Replace</b><span class="s">Find and replace text notes in selected views on a sheet</span></div><span class="badge">v1.2.0</span></div>
+        <div class="body">
+          <div class="lbl">SUMMARY <span class="phase">BEFORE APPLY</span></div>
+          <div class="cards">
+            <div class="mc"><span>Views checked</span><b>4/5</b></div>
+            <div class="mc"><span>Text notes scanned</span><b>23</b></div>
+            <div class="mc"><span>Matches found</span><b style="color:var(--info)">3</b></div>
+            <div class="mc"><span>Will change</span><b style="color:var(--ok)">3</b></div>
+            <div class="mc"><span>Excluded by you</span><b>0</b></div>
+            <div class="mc"><span>Will skip</span><b style="color:var(--warn)">0</b></div>
+          </div>
+
+          <div class="two">
+            <div class="sec">
+              <div class="st" style="justify-content:space-between">Sheet &amp; Views <span class="sbtn">⟳ Refresh</span></div>
+              <div class="fld">
+                <span class="fl">Sheet</span>
+                <div class="in" style="font-family:var(--ui);justify-content:space-between">A-201 - Roof Plan Details <span>▾</span></div>
+                <span class="fl" style="margin-top:6px">Views on this sheet</span>
+                <div><span class="sbtn">Views… (4/5) ▾</span></div>
+                <div class="chips"><span class="chip">Sheet 1/1</span><span class="chip">Floor Plan 1/1</span><span class="chip">Detail 2/2</span></div>
+              </div>
+            </div>
+            <div class="sec">
+              <div class="st">Find &amp; Replace</div>
+              <div class="fld">
+                <div class="row2"><span class="fl">Find</span><span class="fl">Replace with</span></div>
+                <div class="row2"><div class="in">MEMBRANE</div><div class="in">MEMBRANE TYPE 2</div></div>
+                <div class="row2"><span class="fl">Prefix</span><span class="fl">Suffix</span></div>
+                <div class="row2"><div class="in"></div><div class="in"></div></div>
+                <div class="muted" style="font-size:12px">☐ Match case &nbsp; ☐ Whole word &nbsp; ☐ Regex &nbsp; ☑ Trim spaces</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="sec">
+            <div class="st">Preview <small>3 matching note(s) · only ticked rows are applied · double-click a row to show it in Revit</small></div>
+            <table class="g">
+              <thead><tr><th style="width:30px">☑</th><th>View</th><th>Current text</th><th>New text</th><th style="width:110px">Status</th></tr></thead>
+              <tbody>
+                <tr><td>☑</td><td>Roof Plan - Level 4 <span class="vt">Floor Plan</span></td><td class="mono">ROOF <span class="rm">MEMBRANE</span> ON INSULATION…</td><td class="mono">ROOF <span class="add">MEMBRANE TYPE 2</span> ON INSULATION…</td><td><span class="sb">Will change</span></td></tr>
+                <tr class="sel"><td>☑</td><td>Parapet Detail 3 <span class="vt">Detail</span></td><td class="mono">1. <span class="rm">MEMBRANE</span> TURNED UP 150 MIN…</td><td class="mono">1. <span class="add">MEMBRANE TYPE 2</span> TURNED UP 150 MIN…</td><td><span class="sb">Will change</span></td></tr>
+                <tr><td>☑</td><td>Gutter Detail 1 <span class="vt">Detail</span></td><td class="mono">LAP <span class="rm">MEMBRANE</span> INTO GUTTER</td><td class="mono">LAP <span class="add">MEMBRANE TYPE 2</span> INTO GUTTER</td><td><span class="sb">Will change</span></td></tr>
+              </tbody>
+            </table>
+
+            <div class="found">
+              <div class="ctx" title="Right-click menu on a preview row"><div>Copy full text <span class="tag">NEW</span></div></div>
+              <div class="hd">
+                <div><div class="t">Found text <span class="tag">NEW</span></div><div class="c">Parapet Detail 3 · 4 lines · 131 characters</div></div>
+                <div class="btns"><span class="sbtn on">Copy text</span><span class="sbtn on">Copy new text</span><span class="sbtn on">Copy all found</span></div>
+              </div>
+<div class="box">1. <span class="hl">MEMBRANE</span> TURNED UP 150 MIN ABOVE FINISHED ROOF LEVEL
+2. METAL CAPPING FIXED AT 450 CTRS
+3. 100 THK INSULATION, FALL 1:80
+4. SEE SPEC SECTION J40</div>
+            </div>
+          </div>
+
+          <div class="log">
+            <div class="h">Activity Log</div>
+            <div><span class="d">10:42:05</span> Info     Sheet A-201 - Roof Plan Details: 4 view(s) in 2 type(s) plus notes placed on the sheet itself, 23 text note(s).</div>
+            <div class="n"><span class="d">10:42:31</span> Info     Copied the whole text of the note in Parapet Detail 3 (131 characters).</div>
+          </div>
+        </div>
+        <div class="foot"><span class="muted">3 changes will be made in one undoable transaction</span><span><span class="obtn">Close</span><span class="pbtn">Apply</span></span></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>What changed in 1.2.0</h2>
+    <ul>
+      <li><b>Found text</b> area under the preview grid: click a row and every line of that note shows, with its view, line count and character count. Select part of it and press Ctrl+C, or use the buttons.</li>
+      <li><b>Copy text</b>: the whole current text of the picked note. <b>Copy new text</b>: the whole text after Apply. <b>Copy all found</b>: every note in the preview, separated by a blank line.</li>
+      <li><b>Copy full text</b> on the right-click menu of each preview row.</li>
+      <li>Each copy is written to the Activity Log. Copying only reads; the model does not change.</li>
+    </ul>
+  </section>
+</div>

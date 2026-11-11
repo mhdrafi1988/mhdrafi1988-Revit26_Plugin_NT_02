@@ -36,7 +36,7 @@ Each item is a pulldown unless marked *button*. A pulldown lists its versions hi
 
 | Tab | Panel | Items | Builder |
 |---|---|---|---|
-| Rafi_Pro_MOds | Roof Slope | By Point (V033, V032, V030, Ridge V003, Multi Copies 30) · By Drain (V013, V012, V011, V007) · Points & Slope (V001) | `RoofToolsRibbon.Build` |
+| Rafi_Pro_MOds | Roof Slope | By Point (V034, V033, V032, V030, Ridge V003, Multi Copies 30) · By Drain (V013, V012, V011, V007) · Points & Slope (V001) | `RoofToolsRibbon.Build` |
 | Rafi_Pro_MOds | Floor Slope | By Drain *button* (Floor Slope By Drain V001) · By Point (By Point V001, Ridge V001, Multi Copies V001) · Points & Slope *button* (Floor Points & Slope V001) | `FloorToolsRibbon.BuildSlopePanel` |
 | Rafi_Pro_MOds | Shape Points | Inner Loops · Outer Curve · Line Intersect · Loops + Perp. ▸ Vertex Reducer · Multi Points · Shape From Link | `RoofToolsRibbon.Build` |
 | Rafi_Pro_MOds | Floor Points | Inner Loops *button* · Outer Curve *button* · Line Intersect *button* · Loops + Perp. *button* · Vertex Reducer *button* · Multi Points *button* · Shape From Link (large *button*) — each V001 | `FloorToolsRibbon.BuildPointsPanel` |
@@ -63,11 +63,13 @@ Each item is a pulldown unless marked *button*. A pulldown lists its versions hi
 | Rafi_Pro_Docs | Sheet Edit | Text Replace *button* (large) | `SheetToolsRibbon` |
 | Rafi_Pro_Docs2 | DWG Tools | DWG To DL(P) · Export DWG · DWG Manager · DWG Statistics | `SetupRibbon` |
 | Rafi_Pro_Docs2 | Family Tools | Batch Link DWG · DWG To Lines | `SetupRibbon` |
-| Rafi_Pro_Docs2 | Manage | Overlaps · ParaManager · Shared Params *button* · Schedule I/O · Link Check (8 entries: V007, V006, then V004 and V003 scan modes) ▸ Del. Line Styles · Bulk Rename · Tracker ID | `ManageRibbon` |
+| Rafi_Pro_Docs2 | Manage | Overlaps (V005, V004) · ParaManager · Shared Params *button* · Schedule I/O · Link Check (8 entries: V007, V006, then V004 and V003 scan modes) ▸ Del. Line Styles · Bulk Rename · Tracker ID | `ManageRibbon` |
 | Rafi_Pro_Docs2 | Worksets | WS Browser · WS Creator · WS Renamer ▸ WS Renamer XL · Delete Workset | `ManageRibbon` |
 | Rafi_Pro_Docs2 | Memory | WS Memory (large *button*) · Link Memory (large; V002, V001) | `ManageRibbon` |
+| Rafi_Pro_Docs2 | Coordination | Void Openings (large *button*) | `CoordinationRibbon` |
 
-The latest change was plugin 6.37.0, which added the **Floor Views** panel (Documents tab, after View Create) and
+The latest change was plugin 6.46.0, which added the **Coordination** panel (Documents 2 tab, after Memory) with
+Void Openings; its icons are in `Resources/Icons/Coordination`. Before it, 6.37.0 added the **Floor Views** panel (Documents tab, after View Create) and
 Floor EPS on Floor Edit. 6.36.0 added the **Floor Edit** panel (floor versions of Roof Types, Name
 Builder, Roof Tag, Point Comparison and Elevation Sync) after Floor Lines. 6.35.0 added the **Floor Lines** panel (floor versions of Ridge By Openings,
 Ridge By Points and Creaser Adv) after Floor Points. 6.34.0 added the **Floor Points** panel (floor versions of
@@ -157,7 +159,7 @@ agreement** on which panel and which tools go inside it (root `CLAUDE.md`, Slide
 Points, View Create, Sheet Create, Manage, Worksets.
 
 **Large buttons:** `panel.AddItem(...)` gives a full-size button. Use it deliberately and set `LargeImage`. Current
-uses: Tagging (Tag To Text, Align Spot Elevations, Align to Detail Line, Distribute Spot Elev.), Memory (WS Memory, Link Memory), Detail
+uses: Tagging (Tag To Text, Align Spot Elevations, Align to Detail Line, Distribute Spot Elev.), Memory (WS Memory, Link Memory), Coordination (Void Openings), Detail
 Lines (Line Manager), Plan View (Island Splitter) and Sheet Edit (Text Replace).
 
 ## Panel layout — keep the tabs narrow

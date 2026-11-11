@@ -48,15 +48,16 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 | Rafi_Pro_Docs | Sheet Edit | Text Replace |
 | Rafi_Pro_Docs2 | DWG Tools | DWG To DL(P) · Export DWG · DWG Manager · DWG Statistics |
 | Rafi_Pro_Docs2 | Family Tools | Batch Link DWG · DWG To Lines |
-| Rafi_Pro_Docs2 | Manage | Overlaps · ParaManager · Shared Params · Schedule I/O · Link Check ▸ slide-out: Del. Line Styles · Bulk Rename · Tracker ID |
+| Rafi_Pro_Docs2 | Manage | Overlaps (V005, V004) · ParaManager · Shared Params · Schedule I/O · Link Check ▸ slide-out: Del. Line Styles · Bulk Rename · Tracker ID |
 | Rafi_Pro_Docs2 | Worksets | WS Browser · WS Creator · WS Renamer ▸ slide-out: WS Renamer XL · Delete Workset |
 | Rafi_Pro_Docs2 | Memory | WS Memory · Link Memory |
+| Rafi_Pro_Docs2 | Coordination | Void Openings |
 
 ## Features
 
 ### Roof slope
 - **Auto Slope By Point**: slope a roof's shape points down to drain points you pick. V033 adds optional ridge
-  lines between drain groups. The dropdown also has the Ridge and Multi Copies variants.
+  lines between drain groups; V034 lets you set the on-roof path check spacing and projection tolerance. The dropdown also has the Ridge and Multi Copies variants.
 - **Auto Slope By Drain (Multi-Roof)**: pick one or more roofs and slope each one down to the drain openings in its
   sketch, with circle markers, Excel export and `AutoSlope_*` parameters.
 - **Roof Points & Slope**: shape points around openings, perpendicular to the boundary, at mid/quarter points and in
@@ -150,7 +151,10 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 - **Detail Line Manager**: find, clean up and join detail lines, and rename line styles.
 
 ### Manage, worksets and memory
-- **Annotation Overlap Detection, ParaManager, Shared Parameter Studio, Schedule Export / Import**.
+- **Annotation Overlap Detection**: find overlapping text notes, tags, room tags and dimensions, then move them
+  apart (V005: Move Up, Move Down or Distribute; runs in plans, sections, elevations, drafting views, legends and
+  sheets. V004: floor plans only).
+- **ParaManager, Shared Parameter Studio, Schedule Export / Import**.
 - **Link Version Checker**: status of RVT links, including ACC Desktop Connector and Autodesk Docs cloud links.
 - **Delete Line Styles, Bulk Rename, Tracker ID**: clean up and rename styles and patterns, and give elements a
   permanent tracker ID.
@@ -159,6 +163,11 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 - **Link Memory** (dropdown): V002 remembers which links (Revit, IFC, CAD, point clouds, images/PDF) the active view
   and its related views, or a print set, show, loads them back in one click, and exports the list to Excel.
   *Link Memory (classic)* (V001) remembers which Revit links are loaded as named sets.
+
+### Coordination
+- **Void Openings** (in development): openings for MEP through structure. So far: choose the structural model and
+  the MEP model (the active model or a Revit link) and their categories, with element counts. Clash analysis, void
+  placement and cutting follow.
 
 ## Installation
 

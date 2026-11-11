@@ -1,0 +1,226 @@
+<!--
+=======================================================
+File: AnnotationOverlapPanel.xaml (V005)
+Changes vs V004:
+  - Resolve Overlaps card: Move Up / Move Down / Distribute + Clear gap (mm),
+    Resolve Selected / Resolve All buttons in the footer.
+  - Results grid is multi-select (SelectionMode Extended) and has a Status
+    column appended last (V004 columns unchanged).
+  - Green result banner after a resolve run.
+  - Title / version read ToolCatalog.AnnotationOverlapDetectionV005.
+=======================================================
+-->
+<Window x:Class="Revit26_Plugin_Revised.AnnotationOverlapDetection.V005.Views.AnnotationOverlapPanel"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:svc="clr-namespace:Revit26_Plugin_Revised.Shared.Services"
+        xmlns:converters="clr-namespace:Revit26_Plugin_Revised.Shared.Models"
+        xmlns:shell="clr-namespace:Revit26_Plugin_Revised.Shared.Controls"
+        Title="{Binding Source={x:Static svc:ToolCatalog.AnnotationOverlapDetectionV005}, Path=Title}"
+        Width="780" Height="820"
+        MinWidth="780" MinHeight="760"
+        ResizeMode="CanResizeWithGrip"
+        WindowStartupLocation="CenterScreen">
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/Revit26_Plugin_Revised;component/Shared/SharedStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+            <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+            <converters:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter" />
+            <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <shell:ToolWindowShell Title="Annotation Overlap Detection"
+                           Subtitle="Find overlapping annotations in the active view, then move them apart"
+                           Version="{Binding Source={x:Static svc:ToolCatalog.AnnotationOverlapDetectionV005}, Path=Version, StringFormat=v{0}}"
+                           IsRunning="{Binding IsLoading}"
+                           IsIndeterminate="True"
+                           Progress="{Binding Progress}"
+                           SummaryText="{Binding SummaryText}">
+
+        <!-- ═══ HEADER ═══════════════════════════════════════════ -->
+        <shell:ToolWindowShell.HeaderContent>
+            <Grid Margin="0,0,0,8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="2*"/>
+                </Grid.ColumnDefinitions>
+                <Border Grid.Column="0" Style="{StaticResource MetricCard}" Padding="10,8" Margin="0,0,4,0">
+                    <StackPanel>
+                        <TextBlock Text="Scanned" Style="{StaticResource MetricLabel}"/>
+                        <TextBlock Text="{Binding TotalScanned}" Style="{StaticResource MetricNumber}" FontSize="18"/>
+                    </StackPanel>
+                </Border>
+                <Border Grid.Column="1" Style="{StaticResource MetricCard}" Padding="10,8" Margin="4,0,4,0">
+                    <StackPanel>
+                        <TextBlock Text="Overlaps Found" Style="{StaticResource MetricLabel}"/>
+                        <TextBlock Text="{Binding TotalOverlaps}" Style="{StaticResource MetricNumberDanger}" FontSize="18"/>
+                    </StackPanel>
+                </Border>
+                <Border Grid.Column="2" Style="{StaticResource MetricCard}" Padding="10,8" Margin="4,0,0,0">
+                    <StackPanel>
+                        <TextBlock Text="Breakdown" Style="{StaticResource MetricLabel}"/>
+                        <TextBlock Text="{Binding BreakdownByTypeText}" Style="{StaticResource FieldValue}" FontSize="12" TextWrapping="Wrap"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </shell:ToolWindowShell.HeaderContent>
+
+        <!-- ═══ BODY ═════════════════════════════════════════════ -->
+        <shell:ToolWindowShell.BodyContent>
+            <StackPanel>
+                <!-- Section 1: Type selector -->
+                <Border Style="{StaticResource ContentCard}" Padding="12">
+                    <StackPanel>
+                        <Grid Margin="0,0,0,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Annotation Types To Check" Style="{StaticResource SectionTitle}" Margin="0" VerticalAlignment="Center" />
+                            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                <Button Content="Select All" Style="{StaticResource SmallSecondaryButton}" Command="{Binding SelectAllCommand}" Margin="0,0,6,0" />
+                                <Button Content="Clear All" Style="{StaticResource SmallSecondaryButton}" Command="{Binding ClearAllCommand}" />
+                            </StackPanel>
+                        </Grid>
+
+                        <ListBox ItemsSource="{Binding AnnotationFamilies}"
+                                 shell:ShellBehaviors.MaxHeightRatio="0.2"
+                                 shell:ShellBehaviors.ForwardMouseWheel="True"
+                                 BorderThickness="0" ScrollViewer.VerticalScrollBarVisibility="Auto">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" Margin="0,2">
+                                        <CheckBox IsChecked="{Binding IsSelected}" VerticalAlignment="Center" />
+                                        <TextBlock Text="{Binding TypeName}" Margin="6,0,4,0" VerticalAlignment="Center" />
+                                        <TextBlock Foreground="{StaticResource BrushTextSecondary}" VerticalAlignment="Center">
+                                            <Run Text="(" /><Run Text="{Binding Count, Mode=OneWay}" /><Run Text=" items)" />
+                                        </TextBlock>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </StackPanel>
+                </Border>
+
+                <!-- Section 4: Results grid -->
+                <DataGrid x:Name="ResultsGrid" ItemsSource="{Binding OverlapResults}" MinHeight="160"
+                          shell:ShellBehaviors.MaxHeightRatio="0.35"
+                          shell:ShellBehaviors.ForwardMouseWheel="True"
+                          Style="{StaticResource StandardDataGrid}"
+                          ColumnHeaderStyle="{StaticResource StandardDataGridColumnHeader}"
+                          CellStyle="{StaticResource StandardDataGridCell}"
+                          RowStyle="{StaticResource StandardDataGridRow}"
+                          VirtualizingStackPanel.IsVirtualizing="True" VirtualizingStackPanel.VirtualizationMode="Recycling"
+                          AutoGenerateColumns="False" IsReadOnly="True"
+                          CanUserSortColumns="True" SelectionMode="Extended"
+                          GridLinesVisibility="Horizontal" HeadersVisibility="Column">
+                    <DataGrid.Columns>
+                        <DataGridTemplateColumn Header="ID 1" SortMemberPath="ElementId1">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Button Content="{Binding ElementId1}"
+                                            Command="{Binding DataContext.ZoomToElementCommand,
+                                                      RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                            CommandParameter="{Binding ElementId1}"
+                                            Foreground="{StaticResource BrushAppleBlue}" BorderThickness="0" Background="Transparent"
+                                            Cursor="Hand" />
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTextColumn Header="Type" Binding="{Binding AnnotationType}" />
+                        <DataGridTextColumn Header="X (mm)" Binding="{Binding X, StringFormat={}{0:F4}}" />
+                        <DataGridTextColumn Header="Y (mm)" Binding="{Binding Y, StringFormat={}{0:F4}}" />
+                        <DataGridTextColumn Header="Aligned" Binding="{Binding GridAligned}" />
+                        <DataGridTextColumn Header="V-Dist (mm)" Binding="{Binding VerticalDistance, StringFormat={}{0:F2}}" />
+                        <DataGridTextColumn Header="H-Dist (mm)" Binding="{Binding HorizontalDistance, StringFormat={}{0:F2}}" />
+                        <DataGridTemplateColumn Header="ID 2" SortMemberPath="ElementId2">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Button Content="{Binding ElementId2}"
+                                            Command="{Binding DataContext.ZoomToElementCommand,
+                                                      RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                            CommandParameter="{Binding ElementId2}"
+                                            Foreground="{StaticResource BrushAppleBlue}" BorderThickness="0" Background="Transparent"
+                                            Cursor="Hand" />
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTextColumn Header="Status" Binding="{Binding Status}" />
+                    </DataGrid.Columns>
+                </DataGrid>
+
+                <!-- Section 5 (V005): Resolve Overlaps -->
+                <Border Style="{StaticResource ContentCard}" Padding="12" Margin="0,8,0,0">
+                    <StackPanel>
+                        <TextBlock Text="Resolve Overlaps" Style="{StaticResource SectionTitle}" Margin="0,0,0,8" />
+                        <UniformGrid Columns="3">
+                            <StackPanel Margin="0,0,8,0">
+                                <RadioButton GroupName="ResolveMode" Content="Move Up" FontWeight="SemiBold"
+                                             IsChecked="{Binding IsMoveUp}" IsEnabled="{Binding IsIdle}" />
+                                <TextBlock Text="The upper element moves up until the pair is clear."
+                                           Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="20,2,0,0" />
+                            </StackPanel>
+                            <StackPanel Margin="0,0,8,0">
+                                <RadioButton GroupName="ResolveMode" Content="Move Down" FontWeight="SemiBold"
+                                             IsChecked="{Binding IsMoveDown}" IsEnabled="{Binding IsIdle}" />
+                                <TextBlock Text="The lower element moves down until the pair is clear."
+                                           Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="20,2,0,0" />
+                            </StackPanel>
+                            <StackPanel>
+                                <RadioButton GroupName="ResolveMode" Content="Distribute" FontWeight="SemiBold"
+                                             IsChecked="{Binding IsDistribute}" IsEnabled="{Binding IsIdle}" />
+                                <TextBlock Text="Both move apart, half the distance each."
+                                           Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="20,2,0,0" />
+                            </StackPanel>
+                        </UniformGrid>
+                        <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                            <TextBlock Text="Clear gap (mm)" VerticalAlignment="Center" Margin="0,0,8,0" />
+                            <TextBox Text="{Binding GapText, UpdateSourceTrigger=PropertyChanged}" Width="70"
+                                     Style="{StaticResource BoxedTextInput}" TextAlignment="Right"
+                                     IsEnabled="{Binding IsIdle}" />
+                            <TextBlock Text="Extra space left between the two after the move."
+                                       Style="{StaticResource HintText}" VerticalAlignment="Center" Margin="10,0,0,0" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </shell:ToolWindowShell.BodyContent>
+
+        <!-- ═══ FOOTER ═══════════════════════════════════════════ -->
+        <shell:ToolWindowShell.FooterContent>
+            <StackPanel>
+                <Border Background="{StaticResource BrushInputBackground}" BorderBrush="{StaticResource BrushStatusError}" BorderThickness="1"
+                        CornerRadius="6" Padding="8" Margin="0,0,0,8"
+                        Visibility="{Binding HasError, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource BrushStatusError}" TextWrapping="Wrap" />
+                </Border>
+                <Border Background="{StaticResource BrushStatusOkSoft}" BorderBrush="{StaticResource BrushStatusOkBorder}" BorderThickness="1"
+                        CornerRadius="6" Padding="8" Margin="0,0,0,8"
+                        Visibility="{Binding HasInfo, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <TextBlock Text="{Binding InfoMessage}" Foreground="{StaticResource BrushStatusOk}" TextWrapping="Wrap" />
+                </Border>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button Content="Resolve Selected" Style="{StaticResource OutlineButton}"
+                            Command="{Binding ResolveSelectedCommand}"
+                            CommandParameter="{Binding SelectedItems, ElementName=ResultsGrid}"
+                            IsEnabled="{Binding IsIdle}"
+                            MinWidth="130" Height="38" Margin="0,0,8,0" />
+                    <Button Content="Resolve All" Style="{StaticResource AccentButton}"
+                            Command="{Binding ResolveAllCommand}"
+                            IsEnabled="{Binding IsIdle}"
+                            MinWidth="110" Margin="0,0,8,0" />
+                    <Button Content="Check Overlaps" Style="{StaticResource PrimaryButton}"
+                            Command="{Binding CheckOverlapsCommand}"
+                            IsEnabled="{Binding IsLoading, Converter={StaticResource InverseBoolConverter}}"
+                            MinWidth="150" Margin="0,0,8,0" />
+                    <Button Content="Close" Style="{StaticResource OutlineButton}" Width="90" Height="38" Click="CloseButton_Click"/>
+                </StackPanel>
+            </StackPanel>
+        </shell:ToolWindowShell.FooterContent>
+    </shell:ToolWindowShell>
+</Window>

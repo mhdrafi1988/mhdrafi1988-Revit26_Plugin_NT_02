@@ -53,7 +53,41 @@ namespace Revit26_Plugin_Revised.BubbleAutoRenumber.V009.UI.ViewModels
         [ObservableProperty] private string _startingNumber = "1";
         [ObservableProperty] private string _verticalThreshold = "20";
 
+        /// <summary>
+        /// Numbering style (NEW in 9.3.0): false writes 1, 2, 3 (the default, as before),
+        /// true writes A, B, C … Z, AA, AB.
+        /// </summary>
+        [ObservableProperty] private bool _useLetters;
+
+        /// <summary>Hint next to the start box, for the style in use.</summary>
+        public string StartHint => UseLetters
+            ? "letters A to Z — after Z comes AA, AB …"
+            : "whole number above zero";
+
         partial void OnStartingNumberChanged(string value) => RefreshPreview();
+
+        /// <summary>
+        /// Carries the start value over to the new style (3 ↔ C), so switching style
+        /// keeps the same place in the sequence instead of leaving an invalid entry.
+        /// </summary>
+        partial void OnUseLettersChanged(bool value)
+        {
+            OnPropertyChanged(nameof(StartHint));
+
+            NumberingStyle previous = value ? NumberingStyle.Numbers : NumberingStyle.Letters;
+            NumberingStyle current = value ? NumberingStyle.Letters : NumberingStyle.Numbers;
+
+            string converted = SequenceLabel.TryParseStart(StartingNumber, previous, out int index)
+                ? SequenceLabel.Format(index, current)
+                : StartingNumber;
+
+            // A start too large for three letters stays as typed; validation then says why.
+            if (value && !SequenceLabel.TryParseStart(converted, current, out _))
+                converted = StartingNumber;
+
+            if (converted != StartingNumber) StartingNumber = converted;   // refreshes the preview
+            else RefreshPreview();
+        }
         partial void OnVerticalThresholdChanged(string value) => RefreshPreview();
 
         // ── Type filter (NEW in V009) ─────────────────────────────────────────────
@@ -193,9 +227,13 @@ namespace Revit26_Plugin_Revised.BubbleAutoRenumber.V009.UI.ViewModels
         {
             options = null;
 
-            if (!int.TryParse(StartingNumber, out int start) || start <= 0)
+            NumberingStyle style = UseLetters ? NumberingStyle.Letters : NumberingStyle.Numbers;
+
+            if (!SequenceLabel.TryParseStart(StartingNumber, style, out int start))
             {
-                ValidationMessage = "Starting number must be a whole number above zero.";
+                ValidationMessage = UseLetters
+                    ? "Start at must be one to three letters, A to Z (for example A, C or AA)."
+                    : "Start at must be a whole number above zero.";
                 return false;
             }
 
@@ -208,6 +246,7 @@ namespace Revit26_Plugin_Revised.BubbleAutoRenumber.V009.UI.ViewModels
             var built = new RenumberOptions
             {
                 StartNumber = start,
+                Style = style,
                 ThresholdFt = UnitUtils.ConvertToInternalUnits(mm, UnitTypeId.Millimeters),
                 IncludeSections = IncludeSections,
                 IncludeDrafting = IncludeDrafting,
@@ -241,7 +280,7 @@ namespace Revit26_Plugin_Revised.BubbleAutoRenumber.V009.UI.ViewModels
 
             AddLog(LogLevel.Info,
                 $"Run started on {SelectedSheet.SheetNumber} — {TargetCount} view(s) in scope, "
-                + $"starting at {options.StartNumber}.");
+                + $"{(UseLetters ? "letters" : "numbers")} starting at {options.StartLabel}.");
 
             _handler.Request = new RenumberRequest
             {

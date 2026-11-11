@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Revit26_Plugin_Revised.BubbleAutoRenumber.V009.Core.Models;
 
 namespace Revit26_Plugin_Revised.BubbleAutoRenumber.V009.Core.Services
 {
@@ -39,11 +40,16 @@ namespace Revit26_Plugin_Revised.BubbleAutoRenumber.V009.Core.Services
         private const string DuplicateMarker = "D";
 
         /// <summary>
-        /// Sequential numbers from <paramref name="startNumber"/>, skipping anything in
-        /// <paramref name="reserved"/>. Every number returned is added to
-        /// <paramref name="reserved"/>, so the caller's set stays the live picture.
+        /// Sequential values from position <paramref name="startNumber"/>, written as
+        /// numbers or letters per <paramref name="style"/>. A value already in
+        /// <paramref name="reserved"/> gets a "(D)" suffix. Every value returned is added
+        /// to <paramref name="reserved"/>, so the caller's set stays the live picture.
         /// </summary>
-        public static List<string> Allocate(int count, int startNumber, HashSet<string> reserved)
+        public static List<string> Allocate(
+            int count,
+            int startNumber,
+            HashSet<string> reserved,
+            NumberingStyle style = NumberingStyle.Numbers)
         {
             var allocated = new List<string>(count);
             HashSet<string> used = reserved ?? new HashSet<string>();
@@ -52,7 +58,7 @@ namespace Revit26_Plugin_Revised.BubbleAutoRenumber.V009.Core.Services
 
             for (int i = 0; i < count; i++)
             {
-                allocated.Add(MakeUnique(next.ToString(), used));
+                allocated.Add(MakeUnique(SequenceLabel.Format(next, style), used));
                 next++;
             }
 

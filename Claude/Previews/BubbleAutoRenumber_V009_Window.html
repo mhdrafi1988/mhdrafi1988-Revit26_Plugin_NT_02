@@ -1,0 +1,162 @@
+<title>Bubble Auto Renumber Window</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<!-- UI preview (CLAUDE.md "UI previews"): Bubble Auto Renumber V009, tool 9.3.0, plugin 6.47.0.
+     New in 9.3.0: Numbering row (Numbers 1, 2, 3 / Letters A, B, C … Z, AA, AB). "Starting Number" is now
+     "Start At" and takes a number or letters to match the style. Numbers stays the default.
+     Mirrors: Menu/ViewTools/Rename/BubbleAutoRenumber_V009/UI/Views/BubbleAutoRenumberWindow.xaml,
+              Menu/ViewTools/Rename/BubbleAutoRenumber_V009/UI/ViewModels/BubbleAutoRenumberViewModel.cs (hints, validation text)
+     Artifact: https://claude.ai/artifact/KkRocQU6hJZUEqhBLukcKQ (republish to this URL on every update)
+     Colours: Shared/SharedStyles.xaml tokens, one light look on purpose (mirrors the light WPF window). -->
+<style>
+/* Layout: one column of captioned mock-ups; each fixed-width Revit window scrolls in its own frame. */
+:root{
+  color-scheme:light;
+  --page:#E9EDF1; --window:#F3F5F7; --card:#FFFFFF; --border:#D6DCE3; --input:#B5C2CF;
+  --navy:#1E3A5F; --navy-light:#2C4F7C; --on-dark:#FFFFFF;
+  --text:#1A2B3C; --text2:#5B7185; --text3:#8A9BAB; --bg2:#ECEFF3;
+  --blue:#1F5FBF; --warn:#9A5B00; --warn-soft:#FDF1E1; --warn-line:#E8B66B; --ok:#0E7C66; --err:#B42318;
+  --run:#C0392B; --log:#17212B; --log-text:#C9D4DF;
+  --new:#0E7C66; --new-soft:#E0F4EF;
+  --pill-sec:#E3ECFA; --pill-sec-t:#1F5FBF; --pill-dr:#EFE7FA; --pill-dr-t:#6B3FA0; --pill-de:#E0F4EF; --pill-de-t:#0E7C66;
+  --ui:'Segoe UI',system-ui,-apple-system,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--text);font-family:var(--ui);font-size:12.5px;
+  padding-block:24px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.page{max-width:980px;margin:0 auto;display:grid;gap:22px}
+section{display:grid;gap:8px;min-width:0}
+h1{font-size:20px;margin:0 0 4px;font-weight:600;text-wrap:balance}
+h2{font-size:14px;margin:0;font-weight:600}
+p{margin:0;line-height:1.5;max-width:75ch}
+.muted{color:var(--text2)}
+.tag{display:inline-block;background:var(--new);color:var(--on-dark);font-size:10px;font-weight:600;letter-spacing:.04em;
+  padding:1px 6px;border-radius:3px;vertical-align:middle;margin-left:6px}
+.sample{display:inline-block;background:var(--warn-soft);color:var(--warn);border:1px solid var(--warn-line);border-radius:3px;padding:2px 8px;font-size:11.5px}
+.frame{overflow-x:auto;padding-bottom:4px}
+/* Tool window */
+.win{width:660px;background:var(--window);border:1px solid var(--input);box-shadow:0 6px 20px rgba(16,32,48,.18)}
+.tbar{background:var(--card);border-bottom:1px solid var(--border);padding:7px 10px;display:flex;justify-content:space-between}
+.hdr{background:var(--navy);color:var(--on-dark);padding:10px 12px;display:flex;justify-content:space-between;align-items:center}
+.hdr b{font-size:15px;font-weight:600;display:block}
+.hdr .s{font-size:11px;opacity:.8}
+.badge{background:var(--navy-light);border-radius:10px;padding:3px 8px;font-size:11px;font-weight:600}
+.metrics{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;padding:10px 12px 0}
+.metric{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:8px 10px}
+.metric span{display:block;font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.05em}
+.metric b{font-size:18px;font-weight:600;font-variant-numeric:tabular-nums}
+.metric b.a{color:var(--blue)} .metric b.s{color:var(--ok)} .metric b.w{color:var(--warn)} .metric b.d{color:var(--err)}
+.body{padding:10px 12px;display:grid;gap:8px}
+.cardx{background:var(--card);border:1px solid var(--border);border-radius:8px}
+.sect{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text2);padding:8px 12px 2px}
+.row{display:flex;align-items:center;gap:8px;padding:7px 12px;border-top:1px solid var(--bg2)}
+.row.first{border-top:0}
+.row.newrow{background:var(--new-soft)}
+.lbl{width:130px;flex:none;font-weight:600;font-size:11.5px}
+.in{border:1px solid var(--input);background:var(--card);border-radius:4px;height:26px;padding:0 8px;display:inline-flex;align-items:center;min-width:80px}
+.in.combo{min-width:140px;justify-content:space-between;gap:10px}
+.hint{color:var(--text2);font-size:11px}
+.chip{height:24px;padding:0 10px;border-radius:12px;border:1px solid var(--border);background:var(--window);display:inline-flex;align-items:center;font-size:11px}
+.chip.on{background:var(--navy);border-color:var(--navy);color:var(--on-dark)}
+.chk{font-size:11.5px;margin-right:8px}
+.grid{width:100%;border-collapse:collapse;font-size:11px}
+.grid th,.grid td{padding:5px 8px;text-align:left;white-space:nowrap;border-top:1px solid var(--bg2)}
+.grid th{background:var(--bg2);font-weight:600;border-top:0}
+.grid td.c{color:var(--text2)} .grid td.n{color:var(--blue);font-weight:600}
+.pill{border-radius:10px;padding:2px 7px;font-size:10px;font-weight:600}
+.pill.sec{background:var(--pill-sec);color:var(--pill-sec-t)} .pill.dr{background:var(--pill-dr);color:var(--pill-dr-t)} .pill.de{background:var(--pill-de);color:var(--pill-de-t)}
+.phead{display:flex;justify-content:space-between;align-items:center;padding-right:12px}
+.count{background:var(--bg2);border-radius:10px;padding:2px 8px;font-size:10.5px;font-weight:600;color:var(--text2)}
+.logbar{background:var(--log);color:var(--log-text);border-radius:8px;padding:8px 10px;display:flex;justify-content:space-between;font-size:11px}
+.foot{border-top:1px solid var(--border);padding:8px 12px;display:flex;justify-content:space-between;align-items:center}
+.sbtn{border:1px solid var(--input);background:var(--bg2);height:26px;padding:0 9px;display:inline-flex;align-items:center;font-size:11px;color:var(--text3)}
+.rbtn{background:var(--run);color:var(--on-dark);padding:8px 0;width:120px;text-align:center;display:inline-block;margin-right:8px;font-weight:600}
+.obtn{border:1px solid var(--navy);color:var(--navy);padding:7px 0;width:90px;text-align:center;display:inline-block}
+.errline{color:var(--err);font-size:11px;padding:2px 12px 10px}
+.strip{width:660px;background:var(--card);border:1px solid var(--border);border-radius:8px}
+.tbl{width:100%;border-collapse:collapse;background:var(--card);font-size:12px}
+.tbl th,.tbl td{border:1px solid var(--border);padding:4px 8px;text-align:left;vertical-align:top}
+.tbl th{background:var(--bg2);font-weight:600;white-space:nowrap}
+</style>
+<div class="page">
+  <header>
+    <h1>Bubble Auto Renumber 9.3.0: numbers or letters <span class="tag">NEW</span></h1>
+    <p class="muted">The window has a new Numbering row. Numbers writes 1, 2, 3 as before and is the default. Letters writes A, B, C up to Z, then AA, AB. The preview shows the new values before anything is written. <span class="sample">Sample data: sheet and view names are made up.</span></p>
+  </header>
+
+  <section>
+    <h2>1. Window with Letters chosen, starting at A</h2>
+    <div class="frame"><div class="win">
+      <div class="tbar"><span>Bubble Auto Renumber — v9.3.0</span><span>—  ☐  ✕</span></div>
+      <div class="hdr"><div><b>Bubble Auto Renumber</b><span class="s">Renumber detail bubbles on a sheet, top-left to bottom-right</span></div><span class="badge">v9.3.0</span></div>
+      <div class="metrics">
+        <div class="metric"><span>On Sheet</span><b>7</b></div>
+        <div class="metric"><span>To Renumber</span><b class="a">6</b></div>
+        <div class="metric"><span>Renumbered</span><b class="s">0</b></div>
+        <div class="metric"><span>Skipped</span><b class="w">0</b></div>
+        <div class="metric"><span>Failed</span><b class="d">0</b></div>
+      </div>
+      <div class="body">
+        <div class="cardx">
+          <div class="sect">Sheet</div>
+          <div class="row first"><span class="lbl">Select Sheet</span><span class="in combo">A-501 <span>▾</span></span><span class="hint">Roof Details, Sheet 1</span></div>
+          <div class="row newrow"><span class="lbl">Numbering <span class="tag">NEW</span></span><span class="chip">Numbers  1, 2, 3</span><span class="chip on">Letters  A, B, C</span></div>
+          <div class="row newrow"><span class="lbl">Start At <span class="tag">CHANGED</span></span><span class="in">A</span><span class="hint">letters A to Z — after Z comes AA, AB …</span></div>
+          <div class="row"><span class="lbl">Vertical Threshold</span><span class="in">20</span><span class="hint">mm</span><span class="hint">how far two bubbles' bottom edges may differ and still count as one row</span></div>
+          <div class="sect">View Types</div>
+          <div class="row first"><span class="chk">☑ Sections</span><span class="chk">☑ Drafting views</span><span class="chk">☑ Detail views</span><span class="chk">☑ Elevations</span></div>
+          <div class="row"><span class="chk muted">☐ Any view with a detail number</span><span class="hint">ignores the filter above — includes plans, 3D views and legends</span></div>
+        </div>
+        <div class="cardx">
+          <div class="phead"><div class="sect">Preview — in renumbering order</div><span class="count">6 in scope</span></div>
+          <table class="grid">
+            <tr><th>Current #</th><th>New # <span class="tag">LETTERS</span></th><th>Type</th><th>View Name</th></tr>
+            <tr><td class="c">1</td><td class="n">A</td><td><span class="pill sec">Section</span></td><td>Parapet Section, North</td></tr>
+            <tr><td class="c">2</td><td class="n">B</td><td><span class="pill sec">Section</span></td><td>Parapet Section, East</td></tr>
+            <tr><td class="c">3</td><td class="n">C</td><td><span class="pill dr">Drafting</span></td><td>Drain Sump Detail</td></tr>
+            <tr><td class="c">4</td><td class="n">D</td><td><span class="pill de">Detail</span></td><td>Upstand At Skylight</td></tr>
+            <tr><td class="c">5</td><td class="n">E</td><td><span class="pill dr">Drafting</span></td><td>Expansion Joint Detail</td></tr>
+            <tr><td class="c">6</td><td class="n">F</td><td><span class="pill sec">Section</span></td><td>Gutter Section</td></tr>
+          </table>
+        </div>
+        <div class="logbar"><span>Log</span><span>▸</span></div>
+      </div>
+      <div class="foot"><span class="sbtn">Copy report</span><span><span class="rbtn">Renumber</span><span class="obtn">Close</span></span></div>
+    </div></div>
+  </section>
+
+  <section>
+    <h2>2. Numbers chosen (default, same result as 9.2.0)</h2>
+    <p class="muted">Switching style carries the start value over: C becomes 3, and 3 becomes C.</p>
+    <div class="frame"><div class="strip">
+      <div class="row first"><span class="lbl">Numbering</span><span class="chip on">Numbers  1, 2, 3</span><span class="chip">Letters  A, B, C</span></div>
+      <div class="row"><span class="lbl">Start At</span><span class="in">1</span><span class="hint">whole number above zero</span></div>
+    </div></div>
+  </section>
+
+  <section>
+    <h2>3. Start value that does not fit the style <span class="tag">NEW</span></h2>
+    <p class="muted">The message shows under the options and Renumber stays disabled until it is fixed.</p>
+    <div class="frame"><div class="strip">
+      <div class="row first"><span class="lbl">Numbering</span><span class="chip">Numbers  1, 2, 3</span><span class="chip on">Letters  A, B, C</span></div>
+      <div class="row"><span class="lbl">Start At</span><span class="in">A1</span><span class="hint">letters A to Z — after Z comes AA, AB …</span></div>
+      <div class="errline">Start at must be one to three letters, A to Z (for example A, C or AA).</div>
+    </div></div>
+  </section>
+
+  <section>
+    <h2>4. Ribbon tooltip (View Rename ▸ Bubble Renumber ▸ V009) <span class="tag">CHANGED</span></h2>
+    <div class="frame"><div class="strip" style="width:420px;padding:8px 10px;line-height:1.5"><b>Bubble Auto Renumber — V009</b><br>Numbers detail bubbles 1, 2, 3 or A, B, C, top-left to bottom-right.</div></div>
+  </section>
+
+  <section>
+    <h2>How the letter sequence runs</h2>
+    <div class="frame"><table class="tbl">
+      <tr><th>Start At</th><th>Views</th><th>Values written</th></tr>
+      <tr><td>A</td><td>4</td><td>A, B, C, D</td></tr>
+      <tr><td>C</td><td>3</td><td>C, D, E</td></tr>
+      <tr><td>Y</td><td>5</td><td>Y, Z, AA, AB, AC</td></tr>
+      <tr><td>Y, with AA held by a view left out of the run</td><td>5</td><td>Y, Z, AA (D), AB, AC</td></tr>
+    </table></div>
+    <p class="muted">A value already held by a view outside the run gets the "(D)" suffix, the same rule as for numbers.</p>
+  </section>
+</div>
