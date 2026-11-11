@@ -49,6 +49,8 @@
         <TextBlock Grid.Row="4" Text="{Binding Status}" TextWrapping="Wrap" Margin="0,10,0,10"/>
 
         <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="Cancel run" Command="{Binding CancelRunCommand}" Style="{DynamicResource SecondaryButton}" Width="90" Margin="0,0,8,0"
+                    ToolTip="Stops the running Check or Create (same as Esc). Asks you to confirm."/>
             <Button Content="Check" Command="{Binding CheckCommand}" Style="{DynamicResource SecondaryButton}" Width="90" Margin="0,0,8,0"/>
             <Button Content="Create roof" Command="{Binding CreateCommand}" Style="{DynamicResource PrimaryButton}" Width="110" Margin="0,0,8,0"/>
             <Button Content="Close" IsCancel="True" Style="{DynamicResource SecondaryButton}" Width="80"/>

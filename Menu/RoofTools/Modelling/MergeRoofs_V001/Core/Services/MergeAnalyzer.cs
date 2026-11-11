@@ -17,15 +17,20 @@ namespace Revit26_Plugin_Revised.MergeRoofs.V001.Core.Services
         /// <summary>
         /// Reports overlap, intersection, gap (snapped up to <paramref name="toleranceFeet"/>) and not-joined problems,
         /// and returns the merged outer/hole loops. <see cref="MergeResult.CanCreate"/> is true only for a single outer loop.
+        /// <paramref name="check"/> (optional) is called inside the loops so the caller can cancel by throwing
+        /// <see cref="OperationCanceledException"/>; the union itself cannot be interrupted, so it is checked before and after.
         /// </summary>
-        public static MergeResult Analyze(IReadOnlyList<RoofFootprint> roofs, double toleranceFeet)
+        public static MergeResult Analyze(IReadOnlyList<RoofFootprint> roofs, double toleranceFeet, Action? check = null)
         {
+            check?.Invoke();
             var issues = new List<Issue>();
             var regions = roofs.Select(RoofUnion.ToRegion).ToList();
 
-            FindPairIssues(roofs, regions, issues);
+            FindPairIssues(roofs, regions, issues, check);
+            check?.Invoke();
 
             Paths64 merged = RoofUnion.Union(regions);
+            check?.Invoke();
             var links = new List<GapLink>();
 
             if (toleranceFeet > 0)
@@ -54,6 +59,7 @@ namespace Revit26_Plugin_Revised.MergeRoofs.V001.Core.Services
                 }
             }
 
+            check?.Invoke();
             var (outerPts, holePts) = RoofUnion.Split(merged);
             var outers = outerPts.Select(ToLoop).Where(l => l != null).Select(l => l!).ToList();
             var holes = holePts.Select(ToLoop).Where(l => l != null).Select(l => l!).ToList();
@@ -61,8 +67,8 @@ namespace Revit26_Plugin_Revised.MergeRoofs.V001.Core.Services
             if (outers.Count > 1) AddNotJoined(outerPts, issues);
 
             var allSources = roofs;
-            outers = outers.Select(l => new Loop(SlopeMapper.Apply(l.Edges, allSources, toleranceFeet))).ToList();
-            holes = holes.Select(l => new Loop(SlopeMapper.Apply(l.Edges, allSources, toleranceFeet))).ToList();
+            outers = outers.Select(l => { check?.Invoke(); return new Loop(SlopeMapper.Apply(l.Edges, allSources, toleranceFeet)); }).ToList();
+            holes = holes.Select(l => { check?.Invoke(); return new Loop(SlopeMapper.Apply(l.Edges, allSources, toleranceFeet)); }).ToList();
 
             return new MergeResult
             {
@@ -74,16 +80,17 @@ namespace Revit26_Plugin_Revised.MergeRoofs.V001.Core.Services
             };
         }
 
-        private static void FindPairIssues(IReadOnlyList<RoofFootprint> roofs, List<Paths64> regions, List<Issue> issues)
+        private static void FindPairIssues(IReadOnlyList<RoofFootprint> roofs, List<Paths64> regions, List<Issue> issues, Action? check)
         {
             for (int i = 0; i < roofs.Count; i++)
                 for (int j = i + 1; j < roofs.Count; j++)
                 {
+                    check?.Invoke();
                     var common = Clipper.Intersect(regions[i], regions[j], FillRule.NonZero);
                     if (common.Count > 0 && Math.Abs(RoofUnion.AreaFeet(common)) > MinAreaSqFt)
                         issues.Add(new Issue(IssueKind.Overlap, Centroid(RoofUnion.FromPath(common[0])),
                             $"Roofs {roofs[i].Id} and {roofs[j].Id} overlap."));
-                    var x = FirstCrossing(roofs[i], roofs[j]);
+                    var x = FirstCrossing(roofs[i], roofs[j], check);
                     if (x is Pt p)
                         issues.Add(new Issue(IssueKind.Intersection, p, $"Boundaries of roofs {roofs[i].Id} and {roofs[j].Id} cross."));
                 }
@@ -95,16 +102,19 @@ namespace Revit26_Plugin_Revised.MergeRoofs.V001.Core.Services
             foreach (var h in f.Holes) yield return ArcGeometry.Ring(h);
         }
 
-        private static Pt? FirstCrossing(RoofFootprint a, RoofFootprint b)
+        private static Pt? FirstCrossing(RoofFootprint a, RoofFootprint b, Action? check)
         {
             foreach (var ra in Rings(a))
                 foreach (var rb in Rings(b))
                     for (int i = 0; i < ra.Count; i++)
+                    {
+                        check?.Invoke();
                         for (int j = 0; j < rb.Count; j++)
                         {
                             var p = ProperCross(ra[i], ra[(i + 1) % ra.Count], rb[j], rb[(j + 1) % rb.Count]);
                             if (p != null) return p;
                         }
+                    }
             return null;
         }
 
