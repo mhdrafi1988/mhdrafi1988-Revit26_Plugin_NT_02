@@ -9,6 +9,18 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.47.0] — 2026-11-11
+
+### Bubble Auto Renumber 9.3.0
+
+#### Added
+- **Numbering: Numbers or Letters.** A new Numbering row in the window chooses how the detail numbers are written: **Numbers** (1, 2, 3, as before) or **Letters** (A, B, C … Z, then AA, AB …). The preview's New # column shows the chosen style before anything is written.
+
+#### Changed
+- **Starting Number** is now labelled **Start At**. It takes a whole number in Numbers, or one to three letters in Letters (for example A, C or AA; lower case is accepted). Switching style carries the value over: 3 becomes C, and C becomes 3.
+
+User note: Numbers is the default, so the tool renumbers exactly as before unless you pick Letters. A letter already used by a view you left out of the run gets the usual "(D)" suffix, the same as a number does.
+
 ## [6.46.0] — 2026-11-11
 
 ### Void Openings 0.2.0 (new tool, in development)
