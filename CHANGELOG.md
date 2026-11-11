@@ -9,6 +9,18 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.51.0] — 2026-11-11
+
+### Auto Slope By Point 34.1.0 (V034)
+
+#### Changed
+- Clicking **Run** closes every open option section (Drain options, Path & curves, Circle markers, Ridge lines,
+  Export & parameters), so the results and log have room while the run goes. If the inputs fail validation the
+  run does not start and the sections stay as they were.
+
+User note: after a run the option sections are closed, and the window opens with them closed next time.
+Open a section again by clicking its header.
+
 ## [6.50.1] — 2026-11-11
 
 ### Auto Slope By Point 34.0.1 (V034)

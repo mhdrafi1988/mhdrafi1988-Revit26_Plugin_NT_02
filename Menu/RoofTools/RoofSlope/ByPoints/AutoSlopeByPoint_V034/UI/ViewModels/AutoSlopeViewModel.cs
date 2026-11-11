@@ -438,6 +438,7 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V034.UI.ViewModels
 
             AutoSlopeRequest request = BuildRequest();
 
+            CollapseOptionSections();
             LogEntries.Clear();
             _cts = new CancellationTokenSource();
             _runStart = DateTime.Now;
@@ -458,6 +459,19 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V034.UI.ViewModels
                 AddLog(LogLevel.Error, "Revit did not accept the request (it may be busy). Try Run again.");
                 FinishRun(AutoSlopeResult.Failed("Revit did not accept the request.", _runStart));
             }
+        }
+
+        /// <summary>
+        /// Closes every option section (34.1.0) so the results and log have room once a run starts.
+        /// The closed state is saved with the other settings.
+        /// </summary>
+        private void CollapseOptionSections()
+        {
+            DrainOptionsExpanded = false;
+            PathOptionsExpanded = false;
+            MarkersExpanded = false;
+            RidgeLinesExpanded = false;
+            ExportExpanded = false;
         }
 
         private AutoSlopeRequest BuildRequest()
