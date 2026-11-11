@@ -231,9 +231,6 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V034.Infrastructure.Helpers
             row++;
             Info(ws, ref row, "Slope (%)", $"{q?.SlopePercent}");
             Info(ws, ref row, "Max drainage distance (m)", $"{q?.MaxDrainDistanceM}");
-            Info(ws, ref row, "Path check spacing (mm)", q == null ? "" : $"{q.PathCheckSpacingMm}");
-            Info(ws, ref row, "Projection tolerance (mm)", q == null ? "" : $"{q.ProjectionToleranceMm}");
-            Info(ws, ref row, "Exact segment test", q == null ? "" : (q.ExactSegmentTest ? "On" : "Off"));
             Info(ws, ref row, "Max link length (m)", q == null ? "" : (q.MaxEdgeLengthM > 0 ? $"{q.MaxEdgeLengthM}" : $"same as drainage distance ({q.MaxDrainDistanceM})"));
             Info(ws, ref row, "Drain mode", q?.DrainMode == DrainMode.AddPointAtPick ? "Add a shape point at each pick" : "Snap to nearest shape point");
             Info(ws, ref row, "Nearby points radius (mm)", q?.IncludeNearbyPoints == true ? $"{q.SnapRadiusMm}" : "Off");
@@ -255,6 +252,10 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.V034.Infrastructure.Helpers
             Info(ws, ref row, "Ridge lines", q?.DrawRidgeLines == true
                 ? $"{r.RidgeLinesPlaced} placed · {r.RidgeCount} ridge(s) · {r.RidgeLineStyleUsed ?? "-"}"
                 : "Off");
+            // V034: appended after the V033 rows
+            Info(ws, ref row, "Path check spacing (mm)", q == null ? "" : $"{q.PathCheckSpacingMm}");
+            Info(ws, ref row, "Projection tolerance (mm)", q == null ? "" : $"{q.ProjectionToleranceMm}");
+            Info(ws, ref row, "Exact segment test", q == null ? "" : (q.ExactSegmentTest ? "On" : "Off"));
 
             if (ws.Dimension != null) ws.Cells[ws.Dimension.Address].AutoFitColumns();
         }

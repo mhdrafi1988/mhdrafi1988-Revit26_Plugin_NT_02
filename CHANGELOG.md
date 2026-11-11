@@ -9,6 +9,18 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.50.1] — 2026-11-11
+
+### Auto Slope By Point 34.0.1 (V034)
+
+#### Fixed
+- Excel Run Summary: the three V034 rows (Path check spacing (mm), Projection tolerance (mm), Exact segment test)
+  are now written at the end of the sheet, after "Ridge lines". In 34.0.0 they sat after "Max drainage distance (m)"
+  and pushed every later row down compared with V033.
+
+User note: the three V034 rows moved to the end of the Run Summary. Every other row is back in its V033 position,
+so sheets or macros that read the Run Summary by row position work as with V033.
+
 ## [6.50.0] — 2026-11-11
 
 ### Annotation Overlap Detection 5.0.0 (V005, new)
