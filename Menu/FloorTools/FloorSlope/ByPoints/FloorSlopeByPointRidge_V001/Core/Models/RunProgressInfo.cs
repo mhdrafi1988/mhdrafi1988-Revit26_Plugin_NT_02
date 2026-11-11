@@ -7,7 +7,7 @@
 // DijkstraPathEngine.BuildGraph (the actual O(n^2) bottleneck on a large
 // floor). Core/Engine and Core/Services never reference WPF — the ViewModel
 // is what turns this into an on-screen percentage + phase label and pumps
-// the UI so it actually repaints mid-run (see UiPumpHelper).
+// the UI so it actually repaints mid-run (see the shared ToolCancellation).
 
 namespace Revit26_Plugin_Revised.FloorSlopeByPointRidge.V001.Core.Models
 {

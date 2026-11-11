@@ -87,7 +87,12 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V005
             var outcome = new ResolveOutcome();
             try
             {
-                Run(request, outcome);
+                Run(app, request, outcome);
+            }
+            catch (OperationCanceledException)
+            {
+                // A user cancel is not an error: the transaction was never committed, so nothing moved.
+                outcome.Error = "Cancelled by user. Nothing was moved.";
             }
             catch (InvalidOperationException ex)
             {
@@ -117,8 +122,11 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V005
             }
         }
 
-        private static void Run(ResolveRequest request, ResolveOutcome outcome)
+        private static void Run(UIApplication app, ResolveRequest request, ResolveOutcome outcome)
         {
+            // Esc / Cancel with a Yes-No confirm while the run works; disposed before the re-scan.
+            using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.AnnotationOverlapDetectionV005, app, "Resolving overlaps…");
+
             Document doc = request.Document;
             if (doc == null || !doc.IsValidObject)
                 throw new InvalidOperationException("The model this window was opened on is closed.");
@@ -135,6 +143,7 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V005
             var blocked = new Dictionary<long, string>();
             foreach (long id in request.Pairs.SelectMany(p => new[] { p.id1, p.id2 }).Distinct())
             {
+                cancel.Check();
                 Element elem = doc.GetElement(new ElementId(id));
                 var box = elem == null ? null : BoundingBoxCalculator.GetBoundingBox(elem, view);
                 if (box != null)
@@ -156,6 +165,7 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V005
                 t.Start();
                 foreach (var move in plan.MovesMm)
                 {
+                    cancel.Check();
                     if (Math.Abs(move.Value) < 1e-6)
                         continue;
 
@@ -168,6 +178,7 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V005
                         failed[move.Key] = error;
                 }
 
+                cancel.Check(); // last chance to cancel: nothing is committed yet
                 if (outcome.ElementsMoved == 0)
                 {
                     t.RollBack();

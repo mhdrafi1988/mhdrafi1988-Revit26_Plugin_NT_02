@@ -1,3 +1,4 @@
+using Revit26_Plugin_Revised.Shared.Services;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -20,6 +21,7 @@ namespace Revit26_Plugin_Revised.SharedParamStudio.V001.Infrastructure
             var list = new List<CategoryItem>();
             foreach (Category c in doc.Settings.Categories)
             {
+                ToolCancellation.CheckCurrent();
                 if (c != null && c.AllowsBoundParameters)
                     list.Add(new CategoryItem(c.Name, c.Id.Value));
             }
@@ -54,6 +56,7 @@ namespace Revit26_Plugin_Revised.SharedParamStudio.V001.Infrastructure
 
             for (DefinitionBindingMapIterator it = ForwardIterator(doc); it.MoveNext();)
             {
+                ToolCancellation.CheckCurrent();
                 if (SpKeys.NameKey(it.Key.Name) == SpKeys.NameKey(r.Name))
                     return JobResult.Fail($"The project already has a parameter named '{it.Key.Name}'.");
             }
@@ -89,6 +92,7 @@ namespace Revit26_Plugin_Revised.SharedParamStudio.V001.Infrastructure
             var categories = new CategorySet();
             foreach (long id in r.CategoryIds)
             {
+                ToolCancellation.CheckCurrent();
                 Category cat = Category.GetCategory(doc, new ElementId(id));
                 if (cat == null || !cat.AllowsBoundParameters)
                 {
@@ -114,6 +118,10 @@ namespace Revit26_Plugin_Revised.SharedParamStudio.V001.Infrastructure
                     if (!doc.ParameterBindings.Insert(definition, binding, r.PaletteGroup.GroupTypeId))
                         throw new InvalidOperationException("Revit rejected the binding.");
                     t.Commit();
+                }
+                catch (OperationCanceledException)
+                {
+                    throw; // user cancel: never swallowed as a failure
                 }
                 catch (Exception ex)
                 {
@@ -142,6 +150,7 @@ namespace Revit26_Plugin_Revised.SharedParamStudio.V001.Infrastructure
             var list = new List<ProjectSharedParameter>();
             for (DefinitionBindingMapIterator it = ForwardIterator(doc); it.MoveNext();)
             {
+                ToolCancellation.CheckCurrent();
                 Definition def = it.Key;
                 Guid guid;
                 if (def is InternalDefinition idef && guidById.TryGetValue(idef.Id, out var g)) guid = g;
@@ -182,6 +191,7 @@ namespace Revit26_Plugin_Revised.SharedParamStudio.V001.Infrastructure
             {
                 foreach (var p in SpFileReader.Read(path).Params)
                 {
+                    ToolCancellation.CheckCurrent();
                     known.Add(SpKeys.GuidKey(p.Guid));
                     knownNames.Add(SpKeys.NameKey(p.Name));
                 }
@@ -199,6 +209,7 @@ namespace Revit26_Plugin_Revised.SharedParamStudio.V001.Infrastructure
                 DefinitionGroup group = scope.File.Groups.get_Item(fileGroup) ?? scope.File.Groups.Create(fileGroup);
                 foreach (var p in parameters)
                 {
+                    ToolCancellation.CheckCurrent();
                     if (known.Contains(SpKeys.GuidKey(p.Guid.ToString())))
                     {
                         result.Add(LogLevel.Warning, $"'{p.Name}' skipped: its GUID is already in the file.");
@@ -216,6 +227,10 @@ namespace Revit26_Plugin_Revised.SharedParamStudio.V001.Infrastructure
                         known.Add(SpKeys.GuidKey(p.Guid.ToString()));
                         knownNames.Add(SpKeys.NameKey(p.Name));
                         added++;
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        throw; // user cancel: never swallowed as a failure
                     }
                     catch (Exception ex)
                     {

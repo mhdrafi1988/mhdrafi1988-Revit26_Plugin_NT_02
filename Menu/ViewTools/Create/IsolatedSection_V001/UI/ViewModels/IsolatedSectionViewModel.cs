@@ -308,6 +308,8 @@ namespace Revit26_Plugin_Revised.IsolatedSection.V001.UI.ViewModels
 
             Queue(uidoc =>
             {
+                // Esc / Cancel with a Yes-No confirm; the view transaction is rolled back on cancel.
+                using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.IsolatedSection, uidoc.Application);
                 CreateResult result = IsolatedViewBuilder.Build(uidoc, request, msg => OnUi(() => AddLog(LogLevel.Info, msg)));
                 OnUi(() =>
                 {
@@ -602,6 +604,17 @@ namespace Revit26_Plugin_Revised.IsolatedSection.V001.UI.ViewModels
 
         private void OnJobFailed(Exception ex)
         {
+            if (ex is OperationCanceledException)
+            {
+                // A user cancel is not an error: the 3D view was rolled back.
+                OnUi(() =>
+                {
+                    ShowWindow?.Invoke();
+                    SummaryText = "Cancelled by user. Nothing was created.";
+                    AddLog(LogLevel.Warning, SummaryText);
+                });
+                return;
+            }
             OnUi(() =>
             {
                 ShowWindow?.Invoke();

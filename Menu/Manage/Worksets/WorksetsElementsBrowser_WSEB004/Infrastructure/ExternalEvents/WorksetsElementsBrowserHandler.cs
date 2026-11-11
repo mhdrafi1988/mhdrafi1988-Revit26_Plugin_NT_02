@@ -21,7 +21,9 @@ namespace Revit26_Plugin_Revised.WorksetsElementsBrowser.WSEB004.Infrastructure.
         LoadViews,
         ApplyAction,
         SelectElements,
-        SaveSelectionSet
+        SaveSelectionSet,
+        /// <summary>Open Revit's own Worksets dialog (open / close worksets by hand).</summary>
+        OpenWorksetsDialog
     }
 
     /// <summary>
@@ -74,6 +76,10 @@ namespace Revit26_Plugin_Revised.WorksetsElementsBrowser.WSEB004.Infrastructure.
         {
             WsebDebugLog.Write($"Execute() entered, Request={Request}");
             ErrorMessage = string.Empty;
+            // Esc / Cancel with a Yes-No confirm while the workset tree loads (the other requests are instant).
+            using ToolCancellation cancel = Request == WorksetsElementsBrowserRequest.LoadTree
+                ? ToolCancellation.BeginFor(ToolCatalog.WorksetsElementsBrowser, app)
+                : null;
             try
             {
                 switch (Request)
@@ -93,9 +99,18 @@ namespace Revit26_Plugin_Revised.WorksetsElementsBrowser.WSEB004.Infrastructure.
                     case WorksetsElementsBrowserRequest.SaveSelectionSet:
                         ExecuteSaveSelectionSet();
                         break;
+                    case WorksetsElementsBrowserRequest.OpenWorksetsDialog:
+                        ExecuteOpenWorksetsDialog(app);
+                        break;
                 }
                 LastRunSucceeded = true;
                 WsebDebugLog.Write($"Execute() finished OK, Request={Request}");
+            }
+            catch (OperationCanceledException)
+            {
+                LastRunSucceeded = false;
+                ErrorMessage = "Cancelled by user.";
+                throw; // ToolGuard treats it as a user cancel; finally still completes the request
             }
             catch (Exception ex)
             {
@@ -170,6 +185,31 @@ namespace Revit26_Plugin_Revised.WorksetsElementsBrowser.WSEB004.Infrastructure.
                 _uiDoc.Selection.SetElementIds(validIds);
                 WsebDebugLog.Write("ExecuteApplyAction: selection set");
             }
+        }
+
+        /// <summary>
+        /// Posts Revit's built-in Worksets command, so the user can open and close worksets in Revit's
+        /// own dialog (the API cannot open or close a workset in a model that is already open). The
+        /// dialog appears once this handler returns. Refused, with a clear message, when the model is
+        /// not workshared, is not the active document, or Revit cannot run the command right now.
+        /// </summary>
+        private void ExecuteOpenWorksetsDialog(UIApplication app)
+        {
+            var doc = _uiDoc.Document;
+            if (doc == null || !doc.IsValidObject)
+                throw new InvalidOperationException("The model this browser was opened for is closed. Close the browser and start it again.");
+            if (!doc.IsWorkshared)
+                throw new InvalidOperationException("This model is not workshared, so it has no worksets to open or close.");
+
+            var activeDoc = app.ActiveUIDocument?.Document;
+            if (activeDoc == null || !activeDoc.Equals(doc))
+                throw new InvalidOperationException($"Make \"{doc.Title}\" the active model first, then try again.");
+
+            RevitCommandId commandId = RevitCommandId.LookupPostableCommandId(PostableCommand.Worksets);
+            if (commandId == null || !app.CanPostCommand(commandId))
+                throw new InvalidOperationException("Revit cannot open the Worksets dialog right now. Finish the current command and try again.");
+
+            app.PostCommand(commandId);
         }
 
         /// <summary>Sets the Revit selection to the given elements without changing the active view.</summary>

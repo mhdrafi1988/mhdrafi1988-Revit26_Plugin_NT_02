@@ -1,6 +1,8 @@
 using System;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace Revit26_Plugin_Revised.Shared.Controls
 {
@@ -9,6 +11,9 @@ namespace Revit26_Plugin_Revised.Shared.Controls
     /// Header / Body / Footer slots plus the shared status strip
     /// (SummaryText, Progress 0–100, IsRunning). Template lives in
     /// ToolWindowShellTemplate.xaml.
+    /// While <see cref="IsRunning"/> and <see cref="IsCancellable"/> are both true (a run started with
+    /// <see cref="ToolCancellation"/>) the body and footer content are disabled, so no second run can
+    /// start from the pumped dispatcher, and a Cancel button appears in the status strip.
     /// </summary>
     public class ToolWindowShell : Control
     {
@@ -29,10 +34,59 @@ namespace Revit26_Plugin_Revised.Shared.Controls
         /// <summary>The shell's body ScrollViewer — the one ScrollViewer a tool window has.</summary>
         public ScrollViewer BodyScrollViewer { get; private set; }
 
+        private Button _cancelButton;
+
+        /// <summary>Applies the template and wires the Cancel button.</summary>
         public override void OnApplyTemplate()
         {
             base.OnApplyTemplate();
             BodyScrollViewer = GetTemplateChild("PART_BodyScroll") as ScrollViewer;
+
+            if (_cancelButton != null) _cancelButton.Click -= OnCancelClick;
+            _cancelButton = GetTemplateChild("PART_CancelButton") as Button;
+            if (_cancelButton != null) _cancelButton.Click += OnCancelClick;
+        }
+
+        // Uses CancelCommand when the tool binds one; otherwise asks the run that owns this window
+        // (ToolCancellation.Begin registers it), so a tool needs no extra XAML wiring.
+        private void OnCancelClick(object sender, RoutedEventArgs e)
+        {
+            if (CancelCommand != null)
+            {
+                if (CancelCommand.CanExecute(null)) CancelCommand.Execute(null);
+                return;
+            }
+            ToolCancellation.RequestFor(Window.GetWindow(this));
+        }
+
+        /// <summary>True while a <see cref="ToolCancellation"/> run owns this window; set by the helper, not by tools.</summary>
+        public static readonly DependencyProperty IsCancellableProperty =
+            DependencyProperty.Register(nameof(IsCancellable), typeof(bool), typeof(ToolWindowShell));
+        public bool IsCancellable
+        {
+            get => (bool)GetValue(IsCancellableProperty);
+            set => SetValue(IsCancellableProperty, value);
+        }
+
+        /// <summary>Finds the shell inside <paramref name="window"/>'s content, or null for a window that does not use it.</summary>
+        public static ToolWindowShell FindIn(Window window) => Find(window?.Content as DependencyObject);
+
+        private static ToolWindowShell Find(DependencyObject node)
+        {
+            if (node == null) return null;
+            if (node is ToolWindowShell shell) return shell;
+            foreach (object child in LogicalTreeHelper.GetChildren(node))
+                if (child is DependencyObject d && Find(d) is { } found) return found;
+            return null;
+        }
+
+        /// <summary>Optional command behind the Cancel button (for example the view model's CancelRunCommand). When not bound, the button cancels the run that <see cref="ToolCancellation.Begin"/> registered for the window.</summary>
+        public static readonly DependencyProperty CancelCommandProperty =
+            DependencyProperty.Register(nameof(CancelCommand), typeof(ICommand), typeof(ToolWindowShell));
+        public ICommand CancelCommand
+        {
+            get => (ICommand)GetValue(CancelCommandProperty);
+            set => SetValue(CancelCommandProperty, value);
         }
 
         public static readonly DependencyProperty TitleProperty =

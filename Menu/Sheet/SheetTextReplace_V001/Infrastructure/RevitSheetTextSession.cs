@@ -1,3 +1,4 @@
+using Revit26_Plugin_Revised.Shared.Services;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using Revit26_Plugin_Revised.SheetTextReplace.V001.Core.Models;
@@ -81,7 +82,7 @@ namespace Revit26_Plugin_Revised.SheetTextReplace.V001.Infrastructure
             }
             finally
             {
-                done(result ?? new ApplyResult { Success = false, Error = "Unexpected error — see the error dialog. Nothing was changed." });
+                done(result ?? new ApplyResult { Success = false, Error = ToolCancellation.CancelledOr("Unexpected error — see the error dialog. Nothing was changed.") });
             }
         });
 

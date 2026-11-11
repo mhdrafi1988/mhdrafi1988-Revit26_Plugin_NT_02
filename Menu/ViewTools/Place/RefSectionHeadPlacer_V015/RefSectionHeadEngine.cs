@@ -1,3 +1,4 @@
+using Revit26_Plugin_Revised.Shared.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -53,8 +54,7 @@ namespace Revit26_Plugin_Revised.RefSectionHeadPlacer.V015.Core.Engine
             IReadOnlyList<CategoryMappingRow> mappings,
             ElementId activeViewId,
             ElementId sectionTypeId,
-            double tailLengthFeet,
-            Func<bool> cancellationRequested)
+            double tailLengthFeet)
         {
             var summary = new RunSummary();
 
@@ -80,13 +80,9 @@ namespace Revit26_Plugin_Revised.RefSectionHeadPlacer.V015.Core.Engine
                     current++;
                     ProgressChanged?.Invoke(current, total);
 
-                    // Cancel is polled between items only — an in-progress
-                    // SubTransaction is never aborted mid-way.
-                    if (cancellationRequested?.Invoke() == true)
-                    {
-                        Log(LogLevel.Warning, $"Run cancelled at item {current} of {total}.");
-                        break;
-                    }
+                    // Esc / Cancel with a Yes-No confirm. A confirmed cancel throws and the host
+                    // transaction is rolled back, so nothing from this run stays in the model.
+                    ToolCancellation.CheckCurrent();
 
                     // Linked ElementIds must be resolved via their OWN document.
                     var element = row.SourceDocument.GetElement(elementId);

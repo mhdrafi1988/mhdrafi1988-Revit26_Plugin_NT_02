@@ -278,7 +278,6 @@ namespace Revit26_Plugin_Revised.TagToText.V001.UI.ViewModels
             CreateTextCommand.NotifyCanExecuteChanged();
             ScanCommand.NotifyCanExecuteChanged();
             PickTagsCommand.NotifyCanExecuteChanged();
-            CancelRunCommand.NotifyCanExecuteChanged();
         }
 
         // ── Commands ─────────────────────────────────────────────────────────
@@ -423,14 +422,6 @@ namespace Revit26_Plugin_Revised.TagToText.V001.UI.ViewModels
 
         private bool CanCreate() => !IsRunning;
 
-        /// <summary>Stops the run after the current tag and rolls everything back.</summary>
-        [RelayCommand(CanExecute = nameof(IsRunning))]
-        private void CancelRun()
-        {
-            _cancelRequested = true;
-            StepText = "Cancelling…";
-        }
-
         /// <summary>Copies the log to the clipboard.</summary>
         [RelayCommand]
         private void CopyLog()
@@ -516,8 +507,10 @@ namespace Revit26_Plugin_Revised.TagToText.V001.UI.ViewModels
             CreatedCount = p.Created;
             SkippedCount = p.Skipped;
             FailedCount = p.Failed;
-            try { _dispatcher.Invoke(() => { }, DispatcherPriority.Background); }
-            catch (InvalidOperationException) { /* dispatcher suspended; skip the redraw */ }
+            // Repaints, delivers Esc / the shared Cancel button and asks "Cancel the process?". After a Yes the
+            // existing flag below stops the run after this tag and rolls everything back.
+            try { ToolCancellation.CheckCurrent(); }
+            catch (OperationCanceledException) { _cancelRequested = true; StepText = "Cancelling…"; }
         }
 
         // Reads the tags: those in ids when useIds is true, otherwise every tag in the view.

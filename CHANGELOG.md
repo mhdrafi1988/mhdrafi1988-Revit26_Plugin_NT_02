@@ -9,7 +9,7 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
-## [6.40.0] — 2026-11-09
+## [6.47.0] — 2026-11-11
 
 ### Annotation Overlap Detection 5.0.0 (V005, new)
 
@@ -23,6 +23,8 @@ Each release lists every tool whose version changed, under the plugin version.
 - Status column (last column) with the result of each pair: Moved, Already clear, Skipped (pinned, in a group,
   owned by another user, changed in central) or Failed.
 - After each run the view is re-scanned and checked again; a green banner sums up the run.
+- Esc / Cancel with a Yes / No confirm (the shared cancel support from 6.40.0) while the scan or a resolve runs.
+  A cancelled resolve moves nothing.
 - Mode and gap are remembered in `%AppData%\Revit26_Plugin_Revised\AnnotationOverlapDetection\settings.json`.
 
 #### Changed
@@ -35,6 +37,137 @@ Each release lists every tool whose version changed, under the plugin version.
 User note: V005 changes the model. All moves of one run are one transaction, so one Undo reverts the run.
 Text notes and tags move as a whole (a tag's leader stays on its host); a dimension moves as a whole where
 Revit allows it, otherwise only its text moves. V004 is unchanged and stays available.
+
+## [6.46.0] — 2026-11-11
+
+### Void Openings 0.2.0 (new tool, in development)
+
+#### Added
+- **Void Openings** button on a new **Coordination** panel (Rafi_Pro_Docs2 tab, after Memory). The finished tool will find where MEP passes through structure, size the openings from clearance rules, place void families with Job IDs and cut the structure. It is being built in phases; the version stays below 1.0.0 until all of them are done.
+- In this version the window covers **model and category selection**: a STRUCTURAL MODEL panel and an MEP MODEL panel. Each lists the active model and every Revit link (with Loaded / Not loaded status), and shows the element count of each category of the chosen model. You can change model and categories at any time; **Refresh** reads the project again.
+- Stairs, landings and ramps are marked "Marker only, no cut": Revit is not expected to let a void family cut them.
+
+User note: Analyze, Generate Void and Export are not in the window yet. Nothing in the model is changed by this version. The installer now also copies `Microsoft.Extensions.DependencyInjection.dll` and `Microsoft.Extensions.DependencyInjection.Abstractions.dll`.
+
+## [6.45.0] — 2026-11-10
+
+### Worksets & Elements Browser 4.5.0
+
+#### Added
+- **Open / Close Worksets…** (toolbar): opens Revit's own Worksets dialog, where you open and close worksets. Revit has no API to open or close a workset in a model that is already open, so the browser hands over to Revit's dialog. The button says why when the model is not workshared, is not the active model, or another command is running.
+- **Reload** (toolbar): reads the worksets and elements from the model again, for example after opening or closing worksets. Checks are cleared.
+- **open / closed badge** on each workset row; "closed" is shown in the warning colour. The Model card also counts the closed worksets.
+
+#### Changed
+- **Hide Empty Worksets** no longer hides closed worksets. A closed workset lists no elements only because Revit has not loaded it, so it stays in the tree with its "closed" badge.
+
+User note: the browser stays open while Revit's Worksets dialog is shown; press Reload afterwards. With "Hide Empty Worksets" ticked you now also see closed worksets (with no elements under them); open worksets that are empty are hidden as before.
+
+## [6.44.0] — 2026-11-10
+
+### Merge Roofs 1.1.0
+
+#### Added
+- Esc or the new **Cancel run** button stops a running Check or Create roof. It asks "Cancel the process? Yes / No"; Yes undoes everything the run did (the new roof and any gap links are rolled back together), No carries on. The status line then reads "Cancelled by user. Nothing was changed." The detail lines and circles offered after a failed merge can be cancelled the same way.
+- The Merge Roofs ribbon button has its own icon (two roofs joined into one).
+
+#### Changed
+- Check, Create roof and Cancel run are disabled or enabled to match whether a run is active.
+
+User note: the union calculation and the single Revit call that creates the roof cannot be interrupted; Esc is acted on just before and after them.
+
+## [6.43.0] — 2026-11-10
+
+### Align Spot Elevations 1.8.0
+
+#### Added
+- **Distribute Spot Elev.** (Tagging panel, large button): opens the Align Spot Elevations window in *Distribute only*. The selected spot elevations are spaced along their column or row, evenly (first and last stay) or at a fixed gap in paper mm (top / left stays), and keep their other coordinate. Works on the text, the leader end points and the bend points.
+- **Quick Distribute Vertical** and **Quick Distribute Horizontal** (Tagging panel, two small split buttons): the same without the window. Each lists three items: tags (the parts last ticked in the window), **Ends** (leader end points only) and **Bends** (leader bend points only). The main click runs the item used last, kept across restarts. All use the spacing last used in the window; if it was left on "Keep current spacing", even spacing is used. Even spacing needs at least three spots that have the part. One Undo step.
+
+User note: nothing existing changed. The Distribute only mode was already in the window; these buttons are shortcuts to it. Settings files are unchanged.
+
+## [6.42.0] — 2026-11-09
+
+### Align Spot Elevations 1.7.1
+
+#### Changed
+- Tagging panel: the eight Quick Align buttons are now three small split buttons: **Quick Align Vertical** (tags, ends, bends), **Quick Align Horizontal** (tags, ends, bends) and **Quick Align to Tag** (ends, bends). The main click runs the item used last (kept across restarts); the arrow lists the others. The commands themselves are unchanged.
+
+- The split buttons remember the last item you used, also after Revit restarts (saved in `%AppData%\Revit26_Plugin_Revised\AlignSpotElevations\quicksplit.json`; versioned, and a missing or unreadable file just starts on the first item).
+
+User note: the quick-align buttons moved into the arrows. Until you pick an item, each split button runs its first one.
+
+## [6.41.0] — 2026-11-09
+
+### Merge Roofs 1.0.0 (new)
+
+#### Added
+- **Merge Roofs** (Roof Edit panel): select two or more footprint roofs and create one new footprint roof from their combined outline (outer boundary plus interior loops).
+  - Checks for overlap, crossing edges, gaps and roofs that are not joined. Gaps up to a tolerance you set (default 5 mm) are closed; the optional checkbox "Place connecting lines across gaps" draws detail lines across them.
+  - The new roof takes the first selected roof's type and level, and each edge keeps the slope of the roof edge it came from.
+  - Arcs are kept when possible; if Revit rejects them the roof is created once more with straight segments. The window says which was used.
+  - If the roof cannot be created, you are asked whether to place the outline as detail lines in the current view, and separately whether to mark the problem areas with circles. Nothing else changes.
+- The plugin now ships the Clipper2 library (`Clipper2Lib.dll`) for the polygon union.
+
+User note: the original roofs are not changed or deleted. Hide or delete them yourself once you are happy with the new roof.
+
+## [6.40.0] — 2026-11-09
+
+### Cancel a running tool (rollout started)
+
+#### Added
+- Shared cancel support (`ToolCancellation`): while a tool runs, Esc or a **Cancel** button in the window's status strip asks
+  "Cancel the process? Yes / No". Yes stops the run; No carries on. Esc works while Revit is the foreground application
+  (the tool window or the Revit main window has focus). Tools without a window get a small progress pop-up with a Cancel button.
+- The shared window shell shows the Cancel button and disables the window content while a cancellable run is active, so a
+  second run cannot be started by accident.
+- A user cancel is not an error: no error dialog and no entry in the error log.
+- View Auto Renamer 7.2.0: Esc / Cancel while "Load all views" or "Commit selected" runs.
+- **Roof Tools group** (all tools in `Menu/RoofTools`, latest version of each): Esc / Cancel with a Yes / No confirm while the tool works.
+  - Combined Roof Tools 3.2.0 (cancel while a roof is analysed; the tabs' own Run buttons call older tool versions and are not covered yet)
+  - Roof Points & Slope 1.2.0, Roof Point Elevation Sync 5.1.0, Roof Point Comparison 3.1.0, Creaser Adv 12.1.0
+  - Ridge By Openings 70.2.0, Ridge By Points 59.2.0, Tapered EPS 2D Pattern 6.2.0
+  - Divide Inner Loops 12.2.0, Inner Loops And Perpendicular 7.2.0, Multiple Points 3.1.0, Outer Curve Divider 6.1.0,
+    Roof Detail Line Intersect 14.2.0, Roof Shape From Link 2.1.0, Roof Edge Vertex Reducer 9.1.0
+  - Auto Slope By Drain (Multi-Roof) 13.2.0, Auto Slope By Drain 7.3.0, Auto Slope By Point 33.1.0,
+    Auto Slope By Point (Ridge) 3.2.0, Auto Slope By Point (Multi Copies) 30.2.0
+  - Roof Type Manager 3.2.0, Island Roof Splitter 2.1.0, Roof Name Builder 2.2.0
+- **Floor Tools group** (all tools in `Menu/FloorTools`, latest version of each): Esc / Cancel with a Yes / No confirm while the tool works,
+  same behaviour as the Roof Tools: Floors And Roof From Linked Rooms 13.2.0, Floors And Roof From Linked Rooms (Via Plan View) 6.2.0, Floor Slope By Drain 1.1.0, Floor Slope By Point 1.1.0, Floor Slope By Point (Ridge) 1.1.0, Floor Slope By Point (Multi Copies) 1.1.0, Floor Points & Slope 1.1.0, Floor Divide Inner Loops 1.1.0, Floor Outer Curve Divider 1.1.0, Floor Detail Line Intersect 1.1.0, Floor Inner Loops And Perpendicular 1.1.0, Floor Edge Vertex Reducer 1.1.0, Floor Multiple Points (1/2–1/4) 1.1.0, Floor Shape From Link 1.1.0, Floor Crease Lines By Openings 1.1.0, Floor Crease Lines By Points 1.1.0, Floor Creaser 1.1.0, Floor Type Manager 1.1.0, Floor Name Builder 1.1.0, Floor Point Comparison 1.1.0, Floor Point Elevation Sync 1.1.0, Floor Tapered EPS 2D Pattern 1.1.0.
+
+- **View Tools group** (all tools in `Menu/ViewTools`, latest version of each; View Auto Renamer was the pilot): Esc / Cancel with a Yes / No confirm
+  while the tool works: Create Sections From Detail Lines 13.2.0, Floor Edge Around Sections 1.1.0, Floor Edge Element Sections 1.1.0, Floor View Focus 1.1.0, Isolated Section 1.1.0, Roof Edge Around Sections 7.3.0, Roof Edge Element Sections 4.2.0, Roof View Focus 4.2.0, Section View Auto Tagger 6.2.0, Auto Place Sections 324.2.0, Callout To Section View Placement 21.2.0, Reference Section Head Placer 15.2.0, Bubble Auto Renumber 9.2.0, Section Auto Renamer 26.2.0.
+  Create Sections From Detail Lines, Auto Place Sections and the Roof / Floor Edge Sections tools create their sections in one group, so a cancel removes every
+  section or viewport of the run.
+- **Sheet Tools group** (all tools in `Menu/Sheet`, latest version of each): Esc / Cancel with a Yes / No confirm while the tool works: Automated Section Placer 3.2.0, Plan From Scope Box 6.2.0, Sections To Sheet 1.1.0, Sheet Auto Rearrange 28.2.0, Sheet Text Replace 1.1.0, Sheet View Arrange 1.3.0, Smart View To Sheet Placer 224.2.0.
+- **Tagging Tools group** (all tools in `Menu/Tagging`, latest version of each): Esc / Cancel with a Yes / No confirm while the tool works: Align Spot Elevations 1.7.0, Floor Tag 1.1.0, Roof Tag 18.2.0, Tag To Text 1.4.0.
+- **Detail Lines Tools group** (all tools in `Menu/DetailLines`, latest version of each): Esc / Cancel with a Yes / No confirm while the tool works: Detail Lines From Links 10.2.0, Detail Line Closed Loop 3.1.0, Detail Line Manager 2.1.0.
+- **Dimensions group** (all tools in `Menu/Dimensions`, latest version of each): Esc / Cancel with a Yes / No confirm while the tool works: Auto Dim Detail Line 10.2.0.
+- **Manage Tools group** (all tools in `Menu/Manage`, latest version of each): Esc / Cancel with a Yes / No confirm while the tool works: Annotation Overlap Detection 4.2.0, Bulk Rename 1.2.0, Delete Line Styles 1.3.0, Link Memory 2.1.0, Link Version Checker 7.2.0, ParaManager 5.2.0, Schedule Export / Import 7.2.0, Shared Parameter Studio 1.1.0, Tracker ID 2.1.0, Delete Workset 1.3.0, Workset Manager 14.2.0, Workset Renamer 5.2.0, Workset Renamer (From Excel) 5.2.0, Worksets & Elements Browser 4.4.0.
+  Workset Creator 17.1.0 (new catalog entry for the V017 code: it has no ribbon button yet, so the ribbon still opens V016): Esc / Cancel while worksets are created or resynced; a cancel rolls the whole run back.
+  Link Memory 2.1.0 cannot undo a link load or unload (Revit does not allow it inside a transaction): its confirm says so, and a cancel only stops before the next link.
+- **Setup Tools group** (all tools in `Menu/Setup`, latest version of each): Esc / Cancel with a Yes / No confirm while the tool works: Batch Link DWG Family 2.3.0, DWG To Lines 7.1.0, DWG To DL(P) 14.1.0, DWG Manager 3.2.0, DWG Statistics 5.2.0, Export DWG to Folder 4.3.0.
+
+#### Changed
+- Manage ribbon: the **WS Creator** dropdown now lists Workset Creator V017 first (the button's own icon and click run V017), then V016 and V015. The "#" marker moved from V016 to V017.
+- Tag To Text 1.4.0: the separate Cancel button is replaced by the shared Cancel button, which asks for confirmation (the run already undid everything).
+- View Auto Renamer 7.2.0: the rename now runs in one transaction group.
+- Auto Slope By Drain (Multi-Roof) 13.2.0 and Auto Slope By Point (Multi Copies) 30.2.0: a cancel now undoes the whole run.
+  Before, roofs or copies that had already finished stayed applied. Auto Slope By Drain 7.3.0, Auto Slope By Point 33.1.0 and
+  Auto Slope By Point (Ridge) 3.2.0 already rolled the roof back; their Cancel button is now the shared one in the status strip
+  and asks for confirmation.
+- Floor Slope By Drain 1.1.0 and Floor Slope By Point (Multi Copies) 1.1.0: a cancel now undoes the whole run (before, finished floors or copies stayed).
+  Floors And Roof From Linked Rooms 13.2.0 and (Via Plan View) 6.2.0: a cancel now removes every element the run created (before, the ones already made were kept).
+  Their separate "Cancel" / "Cancel Run" buttons are replaced by the shared Cancel button, which asks for confirmation.
+- Create Sections From Detail Lines 13.2.0: a cancel now undoes the whole run (before, the sections already created stayed).
+  Reference Section Head Placer 15.2.0: the disabled Cancel button is replaced by the shared one, which works.
+- Roof Points & Slope 1.2.0: the separate "Cancel Run" button is replaced by the shared Cancel button; it asks for confirmation.
+
+User note: cancelling a run undoes every model change made by that run (a cancelled rename leaves all view names as they
+were). Files already exported or written stay. A single long Revit call cannot be interrupted, so the dialog can take a
+moment to appear. Excel files written before a cancel are kept. View Auto Renamer, the Roof Tools and the Floor Tools have this so far;
+the other tool groups follow. Ridge By Openings / Ridge By Points compute the ridge geometry on a background thread; that calculation cannot be
+cancelled, only the Revit steps after it (reading the roof, adding points, drawing lines).
 
 ## [6.39.0] — 2026-11-06
 

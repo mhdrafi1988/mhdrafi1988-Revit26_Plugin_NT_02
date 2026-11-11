@@ -22,6 +22,12 @@ namespace Revit26_Plugin_Revised.WorksetsElementsBrowser.WSEB004.UI.ViewModels
         public string Owner { get; }
         public string EditableBadge { get; }
 
+        /// <summary>"open" or "closed" on Workset rows; empty on every other row.</summary>
+        public string OpenBadge { get; }
+
+        /// <summary>True on a Workset row whose workset is closed in this session.</summary>
+        public bool IsClosed { get; }
+
         /// <summary>Only populated on Type nodes — the actual element instances this row represents.</summary>
         public IReadOnlyList<ElementId> ElementIds { get; }
 
@@ -42,13 +48,15 @@ namespace Revit26_Plugin_Revised.WorksetsElementsBrowser.WSEB004.UI.ViewModels
         /// <summary>Fires whenever this node's or any descendant's IsChecked actually changes — the main ViewModel subscribes once per root to keep its status strip counts live.</summary>
         public event System.Action CheckedChanged;
 
-        public TreeNodeViewModel(ElementTreeNodeKind kind, string name, int elementCount = 0, string owner = "", string editableBadge = "", IReadOnlyList<ElementId> elementIds = null)
+        public TreeNodeViewModel(ElementTreeNodeKind kind, string name, int elementCount = 0, string owner = "", string editableBadge = "", IReadOnlyList<ElementId> elementIds = null, bool? isOpen = null)
         {
             Kind = kind;
             Name = name;
             ElementCount = elementCount;
             Owner = owner;
             EditableBadge = editableBadge;
+            OpenBadge = isOpen == null ? string.Empty : (isOpen.Value ? "open" : "closed");
+            IsClosed = isOpen == false;
             ElementIds = elementIds ?? System.Array.Empty<ElementId>();
         }
 

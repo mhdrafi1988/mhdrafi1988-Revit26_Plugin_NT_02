@@ -20,6 +20,7 @@
 //        Close button at all (modeless, closed only via the window chrome).
 // ==============================================
 
+using Revit26_Plugin_Revised.Shared.Services;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -425,6 +426,8 @@ namespace Revit26_Plugin_Revised.DwgToDetailLines.V014.UI.ViewModels
 
             _convertHandler.Raise(_convertEvent, uiApp =>
             {
+                // Esc / Cancel with a Yes-No confirm; the conversion transaction is rolled back on cancel.
+                using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.DwgToDlp, uiApp);
                 try
                 {
                     var service = new DetailLineConversionService(uiApp, e => LogEntries.Add(e), ReportProgress);
@@ -437,6 +440,12 @@ namespace Revit26_Plugin_Revised.DwgToDetailLines.V014.UI.ViewModels
                     Metrics = updatedMetrics;
                     Progress = 100;
                     SummaryText = $"Done: {updatedMetrics.Placed} placed, {updatedMetrics.Skipped} skipped, {updatedMetrics.Failed} failed";
+                }
+                catch (OperationCanceledException)
+                {
+                    Progress = 0;
+                    SummaryText = "Cancelled by user. Nothing was placed.";
+                    AddLog(LogLevel.Warning, SummaryText);
                 }
                 catch (Exception ex)
                 {

@@ -32,6 +32,7 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Commands
             AlignOptions options = AlignSettingsStore.Load();
             if (ctx.PreselectedLine != null) options.Mode = ArrangeMode.AlignToDetailLines;
             if (StartInDetailLineMode) options.Mode = ArrangeMode.AlignToDetailLines;
+            if (StartInDistributeMode) options.Mode = ArrangeMode.DistributeOnly;
             var vm = new AlignViewModel(ctx.Read.Items, ctx.Read.Skipped, ctx.Read.Scale, options);
             if (ctx.PreselectedLine != null) vm.SetLine(SpotPart.LeaderEnd, ctx.PreselectedLine);
             return ShowLoop(commandData, ctx, vm);
@@ -39,6 +40,9 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Commands
 
         /// <summary>True for the Align to Detail Line button: the window opens in Align to detail lines.</summary>
         protected virtual bool StartInDetailLineMode => false;
+
+        /// <summary>True for the Distribute button: the window opens in Distribute only.</summary>
+        protected virtual bool StartInDistributeMode => false;
 
         /// <summary>
         /// Shows the window until Apply or Cancel. Pick line… / Pick tag… closes it; the user then clicks a
@@ -80,5 +84,17 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Commands
     {
         /// <inheritdoc/>
         protected override bool StartInDetailLineMode => true;
+    }
+
+    /// <summary>
+    /// Distribute Spot Elevations: opens Align Spot Elevations in the Distribute only mode. The tags are
+    /// spaced along their column or row (evenly, or at a fixed gap) and keep their other coordinate.
+    /// </summary>
+    [Transaction(TransactionMode.Manual)]
+    [Regeneration(RegenerationOption.Manual)]
+    public class AlignSpotElevationsDistributeCommand : AlignSpotElevationsCommand
+    {
+        /// <inheritdoc/>
+        protected override bool StartInDistributeMode => true;
     }
 }

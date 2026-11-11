@@ -1,3 +1,4 @@
+using Revit26_Plugin_Revised.Shared.Services;
 using Autodesk.Revit.DB;
 using Revit26_Plugin_Revised.Shared.Models;
 using Revit26_Plugin_Revised.WorksetManager.V014.Core.Models;
@@ -42,6 +43,7 @@ namespace Revit26_Plugin_Revised.WorksetManager.V014.Core.Services
             var worksetNames = new HashSet<string>();
             foreach (var instance in instances)
             {
+                ToolCancellation.CheckCurrent();
                 var param = instance.get_Parameter(BuiltInParameter.ELEM_PARTITION_PARAM);
                 if (param != null && param.HasValue)
                 {
@@ -74,6 +76,7 @@ namespace Revit26_Plugin_Revised.WorksetManager.V014.Core.Services
 
             foreach (var instance in instances)
             {
+                ToolCancellation.CheckCurrent();
                 var param = instance.get_Parameter(BuiltInParameter.ELEM_PARTITION_PARAM);
                 if (param == null || !param.HasValue) return false;
 
@@ -98,12 +101,14 @@ namespace Revit26_Plugin_Revised.WorksetManager.V014.Core.Services
 
             foreach (var item in items.Where(i => i.GridCategory != WorksetGridCategory.AlreadyAssigned))
             {
+                ToolCancellation.CheckCurrent();
                 string baseName  = item.ProposedWorksetName;
                 string finalName = baseName;
                 int    count     = 1;
 
                 while (usedNames.ContainsKey(finalName))
                 {
+                    ToolCancellation.CheckCurrent();
                     count++;
                     finalName = $"{baseName}_{count}";
                 }
@@ -178,6 +183,7 @@ namespace Revit26_Plugin_Revised.WorksetManager.V014.Core.Services
 
             foreach (var (proposedName, linkName, createNew) in items)
             {
+                ToolCancellation.CheckCurrent();
                 _processedCount++;
 
                 using Transaction tx = new(doc,
@@ -216,6 +222,10 @@ namespace Revit26_Plugin_Revised.WorksetManager.V014.Core.Services
                         $"Assigned {assignedCount} instance(s) of '{linkName}' → '{proposedName}'"));
 
                     tx.Commit();
+                }
+                catch (OperationCanceledException)
+                {
+                    throw; // user cancel: never swallowed as a failure
                 }
                 catch (Exception ex)
                 {

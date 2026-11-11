@@ -1,3 +1,4 @@
+using Revit26_Plugin_Revised.Shared.Services;
 using Autodesk.Revit.DB;
 using Revit26_Plugin_Revised.TrackerId.V002.Core.Models;
 using System;
@@ -43,6 +44,7 @@ namespace Revit26_Plugin_Revised.TrackerId.V002.Infrastructure.Revit
             var elements = new List<(StatusPlanRow Row, Element Element)>();
             foreach (var row in toWrite)
             {
+                ToolCancellation.CheckCurrent();
                 var element = doc.GetElement(new ElementId(row.Element.ElementId));
                 if (element == null)
                 {
@@ -69,6 +71,7 @@ namespace Revit26_Plugin_Revised.TrackerId.V002.Infrastructure.Revit
 
             foreach (var (row, element) in elements)
             {
+                ToolCancellation.CheckCurrent();
                 string error = SetText(element, TrackerParameters.Status, row.Record.Status)
                                ?? (row.Record.Progress.HasValue ? SetNumber(element, TrackerParameters.Progress, row.Record.Progress.Value) : null)
                                ?? (row.Record.Date.HasValue ? SetText(element, TrackerParameters.StatusDate, row.Record.DateText) : null);

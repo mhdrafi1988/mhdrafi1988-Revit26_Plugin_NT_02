@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Revit26_Plugin_Revised.Shared.Services;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -467,8 +468,23 @@ namespace Revit26_Plugin_Revised.FloorCreaseLinesByPoints.V001.ViewModels
 
                 // Transactions TX-0..3 — must run in API context via the ExternalEvent.
                 await RunInRevitAsync(() =>
-                    _creationSvc.CreateAll(_doc, _uiDoc.ActiveView, _selectedFloor, _lastResult,
-                        AddDetailLines, AddShapePoints));
+                {
+                    // One group around TX-0..3, so a cancel undoes the whole run.
+                    using var group = new TransactionGroup(_doc, "Ridge By Points");
+                    group.Start();
+                    try
+                    {
+                        _creationSvc.CreateAll(_doc, _uiDoc.ActiveView, _selectedFloor, _lastResult,
+                            AddDetailLines, AddShapePoints);
+                        ToolCancellation.CheckCurrent();
+                    }
+                    catch
+                    {
+                        if (group.GetStatus() == TransactionStatus.Started) group.RollBack();
+                        throw;
+                    }
+                    group.Assimilate();
+                });
 
                 DetailLinesAddedCount = _creationSvc.DetailLinesAdded;
                 Log($"  Detail lines created: {DetailLinesAddedCount}");
@@ -488,6 +504,12 @@ namespace Revit26_Plugin_Revised.FloorCreaseLinesByPoints.V001.ViewModels
                     $"{TotalAddedPoints}/{TotalCalculatedPoints} shape points added" +
                     (TotalSkippedPoints > 0 ? $" ({TotalSkippedPoints} skipped)" : "") + ". " +
                     $"Validation: {PassCount} PASS / {FailCount} FAIL. ({elapsed.TotalSeconds:F1}s)";
+            }
+            catch (OperationCanceledException)
+            {
+                // Esc / Cancel confirmed: the transaction group inside CreateAll was rolled back.
+                Log("[CANCELLED]  Cancelled by user. Everything this run changed was undone.");
+                StatusMessage = "Cancelled by user. Nothing was changed.";
             }
             catch (Exception ex)
             {

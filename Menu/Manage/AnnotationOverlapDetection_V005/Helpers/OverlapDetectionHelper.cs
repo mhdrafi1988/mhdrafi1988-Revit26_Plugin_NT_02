@@ -1,4 +1,5 @@
 using Autodesk.Revit.DB;
+using Revit26_Plugin_Revised.Shared.Services;
 using Revit26_Plugin_Revised.AnnotationOverlapDetection.V005.Models;
 using System;
 using System.Collections.Generic;
@@ -41,6 +42,7 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V005.Helpers
 
                 foreach (Element elem in collector)
                 {
+                    ToolCancellation.CheckCurrent();
                     var box = BoundingBoxCalculator.GetBoundingBox(elem, view);
                     if (box == null)
                         continue;
@@ -82,6 +84,7 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V005.Helpers
             {
                 for (int i = 0; i < group.Count; i++)
                 {
+                    ToolCancellation.CheckCurrent();
                     for (int j = i + 1; j < group.Count; j++)
                     {
                         AnnotationData a = group[i];

@@ -396,7 +396,6 @@ namespace Revit26_Plugin_Revised.FloorsAndRoofFromLinkedRooms.V013
             }
 
             IsBusy = true;
-            _cancelFlag.IsCancelled = false;
 
             TotalCount = runnable.Count;
             ProcessedCount = 0;
@@ -408,7 +407,6 @@ namespace Revit26_Plugin_Revised.FloorsAndRoofFromLinkedRooms.V013
                 Rooms = runnable,
                 LinkTransform = SelectedInstance.Transform,
                 TypeId = typeId,
-                Cancel = _cancelFlag
             };
 
             // Unmapped count is known before the handler runs, so it's passed through
@@ -417,11 +415,6 @@ namespace Revit26_Plugin_Revised.FloorsAndRoofFromLinkedRooms.V013
 
             _externalEvent.Raise();
         }
-
-        private bool CanCancel() => IsBusy;
-
-        [RelayCommand(CanExecute = nameof(CanCancel))]
-        private void Cancel() => _cancelFlag.IsCancelled = true;
 
         /// <summary>Called by the handler on the Revit API thread; ObservableCollection
         /// updates are safe here since the handler runs on the same thread that owns the
@@ -464,7 +457,6 @@ namespace Revit26_Plugin_Revised.FloorsAndRoofFromLinkedRooms.V013
 
             RunFloorCommand.NotifyCanExecuteChanged();
             RunRoofCommand.NotifyCanExecuteChanged();
-            CancelCommand.NotifyCanExecuteChanged();
         }
 
         /// <summary>Persists current selections. Called after each run and from the

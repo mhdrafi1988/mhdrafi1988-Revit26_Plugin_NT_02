@@ -65,6 +65,10 @@ namespace Revit26_Plugin_Revised.SectionViewAutoTagger.V006
                 return;
             }
 
+            // Esc / Cancel with a Yes-No confirm during the (read-only) category scan.
+            using ToolCancellation cancel = Mode == ScanMode.ScanCategoriesForViews
+                ? ToolCancellation.BeginFor(ToolCatalog.SectionViewAutoTagger, app)
+                : null;
             try
             {
                 switch (Mode)

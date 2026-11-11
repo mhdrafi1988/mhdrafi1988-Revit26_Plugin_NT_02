@@ -30,6 +30,8 @@ namespace Revit26_Plugin_Revised.RoofPointElevationSync.V005
 
         private void ExecuteCore(UIApplication app)
         {
+            // Esc / Cancel with a Yes-No confirm; a cancelled Apply is rolled back by the transaction below.
+            using var cancel = ToolCancellation.BeginFor(ToolCatalog.RoofPointElevationSync, app);
             try
             {
                 var service = new RoofPointMatchingService(Log);
@@ -55,6 +57,11 @@ namespace Revit26_Plugin_Revised.RoofPointElevationSync.V005
                             int applied = MatchRows.Count(r => r.IsIncluded && !r.IsEqual);
                             OnApplyCompleted?.Invoke(true, $"{applied} point(s) updated.");
                         }
+                        catch (OperationCanceledException)
+                        {
+                            t.RollBack(); // user cancelled: nothing stays changed
+                            throw;
+                        }
                         catch (Exception ex)
                         {
                             t.RollBack();
@@ -63,6 +70,15 @@ namespace Revit26_Plugin_Revised.RoofPointElevationSync.V005
                         }
                     }
                 }
+            }
+            catch (OperationCanceledException)
+            {
+                Log?.Invoke("Cancelled by user. Nothing was changed.", LogLevel.Warning);
+                if (RequestedMode == Mode.Apply)
+                    OnApplyCompleted?.Invoke(false, "Cancelled by user.");
+                else
+                    OnMatchesFound?.Invoke(new System.Collections.Generic.List<PointMatchRow>());
+                throw; // ToolGuard treats it as a user cancel
             }
             catch (Exception ex)
             {

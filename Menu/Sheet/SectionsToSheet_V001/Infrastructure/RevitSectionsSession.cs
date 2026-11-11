@@ -1,3 +1,4 @@
+using Revit26_Plugin_Revised.Shared.Services;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using Autodesk.Revit.UI.Selection;
@@ -229,7 +230,7 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.Infrastructure
                 }
                 finally
                 {
-                    done(result ?? Failed("Unexpected error — see the error dialog. Nothing was changed."));
+                    done(result ?? Failed(ToolCancellation.CancelledOr("Unexpected error — see the error dialog. Nothing was changed.")));
                 }
             });
             return _externalEvent.Raise() == ExternalEventRequest.Accepted;

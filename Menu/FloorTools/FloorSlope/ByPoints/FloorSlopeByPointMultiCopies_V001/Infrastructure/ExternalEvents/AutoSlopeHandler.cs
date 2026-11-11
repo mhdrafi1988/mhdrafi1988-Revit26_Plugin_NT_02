@@ -46,6 +46,9 @@ namespace Revit26_Plugin_Revised.FloorSlopeByPointMultiCopies.V001.Infrastructur
             // by the next invocation while this one is still running.
             MultiSlopePayload current = Payload;
 
+            // Esc / Cancel with a Yes-No confirm; a cancel undoes every copy made by this run.
+            using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.FloorSlopeByPointMultiCopies, app);
+
             using (TransactionGroup tg = new TransactionGroup(
                 app.ActiveUIDocument.Document, "Multi-Slope Floor Variants"))
             {

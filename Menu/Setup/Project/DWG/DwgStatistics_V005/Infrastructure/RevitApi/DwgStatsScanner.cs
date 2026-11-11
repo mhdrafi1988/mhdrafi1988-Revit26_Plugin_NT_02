@@ -1,3 +1,4 @@
+using Revit26_Plugin_Revised.Shared.Services;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -116,6 +117,7 @@ namespace Revit26_Plugin_Revised.DwgStatistics.V005.Infrastructure.RevitApi
 
                 foreach (var inst in instances)
                 {
+                    ToolCancellation.CheckCurrent();
                     var owner = inst.OwnerViewId ?? ElementId.InvalidElementId;
                     if (inst.ViewSpecific && owner != ElementId.InvalidElementId)
                     {
@@ -165,6 +167,7 @@ namespace Revit26_Plugin_Revised.DwgStatistics.V005.Infrastructure.RevitApi
 
             while (!session.IsComplete)
             {
+                ToolCancellation.CheckCurrent();
                 var viewId = session.Views[session.Next++];
                 ScanOneView(doc, viewId, session);
                 if (batch.ElapsedMilliseconds >= maxMilliseconds) break;
@@ -211,6 +214,7 @@ namespace Revit26_Plugin_Revised.DwgStatistics.V005.Infrastructure.RevitApi
 
             foreach (var id in drawn)
             {
+                ToolCancellation.CheckCurrent();
                 AddTo(result.VisibleIn, id.Value, vid);
                 touched = true;
             }
@@ -223,6 +227,7 @@ namespace Revit26_Plugin_Revised.DwgStatistics.V005.Infrastructure.RevitApi
 
             foreach (var id in candidates)
             {
+                ToolCancellation.CheckCurrent();
                 if (drawn.Contains(id)) continue;
                 var element = doc.GetElement(id);
                 if (element == null) continue;
@@ -250,10 +255,12 @@ namespace Revit26_Plugin_Revised.DwgStatistics.V005.Infrastructure.RevitApi
 
             foreach (long cat in categories)
             {
+                ToolCancellation.CheckCurrent();
                 if (!result.LayersByCategory.TryGetValue(cat, out var layers) || layers.Count == 0) continue;
                 var state = new LayerViewState();
                 foreach (var layer in layers)
                 {
+                    ToolCancellation.CheckCurrent();
                     var layerId = new ElementId(layer.LayerId);
                     try
                     {
@@ -323,6 +330,7 @@ namespace Revit26_Plugin_Revised.DwgStatistics.V005.Infrastructure.RevitApi
                 .ToElementIds());
             foreach (var inst in instances)
             {
+                ToolCancellation.CheckCurrent();
                 var id = inst.GetTypeId();
                 if (id != null && id != ElementId.InvalidElementId) typeIds.Add(id);
             }
@@ -330,6 +338,7 @@ namespace Revit26_Plugin_Revised.DwgStatistics.V005.Infrastructure.RevitApi
             int unreadable = 0;
             foreach (var typeId in typeIds)
             {
+                ToolCancellation.CheckCurrent();
                 try
                 {
                     var fact = ReadType(doc, typeId);
@@ -427,6 +436,7 @@ namespace Revit26_Plugin_Revised.DwgStatistics.V005.Infrastructure.RevitApi
             var sb = new StringBuilder();
             for (int i = 0; i < enumText.Length; i++)
             {
+                ToolCancellation.CheckCurrent();
                 char c = enumText[i];
                 if (i > 0 && char.IsUpper(c)) sb.Append(' ').Append(char.ToLowerInvariant(c));
                 else sb.Append(c);
@@ -444,6 +454,7 @@ namespace Revit26_Plugin_Revised.DwgStatistics.V005.Infrastructure.RevitApi
 
             foreach (var inst in instances)
             {
+                ToolCancellation.CheckCurrent();
                 try
                 {
                     var typeId = inst.GetTypeId();
@@ -673,6 +684,7 @@ namespace Revit26_Plugin_Revised.DwgStatistics.V005.Infrastructure.RevitApi
 
             foreach (var vp in new FilteredElementCollector(doc).OfClass(typeof(Viewport)).Cast<Viewport>())
             {
+                ToolCancellation.CheckCurrent();
                 if (!sheetNumbers.TryGetValue(vp.SheetId, out var number))
                 {
                     number = (doc.GetElement(vp.SheetId) as ViewSheet)?.SheetNumber ?? string.Empty;

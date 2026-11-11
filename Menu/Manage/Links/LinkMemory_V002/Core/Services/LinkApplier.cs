@@ -1,3 +1,4 @@
+using Revit26_Plugin_Revised.Shared.Services;
 using Autodesk.Revit.DB;
 using Revit26_Plugin_Revised.LinkMemory.V002.Core.Models;
 using Revit26_Plugin_Revised.Shared.Models;
@@ -110,6 +111,7 @@ namespace Revit26_Plugin_Revised.LinkMemory.V002.Core.Services
 
             foreach (SavedLink saved in memory.Links)
             {
+                ToolCancellation.CheckCurrent();
                 // Re-read each time: loading one link can change the others (shared nested links).
                 LiveLink live = LinkCatalog.Match(LinkCatalog.Read(doc), saved);
                 LinkPlan plan = Plan(doc, saved, live, options);
@@ -131,6 +133,10 @@ namespace Revit26_Plugin_Revised.LinkMemory.V002.Core.Services
                             log(new LogEntry(LogLevel.Warning, $"Skipped {live?.Name ?? saved.Name}: {plan.Note}."));
                             break;
                     }
+                }
+                catch (OperationCanceledException)
+                {
+                    throw; // user cancel: never swallowed as a failure
                 }
                 catch (Exception ex) when (ex is Autodesk.Revit.Exceptions.ApplicationException
                                            || ex is InvalidOperationException || ex is ArgumentException)

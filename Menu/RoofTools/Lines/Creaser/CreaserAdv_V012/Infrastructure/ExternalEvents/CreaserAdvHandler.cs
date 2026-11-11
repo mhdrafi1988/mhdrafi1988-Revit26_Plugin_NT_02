@@ -56,9 +56,17 @@ namespace Revit26_Plugin_Revised.CreaserAdv.V012.Infrastructure.ExternalEvents
             if (current == null) return;
 
             CreaserAdvResult result = null;
+            // Esc / Cancel with a Yes-No confirm; the transaction group in Run rolls back on cancel.
+            using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.CreaserAdv, app);
             try
             {
                 result = Run(app, current);
+            }
+            catch (OperationCanceledException)
+            {
+                current.Log?.Warning("Cancelled by user. Nothing was placed.");
+                result = Fail("Cancelled by user. Nothing was placed.");
+                throw; // ToolGuard treats it as a user cancel
             }
             catch (Exception ex)
             {

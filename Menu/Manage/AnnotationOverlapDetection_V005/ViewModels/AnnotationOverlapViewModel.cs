@@ -193,11 +193,19 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V005.ViewModels
             }
 
             IsLoading = true;
+            // Esc / Cancel with a Yes-No confirm during the (read-only) overlap scan.
+            using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.AnnotationOverlapDetectionV005, null);
             try
             {
                 RunOverlapDetection(selectedTypes);
                 UpdateSummaryCard();
                 return true;
+            }
+            catch (OperationCanceledException)
+            {
+                // The scan changes nothing in the model.
+                ShowError("Cancelled by user.");
+                return false;
             }
             catch (Exception ex)
             {

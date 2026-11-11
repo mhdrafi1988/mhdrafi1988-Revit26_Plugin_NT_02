@@ -1,3 +1,4 @@
+using Revit26_Plugin_Revised.Shared.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -62,6 +63,7 @@ namespace Revit26_Plugin_Revised.DwgStatistics.V005.Infrastructure.RevitApi
                 t.Start();
                 foreach (var target in targets)
                 {
+                    ToolCancellation.CheckCurrent();
                     if (doc.GetElement(new ElementId(target.ViewId)) is not View view || view.IsTemplate)
                     {
                         result.Skipped++;
@@ -72,6 +74,7 @@ namespace Revit26_Plugin_Revised.DwgStatistics.V005.Infrastructure.RevitApi
                     var ids = new List<ElementId>();
                     foreach (long id in target.InstanceIds)
                     {
+                        ToolCancellation.CheckCurrent();
                         var element = doc.GetElement(new ElementId(id));
                         if (element == null) continue;
                         bool isHidden = SafeIsHidden(element, view);
@@ -130,6 +133,7 @@ namespace Revit26_Plugin_Revised.DwgStatistics.V005.Infrastructure.RevitApi
                 t.Start();
                 foreach (var target in views)
                 {
+                    ToolCancellation.CheckCurrent();
                     if (doc.GetElement(new ElementId(target.ViewId)) is not View view || view.IsTemplate)
                     {
                         result.Skipped++;
@@ -140,6 +144,7 @@ namespace Revit26_Plugin_Revised.DwgStatistics.V005.Infrastructure.RevitApi
                     string reason = null;
                     foreach (long id in layerIds)
                     {
+                        ToolCancellation.CheckCurrent();
                         var layerId = new ElementId(id);
                         try
                         {
@@ -221,8 +226,10 @@ namespace Revit26_Plugin_Revised.DwgStatistics.V005.Infrastructure.RevitApi
 
                 foreach (var target in targets)
                 {
+                    ToolCancellation.CheckCurrent();
                     foreach (long id in target.InstanceIds)
                     {
+                        ToolCancellation.CheckCurrent();
                         var elementId = new ElementId(id);
                         var element = doc.GetElement(elementId);
                         if (element == null || !element.IsValidObject)

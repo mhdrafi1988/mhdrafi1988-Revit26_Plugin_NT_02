@@ -844,10 +844,6 @@ model and the settings file are unchanged.
                 <TextBlock Grid.Column="1" Text="{Binding ValidationText}" Foreground="{StaticResource BrushStatusError}"
                            VerticalAlignment="Center" Margin="16,0" TextWrapping="Wrap"/>
                 <StackPanel Grid.Column="2" Orientation="Horizontal">
-                    <Button Content="Cancel Run" Style="{StaticResource OutlineButton}" Width="100" Margin="0,0,8,0"
-                            Command="{Binding CancelCommand}"
-                            Visibility="{Binding IsRunning, Converter={StaticResource BoolToVisibility}}"
-                            ToolTip="Stops the run; everything it did is rolled back."/>
                     <Button Content="Run on All Roofs" Style="{StaticResource OutlineButton}" MinWidth="140" Margin="0,0,8,0"
                             Command="{Binding RunAllCommand}"
                             Visibility="{Binding HasManyRoofs, Converter={StaticResource BoolToVisibility}}"

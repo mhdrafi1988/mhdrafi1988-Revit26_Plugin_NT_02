@@ -20,6 +20,7 @@ public partial class ViewsListWindow : Window
     {
         InitializeComponent();
         DataContext = vm;
+        vm.OwnerWindow = this; // owner of the cancel confirmation; Esc and window-close are handled while a run is active
 
         // Auto-scroll log panel to latest entry
         // Deferred: scrolling inside CollectionChanged makes WPF throw "ItemsControl is

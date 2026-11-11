@@ -45,6 +45,8 @@ namespace Revit26_Plugin_Revised.FloorDetailLineIntersect.V001.Infrastructure.Ex
             FloorDetailLineIntersectPayload current = Payload;
             Document doc = app.ActiveUIDocument.Document;
 
+            // Esc / Cancel with a Yes-No confirm; the engine's single transaction rolls back on cancel.
+            using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.FloorDetailLineIntersect, app);
             try
             {
                 var floor = doc.GetElement(current.FloorId) as Floor;
@@ -64,6 +66,16 @@ namespace Revit26_Plugin_Revised.FloorDetailLineIntersect.V001.Infrastructure.Ex
                 var result = FloorDetailLineIntersectEngine.Execute(
                     doc, floor, detailLines, current.Log, current.IncludeLineToLineIntersections);
                 current.OnCompleted?.Invoke(result);
+            }
+            catch (OperationCanceledException)
+            {
+                current.Log?.Invoke(new LogEntry(LogLevel.Warning, "Cancelled by user. Nothing was changed."));
+                current.OnCompleted?.Invoke(new FloorDetailLineIntersectResult
+                {
+                    Success = false,
+                    ErrorMessage = "Cancelled by user."
+                });
+                throw; // ToolGuard treats it as a user cancel
             }
             catch (Exception ex)
             {

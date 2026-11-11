@@ -57,10 +57,17 @@ namespace Revit26_Plugin_Revised.CombinedRoofTools.V003.Infrastructure.ExternalE
                 return;
             }
 
+            // Esc / Cancel with a Yes-No confirm while the roof is analysed (picking keeps Revit's own Esc).
+            using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.CombinedRoofTools, app);
             try
             {
                 var result = CombinedRoofToolsInitializer.BuildAll(app, roof);
                 current.OnCompleted?.Invoke(result);
+            }
+            catch (OperationCanceledException)
+            {
+                current.OnCancelled?.Invoke();
+                throw; // ToolGuard treats it as a user cancel
             }
             catch (Exception ex)
             {

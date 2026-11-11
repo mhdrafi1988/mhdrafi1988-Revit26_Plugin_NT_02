@@ -49,6 +49,10 @@ namespace Revit26_Plugin_Revised.FloorShapeFromLink.V001.Infrastructure.External
         public void Execute(UIApplication app) =>
             ToolGuard.RunHandler(GetType(), app, a =>
             {
+                // Esc / Cancel with a Yes-No confirm for reading and applying (picking keeps Revit's own Esc).
+                using ToolCancellation cancel = Pending == Job.PickFloors
+                    ? null
+                    : ToolCancellation.BeginFor(ToolCatalog.FloorShapeFromLink, a);
                 try
                 {
                     switch (Pending)
@@ -62,7 +66,8 @@ namespace Revit26_Plugin_Revised.FloorShapeFromLink.V001.Infrastructure.External
                 {
                     _vm.SetBusy(false, null);
                 }
-            });
+            },
+            onCancelled: () => _vm.Log(LogLevel.Warning, "Cancelled by user. Nothing was changed."));
 
         /// <inheritdoc/>
         public string GetName() => "Floor Shape From Link";
@@ -125,6 +130,7 @@ namespace Revit26_Plugin_Revised.FloorShapeFromLink.V001.Infrastructure.External
             int done = 0;
             foreach (Floor floor in floors)
             {
+                ToolCancellation.CheckCurrent();
                 List<HostPoint> points = HostFloorService.ReadPoints(floor, out string reason);
                 if (points.Count == 0)
                     _vm.Log(LogLevel.Warning, $"{HostFloorService.Label(floor)}: skipped, {reason}.");
@@ -230,6 +236,7 @@ namespace Revit26_Plugin_Revised.FloorShapeFromLink.V001.Infrastructure.External
                 tg.Start();
                 foreach (var group in groups)
                 {
+                    ToolCancellation.CheckCurrent();
                     _vm.Progress = step++ * 100.0 / groups.Count;
                     var floor = doc.GetElement(new ElementId(group.Key)) as Floor;
                     string blocker = HostFloorService.EditBlocker(doc, floor);
@@ -275,6 +282,10 @@ namespace Revit26_Plugin_Revised.FloorShapeFromLink.V001.Infrastructure.External
                             pointsFailed += failed;
                             floorsDone++;
                         }
+                        catch (OperationCanceledException)
+                        {
+                            throw; // user cancel: never swallowed as a failure
+                        }
                         catch (Exception ex)
                         {
                             tx.RollBack();
@@ -318,6 +329,7 @@ namespace Revit26_Plugin_Revised.FloorShapeFromLink.V001.Infrastructure.External
             var warnedBase = new HashSet<long>();
             foreach (var (vertex, row) in fresh)
             {
+                ToolCancellation.CheckCurrent();
                 double baseZ = vertex.Position.Z;
                 if (Math.Abs(baseZ - _vm.ToFeet(row.BaseZ)) > ReadbackToleranceFt && warnedBase.Add(row.FloorId))
                     _vm.Log(LogLevel.Warning, $"{row.FloorLabel}: base surface at a point differs from base level + offset (sloped base); the measured base was used, so the final elevations are still exact.");

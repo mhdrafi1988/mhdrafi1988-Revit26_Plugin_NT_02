@@ -31,6 +31,11 @@ namespace Revit26_Plugin_Revised.FloorTag.V001
             {
                 return Result.Cancelled;
             }
+            catch (System.OperationCanceledException)
+            {
+                // Confirmed Esc / Cancel: the run group was rolled back as the exception unwound.
+                return Result.Cancelled;
+            }
             catch (System.Exception ex)
             {
                 Logger.Error("FloorTagCommand", ex);
@@ -62,6 +67,10 @@ namespace Revit26_Plugin_Revised.FloorTag.V001
                 TaskDialog.Show("Floor Tag", $"Floor {floor.Name} (Id {floor.Id.Value}) can't be changed: {blockReason}.");
                 return Result.Cancelled;
             }
+            // One group for the whole run, so a cancel also undoes enabling shape editing.
+            using TransactionGroup runGroup = new TransactionGroup(doc, "Floor Tag");
+            runGroup.Start();
+
 
             // ── 2. Ensure SlabShapeEditor is enabled ─────────────────────
             SlabShapeEditor editor = floor.GetSlabShapeEditor();
@@ -79,6 +88,9 @@ namespace Revit26_Plugin_Revised.FloorTag.V001
 
             FloorTagViewModel vm = (FloorTagViewModel)window.DataContext;
             vm.ResetCounters();
+
+            // Esc / Cancel with a Yes-No confirm while the points are filtered and the tags placed.
+            using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.FloorTag, uiApp);
 
             // ── 4. Collect points ────────────────────────────────────────
             List<XYZ> rawPoints;
@@ -194,6 +206,7 @@ namespace Revit26_Plugin_Revised.FloorTag.V001
 
                 foreach (XYZ pt in points)
                 {
+                    ToolCancellation.CheckCurrent();
                     FloorTagGeometryHelper.GetTaggingReferenceOnFloor(
                         floor, pt,
                         out Reference faceRef,
@@ -205,9 +218,11 @@ namespace Revit26_Plugin_Revised.FloorTag.V001
                     vm.AddLog(result);
                 }
 
+                ToolCancellation.CheckCurrent(); // last chance to cancel before the commit
                 tx.Commit();
             }
 
+            runGroup.Assimilate();
             return Result.Succeeded;
         }
 
@@ -217,6 +232,7 @@ namespace Revit26_Plugin_Revised.FloorTag.V001
 
             foreach (XYZ candidate in points)
             {
+                ToolCancellation.CheckCurrent();
                 bool isDuplicate = unique.Any(u => u.DistanceTo(candidate) <= tolFt);
                 if (!isDuplicate)
                     unique.Add(candidate);

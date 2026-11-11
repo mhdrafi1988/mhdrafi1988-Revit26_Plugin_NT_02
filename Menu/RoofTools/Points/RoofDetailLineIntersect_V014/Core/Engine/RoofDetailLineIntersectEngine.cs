@@ -10,6 +10,7 @@
 // increments) has changed.
 // =======================================================
 
+using Revit26_Plugin_Revised.Shared.Services;
 using Autodesk.Revit.DB;
 using Revit26_Plugin_Revised.RoofDetailLineIntersect.V014.Core.Models;
 using Revit26_Plugin_Revised.Shared.Models;
@@ -90,6 +91,7 @@ namespace Revit26_Plugin_Revised.RoofDetailLineIntersect.V014.Core.Engine
                 var tessellated = new List<(int Index, DetailLine Dl, List<Line> Segments)>();
                 foreach (var dl in detailLines)
                 {
+                    ToolCancellation.CheckCurrent();
                     lineIndex++;
                     var segs = TessellateDetailLine2D(dl, log);
                     tessellated.Add((lineIndex, dl, segs));
@@ -102,6 +104,10 @@ namespace Revit26_Plugin_Revised.RoofDetailLineIntersect.V014.Core.Engine
                         ProcessDetailLine(t.Index, t.Dl, t.Segments, outerSegments, innerSegments,
                                           allSegments, baseZ, sse, placedXYs, centroid, doc, log,
                                           ref intersectionsFound, ref pointsPlaced, ref skippedCount);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        throw; // user cancel: never swallowed as a failure
                     }
                     catch (Exception ex)
                     {
@@ -117,6 +123,10 @@ namespace Revit26_Plugin_Revised.RoofDetailLineIntersect.V014.Core.Engine
                         ProcessLineToLineIntersections(tessellated, baseZ, sse, placedXYs, centroid,
                             doc, log, ref lineToLineFound, ref pointsPlaced, ref skippedCount);
                     }
+                    catch (OperationCanceledException)
+                    {
+                        throw; // user cancel: never swallowed as a failure
+                    }
                     catch (Exception ex)
                     {
                         log(new LogEntry(LogLevel.Error,
@@ -128,6 +138,10 @@ namespace Revit26_Plugin_Revised.RoofDetailLineIntersect.V014.Core.Engine
 
                 log(new LogEntry(LogLevel.Info,
                     $"Done — {pointsPlaced} placed, {skippedCount} skipped, {errorCount} errors."));
+            }
+            catch (OperationCanceledException)
+            {
+                throw; // user cancel: never swallowed as a failure
             }
             catch (Exception ex)
             {
@@ -187,6 +201,7 @@ namespace Revit26_Plugin_Revised.RoofDetailLineIntersect.V014.Core.Engine
 
             foreach (var dlSeg in dlSegments)
             {
+                ToolCancellation.CheckCurrent();
                 // A) Bounded intersection: where this segment crosses any boundary edge
                 var hits = FindIntersectionsBounded(dlSeg, allSegments);
                 candidateHits.AddRange(hits);
@@ -213,6 +228,7 @@ namespace Revit26_Plugin_Revised.RoofDetailLineIntersect.V014.Core.Engine
 
             foreach (var hit in uniqueHits)
             {
+                ToolCancellation.CheckCurrent();
                 intersectionsFound++;
 
                 if (IsDuplicate(hit, placedXYs))
@@ -268,6 +284,7 @@ namespace Revit26_Plugin_Revised.RoofDetailLineIntersect.V014.Core.Engine
 
             for (int i = 0; i < tessellated.Count; i++)
             {
+                ToolCancellation.CheckCurrent();
                 for (int j = i + 1; j < tessellated.Count; j++)
                 {
                     foreach (var segA in tessellated[i].Segments)
@@ -383,6 +400,10 @@ namespace Revit26_Plugin_Revised.RoofDetailLineIntersect.V014.Core.Engine
                 if (result.Count > 0)
                     log(new LogEntry(LogLevel.Info,
                         $"DetailLine id {dl.Id.Value} — arc/curve → {result.Count} segments."));
+            }
+            catch (OperationCanceledException)
+            {
+                throw; // user cancel: never swallowed as a failure
             }
             catch (Exception ex)
             {
@@ -656,6 +677,10 @@ namespace Revit26_Plugin_Revised.RoofDetailLineIntersect.V014.Core.Engine
             {
                 vertex = sse.AddPoint(new XYZ(x, y, z));
             }
+            catch (OperationCanceledException)
+            {
+                throw; // user cancel: never swallowed as a failure
+            }
             catch (Exception ex)
             {
                 failureReason = ex.Message;
@@ -670,6 +695,10 @@ namespace Revit26_Plugin_Revised.RoofDetailLineIntersect.V014.Core.Engine
             {
                 doc.Regenerate();
                 return true;
+            }
+            catch (OperationCanceledException)
+            {
+                throw; // user cancel: never swallowed as a failure
             }
             catch (Exception ex)
             {

@@ -28,7 +28,7 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 | Rafi_Pro_MOds | Floor Lines | Crease By Openings · Crease By Points · Floor Creaser |
 | Rafi_Pro_MOds | Floor Edit | Floor Types · Name Builder · Floor Tag · Comparison · Elevation Sync · Floor EPS |
 | Rafi_Pro_MOds | Roof Tools | Creaser Adv · Roof Tag · Floor From Rooms · Shape From Link |
-| Rafi_Pro_MOds2 | Roof Edit | Name Builder · Island Splitter |
+| Rafi_Pro_MOds2 | Roof Edit | Name Builder · Island Splitter · Merge Roofs |
 | Rafi_Pro_MOds2 | Roof Plan View | Island Splitter |
 | Rafi_Pro_MOds2 | Roof Compare | Comparison · Elevation Sync |
 | Rafi_Pro_MOds2 | Roof Insulation | EPS 2D Pattern |
@@ -43,7 +43,7 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 | Rafi_Pro_Docs | Floor Views | Floor Around Edges · Floor Edge Element · Floor Focus |
 | Rafi_Pro_Docs | View Place | Place Sections · Callout To Section · Head Placer · View Tagger |
 | Rafi_Pro_Docs | View Rename | Bubble Renumber · Section Renamer · Auto Renamer |
-| Rafi_Pro_Docs2 | Tagging | Tag To Text · Align Spot Elevations · Align to Detail Line · Quick Align (vertical / horizontal, ends, bends, ends / bends to tag) |
+| Rafi_Pro_Docs2 | Tagging | Tag To Text · Align Spot Elevations · Align to Detail Line · Distribute Spot Elev. · Quick Align split buttons: Vertical · Horizontal · to Tag (each lists tags, ends, bends) · Quick Distribute split buttons: Vertical · Horizontal (each lists tags, ends, bends) |
 | Rafi_Pro_Docs | Sheet Create | Scope Box · Sheet Placer · Section Placer · Sections To Sheet ▸ slide-out: Rearrange · Arrange Views |
 | Rafi_Pro_Docs | Sheet Edit | Text Replace |
 | Rafi_Pro_Docs2 | DWG Tools | DWG To DL(P) · Export DWG · DWG Manager · DWG Statistics |
@@ -51,6 +51,7 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 | Rafi_Pro_Docs2 | Manage | Overlaps (V005, V004) · ParaManager · Shared Params · Schedule I/O · Link Check ▸ slide-out: Del. Line Styles · Bulk Rename · Tracker ID |
 | Rafi_Pro_Docs2 | Worksets | WS Browser · WS Creator · WS Renamer ▸ slide-out: WS Renamer XL · Delete Workset |
 | Rafi_Pro_Docs2 | Memory | WS Memory · Link Memory |
+| Rafi_Pro_Docs2 | Coordination | Void Openings |
 
 ## Features
 
@@ -108,6 +109,8 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 - **Creaser Adv, Roof Tag**: crease lines on roofs, and roof tagging.
 - **Roof Name Builder, Island Roof Splitter**: bulk-rename roof types and instances with INS/SLP/MAT codes, and
   split a sloped roof into one roof per closed detail-line island.
+- **Merge Roofs** (Roof Edit panel): select several footprint roofs and create one new roof from their combined outline
+  (outer boundary and interior loops). It checks for overlap, crossing edges and gaps first; the original roofs are kept.
 - **Roof Point Comparison, Elevation Sync**: compare and sync roof point elevations.
 - **Tapered EPS 2D Pattern**: draw the tapered EPS board layout as detail lines on a plan view.
 - **Ridge By Openings / By Points, Combined Roof Tools, Roof Type Manager** (Roof Utilities panel).
@@ -128,6 +131,8 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 - **Tag To Text**: copy spot elevations, coordinates, slopes and tags into text notes with leaders.
 - **Align Spot Elevations**: line spot elevation tags up in a column or row, onto detail lines, or with the end or
   bend point of a tag you click. The Quick Align buttons do it in one click with the last-used settings.
+  **Distribute Spot Elev.** spaces them evenly or at a fixed gap along their column or row; the Quick Distribute
+  buttons do that in one click.
 
 ### Sheets
 - **Plan From Scope Box, Smart View To Sheet Placer, Automated Section Placer, Sections To Sheet**: create plans and
@@ -157,6 +162,11 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 - **Link Memory** (dropdown): V002 remembers which links (Revit, IFC, CAD, point clouds, images/PDF) the active view
   and its related views, or a print set, show, loads them back in one click, and exports the list to Excel.
   *Link Memory (classic)* (V001) remembers which Revit links are loaded as named sets.
+
+### Coordination
+- **Void Openings** (in development): openings for MEP through structure. So far: choose the structural model and
+  the MEP model (the active model or a Revit link) and their categories, with element counts. Clash analysis, void
+  placement and cutting follow.
 
 ## Installation
 

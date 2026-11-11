@@ -5,6 +5,7 @@
 // shared Action<LogEntry> used across the rest of the suite.
 // ==============================================
 
+using Revit26_Plugin_Revised.Shared.Services;
 using Autodesk.Revit.DB;
 using System;
 using System.Collections.Generic;
@@ -68,12 +69,14 @@ namespace Revit26_Plugin_Revised.DwgToDetailLines.V014.Core.Services
 
             foreach (GeometryObject g in import.get_Geometry(opt))
             {
+                ToolCancellation.CheckCurrent();
                 if (g is GeometryInstance gi)
                 {
                     DBTransform t = outer.Multiply(gi.Transform);
 
                     foreach (GeometryObject o in gi.GetInstanceGeometry())
                     {
+                        ToolCancellation.CheckCurrent();
                         string layer = ResolveLayer(o, doc);
 
                         if (o is Curve c)
@@ -85,6 +88,7 @@ namespace Revit26_Plugin_Revised.DwgToDetailLines.V014.Core.Services
                             var pts = pl.GetCoordinates();
                             for (int i = 0; i < pts.Count - 1; i++)
                             {
+                                ToolCancellation.CheckCurrent();
                                 // Degenerate (near-coincident) polyline segments throw
                                 // inside Line.CreateBound before any downstream tolerance
                                 // filter runs. Isolate per-segment so one bad segment
@@ -153,6 +157,7 @@ namespace Revit26_Plugin_Revised.DwgToDetailLines.V014.Core.Services
 
             foreach (GeometryObject g in import.get_Geometry(opt))
             {
+                ToolCancellation.CheckCurrent();
                 if (g is not GeometryInstance gi)
                     continue;
 
@@ -160,6 +165,7 @@ namespace Revit26_Plugin_Revised.DwgToDetailLines.V014.Core.Services
 
                 foreach (GeometryObject o in gi.GetInstanceGeometry())
                 {
+                    ToolCancellation.CheckCurrent();
                     string layer = ResolveLayer(o, doc);
 
                     if (o is Solid solid && solid.Faces.Size > 0)
@@ -201,6 +207,7 @@ namespace Revit26_Plugin_Revised.DwgToDetailLines.V014.Core.Services
 
             foreach (Face f in solid.Faces)
             {
+                ToolCancellation.CheckCurrent();
                 if (f is PlanarFace pf && pf.Area > bestArea)
                 {
                     bestFace = pf;
@@ -222,6 +229,7 @@ namespace Revit26_Plugin_Revised.DwgToDetailLines.V014.Core.Services
 
             for (int i = 1; i < loops.Count; i++)
             {
+                ToolCancellation.CheckCurrent();
                 double a = LoopArea(loops[i]);
                 if (a > outerArea)
                 {
@@ -265,6 +273,7 @@ namespace Revit26_Plugin_Revised.DwgToDetailLines.V014.Core.Services
             double sum = 0;
             for (int i = 0; i < pts.Count; i++)
             {
+                ToolCancellation.CheckCurrent();
                 XYZ a = pts[i];
                 XYZ b = pts[(i + 1) % pts.Count];
                 sum += (a.CrossProduct(b)).DotProduct(normal);
@@ -331,6 +340,7 @@ namespace Revit26_Plugin_Revised.DwgToDetailLines.V014.Core.Services
 
                 for (int i = 0; i < pts.Count - 1; i++)
                 {
+                    ToolCancellation.CheckCurrent();
                     XYZ p0 = t.OfPoint(pts[i]);
                     XYZ p1 = t.OfPoint(pts[i + 1]);
 
@@ -367,10 +377,12 @@ namespace Revit26_Plugin_Revised.DwgToDetailLines.V014.Core.Services
 
             foreach (GeometryObject g in import.get_Geometry(opt))
             {
+                ToolCancellation.CheckCurrent();
                 if (g is GeometryInstance gi)
                 {
                     foreach (GeometryObject o in gi.GetInstanceGeometry())
                     {
+                        ToolCancellation.CheckCurrent();
                         if (o is Curve || o is PolyLine || o is Solid || o is Mesh)
                         {
                             entityCount++;
@@ -402,11 +414,13 @@ namespace Revit26_Plugin_Revised.DwgToDetailLines.V014.Core.Services
 
             foreach (GeometryObject g in import.get_Geometry(opt))
             {
+                ToolCancellation.CheckCurrent();
                 if (g is not GeometryInstance gi)
                     continue;
 
                 foreach (GeometryObject o in gi.GetInstanceGeometry())
                 {
+                    ToolCancellation.CheckCurrent();
                     string layer = ResolveLayer(o, doc);
 
                     if (o is Curve || o is PolyLine)

@@ -1,3 +1,4 @@
+using Revit26_Plugin_Revised.Shared.Services;
 using Autodesk.Revit.DB;
 using System;
 using System.Collections.Generic;
@@ -103,6 +104,7 @@ namespace Revit26_Plugin_Revised.DtlLineDim.V010.Core.Engine
 
             foreach (var fi in instances)
             {
+                ToolCancellation.CheckCurrent(); // outside the per-item try, so a cancel is never counted as a failed item
                 SubTransaction subTx = null;
 
                 try
@@ -178,6 +180,7 @@ namespace Revit26_Plugin_Revised.DtlLineDim.V010.Core.Engine
                 }
             }
 
+            ToolCancellation.CheckCurrent(); // last chance to cancel before the commit (tx rolls back with the exception)
             if (result.Created > 0)
             {
                 result.Status = tx.Commit();
