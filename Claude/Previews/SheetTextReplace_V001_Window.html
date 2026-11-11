@@ -1,7 +1,8 @@
 <title>Sheet Text Replace</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<!-- UI preview (CLAUDE.md "UI previews"): Sheet Text Replace 1.2.0 (V001). Plugin 6.48.0.
-     Change shown: new "Found text" area under the preview grid (whole note text + Copy text / Copy new text / Copy all found)
+<!-- UI preview (CLAUDE.md "UI previews"): Sheet Text Replace 1.3.0 (V001). Plugin 6.49.0.
+     Change shown (1.3.0): Find / Replace / Prefix / Suffix and options are saved and restored (settings.json), plus the Recent ▾ list.
+     Earlier (1.2.0): "Found text" area under the preview grid (whole note text + Copy text / Copy new text / Copy all found)
      and "Copy full text" on the row right-click menu.
      Mirrors: Menu/Sheet/SheetTextReplace_V001/UI/Views/SheetTextReplaceWindow.xaml
               (labels from it and UI/ViewModels/SheetTextReplaceViewModel.cs; version from Shared/Services/ToolCatalog.cs).
@@ -85,21 +86,27 @@ table.g{width:calc(100% - 24px);margin:0 12px 8px;border-collapse:collapse;font-
 .foot{border-top:1px solid var(--border);padding:8px 12px;display:flex;justify-content:space-between;align-items:center;gap:8px}
 .pbtn{background:var(--navy);color:#FFFFFF;padding:7px 18px;border-radius:4px}
 .obtn{border:1px solid var(--navy);color:var(--navy);padding:6px 16px;border-radius:4px;margin-right:8px}
+.sec .st{position:relative}
+.recent{margin:0 12px 8px auto;width:360px;background:var(--card);border:2px solid var(--new);border-radius:8px;padding:6px;box-shadow:0 4px 12px rgba(16,32,48,.2);display:grid;gap:2px}
+.rh{display:flex;justify-content:space-between;align-items:center;font-size:11.5px;font-weight:600;color:var(--text2);margin-bottom:4px}
+.ri{font-family:var(--mono);font-size:12px;padding:3px 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ri.sel{background:var(--info-soft)}
+.hint{font-size:10.5px;color:var(--text3);line-height:1.4}
 ul{margin:0;padding-left:18px;line-height:1.6;max-width:80ch}
 </style>
 
 <div class="page">
   <header>
-    <h1>Sheet Text Replace <span class="muted" style="font-weight:400;font-size:14px">v1.2.0 · plugin 6.48.0</span></h1>
-    <p class="muted">When Find matches a text note, the <b>whole</b> note text can now be read and copied, not only the found part. <span class="sample">Sample data: sheets, views and notes are made up.</span></p>
+    <h1>Sheet Text Replace <span class="muted" style="font-weight:400;font-size:14px">v1.3.0 · plugin 6.49.0</span></h1>
+    <p class="muted">Your last search (Find, Replace with, Prefix, Suffix and options) is now kept, even after Revit closes, and the last 10 can be picked again from <b>Recent</b>. <span class="sample">Sample data: sheets, views and notes are made up.</span></p>
   </header>
 
   <section>
-    <h2>Tool window <span class="tag">NEW: Found text</span></h2>
+    <h2>Tool window <span class="tag">NEW: search kept + Recent</span></h2>
     <div class="frame">
       <div class="win">
         <div class="tbar">Sheet Text Replace</div>
-        <div class="hdr"><div><b>Sheet Text Replace</b><span class="s">Find and replace text notes in selected views on a sheet</span></div><span class="badge">v1.2.0</span></div>
+        <div class="hdr"><div><b>Sheet Text Replace</b><span class="s">Find and replace text notes in selected views on a sheet</span></div><span class="badge">v1.3.0</span></div>
         <div class="body">
           <div class="lbl">SUMMARY <span class="phase">BEFORE APPLY</span></div>
           <div class="cards">
@@ -123,13 +130,20 @@ ul{margin:0;padding-left:18px;line-height:1.6;max-width:80ch}
               </div>
             </div>
             <div class="sec">
-              <div class="st">Find &amp; Replace</div>
+              <div class="st" style="justify-content:space-between">Find &amp; Replace <span class="sbtn on">Recent (3) ▾ <span class="tag">NEW</span></span></div>
+              <div class="recent">
+                <div class="rh"><span>Recent searches (newest first)</span><span class="sbtn">Clear list</span></div>
+                <div class="ri sel">MEMBRANE  →  MEMBRANE TYPE 2</div>
+                <div class="ri">FFL  →  FINISHED FLOOR LEVEL  ·  Whole word</div>
+                <div class="ri">REF\.\s*(\d+)  →  SEE DWG $1  ·  Regex</div>
+              </div>
               <div class="fld">
                 <div class="row2"><span class="fl">Find</span><span class="fl">Replace with</span></div>
                 <div class="row2"><div class="in">MEMBRANE</div><div class="in">MEMBRANE TYPE 2</div></div>
                 <div class="row2"><span class="fl">Prefix</span><span class="fl">Suffix</span></div>
                 <div class="row2"><div class="in"></div><div class="in"></div></div>
                 <div class="muted" style="font-size:12px">☐ Match case &nbsp; ☐ Whole word &nbsp; ☐ Regex &nbsp; ☑ Trim spaces</div>
+                <div class="hint">Find, Replace with, Prefix, Suffix and the options are kept for next time, even after Revit is closed. Recent lists the last 10. <span class="tag">NEW</span></div>
               </div>
             </div>
           </div>
@@ -160,8 +174,9 @@ ul{margin:0;padding-left:18px;line-height:1.6;max-width:80ch}
 
           <div class="log">
             <div class="h">Activity Log</div>
+            <div class="n"><span class="d">10:42:04</span> Info     Last search restored: MEMBRANE  →  MEMBRANE TYPE 2</div>
             <div><span class="d">10:42:05</span> Info     Sheet A-201 - Roof Plan Details: 4 view(s) in 2 type(s) plus notes placed on the sheet itself, 23 text note(s).</div>
-            <div class="n"><span class="d">10:42:31</span> Info     Copied the whole text of the note in Parapet Detail 3 (131 characters).</div>
+            <div><span class="d">10:42:31</span> Info     Copied the whole text of the note in Parapet Detail 3 (131 characters).</div>
           </div>
         </div>
         <div class="foot"><span class="muted">3 changes will be made in one undoable transaction</span><span><span class="obtn">Close</span><span class="pbtn">Apply</span></span></div>
@@ -170,7 +185,15 @@ ul{margin:0;padding-left:18px;line-height:1.6;max-width:80ch}
   </section>
 
   <section>
-    <h2>What changed in 1.2.0</h2>
+    <h2>What changed in 1.3.0</h2>
+    <ul>
+      <li><b>Search kept for next time</b>: Find, Replace with, Prefix, Suffix and the four options are saved when the window closes and after Apply, and filled in again when the tool opens, even after Revit is restarted.</li>
+      <li><b>Recent ▾</b> on the Find &amp; Replace card lists the last 10 searches. Click one to reuse it; <b>Clear list</b> forgets them.</li>
+      <li>Saved in %AppData%\Revit26_Plugin_Revised\SheetTextReplace\settings.json.</li>
+    </ul>
+  </section>
+  <section>
+    <h2>Earlier, in 1.2.0</h2>
     <ul>
       <li><b>Found text</b> area under the preview grid: click a row and every line of that note shows, with its view, line count and character count. Select part of it and press Ctrl+C, or use the buttons.</li>
       <li><b>Copy text</b>: the whole current text of the picked note. <b>Copy new text</b>: the whole text after Apply. <b>Copy all found</b>: every note in the preview, separated by a blank line.</li>

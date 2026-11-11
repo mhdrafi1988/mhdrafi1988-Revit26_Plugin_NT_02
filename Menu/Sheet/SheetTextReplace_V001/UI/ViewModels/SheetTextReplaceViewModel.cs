@@ -41,6 +41,10 @@ namespace Revit26_Plugin_Revised.SheetTextReplace.V001.UI.ViewModels
         private bool _bulkRows;
         private int _viewBatch;
         private bool _disposed;
+        private SheetTextReplaceSettings _settings;
+
+        /// <summary>Folder under %AppData%\Revit26_Plugin_Revised that holds settings.json.</summary>
+        public const string SettingsFolder = "SheetTextReplace";
 
         /// <summary>Creates the view model; preselects the session's initial sheet when there is one.</summary>
         public SheetTextReplaceViewModel(ISheetTextSession session)
@@ -51,6 +55,7 @@ namespace Revit26_Plugin_Revised.SheetTextReplace.V001.UI.ViewModels
             _sheetsView = new ListCollectionView(Sheets) { Filter = FilterSheet };
 
             AddLog(LogLevel.Info, $"{ToolCatalog.SheetTextReplace.Title} opened. {Sheets.Count} sheet(s) in the model.");
+            LoadSettings();
             if (session.Initial != null)
             {
                 SheetHint = "Preselected: the active view is this sheet.";
@@ -331,6 +336,124 @@ namespace Revit26_Plugin_Revised.SheetTextReplace.V001.UI.ViewModels
             if (!accepted) AddLog(LogLevel.Error, NotAccepted);
         }
 
+        // ── Saved searches ──────────────────────────────────────────────────
+
+        /// <summary>Recent searches, newest first (kept between Revit sessions).</summary>
+        public ObservableCollection<SavedSearch> RecentSearches { get; } = new();
+
+        /// <summary>True when there is at least one recent search.</summary>
+        public bool HasRecent => RecentSearches.Count > 0;
+
+        /// <summary>"Recent (4) ▾".</summary>
+        public string RecentButtonText => $"Recent ({RecentSearches.Count}) ▾";
+
+        /// <summary>Fills Find, Replace with, Prefix, Suffix and the options from <paramref name="search"/>.</summary>
+        [RelayCommand]
+        public void UseRecent(SavedSearch search)
+        {
+            if (search == null || IsRunning) return;
+            ApplySearch(search);
+            AddLog(LogLevel.Info, $"Reused search: {search.Label}");
+        }
+
+        /// <summary>Empties the recent list (the boxes keep their text).</summary>
+        [RelayCommand]
+        private void ClearRecent()
+        {
+            RecentSearches.Clear();
+            NotifyRecentChanged();
+            SaveSettings();
+            AddLog(LogLevel.Info, "Recent searches cleared.");
+        }
+
+        private void LoadSettings()
+        {
+            _settings = SettingsService<SheetTextReplaceSettings>.Load(SettingsFolder) ?? new SheetTextReplaceSettings();
+            _settings.Recent ??= new List<SavedSearch>();
+            foreach (var r in _settings.Recent.Where(r => r != null && !string.IsNullOrEmpty(r.Find)).Take(SheetTextReplaceSettings.MaxRecent))
+                RecentSearches.Add(r);
+            NotifyRecentChanged();
+
+            if (_settings.Last != null)
+            {
+                ApplySearch(_settings.Last);
+                if (!string.IsNullOrEmpty(_settings.Last.Find))
+                    AddLog(LogLevel.Info, $"Last search restored: {_settings.Last.Label}");
+            }
+        }
+
+        /// <summary>Sets the boxes and options; the preview is rebuilt once.</summary>
+        private void ApplySearch(SavedSearch search)
+        {
+            bool wasSuspended = _suspend;
+            _suspend = true;
+            try
+            {
+                Find = search.Find ?? string.Empty;
+                ReplaceWith = search.ReplaceWith ?? string.Empty;
+                Prefix = search.Prefix ?? string.Empty;
+                Suffix = search.Suffix ?? string.Empty;
+                MatchCase = search.MatchCase;
+                WholeWord = search.WholeWord;
+                UseRegex = search.UseRegex;
+                TrimSpaces = search.TrimSpaces;
+            }
+            finally
+            {
+                _suspend = wasSuspended;
+            }
+            if (!_suspend) Recompute();
+        }
+
+        private SavedSearch CurrentSearch() => new()
+        {
+            Find = Find ?? string.Empty,
+            ReplaceWith = ReplaceWith ?? string.Empty,
+            Prefix = Prefix ?? string.Empty,
+            Suffix = Suffix ?? string.Empty,
+            MatchCase = MatchCase,
+            WholeWord = WholeWord,
+            UseRegex = UseRegex,
+            TrimSpaces = TrimSpaces
+        };
+
+        /// <summary>Puts the current search at the top of the recent list (no duplicates).</summary>
+        private void RememberCurrentSearch()
+        {
+            var current = CurrentSearch();
+            if (string.IsNullOrEmpty(current.Find)) return;
+            foreach (var same in RecentSearches.Where(r => r.SameAs(current)).ToList())
+                RecentSearches.Remove(same);
+            RecentSearches.Insert(0, current);
+            while (RecentSearches.Count > SheetTextReplaceSettings.MaxRecent)
+                RecentSearches.RemoveAt(RecentSearches.Count - 1);
+            NotifyRecentChanged();
+        }
+
+        /// <summary>Writes the current search and the recent list to settings.json (never throws).</summary>
+        public void SaveSettings()
+        {
+            try
+            {
+                _settings ??= new SheetTextReplaceSettings();
+                _settings.Version = SheetTextReplaceSettings.CurrentVersion;
+                _settings.Last = CurrentSearch();
+                _settings.Recent = RecentSearches.ToList();
+                SettingsService<SheetTextReplaceSettings>.Save(SettingsFolder, _settings);
+            }
+            catch (Exception ex)
+            {
+                // Saving is a convenience: the tool keeps working without it.
+                AddLog(LogLevel.Warning, $"Could not save the search for next time ({ex.Message}).");
+            }
+        }
+
+        private void NotifyRecentChanged()
+        {
+            OnPropertyChanged(nameof(HasRecent));
+            OnPropertyChanged(nameof(RecentButtonText));
+        }
+
         // ── Found text (copy) ───────────────────────────────────────────────
 
         /// <summary>Row picked in the preview grid; its whole note text shows in the Found text box.</summary>
@@ -580,6 +703,9 @@ namespace Revit26_Plugin_Revised.SheetTextReplace.V001.UI.ViewModels
             AddLog(ChangedCount > 0 ? LogLevel.Success : LogLevel.Warning,
                 $"{ChangedCount} note(s) changed in {ViewsAffected} view(s), {SkippedCount} skipped, {FailedCount} failed ({ElapsedMs} ms). One undo step: \"{TextReplaceApplier.TransactionName}\".");
 
+            if (ChangedCount > 0) RememberCurrentSearch();
+            SaveSettings();
+
             IsAfterPhase = true;
             FooterText = "Done. Change the inputs or press Refresh to preview again.";
             PreviewHint = "Result of the last Apply · double-click a row to show it in Revit";
@@ -781,6 +907,8 @@ namespace Revit26_Plugin_Revised.SheetTextReplace.V001.UI.ViewModels
         {
             if (_disposed) return;
             _disposed = true;
+            RememberCurrentSearch();
+            SaveSettings();
             _session.Dispose();
         }
     }

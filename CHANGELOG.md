@@ -9,6 +9,16 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.49.0] — 2026-11-11
+
+### Sheet Text Replace 1.3.0
+
+#### Added
+- **Search is kept for next time.** Find, Replace with, Prefix, Suffix and the options (Match case, Whole word, Regex, Trim spaces) are saved when the window closes and after Apply, and filled in again when the tool opens, even after Revit is closed. They are saved in `%AppData%\Revit26_Plugin_Revised\SheetTextReplace\settings.json`.
+- **Recent ▾** button on the Find & Replace card: lists the last 10 searches (newest first). Click one to fill the boxes and options again; **Clear list** forgets them.
+
+User note: the first time you open 1.3.0 the boxes are empty, as before. From then on the tool opens with your last search, and the preview shows its matches straight away. Nothing changes in the model until you press Apply.
+
 ## [6.48.0] — 2026-11-11
 
 ### Sheet Text Replace 1.2.0
