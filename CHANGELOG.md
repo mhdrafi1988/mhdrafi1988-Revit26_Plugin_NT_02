@@ -28,7 +28,10 @@ Each release lists every tool whose version changed, under the plugin version.
 - Mode and gap are remembered in `%AppData%\Revit26_Plugin_Revised\AnnotationOverlapDetection\settings.json`.
 
 #### Changed
-- Boxes are measured along the view's own right / up directions, so "up" is up on screen in rotated plans.
+- Runs in every 2D view, not only floor plans: floor, ceiling, structural and area plans, sections, elevations,
+  detail and drafting views, legends and sheets. 3D views and schedules are not supported (V004: floor plans only).
+- Boxes are measured along the view's own right / up directions, so "up" is up on screen in every view
+  (in a section or elevation that is the model's height, in a rotated plan it is screen-up).
   In unrotated plans the X / Y values are the same as V004.
 
 ### Ribbon

@@ -151,8 +151,9 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 - **Detail Line Manager**: find, clean up and join detail lines, and rename line styles.
 
 ### Manage, worksets and memory
-- **Annotation Overlap Detection**: find overlapping text notes, tags, room tags and dimensions in a floor plan,
-  then move them apart (V005: Move Up, Move Down or Distribute).
+- **Annotation Overlap Detection**: find overlapping text notes, tags, room tags and dimensions, then move them
+  apart (V005: Move Up, Move Down or Distribute; runs in plans, sections, elevations, drafting views, legends and
+  sheets. V004: floor plans only).
 - **ParaManager, Shared Parameter Studio, Schedule Export / Import**.
 - **Link Version Checker**: status of RVT links, including ACC Desktop Connector and Autodesk Docs cloud links.
 - **Delete Line Styles, Bulk Rename, Tracker ID**: clean up and rename styles and patterns, and give elements a

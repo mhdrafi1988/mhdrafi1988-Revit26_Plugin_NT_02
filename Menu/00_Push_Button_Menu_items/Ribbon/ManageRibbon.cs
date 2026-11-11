@@ -32,7 +32,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             var overlapV005 = Btn(assemblyPath, "Btn_AnnotationOverlapDetection_V005", "Overlap Detection V005", "Revit26_Plugin_Revised.AnnotationOverlapDetection.V005.Command",
                 "Manage.AnnotationOverlapDetection_16.png", "Annotation Overlap Detection", "V005");
             overlapV005.ToolTip = Revit26_Plugin_Revised.Shared.Services.ToolCatalog.AnnotationOverlapDetectionV005.Tip(
-                "Find overlapping annotations in the active floor plan, then move them apart: Move Up, Move Down or Distribute.");
+                "Find overlapping annotations in the active view (plans, sections, elevations, drafting views, legends, sheets), then move them apart: Move Up, Move Down or Distribute.");
             var overlapV004 = Btn(assemblyPath, "Btn_AnnotationOverlapDetection_V004", "Overlap Detection V004", "Revit26_Plugin_Revised.AnnotationOverlapDetection.V004.Command",
                 "Manage.AnnotationOverlapDetection_16.png", "Annotation Overlap Detection", "V004", "V003 on the shared ToolWindowShell (capped lists).");
 

@@ -108,6 +108,7 @@ tr.sel td{background:var(--hover)}
 .bar i{display:block;height:100%;width:100%;background:var(--ok)}
 .foot{display:flex;justify-content:flex-end;gap:8px;padding:10px 16px 14px}
 .okbanner{background:var(--ok-soft);border:1px solid var(--ok-border);color:var(--ok);border-radius:6px;padding:7px 10px}
+.newline{border:1px dashed var(--new);background:var(--new-soft);padding:6px 8px;border-radius:4px}
 
 /* Explainer sketch */
 .legend{display:flex;gap:14px;flex-wrap:wrap;color:var(--text2);font-size:11.5px}
@@ -122,6 +123,9 @@ ul{margin:0;padding-left:18px;line-height:1.55;max-width:75ch}
     <p class="muted">Preview of tool 5.0.0, plugin 6.47.0. V005 keeps V004's scan and adds a way to fix each clash:
       move the upper element up, move the lower element down, or push both apart.
       New or changed items carry a green <span class="tag">NEW</span> tag.</p>
+    <p class="newline" style="margin-top:8px;max-width:75ch"><span class="tag" style="margin:0 6px 0 0">NEW</span>Runs in every 2D view:
+      floor, ceiling, structural and area plans, sections, elevations, detail and drafting views, legends and sheets.
+      V004 runs in floor plans only. In a 3D view or schedule the tool says the view type is not supported.</p>
     <span class="sample">Sample data: element IDs, counts and coordinates are made up.</span>
   </header>
 
@@ -144,7 +148,7 @@ ul{margin:0;padding-left:18px;line-height:1.55;max-width:75ch}
               <div><i></i>Overlap Detection V004</div>
             </div>
             <div class="tip"><b>Annotation Overlap Detection — v5.0.0</b><br>
-              Find overlapping annotations in the active floor plan, then move them apart: Move Up, Move Down or Distribute.</div>
+              Find overlapping annotations in the active view (plans, sections, elevations, drafting views, legends, sheets), then move them apart: Move Up, Move Down or Distribute.</div>
           </div>
         </div>
         <div class="ptitle">Manage ▾</div>
@@ -256,7 +260,8 @@ ul{margin:0;padding-left:18px;line-height:1.55;max-width:75ch}
   <section>
     <h2>How a resolve works</h2>
     <ul>
-      <li>"Up" means up on screen, along the view's up direction, so rotated plans work too.</li>
+      <li>"Up" means up on screen, along the view's up direction: in a section or elevation that is the model's height,
+        in a rotated plan it is screen-up, on a sheet it is up the sheet.</li>
       <li>Distance moved = vertical overlap of the two boxes + the clear gap.</li>
       <li>Text notes, tags and room tags move as a whole. A tag's head moves and its leader stays on the host.
         For a dimension, only the text moves.</li>

@@ -1,6 +1,7 @@
 using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
+using Revit26_Plugin_Revised.AnnotationOverlapDetection.V005.Helpers;
 using Revit26_Plugin_Revised.AnnotationOverlapDetection.V005.ViewModels;
 using Revit26_Plugin_Revised.AnnotationOverlapDetection.V005.Views;
 using Revit26_Plugin_Revised.Utilities;
@@ -9,7 +10,8 @@ using Revit26_Plugin_Revised.Shared.Services;
 namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V005
 {
     /// <summary>
-    /// Annotation Overlap Detection V005: lists overlapping annotations in the active floor plan and
+    /// Annotation Overlap Detection V005: lists overlapping annotations in the active 2D view (plan, section,
+    /// elevation, detail, drafting, legend or sheet) and
     /// resolves them (Move Up / Move Down / Distribute). The command itself only opens the modeless
     /// window; the moves run later in <see cref="MoveAnnotationsEventHandler"/>.
     /// </summary>
@@ -46,11 +48,12 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V005
             Document doc = uiDoc.Document;
             View activeView = uiDoc.ActiveView;
 
-            // Step 1: view validation - exit cleanly, no error dialog, if not a plan view
-            if (activeView.ViewType != ViewType.FloorPlan)
+            // Step 1: view validation - exit cleanly, no error dialog, in an unsupported view.
+            // V005 runs in every 2D view (V004: floor plans only).
+            if (!ViewSupport.IsSupported(activeView))
             {
                 TaskDialog.Show("Annotation Overlap Detection",
-                    "Please run this command from a floor plan view.");
+                    "This view type is not supported. Run the tool from one of these views: " + ViewSupport.SupportedList + ".");
                 return Result.Cancelled;
             }
 

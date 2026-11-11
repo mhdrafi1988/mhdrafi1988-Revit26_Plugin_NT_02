@@ -17,7 +17,8 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V005.Helpers
         /// Reads an element's bounding box (as seen in the given view) and
         /// converts it to (x, y, width, height) in mm, in view coordinates:
         /// x along the view's right direction, y along its up direction.
-        /// In an unrotated plan this equals model X / Y (same as V004).
+        /// All eight corners are projected, so this works in plans, sections, elevations,
+        /// drafting views, legends and sheets. In an unrotated plan it equals model X / Y (same as V004).
         /// Returns null if the element has no bounding box in this view (e.g. hidden).
         /// </summary>
         public static (double x, double y, double width, double height)? GetBoundingBox(Element elem, View view)
@@ -35,11 +36,14 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V005.Helpers
             {
                 foreach (double py in new[] { bbox.Min.Y, bbox.Max.Y })
                 {
-                    var p = new XYZ(px, py, 0);
-                    double r = p.DotProduct(right);
-                    double u = p.DotProduct(up);
-                    minR = Math.Min(minR, r); maxR = Math.Max(maxR, r);
-                    minU = Math.Min(minU, u); maxU = Math.Max(maxU, u);
+                    foreach (double pz in new[] { bbox.Min.Z, bbox.Max.Z })
+                    {
+                        var p = new XYZ(px, py, pz);
+                        double r = p.DotProduct(right);
+                        double u = p.DotProduct(up);
+                        minR = Math.Min(minR, r); maxR = Math.Max(maxR, r);
+                        minU = Math.Min(minU, u); maxU = Math.Max(maxU, u);
+                    }
                 }
             }
 
