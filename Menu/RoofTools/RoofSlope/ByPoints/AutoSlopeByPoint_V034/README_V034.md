@@ -1,6 +1,6 @@
 # AutoSlopeByPoint V034
 
-Current version: **34.0.1** (`ToolCatalog.AutoSlopeByPointV034`). Release notes are in the repo's `CHANGELOG.md`.
+Current version: **34.1.0** (`ToolCatalog.AutoSlopeByPointV034`). Release notes are in the repo's `CHANGELOG.md`.
 
 V033 is the current Auto Slope By Point tool: V032 plus optional **ridge lines** (see below). V032 and V030
 stay on disk and in the pulldown as fallbacks. The change codes (B1, D1, …) below come from the V030 refactor
@@ -95,7 +95,8 @@ Default size 1000 × 640, minimum 880 × 520. The window title reads "Auto Slope
   rise per 10 m.
 - **Option sections** start closed. Each header shows its current values in one line and gets a blue
   **Custom** tag when anything inside differs from the defaults. Each section has **Reset to defaults**.
-  Which sections were left open is saved between sessions.
+  Which sections were left open is saved between sessions. Clicking **Run** closes every open section
+  (34.1.0), and they stay closed next time the window opens.
 - **Circle markers**: one row per group (on/off, line style, colour, radius) under one column heading,
   with the group's note and options below it. Markers are drawn only when the active view is a plan view.
   - **Drains**: a circle on each drain point.
