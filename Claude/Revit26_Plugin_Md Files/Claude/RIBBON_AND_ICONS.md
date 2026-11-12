@@ -59,11 +59,11 @@ Each item is a pulldown unless marked *button*. A pulldown lists its versions hi
 | Rafi_Pro_Docs | View Place | Place Sections · Callout To Section · Head Placer · View Tagger | `ViewToolsRibbon` |
 | Rafi_Pro_Docs | View Rename | Bubble Renumber *button* · Section Renamer *button* · Auto Renamer *button* | `ViewToolsRibbon` |
 | Rafi_Pro_Docs2 | Tagging | Tag To Text, Align Spot Elevations, Align to Detail Line, Distribute Spot Elev. (large *buttons*) · 3 small *split buttons* (last used item runs, kept across restarts): Quick Align Vertical ▾ (tags / ends / bends) · Quick Align Horizontal ▾ (tags / ends / bends) · Quick Align to Tag ▾ (ends / bends) · 2 small *split buttons* (same memory): Quick Distribute Vertical ▾ (tags / ends / bends) · Quick Distribute Horizontal ▾ (tags / ends / bends) | `TaggingRibbon` |
-| Rafi_Pro_Docs | Sheet Create | Scope Box · Sheet Placer · Section Placer · Sections To Sheet *button* · Combine Sheets *button* ▸ Rearrange · Arrange Views *button* | `SheetToolsRibbon` |
+| Rafi_Pro_Docs | Sheet Create | Scope Box · Sheet Placer · Section Placer · Sections To Sheet *button* · Combine Sheets *button* ▸ Rearrange (V029, V028, V027) · Arrange Views *button* | `SheetToolsRibbon` |
 | Rafi_Pro_Docs | Sheet Edit | Text Replace *button* (large) | `SheetToolsRibbon` |
 | Rafi_Pro_Docs2 | DWG Tools | DWG To DL(P) · Export DWG · DWG Manager · DWG Statistics | `SetupRibbon` |
 | Rafi_Pro_Docs2 | Family Tools | Batch Link DWG · DWG To Lines | `SetupRibbon` |
-| Rafi_Pro_Docs2 | Manage | Overlaps (V005, V004) · ParaManager · Shared Params *button* · Schedule I/O · Link Check (8 entries: V007, V006, then V004 and V003 scan modes) ▸ Del. Line Styles · Bulk Rename · Tracker ID | `ManageRibbon` |
+| Rafi_Pro_Docs2 | Manage | Overlaps (V006, V005) · ParaManager · Shared Params *button* · Schedule I/O · Link Check (8 entries: V007, V006, then V004 and V003 scan modes) ▸ Del. Line Styles · Bulk Rename · Tracker ID | `ManageRibbon` |
 | Rafi_Pro_Docs2 | Worksets | WS Browser · WS Creator · WS Renamer ▸ WS Renamer XL · Delete Workset | `ManageRibbon` |
 | Rafi_Pro_Docs2 | Memory | WS Memory (large *button*) · Link Memory (large; V002, V001) | `ManageRibbon` |
 | Rafi_Pro_Docs2 | Coordination | Void Openings (large *button*) | `CoordinationRibbon` |
