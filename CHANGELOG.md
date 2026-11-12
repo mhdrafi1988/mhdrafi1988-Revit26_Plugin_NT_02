@@ -9,6 +9,37 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.54.0] — 2026-11-12
+
+### Annotation Overlap Detection 6.0.0 (V006, new)
+
+#### Added
+- **By priority** resolve mode: in each overlapping pair the lower-priority annotation moves away (up when it sits
+  above, down when below) and the higher-priority one stays.
+- **Priority order** card (shown in By priority mode):
+  - Presets: **Architectural plan (recommended)**: dimensions → room / space / area tags → door & window tags →
+    other element tags → keynote tags → text notes. **Text notes stay** (presentation sheets) and
+    **Tags stay** (schedule review).
+  - Your own order: move any row up or down (the preset then shows *Custom*); **Reset** restores the recommended order.
+  - **Never move** per type: those annotations stay whatever the order says.
+  - **Same priority** rule: Distribute, move the upper one up, move the lower one down, or skip the pair.
+- **Also check overlaps between different types** (off by default, as in V005): lets the order decide between,
+  say, a door tag and a text note.
+- The Status column names the element that moved ("Moved 412893").
+
+#### Changed
+- The type list groups annotations by these types (door & window tags, keynote tags, ...) instead of Revit class.
+- V006 settings are saved to `%AppData%\Revit26_Plugin_Revised\AnnotationOverlapDetection\V006\settings.json`
+  (version 2). The first time, V006 starts from the V005 file, so the last mode and gap carry over.
+
+### Ribbon
+- The Overlaps pulldown lists V006 first, then V005. V004 left the pulldown (latest two versions only); its code stays.
+
+User note: the recommended order follows common drafting practice: keep what is tied to geometry (dimensions, then
+room tags, then door and window tags) and move the most flexible notes first (keynotes, text notes). No published
+standard ranks annotations in a collision, so change the order to suit your office standard. Move Up, Move Down and
+Distribute work as in V005.
+
 ## [6.53.0] — 2026-11-12
 
 ### Sheet Auto Rearrange 29.0.0 (V029, new version next to V028)
