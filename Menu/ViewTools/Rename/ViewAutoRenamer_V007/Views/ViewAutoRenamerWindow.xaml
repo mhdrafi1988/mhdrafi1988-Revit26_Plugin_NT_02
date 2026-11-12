@@ -15,13 +15,16 @@ Changes vs V005 (layout only):
   - Popover shadow uses the DropShadowEffect default colour (black) instead
     of an inline hex.
   - No behaviour change — every binding/command/handler is the V005 one.
-7.3.0:
-  - Views grid is grouped by view type ("Group by type", on by default).
+7.5.0:
   - Views grid fills the height left in the window (at least 320 px); the
     code-behind sizes it from the shell's body ScrollViewer.
   - Groups fold (chevron) and have a header checkbox that ticks the whole group.
   - Rename panel folds to one bar with a summary of the options in use.
   - Footer "Reset all names" resets every row (it reset only the ticked rows).
+7.4.0:
+  - "Load by type" button and list next to "Load all views".
+7.3.0:
+  - Views grid is grouped by view type ("Group by type", on by default).
   - Log starts minimised: one bar with the latest line; click it to expand.
 =======================================================
 -->
@@ -63,7 +66,7 @@ Changes vs V005 (layout only):
                 <Setter Property="HorizontalAlignment" Value="Left"/>
                 <Setter Property="VerticalAlignment" Value="Center"/>
             </Style>
-            <!-- 7.3.0: group header of the views grid. A real Expander (with a "HeaderSite"
+            <!-- 7.5.0: group header of the views grid. A real Expander (with a "HeaderSite"
                  ToggleButton) because the DataGrid's virtualised grouping reads the header
                  size and the fold state from it. -->
             <Style x:Key="GridGroupExpander" TargetType="Expander">
@@ -400,7 +403,7 @@ Changes vs V005 (layout only):
                             BorderThickness="0,0,0,1">
                         <StackPanel>
 
-                            <!-- 7.3.0: fold bar. Folded, it shows the options in use. -->
+                            <!-- 7.5.0: fold bar. Folded, it shows the options in use. -->
                             <ToggleButton IsChecked="{Binding IsRenamePanelExpanded}" Cursor="Hand"
                                           ToolTip="Show or hide the rename options">
                                 <ToggleButton.Template>
@@ -560,6 +563,64 @@ Changes vs V005 (layout only):
                                         Command="{Binding LoadAllViewsCommand}"
                                         Style="{StaticResource SmallSecondaryButton}"
                                         ToolTip="Loads every view in the project. Opening loads only the current sheet's views."/>
+                                <!-- 7.4.0: load only the ticked view types -->
+                                <Button x:Name="LoadByTypeButton" Content="Load by type &#x25BE;" Margin="0,0,10,0"
+                                        Command="{Binding ToggleLoadTypePopupCommand}"
+                                        Style="{StaticResource SmallSecondaryButton}"
+                                        ToolTip="Loads only the view types you tick (for example Sections only). Faster than loading every view."/>
+                                <Popup IsOpen="{Binding IsLoadTypePopupOpen}"
+                                       PlacementTarget="{Binding ElementName=LoadByTypeButton}"
+                                       Placement="Bottom" VerticalOffset="4"
+                                       StaysOpen="False" AllowsTransparency="True" Width="250">
+                                    <Border Background="{StaticResource BrushSurfaceCard}" BorderBrush="{StaticResource BrushBorderDefault}"
+                                            BorderThickness="1" CornerRadius="8" Margin="0,0,8,8">
+                                        <Border.Effect>
+                                            <DropShadowEffect Opacity="0.18" BlurRadius="24" ShadowDepth="4"/>
+                                        </Border.Effect>
+                                        <StackPanel>
+                                            <Border Padding="14,10" BorderBrush="{StaticResource BrushBorderDefault}" BorderThickness="0,0,0,1">
+                                                <TextBlock Text="Load by type" FontSize="12.5" FontWeight="SemiBold"/>
+                                            </Border>
+                                            <ItemsControl ItemsSource="{Binding LoadTypeOptions}" Margin="0,8">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <DockPanel Margin="14,3,14,3">
+                                                            <TextBlock DockPanel.Dock="Right" Text="loaded" FontSize="11"
+                                                                       Foreground="{StaticResource BrushTextSecondary}" VerticalAlignment="Center">
+                                                                <TextBlock.Style>
+                                                                    <Style TargetType="TextBlock">
+                                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                                        <Style.Triggers>
+                                                                            <DataTrigger Binding="{Binding IsLoaded}" Value="True">
+                                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                                            </DataTrigger>
+                                                                        </Style.Triggers>
+                                                                    </Style>
+                                                                </TextBlock.Style>
+                                                            </TextBlock>
+                                                            <CheckBox Content="{Binding Label}" IsChecked="{Binding IsChecked}" FontSize="12">
+                                                                <CheckBox.Style>
+                                                                    <Style TargetType="CheckBox">
+                                                                        <Style.Triggers>
+                                                                            <DataTrigger Binding="{Binding IsLoaded}" Value="True">
+                                                                                <Setter Property="IsEnabled" Value="False"/>
+                                                                            </DataTrigger>
+                                                                        </Style.Triggers>
+                                                                    </Style>
+                                                                </CheckBox.Style>
+                                                            </CheckBox>
+                                                        </DockPanel>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                            <Border Padding="14,10" BorderBrush="{StaticResource BrushBorderDefault}" BorderThickness="0,1,0,0">
+                                                <Button Content="Load ticked types" HorizontalAlignment="Right"
+                                                        Style="{StaticResource PrimaryButton}"
+                                                        Command="{Binding LoadTickedTypesCommand}"/>
+                                            </Border>
+                                        </StackPanel>
+                                    </Border>
+                                </Popup>
                                 <Button Content="Select all"  Margin="0,0,5,0"
                                         Command="{Binding SelectAllCommand}"
                                         Style="{StaticResource SmallSecondaryButton}"/>
@@ -578,7 +639,7 @@ Changes vs V005 (layout only):
                                 <Button Content="Truncate last text" Margin="0,0,10,0"
                                         Command="{Binding TruncateLastTextCommand}"
                                         Style="{StaticResource SmallSecondaryButton}"/>
-                                <!-- 7.3.0: fold / unfold every group of the grid -->
+                                <!-- 7.5.0: fold / unfold every group of the grid -->
                                 <Button Content="Expand all" Margin="0,0,5,0"
                                         Command="{Binding ExpandAllGroupsCommand}"
                                         IsEnabled="{Binding GroupByViewType}"
@@ -644,7 +705,7 @@ Changes vs V005 (layout only):
                     <!-- Height="320" is the size of the FIRST layout pass only: without a fixed
                          height the grid is measured with infinite height inside the shell's
                          ScrollViewer and builds a row for every view, which made the window slow
-                         to open. 7.3.0: once loaded, the code-behind (FitViewsGrid) sets Height so
+                         to open. 7.5.0: once loaded, the code-behind (FitViewsGrid) sets Height so
                          the grid fills what is left of the window, never below MinHeight. -->
                     <DataGrid Grid.Row="4" MinHeight="320" Height="320" shell:ShellBehaviors.ForwardMouseWheel="True"
                               x:Name="ViewsGridControl"
@@ -670,7 +731,7 @@ Changes vs V005 (layout only):
                               EnableRowVirtualization="True"
                               EnableColumnVirtualization="True">
 
-                        <!-- 7.3.0: one foldable header per view-type group (while "Group by type" is
+                        <!-- 7.5.0: one foldable header per view-type group (while "Group by type" is
                              ticked). The group's Name is the rows' ViewGroupState. -->
                         <DataGrid.GroupStyle>
                             <GroupStyle>

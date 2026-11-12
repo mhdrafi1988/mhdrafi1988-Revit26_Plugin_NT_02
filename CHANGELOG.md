@@ -9,21 +9,60 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
-## [6.51.0] — 2026-11-11
+## [7.0.0] — 2026-11-12
 
-### View Auto Renamer 7.3.0
+### View Auto Renamer 7.5.0 (V007)
+
+#### Added
+- **Load by type:** a new **Load by type** button next to **Load all views** opens a list of the nine view types
+  (Sections & Callouts, Floor Plans, … Schedules). Tick the ones you want and click **Load ticked types**; only those
+  views are read from the project. Types already loaded show "loaded". Loading only sections, plans, drafting views or
+  schedules skips the other views entirely; Legends have no class of their own in Revit, so loading them reads all views.
+- The log shows how long each load took, for example `Loaded 1,204 more views (Sections & Callouts) in 0.4 s`.
 
 #### Changed
-- **Grouped list:** the views are listed under a header per view type (Sections & Callouts, Floor Plans, Ceiling Plans, … with a count), in the same order as the filter popover. The window still opens with the current sheet's views. A new **Group by type** checkbox in the filter bar turns the grouping off; the choice is saved.
-- **Groups fold:** click a group header to fold or unfold it; **Expand all** and **Collapse all** are in the selection toolbar. The checkbox in a group header ticks every view listed in that group, or unticks them when all were ticked (it shows a dash when only some are ticked).
-- **List fills the window:** the view list takes all the height the window has left (at least 320 px, was a fixed share of the window), and grows when the window is enlarged or when the rename panel or the log is folded.
-- **Rename panel folds:** click **RENAME OPTIONS** to fold the Prefix / Find / Options / Standardize panel to one bar that lists the options in use. Unfolded by default; the choice is saved.
-- **Log minimised:** the log opens as one bar that shows the latest line and the line count. Click **Log** to expand it (the Copy buttons appear then); it starts minimised on every open.
+- **The window opens first.** It appears at once and the current sheet's views fill in right after, instead of the
+  window waiting for them.
+- **Grouped list:** the views are listed under a header per view type (with a count), in the same order as the filter
+  popover. A new **Group by type** checkbox in the filter bar turns the grouping off; the choice is saved.
+- **Groups fold:** click a group header to fold or unfold it; **Expand all** and **Collapse all** are in the selection
+  toolbar. The checkbox in a group header ticks every view listed in that group, or unticks them when all were ticked
+  (it shows a dash when only some are ticked).
+- **List fills the window:** the view list takes all the height the window has left (at least 320 px; it was a fixed
+  share of the window), and grows when the window is enlarged or when the rename panel or the log is folded.
+- **Rename panel folds:** click **RENAME OPTIONS** to fold the Prefix / Find / Options / Standardize panel to one bar
+  that lists the options in use. Unfolded by default; the choice is saved.
+- **Log minimised:** the log opens as one bar that shows the latest line and the line count. Click **Log** to expand it
+  (the Copy buttons appear then); it starts minimised on every open.
+- **Faster loading.** Sheet number and detail number are read once from the viewports instead of two parameter reads on
+  every view; each view's type is read once; the current sheet is found by a sheet-number filter inside Revit; schedules
+  on the current sheet are found without a sheet-scoped search. **Load all views** adds all rows in one step and
+  rebuilds the grid once.
+- **Faster selection.** The header check box, **Select all**, **Select none** and **Invert** update the counts and
+  previews once instead of once per row.
 
 #### Fixed
-- **Reset all names** (footer) now resets every row's edit name. It reset only the ticked rows, the same as "Reset selected names".
+- **Reset all names** (footer) now resets every row's edit name. It reset only the ticked rows, the same as
+  "Reset selected names".
 
-User note: renaming, filters, Load all views and Cancel work as before. Clicking a column header still sorts, now inside each group. "Select all" and the group checkboxes also tick rows inside folded groups. "Reset all names" now also undoes edits on rows that are not ticked. The settings file gained `Version`, `GroupByViewType` and `IsRenamePanelExpanded`; older files load unchanged.
+### View Rename panel
+
+#### Changed
+- **Bubble Renumber**, **Section Renamer** and **Auto Renamer** are now plain buttons (one version each) instead of
+  dropdowns. Their tools are unchanged: Bubble Auto Renumber 9.3.0 (V009) and Section Auto Renamer 26.2.0 (V026).
+
+#### Removed
+- **View Auto Renamer V005 and V006**, **Section Auto Renamer V025**, **Bubble Auto Renumber V007 and V008**: ribbon
+  buttons, code, and the catalog entries of View Auto Renamer V006 and Bubble Auto Renumber V008.
+
+User note: the remaining versions do everything the removed ones did and use the same settings files, so nothing needs
+to be set up again. A keyboard shortcut assigned to a removed button must be re-assigned to the remaining one. The
+plugin goes to 7.0.0 because tool versions were removed. In View Auto Renamer the grid is empty for a moment after the
+window opens, then shows the current sheet's views. The settings file gained `Version`, `GroupByViewType` and
+`IsRenamePanelExpanded`; older files load unchanged and start grouped. Clicking a column header sorts inside each group.
+"Select all" and the group checkboxes also tick rows inside folded groups. "Reset all names" now also undoes edits on
+rows that are not ticked. If loading is still
+slow on your project, send the time from the log.
 
 ## [6.50.0] — 2026-11-11
 

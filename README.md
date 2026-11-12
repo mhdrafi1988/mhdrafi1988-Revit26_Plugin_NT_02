@@ -42,7 +42,7 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 | Rafi_Pro_Docs | View Create | From Lines · Around Edges · Edge Element ▸ slide-out: Roof Focus · Isolated Section |
 | Rafi_Pro_Docs | Floor Views | Floor Around Edges · Floor Edge Element · Floor Focus |
 | Rafi_Pro_Docs | View Place | Place Sections · Callout To Section · Head Placer · View Tagger |
-| Rafi_Pro_Docs | View Rename | Bubble Renumber · Section Renamer · Auto Renamer |
+| Rafi_Pro_Docs | View Rename | Bubble Renumber *button* · Section Renamer *button* · Auto Renamer *button* |
 | Rafi_Pro_Docs2 | Tagging | Tag To Text · Align Spot Elevations · Align to Detail Line · Distribute Spot Elev. · Quick Align split buttons: Vertical · Horizontal · to Tag (each lists tags, ends, bends) · Quick Distribute split buttons: Vertical · Horizontal (each lists tags, ends, bends) |
 | Rafi_Pro_Docs | Sheet Create | Scope Box · Sheet Placer · Section Placer · Sections To Sheet ▸ slide-out: Rearrange · Arrange Views |
 | Rafi_Pro_Docs | Sheet Edit | Text Replace |
