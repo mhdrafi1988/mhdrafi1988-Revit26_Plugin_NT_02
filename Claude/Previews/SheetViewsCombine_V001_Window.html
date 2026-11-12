@@ -1,8 +1,11 @@
 <title>Sheet Views Combine</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <!-- UI preview (CLAUDE.md "UI previews"): Sheet Views Combine 1.0.0 (V001) — NEW tool. Plugin 6.52.0 (planned).
-     Shown: ribbon button + tooltip, and the tool window with stages 1–4 open (Select Sheets, Combined Views,
-     Preview Placement, Confirm & Move) and stage 5 collapsed.
+     Shown: ribbon button + tooltip, and the tool window with all 5 stages open (Select Sheets, Combined Views,
+     Preview Placement, Confirm & Move, Move Complete) plus the result dialog.
+     Rev 2 (owner feedback): option for unticked views on the target (keep in place / re-pack all);
+     ticked legends are copied to the exact same location; no "delete empty sheet" option;
+     new "If a view fails" option (skip and report / stop and undo) and the skipped-views report.
      Mirrors (planned): Menu/Sheet/SheetViewsCombine_V001/UI/Views/SheetViewsCombineWindow.xaml
               (layout follows Menu/Sheet/SmartViewToSheetPlacer_V224/Views/SmartViewToSheetPlacerWindow.xaml;
                version from Shared/Services/ToolCatalog.cs once added).
@@ -138,12 +141,22 @@ svg text{font-family:var(--ui)}
 .notes{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px 16px;display:grid;gap:8px}
 ul,ol{margin:0;padding-left:20px;line-height:1.6;max-width:84ch}
 code{font-family:var(--mono);font-size:12px;background:var(--bg2);padding:0 4px;border-radius:3px}
+.pill.cp{background:var(--bg2);color:var(--navy);border-color:var(--input)}
+.pill.er{background:var(--err-soft);color:var(--err);border-color:var(--err-border)}
+.pill.fx{background:var(--bg2);color:var(--text2);border-color:var(--border)}
+.chg{outline:2px solid var(--new);outline-offset:2px;border-radius:6px;position:relative}
+.chg>.tag{position:absolute;top:-9px;right:8px;margin:0}
+.dlg{width:430px;background:var(--card);border:1px solid var(--input);box-shadow:0 6px 20px rgba(16,32,48,.22)}
+.dlg .dt{padding:7px 10px;border-bottom:1px solid var(--border)}
+.dlg .db{padding:12px 14px;display:grid;gap:8px;line-height:1.45}
+.dlg .df{padding:8px 12px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;background:var(--window)}
+.log .e{color:#F0837D} .log .w{color:#F0AE5C}
 </style>
 
 <div class="page">
   <header>
-    <h1>Sheet Views Combine <span class="muted" style="font-weight:400;font-size:14px">v1.0.0 (V001) · plugin 6.52.0 · new tool</span></h1>
-    <p class="muted">Collects the views on two sheets into one grouped list, lets you tick what goes together, then takes those views off their sheets and lays them out on one target sheet with the Sheet Placer packing. <span class="sample">Sample data: sheets, views and sizes are made up.</span></p>
+    <h1>Sheet Views Combine <span class="muted" style="font-weight:400;font-size:14px">v1.0.0 (V001) · plugin 6.52.0 · new tool · preview rev 2</span></h1>
+    <p class="muted">Collects the views on two sheets into one grouped list, lets you tick what goes together, then takes those views off their sheets and lays them out on one target sheet with the Sheet Placer packing. Green outlines mark what changed in rev 2. <span class="sample">Sample data: sheets, views and sizes are made up.</span></p>
   </header>
 
   <section>
@@ -168,7 +181,7 @@ code{font-family:var(--mono);font-size:12px;background:var(--bg2);padding:0 4px;
       </div>
     </div>
     <div class="frame">
-      <div class="tip"><b>Sheet Views Combine — v1.0.0 (build V001)</b>Lists the views on the active sheet and a second sheet in one grid, grouped by sheet and view type. Tick the views to combine, pick the target (either sheet, another sheet or a new one), preview the packed layout, then move them in one Undo step.</div>
+      <div class="tip"><b>Sheet Views Combine — v1.0.0 (build V001)</b>Lists the views on the active sheet and a second sheet in one grid, grouped by sheet and view type. Tick the views to combine, pick the target (either sheet, another sheet or a new one), preview the packed layout, then move them in one Undo step. Legends are copied to the same spot.</div>
     </div>
   </section>
 
@@ -182,11 +195,11 @@ code{font-family:var(--mono);font-size:12px;background:var(--bg2);padding:0 4px;
           <div class="lbl">Combine Metrics</div>
           <div class="cards">
             <div class="mc"><span>Views on Sheet 1</span><b style="color:var(--s1)">3</b></div>
-            <div class="mc"><span>Views on Sheet 2</span><b style="color:var(--s2)">4</b></div>
+            <div class="mc"><span>Views on Sheet 2</span><b style="color:var(--s2)">5</b></div>
             <div class="mc"><span>Selected</span><b>5</b></div>
             <div class="mc"><span>To Move</span><b style="color:var(--info)">2</b></div>
-            <div class="mc"><span>Re-placed on target</span><b>3</b></div>
-            <div class="mc"><span>Target Sheets</span><b>1</b></div>
+            <div class="mc"><span>Legends Copied</span><b>1</b></div>
+            <div class="mc"><span>Skipped / Failed</span><b style="color:var(--err)">1</b></div>
           </div>
 
           <!-- Stage 1 -->
@@ -205,32 +218,31 @@ code{font-family:var(--mono);font-size:12px;background:var(--bg2);padding:0 4px;
                   <div class="hint">Type to search sheets by number or name. Sheet 2 cannot be the same as Sheet 1.</div>
                 </div>
               </div>
-              <div class="nav"><span class="hint">7 views found on the two sheets (schedules and revision clouds are not listed).</span><span class="pbtn">Load Views &gt;</span></div>
+              <div class="nav"><span class="hint">8 views found on the two sheets (schedules and revision clouds are not listed).</span><span class="pbtn">Load Views &gt;</span></div>
             </div>
           </div>
 
           <!-- Stage 2 -->
           <div class="stage">
-            <div class="sh"><span class="num">2</span><span class="t">Combined Views</span><span class="s">Tick the views to put together and choose where</span><span class="sum">5 of 7 ticked</span></div>
+            <div class="sh"><span class="num">2</span><span class="t">Combined Views</span><span class="s">Tick the views to put together and choose where</span><span class="sum">5 of 8 ticked</span></div>
             <div class="sb">
               <div class="bar">
                 <span class="sbtn">Select All</span><span class="sbtn">Clear Selection</span><span class="sbtn">Refresh</span>
                 <span class="hint" style="margin-left:10px">Show:</span><span class="sbtn on">All</span><span class="sbtn">Sheet 1</span><span class="sbtn">Sheet 2</span>
                 <span style="margin-left:auto" class="bar"><span class="dot s1"></span><span class="hint">Sheet 1</span><span class="dot s2"></span><span class="hint">Sheet 2</span></span>
               </div>
-              <div style="max-height:none;border:1px solid var(--border);border-radius:6px;overflow:hidden">
+              <div style="border:1px solid var(--border);border-radius:6px;overflow:hidden">
                 <table class="g">
                   <thead><tr><th class="c"></th><th>View Name</th><th>View Type</th><th>Scale</th><th>Size on Sheet (mm)</th><th>Detail #</th><th>Status</th></tr></thead>
                   <tbody>
-                    <tr class="gs s1"><td class="c"><span class="cb on"></span></td><td colspan="6">A-101 - Level 01 Floor Plan · 3 views <span class="pill s1" style="margin-left:6px">Sheet 1 · Target</span></td></tr>
-                    <tr class="gt"><td colspan="7">Floor Plan (1)</td></tr>
-                    <tr class="s1"><td class="c"><span class="cb on"></span></td><td>Level 01 - Floor Plan</td><td>Floor Plan</td><td>1:100</td><td>480 × 340</td><td>1</td><td><span class="pill ok">Stays, re-placed</span></td></tr>
+                    <tr class="gs s1"><td class="c"><span class="cb part"></span></td><td colspan="6">A-101 - Level 01 Floor Plan · 3 views (2 ticked) <span class="pill s1" style="margin-left:6px">Sheet 1 · Target</span></td></tr>
+                    <tr class="gt"><td colspan="7">Floor Plan (2)</td></tr>
+                    <tr class="s1"><td class="c"><span class="cb on"></span></td><td>Level 01 - Floor Plan</td><td>Floor Plan</td><td>1:100</td><td>480 × 340</td><td>1</td><td><span class="pill ok">Stays, re-packed</span></td></tr>
+                    <tr class="s1 off"><td class="c"><span class="cb"></span></td><td>Key Plan</td><td>Floor Plan</td><td>1:500</td><td>120 × 90</td><td>3</td><td><span class="pill fx">Stays in place</span></td></tr>
                     <tr class="gt"><td colspan="7">Detail (1)</td></tr>
-                    <tr class="s1"><td class="c"><span class="cb on"></span></td><td>Stair 1 - Enlarged Plan</td><td>Detail</td><td>1:50</td><td>180 × 140</td><td>2</td><td><span class="pill ok">Stays, re-placed</span></td></tr>
-                    <tr class="gt"><td colspan="7">Legend (1)</td></tr>
-                    <tr class="s1"><td class="c"><span class="cb on"></span></td><td>Wall Types Legend</td><td>Legend</td><td>—</td><td>120 × 160</td><td>3</td><td><span class="pill ok">Stays, re-placed</span></td></tr>
+                    <tr class="s1"><td class="c"><span class="cb on"></span></td><td>Stair 1 - Enlarged Plan</td><td>Detail</td><td>1:50</td><td>180 × 140</td><td>2</td><td><span class="pill ok">Stays, re-packed</span></td></tr>
 
-                    <tr class="gs s2"><td class="c"><span class="cb part"></span></td><td colspan="6">A-501 - Sections and Details · 4 views (2 ticked)</td></tr>
+                    <tr class="gs s2"><td class="c"><span class="cb part"></span></td><td colspan="6">A-501 - Sections and Details · 5 views (3 ticked)</td></tr>
                     <tr class="gt"><td colspan="7">Section (2)</td></tr>
                     <tr class="s2"><td class="c"><span class="cb on"></span></td><td>Section A-A</td><td>Section</td><td>1:50</td><td>300 × 120</td><td>1</td><td><span class="pill mv">Moves to A-101</span></td></tr>
                     <tr class="s2 off"><td class="c"><span class="cb"></span></td><td>Section B-B</td><td>Section</td><td>1:50</td><td>300 × 120</td><td>2</td><td>Stays on A-501</td></tr>
@@ -238,6 +250,8 @@ code{font-family:var(--mono);font-size:12px;background:var(--bg2);padding:0 4px;
                     <tr class="s2"><td class="c"><span class="cb on"></span></td><td>Typical Eaves Detail</td><td>Detail</td><td>1:10</td><td>150 × 150</td><td>3</td><td><span class="pill mv">Moves to A-101</span></td></tr>
                     <tr class="gt"><td colspan="7">Drafting View (1)</td></tr>
                     <tr class="s2 off"><td class="c"><span class="cb"></span></td><td>Parapet Flashing</td><td>Drafting View</td><td>1:5</td><td>140 × 110</td><td>4</td><td>Stays on A-501</td></tr>
+                    <tr class="gt"><td colspan="7">Legend (1)</td></tr>
+                    <tr class="s2"><td class="c"><span class="cb on"></span></td><td>Roof Build-up Legend</td><td>Legend</td><td>—</td><td>120 × 160</td><td>5</td><td><span class="pill cp">Copy, same location</span> <span class="tag">NEW</span></td></tr>
                   </tbody>
                 </table>
               </div>
@@ -252,8 +266,27 @@ code{font-family:var(--mono);font-size:12px;background:var(--bg2);padding:0 4px;
                   <div class="in" style="color:var(--text3)">Combined Views</div>
                   <div class="in" style="color:var(--text3)">Titleblock: same as Sheet 1 <span>▾</span></div>
                 </div>
-                <div class="hint">Unticked views stay where they are. Views on the target sheet that you untick stay in place and the packing works around them. Ticked views from other sheets are removed from their sheet before they are placed.</div>
-                <div class="opt" style="padding-top:2px"><span class="cb on"></span>Keep each view's viewport type (title style) <span class="cb on" style="margin-left:14px"></span>Keep detail numbers when free on the target <span class="cb" style="margin-left:14px"></span>Delete Sheet 2 if it ends up empty</div>
+              </div>
+
+              <div class="two">
+                <div class="grp chg"><span class="tag">NEW option</span>
+                  <div class="gl">Unticked views already on the target</div>
+                  <div class="opt"><span class="rd on"></span>Keep them in place (pack around them)</div>
+                  <div class="opt"><span class="rd"></span>Re-pack them too (include every view on the target)</div>
+                  <div class="hint">"Re-pack them too" ticks them in the list above, so the grid always shows what will move.</div>
+                </div>
+                <div class="grp chg"><span class="tag">NEW option</span>
+                  <div class="gl">If a view fails</div>
+                  <div class="opt"><span class="rd on"></span>Skip it, keep going, and report it at the end</div>
+                  <div class="opt"><span class="rd"></span>Stop and undo everything</div>
+                  <div class="hint">Skipped views stay on their old sheet, untouched. Every skip or error is shown in step 5 and in the Activity Log.</div>
+                </div>
+              </div>
+
+              <div class="grp chg"><span class="tag">CHANGED</span>
+                <div class="gl">Options</div>
+                <div class="opt"><span class="cb on"></span>Keep each view's viewport type (title style) <span class="cb on" style="margin-left:14px"></span>Keep detail numbers when free on the target</div>
+                <div class="hint">Ticked <b>legends</b> are copied, not moved: they stay on their sheet and a copy goes on the target at the <b>exact same location</b>, outside the packing. Ticked views from other sheets are removed from their sheet before they are placed. Unticked views stay where they are.</div>
               </div>
 
               <div class="nav"><span class="obtn">&lt; Back to Select Sheets</span><span class="pbtn">Next: Preview Placement &gt;</span></div>
@@ -262,7 +295,7 @@ code{font-family:var(--mono);font-size:12px;background:var(--bg2);padding:0 4px;
 
           <!-- Stage 3 -->
           <div class="stage">
-            <div class="sh"><span class="num">3</span><span class="t">Preview Placement</span><span class="s">Same reading order, gaps and packing as Sheet Placer</span><span class="sum">All 5 views fit on A-101</span></div>
+            <div class="sh"><span class="num">3</span><span class="t">Preview Placement</span><span class="s">Same reading order, gaps and packing as Sheet Placer</span><span class="sum">All views fit on A-101</span></div>
             <div class="sb">
               <div class="two">
                 <div class="grp">
@@ -280,32 +313,51 @@ code{font-family:var(--mono);font-size:12px;background:var(--bg2);padding:0 4px;
                 <div>
                   <div class="fl" style="margin-bottom:4px">Generated Sheets</div>
                   <div class="sheetlist">
-                    <div class="sel"><span><span class="dot s1"></span> A-101 (target)</span><span>5 views</span></div>
-                    <div><span><span class="dot s2"></span> A-501 (left as is)</span><span>2 views</span></div>
+                    <div class="sel"><span><span class="dot s1"></span> A-101 (target)</span><span>6 views</span></div>
+                    <div><span><span class="dot s2"></span> A-501 (left as is)</span><span>3 views</span></div>
                   </div>
                   <p class="hint" style="margin-top:8px">If the ticked views do not fit, continuation sheets A-101.1, A-101.2… are created with the same titleblock and listed here.</p>
+                  <div class="grp" style="margin-top:8px">
+                    <div class="gl">Legend</div>
+                    <div class="bar"><span class="dot s1"></span><span class="hint">from Sheet 1</span></div>
+                    <div class="bar"><span class="dot s2"></span><span class="hint">from Sheet 2</span></div>
+                    <div class="bar"><span class="dot" style="background:var(--navy)"></span><span class="hint">legend copy, fixed spot</span></div>
+                    <div class="bar"><span class="dot" style="background:var(--text3)"></span><span class="hint">stays in place (obstacle)</span></div>
+                  </div>
                 </div>
                 <div class="cv">
-                  <svg viewBox="0 0 841 594" width="100%" role="img" aria-label="Sample A1 sheet preview with five views coloured by origin sheet">
+                  <svg viewBox="0 0 841 594" width="100%" role="img" aria-label="Sample A1 sheet preview: packed views coloured by origin sheet, a fixed legend copy and an unticked view kept in place">
+                    <defs>
+                      <pattern id="hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                        <rect width="8" height="8" fill="#ECEFF3"/><line x1="0" y1="0" x2="0" y2="8" stroke="#B5C2CF" stroke-width="3"/>
+                      </pattern>
+                    </defs>
                     <rect x="0" y="0" width="841" height="594" fill="#FFFFFF" stroke="#5B7185" stroke-width="2"/>
                     <rect x="721" y="10" width="110" height="574" fill="#ECEFF3" stroke="#B5C2CF"/>
                     <text x="776" y="560" font-size="14" text-anchor="middle" fill="#5B7185">A-101</text>
                     <rect x="15" y="15" width="696" height="564" fill="none" stroke="#8FA3B8" stroke-dasharray="6 5"/>
-                    <!-- Sheet 1 views (blue) -->
+                    <!-- Sheet 1 views re-packed (blue) -->
                     <rect x="25" y="25" width="480" height="340" fill="#E6EEFB" stroke="#1F5FBF" stroke-width="2"/>
                     <text x="35" y="50" font-size="16" fill="#1F5FBF" font-weight="600">1 · Level 01 - Floor Plan</text>
                     <rect x="525" y="25" width="180" height="140" fill="#E6EEFB" stroke="#1F5FBF" stroke-width="2"/>
                     <text x="535" y="50" font-size="14" fill="#1F5FBF" font-weight="600">2 · Stair 1</text>
-                    <rect x="525" y="185" width="120" height="160" fill="#E6EEFB" stroke="#1F5FBF" stroke-width="2"/>
-                    <text x="535" y="210" font-size="14" fill="#1F5FBF" font-weight="600">3 · Legend</text>
+                    <!-- Legend copy, exact location from A-501 (navy, fixed) -->
+                    <rect x="525" y="185" width="120" height="160" fill="#FFFFFF" stroke="#1E3A5F" stroke-width="2.5" stroke-dasharray="8 4"/>
+                    <text x="535" y="210" font-size="14" fill="#1E3A5F" font-weight="600">5 · Legend</text>
+                    <text x="535" y="228" font-size="12" fill="#1E3A5F">copy · same spot</text>
+                    <text x="535" y="244" font-size="12" fill="#1E3A5F">as on A-501</text>
                     <!-- Moved from Sheet 2 (amber) -->
                     <rect x="25" y="385" width="300" height="120" fill="#FDF1E1" stroke="#9A5B00" stroke-width="2"/>
                     <text x="35" y="410" font-size="14" fill="#9A5B00" font-weight="600">4 · Section A-A (from A-501)</text>
                     <rect x="345" y="385" width="150" height="150" fill="#FDF1E1" stroke="#9A5B00" stroke-width="2"/>
-                    <text x="355" y="410" font-size="14" fill="#9A5B00" font-weight="600">5 · Eaves</text>
+                    <text x="355" y="410" font-size="14" fill="#9A5B00" font-weight="600">6 · Eaves</text>
                     <text x="355" y="428" font-size="12" fill="#9A5B00">(from A-501)</text>
+                    <!-- Unticked view kept in place (obstacle) -->
+                    <rect x="585" y="470" width="120" height="90" fill="url(#hatch)" stroke="#8FA3B8" stroke-width="2"/>
+                    <text x="595" y="492" font-size="13" fill="#5B7185" font-weight="600">3 · Key Plan</text>
+                    <text x="595" y="508" font-size="11" fill="#5B7185">stays in place</text>
                   </svg>
-                  <div class="hint" style="margin-top:4px">A1 841 × 594 mm. Drawn to scale from the same margin and gap values used by the packing. Blue = from Sheet 1, amber = from Sheet 2.</div>
+                  <div class="hint" style="margin-top:4px">A1 841 × 594 mm. Drawn to scale from the same margin and gap values used by the packing. The legend copy and the kept-in-place view are fixed; the packing fills the space around them.</div>
                 </div>
               </div>
               <div class="nav"><span class="obtn">&lt; Back to Combined Views</span><span class="pbtn">Next: Confirm &amp; Move &gt;</span></div>
@@ -320,34 +372,68 @@ code{font-family:var(--mono);font-size:12px;background:var(--bg2);padding:0 4px;
                 <table class="g">
                   <thead><tr><th>View</th><th>From Sheet</th><th>To Sheet</th><th>Detail #</th><th>Location</th><th>Action</th></tr></thead>
                   <tbody>
-                    <tr class="s1"><td>Level 01 - Floor Plan</td><td>A-101</td><td>A-101</td><td>1</td><td>Row 1, col 1</td><td><span class="pill ok">Re-place</span></td></tr>
-                    <tr class="s1"><td>Stair 1 - Enlarged Plan</td><td>A-101</td><td>A-101</td><td>2</td><td>Row 1, col 2</td><td><span class="pill ok">Re-place</span></td></tr>
-                    <tr class="s1"><td>Wall Types Legend</td><td>A-101</td><td>A-101</td><td>3</td><td>Row 1, col 3</td><td><span class="pill ok">Re-place</span></td></tr>
+                    <tr class="s1"><td>Level 01 - Floor Plan</td><td>A-101</td><td>A-101</td><td>1</td><td>Row 1, col 1</td><td><span class="pill ok">Re-pack</span></td></tr>
+                    <tr class="s1"><td>Stair 1 - Enlarged Plan</td><td>A-101</td><td>A-101</td><td>2</td><td>Row 1, col 2</td><td><span class="pill ok">Re-pack</span></td></tr>
+                    <tr class="s1 off"><td>Key Plan</td><td>A-101</td><td>A-101</td><td>3</td><td>Unchanged</td><td><span class="pill fx">Stays in place</span></td></tr>
                     <tr class="s2"><td>Section A-A</td><td>A-501</td><td>A-101</td><td>4 <span class="hint">(was 1, taken)</span></td><td>Row 2, col 1</td><td><span class="pill mv">Remove + place</span></td></tr>
-                    <tr class="s2"><td>Typical Eaves Detail</td><td>A-501</td><td>A-101</td><td>5 <span class="hint">(was 3, taken)</span></td><td>Row 2, col 2</td><td><span class="pill mv">Remove + place</span></td></tr>
+                    <tr class="s2"><td>Typical Eaves Detail</td><td>A-501</td><td>A-101</td><td>6 <span class="hint">(was 3, taken)</span></td><td>Row 2, col 2</td><td><span class="pill mv">Remove + place</span></td></tr>
+                    <tr class="s2"><td>Roof Build-up Legend</td><td>A-501</td><td>A-101</td><td>5</td><td>Same as on A-501</td><td><span class="pill cp">Copy, same location</span></td></tr>
                   </tbody>
                 </table>
               </div>
-              <div class="nav"><span class="obtn">&lt; Back to Preview Placement</span><span class="pbtn">Move Views</span></div>
+              <div class="nav"><span class="obtn">&lt; Back to Preview Placement</span><span class="hint">If a view fails: <b>Skip it and report</b></span><span class="pbtn">Move Views</span></div>
             </div>
           </div>
 
           <!-- Stage 5 -->
-          <div class="stage closed">
-            <div class="sh"><span class="num" style="background:var(--text3)">5</span><span class="t" style="color:var(--text2)">Move Complete</span><span class="s">Open the target sheet in Revit</span><span class="sum">▸</span></div>
+          <div class="stage chg"><span class="tag">NEW: report</span>
+            <div class="sh"><span class="num">5</span><span class="t">Move Complete</span><span class="s">What was done, and what was skipped and why</span><span class="sum">4 done · 1 skipped</span></div>
+            <div class="sb">
+              <div style="border:1px solid var(--border);border-radius:6px;overflow:hidden">
+                <table class="g">
+                  <thead><tr><th>View</th><th>Result</th><th>Details</th></tr></thead>
+                  <tbody>
+                    <tr class="s1"><td>Level 01 - Floor Plan</td><td><span class="pill ok">Re-packed</span></td><td>A-101, detail 1</td></tr>
+                    <tr class="s1"><td>Stair 1 - Enlarged Plan</td><td><span class="pill ok">Re-packed</span></td><td>A-101, detail 2</td></tr>
+                    <tr class="s2"><td>Section A-A</td><td><span class="pill ok">Moved</span></td><td>A-501 → A-101, detail 4</td></tr>
+                    <tr class="s2"><td>Roof Build-up Legend</td><td><span class="pill ok">Copied</span></td><td>A-101, same location as on A-501, detail 5</td></tr>
+                    <tr class="s2"><td>Typical Eaves Detail</td><td><span class="pill er">Skipped</span></td><td>Its viewport on A-501 is checked out by another user. It stays on A-501. Ask them to sync and relinquish, then run again.</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="nav"><span class="bar"><span class="cb on"></span><span class="hint">Open A-101 after closing</span></span><span class="bar"><span class="obtn">Copy Report</span><span class="pbtn">Open Sheet</span></span></div>
+            </div>
           </div>
 
           <div class="log">
             <div class="h">Activity Log</div>
             <div><span class="d">10:42:07</span> Sheet 1: A-101 - Level 01 Floor Plan (active sheet) · 3 viewports</div>
-            <div><span class="d">10:42:12</span> Sheet 2: A-501 - Sections and Details · 4 viewports</div>
-            <div><span class="d">10:42:31</span> <span class="b">Target A-101</span> · 5 views ticked (2 to move, 3 to re-place)</div>
-            <div><span class="d">10:42:33</span> <span class="k">Packing: all 5 views fit on 1 sheet</span></div>
+            <div><span class="d">10:42:12</span> Sheet 2: A-501 - Sections and Details · 5 viewports</div>
+            <div><span class="d">10:42:31</span> <span class="b">Target A-101</span> · 5 ticked (2 move, 2 re-pack, 1 legend copy) · 1 kept in place</div>
+            <div><span class="d">10:42:33</span> <span class="k">Packing: all views fit on 1 sheet</span></div>
+            <div><span class="d">10:42:40</span> <span class="w">SKIP</span> Typical Eaves Detail: viewport checked out by another user</div>
+            <div><span class="d">10:42:41</span> <span class="k">Done: 4 of 5 views. 1 skipped. One Undo step: "Combine Sheet Views".</span></div>
           </div>
         </div>
         <div class="foot"><span class="obtn">Export Logs (.txt)</span><span class="obtn" style="margin-right:0">Close</span></div>
       </div>
     </div>
+  </section>
+
+  <section>
+    <h2>Result dialog <span class="tag">NEW</span></h2>
+    <div class="frame">
+      <div class="dlg">
+        <div class="dt">Sheet Views Combine — v1.0.0</div>
+        <div class="db">
+          <b>4 of 5 views done. 1 skipped.</b>
+          <span>Typical Eaves Detail was skipped: its viewport on A-501 is checked out by another user. It is still on A-501.</span>
+          <span class="hint">Full details are in step 5 and in the Activity Log. Unexpected errors are also written to %AppData%\Revit26_Plugin_Revised\Logs.</span>
+        </div>
+        <div class="df"><span class="obtn" style="margin-right:0">Show Details</span><span class="pbtn">OK</span></div>
+      </div>
+    </div>
+    <p class="hint" style="margin-top:8px">With "Stop and undo everything", the first failure rolls back the whole run and this dialog names the view and the reason; nothing on either sheet changes.</p>
   </section>
 
   <section class="notes">
@@ -356,10 +442,11 @@ code{font-family:var(--mono);font-size:12px;background:var(--bg2);padding:0 4px;
       <li><b>Sheet 1</b> is the active sheet when you start from a sheet view. Start from any other view and Sheet 1 is empty until you pick one.</li>
       <li>The grid lists every placed view on both sheets, grouped by <b>sheet</b>, then by <b>view type</b>. Rows and group headers carry the sheet's colour: blue for Sheet 1, amber for Sheet 2.</li>
       <li>The target can be Sheet 1, Sheet 2, any other existing sheet, or a new sheet (number, name, titleblock).</li>
-      <li>Ticked views from other sheets are taken off their sheet and placed on the target. Ticked views already on the target are re-packed with them. Unticked views on the target stay put and are treated as obstacles.</li>
+      <li>Ticked views from other sheets are taken off their sheet and placed on the target. Unticked views already on the target either <b>stay in place</b> (packing works around them) or are <b>re-packed too</b>; you choose.</li>
+      <li>Ticked <b>legends</b> are copied: the original stays, and the copy goes on the target at the exact same location it has on its own sheet. If that spot is taken by a view that stays in place, the legend is still placed there and a warning is logged.</li>
       <li>Layout uses the Sheet Placer packing (margins, gaps, reading order). Views that do not fit go to continuation sheets.</li>
-      <li>Everything runs in one <code>TransactionGroup</code>, so it is one Undo step and any failure rolls back. Viewports owned by another user (worksharing) are skipped and reported.</li>
-      <li>Legends stay on their original sheet as well (Revit allows a legend on many sheets); schedules are not moved in V001.</li>
+      <li><b>If a view fails</b>: skip it and report it (default), or stop and undo everything. Expected problems (checked out by another user, view in a group, view already on another sheet that Revit will not release) get a plain reason. Unexpected errors are caught, reported, and logged; nothing reaches Revit unhandled.</li>
+      <li>The whole run is one Undo step. Schedules are not moved in V001. There is no option to delete a sheet that ends up empty.</li>
     </ol>
   </section>
 </div>
