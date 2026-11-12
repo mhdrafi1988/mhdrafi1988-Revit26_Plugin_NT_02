@@ -69,7 +69,7 @@ namespace Revit26_Plugin_Revised.Shared.Services
         public static readonly ToolInfo AutoSlopeByPoint = Add("Auto Slope By Point", "30.0.1", "V030", "Revit26_Plugin_Revised.AutoSlopeByPoint.V030");
         public static readonly ToolInfo AutoSlopeByPointV032 = Add("Auto Slope By Point", "32.4.0", "V032", "Revit26_Plugin_Revised.AutoSlopeByPoint.V032");
         public static readonly ToolInfo AutoSlopeByPointV033 = Add("Auto Slope By Point", "33.1.0", "V033", "Revit26_Plugin_Revised.AutoSlopeByPoint.V033");
-        public static readonly ToolInfo AutoSlopeByPointV034 = Add("Auto Slope By Point", "34.0.0", "V034", "Revit26_Plugin_Revised.AutoSlopeByPoint.V034");
+        public static readonly ToolInfo AutoSlopeByPointV034 = Add("Auto Slope By Point", "34.1.0", "V034", "Revit26_Plugin_Revised.AutoSlopeByPoint.V034");
         public static readonly ToolInfo AutoSlopeByPointRidge = Add("Auto Slope By Point (Ridge)", "3.2.0", "V003", "Revit26_Plugin_Revised.AutoSlopeByPointRidge.V003");
         public static readonly ToolInfo AutoSlopeByPointMultiCopies = Add("Auto Slope By Point (Multi Copies)", "30.2.0", "MultiCopies30", "Revit26_Plugin_Revised.AutoSlopeByPoint.MultiCopies30");
         public static readonly ToolInfo AutoSlopeByDrain = Add("Auto Slope By Drain", "7.3.0", "V007", "Revit26_Plugin_Revised.AutoSlopeByDrain.V007");
@@ -128,6 +128,7 @@ namespace Revit26_Plugin_Revised.Shared.Services
         public static readonly ToolInfo SheetViewArrange = Add("Sheet View Arrange", "1.3.0", "V001", "Revit26_Plugin_Revised.SheetViewArrange.V001");
         public static readonly ToolInfo SectionsToSheet = Add("Sections To Sheet", "1.1.0", "V001", "Revit26_Plugin_Revised.SectionsToSheet.V001");
         public static readonly ToolInfo SheetTextReplace = Add("Sheet Text Replace", "1.2.0", "V001", "Revit26_Plugin_Revised.SheetTextReplace.V001");
+        public static readonly ToolInfo SheetViewsCombine = Add("Sheet Views Combine", "1.0.0", "V001", "Revit26_Plugin_Revised.SheetViewsCombine.V001");
         public static readonly ToolInfo RoofEdgeAroundSections = Add("Roof Edge Around Sections", "7.3.0", "V007", "Revit26_Plugin_Revised.RoofEdgeAroundSections.V007");
         public static readonly ToolInfo RoofEdgeElementSections = Add("Roof Edge Element Sections", "4.2.0", "V004", "Revit26_Plugin_Revised.RoofEdgeElementSections.V004");
         public static readonly ToolInfo RoofNameBuilder = Add("Roof Name Builder", "2.2.0", "V002", "Revit26_Plugin_Revised.RoofNameBuilder.V002");

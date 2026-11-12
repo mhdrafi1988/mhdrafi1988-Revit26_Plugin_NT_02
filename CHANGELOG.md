@@ -64,6 +64,51 @@ window opens, then shows the current sheet's views. The settings file gained `Ve
 rows that are not ticked. If loading is still
 slow on your project, send the time from the log.
 
+## [6.52.0] — 2026-11-12
+
+### Sheet Views Combine 1.0.0 (V001, new)
+
+#### Added
+- New **Combine Sheets** button on the Sheet Create panel (after Sections To Sheet).
+- Lists the views on two sheets in one grid, grouped by sheet, then view type, and colour-coded by sheet
+  (Sheet 1 blue, Sheet 2 amber). Sheet 1 defaults to the active sheet; Sheet 2 is picked from a list.
+- Tick the views to combine and choose the target: Sheet 1, Sheet 2, another existing sheet, or a new sheet
+  (number, name, title block). Ticked views from other sheets are taken off their sheet and placed on the target.
+- **Unticked views already on the target**: keep them in place (the layout packs around them) or re-pack them too.
+- Ticked **legends** are copied, not moved: the original stays, and the copy goes on the target at the exact same spot.
+- Layout uses reading-order rows or max fill, with margins and gaps, and a to-scale preview. Views that do not fit go
+  on extra sheets (A-101.1, A-101.2 …). Detail numbers are kept when free on the target; viewport types, rotation and
+  title position are kept.
+- **If a view fails**: skip it and report it (default; it stays on its old sheet), or stop and undo everything.
+  Views checked out by another user are skipped with the reason. Step 5 lists what was moved, re-packed, copied or
+  skipped and why; a dialog summarises it. The whole run is one Undo step ("Combine Sheet Views").
+- Settings in `%AppData%\Revit26_Plugin_Revised\SheetViewsCombine\settings.json` (versioned).
+- Unit tests: `dotnet test Tests/SheetViewsCombine.Tests`.
+
+User note: new tool; nothing existing changes. Schedules on the sheets are not moved in this version (they stay where
+they are, and the layout keeps clear of them).
+
+## [6.51.0] — 2026-11-11
+
+### Auto Slope By Point 34.1.0 (V034)
+
+#### Changed
+- Clicking **Run** closes every open option section (Drain options, Path & curves, Circle markers, Ridge lines,
+  Export & parameters), so the results and log have room while the run goes. If the inputs fail validation the
+  run does not start and the sections stay as they were.
+
+User note: after a run the option sections are closed, and the window opens with them closed next time.
+Open a section again by clicking its header.
+
+## [6.50.1] — 2026-11-11
+
+### Auto Slope By Point 34.0.1 (V034)
+
+#### Fixed
+- Excel Run Summary: the three V034 rows (**Path check spacing (mm)**, **Projection tolerance (mm)**, **Exact segment test**) are now written after the last V033 row (**Ridge lines**). In 34.0.0 they sat after **Max drainage distance (m)** and pushed every later row down, so a V034 report no longer lined up with a V033 one.
+
+User note: reports from 34.0.1 have the same rows in the same places as V033, with the three V034 rows added at the end. Reports already exported by 34.0.0 are not changed.
+
 ## [6.50.0] — 2026-11-11
 
 ### Annotation Overlap Detection 5.0.0 (V005, new)

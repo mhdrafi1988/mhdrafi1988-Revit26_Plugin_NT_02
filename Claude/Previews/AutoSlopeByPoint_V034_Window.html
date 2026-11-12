@@ -1,8 +1,8 @@
 <title>Auto Slope By Point V034</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<!-- UI preview (CLAUDE.md "UI previews"): Auto Slope By Point V034 (34.0.0), released in plugin 6.49.0; current plugin 6.50.0.
-     Mirrors: Menu/RoofTools/RoofSlope/ByPoints/AutoSlopeByPoint_V034/UI/Views/AutoSlopeByPointWindow.xaml (whole window,
-              Path & curves section open), UI/ViewModels/AutoSlopeViewModel.cs (title, state, summaries, run button),
+<!-- UI preview (CLAUDE.md "UI previews"): Auto Slope By Point V034 (34.1.0), plugin 6.51.0 (V034 first released as 34.0.0 in 6.49.0).
+     Mirrors: Menu/RoofTools/RoofSlope/ByPoints/AutoSlopeByPoint_V034/UI/Views/AutoSlopeByPointWindow.xaml (whole window after a run,
+              all sections closed; Path & curves section open before Run), UI/ViewModels/AutoSlopeViewModel.cs (title, state, summaries, run button, sections closed on Run),
               Infrastructure/RoofOps/AutoSlopeRunner.cs (path graph log line), Infrastructure/Helpers/ExcelExportService.cs
               (Run Summary rows), Menu/00_Push_Button_Menu_items/Ribbon/RoofToolsRibbon.cs (By Point pulldown, tooltip).
      Artifact: https://claude.ai/artifact/A7AkjHQBWUws7Ka3foJG1p -->
@@ -104,8 +104,9 @@ ul{margin:0;padding-left:18px;line-height:1.6;max-width:75ch}
 
 <div class="page">
   <header>
-    <h1>Auto Slope By Point 34.0.0 (V034)</h1>
-    <p>New version next to V033, released in plugin 6.49.0. It adds three Path options that control the check that each path link stays on the roof surface. The defaults are V033's fixed values, so results only change when you edit them.</p>
+    <h1>Auto Slope By Point 34.1.0 (V034)</h1>
+    <p>New version next to V033, first released in plugin 6.49.0. It adds three Path options that control the check that each path link stays on the roof surface. The defaults are V033's fixed values, so results only change when you edit them.</p>
+    <p><span class="tag">CHANGED</span> 34.1.0 (plugin 6.51.0): clicking Run closes every open option section.</p>
     <span class="sample">Sample data. The roof, numbers and log lines are made up for this preview.</span>
   </header>
 
@@ -135,7 +136,7 @@ ul{margin:0;padding-left:18px;line-height:1.6;max-width:75ch}
         </div>
         <div class="tip">
           <b>By Point V034</b>
-          Auto Slope By Point v34.0.0 (V034)<br>
+          Auto Slope By Point v34.1.0 (V034)<br>
           V033 plus user-set path checking: spacing of the on-roof checks along each link and the projection tolerance.
         </div>
       </div>
@@ -144,10 +145,10 @@ ul{margin:0;padding-left:18px;line-height:1.6;max-width:75ch}
   </section>
 
   <section>
-    <h2>Tool window after a run, Path &amp; curves open with a 40 mm check spacing</h2>
+    <h2>Tool window after a run: every option section closed</h2>
     <div class="frame">
       <div class="win">
-        <div class="tbar"><span>Auto Slope By Point — v34.0.0</span><span class="muted">—&nbsp;&nbsp;☐&nbsp;&nbsp;✕</span></div>
+        <div class="tbar"><span>Auto Slope By Point — v34.1.0</span><span class="muted">—&nbsp;&nbsp;☐&nbsp;&nbsp;✕</span></div>
         <div class="hdr"><b>Auto Slope By Point</b><span class="badge">Completed</span><span class="badge">Roof · 412873 · Flat Roof 200</span><span class="badge">Plan view</span></div>
         <div class="tiles">
           <div class="tile ok"><span>PROCESSED</span><b>1 284</b></div>
@@ -170,22 +171,9 @@ ul{margin:0;padding-left:18px;line-height:1.6;max-width:75ch}
               </div>
               <div class="warnline">⚠ Run resets every existing shape-point elevation on this roof. Ctrl+Z undoes the whole run in one step.</div>
             </div>
-            <div class="opt">OPTIONS · SET ONCE, KEPT BETWEEN SESSIONS</div>
+            <div class="opt">OPTIONS · SET ONCE, KEPT BETWEEN SESSIONS <span class="tag">CHANGED</span> all closed by Run</div>
             <div class="card sec"><span>▸</span><b>Drain options</b><span class="sum">Snap to nearest point · nearby 500 mm</span><span></span></div>
-            <div class="card hl">
-              <div class="sec"><span>▾</span><b>Path &amp; curves</b><span class="sum">Max link: automatic · arc points on · check every 40 mm · tol 1 mm <span class="tag">NEW</span></span><span class="custom">Custom</span></div>
-              <div class="form">
-                <span class="lbl">Max link length (m)</span><div class="inp"><span>0</span></div>
-                <span></span><span class="hint">0 = same as the drainage distance (V030 behaviour). Shorter is faster on large roofs, but points further apart than this are not linked directly.</span>
-                <span class="lbl">Insert arc points</span><div class="row"><span class="toggle on"></span><span class="hint">Path lengths follow the arc instead of its chord.</span></div>
-                <span class="lbl">Path check spacing (mm) <span class="tag">NEW</span></span><div class="inp"><span>40</span></div>
-                <span></span><span class="hint">How far apart the on-roof checks are along each link (default 76.2 mm = V033). Smaller catches narrow openings and thin roof strips but is slower; larger is faster but can let a link cross them. At least 10 checks per link.</span>
-                <span class="lbl">Projection tolerance (mm) <span class="tag">NEW</span></span><div class="inp"><span>1</span></div>
-                <span></span><span class="hint">Height margin (default 1 mm = V033) when a point is matched to the roof top face. Raise it if points on sloped or curved roofs are wrongly rejected; too high can accept points just outside the roof.</span>
-                <span class="lbl">Exact segment test <span class="tag">NEW</span></span><div class="row"><span class="toggle"></span><span class="hint">Also checks every link against the roof outline and opening edges, so no gap is missed whatever its width. Slower on big roofs.</span></div>
-              </div>
-              <div class="link">Reset to defaults</div>
-            </div>
+            <div class="card sec"><span>▸</span><b>Path &amp; curves</b><span class="sum">Max link: automatic · arc points on · check every 40 mm · tol 1 mm</span><span class="custom">Custom</span></div>
             <div class="card sec"><span>▸</span><b>Circle markers</b><span class="sum">Drains · Highest · Offset · plan view only</span><span></span></div>
             <div class="card sec"><span>▸</span><b>Ridge lines</b><span class="sum">Off</span><span></span></div>
             <div class="card sec"><span>▸</span><b>Export &amp; parameters</b><span class="sum">Excel after each run · …\AutoSlope_Reports</span><span></span></div>
@@ -215,7 +203,31 @@ ul{margin:0;padding-left:18px;line-height:1.6;max-width:75ch}
         </div>
       </div>
     </div>
+    <p><span class="tag">CHANGED</span> 34.1.0: clicking Run closes every open option section, so the results and log have room. They stay closed next time the window opens. If the inputs fail validation the run does not start and the sections stay as they were.</p>
     <p>The Cancel button sits next to Run in the footer and shows only while a run is going.</p>
+  </section>
+
+  <section>
+    <h2>Before Run: Path &amp; curves open with a 40 mm check spacing</h2>
+    <div class="frame">
+      <div style="width:560px">
+        <div class="card hl">
+          <div class="sec"><span>▾</span><b>Path &amp; curves</b><span class="sum">Max link: automatic · arc points on · check every 40 mm · tol 1 mm <span class="tag">NEW</span></span><span class="custom">Custom</span></div>
+          <div class="form">
+            <span class="lbl">Max link length (m)</span><div class="inp"><span>0</span></div>
+            <span></span><span class="hint">0 = same as the drainage distance (V030 behaviour). Shorter is faster on large roofs, but points further apart than this are not linked directly.</span>
+            <span class="lbl">Insert arc points</span><div class="row"><span class="toggle on"></span><span class="hint">Path lengths follow the arc instead of its chord.</span></div>
+            <span class="lbl">Path check spacing (mm) <span class="tag">NEW</span></span><div class="inp"><span>40</span></div>
+            <span></span><span class="hint">How far apart the on-roof checks are along each link (default 76.2 mm = V033). Smaller catches narrow openings and thin roof strips but is slower; larger is faster but can let a link cross them. At least 10 checks per link.</span>
+            <span class="lbl">Projection tolerance (mm) <span class="tag">NEW</span></span><div class="inp"><span>1</span></div>
+            <span></span><span class="hint">Height margin (default 1 mm = V033) when a point is matched to the roof top face. Raise it if points on sloped or curved roofs are wrongly rejected; too high can accept points just outside the roof.</span>
+            <span class="lbl">Exact segment test <span class="tag">NEW</span></span><div class="row"><span class="toggle"></span><span class="hint">Also checks every link against the roof outline and opening edges, so no gap is missed whatever its width. Slower on big roofs.</span></div>
+          </div>
+          <div class="link">Reset to defaults</div>
+        </div>
+      </div>
+    </div>
+    <p>This is the section as the user edits it. Clicking Run closes it, as shown above.</p>
   </section>
 
   <section>
@@ -224,14 +236,15 @@ ul{margin:0;padding-left:18px;line-height:1.6;max-width:75ch}
       <table class="xl">
         <tr><td>Slope (%)</td><td>1.5</td></tr>
         <tr><td>Max drainage distance (m)</td><td>100</td></tr>
-        <tr class="new"><td>Path check spacing (mm) <span class="tag">NEW</span></td><td>40</td></tr>
-        <tr class="new"><td>Projection tolerance (mm) <span class="tag">NEW</span></td><td>1</td></tr>
-        <tr class="new"><td>Exact segment test <span class="tag">NEW</span></td><td>Off</td></tr>
         <tr><td>Max link length (m)</td><td>same as drainage distance (100)</td></tr>
-        <tr><td>Drain mode</td><td>Snap to nearest shape point</td></tr>
-        <tr><td>…</td><td class="muted">other rows as in V033</td></tr>
+        <tr><td>…</td><td class="muted">every other row in the same place as V033</td></tr>
+        <tr><td>Export folder</td><td>…\Documents\AutoSlope_Reports</td></tr>
+        <tr><td>Ridge lines</td><td>Off</td></tr>
+        <tr class="new"><td>Path check spacing (mm) <span class="tag">MOVED</span></td><td>40</td></tr>
+        <tr class="new"><td>Projection tolerance (mm) <span class="tag">MOVED</span></td><td>1</td></tr>
+        <tr class="new"><td>Exact segment test <span class="tag">MOVED</span></td><td>Off</td></tr>
       </table>
     </div>
-    <p>The three new rows sit after "Max drainage distance (m)", as the export code writes them.</p>
+    <p>34.0.1: the three V034 rows are now the last rows, after "Ridge lines", so every V033 row keeps its place. In 34.0.0 they sat after "Max drainage distance (m)".</p>
   </section>
 </div>

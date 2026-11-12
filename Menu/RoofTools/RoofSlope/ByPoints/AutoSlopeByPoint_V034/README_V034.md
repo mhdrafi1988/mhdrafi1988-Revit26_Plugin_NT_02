@@ -1,6 +1,6 @@
 # AutoSlopeByPoint V034
 
-Current version: **34.0.0** (`ToolCatalog.AutoSlopeByPointV034`). Release notes are in the repo's `CHANGELOG.md`.
+Current version: **34.1.0** (`ToolCatalog.AutoSlopeByPointV034`). Release notes are in the repo's `CHANGELOG.md`.
 
 V033 is the current Auto Slope By Point tool: V032 plus optional **ridge lines** (see below). V032 and V030
 stay on disk and in the pulldown as fallbacks. The change codes (B1, D1, …) below come from the V030 refactor
@@ -36,7 +36,8 @@ is dropped if any check point falls outside the face or inside an opening):
 | Exact segment test | Off | on/off | Also finds every crossing of a link with the roof outline and opening edges (plan view, curves tessellated), then tests the midpoint of each piece between crossings. Catches gaps of any width; the spacing check still runs. |
 
 Defaults equal V033's fixed values, so results are unchanged until the user edits them. Saved in `settings.v034.json`
-(reads `settings.v033.json` the first time); logged and written to the Excel report.
+(reads `settings.v033.json` the first time); logged and written to the Excel report. In the Run Summary
+sheet they are the last three rows, after **Ridge lines** (34.0.1; 34.0.0 put them after Max drainage distance).
 
 ## Ridge lines (V033)
 
@@ -94,7 +95,8 @@ Default size 1000 × 640, minimum 880 × 520. The window title reads "Auto Slope
   rise per 10 m.
 - **Option sections** start closed. Each header shows its current values in one line and gets a blue
   **Custom** tag when anything inside differs from the defaults. Each section has **Reset to defaults**.
-  Which sections were left open is saved between sessions.
+  Which sections were left open is saved between sessions. Clicking **Run** closes every open section
+  (34.1.0), and they stay closed next time the window opens.
 - **Circle markers**: one row per group (on/off, line style, colour, radius) under one column heading,
   with the group's note and options below it. Markers are drawn only when the active view is a plan view.
   - **Drains**: a circle on each drain point.
