@@ -99,7 +99,12 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                 Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SheetTools.SheetAutoRearrange_V026_16.png"),
                 ToolTip = RibbonLayoutHelper.VersionTip("Sheet Auto Rearrange", "V028", "V027 on the shared ToolWindowShell (log in body, capped grid).")
             };
-            var rearrangePulldownData = RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_SheetAutoRearrange", "Rearrange", rearrangeV028);
+            var rearrangeV029 = new PushButtonData("Btn_SheetAutoRearrange.V029", "Rearrange V029", assemblyPath, "Revit26_Plugin_Revised.SheetAutoRearrange.V029.Commands.SheetAutoRearrangeCommand")
+            {
+                Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SheetTools.SheetAutoRearrange_V026_16.png"),
+                ToolTip = ToolCatalog.SheetAutoRearrangeV029.Tip("V028 plus Align & Distribute: line views up on shared row / column lines and spread them across the usable area.")
+            };
+            var rearrangePulldownData = RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_SheetAutoRearrange", "Rearrange", rearrangeV029);
 
             // Sheet View Arrange: separate tool (not a Rearrange version) — keeps the views'
             // sizes, orders them by detail number and lays them out as a reading table.
@@ -120,7 +125,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             RibbonLayoutHelper.WirePulldownButton(sheetCreateItems, "Pulldown_PlanFromScopeBox", scopeBoxV006, scopeBoxV005);
             RibbonLayoutHelper.WirePulldownButton(sheetCreateItems, "Pulldown_SmartViewToSheetPlacer", sheetPlacerV224, sheetPlacerV223);
             RibbonLayoutHelper.WirePulldownButton(sheetCreateItems, "Pulldown_AutomatedSectionPlacer", autoSectionPlacerV003, autoSectionPlacerV002);
-            RibbonLayoutHelper.WirePulldownButton(sheetCreateItems, "Pulldown_SheetAutoRearrange", rearrangeV028, rearrangeV027);
+            RibbonLayoutHelper.WirePulldownButton(sheetCreateItems, "Pulldown_SheetAutoRearrange", rearrangeV029, rearrangeV028, rearrangeV027);
 
             // Sheet Edit panel (plugin 6.22.0): tools that change what is already on a sheet.
             // A lone item is added as a full-size button with its 32 px icon.
