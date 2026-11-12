@@ -66,7 +66,19 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                     "in plan order, bottom-aligned so titles line up. Live preview before anything changes; one Undo step.")
             };
 
-            // Sheet Text Replace: finds and replaces text in the text notes on a sheet, in the views
+            // Sheet Views Combine: lists the views of the active sheet and a second sheet in one
+            // grid and moves the ticked ones onto one target sheet with the packing layout.
+            var sheetViewsCombineV001 = new PushButtonData("Btn_SheetViewsCombine.V001", "Combine Sheets", assemblyPath, "Revit26_Plugin_Revised.SheetViewsCombine.V001.Commands.SheetViewsCombineCommand")
+            {
+                Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SheetTools.SheetViewsCombine_16.png"),
+                LargeImage = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SheetTools.SheetViewsCombine_32.png"),
+                ToolTip = ToolCatalog.SheetViewsCombine.Tip(
+                    "Lists the views on the active sheet and a second sheet in one grid, grouped by sheet and view type. " +
+                    "Tick the views to combine, pick the target (either sheet, another sheet or a new one), preview the packed " +
+                    "layout, then move them in one Undo step. Legends are copied to the same spot.")
+            };
+
+                        // Sheet Text Replace: finds and replaces text in the text notes on a sheet, in the views
             // the user ticks (and in notes placed on the sheet itself).
             var sheetTextReplaceV001 = new PushButtonData("Btn_SheetTextReplace.V001", "Text Replace", assemblyPath, "Revit26_Plugin_Revised.SheetTextReplace.V001.Commands.SheetTextReplaceCommand")
             {
@@ -103,7 +115,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
 
             // Slide-out (plugin 6.13.0): Rearrange and Arrange Views come after creating and placing views.
             var sheetCreateItems = RibbonLayoutHelper.AddStackedButtonsWithSlideOut(createPanel,
-                new List<RibbonItemData> { scopeBoxPulldownData, sheetPlacerPulldownData, autoSectionPlacerPulldownData, sectionsToSheetV001 },
+                new List<RibbonItemData> { scopeBoxPulldownData, sheetPlacerPulldownData, autoSectionPlacerPulldownData, sectionsToSheetV001, sheetViewsCombineV001 },
                 new List<RibbonItemData> { rearrangePulldownData, viewArrangeV001 });
             RibbonLayoutHelper.WirePulldownButton(sheetCreateItems, "Pulldown_PlanFromScopeBox", scopeBoxV006, scopeBoxV005);
             RibbonLayoutHelper.WirePulldownButton(sheetCreateItems, "Pulldown_SmartViewToSheetPlacer", sheetPlacerV224, sheetPlacerV223);

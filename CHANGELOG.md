@@ -9,6 +9,30 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [6.52.0] — 2026-11-12
+
+### Sheet Views Combine 1.0.0 (V001, new)
+
+#### Added
+- New **Combine Sheets** button on the Sheet Create panel (after Sections To Sheet).
+- Lists the views on two sheets in one grid, grouped by sheet, then view type, and colour-coded by sheet
+  (Sheet 1 blue, Sheet 2 amber). Sheet 1 defaults to the active sheet; Sheet 2 is picked from a list.
+- Tick the views to combine and choose the target: Sheet 1, Sheet 2, another existing sheet, or a new sheet
+  (number, name, title block). Ticked views from other sheets are taken off their sheet and placed on the target.
+- **Unticked views already on the target**: keep them in place (the layout packs around them) or re-pack them too.
+- Ticked **legends** are copied, not moved: the original stays, and the copy goes on the target at the exact same spot.
+- Layout uses reading-order rows or max fill, with margins and gaps, and a to-scale preview. Views that do not fit go
+  on extra sheets (A-101.1, A-101.2 …). Detail numbers are kept when free on the target; viewport types, rotation and
+  title position are kept.
+- **If a view fails**: skip it and report it (default; it stays on its old sheet), or stop and undo everything.
+  Views checked out by another user are skipped with the reason. Step 5 lists what was moved, re-packed, copied or
+  skipped and why; a dialog summarises it. The whole run is one Undo step ("Combine Sheet Views").
+- Settings in `%AppData%\Revit26_Plugin_Revised\SheetViewsCombine\settings.json` (versioned).
+- Unit tests: `dotnet test Tests/SheetViewsCombine.Tests`.
+
+User note: new tool; nothing existing changes. Schedules on the sheets are not moved in this version (they stay where
+they are, and the layout keeps clear of them).
+
 ## [6.51.0] — 2026-11-11
 
 ### Auto Slope By Point 34.1.0 (V034)

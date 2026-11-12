@@ -128,6 +128,7 @@ namespace Revit26_Plugin_Revised.Shared.Services
         public static readonly ToolInfo SheetViewArrange = Add("Sheet View Arrange", "1.3.0", "V001", "Revit26_Plugin_Revised.SheetViewArrange.V001");
         public static readonly ToolInfo SectionsToSheet = Add("Sections To Sheet", "1.1.0", "V001", "Revit26_Plugin_Revised.SectionsToSheet.V001");
         public static readonly ToolInfo SheetTextReplace = Add("Sheet Text Replace", "1.2.0", "V001", "Revit26_Plugin_Revised.SheetTextReplace.V001");
+        public static readonly ToolInfo SheetViewsCombine = Add("Sheet Views Combine", "1.0.0", "V001", "Revit26_Plugin_Revised.SheetViewsCombine.V001");
         public static readonly ToolInfo RoofEdgeAroundSections = Add("Roof Edge Around Sections", "7.3.0", "V007", "Revit26_Plugin_Revised.RoofEdgeAroundSections.V007");
         public static readonly ToolInfo RoofEdgeElementSections = Add("Roof Edge Element Sections", "4.2.0", "V004", "Revit26_Plugin_Revised.RoofEdgeElementSections.V004");
         public static readonly ToolInfo RoofNameBuilder = Add("Roof Name Builder", "2.2.0", "V002", "Revit26_Plugin_Revised.RoofNameBuilder.V002");
