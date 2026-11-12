@@ -9,7 +9,7 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
-## [6.53.0] — 2026-11-12
+## [6.54.0] — 2026-11-12
 
 ### Annotation Overlap Detection 6.0.0 (V006, new)
 
@@ -39,6 +39,32 @@ User note: the recommended order follows common drafting practice: keep what is 
 room tags, then door and window tags) and move the most flexible notes first (keynotes, text notes). No published
 standard ranks annotations in a collision, so change the order to suit your office standard. Move Up, Move Down and
 Distribute work as in V005.
+
+## [6.53.0] — 2026-11-12
+
+### Sheet Auto Rearrange 29.0.0 (V029, new version next to V028)
+
+#### Added
+- New **Rearrange V029** entry at the top of the Rearrange dropdown (Sheet Create slide-out). V028 and V027 stay below it.
+- New **Align & Distribute** section in the window:
+  - **Align Rows** (Off / Top / Center / Bottom): views in the same row share one top, centre or bottom line.
+  - **Align Columns** (Off / Left / Center / Right): views in the same column share one left, centre or right line.
+    Both on gives a table: a column is as wide as its widest view, a row as tall as its tallest.
+  - **Distribute H** and **Distribute V** (Off / Edge to edge / Equal spacing): spread the rows and columns across the
+    usable area. Edge to edge puts the first and last view on the area edges. Equal spacing makes the gaps between
+    views and the gaps to the edges the same. Off keeps the H / V gap and places the block by Sheet Position.
+- Rows and columns are read from the result of the chosen Row Fill Strategy (Row Tolerance / Column Tolerance decide
+  what counts as the same row or column). A row or column that is too long for the area wraps.
+- The Live Sheet Preview shows the aligned layout. A note under the options says how many rows and columns were made,
+  or why alignment was skipped. The same line goes to the Activity Log on Run.
+- If the aligned layout does not fit the usable area, nothing is aligned: the normal packing is kept and a warning is
+  logged. No view goes to overflow because of alignment. Views already in overflow stay below the sheet.
+- Unit tests: `dotnet test Tests/SheetAutoRearrange.Tests`.
+
+User note: V028 is unchanged. In V029 every new option is Off by default, so it lays out exactly like V028 until you
+turn one on. Both versions share `%AppData%\Revit26_Plugin_Revised\SheetAutoRearrange\settings.json`; the file gains
+`SchemaVersion` and `AlignDistribute`. Older files load as before. Saving from V028 or V027 drops the new options
+back to Off.
 
 ## [6.52.0] — 2026-11-12
 
