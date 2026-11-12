@@ -1,0 +1,346 @@
+<title>Annotation Overlap Detection V006</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<!-- UI preview (CLAUDE.md "UI previews"): Annotation Overlap Detection V006, tool 6.0.0, plugin 6.53.0.
+     New in 6.0.0: "By priority" resolve mode, Priority order card (presets Architectural plan (recommended) /
+     Text notes stay / Tags stay / Custom, reorder rows, Never move, Reset, Same priority rule), "Also check overlaps
+     between different types", type list by priority category, Status names the moved element, ribbon V006 above V005.
+     Mirrors: Menu/Manage/AnnotationOverlapDetection_V006/Views/AnnotationOverlapPanel.xaml (+ AnnotationOverlapViewModel,
+              Helpers/AnnotationPriority.cs), Menu/00_Push_Button_Menu_items/Ribbon/ManageRibbon.cs
+     Artifact: https://claude.ai/artifact/DKwwqHFB7ys1qQjpGYT39M (republish to this URL on every update)
+     Colours: Shared/SharedStyles.xaml tokens, one light look on purpose (mirrors the light WPF window). -->
+<style>
+/* Layout: one column of captioned mock-ups; each fixed-width Revit piece scrolls in its own frame. */
+:root{
+  color-scheme:light;
+  --page:#E9EDF1; --window:#F3F5F7; --card:#FFFFFF; --border:#D6DCE3; --sep:#E6EAEF; --input:#B5C2CF;
+  --navy:#1E3A5F; --navy-dark:#14283F; --text:#1A2B3C; --text2:#5B7185; --text3:#8FA3B8;
+  --bg2:#ECEFF3; --bg3:#E1E6EC; --blue:#2D6CDF; --hover:#DCE8F5;
+  --ok:#2E7D4F; --ok-soft:#E6F4EC; --ok-border:#9FCFB2;
+  --warn:#9A5B00; --warn-soft:#FDF1E1; --warn-border:#E8B66B;
+  --err:#B23A35; --err-soft:#FBE8E7; --err-border:#EDA5A1;
+  --new:#0E7C66; --new-soft:#E0F4EF; --on-dark:#EAF1F8;
+  --a:#2D6CDF; --b:#B23A35;
+  --ui:'Segoe UI',system-ui,-apple-system,sans-serif; --mono:Consolas,'Cascadia Mono',monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--text);font-family:var(--ui);font-size:12.5px;
+  padding-block:24px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.page{max-width:980px;margin:0 auto;display:grid;gap:26px}
+h1{font-size:20px;margin:0 0 4px;font-weight:600;text-wrap:balance}
+h2{font-size:14px;margin:0 0 8px;font-weight:600;text-wrap:balance}
+p{margin:0;line-height:1.5;max-width:75ch}
+.muted{color:var(--text2)}
+.tag{display:inline-block;background:var(--new);color:#FFFFFF;font-size:10px;font-weight:600;letter-spacing:.04em;
+  padding:1px 6px;border-radius:3px;vertical-align:middle;margin-left:6px}
+.sample{display:inline-block;background:var(--warn-soft);color:var(--warn);border:1px solid var(--warn-border);border-radius:3px;padding:2px 8px;font-size:11.5px;margin-top:8px}
+.frame{overflow-x:auto;padding-bottom:6px}
+section{display:grid;gap:6px;min-width:0}
+
+/* Ribbon */
+.rib{width:620px;background:#F7F8FA;border:1px solid var(--border)}
+.tabs{background:#1C2B3A;color:var(--on-dark);padding:4px 10px;font-size:11.5px;display:flex;gap:18px}
+.tabs b{font-weight:600;border-bottom:2px solid var(--on-dark)}
+.rpanel{display:flex;gap:18px;padding:8px 10px 0;align-items:flex-start}
+.stack{display:grid;gap:2px;font-size:11px;min-width:150px}
+.small{display:flex;align-items:center;gap:5px;padding:2px 4px;white-space:nowrap}
+.small i{width:16px;height:16px;border-radius:3px;background:var(--text2);display:inline-block}
+.small.open{background:var(--hover);outline:1px solid var(--input)}
+.small.open i{background:var(--navy)}
+.menu{background:var(--card);border:1px solid var(--input);box-shadow:0 4px 12px rgba(16,32,48,.18);width:230px;font-size:11.5px}
+.menu div{display:flex;align-items:center;gap:8px;padding:5px 8px}
+.menu div i{width:16px;height:16px;border-radius:3px;background:var(--text2);display:inline-block;flex:none}
+.menu .new{background:var(--new-soft)}
+.menu .new i{background:var(--new)}
+.tip{background:#FFFFE8;border:1px solid #A0A0A0;padding:6px 8px;width:300px;font-size:11px;line-height:1.45;margin-top:6px}
+.ptitle{text-align:center;color:var(--text2);font-size:11px;border-top:1px solid var(--border);margin-top:8px;padding:2px}
+
+/* WPF window */
+.win{width:760px;background:var(--window);border:1px solid var(--input);box-shadow:0 6px 20px rgba(16,32,48,.18)}
+.tbar{background:var(--card);border-bottom:1px solid var(--border);padding:7px 10px;display:flex;justify-content:space-between;font-size:12px}
+.tbar .x{color:var(--text2);letter-spacing:10px}
+.shead{background:var(--navy);color:var(--on-dark);padding:12px 16px;display:flex;justify-content:space-between;align-items:baseline}
+.shead b{font-size:16px;font-weight:600}
+.shead .sub{font-size:11.5px;opacity:.8;display:block;margin-top:2px}
+.ver{font-family:var(--mono);font-size:11px;background:rgba(255,255,255,.14);padding:2px 7px;border-radius:10px}
+.zone{padding:12px 16px;display:grid;gap:10px}
+.metrics{display:grid;grid-template-columns:1fr 1fr 2fr;gap:8px}
+.metric{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:8px 10px}
+.mlabel{font-size:10.5px;color:var(--text2);text-transform:uppercase;letter-spacing:.05em}
+.mnum{font-size:18px;font-weight:600;font-variant-numeric:tabular-nums}
+.mnum.danger{color:var(--err)}
+.card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px}
+.card.new{border-color:var(--new);box-shadow:0 0 0 1px var(--new) inset}
+.ctitle{font-size:13px;font-weight:600;display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.sbtn{font-size:11px;border:1px solid var(--input);background:var(--bg2);border-radius:5px;padding:2px 10px;margin-left:6px;font-weight:400}
+.types{display:grid;grid-template-columns:1fr 1fr;gap:4px 16px}
+.chk{display:flex;align-items:center;gap:6px}
+.box{width:13px;height:13px;border:1px solid var(--text2);border-radius:2px;background:var(--navy);position:relative;flex:none}
+.box::after{content:"";position:absolute;left:3.5px;top:1px;width:3px;height:7px;border:solid #FFFFFF;border-width:0 2px 2px 0;transform:rotate(45deg)}
+.cnt{color:var(--text2)}
+table{border-collapse:collapse;width:100%;background:var(--card);font-variant-numeric:tabular-nums;font-size:11.5px}
+th,td{border-bottom:1px solid var(--sep);padding:5px 7px;text-align:left;white-space:nowrap}
+th{background:var(--bg2);font-weight:600;color:var(--text2);font-size:11px}
+th.new{background:var(--new-soft);color:var(--new)}
+td a{color:var(--blue);text-decoration:none}
+tr.sel td{background:var(--hover)}
+.grid{border:1px solid var(--border);border-radius:6px;overflow:hidden}
+.pill{display:inline-block;border-radius:10px;padding:0 8px;font-size:10.5px;border:1px solid}
+.p-ok{background:var(--ok-soft);color:var(--ok);border-color:var(--ok-border)}
+.p-warn{background:var(--warn-soft);color:var(--warn);border-color:var(--warn-border)}
+.p-open{background:var(--bg2);color:var(--text2);border-color:var(--border)}
+.modes{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.mode{border:1px solid var(--border);border-radius:6px;padding:8px;display:grid;gap:4px;align-content:start}
+.mode.on{border-color:var(--navy);background:#F4F7FB}
+.mode .r{display:flex;align-items:center;gap:6px;font-weight:600}
+.rad{width:13px;height:13px;border:1px solid var(--text2);border-radius:50%;background:var(--card);flex:none}
+.on .rad{background:radial-gradient(circle,var(--navy) 0 3.5px,var(--card) 4px)}
+.mode small{color:var(--text2);line-height:1.4;font-size:11px}
+.mode svg{width:100%;height:auto;display:block}
+.resrow{display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap}
+.input{border:1px solid var(--input);background:var(--card);border-radius:5px;padding:3px 8px;width:70px;font-variant-numeric:tabular-nums;text-align:right}
+.hint{color:var(--text2);font-size:11px}
+.spacer{flex:1}
+.btn{border-radius:6px;padding:7px 16px;font-size:12px;border:1px solid var(--input);background:var(--card);white-space:nowrap}
+.btn.pri{background:var(--navy);color:#FFFFFF;border-color:var(--navy);font-weight:600}
+.btn.newb{background:var(--new);border-color:var(--new);color:#FFFFFF;font-weight:600}
+.btn.newo{border-color:var(--new);color:var(--new);font-weight:600}
+.status{background:var(--bg3);border-top:1px solid var(--border);padding:5px 16px;font-size:11px;color:var(--text2);display:flex;gap:10px;align-items:center}
+.bar{flex:none;width:120px;height:5px;border-radius:3px;background:var(--card);overflow:hidden}
+.bar i{display:block;height:100%;width:100%;background:var(--ok)}
+.foot{display:flex;justify-content:flex-end;gap:8px;padding:10px 16px 14px}
+.okbanner{background:var(--ok-soft);border:1px solid var(--ok-border);color:var(--ok);border-radius:6px;padding:7px 10px}
+.newline{border:1px dashed var(--new);background:var(--new-soft);padding:6px 8px;border-radius:4px}
+
+/* Explainer sketch */
+.legend{display:flex;gap:14px;flex-wrap:wrap;color:var(--text2);font-size:11.5px}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.legend i{width:12px;height:12px;border-radius:2px;display:inline-block}
+ul{margin:0;padding-left:18px;line-height:1.55;max-width:75ch}
+
+/* V006 priority order */
+.prow{display:grid;grid-template-columns:22px 170px 1fr auto auto;gap:8px;align-items:center;padding:4px 0;border-bottom:1px solid var(--sep)}
+.prow:last-child{border-bottom:0}
+.prow .rk{font-weight:600;font-variant-numeric:tabular-nums}
+.prow .why{color:var(--text2);font-size:11px;line-height:1.35}
+.prow .nm{display:flex;align-items:center;gap:5px;white-space:nowrap}
+.prow .box.off{background:var(--card)} .prow .box.off::after{display:none}
+.arrows{display:flex;gap:4px}
+.arrows span{border:1px solid var(--input);background:var(--bg2);border-radius:4px;padding:0 7px;font-size:10px}
+.combo{border:1px solid var(--input);background:var(--card);border-radius:5px;padding:3px 26px 3px 8px;position:relative;white-space:nowrap}
+.combo::after{content:"▾";position:absolute;right:8px;color:var(--text2)}
+.ctl{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.research{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px 16px;display:grid;gap:8px}
+.research ol{margin:0;padding-left:20px;line-height:1.55;max-width:80ch}
+.research a{color:var(--blue)}
+.cmp{border-collapse:collapse;font-size:11.5px;background:var(--card)}
+.cmp th,.cmp td{border:1px solid var(--border);padding:4px 8px;text-align:left;white-space:nowrap}
+.cmp th{background:var(--bg2)}
+.cmp td.hl{background:var(--new-soft);font-weight:600}
+</style>
+
+<div class="page">
+  <header>
+    <h1>Annotation Overlap Detection V006</h1>
+    <p class="muted">Preview of tool 6.0.0, plugin 6.53.0. V006 keeps everything in V005 and adds <b>By priority</b>:
+      you decide which annotations stay and which move first, or use the recommended architectural order.
+      New or changed items carry a green <span class="tag">NEW</span> tag.</p>
+    <span class="sample">Sample data: element IDs, counts and coordinates are made up. "Never move" on Dimensions is ticked here only to show the option; it is off by default.</span>
+  </header>
+
+  <!-- Ribbon -->
+  <section>
+    <h2>Ribbon · Rafi_Pro_Docs2 › Manage › Overlaps <span class="tag">NEW</span></h2>
+    <p class="muted">The Overlaps pulldown lists V006 first, then V005 (latest two versions). V004 left the pulldown; its code stays.</p>
+    <div class="frame">
+      <div class="rib">
+        <div class="tabs"><span>Rafi_Pro_Docs</span><b>Rafi_Pro_Docs2</b></div>
+        <div class="rpanel">
+          <div class="stack">
+            <div class="small open"><i></i>Overlaps ▾</div>
+            <div class="small"><i></i>ParaManager ▾</div>
+            <div class="small"><i></i>Shared Params</div>
+          </div>
+          <div>
+            <div class="menu">
+              <div class="new"><i></i>Overlap Detection V006 <span class="tag">NEW</span></div>
+              <div><i></i>Overlap Detection V005</div>
+            </div>
+            <div class="tip"><b>Annotation Overlap Detection — v6.0.0</b><br>
+              Find overlapping annotations in the active view, then move them apart. By priority: you choose which annotations stay (e.g. dimensions) and which move first (e.g. text notes), or use the recommended order.</div>
+          </div>
+        </div>
+        <div class="ptitle">Manage ▾</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Window -->
+  <section>
+    <h2>Tool window, By priority, after one Resolve All run</h2>
+    <p class="muted">Cross-type checking is on, so a door tag over a text note is found. With the recommended order the text note moved;
+      the door tag stayed. One pair is left because both annotations are dimensions set to never move.</p>
+    <div class="frame">
+      <div class="win" style="width:820px">
+        <div class="tbar"><span>Annotation Overlap Detection — v6.0.0</span><span class="x">–▢✕</span></div>
+        <div class="shead">
+          <div><b>Annotation Overlap Detection</b><span class="sub">Find overlapping annotations in the active view, then move them apart</span></div>
+          <span class="ver">v6.0.0</span>
+        </div>
+
+        <div class="zone">
+          <div class="metrics">
+            <div class="metric"><div class="mlabel">Scanned</div><div class="mnum">186</div></div>
+            <div class="metric"><div class="mlabel">Overlaps Found</div><div class="mnum danger">2</div></div>
+            <div class="metric"><div class="mlabel">Breakdown</div><div>1 Dimensions, 1 Keynote tags ↔ Text notes</div></div>
+          </div>
+
+          <div class="card">
+            <div class="ctitle">Annotation Types To Check <span class="tag">NEW</span> <span style="margin-left:auto"><span class="sbtn">Select All</span><span class="sbtn">Clear All</span></span></div>
+            <div class="types">
+              <div class="chk"><span class="box"></span>Dimensions <span class="cnt">(41 items)</span></div>
+              <div class="chk"><span class="box"></span>Keynote tags <span class="cnt">(12 items)</span></div>
+              <div class="chk"><span class="box"></span>Door &amp; window tags <span class="cnt">(38 items)</span></div>
+              <div class="chk"><span class="box"></span>Other element tags <span class="cnt">(28 items)</span></div>
+              <div class="chk"><span class="box"></span>Room / space / area tags <span class="cnt">(22 items)</span></div>
+              <div class="chk"><span class="box"></span>Text notes <span class="cnt">(45 items)</span></div>
+            </div>
+            <div class="chk newline" style="margin-top:8px"><span class="box"></span>Also check overlaps between different types (e.g. a door tag over a text note) <span class="tag">NEW</span></div>
+          </div>
+
+          <div class="grid frame" style="padding:0">
+            <table>
+              <thead><tr>
+                <th>ID 1</th><th>Type</th><th>X (mm)</th><th>Y (mm)</th><th>Aligned</th><th>V-Dist (mm)</th><th>H-Dist (mm)</th><th>ID 2</th><th>Status</th>
+              </tr></thead>
+              <tbody>
+                <tr class="sel"><td><a href="#">405511</a></td><td>Dimensions</td><td>12020.0000</td><td>7350.5000</td><td>No</td><td>0.00</td><td>0.00</td><td><a href="#">405530</a></td>
+                  <td><span class="pill p-warn">Skipped: both are set to never move</span></td></tr>
+                <tr><td><a href="#">398114</a></td><td>Keynote tags ↔ Text notes</td><td>22105.7500</td><td>4480.0000</td><td>No</td><td>0.00</td><td>0.00</td><td><a href="#">398220</a></td>
+                  <td><span class="pill p-open">Not resolved</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="okbanner">Resolved 5 of 6 pair(s): moved 5 element(s). 1 pair(s) skipped or failed; see the Status column. One Undo in Revit reverts this run. 2 overlap(s) remain.</div>
+
+          <div class="card">
+            <div class="ctitle">Resolve Overlaps</div>
+            <div class="modes">
+              <div class="mode">
+                <div class="r"><span class="rad"></span>Move Up</div>
+                <svg viewBox="0 0 120 56" aria-label="Upper element moves up"><rect x="38" y="28" width="46" height="16" rx="2" fill="var(--b)" opacity=".85"/><rect x="30" y="6" width="46" height="16" rx="2" fill="var(--a)" opacity=".85"/><rect x="30" y="20" width="46" height="16" rx="2" fill="none" stroke="var(--a)" stroke-dasharray="3 2"/><path d="M88 30 V10 M84 14 L88 9 L92 14" stroke="var(--text2)" fill="none" stroke-width="1.4"/></svg>
+                <small>The upper element moves up until the pair is clear.</small>
+              </div>
+              <div class="mode">
+                <div class="r"><span class="rad"></span>Move Down</div>
+                <svg viewBox="0 0 120 56" aria-label="Lower element moves down"><rect x="30" y="12" width="46" height="16" rx="2" fill="var(--a)" opacity=".85"/><rect x="38" y="20" width="46" height="16" rx="2" fill="none" stroke="var(--b)" stroke-dasharray="3 2"/><rect x="38" y="34" width="46" height="16" rx="2" fill="var(--b)" opacity=".85"/><path d="M92 22 V44 M88 40 L92 45 L96 40" stroke="var(--text2)" fill="none" stroke-width="1.4"/></svg>
+                <small>The lower element moves down until the pair is clear.</small>
+              </div>
+              <div class="mode">
+                <div class="r"><span class="rad"></span>Distribute</div>
+                <svg viewBox="0 0 120 56" aria-label="Both elements move apart"><rect x="30" y="16" width="46" height="16" rx="2" fill="none" stroke="var(--a)" stroke-dasharray="3 2"/><rect x="30" y="8" width="46" height="16" rx="2" fill="var(--a)" opacity=".85"/><rect x="38" y="24" width="46" height="16" rx="2" fill="none" stroke="var(--b)" stroke-dasharray="3 2"/><rect x="38" y="32" width="46" height="16" rx="2" fill="var(--b)" opacity=".85"/><path d="M92 22 V8 M88 12 L92 7 L96 12 M92 30 V48 M88 44 L92 49 L96 44" stroke="var(--text2)" fill="none" stroke-width="1.4"/></svg>
+                <small>Both move apart, half the distance each.</small>
+              </div>
+              <div class="mode on">
+                <div class="r"><span class="rad"></span>By priority <span class="tag">NEW</span></div>
+                <svg viewBox="0 0 120 56" aria-label="Lower-priority text note moves, dimension stays"><rect x="22" y="30" width="62" height="12" rx="2" fill="var(--a)" opacity=".85"/><text x="53" y="39" text-anchor="middle" font-size="7" fill="#FFFFFF">dimension</text><rect x="40" y="22" width="50" height="14" rx="2" fill="none" stroke="var(--b)" stroke-dasharray="3 2"/><rect x="40" y="6" width="50" height="14" rx="2" fill="var(--b)" opacity=".85"/><text x="65" y="16" text-anchor="middle" font-size="7" fill="#FFFFFF">text note</text><path d="M98 30 V10 M94 14 L98 9 L102 14" stroke="var(--text2)" fill="none" stroke-width="1.4"/></svg>
+                <small>The lower-priority one moves away; the higher-priority one stays.</small>
+              </div>
+            </div>
+            <div class="resrow">
+              <label for="gap">Clear gap (mm)</label><input id="gap" class="input" value="1.00" readonly>
+              <span class="hint">Extra space left between the two after the move.</span>
+            </div>
+          </div>
+
+          <div class="card new">
+            <div class="ctitle">Priority Order <span class="tag">NEW</span>
+              <span class="ctl" style="margin-left:auto;font-weight:400"><span class="combo">Architectural plan (recommended)</span><span class="sbtn" style="margin:0">Reset</span></span></div>
+            <p class="hint" style="margin:0 0 6px">Top of the list stays put; the bottom moves first. Use ▲ ▼ to change the order, or tick Never move to keep a type fixed.</p>
+              <div class="prow"><span class="rk">1</span><span>Dimensions</span><span class="why">Tied to geometry and dimension strings; moving them changes what they measure.</span>
+                <span class="nm"><span class="box"></span>Never move</span><span class="arrows"><span>▲</span><span>▼</span></span></div>
+              <div class="prow"><span class="rk">2</span><span>Room / space / area tags</span><span class="why">Identify the space and link it to the finish schedule.</span>
+                <span class="nm"><span class="box off"></span>Never move</span><span class="arrows"><span>▲</span><span>▼</span></span></div>
+              <div class="prow"><span class="rk">3</span><span>Door &amp; window tags</span><span class="why">Link openings to their schedules; must stay next to the opening.</span>
+                <span class="nm"><span class="box off"></span>Never move</span><span class="arrows"><span>▲</span><span>▼</span></span></div>
+              <div class="prow"><span class="rk">4</span><span>Other element tags</span><span class="why">Usually have a leader and some room to move.</span>
+                <span class="nm"><span class="box off"></span>Never move</span><span class="arrows"><span>▲</span><span>▼</span></span></div>
+              <div class="prow"><span class="rk">5</span><span>Keynote tags</span><span class="why">Referenced to a legend; can move along their leader.</span>
+                <span class="nm"><span class="box off"></span>Never move</span><span class="arrows"><span>▲</span><span>▼</span></span></div>
+              <div class="prow"><span class="rk">6</span><span>Text notes</span><span class="why">Most flexible: free text with an optional leader.</span>
+                <span class="nm"><span class="box off"></span>Never move</span><span class="arrows"><span>▲</span><span>▼</span></span></div>
+            <div class="resrow">
+              <span>Same priority:</span><span class="combo">Distribute (both move, half each)</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="status"><span class="bar"><i></i></span>186 annotations scanned · 2 overlaps</div>
+        <div class="foot">
+          <span class="btn newo">Resolve Selected</span>
+          <span class="btn newb">Resolve All</span>
+          <span class="btn pri">Check Overlaps</span>
+          <span class="btn">Close</span>
+        </div>
+      </div>
+    </div>
+    <div class="legend"><span><i style="background:var(--a)"></i>Higher priority (stays)</span><span><i style="background:var(--b)"></i>Lower priority (moves)</span><span><i style="border:1px dashed var(--text2)"></i>Position before the move</span></div>
+  </section>
+
+  <!-- Presets -->
+  <section>
+    <h2>The presets <span class="tag">NEW</span></h2>
+    <p class="muted">1 stays put, 6 moves first. Move any row with ▲ ▼ and the preset shows Custom; Reset goes back to the recommended order.</p>
+    <div class="frame">
+      <table class="cmp">
+        <thead><tr><th>Rank</th><th>Architectural plan (recommended)</th><th>Text notes stay</th><th>Tags stay</th></tr></thead>
+        <tbody>
+          <tr><td>1 · stays</td><td class="hl">Dimensions</td><td>Text notes</td><td>Door &amp; window tags</td></tr>
+          <tr><td>2</td><td class="hl">Room / space / area tags</td><td>Keynote tags</td><td>Room / space / area tags</td></tr>
+          <tr><td>3</td><td class="hl">Door &amp; window tags</td><td>Dimensions</td><td>Other element tags</td></tr>
+          <tr><td>4</td><td class="hl">Other element tags</td><td>Room / space / area tags</td><td>Keynote tags</td></tr>
+          <tr><td>5</td><td class="hl">Keynote tags</td><td>Door &amp; window tags</td><td>Dimensions</td></tr>
+          <tr><td>6 · moves first</td><td class="hl">Text notes</td><td>Other element tags</td><td>Text notes</td></tr>
+          <tr><td>Use for</td><td>Working drawings (plans, sections, elevations)</td><td>Presentation sheets with hand-placed notes</td><td>Door / window / room schedule review</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Research -->
+  <section class="research">
+    <h2 style="margin:0">Why this order: drafting practice</h2>
+    <p>No published standard ranks annotations in a collision. The US National CAD Standard and office standards cover what to annotate,
+      layers, text sizes and the order of precedence when documents conflict, not which label gives way. Practice agrees on one rule:
+      <b>keep what is tied to geometry, move the most flexible note.</b></p>
+    <ol>
+      <li><b>Dimensions</b> are bound to references and dimension strings; moving one changes what it measures or breaks the string.</li>
+      <li><b>Room tags</b> identify the space and anchor the finish schedule; they sit inside the room.</li>
+      <li><b>Door &amp; window tags</b> link each opening to its schedule (size, type, hardware, fire rating) and must stay next to the opening.</li>
+      <li><b>Other element tags</b> usually have a leader and room to move.</li>
+      <li><b>Keynote tags</b> replace repeated text with a symbol and legend; they can slide along their leader.</li>
+      <li><b>Text notes</b> are the most flexible: free text, often with a leader, so they move first.</li>
+    </ol>
+    <p class="muted">Sources: <a href="https://illustrarch.com/articles/architectural-technology/107642-annotate-architectural-drawings.html">illustrarch: annotating architectural drawings</a> ·
+      <a href="https://www.usitt.org/sites/default/files/2023-05/USITT%20Graphic%20Recommended%20Practice%20Guideline%20Version%205.0%20copy_3_0.pdf">USITT graphic practice guideline (keynotes)</a> ·
+      <a href="https://sites.google.com/view/allied8-internal-wiki/standards/drawing-standards-where-to-key-and-tag">Allied8 drawing standards: where to key and tag</a> ·
+      <a href="https://support.ideatesoftware.com/support/help/ideate-apps/ideate-annotate/how-to">Ideate Annotate: annotation clash review</a> ·
+      <a href="https://cursa.app/en/page/annotation-essentials-dimensions-tags-text-and-keynotes-for-readable-drawings">Annotation essentials: dimensions, tags, text, keynotes</a>.
+      Your office standard always wins: change the order to match it.</p>
+  </section>
+
+  <section>
+    <h2>How a resolve works</h2>
+    <ul>
+      <li><b>By priority</b>: the lower-priority annotation moves up when it sits above the other, down when it sits below. <span class="tag">NEW</span></li>
+      <li><b>Never move</b> beats the order: if one side never moves, the other side moves; if both never move, the pair is skipped. <span class="tag">NEW</span></li>
+      <li><b>Same priority</b> (e.g. two text notes): Distribute, move the upper one up, move the lower one down, or skip the pair. <span class="tag">NEW</span></li>
+      <li>"Up" means up on screen in every 2D view: model height in a section or elevation, screen-up in a rotated plan, up the sheet on a sheet.</li>
+      <li>Distance moved = vertical overlap of the two boxes + the clear gap.</li>
+      <li>Text notes, tags and room tags move as a whole (a tag's leader stays on its host). A dimension moves as a whole where Revit allows it, otherwise only its text.</li>
+      <li>Pinned, grouped, borrowed-by-others and changed-in-central elements are skipped; the Status column says why, and names the element that moved ("Moved 398220"). <span class="tag">NEW</span></li>
+      <li>One run is one transaction: one Undo reverts it. Esc / Cancel during a run moves nothing.</li>
+      <li>Your order, presets, Never move ticks and the same-priority rule are remembered (V006 keeps its own settings file).</li>
+    </ul>
+  </section>
+</div>
