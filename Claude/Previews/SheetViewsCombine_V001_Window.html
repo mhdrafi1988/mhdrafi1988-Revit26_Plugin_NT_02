@@ -1,0 +1,365 @@
+<title>Sheet Views Combine</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<!-- UI preview (CLAUDE.md "UI previews"): Sheet Views Combine 1.0.0 (V001) — NEW tool. Plugin 6.52.0 (planned).
+     Shown: ribbon button + tooltip, and the tool window with stages 1–4 open (Select Sheets, Combined Views,
+     Preview Placement, Confirm & Move) and stage 5 collapsed.
+     Mirrors (planned): Menu/Sheet/SheetViewsCombine_V001/UI/Views/SheetViewsCombineWindow.xaml
+              (layout follows Menu/Sheet/SmartViewToSheetPlacer_V224/Views/SmartViewToSheetPlacerWindow.xaml;
+               version from Shared/Services/ToolCatalog.cs once added).
+     Artifact: https://claude.ai/artifact/UAY5uYtVQBgUfick2mwsMU (republish to this URL on every update)
+     Colours: Shared/SharedStyles.xaml tokens, one light look on purpose (mirrors the light WPF window). -->
+<style>
+/* Layout: one column; the fixed-width WPF window scrolls inside its own frame, notes sit under it. */
+:root{
+  color-scheme:light;
+  --page:#E9EDF1; --window:#F3F5F7; --card:#FFFFFF; --border:#D6DCE3; --input:#B5C2CF; --sep:#E6EAEF;
+  --navy:#1E3A5F; --navy-dark:#14283F; --navy-light:#2C4A6E; --on-dark:#EAF1F8;
+  --text:#1A2B3C; --text2:#5B7185; --text3:#8FA3B8; --bg2:#ECEFF3; --bg3:#E1E6EC;
+  --info:#1F5FBF; --info-soft:#E6EEFB; --info-border:#A9C3EE;
+  --ok:#2E7D4F; --ok-soft:#E6F4EC; --ok-border:#9FCFB2;
+  --warn:#9A5B00; --warn-soft:#FDF1E1; --warn-border:#E8B66B;
+  --err:#B23A35; --err-soft:#FBE8E7; --err-border:#EDA5A1;
+  --log-text:#EAF1F8; --log-dim:#7E94AA; --log-ok:#4CC18A; --log-hl:#7FB0FF;
+  /* Sheet colour code: Sheet 1 = info blue, Sheet 2 = amber, New / other target = navy */
+  --s1:#1F5FBF; --s1-soft:#E6EEFB; --s1-border:#A9C3EE;
+  --s2:#9A5B00; --s2-soft:#FDF1E1; --s2-border:#E8B66B;
+  --new:#2E7D4F;
+  --ui:'Segoe UI',system-ui,-apple-system,sans-serif; --mono:Consolas,'Cascadia Mono',Menlo,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--text);font-family:var(--ui);font-size:12.5px;
+  padding-block:24px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.page{max-width:1080px;margin:0 auto;display:grid;gap:20px}
+h1{font-size:20px;margin:0 0 4px;font-weight:600;text-wrap:balance}
+h2{font-size:14px;margin:0 0 8px;font-weight:600;text-wrap:balance}
+p{margin:0;line-height:1.5;max-width:78ch}
+.muted{color:var(--text2)}
+.tag{display:inline-block;background:var(--new);color:#FFFFFF;font-size:10px;font-weight:600;letter-spacing:.04em;
+  padding:1px 6px;border-radius:3px;vertical-align:middle;margin-left:6px}
+.sample{display:inline-block;background:var(--warn-soft);color:var(--warn);border:1px solid var(--warn-border);border-radius:3px;padding:2px 8px;font-size:11.5px}
+.frame{overflow-x:auto;padding-bottom:4px}
+
+/* Ribbon mock */
+.ribbon{width:720px;background:var(--card);border:1px solid var(--input);display:flex;gap:0;font-size:11.5px}
+.rp{border-right:1px solid var(--border);padding:6px 8px 0;display:flex;flex-direction:column}
+.rp .items{display:flex;gap:14px}
+.stack{display:grid;gap:3px;align-content:start}
+.rb{display:flex;align-items:center;gap:5px;padding:2px 5px;border-radius:3px;white-space:nowrap}
+.rb i{width:14px;height:14px;border-radius:2px;background:var(--bg3);border:1px solid var(--input);display:inline-block}
+.rb.hl{outline:2px solid var(--new);outline-offset:1px;background:var(--ok-soft)}
+.rb.hl i{background:linear-gradient(135deg,var(--s1) 50%,var(--s2) 50%);border:none}
+.rpt{margin-top:6px;border-top:1px solid var(--sep);text-align:center;color:var(--text2);font-size:11px;padding:2px 0;display:flex;justify-content:center;gap:6px}
+.tip{width:420px;margin-top:8px;background:var(--card);border:1px solid var(--input);box-shadow:0 4px 12px rgba(16,32,48,.18);padding:8px 10px;font-size:12px;line-height:1.45}
+.tip b{display:block;margin-bottom:3px}
+
+/* Window */
+.win{width:1040px;background:var(--window);border:1px solid var(--input);box-shadow:0 6px 20px rgba(16,32,48,.18)}
+.tbar{background:var(--card);border-bottom:1px solid var(--border);padding:7px 10px}
+.hdr{background:var(--navy);color:var(--on-dark);padding:10px 12px;display:flex;justify-content:space-between;align-items:center}
+.hdr b{font-size:15px;font-weight:600;display:block}
+.hdr .s{font-size:11px;opacity:.8}
+.badge{background:var(--navy-light);border-radius:10px;padding:3px 8px;font-size:11px;font-weight:600}
+.body{padding:10px 12px;display:grid;gap:8px}
+.lbl{font-size:12px;font-weight:600;color:var(--text)}
+.cards{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.mc{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:7px 10px}
+.mc span{display:block;font-size:11px;color:var(--text2)}
+.mc b{font-size:18px;font-variant-numeric:tabular-nums}
+
+.stage{background:var(--card);border:1px solid var(--border);border-radius:8px}
+.stage.done{border-color:var(--ok-border)}
+.sh{display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid var(--sep)}
+.stage.closed .sh{border-bottom:none}
+.num{width:22px;height:22px;border-radius:50%;background:var(--navy);color:#FFFFFF;display:grid;place-items:center;font-size:11.5px;font-weight:600;flex:none}
+.stage.done .num{background:var(--ok)}
+.sh .t{font-size:13px;font-weight:600}
+.sh .s{font-size:11.5px;color:var(--text2)}
+.sh .sum{margin-left:auto;font-size:11.5px;color:var(--text2)}
+.sb{padding:10px 12px;display:grid;gap:10px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grp{border:1px solid var(--border);border-radius:6px;padding:8px 10px;display:grid;gap:6px}
+.grp.s1{border-left:4px solid var(--s1)}
+.grp.s2{border-left:4px solid var(--s2)}
+.gl{font-size:11.5px;font-weight:600;color:var(--text2);display:flex;align-items:center;gap:6px}
+.fl{font-size:11.5px;color:var(--text2)}
+.in{border:1px solid var(--input);background:var(--card);border-radius:4px;height:26px;padding:0 8px;display:flex;align-items:center;justify-content:space-between;font-size:12px}
+.hint{font-size:11px;color:var(--text3);line-height:1.4}
+.sbtn{border:1px solid var(--border);background:var(--bg2);border-radius:4px;height:24px;padding:0 9px;display:inline-flex;align-items:center;font-size:11px;white-space:nowrap}
+.sbtn.on{background:var(--navy);color:#FFFFFF;border-color:var(--navy)}
+.bar{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.dot{width:10px;height:10px;border-radius:2px;display:inline-block}
+.dot.s1{background:var(--s1)} .dot.s2{background:var(--s2)} .dot.nw{background:var(--navy)}
+.pill{display:inline-block;border-radius:9px;padding:0 7px;font-size:11px;font-weight:600;border:1px solid}
+.pill.s1{background:var(--s1-soft);color:var(--s1);border-color:var(--s1-border)}
+.pill.s2{background:var(--s2-soft);color:var(--s2);border-color:var(--s2-border)}
+.pill.ok{background:var(--ok-soft);color:var(--ok);border-color:var(--ok-border)}
+.pill.mv{background:var(--info-soft);color:var(--info);border-color:var(--info-border)}
+.pill.wn{background:var(--warn-soft);color:var(--warn);border-color:var(--warn-border)}
+
+table.g{width:100%;border-collapse:collapse;font-size:12px}
+.g th{background:var(--bg2);text-align:left;font-weight:600;padding:5px 8px;border-bottom:1px solid var(--border);white-space:nowrap}
+.g td{padding:5px 8px;border-bottom:1px solid var(--sep);vertical-align:middle;font-variant-numeric:tabular-nums}
+.g td.c{width:30px;text-align:center}
+.g tr.gs td{font-weight:600;padding:6px 8px}
+.g tr.gs.s1 td{background:var(--s1-soft);color:var(--s1);border-left:4px solid var(--s1)}
+.g tr.gs.s2 td{background:var(--s2-soft);color:var(--s2);border-left:4px solid var(--s2)}
+.g tr.gt td{background:var(--bg2);color:var(--text2);font-weight:600;font-size:11.5px;padding:4px 8px 4px 22px}
+.g tr.s1 td:first-child{border-left:4px solid var(--s1)}
+.g tr.s2 td:first-child{border-left:4px solid var(--s2)}
+.g tr.off td{color:var(--text3)}
+.cb{display:inline-block;width:13px;height:13px;border:1px solid var(--input);border-radius:2px;background:var(--card);vertical-align:middle;position:relative}
+.cb.on{background:var(--navy);border-color:var(--navy)}
+.cb.on::after{content:"";position:absolute;left:3.5px;top:0.5px;width:4px;height:8px;border:solid #FFFFFF;border-width:0 2px 2px 0;transform:rotate(45deg)}
+.cb.part{background:var(--navy);border-color:var(--navy)}
+.cb.part::after{content:"";position:absolute;left:2px;top:5px;width:7px;height:2px;background:#FFFFFF}
+.rd{display:inline-block;width:13px;height:13px;border:1px solid var(--input);border-radius:50%;background:var(--card);vertical-align:middle;position:relative}
+.rd.on{border-color:var(--navy)}
+.rd.on::after{content:"";position:absolute;inset:2.5px;border-radius:50%;background:var(--navy)}
+.opt{display:flex;align-items:center;gap:8px;padding:4px 0;flex-wrap:wrap}
+.opt .in{min-width:220px}
+.newbox{border:2px solid var(--new);border-radius:6px;padding:8px 10px;background:var(--card)}
+
+.canvaswrap{display:grid;grid-template-columns:240px 1fr;gap:10px}
+.sheetlist{border:1px solid var(--border);border-radius:6px;overflow:hidden}
+.sheetlist div{padding:6px 8px;border-bottom:1px solid var(--sep);font-size:12px;display:flex;justify-content:space-between;gap:6px}
+.sheetlist div.sel{background:var(--info-soft)}
+.sheetlist div:last-child{border-bottom:none}
+.cv{border:1px solid var(--border);border-radius:6px;padding:8px;background:var(--bg2)}
+svg text{font-family:var(--ui)}
+
+.foot{border-top:1px solid var(--border);padding:8px 12px;display:flex;justify-content:space-between;align-items:center;gap:8px;background:var(--card)}
+.pbtn{background:var(--navy);color:#FFFFFF;padding:6px 16px;border-radius:4px;white-space:nowrap}
+.obtn{border:1px solid var(--navy);color:var(--navy);padding:5px 14px;border-radius:4px;white-space:nowrap;background:var(--card)}
+.nav{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.log{background:var(--navy-dark);border-radius:8px;padding:8px 10px;font-family:var(--mono);font-size:11px;color:var(--log-text);display:grid;gap:3px}
+.log .h{font-family:var(--ui);font-weight:600;font-size:11.5px;margin-bottom:3px}
+.log .d{color:var(--log-dim)} .log .k{color:var(--log-ok)} .log .b{color:var(--log-hl)}
+
+.notes{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px 16px;display:grid;gap:8px}
+ul,ol{margin:0;padding-left:20px;line-height:1.6;max-width:84ch}
+code{font-family:var(--mono);font-size:12px;background:var(--bg2);padding:0 4px;border-radius:3px}
+</style>
+
+<div class="page">
+  <header>
+    <h1>Sheet Views Combine <span class="muted" style="font-weight:400;font-size:14px">v1.0.0 (V001) · plugin 6.52.0 · new tool</span></h1>
+    <p class="muted">Collects the views on two sheets into one grouped list, lets you tick what goes together, then takes those views off their sheets and lays them out on one target sheet with the Sheet Placer packing. <span class="sample">Sample data: sheets, views and sizes are made up.</span></p>
+  </header>
+
+  <section>
+    <h2>Ribbon: Sheet panel <span class="tag">NEW button</span></h2>
+    <div class="frame">
+      <div class="ribbon">
+        <div class="rp">
+          <div class="items">
+            <div class="stack">
+              <div class="rb"><i></i>Scope Box ▾</div>
+              <div class="rb"><i></i>Sheet Placer ▾</div>
+              <div class="rb"><i></i>Section Placer ▾</div>
+            </div>
+            <div class="stack">
+              <div class="rb"><i></i>Sections To Sheet</div>
+              <div class="rb hl"><i></i>Combine Sheets</div>
+            </div>
+          </div>
+          <div class="rpt">Sheet <span>⌄</span></div>
+        </div>
+        <div class="rp" style="color:var(--text3)"><div class="items"><div class="stack"><div class="rb"><i></i>Text Replace</div></div></div><div class="rpt">…</div></div>
+      </div>
+    </div>
+    <div class="frame">
+      <div class="tip"><b>Sheet Views Combine — v1.0.0 (build V001)</b>Lists the views on the active sheet and a second sheet in one grid, grouped by sheet and view type. Tick the views to combine, pick the target (either sheet, another sheet or a new one), preview the packed layout, then move them in one Undo step.</div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Tool window <span class="tag">NEW tool</span></h2>
+    <div class="frame">
+      <div class="win">
+        <div class="tbar">Sheet Views Combine — v1.0.0</div>
+        <div class="hdr"><div><b>Sheet Views Combine</b><span class="s">Combine the views of two sheets onto one sheet</span></div><span class="badge">v1.0.0</span></div>
+        <div class="body">
+          <div class="lbl">Combine Metrics</div>
+          <div class="cards">
+            <div class="mc"><span>Views on Sheet 1</span><b style="color:var(--s1)">3</b></div>
+            <div class="mc"><span>Views on Sheet 2</span><b style="color:var(--s2)">4</b></div>
+            <div class="mc"><span>Selected</span><b>5</b></div>
+            <div class="mc"><span>To Move</span><b style="color:var(--info)">2</b></div>
+            <div class="mc"><span>Re-placed on target</span><b>3</b></div>
+            <div class="mc"><span>Target Sheets</span><b>1</b></div>
+          </div>
+
+          <!-- Stage 1 -->
+          <div class="stage done">
+            <div class="sh"><span class="num">1</span><span class="t">Select Sheets</span><span class="s">Sheet 1 is the active sheet; pick Sheet 2</span><span class="sum">✓ A-101 + A-501</span></div>
+            <div class="sb">
+              <div class="two">
+                <div class="grp s1">
+                  <div class="gl"><span class="dot s1"></span>Sheet 1 <span class="pill s1">Active sheet</span></div>
+                  <div class="in">A-101 - Level 01 Floor Plan <span>▾</span></div>
+                  <div class="hint">Defaults to the sheet open in Revit. Change it here to use any other sheet.</div>
+                </div>
+                <div class="grp s2">
+                  <div class="gl"><span class="dot s2"></span>Sheet 2</div>
+                  <div class="in">A-501 - Sections and Details <span>▾</span></div>
+                  <div class="hint">Type to search sheets by number or name. Sheet 2 cannot be the same as Sheet 1.</div>
+                </div>
+              </div>
+              <div class="nav"><span class="hint">7 views found on the two sheets (schedules and revision clouds are not listed).</span><span class="pbtn">Load Views &gt;</span></div>
+            </div>
+          </div>
+
+          <!-- Stage 2 -->
+          <div class="stage">
+            <div class="sh"><span class="num">2</span><span class="t">Combined Views</span><span class="s">Tick the views to put together and choose where</span><span class="sum">5 of 7 ticked</span></div>
+            <div class="sb">
+              <div class="bar">
+                <span class="sbtn">Select All</span><span class="sbtn">Clear Selection</span><span class="sbtn">Refresh</span>
+                <span class="hint" style="margin-left:10px">Show:</span><span class="sbtn on">All</span><span class="sbtn">Sheet 1</span><span class="sbtn">Sheet 2</span>
+                <span style="margin-left:auto" class="bar"><span class="dot s1"></span><span class="hint">Sheet 1</span><span class="dot s2"></span><span class="hint">Sheet 2</span></span>
+              </div>
+              <div style="max-height:none;border:1px solid var(--border);border-radius:6px;overflow:hidden">
+                <table class="g">
+                  <thead><tr><th class="c"></th><th>View Name</th><th>View Type</th><th>Scale</th><th>Size on Sheet (mm)</th><th>Detail #</th><th>Status</th></tr></thead>
+                  <tbody>
+                    <tr class="gs s1"><td class="c"><span class="cb on"></span></td><td colspan="6">A-101 - Level 01 Floor Plan · 3 views <span class="pill s1" style="margin-left:6px">Sheet 1 · Target</span></td></tr>
+                    <tr class="gt"><td colspan="7">Floor Plan (1)</td></tr>
+                    <tr class="s1"><td class="c"><span class="cb on"></span></td><td>Level 01 - Floor Plan</td><td>Floor Plan</td><td>1:100</td><td>480 × 340</td><td>1</td><td><span class="pill ok">Stays, re-placed</span></td></tr>
+                    <tr class="gt"><td colspan="7">Detail (1)</td></tr>
+                    <tr class="s1"><td class="c"><span class="cb on"></span></td><td>Stair 1 - Enlarged Plan</td><td>Detail</td><td>1:50</td><td>180 × 140</td><td>2</td><td><span class="pill ok">Stays, re-placed</span></td></tr>
+                    <tr class="gt"><td colspan="7">Legend (1)</td></tr>
+                    <tr class="s1"><td class="c"><span class="cb on"></span></td><td>Wall Types Legend</td><td>Legend</td><td>—</td><td>120 × 160</td><td>3</td><td><span class="pill ok">Stays, re-placed</span></td></tr>
+
+                    <tr class="gs s2"><td class="c"><span class="cb part"></span></td><td colspan="6">A-501 - Sections and Details · 4 views (2 ticked)</td></tr>
+                    <tr class="gt"><td colspan="7">Section (2)</td></tr>
+                    <tr class="s2"><td class="c"><span class="cb on"></span></td><td>Section A-A</td><td>Section</td><td>1:50</td><td>300 × 120</td><td>1</td><td><span class="pill mv">Moves to A-101</span></td></tr>
+                    <tr class="s2 off"><td class="c"><span class="cb"></span></td><td>Section B-B</td><td>Section</td><td>1:50</td><td>300 × 120</td><td>2</td><td>Stays on A-501</td></tr>
+                    <tr class="gt"><td colspan="7">Detail (1)</td></tr>
+                    <tr class="s2"><td class="c"><span class="cb on"></span></td><td>Typical Eaves Detail</td><td>Detail</td><td>1:10</td><td>150 × 150</td><td>3</td><td><span class="pill mv">Moves to A-101</span></td></tr>
+                    <tr class="gt"><td colspan="7">Drafting View (1)</td></tr>
+                    <tr class="s2 off"><td class="c"><span class="cb"></span></td><td>Parapet Flashing</td><td>Drafting View</td><td>1:5</td><td>140 × 110</td><td>4</td><td>Stays on A-501</td></tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="grp">
+                <div class="gl">Place ticked views on</div>
+                <div class="opt"><span class="rd on"></span><span class="dot s1"></span>Sheet 1 — A-101 - Level 01 Floor Plan</div>
+                <div class="opt"><span class="rd"></span><span class="dot s2"></span>Sheet 2 — A-501 - Sections and Details</div>
+                <div class="opt"><span class="rd"></span>Another sheet <div class="in" style="color:var(--text3)">Pick a sheet… <span>▾</span></div></div>
+                <div class="opt"><span class="rd"></span><span class="dot nw"></span>New sheet
+                  <div class="in" style="min-width:110px;color:var(--text3)">A-102</div>
+                  <div class="in" style="color:var(--text3)">Combined Views</div>
+                  <div class="in" style="color:var(--text3)">Titleblock: same as Sheet 1 <span>▾</span></div>
+                </div>
+                <div class="hint">Unticked views stay where they are. Views on the target sheet that you untick stay in place and the packing works around them. Ticked views from other sheets are removed from their sheet before they are placed.</div>
+                <div class="opt" style="padding-top:2px"><span class="cb on"></span>Keep each view's viewport type (title style) <span class="cb on" style="margin-left:14px"></span>Keep detail numbers when free on the target <span class="cb" style="margin-left:14px"></span>Delete Sheet 2 if it ends up empty</div>
+              </div>
+
+              <div class="nav"><span class="obtn">&lt; Back to Select Sheets</span><span class="pbtn">Next: Preview Placement &gt;</span></div>
+            </div>
+          </div>
+
+          <!-- Stage 3 -->
+          <div class="stage">
+            <div class="sh"><span class="num">3</span><span class="t">Preview Placement</span><span class="s">Same reading order, gaps and packing as Sheet Placer</span><span class="sum">All 5 views fit on A-101</span></div>
+            <div class="sb">
+              <div class="two">
+                <div class="grp">
+                  <div class="gl">Reading Order</div>
+                  <div class="bar"><span class="fl" style="width:110px">Direction</span><div class="in" style="width:220px">Left to right, top to bottom <span>▾</span></div></div>
+                  <div class="bar"><span class="fl" style="width:110px">Group by</span><div class="in" style="width:220px">Origin sheet, then view type <span>▾</span></div></div>
+                </div>
+                <div class="grp">
+                  <div class="gl">Placement Algorithm</div>
+                  <div class="bar"><span class="fl" style="width:110px">Strategy</span><div class="in" style="width:220px">Reading order rows <span>▾</span></div></div>
+                  <div class="bar"><span class="fl" style="width:110px">Margin / Gap (mm)</span><div class="in" style="width:60px">15</div><div class="in" style="width:60px">15</div><span class="hint">from Sheet Placer settings</span></div>
+                </div>
+              </div>
+              <div class="canvaswrap">
+                <div>
+                  <div class="fl" style="margin-bottom:4px">Generated Sheets</div>
+                  <div class="sheetlist">
+                    <div class="sel"><span><span class="dot s1"></span> A-101 (target)</span><span>5 views</span></div>
+                    <div><span><span class="dot s2"></span> A-501 (left as is)</span><span>2 views</span></div>
+                  </div>
+                  <p class="hint" style="margin-top:8px">If the ticked views do not fit, continuation sheets A-101.1, A-101.2… are created with the same titleblock and listed here.</p>
+                </div>
+                <div class="cv">
+                  <svg viewBox="0 0 841 594" width="100%" role="img" aria-label="Sample A1 sheet preview with five views coloured by origin sheet">
+                    <rect x="0" y="0" width="841" height="594" fill="#FFFFFF" stroke="#5B7185" stroke-width="2"/>
+                    <rect x="721" y="10" width="110" height="574" fill="#ECEFF3" stroke="#B5C2CF"/>
+                    <text x="776" y="560" font-size="14" text-anchor="middle" fill="#5B7185">A-101</text>
+                    <rect x="15" y="15" width="696" height="564" fill="none" stroke="#8FA3B8" stroke-dasharray="6 5"/>
+                    <!-- Sheet 1 views (blue) -->
+                    <rect x="25" y="25" width="480" height="340" fill="#E6EEFB" stroke="#1F5FBF" stroke-width="2"/>
+                    <text x="35" y="50" font-size="16" fill="#1F5FBF" font-weight="600">1 · Level 01 - Floor Plan</text>
+                    <rect x="525" y="25" width="180" height="140" fill="#E6EEFB" stroke="#1F5FBF" stroke-width="2"/>
+                    <text x="535" y="50" font-size="14" fill="#1F5FBF" font-weight="600">2 · Stair 1</text>
+                    <rect x="525" y="185" width="120" height="160" fill="#E6EEFB" stroke="#1F5FBF" stroke-width="2"/>
+                    <text x="535" y="210" font-size="14" fill="#1F5FBF" font-weight="600">3 · Legend</text>
+                    <!-- Moved from Sheet 2 (amber) -->
+                    <rect x="25" y="385" width="300" height="120" fill="#FDF1E1" stroke="#9A5B00" stroke-width="2"/>
+                    <text x="35" y="410" font-size="14" fill="#9A5B00" font-weight="600">4 · Section A-A (from A-501)</text>
+                    <rect x="345" y="385" width="150" height="150" fill="#FDF1E1" stroke="#9A5B00" stroke-width="2"/>
+                    <text x="355" y="410" font-size="14" fill="#9A5B00" font-weight="600">5 · Eaves</text>
+                    <text x="355" y="428" font-size="12" fill="#9A5B00">(from A-501)</text>
+                  </svg>
+                  <div class="hint" style="margin-top:4px">A1 841 × 594 mm. Drawn to scale from the same margin and gap values used by the packing. Blue = from Sheet 1, amber = from Sheet 2.</div>
+                </div>
+              </div>
+              <div class="nav"><span class="obtn">&lt; Back to Combined Views</span><span class="pbtn">Next: Confirm &amp; Move &gt;</span></div>
+            </div>
+          </div>
+
+          <!-- Stage 4 -->
+          <div class="stage">
+            <div class="sh"><span class="num">4</span><span class="t">Confirm &amp; Move</span><span class="s">Review the plan, then move views in one Undo step</span></div>
+            <div class="sb">
+              <div style="border:1px solid var(--border);border-radius:6px;overflow:hidden">
+                <table class="g">
+                  <thead><tr><th>View</th><th>From Sheet</th><th>To Sheet</th><th>Detail #</th><th>Location</th><th>Action</th></tr></thead>
+                  <tbody>
+                    <tr class="s1"><td>Level 01 - Floor Plan</td><td>A-101</td><td>A-101</td><td>1</td><td>Row 1, col 1</td><td><span class="pill ok">Re-place</span></td></tr>
+                    <tr class="s1"><td>Stair 1 - Enlarged Plan</td><td>A-101</td><td>A-101</td><td>2</td><td>Row 1, col 2</td><td><span class="pill ok">Re-place</span></td></tr>
+                    <tr class="s1"><td>Wall Types Legend</td><td>A-101</td><td>A-101</td><td>3</td><td>Row 1, col 3</td><td><span class="pill ok">Re-place</span></td></tr>
+                    <tr class="s2"><td>Section A-A</td><td>A-501</td><td>A-101</td><td>4 <span class="hint">(was 1, taken)</span></td><td>Row 2, col 1</td><td><span class="pill mv">Remove + place</span></td></tr>
+                    <tr class="s2"><td>Typical Eaves Detail</td><td>A-501</td><td>A-101</td><td>5 <span class="hint">(was 3, taken)</span></td><td>Row 2, col 2</td><td><span class="pill mv">Remove + place</span></td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="nav"><span class="obtn">&lt; Back to Preview Placement</span><span class="pbtn">Move Views</span></div>
+            </div>
+          </div>
+
+          <!-- Stage 5 -->
+          <div class="stage closed">
+            <div class="sh"><span class="num" style="background:var(--text3)">5</span><span class="t" style="color:var(--text2)">Move Complete</span><span class="s">Open the target sheet in Revit</span><span class="sum">▸</span></div>
+          </div>
+
+          <div class="log">
+            <div class="h">Activity Log</div>
+            <div><span class="d">10:42:07</span> Sheet 1: A-101 - Level 01 Floor Plan (active sheet) · 3 viewports</div>
+            <div><span class="d">10:42:12</span> Sheet 2: A-501 - Sections and Details · 4 viewports</div>
+            <div><span class="d">10:42:31</span> <span class="b">Target A-101</span> · 5 views ticked (2 to move, 3 to re-place)</div>
+            <div><span class="d">10:42:33</span> <span class="k">Packing: all 5 views fit on 1 sheet</span></div>
+          </div>
+        </div>
+        <div class="foot"><span class="obtn">Export Logs (.txt)</span><span class="obtn" style="margin-right:0">Close</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="notes">
+    <h2>How it behaves</h2>
+    <ol>
+      <li><b>Sheet 1</b> is the active sheet when you start from a sheet view. Start from any other view and Sheet 1 is empty until you pick one.</li>
+      <li>The grid lists every placed view on both sheets, grouped by <b>sheet</b>, then by <b>view type</b>. Rows and group headers carry the sheet's colour: blue for Sheet 1, amber for Sheet 2.</li>
+      <li>The target can be Sheet 1, Sheet 2, any other existing sheet, or a new sheet (number, name, titleblock).</li>
+      <li>Ticked views from other sheets are taken off their sheet and placed on the target. Ticked views already on the target are re-packed with them. Unticked views on the target stay put and are treated as obstacles.</li>
+      <li>Layout uses the Sheet Placer packing (margins, gaps, reading order). Views that do not fit go to continuation sheets.</li>
+      <li>Everything runs in one <code>TransactionGroup</code>, so it is one Undo step and any failure rolls back. Viewports owned by another user (worksharing) are skipped and reported.</li>
+      <li>Legends stay on their original sheet as well (Revit allows a legend on many sheets); schedules are not moved in V001.</li>
+    </ol>
+  </section>
+</div>
