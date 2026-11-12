@@ -125,6 +125,7 @@ namespace Revit26_Plugin_Revised.Shared.Services
         public static readonly ToolInfo SmartViewToSheetPlacer = Add("Smart View To Sheet Placer", "224.2.0", "V224", "Revit26_Plugin_Revised.SmartViewToSheetPlacer.V224");
         public static readonly ToolInfo AutomatedSectionPlacer = Add("Automated Section Placer", "3.2.0", "V003", "Revit26_Plugin_Revised.AutomatedSectionPlacer.V003");
         public static readonly ToolInfo SheetAutoRearrange = Add("Sheet Auto Rearrange", "28.2.0", "V028", "Revit26_Plugin_Revised.SheetAutoRearrange.V028");
+        public static readonly ToolInfo SheetAutoRearrangeV029 = Add("Sheet Auto Rearrange", "29.0.0", "V029", "Revit26_Plugin_Revised.SheetAutoRearrange.V029");
         public static readonly ToolInfo SheetViewArrange = Add("Sheet View Arrange", "1.3.0", "V001", "Revit26_Plugin_Revised.SheetViewArrange.V001");
         public static readonly ToolInfo SectionsToSheet = Add("Sections To Sheet", "1.1.0", "V001", "Revit26_Plugin_Revised.SectionsToSheet.V001");
         public static readonly ToolInfo SheetTextReplace = Add("Sheet Text Replace", "1.2.0", "V001", "Revit26_Plugin_Revised.SheetTextReplace.V001");
