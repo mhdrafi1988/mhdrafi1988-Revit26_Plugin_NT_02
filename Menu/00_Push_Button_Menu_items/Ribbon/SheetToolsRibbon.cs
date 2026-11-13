@@ -89,11 +89,6 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
 
             // Rearrange and Arrange Views follow in the same panel (the one-column Sheet Place
             // panel was merged in, plugin 2.4.0, so Revit has room to show every button name).
-            var rearrangeV027 = new PushButtonData("Btn_SheetAutoRearrange.V027", "Rearrange V027", assemblyPath, "Revit26_Plugin_Revised.SheetAutoRearrange.V027.Commands.SheetAutoRearrangeCommand")
-            {
-                Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SheetTools.SheetAutoRearrange_V026_16.png"),
-                ToolTip = RibbonLayoutHelper.VersionTip("Sheet Auto Rearrange", "V027", "UI Standard layout: metrics on top, always-visible log in the footer (Copy All / Copy Selected), Run → Close.")
-            };
             var rearrangeV028 = new PushButtonData("Btn_SheetAutoRearrange.V028", "Rearrange V028", assemblyPath, "Revit26_Plugin_Revised.SheetAutoRearrange.V028.Commands.SheetAutoRearrangeCommand")
             {
                 Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SheetTools.SheetAutoRearrange_V026_16.png"),
@@ -104,7 +99,12 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                 Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SheetTools.SheetAutoRearrange_V026_16.png"),
                 ToolTip = ToolCatalog.SheetAutoRearrangeV029.Tip("V028 plus Align & Distribute: line views up on shared row / column lines and spread them across the usable area.")
             };
-            var rearrangePulldownData = RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_SheetAutoRearrange", "Rearrange", rearrangeV029);
+            var rearrangeV030 = new PushButtonData("Btn_SheetAutoRearrange.V030", "Rearrange V030", assemblyPath, "Revit26_Plugin_Revised.SheetAutoRearrange.V030.Commands.SheetAutoRearrangeCommand")
+            {
+                Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SheetTools.SheetAutoRearrange_V026_16.png"),
+                ToolTip = ToolCatalog.SheetAutoRearrangeV030.Tip("Redesigned window: large live sheet preview, quick layouts, and settings in three tabs.")
+            };
+            var rearrangePulldownData = RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_SheetAutoRearrange", "Rearrange", rearrangeV030);
 
             // Sheet View Arrange: separate tool (not a Rearrange version) — keeps the views'
             // sizes, orders them by detail number and lays them out as a reading table.
@@ -125,7 +125,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             RibbonLayoutHelper.WirePulldownButton(sheetCreateItems, "Pulldown_PlanFromScopeBox", scopeBoxV006, scopeBoxV005);
             RibbonLayoutHelper.WirePulldownButton(sheetCreateItems, "Pulldown_SmartViewToSheetPlacer", sheetPlacerV224, sheetPlacerV223);
             RibbonLayoutHelper.WirePulldownButton(sheetCreateItems, "Pulldown_AutomatedSectionPlacer", autoSectionPlacerV003, autoSectionPlacerV002);
-            RibbonLayoutHelper.WirePulldownButton(sheetCreateItems, "Pulldown_SheetAutoRearrange", rearrangeV029, rearrangeV028, rearrangeV027);
+            RibbonLayoutHelper.WirePulldownButton(sheetCreateItems, "Pulldown_SheetAutoRearrange", rearrangeV030, rearrangeV029, rearrangeV028);
 
             // Sheet Edit panel (plugin 6.22.0): tools that change what is already on a sheet.
             // A lone item is added as a full-size button with its 32 px icon.

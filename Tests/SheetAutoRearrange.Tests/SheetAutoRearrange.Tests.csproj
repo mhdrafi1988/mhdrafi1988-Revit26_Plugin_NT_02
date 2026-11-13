@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <!--
-    Unit tests for Sheet Auto Rearrange V029's Revit-free code (Align & Distribute layout).
+    Unit tests for Sheet Auto Rearrange V030's Revit-free code (Align & Distribute layout).
     The tool's files are linked, not copied.
     Run:  dotnet test Tests/SheetAutoRearrange.Tests
   -->
@@ -13,7 +13,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <ToolDir>..\..\Menu\Sheet\SheetAutoRearrange_V029\</ToolDir>
+    <ToolDir>..\..\Menu\Sheet\SheetAutoRearrange_V030\</ToolDir>
   </PropertyGroup>
 
   <ItemGroup>

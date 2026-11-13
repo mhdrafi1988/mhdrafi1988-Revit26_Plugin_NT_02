@@ -9,6 +9,47 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [7.1.0] — 2026-11-13
+
+### Sheet Auto Rearrange 30.0.0 (V030, new version)
+
+#### Added
+- New **Rearrange V030** entry at the top of the Rearrange dropdown (Sheet Create slide-out), with a redesigned window.
+- **Live sheet preview** is now the centre of the window. It draws the sheet outline, the usable area (dashed green)
+  and every ticked view with its name. Views that do not fit are red, below the sheet.
+- **Quick layout** buttons: Pack, Rows, Table, Spread. One click sets the align and distribute options.
+- **Align rows / Align columns / Distribute H / Distribute V** are one-click button rows. **Sheet position** is a
+  3 × 3 picker. **Fill strategy** is a dropdown with a one-line description of each strategy.
+- Counts under the preview (fit, overflow, to remove) and a Fits / Overflow / Remove tag on each view, updated live.
+- The usable area in the preview follows the margin boxes without a Refresh.
+
+#### Changed
+- Settings sit in three tabs (Layout, Spacing, Advanced) in place of eight collapsible sections.
+- The activity log is one line at the bottom. It opens by itself on a warning or error.
+- The window is smaller (opens at 1180 × 780, was at least 1180 × 920).
+
+#### Removed
+- The Force-Fit and Auto-Create Overflow Sheet options, which were never implemented. Views that do not fit are
+  placed below the sheet, as before.
+- The five metric cards. The counts are under the preview and on the status line.
+
+#### Fixed
+- Closing the window no longer shows "Invalid call to Revit API! Revit is currently not within an API context".
+
+User note: the layout engine and `settings.json` are the same as V029, so saved settings carry over.
+
+### Sheet Auto Rearrange 29.0.1 (V029) and 28.2.1 (V028)
+
+#### Fixed
+- Closing the window no longer shows "Invalid call to Revit API! Revit is currently not within an API context".
+
+### Sheet Auto Rearrange V027
+
+#### Removed
+- **Rearrange V027** is removed from the Rearrange dropdown and from the plugin. The dropdown keeps V030, V029, V028.
+
+User note: use Rearrange V028 or later. The settings file is shared, so nothing has to be set up again.
+
 ## [7.0.0] — 2026-11-12
 
 ### View Auto Renamer 7.5.0 (V007)
