@@ -1,11 +1,11 @@
 <title>Base Level to Parameter</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<!-- UI preview (CLAUDE.md "UI previews"): Base Level to Parameter V001, tool 1.0.0 (new tool), plugin 7.1.0 (proposed).
-     Status: MOCK-UP FOR APPROVAL. No code yet; assumptions are flagged inline with amber "ASSUMED" tags.
-     Shows: ribbon button + tooltip, main window after "Load Base Level" with pre-checks run,
-            the "New Parameter" dialog, and the footer after a run.
-     Will mirror: Menu/<Area>/<Group>/BaseLevelToParameter_V001/UI/Views/BaseLevelToParameterWindow.xaml,
-                  .../UI/Views/NewParameterDialog.xaml (+ view models), Shared/Controls/ToolWindowShellTemplate.xaml
+<!-- UI preview (CLAUDE.md "UI previews"): Base Level to Parameter V001, tool 1.0.0 (new tool), plugin 7.2.0.
+     Shows: the Coordination ribbon button + tooltip, the main window after "Load Base Level" with the pre-checks run,
+            the New Parameter dialog, and the footer while running and after a run.
+     Mirrors: Menu/Coordination/Parameters/BaseLevelToParameter_V001/UI/Views/BaseLevelToParameterWindow.xaml,
+              .../UI/Views/NewParameterDialog.xaml (+ BaseLevelToParameterViewModel, NewParameterViewModel),
+              Shared/Controls/ToolWindowShellTemplate.xaml, Menu/00_Push_Button_Menu_items/Ribbon/CoordinationRibbon.cs
      Artifact: https://claude.ai/artifact/844UiUnRidqhg4WRvYhDBg (republish to this URL on every update)
      Colours: Shared/SharedStyles.xaml tokens, one light look on purpose (mirrors the light WPF window). -->
 <style>
@@ -148,19 +148,19 @@ tr.dim td{color:var(--text3)}
 </style>
 
 <h1>Base Level to Parameter <span class="new">NEW TOOL</span></h1>
-<p class="note">Mock-up for approval. All element ids, names, paths and values on this page are <b>sample data</b>. Amber <span class="asm" style="margin:0">ASSUMED</span> tags mark choices from the brief or ones I made that need your confirmation; open questions are listed at the end.</p>
+<p class="note">All element ids, names, paths and values on this page are <b>sample data</b>. Green tags mark what is new. The decisions behind the layout are listed at the end.</p>
 
 <!-- ============ RIBBON ============ -->
-<h2>1 · Ribbon button and tooltip</h2>
+<h2>1 · Ribbon button and tooltip (Documents 2 tab · Coordination panel)</h2>
 <div class="ribbon">
   <div class="rpanel">
     <div class="rbody">
-      <div class="rbtn"><div class="ico g">···</div>Other tool</div>
+      <div class="rbtn"><div class="ico g">···</div>Void<br>Openings</div>
       <div class="rbtn hl"><div class="ico">LV</div>Base Level to<br>Parameter<span class="new" style="margin:2px 0 0">NEW</span></div>
     </div>
-    <div class="rtitle">Panel: to be decided <span class="asm">ASK</span></div>
+    <div class="rtitle">Coordination</div>
   </div>
-  <div class="tip"><b>Base Level to Parameter — v1.0.0 (build V001)</b>Reads each element's base level and offset and writes them to a text parameter as “Level 02 (+450)”.</div>
+  <div class="tip"><b>Base Level to Parameter — v1.0.0 (build V001)</b>Reads each element's base level and offset and writes them to a text parameter as "Level 02 (+450)". Lists the active view's model elements (or the whole host model), checks the target parameter first, and can create it as a shared instance Text parameter.</div>
 </div>
 
 <!-- ============ MAIN WINDOW ============ -->
@@ -190,7 +190,7 @@ tr.dim td{color:var(--text3)}
       <span class="lbl">Source</span><span class="pill">Active view · Level 02 – Floor Plan · 151 elements</span>
       <span class="hint" style="margin-left:6px">Host model only. Linked elements are not listed.</span>
       <span class="sp"></span>
-      <span class="sbtn">Load Active View</span><span class="asm" title="Not in the brief: a way back to the active-view list after Load All">ASSUMED</span>
+      <span class="sbtn">Load Active View</span>
       <span class="sbtn">Load All Model Elements</span>
       <span class="sbtn pri">Load Base Level</span>
     </div>
@@ -208,34 +208,31 @@ tr.dim td{color:var(--text3)}
             <div class="dd">
               <div class="sel"><span>Base Level Text</span><span class="meta">Shared · Instance · Text</span></div>
               <div><span>Base Level Tag</span><span class="meta">Project · Type · Text</span></div>
-              <div class="newrow"><span>+ Create “Base Level Te” as new parameter…</span></div>
             </div>
+            <div class="hint" style="margin-top:4px">Shared · Instance · Text</div>
           </div>
           <span class="l"></span>
           <span class="row"><span class="sbtn">New Parameter…</span><span class="hint">Opens the dialog in section 3.</span></span>
           <span class="l">Existing values</span>
-          <label><input type="checkbox">Overwrite existing values<span class="asm" title="Default off: elements that already have a value are skipped">ASSUMED · default off</span></label>
-          <span class="l">Value format</span>
-          <span><span class="pill" style="font-family:var(--mono)">Level 02 (+450)</span> <span class="hint">mm, signed, no decimals; zero = “(0)”</span><span class="asm">ASSUMED</span></span>
+          <label><input type="checkbox">Overwrite existing values</label>
         </div>
-        <div class="hint">The list shows every project parameter; a wrong data type or a type parameter is reported as Blocked in check b.<span class="asm">ASSUMED</span></div>
+        <div class="hint">Value: "Level 02 (+450)" — offset in mm, signed, whole millimetres; zero is "(0)". The list shows every project parameter; a wrong data type or a type parameter is Blocked in check b.</div>
       </div>
     </div>
 
     <div class="card" style="display:flex;flex-direction:column">
-      <div class="row" style="padding:8px 12px 0"><span class="section">Pre-checks</span><span class="hint">Run before any transaction. Refresh on every change to the parameter or the checked rows.</span><span class="asm">ASSUMED · automatic</span><span class="sp"></span><span class="sbtn">Re-check</span></div>
+      <div class="row" style="padding:8px 12px 0"><span class="section">Pre-checks</span><span class="hint">Run before any change; refreshed when the parameter or the ticked rows change.</span><span class="sp"></span><span class="sbtn">Re-check</span></div>
       <div style="padding:8px 12px">
         <table class="checks">
           <tr><th>Check</th><th style="width:80px">Result</th><th>Detail</th></tr>
           <tr><td>a · Name</td><td><span class="chip ok">Pass</span></td><td>“Base Level Text”, 15 / 25 characters, no invalid characters, no clash with a built-in parameter on the 7 categories.</td></tr>
-          <tr><td>b · Already in project</td><td><span class="chip warn">Warning</span></td><td>Found: shared, instance, Text → reused. Not bound to <b>Ducts, Pipes</b>; these 2 categories will be added to the binding.<span class="asm">ASSUMED · automatic</span></td></tr>
-          <tr><td>c · Shared parameter file</td><td><span class="chip ok">Pass</span></td><td class="mono">C:\Standards\SharedParameters.txt</td></tr>
-          <tr><td></td><td></td><td style="padding-top:0">Exists and is writable. Same name in group “Data”, GUID matches the project parameter (3f2a…c9e1).</td></tr>
+          <tr><td>b · Already in project</td><td><span class="chip warn">Warning</span></td><td>Found: shared, instance, Text → reused. Not bound to <b>Ducts and Pipes</b>; Run adds these 2 categories to the binding.</td></tr>
+          <tr><td>c · Shared parameter file</td><td><span class="chip ok">Pass</span></td><td><span class="mono">C:\Standards\SharedParameters.txt</span>: same name, GUID matches the project parameter (3f2a…c9e1).</td></tr>
           <tr><td>d · Categories</td><td><span class="chip ok">Pass</span></td><td>7 of 7 categories allow bound parameters.</td></tr>
-          <tr><td>e · Document and elements</td><td><span class="chip warn">Warning</span></td><td>Project document, editable, workshared. <b>3</b> elements owned by another user → skipped. Parameter read-only on 0 elements. <b>12</b> elements already have a value → skipped (Overwrite is off). <b>6</b> elements have no base level → skipped.</td></tr>
+          <tr><td>e · Document and elements</td><td><span class="chip warn">Warning</span></td><td>Project document, editable, workshared. <b>3</b> element(s) owned by another user → skipped. Parameter read-only on 0 element(s). <b>12</b> element(s) already have a value → skipped (Overwrite is off). <b>6</b> element(s) have no base level → skipped.</td></tr>
         </table>
       </div>
-      <div class="summary" style="margin-top:auto"><span class="ok">121 ready</span>|<span class="warn">21 warnings</span>|<span class="err">0 blocked</span><span class="asm" title="Counts are elements; a Blocked check (a–d) marks every checked element Blocked">ASSUMED · element counts</span><span class="sp"></span><span class="hint" style="font-weight:400">Run is enabled because nothing is blocked.</span></div>
+      <div class="summary" style="margin-top:auto"><span class="ok">121 ready</span>|<span class="warn">21 warnings</span>|<span class="err">0 blocked</span><span class="sp"></span><span class="hint" style="font-weight:400">Counts of ticked elements. Run is enabled because nothing is blocked.</span></div>
     </div>
   </div>
 
@@ -244,39 +241,39 @@ tr.dim td{color:var(--text3)}
     <div class="ghead">
       <span class="section">Elements</span><span class="pill">151</span>
       <span class="text" style="width:260px;margin-left:12px"><span class="ph">⌕ Filter by id, category, family, level…</span></span>
-      <span class="sbtn">Select All</span><span class="sbtn">Select None</span><span class="hint">acts on visible rows only</span>
+      <span class="sbtn">Select All</span><span class="sbtn">Select None</span><span class="hint">acts on the rows the filter shows</span>
       <span class="sp"></span>
       <span class="sbtn">Expand All</span><span class="sbtn">Collapse All</span>
     </div>
     <table>
       <tr><th style="width:30px"><input type="checkbox" checked></th><th style="width:80px">Element Id</th><th style="width:130px">Category<span class="ar">▲</span></th><th style="width:270px">Family and Type</th><th style="width:100px">Base Level</th><th class="num" style="width:90px">Base Offset</th><th style="width:150px">Current Value</th><th style="width:150px">New Value</th><th>Status</th></tr>
 
-      <tr class="grp"><td colspan="9"><span class="tw">▾</span>Walls <span class="cnt">48 elements · 47 checked</span> <span class="hint" style="font-weight:400;margin-left:8px">Base Constraint + Base Offset</span></td></tr>
+      <tr class="grp"><td colspan="9"><span class="tw">▾</span>Walls <span class="cnt">· 48 elements</span></td></tr>
       <tr><td><input type="checkbox" checked></td><td class="mono">318204</td><td>Walls</td><td>Basic Wall: Ext – Brick 290</td><td>Level 01</td><td class="num">0</td><td class="cv">—</td><td class="nv">Level 01 (0)</td><td><span class="chip ok">Ready</span></td></tr>
       <tr><td><input type="checkbox" checked></td><td class="mono">318377</td><td>Walls</td><td>Basic Wall: Int – Partition 100</td><td>Level 02</td><td class="num">+450</td><td class="cv">—</td><td class="nv">Level 02 (+450)</td><td><span class="chip ok">Ready</span></td></tr>
       <tr><td><input type="checkbox" checked></td><td class="mono">318512</td><td>Walls</td><td>Basic Wall: Int – Partition 100</td><td>Level 02</td><td class="num">+450</td><td>Level 02 (+300)</td><td class="nv">Level 02 (+450)</td><td><span class="chip warn">Skipped · has value</span></td></tr>
       <tr><td><input type="checkbox" checked></td><td class="mono">319001</td><td>Walls</td><td>Curtain Wall: Storefront</td><td>Level 01</td><td class="num">−150</td><td class="cv">—</td><td class="nv">Level 01 (-150)</td><td><span class="chip warn">Skipped · owned by User B</span></td></tr>
 
-      <tr class="grp"><td colspan="9"><span class="tw">▾</span>Structural Columns <span class="cnt">22 · 22 checked</span> <span class="hint" style="font-weight:400;margin-left:8px">Base Level + Base Offset</span></td></tr>
+      <tr class="grp"><td colspan="9"><span class="tw">▾</span>Structural Columns <span class="cnt">· 22 elements</span></td></tr>
       <tr><td><input type="checkbox" checked></td><td class="mono">402118</td><td>Structural Columns</td><td>Concrete-Rectangular-Column: 400 x 400</td><td>Level 01</td><td class="num">0</td><td class="cv">—</td><td class="nv">Level 01 (0)</td><td><span class="chip ok">Ready</span></td></tr>
       <tr><td><input type="checkbox" checked></td><td class="mono">402119</td><td>Structural Columns</td><td>Concrete-Rectangular-Column: 400 x 400</td><td>Level 02</td><td class="num">−75</td><td class="cv">—</td><td class="nv">Level 02 (-75)</td><td><span class="chip ok">Ready</span></td></tr>
 
-      <tr class="grp"><td colspan="9"><span class="tw">▾</span>Floors <span class="cnt">6 · 6 checked</span> <span class="hint" style="font-weight:400;margin-left:8px">Level + Height Offset From Level</span></td></tr>
+      <tr class="grp"><td colspan="9"><span class="tw">▾</span>Floors <span class="cnt">· 6 elements</span></td></tr>
       <tr><td><input type="checkbox" checked></td><td class="mono">451220</td><td>Floors</td><td>Floor: Slab 200</td><td>Level 02</td><td class="num">−50</td><td class="cv">—</td><td class="nv">Level 02 (-50)</td><td><span class="chip ok">Ready</span></td></tr>
 
-      <tr class="grp"><td colspan="9"><span class="tw">▸</span>Roofs <span class="cnt">2 · 2 checked · collapsed</span></td></tr>
+      <tr class="grp"><td colspan="9"><span class="tw">▸</span>Roofs <span class="cnt">· 2 elements</span></td></tr>
 
-      <tr class="grp"><td colspan="9"><span class="tw">▾</span>Generic Models <span class="cnt">18 · 10 checked</span> <span class="hint" style="font-weight:400;margin-left:8px">Level or Schedule Level + Offset from Host</span></td></tr>
+      <tr class="grp"><td colspan="9"><span class="tw">▾</span>Generic Models <span class="cnt">· 18 elements</span></td></tr>
       <tr><td><input type="checkbox" checked></td><td class="mono">503771</td><td>Generic Models</td><td>Planter Box: 1200 x 600</td><td>Level 02</td><td class="num">+150</td><td class="cv">—</td><td class="nv">Level 02 (+150)</td><td><span class="chip ok">Ready</span></td></tr>
-      <tr><td><input type="checkbox" checked></td><td class="mono">503902</td><td>Generic Models</td><td>In-place: Bench</td><td class="cv">—</td><td class="num cv">—</td><td class="cv">—</td><td class="cv">—</td><td><span class="chip warn">Warning · no base level</span></td></tr>
+      <tr><td><input type="checkbox" checked></td><td class="mono">503902</td><td>Generic Models</td><td>In-place: Bench</td><td class="cv">—</td><td class="num cv">—</td><td class="cv">—</td><td class="cv">—</td><td><span class="chip warn">Skipped · no base level</span></td></tr>
       <tr class="dim"><td><input type="checkbox"></td><td class="mono">503940</td><td>Generic Models</td><td>Bollard: 150 dia</td><td>Level 01</td><td class="num">0</td><td>—</td><td>—</td><td><span class="chip mute">Not checked</span></td></tr>
 
-      <tr class="grp"><td colspan="9"><span class="tw">▾</span>Ducts <span class="cnt">31 · 31 checked</span> <span class="hint" style="font-weight:400;margin-left:8px">Reference Level + Offset</span> <span class="chip info" style="margin-left:8px">category will be added to binding</span></td></tr>
+      <tr class="grp"><td colspan="9"><span class="tw">▾</span>Ducts <span class="cnt">· 31 elements</span></td></tr>
       <tr><td><input type="checkbox" checked></td><td class="mono">612004</td><td>Ducts</td><td>Rectangular Duct: Mitered Elbows</td><td>Level 03</td><td class="num">+2850</td><td class="cv">—</td><td class="nv">Level 03 (+2850)</td><td><span class="chip ok">Ready</span></td></tr>
 
-      <tr class="grp"><td colspan="9"><span class="tw">▸</span>Pipes <span class="cnt">24 · 24 checked · collapsed</span> <span class="chip info" style="margin-left:8px">category will be added to binding</span></td></tr>
+      <tr class="grp"><td colspan="9"><span class="tw">▸</span>Pipes <span class="cnt">· 24 elements</span></td></tr>
     </table>
-    <div class="hint" style="margin-top:6px">Columns sort on click (arrow shows direction). Rows are virtualized. Offsets are rounded to the nearest mm (2849.6 → +2850)<span class="asm">ASSUMED · rounding</span></div>
+    <div class="hint" style="margin-top:6px">Columns sort on click (arrow shows direction). Rows are virtualized. Offsets are rounded to whole millimetres, half away from zero (2849.6 → +2850).</div>
   </div>
 
   <!-- Log -->
@@ -293,7 +290,7 @@ tr.dim td{color:var(--text3)}
 
   <!-- FOOTER (fixed, not scrolled) -->
   <div class="footer">
-    <div class="status"><span class="hint" style="font-size:11px">Ready · 121 elements will be assigned, 21 skipped</span><div class="bar"><i style="width:0"></i></div><span></span></div>
+    <div class="status"><span class="hint" style="font-size:11px">Ready · 121 element(s) will be assigned, 21 skipped</span><div class="bar"><i style="width:0"></i></div><span></span></div>
     <div class="row"><span class="sp"></span><span class="btn run">Run</span><span class="btn" style="width:90px">Close</span></div>
   </div>
 </div>
@@ -301,40 +298,31 @@ tr.dim td{color:var(--text3)}
 
 <!-- ============ NEW PARAMETER DIALOG ============ -->
 <h2>3 · New Parameter dialog</h2>
-<p class="note">Opened by “New Parameter…” or the “+ Create …” line in the combo. Its pre-checks reuse rules a–d from the main window.</p>
+<p class="note">Opened by “New Parameter…”. Nothing is created here: Create sets this parameter as the target, and Run in the main window creates it (shared parameter file first, then the project, in the run's transaction).</p>
 <div class="scroll">
 <div class="win dlg">
   <div class="titlebar"><span>New Parameter — Base Level to Parameter v1.0.0</span><span>✕</span></div>
   <div style="padding:12px 16px;display:flex;flex-direction:column;gap:10px">
     <div class="form" style="grid-template-columns:130px 1fr">
       <span class="l">Name</span><span class="row"><span class="text" style="flex:1">Base Level Info</span><span class="hint">15 / 25</span></span>
-      <span class="l">Kind</span><span>Shared parameter · Instance · Text<span class="asm">ASSUMED · fixed</span></span>
+      <span class="l">Kind</span><span>Shared parameter · Instance · Text · schedulable</span>
       <span class="l">Shared param. file</span><span class="row"><span class="text mono" style="flex:1;font-size:11px">C:\Standards\SharedParameters.txt</span><span class="sbtn">Browse…</span></span>
       <span class="l">Group in file</span><span class="combo" style="width:200px">Data</span>
-      <span class="l">Properties group</span><span><span class="combo" style="width:200px">Identity Data</span><span class="asm" title="Where the parameter shows in the Properties palette; not in the brief">ASSUMED</span></span>
+      <span class="l">Properties group</span><span>Identity Data</span>
       <span class="l" style="align-self:start;padding-top:4px">Categories</span>
-      <div>
-        <div class="cats">
-          <label><input type="checkbox" checked>Walls</label><label><input type="checkbox" checked>Structural Columns</label>
-          <label><input type="checkbox" checked>Floors</label><label><input type="checkbox" checked>Roofs</label>
-          <label><input type="checkbox" checked>Generic Models</label><label><input type="checkbox" checked>Ducts</label>
-          <label><input type="checkbox" checked>Pipes</label>
-        </div>
-        <div class="hint" style="margin-top:4px">From the checked elements. Schedulable is always on.</div>
-      </div>
+      <span>Ducts, Floors, Generic Models, Pipes, Roofs, Structural Columns, Walls</span>
     </div>
     <table class="checks">
       <tr><th>Check</th><th style="width:80px">Result</th><th>Detail</th></tr>
-      <tr><td>Name</td><td><span class="chip ok">Pass</span></td><td>No invalid characters (\ : { } [ ] | ; &lt; &gt; ? ` ~), no built-in clash.</td></tr>
-      <tr><td>In project</td><td><span class="chip ok">Pass</span></td><td>Not in project; will be created.</td></tr>
-      <tr><td>Shared parameter file</td><td><span class="chip ok">Pass</span></td><td>Writable. Name not in file; a new GUID will be added.</td></tr>
-      <tr><td>Categories</td><td><span class="chip ok">Pass</span></td><td>7 of 7 allow bound parameters.</td></tr>
+      <tr><td>Name</td><td><span class="chip ok">Pass</span></td><td>No invalid characters (\ : { } [ ] | ; &lt; &gt; ? ` ~). The built-in name check runs in the main window.</td></tr>
+      <tr><td>Shared parameter file</td><td><span class="chip ok">Pass</span></td><td>Writable. Name not in the file; a new GUID will be added.</td></tr>
+      <tr><td>Categories</td><td><span class="chip ok">Pass</span></td><td>Bound to 7 categories of the ticked elements; the main window checks each one.</td></tr>
     </table>
     <div class="row" style="background:var(--err-soft);border:1px solid var(--err-border);border-radius:4px;padding:6px 8px;color:var(--err);font-size:11.5px">
       Example of a blocked state: “No shared parameter file is set. Pick one with Browse… to continue.”
     </div>
   </div>
-  <div class="footer row"><span class="hint">4 pass | 0 warnings | 0 blocked</span><span class="sp"></span><span class="btn run" style="min-width:110px">Create</span><span class="btn" style="width:90px">Cancel</span></div>
+  <div class="footer row"><span class="hint">3 pass | 0 warnings | 0 blocked</span><span class="sp"></span><span class="btn run" style="min-width:110px">Create</span><span class="btn" style="width:90px">Cancel</span></div>
 </div>
 </div>
 
@@ -349,38 +337,35 @@ tr.dim td{color:var(--text3)}
 </div>
 <div class="win" style="width:1240px;margin-top:8px">
   <div class="footer">
-    <div class="status"><span style="font-size:11.5px;font-weight:600"><span style="color:var(--ok)">121 assigned</span> | <span style="color:var(--warn)">21 skipped</span> | <span style="color:var(--err)">0 failed</span></span><div class="bar"><i style="width:100%"></i></div><span></span></div>
-    <div class="row"><span class="hint">Window stays open. Status column now shows Assigned / Skipped / Failed per row.</span><span class="sp"></span><span class="btn run">Run</span><span class="btn" style="width:90px">Close</span></div>
+    <div class="status"><span class="hint" style="font-size:11px">Run finished: 121 assigned | 21 skipped | 0 failed. Undo with Ctrl+Z in Revit (“Base Level to Parameter”).</span><div class="bar"><i style="width:100%"></i></div><span></span></div>
+    <div class="row"><span style="font-size:12.5px;font-weight:600"><span style="color:var(--ok)">121 assigned</span> | <span style="color:var(--warn)">21 skipped</span> | <span style="color:var(--err)">0 failed</span></span><span class="sp"></span><span class="btn run off">Run</span><span class="btn" style="width:90px">Close</span></div>
   </div>
 </div>
 </div>
-<p class="note" style="margin-top:8px">Cancel comes from the shared ToolWindowShell footer. A critical error shows a dialog and rolls back the whole run (one transaction).</p>
+<p class="note" style="margin-top:8px">Cancel (and Esc) comes from the shared ToolWindowShell status strip. A critical error shows a dialog and rolls back the whole run (one transaction). After a run the window stays open, Run is disabled and the status column shows Assigned / Skipped / Failed per row until you press Re-check.</p>
 
-<!-- ============ ASSUMPTIONS / QUESTIONS ============ -->
-<h2>5 · Assumptions and open questions</h2>
+<!-- ============ DECISIONS ============ -->
+<h2>5 · Decisions</h2>
 <div class="lists">
   <div>
-    <div class="section" style="margin-bottom:6px">Assumptions shown above</div>
+    <div class="section" style="margin-bottom:6px">From the brief</div>
     <ul>
       <li>All five level-source rules are supported (walls, columns, floors/roofs, families, MEP).</li>
-      <li>No base level → row stays checked, status Warning, skipped, logged.</li>
-      <li>New parameters are shared, instance, Text, schedulable; bound to the checked elements' categories.</li>
+      <li>No base level → the row stays ticked, is skipped and logged as a warning.</li>
+      <li>New parameters are shared, instance, Text, schedulable, bound to the ticked elements' categories.</li>
       <li>Missing categories on an existing parameter are added automatically (Warning, not Blocked).</li>
-      <li>Offset: mm, signed, rounded to whole mm, zero = “(0)”.</li>
-      <li>Overwrite existing values: off by default, so those rows are skipped.</li>
-      <li>Run is disabled while running; Close too.</li>
-      <li>Pre-checks refresh automatically; “Re-check” also available.</li>
+      <li>Offset in mm, signed, whole millimetres, zero = “(0)”. Overwrite existing values is off by default.</li>
+      <li>Run (and Close) are disabled while a run is in progress.</li>
     </ul>
   </div>
   <div>
-    <div class="section" style="margin-bottom:6px">Questions for you</div>
-    <ol>
-      <li>Which ribbon tab / panel, and which folder (<span style="font-family:var(--mono)">Menu/&lt;Area&gt;/&lt;Group&gt;/</span>)?</li>
-      <li>Summary “X ready | Y warnings | Z blocked”: counts of elements (as shown) or counts of checks a–e?</li>
-      <li>Keep my extra “Load Active View” button (to go back after Load All)?</li>
-      <li>New parameter: allow choosing the Properties group, or always Identity Data?</li>
-      <li>“Input MaxLength 10”: which inputs? I only found name fields (25) and the filter box.</li>
-      <li>Value text when offset is in a non-mm project: always mm, or follow project units?</li>
-    </ol>
+    <div class="section" style="margin-bottom:6px">Confirmed by the owner</div>
+    <ul>
+      <li>Button on the Coordination panel; folder <span style="font-family:var(--mono)">Menu/Coordination/Parameters/</span>.</li>
+      <li>Summary counts ticked elements; a blocked check marks every ticked element Blocked.</li>
+      <li>“Load Active View” kept, to go back after “Load All Model Elements”.</li>
+      <li>Offset always in mm; new parameters always go under Identity Data.</li>
+      <li>New parameters allow different values per group instance, so grouped elements can be written.</li>
+    </ul>
   </div>
 </div>

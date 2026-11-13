@@ -1,0 +1,105 @@
+<!--
+=======================================================
+File: NewParameterDialog.xaml  (Base Level to Parameter V001)
+Defines a new shared instance Text parameter. Nothing is created here: the main window creates it
+(in the shared parameter file and the project) when Run is pressed.
+Preview: Claude/Previews/BaseLevelToParameter_V001_Window.html (section 3)
+=======================================================
+-->
+<Window x:Class="Revit26_Plugin_Revised.BaseLevelToParameter.V001.UI.Views.NewParameterDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:svc="clr-namespace:Revit26_Plugin_Revised.Shared.Services"
+        xmlns:local="clr-namespace:Revit26_Plugin_Revised.BaseLevelToParameter.V001.UI.Views"
+        Title="{Binding Source={x:Static svc:ToolCatalog.BaseLevelToParameter}, Path=Title, StringFormat=New Parameter — {0}}"
+        Width="600" SizeToContent="Height" ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
+        Background="{DynamicResource BrushSurfaceWindow}">
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/Revit26_Plugin_Revised;component/Shared/SharedStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+            <local:StatusBrushConverter x:Key="StatusBrush"/>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <DockPanel>
+        <Border DockPanel.Dock="Bottom" BorderBrush="{StaticResource BrushBorderDefault}" BorderThickness="0,1,0,0" Padding="16,8">
+            <DockPanel>
+                <Button DockPanel.Dock="Right" Content="Cancel" Style="{StaticResource SecondaryButton}" Width="90" Margin="8,0,0,0"
+                        IsCancel="True"/>
+                <Button DockPanel.Dock="Right" Content="Create" Style="{StaticResource PrimaryButton}" MinWidth="110"
+                        Command="{Binding CreateCommand}" IsEnabled="{Binding CanCreate}" IsDefault="True"
+                        ToolTip="Set this parameter as the target. It is created when you press Run in the main window."/>
+                <TextBlock Text="{Binding Summary}" Style="{StaticResource HintText}" VerticalAlignment="Center"/>
+            </DockPanel>
+        </Border>
+
+        <StackPanel Margin="16,12">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="130"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock Text="Name" Style="{StaticResource FieldLabel}" VerticalAlignment="Center"/>
+                <DockPanel Grid.Column="1" Margin="0,0,0,8">
+                    <TextBlock DockPanel.Dock="Right" Text="{Binding NameCounter}" Style="{StaticResource HintText}" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                    <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" MaxLength="25" Style="{StaticResource BoxedTextInput}"/>
+                </DockPanel>
+
+                <TextBlock Grid.Row="1" Text="Kind" Style="{StaticResource FieldLabel}" VerticalAlignment="Center"/>
+                <TextBlock Grid.Row="1" Grid.Column="1" Text="Shared parameter · Instance · Text · schedulable" Margin="0,0,0,8"/>
+
+                <TextBlock Grid.Row="2" Text="Shared param. file" Style="{StaticResource FieldLabel}" VerticalAlignment="Center"/>
+                <DockPanel Grid.Row="2" Grid.Column="1" Margin="0,0,0,8">
+                    <Button DockPanel.Dock="Right" Content="Browse…" Style="{StaticResource OutlineButton}" Margin="6,0,0,0" Command="{Binding BrowseCommand}"/>
+                    <TextBox Text="{Binding FilePath, UpdateSourceTrigger=LostFocus}" Style="{StaticResource BoxedTextInput}"/>
+                </DockPanel>
+
+                <TextBlock Grid.Row="3" Text="Group in file" Style="{StaticResource FieldLabel}" VerticalAlignment="Center"/>
+                <ComboBox Grid.Row="3" Grid.Column="1" IsEditable="True" ItemsSource="{Binding FileGroups}"
+                          Text="{Binding FileGroup, UpdateSourceTrigger=PropertyChanged}" MaxWidth="220" HorizontalAlignment="Left" MinWidth="200"
+                          Style="{StaticResource StandardComboBox}" Margin="0,0,0,8"/>
+
+                <TextBlock Grid.Row="4" Text="Properties group" Style="{StaticResource FieldLabel}" VerticalAlignment="Center"/>
+                <TextBlock Grid.Row="4" Grid.Column="1" Text="Identity Data" Margin="0,0,0,8"/>
+
+                <TextBlock Grid.Row="5" Text="Categories" Style="{StaticResource FieldLabel}" VerticalAlignment="Top"/>
+                <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding CategoriesText}" TextWrapping="Wrap" Margin="0,0,0,8"/>
+            </Grid>
+
+            <ItemsControl ItemsSource="{Binding Checks}" Margin="0,4,0,0">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Margin="0,3">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="150"/>
+                                <ColumnDefinition Width="80"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="{Binding Title}" FontWeight="SemiBold"/>
+                            <Border Grid.Column="1" CornerRadius="10" Padding="8,1" BorderThickness="1" HorizontalAlignment="Left" VerticalAlignment="Top"
+                                    Background="{Binding Result, Converter={StaticResource StatusBrush}, ConverterParameter=Background}"
+                                    BorderBrush="{Binding Result, Converter={StaticResource StatusBrush}, ConverterParameter=Border}">
+                                <TextBlock Text="{Binding Result}" FontSize="10.5" FontWeight="SemiBold"
+                                           Foreground="{Binding Result, Converter={StaticResource StatusBrush}}"/>
+                            </Border>
+                            <TextBlock Grid.Column="2" Text="{Binding Detail}" TextWrapping="Wrap"/>
+                        </Grid>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </StackPanel>
+    </DockPanel>
+</Window>

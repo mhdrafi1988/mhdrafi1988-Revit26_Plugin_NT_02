@@ -51,7 +51,7 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 | Rafi_Pro_Docs2 | Manage | Overlaps (V006, V005) · ParaManager · Shared Params · Schedule I/O · Link Check ▸ slide-out: Del. Line Styles · Bulk Rename · Tracker ID |
 | Rafi_Pro_Docs2 | Worksets | WS Browser · WS Creator · WS Renamer ▸ slide-out: WS Renamer XL · Delete Workset |
 | Rafi_Pro_Docs2 | Memory | WS Memory · Link Memory |
-| Rafi_Pro_Docs2 | Coordination | Void Openings |
+| Rafi_Pro_Docs2 | Coordination | Void Openings · Base Level to Parameter |
 
 ## Features
 
@@ -174,6 +174,10 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 - **Void Openings** (in development): openings for MEP through structure. So far: choose the structural model and
   the MEP model (the active model or a Revit link) and their categories, with element counts. Clash analysis, void
   placement and cutting follow.
+- **Base Level to Parameter**: writes each element's base level and base offset to a text instance parameter as
+  "Level 02 (+450)" (offset in mm). Lists the active view's model elements or the whole host model, checks the
+  target parameter first (name, data type, binding, shared parameter file, categories, ownership), and can create
+  the parameter as a shared instance Text parameter. One transaction; Ctrl+Z undoes it.
 
 ## Installation
 
