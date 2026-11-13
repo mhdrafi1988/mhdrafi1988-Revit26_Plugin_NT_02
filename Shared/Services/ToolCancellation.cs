@@ -309,7 +309,15 @@ namespace Revit26_Plugin_Revised.Shared.Services
                     _shell.IsCancellable = false;
                     if (_drivesShell)
                     {
-                        _shell.SetCurrentValue(ToolWindowShell.IsRunningProperty, _wasRunning);
+                        // A tool that binds IsRunning to its view model (IsBusy) usually clears that flag
+                        // in its completion callback, before this Dispose runs. Restoring the value seen
+                        // at Begin would then leave the bar "running" for good, so re-read the binding
+                        // when there is one; only an unbound shell gets its Begin-time value back.
+                        var runningBinding = System.Windows.Data.BindingOperations.GetBindingExpressionBase(_shell, ToolWindowShell.IsRunningProperty);
+                        if (runningBinding != null)
+                            runningBinding.UpdateTarget();
+                        else
+                            _shell.SetCurrentValue(ToolWindowShell.IsRunningProperty, _wasRunning);
                         if (_cts.IsCancellationRequested)
                             _shell.SetCurrentValue(ToolWindowShell.SummaryTextProperty, "Cancelled by user.");
                     }

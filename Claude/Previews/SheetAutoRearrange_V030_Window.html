@@ -1,8 +1,8 @@
 <title>Sheet Auto Rearrange V030</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<!-- UI preview (CLAUDE.md "UI previews"): Sheet Auto Rearrange 30.0.0 (V030) — new version, redesigned window.
-     Also covers the fix-only releases 29.0.1 (V029) and 28.2.1 (V028): closing the window no longer raises
-     "Revit is currently not within an API context" (no visible change). Plugin 7.1.0.
+<!-- UI preview (CLAUDE.md "UI previews"): Sheet Auto Rearrange 30.0.1 (V030) — new version, redesigned window.
+     Also covers the fix-only releases 29.0.2 (V029) and 28.2.2 (V028): closing the window no longer raises
+     "Revit is currently not within an API context" (no visible change). Plugin 7.1.1.
      Shown: the V030 window (views list / large live preview / settings in three tabs, collapsed log) and the
      Rearrange dropdown (V030, V029, V028; V027 removed). Tabs and Quick layout buttons are clickable here.
      Mirrors: Menu/Sheet/SheetAutoRearrange_V030/UI/Views/SheetAutoRearrangeWindow.xaml
@@ -130,8 +130,9 @@ ul{margin:0;padding-left:18px;line-height:1.6;max-width:78ch}
 
 <div class="page">
   <header>
-    <h1>Sheet Auto Rearrange 30.0.0 <span class="tag">NEW VERSION</span></h1>
+    <h1>Sheet Auto Rearrange 30.0.1 <span class="tag">NEW VERSION</span></h1>
     <p class="muted">V030 is a redesigned window on the V029 layout engine. Green marks what is new. Try the three tabs and the Quick layout buttons.</p>
+    <p class="muted" style="margin-top:6px"><span class="tag" style="margin-left:0">30.0.1</span> Fix: the progress bar in the status strip now stops when Run finishes. The footer then reads, for example, "Done: 6 placed, 1 removed, 0 did not fit". No other visible change.</p>
     <span class="sample">Sample data. Sheet, view names and sizes are made up.</span>
   </header>
 
@@ -139,8 +140,8 @@ ul{margin:0;padding-left:18px;line-height:1.6;max-width:78ch}
     <h2>Tool window</h2>
     <div class="frame">
       <div class="win">
-        <div class="tb"><span>Sheet Auto Rearrange — v30.0.0</span><span>—  ☐  ✕</span></div>
-        <div class="hdr"><span class="t">Sheet Auto Rearrange</span><span class="chip">Active Sheet: A-501 — Wall Sections</span><span class="v">v30.0.0</span></div>
+        <div class="tb"><span>Sheet Auto Rearrange — v30.0.1</span><span>—  ☐  ✕</span></div>
+        <div class="hdr"><span class="t">Sheet Auto Rearrange</span><span class="chip">Active Sheet: A-501 — Wall Sections</span><span class="v">v30.0.1</span></div>
 
         <div class="body">
           <!-- LEFT: views -->
@@ -259,7 +260,7 @@ ul{margin:0;padding-left:18px;line-height:1.6;max-width:78ch}
       <div><b>Buttons, not dropdowns</b><span class="muted">Align and distribute are one-click button rows. Sheet position is a 3 × 3 picker.</span></div>
       <div><b>Quieter log</b><span class="muted">The log is one line at the bottom and opens by itself on a warning or error. Counts sit under the preview.</span></div>
       <div><b>Removed</b><span class="muted">Force-Fit and Auto-Create Overflow Sheet, which were never implemented. The five metric cards (the counts move under the preview).</span></div>
-      <div><b>Fixed</b><span class="muted">Closing the window no longer raises "Revit is currently not within an API context". Also fixed in V029 (29.0.1) and V028 (28.2.1).</span></div>
+      <div><b>Fixed</b><span class="muted">Closing the window no longer raises "Revit is currently not within an API context". Also fixed in V029 (29.0.2) and V028 (28.2.2).</span></div>
       <div><b>Smaller window</b><span class="muted">Opens at 1180 × 780 instead of a minimum of 1180 × 920, so it fits a laptop screen.</span></div>
     </div>
   </section>

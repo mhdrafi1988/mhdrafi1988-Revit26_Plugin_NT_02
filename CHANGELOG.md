@@ -9,6 +9,19 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [7.1.1] — 2026-11-13
+
+### Sheet Auto Rearrange 30.0.1 (V030), 29.0.2 (V029), 28.2.2 (V028)
+
+#### Fixed
+- After Run finished, the progress bar in the status strip kept running ("processing") although the views were
+  already placed. It now stops when the run ends.
+
+User note: the cause was in the shared Esc / Cancel handling (`Shared/Services/ToolCancellation.cs`), which put the
+window back into its "running" state after the tool had already reported it was done. The fix is in that shared code,
+so any other tool window that showed a progress bar stuck after a finished run is fixed too. No tool behaves
+differently otherwise.
+
 ## [7.1.0] — 2026-11-13
 
 ### Sheet Auto Rearrange 30.0.0 (V030, new version)
