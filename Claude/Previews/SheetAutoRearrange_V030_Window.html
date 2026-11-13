@@ -1,10 +1,13 @@
 <title>Sheet Auto Rearrange V030</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<!-- UI preview (CLAUDE.md "UI previews"): Sheet Auto Rearrange 30.0.0 (V030) — PROPOSED redesign, not built yet.
-     Shown: the proposed window (views list / large live preview / tabbed settings, collapsed log) and the
-     Rearrange dropdown after the change (V030, V029, V028; V027 removed).
-     Tabs and Quick layout buttons are clickable here to show the intended behaviour.
-     Will mirror: Menu/Sheet/SheetAutoRearrange_V030/UI/Views/SheetAutoRearrangeWindow.xaml (to be written).
+<!-- UI preview (CLAUDE.md "UI previews"): Sheet Auto Rearrange 30.0.0 (V030) — new version, redesigned window.
+     Also covers the fix-only releases 29.0.1 (V029) and 28.2.1 (V028): closing the window no longer raises
+     "Revit is currently not within an API context" (no visible change). Plugin 7.1.0.
+     Shown: the V030 window (views list / large live preview / settings in three tabs, collapsed log) and the
+     Rearrange dropdown (V030, V029, V028; V027 removed). Tabs and Quick layout buttons are clickable here.
+     Mirrors: Menu/Sheet/SheetAutoRearrange_V030/UI/Views/SheetAutoRearrangeWindow.xaml
+              (+ .xaml.cs for the preview drawing, UI/ViewModels/SheetAutoRearrangeViewModel.cs,
+              Menu/00_Push_Button_Menu_items/Ribbon/SheetToolsRibbon.cs; version from Shared/Services/ToolCatalog.cs).
      Artifact: https://claude.ai/artifact/Hr5nBsG9bd9JV1N7TRqJEz (republish to this URL on every update)
      Colours: Shared/SharedStyles.xaml tokens, one light look on purpose (mirrors the light WPF window). -->
 <style>
@@ -127,39 +130,39 @@ ul{margin:0;padding-left:18px;line-height:1.6;max-width:78ch}
 
 <div class="page">
   <header>
-    <h1>Sheet Auto Rearrange 30.0.0 <span class="tag p">PROPOSAL</span></h1>
-    <p class="muted">Proposed new window for V030. The layout engine is the V029 one; what changes is how you drive it. Try the three tabs and the Quick layout buttons.</p>
+    <h1>Sheet Auto Rearrange 30.0.0 <span class="tag">NEW VERSION</span></h1>
+    <p class="muted">V030 is a redesigned window on the V029 layout engine. Green marks what is new. Try the three tabs and the Quick layout buttons.</p>
     <span class="sample">Sample data. Sheet, view names and sizes are made up.</span>
   </header>
 
   <section>
-    <h2>Proposed window</h2>
+    <h2>Tool window</h2>
     <div class="frame">
       <div class="win">
         <div class="tb"><span>Sheet Auto Rearrange — v30.0.0</span><span>—  ☐  ✕</span></div>
-        <div class="hdr"><span class="t">Sheet Auto Rearrange</span><span class="chip">A-501 — Wall Sections</span><span class="v">v30.0.0</span></div>
+        <div class="hdr"><span class="t">Sheet Auto Rearrange</span><span class="chip">Active Sheet: A-501 — Wall Sections</span><span class="v">v30.0.0</span></div>
 
         <div class="body">
           <!-- LEFT: views -->
           <div class="col">
             <h3>Views on sheet <span>6 of 7 ticked</span></h3>
-            <div class="inp">Filter by name…</div>
-            <div class="minis"><span class="mini">All</span><span class="mini">None</span><span class="mini">Types ▾</span><span class="mini">↻</span></div>
+            <div class="inp">&nbsp;</div>
+            <div class="minis"><span class="mini">All</span><span class="mini">None</span><span class="mini">Types ▾</span><span class="mini">Refresh</span></div>
             <div class="list">
-              <div class="vi"><span class="cb"></span><div>Section 1<small>Section · 180 × 140</small></div><span class="pill">Fits</span></div>
-              <div class="vi"><span class="cb"></span><div>Section 2<small>Section · 150 × 110</small></div><span class="pill">Fits</span></div>
-              <div class="vi"><span class="cb"></span><div>Parapet Detail<small>Detail · 200 × 150</small></div><span class="pill">Fits</span></div>
-              <div class="vi"><span class="cb"></span><div>Section 3<small>Section · 160 × 120</small></div><span class="pill">Fits</span></div>
-              <div class="vi"><span class="cb"></span><div>Sill Detail<small>Detail · 190 × 100</small></div><span class="pill">Fits</span></div>
-              <div class="vi"><span class="cb"></span><div>Head Detail<small>Detail · 140 × 130</small></div><span class="pill">Fits</span></div>
-              <div class="vi off"><span class="cb off"></span><div>Old Legend<small>Legend · 90 × 60</small></div><span class="pill rm">Remove</span></div>
+              <div class="vi"><span class="cb"></span><div>Section 1<small>Section · 180 × 140 mm</small></div><span class="pill">Fits</span></div>
+              <div class="vi"><span class="cb"></span><div>Section 2<small>Section · 150 × 110 mm</small></div><span class="pill">Fits</span></div>
+              <div class="vi"><span class="cb"></span><div>Parapet Detail<small>Detail · 200 × 150 mm</small></div><span class="pill">Fits</span></div>
+              <div class="vi"><span class="cb"></span><div>Section 3<small>Section · 160 × 120 mm</small></div><span class="pill">Fits</span></div>
+              <div class="vi"><span class="cb"></span><div>Sill Detail<small>Detail · 190 × 100 mm</small></div><span class="pill">Fits</span></div>
+              <div class="vi"><span class="cb"></span><div>Head Detail<small>Detail · 140 × 130 mm</small></div><span class="pill">Fits</span></div>
+              <div class="vi off"><span class="cb off"></span><div>Old Legend<small>Legend · 90 × 60 mm</small></div><span class="pill rm">Remove</span></div>
             </div>
             <div class="lf">Unticked views are removed from the sheet on Run.</div>
           </div>
 
           <!-- CENTRE: preview -->
           <div class="col">
-            <h3>Live sheet preview <span class="tag">BIGGER</span><span>updates as you change options</span></h3>
+            <h3>Live sheet preview <span class="tag">NEW</span><span>updates as you change options</span></h3>
             <div class="stage">
               <!-- A1 sheet 841 x 594 mm; usable area 611 x 414 at (30,30) -->
               <svg viewBox="0 0 841 594" role="img" aria-label="Sheet with six views laid out inside the usable area">
@@ -172,8 +175,8 @@ ul{margin:0;padding-left:18px;line-height:1.6;max-width:78ch}
             </div>
             <div class="stat">
               <span><b>6</b> fit</span><span>·</span><span><b>0</b> overflow</span><span>·</span><span><b>1</b> to remove</span>
-              <span class="note" id="note">2 rows × 3 columns</span>
-              <span class="legend">dashed green = usable area</span>
+              <span class="note" id="note">Align &amp; Distribute applied — 2 row(s) × 3 column(s), 6 view(s).</span>
+              
             </div>
           </div>
 
@@ -194,25 +197,25 @@ ul{margin:0;padding-left:18px;line-height:1.6;max-width:78ch}
                   <button id="ql-table" data-l="table" aria-pressed="false"><svg viewBox="0 0 38 26"><rect x="1" y="2" width="9" height="9"/><rect x="13" y="5" width="8" height="6"/><rect x="24" y="1" width="9" height="10"/><rect x="1" y="16" width="7" height="8"/><rect x="13" y="18" width="9" height="6"/><rect x="24" y="15" width="6" height="9"/></svg>Table</button>
                   <button id="ql-spread" data-l="spread" aria-pressed="true"><svg viewBox="0 0 38 26"><rect x="1" y="2" width="9" height="9"/><rect x="15" y="5" width="8" height="6"/><rect x="28" y="1" width="9" height="10"/><rect x="1" y="16" width="7" height="8"/><rect x="15" y="18" width="9" height="6"/><rect x="28" y="15" width="6" height="9"/></svg>Spread</button>
                 </div>
-                <div class="hint">One click sets the options below. Change any option afterwards to fine-tune.</div>
+                <div class="hint">One click sets the options below. Change any of them afterwards to fine-tune.</div>
               </div>
               <div><div class="fl">Align rows</div><div class="seg" id="s-rows"><button>Off</button><button>Top</button><button>Center</button><button>Bottom</button></div></div>
               <div><div class="fl">Align columns</div><div class="seg" id="s-cols"><button>Off</button><button>Left</button><button>Center</button><button>Right</button></div></div>
-              <div class="two">
+              <div><div class="two">
                 <div><div class="fl">Distribute H</div><div class="seg" id="s-dh"><button>Off</button><button>Edges</button><button>Equal</button></div></div>
                 <div><div class="fl">Distribute V</div><div class="seg" id="s-dv"><button>Off</button><button>Edges</button><button>Equal</button></div></div>
-              </div>
+              </div><div class="hint">Distribute needs Align rows or Align columns.</div></div>
               <div>
                 <div class="fl">Sheet position <span class="tag">NEW</span></div>
-                <div class="posrow"><div class="pos"><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><span class="muted">Top left. Where the block sits when it is not distributed.</span></div>
+                <div class="posrow"><div class="pos"><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><span class="muted">Where the block of views sits in the usable area when it is not distributed.</span></div>
               </div>
-              <div><div class="fl">Fill strategy</div><div class="combo">Max Fill (recommended)</div><div class="hint">How views are packed before aligning. 7 strategies, each with a one-line description in the list.</div></div>
+              <div><div class="fl">Fill strategy</div><div class="combo">Max Fill (recommended)</div><div class="hint">How views are packed before they are aligned. The open list shows a one-line description of each of the 7 strategies.</div></div>
             </div>
 
             <div class="pane" data-pane="spacing" hidden>
               <div><div class="fl">Margins from title block edge (mm)</div>
                 <div class="two"><div class="num">Top<span>30</span></div><div class="num">Bottom<span>150</span></div><div class="num">Left<span>30</span></div><div class="num">Right<span>200</span></div></div>
-                <div class="hint">The dashed green box in the preview follows these as you type.</div></div>
+                <div class="hint">The dashed green box in the preview is the usable area these leave. It updates when you leave a box.</div></div>
               <div><div class="fl">Gap between views (mm)</div>
                 <div class="two"><div class="num">Horizontal<span>20</span></div><div class="num">Vertical<span>20</span></div></div>
                 <div class="hint">The smallest gap. Distribute can make gaps larger, never smaller.</div></div>
@@ -222,26 +225,27 @@ ul{margin:0;padding-left:18px;line-height:1.6;max-width:78ch}
               <div><div class="fl">Same row / column range (mm)</div>
                 <div class="two"><div class="num">Row<span>50</span></div><div class="num">Column<span>50</span></div></div>
                 <div class="hint">How far apart two views can be and still count as one row or column.</div></div>
-              <div><div class="fl">Views the strategy could not place</div><div class="seg"><button aria-pressed="true">Group by row</button><button>Group by column</button></div></div>
+              <div><div class="fl">Views the strategy could not place</div><div class="seg"><button aria-pressed="true">Group by row</button><button>Group by column</button></div>
+                <div class="two" style="margin-top:6px"><div><div class="hint">In a row, align</div><div class="seg"><button>Top</button><button>Mid</button><button aria-pressed="true">Bottom</button></div></div><div><div class="hint">In a column, align</div><div class="seg"><button>Left</button><button>Mid</button><button aria-pressed="true">Right</button></div></div></div></div>
               <div><div class="fl">Priority groups</div>
                 <div class="box">
                   <div class="pg"><span class="cb"></span><span>Place view types in this order</span><span></span></div>
                   <div class="pg"><span class="muted">1.</span><span>Sections</span><span class="mini">▲ ▼</span></div>
                   <div class="pg"><span class="muted">2.</span><span>Detail Views</span><span class="mini">▲ ▼</span></div>
                 </div></div>
-              <div><div class="fl">Views that do not fit</div><div class="muted">Placed just below the sheet and flagged.</div></div>
+              <div><div class="fl">Views that do not fit</div><div class="muted">Placed just below the sheet and flagged Overflow.</div></div>
             </div>
           </div>
         </div>
 
         <details class="logbar">
-          <summary>Activity log<span class="tag">COLLAPSED</span> <span>Last: Loaded 7 view(s) from sheet. · opens by itself on a warning or error</span></summary>
+          <summary>Activity log<span class="tag">NEW</span> <span>Last: Loaded 7 view(s) from sheet. · opens by itself on a warning or error</span></summary>
 <pre><span class="d">10:42:01</span>  Info  Active sheet detected: A-501 — Wall Sections.
 <span class="d">10:42:01</span>  Info  Title block detected — usable area computed from its bounding box, inset by configured margins.
 <span class="d">10:42:01</span>  Info  Loaded 7 view(s) from sheet.</pre>
         </details>
 
-        <div class="foot"><span class="st">Ready · 6 views will move, 1 will be removed</span><span class="btn">Export log</span><span class="btn pri">Run</span><span class="btn">Close</span></div>
+        <div class="foot"><span class="st">6 view(s) will move, 1 will be removed</span><span class="btn">Export Log</span><span class="btn pri">Run</span><span class="btn">Close</span></div>
       </div>
     </div>
   </section>
@@ -255,13 +259,13 @@ ul{margin:0;padding-left:18px;line-height:1.6;max-width:78ch}
       <div><b>Buttons, not dropdowns</b><span class="muted">Align and distribute are one-click button rows. Sheet position is a 3 × 3 picker.</span></div>
       <div><b>Quieter log</b><span class="muted">The log is one line at the bottom and opens by itself on a warning or error. Counts sit under the preview.</span></div>
       <div><b>Removed</b><span class="muted">Force-Fit and Auto-Create Overflow Sheet, which were never implemented. The five metric cards (the counts move under the preview).</span></div>
-      <div><b>Fixed</b><span class="muted">Closing the window no longer raises "Revit is currently not within an API context". Also fixed in V029 and V028.</span></div>
-      <div><b>Smaller window</b><span class="muted">About 1160 × 720 instead of a minimum of 1180 × 920, so it fits a laptop screen.</span></div>
+      <div><b>Fixed</b><span class="muted">Closing the window no longer raises "Revit is currently not within an API context". Also fixed in V029 (29.0.1) and V028 (28.2.1).</span></div>
+      <div><b>Smaller window</b><span class="muted">Opens at 1180 × 780 instead of a minimum of 1180 × 920, so it fits a laptop screen.</span></div>
     </div>
   </section>
 
   <section>
-    <h2>Ribbon: Rearrange dropdown after the change</h2>
+    <h2>Ribbon: Sheet Create slide-out, Rearrange dropdown</h2>
     <div class="menu">
       <div class="head"><i></i> Rearrange ▾</div>
       <div class="hl"><i></i> Rearrange V030 <span class="tag">NEW</span></div>
@@ -277,10 +281,10 @@ ul{margin:0;padding-left:18px;line-height:1.6;max-width:78ch}
   // Sample layouts inside the 611 x 414 usable area: [x, y, w, h] per view.
   var names=['Section 1','Section 2','Parapet Detail','Section 3','Sill Detail','Head Detail'];
   var L={
-    pack:{v:[[220,0,180,140],[420,140,150,110],[0,0,200,150],[420,0,160,120],[0,170,190,100],[220,160,140,130]],s:[0,0,0,0],note:'Packed tight, no alignment'},
-    rows:{v:[[0,10,180,140],[200,40,150,110],[370,0,200,150],[0,180,160,120],[180,200,190,100],[390,170,140,130]],s:[3,0,0,0],note:'2 rows, bottoms aligned'},
-    table:{v:[[0,10,180,140],[200,40,150,110],[410,0,200,150],[0,180,160,120],[200,200,190,100],[410,170,140,130]],s:[3,1,0,0],note:'2 rows × 3 columns'},
-    spread:{v:[[0,54.7,180,140],[200.5,84.7,150,110],[411,44.7,200,150],[0,249.3,160,120],[200.5,269.3,190,100],[411,239.3,140,130]],s:[3,1,1,2],note:'2 rows × 3 columns, spread across the area'}
+    pack:{v:[[220,0,180,140],[420,140,150,110],[0,0,200,150],[420,0,160,120],[0,170,190,100],[220,160,140,130]],s:[0,0,0,0],note:''},
+    rows:{v:[[0,10,180,140],[200,40,150,110],[370,0,200,150],[0,180,160,120],[180,200,190,100],[390,170,140,130]],s:[3,0,0,0],note:'Align & Distribute applied — 2 row(s) × 3 column(s), 6 view(s).'},
+    table:{v:[[0,10,180,140],[200,40,150,110],[410,0,200,150],[0,180,160,120],[200,200,190,100],[410,170,140,130]],s:[3,1,0,0],note:'Align & Distribute applied — 2 row(s) × 3 column(s), 6 view(s).'},
+    spread:{v:[[0,54.7,180,140],[200.5,84.7,150,110],[411,44.7,200,150],[0,249.3,160,120],[200.5,269.3,190,100],[411,239.3,140,130]],s:[3,1,1,2],note:'Align & Distribute applied — 2 row(s) × 3 column(s), 6 view(s).'}
   };
   var segs=['s-rows','s-cols','s-dh','s-dv'].map(function(id){return document.getElementById(id);});
   var g=document.getElementById('views'), note=document.getElementById('note'), NS='http://www.w3.org/2000/svg';
@@ -295,7 +299,7 @@ ul{margin:0;padding-left:18px;line-height:1.6;max-width:78ch}
     });
     segs.forEach(function(s,i){ Array.prototype.forEach.call(s.children,function(b,j){ b.setAttribute('aria-pressed', j===l.s[i]); }); });
     Array.prototype.forEach.call(document.querySelectorAll('#ql button'),function(b){ b.setAttribute('aria-pressed', b.dataset.l===key); });
-    note.textContent=l.note;
+    note.textContent=l.note; note.hidden=!l.note;
   }
   document.getElementById('ql').addEventListener('click',function(e){ var b=e.target.closest('button'); if(b) show(b.dataset.l); });
   Array.prototype.forEach.call(document.querySelectorAll('.tab'),function(t){
