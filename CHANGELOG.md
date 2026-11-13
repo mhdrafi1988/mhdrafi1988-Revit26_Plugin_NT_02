@@ -9,6 +9,52 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [7.2.1] — 2026-11-13
+
+### Base Level to Parameter 1.0.1 (V001)
+
+#### Added
+- Pre-check c blocks a new parameter whose name is in the shared parameter file more than once (also checked in the
+  New Parameter dialog).
+- Pre-check c blocks a new parameter whose GUID in the shared parameter file is already used in the project by a
+  parameter with another name. Before, Run stopped with an error and rolled back in both cases.
+
+#### Changed
+- A new parameter now goes under **Data** in the Properties palette (was Identity Data).
+
+User note: parameters created with 1.0.0 stay under Identity Data; only new ones go under Data.
+
+## [7.2.0] — 2026-11-13
+
+### Base Level to Parameter 1.0.0 (V001, new tool)
+
+#### Added
+- New **Base Level to Parameter** button on the Coordination panel (Documents 2 tab), after Void Openings.
+- Writes each element's base level and base offset to a text instance parameter as "Level 02 (+450)". The offset is
+  in millimetres, signed, rounded to whole millimetres; zero is "(0)".
+- Lists the model elements visible in the active view when it opens (host model only, never linked elements).
+  **Load All Model Elements** lists the whole host model; **Load Active View** goes back to the active view.
+- **Load Base Level** reads the level and offset of the ticked rows: walls (Base Constraint + Base Offset), columns
+  (Base Level + Base Offset), floors (Level + Height Offset From Level), roofs (Base Level + Base Offset From Level,
+  or Reference Level + Offset for extrusion roofs), MEP curves (Reference Level + Offset) and families (Level or
+  Schedule Level + Offset from Host). Elements with no base level are skipped and logged as a warning.
+- Target parameter: pick a project parameter in a searchable list, or define a new one with **New Parameter…**
+  (shared, instance, Text, Identity Data, name up to 25 characters, bound to the categories of the ticked elements).
+  A new parameter is created only when you press Run.
+- Pre-checks a–e (name, already in project, shared parameter file, categories, document and elements), each shown as
+  Pass / Warning / Blocked, with the summary "X ready | Y warnings | Z blocked" (counts of ticked elements). Run is
+  enabled only when nothing is blocked.
+- **Overwrite existing values** (off by default: elements that already have a value are skipped).
+- Metrics (Elements Listed, Checked, Ready, Warnings, Blocked), a grid grouped by category with collapsible groups,
+  filter, Select All / Select None on the rows the filter shows, sortable columns, and an activity log with Copy All /
+  Copy Selected. The window stays open after a run and shows "X assigned | Y skipped | Z failed".
+
+User note: a run is one transaction ("Base Level to Parameter"); Ctrl+Z undoes it, and Esc / Cancel during the run
+rolls it back, including the parameter's creation or new categories. Only a new parameter's entry in the shared
+parameter file stays (a file cannot be rolled back).
+A new parameter is created with "values can vary by group instance" switched on, so elements inside model groups
+can get their own value; for an existing parameter that does not allow this, grouped elements are skipped. Elements
+owned by another user or changed in central are skipped.
 ## [7.1.2] — 2026-11-13
 
 ### Schedule Export / Import 7.2.1 (V007)
