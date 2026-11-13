@@ -59,7 +59,7 @@ namespace Revit26_Plugin_Revised.Shared.Services
         public static readonly ToolInfo FloorsAndRoofFromLinkedRooms = Add("Floors And Roof From Linked Rooms", "13.2.0", "V013", "Revit26_Plugin_Revised.FloorsAndRoofFromLinkedRooms.V013");
         public static readonly ToolInfo FloorsAndRoofFromLinkedRoomsViaPlanView = Add("Floors And Roof From Linked Rooms (Via Plan View)", "6.2.0", "V006", "Revit26_Plugin_Revised.FloorsAndRoofFromLinkedRoomsViaPlanView.V006");
         public static readonly ToolInfo ParaManager = Add("ParaManager", "5.2.0", "V005", "Revit26_Plugin_Revised.ParaManager.V005");
-        public static readonly ToolInfo ScheduleExportImport = Add("Schedule Export / Import", "7.2.0", "V007", "Revit26_Plugin_Revised.ScheduleExportImport.V007");
+        public static readonly ToolInfo ScheduleExportImport = Add("Schedule Export / Import", "7.2.1", "V007", "Revit26_Plugin_Revised.ScheduleExportImport.V007");
         public static readonly ToolInfo AnnotationOverlapDetection = Add("Annotation Overlap Detection", "4.2.0", "V004", "Revit26_Plugin_Revised.AnnotationOverlapDetection.V004");
         public static readonly ToolInfo AnnotationOverlapDetectionV005 = Add("Annotation Overlap Detection", "5.0.0", "V005", "Revit26_Plugin_Revised.AnnotationOverlapDetection.V005");
         public static readonly ToolInfo AnnotationOverlapDetectionV006 = Add("Annotation Overlap Detection", "6.0.0", "V006", "Revit26_Plugin_Revised.AnnotationOverlapDetection.V006");
