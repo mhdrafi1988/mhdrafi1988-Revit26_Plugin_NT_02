@@ -185,7 +185,11 @@ namespace Revit26_Plugin_Revised.ScheduleExportImport.V007.Infrastructure.Extern
             {
                 try
                 {
-                    tableValues = ReadScheduleTable(schedule, elements, tableColumns.Select(c => c.FieldId).ToList(), out tableOrder);
+                    tableValues = ReadScheduleTable(schedule, elements, tableColumns.Select(c => c.FieldId).ToList(),
+                        out tableOrder, out var discarded);
+                    if (discarded.Count > 0)
+                        notes.Add($"Revit raised {discarded.Count} warning(s) while reading the calculated columns; they were " +
+                                  $"discarded and the model is unchanged. First: {discarded[0]}");
                 }
                 catch (OperationCanceledException)
                 {
@@ -303,15 +307,33 @@ namespace Revit26_Plugin_Revised.ScheduleExportImport.V007.Infrastructure.Extern
                && param.Element?.Id == elem.Id
                && elem.LookupParameter(col.Header)?.Id == param.Id;
 
+        /// <summary>
+        /// Reads the schedule's table text for the calculated columns. It tags every element's
+        /// Comments inside a transaction that is always rolled back. Changing an element makes
+        /// Revit regenerate it, which can raise family warnings ("Can't create sweep", "Line is
+        /// too short") on elements whose geometry is already faulty; those are collected in
+        /// <paramref name="discardedFailures"/> and never shown, because nothing is kept.
+        /// </summary>
         private Dictionary<long, Dictionary<int, string>> ReadScheduleTable(
-            ViewSchedule schedule, List<Element> elements, List<int> wantedFieldIds, out List<long> order)
+            ViewSchedule schedule, List<Element> elements, List<int> wantedFieldIds, out List<long> order,
+            out List<string> discardedFailures)
         {
             order = new List<long>();
+            discardedFailures = new List<string>();
             var result = new Dictionary<long, Dictionary<int, string>>();
             var def = schedule.Definition;
             var commentsId = new ElementId(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS);
 
             using var tx = new Transaction(_doc, "Read schedule table (rolled back)");
+            // This transaction is thrown away, so the failures it raises must go with it.
+            // Without ClearAfterRollback Revit keeps the warnings and shows them after export.
+            var quiet = new DiscardedFailures(discardedFailures);
+            var failureOptions = tx.GetFailureHandlingOptions();
+            failureOptions.SetFailuresPreprocessor(quiet);
+            failureOptions.SetClearAfterRollback(true);
+            failureOptions.SetDelayedMiniWarnings(false);
+            failureOptions.SetForcedModalHandling(false);
+            tx.SetFailureHandlingOptions(failureOptions);
             tx.Start();
             try
             {
@@ -392,6 +414,39 @@ namespace Revit26_Plugin_Revised.ScheduleExportImport.V007.Infrastructure.Extern
                 if (tx.GetStatus() == TransactionStatus.Started) tx.RollBack();
             }
             return result;
+        }
+
+        /// <summary>
+        /// Failure handler for the rolled-back table read: removes warnings, and on errors tells
+        /// Revit to roll back quietly. Collects each distinct message for the export log.
+        /// </summary>
+        private sealed class DiscardedFailures : IFailuresPreprocessor
+        {
+            private readonly List<string> _messages;
+
+            public DiscardedFailures(List<string> messages) => _messages = messages;
+
+            /// <inheritdoc/>
+            public FailureProcessingResult PreprocessFailures(FailuresAccessor failuresAccessor)
+            {
+                bool hasErrors = false;
+                foreach (FailureMessageAccessor failure in failuresAccessor.GetFailureMessages())
+                {
+                    var text = failure.GetDescriptionText();
+                    if (!string.IsNullOrEmpty(text) && !_messages.Contains(text)) _messages.Add(text);
+
+                    if (failure.GetSeverity() == FailureSeverity.Warning)
+                        failuresAccessor.DeleteWarning(failure);
+                    else
+                        hasErrors = true;
+                }
+                if (!hasErrors) return FailureProcessingResult.Continue;
+
+                var options = failuresAccessor.GetFailureHandlingOptions();
+                options.SetClearAfterRollback(true);
+                failuresAccessor.SetFailureHandlingOptions(options);
+                return FailureProcessingResult.ProceedWithRollBack;
+            }
         }
 
         /// <summary>
