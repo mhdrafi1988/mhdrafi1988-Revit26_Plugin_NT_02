@@ -125,7 +125,7 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.Core
 
             if (t.ProjectMatchCount == 0)
                 return t.IsNew
-                    ? new PrecheckItem(title, CheckResult.Pass, "Not in the project; Run creates it as a shared instance Text parameter (Identity Data).")
+                    ? new PrecheckItem(title, CheckResult.Pass, "Not in the project; Run creates it as a shared instance Text parameter (Properties group: Data).")
                     : new PrecheckItem(title, CheckResult.Blocked, $"The project has no parameter named “{t.Name}”. Create it with New Parameter….");
 
             if (!t.IsText)
@@ -168,8 +168,14 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.Core
                 return new PrecheckItem(title, CheckResult.Blocked, $"{t.FilePath} could not be read: {t.FileReadError}");
             if (!t.FileWritable)
                 return new PrecheckItem(title, CheckResult.Blocked, $"{t.FilePath} is read-only or locked. Pick a writable file in New Parameter….");
+            if (t.FileMatchCount > 1)
+                return new PrecheckItem(title, CheckResult.Blocked,
+                    $"“{t.Name}” is in {FileName(t.FilePath)} {t.FileMatchCount} times. Remove the duplicates from the file or use another name.");
             if (t.FileEntry != null && !t.FileEntry.IsText)
                 return new PrecheckItem(title, CheckResult.Blocked, $"“{t.Name}” is already in {FileName(t.FilePath)} as {t.FileEntry.DataType}, not Text. Use another name.");
+            if (t.FileEntry != null && !string.IsNullOrEmpty(t.FileGuidUsedBy))
+                return new PrecheckItem(title, CheckResult.Blocked,
+                    $"The GUID of “{t.Name}” in {FileName(t.FilePath)} ({Short(t.FileEntry.Guid)}) is already used in the project by “{t.FileGuidUsedBy}”. Use another name or fix the file.");
             if (t.FileEntry != null)
                 return new PrecheckItem(title, CheckResult.Pass, $"{t.FilePath}: “{t.Name}” is already in the file (group “{t.FileEntry.GroupName}”); its GUID {Short(t.FileEntry.Guid)} is reused.");
             return new PrecheckItem(title, CheckResult.Pass, $"{t.FilePath}: exists and is writable; Run adds “{t.Name}” with a new GUID.");

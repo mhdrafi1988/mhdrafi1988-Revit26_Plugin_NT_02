@@ -76,6 +76,15 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.Core
             return null;
         }
 
+        /// <summary>Every entry named <paramref name="name"/> (case-insensitive), in file order.</summary>
+        public static List<SharedParamFileEntry> FindAll(IEnumerable<SharedParamFileEntry> entries, string name)
+        {
+            var list = new List<SharedParamFileEntry>();
+            foreach (var e in entries)
+                if (string.Equals(e.Name, name?.Trim(), StringComparison.OrdinalIgnoreCase)) list.Add(e);
+            return list;
+        }
+
         /// <summary>Group names in the file, in file order.</summary>
         public static List<string> GroupNames(string text)
         {

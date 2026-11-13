@@ -73,7 +73,7 @@ Preview: Claude/Previews/BaseLevelToParameter_V001_Window.html (section 3)
                           Style="{StaticResource StandardComboBox}" Margin="0,0,0,8"/>
 
                 <TextBlock Grid.Row="4" Text="Properties group" Style="{StaticResource FieldLabel}" VerticalAlignment="Center"/>
-                <TextBlock Grid.Row="4" Grid.Column="1" Text="Identity Data" Margin="0,0,0,8"/>
+                <TextBlock Grid.Row="4" Grid.Column="1" Text="Data" Margin="0,0,0,8"/>
 
                 <TextBlock Grid.Row="5" Text="Categories" Style="{StaticResource FieldLabel}" VerticalAlignment="Top"/>
                 <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding CategoriesText}" TextWrapping="Wrap" Margin="0,0,0,8"/>

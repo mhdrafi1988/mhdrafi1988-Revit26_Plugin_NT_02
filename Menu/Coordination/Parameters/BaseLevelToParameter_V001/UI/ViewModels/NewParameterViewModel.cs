@@ -136,11 +136,14 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.UI.ViewModels
                 {
                     using var reader = new StreamReader(path, Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
                     text = reader.ReadToEnd();
-                    SharedParamFileEntry entry = SharedParamFileReader.Find(SharedParamFileReader.Parse(text), name);
-                    file = entry == null
+                    var matches = SharedParamFileReader.FindAll(SharedParamFileReader.Parse(text), name);
+                    SharedParamFileEntry entry = matches.Count > 0 ? matches[0] : null;
+                    file = matches.Count > 1
+                        ? new PrecheckItem("Shared parameter file", CheckResult.Blocked, $"“{name.Trim()}” is in the file {matches.Count} times. Remove the duplicates from the file or use another name.")
+                        : entry == null
                         ? new PrecheckItem("Shared parameter file", CheckResult.Pass, "Writable. Name not in the file; a new GUID will be added.")
                         : entry.IsText
-                            ? new PrecheckItem("Shared parameter file", CheckResult.Pass, $"Writable. “{entry.Name}” is already in the file (group “{entry.GroupName}”); its GUID is reused.")
+                            ? new PrecheckItem("Shared parameter file", CheckResult.Pass, $"Writable. “{entry.Name}” is already in the file (group “{entry.GroupName}”); its GUID is reused. The main window checks that the GUID is not used by another parameter.")
                             : new PrecheckItem("Shared parameter file", CheckResult.Blocked, $"“{entry.Name}” is already in the file as {entry.DataType}, not Text. Use another name.");
                 }
                 catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException)

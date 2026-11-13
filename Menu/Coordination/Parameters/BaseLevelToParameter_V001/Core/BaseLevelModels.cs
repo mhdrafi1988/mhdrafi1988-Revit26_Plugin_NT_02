@@ -126,6 +126,15 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.Core
         /// <summary>The file's entry with the target name, or null.</summary>
         public SharedParamFileEntry FileEntry { get; set; }
 
+        /// <summary>How many entries in the file have the target name (more than one is blocked for a new parameter).</summary>
+        public int FileMatchCount { get; set; }
+
+        /// <summary>
+        /// Name of the project parameter that already uses the GUID of the file's entry, when that name differs
+        /// from the target name; null otherwise. Revit cannot add the entry then, so it is blocked.
+        /// </summary>
+        public string FileGuidUsedBy { get; set; }
+
         /// <summary>True for a family document.</summary>
         public bool IsFamilyDocument { get; set; }
 

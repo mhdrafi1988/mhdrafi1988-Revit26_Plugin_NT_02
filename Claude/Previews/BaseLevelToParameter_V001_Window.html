@@ -1,6 +1,8 @@
 <title>Base Level to Parameter</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<!-- UI preview (CLAUDE.md "UI previews"): Base Level to Parameter V001, tool 1.0.0 (new tool), plugin 7.2.0.
+<!-- UI preview (CLAUDE.md "UI previews"): Base Level to Parameter V001, tool 1.0.1, plugin 7.2.1.
+     New in 1.0.1: new parameters go under Data (was Identity Data); pre-check c blocks a name that is in the
+     shared parameter file more than once, and a file GUID already used by another project parameter.
      Shows: the Coordination ribbon button + tooltip, the main window after "Load Base Level" with the pre-checks run,
             the New Parameter dialog, and the footer while running and after a run.
      Mirrors: Menu/Coordination/Parameters/BaseLevelToParameter_V001/UI/Views/BaseLevelToParameterWindow.xaml,
@@ -160,17 +162,17 @@ tr.dim td{color:var(--text3)}
     </div>
     <div class="rtitle">Coordination</div>
   </div>
-  <div class="tip"><b>Base Level to Parameter — v1.0.0 (build V001)</b>Reads each element's base level and offset and writes them to a text parameter as "Level 02 (+450)". Lists the active view's model elements (or the whole host model), checks the target parameter first, and can create it as a shared instance Text parameter.</div>
+  <div class="tip"><b>Base Level to Parameter — v1.0.1 (build V001)</b>Reads each element's base level and offset and writes them to a text parameter as "Level 02 (+450)". Lists the active view's model elements (or the whole host model), checks the target parameter first, and can create it as a shared instance Text parameter.</div>
 </div>
 
 <!-- ============ MAIN WINDOW ============ -->
 <h2>2 · Main window, after “Load Base Level”</h2>
 <div class="scroll">
 <div class="win" style="width:1240px">
-  <div class="titlebar"><span>Base Level to Parameter — v1.0.0</span><span>—□✕</span></div>
+  <div class="titlebar"><span>Base Level to Parameter — v1.0.1</span><span>—□✕</span></div>
   <div class="header">
     <div><div class="t">Base Level to Parameter <span class="new">NEW</span></div><div class="s">Sample Project · Active view: Level 02 – Floor Plan</div></div>
-    <div class="v">v1.0.0</div>
+    <div class="v">v1.0.1</div>
   </div>
 
   <!-- HEADER CONTENT: metrics -->
@@ -298,17 +300,17 @@ tr.dim td{color:var(--text3)}
 
 <!-- ============ NEW PARAMETER DIALOG ============ -->
 <h2>3 · New Parameter dialog</h2>
-<p class="note">Opened by “New Parameter…”. Nothing is created here: Create sets this parameter as the target, and Run in the main window creates it (shared parameter file first, then the project, in the run's transaction).</p>
+<p class="note"><span class="new" style="margin:0 6px 0 0">NEW in 1.0.1</span>Pre-check c (here and in the main window) blocks a name that appears twice in the shared parameter file; the main window also blocks a file GUID that another project parameter already uses (example: “The GUID of “Base Level Info” in SharedParameters.txt (3f2a…c9e1) is already used in the project by “Old Level Note”.”). Opened by “New Parameter…”. Nothing is created here: Create sets this parameter as the target, and Run in the main window creates it (shared parameter file first, then the project, in the run's transaction).</p>
 <div class="scroll">
 <div class="win dlg">
-  <div class="titlebar"><span>New Parameter — Base Level to Parameter v1.0.0</span><span>✕</span></div>
+  <div class="titlebar"><span>New Parameter — Base Level to Parameter v1.0.1</span><span>✕</span></div>
   <div style="padding:12px 16px;display:flex;flex-direction:column;gap:10px">
     <div class="form" style="grid-template-columns:130px 1fr">
       <span class="l">Name</span><span class="row"><span class="text" style="flex:1">Base Level Info</span><span class="hint">15 / 25</span></span>
       <span class="l">Kind</span><span>Shared parameter · Instance · Text · schedulable</span>
       <span class="l">Shared param. file</span><span class="row"><span class="text mono" style="flex:1;font-size:11px">C:\Standards\SharedParameters.txt</span><span class="sbtn">Browse…</span></span>
       <span class="l">Group in file</span><span class="combo" style="width:200px">Data</span>
-      <span class="l">Properties group</span><span>Identity Data</span>
+      <span class="l">Properties group</span><span>Data<span class="new">CHANGED</span></span>
       <span class="l" style="align-self:start;padding-top:4px">Categories</span>
       <span>Ducts, Floors, Generic Models, Pipes, Roofs, Structural Columns, Walls</span>
     </div>
@@ -316,6 +318,7 @@ tr.dim td{color:var(--text3)}
       <tr><th>Check</th><th style="width:80px">Result</th><th>Detail</th></tr>
       <tr><td>Name</td><td><span class="chip ok">Pass</span></td><td>No invalid characters (\ : { } [ ] | ; &lt; &gt; ? ` ~). The built-in name check runs in the main window.</td></tr>
       <tr><td>Shared parameter file</td><td><span class="chip ok">Pass</span></td><td>Writable. Name not in the file; a new GUID will be added.</td></tr>
+      <tr><td></td><td><span class="chip err">Blocked</span></td><td>Example: “Base Level Info” is in the file 2 times. Remove the duplicates from the file or use another name.<span class="new">NEW</span></td></tr>
       <tr><td>Categories</td><td><span class="chip ok">Pass</span></td><td>Bound to 7 categories of the ticked elements; the main window checks each one.</td></tr>
     </table>
     <div class="row" style="background:var(--err-soft);border:1px solid var(--err-border);border-radius:4px;padding:6px 8px;color:var(--err);font-size:11.5px">
@@ -364,7 +367,7 @@ tr.dim td{color:var(--text3)}
       <li>Button on the Coordination panel; folder <span style="font-family:var(--mono)">Menu/Coordination/Parameters/</span>.</li>
       <li>Summary counts ticked elements; a blocked check marks every ticked element Blocked.</li>
       <li>“Load Active View” kept, to go back after “Load All Model Elements”.</li>
-      <li>Offset always in mm; new parameters always go under Identity Data.</li>
+      <li>Offset always in mm; new parameters always go under Data <span class="new">CHANGED in 1.0.1</span>.</li>
       <li>New parameters allow different values per group instance, so grouped elements can be written.</li>
     </ul>
   </div>

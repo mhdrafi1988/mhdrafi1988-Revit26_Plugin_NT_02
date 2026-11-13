@@ -9,6 +9,21 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [7.2.1] — 2026-11-13
+
+### Base Level to Parameter 1.0.1 (V001)
+
+#### Added
+- Pre-check c blocks a new parameter whose name is in the shared parameter file more than once (also checked in the
+  New Parameter dialog).
+- Pre-check c blocks a new parameter whose GUID in the shared parameter file is already used in the project by a
+  parameter with another name. Before, Run stopped with an error and rolled back in both cases.
+
+#### Changed
+- A new parameter now goes under **Data** in the Properties palette (was Identity Data).
+
+User note: parameters created with 1.0.0 stay under Identity Data; only new ones go under Data.
+
 ## [7.2.0] — 2026-11-13
 
 ### Base Level to Parameter 1.0.0 (V001, new tool)

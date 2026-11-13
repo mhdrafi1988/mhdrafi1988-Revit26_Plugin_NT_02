@@ -136,6 +136,12 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.Infrastructure
             // Shared parameter file: the new parameter's file, else Revit's current one.
             t.FilePath = t.IsNew ? request.Pending.FilePath ?? string.Empty : doc.Application.SharedParametersFilename ?? string.Empty;
             ReadFileFacts(t);
+            if (t.IsNew && t.FileEntry != null)
+            {
+                SharedParameterElement used = SharedParameterElement.Lookup(doc, t.FileEntry.Guid);
+                if (used != null && !string.Equals(used.Name, t.Name, StringComparison.OrdinalIgnoreCase))
+                    t.FileGuidUsedBy = used.Name;
+            }
 
             // Elements.
             var categories = new Dictionary<long, Category>();
@@ -296,7 +302,9 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.Infrastructure
                 t.FileExists = File.Exists(t.FilePath);
                 if (!t.FileExists) return;
                 t.FileWritable = SharedParamFileReader.IsWritable(t.FilePath);
-                t.FileEntry = SharedParamFileReader.Find(SharedParamFileReader.Read(t.FilePath), t.Name);
+                var matches = SharedParamFileReader.FindAll(SharedParamFileReader.Read(t.FilePath), t.Name);
+                t.FileMatchCount = matches.Count;
+                t.FileEntry = matches.Count > 0 ? matches[0] : null;
             }
             catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException || ex is ArgumentException || ex is NotSupportedException)
             {
@@ -337,13 +345,13 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.Infrastructure
         {
             CategorySet categories = BindableCategories(doc, facts);
             InstanceBinding binding = doc.Application.Create.NewInstanceBinding(categories);
-            if (!doc.ParameterBindings.Insert(definition, binding, GroupTypeId.IdentityData))
+            if (!doc.ParameterBindings.Insert(definition, binding, GroupTypeId.Data))
                 throw new InvalidOperationException($"Revit rejected the binding of “{definition.Name}”.");
 
             InternalDefinition target = FindBindings(doc, definition.Name).Select(m => m.Def).OfType<InternalDefinition>().FirstOrDefault()
                 ?? throw new InvalidOperationException($"“{definition.Name}” was bound but cannot be found in the project.");
             target.SetAllowVaryBetweenGroups(doc, true);
-            run.Log.Add((Shared.Models.LogLevel.Success, $"Created “{definition.Name}”: shared, instance, Text, Identity Data, values can vary by group; bound to {categories.Size} categor{(categories.Size == 1 ? "y" : "ies")}."));
+            run.Log.Add((Shared.Models.LogLevel.Success, $"Created “{definition.Name}”: shared, instance, Text, Properties group Data, values can vary by group; bound to {categories.Size} categor{(categories.Size == 1 ? "y" : "ies")}."));
             return target;
         }
 

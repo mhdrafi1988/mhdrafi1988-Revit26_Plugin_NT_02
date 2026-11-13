@@ -121,6 +121,37 @@ namespace BaseLevelToParameter.Tests
             Assert.Equal(CheckResult.Blocked, BaseLevelRules.EvaluateChecks(t, new[] { Ready(1) }, false)[0].Result);
         }
 
+        private static TargetFacts NewWithFileEntry() => new()
+        {
+            Name = "Base Level Info", IsNew = true, CategoryCount = 1, FilePath = "x.txt", FileExists = true, FileWritable = true,
+            FileEntry = new SharedParamFileEntry { Name = "Base Level Info", DataType = "TEXT", Guid = Guid.NewGuid(), GroupName = "Data" },
+            FileMatchCount = 1
+        };
+
+        [Fact]
+        public void NewParameter_ReusesFileEntry_Passes() =>
+            Assert.Equal(CheckResult.Pass, BaseLevelRules.EvaluateChecks(NewWithFileEntry(), new[] { Ready(1) }, false)[2].Result);
+
+        [Fact]
+        public void NewParameter_DuplicateNameInFile_IsBlocked()
+        {
+            var t = NewWithFileEntry();
+            t.FileMatchCount = 2;
+            var c = BaseLevelRules.EvaluateChecks(t, new[] { Ready(1) }, false)[2];
+            Assert.Equal(CheckResult.Blocked, c.Result);
+            Assert.Contains("2 times", c.Detail);
+        }
+
+        [Fact]
+        public void NewParameter_FileGuidUsedByOtherProjectParameter_IsBlocked()
+        {
+            var t = NewWithFileEntry();
+            t.FileGuidUsedBy = "Old Level Note";
+            var c = BaseLevelRules.EvaluateChecks(t, new[] { Ready(1) }, false)[2];
+            Assert.Equal(CheckResult.Blocked, c.Result);
+            Assert.Contains("Old Level Note", c.Detail);
+        }
+
         [Fact]
         public void ExistingShared_GuidMismatchInFile_IsBlocked()
         {
@@ -210,6 +241,13 @@ namespace BaseLevelToParameter.Tests
             Assert.Equal("Data", text.GroupName);
             Assert.False(SharedParamFileReader.Find(list, "Slab Depth").IsText);
             Assert.Null(SharedParamFileReader.Find(list, "Missing"));
+        }
+
+        [Fact]
+        public void FindAll_ReturnsDuplicates()
+        {
+            var list = SharedParamFileReader.Parse(Sample + "PARAM\t11111111-2222-3333-4444-555566667777\tBase Level Text\tTEXT\t\t2\t1\t\t1\t0\r\n");
+            Assert.Equal(2, SharedParamFileReader.FindAll(list, "Base Level Text").Count);
         }
 
         [Fact]
