@@ -1,0 +1,309 @@
+<title>Sheet Auto Rearrange V030</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<!-- UI preview (CLAUDE.md "UI previews"): Sheet Auto Rearrange 30.0.0 (V030) — PROPOSED redesign, not built yet.
+     Shown: the proposed window (views list / large live preview / tabbed settings, collapsed log) and the
+     Rearrange dropdown after the change (V030, V029, V028; V027 removed).
+     Tabs and Quick layout buttons are clickable here to show the intended behaviour.
+     Will mirror: Menu/Sheet/SheetAutoRearrange_V030/UI/Views/SheetAutoRearrangeWindow.xaml (to be written).
+     Artifact: https://claude.ai/artifact/Hr5nBsG9bd9JV1N7TRqJEz (republish to this URL on every update)
+     Colours: Shared/SharedStyles.xaml tokens, one light look on purpose (mirrors the light WPF window). -->
+<style>
+/* Layout: one column page; the fixed-width WPF window scrolls inside its own frame. */
+:root{
+  color-scheme:light;
+  --page:#E9EDF1; --window:#F3F5F7; --card:#FFFFFF; --border:#D6DCE3; --input:#B5C2CF; --sep:#E6EAEF;
+  --navy:#1E3A5F; --navy-dark:#14283F; --navy-light:#2C4A6E; --on-dark:#EAF1F8;
+  --text:#1A2B3C; --text2:#5B7185; --text3:#8FA3B8; --bg2:#ECEFF3; --bg3:#E1E6EC;
+  --blue:#2D6CDF; --info:#1F5FBF; --info-soft:#E6EEFB; --info-border:#A9C3EE;
+  --ok:#2E7D4F; --ok-soft:#E6F4EC; --ok-border:#9FCFB2;
+  --warn:#9A5B00; --warn-soft:#FDF1E1; --warn-border:#E8B66B;
+  --err:#B23A35; --log-dim:#7E94AA; --log-ok:#4CC18A;
+  --view-fill:#EAF1F8; --sheet:#FFFFFF;
+  --ui:'Segoe UI',system-ui,-apple-system,sans-serif; --mono:Consolas,'Cascadia Mono',Menlo,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--text);font-family:var(--ui);font-size:12.5px;
+  padding-block:24px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.page{max-width:1192px;margin:0 auto;display:grid;gap:22px}
+.page>*{min-width:0}
+h1{font-size:20px;margin:0 0 4px;font-weight:600;text-wrap:balance}
+h2{font-size:14px;margin:0 0 8px;font-weight:600;text-wrap:balance}
+p{margin:0;line-height:1.5;max-width:78ch}
+ul{margin:0;padding-left:18px;line-height:1.6;max-width:78ch}
+.muted{color:var(--text2)}
+.tag{display:inline-block;background:var(--ok);color:#FFFFFF;font-size:10px;font-weight:600;letter-spacing:.04em;
+  padding:1px 6px;border-radius:3px;vertical-align:middle;margin-left:6px}
+.tag.p{background:var(--warn)}
+.sample{display:inline-block;background:var(--warn-soft);color:var(--warn);border:1px solid var(--warn-border);border-radius:3px;padding:2px 8px;font-size:11.5px;margin-top:6px}
+.frame{overflow-x:auto;padding-bottom:4px}
+
+/* Window */
+.win{width:1160px;background:var(--window);border:1px solid var(--navy-dark);box-shadow:0 8px 24px rgba(16,32,48,.22)}
+.tb{background:var(--card);border-bottom:1px solid var(--border);padding:6px 10px;display:flex;justify-content:space-between;font-size:12px}
+.hdr{background:var(--navy);color:var(--on-dark);padding:10px 16px;display:flex;align-items:center;gap:12px}
+.hdr .t{font-size:15px;font-weight:600}
+.hdr .chip{background:var(--navy-light);border-radius:10px;padding:2px 10px;font-size:11.5px}
+.hdr .v{margin-left:auto;font-size:11.5px;color:var(--log-dim)}
+.body{display:grid;grid-template-columns:270px 1fr 330px;gap:10px;padding:10px;height:560px}
+.col{background:var(--card);border:1px solid var(--border);border-radius:6px;display:flex;flex-direction:column;min-height:0;min-width:0}
+.col h3{margin:0;padding:9px 12px 6px;font-size:12.5px;font-weight:600;display:flex;align-items:center}
+.col h3 span{margin-left:auto;font-weight:400;color:var(--text2);font-size:11.5px}
+.inp{margin:0 12px 6px;border:1px solid var(--input);border-radius:4px;padding:4px 8px;font-size:11.5px;color:var(--text3)}
+.minis{display:flex;gap:5px;padding:0 12px 8px}
+.mini{border:1px solid var(--input);background:var(--card);border-radius:4px;padding:2px 8px;font-size:11px}
+.list{border-top:1px solid var(--sep);overflow:auto;flex:1}
+.vi{display:grid;grid-template-columns:16px 1fr auto;gap:8px;align-items:center;padding:6px 12px;border-bottom:1px solid var(--sep)}
+.vi small{display:block;color:var(--text2);font-size:11px;font-variant-numeric:tabular-nums}
+.cb{width:12px;height:12px;border:1px solid var(--navy);background:var(--navy);border-radius:2px}
+.cb.off{background:var(--card);border-color:var(--input)}
+.vi.off{color:var(--text3)}
+.pill{background:var(--ok-soft);color:var(--ok);border-radius:9px;padding:1px 8px;font-size:10.5px;font-weight:600}
+.pill.rm{background:var(--bg2);color:var(--text2)}
+.lf{padding:7px 12px;color:var(--text2);font-size:11px;border-top:1px solid var(--sep)}
+
+/* Preview */
+.stage{flex:1;margin:0 12px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;display:grid;place-items:center;min-height:0;padding:10px}
+.stage svg{max-width:100%;max-height:100%;display:block}
+.vw{fill:var(--view-fill);stroke:var(--blue);stroke-width:1.5}
+.vl{font:600 15px var(--ui);fill:var(--navy);text-anchor:middle;dominant-baseline:middle}
+.area{fill:var(--sheet);stroke:var(--input);stroke-width:1}
+.tbk{fill:var(--bg3);stroke:var(--input);stroke-width:1}
+.tbt{font:13px var(--ui);fill:var(--text2);text-anchor:middle;dominant-baseline:middle}
+.use{fill:none;stroke:var(--ok);stroke-width:1.2;stroke-dasharray:6 4}
+.stat{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:8px 12px 10px;font-size:11.5px}
+.stat b{font-variant-numeric:tabular-nums}
+.note{border-radius:10px;padding:2px 10px;background:var(--info-soft);border:1px solid var(--info-border);color:var(--navy)}
+.legend{margin-left:auto;color:var(--text2);font-size:11px}
+
+/* Settings */
+.tabs{display:flex;border-bottom:1px solid var(--border);padding:0 8px}
+.tab{appearance:none;border:0;background:none;font:inherit;font-weight:600;color:var(--text2);padding:9px 10px 7px;border-bottom:2px solid transparent;cursor:pointer}
+.tab[aria-selected=true]{color:var(--navy);border-bottom-color:var(--navy)}
+.tab:focus-visible,.seg button:focus-visible,.ql button:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
+.pane{padding:10px 12px;display:grid;gap:10px;overflow:auto;align-content:start;flex:1}
+.fl{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+.ql{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.ql button{appearance:none;font:inherit;font-size:11px;border:1px solid var(--input);background:var(--card);border-radius:5px;padding:5px 2px 4px;cursor:pointer;display:grid;gap:3px;justify-items:center;color:var(--text)}
+.ql button[aria-pressed=true]{border-color:var(--navy);background:var(--info-soft);font-weight:600}
+.ql svg{width:38px;height:26px}
+.ql rect{fill:var(--view-fill);stroke:var(--blue)}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;border:1px solid var(--input);border-radius:5px;overflow:hidden}
+.seg button{appearance:none;font:inherit;font-size:11.5px;border:0;border-left:1px solid var(--input);background:var(--card);padding:4px 2px;color:var(--text);cursor:default}
+.seg button:first-child{border-left:0}
+.seg button[aria-pressed=true]{background:var(--navy);color:#FFFFFF;font-weight:600}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pos{display:grid;grid-template-columns:repeat(3,22px);gap:3px}
+.pos i{height:16px;border:1px solid var(--input);border-radius:3px;background:var(--card)}
+.pos i.on{background:var(--navy);border-color:var(--navy)}
+.posrow{display:flex;gap:12px;align-items:center}
+.combo{border:1px solid var(--input);border-radius:4px;padding:4px 8px;display:flex;justify-content:space-between;background:var(--card)}
+.combo::after{content:"▾";color:var(--text2)}
+.hint{color:var(--text3);font-size:10.5px;line-height:1.4;margin-top:3px}
+.num{display:grid;grid-template-columns:1fr 64px;align-items:center;gap:6px}
+.num span{border:1px solid var(--input);border-radius:4px;padding:3px 7px;text-align:right;font-variant-numeric:tabular-nums}
+.box{border:1px solid var(--sep);border-radius:5px;padding:8px;display:grid;gap:6px}
+.pg{display:grid;grid-template-columns:18px 1fr auto;gap:6px;align-items:center}
+
+.logbar{margin:0 10px 10px;background:var(--navy-dark);color:var(--on-dark);border-radius:6px;font-size:11.5px}
+.logbar summary{padding:7px 10px;cursor:pointer;display:flex;gap:10px;align-items:center}
+.logbar summary span{color:var(--log-dim);margin-left:auto}
+.logbar pre{margin:0;padding:0 10px 8px;font-family:var(--mono);font-size:11.5px;line-height:1.55;white-space:pre-wrap}
+.logbar .d{color:var(--log-dim)} .logbar .ok{color:var(--log-ok)}
+.foot{border-top:1px solid var(--border);background:var(--card);padding:8px 12px;display:flex;align-items:center;gap:8px}
+.foot .st{color:var(--text2);font-size:11.5px;margin-right:auto}
+.btn{border:1px solid var(--input);background:var(--card);border-radius:4px;padding:5px 14px;font-size:12px}
+.pri{background:var(--navy);color:#FFFFFF;border-color:var(--navy);padding:5px 22px;font-weight:600}
+
+.menu{width:230px;background:var(--card);border:1px solid var(--input);box-shadow:0 4px 12px rgba(16,32,48,.18);font-size:12px}
+.menu div{padding:5px 8px;display:flex;align-items:center;gap:7px}
+.menu .head{background:var(--bg2);border-bottom:1px solid var(--border)}
+.menu i{width:14px;height:14px;border-radius:2px;background:var(--bg3);border:1px solid var(--input);flex:none}
+.menu .hl{background:var(--ok-soft);outline:2px solid var(--ok);outline-offset:-2px}
+.menu .gone{color:var(--text3);text-decoration:line-through}
+.cmp{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.cmp>div{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:10px 12px}
+.cmp b{display:block;margin-bottom:4px}
+</style>
+
+<div class="page">
+  <header>
+    <h1>Sheet Auto Rearrange 30.0.0 <span class="tag p">PROPOSAL</span></h1>
+    <p class="muted">Proposed new window for V030. The layout engine is the V029 one; what changes is how you drive it. Try the three tabs and the Quick layout buttons.</p>
+    <span class="sample">Sample data. Sheet, view names and sizes are made up.</span>
+  </header>
+
+  <section>
+    <h2>Proposed window</h2>
+    <div class="frame">
+      <div class="win">
+        <div class="tb"><span>Sheet Auto Rearrange — v30.0.0</span><span>—  ☐  ✕</span></div>
+        <div class="hdr"><span class="t">Sheet Auto Rearrange</span><span class="chip">A-501 — Wall Sections</span><span class="v">v30.0.0</span></div>
+
+        <div class="body">
+          <!-- LEFT: views -->
+          <div class="col">
+            <h3>Views on sheet <span>6 of 7 ticked</span></h3>
+            <div class="inp">Filter by name…</div>
+            <div class="minis"><span class="mini">All</span><span class="mini">None</span><span class="mini">Types ▾</span><span class="mini">↻</span></div>
+            <div class="list">
+              <div class="vi"><span class="cb"></span><div>Section 1<small>Section · 180 × 140</small></div><span class="pill">Fits</span></div>
+              <div class="vi"><span class="cb"></span><div>Section 2<small>Section · 150 × 110</small></div><span class="pill">Fits</span></div>
+              <div class="vi"><span class="cb"></span><div>Parapet Detail<small>Detail · 200 × 150</small></div><span class="pill">Fits</span></div>
+              <div class="vi"><span class="cb"></span><div>Section 3<small>Section · 160 × 120</small></div><span class="pill">Fits</span></div>
+              <div class="vi"><span class="cb"></span><div>Sill Detail<small>Detail · 190 × 100</small></div><span class="pill">Fits</span></div>
+              <div class="vi"><span class="cb"></span><div>Head Detail<small>Detail · 140 × 130</small></div><span class="pill">Fits</span></div>
+              <div class="vi off"><span class="cb off"></span><div>Old Legend<small>Legend · 90 × 60</small></div><span class="pill rm">Remove</span></div>
+            </div>
+            <div class="lf">Unticked views are removed from the sheet on Run.</div>
+          </div>
+
+          <!-- CENTRE: preview -->
+          <div class="col">
+            <h3>Live sheet preview <span class="tag">BIGGER</span><span>updates as you change options</span></h3>
+            <div class="stage">
+              <!-- A1 sheet 841 x 594 mm; usable area 611 x 414 at (30,30) -->
+              <svg viewBox="0 0 841 594" role="img" aria-label="Sheet with six views laid out inside the usable area">
+                <rect class="area" x="0" y="0" width="841" height="594"/>
+                <rect class="tbk" x="651" y="10" width="180" height="574"/><text class="tbt" x="741" y="297">Title block</text>
+                <rect class="tbk" x="10" y="454" width="631" height="130"/><text class="tbt" x="325" y="519">Notes strip</text>
+                <rect class="use" x="30" y="30" width="611" height="414"/>
+                <g id="views"></g>
+              </svg>
+            </div>
+            <div class="stat">
+              <span><b>6</b> fit</span><span>·</span><span><b>0</b> overflow</span><span>·</span><span><b>1</b> to remove</span>
+              <span class="note" id="note">2 rows × 3 columns</span>
+              <span class="legend">dashed green = usable area</span>
+            </div>
+          </div>
+
+          <!-- RIGHT: settings -->
+          <div class="col">
+            <div class="tabs" role="tablist">
+              <button class="tab" role="tab" aria-selected="true" data-tab="layout" id="tab-layout">Layout</button>
+              <button class="tab" role="tab" aria-selected="false" data-tab="spacing" id="tab-spacing">Spacing</button>
+              <button class="tab" role="tab" aria-selected="false" data-tab="advanced" id="tab-advanced">Advanced</button>
+            </div>
+
+            <div class="pane" data-pane="layout">
+              <div>
+                <div class="fl">Quick layout <span class="tag">NEW</span></div>
+                <div class="ql" id="ql">
+                  <button id="ql-pack" data-l="pack" aria-pressed="false"><svg viewBox="0 0 38 26"><rect x="1" y="1" width="12" height="10"/><rect x="15" y="1" width="10" height="9"/><rect x="27" y="1" width="9" height="7"/><rect x="1" y="13" width="11" height="6"/><rect x="15" y="12" width="8" height="9"/></svg>Pack</button>
+                  <button id="ql-rows" data-l="rows" aria-pressed="false"><svg viewBox="0 0 38 26"><rect x="1" y="2" width="11" height="9"/><rect x="14" y="5" width="9" height="6"/><rect x="25" y="1" width="12" height="10"/><rect x="1" y="16" width="9" height="8"/><rect x="12" y="18" width="12" height="6"/></svg>Rows</button>
+                  <button id="ql-table" data-l="table" aria-pressed="false"><svg viewBox="0 0 38 26"><rect x="1" y="2" width="9" height="9"/><rect x="13" y="5" width="8" height="6"/><rect x="24" y="1" width="9" height="10"/><rect x="1" y="16" width="7" height="8"/><rect x="13" y="18" width="9" height="6"/><rect x="24" y="15" width="6" height="9"/></svg>Table</button>
+                  <button id="ql-spread" data-l="spread" aria-pressed="true"><svg viewBox="0 0 38 26"><rect x="1" y="2" width="9" height="9"/><rect x="15" y="5" width="8" height="6"/><rect x="28" y="1" width="9" height="10"/><rect x="1" y="16" width="7" height="8"/><rect x="15" y="18" width="9" height="6"/><rect x="28" y="15" width="6" height="9"/></svg>Spread</button>
+                </div>
+                <div class="hint">One click sets the options below. Change any option afterwards to fine-tune.</div>
+              </div>
+              <div><div class="fl">Align rows</div><div class="seg" id="s-rows"><button>Off</button><button>Top</button><button>Center</button><button>Bottom</button></div></div>
+              <div><div class="fl">Align columns</div><div class="seg" id="s-cols"><button>Off</button><button>Left</button><button>Center</button><button>Right</button></div></div>
+              <div class="two">
+                <div><div class="fl">Distribute H</div><div class="seg" id="s-dh"><button>Off</button><button>Edges</button><button>Equal</button></div></div>
+                <div><div class="fl">Distribute V</div><div class="seg" id="s-dv"><button>Off</button><button>Edges</button><button>Equal</button></div></div>
+              </div>
+              <div>
+                <div class="fl">Sheet position <span class="tag">NEW</span></div>
+                <div class="posrow"><div class="pos"><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><span class="muted">Top left. Where the block sits when it is not distributed.</span></div>
+              </div>
+              <div><div class="fl">Fill strategy</div><div class="combo">Max Fill (recommended)</div><div class="hint">How views are packed before aligning. 7 strategies, each with a one-line description in the list.</div></div>
+            </div>
+
+            <div class="pane" data-pane="spacing" hidden>
+              <div><div class="fl">Margins from title block edge (mm)</div>
+                <div class="two"><div class="num">Top<span>30</span></div><div class="num">Bottom<span>150</span></div><div class="num">Left<span>30</span></div><div class="num">Right<span>200</span></div></div>
+                <div class="hint">The dashed green box in the preview follows these as you type.</div></div>
+              <div><div class="fl">Gap between views (mm)</div>
+                <div class="two"><div class="num">Horizontal<span>20</span></div><div class="num">Vertical<span>20</span></div></div>
+                <div class="hint">The smallest gap. Distribute can make gaps larger, never smaller.</div></div>
+            </div>
+
+            <div class="pane" data-pane="advanced" hidden>
+              <div><div class="fl">Same row / column range (mm)</div>
+                <div class="two"><div class="num">Row<span>50</span></div><div class="num">Column<span>50</span></div></div>
+                <div class="hint">How far apart two views can be and still count as one row or column.</div></div>
+              <div><div class="fl">Views the strategy could not place</div><div class="seg"><button aria-pressed="true">Group by row</button><button>Group by column</button></div></div>
+              <div><div class="fl">Priority groups</div>
+                <div class="box">
+                  <div class="pg"><span class="cb"></span><span>Place view types in this order</span><span></span></div>
+                  <div class="pg"><span class="muted">1.</span><span>Sections</span><span class="mini">▲ ▼</span></div>
+                  <div class="pg"><span class="muted">2.</span><span>Detail Views</span><span class="mini">▲ ▼</span></div>
+                </div></div>
+              <div><div class="fl">Views that do not fit</div><div class="muted">Placed just below the sheet and flagged.</div></div>
+            </div>
+          </div>
+        </div>
+
+        <details class="logbar">
+          <summary>Activity log<span class="tag">COLLAPSED</span> <span>Last: Loaded 7 view(s) from sheet. · opens by itself on a warning or error</span></summary>
+<pre><span class="d">10:42:01</span>  Info  Active sheet detected: A-501 — Wall Sections.
+<span class="d">10:42:01</span>  Info  Title block detected — usable area computed from its bounding box, inset by configured margins.
+<span class="d">10:42:01</span>  Info  Loaded 7 view(s) from sheet.</pre>
+        </details>
+
+        <div class="foot"><span class="st">Ready · 6 views will move, 1 will be removed</span><span class="btn">Export log</span><span class="btn pri">Run</span><span class="btn">Close</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>What changes from V029</h2>
+    <div class="cmp">
+      <div><b>Preview first</b><span class="muted">The preview grows from a 200 px box inside a section to the centre of the window. It draws the sheet, the title block and the usable area, with view names in the boxes.</span></div>
+      <div><b>Three tabs, not eight sections</b><span class="muted">Layout holds what you change every time. Spacing holds margins and gaps. Advanced holds tolerances, leftovers and priority groups.</span></div>
+      <div><b>Quick layouts</b><span class="muted">Pack, Rows, Table and Spread set the align and distribute options in one click.</span></div>
+      <div><b>Buttons, not dropdowns</b><span class="muted">Align and distribute are one-click button rows. Sheet position is a 3 × 3 picker.</span></div>
+      <div><b>Quieter log</b><span class="muted">The log is one line at the bottom and opens by itself on a warning or error. Counts sit under the preview.</span></div>
+      <div><b>Removed</b><span class="muted">Force-Fit and Auto-Create Overflow Sheet, which were never implemented. The five metric cards (the counts move under the preview).</span></div>
+      <div><b>Fixed</b><span class="muted">Closing the window no longer raises "Revit is currently not within an API context". Also fixed in V029 and V028.</span></div>
+      <div><b>Smaller window</b><span class="muted">About 1160 × 720 instead of a minimum of 1180 × 920, so it fits a laptop screen.</span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Ribbon: Rearrange dropdown after the change</h2>
+    <div class="menu">
+      <div class="head"><i></i> Rearrange ▾</div>
+      <div class="hl"><i></i> Rearrange V030 <span class="tag">NEW</span></div>
+      <div><i></i> Rearrange V029</div>
+      <div><i></i> Rearrange V028</div>
+      <div class="gone"><i></i> Rearrange V027 (removed)</div>
+    </div>
+  </section>
+</div>
+
+<script>
+(function(){
+  // Sample layouts inside the 611 x 414 usable area: [x, y, w, h] per view.
+  var names=['Section 1','Section 2','Parapet Detail','Section 3','Sill Detail','Head Detail'];
+  var L={
+    pack:{v:[[220,0,180,140],[420,140,150,110],[0,0,200,150],[420,0,160,120],[0,170,190,100],[220,160,140,130]],s:[0,0,0,0],note:'Packed tight, no alignment'},
+    rows:{v:[[0,10,180,140],[200,40,150,110],[370,0,200,150],[0,180,160,120],[180,200,190,100],[390,170,140,130]],s:[3,0,0,0],note:'2 rows, bottoms aligned'},
+    table:{v:[[0,10,180,140],[200,40,150,110],[410,0,200,150],[0,180,160,120],[200,200,190,100],[410,170,140,130]],s:[3,1,0,0],note:'2 rows × 3 columns'},
+    spread:{v:[[0,54.7,180,140],[200.5,84.7,150,110],[411,44.7,200,150],[0,249.3,160,120],[200.5,269.3,190,100],[411,239.3,140,130]],s:[3,1,1,2],note:'2 rows × 3 columns, spread across the area'}
+  };
+  var segs=['s-rows','s-cols','s-dh','s-dv'].map(function(id){return document.getElementById(id);});
+  var g=document.getElementById('views'), note=document.getElementById('note'), NS='http://www.w3.org/2000/svg';
+  function show(key){
+    var l=L[key]; g.textContent='';
+    l.v.forEach(function(b,i){
+      var r=document.createElementNS(NS,'rect'); r.setAttribute('class','vw');
+      r.setAttribute('x',30+b[0]); r.setAttribute('y',30+b[1]); r.setAttribute('width',b[2]); r.setAttribute('height',b[3]); r.setAttribute('rx',3);
+      var t=document.createElementNS(NS,'text'); t.setAttribute('class','vl');
+      t.setAttribute('x',30+b[0]+b[2]/2); t.setAttribute('y',30+b[1]+b[3]/2); t.textContent=names[i];
+      g.appendChild(r); g.appendChild(t);
+    });
+    segs.forEach(function(s,i){ Array.prototype.forEach.call(s.children,function(b,j){ b.setAttribute('aria-pressed', j===l.s[i]); }); });
+    Array.prototype.forEach.call(document.querySelectorAll('#ql button'),function(b){ b.setAttribute('aria-pressed', b.dataset.l===key); });
+    note.textContent=l.note;
+  }
+  document.getElementById('ql').addEventListener('click',function(e){ var b=e.target.closest('button'); if(b) show(b.dataset.l); });
+  Array.prototype.forEach.call(document.querySelectorAll('.tab'),function(t){
+    t.addEventListener('click',function(){
+      Array.prototype.forEach.call(document.querySelectorAll('.tab'),function(x){ x.setAttribute('aria-selected', x===t); });
+      Array.prototype.forEach.call(document.querySelectorAll('.pane'),function(p){ p.hidden = p.dataset.pane!==t.dataset.tab; });
+    });
+  });
+  show('spread');
+})();
+</script>
