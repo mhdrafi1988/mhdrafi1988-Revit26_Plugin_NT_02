@@ -1,0 +1,386 @@
+<title>Base Level to Parameter</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<!-- UI preview (CLAUDE.md "UI previews"): Base Level to Parameter V001, tool 1.0.0 (new tool), plugin 7.1.0 (proposed).
+     Status: MOCK-UP FOR APPROVAL. No code yet; assumptions are flagged inline with amber "ASSUMED" tags.
+     Shows: ribbon button + tooltip, main window after "Load Base Level" with pre-checks run,
+            the "New Parameter" dialog, and the footer after a run.
+     Will mirror: Menu/<Area>/<Group>/BaseLevelToParameter_V001/UI/Views/BaseLevelToParameterWindow.xaml,
+                  .../UI/Views/NewParameterDialog.xaml (+ view models), Shared/Controls/ToolWindowShellTemplate.xaml
+     Artifact: https://claude.ai/artifact/844UiUnRidqhg4WRvYhDBg (republish to this URL on every update)
+     Colours: Shared/SharedStyles.xaml tokens, one light look on purpose (mirrors the light WPF window). -->
+<style>
+/* Layout: stacked fixed-width WPF windows, each in its own horizontal scroll box. */
+:root{
+  --surface-window:#F3F5F7; --card:#FFFFFF; --border:#D6DCE3; --border-input:#B5C2CF;
+  --action:#1E3A5F; --navy-dark:#14283F; --navy-light:#2C4A6E; --text:#1A2B3C; --text2:#5B7185; --text3:#8FA3B8;
+  --text-disabled:#C3CFDB; --bg2:#ECEFF3; --bg3:#E1E6EC; --sep-thin:#E6EAEF; --on-dark:#EAF1F8;
+  --ok:#2E7D4F; --ok-soft:#E6F4EC; --ok-border:#9FCFB2;
+  --warn:#9A5B00; --warn-soft:#FDF1E1; --warn-border:#E8B66B;
+  --err:#B23A35; --err-soft:#FBE8E7; --err-border:#EDA5A1;
+  --info:#1F5FBF; --info-soft:#E6EEFB; --info-border:#A9C3EE;
+  --log-bg:#14283F; --log-text:#EAF1F8; --log-dim:#7E94AA; --log-ok:#4CC18A; --log-warn:#F0AE5C; --log-err:#F0837D; --log-hi:#7FB0FF;
+  --page:#E9EDF1; --new:#2E7D4F; --new-text:#FFFFFF;
+  --font:'Segoe UI',system-ui,-apple-system,sans-serif; --mono:Consolas,'Cascadia Mono',monospace;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--text);font-family:var(--font);font-size:12.5px;
+  padding-block:16px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1{font-size:18px;margin:0 0 4px}
+h2{font-size:13px;margin:24px 0 8px;color:var(--action);text-transform:uppercase;letter-spacing:.06em}
+.note{color:var(--text2);max-width:70ch;line-height:1.45;margin:0 0 8px}
+.scroll{overflow-x:auto;padding-bottom:4px}
+input[type=checkbox]{accent-color:var(--action);width:14px;height:14px;margin:0 6px 0 0;vertical-align:-2px}
+
+.new{display:inline-block;background:var(--new);color:var(--new-text);font-size:9.5px;font-weight:700;letter-spacing:.05em;border-radius:3px;padding:1px 5px;margin-left:6px;vertical-align:1px}
+.asm{display:inline-block;background:var(--warn-soft);border:1px solid var(--warn-border);color:var(--warn);font-size:9.5px;font-weight:700;letter-spacing:.04em;border-radius:3px;padding:0 5px;margin-left:6px;vertical-align:1px;white-space:nowrap}
+.asm[title]{cursor:help}
+
+/* Window chrome */
+.win{background:var(--surface-window);border:1px solid var(--border-input);display:flex;flex-direction:column}
+.titlebar{height:32px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;background:var(--card);border-bottom:1px solid var(--border);font-size:12px}
+.titlebar span:last-child{color:var(--text2);letter-spacing:14px}
+.header{background:var(--action);color:var(--new-text);padding:12px 16px;display:flex;align-items:center}
+.header .t{font-size:18px;font-weight:600}.header .s{font-size:11.5px;color:#C9D6E3;margin-top:2px}
+.header .v{margin-left:auto;background:var(--navy-light);border-radius:10px;padding:3px 8px;font-size:11px;font-weight:600;color:var(--on-dark)}
+.pad{padding:8px 12px 0}
+.card{background:var(--card);border:1px solid var(--border);border-radius:4px}
+.section{font-size:11.5px;font-weight:600;color:var(--action)}
+.hint{font-size:10.5px;color:var(--text3);line-height:1.35}
+.lbl{font-size:11.5px;color:var(--text2);margin-right:8px}
+.row{display:flex;align-items:center;gap:6px}
+.sp{flex:1}
+
+/* Metrics */
+.metrics{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;padding:8px}
+.tile{border:1px solid var(--border);border-radius:4px;padding:8px 12px;background:var(--card)}
+.tile .n{font-size:20px;font-weight:600;font-variant-numeric:tabular-nums}
+.tile .k{font-size:11px;color:var(--text2)}
+.tile.info{background:var(--info-soft);border-color:var(--info-border)}.tile.info .n{color:#1F4E9A}
+.tile.ok{background:var(--ok-soft);border-color:var(--ok-border)}.tile.ok .n{color:#1F5E3A}
+.tile.warn{background:var(--warn-soft);border-color:var(--warn-border)}.tile.warn .n{color:var(--warn)}
+.tile.err{background:var(--err-soft);border-color:var(--err-border)}.tile.err .n{color:#8E2A26}
+
+/* Controls */
+.combo,.text{height:26px;border:1px solid var(--border-input);border-radius:2px;background:var(--card);display:inline-flex;align-items:center;padding:0 6px;font-size:12.5px}
+.combo{justify-content:space-between}.combo:after{content:"▾";color:var(--text2);font-size:10px;margin-left:8px}
+.text .ph{color:var(--text3)}
+.sbtn{height:26px;padding:0 10px;font-size:11.5px;border:1px solid var(--border-input);border-radius:4px;background:var(--card);color:var(--text);display:inline-flex;align-items:center;white-space:nowrap}
+.sbtn.pri{background:var(--action);border-color:var(--action);color:var(--new-text);font-weight:600}
+.pill{background:var(--bg2);border-radius:10px;padding:3px 8px;font-size:11px;font-weight:600;color:var(--action);white-space:nowrap}
+.cnt{font-size:10.5px;color:var(--text3);margin-left:4px}
+
+/* Status chips */
+.chip{display:inline-block;border-radius:10px;padding:1px 8px;font-size:10.5px;font-weight:600;border:1px solid;white-space:nowrap}
+.chip.ok{background:var(--ok-soft);color:var(--ok);border-color:var(--ok-border)}
+.chip.warn{background:var(--warn-soft);color:var(--warn);border-color:var(--warn-border)}
+.chip.err{background:var(--err-soft);color:var(--err);border-color:var(--err-border)}
+.chip.info{background:var(--info-soft);color:var(--info);border-color:var(--info-border)}
+.chip.mute{background:var(--bg2);color:var(--text2);border-color:var(--border)}
+
+/* Target + checks */
+.target{display:grid;grid-template-columns:420px 1fr;gap:8px;padding:0 12px;margin-top:8px}
+.tbody{padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.form{display:grid;grid-template-columns:110px 1fr;align-items:center;row-gap:8px;column-gap:8px}
+.form .l{font-size:11.5px;color:var(--text2)}
+.dd{border:1px solid var(--border-input);border-top:none;background:var(--card);box-shadow:0 4px 10px rgba(20,40,63,.12);font-size:12px}
+.dd div{padding:4px 8px;display:flex;justify-content:space-between}
+.dd div.sel{background:var(--info-soft)}
+.dd .meta{color:var(--text3);font-size:10.5px}
+.dd .newrow{color:var(--action);font-weight:600;border-top:1px solid var(--sep-thin)}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{background:var(--bg2);color:var(--text2);font-weight:600;text-align:left;padding:6px;border-bottom:1px solid var(--border);font-size:11.5px;white-space:nowrap}
+th .ar{color:var(--action);margin-left:4px}
+td{padding:4px 6px;border-bottom:1px solid var(--sep-thin);height:28px;vertical-align:middle}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+td.mono{font-family:var(--mono);font-size:11.5px}
+.checks td{height:auto;padding:6px;line-height:1.35}
+.checks td:first-child{white-space:nowrap;font-weight:600;width:170px}
+.summary{display:flex;align-items:center;gap:8px;padding:8px 12px;border-top:1px solid var(--border);background:var(--bg2);border-radius:0 0 4px 4px;font-weight:600}
+.summary .ok{color:var(--ok)}.summary .warn{color:var(--warn)}.summary .err{color:var(--err)}
+
+/* Grid */
+.grid-card{margin:8px 12px 0;padding:8px 12px}
+.ghead{display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:wrap}
+tr.grp td{background:var(--bg3);font-weight:600;color:var(--action);height:26px}
+tr.grp .tw{display:inline-block;width:14px;color:var(--text2)}
+tr.dim td{color:var(--text3)}
+.cv{color:var(--text3)}
+.nv{font-weight:600}
+
+/* Log */
+.log{background:var(--log-bg);border-radius:4px;padding:8px 12px;margin:8px 12px;font-family:var(--mono);font-size:11.5px;color:var(--log-text)}
+.loghead{display:flex;align-items:center;font-family:var(--font)}
+.loghead b{font-size:11.5px}.loghead .dim{color:var(--log-dim);font-size:10.5px;margin-left:8px}
+.ghost{height:24px;padding:0 10px;border:1px solid var(--log-dim);border-radius:4px;color:var(--log-text);display:inline-flex;align-items:center;font-size:11px;margin-left:8px}
+.logline{margin-top:4px;padding:1px 4px;border-radius:2px}.logline.sel{background:var(--navy-light)}
+.logline .tm{color:var(--log-dim);margin-right:8px}.logline .lv{display:inline-block;width:64px;font-weight:600}
+
+/* Footer */
+.footer{border-top:1px solid var(--border);padding:8px 12px;background:var(--surface-window)}
+.status{display:grid;grid-template-columns:1fr 220px auto;align-items:center;gap:12px;margin-bottom:6px}
+.bar{height:6px;background:var(--bg3);border-radius:3px;overflow:hidden}.bar i{display:block;height:100%;background:var(--action)}
+.btn{height:30px;padding:0 12px;border-radius:4px;font-size:12.5px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--action);color:var(--action);background:var(--card)}
+.btn.run{background:var(--action);color:var(--new-text);min-width:150px;font-weight:600}
+.btn.off{background:var(--bg3);border-color:var(--border);color:var(--text-disabled)}
+
+/* Ribbon */
+.ribbon{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap}
+.rpanel{background:var(--card);border:1px solid var(--border);width:220px}
+.rbody{display:flex;gap:6px;padding:8px;justify-content:center}
+.rbtn{width:64px;text-align:center;font-size:11px;padding:4px 2px;border-radius:3px}
+.rbtn.hl{background:var(--info-soft);outline:1px solid var(--info-border)}
+.ico{width:32px;height:32px;margin:0 auto 4px;border-radius:4px;background:var(--action);color:var(--on-dark);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px}
+.ico.g{background:var(--bg3);color:var(--text3)}
+.rtitle{background:var(--bg2);text-align:center;font-size:11px;color:var(--text2);padding:2px}
+.tip{background:var(--card);border:1px solid var(--border-input);box-shadow:0 4px 12px rgba(20,40,63,.15);padding:8px 10px;width:340px;font-size:12px;line-height:1.45}
+.tip b{display:block;margin-bottom:2px}
+
+/* Dialog */
+.dlg{width:560px}
+.cats{border:1px solid var(--border-input);border-radius:2px;padding:4px 8px;display:grid;grid-template-columns:1fr 1fr;row-gap:2px;background:var(--card)}
+
+.lists{display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:1200px}
+.lists > div{min-width:0}
+.lists ol,.lists ul{margin:0;padding-left:20px;line-height:1.55;color:var(--text)}
+.lists li{margin-bottom:4px}
+@media (max-width:760px){.lists{grid-template-columns:1fr}}
+</style>
+
+<h1>Base Level to Parameter <span class="new">NEW TOOL</span></h1>
+<p class="note">Mock-up for approval. All element ids, names, paths and values on this page are <b>sample data</b>. Amber <span class="asm" style="margin:0">ASSUMED</span> tags mark choices from the brief or ones I made that need your confirmation; open questions are listed at the end.</p>
+
+<!-- ============ RIBBON ============ -->
+<h2>1 · Ribbon button and tooltip</h2>
+<div class="ribbon">
+  <div class="rpanel">
+    <div class="rbody">
+      <div class="rbtn"><div class="ico g">···</div>Other tool</div>
+      <div class="rbtn hl"><div class="ico">LV</div>Base Level to<br>Parameter<span class="new" style="margin:2px 0 0">NEW</span></div>
+    </div>
+    <div class="rtitle">Panel: to be decided <span class="asm">ASK</span></div>
+  </div>
+  <div class="tip"><b>Base Level to Parameter — v1.0.0 (build V001)</b>Reads each element's base level and offset and writes them to a text parameter as “Level 02 (+450)”.</div>
+</div>
+
+<!-- ============ MAIN WINDOW ============ -->
+<h2>2 · Main window, after “Load Base Level”</h2>
+<div class="scroll">
+<div class="win" style="width:1240px">
+  <div class="titlebar"><span>Base Level to Parameter — v1.0.0</span><span>—□✕</span></div>
+  <div class="header">
+    <div><div class="t">Base Level to Parameter <span class="new">NEW</span></div><div class="s">Sample Project · Active view: Level 02 – Floor Plan</div></div>
+    <div class="v">v1.0.0</div>
+  </div>
+
+  <!-- HEADER CONTENT: metrics -->
+  <div class="pad">
+    <div class="card metrics">
+      <div class="tile"><div class="n">151</div><div class="k">Elements Listed</div></div>
+      <div class="tile info"><div class="n">142</div><div class="k">Checked</div></div>
+      <div class="tile ok"><div class="n">121</div><div class="k">Ready</div></div>
+      <div class="tile warn"><div class="n">21</div><div class="k">Warnings</div></div>
+      <div class="tile err"><div class="n">0</div><div class="k">Blocked</div></div>
+    </div>
+  </div>
+
+  <!-- Source toolbar -->
+  <div class="pad">
+    <div class="card row" style="padding:8px 12px">
+      <span class="lbl">Source</span><span class="pill">Active view · Level 02 – Floor Plan · 151 elements</span>
+      <span class="hint" style="margin-left:6px">Host model only. Linked elements are not listed.</span>
+      <span class="sp"></span>
+      <span class="sbtn">Load Active View</span><span class="asm" title="Not in the brief: a way back to the active-view list after Load All">ASSUMED</span>
+      <span class="sbtn">Load All Model Elements</span>
+      <span class="sbtn pri">Load Base Level</span>
+    </div>
+  </div>
+
+  <!-- Target parameter + pre-checks -->
+  <div class="target">
+    <div class="card">
+      <div class="tbody">
+        <div class="section">Target parameter</div>
+        <div class="form">
+          <span class="l">Parameter</span>
+          <div>
+            <span class="combo" style="width:100%">Base Level Te|</span>
+            <div class="dd">
+              <div class="sel"><span>Base Level Text</span><span class="meta">Shared · Instance · Text</span></div>
+              <div><span>Base Level Tag</span><span class="meta">Project · Type · Text</span></div>
+              <div class="newrow"><span>+ Create “Base Level Te” as new parameter…</span></div>
+            </div>
+          </div>
+          <span class="l"></span>
+          <span class="row"><span class="sbtn">New Parameter…</span><span class="hint">Opens the dialog in section 3.</span></span>
+          <span class="l">Existing values</span>
+          <label><input type="checkbox">Overwrite existing values<span class="asm" title="Default off: elements that already have a value are skipped">ASSUMED · default off</span></label>
+          <span class="l">Value format</span>
+          <span><span class="pill" style="font-family:var(--mono)">Level 02 (+450)</span> <span class="hint">mm, signed, no decimals; zero = “(0)”</span><span class="asm">ASSUMED</span></span>
+        </div>
+        <div class="hint">The list shows every project parameter; a wrong data type or a type parameter is reported as Blocked in check b.<span class="asm">ASSUMED</span></div>
+      </div>
+    </div>
+
+    <div class="card" style="display:flex;flex-direction:column">
+      <div class="row" style="padding:8px 12px 0"><span class="section">Pre-checks</span><span class="hint">Run before any transaction. Refresh on every change to the parameter or the checked rows.</span><span class="asm">ASSUMED · automatic</span><span class="sp"></span><span class="sbtn">Re-check</span></div>
+      <div style="padding:8px 12px">
+        <table class="checks">
+          <tr><th>Check</th><th style="width:80px">Result</th><th>Detail</th></tr>
+          <tr><td>a · Name</td><td><span class="chip ok">Pass</span></td><td>“Base Level Text”, 15 / 25 characters, no invalid characters, no clash with a built-in parameter on the 7 categories.</td></tr>
+          <tr><td>b · Already in project</td><td><span class="chip warn">Warning</span></td><td>Found: shared, instance, Text → reused. Not bound to <b>Ducts, Pipes</b>; these 2 categories will be added to the binding.<span class="asm">ASSUMED · automatic</span></td></tr>
+          <tr><td>c · Shared parameter file</td><td><span class="chip ok">Pass</span></td><td class="mono">C:\Standards\SharedParameters.txt</td></tr>
+          <tr><td></td><td></td><td style="padding-top:0">Exists and is writable. Same name in group “Data”, GUID matches the project parameter (3f2a…c9e1).</td></tr>
+          <tr><td>d · Categories</td><td><span class="chip ok">Pass</span></td><td>7 of 7 categories allow bound parameters.</td></tr>
+          <tr><td>e · Document and elements</td><td><span class="chip warn">Warning</span></td><td>Project document, editable, workshared. <b>3</b> elements owned by another user → skipped. Parameter read-only on 0 elements. <b>12</b> elements already have a value → skipped (Overwrite is off). <b>6</b> elements have no base level → skipped.</td></tr>
+        </table>
+      </div>
+      <div class="summary" style="margin-top:auto"><span class="ok">121 ready</span>|<span class="warn">21 warnings</span>|<span class="err">0 blocked</span><span class="asm" title="Counts are elements; a Blocked check (a–d) marks every checked element Blocked">ASSUMED · element counts</span><span class="sp"></span><span class="hint" style="font-weight:400">Run is enabled because nothing is blocked.</span></div>
+    </div>
+  </div>
+
+  <!-- Grid -->
+  <div class="card grid-card">
+    <div class="ghead">
+      <span class="section">Elements</span><span class="pill">151</span>
+      <span class="text" style="width:260px;margin-left:12px"><span class="ph">⌕ Filter by id, category, family, level…</span></span>
+      <span class="sbtn">Select All</span><span class="sbtn">Select None</span><span class="hint">acts on visible rows only</span>
+      <span class="sp"></span>
+      <span class="sbtn">Expand All</span><span class="sbtn">Collapse All</span>
+    </div>
+    <table>
+      <tr><th style="width:30px"><input type="checkbox" checked></th><th style="width:80px">Element Id</th><th style="width:130px">Category<span class="ar">▲</span></th><th style="width:270px">Family and Type</th><th style="width:100px">Base Level</th><th class="num" style="width:90px">Base Offset</th><th style="width:150px">Current Value</th><th style="width:150px">New Value</th><th>Status</th></tr>
+
+      <tr class="grp"><td colspan="9"><span class="tw">▾</span>Walls <span class="cnt">48 elements · 47 checked</span> <span class="hint" style="font-weight:400;margin-left:8px">Base Constraint + Base Offset</span></td></tr>
+      <tr><td><input type="checkbox" checked></td><td class="mono">318204</td><td>Walls</td><td>Basic Wall: Ext – Brick 290</td><td>Level 01</td><td class="num">0</td><td class="cv">—</td><td class="nv">Level 01 (0)</td><td><span class="chip ok">Ready</span></td></tr>
+      <tr><td><input type="checkbox" checked></td><td class="mono">318377</td><td>Walls</td><td>Basic Wall: Int – Partition 100</td><td>Level 02</td><td class="num">+450</td><td class="cv">—</td><td class="nv">Level 02 (+450)</td><td><span class="chip ok">Ready</span></td></tr>
+      <tr><td><input type="checkbox" checked></td><td class="mono">318512</td><td>Walls</td><td>Basic Wall: Int – Partition 100</td><td>Level 02</td><td class="num">+450</td><td>Level 02 (+300)</td><td class="nv">Level 02 (+450)</td><td><span class="chip warn">Skipped · has value</span></td></tr>
+      <tr><td><input type="checkbox" checked></td><td class="mono">319001</td><td>Walls</td><td>Curtain Wall: Storefront</td><td>Level 01</td><td class="num">−150</td><td class="cv">—</td><td class="nv">Level 01 (-150)</td><td><span class="chip warn">Skipped · owned by User B</span></td></tr>
+
+      <tr class="grp"><td colspan="9"><span class="tw">▾</span>Structural Columns <span class="cnt">22 · 22 checked</span> <span class="hint" style="font-weight:400;margin-left:8px">Base Level + Base Offset</span></td></tr>
+      <tr><td><input type="checkbox" checked></td><td class="mono">402118</td><td>Structural Columns</td><td>Concrete-Rectangular-Column: 400 x 400</td><td>Level 01</td><td class="num">0</td><td class="cv">—</td><td class="nv">Level 01 (0)</td><td><span class="chip ok">Ready</span></td></tr>
+      <tr><td><input type="checkbox" checked></td><td class="mono">402119</td><td>Structural Columns</td><td>Concrete-Rectangular-Column: 400 x 400</td><td>Level 02</td><td class="num">−75</td><td class="cv">—</td><td class="nv">Level 02 (-75)</td><td><span class="chip ok">Ready</span></td></tr>
+
+      <tr class="grp"><td colspan="9"><span class="tw">▾</span>Floors <span class="cnt">6 · 6 checked</span> <span class="hint" style="font-weight:400;margin-left:8px">Level + Height Offset From Level</span></td></tr>
+      <tr><td><input type="checkbox" checked></td><td class="mono">451220</td><td>Floors</td><td>Floor: Slab 200</td><td>Level 02</td><td class="num">−50</td><td class="cv">—</td><td class="nv">Level 02 (-50)</td><td><span class="chip ok">Ready</span></td></tr>
+
+      <tr class="grp"><td colspan="9"><span class="tw">▸</span>Roofs <span class="cnt">2 · 2 checked · collapsed</span></td></tr>
+
+      <tr class="grp"><td colspan="9"><span class="tw">▾</span>Generic Models <span class="cnt">18 · 10 checked</span> <span class="hint" style="font-weight:400;margin-left:8px">Level or Schedule Level + Offset from Host</span></td></tr>
+      <tr><td><input type="checkbox" checked></td><td class="mono">503771</td><td>Generic Models</td><td>Planter Box: 1200 x 600</td><td>Level 02</td><td class="num">+150</td><td class="cv">—</td><td class="nv">Level 02 (+150)</td><td><span class="chip ok">Ready</span></td></tr>
+      <tr><td><input type="checkbox" checked></td><td class="mono">503902</td><td>Generic Models</td><td>In-place: Bench</td><td class="cv">—</td><td class="num cv">—</td><td class="cv">—</td><td class="cv">—</td><td><span class="chip warn">Warning · no base level</span></td></tr>
+      <tr class="dim"><td><input type="checkbox"></td><td class="mono">503940</td><td>Generic Models</td><td>Bollard: 150 dia</td><td>Level 01</td><td class="num">0</td><td>—</td><td>—</td><td><span class="chip mute">Not checked</span></td></tr>
+
+      <tr class="grp"><td colspan="9"><span class="tw">▾</span>Ducts <span class="cnt">31 · 31 checked</span> <span class="hint" style="font-weight:400;margin-left:8px">Reference Level + Offset</span> <span class="chip info" style="margin-left:8px">category will be added to binding</span></td></tr>
+      <tr><td><input type="checkbox" checked></td><td class="mono">612004</td><td>Ducts</td><td>Rectangular Duct: Mitered Elbows</td><td>Level 03</td><td class="num">+2850</td><td class="cv">—</td><td class="nv">Level 03 (+2850)</td><td><span class="chip ok">Ready</span></td></tr>
+
+      <tr class="grp"><td colspan="9"><span class="tw">▸</span>Pipes <span class="cnt">24 · 24 checked · collapsed</span> <span class="chip info" style="margin-left:8px">category will be added to binding</span></td></tr>
+    </table>
+    <div class="hint" style="margin-top:6px">Columns sort on click (arrow shows direction). Rows are virtualized. Offsets are rounded to the nearest mm (2849.6 → +2850)<span class="asm">ASSUMED · rounding</span></div>
+  </div>
+
+  <!-- Log -->
+  <div class="log">
+    <div class="loghead"><span style="font-size:11px;margin-right:6px">▾</span><b>Activity log</b><span class="dim">6 lines · 1 selected</span>
+      <span class="sp"></span><span class="ghost">Copy All</span><span class="ghost">Copy Selected</span></div>
+    <div class="logline"><span class="tm">10:14:02</span><span class="lv" style="color:var(--log-hi)">Info</span>Listed 151 model elements in the active view “Level 02 – Floor Plan” (host model only).</div>
+    <div class="logline"><span class="tm">10:14:20</span><span class="lv" style="color:var(--log-ok)">Success</span>Read base level and offset for 136 of 142 checked elements.</div>
+    <div class="logline sel"><span class="tm">10:14:20</span><span class="lv" style="color:var(--log-warn)">Warning</span>6 elements have no base level and are skipped (e.g. 503902 Generic Models).</div>
+    <div class="logline"><span class="tm">10:14:20</span><span class="lv" style="color:var(--log-warn)">Warning</span>3 elements are owned by User B and are skipped (319001, 319004, 612230).</div>
+    <div class="logline"><span class="tm">10:14:31</span><span class="lv" style="color:var(--log-hi)">Info</span>Target “Base Level Text”: Ducts and Pipes will be added to its binding.</div>
+    <div class="logline"><span class="tm">10:14:31</span><span class="lv" style="color:var(--log-hi)">Info</span>Pre-checks: 3 pass, 2 warnings, 0 blocked → 121 ready | 21 warnings | 0 blocked.</div>
+  </div>
+
+  <!-- FOOTER (fixed, not scrolled) -->
+  <div class="footer">
+    <div class="status"><span class="hint" style="font-size:11px">Ready · 121 elements will be assigned, 21 skipped</span><div class="bar"><i style="width:0"></i></div><span></span></div>
+    <div class="row"><span class="sp"></span><span class="btn run">Run</span><span class="btn" style="width:90px">Close</span></div>
+  </div>
+</div>
+</div>
+
+<!-- ============ NEW PARAMETER DIALOG ============ -->
+<h2>3 · New Parameter dialog</h2>
+<p class="note">Opened by “New Parameter…” or the “+ Create …” line in the combo. Its pre-checks reuse rules a–d from the main window.</p>
+<div class="scroll">
+<div class="win dlg">
+  <div class="titlebar"><span>New Parameter — Base Level to Parameter v1.0.0</span><span>✕</span></div>
+  <div style="padding:12px 16px;display:flex;flex-direction:column;gap:10px">
+    <div class="form" style="grid-template-columns:130px 1fr">
+      <span class="l">Name</span><span class="row"><span class="text" style="flex:1">Base Level Info</span><span class="hint">15 / 25</span></span>
+      <span class="l">Kind</span><span>Shared parameter · Instance · Text<span class="asm">ASSUMED · fixed</span></span>
+      <span class="l">Shared param. file</span><span class="row"><span class="text mono" style="flex:1;font-size:11px">C:\Standards\SharedParameters.txt</span><span class="sbtn">Browse…</span></span>
+      <span class="l">Group in file</span><span class="combo" style="width:200px">Data</span>
+      <span class="l">Properties group</span><span><span class="combo" style="width:200px">Identity Data</span><span class="asm" title="Where the parameter shows in the Properties palette; not in the brief">ASSUMED</span></span>
+      <span class="l" style="align-self:start;padding-top:4px">Categories</span>
+      <div>
+        <div class="cats">
+          <label><input type="checkbox" checked>Walls</label><label><input type="checkbox" checked>Structural Columns</label>
+          <label><input type="checkbox" checked>Floors</label><label><input type="checkbox" checked>Roofs</label>
+          <label><input type="checkbox" checked>Generic Models</label><label><input type="checkbox" checked>Ducts</label>
+          <label><input type="checkbox" checked>Pipes</label>
+        </div>
+        <div class="hint" style="margin-top:4px">From the checked elements. Schedulable is always on.</div>
+      </div>
+    </div>
+    <table class="checks">
+      <tr><th>Check</th><th style="width:80px">Result</th><th>Detail</th></tr>
+      <tr><td>Name</td><td><span class="chip ok">Pass</span></td><td>No invalid characters (\ : { } [ ] | ; &lt; &gt; ? ` ~), no built-in clash.</td></tr>
+      <tr><td>In project</td><td><span class="chip ok">Pass</span></td><td>Not in project; will be created.</td></tr>
+      <tr><td>Shared parameter file</td><td><span class="chip ok">Pass</span></td><td>Writable. Name not in file; a new GUID will be added.</td></tr>
+      <tr><td>Categories</td><td><span class="chip ok">Pass</span></td><td>7 of 7 allow bound parameters.</td></tr>
+    </table>
+    <div class="row" style="background:var(--err-soft);border:1px solid var(--err-border);border-radius:4px;padding:6px 8px;color:var(--err);font-size:11.5px">
+      Example of a blocked state: “No shared parameter file is set. Pick one with Browse… to continue.”
+    </div>
+  </div>
+  <div class="footer row"><span class="hint">4 pass | 0 warnings | 0 blocked</span><span class="sp"></span><span class="btn run" style="min-width:110px">Create</span><span class="btn" style="width:90px">Cancel</span></div>
+</div>
+</div>
+
+<!-- ============ FOOTER STATES ============ -->
+<h2>4 · Footer while running and after a run</h2>
+<div class="scroll">
+<div class="win" style="width:1240px">
+  <div class="footer">
+    <div class="status"><span class="hint" style="font-size:11px">Assigning… 74 / 121</span><div class="bar"><i style="width:61%"></i></div><span class="sbtn">Cancel</span></div>
+    <div class="row"><span class="sp"></span><span class="btn run off">Run</span><span class="btn off" style="width:90px">Close</span></div>
+  </div>
+</div>
+<div class="win" style="width:1240px;margin-top:8px">
+  <div class="footer">
+    <div class="status"><span style="font-size:11.5px;font-weight:600"><span style="color:var(--ok)">121 assigned</span> | <span style="color:var(--warn)">21 skipped</span> | <span style="color:var(--err)">0 failed</span></span><div class="bar"><i style="width:100%"></i></div><span></span></div>
+    <div class="row"><span class="hint">Window stays open. Status column now shows Assigned / Skipped / Failed per row.</span><span class="sp"></span><span class="btn run">Run</span><span class="btn" style="width:90px">Close</span></div>
+  </div>
+</div>
+</div>
+<p class="note" style="margin-top:8px">Cancel comes from the shared ToolWindowShell footer. A critical error shows a dialog and rolls back the whole run (one transaction).</p>
+
+<!-- ============ ASSUMPTIONS / QUESTIONS ============ -->
+<h2>5 · Assumptions and open questions</h2>
+<div class="lists">
+  <div>
+    <div class="section" style="margin-bottom:6px">Assumptions shown above</div>
+    <ul>
+      <li>All five level-source rules are supported (walls, columns, floors/roofs, families, MEP).</li>
+      <li>No base level → row stays checked, status Warning, skipped, logged.</li>
+      <li>New parameters are shared, instance, Text, schedulable; bound to the checked elements' categories.</li>
+      <li>Missing categories on an existing parameter are added automatically (Warning, not Blocked).</li>
+      <li>Offset: mm, signed, rounded to whole mm, zero = “(0)”.</li>
+      <li>Overwrite existing values: off by default, so those rows are skipped.</li>
+      <li>Run is disabled while running; Close too.</li>
+      <li>Pre-checks refresh automatically; “Re-check” also available.</li>
+    </ul>
+  </div>
+  <div>
+    <div class="section" style="margin-bottom:6px">Questions for you</div>
+    <ol>
+      <li>Which ribbon tab / panel, and which folder (<span style="font-family:var(--mono)">Menu/&lt;Area&gt;/&lt;Group&gt;/</span>)?</li>
+      <li>Summary “X ready | Y warnings | Z blocked”: counts of elements (as shown) or counts of checks a–e?</li>
+      <li>Keep my extra “Load Active View” button (to go back after Load All)?</li>
+      <li>New parameter: allow choosing the Properties group, or always Identity Data?</li>
+      <li>“Input MaxLength 10”: which inputs? I only found name fields (25) and the filter box.</li>
+      <li>Value text when offset is in a non-mm project: always mm, or follow project units?</li>
+    </ol>
+  </div>
+</div>
