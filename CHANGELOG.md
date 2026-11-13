@@ -9,6 +9,21 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [7.1.2] — 2026-11-13
+
+### Schedule Export / Import 7.2.1 (V007)
+
+#### Fixed
+- Export no longer shows Revit family warnings such as "Can't create sweep" and "Line is too short" ("An error occurred
+  in family … and was automatically resolved"). They came up when the schedule had calculated, combined or room columns.
+- If Revit raises such warnings during export, the tool log now has one line with the count and the first message.
+
+User note: to read calculated columns the export tags each element's Comments in a transaction that is always rolled
+back. That makes Revit rebuild each element, and a family whose geometry is already faulty (for example a very short
+beam) raises its warning again. The warnings were left on screen although nothing was kept. They are now discarded with
+the rolled-back transaction. The model is not changed by export, before or after this fix, and the Excel file is the
+same. The faulty family instances are still faulty; fix them in the family or on the element.
+
 ## [7.1.1] — 2026-11-13
 
 ### Sheet Auto Rearrange 30.0.1 (V030), 29.0.2 (V029), 28.2.2 (V028)
