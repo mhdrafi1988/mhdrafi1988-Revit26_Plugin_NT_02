@@ -1,0 +1,647 @@
+<!--
+=======================================================
+File: SheetAutoRearrangeWindow.xaml  (V030 — redesigned window on ToolWindowShell)
+Layout (owner-approved mock-up, Claude/Previews/SheetAutoRearrange_V030_Window.html):
+  HEADER: active-sheet chip.
+  BODY:   three columns — Views on sheet (left), Live sheet preview (centre,
+          the main area), settings in three tabs (right: Layout / Spacing /
+          Advanced). Under them the activity log, collapsed to one line; it
+          opens by itself on a warning or error.
+  FOOTER: shell status strip + Export log, Run, Close.
+Changes vs V029:
+  - Eight expanders replaced by three tabs; the preview is the centre column
+    and draws the sheet outline, the usable area and the view names.
+  - Quick layout buttons (Pack / Rows / Table / Spread), segmented buttons for
+    align and distribute, a 3 x 3 Sheet position picker, Fill strategy dropdown.
+  - Removed: the metric cards, and the two overflow modes that were never
+    implemented (Force-Fit, Auto-Create Overflow Sheet).
+=======================================================
+-->
+<Window x:Class="Revit26_Plugin_Revised.SheetAutoRearrange.V030.UI.Views.SheetAutoRearrangeWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:svc="clr-namespace:Revit26_Plugin_Revised.Shared.Services"
+        xmlns:local="clr-namespace:Revit26_Plugin_Revised.SheetAutoRearrange.V030.UI.Views"
+        xmlns:conv="clr-namespace:Revit26_Plugin_Revised.Shared.Models"
+        xmlns:shell="clr-namespace:Revit26_Plugin_Revised.Shared.Controls"
+        Title="{Binding Source={x:Static svc:ToolCatalog.SheetAutoRearrangeV030}, Path=Title}"
+        Height="780" Width="1180"
+        MinHeight="700" MinWidth="1040"
+        Background="{DynamicResource BrushSurfaceWindow}"
+        FontFamily="{DynamicResource SystemFont}"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="CanResize">
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Revit26_Plugin_Revised;component/Shared/SharedStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- Converters instantiated locally only, per suite convention -->
+            <conv:InverseBoolConverter x:Key="InverseBoolConverter"/>
+            <conv:LogLevelToColorConverter x:Key="LogLevelToColorConverter"/>
+            <conv:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+            <local:StatusToFitTextConverter x:Key="StatusToFitTextConverter"/>
+            <local:StatusToFitBrushConverter x:Key="StatusToFitBrushConverter"/>
+            <local:StringToVisibilityConverter x:Key="StringToVisibilityConverter"/>
+            <local:ValueEqualsConverter x:Key="ValueEquals"/>
+
+            <!-- Small upper-case caption above a group of controls -->
+            <Style x:Key="GroupCaption" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="10.5"/>
+                <Setter Property="FontWeight" Value="SemiBold"/>
+                <Setter Property="Foreground" Value="{StaticResource BrushTextSecondary}"/>
+                <Setter Property="Margin" Value="0,0,0,4"/>
+            </Style>
+
+            <!-- One cell of a segmented control: a RadioButton drawn as a flat button; the checked one is navy -->
+            <Style x:Key="Segment" TargetType="RadioButton">
+                <Setter Property="Height" Value="26"/>
+                <Setter Property="FontSize" Value="11.5"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="Foreground" Value="{StaticResource BrushTextPrimary}"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="RadioButton">
+                            <Border x:Name="Bg" Background="{StaticResource BrushSurfaceCard}"
+                                    BorderBrush="{StaticResource BrushBorderInput}" BorderThickness="1" Margin="-1,0,0,0">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                  TextElement.Foreground="{TemplateBinding Foreground}"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="Bg" Property="Background" Value="{StaticResource BrushSystemSecondaryBackground}"/>
+                                </Trigger>
+                                <Trigger Property="IsChecked" Value="True">
+                                    <Setter TargetName="Bg" Property="Background" Value="{StaticResource BrushNavyPrimary}"/>
+                                    <Setter TargetName="Bg" Property="BorderBrush" Value="{StaticResource BrushNavyPrimary}"/>
+                                    <Setter Property="Foreground" Value="{StaticResource BrushTextOnDark}"/>
+                                    <Setter Property="FontWeight" Value="SemiBold"/>
+                                </Trigger>
+                                <Trigger Property="IsEnabled" Value="False">
+                                    <Setter TargetName="Bg" Property="Opacity" Value="0.45"/>
+                                </Trigger>
+                                <Trigger Property="IsKeyboardFocused" Value="True">
+                                    <Setter TargetName="Bg" Property="BorderBrush" Value="{StaticResource BrushSystemAccent}"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <!-- One cell of the 3 x 3 Sheet position picker -->
+            <Style x:Key="PositionCell" TargetType="RadioButton" BasedOn="{StaticResource Segment}">
+                <Setter Property="Height" Value="18"/>
+                <Setter Property="Width" Value="26"/>
+                <Setter Property="Margin" Value="1,1,2,2"/>
+            </Style>
+
+            <!-- Quick layout button: Tag (bool) marks the layout the options currently match -->
+            <Style x:Key="QuickLayoutButton" TargetType="Button">
+                <Setter Property="Height" Value="34"/>
+                <Setter Property="FontSize" Value="11.5"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="Margin" Value="0,0,6,0"/>
+                <Setter Property="Foreground" Value="{StaticResource BrushTextPrimary}"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="Bg" Background="{StaticResource BrushSurfaceCard}" CornerRadius="5"
+                                    BorderBrush="{StaticResource BrushBorderInput}" BorderThickness="1">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="Bg" Property="BorderBrush" Value="{StaticResource BrushSystemAccent}"/>
+                                </Trigger>
+                                <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="True">
+                                    <Setter TargetName="Bg" Property="Background" Value="{StaticResource BrushStatusInfoSoft}"/>
+                                    <Setter TargetName="Bg" Property="BorderBrush" Value="{StaticResource BrushNavyPrimary}"/>
+                                    <Setter Property="FontWeight" Value="SemiBold"/>
+                                </DataTrigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <!-- Settings tabs: text with an underline on the selected one -->
+            <Style x:Key="SettingsTab" TargetType="TabItem">
+                <Setter Property="FontSize" Value="12"/>
+                <Setter Property="FontWeight" Value="SemiBold"/>
+                <Setter Property="Foreground" Value="{StaticResource BrushTextSecondary}"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="TabItem">
+                            <Border x:Name="Bd" Padding="12,8,12,6" BorderThickness="0,0,0,2" BorderBrush="Transparent" Background="Transparent" Cursor="Hand">
+                                <ContentPresenter ContentSource="Header" TextElement.Foreground="{TemplateBinding Foreground}"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsSelected" Value="True">
+                                    <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource BrushNavyPrimary}"/>
+                                    <Setter Property="Foreground" Value="{StaticResource BrushNavyPrimary}"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <shell:ToolWindowShell Title="Sheet Auto Rearrange"
+                           Subtitle="Reselect, remove &amp; repack views on the active sheet"
+                           Version="{Binding Source={x:Static svc:ToolCatalog.SheetAutoRearrangeV030}, Path=Version, StringFormat=v{0}}"
+                           IsRunning="{Binding IsBusy}"
+                           IsIndeterminate="True"
+                           Progress="{Binding Progress}"
+                           SummaryText="{Binding SummaryText}">
+
+        <!-- ═══ HEADER ═══════════════════════════════════════════ -->
+        <shell:ToolWindowShell.HeaderContent>
+            <Border Style="{StaticResource BadgePill}" HorizontalAlignment="Left">
+                <TextBlock Text="{Binding SheetChipText}" Style="{StaticResource BadgeText}"/>
+            </Border>
+        </shell:ToolWindowShell.HeaderContent>
+
+        <!-- ═══ BODY ═════════════════════════════════════════════ -->
+        <shell:ToolWindowShell.BodyContent>
+            <StackPanel>
+                <!-- Height follows the window (code-behind) so the preview fills what the shell leaves -->
+                <Grid x:Name="MainGrid" Height="470" Margin="0,0,0,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="280"/>
+                        <ColumnDefinition Width="*" MinWidth="300"/>
+                        <ColumnDefinition Width="340"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- ── LEFT: views on sheet ── -->
+                    <Border Grid.Column="0" Style="{StaticResource ContentCard}" Margin="0,0,8,0" Padding="0">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <Grid Grid.Row="0" Margin="12,9,12,6">
+                                <TextBlock Text="Views on sheet" FontSize="12.5" FontWeight="SemiBold" Foreground="{StaticResource BrushTextPrimary}"/>
+                                <TextBlock HorizontalAlignment="Right" Style="{StaticResource HintText}" VerticalAlignment="Center">
+                                    <Run Text="{Binding SelectedMetric, Mode=OneWay}"/><Run Text=" of "/><Run Text="{Binding TotalViewsMetric, Mode=OneWay}"/><Run Text=" ticked"/>
+                                </TextBlock>
+                            </Grid>
+
+                            <TextBox Grid.Row="1" Margin="12,0,12,6" MaxLength="100" Style="{StaticResource StyledTextInput}" FontSize="11.5"
+                                     ToolTip="Filter by view name"
+                                     Text="{Binding FilterText, UpdateSourceTrigger=PropertyChanged}"/>
+
+                            <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="12,0,12,8">
+                                <Button Content="All" Style="{StaticResource SmallSecondaryButton}" Command="{Binding SelectAllCommand}" Margin="0,0,5,0" ToolTip="Tick every listed view"/>
+                                <Button Content="None" Style="{StaticResource SmallSecondaryButton}" Command="{Binding ClearAllCommand}" Margin="0,0,5,0" ToolTip="Untick every listed view"/>
+                                <Button Content="Types ▾" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,5,0" Click="ViewTypesButton_Click" ToolTip="Choose which view types are listed"/>
+                                <Button Content="Refresh" Style="{StaticResource SmallSecondaryButton}" Command="{Binding RefreshCommand}" ToolTip="Reload the views from the sheet"/>
+
+                                <Popup x:Name="ViewTypesPopup" StaysOpen="False" Width="200">
+                                    <Border Background="{StaticResource BrushSurfaceCard}" BorderBrush="{StaticResource BrushBorderDefault}"
+                                            BorderThickness="1" CornerRadius="8" Padding="8">
+                                        <Border.Effect>
+                                            <DropShadowEffect ShadowDepth="2" BlurRadius="10" Opacity="0.2"/>
+                                        </Border.Effect>
+                                        <StackPanel>
+                                            <CheckBox Content="Floor Plan" IsChecked="{Binding ShowFloorPlan}" Margin="4,3"/>
+                                            <CheckBox Content="Section" IsChecked="{Binding ShowSection}" Margin="4,3"/>
+                                            <CheckBox Content="Elevation" IsChecked="{Binding ShowElevation}" Margin="4,3"/>
+                                            <CheckBox Content="3D View" IsChecked="{Binding Show3D}" Margin="4,3"/>
+                                            <CheckBox Content="Legend" IsChecked="{Binding ShowLegend}" Margin="4,3"/>
+                                            <CheckBox Content="Schedule" IsChecked="{Binding ShowSchedule}" Margin="4,3"/>
+                                            <CheckBox Content="Drafting View" IsChecked="{Binding ShowDrafting}" Margin="4,3"/>
+                                        </StackPanel>
+                                    </Border>
+                                </Popup>
+                            </StackPanel>
+
+                            <DataGrid Grid.Row="3"
+                                      ItemsSource="{Binding FilteredViewsSource}"
+                                      Style="{StaticResource StandardDataGrid}"
+                                      CellStyle="{StaticResource StandardDataGridCell}"
+                                      RowStyle="{StaticResource StandardDataGridRow}"
+                                      AutoGenerateColumns="False"
+                                      EnableRowVirtualization="True"
+                                      VirtualizingPanel.VirtualizationMode="Recycling"
+                                      CanUserAddRows="False" CanUserDeleteRows="False"
+                                      HeadersVisibility="None">
+                                <DataGrid.Columns>
+                                    <DataGridTemplateColumn Width="26" CanUserSort="False">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <CheckBox HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                          IsChecked="{Binding IsChecked, UpdateSourceTrigger=PropertyChanged}"
+                                                          PreviewMouseLeftButtonDown="RowCheckBox_PreviewMouseLeftButtonDown"/>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                    <DataGridTemplateColumn Width="*" CanUserSort="False">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Margin="2,3">
+                                                    <TextBlock Text="{Binding ViewName}" TextTrimming="CharacterEllipsis" ToolTip="{Binding ViewName}"/>
+                                                    <TextBlock Style="{StaticResource HintText}">
+                                                        <Run Text="{Binding ViewTypeName, Mode=OneWay}"/><Run Text=" · "/><Run Text="{Binding WidthMm, Mode=OneWay, StringFormat={}{0:0}}"/><Run Text=" × "/><Run Text="{Binding HeightMm, Mode=OneWay, StringFormat={}{0:0}}"/><Run Text=" mm"/>
+                                                    </TextBlock>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                    <DataGridTemplateColumn Width="72" CanUserSort="False">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                    <Border CornerRadius="8" Opacity="0.15"
+                                                            Background="{Binding FitStatus, Converter={StaticResource StatusToFitBrushConverter}}"/>
+                                                    <TextBlock Margin="7,2" Text="{Binding FitStatus, Converter={StaticResource StatusToFitTextConverter}}"
+                                                               FontSize="10" FontWeight="SemiBold"
+                                                               Foreground="{Binding FitStatus, Converter={StaticResource StatusToFitBrushConverter}}"/>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                </DataGrid.Columns>
+                            </DataGrid>
+
+                            <TextBlock Grid.Row="4" Text="Unticked views are removed from the sheet on Run." Style="{StaticResource HintText}"
+                                       TextWrapping="Wrap" Margin="12,7,12,8"/>
+                        </Grid>
+                    </Border>
+
+                    <!-- ── CENTRE: live sheet preview ── -->
+                    <Border Grid.Column="1" Style="{StaticResource ContentCard}" Margin="0,0,8,0" Padding="0">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <Grid Grid.Row="0" Margin="12,9,12,6">
+                                <TextBlock Text="Live sheet preview" FontSize="12.5" FontWeight="SemiBold" Foreground="{StaticResource BrushTextPrimary}"/>
+                                <TextBlock Text="updates as you change options" HorizontalAlignment="Right" Style="{StaticResource HintText}" VerticalAlignment="Center"/>
+                            </Grid>
+
+                            <Border Grid.Row="1" Margin="12,0,12,0" Background="{StaticResource BrushSystemSecondaryBackground}"
+                                    BorderBrush="{StaticResource BrushBorderDefault}" BorderThickness="1" CornerRadius="6">
+                                <Grid>
+                                    <Canvas x:Name="PreviewCanvas" ClipToBounds="True" Margin="10" SizeChanged="PreviewCanvas_SizeChanged"/>
+                                    <TextBlock x:Name="PreviewEmptyText" Text="Tick at least one view to see the layout."
+                                               Style="{StaticResource HintText}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Grid>
+                            </Border>
+
+                            <WrapPanel Grid.Row="2" Margin="12,8,12,10">
+                                <TextBlock VerticalAlignment="Center" FontSize="11.5" Margin="0,0,10,0">
+                                    <Run Text="{Binding PreviewFitCount, Mode=OneWay}" FontWeight="SemiBold"/><Run Text=" fit  ·  "/><Run Text="{Binding PreviewOverflowCount, Mode=OneWay}" FontWeight="SemiBold"/><Run Text=" overflow  ·  "/><Run Text="{Binding ToRemoveCount, Mode=OneWay}" FontWeight="SemiBold"/><Run Text=" to remove"/>
+                                </TextBlock>
+                                <!-- Align & Distribute result: applied (info) or skipped because it does not fit (warning) -->
+                                <Border Padding="9,2" CornerRadius="10" BorderThickness="1" VerticalAlignment="Center"
+                                        Visibility="{Binding AlignNote, Converter={StaticResource StringToVisibilityConverter}}">
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Setter Property="Background" Value="{StaticResource BrushStatusInfoSoft}"/>
+                                            <Setter Property="BorderBrush" Value="{StaticResource BrushStatusInfoBorder}"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsAlignNoteWarning}" Value="True">
+                                                    <Setter Property="Background" Value="{StaticResource BrushStatusWarnSoft}"/>
+                                                    <Setter Property="BorderBrush" Value="{StaticResource BrushStatusWarnBorder}"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                    <TextBlock Text="{Binding AlignNote}" FontSize="10.5" TextWrapping="Wrap">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Foreground" Value="{StaticResource BrushNavyPrimary}"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsAlignNoteWarning}" Value="True">
+                                                        <Setter Property="Foreground" Value="{StaticResource BrushStatusWarn}"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </Border>
+                            </WrapPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- ── RIGHT: settings in three tabs ── -->
+                    <Border Grid.Column="2" Style="{StaticResource ContentCard}" Padding="0">
+                        <TabControl BorderThickness="0,1,0,0" BorderBrush="{StaticResource BrushBorderDefault}" Background="Transparent" Padding="0"
+                                    ItemContainerStyle="{StaticResource SettingsTab}">
+
+                            <!-- Layout: what changes on every sheet -->
+                            <TabItem Header="Layout">
+                                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                    <StackPanel Margin="12,10,12,10">
+                                        <TextBlock Text="QUICK LAYOUT" Style="{StaticResource GroupCaption}"/>
+                                        <UniformGrid Rows="1" Margin="0,0,-6,0">
+                                            <Button Content="Pack" Style="{StaticResource QuickLayoutButton}" Tag="{Binding IsQuickPack}"
+                                                    Command="{Binding ApplyQuickLayoutCommand}" CommandParameter="Pack" ToolTip="Tight packing, no alignment"/>
+                                            <Button Content="Rows" Style="{StaticResource QuickLayoutButton}" Tag="{Binding IsQuickRows}"
+                                                    Command="{Binding ApplyQuickLayoutCommand}" CommandParameter="Rows" ToolTip="Rows with bottoms aligned"/>
+                                            <Button Content="Table" Style="{StaticResource QuickLayoutButton}" Tag="{Binding IsQuickTable}"
+                                                    Command="{Binding ApplyQuickLayoutCommand}" CommandParameter="Table" ToolTip="Rows and columns aligned"/>
+                                            <Button Content="Spread" Style="{StaticResource QuickLayoutButton}" Tag="{Binding IsQuickSpread}"
+                                                    Command="{Binding ApplyQuickLayoutCommand}" CommandParameter="Spread" ToolTip="Table spread across the usable area"/>
+                                        </UniformGrid>
+                                        <TextBlock Text="One click sets the options below. Change any of them afterwards to fine-tune."
+                                                   Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="0,4,0,10"/>
+
+                                        <TextBlock Text="ALIGN ROWS" Style="{StaticResource GroupCaption}"/>
+                                        <UniformGrid Rows="1" Margin="1,0,0,10">
+                                            <RadioButton Content="Off" Style="{StaticResource Segment}" IsChecked="{Binding AlignRows, Converter={StaticResource ValueEquals}, ConverterParameter=Off}"/>
+                                            <RadioButton Content="Top" Style="{StaticResource Segment}" IsChecked="{Binding AlignRows, Converter={StaticResource ValueEquals}, ConverterParameter=Top}"/>
+                                            <RadioButton Content="Center" Style="{StaticResource Segment}" IsChecked="{Binding AlignRows, Converter={StaticResource ValueEquals}, ConverterParameter=Center}"/>
+                                            <RadioButton Content="Bottom" Style="{StaticResource Segment}" IsChecked="{Binding AlignRows, Converter={StaticResource ValueEquals}, ConverterParameter=Bottom}"/>
+                                        </UniformGrid>
+
+                                        <TextBlock Text="ALIGN COLUMNS" Style="{StaticResource GroupCaption}"/>
+                                        <UniformGrid Rows="1" Margin="1,0,0,10">
+                                            <RadioButton Content="Off" Style="{StaticResource Segment}" IsChecked="{Binding AlignColumns, Converter={StaticResource ValueEquals}, ConverterParameter=Off}"/>
+                                            <RadioButton Content="Left" Style="{StaticResource Segment}" IsChecked="{Binding AlignColumns, Converter={StaticResource ValueEquals}, ConverterParameter=Left}"/>
+                                            <RadioButton Content="Center" Style="{StaticResource Segment}" IsChecked="{Binding AlignColumns, Converter={StaticResource ValueEquals}, ConverterParameter=Center}"/>
+                                            <RadioButton Content="Right" Style="{StaticResource Segment}" IsChecked="{Binding AlignColumns, Converter={StaticResource ValueEquals}, ConverterParameter=Right}"/>
+                                        </UniformGrid>
+
+                                        <Grid Margin="0,0,0,2">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="10"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0" IsEnabled="{Binding IsDistributeEnabled}">
+                                                <TextBlock Text="DISTRIBUTE H" Style="{StaticResource GroupCaption}"/>
+                                                <UniformGrid Rows="1" Margin="1,0,0,0">
+                                                    <RadioButton Content="Off" Style="{StaticResource Segment}" IsChecked="{Binding DistributeH, Converter={StaticResource ValueEquals}, ConverterParameter=Off}"/>
+                                                    <RadioButton Content="Edges" Style="{StaticResource Segment}" ToolTip="Edge to edge: first and last view on the area edges" IsChecked="{Binding DistributeH, Converter={StaticResource ValueEquals}, ConverterParameter=EdgeToEdge}"/>
+                                                    <RadioButton Content="Equal" Style="{StaticResource Segment}" ToolTip="Equal spacing: same gap between views and to the edges" IsChecked="{Binding DistributeH, Converter={StaticResource ValueEquals}, ConverterParameter=EqualSpacing}"/>
+                                                </UniformGrid>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="2" IsEnabled="{Binding IsDistributeEnabled}">
+                                                <TextBlock Text="DISTRIBUTE V" Style="{StaticResource GroupCaption}"/>
+                                                <UniformGrid Rows="1" Margin="1,0,0,0">
+                                                    <RadioButton Content="Off" Style="{StaticResource Segment}" IsChecked="{Binding DistributeV, Converter={StaticResource ValueEquals}, ConverterParameter=Off}"/>
+                                                    <RadioButton Content="Edges" Style="{StaticResource Segment}" ToolTip="Edge to edge: first and last view on the area edges" IsChecked="{Binding DistributeV, Converter={StaticResource ValueEquals}, ConverterParameter=EdgeToEdge}"/>
+                                                    <RadioButton Content="Equal" Style="{StaticResource Segment}" ToolTip="Equal spacing: same gap between views and to the edges" IsChecked="{Binding DistributeV, Converter={StaticResource ValueEquals}, ConverterParameter=EqualSpacing}"/>
+                                                </UniformGrid>
+                                            </StackPanel>
+                                        </Grid>
+                                        <TextBlock Text="Distribute needs Align rows or Align columns." Style="{StaticResource HintText}" Margin="0,2,0,10"/>
+
+                                        <TextBlock Text="SHEET POSITION" Style="{StaticResource GroupCaption}"/>
+                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                                            <UniformGrid Rows="3" Columns="3" Margin="1,0,10,0">
+                                                <RadioButton Style="{StaticResource PositionCell}" ToolTip="Top left" IsChecked="{Binding SheetPosition, Converter={StaticResource ValueEquals}, ConverterParameter='Top,Left'}"/>
+                                                <RadioButton Style="{StaticResource PositionCell}" ToolTip="Top centre" IsChecked="{Binding SheetPosition, Converter={StaticResource ValueEquals}, ConverterParameter='Top,Center'}"/>
+                                                <RadioButton Style="{StaticResource PositionCell}" ToolTip="Top right" IsChecked="{Binding SheetPosition, Converter={StaticResource ValueEquals}, ConverterParameter='Top,Right'}"/>
+                                                <RadioButton Style="{StaticResource PositionCell}" ToolTip="Middle left" IsChecked="{Binding SheetPosition, Converter={StaticResource ValueEquals}, ConverterParameter='Center,Left'}"/>
+                                                <RadioButton Style="{StaticResource PositionCell}" ToolTip="Centre" IsChecked="{Binding SheetPosition, Converter={StaticResource ValueEquals}, ConverterParameter='Center,Center'}"/>
+                                                <RadioButton Style="{StaticResource PositionCell}" ToolTip="Middle right" IsChecked="{Binding SheetPosition, Converter={StaticResource ValueEquals}, ConverterParameter='Center,Right'}"/>
+                                                <RadioButton Style="{StaticResource PositionCell}" ToolTip="Bottom left" IsChecked="{Binding SheetPosition, Converter={StaticResource ValueEquals}, ConverterParameter='Bottom,Left'}"/>
+                                                <RadioButton Style="{StaticResource PositionCell}" ToolTip="Bottom centre" IsChecked="{Binding SheetPosition, Converter={StaticResource ValueEquals}, ConverterParameter='Bottom,Center'}"/>
+                                                <RadioButton Style="{StaticResource PositionCell}" ToolTip="Bottom right" IsChecked="{Binding SheetPosition, Converter={StaticResource ValueEquals}, ConverterParameter='Bottom,Right'}"/>
+                                            </UniformGrid>
+                                            <TextBlock Text="Where the block of views sits in the usable area when it is not distributed."
+                                                       Style="{StaticResource HintText}" TextWrapping="Wrap" Width="200" VerticalAlignment="Center"/>
+                                        </StackPanel>
+
+                                        <TextBlock Text="FILL STRATEGY" Style="{StaticResource GroupCaption}"/>
+                                        <ComboBox Style="{StaticResource StandardComboBox}" ItemsSource="{Binding StrategyOptions}"
+                                                  SelectedValuePath="Value" SelectedValue="{Binding RowFillStrategy}"
+                                                  TextSearch.TextPath="Name">
+                                            <ComboBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <StackPanel Margin="0,1">
+                                                        <TextBlock Text="{Binding Name}"/>
+                                                        <TextBlock x:Name="Desc" Text="{Binding Description}" Style="{StaticResource HintText}"/>
+                                                    </StackPanel>
+                                                    <!-- The closed box shows the name only; the description is for the open list -->
+                                                    <DataTemplate.Triggers>
+                                                        <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=ComboBoxItem}}" Value="{x:Null}">
+                                                            <Setter TargetName="Desc" Property="Visibility" Value="Collapsed"/>
+                                                        </DataTrigger>
+                                                    </DataTemplate.Triggers>
+                                                </DataTemplate>
+                                            </ComboBox.ItemTemplate>
+                                        </ComboBox>
+                                        <TextBlock Text="How views are packed before they are aligned." Style="{StaticResource HintText}" Margin="0,3,0,0"/>
+                                    </StackPanel>
+                                </ScrollViewer>
+                            </TabItem>
+
+                            <!-- Spacing: margins and gaps -->
+                            <TabItem Header="Spacing">
+                                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                    <StackPanel Margin="12,10,12,10">
+                                        <TextBlock Text="MARGINS FROM TITLE BLOCK EDGE (MM)" Style="{StaticResource GroupCaption}"/>
+                                        <Grid Margin="0,0,0,2">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="60"/><ColumnDefinition Width="70"/><ColumnDefinition Width="24"/><ColumnDefinition Width="60"/><ColumnDefinition Width="70"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Grid.RowDefinitions><RowDefinition Height="30"/><RowDefinition Height="30"/></Grid.RowDefinitions>
+                                            <TextBlock Text="Top" Style="{StaticResource FieldLabel}" VerticalAlignment="Center"/>
+                                            <TextBox Grid.Column="1" MaxLength="10" FontSize="11" Style="{StaticResource StyledTextInput}" VerticalAlignment="Center" Text="{Binding GapSettings.MarginTopMm}"/>
+                                            <TextBlock Grid.Column="3" Text="Bottom" Style="{StaticResource FieldLabel}" VerticalAlignment="Center"/>
+                                            <TextBox Grid.Column="4" MaxLength="10" FontSize="11" Style="{StaticResource StyledTextInput}" VerticalAlignment="Center" Text="{Binding GapSettings.MarginBottomMm}"/>
+                                            <TextBlock Grid.Row="1" Text="Left" Style="{StaticResource FieldLabel}" VerticalAlignment="Center"/>
+                                            <TextBox Grid.Row="1" Grid.Column="1" MaxLength="10" FontSize="11" Style="{StaticResource StyledTextInput}" VerticalAlignment="Center" Text="{Binding GapSettings.MarginLeftMm}"/>
+                                            <TextBlock Grid.Row="1" Grid.Column="3" Text="Right" Style="{StaticResource FieldLabel}" VerticalAlignment="Center"/>
+                                            <TextBox Grid.Row="1" Grid.Column="4" MaxLength="10" FontSize="11" Style="{StaticResource StyledTextInput}" VerticalAlignment="Center" Text="{Binding GapSettings.MarginRightMm}"/>
+                                        </Grid>
+                                        <TextBlock Text="The dashed green box in the preview is the usable area these leave. It updates when you leave a box."
+                                                   Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="0,2,0,12"/>
+
+                                        <TextBlock Text="GAP BETWEEN VIEWS (MM)" Style="{StaticResource GroupCaption}"/>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="60"/><ColumnDefinition Width="70"/><ColumnDefinition Width="24"/><ColumnDefinition Width="60"/><ColumnDefinition Width="70"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="Horizontal" Style="{StaticResource FieldLabel}" VerticalAlignment="Center"/>
+                                            <TextBox Grid.Column="1" MaxLength="10" FontSize="11" Style="{StaticResource StyledTextInput}" Text="{Binding GapSettings.GlobalHorizontalGapMm}"/>
+                                            <TextBlock Grid.Column="3" Text="Vertical" Style="{StaticResource FieldLabel}" VerticalAlignment="Center"/>
+                                            <TextBox Grid.Column="4" MaxLength="10" FontSize="11" Style="{StaticResource StyledTextInput}" Text="{Binding GapSettings.GlobalVerticalGapMm}"/>
+                                        </Grid>
+                                        <TextBlock Text="The smallest gap. Distribute can make gaps larger, never smaller."
+                                                   Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                                    </StackPanel>
+                                </ScrollViewer>
+                            </TabItem>
+
+                            <!-- Advanced: rarely changed -->
+                            <TabItem Header="Advanced">
+                                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                    <StackPanel Margin="12,10,12,10">
+                                        <TextBlock Text="SAME ROW / COLUMN RANGE (MM)" Style="{StaticResource GroupCaption}"/>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="60"/><ColumnDefinition Width="70"/><ColumnDefinition Width="24"/><ColumnDefinition Width="60"/><ColumnDefinition Width="70"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="Row" Style="{StaticResource FieldLabel}" VerticalAlignment="Center"/>
+                                            <TextBox Grid.Column="1" MaxLength="10" FontSize="11" Style="{StaticResource StyledTextInput}" Text="{Binding RowToleranceMm}"/>
+                                            <TextBlock Grid.Column="3" Text="Column" Style="{StaticResource FieldLabel}" VerticalAlignment="Center"/>
+                                            <TextBox Grid.Column="4" MaxLength="10" FontSize="11" Style="{StaticResource StyledTextInput}" Text="{Binding ColumnToleranceMm}"/>
+                                        </Grid>
+                                        <TextBlock Text="How far apart two views can be and still count as one row or column."
+                                                   Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="0,4,0,12"/>
+
+                                        <TextBlock Text="VIEWS THE STRATEGY COULD NOT PLACE" Style="{StaticResource GroupCaption}"/>
+                                        <UniformGrid Rows="1" Margin="1,0,0,6">
+                                            <RadioButton Content="Group by row" Style="{StaticResource Segment}" IsChecked="{Binding LeftoverGroupMode, Converter={StaticResource ValueEquals}, ConverterParameter=Row}"/>
+                                            <RadioButton Content="Group by column" Style="{StaticResource Segment}" IsChecked="{Binding LeftoverGroupMode, Converter={StaticResource ValueEquals}, ConverterParameter=Column}"/>
+                                        </UniformGrid>
+                                        <Grid Margin="0,0,0,12">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="10"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0">
+                                                <TextBlock Text="In a row, align" Style="{StaticResource HintText}" Margin="0,0,0,2"/>
+                                                <UniformGrid Rows="1" Margin="1,0,0,0">
+                                                    <RadioButton Content="Top" Style="{StaticResource Segment}" IsChecked="{Binding RowAlignment, Converter={StaticResource ValueEquals}, ConverterParameter=Top}"/>
+                                                    <RadioButton Content="Mid" Style="{StaticResource Segment}" IsChecked="{Binding RowAlignment, Converter={StaticResource ValueEquals}, ConverterParameter=Center}"/>
+                                                    <RadioButton Content="Bottom" Style="{StaticResource Segment}" IsChecked="{Binding RowAlignment, Converter={StaticResource ValueEquals}, ConverterParameter=Bottom}"/>
+                                                </UniformGrid>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="2">
+                                                <TextBlock Text="In a column, align" Style="{StaticResource HintText}" Margin="0,0,0,2"/>
+                                                <UniformGrid Rows="1" Margin="1,0,0,0">
+                                                    <RadioButton Content="Left" Style="{StaticResource Segment}" IsChecked="{Binding WithinColumnAlign, Converter={StaticResource ValueEquals}, ConverterParameter=Left}"/>
+                                                    <RadioButton Content="Mid" Style="{StaticResource Segment}" IsChecked="{Binding WithinColumnAlign, Converter={StaticResource ValueEquals}, ConverterParameter=Center}"/>
+                                                    <RadioButton Content="Right" Style="{StaticResource Segment}" IsChecked="{Binding WithinColumnAlign, Converter={StaticResource ValueEquals}, ConverterParameter=Right}"/>
+                                                </UniformGrid>
+                                            </StackPanel>
+                                        </Grid>
+
+                                        <TextBlock Text="PRIORITY GROUPS" Style="{StaticResource GroupCaption}"/>
+                                        <CheckBox Content="Place view types in this order" IsChecked="{Binding EnablePriorityGroups}" Margin="0,0,0,6"/>
+                                        <ListBox ItemsSource="{Binding PriorityGroups}" MaxHeight="130"
+                                                 AlternationCount="{Binding PriorityGroups.Count}"
+                                                 IsEnabled="{Binding EnablePriorityGroups}"
+                                                 BorderThickness="1" BorderBrush="{StaticResource BrushBorderDefault}"
+                                                 ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                            <ListBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Grid Margin="4,3">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="22"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Grid.Column="0" VerticalAlignment="Center" FontWeight="SemiBold"
+                                                                   Text="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem}, Path=(ItemsControl.AlternationIndex), StringFormat={}{0}.}"/>
+                                                        <TextBlock Grid.Column="1" VerticalAlignment="Center" Text="{Binding DisplayName}"/>
+                                                        <Button Grid.Column="2" Content="▲" Padding="6,1" Margin="2,0" Style="{StaticResource SmallSecondaryButton}"
+                                                                Command="{Binding DataContext.MovePriorityGroupUpCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                CommandParameter="{Binding}"/>
+                                                        <Button Grid.Column="3" Content="▼" Padding="6,1" Style="{StaticResource SmallSecondaryButton}"
+                                                                Command="{Binding DataContext.MovePriorityGroupDownCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                CommandParameter="{Binding}"/>
+                                                    </Grid>
+                                                </DataTemplate>
+                                            </ListBox.ItemTemplate>
+                                        </ListBox>
+
+                                        <TextBlock Text="VIEWS THAT DO NOT FIT" Style="{StaticResource GroupCaption}" Margin="0,12,0,4"/>
+                                        <TextBlock Text="Placed just below the sheet and flagged Overflow." Style="{StaticResource HintText}" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </ScrollViewer>
+                            </TabItem>
+                        </TabControl>
+                    </Border>
+                </Grid>
+
+                <!-- ACTIVITY LOG: one line when collapsed; opens by itself on a warning or error -->
+                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="10,6">
+                    <StackPanel>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <ToggleButton Grid.Column="0" IsChecked="{Binding IsLogExpanded}" Cursor="Hand" ToolTip="Show or hide the activity log">
+                                <ToggleButton.Template>
+                                    <ControlTemplate TargetType="ToggleButton">
+                                        <StackPanel Orientation="Horizontal" Background="Transparent">
+                                            <TextBlock x:Name="Arrow" Text="▸" Foreground="{StaticResource BrushLogTextDim}" FontSize="11.5" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Activity log" Foreground="{StaticResource BrushLogText}" FontSize="11.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsChecked" Value="True">
+                                                <Setter TargetName="Arrow" Property="Text" Value="▾"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </ToggleButton.Template>
+                            </ToggleButton>
+                            <TextBlock Grid.Column="1" Text="{Binding LastLogText}" Foreground="{StaticResource BrushLogTextDim}" FontSize="11"
+                                       TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Margin="12,0"/>
+                            <StackPanel Grid.Column="2" Orientation="Horizontal"
+                                        Visibility="{Binding IsLogExpanded, Converter={StaticResource BoolToVisibilityConverter}}">
+                                <Button Content="Copy All" Style="{StaticResource DarkGhostButton}" Click="CopyAllLog_Click"/>
+                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Click="CopySelectedLog_Click" Margin="6,0,0,0"/>
+                                <Button Content="Clear" Style="{StaticResource DarkGhostButton}" Command="{Binding ClearLogCommand}" Margin="6,0,0,0"/>
+                            </StackPanel>
+                        </Grid>
+                        <ListBox x:Name="LogList" ItemsSource="{Binding Log}" Height="130" Margin="0,6,0,0"
+                                 shell:ShellBehaviors.ForwardMouseWheel="True"
+                                 Visibility="{Binding IsLogExpanded, Converter={StaticResource BoolToVisibilityConverter}}"
+                                 Background="Transparent" BorderThickness="0" SelectionMode="Extended"
+                                 ScrollViewer.VerticalScrollBarVisibility="Auto">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock FontFamily="Consolas" FontSize="11" Foreground="{StaticResource BrushLogText}">
+                                        <Run Text="{Binding Time, StringFormat='HH:mm:ss  ', Mode=OneWay}" Foreground="{StaticResource BrushLogTextDim}"/>
+                                        <Run Text="{Binding Level, Mode=OneWay}" FontWeight="SemiBold"
+                                             Foreground="{Binding Level, Converter={StaticResource LogLevelToColorConverter}}"/>
+                                        <Run Text="{Binding Message, Mode=OneWay, StringFormat='  {0}'}"/>
+                                    </TextBlock>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </StackPanel>
+                </Border>
+
+                <!-- Copiable log file path, shown once a log has been saved (after Run or Export log) -->
+                <StackPanel Margin="0,4,0,0" Visibility="{Binding LastLogFilePath, Converter={StaticResource StringToVisibilityConverter}}">
+                    <TextBlock Text="Log saved to:" Style="{StaticResource HintText}" Margin="0,0,0,2"/>
+                    <TextBox Text="{Binding LastLogFilePath, Mode=OneWay}" IsReadOnly="True"
+                             FontSize="10.5" Background="{StaticResource BrushSystemSecondaryBackground}"
+                             BorderBrush="{StaticResource BrushSeparator}" BorderThickness="1"
+                             Padding="6,4" TextWrapping="Wrap"/>
+                </StackPanel>
+            </StackPanel>
+        </shell:ToolWindowShell.BodyContent>
+
+        <!-- ═══ FOOTER ═══════════════════════════════════════════ -->
+        <shell:ToolWindowShell.FooterContent>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Button Grid.Column="0" Content="Export Log" Style="{StaticResource OutlineButton}" Command="{Binding ExportLogCommand}"/>
+                <StackPanel Grid.Column="2" Orientation="Horizontal">
+                    <Button Content="Run" Style="{StaticResource PrimaryButton}" Command="{Binding RunCommand}"
+                            IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBoolConverter}}" Margin="0,0,8,0"/>
+                    <Button Content="Close" Style="{StaticResource SecondaryButton}" Click="CloseButton_Click"/>
+                </StackPanel>
+            </Grid>
+        </shell:ToolWindowShell.FooterContent>
+    </shell:ToolWindowShell>
+</Window>

@@ -44,7 +44,7 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 | Rafi_Pro_Docs | View Place | Place Sections · Callout To Section · Head Placer · View Tagger |
 | Rafi_Pro_Docs | View Rename | Bubble Renumber *button* · Section Renamer *button* · Auto Renamer *button* |
 | Rafi_Pro_Docs2 | Tagging | Tag To Text · Align Spot Elevations · Align to Detail Line · Distribute Spot Elev. · Quick Align split buttons: Vertical · Horizontal · to Tag (each lists tags, ends, bends) · Quick Distribute split buttons: Vertical · Horizontal (each lists tags, ends, bends) |
-| Rafi_Pro_Docs | Sheet Create | Scope Box · Sheet Placer · Section Placer · Sections To Sheet · Combine Sheets ▸ slide-out: Rearrange (V029, V028, V027) · Arrange Views |
+| Rafi_Pro_Docs | Sheet Create | Scope Box · Sheet Placer · Section Placer · Sections To Sheet · Combine Sheets ▸ slide-out: Rearrange (V030, V029, V028) · Arrange Views |
 | Rafi_Pro_Docs | Sheet Edit | Text Replace |
 | Rafi_Pro_Docs2 | DWG Tools | DWG To DL(P) · Export DWG · DWG Manager · DWG Statistics |
 | Rafi_Pro_Docs2 | Family Tools | Batch Link DWG · DWG To Lines |
@@ -139,7 +139,8 @@ Where a tool has several versions, its button is a dropdown listing the newest v
   place views and sections on sheets.
 - **Sheet Auto Rearrange, Sheet View Arrange**: rearrange sheet layouts.
   Sheet Auto Rearrange V029 adds Align & Distribute: views line up on shared row / column lines and spread
-  across the usable area.
+  across the usable area. V030 is the same engine in a redesigned window: large live preview, quick layouts
+  and settings in three tabs.
 - **Sheet Text Replace**: find and replace text notes in views on a sheet.
 - **Sheet Views Combine** (Combine Sheets): list the views of two sheets in one grid, grouped by sheet and view type,
   and move the ticked ones onto one sheet (either sheet, another sheet or a new one) with the packing layout.
