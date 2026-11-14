@@ -1,9 +1,10 @@
-<title>Annotation Layout Check V001</title>
+<title>Annotation Overlap Report V001</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<!-- UI preview (CLAUDE.md "UI previews"): Annotation Layout Check V001, tool 1.0.0 (proposed), plugin 7.2.1.
+<!-- UI preview (CLAUDE.md "UI previews"): Annotation Overlap Report V001, tool 1.0.0 (proposed), plugin 7.2.1.
      DESIGN MOCK-UP: no code exists yet. Tool name, ribbon position and every label are proposals for the owner.
-     Scope agreed so far: tags, text notes, dimensions, spot elevations; batch of views and sheets; report only.
-     Mirrors: no XAML yet (planned: Menu/Manage/AnnotationLayoutCheck_V001/UI/AnnotationLayoutCheckWindow.xaml)
+     Decided by the owner: separate tool (not Annotation Overlap Detection V007); overlap only; every annotation
+     type found in the views is listed; batch of views and sheets; report only.
+     Mirrors: no XAML yet (planned: Menu/Manage/AnnotationOverlapReport_V001/UI/AnnotationOverlapReportWindow.xaml)
      Artifact: https://claude.ai/artifact/9ZhpmxsCCcUjZTNKbqE23j (republish to this URL on every update)
      Colours: Shared/SharedStyles.xaml tokens, one light look on purpose (mirrors the light WPF window). -->
 <style>
@@ -80,7 +81,7 @@ section{display:grid;gap:6px;min-width:0}
 .btn{display:inline-block;border:1px solid var(--input);background:var(--card);border-radius:6px;padding:6px 16px;font-size:12.5px;text-align:center}
 .btn.pri{background:var(--navy);border-color:var(--navy);color:var(--white);font-weight:600}
 .btn.dis{color:var(--text3);background:var(--bg2)}
-.metrics{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .metric{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:7px 10px}
 .mlabel{font-size:10.5px;color:var(--text2);text-transform:uppercase;letter-spacing:.05em}
 .mnum{font-size:18px;font-weight:600;font-variant-numeric:tabular-nums}
@@ -104,23 +105,17 @@ tr.vg td span{font-weight:400;color:var(--text2)}
 .status{color:var(--ok);font-size:11.5px}
 .foot .btns{display:flex;gap:8px}
 
-/* What each check means */
-.defs{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
-.def{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 12px;display:grid;gap:6px;align-content:start}
-.def b{font-size:12.5px}
-.pic{height:64px;position:relative;background:var(--window);border:1px dashed var(--border);border-radius:4px}
-.pic i{position:absolute;height:14px;border:1.5px solid var(--navy);background:var(--card);border-radius:2px}
-.pic i.bad{border-color:var(--err);background:var(--err-soft)}
-.pic u{position:absolute;border-top:1px dashed var(--text3);left:8px;right:8px}
+.list.tall{max-height:none}
+.idc{font-family:var(--mono);color:var(--text2);font-size:11px}
 </style>
 
 <div class="page">
 
 <section>
-  <h1>Annotation Layout Check <span class="tag">NEW TOOL</span></h1>
-  <p class="muted">Design mock-up for review. The tool scans tags, text notes, dimensions and spot elevations on a batch of
-  views and sheets, and lists overlap, minimum distance, alignment and distribution issues. It reports only and changes
-  nothing in the model.</p>
+  <h1>Annotation Overlap Report <span class="tag">NEW TOOL</span></h1>
+  <p class="muted">Design mock-up for review. A separate tool from Annotation Overlap Detection: it scans a batch of views
+  and sheets, checks every annotation type it finds, and lists each overlapping pair. It reports only and changes nothing
+  in the model.</p>
   <div>
     <span class="note">Sample data. No real project names.</span>
     <span class="note">Nothing is built yet. Name, ribbon position and labels are proposals.</span>
@@ -129,32 +124,32 @@ tr.vg td span{font-weight:400;color:var(--text2)}
 
 <section>
   <h2>1. Ribbon button and tooltip <span class="tag">PROPOSED</span></h2>
-  <p class="muted">Proposed place: Manage tab, next to the existing Overlaps pulldown. One button, one tool.</p>
+  <p class="muted">Proposed place: its own button under the existing Overlaps pulldown. The pulldown keeps Overlap Detection V006 and V005.</p>
   <div class="frame">
     <div class="rib">
-      <div class="tabs"><span>Roof</span><span>Floor</span><span>Sheets</span><b>Manage</b></div>
+      <div class="tabs"><span>Rafi_Pro_Docs</span><b>Rafi_Pro_Docs2</b></div>
       <div class="rpanel">
         <div class="stack">
           <div class="small"><i></i>Overlaps ▾</div>
-          <div class="small new"><i></i>Layout Check</div>
+          <div class="small new"><i></i>Overlap Report</div>
         </div>
-        <div class="tip"><b>Annotation Layout Check</b> v1.0.0<br>Checks tags, text notes, dimensions and spot elevations
-          on the chosen views and sheets for overlaps, tight gaps, misalignment and uneven spacing. Report only.</div>
+        <div class="tip"><b>Annotation Overlap Report</b> v1.0.0<br>Lists overlapping annotations of every type on the
+          chosen views and sheets. Report only: nothing is moved.</div>
       </div>
-      <div class="ptitle">Annotation</div>
+      <div class="ptitle">Manage</div>
     </div>
   </div>
 </section>
 
 <section>
   <h2>2. Main window, after a run</h2>
-  <p class="muted">Modeless, so Revit stays usable while it is open. Tolerances are in millimetres on paper, so one
-  setting works across view scales. Selecting a row and pressing Zoom to pair opens that view and highlights both elements.</p>
+  <p class="muted">Modeless, so Revit stays usable while it is open. The type list shows every annotation type found in
+  the chosen views, with its count. Selecting a row and pressing Zoom to pair opens that view and highlights both annotations.</p>
   <div class="frame">
     <div class="win">
-      <div class="tbar"><span>Annotation Layout Check v1.0.0</span><span class="x">–□×</span></div>
+      <div class="tbar"><span>Annotation Overlap Report v1.0.0</span><span class="x">–□×</span></div>
       <div class="shead">
-        <div><b>Annotation Layout Check</b><span class="sub">Find overlaps, tight gaps, misalignment and uneven spacing. Report only.</span></div>
+        <div><b>Annotation Overlap Report</b><span class="sub">Find overlapping annotations across views and sheets. Report only.</span></div>
         <span class="ver">v1.0.0</span>
       </div>
 
@@ -179,57 +174,68 @@ tr.vg td span{font-weight:400;color:var(--text2)}
           </div>
 
           <div class="card">
-            <div class="ctitle">Annotation types<span><span class="sbtn">All</span><span class="sbtn">None</span></span></div>
-            <div class="chk"><span class="box"></span>Tags<span class="cnt">412</span></div>
-            <div class="chk"><span class="box"></span>Text notes<span class="cnt">96</span></div>
-            <div class="chk"><span class="box"></span>Dimensions<span class="cnt">238</span></div>
-            <div class="chk"><span class="box"></span>Spot elevations<span class="cnt">57</span></div>
+            <div class="ctitle">Annotation types <span class="tag">ALL TYPES</span><span><span class="sbtn">All</span><span class="sbtn">None</span></span></div>
+            <div class="hint">20 types found in the chosen views · 859 annotations</div>
+            <div class="list">
+<div class="chk"><span class="box"></span>Dimensions<span class="cnt">238</span></div>
+<div class="chk"><span class="box"></span>Text notes<span class="cnt">96</span></div>
+<div class="chk"><span class="box"></span>Door tags<span class="cnt">64</span></div>
+<div class="chk"><span class="box"></span>Window tags<span class="cnt">52</span></div>
+<div class="chk"><span class="box"></span>Room tags<span class="cnt">48</span></div>
+<div class="chk"><span class="box"></span>Wall tags<span class="cnt">71</span></div>
+<div class="chk"><span class="box"></span>Ceiling tags<span class="cnt">22</span></div>
+<div class="chk"><span class="box"></span>Keynote tags<span class="cnt">35</span></div>
+<div class="chk"><span class="box"></span>Multi-category tags<span class="cnt">18</span></div>
+<div class="chk"><span class="box"></span>Spot elevations<span class="cnt">57</span></div>
+<div class="chk"><span class="box"></span>Spot coordinates<span class="cnt">9</span></div>
+<div class="chk"><span class="box"></span>Spot slopes<span class="cnt">14</span></div>
+<div class="chk"><span class="box"></span>Generic annotations<span class="cnt">41</span></div>
+<div class="chk"><span class="box"></span>Grid heads<span class="cnt">36</span></div>
+<div class="chk"><span class="box"></span>Level heads<span class="cnt">12</span></div>
+<div class="chk"><span class="box"></span>Section marks<span class="cnt">16</span></div>
+<div class="chk"><span class="box"></span>Elevation marks<span class="cnt">8</span></div>
+<div class="chk"><span class="box"></span>Callout heads<span class="cnt">11</span></div>
+<div class="chk"><span class="box"></span>Revision tags<span class="cnt">7</span></div>
+<div class="chk"><span class="box"></span>View titles<span class="cnt">4</span></div>
+            </div>
+            <div class="chk"><span class="box"></span>Also check overlaps between different types</div>
           </div>
 
-          <div class="card">
-            <div class="ctitle">Checks<span class="hint">paper mm</span></div>
-            <div class="chk"><span class="box"></span>Overlap</div>
-            <div class="row"><div class="chk"><span class="box"></span>Minimum distance</div><div class="num">2.0<span>mm</span></div></div>
-            <div class="row"><div class="chk"><span class="box"></span>Alignment, off by up to</div><div class="num">1.5<span>mm</span></div></div>
-            <div class="row"><div class="chk"><span class="box"></span>Distribution, uneven by</div><div class="num">1.0<span>mm</span></div></div>
-            <div class="hint">Alignment flags elements that nearly line up but miss by less than the value. Distribution flags a row of three or more whose gaps differ by more than the value.</div>
-          </div>
-
-          <span class="btn pri">Run check</span>
+          <span class="btn pri">Check overlaps</span>
         </div>
 
         <div class="col">
           <div class="metrics">
-            <div class="metric"><div class="mlabel">Issues</div><div class="mnum">23</div></div>
-            <div class="metric"><div class="mlabel">Overlap</div><div class="mnum">6</div></div>
-            <div class="metric"><div class="mlabel">Min distance</div><div class="mnum">9</div></div>
-            <div class="metric"><div class="mlabel">Alignment</div><div class="mnum">5</div></div>
-            <div class="metric"><div class="mlabel">Distribution</div><div class="mnum">3</div></div>
+            <div class="metric"><div class="mlabel">Overlaps</div><div class="mnum">23</div></div>
+            <div class="metric"><div class="mlabel">Views with overlaps</div><div class="mnum">3 of 4</div></div>
+            <div class="metric"><div class="mlabel">Scanned</div><div class="mnum">859</div></div>
+            <div class="metric"><div class="mlabel">Types checked</div><div class="mnum">20</div></div>
           </div>
 
           <div class="filter">
-            <span class="muted">Show</span><span class="combo">All checks</span><span class="combo">All views</span>
-            <span class="muted" style="margin-left:auto">23 issues in 4 views · 803 annotations scanned</span>
+            <span class="muted">Show</span><span class="combo">All types</span><span class="combo">All views</span>
+            <span class="muted" style="margin-left:auto">23 overlapping pairs in 3 views</span>
           </div>
 
           <div class="grid">
             <table>
-              <tr><th>Check</th><th>Element A</th><th>Element B</th><th class="r">Measured</th><th class="r">Limit</th></tr>
-              <tr class="vg"><td colspan="5">L02 Floor Plan · 1:100 <span>· on sheet A-201 · 11 issues</span></td></tr>
-              <tr><td><span class="pill p-ov">Overlap</span></td><td>Door Tag · 204A</td><td>Room Tag · 2.14 Office</td><td class="r">1.8 mm in</td><td class="r">0</td></tr>
-              <tr class="sel"><td><span class="pill p-ov">Overlap</span></td><td>Text Note · "SEE DETAIL 5"</td><td>Dimension · 1200</td><td class="r">0.7 mm in</td><td class="r">0</td></tr>
-              <tr><td><span class="pill p-gap">Min distance</span></td><td>Window Tag · W12</td><td>Dimension · 3600</td><td class="r">0.6 mm</td><td class="r">≥ 2.0 mm</td></tr>
-              <tr><td><span class="pill p-gap">Min distance</span></td><td>Spot Elevation · +3.450</td><td>Wall Tag · WT-03</td><td class="r">1.1 mm</td><td class="r">≥ 2.0 mm</td></tr>
-              <tr><td><span class="pill p-al">Alignment</span></td><td>Door Tag · 205</td><td>Door Tag · 206</td><td class="r">0.9 mm off</td><td class="r">0</td></tr>
-              <tr><td><span class="pill p-di">Distribution</span></td><td>Room Tag · 2.10 Lobby</td><td>3 more in the row</td><td class="r">8.0 / 8.0 / 6.4 mm</td><td class="r">± 1.0 mm</td></tr>
-              <tr class="vg"><td colspan="5">L02 Ceiling Plan · 1:100 <span>· on sheet A-201 · 4 issues</span></td></tr>
-              <tr><td><span class="pill p-gap">Min distance</span></td><td>Ceiling Tag · CT-2</td><td>Text Note · "ACCESS PANEL"</td><td class="r">1.4 mm</td><td class="r">≥ 2.0 mm</td></tr>
-              <tr><td><span class="pill p-al">Alignment</span></td><td>Spot Elevation · +2.700</td><td>Spot Elevation · +2.700</td><td class="r">0.4 mm off</td><td class="r">0</td></tr>
-              <tr class="vg"><td colspan="5">L03 Floor Plan · 1:100 <span>· on sheet A-202 · 8 issues</span></td></tr>
-              <tr><td><span class="pill p-ov">Overlap</span></td><td>Dimension · 450</td><td>Dimension · 2400</td><td class="r">2.3 mm in</td><td class="r">0</td></tr>
+<tr><th>Annotation A</th><th>ID</th><th>Annotation B</th><th>ID</th><th class="r">Overlap</th></tr>
+<tr class="vg"><td colspan="5">L02 Floor Plan · 1:100 <span>· on sheet A-201 · 11 overlaps</span></td></tr>
+<tr><td>Door tag · 204A</td><td class="idc">412880</td><td>Room tag · 2.14 Office</td><td class="idc">398114</td><td class="r">1.8 mm</td></tr>
+<tr class="sel"><td>Text note · "SEE DETAIL 5"</td><td class="idc">405511</td><td>Dimension · 1200</td><td class="idc">405530</td><td class="r">0.7 mm</td></tr>
+<tr><td>Window tag · W12</td><td class="idc">412902</td><td>Dimension · 3600</td><td class="idc">405544</td><td class="r">0.6 mm</td></tr>
+<tr><td>Spot elevation · +3.450</td><td class="idc">420117</td><td>Wall tag · WT-03</td><td class="idc">413050</td><td class="r">1.1 mm</td></tr>
+<tr><td>Grid head · C</td><td class="idc">301204</td><td>Section mark · 3</td><td class="idc">377120</td><td class="r">2.9 mm</td></tr>
+<tr><td>Generic annotation · North arrow</td><td class="idc">430008</td><td>Text note · "SCALE 1:100"</td><td class="idc">405602</td><td class="r">0.4 mm</td></tr>
+<tr class="vg"><td colspan="5">L02 Ceiling Plan · 1:100 <span>· on sheet A-201 · 4 overlaps</span></td></tr>
+<tr><td>Ceiling tag · CT-2</td><td class="idc">415330</td><td>Text note · "ACCESS PANEL"</td><td class="idc">405710</td><td class="r">1.4 mm</td></tr>
+<tr><td>Spot elevation · +2.700</td><td class="idc">420240</td><td>Keynote tag · 09 51 00.A1</td><td class="idc">418802</td><td class="r">0.5 mm</td></tr>
+<tr class="vg"><td colspan="5">L03 Floor Plan · 1:100 <span>· on sheet A-202 · 8 overlaps</span></td></tr>
+<tr><td>Dimension · 450</td><td class="idc">406012</td><td>Dimension · 2400</td><td class="idc">406019</td><td class="r">2.3 mm</td></tr>
+<tr><td>Level head · L03</td><td class="idc">300410</td><td>Callout head · 7</td><td class="idc">377344</td><td class="r">1.2 mm</td></tr>
             </table>
           </div>
-          <div class="hint">Double-click a row, or select it and press Zoom to pair. Clicking a column header sorts within each view.</div>
+          <div class="hint">Overlap is how far one annotation sits inside the other, in millimetres on paper. Double-click a row, or select it and press Zoom to pair.</div>
         </div>
       </div>
 
@@ -238,24 +244,6 @@ tr.vg td span{font-weight:400;color:var(--text2)}
         <div class="btns"><span class="btn">Zoom to pair</span><span class="btn">Close</span></div>
       </div>
     </div>
-  </div>
-</section>
-
-<section>
-  <h2>3. What each check reports</h2>
-  <div class="defs">
-    <div class="def"><b><span class="pill p-ov">Overlap</span></b>
-      <div class="pic"><i style="left:30px;top:20px;width:70px"></i><i class="bad" style="left:84px;top:28px;width:60px"></i></div>
-      <span class="hint">Two annotation boxes cross. Measured is how far one sits inside the other.</span></div>
-    <div class="def"><b><span class="pill p-gap">Min distance</span></b>
-      <div class="pic"><i style="left:24px;top:24px;width:64px"></i><i class="bad" style="left:92px;top:24px;width:60px"></i></div>
-      <span class="hint">They do not touch, but the gap is under the minimum.</span></div>
-    <div class="def"><b><span class="pill p-al">Alignment</span></b>
-      <div class="pic"><u style="top:24px"></u><i style="left:16px;top:24px;width:46px"></i><i style="left:72px;top:24px;width:46px"></i><i class="bad" style="left:128px;top:29px;width:46px"></i></div>
-      <span class="hint">Elements nearly share an edge or centre line but one is slightly off.</span></div>
-    <div class="def"><b><span class="pill p-di">Distribution</span></b>
-      <div class="pic"><i style="left:12px;top:24px;width:34px"></i><i style="left:62px;top:24px;width:34px"></i><i style="left:112px;top:24px;width:34px"></i><i class="bad" style="left:152px;top:24px;width:34px"></i></div>
-      <span class="hint">A row of three or more with unequal gaps between them.</span></div>
   </div>
 </section>
 
