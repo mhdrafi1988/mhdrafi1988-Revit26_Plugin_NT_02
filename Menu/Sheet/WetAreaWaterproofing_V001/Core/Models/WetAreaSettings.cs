@@ -1,3 +1,4 @@
+using Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Grid;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -83,6 +84,9 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Models
         /// <summary>What a run does with rooms that already have a roof from an earlier run.</summary>
         public ReRunMode ReRun { get; set; } = ReRunMode.UpdateInPlace;
 
+        /// <summary>Room grid filters, sort, grouping and hidden columns.</summary>
+        public GridState Grid { get; set; } = new();
+
         /// <summary>Fills missing values and clamps the numbers to usable ranges. Returns this.</summary>
         public WetAreaSettings Normalize()
         {
@@ -100,6 +104,7 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Models
             if (!(AreaTolerancePct > 0) || AreaTolerancePct > 50) AreaTolerancePct = DefaultAreaTolerancePct;
             if (double.IsNaN(OffsetMm) || double.IsInfinity(OffsetMm)) OffsetMm = 0;
 
+            Grid = (Grid ?? new GridState()).Normalize();
             RoofTypeName ??= string.Empty;
             WorksetName ??= string.Empty;
             IncludedLinks ??= new List<string>();
