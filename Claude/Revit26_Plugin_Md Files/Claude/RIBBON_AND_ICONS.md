@@ -59,7 +59,7 @@ Each item is a pulldown unless marked *button*. A pulldown lists its versions hi
 | Rafi_Pro_Docs | View Place | Place Sections · Callout To Section · Head Placer · View Tagger | `ViewToolsRibbon` |
 | Rafi_Pro_Docs | View Rename | Bubble Renumber *button* · Section Renamer *button* · Auto Renamer *button* | `ViewToolsRibbon` |
 | Rafi_Pro_Docs2 | Tagging | Tag To Text, Align Spot Elevations, Align to Detail Line, Distribute Spot Elev. (large *buttons*) · 3 small *split buttons* (last used item runs, kept across restarts): Quick Align Vertical ▾ (tags / ends / bends) · Quick Align Horizontal ▾ (tags / ends / bends) · Quick Align to Tag ▾ (ends / bends) · 2 small *split buttons* (same memory): Quick Distribute Vertical ▾ (tags / ends / bends) · Quick Distribute Horizontal ▾ (tags / ends / bends) | `TaggingRibbon` |
-| Rafi_Pro_Docs | Sheet Create | Scope Box · Sheet Placer · Section Placer · Sections To Sheet *button* · Combine Sheets *button* ▸ Rearrange (V030, V029, V028) · Arrange Views *button* | `SheetToolsRibbon` |
+| Rafi_Pro_Docs | Sheet Create | Scope Box · Sheet Placer · Section Placer · Sections To Sheet *button* · Combine Sheets *button* · Wet Area Waterproofing *button* ▸ Rearrange (V030, V029, V028) · Arrange Views *button* | `SheetToolsRibbon` |
 | Rafi_Pro_Docs | Sheet Edit | Text Replace *button* (large) | `SheetToolsRibbon` |
 | Rafi_Pro_Docs2 | DWG Tools | DWG To DL(P) · Export DWG · DWG Manager · DWG Statistics | `SetupRibbon` |
 | Rafi_Pro_Docs2 | Family Tools | Batch Link DWG · DWG To Lines | `SetupRibbon` |
@@ -68,7 +68,8 @@ Each item is a pulldown unless marked *button*. A pulldown lists its versions hi
 | Rafi_Pro_Docs2 | Memory | WS Memory (large *button*) · Link Memory (large; V002, V001) | `ManageRibbon` |
 | Rafi_Pro_Docs2 | Coordination | Void Openings (large *button*) · Base Level to Parameter (large *button*) | `CoordinationRibbon` |
 
-The latest change was plugin 7.4.0, which turned the large **Roof Slope Builder** button into a large pulldown with
+The latest change was plugin 7.11.0, which added **Wet Area Waterproofing** to the Sheet Create panel, after Combine Sheets
+(stacked with it); its icons are `Resources/Icons/SheetTools/WetAreaWaterproofing_16/32.png`. Before it, plugin 7.4.0 turned the large **Roof Slope Builder** button into a large pulldown with
 V002 first and V001 below it; V002's icons are `Resources/Icons/RoofTools/RoofSlopeBuilder_V002_16/32.png`. Before it,
 plugin 7.3.0 added **Roof Slope Builder** to the Roof Slope panel as a large button after the stack; its icons are
 `Resources/Icons/RoofTools/RoofSlopeBuilder_16/32.png`. Before it, plugin 7.2.0 added **Base Level to Parameter** to the Coordination panel, after

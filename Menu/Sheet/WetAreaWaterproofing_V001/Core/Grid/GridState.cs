@@ -53,6 +53,12 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Grid
         /// <summary>Columns the user has hidden.</summary>
         public List<string> HiddenColumns { get; set; } = new();
 
+        /// <summary>Column order, left to right; empty = the default order.</summary>
+        public List<string> ColumnOrder { get; set; } = new();
+
+        /// <summary>Column widths in pixels, by column name.</summary>
+        public Dictionary<string, double> ColumnWidths { get; set; } = new();
+
         /// <summary>
         /// A click on a level button. A plain click shows or hides that level; with
         /// <paramref name="solo"/> (Ctrl+click) only that level stays. The grid never ends up with
@@ -95,6 +101,8 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Grid
             Sort ??= new List<SortKey>();
             Sort.RemoveAll(k => k == null || string.IsNullOrWhiteSpace(k.Column));
             HiddenColumns ??= new List<string>();
+            ColumnOrder ??= new List<string>();
+            ColumnWidths ??= new Dictionary<string, double>();
             Search ??= string.Empty;
             if (string.IsNullOrWhiteSpace(GroupBy)) GroupBy = "Level";
             return this;

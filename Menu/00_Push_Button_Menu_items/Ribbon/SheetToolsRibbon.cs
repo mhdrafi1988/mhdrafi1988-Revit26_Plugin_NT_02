@@ -78,6 +78,17 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                     "layout, then move them in one Undo step. Legends are copied to the same spot.")
             };
 
+            // Wet Area Waterproofing: finds wet rooms (host + links), repairs their outlines and adds a
+            // waterproofing roof on top of each slab; writes an Excel report.
+            var wetAreaWaterproofingV001 = new PushButtonData("Btn_WetAreaWaterproofing_V001", "Wet Area Waterproofing", assemblyPath, "Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Commands.WetAreaWaterproofingCommand")
+            {
+                Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SheetTools.WetAreaWaterproofing_16.png"),
+                LargeImage = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SheetTools.WetAreaWaterproofing_32.png"),
+                ToolTip = ToolCatalog.WetAreaWaterproofing.Tip(
+                    "Finds wet rooms (toilets, baths, kitchens…) in the model and its links, repairs their outlines and adds a " +
+                    "waterproofing roof on top of the slab under each one. Advanced room grid with level filter; Excel report; one Undo step.")
+            };
+
                         // Sheet Text Replace: finds and replaces text in the text notes on a sheet, in the views
             // the user ticks (and in notes placed on the sheet itself).
             var sheetTextReplaceV001 = new PushButtonData("Btn_SheetTextReplace.V001", "Text Replace", assemblyPath, "Revit26_Plugin_Revised.SheetTextReplace.V001.Commands.SheetTextReplaceCommand")
@@ -120,7 +131,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
 
             // Slide-out (plugin 6.13.0): Rearrange and Arrange Views come after creating and placing views.
             var sheetCreateItems = RibbonLayoutHelper.AddStackedButtonsWithSlideOut(createPanel,
-                new List<RibbonItemData> { scopeBoxPulldownData, sheetPlacerPulldownData, autoSectionPlacerPulldownData, sectionsToSheetV001, sheetViewsCombineV001 },
+                new List<RibbonItemData> { scopeBoxPulldownData, sheetPlacerPulldownData, autoSectionPlacerPulldownData, sectionsToSheetV001, sheetViewsCombineV001, wetAreaWaterproofingV001 },
                 new List<RibbonItemData> { rearrangePulldownData, viewArrangeV001 });
             RibbonLayoutHelper.WirePulldownButton(sheetCreateItems, "Pulldown_PlanFromScopeBox", scopeBoxV006, scopeBoxV005);
             RibbonLayoutHelper.WirePulldownButton(sheetCreateItems, "Pulldown_SmartViewToSheetPlacer", sheetPlacerV224, sheetPlacerV223);
