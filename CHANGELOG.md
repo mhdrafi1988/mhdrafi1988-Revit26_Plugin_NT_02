@@ -9,6 +9,32 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [7.5.0] — 2026-11-14
+
+### Annotation Overlap Report 1.0.0 (V001, new tool)
+
+#### Added
+- New **Overlap Report** button on the Manage panel (Documents 2 tab), under the Overlaps pulldown.
+- Lists every pair of overlapping annotations on the **active view** or on a **chosen batch of views and sheets**.
+  A sheet is checked through the annotations on it and each view placed on it.
+- The type list shows **every annotation type found** in the scope with its count (all tags, text notes,
+  dimensions, spot elevations / coordinates / slopes, generic annotations, keynote and revision tags and so on).
+  Untick a type to leave it out.
+- **Also check overlaps between different types** (on by default), so a door tag over a text note is found.
+- Results are grouped by view and show both annotations, their element IDs and the overlap in millimetres on
+  paper (how far one annotation sits inside the other). **Show** filters the list by type and by view.
+- **Zoom to pair** (or double-click a row) opens the view, zooms to both annotations and selects them.
+- **Export to Excel** saves the pairs shown to an .xlsx file: sheet "Overlaps" (Sheet, View, Scale, Type A, Text A,
+  ID A, Type B, Text B, ID B, Overlap (mm)) and sheet "Run info" (tool version, format version 1, counts, skipped views).
+- Options are saved to `%AppData%\Revit26_Plugin_Revised\AnnotationOverlapReport\settings.json` (version 1).
+
+User notes:
+- The tool only reports. It never moves anything; use Annotation Overlap Detection V006 to move annotations apart.
+- Grids, levels, section / elevation / callout marks and view titles are listed greyed out as "coming in 1.1" and are
+  not checked yet, because Revit's box for them covers the whole line, not just the head.
+- Boxes are Revit's bounding boxes: a tag's box includes its leader and a dimension's box includes its witness
+  lines, so two crossing dimension strings are reported as an overlap.
+- Annotations inside linked models are not checked. Overlaps between two different viewports on a sheet are not checked.
 ## [7.4.0] — 2026-11-14
 
 ### Roof Slope Builder 2.0.0 (V002) — new version, V001 kept
