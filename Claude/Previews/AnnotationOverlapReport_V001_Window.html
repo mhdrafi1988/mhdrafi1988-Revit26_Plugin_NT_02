@@ -199,6 +199,7 @@ tr.vg td span{font-weight:400;color:var(--text2)}
 <div class="chk"><span class="box"></span>View titles<span class="cnt">4</span></div>
             </div>
             <div class="chk"><span class="box"></span>Also check overlaps between different types</div>
+            <div class="hint">On by default, so a door tag over a text note is found.</div>
           </div>
 
           <span class="btn pri">Check overlaps</span>
@@ -241,8 +242,24 @@ tr.vg td span{font-weight:400;color:var(--text2)}
 
       <div class="foot">
         <span class="status">✔ Check finished in 3.2 s. Nothing in the model was changed.</span>
-        <div class="btns"><span class="btn">Zoom to pair</span><span class="btn">Close</span></div>
+        <div class="btns"><span class="btn">Export to Excel <span class="tag">NEW</span></span><span class="btn">Zoom to pair</span><span class="btn">Close</span></div>
       </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>3. Excel export <span class="tag">NEW</span></h2>
+  <p class="muted">Export to Excel saves the listed pairs to one .xlsx file, one row per overlapping pair, using the current
+  Show filters. You choose the file name and folder.</p>
+  <div class="frame">
+    <div class="grid" style="width:900px">
+      <table>
+        <tr><th>Sheet</th><th>View</th><th>Scale</th><th>Type A</th><th>Text A</th><th>ID A</th><th>Type B</th><th>Text B</th><th>ID B</th><th class="r">Overlap (mm)</th></tr>
+        <tr><td>A-201</td><td>L02 Floor Plan</td><td>1:100</td><td>Door tags</td><td>204A</td><td class="idc">412880</td><td>Room tags</td><td>2.14 Office</td><td class="idc">398114</td><td class="r">1.8</td></tr>
+        <tr><td>A-201</td><td>L02 Floor Plan</td><td>1:100</td><td>Text notes</td><td>SEE DETAIL 5</td><td class="idc">405511</td><td>Dimensions</td><td>1200</td><td class="idc">405530</td><td class="r">0.7</td></tr>
+        <tr><td>A-202</td><td>L03 Floor Plan</td><td>1:100</td><td>Dimensions</td><td>450</td><td class="idc">406012</td><td>Dimensions</td><td>2400</td><td class="idc">406019</td><td class="r">2.3</td></tr>
+      </table>
     </div>
   </div>
 </section>
