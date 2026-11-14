@@ -1,0 +1,60 @@
+<!--
+=======================================================
+File: RewriteConfirmDialog.xaml  (Base Level to Parameter V001, 1.2.0)
+Asked by Run when ticked elements already have a different value: Rewrite / Skip these / Cancel.
+Preview: Claude/Previews/BaseLevelToParameter_V001_Window.html (section 2b)
+=======================================================
+-->
+<Window x:Class="Revit26_Plugin_Revised.BaseLevelToParameter.V001.UI.Views.RewriteConfirmDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:svc="clr-namespace:Revit26_Plugin_Revised.Shared.Services"
+        Title="{Binding Source={x:Static svc:ToolCatalog.BaseLevelToParameter}, Path=Title, StringFormat=Rewrite existing values? — {0}}"
+        Width="560" SizeToContent="Height" ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
+        Background="{DynamicResource BrushSurfaceWindow}">
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/Revit26_Plugin_Revised;component/Shared/SharedStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <DockPanel>
+        <Border DockPanel.Dock="Bottom" BorderBrush="{StaticResource BrushBorderDefault}" BorderThickness="0,1,0,0" Padding="16,8">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="{Binding RewriteText}" Style="{StaticResource PrimaryButton}" MinWidth="120" Click="Rewrite_Click" IsDefault="True"
+                        ToolTip="Run and replace these values with the new ones."/>
+                <Button Content="{Binding SkipText}" Style="{StaticResource SecondaryButton}" MinWidth="150" Margin="8,0,0,0" Click="Skip_Click"
+                        ToolTip="Run, but keep the current value of these elements."/>
+                <Button Content="Cancel" Style="{StaticResource SecondaryButton}" Width="90" Margin="8,0,0,0" IsCancel="True"/>
+            </StackPanel>
+        </Border>
+
+        <StackPanel Margin="16,12">
+            <TextBlock Text="{Binding Message}" TextWrapping="Wrap" FontWeight="SemiBold" Margin="0,0,0,8"/>
+            <DataGrid ItemsSource="{Binding Rows}" Style="{StaticResource StandardDataGrid}"
+                      ColumnHeaderStyle="{StaticResource StandardDataGridColumnHeader}"
+                      CellStyle="{StaticResource StandardDataGridCell}" RowStyle="{StaticResource StandardDataGridRow}"
+                      AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" IsReadOnly="True"
+                      HeadersVisibility="Column" MaxHeight="300">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Element Id" Width="90" Binding="{Binding Id, Mode=OneWay}" FontFamily="Consolas"/>
+                    <DataGridTextColumn Header="Current value" Width="*" Binding="{Binding CurrentValue, Mode=OneWay}"/>
+                    <DataGridTextColumn Header="New value" Width="*" Binding="{Binding NewValue, Mode=OneWay}">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="VerticalAlignment" Value="Center"/>
+                                <Setter Property="FontWeight" Value="SemiBold"/>
+                                <Setter Property="Foreground" Value="{StaticResource BrushStatusOk}"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+            <TextBlock Text="{Binding Hint}" Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="0,6,0,0"/>
+        </StackPanel>
+    </DockPanel>
+</Window>

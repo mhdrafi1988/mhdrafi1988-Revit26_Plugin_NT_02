@@ -2,7 +2,7 @@
 =======================================================
 File: BaseLevelToParameterWindow.xaml  (Base Level to Parameter V001)
 ToolWindowShell layout:
-  HEADER  metric tiles (Elements Listed / Checked / Ready / Warnings / Blocked)
+  HEADER  metric tiles (Elements Listed / Checked / Ready / Up to Date / Has Value / Warnings / Blocked)
   BODY    source toolbar, target parameter + pre-checks a–e, element grid grouped by category, activity log
   FOOTER  run summary, Run, Close
 Preview: Claude/Previews/BaseLevelToParameter_V001_Window.html
@@ -29,6 +29,7 @@ Preview: Claude/Previews/BaseLevelToParameter_V001_Window.html
             <converters:LogLevelToColorConverter x:Key="LogLevelToColorConverter"/>
             <local:StatusBrushConverter x:Key="StatusBrush"/>
             <converters:InverseBoolConverter x:Key="InverseBool"/>
+            <BooleanToVisibilityConverter x:Key="BoolToVis"/>
         </ResourceDictionary>
     </Window.Resources>
 
@@ -41,7 +42,7 @@ Preview: Claude/Previews/BaseLevelToParameter_V001_Window.html
 
         <!-- ═══ HEADER: metrics ═══════════════════════════════════ -->
         <shell:ToolWindowShell.HeaderContent>
-            <UniformGrid Columns="6">
+            <UniformGrid Columns="7">
                 <Border Style="{StaticResource MetricTile}" Background="{StaticResource BrushSurfaceCard}" BorderBrush="{StaticResource BrushBorderDefault}" Margin="0,0,3,0" Cursor="Hand" ToolTip="Click to show only these rows; click again to show all.">
                     <Border.InputBindings><MouseBinding MouseAction="LeftClick" Command="{Binding FilterTileCommand}" CommandParameter=""/></Border.InputBindings>
                     <StackPanel>
@@ -69,6 +70,14 @@ Preview: Claude/Previews/BaseLevelToParameter_V001_Window.html
                     <StackPanel>
                         <TextBlock Text="UP TO DATE" Style="{StaticResource MetricTileLabel}"/>
                         <TextBlock Text="{Binding UpToDateCount}" Style="{StaticResource MetricTileNumber}"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource MetricTile}" Background="{StaticResource BrushSurfaceCard}" BorderBrush="{StaticResource BrushBorderDefault}" Margin="3,0" Cursor="Hand"
+                        ToolTip="Ticked elements that already have a different value (skipped or rewritten, see If value exists). Click to show only these rows.">
+                    <Border.InputBindings><MouseBinding MouseAction="LeftClick" Command="{Binding FilterTileCommand}" CommandParameter="HasValue"/></Border.InputBindings>
+                    <StackPanel>
+                        <TextBlock Text="HAS VALUE" Style="{StaticResource MetricTileLabel}"/>
+                        <TextBlock Text="{Binding HasValueCount}" Style="{StaticResource MetricTileNumber}"/>
                     </StackPanel>
                 </Border>
                 <Border Style="{StaticResource MetricTileWarning}" Margin="3,0" Cursor="Hand" ToolTip="Click to show only these rows; click again to show all.">
@@ -146,8 +155,13 @@ Preview: Claude/Previews/BaseLevelToParameter_V001_Window.html
                                 <Button Content="New Parameter…" Style="{StaticResource OutlineButton}" Command="{Binding NewParameterCommand}"
                                         ToolTip="Define a new shared instance Text parameter; it is created when you press Run."/>
                             </StackPanel>
-                            <CheckBox Content="Overwrite existing values" IsChecked="{Binding Overwrite}" Margin="0,0,0,4"
-                                      ToolTip="Off: elements that already have a value are skipped."/>
+                            <TextBlock Text="Existing values" Style="{StaticResource FieldLabel}" Margin="0,0,0,2"/>
+                            <RadioButton GroupName="ExistingValues" Content="Skip · keep the current value" IsChecked="{Binding SkipExisting}" Margin="0,2"
+                                         ToolTip="Elements that already have a different value keep it (the default)."/>
+                            <RadioButton GroupName="ExistingValues" Content="Rewrite with the new value" IsChecked="{Binding Overwrite}" Margin="0,2"
+                                         ToolTip="Elements that already have a different value get the new value."/>
+                            <TextBlock Text="Default for every row. Change single rows in the grid's “If value exists” column. Run asks before it rewrites anything."
+                                       Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="0,2,0,4"/>
                             <TextBlock Text="Value format" Style="{StaticResource FieldLabel}" Margin="0,8,0,2"/>
                             <RadioButton Content="Level name only" IsChecked="{Binding WithOffset, Converter={StaticResource InverseBool}}" Margin="0,2"/>
                             <RadioButton Content="Level name + offset" IsChecked="{Binding WithOffset}" Margin="0,2"/>
@@ -216,6 +230,13 @@ Preview: Claude/Previews/BaseLevelToParameter_V001_Window.html
                     <StackPanel>
                         <DockPanel Margin="0,0,0,8">
                             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                <TextBlock Text="If value exists" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                <Button Content="Skip" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,4,0" Command="{Binding SetChoiceCommand}" CommandParameter="Skip"
+                                        ToolTip="Keep the existing value of the highlighted rows (or of every shown row when none is highlighted)."/>
+                                <Button Content="Rewrite" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,4,0" Command="{Binding SetChoiceCommand}" CommandParameter="Rewrite"
+                                        ToolTip="Replace the existing value of the highlighted rows (or of every shown row when none is highlighted)."/>
+                                <Button Content="Reset" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,12,0" Command="{Binding SetChoiceCommand}" CommandParameter="Default"
+                                        ToolTip="Make the highlighted rows (or every shown row) follow the Existing values option again."/>
                                 <Button Content="Select in Revit" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,6,0" Command="{Binding SelectInRevitCommand}"
                                         ToolTip="Select the highlighted grid rows in Revit."/>
                                 <Button Content="Zoom to" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,12,0" Command="{Binding ZoomToCommand}"
@@ -337,6 +358,29 @@ Preview: Claude/Previews/BaseLevelToParameter_V001_Window.html
                                         </Style>
                                     </DataGridTextColumn.ElementStyle>
                                 </DataGridTextColumn>
+                                <DataGridTemplateColumn Header="If value exists" Width="118" SortMemberPath="Choice">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <ComboBox ItemsSource="{Binding Choices}" SelectedItem="{Binding Choice, UpdateSourceTrigger=PropertyChanged}"
+                                                      Height="22" FontSize="11.5" Margin="0,1"
+                                                      ToolTip="Default follows the Existing values option; Skip keeps the current value; Rewrite replaces it.">
+                                                <ComboBox.Visibility>
+                                                    <Binding Path="HasExistingValue" Converter="{StaticResource BoolToVis}"/>
+                                                </ComboBox.Visibility>
+                                                <ComboBox.Style>
+                                                    <Style TargetType="ComboBox" BasedOn="{StaticResource StandardComboBox}">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding HasOwnChoice}" Value="True">
+                                                                <Setter Property="FontWeight" Value="SemiBold"/>
+                                                                <Setter Property="Foreground" Value="{StaticResource BrushNavyPrimary}"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </ComboBox.Style>
+                                            </ComboBox>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
                                 <DataGridTemplateColumn Header="Status" Width="1.4*" SortMemberPath="Status">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>

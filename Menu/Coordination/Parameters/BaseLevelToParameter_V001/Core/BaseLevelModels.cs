@@ -37,6 +37,20 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.Core
         Failed
     }
 
+    /// <summary>
+    /// What Run does with an element that already has a different value in the target parameter (1.2.0).
+    /// <see cref="Default"/> follows the window's "Existing values" option.
+    /// </summary>
+    public enum ExistingChoice
+    {
+        /// <summary>Follow the "Existing values" option (Skip or Rewrite).</summary>
+        Default,
+        /// <summary>Keep the current value for this element.</summary>
+        Skip,
+        /// <summary>Replace the current value for this element.</summary>
+        Rewrite
+    }
+
     /// <summary>One pre-check line shown in the window: "a · Name", result, detail.</summary>
     public sealed class PrecheckItem
     {

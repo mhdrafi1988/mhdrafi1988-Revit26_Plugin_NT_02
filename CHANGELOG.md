@@ -9,6 +9,25 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [7.9.0] — 2026-11-14
+
+### Added
+- **Base Level to Parameter v1.2.0** — choose what happens when an element already has a different value in the
+  target parameter:
+  - **Existing values: Skip / Rewrite** in the Target parameter card (replaces the *Overwrite existing values*
+    checkbox; Skip is still the default and is not remembered).
+  - **If value exists** column in the grid: each element with a different existing value can follow the default
+    or be set to its own *Skip* or *Rewrite*. The **Skip / Rewrite / Reset** buttons above the grid set it for the
+    highlighted rows (or every shown row when none is highlighted).
+  - **Has Value** tile: counts the ticked elements with a different existing value and filters the grid to them.
+  - **Rewrite existing values?** dialog: Run lists the values it would replace and asks *Rewrite* / *Skip these* /
+    *Cancel* before changing anything.
+  - Every rewritten value is logged (old → new); rewritten rows show *Assigned · rewrote value*.
+
+**User note:** nothing changes unless you choose Rewrite (for all rows or single rows); an element whose value
+already equals the new value is still *Up to date* and is never rewritten. Run now asks once before it replaces
+existing values.
+
 ## [7.8.0] — 2026-11-14
 
 ### Added
