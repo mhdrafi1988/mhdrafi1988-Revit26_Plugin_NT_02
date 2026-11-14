@@ -60,6 +60,14 @@ tr.off td{color:#9AA8B8}
 .p-warn{background:var(--warnSoft);color:var(--warn);border-color:var(--warnBd)}
 .p-link{background:var(--infoSoft);color:var(--info);border-color:var(--infoBd)}
 .foot{border-top:1px solid var(--line);background:var(--card);padding:8px 10px;display:grid;gap:6px}
+.gtb .btn{white-space:nowrap}
+.gwrap{position:relative;overflow-x:auto}
+.grid th{cursor:pointer}
+.f{color:#9AA8B8;font-size:10px}.f.on{color:var(--blue)}
+sup{font-size:8px;color:var(--blue)}
+tr.grp td{background:#F3F5F7;font-weight:600;color:var(--head)}
+.pop{position:absolute;left:34px;top:24px;width:170px;background:#fff;border:1px solid #9AA8B8;border-radius:4px;box-shadow:0 4px 14px rgba(20,40,63,.2);padding:8px;display:grid;gap:4px;font-size:12px}
+.hint{margin:0;color:var(--winMuted);font-size:11.5px}
 .log{font-family:Consolas,monospace;font-size:11.5px;background:#ECEFF3;border-radius:3px;padding:6px 8px;color:var(--winInk)}
 .dlg{width:460px;background:var(--win);color:var(--winInk);border:1px solid #9AA8B8;border-radius:6px;overflow:hidden;box-shadow:0 6px 24px rgba(20,40,63,.18)}
 .dlg .c{padding:12px;display:grid;gap:6px;font-size:12.5px}
@@ -82,7 +90,7 @@ tr.off td{color:#9AA8B8}
     <div class="step"><b>Flag wet areas</b><span>Match room names against keywords; you tick or untick</span></div>
     <div class="step"><b>Waterproofing roof</b><span>Find the slab under each room and place a roof from the room boundary on the slab top (or level + offset if there is no slab)</span></div>
     <div class="step"><b>Plan per room</b><span>A cropped floor plan per room (crop = room + margin)</span></div>
-    <div class="step"><b>2 reference sections</b><span>One horizontal and one vertical through the room, pointing to a drafting view (existing or new)</span></div>
+    <div class="step"><b>Up to 6 reference sections</b><span>At the full room, doors, drains, wall corners, WC, shower. One per item or all matches; one drafting view for all or one per target <span class="new">CHANGED</span></span></div>
     <div class="step"><b>Sheets</b><span>One sheet per room, or several rooms packed per sheet</span></div>
     <div class="step"><b>Print set</b><span>A View/Sheet Set of the new sheets</span></div>
   </div>
@@ -109,17 +117,33 @@ tr.off td{color:#9AA8B8}
         <div class="row"><span class="lbl">Source</span><span class="chk">Host model</span><span class="chk">Links:</span><span class="in sel" style="flex:0 0 190px">ARC_Model.rvt (1 of 1)</span></div>
         <div class="row"><span class="lbl">Wet keywords</span>
           <div class="chips"><span class="chip">toilet</span><span class="chip">wc</span><span class="chip">bath</span><span class="chip">shower</span><span class="chip">kitchen</span><span class="chip">pantry</span><span class="chip">laundry</span><span class="chip">wash</span><span class="chip">balcony</span><span class="chip">+ Add</span></div></div>
-        <div class="row"><span class="lbl">Show</span><span class="rad">Wet rooms only</span><span class="unrad">All rooms</span><span style="flex:1"></span><span class="in" style="flex:0 0 150px;color:#9AA8B8">Search…</span></div>
-        <table>
-          <tr><th></th><th>Source</th><th>Level</th><th>No.</th><th>Name</th><th>Area m²</th><th>Matched</th><th>Slab top</th></tr>
-          <tr><td class="chk"></td><td>Host</td><td>L01</td><td>101</td><td>Toilet 01</td><td>4.20</td><td>toilet</td><td><span class="pill p-ok">Floor · +3.150</span></td></tr>
-          <tr><td class="chk"></td><td>Host</td><td>L01</td><td>102</td><td>Kitchen</td><td>12.85</td><td>kitchen</td><td><span class="pill p-ok">Floor · +3.150</span></td></tr>
-          <tr><td class="chk"></td><td><span class="pill p-link">ARC_Model</span></td><td>L02</td><td>201</td><td>Master Bath</td><td>7.60</td><td>bath</td><td><span class="pill p-ok">Floor · +6.300</span></td></tr>
-          <tr><td class="chk"></td><td><span class="pill p-link">ARC_Model</span></td><td>L02</td><td>202</td><td>Shower Room</td><td>3.10</td><td>shower</td><td><span class="pill p-warn">No slab · level +0</span></td></tr>
-          <tr><td class="chk"></td><td><span class="pill p-link">ARC_Model</span></td><td>L02</td><td>205</td><td>Laundry</td><td>5.40</td><td>laundry</td><td><span class="pill p-ok">Floor · +6.300</span></td></tr>
-          <tr class="off"><td class="unchk"></td><td>Host</td><td>L03</td><td>301</td><td>Balcony</td><td>9.00</td><td>balcony</td><td><span class="pill p-ok">Floor · +9.420</span></td></tr>
+        <div class="row"><span class="lbl">Show</span><span class="rad">Wet rooms only</span><span class="unrad">All rooms</span><span class="new">ADVANCED GRID</span></div>
+        <div class="row gtb">
+          <span class="in" style="flex:1 1 140px;color:#9AA8B8">🔍 Search all columns…</span>
+          <span class="lbl" style="width:auto">Group by</span><span class="in sel" style="flex:0 0 80px">Level</span>
+          <button class="btn">Columns ▾</button><button class="btn">Clear filters</button>
+        </div>
+        <div class="gwrap">
+        <table class="grid">
+          <tr><th></th><th>Source <span class="f on">⏷</span></th><th>Level <span class="f">⏷</span></th><th>No. ▲<sup>1</sup> <span class="f">⏷</span></th><th>Name <span class="f">⏷</span></th><th>Area m² <span class="f">⏷</span></th><th>Matched <span class="f">⏷</span></th><th>Slab top <span class="f">⏷</span></th><th>Doors</th><th>Drains</th><th>Fixtures</th><th>Sections</th><th>Status</th></tr>
+          <tr class="grp"><td colspan="13">▾ L01 · 2 rooms</td></tr>
+          <tr><td class="chk"></td><td>Host</td><td>L01</td><td>101</td><td>Toilet 01</td><td>4.20</td><td>toilet</td><td><span class="pill p-ok">Floor · +3.150</span></td><td>1</td><td>1</td><td>2</td><td>5</td><td><span class="pill p-ok">Ready</span></td></tr>
+          <tr><td class="chk"></td><td>Host</td><td>L01</td><td>102</td><td>Kitchen</td><td>12.85</td><td>kitchen</td><td><span class="pill p-ok">Floor · +3.150</span></td><td>2</td><td>1</td><td>1</td><td>6</td><td><span class="pill p-ok">Ready</span></td></tr>
+          <tr class="grp"><td colspan="13">▾ L02 · 3 rooms</td></tr>
+          <tr><td class="chk"></td><td><span class="pill p-link">ARC_Model</span></td><td>L02</td><td>201</td><td>Master Bath</td><td>7.60</td><td>bath</td><td><span class="pill p-ok">Floor · +6.300</span></td><td>1</td><td>2</td><td>4</td><td>6</td><td><span class="pill p-ok">Ready</span></td></tr>
+          <tr><td class="chk"></td><td><span class="pill p-link">ARC_Model</span></td><td>L02</td><td>202</td><td>Shower Room</td><td>3.10</td><td>shower</td><td><span class="pill p-warn">No slab · level +0</span></td><td>1</td><td>0</td><td>1</td><td>4</td><td><span class="pill p-warn">No drain</span></td></tr>
+          <tr><td class="chk"></td><td><span class="pill p-link">ARC_Model</span></td><td>L02</td><td>205</td><td>Laundry</td><td>5.40</td><td>laundry</td><td><span class="pill p-ok">Floor · +6.300</span></td><td>1</td><td>1</td><td>0</td><td>4</td><td><span class="pill p-ok">Ready</span></td></tr>
+          <tr class="grp"><td colspan="13">▸ L03 · 1 room (collapsed)</td></tr>
         </table>
-        <div class="row"><button class="btn">Select all</button><button class="btn">Select none</button><span style="flex:1"></span><span style="color:var(--winMuted)">5 of 6 wet rooms ticked · 38 rooms total</span></div>
+        <div class="pop">
+          <b>Filter: Source</b>
+          <span class="in" style="color:#9AA8B8">Search…</span>
+          <span class="chk">(Select all)</span><span class="chk">Host</span><span class="chk">ARC_Model</span><span class="unchk">STR_Model</span>
+          <div class="row" style="justify-content:flex-end"><button class="btn">Clear</button><button class="btn pri">OK</button></div>
+        </div>
+        </div>
+        <div class="row"><button class="btn">Tick visible</button><button class="btn">Untick visible</button><button class="btn">Invert</button><span style="flex:1"></span><span style="color:var(--winMuted)">6 shown · 5 ticked · 38 total · 1 filter active</span></div>
+        <p class="hint">Click a header to sort, Shift+click to add a second sort. ⏷ opens a column filter: a tick list for Source, Level, Matched and Slab; “contains” for No. and Name; min–max for Area. Column order, widths and the last filter are remembered.</p>
       </div>
 
       <!-- RIGHT: settings -->
@@ -137,9 +161,7 @@ tr.off td{color:#9AA8B8}
           <div class="row"><span class="lbl">Plan type</span><span class="in sel">Floor Plan</span></div>
           <div class="row"><span class="lbl">View template</span><span class="in sel">WP Plan 1:50</span></div>
           <div class="row"><span class="lbl">Crop margin</span><span class="in" style="flex:0 0 70px">500</span> mm</div>
-          <div class="row"><span class="lbl">Ref. sections</span><span>2 per room (horizontal + vertical)</span></div>
-          <div class="row"><span class="lbl">Points to</span><span class="in sel">＋ Create new drafting view…</span></div>
-          <div class="row"><span class="lbl">New view name</span><span class="in">WP Detail - Typical Wet Area</span></div>
+          <div class="row"><span class="lbl">Ref. sections</span><span>Set in “Section targets” below <span class="new">CHANGED</span></span></div>
           <div class="row"><span class="lbl">View name pattern</span><span class="in">WP - {Level} - {Number} {Name}</span></div>
         </div>
         <div class="card">
@@ -151,6 +173,21 @@ tr.off td{color:#9AA8B8}
           <div class="row"><span class="chk">Create print set</span><span class="in">Waterproofing - 2026-11-14</span></div>
         </div>
       </div>
+    </div>
+    <div class="card" style="margin:0 10px 10px">
+      <h3>3b · Section targets (up to 6 per room) <span class="new">NEW</span></h3>
+      <div class="row"><span class="lbl">Drafting view</span><span class="unrad">One view for all targets</span><span class="rad">One view per target</span></div>
+      <div class="gwrap"><table class="grid">
+        <tr><th>On</th><th>Target</th><th>Found by</th><th>Per item</th><th>Cut</th><th>Depth</th><th>Points to drafting view</th></tr>
+        <tr><td class="chk"></td><td>Full room – horizontal</td><td>Room bounding box</td><td>—</td><td>Through centre</td><td>Room + 300</td><td><span class="in sel">WP Detail - Typical Wet Area</span></td></tr>
+        <tr><td class="chk"></td><td>Full room – vertical</td><td>Room bounding box</td><td>—</td><td>Through centre</td><td>Room + 300</td><td><span class="in sel">WP Detail - Typical Wet Area</span></td></tr>
+        <tr><td class="chk"></td><td>Door / threshold</td><td>Doors into the room (host + link)</td><td><span class="in sel">One (nearest centre)</span></td><td>Perpendicular to door</td><td>1500</td><td><span class="in sel">＋ New: WP Detail - Door Threshold</span></td></tr>
+        <tr><td class="chk"></td><td>Floor drain</td><td>Fixture / pipe accessory name: drain, FD</td><td><span class="in sel">All matches</span></td><td>Through drain</td><td>1200</td><td><span class="in sel">＋ New: WP Detail - Floor Drain</span></td></tr>
+        <tr><td class="chk"></td><td>Wall corner</td><td>Room boundary corners</td><td><span class="in sel">One (nearest centre)</span></td><td>⟂ longer wall, 300 from corner</td><td>1000</td><td><span class="in sel">WP Detail - Wall Upturn</span></td></tr>
+        <tr><td class="chk"></td><td>WC / closet</td><td>Fixture name: WC, closet, toilet</td><td><span class="in sel">One (nearest centre)</span></td><td>Through fixture</td><td>1200</td><td><span class="in sel">WP Detail - WC Base</span></td></tr>
+      </table></div>
+      <div class="row"><button class="btn">＋ Add target</button><span class="in sel" style="flex:0 0 260px">Shower / bath · Wall–floor (general)</span><span style="flex:1"></span><span style="color:var(--warn)">6 of 6 used · “All matches” can push a room past 6: extra items are skipped and logged</span></div>
+      <p class="hint">Per item: <b>One</b> cuts a single section at the match nearest the room centre; <b>All matches</b> cuts one per match. A room never gets more than 6 sections; targets higher in the list win. Keywords for drains and fixtures are editable in Settings. A room without a match skips that target and the log says so.</p>
     </div>
     <div class="foot">
       <div class="row"><b>Run steps:</b><span class="chk">Roofs</span><span class="chk">Plans</span><span class="chk">Ref. sections</span><span class="chk">Sheets</span><span class="chk">Print set</span>
@@ -166,11 +203,12 @@ tr.off td{color:#9AA8B8}
     <div class="tb">Wet Area Waterproofing — Done <i>✕</i></div>
     <div class="c">
       <div>✅ 5 waterproofing roofs created</div>
-      <div>✅ 5 plans and 10 reference sections created</div>
-      <div>✅ Drafting view “WP Detail - Typical Wet Area” created</div>
-      <div>✅ 5 sheets (WP-101 … WP-105)</div>
+      <div>✅ 5 plans and 25 reference sections created</div>
+      <div>✅ 3 drafting views created (Door Threshold, Floor Drain, Typical Wet Area)</div>
+            <div>✅ 5 sheets (WP-101 … WP-105)</div>
       <div>✅ Print set “Waterproofing - 2026-11-14” (5 sheets)</div>
       <div style="color:var(--warn)">⚠ Room 202 Shower Room: no slab found, roof placed at level L02 + 0 mm</div>
+      <div style="color:var(--warn)">⚠ Room 202 Shower Room: no floor drain found, drain section skipped</div>
       <div class="row" style="justify-content:flex-end"><button class="btn">Open log</button><button class="btn pri">OK</button></div>
     </div>
   </div></div>
