@@ -25,6 +25,9 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Run
 
         /// <summary>Roofs an earlier run made for this room.</summary>
         public IReadOnlyList<long> ExistingRoofIds { get; set; } = Array.Empty<long>();
+
+        /// <summary>Run ID of the newest of those roofs; null when there is none.</summary>
+        public string ExistingRunId { get; set; }
     }
 
     /// <summary>One roof to create.</summary>
