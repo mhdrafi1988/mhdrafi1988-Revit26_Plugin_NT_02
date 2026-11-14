@@ -21,6 +21,7 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.UI.Views
             _viewModel = viewModel;
             _viewModel.OwnerWindow = this;
             _viewModel.ShowNewParameterDialog = ShowNewParameterDialog;
+            _viewModel.ConfirmRewrite = ConfirmRewrite;
             DataContext = viewModel;
         }
 
@@ -28,6 +29,12 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.UI.Views
         {
             var dialog = new NewParameterDialog(dialogViewModel) { Owner = this };
             return dialog.ShowDialog() == true;
+        }
+
+        private RewriteAnswer ConfirmRewrite(RewriteConfirmation confirmation)
+        {
+            var dialog = new RewriteConfirmDialog(confirmation) { Owner = this };
+            return dialog.ShowDialog() == true ? dialog.Answer : RewriteAnswer.Cancel;
         }
 
         private void LogListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)

@@ -2,7 +2,7 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.UI.ViewModels
 {
     /// <summary>
     /// Remembered between sessions in %AppData%\Revit26_Plugin_Revised\Base Level to Parameter.
-    /// <see cref="Version"/> lets later releases migrate the file. "Overwrite existing values" is not
+    /// <see cref="Version"/> lets later releases migrate the file. "Existing values" (Skip / Rewrite) and the per-row choices are not
     /// remembered on purpose: it always starts off.
     /// </summary>
     public class BaseLevelToParameterSettings

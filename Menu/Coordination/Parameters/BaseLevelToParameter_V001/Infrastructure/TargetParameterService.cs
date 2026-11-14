@@ -33,8 +33,18 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.Infrastructure
         /// <summary>Ids of the ticked elements.</summary>
         public List<long> ElementIds { get; set; } = new();
 
-        /// <summary>Overwrite existing values.</summary>
+        /// <summary>"Existing values" option: true = Rewrite, false = Skip (the default for rows without their own choice).</summary>
         public bool Overwrite { get; set; }
+
+        /// <summary>
+        /// Per-element choice for an existing value (1.2.0). Only ids with a choice other than
+        /// <see cref="ExistingChoice.Default"/> need to be listed.
+        /// </summary>
+        public Dictionary<long, ExistingChoice> Choices { get; set; } = new();
+
+        /// <summary>The choice for element <paramref name="id"/> (Default when none is set).</summary>
+        public ExistingChoice ChoiceFor(long id) =>
+            Choices != null && Choices.TryGetValue(id, out ExistingChoice c) ? c : ExistingChoice.Default;
 
         /// <summary>Value format.</summary>
         public ValueFormat Format { get; set; } = ValueFormat.LevelParenOffset;
@@ -212,7 +222,7 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.Infrastructure
             run.Facts = facts;
             TargetFacts t = facts.Target;
 
-            var checks = BaseLevelRules.EvaluateChecks(t, facts.Elements, request.Overwrite, request.Format, request.CustomPattern);
+            var checks = BaseLevelRules.EvaluateChecks(t, facts.Elements, request.Overwrite, request.Choices, request.Format, request.CustomPattern);
             if (BaseLevelRules.AnyBlocked(checks))
             {
                 run.NotStartedReason = "A pre-check is blocked: " +
@@ -223,7 +233,7 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.Infrastructure
             var ready = new List<ElementFacts>();
             foreach (ElementFacts e in facts.Elements)
             {
-                RowVerdict v = BaseLevelRules.EvaluateRow(e, false, request.Overwrite, t.VariesAcrossGroups,
+                RowVerdict v = BaseLevelRules.EvaluateRow(e, false, request.Overwrite, request.ChoiceFor(e.Id), t.VariesAcrossGroups,
                     e.HasLevel ? request.ValueFor(e) : null);
                 if (v.State == RowState.Ready) ready.Add(e);
                 else run.Rows.Add(new RunRowResult
@@ -256,12 +266,22 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.Infrastructure
                     : ExtendBinding(doc, t, request, run);
 
                 int done = 0;
+                var rewrites = new List<string>();
                 foreach (ElementFacts e in ready)
                 {
                     ToolCancellation.CheckCurrent();
                     ToolCancellation.ReportCurrent(++done, ready.Count, $"Assigning {done} of {ready.Count}…");
-                    run.Rows.Add(Assign(doc, e, target, request.ValueFor(e)));
+                    string value = request.ValueFor(e);
+                    RunRowResult row = Assign(doc, e, target, value);
+                    run.Rows.Add(row);
+                    if (row.State == RowState.Assigned && !string.IsNullOrEmpty(e.CurrentValue))
+                    {
+                        row.Text = "Assigned · rewrote value";
+                        rewrites.Add($"{e.Id} “{e.CurrentValue}” → “{value}”");
+                    }
                 }
+                if (rewrites.Count > 0)
+                    run.Log.Add((Shared.Models.LogLevel.Info, $"Rewrote {rewrites.Count} existing value(s): {string.Join(", ", rewrites)}."));
 
                 TransactionStatus status = tx.Commit();
                 if (status != TransactionStatus.Committed)
