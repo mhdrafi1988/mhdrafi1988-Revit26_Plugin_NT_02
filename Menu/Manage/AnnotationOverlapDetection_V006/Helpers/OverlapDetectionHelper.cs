@@ -17,7 +17,8 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V006.Helpers
     /// </summary>
     internal static class OverlapDetectionHelper
     {
-        private const double AlignmentToleranceMm = 0.1;
+        /// <summary>Default "Aligned" tolerance, mm (user-set since 6.1.0).</summary>
+        public const double DefaultAlignmentToleranceMm = 0.1;
 
         private static readonly Type[] AnnotationTypes =
         {
@@ -106,7 +107,12 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V006.Helpers
         /// class are compared (V005 behaviour); with true every pair is compared, so the priority order
         /// can decide between, say, a door tag and a text note.
         /// </summary>
-        public static List<OverlapResult> DetectOverlaps(List<AnnotationData> annotations, bool acrossTypes)
+        /// <param name="annotations">Annotations to compare.</param>
+        /// <param name="acrossTypes">Also compare annotations of different Revit classes.</param>
+        /// <param name="minOverlapMm">Overlap must be deeper than this on both axes (0 = any overlap).</param>
+        /// <param name="alignToleranceMm">Tolerance for the "Aligned" column.</param>
+        public static List<OverlapResult> DetectOverlaps(List<AnnotationData> annotations, bool acrossTypes,
+            double minOverlapMm = 0, double alignToleranceMm = DefaultAlignmentToleranceMm)
         {
             var results = new List<OverlapResult>();
             IEnumerable<List<AnnotationData>> groups = acrossTypes
@@ -126,10 +132,10 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V006.Helpers
                         if (a.ElementId == b.ElementId)
                             continue; // edge case 7: exclude self-overlap
 
-                        if (!BoundingBoxCalculator.DoBoxesIntersect(a, b))
+                        if (!BoundingBoxCalculator.DoBoxesIntersect(a, b, minOverlapMm))
                             continue;
 
-                        bool aligned = CalculateGridAlignment(a, b);
+                        bool aligned = CalculateGridAlignment(a, b, alignToleranceMm);
                         var (vGap, hGap) = BoundingBoxCalculator.CalculateGap(a, b);
 
                         results.Add(new OverlapResult
@@ -154,10 +160,11 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V006.Helpers
         /// Step 6: "Yes" if X OR Y insertion coordinates match within a
         /// 0.1mm tolerance (edge case 6), "No" otherwise.
         /// </summary>
-        public static bool CalculateGridAlignment(AnnotationData a, AnnotationData b)
+        public static bool CalculateGridAlignment(AnnotationData a, AnnotationData b,
+            double toleranceMm = DefaultAlignmentToleranceMm)
         {
-            bool xAligned = Math.Abs(a.X - b.X) <= AlignmentToleranceMm;
-            bool yAligned = Math.Abs(a.Y - b.Y) <= AlignmentToleranceMm;
+            bool xAligned = Math.Abs(a.X - b.X) <= toleranceMm;
+            bool yAligned = Math.Abs(a.Y - b.Y) <= toleranceMm;
             return xAligned || yAligned;
         }
     }

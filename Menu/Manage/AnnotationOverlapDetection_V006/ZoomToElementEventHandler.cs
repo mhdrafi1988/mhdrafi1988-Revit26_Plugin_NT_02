@@ -17,6 +17,12 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V006
     {
         public ElementId ElementIdToZoom { get; set; }
 
+        /// <summary>Margin around the element as a share of its size (0.10 = 10 %, user-set since 6.1.0).</summary>
+        public double PaddingRatio { get; set; } = 0.10;
+
+        /// <summary>Select the element after zooming (user-set since 6.1.0).</summary>
+        public bool SelectOnZoom { get; set; } = true;
+
         public void Execute(UIApplication app) =>
             ToolGuard.RunHandler(GetType(), app, ExecuteCore);
 
@@ -37,7 +43,7 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V006
 
             // 10% padding margin around the element (edge case: fit view with margin)
             XYZ size = bbox.Max - bbox.Min;
-            XYZ padding = size * 0.10;
+            XYZ padding = size * PaddingRatio;
             var paddedBox = new BoundingBoxXYZ
             {
                 Min = bbox.Min - padding,
@@ -49,7 +55,8 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V006
             uiView?.ZoomAndCenterRectangle(paddedBox.Min, paddedBox.Max);
 
             // Optional 1-second highlight
-            uiDoc.Selection.SetElementIds(new List<ElementId> { ElementIdToZoom });
+            if (SelectOnZoom)
+                uiDoc.Selection.SetElementIds(new List<ElementId> { ElementIdToZoom });
         }
 
         public string GetName() => "Zoom To Annotation Element";

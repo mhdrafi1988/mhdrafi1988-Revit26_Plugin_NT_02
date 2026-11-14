@@ -9,6 +9,31 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [7.11.0] — 2026-11-14
+
+### Annotation Overlap Detection 6.1.0 (V006)
+
+#### Added
+- **Options** card (fold-out, under Resolve Overlaps): every value the tool used to fix in code is now yours to set.
+  The defaults are the 6.0.0 values, so nothing changes until you change an option.
+  - **Minimum overlap (mm)**, default 0.00: overlaps no deeper than this on both axes are ignored (0 = any overlap, as before).
+  - **Alignment tolerance (mm)**, default 0.10: used by the Aligned column.
+  - **Direction**: Vertical (up / down, as before) or **Horizontal** (right / left). The mode buttons read
+    Move Right / Move Left in horizontal mode, and By priority moves the lower-priority annotation sideways.
+  - **Dimensions**: move the whole dimension (else its text, as before), move only the text, or never move dimensions.
+  - **Re-check overlaps after each resolve** (on, as before). Off: the grid keeps its rows and shows each pair's status.
+  - **Select the moved elements in Revit after a resolve** (off, as before).
+  - **Zoom margin (%)**, default 10, and **Select the element when zooming to it** (on, as before).
+  - **Restore defaults** puts every option back.
+- Options are saved with the rest of the window settings (settings file version 3; version 2 files load unchanged).
+
+#### Changed
+- Same-priority choices read "Move the upper (or right-hand) one" / "Move the lower (or left-hand) one".
+- Plugin `<Version>` in the `.csproj` brought in line with this changelog (it still read 7.8.0).
+
+User note: nothing changes until you change an option. Values outside their range (for example a negative overlap)
+show a message and the scan or resolve does not run.
+
 ## [7.10.1] — 2026-11-14
 
 ### Changed

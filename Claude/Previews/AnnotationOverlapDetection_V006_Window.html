@@ -1,6 +1,8 @@
 <title>Annotation Overlap Detection V006</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<!-- UI preview (CLAUDE.md "UI previews"): Annotation Overlap Detection V006, tool 6.0.0, plugin 6.54.0.
+<!-- UI preview (CLAUDE.md "UI previews"): Annotation Overlap Detection V006, tool 6.1.0, plugin 7.11.0.
+     New in 6.1.0: Options card - minimum overlap, alignment tolerance, direction (vertical / horizontal), dimension
+     handling, re-check after resolve, select moved elements, zoom margin, select on zoom, Restore defaults.
      New in 6.0.0: "By priority" resolve mode, Priority order card (presets Architectural plan (recommended) /
      Text notes stay / Tags stay / Custom, reorder rows, Never move, Reset, Same priority rule), "Also check overlaps
      between different types", type list by priority category, Status names the moved element, ribbon V006 above V005.
@@ -117,13 +119,19 @@ tr.sel td{background:var(--hover)}
 .legend i{width:12px;height:12px;border-radius:2px;display:inline-block}
 ul{margin:0;padding-left:18px;line-height:1.55;max-width:75ch}
 
+.tag.v60{background:var(--bg3);color:var(--text2)}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:10px 20px}
+.opts h4{margin:0 0 6px;font-size:10.5px;color:var(--text2);letter-spacing:.06em;font-weight:600}
+.orow{display:grid;grid-template-columns:160px 64px 1fr;gap:8px;align-items:center;margin-bottom:6px}
+.orow .input{width:64px}
+.exp{display:flex;align-items:center;gap:6px;font-weight:600;font-size:13px;margin:2px 0 6px}
 /* V006 priority order */
 .prow{display:grid;grid-template-columns:22px 170px 1fr auto auto;gap:8px;align-items:center;padding:4px 0;border-bottom:1px solid var(--sep)}
 .prow:last-child{border-bottom:0}
 .prow .rk{font-weight:600;font-variant-numeric:tabular-nums}
 .prow .why{color:var(--text2);font-size:11px;line-height:1.35}
 .prow .nm{display:flex;align-items:center;gap:5px;white-space:nowrap}
-.prow .box.off{background:var(--card)} .prow .box.off::after{display:none}
+.box.off{background:var(--card)} .box.off::after{display:none}
 .arrows{display:flex;gap:4px}
 .arrows span{border:1px solid var(--input);background:var(--bg2);border-radius:4px;padding:0 7px;font-size:10px}
 .combo{border:1px solid var(--input);background:var(--card);border-radius:5px;padding:3px 26px 3px 8px;position:relative;white-space:nowrap}
@@ -141,15 +149,15 @@ ul{margin:0;padding-left:18px;line-height:1.55;max-width:75ch}
 <div class="page">
   <header>
     <h1>Annotation Overlap Detection V006</h1>
-    <p class="muted">Preview of tool 6.0.0, plugin 6.54.0. V006 keeps everything in V005 and adds <b>By priority</b>:
+    <p class="muted">Preview of tool 6.1.0, plugin 7.11.0. V006 keeps everything in V005 and adds <b>By priority</b>:
       you decide which annotations stay and which move first, or use the recommended architectural order.
-      New or changed items carry a green <span class="tag">NEW</span> tag.</p>
+      New in 6.1.0 carries a green <span class="tag">NEW</span> tag; what came in 6.0.0 carries a grey <span class="tag v60">6.0</span> tag.</p>
     <span class="sample">Sample data: element IDs, counts and coordinates are made up. "Never move" on Dimensions is ticked here only to show the option; it is off by default.</span>
   </header>
 
   <!-- Ribbon -->
   <section>
-    <h2>Ribbon · Rafi_Pro_Docs2 › Manage › Overlaps <span class="tag">NEW</span></h2>
+    <h2>Ribbon · Rafi_Pro_Docs2 › Manage › Overlaps <span class="tag v60">6.0</span></h2>
     <p class="muted">The Overlaps pulldown lists V006 first, then V005 (latest two versions). V004 left the pulldown; its code stays.</p>
     <div class="frame">
       <div class="rib">
@@ -162,10 +170,10 @@ ul{margin:0;padding-left:18px;line-height:1.55;max-width:75ch}
           </div>
           <div>
             <div class="menu">
-              <div class="new"><i></i>Overlap Detection V006 <span class="tag">NEW</span></div>
+              <div class="new"><i></i>Overlap Detection V006 <span class="tag v60">6.0</span></div>
               <div><i></i>Overlap Detection V005</div>
             </div>
-            <div class="tip"><b>Annotation Overlap Detection — v6.0.0</b><br>
+            <div class="tip"><b>Annotation Overlap Detection — v6.1.0</b><br>
               Find overlapping annotations in the active view, then move them apart. By priority: you choose which annotations stay (e.g. dimensions) and which move first (e.g. text notes), or use the recommended order.</div>
           </div>
         </div>
@@ -181,10 +189,10 @@ ul{margin:0;padding-left:18px;line-height:1.55;max-width:75ch}
       the door tag stayed. One pair is left because both annotations are dimensions set to never move.</p>
     <div class="frame">
       <div class="win" style="width:820px">
-        <div class="tbar"><span>Annotation Overlap Detection — v6.0.0</span><span class="x">–▢✕</span></div>
+        <div class="tbar"><span>Annotation Overlap Detection — v6.1.0</span><span class="x">–▢✕</span></div>
         <div class="shead">
           <div><b>Annotation Overlap Detection</b><span class="sub">Find overlapping annotations in the active view, then move them apart</span></div>
-          <span class="ver">v6.0.0</span>
+          <span class="ver">v6.1.0</span>
         </div>
 
         <div class="zone">
@@ -195,7 +203,7 @@ ul{margin:0;padding-left:18px;line-height:1.55;max-width:75ch}
           </div>
 
           <div class="card">
-            <div class="ctitle">Annotation Types To Check <span class="tag">NEW</span> <span style="margin-left:auto"><span class="sbtn">Select All</span><span class="sbtn">Clear All</span></span></div>
+            <div class="ctitle">Annotation Types To Check <span class="tag v60">6.0</span> <span style="margin-left:auto"><span class="sbtn">Select All</span><span class="sbtn">Clear All</span></span></div>
             <div class="types">
               <div class="chk"><span class="box"></span>Dimensions <span class="cnt">(41 items)</span></div>
               <div class="chk"><span class="box"></span>Keynote tags <span class="cnt">(12 items)</span></div>
@@ -204,7 +212,7 @@ ul{margin:0;padding-left:18px;line-height:1.55;max-width:75ch}
               <div class="chk"><span class="box"></span>Room / space / area tags <span class="cnt">(22 items)</span></div>
               <div class="chk"><span class="box"></span>Text notes <span class="cnt">(45 items)</span></div>
             </div>
-            <div class="chk newline" style="margin-top:8px"><span class="box"></span>Also check overlaps between different types (e.g. a door tag over a text note) <span class="tag">NEW</span></div>
+            <div class="chk" style="margin-top:8px"><span class="box"></span>Also check overlaps between different types (e.g. a door tag over a text note) <span class="tag v60">6.0</span></div>
           </div>
 
           <div class="grid frame" style="padding:0">
@@ -242,7 +250,7 @@ ul{margin:0;padding-left:18px;line-height:1.55;max-width:75ch}
                 <small>Both move apart, half the distance each.</small>
               </div>
               <div class="mode on">
-                <div class="r"><span class="rad"></span>By priority <span class="tag">NEW</span></div>
+                <div class="r"><span class="rad"></span>By priority <span class="tag v60">6.0</span></div>
                 <svg viewBox="0 0 120 56" aria-label="Lower-priority text note moves, dimension stays"><rect x="22" y="30" width="62" height="12" rx="2" fill="var(--a)" opacity=".85"/><text x="53" y="39" text-anchor="middle" font-size="7" fill="#FFFFFF">dimension</text><rect x="40" y="22" width="50" height="14" rx="2" fill="none" stroke="var(--b)" stroke-dasharray="3 2"/><rect x="40" y="6" width="50" height="14" rx="2" fill="var(--b)" opacity=".85"/><text x="65" y="16" text-anchor="middle" font-size="7" fill="#FFFFFF">text note</text><path d="M98 30 V10 M94 14 L98 9 L102 14" stroke="var(--text2)" fill="none" stroke-width="1.4"/></svg>
                 <small>The lower-priority one moves away; the higher-priority one stays.</small>
               </div>
@@ -253,8 +261,34 @@ ul{margin:0;padding-left:18px;line-height:1.55;max-width:75ch}
             </div>
           </div>
 
-          <div class="card new">
-            <div class="ctitle">Priority Order <span class="tag">NEW</span>
+          <div>
+            <div class="exp">▾ Options <span class="tag">NEW</span> <span class="hint" style="font-weight:400">fold-out; every value the tool uses, defaults shown</span></div>
+            <div class="card new">
+              <div class="opts">
+                <div>
+                  <h4>DETECTION</h4>
+                  <div class="orow"><span>Minimum overlap (mm)</span><input id="minov" class="input" value="0.00" readonly><span class="hint">Ignore smaller overlaps. 0 = any.</span></div>
+                  <div class="orow"><span>Alignment tolerance (mm)</span><input id="align" class="input" value="0.10" readonly><span class="hint">For the Aligned column.</span></div>
+                  <h4 style="margin-top:8px">ZOOM</h4>
+                  <div class="orow"><span>Zoom margin (%)</span><input id="zoom" class="input" value="10" readonly><span class="hint">Space around the element.</span></div>
+                  <div class="chk"><span class="box"></span>Select the element when zooming to it</div>
+                </div>
+                <div>
+                  <h4>RESOLVE</h4>
+                  <div class="r" style="display:flex;gap:12px;align-items:center;margin-bottom:8px;flex-wrap:wrap"><span style="width:80px">Direction</span>
+                    <span class="mode on" style="display:inline-flex;padding:0;border:0;background:none"><span class="r"><span class="rad"></span>Vertical (up / down)</span></span>
+                    <span style="display:inline-flex;align-items:center;gap:6px"><span class="rad"></span>Horizontal (right / left)</span></div>
+                  <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap"><span style="width:80px">Dimensions</span><span class="combo">Move the whole dimension (else its text)</span></div>
+                  <div class="chk" style="margin-bottom:4px"><span class="box"></span>Re-check overlaps after each resolve</div>
+                  <div class="chk" style="margin-bottom:8px"><span class="box off" style="background:var(--card)"></span>Select the moved elements in Revit after a resolve</div>
+                  <span class="sbtn" style="margin:0">Restore defaults</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="ctitle">Priority Order <span class="tag v60">6.0</span>
               <span class="ctl" style="margin-left:auto;font-weight:400"><span class="combo">Architectural plan (recommended)</span><span class="sbtn" style="margin:0">Reset</span></span></div>
             <p class="hint" style="margin:0 0 6px">Top of the list stays put; the bottom moves first. Use ▲ ▼ to change the order, or tick Never move to keep a type fixed.</p>
               <div class="prow"><span class="rk">1</span><span>Dimensions</span><span class="why">Tied to geometry and dimension strings; moving them changes what they measure.</span>
@@ -289,7 +323,7 @@ ul{margin:0;padding-left:18px;line-height:1.55;max-width:75ch}
 
   <!-- Presets -->
   <section>
-    <h2>The presets <span class="tag">NEW</span></h2>
+    <h2>The presets <span class="tag v60">6.0</span></h2>
     <p class="muted">1 stays put, 6 moves first. Move any row with ▲ ▼ and the preset shows Custom; Reset goes back to the recommended order.</p>
     <div class="frame">
       <table class="cmp">
@@ -332,15 +366,18 @@ ul{margin:0;padding-left:18px;line-height:1.55;max-width:75ch}
   <section>
     <h2>How a resolve works</h2>
     <ul>
-      <li><b>By priority</b>: the lower-priority annotation moves up when it sits above the other, down when it sits below. <span class="tag">NEW</span></li>
-      <li><b>Never move</b> beats the order: if one side never moves, the other side moves; if both never move, the pair is skipped. <span class="tag">NEW</span></li>
-      <li><b>Same priority</b> (e.g. two text notes): Distribute, move the upper one up, move the lower one down, or skip the pair. <span class="tag">NEW</span></li>
+      <li><b>By priority</b>: the lower-priority annotation moves up when it sits above the other, down when it sits below. <span class="tag v60">6.0</span></li>
+      <li><b>Never move</b> beats the order: if one side never moves, the other side moves; if both never move, the pair is skipped. <span class="tag v60">6.0</span></li>
+      <li><b>Same priority</b> (e.g. two text notes): Distribute, move the upper one up, move the lower one down, or skip the pair. <span class="tag v60">6.0</span></li>
       <li>"Up" means up on screen in every 2D view: model height in a section or elevation, screen-up in a rotated plan, up the sheet on a sheet.</li>
       <li>Distance moved = vertical overlap of the two boxes + the clear gap.</li>
       <li>Text notes, tags and room tags move as a whole (a tag's leader stays on its host). A dimension moves as a whole where Revit allows it, otherwise only its text.</li>
-      <li>Pinned, grouped, borrowed-by-others and changed-in-central elements are skipped; the Status column says why, and names the element that moved ("Moved 398220"). <span class="tag">NEW</span></li>
+      <li>Pinned, grouped, borrowed-by-others and changed-in-central elements are skipped; the Status column says why, and names the element that moved ("Moved 398220"). <span class="tag v60">6.0</span></li>
       <li>One run is one transaction: one Undo reverts it. Esc / Cancel during a run moves nothing.</li>
       <li>Your order, presets, Never move ticks and the same-priority rule are remembered (V006 keeps its own settings file).</li>
+      <li><b>Options</b>: every value the tool uses is yours to set: minimum overlap, alignment tolerance, direction, dimension handling,
+        re-check after resolve, select moved elements, zoom margin and select on zoom. Defaults match 6.0.0; Restore defaults puts them back. <span class="tag">NEW</span></li>
+      <li><b>Horizontal</b> direction: Move Up / Move Down read Move Right / Move Left, and By priority moves the lower-priority annotation sideways. <span class="tag">NEW</span></li>
     </ul>
   </section>
 </div>

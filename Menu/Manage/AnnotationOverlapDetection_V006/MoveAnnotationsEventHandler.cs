@@ -9,6 +9,19 @@ using Revit26_Plugin_Revised.Shared.Services;
 
 namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V006
 {
+    /// <summary>How dimensions are moved (6.1.0).</summary>
+    public enum DimensionHandling
+    {
+        /// <summary>Move the whole dimension where Revit allows it, otherwise only its text (default, as 6.0.0).</summary>
+        WholeThenText = 0,
+
+        /// <summary>Move only the dimension text; the dimension line stays.</summary>
+        TextOnly = 1,
+
+        /// <summary>Never move dimensions (pairs that need one to move are skipped).</summary>
+        Never = 2
+    }
+
     /// <summary>What the window asks the move handler to do.</summary>
     public sealed class ResolveRequest
     {
@@ -35,6 +48,15 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V006
 
         /// <summary>V006, By priority: same-priority rule.</summary>
         public TieRule Tie { get; set; } = TieRule.Distribute;
+
+        /// <summary>6.1.0: move left / right (along the view's right direction) instead of up / down.</summary>
+        public bool Horizontal { get; set; }
+
+        /// <summary>6.1.0: how dimensions are moved.</summary>
+        public DimensionHandling Dimensions { get; set; } = DimensionHandling.WholeThenText;
+
+        /// <summary>6.1.0: select the moved elements in Revit after the run.</summary>
+        public bool SelectMoved { get; set; }
     }
 
     /// <summary>Result of one resolve run, handed back to the window.</summary>
@@ -55,6 +77,9 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V006
         /// <summary>Fresh scan of the view after the run (null when the scan could not run).</summary>
         public List<AnnotationData> Rescan { get; set; }
 
+        /// <summary>Ids of the elements that moved (6.1.0).</summary>
+        public List<long> MovedIds { get; } = new();
+
         /// <summary>Error that stopped the whole run, or null.</summary>
         public string Error { get; set; }
 
@@ -63,7 +88,8 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V006
     }
 
     /// <summary>
-    /// Moves clashing annotations apart (Move Up / Move Down / Distribute). The WPF window cannot
+    /// Moves clashing annotations apart (Move Up / Move Down / Distribute / By priority), vertically or,
+    /// since 6.1.0, horizontally. The WPF window cannot
     /// call the Revit API, so it fills <see cref="Request"/> and raises the external event; Revit then
     /// calls <see cref="Execute"/>. All moves of one run are one transaction ("Resolve Annotation
     /// Overlaps"), so one Undo reverts them. Each element moves in its own sub-transaction, so one
@@ -127,6 +153,20 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V006
                     outcome.Error ??= $"Re-scan failed: {ex.Message}";
                 }
 
+                if (request.SelectMoved && outcome.MovedIds.Count > 0 && outcome.Error == null)
+                {
+                    try
+                    {
+                        UIDocument uiDoc = app.ActiveUIDocument;
+                        if (uiDoc != null && uiDoc.Document.Equals(request.Document))
+                            uiDoc.Selection.SetElementIds(outcome.MovedIds.Select(id => new ElementId(id)).ToList());
+                    }
+                    catch (Exception)
+                    {
+                        // Selecting is a convenience: the moves are already committed.
+                    }
+                }
+
                 Completed?.Invoke(outcome);
             }
         }
@@ -157,11 +197,16 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V006
                 Element elem = doc.GetElement(new ElementId(id));
                 var box = elem == null ? null : BoundingBoxCalculator.GetBoundingBox(elem, view);
                 if (box != null)
-                    boxes[id] = new ResolveBox { Id = id, X = box.Value.x, Y = box.Value.y, Width = box.Value.width, Height = box.Value.height };
+                    boxes[id] = request.Horizontal
+                        // Horizontal: the resolver's "up" axis is the view's right direction.
+                        ? new ResolveBox { Id = id, X = box.Value.y, Y = box.Value.x, Width = box.Value.height, Height = box.Value.width }
+                        : new ResolveBox { Id = id, X = box.Value.x, Y = box.Value.y, Width = box.Value.width, Height = box.Value.height };
                 if (elem != null)
                     categories[id] = OverlapDetectionHelper.Classify(elem);
 
                 string reason = check.BlockReason(elem);
+                if (reason == null && elem is Dimension && request.Dimensions == DimensionHandling.Never)
+                    reason = "dimension (set to never move)";
                 if (reason != null)
                     blocked[id] = reason;
             }
@@ -184,7 +229,7 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V006
 
             // Move each element once by its total planned distance.
             var failed = new Dictionary<long, string>();
-            XYZ up = view.UpDirection;
+            XYZ up = request.Horizontal ? view.RightDirection : view.UpDirection;
             using (var t = new Transaction(doc, TransactionName))
             {
                 t.Start();
@@ -196,9 +241,12 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V006
 
                     Element elem = doc.GetElement(new ElementId(move.Key));
                     XYZ vector = up.Multiply(BoundingBoxCalculator.MmToFeet(move.Value));
-                    string error = MoveOne(doc, elem, vector);
+                    string error = MoveOne(doc, elem, vector, request.Dimensions);
                     if (error == null)
+                    {
                         outcome.ElementsMoved++;
+                        outcome.MovedIds.Add(move.Key);
+                    }
                     else
                         failed[move.Key] = error;
                 }
@@ -254,7 +302,7 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V006
         /// is moved as a whole where Revit allows it; otherwise only its text moves.
         /// Returns null on success, or a short reason.
         /// </summary>
-        private static string MoveOne(Document doc, Element elem, XYZ vector)
+        private static string MoveOne(Document doc, Element elem, XYZ vector, DimensionHandling dims)
         {
             if (elem == null || !elem.IsValidObject)
                 return "no longer exists";
@@ -266,7 +314,8 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V006
                 {
                     if (elem is Dimension dim)
                     {
-                        if (!TryMoveWhole(doc, dim, vector) && !MoveDimensionText(dim, vector))
+                        bool whole = dims == DimensionHandling.WholeThenText && TryMoveWhole(doc, dim, vector);
+                        if (!whole && !MoveDimensionText(dim, vector))
                         {
                             sub.RollBack();
                             return "dimension cannot be moved";
