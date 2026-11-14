@@ -23,6 +23,8 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.Core
         Pending,
         /// <summary>Will be written by Run.</summary>
         Ready,
+        /// <summary>Already has the new value; Run does not rewrite it.</summary>
+        UpToDate,
         /// <summary>Will be skipped by Run (reason in the status text).</summary>
         Warning,
         /// <summary>A blocking pre-check stops the run.</summary>

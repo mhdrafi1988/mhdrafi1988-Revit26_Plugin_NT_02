@@ -1,7 +1,8 @@
 <title>Base Level to Parameter</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<!-- UI preview (CLAUDE.md "UI previews"): Base Level to Parameter V001, tool 1.1.0 (proposed), plugin 7.4.0 (proposed).
-     Status: value-format options shown FOR APPROVAL (section 2a); the code follows after the owner picks the patterns.
+<!-- UI preview (CLAUDE.md "UI previews"): Base Level to Parameter V001, tool 1.1.0, plugin 7.4.0.
+     New in 1.1.0 also: Up to Date state and tile, clickable metric tiles, Changed only, Select in Revit / Zoom to, Load Selection,
+     Tick all / Untick all per category, Base Level source tooltip.
      New in 1.1.0: "Value format" in the Target parameter card: Level name only, or Level name + offset with a pattern.
      1.0.1: new parameters go under Data; pre-check c blocks duplicate names and a file GUID used by another parameter.
      Shows: the Coordination ribbon button + tooltip, the main window after "Load Base Level" with the pre-checks run,
@@ -55,7 +56,12 @@ input[type=checkbox]{accent-color:var(--action);width:14px;height:14px;margin:0 
 .sp{flex:1}
 
 /* Metrics */
-.metrics{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;padding:8px}
+.metrics{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;padding:8px}
+.tile{cursor:pointer}.tile.act{outline:2px solid var(--action);outline-offset:-1px}
+.chipbtn{height:24px;padding:0 10px;border:1px solid var(--border-input);border-radius:12px;font-size:11px;display:inline-flex;align-items:center;background:var(--card)}
+.chipbtn.on{background:var(--action);border-color:var(--action);color:var(--new-text)}
+.nv.same{color:var(--text3);font-weight:400}.nv.chg{color:var(--ok)}
+.tipbox{position:absolute;background:var(--navy-dark);color:var(--on-dark);font-size:11px;padding:4px 8px;border-radius:3px;white-space:nowrap;margin-top:22px;margin-left:-20px;box-shadow:0 2px 6px rgba(20,40,63,.3)}
 .tile{border:1px solid var(--border);border-radius:4px;padding:8px 12px;background:var(--card)}
 .tile .n{font-size:20px;font-weight:600;font-variant-numeric:tabular-nums}
 .tile .k{font-size:11px;color:var(--text2)}
@@ -181,10 +187,12 @@ tr.dim td{color:var(--text3)}
     <div class="card metrics">
       <div class="tile"><div class="n">151</div><div class="k">Elements Listed</div></div>
       <div class="tile info"><div class="n">142</div><div class="k">Checked</div></div>
-      <div class="tile ok"><div class="n">121</div><div class="k">Ready</div></div>
-      <div class="tile warn"><div class="n">21</div><div class="k">Warnings</div></div>
+      <div class="tile ok"><div class="n">120</div><div class="k">Ready</div></div>
+      <div class="tile"><div class="n">1</div><div class="k">Up to Date <span class="new">NEW</span></div></div>
+      <div class="tile warn act"><div class="n">21</div><div class="k">Warnings</div></div>
       <div class="tile err"><div class="n">0</div><div class="k">Blocked</div></div>
     </div>
+    <div class="hint" style="padding:2px 4px 0">Click a tile to show only those rows in the grid; click it again to show all. <span class="new">NEW</span></div>
   </div>
 
   <!-- Source toolbar -->
@@ -193,6 +201,7 @@ tr.dim td{color:var(--text3)}
       <span class="lbl">Source</span><span class="pill">Active view · Level 02 – Floor Plan · 151 elements</span>
       <span class="hint" style="margin-left:6px">Host model only. Linked elements are not listed.</span>
       <span class="sp"></span>
+      <span class="sbtn">Load Selection <span class="new">NEW</span></span>
       <span class="sbtn">Load Active View</span>
       <span class="sbtn">Load All Model Elements</span>
       <span class="sbtn pri">Load Base Level</span>
@@ -222,8 +231,15 @@ tr.dim td{color:var(--text3)}
           <div style="display:flex;flex-direction:column;gap:6px">
             <label><input type="radio" name="vf" disabled>Level name only</label>
             <label><input type="radio" name="vf" checked disabled>Level name + offset</label>
-            <div class="row" style="padding-left:20px"><span class="lbl" style="margin:0">Pattern</span><span class="combo" style="width:210px">Level 02 (+450)</span></div>
-            <div class="hint" style="padding-left:20px">Sample: <b style="font-family:var(--mono);color:var(--text)">Level 02 (+450)</b> · <b style="font-family:var(--mono);color:var(--text)">Level 01 (0)</b> · <b style="font-family:var(--mono);color:var(--text)">Level 01 (-150)</b></div>
+            <div style="padding-left:20px"><div class="row"><span class="lbl" style="margin:0">Pattern</span><span class="combo" style="width:230px">Level 02 (+450)</span></div>
+              <div class="dd" style="width:230px;margin-left:46px">
+                <div class="sel"><span>Level 02 (+450)</span></div><div><span>Level 02 +450</span></div><div><span>Level 02 (+450 mm)</span></div>
+                <div><span>Level 02 / +450</span></div><div><span>Level 02 [+450]</span></div><div><span>Level 02, Offset +450</span></div>
+                <div><span>Level 02 (+450) · no “(0)”</span></div><div><span>Custom…</span></div>
+              </div>
+              <div class="row" style="margin-top:6px"><span class="lbl" style="margin:0">Custom</span><span class="text" style="width:230px;color:var(--text-disabled)">{Level} ({Offset})</span></div>
+              <div class="hint" style="margin-left:46px">Enabled when Custom… is picked. Tokens {Level} and {Offset}; {Level} is required.</div></div>
+            <div class="hint" style="padding-left:20px">Remembered for next time. Sample: <b style="font-family:var(--mono);color:var(--text)">Level 02 (+450)</b> · <b style="font-family:var(--mono);color:var(--text)">Level 01 (0)</b> · <b style="font-family:var(--mono);color:var(--text)">Level 01 (-150)</b></div>
           </div>
         </div>
         <div class="hint">Offset in mm, signed, whole millimetres. Changing the format updates the New Value column at once (no Revit call). The list shows every project parameter; a wrong data type or a type parameter is Blocked in check b.</div>
@@ -242,7 +258,7 @@ tr.dim td{color:var(--text3)}
           <tr><td>e · Document and elements</td><td><span class="chip warn">Warning</span></td><td>Project document, editable, workshared. <b>3</b> element(s) owned by another user → skipped. Parameter read-only on 0 element(s). <b>12</b> element(s) already have a value → skipped (Overwrite is off). <b>6</b> element(s) have no base level → skipped.</td></tr>
         </table>
       </div>
-      <div class="summary" style="margin-top:auto"><span class="ok">121 ready</span>|<span class="warn">21 warnings</span>|<span class="err">0 blocked</span><span class="sp"></span><span class="hint" style="font-weight:400">Counts of ticked elements. Run is enabled because nothing is blocked.</span></div>
+      <div class="summary" style="margin-top:auto"><span class="ok">120 ready</span>|<span class="warn">21 warnings</span>|<span class="err">0 blocked</span><span class="hint" style="font-weight:400">· 1 up to date</span><span class="sp"></span><span class="hint" style="font-weight:400">Counts of ticked elements. Run is enabled because nothing is blocked.</span></div>
     </div>
   </div>
 
@@ -252,38 +268,43 @@ tr.dim td{color:var(--text3)}
       <span class="section">Elements</span><span class="pill">151</span>
       <span class="text" style="width:260px;margin-left:12px"><span class="ph">⌕ Filter by id, category, family, level…</span></span>
       <span class="sbtn">Select All</span><span class="sbtn">Select None</span><span class="hint">acts on the rows the filter shows</span>
+      <span class="chipbtn">Changed only <span class="new">NEW</span></span>
       <span class="sp"></span>
+      <span class="sbtn">Select in Revit <span class="new">NEW</span></span><span class="sbtn">Zoom to <span class="new">NEW</span></span>
       <span class="sbtn">Expand All</span><span class="sbtn">Collapse All</span>
+    </div>
+    <div class="row" style="margin:-4px 0 8px">
+      <span class="chip warn">Showing: Warnings (21)</span><span class="hint">from the Warnings tile · click it again to show all</span>
     </div>
     <table>
       <tr><th style="width:30px"><input type="checkbox" checked></th><th style="width:80px">Element Id</th><th style="width:130px">Category<span class="ar">▲</span></th><th style="width:270px">Family and Type</th><th style="width:100px">Base Level</th><th class="num" style="width:90px">Base Offset</th><th style="width:150px">Current Value</th><th style="width:150px">New Value</th><th>Status</th></tr>
 
-      <tr class="grp"><td colspan="9"><span class="tw">▾</span>Walls <span class="cnt">· 48 elements</span></td></tr>
-      <tr><td><input type="checkbox" checked></td><td class="mono">318204</td><td>Walls</td><td>Basic Wall: Ext – Brick 290</td><td>Level 01</td><td class="num">0</td><td class="cv">—</td><td class="nv">Level 01 (0)</td><td><span class="chip ok">Ready</span></td></tr>
-      <tr><td><input type="checkbox" checked></td><td class="mono">318377</td><td>Walls</td><td>Basic Wall: Int – Partition 100</td><td>Level 02</td><td class="num">+450</td><td class="cv">—</td><td class="nv">Level 02 (+450)</td><td><span class="chip ok">Ready</span></td></tr>
-      <tr><td><input type="checkbox" checked></td><td class="mono">318512</td><td>Walls</td><td>Basic Wall: Int – Partition 100</td><td>Level 02</td><td class="num">+450</td><td>Level 02 (+300)</td><td class="nv">Level 02 (+450)</td><td><span class="chip warn">Skipped · has value</span></td></tr>
-      <tr><td><input type="checkbox" checked></td><td class="mono">319001</td><td>Walls</td><td>Curtain Wall: Storefront</td><td>Level 01</td><td class="num">−150</td><td class="cv">—</td><td class="nv">Level 01 (-150)</td><td><span class="chip warn">Skipped · owned by User B</span></td></tr>
+      <tr class="grp"><td colspan="9"><div class="row"><span class="tw">▾</span>Walls <span class="cnt">· 48 elements</span><span class="sp"></span><span class="sbtn" style="height:20px;font-size:10.5px">Tick all</span><span class="sbtn" style="height:20px;font-size:10.5px">Untick all</span><span class="new">NEW</span></div></td></tr>
+      <tr><td><input type="checkbox" checked></td><td class="mono">318204</td><td>Walls</td><td>Basic Wall: Ext – Brick 290</td><td>Level 01</td><td class="num">0</td><td>Level 01 (0)</td><td class="nv same">Level 01 (0)</td><td><span class="chip mute">Up to date</span> <span class="new">NEW</span></td></tr>
+      <tr><td><input type="checkbox" checked></td><td class="mono">318377</td><td>Walls</td><td>Basic Wall: Int – Partition 100</td><td style="position:relative">Level 02<span class="tipbox">From Base Constraint + Base Offset</span></td><td class="num">+450</td><td class="cv">—</td><td class="nv chg">Level 02 (+450)</td><td><span class="chip ok">Ready</span></td></tr>
+      <tr><td><input type="checkbox" checked></td><td class="mono">318512</td><td>Walls</td><td>Basic Wall: Int – Partition 100</td><td>Level 02</td><td class="num">+450</td><td>Level 02 (+300)</td><td class="nv chg">Level 02 (+450)</td><td><span class="chip warn">Skipped · has value</span></td></tr>
+      <tr><td><input type="checkbox" checked></td><td class="mono">319001</td><td>Walls</td><td>Curtain Wall: Storefront</td><td>Level 01</td><td class="num">−150</td><td class="cv">—</td><td class="nv chg">Level 01 (-150)</td><td><span class="chip warn">Skipped · owned by User B</span></td></tr>
 
-      <tr class="grp"><td colspan="9"><span class="tw">▾</span>Structural Columns <span class="cnt">· 22 elements</span></td></tr>
-      <tr><td><input type="checkbox" checked></td><td class="mono">402118</td><td>Structural Columns</td><td>Concrete-Rectangular-Column: 400 x 400</td><td>Level 01</td><td class="num">0</td><td class="cv">—</td><td class="nv">Level 01 (0)</td><td><span class="chip ok">Ready</span></td></tr>
-      <tr><td><input type="checkbox" checked></td><td class="mono">402119</td><td>Structural Columns</td><td>Concrete-Rectangular-Column: 400 x 400</td><td>Level 02</td><td class="num">−75</td><td class="cv">—</td><td class="nv">Level 02 (-75)</td><td><span class="chip ok">Ready</span></td></tr>
+      <tr class="grp"><td colspan="9"><div class="row"><span class="tw">▾</span>Structural Columns <span class="cnt">· 22 elements</span><span class="sp"></span><span class="sbtn" style="height:20px;font-size:10.5px">Tick all</span><span class="sbtn" style="height:20px;font-size:10.5px">Untick all</span><span class="new">NEW</span></div></td></tr>
+      <tr><td><input type="checkbox" checked></td><td class="mono">402118</td><td>Structural Columns</td><td>Concrete-Rectangular-Column: 400 x 400</td><td>Level 01</td><td class="num">0</td><td class="cv">—</td><td class="nv chg">Level 01 (0)</td><td><span class="chip ok">Ready</span></td></tr>
+      <tr><td><input type="checkbox" checked></td><td class="mono">402119</td><td>Structural Columns</td><td>Concrete-Rectangular-Column: 400 x 400</td><td>Level 02</td><td class="num">−75</td><td class="cv">—</td><td class="nv chg">Level 02 (-75)</td><td><span class="chip ok">Ready</span></td></tr>
 
-      <tr class="grp"><td colspan="9"><span class="tw">▾</span>Floors <span class="cnt">· 6 elements</span></td></tr>
-      <tr><td><input type="checkbox" checked></td><td class="mono">451220</td><td>Floors</td><td>Floor: Slab 200</td><td>Level 02</td><td class="num">−50</td><td class="cv">—</td><td class="nv">Level 02 (-50)</td><td><span class="chip ok">Ready</span></td></tr>
+      <tr class="grp"><td colspan="9"><div class="row"><span class="tw">▾</span>Floors <span class="cnt">· 6 elements</span><span class="sp"></span><span class="sbtn" style="height:20px;font-size:10.5px">Tick all</span><span class="sbtn" style="height:20px;font-size:10.5px">Untick all</span><span class="new">NEW</span></div></td></tr>
+      <tr><td><input type="checkbox" checked></td><td class="mono">451220</td><td>Floors</td><td>Floor: Slab 200</td><td>Level 02</td><td class="num">−50</td><td class="cv">—</td><td class="nv chg">Level 02 (-50)</td><td><span class="chip ok">Ready</span></td></tr>
 
-      <tr class="grp"><td colspan="9"><span class="tw">▸</span>Roofs <span class="cnt">· 2 elements</span></td></tr>
+      <tr class="grp"><td colspan="9"><div class="row"><span class="tw">▸</span>Roofs <span class="cnt">· 2 elements</span><span class="sp"></span><span class="sbtn" style="height:20px;font-size:10.5px">Tick all</span><span class="sbtn" style="height:20px;font-size:10.5px">Untick all</span><span class="new">NEW</span></div></td></tr>
 
-      <tr class="grp"><td colspan="9"><span class="tw">▾</span>Generic Models <span class="cnt">· 18 elements</span></td></tr>
-      <tr><td><input type="checkbox" checked></td><td class="mono">503771</td><td>Generic Models</td><td>Planter Box: 1200 x 600</td><td>Level 02</td><td class="num">+150</td><td class="cv">—</td><td class="nv">Level 02 (+150)</td><td><span class="chip ok">Ready</span></td></tr>
+      <tr class="grp"><td colspan="9"><div class="row"><span class="tw">▾</span>Generic Models <span class="cnt">· 18 elements</span><span class="sp"></span><span class="sbtn" style="height:20px;font-size:10.5px">Tick all</span><span class="sbtn" style="height:20px;font-size:10.5px">Untick all</span><span class="new">NEW</span></div></td></tr>
+      <tr><td><input type="checkbox" checked></td><td class="mono">503771</td><td>Generic Models</td><td>Planter Box: 1200 x 600</td><td>Level 02</td><td class="num">+150</td><td class="cv">—</td><td class="nv chg">Level 02 (+150)</td><td><span class="chip ok">Ready</span></td></tr>
       <tr><td><input type="checkbox" checked></td><td class="mono">503902</td><td>Generic Models</td><td>In-place: Bench</td><td class="cv">—</td><td class="num cv">—</td><td class="cv">—</td><td class="cv">—</td><td><span class="chip warn">Skipped · no base level</span></td></tr>
       <tr class="dim"><td><input type="checkbox"></td><td class="mono">503940</td><td>Generic Models</td><td>Bollard: 150 dia</td><td>Level 01</td><td class="num">0</td><td>—</td><td>—</td><td><span class="chip mute">Not checked</span></td></tr>
 
-      <tr class="grp"><td colspan="9"><span class="tw">▾</span>Ducts <span class="cnt">· 31 elements</span></td></tr>
-      <tr><td><input type="checkbox" checked></td><td class="mono">612004</td><td>Ducts</td><td>Rectangular Duct: Mitered Elbows</td><td>Level 03</td><td class="num">+2850</td><td class="cv">—</td><td class="nv">Level 03 (+2850)</td><td><span class="chip ok">Ready</span></td></tr>
+      <tr class="grp"><td colspan="9"><div class="row"><span class="tw">▾</span>Ducts <span class="cnt">· 31 elements</span><span class="sp"></span><span class="sbtn" style="height:20px;font-size:10.5px">Tick all</span><span class="sbtn" style="height:20px;font-size:10.5px">Untick all</span><span class="new">NEW</span></div></td></tr>
+      <tr><td><input type="checkbox" checked></td><td class="mono">612004</td><td>Ducts</td><td>Rectangular Duct: Mitered Elbows</td><td>Level 03</td><td class="num">+2850</td><td class="cv">—</td><td class="nv chg">Level 03 (+2850)</td><td><span class="chip ok">Ready</span></td></tr>
 
-      <tr class="grp"><td colspan="9"><span class="tw">▸</span>Pipes <span class="cnt">· 24 elements</span></td></tr>
+      <tr class="grp"><td colspan="9"><div class="row"><span class="tw">▸</span>Pipes <span class="cnt">· 24 elements</span><span class="sp"></span><span class="sbtn" style="height:20px;font-size:10.5px">Tick all</span><span class="sbtn" style="height:20px;font-size:10.5px">Untick all</span><span class="new">NEW</span></div></td></tr>
     </table>
-    <div class="hint" style="margin-top:6px">Columns sort on click (arrow shows direction). Rows are virtualized. Offsets are rounded to whole millimetres, half away from zero (2849.6 → +2850).</div>
+    <div class="hint" style="margin-top:6px"><span class="new">NEW</span> New Value is green when it differs from Current Value and grey when it is the same; same-value rows are "Up to date" and are never rewritten. Hover Base Level to see which parameters it was read from. Select in Revit / Zoom to act on the highlighted grid rows. Columns sort on click (arrow shows direction). Rows are virtualized. Offsets are rounded to whole millimetres, half away from zero (2849.6 → +2850).</div>
   </div>
 
   <!-- Log -->
@@ -307,8 +328,8 @@ tr.dim td{color:var(--text3)}
 </div>
 
 <!-- ============ VALUE FORMAT OPTIONS (FOR APPROVAL) ============ -->
-<h2>2a · Value format options <span class="new">NEW · for approval</span></h2>
-<p class="note">Pick the patterns to keep. The default stays the 1.0.x format, so existing results do not change unless you choose another pattern. Samples use offsets +450, 0 and −150 mm (sample data).</p>
+<h2>2a · Value format patterns <span class="new">NEW</span></h2>
+<p class="note">All patterns are in the Pattern list. The default stays the 1.0.x format, so existing results do not change unless you choose another pattern. Samples use offsets +450, 0 and −150 mm (sample data).</p>
 <div class="scroll">
 <div class="card" style="width:860px;padding:8px 12px">
   <table>
@@ -377,13 +398,14 @@ tr.dim td{color:var(--text3)}
 
 <!-- ============ DECISIONS ============ -->
 <h2>5 · Decisions</h2>
-<div class="card" style="padding:10px 12px;margin-bottom:12px;max-width:1200px;border-color:var(--warn-border);background:var(--warn-soft)">
-  <div class="section" style="color:var(--warn);margin-bottom:4px">Open for 1.1.0</div>
-  <ol style="margin:0;padding-left:20px;line-height:1.55">
-    <li>Which patterns from 2a to keep (L and 1 are always in)?</li>
-    <li>Include “Custom…” with {Level} / {Offset} tokens?</li>
-    <li>Remember the chosen format for next time (settings file), or always start with the default?</li>
-  </ol>
+<div class="card" style="padding:10px 12px;margin-bottom:12px;max-width:1200px">
+  <div class="section" style="margin-bottom:4px">1.1.0 (confirmed by the owner)</div>
+  <ul style="margin:0;padding-left:20px;line-height:1.55">
+    <li>Value format: Level name only, or Level name + offset with all 8 patterns of 2a (Custom… included). The choice is remembered.</li>
+    <li>Same value already present → "Up to date", never rewritten (new Up to Date tile).</li>
+    <li>New Value green when changed, grey when the same; "Changed only" filter.</li>
+    <li>Metric tiles filter the grid; Select in Revit and Zoom to; Load Selection; Tick all / Untick all per category; Base Level tooltip shows the source parameters.</li>
+  </ul>
 </div>
 <div class="lists">
   <div>

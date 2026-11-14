@@ -41,6 +41,12 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.UI.ViewModels
         [ObservableProperty] private string _newValue = string.Empty;
         [ObservableProperty] private string _status = "Not read";
         [ObservableProperty] private RowState _state = RowState.Pending;
+        [ObservableProperty] private bool _isChanged;
+        [ObservableProperty] private bool _isSame;
+
+        /// <summary>Which parameters the base level was read from (tooltip on Base Level).</summary>
+        public string LevelSource => Facts == null ? "Not read yet"
+            : Facts.HasLevel ? "From " + Facts.LevelSource : "No base level parameter found";
 
         /// <summary>Base offset as a number for sorting (null when not read).</summary>
         public double? OffsetSort => Facts?.HasLevel == true ? Math.Round(Facts.OffsetMm, MidpointRounding.AwayFromZero) : null;
@@ -50,24 +56,45 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.UI.ViewModels
             if (!SuppressTickCallback) _tickChanged?.Invoke(this);
         }
 
-        /// <summary>Shows the facts read by the last pre-check.</summary>
-        public void ApplyFacts(ElementFacts facts)
+        /// <summary>Shows the facts read by the last pre-check, with the value in <paramref name="format"/>.</summary>
+        public void ApplyFacts(ElementFacts facts, ValueFormat format, string customPattern)
         {
             Facts = facts;
             if (facts.HasLevel)
             {
                 BaseLevel = facts.LevelName;
                 BaseOffset = BaseLevelRules.FormatOffset(facts.OffsetMm);
-                NewValue = BaseLevelRules.FormatValue(facts.LevelName, facts.OffsetMm);
             }
             else
             {
                 BaseLevel = "—";
                 BaseOffset = "—";
-                NewValue = "—";
             }
             CurrentValue = string.IsNullOrEmpty(facts.CurrentValue) ? "—" : facts.CurrentValue;
+            RefreshValue(format, customPattern);
             OnPropertyChanged(nameof(OffsetSort));
+            OnPropertyChanged(nameof(LevelSource));
+        }
+
+        /// <summary>The value in the current format, or null when the base level is not known.</summary>
+        public string FormattedValue { get; private set; }
+
+        /// <summary>Recomputes New Value for another format (no Revit call).</summary>
+        public void RefreshValue(ValueFormat format, string customPattern)
+        {
+            FormattedValue = Facts?.HasLevel == true ? ValueFormatter.Format(Facts.LevelName, Facts.OffsetMm, format, customPattern) : null;
+            NewValue = FormattedValue ?? "—";
+            IsSame = FormattedValue != null && string.Equals(FormattedValue, Facts.CurrentValue, StringComparison.Ordinal);
+            IsChanged = FormattedValue != null && !IsSame;
+        }
+
+        /// <summary>Records a value written by Run.</summary>
+        public void MarkWritten(string value)
+        {
+            if (Facts != null) Facts.CurrentValue = value;
+            CurrentValue = value;
+            IsSame = true;
+            IsChanged = false;
         }
 
         /// <summary>Forgets the facts (the element no longer exists).</summary>
