@@ -47,6 +47,27 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.Infrastructure
         }
 
         /// <summary>
+        /// Returns the model elements among <paramref name="ids"/> (for example the current Revit selection).
+        /// <paramref name="ignored"/> counts the ids that are not host-model model elements.
+        /// </summary>
+        public static List<ElementListItem> FromIds(Document doc, IEnumerable<ElementId> ids, out int ignored)
+        {
+            ignored = 0;
+            var list = new List<ElementListItem>();
+            foreach (ElementId id in ids)
+            {
+                Element e = doc.GetElement(id);
+                if (e == null || e is ElementType || !IsModelElement(e))
+                {
+                    ignored++;
+                    continue;
+                }
+                list.Add(new ElementListItem { Id = e.Id.Value, Category = e.Category.Name, FamilyAndType = FamilyAndType(doc, e) });
+            }
+            return list.OrderBy(i => i.Category).ThenBy(i => i.Id).ToList();
+        }
+
+        /// <summary>
         /// True when <paramref name="view"/> can list model elements: a graphical, non-template view
         /// (plan, ceiling plan, section, elevation, 3D, area plan, structural plan).
         /// </summary>

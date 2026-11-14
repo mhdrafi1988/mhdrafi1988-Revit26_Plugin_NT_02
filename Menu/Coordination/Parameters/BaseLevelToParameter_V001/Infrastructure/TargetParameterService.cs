@@ -35,6 +35,15 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.Infrastructure
 
         /// <summary>Overwrite existing values.</summary>
         public bool Overwrite { get; set; }
+
+        /// <summary>Value format.</summary>
+        public ValueFormat Format { get; set; } = ValueFormat.LevelParenOffset;
+
+        /// <summary>Custom pattern, used when <see cref="Format"/> is <see cref="ValueFormat.Custom"/>.</summary>
+        public string CustomPattern { get; set; } = ValueFormatter.DefaultCustomPattern;
+
+        /// <summary>The value for <paramref name="f"/> in this request's format.</summary>
+        public string ValueFor(ElementFacts f) => ValueFormatter.Format(f.LevelName, f.OffsetMm, Format, CustomPattern);
     }
 
     /// <summary>Result of reading the target, the document and the ticked elements.</summary>
@@ -203,7 +212,7 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.Infrastructure
             run.Facts = facts;
             TargetFacts t = facts.Target;
 
-            var checks = BaseLevelRules.EvaluateChecks(t, facts.Elements, request.Overwrite);
+            var checks = BaseLevelRules.EvaluateChecks(t, facts.Elements, request.Overwrite, request.Format, request.CustomPattern);
             if (BaseLevelRules.AnyBlocked(checks))
             {
                 run.NotStartedReason = "A pre-check is blocked: " +
@@ -214,9 +223,15 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.Infrastructure
             var ready = new List<ElementFacts>();
             foreach (ElementFacts e in facts.Elements)
             {
-                RowVerdict v = BaseLevelRules.EvaluateRow(e, false, request.Overwrite, t.VariesAcrossGroups);
+                RowVerdict v = BaseLevelRules.EvaluateRow(e, false, request.Overwrite, t.VariesAcrossGroups,
+                    e.HasLevel ? request.ValueFor(e) : null);
                 if (v.State == RowState.Ready) ready.Add(e);
-                else run.Rows.Add(new RunRowResult { Id = e.Id, State = RowState.Skipped, Text = v.Text });
+                else run.Rows.Add(new RunRowResult
+                {
+                    Id = e.Id,
+                    State = RowState.Skipped,
+                    Text = v.State == RowState.UpToDate ? "Skipped · up to date" : v.Text
+                });
             }
             foreach (long id in facts.Missing)
                 run.Rows.Add(new RunRowResult { Id = id, State = RowState.Skipped, Text = "Skipped · element no longer exists" });
@@ -245,7 +260,7 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.Infrastructure
                 {
                     ToolCancellation.CheckCurrent();
                     ToolCancellation.ReportCurrent(++done, ready.Count, $"Assigning {done} of {ready.Count}…");
-                    run.Rows.Add(Assign(doc, e, target));
+                    run.Rows.Add(Assign(doc, e, target, request.ValueFor(e)));
                 }
 
                 TransactionStatus status = tx.Commit();
@@ -370,9 +385,8 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.Infrastructure
                 ?? throw new InvalidOperationException($"“{def.Name}” is not an internal definition.");
         }
 
-        private static RunRowResult Assign(Document doc, ElementFacts f, InternalDefinition target)
+        private static RunRowResult Assign(Document doc, ElementFacts f, InternalDefinition target, string value)
         {
-            string value = BaseLevelRules.FormatValue(f.LevelName, f.OffsetMm);
             var row = new RunRowResult { Id = f.Id, Value = value };
             Element e = doc.GetElement(new ElementId(f.Id));
             Parameter p = e?.get_Parameter(target);

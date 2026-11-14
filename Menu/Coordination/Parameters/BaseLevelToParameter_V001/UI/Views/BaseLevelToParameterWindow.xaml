@@ -28,6 +28,7 @@ Preview: Claude/Previews/BaseLevelToParameter_V001_Window.html
             </ResourceDictionary.MergedDictionaries>
             <converters:LogLevelToColorConverter x:Key="LogLevelToColorConverter"/>
             <local:StatusBrushConverter x:Key="StatusBrush"/>
+            <converters:InverseBoolConverter x:Key="InverseBool"/>
         </ResourceDictionary>
     </Window.Resources>
 
@@ -40,32 +41,45 @@ Preview: Claude/Previews/BaseLevelToParameter_V001_Window.html
 
         <!-- ═══ HEADER: metrics ═══════════════════════════════════ -->
         <shell:ToolWindowShell.HeaderContent>
-            <UniformGrid Columns="5">
-                <Border Style="{StaticResource MetricTile}" Background="{StaticResource BrushSurfaceCard}" BorderBrush="{StaticResource BrushBorderDefault}" Margin="0,0,3,0">
+            <UniformGrid Columns="6">
+                <Border Style="{StaticResource MetricTile}" Background="{StaticResource BrushSurfaceCard}" BorderBrush="{StaticResource BrushBorderDefault}" Margin="0,0,3,0" Cursor="Hand" ToolTip="Click to show only these rows; click again to show all.">
+                    <Border.InputBindings><MouseBinding MouseAction="LeftClick" Command="{Binding FilterTileCommand}" CommandParameter=""/></Border.InputBindings>
                     <StackPanel>
                         <TextBlock Text="ELEMENTS LISTED" Style="{StaticResource MetricTileLabel}"/>
                         <TextBlock Text="{Binding ListedCount}" Style="{StaticResource MetricTileNumber}"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricTileInfo}" Margin="3,0">
+                <Border Style="{StaticResource MetricTileInfo}" Margin="3,0" Cursor="Hand" ToolTip="Click to show only these rows; click again to show all.">
+                    <Border.InputBindings><MouseBinding MouseAction="LeftClick" Command="{Binding FilterTileCommand}" CommandParameter="Checked"/></Border.InputBindings>
                     <StackPanel>
                         <TextBlock Text="CHECKED" Style="{StaticResource MetricTileLabelInfo}"/>
                         <TextBlock Text="{Binding CheckedCount}" Style="{StaticResource MetricTileNumberInfo}"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricTileSuccess}" Margin="3,0">
+                <Border Style="{StaticResource MetricTileSuccess}" Margin="3,0" Cursor="Hand" ToolTip="Click to show only these rows; click again to show all.">
+                    <Border.InputBindings><MouseBinding MouseAction="LeftClick" Command="{Binding FilterTileCommand}" CommandParameter="Ready"/></Border.InputBindings>
                     <StackPanel>
                         <TextBlock Text="READY" Style="{StaticResource MetricTileLabelSuccess}"/>
                         <TextBlock Text="{Binding ReadyCount}" Style="{StaticResource MetricTileNumberSuccess}"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricTileWarning}" Margin="3,0">
+                <Border Style="{StaticResource MetricTile}" Background="{StaticResource BrushSurfaceCard}" BorderBrush="{StaticResource BrushBorderDefault}" Margin="3,0" Cursor="Hand"
+                        ToolTip="Already hold the new value; never rewritten. Click to show only these rows.">
+                    <Border.InputBindings><MouseBinding MouseAction="LeftClick" Command="{Binding FilterTileCommand}" CommandParameter="UpToDate"/></Border.InputBindings>
+                    <StackPanel>
+                        <TextBlock Text="UP TO DATE" Style="{StaticResource MetricTileLabel}"/>
+                        <TextBlock Text="{Binding UpToDateCount}" Style="{StaticResource MetricTileNumber}"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource MetricTileWarning}" Margin="3,0" Cursor="Hand" ToolTip="Click to show only these rows; click again to show all.">
+                    <Border.InputBindings><MouseBinding MouseAction="LeftClick" Command="{Binding FilterTileCommand}" CommandParameter="Warning"/></Border.InputBindings>
                     <StackPanel>
                         <TextBlock Text="WARNINGS" Style="{StaticResource MetricTileLabelWarning}"/>
                         <TextBlock Text="{Binding WarningCount}" Style="{StaticResource MetricTileNumberWarning}"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricTileDanger}" Margin="3,0,0,0">
+                <Border Style="{StaticResource MetricTileDanger}" Margin="3,0,0,0" Cursor="Hand" ToolTip="Click to show only these rows; click again to show all.">
+                    <Border.InputBindings><MouseBinding MouseAction="LeftClick" Command="{Binding FilterTileCommand}" CommandParameter="Blocked"/></Border.InputBindings>
                     <StackPanel>
                         <TextBlock Text="BLOCKED" Style="{StaticResource MetricTileLabelDanger}"/>
                         <TextBlock Text="{Binding BlockedCount}" Style="{StaticResource MetricTileNumberDanger}"/>
@@ -82,6 +96,8 @@ Preview: Claude/Previews/BaseLevelToParameter_V001_Window.html
                 <Border Style="{StaticResource SectionCard}" Padding="12,8">
                     <DockPanel>
                         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                            <Button Content="Load Selection" Style="{StaticResource OutlineButton}" Margin="0,0,6,0" Command="{Binding LoadSelectionCommand}"
+                                    ToolTip="List the model elements currently selected in Revit."/>
                             <Button Content="Load Active View" Style="{StaticResource OutlineButton}" Margin="0,0,6,0" Command="{Binding LoadActiveViewCommand}"
                                     ToolTip="List the model elements visible in the active view again."/>
                             <Button Content="Load All Model Elements" Style="{StaticResource OutlineButton}" Margin="0,0,6,0" Command="{Binding LoadAllCommand}"
@@ -132,8 +148,29 @@ Preview: Claude/Previews/BaseLevelToParameter_V001_Window.html
                             </StackPanel>
                             <CheckBox Content="Overwrite existing values" IsChecked="{Binding Overwrite}" Margin="0,0,0,4"
                                       ToolTip="Off: elements that already have a value are skipped."/>
-                            <TextBlock Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="0,6,0,0"
-                                       Text="Value: &quot;Level 02 (+450)&quot; — offset in mm, signed, whole millimetres; zero is &quot;(0)&quot;."/>
+                            <TextBlock Text="Value format" Style="{StaticResource FieldLabel}" Margin="0,8,0,2"/>
+                            <RadioButton Content="Level name only" IsChecked="{Binding WithOffset, Converter={StaticResource InverseBool}}" Margin="0,2"/>
+                            <RadioButton Content="Level name + offset" IsChecked="{Binding WithOffset}" Margin="0,2"/>
+                            <Grid Margin="20,4,0,0" IsEnabled="{Binding WithOffset}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="56"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <TextBlock Text="Pattern" Style="{StaticResource FieldLabel}" VerticalAlignment="Center"/>
+                                <ComboBox Grid.Column="1" ItemsSource="{Binding PatternOptions}" SelectedItem="{Binding SelectedPattern}"
+                                          DisplayMemberPath="Label" Style="{StaticResource StandardComboBox}"/>
+                                <TextBlock Grid.Row="1" Text="Custom" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,4,0,0"/>
+                                <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding CustomPattern, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BoxedTextInput}"
+                                         IsEnabled="{Binding IsCustom}" Margin="0,4,0,0" MaxLength="60"
+                                         ToolTip="Tokens: {Level} (required) and {Offset}. Example: {Level} ({Offset})"/>
+                            </Grid>
+                            <TextBlock Text="{Binding FormatSample, StringFormat=Sample: {0}}" Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="20,4,0,0"/>
+                            <TextBlock Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="0,4,0,0"
+                                       Text="Offset in mm, signed, whole millimetres. The format is remembered for next time."/>
                         </StackPanel>
                     </Border>
 
@@ -179,6 +216,10 @@ Preview: Claude/Previews/BaseLevelToParameter_V001_Window.html
                     <StackPanel>
                         <DockPanel Margin="0,0,0,8">
                             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                <Button Content="Select in Revit" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,6,0" Command="{Binding SelectInRevitCommand}"
+                                        ToolTip="Select the highlighted grid rows in Revit."/>
+                                <Button Content="Zoom to" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,12,0" Command="{Binding ZoomToCommand}"
+                                        ToolTip="Select the highlighted grid rows in Revit and zoom to them."/>
                                 <Button Content="Expand All" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,6,0" Click="ExpandAll_Click"/>
                                 <Button Content="Collapse All" Style="{StaticResource SmallSecondaryButton}" Click="CollapseAll_Click"/>
                             </StackPanel>
@@ -188,11 +229,22 @@ Preview: Claude/Previews/BaseLevelToParameter_V001_Window.html
                                          ToolTip="Filter by id, category, family, level, value or status."/>
                                 <Button Content="Select All" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,6,0" Command="{Binding SelectAllCommand}"/>
                                 <Button Content="Select None" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,6,0" Command="{Binding SelectNoneCommand}"/>
-                                <TextBlock Text="acts on the rows the filter shows" Style="{StaticResource HintText}" VerticalAlignment="Center"/>
+                                <TextBlock Text="acts on the rows the filter shows" Style="{StaticResource HintText}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <CheckBox Content="Changed only" IsChecked="{Binding ChangedOnly}" VerticalAlignment="Center"
+                                          ToolTip="Show only rows whose new value differs from the current value."/>
                             </StackPanel>
                         </DockPanel>
 
-                        <DataGrid x:Name="ElementsGrid" ItemsSource="{Binding RowsView}" Style="{StaticResource StandardDataGrid}"
+                        <TextBlock Text="{Binding TileFilterText}" FontWeight="SemiBold" Margin="0,0,0,6">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock" BasedOn="{StaticResource HintText}">
+                                    <Style.Triggers>
+                                        <Trigger Property="Text" Value=""><Setter Property="Visibility" Value="Collapsed"/></Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                        <DataGrid x:Name="ElementsGrid" SelectionChanged="ElementsGrid_SelectionChanged" ItemsSource="{Binding RowsView}" Style="{StaticResource StandardDataGrid}"
                                   ColumnHeaderStyle="{StaticResource StandardDataGridColumnHeader}"
                                   CellStyle="{StaticResource StandardDataGridCell}" RowStyle="{StaticResource StandardDataGridRow}"
                                   AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False"
@@ -212,12 +264,20 @@ Preview: Claude/Previews/BaseLevelToParameter_V001_Window.html
                                                     <ControlTemplate TargetType="GroupItem">
                                                         <Expander IsExpanded="True" BorderThickness="0">
                                                             <Expander.Header>
-                                                                <TextBlock FontWeight="SemiBold" Foreground="{StaticResource BrushNavyPrimary}">
+                                                                <StackPanel Orientation="Horizontal">
+                                                                <TextBlock FontWeight="SemiBold" Foreground="{StaticResource BrushNavyPrimary}" VerticalAlignment="Center">
                                                                     <Run Text="{Binding Name, Mode=OneWay}"/>
                                                                     <Run Text="  ·  " Foreground="{StaticResource BrushTextTertiary}"/>
                                                                     <Run Text="{Binding ItemCount, Mode=OneWay}" Foreground="{StaticResource BrushTextTertiary}"/>
                                                                     <Run Text=" elements" Foreground="{StaticResource BrushTextTertiary}"/>
                                                                 </TextBlock>
+                                                                <Button Content="Tick all" Style="{StaticResource SmallSecondaryButton}" Margin="12,0,4,0"
+                                                                        Command="{Binding DataContext.TickCategoryCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                                        CommandParameter="{Binding Name}"/>
+                                                                <Button Content="Untick all" Style="{StaticResource SmallSecondaryButton}"
+                                                                        Command="{Binding DataContext.UntickCategoryCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                                        CommandParameter="{Binding Name}"/>
+                                                                </StackPanel>
                                                             </Expander.Header>
                                                             <ItemsPresenter/>
                                                         </Expander>
@@ -241,7 +301,14 @@ Preview: Claude/Previews/BaseLevelToParameter_V001_Window.html
                                 <DataGridTextColumn Header="Element Id" Width="90" Binding="{Binding Id, Mode=OneWay}" FontFamily="Consolas"/>
                                 <DataGridTextColumn Header="Category" Width="140" Binding="{Binding Category, Mode=OneWay}"/>
                                 <DataGridTextColumn Header="Family and Type" Width="2*" Binding="{Binding FamilyAndType, Mode=OneWay}"/>
-                                <DataGridTextColumn Header="Base Level" Width="110" Binding="{Binding BaseLevel, Mode=OneWay}"/>
+                                <DataGridTextColumn Header="Base Level" Width="110" Binding="{Binding BaseLevel, Mode=OneWay}">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="VerticalAlignment" Value="Center"/>
+                                            <Setter Property="ToolTip" Value="{Binding LevelSource}"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
                                 <DataGridTextColumn Header="Base Offset" Width="90" Binding="{Binding BaseOffset, Mode=OneWay}" SortMemberPath="OffsetSort">
                                     <DataGridTextColumn.ElementStyle>
                                         <Style TargetType="TextBlock">
@@ -251,7 +318,25 @@ Preview: Claude/Previews/BaseLevelToParameter_V001_Window.html
                                     </DataGridTextColumn.ElementStyle>
                                 </DataGridTextColumn>
                                 <DataGridTextColumn Header="Current Value" Width="*" Binding="{Binding CurrentValue, Mode=OneWay}"/>
-                                <DataGridTextColumn Header="New Value" Width="*" Binding="{Binding NewValue, Mode=OneWay}" FontWeight="SemiBold"/>
+                                <DataGridTextColumn Header="New Value" Width="*" Binding="{Binding NewValue, Mode=OneWay}">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="VerticalAlignment" Value="Center"/>
+                                            <Setter Property="FontWeight" Value="SemiBold"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsChanged}" Value="True">
+                                                    <Setter Property="Foreground" Value="{StaticResource BrushStatusOk}"/>
+                                                    <Setter Property="ToolTip" Value="Differs from the current value."/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding IsSame}" Value="True">
+                                                    <Setter Property="Foreground" Value="{StaticResource BrushTextTertiary}"/>
+                                                    <Setter Property="FontWeight" Value="Normal"/>
+                                                    <Setter Property="ToolTip" Value="Same as the current value; not rewritten."/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
                                 <DataGridTemplateColumn Header="Status" Width="1.4*" SortMemberPath="Status">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>

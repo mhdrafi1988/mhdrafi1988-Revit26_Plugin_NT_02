@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
@@ -35,6 +36,12 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.UI.Views
             if (sender is not ListBox lb) return;
             foreach (var item in lb.SelectedItems)
                 if (item is LogEntry entry) _viewModel.SelectedLogEntries.Add(entry);
+        }
+
+        private void ElementsGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (sender is not DataGrid grid) return;
+            _viewModel.SelectedRows = grid.SelectedItems.OfType<ElementRowViewModel>().ToList();
         }
 
         private void ExpandAll_Click(object sender, RoutedEventArgs e) => SetGroupsExpanded(true);

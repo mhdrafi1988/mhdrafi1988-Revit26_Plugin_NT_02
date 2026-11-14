@@ -89,6 +89,65 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.UI.ViewModels
         [ObservableProperty] private int _warningCount;
         [ObservableProperty] private int _blockedCount;
         [ObservableProperty] private NewParameterSpec _pendingNew;
+        [ObservableProperty] private int _upToDateCount;
+
+        // ── value format ──────────────────────────────────────────────────────
+
+        /// <summary>Patterns for "Level name + offset".</summary>
+        public IReadOnlyList<ValuePatternOption> PatternOptions => ValueFormatter.OffsetPatterns;
+
+        [ObservableProperty] private bool _withOffset = true;
+        [ObservableProperty] private ValuePatternOption _selectedPattern = ValueFormatter.OffsetPatterns[0];
+        [ObservableProperty] private string _customPattern = ValueFormatter.DefaultCustomPattern;
+        [ObservableProperty] private string _formatSample = string.Empty;
+        [ObservableProperty] private string _customError = string.Empty;
+
+        /// <summary>The format in use.</summary>
+        public ValueFormat Format => WithOffset ? SelectedPattern?.Format ?? ValueFormat.LevelParenOffset : ValueFormat.LevelOnly;
+
+        /// <summary>True when the custom pattern box is in use.</summary>
+        public bool IsCustom => Format == ValueFormat.Custom;
+
+        partial void OnWithOffsetChanged(bool value) => OnFormatChanged();
+        partial void OnSelectedPatternChanged(ValuePatternOption value) => OnFormatChanged();
+        partial void OnCustomPatternChanged(string value) => OnFormatChanged();
+
+        private void OnFormatChanged()
+        {
+            OnPropertyChanged(nameof(IsCustom));
+            CustomError = IsCustom ? ValueFormatter.ValidateCustom(CustomPattern) ?? string.Empty : string.Empty;
+            FormatSample = IsCustom && CustomError.Length > 0 ? CustomError : ValueFormatter.Sample(Format, CustomPattern);
+            foreach (var row in Rows) row.RefreshValue(Format, CustomPattern);
+            Reevaluate();
+            if (ChangedOnly) RowsView.Refresh();
+        }
+
+        // ── grid filters ──────────────────────────────────────────────────────
+
+        [ObservableProperty] private bool _changedOnly;
+        [ObservableProperty] private string _tileFilter = string.Empty;
+        [ObservableProperty] private string _tileFilterText = string.Empty;
+
+        /// <summary>Grid rows highlighted by the user; set by the window.</summary>
+        public IList<ElementRowViewModel> SelectedRows { get; set; } = new List<ElementRowViewModel>();
+
+        partial void OnChangedOnlyChanged(bool value) => RowsView.Refresh();
+
+        partial void OnTileFilterChanged(string value)
+        {
+            TileFilterText = string.IsNullOrEmpty(value) ? string.Empty : $"Showing: {TileLabel(value)} · click the tile again to show all";
+            RowsView.Refresh();
+        }
+
+        private static string TileLabel(string tile) => tile switch
+        {
+            "Checked" => "Checked",
+            "Ready" => "Ready",
+            "UpToDate" => "Up to date",
+            "Warning" => "Warnings",
+            "Blocked" => "Blocked",
+            _ => "All"
+        };
 
         /// <summary>True when Run can start: levels read, nothing blocked, at least one row ready.</summary>
         public bool CanRun => !IsRunning && _levelsLoaded && !ChecksBlocked && ReadyCount > 0;
@@ -132,6 +191,7 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.UI.ViewModels
         {
             _settings = SettingsService<BaseLevelToParameterSettings>.Load(ToolCatalog.BaseLevelToParameter.Name);
             _revitSharedParamFile = doc.Application.SharedParametersFilename ?? string.Empty;
+            RestoreFormat();
             LoadParameters(doc);
             ListFromView(doc, activeView);
             if (!string.IsNullOrWhiteSpace(_settings.LastTargetName) &&
@@ -147,10 +207,48 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.UI.ViewModels
             _recheckTimer.Stop();
             _settings ??= new BaseLevelToParameterSettings();
             _settings.LastTargetName = TargetName ?? string.Empty;
+            _settings.ValueFormat = Format.ToString();
+            _settings.CustomPattern = CustomPattern ?? ValueFormatter.DefaultCustomPattern;
+            _settings.Version = 2;
             SettingsService<BaseLevelToParameterSettings>.Save(ToolCatalog.BaseLevelToParameter.Name, _settings);
         }
 
+        private void RestoreFormat()
+        {
+            if (!Enum.TryParse(_settings.ValueFormat, out ValueFormat saved) || !Enum.IsDefined(typeof(ValueFormat), saved))
+                saved = ValueFormat.LevelParenOffset;
+            CustomPattern = string.IsNullOrWhiteSpace(_settings.CustomPattern) ? ValueFormatter.DefaultCustomPattern : _settings.CustomPattern;
+            if (saved == ValueFormat.LevelOnly)
+            {
+                WithOffset = false;
+            }
+            else
+            {
+                WithOffset = true;
+                SelectedPattern = PatternOptions.First(p => p.Format == saved);
+            }
+            OnFormatChanged();
+        }
+
         // ── commands: source ──────────────────────────────────────────────────
+
+        [RelayCommand]
+        private void LoadSelection() => RunJob(doc =>
+        {
+            var uidoc = new UIDocument(doc);
+            var ids = uidoc.Selection.GetElementIds();
+            if (ids.Count == 0)
+            {
+                Log(LogLevel.Warning, "Nothing is selected in Revit. Select elements first, then press Load Selection.");
+                return;
+            }
+            var items = ElementListService.FromIds(doc, ids, out int ignored);
+            FillRows(items);
+            SourceText = $"Revit selection · {items.Count} elements";
+            Subtitle = $"{DocumentTitle} · Revit selection";
+            AddLog(LogLevel.Info, $"Listed {items.Count} model elements from the Revit selection" +
+                (ignored > 0 ? $"; {ignored} selected item(s) are not model elements of the host model and were left out." : "."));
+        }, null);
 
         [RelayCommand]
         private void LoadActiveView() => RunJob(doc =>
@@ -226,6 +324,44 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.UI.ViewModels
         [RelayCommand]
         private void SelectNone() => SetVisibleTicks(false);
 
+        [RelayCommand]
+        private void TickCategory(string category) => SetCategoryTicks(category, true);
+
+        [RelayCommand]
+        private void UntickCategory(string category) => SetCategoryTicks(category, false);
+
+        [RelayCommand]
+        private void FilterTile(string tile) => TileFilter = TileFilter == tile ? string.Empty : tile ?? string.Empty;
+
+        [RelayCommand]
+        private void SelectInRevit() => ShowInRevit(zoom: false);
+
+        [RelayCommand]
+        private void ZoomTo() => ShowInRevit(zoom: true);
+
+        private void ShowInRevit(bool zoom)
+        {
+            var ids = SelectedRows.Select(r => r.Id).ToList();
+            if (ids.Count == 0)
+            {
+                Log(LogLevel.Warning, "Highlight one or more rows in the grid first.");
+                return;
+            }
+            RunJob(doc =>
+            {
+                var uidoc = new UIDocument(doc);
+                var existing = ids.Select(i => new ElementId(i)).Where(id => doc.GetElement(id) != null).ToList();
+                if (existing.Count == 0)
+                {
+                    Log(LogLevel.Warning, "The highlighted elements no longer exist in the model.");
+                    return;
+                }
+                uidoc.Selection.SetElementIds(existing);
+                if (zoom) uidoc.ShowElements(existing);
+                Log(LogLevel.Info, $"{(zoom ? "Selected and zoomed to" : "Selected")} {existing.Count} element(s) in Revit.");
+            }, null);
+        }
+
         // ── command: run ──────────────────────────────────────────────────────
 
         [RelayCommand(CanExecute = nameof(CanRun))]
@@ -252,7 +388,7 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.UI.ViewModels
                 {
                     if (!byId.TryGetValue(r.Id, out var row)) continue;
                     row.SetStatus(r.State, r.Text);
-                    if (r.State == RowState.Assigned) row.CurrentValue = r.Value;
+                    if (r.State == RowState.Assigned) row.MarkWritten(r.Value);
                     if (r.State == RowState.Failed) AddLog(LogLevel.Error, $"{r.Id} {row.Category}: {r.Text}");
                 }
                 int assigned = result.Rows.Count(r => r.State == RowState.Assigned);
@@ -263,6 +399,7 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.UI.ViewModels
                     $"Run finished: {RunSummary}. Undo with Ctrl+Z in Revit (“Base Level to Parameter”).");
 
                 ReadyCount = 0; // statuses now show the run; a re-check is needed before the next run
+                UpToDateCount = 0;
                 _lastTarget = null;
                 Checks.Clear();
                 ChecksSummary = "Run finished. Press Re-check before the next run.";
@@ -395,7 +532,7 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.UI.ViewModels
             _lastTarget = facts.Target;
             var byId = Rows.ToDictionary(r => r.Id);
             foreach (ElementFacts f in facts.Elements)
-                if (byId.TryGetValue(f.Id, out var row)) row.ApplyFacts(f);
+                if (byId.TryGetValue(f.Id, out var row)) row.ApplyFacts(f, Format, CustomPattern);
             foreach (long id in facts.Missing)
                 if (byId.TryGetValue(id, out var row)) row.MarkMissing();
         }
@@ -408,7 +545,7 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.UI.ViewModels
             if (_lastTarget != null)
             {
                 var facts = ticked.Where(r => r.Facts != null).Select(r => r.Facts).ToList();
-                var checks = BaseLevelRules.EvaluateChecks(_lastTarget, facts, Overwrite);
+                var checks = BaseLevelRules.EvaluateChecks(_lastTarget, facts, Overwrite, Format, CustomPattern);
                 Checks.Clear();
                 foreach (var c in checks) Checks.Add(c);
                 blocked = BaseLevelRules.AnyBlocked(checks);
@@ -421,7 +558,7 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.UI.ViewModels
                 else if (r.Facts == null || _lastTarget == null) r.SetStatus(RowState.Pending, _levelsLoaded ? "Re-check to read" : "Not read");
                 else
                 {
-                    RowVerdict v = BaseLevelRules.EvaluateRow(r.Facts, blocked, Overwrite, _lastTarget.VariesAcrossGroups);
+                    RowVerdict v = BaseLevelRules.EvaluateRow(r.Facts, blocked, Overwrite, _lastTarget.VariesAcrossGroups, r.FormattedValue);
                     r.SetStatus(v.State, v.Text);
                 }
             }
@@ -436,11 +573,13 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.UI.ViewModels
             ReadyCount = ticked.Count(r => r.State == RowState.Ready);
             WarningCount = ticked.Count(r => r.State == RowState.Warning);
             BlockedCount = ticked.Count(r => r.State == RowState.Blocked);
+            UpToDateCount = ticked.Count(r => r.State == RowState.UpToDate);
             if (_lastTarget != null)
-                ChecksSummary = BaseLevelRules.Summary(ReadyCount, WarningCount, BlockedCount);
+                ChecksSummary = BaseLevelRules.Summary(ReadyCount, WarningCount, BlockedCount, UpToDateCount);
+            if (!string.IsNullOrEmpty(TileFilter)) RowsView.Refresh();
             SummaryText = _lastTarget == null
                 ? $"{CheckedCount} of {ListedCount} elements ticked"
-                : $"Ready · {ReadyCount} element(s) will be assigned, {WarningCount + BlockedCount} skipped";
+                : $"Ready · {ReadyCount} element(s) will be assigned, {WarningCount + BlockedCount + UpToDateCount} skipped";
             NotifyRun();
         }
 
@@ -467,6 +606,23 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.UI.ViewModels
             ScheduleRecheck();
         }
 
+        private void SetCategoryTicks(string category, bool value)
+        {
+            if (string.IsNullOrEmpty(category)) return;
+            _bulkTick = true;
+            int n = 0;
+            foreach (ElementRowViewModel r in RowsView.Cast<ElementRowViewModel>())
+            {
+                if (r.Category != category || r.IsChecked == value) continue;
+                r.IsChecked = value;
+                n++;
+            }
+            _bulkTick = false;
+            if (n == 0) return;
+            Reevaluate();
+            ScheduleRecheck();
+        }
+
         private void ScheduleRecheck()
         {
             if (!_levelsLoaded) return;
@@ -479,12 +635,23 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.UI.ViewModels
             Name = TargetName?.Trim() ?? string.Empty,
             Pending = PendingNew,
             ElementIds = Rows.Where(r => r.IsChecked).Select(r => r.Id).ToList(),
-            Overwrite = Overwrite
+            Overwrite = Overwrite,
+            Format = Format,
+            CustomPattern = CustomPattern
         };
 
         private bool FilterRow(object o)
         {
             if (o is not ElementRowViewModel r) return false;
+            if (ChangedOnly && !r.IsChanged) return false;
+            switch (TileFilter)
+            {
+                case "Checked": if (!r.IsChecked) return false; break;
+                case "Ready": if (r.State != RowState.Ready) return false; break;
+                case "UpToDate": if (r.State != RowState.UpToDate) return false; break;
+                case "Warning": if (r.State != RowState.Warning) return false; break;
+                case "Blocked": if (r.State != RowState.Blocked) return false; break;
+            }
             string f = FilterText?.Trim();
             if (string.IsNullOrEmpty(f)) return true;
             return r.Id.ToString().Contains(f)

@@ -9,6 +9,26 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [7.6.0] — 2026-11-14
+
+### Base Level to Parameter 1.1.0 (V001)
+
+#### Added
+- **Value format** in the Target parameter card: *Level name only*, or *Level name + offset* with a pattern:
+  `Level 02 (+450)` (default, as before), `Level 02 +450`, `Level 02 (+450 mm)`, `Level 02 / +450`, `Level 02 [+450]`,
+  `Level 02, Offset +450`, `Level 02 (+450)` without "(0)" for a zero offset, or **Custom…** with the tokens
+  `{Level}` and `{Offset}` (an invalid custom pattern blocks Run through a new check "f · Value format").
+  The New Value column and a sample line update at once. The chosen format is remembered.
+- **Up to date**: an element that already holds the new value is shown as "Up to date" and is never rewritten
+  (new Up to Date tile; counted as skipped in the run summary).
+- New Value is green when it differs from the current value and grey when it is the same; **Changed only** filter.
+- The metric tiles are clickable: they filter the grid to Checked, Ready, Up to date, Warnings or Blocked rows.
+- **Select in Revit** and **Zoom to** for the highlighted grid rows; **Load Selection** lists the current Revit selection.
+- **Tick all / Untick all** in each category header; the Base Level cell's tooltip shows which parameters it was read from.
+
+User note: with the default format nothing changes in what is written. Settings files from 1.0.x load as before
+(format "Level 02 (+450)"); the settings file is now version 2.
+
 ## [7.5.0] — 2026-11-14
 
 ### Annotation Overlap Report 1.0.0 (V001, new tool)

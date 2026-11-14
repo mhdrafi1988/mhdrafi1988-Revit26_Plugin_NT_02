@@ -53,7 +53,15 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.Core
         /// Builds the pre-check lines a–e from what the Revit side found.
         /// <paramref name="elements"/> are the ticked elements (base level already read).
         /// </summary>
-        public static List<PrecheckItem> EvaluateChecks(TargetFacts t, IReadOnlyList<ElementFacts> elements, bool overwrite)
+        public static List<PrecheckItem> EvaluateChecks(TargetFacts t, IReadOnlyList<ElementFacts> elements, bool overwrite) =>
+            EvaluateChecks(t, elements, overwrite, ValueFormat.LevelParenOffset, null);
+
+        /// <summary>
+        /// Pre-check lines a–e, plus "f · Value format" when <paramref name="format"/> is
+        /// <see cref="ValueFormat.Custom"/> (Blocked when the custom pattern is not valid).
+        /// </summary>
+        public static List<PrecheckItem> EvaluateChecks(TargetFacts t, IReadOnlyList<ElementFacts> elements, bool overwrite,
+            ValueFormat format, string customPattern)
         {
             var list = new List<PrecheckItem>
             {
@@ -63,6 +71,13 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.Core
                 CheckCategories(t, elements),
                 CheckDocument(t, elements, overwrite)
             };
+            if (format == ValueFormat.Custom)
+            {
+                string error = ValueFormatter.ValidateCustom(customPattern);
+                list.Add(error == null
+                    ? new PrecheckItem("f · Value format", CheckResult.Pass, $"Custom pattern “{customPattern}”: {ValueFormatter.Sample(format, customPattern)}")
+                    : new PrecheckItem("f · Value format", CheckResult.Blocked, error));
+            }
             return list;
         }
 
@@ -73,7 +88,14 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.Core
         /// Status of one ticked element. <paramref name="blocked"/> is true when any pre-check is Blocked.
         /// <paramref name="variesAcrossGroups"/> is whether the target value may differ between group instances.
         /// </summary>
-        public static RowVerdict EvaluateRow(ElementFacts e, bool blocked, bool overwrite, bool variesAcrossGroups)
+        public static RowVerdict EvaluateRow(ElementFacts e, bool blocked, bool overwrite, bool variesAcrossGroups) =>
+            EvaluateRow(e, blocked, overwrite, variesAcrossGroups, null);
+
+        /// <summary>
+        /// Status of one ticked element. When <paramref name="newValue"/> equals the element's current value the row
+        /// is <see cref="RowState.UpToDate"/> and is never rewritten.
+        /// </summary>
+        public static RowVerdict EvaluateRow(ElementFacts e, bool blocked, bool overwrite, bool variesAcrossGroups, string newValue)
         {
             if (blocked) return new RowVerdict(RowState.Blocked, "Blocked · see pre-checks");
             if (!e.HasLevel) return new RowVerdict(RowState.Warning, "Skipped · no base level");
@@ -82,6 +104,8 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.Core
             if (e.OutOfDate) return new RowVerdict(RowState.Warning, "Skipped · changed in central, reload latest");
             if (e.InGroup && !variesAcrossGroups) return new RowVerdict(RowState.Warning, "Skipped · in a group (value cannot vary by group)");
             if (e.ParamReadOnly) return new RowVerdict(RowState.Warning, "Skipped · parameter is read-only");
+            if (newValue != null && string.Equals(e.CurrentValue, newValue, StringComparison.Ordinal))
+                return new RowVerdict(RowState.UpToDate, "Up to date");
             if (!overwrite && !string.IsNullOrEmpty(e.CurrentValue)) return new RowVerdict(RowState.Warning, "Skipped · has value");
             return new RowVerdict(RowState.Ready, "Ready");
         }
@@ -89,6 +113,10 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.Core
         /// <summary>The summary line "X ready | Y warnings | Z blocked" for the given row states.</summary>
         public static string Summary(int ready, int warnings, int blocked) =>
             $"{ready} ready | {warnings} warnings | {blocked} blocked";
+
+        /// <summary>The summary line with "· N up to date" added when <paramref name="upToDate"/> is above 0.</summary>
+        public static string Summary(int ready, int warnings, int blocked, int upToDate) =>
+            Summary(ready, warnings, blocked) + (upToDate > 0 ? $" · {upToDate} up to date" : string.Empty);
 
         /// <summary>The run summary line "X assigned | Y skipped | Z failed".</summary>
         public static string RunSummary(int assigned, int skipped, int failed) =>

@@ -185,7 +185,8 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 - **Base Level to Parameter**: writes each element's base level and base offset to a text instance parameter as
   "Level 02 (+450)" (offset in mm). Lists the active view's model elements or the whole host model, checks the
   target parameter first (name, data type, binding, shared parameter file, categories, ownership), and can create
-  the parameter as a shared instance Text parameter. One transaction; Ctrl+Z undoes it.
+  the parameter as a shared instance Text parameter. One transaction; Ctrl+Z undoes it. The value can be the level
+  name only or level name + offset in one of several patterns (or a custom one); elements already up to date are not rewritten.
 
 ## Installation
 
