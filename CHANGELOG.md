@@ -9,6 +9,45 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [7.10.1] — 2026-11-14
+
+### Changed
+- **Base Level to Parameter v1.3.1** — the ribbon tooltip now says that values already in the parameter can be
+  skipped, rewritten, or cleared so only the new values remain. No change in behaviour.
+
+## [7.10.0] — 2026-11-14
+
+### Added
+- **Base Level to Parameter v1.3.0** — third *Existing values* option, **Clear old values, write only new values**:
+  every ticked element ends up with only its new value. Different values are rewritten whatever the row's
+  *If value exists* choice says (the column and its Skip / Rewrite / Reset buttons are disabled in this mode), and the
+  old value of an element with no base level is cleared (emptied). The *Rewrite existing values?* dialog lists the
+  values to clear as “(cleared)”; cleared rows show *Assigned · cleared value* and are logged. *Has Value* now also
+  counts elements with an old value but no base level.
+
+**User note:** Skip is still the default and the new option is not remembered, so nothing is cleared unless you pick
+it. Only ticked elements are touched; elements owned by another user, read-only, in groups or out of date are still
+skipped. *Skip these* in the dialog keeps every old value, including the ones that would have been cleared.
+
+## [7.9.0] — 2026-11-14
+
+### Added
+- **Base Level to Parameter v1.2.0** — choose what happens when an element already has a different value in the
+  target parameter:
+  - **Existing values: Skip / Rewrite** in the Target parameter card (replaces the *Overwrite existing values*
+    checkbox; Skip is still the default and is not remembered).
+  - **If value exists** column in the grid: each element with a different existing value can follow the default
+    or be set to its own *Skip* or *Rewrite*. The **Skip / Rewrite / Reset** buttons above the grid set it for the
+    highlighted rows (or every shown row when none is highlighted).
+  - **Has Value** tile: counts the ticked elements with a different existing value and filters the grid to them.
+  - **Rewrite existing values?** dialog: Run lists the values it would replace and asks *Rewrite* / *Skip these* /
+    *Cancel* before changing anything.
+  - Every rewritten value is logged (old → new); rewritten rows show *Assigned · rewrote value*.
+
+**User note:** nothing changes unless you choose Rewrite (for all rows or single rows); an element whose value
+already equals the new value is still *Up to date* and is never rewritten. Run now asks once before it replaces
+existing values.
+
 ## [7.8.0] — 2026-11-14
 
 ### Added

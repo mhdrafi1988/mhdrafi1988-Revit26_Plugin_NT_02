@@ -74,6 +74,11 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.UI.ViewModels
         /// <summary>Opens the New Parameter dialog; set by the window. Returns true when the user pressed Create.</summary>
         public Func<NewParameterViewModel, bool> ShowNewParameterDialog { get; set; }
 
+        /// <summary>
+        /// Asks before Run replaces existing values; set by the window. Null (no window) means Rewrite, as chosen.
+        /// </summary>
+        public Func<RewriteConfirmation, RewriteAnswer> ConfirmRewrite { get; set; }
+
         [ObservableProperty] private string _filterText = string.Empty;
         [ObservableProperty] private string _sourceText = string.Empty;
         [ObservableProperty] private string _subtitle = string.Empty;
@@ -90,6 +95,44 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.UI.ViewModels
         [ObservableProperty] private int _blockedCount;
         [ObservableProperty] private NewParameterSpec _pendingNew;
         [ObservableProperty] private int _upToDateCount;
+        [ObservableProperty] private int _hasValueCount;
+        private bool _bulkChoice;
+
+        /// <summary>
+        /// "Clear old values, write only new values" (1.3.0): every different value is rewritten (row choices are
+        /// ignored) and the value of an element without a base level is cleared. Not remembered; starts off.
+        /// </summary>
+        [ObservableProperty] private bool _clearOld;
+
+        /// <summary>"Existing values: Skip" radio button. Setting false is ignored (another radio button was picked).</summary>
+        public bool SkipExisting
+        {
+            get => !Overwrite && !ClearOld;
+            set { if (value) SetExistingMode(false, false); }
+        }
+
+        /// <summary>"Existing values: Rewrite" radio button. Setting false is ignored.</summary>
+        public bool RewriteExisting
+        {
+            get => Overwrite && !ClearOld;
+            set { if (value) SetExistingMode(true, false); }
+        }
+
+        /// <summary>"Existing values: Clear old values, write only new values" radio button. Setting false is ignored.</summary>
+        public bool ClearOldValues
+        {
+            get => ClearOld;
+            set { if (value) SetExistingMode(true, true); }
+        }
+
+        /// <summary>True when the per-row "If value exists" choices apply (not in Clear old values mode).</summary>
+        public bool RowChoicesEnabled => !ClearOld;
+
+        private void SetExistingMode(bool overwrite, bool clearOld)
+        {
+            ClearOld = clearOld;
+            Overwrite = overwrite;
+        }
 
         // ── value format ──────────────────────────────────────────────────────
 
@@ -146,6 +189,7 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.UI.ViewModels
             "UpToDate" => "Up to date",
             "Warning" => "Warnings",
             "Blocked" => "Blocked",
+            "HasValue" => "Has a different value",
             _ => "All"
         };
 
@@ -153,7 +197,19 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.UI.ViewModels
         public bool CanRun => !IsRunning && _levelsLoaded && !ChecksBlocked && ReadyCount > 0;
 
         partial void OnFilterTextChanged(string value) => RowsView.Refresh();
-        partial void OnOverwriteChanged(bool value) => Reevaluate();
+        partial void OnOverwriteChanged(bool value) => OnExistingModeChanged();
+
+        partial void OnClearOldChanged(bool value) => OnExistingModeChanged();
+
+        private void OnExistingModeChanged()
+        {
+            OnPropertyChanged(nameof(SkipExisting));
+            OnPropertyChanged(nameof(RewriteExisting));
+            OnPropertyChanged(nameof(ClearOldValues));
+            OnPropertyChanged(nameof(RowChoicesEnabled));
+            SetChoiceCommand.NotifyCanExecuteChanged();
+            Reevaluate();
+        }
         partial void OnChecksBlockedChanged(bool value) => NotifyRun();
         partial void OnReadyCountChanged(int value) => NotifyRun();
 
@@ -333,6 +389,40 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.UI.ViewModels
         [RelayCommand]
         private void FilterTile(string tile) => TileFilter = TileFilter == tile ? string.Empty : tile ?? string.Empty;
 
+        /// <summary>
+        /// Sets the "If value exists" choice ("Default", "Skip" or "Rewrite") on the highlighted grid rows, or on every
+        /// row the grid shows when none is highlighted.
+        /// </summary>
+        [RelayCommand(CanExecute = nameof(RowChoicesEnabled))]
+        private void SetChoice(string choice)
+        {
+            if (!Enum.TryParse(choice, out ExistingChoice value)) return;
+            var targets = SelectedRows.Count > 0
+                ? SelectedRows.ToList()
+                : RowsView.Cast<ElementRowViewModel>().ToList();
+            targets = targets.Where(r => r.HasExistingValue || r.Choice != ExistingChoice.Default).ToList();
+            if (targets.Count == 0)
+            {
+                Log(LogLevel.Info, SelectedRows.Count > 0
+                    ? "None of the highlighted rows has a different existing value."
+                    : "No shown row has a different existing value.");
+                return;
+            }
+            _bulkChoice = true;
+            int n = 0;
+            foreach (var r in targets)
+            {
+                if (r.Choice == value) continue;
+                r.Choice = value;
+                n++;
+            }
+            _bulkChoice = false;
+            if (n == 0) return;
+            Reevaluate();
+            string what = value == ExistingChoice.Default ? $"reset to the default ({(Overwrite ? "Rewrite" : "Skip")})" : $"set to {value}";
+            Log(LogLevel.Info, $"If value exists: {n} row(s) {what}.");
+        }
+
         [RelayCommand]
         private void SelectInRevit() => ShowInRevit(zoom: false);
 
@@ -368,6 +458,7 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.UI.ViewModels
         private void Run()
         {
             TargetRequest request = BuildRequest();
+            if (!ConfirmRewrites(request)) return;
             RunResult result = null;
             RunSummary = string.Empty;
             RunJob(doc => result = TargetParameterService.Run(doc, request), () =>
@@ -407,6 +498,40 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.UI.ViewModels
                     PendingNew = null; // it is in the project now
                 RunJob(doc => LoadParameters(doc), () => OnTargetNameChanged(TargetName));
             });
+        }
+
+        /// <summary>
+        /// Asks before existing values are replaced. Returns false when the user cancels; "Skip these" marks those
+        /// elements Skip in <paramref name="request"/> only (the row choices stay as they are).
+        /// </summary>
+        private bool ConfirmRewrites(TargetRequest request)
+        {
+            var rewrites = Rows.Where(r => r.IsChecked && r.State == RowState.Ready && r.HasOldValue).ToList();
+            if (rewrites.Count == 0 || ConfirmRewrite == null) return true;
+
+            var info = new RewriteConfirmation
+            {
+                TargetName = request.Name,
+                Count = rewrites.Count,
+                Total = ReadyCount,
+                Rows = rewrites.Take(RewriteConfirmation.MaxRows)
+                    .Select(r => new RewriteRow(r.Id, r.Facts?.CurrentValue ?? string.Empty, r.FormattedValue ?? RewriteRow.Cleared))
+                    .ToList()
+            };
+            RewriteAnswer answer = ConfirmRewrite(info);
+            switch (answer)
+            {
+                case RewriteAnswer.Rewrite:
+                    return true;
+                case RewriteAnswer.Skip:
+                    foreach (var r in rewrites) request.Choices[r.Id] = ExistingChoice.Skip;
+                    AddLog(LogLevel.Info, $"Run: {rewrites.Count} existing value(s) kept (Skip these).");
+                    request.ClearOld = false; // "Skip these" keeps the values Clear old values would have emptied too
+                    return true;
+                default:
+                    Log(LogLevel.Info, "Run cancelled; nothing was changed.");
+                    return false;
+            }
         }
 
         // ── Revit jobs ────────────────────────────────────────────────────────
@@ -516,7 +641,7 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.UI.ViewModels
             _bulkTick = true;
             Rows.Clear();
             foreach (var i in items)
-                Rows.Add(new ElementRowViewModel(i.Id, i.Category, i.FamilyAndType, OnRowTicked));
+                Rows.Add(new ElementRowViewModel(i.Id, i.Category, i.FamilyAndType, OnRowTicked, OnRowChoiceChanged));
             _bulkTick = false;
             ListedCount = Rows.Count;
             Checks.Clear();
@@ -545,7 +670,7 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.UI.ViewModels
             if (_lastTarget != null)
             {
                 var facts = ticked.Where(r => r.Facts != null).Select(r => r.Facts).ToList();
-                var checks = BaseLevelRules.EvaluateChecks(_lastTarget, facts, Overwrite, Format, CustomPattern);
+                var checks = BaseLevelRules.EvaluateChecks(_lastTarget, facts, Overwrite, ClearOld, OwnChoices(), Format, CustomPattern);
                 Checks.Clear();
                 foreach (var c in checks) Checks.Add(c);
                 blocked = BaseLevelRules.AnyBlocked(checks);
@@ -558,7 +683,7 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.UI.ViewModels
                 else if (r.Facts == null || _lastTarget == null) r.SetStatus(RowState.Pending, _levelsLoaded ? "Re-check to read" : "Not read");
                 else
                 {
-                    RowVerdict v = BaseLevelRules.EvaluateRow(r.Facts, blocked, Overwrite, _lastTarget.VariesAcrossGroups, r.FormattedValue);
+                    RowVerdict v = BaseLevelRules.EvaluateRow(r.Facts, blocked, Overwrite, r.Choice, ClearOld, _lastTarget.VariesAcrossGroups, r.FormattedValue);
                     r.SetStatus(v.State, v.Text);
                 }
             }
@@ -574,13 +699,33 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.UI.ViewModels
             WarningCount = ticked.Count(r => r.State == RowState.Warning);
             BlockedCount = ticked.Count(r => r.State == RowState.Blocked);
             UpToDateCount = ticked.Count(r => r.State == RowState.UpToDate);
+            HasValueCount = ticked.Count(r => r.HasOldValue);
             if (_lastTarget != null)
                 ChecksSummary = BaseLevelRules.Summary(ReadyCount, WarningCount, BlockedCount, UpToDateCount);
             if (!string.IsNullOrEmpty(TileFilter)) RowsView.Refresh();
             SummaryText = _lastTarget == null
                 ? $"{CheckedCount} of {ListedCount} elements ticked"
-                : $"Ready · {ReadyCount} element(s) will be assigned, {WarningCount + BlockedCount + UpToDateCount} skipped";
+                : $"Ready · {ReadyCount} element(s) will be assigned{RewriteNote(ticked)}, {WarningCount + BlockedCount + UpToDateCount} skipped";
             NotifyRun();
+        }
+
+        private static string RewriteNote(List<ElementRowViewModel> ticked)
+        {
+            int n = ticked.Count(r => r.State == RowState.Ready && r.HasExistingValue);
+            int c = ticked.Count(r => r.State == RowState.Ready && !r.HasExistingValue && r.HasOldValue);
+            var parts = new List<string>();
+            if (n > 0) parts.Add($"{n} rewrite an existing value");
+            if (c > 0) parts.Add($"{c} clear an old value");
+            return parts.Count == 0 ? string.Empty : $" ({string.Join(", ", parts)})";
+        }
+
+        private Dictionary<long, ExistingChoice> OwnChoices() =>
+            Rows.Where(r => r.Choice != ExistingChoice.Default).ToDictionary(r => r.Id, r => r.Choice);
+
+        private void OnRowChoiceChanged(ElementRowViewModel row)
+        {
+            if (_bulkChoice) return;
+            Reevaluate();
         }
 
         private void OnRowTicked(ElementRowViewModel row)
@@ -636,6 +781,8 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.UI.ViewModels
             Pending = PendingNew,
             ElementIds = Rows.Where(r => r.IsChecked).Select(r => r.Id).ToList(),
             Overwrite = Overwrite,
+            ClearOld = ClearOld,
+            Choices = ClearOld ? new Dictionary<long, ExistingChoice>() : OwnChoices(),
             Format = Format,
             CustomPattern = CustomPattern
         };
@@ -651,6 +798,7 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.UI.ViewModels
                 case "UpToDate": if (r.State != RowState.UpToDate) return false; break;
                 case "Warning": if (r.State != RowState.Warning) return false; break;
                 case "Blocked": if (r.State != RowState.Blocked) return false; break;
+                case "HasValue": if (!r.IsChecked || !r.HasOldValue) return false; break;
             }
             string f = FilterText?.Trim();
             if (string.IsNullOrEmpty(f)) return true;

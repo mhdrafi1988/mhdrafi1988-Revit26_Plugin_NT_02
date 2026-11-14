@@ -1,7 +1,17 @@
 <title>Base Level to Parameter</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<!-- UI preview (CLAUDE.md "UI previews"): Base Level to Parameter V001, tool 1.1.0, plugin 7.6.0.
-     New in 1.1.0 also: Up to Date state and tile, clickable metric tiles, Changed only, Select in Revit / Zoom to, Load Selection,
+<!-- UI preview (CLAUDE.md "UI previews"): Base Level to Parameter V001, tool 1.3.1, plugin 7.10.1.
+     1.3.1: ribbon tooltip text mentions skip / rewrite / clear of existing values.
+     1.3.0:
+     New in 1.3.0: third "Existing values" option "Clear old values, write only new values" — every ticked element ends
+     up with only its new value (different values rewritten, row choices ignored; an old value on an element with no
+     base level is cleared). Shown selected; the If value exists combos and buttons are disabled in this mode; the
+     confirm dialog and log list cleared values too. Also mirrors UI/Views/RewriteConfirmDialog.xaml.
+     1.2.0: existing values can be skipped or rewritten — "Existing values" default (Skip / Rewrite) in the
+     Target parameter card, a per-row "If value exists" choice (Default / Skip / Rewrite) with Skip / Rewrite / Reset
+     buttons for the highlighted rows, a "Has Value" tile, the "Rewrite existing values?" dialog before Run, and a log
+     line per rewritten value (old → new).
+     1.1.0 also: Up to Date state and tile, clickable metric tiles, Changed only, Select in Revit / Zoom to, Load Selection,
      Tick all / Untick all per category, Base Level source tooltip.
      New in 1.1.0: "Value format" in the Target parameter card: Level name only, or Level name + offset with a pattern.
      1.0.1: new parameters go under Data; pre-check c blocks duplicate names and a file GUID used by another parameter.
@@ -10,7 +20,7 @@
      Mirrors: Menu/Coordination/Parameters/BaseLevelToParameter_V001/UI/Views/BaseLevelToParameterWindow.xaml,
               .../UI/Views/NewParameterDialog.xaml (+ BaseLevelToParameterViewModel, NewParameterViewModel),
               Shared/Controls/ToolWindowShellTemplate.xaml, Menu/00_Push_Button_Menu_items/Ribbon/CoordinationRibbon.cs
-     Artifact: https://claude.ai/artifact/844UiUnRidqhg4WRvYhDBg (republish to this URL on every update)
+     Artifact: https://claude.ai/artifact/C62nZhWEAr4pE46Z292uYq (republish to this URL on every update)
      Colours: Shared/SharedStyles.xaml tokens, one light look on purpose (mirrors the light WPF window). -->
 <style>
 /* Layout: stacked fixed-width WPF windows, each in its own horizontal scroll box. */
@@ -56,7 +66,7 @@ input[type=checkbox]{accent-color:var(--action);width:14px;height:14px;margin:0 
 .sp{flex:1}
 
 /* Metrics */
-.metrics{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;padding:8px}
+.metrics{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;padding:8px}
 .tile{cursor:pointer}.tile.act{outline:2px solid var(--action);outline-offset:-1px}
 .chipbtn{height:24px;padding:0 10px;border:1px solid var(--border-input);border-radius:12px;font-size:11px;display:inline-flex;align-items:center;background:var(--card)}
 .chipbtn.on{background:var(--action);border-color:var(--action);color:var(--new-text)}
@@ -156,8 +166,8 @@ tr.dim td{color:var(--text3)}
 @media (max-width:760px){.lists{grid-template-columns:1fr}}
 </style>
 
-<h1>Base Level to Parameter <span class="new">NEW TOOL</span></h1>
-<p class="note">All element ids, names, paths and values on this page are <b>sample data</b>. Green tags mark what is new. The decisions behind the layout are listed at the end.</p>
+<h1>Base Level to Parameter <span class="new">1.3.0 · CLEAR OLD VALUES, WRITE ONLY NEW VALUES</span></h1>
+<p class="note">All element ids, names, paths and values on this page are <b>sample data</b>. Green tags mark what is new in 1.3.0: the “Clear old values, write only new values” option, shown selected. The decisions behind the layout are listed at the end.</p>
 
 <!-- ============ RIBBON ============ -->
 <h2>1 · Ribbon button and tooltip (Documents 2 tab · Coordination panel)</h2>
@@ -165,21 +175,21 @@ tr.dim td{color:var(--text3)}
   <div class="rpanel">
     <div class="rbody">
       <div class="rbtn"><div class="ico g">···</div>Void<br>Openings</div>
-      <div class="rbtn hl"><div class="ico">LV</div>Base Level to<br>Parameter<span class="new" style="margin:2px 0 0">NEW</span></div>
+      <div class="rbtn hl"><div class="ico">LV</div>Base Level to<br>Parameter</div>
     </div>
     <div class="rtitle">Coordination</div>
   </div>
-  <div class="tip"><b>Base Level to Parameter — v1.1.0 (build V001)</b>Reads each element's base level and offset and writes them to a text parameter as "Level 02 (+450)". Lists the active view's model elements (or the whole host model), checks the target parameter first, and can create it as a shared instance Text parameter.</div>
+  <div class="tip"><b>Base Level to Parameter — v1.3.1 (build V001)</b>Reads each element's base level and offset and writes them to a text parameter as "Level 02 (+450)". Lists the active view's model elements (or the whole host model), checks the target parameter first, and can create it as a shared instance Text parameter. Values already there can be skipped, rewritten, or cleared so only the new values remain.<span class="new">CHANGED in 1.3.1</span></div>
 </div>
 
 <!-- ============ MAIN WINDOW ============ -->
 <h2>2 · Main window, after “Load Base Level”</h2>
 <div class="scroll">
 <div class="win" style="width:1240px">
-  <div class="titlebar"><span>Base Level to Parameter — v1.1.0</span><span>—□✕</span></div>
+  <div class="titlebar"><span>Base Level to Parameter — v1.3.1</span><span>—□✕</span></div>
   <div class="header">
-    <div><div class="t">Base Level to Parameter <span class="new">NEW</span></div><div class="s">Sample Project · Active view: Level 02 – Floor Plan</div></div>
-    <div class="v">v1.1.0</div>
+    <div><div class="t">Base Level to Parameter</div><div class="s">Sample Project · Active view: Level 02 – Floor Plan</div></div>
+    <div class="v">v1.3.1</div>
   </div>
 
   <!-- HEADER CONTENT: metrics -->
@@ -187,12 +197,13 @@ tr.dim td{color:var(--text3)}
     <div class="card metrics">
       <div class="tile"><div class="n">151</div><div class="k">Elements Listed</div></div>
       <div class="tile info"><div class="n">142</div><div class="k">Checked</div></div>
-      <div class="tile ok"><div class="n">120</div><div class="k">Ready</div></div>
-      <div class="tile"><div class="n">1</div><div class="k">Up to Date <span class="new">NEW</span></div></div>
-      <div class="tile warn act"><div class="n">21</div><div class="k">Warnings</div></div>
+      <div class="tile ok"><div class="n">134</div><div class="k">Ready</div></div>
+      <div class="tile"><div class="n">1</div><div class="k">Up to Date</div></div>
+      <div class="tile"><div class="n">14</div><div class="k">Has Value</div></div>
+      <div class="tile warn"><div class="n">7</div><div class="k">Warnings</div></div>
       <div class="tile err"><div class="n">0</div><div class="k">Blocked</div></div>
     </div>
-    <div class="hint" style="padding:2px 4px 0">Click a tile to show only those rows in the grid; click it again to show all. <span class="new">NEW</span></div>
+    <div class="hint" style="padding:2px 4px 0">Click a tile to show only those rows in the grid; click it again to show all.</div>
   </div>
 
   <!-- Source toolbar -->
@@ -201,7 +212,7 @@ tr.dim td{color:var(--text3)}
       <span class="lbl">Source</span><span class="pill">Active view · Level 02 – Floor Plan · 151 elements</span>
       <span class="hint" style="margin-left:6px">Host model only. Linked elements are not listed.</span>
       <span class="sp"></span>
-      <span class="sbtn">Load Selection <span class="new">NEW</span></span>
+      <span class="sbtn">Load Selection</span>
       <span class="sbtn">Load Active View</span>
       <span class="sbtn">Load All Model Elements</span>
       <span class="sbtn pri">Load Base Level</span>
@@ -225,9 +236,14 @@ tr.dim td{color:var(--text3)}
           </div>
           <span class="l"></span>
           <span class="row"><span class="sbtn">New Parameter…</span><span class="hint">Opens the dialog in section 3.</span></span>
-          <span class="l">Existing values</span>
-          <label><input type="checkbox">Overwrite existing values</label>
-          <span class="l" style="align-self:start;padding-top:2px">Value format<span class="new">NEW</span></span>
+          <span class="l" style="align-self:start;padding-top:2px">Existing values</span>
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <label><input type="radio" name="ev" disabled>Skip · keep the current value</label>
+            <label><input type="radio" name="ev" disabled>Rewrite with the new value</label>
+            <label><input type="radio" name="ev" checked disabled>Clear old values, write only new values<span class="new">NEW</span></label>
+            <div class="hint">Skip / Rewrite: default for every row; change single rows in the grid’s “If value exists” column. <b>Clear old values</b> ignores row choices: every ticked element ends up with only its new value, and an old value on an element with no base level is cleared. Unticked elements are not touched. Run asks before it rewrites or clears anything.<span class="new">NEW</span></div>
+          </div>
+          <span class="l" style="align-self:start;padding-top:2px">Value format</span>
           <div style="display:flex;flex-direction:column;gap:6px">
             <label><input type="radio" name="vf" disabled>Level name only</label>
             <label><input type="radio" name="vf" checked disabled>Level name + offset</label>
@@ -255,10 +271,10 @@ tr.dim td{color:var(--text3)}
           <tr><td>b · Already in project</td><td><span class="chip warn">Warning</span></td><td>Found: shared, instance, Text → reused. Not bound to <b>Ducts and Pipes</b>; Run adds these 2 categories to the binding.</td></tr>
           <tr><td>c · Shared parameter file</td><td><span class="chip ok">Pass</span></td><td><span class="mono">C:\Standards\SharedParameters.txt</span>: same name, GUID matches the project parameter (3f2a…c9e1).</td></tr>
           <tr><td>d · Categories</td><td><span class="chip ok">Pass</span></td><td>7 of 7 categories allow bound parameters.</td></tr>
-          <tr><td>e · Document and elements</td><td><span class="chip warn">Warning</span></td><td>Project document, editable, workshared. <b>3</b> element(s) owned by another user → skipped. Parameter read-only on 0 element(s). <b>12</b> element(s) already have a value → skipped (Overwrite is off). <b>6</b> element(s) have no base level → skipped.</td></tr>
+          <tr><td>e · Document and elements</td><td><span class="chip warn">Warning</span></td><td>Project document, editable, workshared. <b>3</b> element(s) owned by another user → skipped. Parameter read-only on 0 element(s). <b>12</b> element(s) already have a different value → rewritten. <b>2</b> element(s) with no base level have an old value → cleared (Clear old values). <b>4</b> element(s) have no base level → skipped.<span class="new">CHANGED</span></td></tr>
         </table>
       </div>
-      <div class="summary" style="margin-top:auto"><span class="ok">120 ready</span>|<span class="warn">21 warnings</span>|<span class="err">0 blocked</span><span class="hint" style="font-weight:400">· 1 up to date</span><span class="sp"></span><span class="hint" style="font-weight:400">Counts of ticked elements. Run is enabled because nothing is blocked.</span></div>
+      <div class="summary" style="margin-top:auto"><span class="ok">134 ready</span>|<span class="warn">7 warnings</span>|<span class="err">0 blocked</span><span class="hint" style="font-weight:400">· 1 up to date</span><span class="sp"></span><span class="hint" style="font-weight:400">Counts of ticked elements. Run is enabled because nothing is blocked.</span></div>
     </div>
   </div>
 
@@ -268,43 +284,46 @@ tr.dim td{color:var(--text3)}
       <span class="section">Elements</span><span class="pill">151</span>
       <span class="text" style="width:260px;margin-left:12px"><span class="ph">⌕ Filter by id, category, family, level…</span></span>
       <span class="sbtn">Select All</span><span class="sbtn">Select None</span><span class="hint">acts on the rows the filter shows</span>
-      <span class="chipbtn">Changed only <span class="new">NEW</span></span>
+      <span class="chipbtn">Changed only</span>
       <span class="sp"></span>
-      <span class="sbtn">Select in Revit <span class="new">NEW</span></span><span class="sbtn">Zoom to <span class="new">NEW</span></span>
+      <span class="lbl" style="margin:0 0 0 4px">If value exists</span><span class="sbtn" style="color:var(--text-disabled)">Skip</span><span class="sbtn" style="color:var(--text-disabled)">Rewrite</span><span class="sbtn" style="color:var(--text-disabled)">Reset</span><span class="hint">disabled by Clear old values</span><span class="new">NEW</span>
+      <span class="sbtn">Select in Revit</span><span class="sbtn">Zoom to</span>
       <span class="sbtn">Expand All</span><span class="sbtn">Collapse All</span>
     </div>
     <div class="row" style="margin:-4px 0 8px">
-      <span class="chip warn">Showing: Warnings (21)</span><span class="hint">from the Warnings tile · click it again to show all</span>
+      <span class="hint">The Has Value tile shows only rows whose current value differs from the new value (14 here: 12 to rewrite, 2 to clear).</span>
     </div>
     <table>
-      <tr><th style="width:30px"><input type="checkbox" checked></th><th style="width:80px">Element Id</th><th style="width:130px">Category<span class="ar">▲</span></th><th style="width:270px">Family and Type</th><th style="width:100px">Base Level</th><th class="num" style="width:90px">Base Offset</th><th style="width:150px">Current Value</th><th style="width:150px">New Value</th><th>Status</th></tr>
+      <tr><th style="width:30px"><input type="checkbox" checked></th><th style="width:80px">Element Id</th><th style="width:130px">Category<span class="ar">▲</span></th><th style="width:270px">Family and Type</th><th style="width:100px">Base Level</th><th class="num" style="width:90px">Base Offset</th><th style="width:150px">Current Value</th><th style="width:150px">New Value</th><th style="width:118px">If value exists</th><th>Status</th></tr>
 
-      <tr class="grp"><td colspan="9"><div class="row"><span class="tw">▾</span>Walls <span class="cnt">· 48 elements</span><span class="sp"></span><span class="sbtn" style="height:20px;font-size:10.5px">Tick all</span><span class="sbtn" style="height:20px;font-size:10.5px">Untick all</span><span class="new">NEW</span></div></td></tr>
-      <tr><td><input type="checkbox" checked></td><td class="mono">318204</td><td>Walls</td><td>Basic Wall: Ext – Brick 290</td><td>Level 01</td><td class="num">0</td><td>Level 01 (0)</td><td class="nv same">Level 01 (0)</td><td><span class="chip mute">Up to date</span> <span class="new">NEW</span></td></tr>
-      <tr><td><input type="checkbox" checked></td><td class="mono">318377</td><td>Walls</td><td>Basic Wall: Int – Partition 100</td><td style="position:relative">Level 02<span class="tipbox">From Base Constraint + Base Offset</span></td><td class="num">+450</td><td class="cv">—</td><td class="nv chg">Level 02 (+450)</td><td><span class="chip ok">Ready</span></td></tr>
-      <tr><td><input type="checkbox" checked></td><td class="mono">318512</td><td>Walls</td><td>Basic Wall: Int – Partition 100</td><td>Level 02</td><td class="num">+450</td><td>Level 02 (+300)</td><td class="nv chg">Level 02 (+450)</td><td><span class="chip warn">Skipped · has value</span></td></tr>
-      <tr><td><input type="checkbox" checked></td><td class="mono">319001</td><td>Walls</td><td>Curtain Wall: Storefront</td><td>Level 01</td><td class="num">−150</td><td class="cv">—</td><td class="nv chg">Level 01 (-150)</td><td><span class="chip warn">Skipped · owned by User B</span></td></tr>
+      <tr class="grp"><td colspan="10"><div class="row"><span class="tw">▾</span>Walls <span class="cnt">· 48 elements</span><span class="sp"></span><span class="sbtn" style="height:20px;font-size:10.5px">Tick all</span><span class="sbtn" style="height:20px;font-size:10.5px">Untick all</span></div></td></tr>
+      <tr><td><input type="checkbox" checked></td><td class="mono">318204</td><td>Walls</td><td>Basic Wall: Ext – Brick 290</td><td>Level 01</td><td class="num">0</td><td>Level 01 (0)</td><td class="nv same">Level 01 (0)</td><td class="cv">—</td><td><span class="chip mute">Up to date</span></td></tr>
+      <tr><td><input type="checkbox" checked></td><td class="mono">318377</td><td>Walls</td><td>Basic Wall: Int – Partition 100</td><td style="position:relative">Level 02<span class="tipbox">From Base Constraint + Base Offset</span></td><td class="num">+450</td><td class="cv">—</td><td class="nv chg">Level 02 (+450)</td><td class="cv">—</td><td><span class="chip ok">Ready</span></td></tr>
+      <tr><td><input type="checkbox" checked></td><td class="mono">318512</td><td>Walls</td><td>Basic Wall: Int – Partition 100</td><td>Level 02</td><td class="num">+450</td><td>Level 02 (+300)</td><td class="nv chg">Level 02 (+450)</td><td><span class="combo" style="height:22px;font-size:11.5px;width:104px;color:var(--text-disabled);background:var(--bg2)">Rewrite</span></td><td><span class="chip ok">Ready · rewrites value</span></td></tr>
+      <tr><td><input type="checkbox" checked></td><td class="mono">319001</td><td>Walls</td><td>Curtain Wall: Storefront</td><td>Level 01</td><td class="num">−150</td><td class="cv">—</td><td class="nv chg">Level 01 (-150)</td><td class="cv">—</td><td><span class="chip warn">Skipped · owned by User B</span></td></tr>
+      <tr><td><input type="checkbox" checked></td><td class="mono">318640</td><td>Walls</td><td>Basic Wall: Int – Partition 100</td><td>Level 02</td><td class="num">0</td><td>L2</td><td class="nv chg">Level 02 (0)</td><td><span class="combo" style="height:22px;font-size:11.5px;width:104px;color:var(--text-disabled);background:var(--bg2)">Default</span></td><td><span class="chip ok">Ready · rewrites value</span><span class="new">CHANGED</span></td></tr>
+      <tr><td><input type="checkbox" checked></td><td class="mono">318702</td><td>Walls</td><td>Basic Wall: Int – Partition 100</td><td>Level 02</td><td class="num">+450</td><td>Level 2 +450</td><td class="nv chg">Level 02 (+450)</td><td><span class="combo" style="height:22px;font-size:11.5px;width:104px;color:var(--text-disabled);background:var(--bg2)">Skip</span></td><td><span class="chip ok">Ready · rewrites value</span><span class="hint"> row choice ignored</span><span class="new">CHANGED</span></td></tr>
 
-      <tr class="grp"><td colspan="9"><div class="row"><span class="tw">▾</span>Structural Columns <span class="cnt">· 22 elements</span><span class="sp"></span><span class="sbtn" style="height:20px;font-size:10.5px">Tick all</span><span class="sbtn" style="height:20px;font-size:10.5px">Untick all</span><span class="new">NEW</span></div></td></tr>
-      <tr><td><input type="checkbox" checked></td><td class="mono">402118</td><td>Structural Columns</td><td>Concrete-Rectangular-Column: 400 x 400</td><td>Level 01</td><td class="num">0</td><td class="cv">—</td><td class="nv chg">Level 01 (0)</td><td><span class="chip ok">Ready</span></td></tr>
-      <tr><td><input type="checkbox" checked></td><td class="mono">402119</td><td>Structural Columns</td><td>Concrete-Rectangular-Column: 400 x 400</td><td>Level 02</td><td class="num">−75</td><td class="cv">—</td><td class="nv chg">Level 02 (-75)</td><td><span class="chip ok">Ready</span></td></tr>
+      <tr class="grp"><td colspan="10"><div class="row"><span class="tw">▾</span>Structural Columns <span class="cnt">· 22 elements</span><span class="sp"></span><span class="sbtn" style="height:20px;font-size:10.5px">Tick all</span><span class="sbtn" style="height:20px;font-size:10.5px">Untick all</span></div></td></tr>
+      <tr><td><input type="checkbox" checked></td><td class="mono">402118</td><td>Structural Columns</td><td>Concrete-Rectangular-Column: 400 x 400</td><td>Level 01</td><td class="num">0</td><td class="cv">—</td><td class="nv chg">Level 01 (0)</td><td class="cv">—</td><td><span class="chip ok">Ready</span></td></tr>
+      <tr><td><input type="checkbox" checked></td><td class="mono">402119</td><td>Structural Columns</td><td>Concrete-Rectangular-Column: 400 x 400</td><td>Level 02</td><td class="num">−75</td><td class="cv">—</td><td class="nv chg">Level 02 (-75)</td><td class="cv">—</td><td><span class="chip ok">Ready</span></td></tr>
 
-      <tr class="grp"><td colspan="9"><div class="row"><span class="tw">▾</span>Floors <span class="cnt">· 6 elements</span><span class="sp"></span><span class="sbtn" style="height:20px;font-size:10.5px">Tick all</span><span class="sbtn" style="height:20px;font-size:10.5px">Untick all</span><span class="new">NEW</span></div></td></tr>
-      <tr><td><input type="checkbox" checked></td><td class="mono">451220</td><td>Floors</td><td>Floor: Slab 200</td><td>Level 02</td><td class="num">−50</td><td class="cv">—</td><td class="nv chg">Level 02 (-50)</td><td><span class="chip ok">Ready</span></td></tr>
+      <tr class="grp"><td colspan="10"><div class="row"><span class="tw">▾</span>Floors <span class="cnt">· 6 elements</span><span class="sp"></span><span class="sbtn" style="height:20px;font-size:10.5px">Tick all</span><span class="sbtn" style="height:20px;font-size:10.5px">Untick all</span></div></td></tr>
+      <tr><td><input type="checkbox" checked></td><td class="mono">451220</td><td>Floors</td><td>Floor: Slab 200</td><td>Level 02</td><td class="num">−50</td><td class="cv">—</td><td class="nv chg">Level 02 (-50)</td><td class="cv">—</td><td><span class="chip ok">Ready</span></td></tr>
 
-      <tr class="grp"><td colspan="9"><div class="row"><span class="tw">▸</span>Roofs <span class="cnt">· 2 elements</span><span class="sp"></span><span class="sbtn" style="height:20px;font-size:10.5px">Tick all</span><span class="sbtn" style="height:20px;font-size:10.5px">Untick all</span><span class="new">NEW</span></div></td></tr>
+      <tr class="grp"><td colspan="10"><div class="row"><span class="tw">▸</span>Roofs <span class="cnt">· 2 elements</span><span class="sp"></span><span class="sbtn" style="height:20px;font-size:10.5px">Tick all</span><span class="sbtn" style="height:20px;font-size:10.5px">Untick all</span></div></td></tr>
 
-      <tr class="grp"><td colspan="9"><div class="row"><span class="tw">▾</span>Generic Models <span class="cnt">· 18 elements</span><span class="sp"></span><span class="sbtn" style="height:20px;font-size:10.5px">Tick all</span><span class="sbtn" style="height:20px;font-size:10.5px">Untick all</span><span class="new">NEW</span></div></td></tr>
-      <tr><td><input type="checkbox" checked></td><td class="mono">503771</td><td>Generic Models</td><td>Planter Box: 1200 x 600</td><td>Level 02</td><td class="num">+150</td><td class="cv">—</td><td class="nv chg">Level 02 (+150)</td><td><span class="chip ok">Ready</span></td></tr>
-      <tr><td><input type="checkbox" checked></td><td class="mono">503902</td><td>Generic Models</td><td>In-place: Bench</td><td class="cv">—</td><td class="num cv">—</td><td class="cv">—</td><td class="cv">—</td><td><span class="chip warn">Skipped · no base level</span></td></tr>
-      <tr class="dim"><td><input type="checkbox"></td><td class="mono">503940</td><td>Generic Models</td><td>Bollard: 150 dia</td><td>Level 01</td><td class="num">0</td><td>—</td><td>—</td><td><span class="chip mute">Not checked</span></td></tr>
+      <tr class="grp"><td colspan="10"><div class="row"><span class="tw">▾</span>Generic Models <span class="cnt">· 18 elements</span><span class="sp"></span><span class="sbtn" style="height:20px;font-size:10.5px">Tick all</span><span class="sbtn" style="height:20px;font-size:10.5px">Untick all</span></div></td></tr>
+      <tr><td><input type="checkbox" checked></td><td class="mono">503771</td><td>Generic Models</td><td>Planter Box: 1200 x 600</td><td>Level 02</td><td class="num">+150</td><td class="cv">—</td><td class="nv chg">Level 02 (+150)</td><td class="cv">—</td><td><span class="chip ok">Ready</span></td></tr>
+      <tr><td><input type="checkbox" checked></td><td class="mono">503902</td><td>Generic Models</td><td>In-place: Bench</td><td class="cv">—</td><td class="num cv">—</td><td>Level 01 (+150)</td><td class="nv chg">(cleared)</td><td class="cv">—</td><td><span class="chip ok">Ready · clears value</span><span class="new">NEW</span></td></tr>
+      <tr class="dim"><td><input type="checkbox"></td><td class="mono">503940</td><td>Generic Models</td><td>Bollard: 150 dia</td><td>Level 01</td><td class="num">0</td><td>—</td><td>—</td><td class="cv">—</td><td><span class="chip mute">Not checked</span></td></tr>
 
-      <tr class="grp"><td colspan="9"><div class="row"><span class="tw">▾</span>Ducts <span class="cnt">· 31 elements</span><span class="sp"></span><span class="sbtn" style="height:20px;font-size:10.5px">Tick all</span><span class="sbtn" style="height:20px;font-size:10.5px">Untick all</span><span class="new">NEW</span></div></td></tr>
-      <tr><td><input type="checkbox" checked></td><td class="mono">612004</td><td>Ducts</td><td>Rectangular Duct: Mitered Elbows</td><td>Level 03</td><td class="num">+2850</td><td class="cv">—</td><td class="nv chg">Level 03 (+2850)</td><td><span class="chip ok">Ready</span></td></tr>
+      <tr class="grp"><td colspan="10"><div class="row"><span class="tw">▾</span>Ducts <span class="cnt">· 31 elements</span><span class="sp"></span><span class="sbtn" style="height:20px;font-size:10.5px">Tick all</span><span class="sbtn" style="height:20px;font-size:10.5px">Untick all</span></div></td></tr>
+      <tr><td><input type="checkbox" checked></td><td class="mono">612004</td><td>Ducts</td><td>Rectangular Duct: Mitered Elbows</td><td>Level 03</td><td class="num">+2850</td><td class="cv">—</td><td class="nv chg">Level 03 (+2850)</td><td class="cv">—</td><td><span class="chip ok">Ready</span></td></tr>
 
-      <tr class="grp"><td colspan="9"><div class="row"><span class="tw">▸</span>Pipes <span class="cnt">· 24 elements</span><span class="sp"></span><span class="sbtn" style="height:20px;font-size:10.5px">Tick all</span><span class="sbtn" style="height:20px;font-size:10.5px">Untick all</span><span class="new">NEW</span></div></td></tr>
+      <tr class="grp"><td colspan="10"><div class="row"><span class="tw">▸</span>Pipes <span class="cnt">· 24 elements</span><span class="sp"></span><span class="sbtn" style="height:20px;font-size:10.5px">Tick all</span><span class="sbtn" style="height:20px;font-size:10.5px">Untick all</span></div></td></tr>
     </table>
-    <div class="hint" style="margin-top:6px"><span class="new">NEW</span> New Value is green when it differs from Current Value and grey when it is the same; same-value rows are "Up to date" and are never rewritten. Hover Base Level to see which parameters it was read from. Select in Revit / Zoom to act on the highlighted grid rows. Columns sort on click (arrow shows direction). Rows are virtualized. Offsets are rounded to whole millimetres, half away from zero (2849.6 → +2850).</div>
+    <div class="hint" style="margin-top:6px"> “If value exists” shows only on rows whose current value differs from the new one: <b>Default</b> follows the Existing values option, <b>Skip</b> / <b>Rewrite</b> (bold) are the row’s own choice. The Skip / Rewrite / Reset buttons set it for the highlighted rows, or for every shown row when none is highlighted (e.g. after clicking the Has Value tile). New Value is green when it differs from Current Value and grey when it is the same; same-value rows are "Up to date" and are never rewritten. Hover Base Level to see which parameters it was read from. Select in Revit / Zoom to act on the highlighted grid rows. Columns sort on click (arrow shows direction). Rows are virtualized. Offsets are rounded to whole millimetres, half away from zero (2849.6 → +2850).</div>
   </div>
 
   <!-- Log -->
@@ -313,22 +332,22 @@ tr.dim td{color:var(--text3)}
       <span class="sp"></span><span class="ghost">Copy All</span><span class="ghost">Copy Selected</span></div>
     <div class="logline"><span class="tm">10:14:02</span><span class="lv" style="color:var(--log-hi)">Info</span>Listed 151 model elements in the active view “Level 02 – Floor Plan” (host model only).</div>
     <div class="logline"><span class="tm">10:14:20</span><span class="lv" style="color:var(--log-ok)">Success</span>Read base level and offset for 136 of 142 checked elements.</div>
-    <div class="logline sel"><span class="tm">10:14:20</span><span class="lv" style="color:var(--log-warn)">Warning</span>6 elements have no base level and are skipped (e.g. 503902 Generic Models).</div>
+    <div class="logline sel"><span class="tm">10:14:20</span><span class="lv" style="color:var(--log-warn)">Warning</span>6 element(s) have no base level and are skipped (e.g. 503902 Generic Models).</div>
     <div class="logline"><span class="tm">10:14:20</span><span class="lv" style="color:var(--log-warn)">Warning</span>3 elements are owned by User B and are skipped (319001, 319004, 612230).</div>
     <div class="logline"><span class="tm">10:14:31</span><span class="lv" style="color:var(--log-hi)">Info</span>Target “Base Level Text”: Ducts and Pipes will be added to its binding.</div>
-    <div class="logline"><span class="tm">10:14:31</span><span class="lv" style="color:var(--log-hi)">Info</span>Pre-checks: 3 pass, 2 warnings, 0 blocked → 121 ready | 21 warnings | 0 blocked.</div>
+    <div class="logline"><span class="tm">10:14:31</span><span class="lv" style="color:var(--log-hi)">Info</span>Pre-checks: 3 pass, 2 warnings, 0 blocked → 134 ready | 7 warnings | 0 blocked.</div>
   </div>
 
   <!-- FOOTER (fixed, not scrolled) -->
   <div class="footer">
-    <div class="status"><span class="hint" style="font-size:11px">Ready · 121 element(s) will be assigned, 21 skipped</span><div class="bar"><i style="width:0"></i></div><span></span></div>
+    <div class="status"><span class="hint" style="font-size:11px">Ready · 134 element(s) will be assigned (12 rewrite an existing value, 2 clear an old value), 7 skipped<span class="new">CHANGED</span></span><div class="bar"><i style="width:0"></i></div><span></span></div>
     <div class="row"><span class="sp"></span><span class="btn run">Run</span><span class="btn" style="width:90px">Close</span></div>
   </div>
 </div>
 </div>
 
 <!-- ============ VALUE FORMAT OPTIONS (FOR APPROVAL) ============ -->
-<h2>2a · Value format patterns <span class="new">NEW</span></h2>
+<h2>2a · Value format patterns</h2>
 <p class="note">All patterns are in the Pattern list. The default stays the 1.0.x format, so existing results do not change unless you choose another pattern. Samples use offsets +450, 0 and −150 mm (sample data).</p>
 <div class="scroll">
 <div class="card" style="width:860px;padding:8px 12px">
@@ -347,28 +366,50 @@ tr.dim td{color:var(--text3)}
 </div>
 </div>
 
+<!-- ============ REWRITE CONFIRMATION ============ -->
+<h2>2b · Before Run rewrites values</h2>
+<p class="note">Shown by Run only when at least one ticked element already has a value that Run would replace or clear (here 14, with Clear old values). With nothing to rewrite, Run starts at once as before. Esc or ✕ = Cancel.</p>
+<div class="scroll">
+<div class="win" style="width:520px">
+  <div class="titlebar"><span>Rewrite existing values? — Base Level to Parameter v1.3.1</span><span>✕</span></div>
+  <div style="padding:12px 16px;display:flex;flex-direction:column;gap:8px;line-height:1.45">
+    <div><b>14</b> of the <b>134</b> elements Run will write already have a different value in “Base Level Text”; Run replaces it (or clears it where there is no base level).<span class="new">CHANGED</span></div>
+    <table>
+      <tr><th style="width:80px">Element Id</th><th>Current value</th><th>New value</th></tr>
+      <tr><td class="mono">318512</td><td>Level 02 (+300)</td><td class="nv chg">Level 02 (+450)</td></tr>
+      <tr><td class="mono">402300</td><td>L1</td><td class="nv chg">Level 01 (0)</td></tr>
+      <tr><td class="mono">451288</td><td>Level 02 (-25)</td><td class="nv chg">Level 02 (-50)</td></tr>
+      <tr><td class="mono">503902</td><td>Level 01 (+150)</td><td class="nv chg">(cleared)</td><td><span class="new">NEW</span></td></tr>
+      <tr><td colspan="3" class="hint">… 10 more</td></tr>
+    </table>
+    <div class="hint">The first 10 are listed. Every rewritten value is logged (old → new), and every cleared value too. Ctrl+Z in Revit undoes the whole run.</div>
+  </div>
+  <div class="footer row"><span class="sp"></span><span class="btn run" style="min-width:120px">Rewrite 14</span><span class="btn" style="min-width:150px">Skip these, write 120</span><span class="btn" style="width:90px">Cancel</span></div>
+</div>
+</div>
+
 <!-- ============ NEW PARAMETER DIALOG ============ -->
 <h2>3 · New Parameter dialog</h2>
-<p class="note"><span class="new" style="margin:0 6px 0 0">NEW in 1.0.1</span>Pre-check c (here and in the main window) blocks a name that appears twice in the shared parameter file; the main window also blocks a file GUID that another project parameter already uses (example: “The GUID of “Base Level Info” in SharedParameters.txt (3f2a…c9e1) is already used in the project by “Old Level Note”.”). Opened by “New Parameter…”. Nothing is created here: Create sets this parameter as the target, and Run in the main window creates it (shared parameter file first, then the project, in the run's transaction).</p>
+<p class="note">Pre-check c (here and in the main window) blocks a name that appears twice in the shared parameter file; the main window also blocks a file GUID that another project parameter already uses (example: “The GUID of “Base Level Info” in SharedParameters.txt (3f2a…c9e1) is already used in the project by “Old Level Note”.”). Opened by “New Parameter…”. Nothing is created here: Create sets this parameter as the target, and Run in the main window creates it (shared parameter file first, then the project, in the run's transaction).</p>
 <div class="scroll">
 <div class="win dlg">
-  <div class="titlebar"><span>New Parameter — Base Level to Parameter v1.1.0</span><span>✕</span></div>
+  <div class="titlebar"><span>New Parameter — Base Level to Parameter v1.3.1</span><span>✕</span></div>
   <div style="padding:12px 16px;display:flex;flex-direction:column;gap:10px">
     <div class="form" style="grid-template-columns:130px 1fr">
       <span class="l">Name</span><span class="row"><span class="text" style="flex:1">Base Level Info</span><span class="hint">15 / 25</span></span>
       <span class="l">Kind</span><span>Shared parameter · Instance · Text · schedulable</span>
       <span class="l">Shared param. file</span><span class="row"><span class="text mono" style="flex:1;font-size:11px">C:\Standards\SharedParameters.txt</span><span class="sbtn">Browse…</span></span>
       <span class="l">Group in file</span><span class="combo" style="width:200px">Data</span>
-      <span class="l">Properties group</span><span>Data<span class="new">CHANGED</span></span>
+      <span class="l">Properties group</span><span>Data</span>
       <span class="l" style="align-self:start;padding-top:4px">Categories</span>
       <span>Ducts, Floors, Generic Models, Pipes, Roofs, Structural Columns, Walls</span>
     </div>
     <table class="checks">
       <tr><th>Check</th><th style="width:80px">Result</th><th>Detail</th></tr>
-      <tr><td>Name</td><td><span class="chip ok">Pass</span></td><td>No invalid characters (\ : { } [ ] | ; &lt; &gt; ? ` ~). The built-in name check runs in the main window.</td></tr>
-      <tr><td>Shared parameter file</td><td><span class="chip ok">Pass</span></td><td>Writable. Name not in the file; a new GUID will be added.</td></tr>
-      <tr><td></td><td><span class="chip err">Blocked</span></td><td>Example: “Base Level Info” is in the file 2 times. Remove the duplicates from the file or use another name.<span class="new">NEW</span></td></tr>
-      <tr><td>Categories</td><td><span class="chip ok">Pass</span></td><td>Bound to 7 categories of the ticked elements; the main window checks each one.</td></tr>
+      <tr><td>Name</td><td><span class="chip ok">Pass</span></td><td class="cv">—</td><td>No invalid characters (\ : { } [ ] | ; &lt; &gt; ? ` ~). The built-in name check runs in the main window.</td></tr>
+      <tr><td>Shared parameter file</td><td><span class="chip ok">Pass</span></td><td class="cv">—</td><td>Writable. Name not in the file; a new GUID will be added.</td></tr>
+      <tr><td></td><td><span class="chip err">Blocked</span></td><td class="cv">—</td><td>Example: “Base Level Info” is in the file 2 times. Remove the duplicates from the file or use another name.</td></tr>
+      <tr><td>Categories</td><td><span class="chip ok">Pass</span></td><td class="cv">—</td><td>Bound to 7 categories of the ticked elements; the main window checks each one.</td></tr>
     </table>
     <div class="row" style="background:var(--err-soft);border:1px solid var(--err-border);border-radius:4px;padding:6px 8px;color:var(--err);font-size:11.5px">
       Example of a blocked state: “No shared parameter file is set. Pick one with Browse… to continue.”
@@ -383,15 +424,19 @@ tr.dim td{color:var(--text3)}
 <div class="scroll">
 <div class="win" style="width:1240px">
   <div class="footer">
-    <div class="status"><span class="hint" style="font-size:11px">Assigning… 74 / 121</span><div class="bar"><i style="width:61%"></i></div><span class="sbtn">Cancel</span></div>
+    <div class="status"><span class="hint" style="font-size:11px">Assigning… 74 / 134</span><div class="bar"><i style="width:61%"></i></div><span class="sbtn">Cancel</span></div>
     <div class="row"><span class="sp"></span><span class="btn run off">Run</span><span class="btn off" style="width:90px">Close</span></div>
   </div>
 </div>
 <div class="win" style="width:1240px;margin-top:8px">
   <div class="footer">
-    <div class="status"><span class="hint" style="font-size:11px">Run finished: 121 assigned | 21 skipped | 0 failed. Undo with Ctrl+Z in Revit (“Base Level to Parameter”).</span><div class="bar"><i style="width:100%"></i></div><span></span></div>
-    <div class="row"><span style="font-size:12.5px;font-weight:600"><span style="color:var(--ok)">121 assigned</span> | <span style="color:var(--warn)">21 skipped</span> | <span style="color:var(--err)">0 failed</span></span><span class="sp"></span><span class="btn run off">Run</span><span class="btn" style="width:90px">Close</span></div>
+    <div class="status"><span class="hint" style="font-size:11px">Run finished: 134 assigned | 7 skipped | 0 failed. Undo with Ctrl+Z in Revit (“Base Level to Parameter”).</span><div class="bar"><i style="width:100%"></i></div><span></span></div>
+    <div class="row"><span style="font-size:12.5px;font-weight:600"><span style="color:var(--ok)">134 assigned</span> | <span style="color:var(--warn)">7 skipped</span> | <span style="color:var(--err)">0 failed</span></span><span class="sp"></span><span class="btn run off">Run</span><span class="btn" style="width:90px">Close</span></div>
   </div>
+</div>
+<div class="log" style="width:1240px;margin:8px 0 0">
+  <div class="logline"><span class="tm">10:16:05</span><span class="lv" style="color:var(--log-hi)">Info</span>Rewrote 12 existing value(s): 318512 “Level 02 (+300)” → “Level 02 (+450)”, 318640 “L2” → “Level 02 (0)”, …</div>
+  <div class="logline"><span class="tm">10:16:05</span><span class="lv" style="color:var(--log-hi)">Info</span>Cleared 2 old value(s) on elements with no base level: 503902 “Level 01 (+150)”, 503911 “L1”. <span class="new">NEW</span></div>
 </div>
 </div>
 <p class="note" style="margin-top:8px">Cancel (and Esc) comes from the shared ToolWindowShell status strip. A critical error shows a dialog and rolls back the whole run (one transaction). After a run the window stays open, Run is disabled and the status column shows Assigned / Skipped / Failed per row until you press Re-check.</p>
@@ -399,6 +444,25 @@ tr.dim td{color:var(--text3)}
 <!-- ============ DECISIONS ============ -->
 <h2>5 · Decisions</h2>
 <div class="card" style="padding:10px 12px;margin-bottom:12px;max-width:1200px">
+  <div class="section" style="margin-bottom:4px">1.3.0 · clear old values <span class="new">NEW</span></div>
+  <ul style="margin:0 0 8px;padding-left:20px;line-height:1.55">
+    <li>Third Existing values option: <b>Clear old values, write only new values</b>. Every ticked element ends up with only its new value.</li>
+    <li>Different values are rewritten whatever the row choice says (the If value exists column and buttons are disabled); an old value on an element with no base level is cleared (empty).</li>
+    <li>Only ticked elements are touched. Elements owned by another user, read-only, in groups or out of date are still skipped, values and all.</li>
+    <li>Skip stays the default; the option is not remembered. “Skip these” in the dialog keeps every old value, cleared ones included.</li>
+  </ul>
+  <div class="section" style="margin-bottom:4px">1.2.0 · existing values</div>
+  <ul style="margin:0 0 8px;padding-left:20px;line-height:1.55">
+    <li>“Overwrite existing values” (checkbox) becomes <b>Existing values: Skip / Rewrite</b>. Skip stays the default, as before, and is still not remembered.</li>
+    <li>Each row with a different existing value can override the default (Default / Skip / Rewrite). Choices survive Re-check and format changes; loading a new element list resets them.</li>
+    <li>An element whose value already equals the new one stays “Up to date” and is never rewritten, whatever the choice.</li>
+    <li>Run asks before replacing any value (Rewrite / Skip these / Cancel) and logs each old → new value. Rewritten rows show “Assigned · rewrote value”.</li>
+  </ul>
+  <div class="section" style="margin-bottom:4px">Suggestions for later</div>
+  <ul style="margin:0 0 8px;padding-left:20px;line-height:1.55">
+    <li>Export the old values to CSV before a rewrite, as a backup outside the Revit undo stack.</li>
+    <li>“Rewrite only values this tool wrote” — rewrite values that match a known pattern (e.g. “Level 02 (+300)”) and keep hand-typed ones (“L2”).</li>
+  </ul>
   <div class="section" style="margin-bottom:4px">1.1.0 (confirmed by the owner)</div>
   <ul style="margin:0;padding-left:20px;line-height:1.55">
     <li>Value format: Level name only, or Level name + offset with all 8 patterns of 2a (Custom… included). The choice is remembered.</li>
@@ -415,7 +479,7 @@ tr.dim td{color:var(--text3)}
       <li>No base level → the row stays ticked, is skipped and logged as a warning.</li>
       <li>New parameters are shared, instance, Text, schedulable, bound to the ticked elements' categories.</li>
       <li>Missing categories on an existing parameter are added automatically (Warning, not Blocked).</li>
-      <li>Offset in mm, signed, whole millimetres, zero = “(0)”. Overwrite existing values is off by default.</li>
+      <li>Offset in mm, signed, whole millimetres, zero = “(0)”. Existing values are skipped by default.</li>
       <li>Run (and Close) are disabled while a run is in progress.</li>
     </ul>
   </div>
@@ -425,7 +489,7 @@ tr.dim td{color:var(--text3)}
       <li>Button on the Coordination panel; folder <span style="font-family:var(--mono)">Menu/Coordination/Parameters/</span>.</li>
       <li>Summary counts ticked elements; a blocked check marks every ticked element Blocked.</li>
       <li>“Load Active View” kept, to go back after “Load All Model Elements”.</li>
-      <li>Offset always in mm; new parameters always go under Data <span class="new">CHANGED in 1.0.1</span>.</li>
+      <li>Offset always in mm; new parameters always go under Data.</li>
       <li>New parameters allow different values per group instance, so grouped elements can be written.</li>
     </ul>
   </div>

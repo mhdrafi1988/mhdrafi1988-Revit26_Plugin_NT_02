@@ -34,7 +34,8 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                 ToolTip = ToolCatalog.BaseLevelToParameter.Tip(
                     "Reads each element's base level and offset and writes them to a text parameter as \"Level 02 (+450)\". " +
                     "Lists the active view's model elements (or the whole host model), checks the target parameter first, " +
-                    "and can create it as a shared instance Text parameter.")
+                    "and can create it as a shared instance Text parameter. " +
+                    "Values already there can be skipped, rewritten, or cleared so only the new values remain.")
             };
             panel.AddItem(baseLevelToParameter);
         }
