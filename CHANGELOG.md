@@ -9,6 +9,12 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [7.10.1] — 2026-11-14
+
+### Changed
+- **Base Level to Parameter v1.3.1** — the ribbon tooltip now says that values already in the parameter can be
+  skipped, rewritten, or cleared so only the new values remain. No change in behaviour.
+
 ## [7.10.0] — 2026-11-14
 
 ### Added
