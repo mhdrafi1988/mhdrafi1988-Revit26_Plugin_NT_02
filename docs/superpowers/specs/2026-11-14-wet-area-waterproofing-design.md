@@ -34,6 +34,8 @@ fixtures), lay everything out on sheets and hand back a print set plus an Excel 
 | Section targets | Up to 6 per room: Full room H, Full room V, Door, Drain, Wall corner, WC/closet, Shower/bath, Wall–floor. Per target: **One (nearest centre)** or **All matches**; cap 6, higher rows win, overflow logged |
 | Target sources | Expandable grid: host + each loaded link → categories (Doors, Plumbing Fixtures, Pipe Accessories, …), each tickable, with found counts and which targets use it; remembered per model |
 | Re-run | **Update in place**: same sheet numbers and view names, roof outline rebuilt, sections re-placed, manual annotations kept; elements found by run ID in Comments; grid shows "Already done (run …)" |
+| Worksharing | Room/slab/sheet checked out by another user → **skip that room and report** ("Owned by <user>" in grid, log, Excel); others run normally |
+| Workset | New elements go on a **workset the user picks** (dropdown, remembered; disabled in non-workshared models) |
 | Drafting views | **One view for all** or **one view per target**; each existing or created new |
 | Boundary repair | Chain: other boundary location → clean → merge collinear → snap ≤ 5 mm → bridge ≤ 50 mm → remove overlaps/spikes (Clipper2) → arcs to lines → room 3D bottom face → skip failing inner loop → approximate (hull/bbox) |
 | Approximate fallback | Included, **off by default** (my call) |
