@@ -13,7 +13,7 @@ Each release lists every tool whose version changed, under the plugin version.
 
 ### Roof Slope Builder 1.1.0 (V001) — new tool
 
-In the Roof Slope panel, Points & Slope pulldown, below Points & Slope.
+Its own large button on the Roof Slope panel, after the By Point / By Drain / Points & Slope stack, with its own icon.
 
 #### Added
 - **Roof Slope Builder**: one command that adds shape points and slopes every selected footprint roof to its drains.

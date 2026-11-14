@@ -3,7 +3,7 @@
 <!-- UI preview (CLAUDE.md "UI previews"): Roof Slope Builder V001, tool 1.1.0, plugin 7.3.0. New tool.
      Changed from the 1.0.0 draft: heights from the drain outline, checked number boxes, roofs checked before the
      window opens (notice box), Variable-layer note per roof, drain centre column, remembered options.
-     Shows: the Points & Slope pulldown with the new button and its tooltip, the window on tab 3 (Drains & Slope),
+     Shows: the Roof Slope panel with the new large button (own icon, RoofSlopeBuilder_32.png) and its tooltip, the window on tab 3 (Drains & Slope),
      the number-check message and the end-of-run report.
      Mirrors: Menu/RoofTools/CombinedTools/RoofSlopeBuilder_V001/UI/RoofSlopeBuilderWindow.xaml (+ .xaml.cs),
               Menu/RoofTools/CombinedTools/RoofSlopeBuilder_V001/Commands/RoofSlopeBuilderCommand.cs (report),
@@ -36,9 +36,14 @@ ul.changes{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:3px
 .panel .ri.open{background:var(--info-bg)}
 .panel .pt{background:var(--surface-window);border-top:1px solid var(--border);text-align:center;font-size:11px;color:var(--text-2);padding:2px}
 .ico{width:16px;height:16px;background:var(--navy);border-radius:2px;flex:none}
-.menu{background:var(--surface-card);border:1px solid var(--border);box-shadow:0 4px 12px rgba(0,0,0,.15);font-size:12px;width:200px;margin-top:44px}
-.menu div{padding:5px 8px;display:flex;align-items:center;gap:6px}
-.menu .hi{background:var(--info-bg)}
+.panel.wide{width:auto}
+.panel .cols{display:flex;align-items:stretch}
+.panel .stack{padding:6px;display:flex;flex-direction:column;gap:2px;font-size:12px;width:150px}
+.big{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 8px;font-size:12px;text-align:center;line-height:1.2;border-left:1px solid var(--border);background:var(--info-bg);outline:1px solid #7FA6E0;outline-offset:-1px}
+.big img{width:32px;height:32px;image-rendering:pixelated}
+.icons{display:flex;gap:18px;align-items:flex-end;font-size:11.5px;color:var(--text-2)}
+.icons figure{margin:0;display:flex;flex-direction:column;align-items:center;gap:4px}
+.icons img{image-rendering:pixelated}
 .tip{background:var(--surface-card);border:1px solid var(--border);box-shadow:0 4px 12px rgba(0,0,0,.15);font-size:12px;width:280px;padding:8px 10px;margin-top:70px}
 .tip b{display:block;margin-bottom:3px}
 
@@ -112,20 +117,19 @@ table.dg{border-collapse:collapse;width:100%;font-size:12px}
   </section>
 
   <section>
-    <h2>Ribbon · Roof Slope panel</h2>
+    <h2>Ribbon · Roof Slope panel <span class="tag">Own button</span></h2>
     <div class="frame">
       <div class="rib">
-        <div class="panel">
-          <div class="items">
-            <div class="ri"><span class="ico"></span>By Point ▾</div>
-            <div class="ri"><span class="ico"></span>By Drain ▾</div>
-            <div class="ri open"><span class="ico"></span>Points &amp; Slope ▾</div>
+        <div class="panel wide">
+          <div class="cols">
+            <div class="stack">
+              <div class="ri"><span class="ico"></span>By Point ▾</div>
+              <div class="ri"><span class="ico"></span>By Drain ▾</div>
+              <div class="ri"><span class="ico"></span>Points &amp; Slope ▾</div>
+            </div>
+            <div class="big"><img alt="Roof Slope Builder icon" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAFdklEQVR4nLWXX2xUxxXGf2dm7t1d7y52iZOCQdhEAh7SkiKSKpYqtc+N1SAV96EP5TVK1aiVihREkWgLUtJEaqSqUirlhUbtA6GSkZI+N2opSLQyJq0EIRGQxBiDUVyzd7177/zpw11sr3eNbSBHGmnv7Dlzvjlnznxn5OToqP7Bu++691/Y/f2CUT+zPuz1gQIgPFoJSmgaJf9uWv/b509f/MvJ0VEtAO/te/oXFaN+7QI0nX/EftuloBVaoGb9kZGxiWPy3r6vv1AxZmzeeh9CCIjoLxVBCE5EpGSUqlm7zwhy2AbCcueiFAQIhIfyJwiIELxrTYgOITgbCIIcNsCe1Hlpcy6KLKkhWqOMgfCgIATvLD7LMOXKkmnRaZ7qPUYQ02aiFFntLgPfeZ7G7SmSG5+iomj9IETwWUZ58zb6v/EcH596G2WiZfDEdDpPagx8+7vsPfQmPkux83VUFCFKEbxn9eIIC7reZui4hC4UCMCVP/+eqNpLcG5BW7WbgtKKxsw0rjGPimLiDX2I0ri0iSjd0rqf80XduNqHLhSw9YQ7E+dQJiL4dnvTbh8QE5FMXcelTXSxBEBj5ib/Ov4TGrdvYnrKeOc64pCD19h6QvHxTTxz+HeUtwwB4F1GMvVpK+DtABTLJQSUiVBRhJ1PqE9PUt4yxJ6DbyDGkExex9bmSOe+aBtZbY5k6jNEG/YcfIPyliHq05PY+SRfz3Q/R50A7kVCKbzNOH/0Re5e+4gN23fxrTdP0bdrNyF4VFxARXFrFBCgPDDI8Gt/ZMP2Xdy99hHnj76It1mrpLunrjsAIPiAjos0Zm5y9pUDzN+apHb9CiouEmxeWj5L82EzXJaiiyXq05/TnL3D2UMHaMzcRMfFjrwvFbPiP0DwHtNTIZm8xvlf/RgdF7hz8RyVrdtbFbEoojX/+/i/XD39DsE75m/doLL1yQ69dQEACM4SVarUPvuEYC2VrdsZ/s2fiMrVPKyyeBzPvvIjbo+fQZuYuNpLcHa15VcHAHkkVFzAt37HG/owpXJXXVEaHRdx6fxall4bgBxFWDhIwdrFb5EOvRDWzqhrB7BURBYdLwewTlmxCu7r9FHorQeAKEVwlmAzROvuNR3yazjYvDxFrW1vq6ZAtCarJ5QHBjGlHmav/Iezhw501fvi0gU2PrUXn6XMXpog7n3s4QCIUvndvvEJvvnLP1CfnuTq2AlmLvwzj0orECKCtxkbn9rLzh++RHVwB39/eT+2XlvCot1lxTiJElzaoNi/ieFXT1Ad3EHfjq/lJWkidKmMKfZgij3oYg+6UMKnTSrbdlB6YgvDr56g2L8JlzYQtfKZ6A5AZMHRs0ffojq0k7mrl/jgpe9x6/zfEKXxzQY+a+YjbSAizF6+yD9+up+5q5epDu3k2aNvtSjYr3gwO1PQCqe3GXE1v3CSyWuMv36QYDMqW5/EO9uVjuPer2DrCeOv/7yNjtO5WbzNuoJYBkAI1lLevA2lF9unYv8mhl97p0UsjpW7onsNSQMdFxdmdVygvHmQ2csXkGW03JYCUfnuH3v6OUxPGddskt6dJXiHjgurOG9tYIluOjeLb7Fksf+reOc7rNsiEJzD9FT45NTbCDBz4RzJ1EM2pQPbKD6+mRsf/JWoUu1k0ff37c6Wd8YANqnlzajubKPWBcJagnNEPZUOjggEa4DxWKtnUuv80rdBVO3NieUhHyZGRyC07zwEFxutms6Nq0A4bgQRESGEhX45eJcjvsd6DzhC8B3ORUSMIIFwXI2MfXi6Zv2RklGqYPSX+y4ECkbr/F3oj4yMfXhanRwd1SNjE8eSzO0PhDNKaPDASb+vBCU0AuFMkrn9I2MTx06Ojur/A7VIw7/UKuRYAAAAAElFTkSuQmCC"><span>Roof Slope<br>Builder</span></div>
           </div>
           <div class="pt">Roof Slope</div>
-        </div>
-        <div class="menu">
-          <div><span class="ico"></span>Points &amp; Slope</div>
-          <div class="hi"><span class="ico"></span>Roof Slope Builder<span class="tag">New</span></div>
         </div>
         <div class="tip">
           <b>Roof Slope Builder — v1.1.0 (build V001)</b>
@@ -133,6 +137,11 @@ table.dg{border-collapse:collapse;width:100%;font-size:12px}
           footprint roof to its drains. Watershed or saddle ridges; options are remembered.
         </div>
       </div>
+    </div>
+    <div class="icons" style="margin-top:12px">
+      <figure><img alt="" width="64" height="64" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAFdklEQVR4nLWXX2xUxxXGf2dm7t1d7y52iZOCQdhEAh7SkiKSKpYqtc+N1SAV96EP5TVK1aiVihREkWgLUtJEaqSqUirlhUbtA6GSkZI+N2opSLQyJq0EIRGQxBiDUVyzd7177/zpw11sr3eNbSBHGmnv7Dlzvjlnznxn5OToqP7Bu++691/Y/f2CUT+zPuz1gQIgPFoJSmgaJf9uWv/b509f/MvJ0VEtAO/te/oXFaN+7QI0nX/EftuloBVaoGb9kZGxiWPy3r6vv1AxZmzeeh9CCIjoLxVBCE5EpGSUqlm7zwhy2AbCcueiFAQIhIfyJwiIELxrTYgOITgbCIIcNsCe1Hlpcy6KLKkhWqOMgfCgIATvLD7LMOXKkmnRaZ7qPUYQ02aiFFntLgPfeZ7G7SmSG5+iomj9IETwWUZ58zb6v/EcH596G2WiZfDEdDpPagx8+7vsPfQmPkux83VUFCFKEbxn9eIIC7reZui4hC4UCMCVP/+eqNpLcG5BW7WbgtKKxsw0rjGPimLiDX2I0ri0iSjd0rqf80XduNqHLhSw9YQ7E+dQJiL4dnvTbh8QE5FMXcelTXSxBEBj5ib/Ov4TGrdvYnrKeOc64pCD19h6QvHxTTxz+HeUtwwB4F1GMvVpK+DtABTLJQSUiVBRhJ1PqE9PUt4yxJ6DbyDGkExex9bmSOe+aBtZbY5k6jNEG/YcfIPyliHq05PY+SRfz3Q/R50A7kVCKbzNOH/0Re5e+4gN23fxrTdP0bdrNyF4VFxARXFrFBCgPDDI8Gt/ZMP2Xdy99hHnj76It1mrpLunrjsAIPiAjos0Zm5y9pUDzN+apHb9CiouEmxeWj5L82EzXJaiiyXq05/TnL3D2UMHaMzcRMfFjrwvFbPiP0DwHtNTIZm8xvlf/RgdF7hz8RyVrdtbFbEoojX/+/i/XD39DsE75m/doLL1yQ69dQEACM4SVarUPvuEYC2VrdsZ/s2fiMrVPKyyeBzPvvIjbo+fQZuYuNpLcHa15VcHAHkkVFzAt37HG/owpXJXXVEaHRdx6fxall4bgBxFWDhIwdrFb5EOvRDWzqhrB7BURBYdLwewTlmxCu7r9FHorQeAKEVwlmAzROvuNR3yazjYvDxFrW1vq6ZAtCarJ5QHBjGlHmav/Iezhw501fvi0gU2PrUXn6XMXpog7n3s4QCIUvndvvEJvvnLP1CfnuTq2AlmLvwzj0orECKCtxkbn9rLzh++RHVwB39/eT+2XlvCot1lxTiJElzaoNi/ieFXT1Ad3EHfjq/lJWkidKmMKfZgij3oYg+6UMKnTSrbdlB6YgvDr56g2L8JlzYQtfKZ6A5AZMHRs0ffojq0k7mrl/jgpe9x6/zfEKXxzQY+a+YjbSAizF6+yD9+up+5q5epDu3k2aNvtSjYr3gwO1PQCqe3GXE1v3CSyWuMv36QYDMqW5/EO9uVjuPer2DrCeOv/7yNjtO5WbzNuoJYBkAI1lLevA2lF9unYv8mhl97p0UsjpW7onsNSQMdFxdmdVygvHmQ2csXkGW03JYCUfnuH3v6OUxPGddskt6dJXiHjgurOG9tYIluOjeLb7Fksf+reOc7rNsiEJzD9FT45NTbCDBz4RzJ1EM2pQPbKD6+mRsf/JWoUu1k0ff37c6Wd8YANqnlzajubKPWBcJagnNEPZUOjggEa4DxWKtnUuv80rdBVO3NieUhHyZGRyC07zwEFxutms6Nq0A4bgQRESGEhX45eJcjvsd6DzhC8B3ORUSMIIFwXI2MfXi6Zv2RklGqYPSX+y4ECkbr/F3oj4yMfXhanRwd1SNjE8eSzO0PhDNKaPDASb+vBCU0AuFMkrn9I2MTx06Ojur/A7VIw7/UKuRYAAAAAElFTkSuQmCC"><figcaption>32 px, shown at 2×<span class="tag">New icon</span></figcaption></figure>
+      <figure><img alt="" width="48" height="48" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABB0lEQVR4nJVTO3LCMBB9u5KcJuYCfI7AeIZLhA6fgRNAE46QdJmhouAMrjLhGD5DgJ4ZaLBsbwocQjyWDFtppH1v973V0mo0MoO+fTeKp7aQZwEYniCgNIpOtijX31vzqru9/C0MzOyY5RAfsgoB2BbSCQMz6/Zyoc/JMGOQeklSb+V6bOKoLCGFJpC5rfwVR17gOEmvnRCI+XL+A/8muMC1AsIA6PbGRdIABgBq1N0kwyXNa9w4Sb2SWgnuCe17bJuIswOXiS4CqSe6TGwg+T9GF9hDQloglkGq6qbV9SsSuHxlEVqGT3q+iaO7lqkCIww0H875h97v9EL1LT26zsfMrvc7s/gBeWFyWq6qqycAAAAASUVORK5CYII="><figcaption>16 px, shown at 3×</figcaption></figure>
+      <p style="max-width:300px">Roof plan: the outline, fall lines from each corner, and the drain in the middle. Same rust background as the other roof icons.</p>
     </div>
   </section>
 

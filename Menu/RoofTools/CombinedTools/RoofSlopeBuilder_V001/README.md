@@ -2,7 +2,7 @@
 
 One command that adds shape-edit points and applies slope-by-drain to every selected footprint roof.
 
-Ribbon: Roof Slope panel → Points & Slope pulldown → **Roof Slope Builder**
+Ribbon: Roof Slope panel → **Roof Slope Builder** (large button, icon `Resources/Icons/RoofTools/RoofSlopeBuilder_16/32.png`)
 (`Revit26_Plugin_Revised.RoofSlopeBuilder.V001.Commands.RoofSlopeBuilderCommand`).
 
 ## Folders
