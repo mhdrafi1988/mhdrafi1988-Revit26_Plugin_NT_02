@@ -159,13 +159,13 @@ tr.grp td{background:#F3F5F7;font-weight:600;color:var(--head)}
           <div class="row"><span class="lbl">Roof type</span><span class="in sel">WP Membrane 3 mm</span></div>
           <div class="row"><span class="lbl">Offset above slab</span><span class="in" style="flex:0 0 70px">0</span> mm</div>
           <div class="row"><span class="lbl">No slab found</span><span class="in sel">Use room level + offset</span></div>
-          <div class="row"><span class="chk">Write room No. + name to Comments</span></div>
+          <div class="row"><span class="chk">Write run ID + room No. + name to Comments</span></div>
+          <div class="row"><span class="unchk">Allow approximate outline</span><span style="color:var(--winMuted)">(off by default)</span></div>
           <div class="row"><span class="chk">Skip rooms that already have one</span></div>
           <div class="row" style="border-top:1px solid var(--sep);padding-top:6px"><b style="color:var(--head)">Boundary repair</b><span class="new">NEW</span></div>
           <div class="row"><span class="lbl">Snap gaps up to</span><span class="in" style="flex:0 0 60px">5</span> mm</div>
           <div class="row"><span class="lbl">Bridge gaps up to</span><span class="in" style="flex:0 0 60px">50</span> mm</div>
           <div class="row"><span class="lbl">Area check</span><span class="in" style="flex:0 0 60px">± 2</span> % of room area</div>
-          <div class="row"><span class="unchk">Allow approximate outline (hull / bounding box) as last resort</span></div>
           <p class="hint">Tried in order: other boundary location → clean → merge → snap → bridge → remove overlaps → arcs to lines → room 3D shape → skip hole → approximate.</p>
         </div>
         <div class="card">
@@ -173,7 +173,7 @@ tr.grp td{background:#F3F5F7;font-weight:600;color:var(--head)}
           <div class="row"><span class="lbl">Plan type</span><span class="in sel">Floor Plan</span></div>
           <div class="row"><span class="lbl">View template</span><span class="in sel">WP Plan 1:100</span></div>
           <div class="row"><span class="lbl">Plan scale <span class="new">NEW</span></span><span class="in sel" style="flex:0 0 80px">1:100</span><span class="lbl" style="width:auto">Section</span><span class="in sel" style="flex:0 0 80px">1:100</span></div>
-          <div class="row"><span class="lbl">Combine near rooms <span class="new">NEW</span></span><span class="in sel">Auto-group, same source</span></div>
+          <div class="row"><span class="lbl">Combine near rooms <span class="new">NEW</span></span><span class="in sel">Auto-group, same level (host + links)</span></div>
           <div class="row"><span class="lbl">Group gap</span><span class="in" style="flex:0 0 70px">1000</span> mm</div>
           <div class="row"><span class="lbl">Crop margin</span><span class="in" style="flex:0 0 70px">500</span> mm</div>
           <div class="row"><span class="lbl">Ref. sections</span><span>Set in “Section targets” below <span class="new">CHANGED</span></span></div>
@@ -189,6 +189,8 @@ tr.grp td{background:#F3F5F7;font-weight:600;color:var(--head)}
           <div class="row"><span class="lbl">Sheet number</span><span class="in" style="flex:0 0 60px">WP-</span><span class="in" style="flex:0 0 50px">101</span></div>
           <div class="row"><span class="lbl">Sheet name</span><span class="in">Waterproofing - {Number} {Name}</span></div>
           <div class="row"><span class="chk">Create print set</span><span class="in">Waterproofing - 2026-11-14</span></div>
+          <div class="row" style="border-top:1px solid var(--sep);padding-top:6px"><span class="chk">Save Excel report after run</span><span class="new">NEW</span><span style="flex:1"></span><button class="btn">Export now</button></div>
+          <div class="row"><span class="lbl">Report folder</span><span class="in">%AppData%\Revit26_Plugin_Revised\WetAreaWaterproofing\Reports</span><button class="btn">…</button></div>
         </div>
       </div>
     </div>
