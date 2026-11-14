@@ -1,0 +1,262 @@
+<title>Annotation Layout Check V001</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<!-- UI preview (CLAUDE.md "UI previews"): Annotation Layout Check V001, tool 1.0.0 (proposed), plugin 7.2.1.
+     DESIGN MOCK-UP: no code exists yet. Tool name, ribbon position and every label are proposals for the owner.
+     Scope agreed so far: tags, text notes, dimensions, spot elevations; batch of views and sheets; report only.
+     Mirrors: no XAML yet (planned: Menu/Manage/AnnotationLayoutCheck_V001/UI/AnnotationLayoutCheckWindow.xaml)
+     Artifact: https://claude.ai/artifact/9ZhpmxsCCcUjZTNKbqE23j (republish to this URL on every update)
+     Colours: Shared/SharedStyles.xaml tokens, one light look on purpose (mirrors the light WPF window). -->
+<style>
+/* Layout: one column of captioned mock-ups; each fixed-width Revit piece scrolls in its own frame. */
+:root{
+  color-scheme:light;
+  --page:#E9EDF1; --window:#F3F5F7; --card:#FFFFFF; --border:#D6DCE3; --sep:#E6EAEF; --input:#B5C2CF;
+  --navy:#1E3A5F; --navy-dark:#14283F; --text:#1A2B3C; --text2:#5B7185; --text3:#8FA3B8;
+  --bg2:#ECEFF3; --bg3:#E1E6EC; --blue:#2D6CDF; --hover:#DCE8F5;
+  --ok:#2E7D4F; --ok-soft:#E6F4EC; --ok-border:#9FCFB2;
+  --warn:#9A5B00; --warn-soft:#FDF1E1; --warn-border:#E8B66B;
+  --err:#B23A35; --err-soft:#FBE8E7; --err-border:#EDA5A1;
+  --info:#1F5FBF; --info-soft:#E6EEFB; --info-border:#A9C3EE;
+  --new:#0E7C66; --new-soft:#E0F4EF; --on-dark:#EAF1F8; --white:#FFFFFF;
+  --tip:#FFFFE8; --tip-border:#A0A0A0; --ribbon:#F7F8FA; --ribbon-tabs:#1C2B3A; --shadow:rgba(16,32,48,.18);
+  --ui:'Segoe UI',system-ui,-apple-system,sans-serif; --mono:Consolas,'Cascadia Mono',monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--text);font-family:var(--ui);font-size:12.5px;
+  padding-block:24px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.page{max-width:980px;margin:0 auto;display:grid;gap:26px}
+h1{font-size:20px;margin:0 0 4px;font-weight:600;text-wrap:balance}
+h2{font-size:14px;margin:0 0 4px;font-weight:600;text-wrap:balance}
+p{margin:0;line-height:1.5;max-width:75ch}
+.muted{color:var(--text2)}
+.tag{display:inline-block;background:var(--new);color:var(--white);font-size:10px;font-weight:600;letter-spacing:.04em;
+  padding:1px 6px;border-radius:3px;vertical-align:middle;margin-left:6px}
+.note{display:inline-block;background:var(--warn-soft);color:var(--warn);border:1px solid var(--warn-border);border-radius:3px;padding:2px 8px;font-size:11.5px;margin:8px 6px 0 0}
+.frame{overflow-x:auto;padding-bottom:6px}
+section{display:grid;gap:6px;min-width:0}
+
+/* Ribbon */
+.rib{width:560px;background:var(--ribbon);border:1px solid var(--border)}
+.tabs{background:var(--ribbon-tabs);color:var(--on-dark);padding:4px 10px;font-size:11.5px;display:flex;gap:18px}
+.tabs b{font-weight:600;border-bottom:2px solid var(--on-dark)}
+.rpanel{display:flex;gap:18px;padding:8px 10px 0;align-items:flex-start}
+.stack{display:grid;gap:2px;font-size:11px;min-width:150px}
+.small{display:flex;align-items:center;gap:5px;padding:2px 4px;white-space:nowrap}
+.small i{width:16px;height:16px;border-radius:3px;background:var(--text2);display:inline-block}
+.small.new{background:var(--new-soft);outline:1px solid var(--new)}
+.small.new i{background:var(--new)}
+.tip{background:var(--tip);border:1px solid var(--tip-border);padding:6px 8px;width:300px;font-size:11px;line-height:1.45}
+.ptitle{text-align:center;color:var(--text2);font-size:11px;border-top:1px solid var(--border);margin-top:8px;padding:2px}
+
+/* WPF window */
+.win{width:920px;background:var(--window);border:1px solid var(--input);box-shadow:0 6px 20px var(--shadow)}
+.tbar{background:var(--card);border-bottom:1px solid var(--border);padding:7px 10px;display:flex;justify-content:space-between;font-size:12px}
+.tbar .x{color:var(--text2);letter-spacing:10px}
+.shead{background:var(--navy);color:var(--on-dark);padding:12px 16px;display:flex;justify-content:space-between;align-items:baseline}
+.shead b{font-size:16px;font-weight:600}
+.shead .sub{font-size:11.5px;opacity:.8;display:block;margin-top:2px}
+.ver{font-family:var(--mono);font-size:11px;background:rgba(255,255,255,.14);padding:2px 7px;border-radius:10px}
+.body{display:grid;grid-template-columns:286px 1fr;gap:10px;padding:12px 16px}
+.col{display:grid;gap:10px;align-content:start;min-width:0}
+.card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 12px;display:grid;gap:6px}
+.ctitle{font-size:13px;font-weight:600;display:flex;justify-content:space-between;align-items:center}
+.sbtn{font-size:11px;border:1px solid var(--input);background:var(--bg2);border-radius:5px;padding:2px 9px;margin-left:4px;font-weight:400}
+.chk,.rad{display:flex;align-items:center;gap:6px}
+.box{width:13px;height:13px;border:1px solid var(--navy);border-radius:2px;background:var(--navy);position:relative;flex:none}
+.box::after{content:"";position:absolute;left:3.5px;top:1px;width:3px;height:7px;border:solid var(--white);border-width:0 2px 2px 0;transform:rotate(45deg)}
+.box.off{background:var(--card);border-color:var(--text2)}
+.box.off::after{display:none}
+.dot{width:13px;height:13px;border:1px solid var(--text2);border-radius:50%;background:var(--card);flex:none}
+.dot.on{border:4px solid var(--navy)}
+.cnt{color:var(--text2);margin-left:auto;font-variant-numeric:tabular-nums}
+.search{border:1px solid var(--input);border-radius:5px;background:var(--card);padding:3px 8px;color:var(--text3)}
+.list{border:1px solid var(--border);border-radius:5px;padding:5px 8px;display:grid;gap:4px;font-size:11.5px}
+.list .grp{font-size:10.5px;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-top:2px}
+.more{color:var(--text2);font-size:11px}
+.row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
+.num{border:1px solid var(--input);border-radius:5px;background:var(--card);padding:2px 6px;width:74px;display:flex;justify-content:space-between;font-variant-numeric:tabular-nums}
+.num span{color:var(--text2)}
+.hint{color:var(--text2);font-size:11px;line-height:1.4}
+.btn{display:inline-block;border:1px solid var(--input);background:var(--card);border-radius:6px;padding:6px 16px;font-size:12.5px;text-align:center}
+.btn.pri{background:var(--navy);border-color:var(--navy);color:var(--white);font-weight:600}
+.btn.dis{color:var(--text3);background:var(--bg2)}
+.metrics{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.metric{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:7px 10px}
+.mlabel{font-size:10.5px;color:var(--text2);text-transform:uppercase;letter-spacing:.05em}
+.mnum{font-size:18px;font-weight:600;font-variant-numeric:tabular-nums}
+.filter{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.combo{border:1px solid var(--input);border-radius:5px;background:var(--card);padding:2px 8px;font-size:11.5px}
+.combo::after{content:" ▾";color:var(--text2)}
+.grid{border:1px solid var(--border);border-radius:6px;overflow:hidden}
+table{border-collapse:collapse;width:100%;background:var(--card);font-variant-numeric:tabular-nums;font-size:11.5px}
+th,td{border-bottom:1px solid var(--sep);padding:5px 7px;text-align:left;white-space:nowrap}
+th{background:var(--bg2);font-weight:600;color:var(--text2);font-size:11px}
+td.r,th.r{text-align:right}
+tr.sel td{background:var(--hover)}
+tr.vg td{background:var(--bg3);font-weight:600;font-size:11px}
+tr.vg td span{font-weight:400;color:var(--text2)}
+.pill{display:inline-block;border-radius:10px;padding:0 8px;font-size:10.5px;border:1px solid}
+.p-ov{background:var(--err-soft);color:var(--err);border-color:var(--err-border)}
+.p-gap{background:var(--warn-soft);color:var(--warn);border-color:var(--warn-border)}
+.p-al{background:var(--info-soft);color:var(--info);border-color:var(--info-border)}
+.p-di{background:var(--bg2);color:var(--text2);border-color:var(--input)}
+.foot{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 16px;border-top:1px solid var(--border);background:var(--card)}
+.status{color:var(--ok);font-size:11.5px}
+.foot .btns{display:flex;gap:8px}
+
+/* What each check means */
+.defs{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.def{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 12px;display:grid;gap:6px;align-content:start}
+.def b{font-size:12.5px}
+.pic{height:64px;position:relative;background:var(--window);border:1px dashed var(--border);border-radius:4px}
+.pic i{position:absolute;height:14px;border:1.5px solid var(--navy);background:var(--card);border-radius:2px}
+.pic i.bad{border-color:var(--err);background:var(--err-soft)}
+.pic u{position:absolute;border-top:1px dashed var(--text3);left:8px;right:8px}
+</style>
+
+<div class="page">
+
+<section>
+  <h1>Annotation Layout Check <span class="tag">NEW TOOL</span></h1>
+  <p class="muted">Design mock-up for review. The tool scans tags, text notes, dimensions and spot elevations on a batch of
+  views and sheets, and lists overlap, minimum distance, alignment and distribution issues. It reports only and changes
+  nothing in the model.</p>
+  <div>
+    <span class="note">Sample data. No real project names.</span>
+    <span class="note">Nothing is built yet. Name, ribbon position and labels are proposals.</span>
+  </div>
+</section>
+
+<section>
+  <h2>1. Ribbon button and tooltip <span class="tag">PROPOSED</span></h2>
+  <p class="muted">Proposed place: Manage tab, next to the existing Overlaps pulldown. One button, one tool.</p>
+  <div class="frame">
+    <div class="rib">
+      <div class="tabs"><span>Roof</span><span>Floor</span><span>Sheets</span><b>Manage</b></div>
+      <div class="rpanel">
+        <div class="stack">
+          <div class="small"><i></i>Overlaps ▾</div>
+          <div class="small new"><i></i>Layout Check</div>
+        </div>
+        <div class="tip"><b>Annotation Layout Check</b> v1.0.0<br>Checks tags, text notes, dimensions and spot elevations
+          on the chosen views and sheets for overlaps, tight gaps, misalignment and uneven spacing. Report only.</div>
+      </div>
+      <div class="ptitle">Annotation</div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>2. Main window, after a run</h2>
+  <p class="muted">Modeless, so Revit stays usable while it is open. Tolerances are in millimetres on paper, so one
+  setting works across view scales. Selecting a row and pressing Zoom to pair opens that view and highlights both elements.</p>
+  <div class="frame">
+    <div class="win">
+      <div class="tbar"><span>Annotation Layout Check v1.0.0</span><span class="x">–□×</span></div>
+      <div class="shead">
+        <div><b>Annotation Layout Check</b><span class="sub">Find overlaps, tight gaps, misalignment and uneven spacing. Report only.</span></div>
+        <span class="ver">v1.0.0</span>
+      </div>
+
+      <div class="body">
+        <div class="col">
+          <div class="card">
+            <div class="ctitle">Scope</div>
+            <div class="rad"><span class="dot"></span>Active view</div>
+            <div class="rad"><span class="dot on"></span>Chosen views and sheets<span class="cnt">4 of 86</span></div>
+            <div class="search">Search views and sheets…</div>
+            <div class="list">
+              <div class="grp">Sheets</div>
+              <div class="chk"><span class="box"></span>A-201 · Level 02 Plan</div>
+              <div class="chk"><span class="box"></span>A-202 · Level 03 Plan</div>
+              <div class="chk"><span class="box off"></span>A-301 · Sections</div>
+              <div class="grp">Views</div>
+              <div class="chk"><span class="box"></span>L02 Floor Plan · 1:100</div>
+              <div class="chk"><span class="box"></span>L02 Ceiling Plan · 1:100</div>
+              <div class="more">82 more…</div>
+            </div>
+            <div class="hint">A sheet is checked through the views placed on it.</div>
+          </div>
+
+          <div class="card">
+            <div class="ctitle">Annotation types<span><span class="sbtn">All</span><span class="sbtn">None</span></span></div>
+            <div class="chk"><span class="box"></span>Tags<span class="cnt">412</span></div>
+            <div class="chk"><span class="box"></span>Text notes<span class="cnt">96</span></div>
+            <div class="chk"><span class="box"></span>Dimensions<span class="cnt">238</span></div>
+            <div class="chk"><span class="box"></span>Spot elevations<span class="cnt">57</span></div>
+          </div>
+
+          <div class="card">
+            <div class="ctitle">Checks<span class="hint">paper mm</span></div>
+            <div class="chk"><span class="box"></span>Overlap</div>
+            <div class="row"><div class="chk"><span class="box"></span>Minimum distance</div><div class="num">2.0<span>mm</span></div></div>
+            <div class="row"><div class="chk"><span class="box"></span>Alignment, off by up to</div><div class="num">1.5<span>mm</span></div></div>
+            <div class="row"><div class="chk"><span class="box"></span>Distribution, uneven by</div><div class="num">1.0<span>mm</span></div></div>
+            <div class="hint">Alignment flags elements that nearly line up but miss by less than the value. Distribution flags a row of three or more whose gaps differ by more than the value.</div>
+          </div>
+
+          <span class="btn pri">Run check</span>
+        </div>
+
+        <div class="col">
+          <div class="metrics">
+            <div class="metric"><div class="mlabel">Issues</div><div class="mnum">23</div></div>
+            <div class="metric"><div class="mlabel">Overlap</div><div class="mnum">6</div></div>
+            <div class="metric"><div class="mlabel">Min distance</div><div class="mnum">9</div></div>
+            <div class="metric"><div class="mlabel">Alignment</div><div class="mnum">5</div></div>
+            <div class="metric"><div class="mlabel">Distribution</div><div class="mnum">3</div></div>
+          </div>
+
+          <div class="filter">
+            <span class="muted">Show</span><span class="combo">All checks</span><span class="combo">All views</span>
+            <span class="muted" style="margin-left:auto">23 issues in 4 views · 803 annotations scanned</span>
+          </div>
+
+          <div class="grid">
+            <table>
+              <tr><th>Check</th><th>Element A</th><th>Element B</th><th class="r">Measured</th><th class="r">Limit</th></tr>
+              <tr class="vg"><td colspan="5">L02 Floor Plan · 1:100 <span>· on sheet A-201 · 11 issues</span></td></tr>
+              <tr><td><span class="pill p-ov">Overlap</span></td><td>Door Tag · 204A</td><td>Room Tag · 2.14 Office</td><td class="r">1.8 mm in</td><td class="r">0</td></tr>
+              <tr class="sel"><td><span class="pill p-ov">Overlap</span></td><td>Text Note · "SEE DETAIL 5"</td><td>Dimension · 1200</td><td class="r">0.7 mm in</td><td class="r">0</td></tr>
+              <tr><td><span class="pill p-gap">Min distance</span></td><td>Window Tag · W12</td><td>Dimension · 3600</td><td class="r">0.6 mm</td><td class="r">≥ 2.0 mm</td></tr>
+              <tr><td><span class="pill p-gap">Min distance</span></td><td>Spot Elevation · +3.450</td><td>Wall Tag · WT-03</td><td class="r">1.1 mm</td><td class="r">≥ 2.0 mm</td></tr>
+              <tr><td><span class="pill p-al">Alignment</span></td><td>Door Tag · 205</td><td>Door Tag · 206</td><td class="r">0.9 mm off</td><td class="r">0</td></tr>
+              <tr><td><span class="pill p-di">Distribution</span></td><td>Room Tag · 2.10 Lobby</td><td>3 more in the row</td><td class="r">8.0 / 8.0 / 6.4 mm</td><td class="r">± 1.0 mm</td></tr>
+              <tr class="vg"><td colspan="5">L02 Ceiling Plan · 1:100 <span>· on sheet A-201 · 4 issues</span></td></tr>
+              <tr><td><span class="pill p-gap">Min distance</span></td><td>Ceiling Tag · CT-2</td><td>Text Note · "ACCESS PANEL"</td><td class="r">1.4 mm</td><td class="r">≥ 2.0 mm</td></tr>
+              <tr><td><span class="pill p-al">Alignment</span></td><td>Spot Elevation · +2.700</td><td>Spot Elevation · +2.700</td><td class="r">0.4 mm off</td><td class="r">0</td></tr>
+              <tr class="vg"><td colspan="5">L03 Floor Plan · 1:100 <span>· on sheet A-202 · 8 issues</span></td></tr>
+              <tr><td><span class="pill p-ov">Overlap</span></td><td>Dimension · 450</td><td>Dimension · 2400</td><td class="r">2.3 mm in</td><td class="r">0</td></tr>
+            </table>
+          </div>
+          <div class="hint">Double-click a row, or select it and press Zoom to pair. Clicking a column header sorts within each view.</div>
+        </div>
+      </div>
+
+      <div class="foot">
+        <span class="status">✔ Check finished in 3.2 s. Nothing in the model was changed.</span>
+        <div class="btns"><span class="btn">Zoom to pair</span><span class="btn">Close</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>3. What each check reports</h2>
+  <div class="defs">
+    <div class="def"><b><span class="pill p-ov">Overlap</span></b>
+      <div class="pic"><i style="left:30px;top:20px;width:70px"></i><i class="bad" style="left:84px;top:28px;width:60px"></i></div>
+      <span class="hint">Two annotation boxes cross. Measured is how far one sits inside the other.</span></div>
+    <div class="def"><b><span class="pill p-gap">Min distance</span></b>
+      <div class="pic"><i style="left:24px;top:24px;width:64px"></i><i class="bad" style="left:92px;top:24px;width:60px"></i></div>
+      <span class="hint">They do not touch, but the gap is under the minimum.</span></div>
+    <div class="def"><b><span class="pill p-al">Alignment</span></b>
+      <div class="pic"><u style="top:24px"></u><i style="left:16px;top:24px;width:46px"></i><i style="left:72px;top:24px;width:46px"></i><i class="bad" style="left:128px;top:29px;width:46px"></i></div>
+      <span class="hint">Elements nearly share an edge or centre line but one is slightly off.</span></div>
+    <div class="def"><b><span class="pill p-di">Distribution</span></b>
+      <div class="pic"><i style="left:12px;top:24px;width:34px"></i><i style="left:62px;top:24px;width:34px"></i><i style="left:112px;top:24px;width:34px"></i><i class="bad" style="left:152px;top:24px;width:34px"></i></div>
+      <span class="hint">A row of three or more with unequal gaps between them.</span></div>
+  </div>
+</section>
+
+</div>
