@@ -1,11 +1,12 @@
 <title>Floor and Roof Ribbon</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<!-- UI preview (CLAUDE.md "UI previews") for the Floor and Roof ribbon panels, plugin 6.37.3:
+<!-- UI preview (CLAUDE.md "UI previews") for the Floor and Roof ribbon panels, plugin 6.38.2:
        Floor Slope, Floor Points, Floor Lines, Floor Edit and Floor Views panels.
        6.37.2: Floor button icons recoloured green (Resources/Icons/FloorTools/).
        6.37.3: Floor panel title bars green (RibbonPanel.CustomPanelTitleBarBackground).
+       6.38.2: that call is not in the Revit API (AdWindows only) and broke the build, so it was removed; Floor title bars use the default colour again.
      Mirrors: Menu/00_Push_Button_Menu_items/Ribbon/FloorRibbon.cs and RoofToolsRibbon.cs (labels), Shared/SharedStyles.xaml (palette).
-     Artifact: https://claude.ai/artifact/Fn6Yud7qdbBL4XEDDguT75 -->
+     Artifact: https://claude.ai/artifact/SfzPs78pYvyFLFZismR6Qi -->
 <style>
 :root {
   --bg: #F3F5F7; --card: #FFFFFF; --fg: #1B2733; --muted: #5B6B7B; --border: #D6DCE3;
@@ -31,11 +32,10 @@ p { margin: 0; color: var(--muted); max-width: 70ch; }
 .ribbon { display: flex; gap: 6px; min-width: max-content; }
 .panel { border: 1px solid var(--border); background: var(--card); display: flex; flex-direction: column; min-width: 96px; }
 .panel .body { display: flex; gap: 4px; padding: 8px 6px; flex: 1; align-items: flex-start; }
-.panel .title { background: var(--floor); color: #fff; text-align: center; font-size: 11px; padding: 3px 8px; }
+.panel .title { background: var(--rooftitle); color: var(--fg); border-top: 1px solid var(--border); text-align: center; font-size: 11px; padding: 3px 8px; }
 .btn { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 64px; font-size: 11px; text-align: center; line-height: 1.2; }
 .ico { width: 32px; height: 32px; border-radius: 4px; background: var(--floor); position: relative; }
 .ico::after { content: ""; position: absolute; inset: 8px; border: 2px solid #fff; border-radius: 2px; }
-.panel.roofp .title { background: var(--rooftitle); color: var(--fg); border-top: 1px solid var(--border); }
 .panel.roofp .ico { background: var(--roof); }
 .panel .slide { font-size: 9px; color: var(--muted); }
 .cmp { display: flex; gap: 14px; flex-wrap: wrap; }
@@ -46,8 +46,8 @@ p { margin: 0; color: var(--muted); max-width: 70ch; }
 </style>
 <main>
   <header>
-    <h1>Floor and Roof Ribbon Panels <span class="tag">plugin 6.38.1</span></h1>
-    <p>Mock-up of the SloperPro tab: Floor panels (green) first, then the eight Roof panels. The five Floor panels have green title bars <span class="tag">new</span> and green icons <span class="tag">new</span>, so they stand apart from the Roof panels. Sample rendering only; real icons are the PNGs in Resources/Icons/FloorTools.</p>
+    <h1>Floor and Roof Ribbon Panels <span class="tag">plugin 6.38.2</span></h1>
+    <p>Mock-up of the SloperPro tab: Floor panels first, then the eight Roof panels. The five Floor panels have default title bars <span class="tag">changed</span> (the green bars from 6.37.3 were removed in 6.38.2) and keep their green icons, so they still stand apart from the Roof panels. Sample rendering only; real icons are the PNGs in Resources/Icons/FloorTools.</p>
   </header>
 
   <section>
@@ -133,7 +133,7 @@ p { margin: 0; color: var(--muted); max-width: 70ch; }
         <div class="btn"><div class="ico"></div>EPS 2D Pattern ▾</div>
       </div><div class="title">Roof Insulation</div><!-- renamed --></div>
     </div></div>
-    <p class="note" style="margin-top:8px">Roof panels keep the default title bar and the orange icons, so they stay visibly separate from the green Floor panels. Panel and button labels come from RoofToolsRibbon.cs; ▾ marks a version dropdown. Four panels renamed <span class="tag">new</span>: Roof Utilities, Roof Plan View, Roof Compare, Roof Insulation. Sample rendering only.</p>
+    <p class="note" style="margin-top:8px">Roof panels keep the default title bar and the orange icons, so they stay visibly separate from the green-icon Floor panels. Panel and button labels come from RoofToolsRibbon.cs; ▾ marks a version dropdown. Four panels renamed <span class="tag">new</span>: Roof Utilities, Roof Plan View, Roof Compare, Roof Insulation. Sample rendering only.</p>
   </section>
 
   <section>
@@ -143,6 +143,6 @@ p { margin: 0; color: var(--muted); max-width: 70ch; }
       <div class="col"><span class="note">Floor tools, 6.37.1 (shared Roof icons)</span><div class="row"><div class="ico roof"></div></div></div>
       <div class="col"><span class="note">Floor tools, now <span class="tag">new</span></span><div class="row"><div class="ico"></div></div></div>
     </div>
-    <p class="note" style="margin-top:8px">Floor green is #218231. Revit does not let a plugin change the panel title text colour, so it keeps its default colour on the green bar.</p>
+    <p class="note" style="margin-top:8px">Floor green is #218231 and applies to the icons only. Revit's API has no way to colour a panel title bar, so all panels use the default title bar.</p>
   </section>
 </main>
