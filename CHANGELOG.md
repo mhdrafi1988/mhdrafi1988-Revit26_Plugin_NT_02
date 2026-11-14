@@ -9,6 +9,37 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [7.3.0] — 2026-11-14
+
+### Roof Slope Builder 1.1.0 (V001) — new tool
+
+Its own large button on the Roof Slope panel, after the By Point / By Drain / Points & Slope stack, with its own icon.
+
+#### Added
+- **Roof Slope Builder**: one command that adds shape points and slopes every selected footprint roof to its drains.
+  Points: corners of non-drain openings, perpendicular feet from each drain onto the boundary and the ridges, points
+  along ridges between drains, and points along arcs and splines. Ridges are watershed lines (level deck, falls to each
+  drain) or saddles (diamond crickets). One transaction per roof, one Undo for the whole run.
+- Options are remembered between runs in `%AppData%\Revit26_Plugin_Revised\RoofSlopeBuilder\settings.json`
+  (versioned file; an unreadable file is kept aside and the defaults are used).
+- The drains grid shows each opening's centre (X, Y in metres) so you can find it in the model.
+- Roofs whose type has no Variable layer are flagged in the roof list ("the whole roof will tilt").
+
+#### Changed (from the 1.0.0 draft received for review, never released)
+- Heights are measured from each drain's **outline**, not from a circle round its centre. On square or long drains the
+  draft left a flat zone next to the drain (up to ~230 mm wide beside a 600 x 150 mm drain).
+- Every number is checked on Apply; a wrong entry is named instead of being silently replaced by the default.
+  "1,5" still reads as 1.5; "1,500.0" style input is refused.
+- Ticking or unticking a roof now updates the drains grid straight away (the draft read the tick before it changed).
+- Roofs are checked before the window opens and listed when left out: read-only model, in a group, slope-defining
+  edges, no shape editing, borrowed by another user (workshared). Non-roof elements in the selection are counted.
+- When no roof succeeds, the whole run is rolled back (no empty Undo entry). A roof whose commit Revit refuses is
+  reported as skipped. Rejected split lines are counted in the report.
+- Runs through `ToolGuard`; unexpected errors go to `%AppData%\Revit26_Plugin_Revised\Logs`.
+
+User note: new tool, no existing behaviour changes. The draft's README asked for the namespace
+`Revit26_Plugin.RoofSlopeBuilder_V001`; in the plugin it is `Revit26_Plugin_Revised.RoofSlopeBuilder.V001`.
+
 ## [7.2.1] — 2026-11-13
 
 ### Base Level to Parameter 1.0.1 (V001)
@@ -55,6 +86,7 @@ parameter file stays (a file cannot be rolled back).
 A new parameter is created with "values can vary by group instance" switched on, so elements inside model groups
 can get their own value; for an existing parameter that does not allow this, grouped elements are skipped. Elements
 owned by another user or changed in central are skipped.
+
 ## [7.1.2] — 2026-11-13
 
 ### Schedule Export / Import 7.2.1 (V007)

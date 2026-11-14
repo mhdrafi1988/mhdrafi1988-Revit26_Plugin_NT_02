@@ -21,7 +21,7 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 
 | Tab | Panel | Tools |
 |---|---|---|
-| Rafi_Pro_MOds | Roof Slope | By Point · By Drain · Points & Slope |
+| Rafi_Pro_MOds | Roof Slope | By Point · By Drain · Points & Slope · Roof Slope Builder |
 | Rafi_Pro_MOds | Floor Slope | By Drain · By Point (By Point, Ridge, Multi Copies) · Points & Slope |
 | Rafi_Pro_MOds | Shape Points | Inner Loops · Outer Curve · Line Intersect · Loops + Perp. ▸ slide-out: Vertex Reducer · Multi Points · Shape From Link |
 | Rafi_Pro_MOds | Floor Points | Inner Loops · Outer Curve · Line Intersect · Loops + Perp. · Vertex Reducer · Multi Points · Shape From Link |
@@ -62,6 +62,9 @@ Where a tool has several versions, its button is a dropdown listing the newest v
   sketch, with circle markers, Excel export and `AutoSlope_*` parameters.
 - **Roof Points & Slope**: shape points around openings, perpendicular to the boundary, at mid/quarter points and in
   long gaps, the ridges between drains, then the slope, in one window and one Undo.
+- **Roof Slope Builder** (new in 7.3.0, own button on the Roof Slope panel): one command for every selected footprint
+  roof. Adds opening-corner, perpendicular, ridge and curve points, then sets each point to slope x distance to its
+  nearest drain. Ridges between drains are watershed lines or saddles (diamond crickets). Options are remembered.
 
 ### Floor slope (new in 6.31.0)
 - **Floor Slope By Drain**: the floor version of Auto Slope By Drain. Drains are openings in the floor sketch and

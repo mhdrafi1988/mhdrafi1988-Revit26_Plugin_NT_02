@@ -72,12 +72,21 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             var pointsAndSlopeV001 = Btn(assemblyPath, "Btn_RoofPointsAndSlope_V001", "Points & Slope", "Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Commands.RoofPointsAndSlopeCommand",
                 "CombinedTools_16.png", "Roof Points & Slope", "V001",
                 "Adds shape points around openings, perpendicular to the boundary, at mid/quarter points and in long gaps, builds the ridges between the chosen drains, then slopes the roof to them — one window, one Undo. Pick one roof or several.");
+            // Roof Slope Builder — inner-loop, perpendicular, ridge and curve points plus slope by drain
+            // on every selected footprint roof, watershed or saddle ridges (plugin 7.3.0).
+            // Its own large button after the stack, with its own icon.
+            var roofSlopeBuilderV001 = Btn(assemblyPath, "Btn_RoofSlopeBuilder_V001", "Roof Slope\nBuilder", "Revit26_Plugin_Revised.RoofSlopeBuilder.V001.Commands.RoofSlopeBuilderCommand",
+                "RoofSlopeBuilder_16.png", "Roof Slope Builder", "V001");
+            roofSlopeBuilderV001.LargeImage = ImageUtils.Load(Icons + "RoofSlopeBuilder_32.png");
+            roofSlopeBuilderV001.ToolTip = Revit26_Plugin_Revised.Shared.Services.ToolCatalog.RoofSlopeBuilder.Tip(
+                "Adds shape points (openings, perpendicular, ridges between drains, curves) and slopes every selected footprint roof to its drains. Watershed or saddle ridges; options are remembered.");
             var pointsAndSlopePulldownData = RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_RoofPointsAndSlope", "Points & Slope", pointsAndSlopeV001);
 
             var slopeItems = RibbonLayoutHelper.AddStackedButtons(slopePanel, new List<RibbonItemData> { byPointPulldownData, byDrainPulldownData, pointsAndSlopePulldownData });
             RibbonLayoutHelper.WirePulldownButton(slopeItems, "Pulldown_AutoSlopeByPoint", byPointV034, byPointV033, byPointV032, byPointV030, byPointRidgeV003, byPointMultiCopies30);
             RibbonLayoutHelper.WirePulldownButton(slopeItems, "Pulldown_AutoSlopeByDrain", byDrainV013, byDrainV012, byDrainV011, byDrainV007);
             RibbonLayoutHelper.WirePulldownButton(slopeItems, "Pulldown_RoofPointsAndSlope", pointsAndSlopeV001);
+            slopePanel.AddItem(roofSlopeBuilderV001);
 
             // Floor Slope — floor versions of By Drain and By Point, next to Roof Slope (plugin 6.31.0).
             FloorToolsRibbon.BuildSlopePanel(app, tabName, assemblyPath);
