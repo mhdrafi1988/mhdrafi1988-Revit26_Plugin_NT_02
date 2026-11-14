@@ -88,5 +88,53 @@ namespace BaseLevelToParameter.Tests
             var e = BaseLevelRules.EvaluateChecks(Target(), elements, false, choices, ValueFormat.LevelParenOffset, null)[4];
             Assert.Equal(CheckResult.Pass, e.Result);
         }
+            // ── 1.3.0: Clear old values, write only new values ──────────────────
+
+        private static ElementFacts NoLevel(long id, string value) => new()
+        {
+            Id = id, Category = "Generic Models", HasLevel = false, CurrentValue = value
+        };
+
+        [Fact]
+        public void ClearOld_RewritesEvenWhenRowSaysSkip()
+        {
+            var v = BaseLevelRules.EvaluateRow(Valued(1, "L2"), false, false, ExistingChoice.Skip, true, false, "Level 02 (+450)");
+            Assert.Equal("Ready · rewrites value", v.Text);
+        }
+
+        [Fact]
+        public void ClearOld_ClearsValueWithoutBaseLevel()
+        {
+            var v = BaseLevelRules.EvaluateRow(NoLevel(1, "L2"), false, true, ExistingChoice.Default, true, false, null);
+            Assert.Equal(RowState.Ready, v.State);
+            Assert.Equal("Ready · clears value", v.Text);
+        }
+
+        [Fact]
+        public void ClearOld_NoLevelAndNoValue_StillSkipped() =>
+            Assert.Equal("Skipped · no base level",
+                BaseLevelRules.EvaluateRow(NoLevel(1, ""), false, true, ExistingChoice.Default, true, false, null).Text);
+
+        [Fact]
+        public void ClearOld_OwnedElement_IsNotCleared() =>
+            Assert.Contains("owned by",
+                BaseLevelRules.EvaluateRow(new ElementFacts { Id = 1, HasLevel = false, CurrentValue = "L2", OwnedBy = "User B" },
+                    false, true, ExistingChoice.Default, true, false, null).Text);
+
+        [Fact]
+        public void WithoutClearOld_NoLevelValue_IsSkippedAsBefore() =>
+            Assert.Equal("Skipped · no base level",
+                BaseLevelRules.EvaluateRow(NoLevel(1, "L2"), false, true, ExistingChoice.Rewrite, false, false, null).Text);
+
+        [Fact]
+        public void CheckE_ClearOld_ReportsClearedAndPasses()
+        {
+            var elements = new[] { Valued(1, "L2"), NoLevel(2, "old") };
+            var choices = new Dictionary<long, ExistingChoice> { [1] = ExistingChoice.Skip };
+            var e = BaseLevelRules.EvaluateChecks(Target(), elements, true, true, choices, ValueFormat.LevelParenOffset, null)[4];
+            Assert.Equal(CheckResult.Pass, e.Result);
+            Assert.Contains("1 element(s) already have a different value → rewritten", e.Detail);
+            Assert.Contains("1 element(s) with no base level have an old value → cleared", e.Detail);
+        }
     }
 }

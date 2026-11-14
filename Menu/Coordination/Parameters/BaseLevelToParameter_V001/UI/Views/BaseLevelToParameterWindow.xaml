@@ -73,7 +73,7 @@ Preview: Claude/Previews/BaseLevelToParameter_V001_Window.html
                     </StackPanel>
                 </Border>
                 <Border Style="{StaticResource MetricTile}" Background="{StaticResource BrushSurfaceCard}" BorderBrush="{StaticResource BrushBorderDefault}" Margin="3,0" Cursor="Hand"
-                        ToolTip="Ticked elements that already have a different value (skipped or rewritten, see If value exists). Click to show only these rows.">
+                        ToolTip="Ticked elements with an old value that differs from the new one (skipped, rewritten or cleared). Click to show only these rows.">
                     <Border.InputBindings><MouseBinding MouseAction="LeftClick" Command="{Binding FilterTileCommand}" CommandParameter="HasValue"/></Border.InputBindings>
                     <StackPanel>
                         <TextBlock Text="HAS VALUE" Style="{StaticResource MetricTileLabel}"/>
@@ -158,9 +158,11 @@ Preview: Claude/Previews/BaseLevelToParameter_V001_Window.html
                             <TextBlock Text="Existing values" Style="{StaticResource FieldLabel}" Margin="0,0,0,2"/>
                             <RadioButton GroupName="ExistingValues" Content="Skip · keep the current value" IsChecked="{Binding SkipExisting}" Margin="0,2"
                                          ToolTip="Elements that already have a different value keep it (the default)."/>
-                            <RadioButton GroupName="ExistingValues" Content="Rewrite with the new value" IsChecked="{Binding Overwrite}" Margin="0,2"
+                            <RadioButton GroupName="ExistingValues" Content="Rewrite with the new value" IsChecked="{Binding RewriteExisting}" Margin="0,2"
                                          ToolTip="Elements that already have a different value get the new value."/>
-                            <TextBlock Text="Default for every row. Change single rows in the grid's “If value exists” column. Run asks before it rewrites anything."
+                            <RadioButton GroupName="ExistingValues" Content="Clear old values, write only new values" IsChecked="{Binding ClearOldValues}" Margin="0,2"
+                                         ToolTip="Every ticked element ends up with only its new value: different values are rewritten, and the old value of an element with no base level is cleared. Row choices are ignored. Unticked elements are not touched."/>
+                            <TextBlock Text="Skip / Rewrite: default for every row; change single rows in the grid's “If value exists” column. Clear old values ignores row choices. Run asks before it rewrites or clears anything."
                                        Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="0,2,0,4"/>
                             <TextBlock Text="Value format" Style="{StaticResource FieldLabel}" Margin="0,8,0,2"/>
                             <RadioButton Content="Level name only" IsChecked="{Binding WithOffset, Converter={StaticResource InverseBool}}" Margin="0,2"/>
@@ -363,6 +365,7 @@ Preview: Claude/Previews/BaseLevelToParameter_V001_Window.html
                                         <DataTemplate>
                                             <ComboBox ItemsSource="{Binding Choices}" SelectedItem="{Binding Choice, UpdateSourceTrigger=PropertyChanged}"
                                                       Height="22" FontSize="11.5" Margin="0,1"
+                                                      IsEnabled="{Binding DataContext.RowChoicesEnabled, RelativeSource={RelativeSource AncestorType=DataGrid}}"
                                                       ToolTip="Default follows the Existing values option; Skip keeps the current value; Rewrite replaces it.">
                                                 <ComboBox.Visibility>
                                                     <Binding Path="HasExistingValue" Converter="{StaticResource BoolToVis}"/>
