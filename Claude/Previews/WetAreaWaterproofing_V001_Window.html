@@ -95,7 +95,7 @@ tr.grp td{background:#F3F5F7;font-weight:600;color:var(--head)}
     <div class="step"><b>Waterproofing roof</b><span>Find the slab under each room and place a roof from the room boundary on the slab top (or level + offset if there is no slab)</span></div>
     <div class="step"><b>Plan per room</b><span>A cropped floor plan per room (crop = room + margin)</span></div>
     <div class="step"><b>Up to 6 reference sections</b><span>At the full room, doors, drains, wall corners, WC, shower. One per item or all matches; one drafting view for all or one per target <span class="new">CHANGED</span></span></div>
-    <div class="step"><b>Sheets</b><span>One sheet per room, or several rooms packed per sheet</span></div>
+    <div class="step"><b>Sheets</b><span>One sheet per room or group, or packed. Title block from your list (A0 first); fit check at the chosen scale <span class="new">CHANGED</span></span></div>
     <div class="step"><b>Print set</b><span>A View/Sheet Set of the new sheets</span></div>
   </div>
   <p class="note">Each step runs in its own transaction; run all of them, or only some (see “Run steps” at the bottom of the window). Rooms whose slab or elements are checked out by another user are skipped and listed in the log.</p>
@@ -132,14 +132,14 @@ tr.grp td{background:#F3F5F7;font-weight:600;color:var(--head)}
         </div>
         <div class="gwrap">
         <table class="grid">
-          <tr><th></th><th>Source <span class="f on">⏷</span></th><th>Level <span class="f">⏷</span></th><th>No. ▲<sup>1</sup> <span class="f">⏷</span></th><th>Name <span class="f">⏷</span></th><th>Area m² <span class="f">⏷</span></th><th>Matched <span class="f">⏷</span></th><th>Slab top <span class="f">⏷</span></th><th>Doors</th><th>Drains</th><th>Fixtures</th><th>Sections</th><th>Status</th></tr>
-          <tr class="grp"><td colspan="13">▾ L01 · 2 rooms</td></tr>
-          <tr><td class="chk"></td><td>Host</td><td>L01</td><td>101</td><td>Toilet 01</td><td>4.20</td><td>toilet</td><td><span class="pill p-ok">Floor · +3.150</span></td><td>1</td><td>1</td><td>2</td><td>5</td><td><span class="pill p-ok">Ready</span></td></tr>
-          <tr><td class="chk"></td><td>Host</td><td>L01</td><td>102</td><td>Kitchen</td><td>12.85</td><td>kitchen</td><td><span class="pill p-ok">Floor · +3.150</span></td><td>2</td><td>1</td><td>1</td><td>6</td><td><span class="pill p-ok">Ready</span></td></tr>
-          <tr class="grp"><td colspan="13">▾ L02 · 3 rooms</td></tr>
-          <tr><td class="chk"></td><td><span class="pill p-link">ARC_Model</span></td><td>L02</td><td>201</td><td>Master Bath</td><td>7.60</td><td>bath</td><td><span class="pill p-ok">Floor · +6.300</span></td><td>1</td><td>2</td><td>4</td><td>6</td><td><span class="pill p-warn" title="Gap 3 mm at wall join closed by snapping">Repaired · snap 3 mm</span></td></tr>
-          <tr><td class="chk"></td><td><span class="pill p-link">ARC_Model</span></td><td>L02</td><td>202</td><td>Shower Room</td><td>3.10</td><td>shower</td><td><span class="pill p-warn">No slab · level +0</span></td><td>1</td><td>0</td><td>1</td><td>4</td><td><span class="pill p-warn">No drain</span></td></tr>
-          <tr><td class="chk"></td><td><span class="pill p-link">ARC_Model</span></td><td>L02</td><td>205</td><td>Laundry</td><td>5.40</td><td>laundry</td><td><span class="pill p-ok">Floor · +6.300</span></td><td>1</td><td>1</td><td>0</td><td>4</td><td><span class="pill p-err" title="Repaired outline is 3.4% larger than the room area">Area +3.4% ⚠</span></td></tr>
+          <tr><th></th><th>Source <span class="f on">⏷</span></th><th>Level <span class="f">⏷</span></th><th>No. ▲<sup>1</sup> <span class="f">⏷</span></th><th>Name <span class="f">⏷</span></th><th>Area m² <span class="f">⏷</span></th><th>Matched <span class="f">⏷</span></th><th>Slab top <span class="f">⏷</span></th><th>Doors</th><th>Drains</th><th>Fixtures</th><th>Group <span class="f">⏷</span></th><th>Sections</th><th>Status</th></tr>
+          <tr class="grp"><td colspan="14">▾ L01 · 2 rooms</td></tr>
+          <tr><td class="chk"></td><td>Host</td><td>L01</td><td>101</td><td>Toilet 01</td><td>4.20</td><td>toilet</td><td><span class="pill p-ok">Floor · +3.150</span></td><td>1</td><td>1</td><td>2</td><td style="color:#9AA8B8">—</td><td>5</td><td><span class="pill p-ok">Ready</span></td></tr>
+          <tr><td class="chk"></td><td>Host</td><td>L01</td><td>102</td><td>Kitchen</td><td>12.85</td><td>kitchen</td><td><span class="pill p-ok">Floor · +3.150</span></td><td>2</td><td>1</td><td>1</td><td style="color:#9AA8B8">—</td><td>6</td><td><span class="pill p-ok">Ready</span></td></tr>
+          <tr class="grp"><td colspan="14">▾ L02 · 3 rooms</td></tr>
+          <tr><td class="chk"></td><td><span class="pill p-link">ARC_Model</span></td><td>L02</td><td>201</td><td>Master Bath</td><td>7.60</td><td>bath</td><td><span class="pill p-ok">Floor · +6.300</span></td><td>1</td><td>2</td><td>4</td><td><span class="pill p-link">G1 · 2 rooms</span></td><td>6</td><td><span class="pill p-warn" title="Gap 3 mm at wall join closed by snapping">Repaired · snap 3 mm</span></td></tr>
+          <tr><td class="chk"></td><td><span class="pill p-link">ARC_Model</span></td><td>L02</td><td>202</td><td>Shower Room</td><td>3.10</td><td>shower</td><td><span class="pill p-warn">No slab · level +0</span></td><td>1</td><td>0</td><td>1</td><td><span class="pill p-link">G1 · 2 rooms</span></td><td>4</td><td><span class="pill p-warn">No drain</span></td></tr>
+          <tr><td class="chk"></td><td><span class="pill p-link">ARC_Model</span></td><td>L02</td><td>205</td><td>Laundry</td><td>5.40</td><td>laundry</td><td><span class="pill p-ok">Floor · +6.300</span></td><td>1</td><td>1</td><td>0</td><td style="color:#9AA8B8">—</td><td>4</td><td><span class="pill p-err" title="Repaired outline is 3.4% larger than the room area">Area +3.4% ⚠</span></td></tr>
         </table>
         <div class="pop">
           <b>Filter: Source</b>
@@ -171,7 +171,10 @@ tr.grp td{background:#F3F5F7;font-weight:600;color:var(--head)}
         <div class="card">
           <h3>3 · Views</h3>
           <div class="row"><span class="lbl">Plan type</span><span class="in sel">Floor Plan</span></div>
-          <div class="row"><span class="lbl">View template</span><span class="in sel">WP Plan 1:50</span></div>
+          <div class="row"><span class="lbl">View template</span><span class="in sel">WP Plan 1:100</span></div>
+          <div class="row"><span class="lbl">Plan scale <span class="new">NEW</span></span><span class="in sel" style="flex:0 0 80px">1:100</span><span class="lbl" style="width:auto">Section</span><span class="in sel" style="flex:0 0 80px">1:100</span></div>
+          <div class="row"><span class="lbl">Combine near rooms <span class="new">NEW</span></span><span class="in sel">Auto-group, same source</span></div>
+          <div class="row"><span class="lbl">Group gap</span><span class="in" style="flex:0 0 70px">1000</span> mm</div>
           <div class="row"><span class="lbl">Crop margin</span><span class="in" style="flex:0 0 70px">500</span> mm</div>
           <div class="row"><span class="lbl">Ref. sections</span><span>Set in “Section targets” below <span class="new">CHANGED</span></span></div>
           <div class="row"><span class="lbl">View name pattern</span><span class="in">WP - {Level} - {Number} {Name}</span></div>
@@ -179,7 +182,10 @@ tr.grp td{background:#F3F5F7;font-weight:600;color:var(--head)}
         <div class="card">
           <h3>4 · Sheets &amp; print set</h3>
           <div class="row"><span class="rad">One sheet per room</span><span class="unrad">Pack rooms per sheet</span></div>
-          <div class="row"><span class="lbl">Title block</span><span class="in sel">A1 Landscape</span></div>
+          <div class="row"><span class="lbl">Title blocks <span class="new">NEW</span></span><span class="in">1. A0 Landscape (default) · 2. A1 Landscape · 3. A2 Landscape</span></div>
+          <div class="row"><span class="lbl">Use</span><span class="rad">First in list (A0)</span><span class="unrad">Smallest that fits</span></div>
+          <div class="row"><span class="lbl">Margins</span><span class="in" style="flex:0 0 120px">20 · 20 · 20 · 20</span><span class="lbl" style="width:auto">Title strip</span><span class="in" style="flex:0 0 50px">190</span> mm</div>
+          <div class="row"><span class="lbl">If it doesn't fit</span><span class="rad">Extra sheet (WP-101a)</span><span class="unrad">Shrink scale (1:100 → 1:200)</span></div>
           <div class="row"><span class="lbl">Sheet number</span><span class="in" style="flex:0 0 60px">WP-</span><span class="in" style="flex:0 0 50px">101</span></div>
           <div class="row"><span class="lbl">Sheet name</span><span class="in">Waterproofing - {Number} {Name}</span></div>
           <div class="row"><span class="chk">Create print set</span><span class="in">Waterproofing - 2026-11-14</span></div>
@@ -216,9 +222,10 @@ tr.grp td{background:#F3F5F7;font-weight:600;color:var(--head)}
     <div class="tb">Wet Area Waterproofing — Done <i>✕</i></div>
     <div class="c">
       <div>✅ 5 waterproofing roofs created</div>
-      <div>✅ 5 plans and 25 reference sections created</div>
+      <div>✅ 25 reference sections created</div>
       <div>✅ 3 drafting views created (Door Threshold, Floor Drain, Typical Wet Area)</div>
-            <div>✅ 5 sheets (WP-101 … WP-105)</div>
+            <div>✅ 4 plans (rooms 201+202 combined as group G1, 1:100) · 4 sheets on A0 (WP-101 … WP-104)</div>
+      <div>✅ Excel report saved: WP_Report_SampleModel_20261114_1530.xlsx (includes Group and Scale columns)</div>
       <div>✅ Print set “Waterproofing - 2026-11-14” (5 sheets)</div>
       <div style="color:var(--warn)">⚠ Room 202 Shower Room: no slab found, roof placed at level L02 + 0 mm</div>
       <div style="color:var(--warn)">⚠ Room 202 Shower Room: no floor drain found, drain section skipped</div>
