@@ -1,0 +1,88 @@
+// =======================================================
+// File: CurveDividerHandler.cs
+// Location: Infrastructure/ExternalEvents/
+// New in V004. Apply modifies the document, so it's wrapped in a
+// TransactionGroup so a failure rolls back cleanly — CurveDivisionService
+// still opens its own inner Transaction, the standard nested
+// Transaction/TransactionGroup pattern.
+// =======================================================
+
+using Autodesk.Revit.DB;
+using Autodesk.Revit.UI;
+using Revit26_Plugin_Revised.FloorOuterCurveDivider.V001.Core.Engine;
+using Revit26_Plugin_Revised.FloorOuterCurveDivider.V001.Core.Models;
+using Revit26_Plugin_Revised.Shared.Models;
+using System;
+using Revit26_Plugin_Revised.Shared.Services;
+
+namespace Revit26_Plugin_Revised.FloorOuterCurveDivider.V001.Infrastructure.ExternalEvents
+{
+    public class CurveDividerHandler : IExternalEventHandler
+    {
+        /// <summary>
+        /// Set by the ViewModel immediately before raising the ExternalEvent.
+        /// Static because IExternalEventHandler instances are created once by
+        /// Revit and cannot receive constructor arguments per-invocation.
+        /// </summary>
+        public static CurveDividerPayload Payload;
+
+        /// <summary>Revit entry point; delegates to ToolGuard.RunHandler.</summary>
+
+        public void Execute(UIApplication app) =>
+
+            ToolGuard.RunHandler(GetType(), app, ExecuteCore);
+
+
+        private void ExecuteCore(UIApplication app)
+        {
+            if (Payload == null) return;
+
+            CurveDividerPayload current = Payload;
+
+            // Esc / Cancel with a Yes-No confirm; the transaction group below is rolled back on cancel.
+            using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.FloorOuterCurveDivider, app);
+
+            using (TransactionGroup tg = new TransactionGroup(
+                app.ActiveUIDocument.Document, "Curve Point Divider"))
+            {
+                tg.Start();
+
+                try
+                {
+                    var result = CurveDividerEngine.Execute(app, current);
+
+                    if (result.Success)
+                        tg.Assimilate();
+                    else
+                        tg.RollBack();
+
+                    current.OnCompleted?.Invoke(result);
+                }
+                catch (OperationCanceledException)
+                {
+                    if (tg.GetStatus() == TransactionStatus.Started) tg.RollBack();
+                    current.Log?.Invoke(new LogEntry(LogLevel.Warning, "Cancelled by user. Nothing was changed."));
+                    current.OnCompleted?.Invoke(new CurveDividerResult
+                    {
+                        Success = false,
+                        ErrorMessage = "Cancelled by user."
+                    });
+                    throw; // ToolGuard treats it as a user cancel
+                }
+                catch (Exception ex)
+                {
+                    tg.RollBack();
+                    current.Log?.Invoke(new LogEntry(LogLevel.Error,
+                        $"[CurveDividerHandler] Unhandled exception: {ex.Message}"));
+                    current.OnCompleted?.Invoke(new CurveDividerResult
+                    {
+                        Success = false,
+                        ErrorMessage = ex.Message
+                    });
+                }
+            }
+        }
+
+        public string GetName() => "Curve Point Divider Handler";
+    }
+}

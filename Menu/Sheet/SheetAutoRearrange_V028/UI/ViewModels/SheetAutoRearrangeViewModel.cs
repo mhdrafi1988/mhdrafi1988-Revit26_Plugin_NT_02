@@ -174,7 +174,23 @@ namespace Revit26_Plugin_Revised.SheetAutoRearrange.V028.UI.ViewModels
         /// <summary>Unhooks the DocumentChanged subscription. Called by the window's Closing handler alongside SaveSettings.</summary>
         public void Detach()
         {
-            _uiDoc.Document.Application.DocumentChanged -= OnDocumentChanged;
+            // FIX: Revit only lets DocumentChanged be unsubscribed inside an API context, and a
+            // window's Closing event is not one ("Revit is currently not within an API context").
+            // So the handler does it on its next Execute; until then _closed makes the event a no-op.
+            _closed = true;
+            _handler.DetachCallback = app => app.Application.DocumentChanged -= OnDocumentChanged;
+            _handler.DetachOnly = !IsBusy;
+            _handler.DetachRequested = true;
+            _externalEvent.Raise();
+        }
+
+        private bool _closed;
+
+        /// <summary>Releases the handler subscription and the external event, once nothing is pending on them.</summary>
+        private void Cleanup()
+        {
+            _handler.Completed -= OnHandlerCompleted;
+            _externalEvent?.Dispose();
         }
 
         /// <summary>
@@ -191,13 +207,15 @@ namespace Revit26_Plugin_Revised.SheetAutoRearrange.V028.UI.ViewModels
         /// </summary>
         public void Dispose()
         {
-            _handler.Completed -= OnHandlerCompleted;
-            _externalEvent?.Dispose();
+            // A pending Detach still needs the external event; OnHandlerCompleted cleans up after it.
+            if (_handler.DetachRequested)
+                return;
+            Cleanup();
         }
 
         private void OnDocumentChanged(object sender, DocumentChangedEventArgs e)
         {
-            if (IsBusy || _activeSheet == null || !ReferenceEquals(e.GetDocument(), _uiDoc.Document))
+            if (_closed || IsBusy || _activeSheet == null || !ReferenceEquals(e.GetDocument(), _uiDoc.Document))
                 return;
 
             var changedIds = e.GetAddedElementIds()
@@ -544,6 +562,13 @@ namespace Revit26_Plugin_Revised.SheetAutoRearrange.V028.UI.ViewModels
 
         private void OnHandlerCompleted()
         {
+            if (_handler.Detached)
+            {
+                // Window closed and DocumentChanged unhooked: release the event after this Execute returns.
+                _dispatcher.BeginInvoke(new System.Action(Cleanup));
+                return;
+            }
+
             _dispatcher.Invoke(() =>
             {
                 IsBusy = false;

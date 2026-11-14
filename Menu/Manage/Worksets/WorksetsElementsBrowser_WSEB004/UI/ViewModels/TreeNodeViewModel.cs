@@ -22,6 +22,12 @@ namespace Revit26_Plugin_Revised.WorksetsElementsBrowser.WSEB004.UI.ViewModels
         public string Owner { get; }
         public string EditableBadge { get; }
 
+        /// <summary>"open" or "closed" on Workset rows; empty on every other row.</summary>
+        public string OpenBadge { get; }
+
+        /// <summary>True on a Workset row whose workset is closed in this session.</summary>
+        public bool IsClosed { get; }
+
         /// <summary>Only populated on Type nodes — the actual element instances this row represents.</summary>
         public IReadOnlyList<ElementId> ElementIds { get; }
 
@@ -42,13 +48,15 @@ namespace Revit26_Plugin_Revised.WorksetsElementsBrowser.WSEB004.UI.ViewModels
         /// <summary>Fires whenever this node's or any descendant's IsChecked actually changes — the main ViewModel subscribes once per root to keep its status strip counts live.</summary>
         public event System.Action CheckedChanged;
 
-        public TreeNodeViewModel(ElementTreeNodeKind kind, string name, int elementCount = 0, string owner = "", string editableBadge = "", IReadOnlyList<ElementId> elementIds = null)
+        public TreeNodeViewModel(ElementTreeNodeKind kind, string name, int elementCount = 0, string owner = "", string editableBadge = "", IReadOnlyList<ElementId> elementIds = null, bool? isOpen = null)
         {
             Kind = kind;
             Name = name;
             ElementCount = elementCount;
             Owner = owner;
             EditableBadge = editableBadge;
+            OpenBadge = isOpen == null ? string.Empty : (isOpen.Value ? "open" : "closed");
+            IsClosed = isOpen == false;
             ElementIds = elementIds ?? System.Array.Empty<ElementId>();
         }
 
@@ -93,10 +101,13 @@ namespace Revit26_Plugin_Revised.WorksetsElementsBrowser.WSEB004.UI.ViewModels
             Parent?.RecomputeCheckedFromChildren();
         }
 
-        /// <summary>Every Type-node ElementId checked at or under this node.</summary>
+        /// <summary>True when this row has no child rows, i.e. it directly owns <see cref="ElementIds"/>.</summary>
+        public bool IsLeaf => Children.Count == 0;
+
+        /// <summary>Every leaf-row ElementId checked at or under this node.</summary>
         public IEnumerable<ElementId> CollectCheckedElementIds()
         {
-            if (Kind == ElementTreeNodeKind.Type)
+            if (IsLeaf)
             {
                 if (IsChecked == true)
                     foreach (var id in ElementIds)
@@ -106,6 +117,29 @@ namespace Revit26_Plugin_Revised.WorksetsElementsBrowser.WSEB004.UI.ViewModels
             foreach (var child in Children)
                 foreach (var id in child.CollectCheckedElementIds())
                     yield return id;
+        }
+
+        /// <summary>Every ElementId at or under this node, whether checked or not.</summary>
+        public IEnumerable<ElementId> CollectAllElementIds()
+        {
+            if (IsLeaf)
+            {
+                foreach (var id in ElementIds)
+                    yield return id;
+                yield break;
+            }
+            foreach (var child in Children)
+                foreach (var id in child.CollectAllElementIds())
+                    yield return id;
+        }
+
+        /// <summary>Walks this node and every descendant.</summary>
+        public IEnumerable<TreeNodeViewModel> SelfAndDescendants()
+        {
+            yield return this;
+            foreach (var child in Children)
+                foreach (var d in child.SelfAndDescendants())
+                    yield return d;
         }
 
         [RelayCommand]

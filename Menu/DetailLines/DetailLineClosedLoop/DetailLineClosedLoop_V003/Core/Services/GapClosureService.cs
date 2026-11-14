@@ -1,3 +1,4 @@
+using Revit26_Plugin_Revised.Shared.Services;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -25,6 +26,7 @@ namespace Revit26_Plugin_Revised.DetailLineClosedLoop.V003.Core.Services
 
             while (changed)
             {
+                ToolCancellation.CheckCurrent();
                 changed = false;
                 EndpointGraph graph = EndpointGraph.Build(result, topologyEpsilon);
                 var looseNodes = Enumerable.Range(0, graph.Nodes.Count)

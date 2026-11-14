@@ -1,3 +1,4 @@
+using Revit26_Plugin_Revised.Shared.Services;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -58,6 +59,7 @@ namespace Revit26_Plugin_Revised.RoofEdgeElementSections.V004
 
             foreach (RoofBase roof in selectedRoofs)
             {
+                ToolCancellation.CheckCurrent();
                 BoundingBoxXYZ bbox = roof.get_BoundingBox(null);
                 if (bbox == null)
                 {
@@ -95,6 +97,7 @@ namespace Revit26_Plugin_Revised.RoofEdgeElementSections.V004
 
                 foreach (var match in matches)
                 {
+                    ToolCancellation.CheckCurrent();
                     RoofEdgeBucketingEngine.BucketedEdge edge = bucketed[match.Direction];
 
                     plan.Add(new PlannedSection
@@ -211,6 +214,10 @@ namespace Revit26_Plugin_Revised.RoofEdgeElementSections.V004
                                     .WhereElementIsNotElementType()
                                     .Where(e => e.GetTypeId() == typeId)
                                     .ToList();
+                            }
+                            catch (OperationCanceledException)
+                            {
+                                throw; // user cancel: never swallowed as a failure
                             }
                             catch (Exception ex)
                             {

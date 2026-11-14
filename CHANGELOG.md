@@ -9,10 +9,10 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
-## [6.17.0] — 2026-10-28
+## [7.8.0] — 2026-11-14
 
 ### Added
-- **Workset Memory v1.1.0**, **Link Memory v2.1.0 (V002)** and **Link Memory v1.1.0 (V001, classic)** — the window
+- **Workset Memory v1.1.0**, **Link Memory v2.2.0 (V002)** and **Link Memory v1.1.0 (V001, classic)** — the window
   options are remembered between Revit sessions: *Restore active workset* (WS Memory); the marks to follow, link
   kinds, *Unload unused* and *Reload used* (Link Memory V002); *Unload* and *Reload loaded* (Link Memory V001).
   They are kept in `%AppData%\Revit26_Plugin_Revised\WorksetMemory\settings.json` and
@@ -41,6 +41,1155 @@ Each release lists every tool whose version changed, under the plugin version.
 **User note:** saved sets, memories and their files are unchanged and load as before. A `memory*.json.lock`
 file now sits next to each memory file; it is empty and can be ignored. When a local copy saved with a WS
 Memory set no longer exists, reload stops with a message (no new local is created automatically).
+
+## [7.7.0] — 2026-11-14
+
+### Smart View To Sheet Placer 224.3.0
+
+#### Fixed
+- **A sheet that fails partway is removed again.** Before, the sheet and the viewports already on it stayed in the model although the run reported them as failed. The other sheets of the run are kept, and the counts and the "Created" status now match the model.
+- **Views marked Overflow are no longer placed without asking.** Place Views shows a Yes / No question when any view is flagged Overflow (default No).
+- **View size on the sheet** is now read from the view's own paper-space outline instead of crop box ÷ scale, so views without a crop are sized as Revit draws them. Crop box ÷ scale stays as the fallback. After placing, any view whose real size differs from the estimate by more than 2 mm is listed in the log as a warning.
+- **The view list only offers views that can go on a sheet.** Sheets, schedules and reports are left out (the log says how many).
+- **Views already on a sheet** (legends excepted) are left out of the packing, so they no longer leave empty slots on the new sheets. The log names them.
+
+#### Added
+- **Title space (mm)** on the Titleblock card: height kept free below every view for its viewport title. Default 0 = none, the earlier behaviour.
+- **On Sheet** column in the view list: "Yes – skipped" for a view already on a sheet, "Yes – reusable" for a legend already on a sheet.
+
+User note: view sizes can differ slightly from 224.2.0, so the same selection may pack differently. Selected views that are already on a sheet are now left out before packing instead of being skipped at the end. The settings file gains `LastTitleSpaceMm`; older files load unchanged.
+
+## [7.6.0] — 2026-11-14
+
+### Base Level to Parameter 1.1.0 (V001)
+
+#### Added
+- **Value format** in the Target parameter card: *Level name only*, or *Level name + offset* with a pattern:
+  `Level 02 (+450)` (default, as before), `Level 02 +450`, `Level 02 (+450 mm)`, `Level 02 / +450`, `Level 02 [+450]`,
+  `Level 02, Offset +450`, `Level 02 (+450)` without "(0)" for a zero offset, or **Custom…** with the tokens
+  `{Level}` and `{Offset}` (an invalid custom pattern blocks Run through a new check "f · Value format").
+  The New Value column and a sample line update at once. The chosen format is remembered.
+- **Up to date**: an element that already holds the new value is shown as "Up to date" and is never rewritten
+  (new Up to Date tile; counted as skipped in the run summary).
+- New Value is green when it differs from the current value and grey when it is the same; **Changed only** filter.
+- The metric tiles are clickable: they filter the grid to Checked, Ready, Up to date, Warnings or Blocked rows.
+- **Select in Revit** and **Zoom to** for the highlighted grid rows; **Load Selection** lists the current Revit selection.
+- **Tick all / Untick all** in each category header; the Base Level cell's tooltip shows which parameters it was read from.
+
+User note: with the default format nothing changes in what is written. Settings files from 1.0.x load as before
+(format "Level 02 (+450)"); the settings file is now version 2.
+
+## [7.5.0] — 2026-11-14
+
+### Annotation Overlap Report 1.0.0 (V001, new tool)
+
+#### Added
+- New **Overlap Report** button on the Manage panel (Documents 2 tab), under the Overlaps pulldown.
+- Lists every pair of overlapping annotations on the **active view** or on a **chosen batch of views and sheets**.
+  A sheet is checked through the annotations on it and each view placed on it.
+- The type list shows **every annotation type found** in the scope with its count (all tags, text notes,
+  dimensions, spot elevations / coordinates / slopes, generic annotations, keynote and revision tags and so on).
+  Untick a type to leave it out.
+- **Also check overlaps between different types** (on by default), so a door tag over a text note is found.
+- Results are grouped by view and show both annotations, their element IDs and the overlap in millimetres on
+  paper (how far one annotation sits inside the other). **Show** filters the list by type and by view.
+- **Zoom to pair** (or double-click a row) opens the view, zooms to both annotations and selects them.
+- **Export to Excel** saves the pairs shown to an .xlsx file: sheet "Overlaps" (Sheet, View, Scale, Type A, Text A,
+  ID A, Type B, Text B, ID B, Overlap (mm)) and sheet "Run info" (tool version, format version 1, counts, skipped views).
+- Options are saved to `%AppData%\Revit26_Plugin_Revised\AnnotationOverlapReport\settings.json` (version 1).
+
+User notes:
+- The tool only reports. It never moves anything; use Annotation Overlap Detection V006 to move annotations apart.
+- Grids, levels, section / elevation / callout marks and view titles are listed greyed out as "coming in 1.1" and are
+  not checked yet, because Revit's box for them covers the whole line, not just the head.
+- Boxes are Revit's bounding boxes: a tag's box includes its leader and a dimension's box includes its witness
+  lines, so two crossing dimension strings are reported as an overlap.
+- Annotations inside linked models are not checked. Overlaps between two different viewports on a sheet are not checked.
+## [7.4.0] — 2026-11-14
+
+### Roof Slope Builder 2.0.0 (V002) — new version, V001 kept
+
+The Roof Slope Builder button on the Roof Slope panel is now a dropdown: **Roof Slope Builder V002** first, V001 below it.
+V002 has its own icon (two drains with the ridge line between them).
+
+#### Added
+- New tab **5 - Ridges**:
+  - **Draw ridge lines in the active plan view**: the lines between drains (watershed mode) or the saddle crests
+    (saddle mode). Draw them as **Detail line** (pick a line style) or **Line-based detail family** (pick a
+    family type; only line-based detail families are listed).
+  - **Mark ridge points with detail circles** (diameter in mm): the ends and meeting points of the ridges and the
+    points along them at the ridge point spacing.
+- **Find ridges only** button next to Apply: draws the ridges and leaves the roofs unchanged, to check the layout
+  before sloping. Needs a plan view and at least one of the two options ticked.
+- With **Apply**, the ridges are drawn in the same step as the slope; one Undo removes both.
+- The end-of-run report counts ridge detail lines, family instances, fallback lines and circles per roof.
+
+#### Fallbacks (nothing stops the run)
+- Family type not loaded, not line-based or not activatable: every ridge is drawn as a detail line.
+- A family placement Revit refuses: that ridge piece is drawn as a detail line instead, and counted.
+- Line style missing or refused: Thin Lines, then Revit's default line style.
+- Not a plan view: ridges are not drawn (Apply still slopes the roofs); the window says so and Find ridges only is
+  disabled.
+- Pieces shorter than Revit allows are left out and counted.
+
+User note: V002 keeps its options in `settings_v002.json`. The first time it runs it copies your V001 options; the
+V001 file is not changed, so V001 keeps its own. Ridge drawing is off until you tick it, so V002 slopes roofs exactly as
+V001 does by default. V001 (1.1.0) is unchanged and stays in the dropdown.
+
+## [7.3.0] — 2026-11-14
+
+### Roof Slope Builder 1.1.0 (V001) — new tool
+
+Its own large button on the Roof Slope panel, after the By Point / By Drain / Points & Slope stack, with its own icon.
+
+#### Added
+- **Roof Slope Builder**: one command that adds shape points and slopes every selected footprint roof to its drains.
+  Points: corners of non-drain openings, perpendicular feet from each drain onto the boundary and the ridges, points
+  along ridges between drains, and points along arcs and splines. Ridges are watershed lines (level deck, falls to each
+  drain) or saddles (diamond crickets). One transaction per roof, one Undo for the whole run.
+- Options are remembered between runs in `%AppData%\Revit26_Plugin_Revised\RoofSlopeBuilder\settings.json`
+  (versioned file; an unreadable file is kept aside and the defaults are used).
+- The drains grid shows each opening's centre (X, Y in metres) so you can find it in the model.
+- Roofs whose type has no Variable layer are flagged in the roof list ("the whole roof will tilt").
+
+#### Changed (from the 1.0.0 draft received for review, never released)
+- Heights are measured from each drain's **outline**, not from a circle round its centre. On square or long drains the
+  draft left a flat zone next to the drain (up to ~230 mm wide beside a 600 x 150 mm drain).
+- Every number is checked on Apply; a wrong entry is named instead of being silently replaced by the default.
+  "1,5" still reads as 1.5; "1,500.0" style input is refused.
+- Ticking or unticking a roof now updates the drains grid straight away (the draft read the tick before it changed).
+- Roofs are checked before the window opens and listed when left out: read-only model, in a group, slope-defining
+  edges, no shape editing, borrowed by another user (workshared). Non-roof elements in the selection are counted.
+- When no roof succeeds, the whole run is rolled back (no empty Undo entry). A roof whose commit Revit refuses is
+  reported as skipped. Rejected split lines are counted in the report.
+- Runs through `ToolGuard`; unexpected errors go to `%AppData%\Revit26_Plugin_Revised\Logs`.
+
+User note: new tool, no existing behaviour changes. The draft's README asked for the namespace
+`Revit26_Plugin.RoofSlopeBuilder_V001`; in the plugin it is `Revit26_Plugin_Revised.RoofSlopeBuilder.V001`.
+
+## [7.2.1] — 2026-11-13
+
+### Base Level to Parameter 1.0.1 (V001)
+
+#### Added
+- Pre-check c blocks a new parameter whose name is in the shared parameter file more than once (also checked in the
+  New Parameter dialog).
+- Pre-check c blocks a new parameter whose GUID in the shared parameter file is already used in the project by a
+  parameter with another name. Before, Run stopped with an error and rolled back in both cases.
+
+#### Changed
+- A new parameter now goes under **Data** in the Properties palette (was Identity Data).
+
+User note: parameters created with 1.0.0 stay under Identity Data; only new ones go under Data.
+
+## [7.2.0] — 2026-11-13
+
+### Base Level to Parameter 1.0.0 (V001, new tool)
+
+#### Added
+- New **Base Level to Parameter** button on the Coordination panel (Documents 2 tab), after Void Openings.
+- Writes each element's base level and base offset to a text instance parameter as "Level 02 (+450)". The offset is
+  in millimetres, signed, rounded to whole millimetres; zero is "(0)".
+- Lists the model elements visible in the active view when it opens (host model only, never linked elements).
+  **Load All Model Elements** lists the whole host model; **Load Active View** goes back to the active view.
+- **Load Base Level** reads the level and offset of the ticked rows: walls (Base Constraint + Base Offset), columns
+  (Base Level + Base Offset), floors (Level + Height Offset From Level), roofs (Base Level + Base Offset From Level,
+  or Reference Level + Offset for extrusion roofs), MEP curves (Reference Level + Offset) and families (Level or
+  Schedule Level + Offset from Host). Elements with no base level are skipped and logged as a warning.
+- Target parameter: pick a project parameter in a searchable list, or define a new one with **New Parameter…**
+  (shared, instance, Text, Identity Data, name up to 25 characters, bound to the categories of the ticked elements).
+  A new parameter is created only when you press Run.
+- Pre-checks a–e (name, already in project, shared parameter file, categories, document and elements), each shown as
+  Pass / Warning / Blocked, with the summary "X ready | Y warnings | Z blocked" (counts of ticked elements). Run is
+  enabled only when nothing is blocked.
+- **Overwrite existing values** (off by default: elements that already have a value are skipped).
+- Metrics (Elements Listed, Checked, Ready, Warnings, Blocked), a grid grouped by category with collapsible groups,
+  filter, Select All / Select None on the rows the filter shows, sortable columns, and an activity log with Copy All /
+  Copy Selected. The window stays open after a run and shows "X assigned | Y skipped | Z failed".
+
+User note: a run is one transaction ("Base Level to Parameter"); Ctrl+Z undoes it, and Esc / Cancel during the run
+rolls it back, including the parameter's creation or new categories. Only a new parameter's entry in the shared
+parameter file stays (a file cannot be rolled back).
+A new parameter is created with "values can vary by group instance" switched on, so elements inside model groups
+can get their own value; for an existing parameter that does not allow this, grouped elements are skipped. Elements
+owned by another user or changed in central are skipped.
+
+## [7.1.2] — 2026-11-13
+
+### Schedule Export / Import 7.2.1 (V007)
+
+#### Fixed
+- Export no longer shows Revit family warnings such as "Can't create sweep" and "Line is too short" ("An error occurred
+  in family … and was automatically resolved"). They came up when the schedule had calculated, combined or room columns.
+- If Revit raises such warnings during export, the tool log now has one line with the count and the first message.
+
+User note: to read calculated columns the export tags each element's Comments in a transaction that is always rolled
+back. That makes Revit rebuild each element, and a family whose geometry is already faulty (for example a very short
+beam) raises its warning again. The warnings were left on screen although nothing was kept. They are now discarded with
+the rolled-back transaction. The model is not changed by export, before or after this fix, and the Excel file is the
+same. The faulty family instances are still faulty; fix them in the family or on the element.
+
+## [7.1.1] — 2026-11-13
+
+### Sheet Auto Rearrange 30.0.1 (V030), 29.0.2 (V029), 28.2.2 (V028)
+
+#### Fixed
+- After Run finished, the progress bar in the status strip kept running ("processing") although the views were
+  already placed. It now stops when the run ends.
+
+User note: the cause was in the shared Esc / Cancel handling (`Shared/Services/ToolCancellation.cs`), which put the
+window back into its "running" state after the tool had already reported it was done. The fix is in that shared code,
+so any other tool window that showed a progress bar stuck after a finished run is fixed too. No tool behaves
+differently otherwise.
+
+## [7.1.0] — 2026-11-13
+
+### Sheet Auto Rearrange 30.0.0 (V030, new version)
+
+#### Added
+- New **Rearrange V030** entry at the top of the Rearrange dropdown (Sheet Create slide-out), with a redesigned window.
+- **Live sheet preview** is now the centre of the window. It draws the sheet outline, the usable area (dashed green)
+  and every ticked view with its name. Views that do not fit are red, below the sheet.
+- **Quick layout** buttons: Pack, Rows, Table, Spread. One click sets the align and distribute options.
+- **Align rows / Align columns / Distribute H / Distribute V** are one-click button rows. **Sheet position** is a
+  3 × 3 picker. **Fill strategy** is a dropdown with a one-line description of each strategy.
+- Counts under the preview (fit, overflow, to remove) and a Fits / Overflow / Remove tag on each view, updated live.
+- The usable area in the preview follows the margin boxes without a Refresh.
+
+#### Changed
+- Settings sit in three tabs (Layout, Spacing, Advanced) in place of eight collapsible sections.
+- The activity log is one line at the bottom. It opens by itself on a warning or error.
+- The window is smaller (opens at 1180 × 780, was at least 1180 × 920).
+
+#### Removed
+- The Force-Fit and Auto-Create Overflow Sheet options, which were never implemented. Views that do not fit are
+  placed below the sheet, as before.
+- The five metric cards. The counts are under the preview and on the status line.
+
+#### Fixed
+- Closing the window no longer shows "Invalid call to Revit API! Revit is currently not within an API context".
+
+User note: the layout engine and `settings.json` are the same as V029, so saved settings carry over.
+
+### Sheet Auto Rearrange 29.0.1 (V029) and 28.2.1 (V028)
+
+#### Fixed
+- Closing the window no longer shows "Invalid call to Revit API! Revit is currently not within an API context".
+
+### Sheet Auto Rearrange V027
+
+#### Removed
+- **Rearrange V027** is removed from the Rearrange dropdown and from the plugin. The dropdown keeps V030, V029, V028.
+
+User note: use Rearrange V028 or later. The settings file is shared, so nothing has to be set up again.
+
+## [7.0.0] — 2026-11-12
+
+### View Auto Renamer 7.5.0 (V007)
+
+#### Added
+- **Load by type:** a new **Load by type** button next to **Load all views** opens a list of the nine view types
+  (Sections & Callouts, Floor Plans, … Schedules). Tick the ones you want and click **Load ticked types**; only those
+  views are read from the project. Types already loaded show "loaded". Loading only sections, plans, drafting views or
+  schedules skips the other views entirely; Legends have no class of their own in Revit, so loading them reads all views.
+- The log shows how long each load took, for example `Loaded 1,204 more views (Sections & Callouts) in 0.4 s`.
+
+#### Changed
+- **The window opens first.** It appears at once and the current sheet's views fill in right after, instead of the
+  window waiting for them.
+- **Grouped list:** the views are listed under a header per view type (with a count), in the same order as the filter
+  popover. A new **Group by type** checkbox in the filter bar turns the grouping off; the choice is saved.
+- **Groups fold:** click a group header to fold or unfold it; **Expand all** and **Collapse all** are in the selection
+  toolbar. The checkbox in a group header ticks every view listed in that group, or unticks them when all were ticked
+  (it shows a dash when only some are ticked).
+- **List fills the window:** the view list takes all the height the window has left (at least 320 px; it was a fixed
+  share of the window), and grows when the window is enlarged or when the rename panel or the log is folded.
+- **Rename panel folds:** click **RENAME OPTIONS** to fold the Prefix / Find / Options / Standardize panel to one bar
+  that lists the options in use. Unfolded by default; the choice is saved.
+- **Log minimised:** the log opens as one bar that shows the latest line and the line count. Click **Log** to expand it
+  (the Copy buttons appear then); it starts minimised on every open.
+- **Faster loading.** Sheet number and detail number are read once from the viewports instead of two parameter reads on
+  every view; each view's type is read once; the current sheet is found by a sheet-number filter inside Revit; schedules
+  on the current sheet are found without a sheet-scoped search. **Load all views** adds all rows in one step and
+  rebuilds the grid once.
+- **Faster selection.** The header check box, **Select all**, **Select none** and **Invert** update the counts and
+  previews once instead of once per row.
+
+#### Fixed
+- **Reset all names** (footer) now resets every row's edit name. It reset only the ticked rows, the same as
+  "Reset selected names".
+
+### View Rename panel
+
+#### Changed
+- **Bubble Renumber**, **Section Renamer** and **Auto Renamer** are now plain buttons (one version each) instead of
+  dropdowns. Their tools are unchanged: Bubble Auto Renumber 9.3.0 (V009) and Section Auto Renamer 26.2.0 (V026).
+
+#### Removed
+- **View Auto Renamer V005 and V006**, **Section Auto Renamer V025**, **Bubble Auto Renumber V007 and V008**: ribbon
+  buttons, code, and the catalog entries of View Auto Renamer V006 and Bubble Auto Renumber V008.
+
+User note: the remaining versions do everything the removed ones did and use the same settings files, so nothing needs
+to be set up again. A keyboard shortcut assigned to a removed button must be re-assigned to the remaining one. The
+plugin goes to 7.0.0 because tool versions were removed. In View Auto Renamer the grid is empty for a moment after the
+window opens, then shows the current sheet's views. The settings file gained `Version`, `GroupByViewType` and
+`IsRenamePanelExpanded`; older files load unchanged and start grouped. Clicking a column header sorts inside each group.
+"Select all" and the group checkboxes also tick rows inside folded groups. "Reset all names" now also undoes edits on
+rows that are not ticked. If loading is still
+slow on your project, send the time from the log.
+
+## [6.54.0] — 2026-11-12
+
+### Annotation Overlap Detection 6.0.0 (V006, new)
+
+#### Added
+- **By priority** resolve mode: in each overlapping pair the lower-priority annotation moves away (up when it sits
+  above, down when below) and the higher-priority one stays.
+- **Priority order** card (shown in By priority mode):
+  - Presets: **Architectural plan (recommended)**: dimensions → room / space / area tags → door & window tags →
+    other element tags → keynote tags → text notes. **Text notes stay** (presentation sheets) and
+    **Tags stay** (schedule review).
+  - Your own order: move any row up or down (the preset then shows *Custom*); **Reset** restores the recommended order.
+  - **Never move** per type: those annotations stay whatever the order says.
+  - **Same priority** rule: Distribute, move the upper one up, move the lower one down, or skip the pair.
+- **Also check overlaps between different types** (off by default, as in V005): lets the order decide between,
+  say, a door tag and a text note.
+- The Status column names the element that moved ("Moved 412893").
+
+#### Changed
+- The type list groups annotations by these types (door & window tags, keynote tags, ...) instead of Revit class.
+- V006 settings are saved to `%AppData%\Revit26_Plugin_Revised\AnnotationOverlapDetection\V006\settings.json`
+  (version 2). The first time, V006 starts from the V005 file, so the last mode and gap carry over.
+
+### Ribbon
+- The Overlaps pulldown lists V006 first, then V005. V004 left the pulldown (latest two versions only); its code stays.
+
+User note: the recommended order follows common drafting practice: keep what is tied to geometry (dimensions, then
+room tags, then door and window tags) and move the most flexible notes first (keynotes, text notes). No published
+standard ranks annotations in a collision, so change the order to suit your office standard. Move Up, Move Down and
+Distribute work as in V005.
+
+## [6.53.0] — 2026-11-12
+
+### Sheet Auto Rearrange 29.0.0 (V029, new version next to V028)
+
+#### Added
+- New **Rearrange V029** entry at the top of the Rearrange dropdown (Sheet Create slide-out). V028 and V027 stay below it.
+- New **Align & Distribute** section in the window:
+  - **Align Rows** (Off / Top / Center / Bottom): views in the same row share one top, centre or bottom line.
+  - **Align Columns** (Off / Left / Center / Right): views in the same column share one left, centre or right line.
+    Both on gives a table: a column is as wide as its widest view, a row as tall as its tallest.
+  - **Distribute H** and **Distribute V** (Off / Edge to edge / Equal spacing): spread the rows and columns across the
+    usable area. Edge to edge puts the first and last view on the area edges. Equal spacing makes the gaps between
+    views and the gaps to the edges the same. Off keeps the H / V gap and places the block by Sheet Position.
+- Rows and columns are read from the result of the chosen Row Fill Strategy (Row Tolerance / Column Tolerance decide
+  what counts as the same row or column). A row or column that is too long for the area wraps.
+- The Live Sheet Preview shows the aligned layout. A note under the options says how many rows and columns were made,
+  or why alignment was skipped. The same line goes to the Activity Log on Run.
+- If the aligned layout does not fit the usable area, nothing is aligned: the normal packing is kept and a warning is
+  logged. No view goes to overflow because of alignment. Views already in overflow stay below the sheet.
+- Unit tests: `dotnet test Tests/SheetAutoRearrange.Tests`.
+
+User note: V028 is unchanged. In V029 every new option is Off by default, so it lays out exactly like V028 until you
+turn one on. Both versions share `%AppData%\Revit26_Plugin_Revised\SheetAutoRearrange\settings.json`; the file gains
+`SchemaVersion` and `AlignDistribute`. Older files load as before. Saving from V028 or V027 drops the new options
+back to Off.
+
+## [6.52.0] — 2026-11-12
+
+### Sheet Views Combine 1.0.0 (V001, new)
+
+#### Added
+- New **Combine Sheets** button on the Sheet Create panel (after Sections To Sheet).
+- Lists the views on two sheets in one grid, grouped by sheet, then view type, and colour-coded by sheet
+  (Sheet 1 blue, Sheet 2 amber). Sheet 1 defaults to the active sheet; Sheet 2 is picked from a list.
+- Tick the views to combine and choose the target: Sheet 1, Sheet 2, another existing sheet, or a new sheet
+  (number, name, title block). Ticked views from other sheets are taken off their sheet and placed on the target.
+- **Unticked views already on the target**: keep them in place (the layout packs around them) or re-pack them too.
+- Ticked **legends** are copied, not moved: the original stays, and the copy goes on the target at the exact same spot.
+- Layout uses reading-order rows or max fill, with margins and gaps, and a to-scale preview. Views that do not fit go
+  on extra sheets (A-101.1, A-101.2 …). Detail numbers are kept when free on the target; viewport types, rotation and
+  title position are kept.
+- **If a view fails**: skip it and report it (default; it stays on its old sheet), or stop and undo everything.
+  Views checked out by another user are skipped with the reason. Step 5 lists what was moved, re-packed, copied or
+  skipped and why; a dialog summarises it. The whole run is one Undo step ("Combine Sheet Views").
+- Settings in `%AppData%\Revit26_Plugin_Revised\SheetViewsCombine\settings.json` (versioned).
+- Unit tests: `dotnet test Tests/SheetViewsCombine.Tests`.
+
+User note: new tool; nothing existing changes. Schedules on the sheets are not moved in this version (they stay where
+they are, and the layout keeps clear of them).
+
+## [6.51.0] — 2026-11-11
+
+### Auto Slope By Point 34.1.0 (V034)
+
+#### Changed
+- Clicking **Run** closes every open option section (Drain options, Path & curves, Circle markers, Ridge lines,
+  Export & parameters), so the results and log have room while the run goes. If the inputs fail validation the
+  run does not start and the sections stay as they were.
+
+User note: after a run the option sections are closed, and the window opens with them closed next time.
+Open a section again by clicking its header.
+
+## [6.50.1] — 2026-11-11
+
+### Auto Slope By Point 34.0.1 (V034)
+
+#### Fixed
+- Excel Run Summary: the three V034 rows (**Path check spacing (mm)**, **Projection tolerance (mm)**, **Exact segment test**) are now written after the last V033 row (**Ridge lines**). In 34.0.0 they sat after **Max drainage distance (m)** and pushed every later row down, so a V034 report no longer lined up with a V033 one.
+
+User note: reports from 34.0.1 have the same rows in the same places as V033, with the three V034 rows added at the end. Reports already exported by 34.0.0 are not changed.
+
+## [6.50.0] — 2026-11-11
+
+### Annotation Overlap Detection 5.0.0 (V005, new)
+
+#### Added
+- Resolve Overlaps: fix clashing annotations from the results grid.
+  - **Move Up**: the upper element of each pair moves up until the pair is clear.
+  - **Move Down**: the lower element moves down until the pair is clear.
+  - **Distribute**: both move apart, half the distance each.
+  - **Clear gap (mm)**: extra space left between the two (default 1.00).
+  - **Resolve Selected** (the grid is now multi-select) and **Resolve All**.
+- Status column (last column) with the result of each pair: Moved, Already clear, Skipped (pinned, in a group,
+  owned by another user, changed in central) or Failed.
+- After each run the view is re-scanned and checked again; a green banner sums up the run.
+- Esc / Cancel with a Yes / No confirm (the shared cancel support from 6.40.0) while the scan or a resolve runs.
+  A cancelled resolve moves nothing.
+- Mode and gap are remembered in `%AppData%\Revit26_Plugin_Revised\AnnotationOverlapDetection\settings.json`.
+
+#### Changed
+- Runs in every 2D view, not only floor plans: floor, ceiling, structural and area plans, sections, elevations,
+  detail and drafting views, legends and sheets. 3D views and schedules are not supported (V004: floor plans only).
+- Boxes are measured along the view's own right / up directions, so "up" is up on screen in every view
+  (in a section or elevation that is the model's height, in a rotated plan it is screen-up).
+  In unrotated plans the X / Y values are the same as V004.
+
+### Ribbon
+- The Overlaps pulldown lists V005 first, then V004.
+
+User note: V005 changes the model. All moves of one run are one transaction, so one Undo reverts the run.
+Text notes and tags move as a whole (a tag's leader stays on its host); a dimension moves as a whole where
+Revit allows it, otherwise only its text moves. V004 is unchanged and stays available.
+
+## [6.49.0] — 2026-11-11
+
+### Auto Slope By Point 34.0.0 (V034)
+
+#### Added
+- New build `AutoSlopeByPoint_V034` next to V033 (includes V033 33.1.0: Esc / Cancel with a Yes-No confirm) (V033 stays as the fallback in the dropdown). It is V033 plus two
+  settings in **Path options** that control the check that a path link stays on the roof surface:
+  - **Path check spacing (mm)**: distance between the on-roof checks along each link. Default 76.2 mm (the V033
+    value, 4 per foot); range 10–2000 mm; every link still gets at least 10 checks.
+  - **Projection tolerance (mm)**: height margin used when a point is matched to the roof top face. Default 1 mm
+    (the V033 value); range 0.1–50 mm.
+  - **Exact segment test** (toggle, off by default): also checks each link against the roof outline and every opening
+    edge, then tests each piece between crossings, so a gap is caught whatever its width. Slower on big roofs.
+- All three values are saved in `settings.v034.json`, written to the Excel report and to the run log.
+
+#### Changed
+- The By Point dropdown lists V034 first (also the button icon), then V033, V032, V030, Ridge V003, Multi Copies 30.
+
+User note: with the defaults V034 gives the same results as V033. A smaller spacing catches narrow openings and
+thin roof strips but builds the path graph more slowly; a larger one is faster but a link can cross them. Settings
+are read from V033's file the first time, so nothing is lost.
+
+## [6.48.0] — 2026-11-11
+
+### Sheet Text Replace 1.2.0
+
+#### Added
+- **Found text** area under the preview grid. Click a row and the **whole text** of that note shows there (every line, not only the part Find matched), with its view, line count and character count. The text can be selected and copied with Ctrl+C.
+- **Copy text** copies the whole current text of the picked note; **Copy new text** copies the whole text it will have after Apply; **Copy all found** copies the whole text of every note in the preview, one block per note with a blank line between them.
+- **Copy full text** on the right-click menu of each preview row.
+
+User note: copying only reads the notes; nothing in the model changes. Line breaks in a note are kept in the copied text. Every copy is written to the Activity Log.
+
+## [6.47.0] — 2026-11-11
+
+### Bubble Auto Renumber 9.3.0
+
+#### Added
+- **Numbering: Numbers or Letters.** A new Numbering row in the window chooses how the detail numbers are written: **Numbers** (1, 2, 3, as before) or **Letters** (A, B, C … Z, then AA, AB …). The preview's New # column shows the chosen style before anything is written.
+
+#### Changed
+- **Ribbon tooltip** of View Rename ▸ Bubble Renumber ▸ V009 now reads "Numbers detail bubbles 1, 2, 3 or A, B, C, top-left to bottom-right."
+- **Starting Number** is now labelled **Start At**. It takes a whole number in Numbers, or one to three letters in Letters (for example A, C or AA; lower case is accepted). Switching style carries the value over: 3 becomes C, and C becomes 3.
+
+User note: Numbers is the default, so the tool renumbers exactly as before unless you pick Letters. A letter already used by a view you left out of the run gets the usual "(D)" suffix, the same as a number does.
+
+## [6.46.0] — 2026-11-11
+
+### Void Openings 0.2.0 (new tool, in development)
+
+#### Added
+- **Void Openings** button on a new **Coordination** panel (Rafi_Pro_Docs2 tab, after Memory). The finished tool will find where MEP passes through structure, size the openings from clearance rules, place void families with Job IDs and cut the structure. It is being built in phases; the version stays below 1.0.0 until all of them are done.
+- In this version the window covers **model and category selection**: a STRUCTURAL MODEL panel and an MEP MODEL panel. Each lists the active model and every Revit link (with Loaded / Not loaded status), and shows the element count of each category of the chosen model. You can change model and categories at any time; **Refresh** reads the project again.
+- Stairs, landings and ramps are marked "Marker only, no cut": Revit is not expected to let a void family cut them.
+
+User note: Analyze, Generate Void and Export are not in the window yet. Nothing in the model is changed by this version. The installer now also copies `Microsoft.Extensions.DependencyInjection.dll` and `Microsoft.Extensions.DependencyInjection.Abstractions.dll`.
+
+## [6.45.0] — 2026-11-10
+
+### Worksets & Elements Browser 4.5.0
+
+#### Added
+- **Open / Close Worksets…** (toolbar): opens Revit's own Worksets dialog, where you open and close worksets. Revit has no API to open or close a workset in a model that is already open, so the browser hands over to Revit's dialog. The button says why when the model is not workshared, is not the active model, or another command is running.
+- **Reload** (toolbar): reads the worksets and elements from the model again, for example after opening or closing worksets. Checks are cleared.
+- **open / closed badge** on each workset row; "closed" is shown in the warning colour. The Model card also counts the closed worksets.
+
+#### Changed
+- **Hide Empty Worksets** no longer hides closed worksets. A closed workset lists no elements only because Revit has not loaded it, so it stays in the tree with its "closed" badge.
+
+User note: the browser stays open while Revit's Worksets dialog is shown; press Reload afterwards. With "Hide Empty Worksets" ticked you now also see closed worksets (with no elements under them); open worksets that are empty are hidden as before.
+
+## [6.44.0] — 2026-11-10
+
+### Merge Roofs 1.1.0
+
+#### Added
+- Esc or the new **Cancel run** button stops a running Check or Create roof. It asks "Cancel the process? Yes / No"; Yes undoes everything the run did (the new roof and any gap links are rolled back together), No carries on. The status line then reads "Cancelled by user. Nothing was changed." The detail lines and circles offered after a failed merge can be cancelled the same way.
+- The Merge Roofs ribbon button has its own icon (two roofs joined into one).
+
+#### Changed
+- Check, Create roof and Cancel run are disabled or enabled to match whether a run is active.
+
+User note: the union calculation and the single Revit call that creates the roof cannot be interrupted; Esc is acted on just before and after them.
+
+## [6.43.0] — 2026-11-10
+
+### Align Spot Elevations 1.8.0
+
+#### Added
+- **Distribute Spot Elev.** (Tagging panel, large button): opens the Align Spot Elevations window in *Distribute only*. The selected spot elevations are spaced along their column or row, evenly (first and last stay) or at a fixed gap in paper mm (top / left stays), and keep their other coordinate. Works on the text, the leader end points and the bend points.
+- **Quick Distribute Vertical** and **Quick Distribute Horizontal** (Tagging panel, two small split buttons): the same without the window. Each lists three items: tags (the parts last ticked in the window), **Ends** (leader end points only) and **Bends** (leader bend points only). The main click runs the item used last, kept across restarts. All use the spacing last used in the window; if it was left on "Keep current spacing", even spacing is used. Even spacing needs at least three spots that have the part. One Undo step.
+
+User note: nothing existing changed. The Distribute only mode was already in the window; these buttons are shortcuts to it. Settings files are unchanged.
+
+## [6.42.0] — 2026-11-09
+
+### Align Spot Elevations 1.7.1
+
+#### Changed
+- Tagging panel: the eight Quick Align buttons are now three small split buttons: **Quick Align Vertical** (tags, ends, bends), **Quick Align Horizontal** (tags, ends, bends) and **Quick Align to Tag** (ends, bends). The main click runs the item used last (kept across restarts); the arrow lists the others. The commands themselves are unchanged.
+
+- The split buttons remember the last item you used, also after Revit restarts (saved in `%AppData%\Revit26_Plugin_Revised\AlignSpotElevations\quicksplit.json`; versioned, and a missing or unreadable file just starts on the first item).
+
+User note: the quick-align buttons moved into the arrows. Until you pick an item, each split button runs its first one.
+
+## [6.41.0] — 2026-11-09
+
+### Merge Roofs 1.0.0 (new)
+
+#### Added
+- **Merge Roofs** (Roof Edit panel): select two or more footprint roofs and create one new footprint roof from their combined outline (outer boundary plus interior loops).
+  - Checks for overlap, crossing edges, gaps and roofs that are not joined. Gaps up to a tolerance you set (default 5 mm) are closed; the optional checkbox "Place connecting lines across gaps" draws detail lines across them.
+  - The new roof takes the first selected roof's type and level, and each edge keeps the slope of the roof edge it came from.
+  - Arcs are kept when possible; if Revit rejects them the roof is created once more with straight segments. The window says which was used.
+  - If the roof cannot be created, you are asked whether to place the outline as detail lines in the current view, and separately whether to mark the problem areas with circles. Nothing else changes.
+- The plugin now ships the Clipper2 library (`Clipper2Lib.dll`) for the polygon union.
+
+User note: the original roofs are not changed or deleted. Hide or delete them yourself once you are happy with the new roof.
+
+## [6.40.0] — 2026-11-09
+
+### Cancel a running tool (rollout started)
+
+#### Added
+- Shared cancel support (`ToolCancellation`): while a tool runs, Esc or a **Cancel** button in the window's status strip asks
+  "Cancel the process? Yes / No". Yes stops the run; No carries on. Esc works while Revit is the foreground application
+  (the tool window or the Revit main window has focus). Tools without a window get a small progress pop-up with a Cancel button.
+- The shared window shell shows the Cancel button and disables the window content while a cancellable run is active, so a
+  second run cannot be started by accident.
+- A user cancel is not an error: no error dialog and no entry in the error log.
+- View Auto Renamer 7.2.0: Esc / Cancel while "Load all views" or "Commit selected" runs.
+- **Roof Tools group** (all tools in `Menu/RoofTools`, latest version of each): Esc / Cancel with a Yes / No confirm while the tool works.
+  - Combined Roof Tools 3.2.0 (cancel while a roof is analysed; the tabs' own Run buttons call older tool versions and are not covered yet)
+  - Roof Points & Slope 1.2.0, Roof Point Elevation Sync 5.1.0, Roof Point Comparison 3.1.0, Creaser Adv 12.1.0
+  - Ridge By Openings 70.2.0, Ridge By Points 59.2.0, Tapered EPS 2D Pattern 6.2.0
+  - Divide Inner Loops 12.2.0, Inner Loops And Perpendicular 7.2.0, Multiple Points 3.1.0, Outer Curve Divider 6.1.0,
+    Roof Detail Line Intersect 14.2.0, Roof Shape From Link 2.1.0, Roof Edge Vertex Reducer 9.1.0
+  - Auto Slope By Drain (Multi-Roof) 13.2.0, Auto Slope By Drain 7.3.0, Auto Slope By Point 33.1.0,
+    Auto Slope By Point (Ridge) 3.2.0, Auto Slope By Point (Multi Copies) 30.2.0
+  - Roof Type Manager 3.2.0, Island Roof Splitter 2.1.0, Roof Name Builder 2.2.0
+- **Floor Tools group** (all tools in `Menu/FloorTools`, latest version of each): Esc / Cancel with a Yes / No confirm while the tool works,
+  same behaviour as the Roof Tools: Floors And Roof From Linked Rooms 13.2.0, Floors And Roof From Linked Rooms (Via Plan View) 6.2.0, Floor Slope By Drain 1.1.0, Floor Slope By Point 1.1.0, Floor Slope By Point (Ridge) 1.1.0, Floor Slope By Point (Multi Copies) 1.1.0, Floor Points & Slope 1.1.0, Floor Divide Inner Loops 1.1.0, Floor Outer Curve Divider 1.1.0, Floor Detail Line Intersect 1.1.0, Floor Inner Loops And Perpendicular 1.1.0, Floor Edge Vertex Reducer 1.1.0, Floor Multiple Points (1/2–1/4) 1.1.0, Floor Shape From Link 1.1.0, Floor Crease Lines By Openings 1.1.0, Floor Crease Lines By Points 1.1.0, Floor Creaser 1.1.0, Floor Type Manager 1.1.0, Floor Name Builder 1.1.0, Floor Point Comparison 1.1.0, Floor Point Elevation Sync 1.1.0, Floor Tapered EPS 2D Pattern 1.1.0.
+
+- **View Tools group** (all tools in `Menu/ViewTools`, latest version of each; View Auto Renamer was the pilot): Esc / Cancel with a Yes / No confirm
+  while the tool works: Create Sections From Detail Lines 13.2.0, Floor Edge Around Sections 1.1.0, Floor Edge Element Sections 1.1.0, Floor View Focus 1.1.0, Isolated Section 1.1.0, Roof Edge Around Sections 7.3.0, Roof Edge Element Sections 4.2.0, Roof View Focus 4.2.0, Section View Auto Tagger 6.2.0, Auto Place Sections 324.2.0, Callout To Section View Placement 21.2.0, Reference Section Head Placer 15.2.0, Bubble Auto Renumber 9.2.0, Section Auto Renamer 26.2.0.
+  Create Sections From Detail Lines, Auto Place Sections and the Roof / Floor Edge Sections tools create their sections in one group, so a cancel removes every
+  section or viewport of the run.
+- **Sheet Tools group** (all tools in `Menu/Sheet`, latest version of each): Esc / Cancel with a Yes / No confirm while the tool works: Automated Section Placer 3.2.0, Plan From Scope Box 6.2.0, Sections To Sheet 1.1.0, Sheet Auto Rearrange 28.2.0, Sheet Text Replace 1.1.0, Sheet View Arrange 1.3.0, Smart View To Sheet Placer 224.2.0.
+- **Tagging Tools group** (all tools in `Menu/Tagging`, latest version of each): Esc / Cancel with a Yes / No confirm while the tool works: Align Spot Elevations 1.7.0, Floor Tag 1.1.0, Roof Tag 18.2.0, Tag To Text 1.4.0.
+- **Detail Lines Tools group** (all tools in `Menu/DetailLines`, latest version of each): Esc / Cancel with a Yes / No confirm while the tool works: Detail Lines From Links 10.2.0, Detail Line Closed Loop 3.1.0, Detail Line Manager 2.1.0.
+- **Dimensions group** (all tools in `Menu/Dimensions`, latest version of each): Esc / Cancel with a Yes / No confirm while the tool works: Auto Dim Detail Line 10.2.0.
+- **Manage Tools group** (all tools in `Menu/Manage`, latest version of each): Esc / Cancel with a Yes / No confirm while the tool works: Annotation Overlap Detection 4.2.0, Bulk Rename 1.2.0, Delete Line Styles 1.3.0, Link Memory 2.1.0, Link Version Checker 7.2.0, ParaManager 5.2.0, Schedule Export / Import 7.2.0, Shared Parameter Studio 1.1.0, Tracker ID 2.1.0, Delete Workset 1.3.0, Workset Manager 14.2.0, Workset Renamer 5.2.0, Workset Renamer (From Excel) 5.2.0, Worksets & Elements Browser 4.4.0.
+  Workset Creator 17.1.0 (new catalog entry for the V017 code: it has no ribbon button yet, so the ribbon still opens V016): Esc / Cancel while worksets are created or resynced; a cancel rolls the whole run back.
+  Link Memory 2.1.0 cannot undo a link load or unload (Revit does not allow it inside a transaction): its confirm says so, and a cancel only stops before the next link.
+- **Setup Tools group** (all tools in `Menu/Setup`, latest version of each): Esc / Cancel with a Yes / No confirm while the tool works: Batch Link DWG Family 2.3.0, DWG To Lines 7.1.0, DWG To DL(P) 14.1.0, DWG Manager 3.2.0, DWG Statistics 5.2.0, Export DWG to Folder 4.3.0.
+
+#### Changed
+- Manage ribbon: the **WS Creator** dropdown now lists Workset Creator V017 first (the button's own icon and click run V017), then V016 and V015. The "#" marker moved from V016 to V017.
+- Tag To Text 1.4.0: the separate Cancel button is replaced by the shared Cancel button, which asks for confirmation (the run already undid everything).
+- View Auto Renamer 7.2.0: the rename now runs in one transaction group.
+- Auto Slope By Drain (Multi-Roof) 13.2.0 and Auto Slope By Point (Multi Copies) 30.2.0: a cancel now undoes the whole run.
+  Before, roofs or copies that had already finished stayed applied. Auto Slope By Drain 7.3.0, Auto Slope By Point 33.1.0 and
+  Auto Slope By Point (Ridge) 3.2.0 already rolled the roof back; their Cancel button is now the shared one in the status strip
+  and asks for confirmation.
+- Floor Slope By Drain 1.1.0 and Floor Slope By Point (Multi Copies) 1.1.0: a cancel now undoes the whole run (before, finished floors or copies stayed).
+  Floors And Roof From Linked Rooms 13.2.0 and (Via Plan View) 6.2.0: a cancel now removes every element the run created (before, the ones already made were kept).
+  Their separate "Cancel" / "Cancel Run" buttons are replaced by the shared Cancel button, which asks for confirmation.
+- Create Sections From Detail Lines 13.2.0: a cancel now undoes the whole run (before, the sections already created stayed).
+  Reference Section Head Placer 15.2.0: the disabled Cancel button is replaced by the shared one, which works.
+- Roof Points & Slope 1.2.0: the separate "Cancel Run" button is replaced by the shared Cancel button; it asks for confirmation.
+
+User note: cancelling a run undoes every model change made by that run (a cancelled rename leaves all view names as they
+were). Files already exported or written stay. A single long Revit call cannot be interrupted, so the dialog can take a
+moment to appear. Excel files written before a cancel are kept. View Auto Renamer, the Roof Tools and the Floor Tools have this so far;
+the other tool groups follow. Ridge By Openings / Ridge By Points compute the ridge geometry on a background thread; that calculation cannot be
+cancelled, only the Revit steps after it (reading the roof, adding points, drawing lines).
+
+## [6.39.0] — 2026-11-06
+
+### Ribbon tabs
+
+#### Changed
+- The ribbon now has four tabs instead of two: `Rafi_Pro_MOds` and `Rafi_Pro_MOds2` for model tools, `Rafi_Pro_Docs` and `Rafi_Pro_Docs2` for sheet tools.
+  - `Rafi_Pro_MOds`: Roof Slope, Floor Slope, Shape Points, Floor Points, Floor Lines, Floor Edit, Roof Tools.
+  - `Rafi_Pro_MOds2`: Roof Edit, Roof Plan View, Roof Compare, Roof Insulation, Detail Lines, Roof Utilities.
+  - `Rafi_Pro_Docs`: View Create, Floor Views, View Place, View Rename, Sheet Create, Sheet Edit.
+  - `Rafi_Pro_Docs2`: Tagging, DWG Tools, Family Tools, Manage, Worksets, Memory.
+
+User note: no tool, button or command changed, only which tab its panel is on. Revit stores Quick Access Toolbar
+entries by tab, panel and button, so a button pinned there from a moved panel must be pinned again.
+
+## [6.38.2] — 2026-11-06
+
+### Ribbon panels
+
+#### Fixed
+- Build error: `RibbonPanel.CustomPanelTitleBarBackground` does not exist in the Revit API (it belongs to AdWindows).
+
+#### Removed
+- The green Floor panel title bars added in 6.37.3. Floor panel title bars use the default colour again.
+
+User note: only the title-bar colour changed. Floor button icons stay green.
+
+## [6.38.1] — 2026-11-06
+
+### Ribbon panels
+
+#### Changed
+- Renamed four Roof ribbon panels so they are not confused with the Floor panels: Utilities → Roof Utilities, Plan View → Roof Plan View, Compare → Roof Compare, Insulation → Roof Insulation.
+
+User note: only the panel titles changed. Buttons, their names and their order are unchanged.
+
+## [6.38.0] — 2026-11-06
+
+### Export DWG to Folder 4.2.0
+
+#### Added
+- One export per source file: when the same DWG is placed in several views, only the first one found is listed and exported. The scan log says how many duplicates were left out.
+- Worksharing check before delete, convert and re-link: elements checked out by another user, or changed in the central model, are skipped with the reason in the Result column. The tool first tries to check the elements out.
+
+User note: the scan list is now shorter if the same DWG file appears in more than one view.
+
+## [6.37.3] — 2026-11-04
+
+### Changed
+
+- The five Floor panel title bars (Floor Slope, Floor Points, Floor Lines, Floor Edit, Floor Views) are now green. User note: colour only; no behaviour change.
+
+## [6.37.2] — 2026-11-04
+
+### Changed
+
+- Floor panels (Floor Slope, Floor Points, Floor Lines, Floor Edit) now use green ribbon icons, separate from the orange Roof tools. User note: icon colour only; no behaviour change.
+
+## [6.37.1] — 2026-11-03
+
+### Fixed
+- 189 command and external-event handler entry points (older tool versions still on the ribbon: roof, sheet,
+  view, workset, link, DWG, detail-line and others) now run through `ToolGuard`. An unexpected error in these
+  tools is logged to `%AppData%\Revit26_Plugin_Revised\Logs`, shown in an error dialog, and no longer reaches
+  Revit. No tool behaviour or version changes; no new UI.
+
+## [6.37.0] — 2026-11-03
+
+### Added
+- New **Floor Views** ribbon panel on the Documents tab, right after **View Create**, each tool **v1.0.0 (V001)**:
+  - **Floor Edge Around Sections** (from Roof Edge Around Sections V007): section views around every edge of the
+    selected floors.
+  - **Floor Edge Element Sections** (from Roof Edge Element Sections V004): section views where linked elements
+    meet the selected floor edges.
+  - **Floor View Focus** (from Roof View Focus V004): crops the plan view to the selected floors.
+- **Floor Tapered EPS 2D Pattern v1.0.0 (V001)** (from Tapered EPS 2D Pattern V006), as **Floor EPS** on the
+  **Floor Edit** panel: draws the tapered EPS insulation layout as a 2D detail pattern in a plan view. Like the roof
+  tool, the floor must have a single outer loop (no openings).
+- These four tools only read the floors; they create views and detail items. Each tool was ported from the
+  latest roof version only.
+
+### Changed
+- **User note:** settings are saved separately from the roof tools, under
+  `%AppData%\Revit26_Plugin_Revised\FloorEdgeAroundSections`, `...\FloorEdgeElementSections` and
+  `...\FloorViewFocus`.
+- The roof tools are unchanged.
+
+## [6.36.0] — 2026-11-03
+
+### Added
+- New **Floor Edit** ribbon panel, right after **Floor Lines**, each tool **v1.0.0 (V001)**:
+  - **Floor Type Manager** (from Roof Type Manager V003): floor types with their layers, Excel export, and new
+    floor types created from an Excel template (compound structure, Variable layer, layer priorities).
+  - **Floor Name Builder** (from Roof Name Builder V002): bulk-renames floor types, or writes a floor instance
+    parameter, from INS / SLP / MAT codes.
+  - **Floor Tag** (from Roof Tag V018): spot elevations on a floor's top face at its shape points or picked points.
+  - **Floor Point Comparison** (from Roof Point Comparison V003): compares two floors' shape-point heights. It only
+    reads the floors.
+  - **Floor Point Elevation Sync** (from Roof Point Elevation Sync V005): matches two floors' shape points by plan
+    position and sets the chosen heights.
+- Floor Tag and Floor Point Elevation Sync refuse floors that are in a group, in a read-only model, borrowed by
+  another user, or that do not support shape editing, and say why. Elevation Sync also asks before changing a floor
+  whose type has no Variable layer.
+
+### Changed
+- **User note:** settings are saved separately from the roof tools, under
+  `%AppData%\Revit26_Plugin_Revised\FloorNameBuilder` and `...\FloorPointElevationSync`. Floor Tag's log file is
+  `Documents\FloorTag_V001_Log.txt`.
+- The roof tools are unchanged.
+
+## [6.35.0] — 2026-11-03
+
+### Added
+- New **Floor Lines** ribbon panel, right after **Floor Points**, each tool **v1.0.0 (V001)**:
+  - **Floor Crease Lines By Openings** (from Ridge By Openings V070): pick a floor, choose openings as drains, and
+    the crease (ridge) lines midway between them are drawn as shape points + split lines and/or detail lines.
+  - **Floor Crease Lines By Points** (from Ridge By Points V059): the same, from drain points clicked on the floor.
+  - **Floor Creaser** (from Creaser Adv V012): places detail items along a sloped floor's creases in the active
+    view. It only reads the floor.
+- The two crease-line tools refuse floors that are in a group, in a read-only model, borrowed by another user, or
+  that do not support shape editing, and say why.
+
+### Changed
+- **User note:** the crease-line tools are named "Crease Lines" on floors; they are the same Voronoi ridge
+  tools as on roofs. Their window titles and versions now come from the tool list (`ToolCatalog`), not from text
+  fixed in the window.
+- The roof tools are unchanged.
+
+## [6.34.0] — 2026-11-03
+
+### Added
+- New **Floor Points** ribbon panel, right after **Shape Points**, with floor versions of every Shape Points tool,
+  each **v1.0.0 (V001)**:
+  - **Floor Divide Inner Loops** (from Divide Inner Loops V012)
+  - **Floor Outer Curve Divider** (from Outer Curve Divider V006)
+  - **Floor Detail Line Intersect** (from Roof Detail Line Intersect V014)
+  - **Floor Inner Loops And Perpendicular** (from Inner Loops And Perpendicular V007)
+  - **Floor Edge Vertex Reducer** (from Roof Edge Vertex Reducer V009)
+  - **Floor Multiple Points (1/2–1/4)** (from Multiple Points V003)
+  - **Floor Shape From Link** (from Roof Shape From Link V002): reads the floors in the linked files.
+- All seven refuse floors that are in a group, in a read-only model, borrowed by another user, or that do not
+  support shape editing, and say why. Floor Shape From Link, which changes point heights, also asks before
+  changing a floor whose type has no Variable layer.
+- `Shared/Services/FloorSketchProfile` (reads a floor's sketch loops; a floor has no `GetProfiles()`) and
+  `Shared/Services/FloorPickFilter` (picks floors outside groups only).
+
+### Changed
+- **User note:** in **Floor Shape From Link**, "Subtract host floor thickness" is **off** by default. A floor's
+  level + offset is its top surface, so the host top follows the linked surface directly. Tick it to set the host
+  top one floor-type thickness lower. (The roof tool keeps it on, because a roof's base is its bottom.)
+- **User note:** **Floor Inner Loops And Perpendicular** resets every shape point of the picked floor to 0 when it
+  opens, as the roof tool does. Run it before sloping, or use Floor Divide Inner Loops, which only resets when you
+  tick that option.
+- The roof tools are unchanged.
+
+## [6.33.0] — 2026-11-03
+
+### Added
+- Three more floor tools on the **Floor Slope** panel (floor versions of the remaining Roof Slope tools):
+  - **Floor Slope By Point (Ridge) v1.0.0 (V001)**: the floor version of Auto Slope By Point (Ridge) V003. Pick a
+    floor and its drain points. Drains are grouped, the ridge points between groups are lifted, and every point
+    drains to a neighbour at the given slope or more.
+  - **Floor Slope By Point (Multi Copies) v1.0.0 (V001)**: the floor version of Auto Slope By Point (Multi Copies)
+    30. Pick a floor and its drain points, tick several slopes, and the floor is copied once per slope. Each copy is
+    sloped and put on its own workset (`Floor_Slope_<n>%`). Needs a workshared model, as on roofs.
+  - **Floor Points & Slope v1.0.0 (V001)**: the floor version of Roof Points & Slope V001. Pick one or more floors:
+    shape points around openings, perpendicular, mid/quarter and gap-fill points, the ridges between the drain
+    openings, then slope by drain (Floor Slope By Drain V001's engine), in one window and one Undo step.
+  - All three refuse floors that are in a group, borrowed by another user, in a read-only model, or that do not
+    support shape editing, and ask before sloping a floor whose type has no Variable layer.
+
+### Changed
+- **User note:** on the **Floor Slope** panel, **By Point** is now a pulldown (as on Roof Slope). It holds
+  **By Point** (the tool that was the button), **Ridge** and **Multi Copies**. If you added the old By Point button
+  to the Quick Access Toolbar, add it again from the pulldown.
+- **User note:** settings are saved separately from the roof tools, under
+  `%AppData%\Revit26_Plugin_Revised\FloorSlopeByPointRidge`, `...\FloorSlopeByPointMultiCopies` and
+  `...\FloorPointsAndSlope`. Excel reports go to `Documents\FloorSlope_Reports` by default. The same `AutoSlope_*`
+  parameters are written where they are bound to Floors.
+- **User note:** Floor Points & Slope uses **openings** in the floor sketch as drains. Drain families (Plumbing
+  Fixtures) are not listed there yet; use Floor Slope By Drain for floors drained by drain families.
+- The roof tools are unchanged. Floor Points & Slope uses floor copies of Ridge By Openings V070's boundary,
+  opening and ridge-creation services; V070 itself is untouched.
+
+## [6.32.0] — 2026-11-03
+
+### Added
+- **Align Spot Elevations v1.6.0 (V001)**: line spot elevations up with a tag.
+  - In **Align to detail lines** mode, the **Bend point line** and **End point line** boxes get a **Pick tag…**
+    button next to **Pick line…**. Click one spot elevation in the view: the selected spots' bend points (or leader
+    end points) line up with that tag's bend point (or end point), on a **Vertical (same X)** or
+    **Horizontal (same Y)** line. Pick the same tag for both boxes to line up bends and ends together. The clicked
+    tag does not need to be selected, and it stays where it is. It may be pinned or grouped, since it never moves.
+  - Two new small buttons in the **Tagging** panel: **Quick Align Ends to Tag** and **Quick Align Bends to Tag**.
+    Select the spots, click the button, click one tag. One Undo step.
+
+### Changed
+- **User note:** a line taken from a tag is endless, so the "Spots past the end of a line" choice does not apply
+  to it. The direction (vertical or horizontal) of each tag line is remembered and is also what the two quick
+  buttons use (default: vertical). The settings file moves to format version 4; older files still load.
+- The Align Spot Elevations mode is now labelled **Align to detail lines or a tag**.
+
+## [6.31.0] — 2026-11-02
+
+### Added
+- **Floor Slope** ribbon panel on the Modelling tab, next to **Roof Slope**, with two new tools:
+  - **Floor Slope By Drain v1.0.0 (V001)**: the floor version of Auto Slope By Drain (Multi-Roof) V013. Pick one
+    or more floors. Their drains are listed in one tab per floor, then each floor's shape points are sloped down to
+    the ticked drains in one Undo step. Two kinds of drain are found:
+    - openings in the floor sketch, as on roofs;
+    - **drain families**: Plumbing Fixture instances hosted on the floor or standing on its top face (within
+      300 mm). They are listed in a new **Fixture** group. Only fixtures whose family or type name looks like a
+      drain (drain, gully, outlet, trap, sump) start ticked. When the run starts, a shape point is added at each
+      ticked drain family.
+
+    Excel export, circle markers, path options and parameter write-back are the same as on the roof tool.
+  - **Floor Slope By Point v1.0.0 (V001)**: the floor version of Auto Slope By Point V033. Pick a floor, click the
+    drain points on it, and the floor is sloped down to them, with optional ridge lines.
+  - Both tools refuse floors that are in a group, borrowed by another user, in a read-only model, or that do not
+    support shape editing, and say why.
+
+### Changed
+- **User note:** if a floor's type has no **Variable** layer, both floor tools ask before sloping it. Shape editing
+  would tilt the whole slab, bottom included. Choose **Continue** to slope it anyway, or **Skip** (By Point:
+  **Cancel**) to leave it unchanged.
+- **User note:** the floor tools write the same `AutoSlope_*` shared parameters as the roof tools, but only where
+  they are bound to the **Floors** category. If they are not bound, the run log says so and the slope is still
+  applied. Settings are saved separately from the roof tools, under
+  `%AppData%\Revit26_Plugin_Revised\FloorSlopeByDrain` and `...\FloorSlopeByPoint`. Excel reports go to
+  `Documents\FloorSlope_Reports` by default.
+- The roof slope tools are unchanged.
+
+## [6.30.1] — 2026-11-02
+
+### Fixed
+- **View Auto Renamer 7.1.2 (V007)** — the window failed to open with "Add value to collection of type
+  'UIElementCollection' threw an exception". A damaged comment in the window layout left stray text in the
+  layout; it is repaired. The tool still opens with only the current sheet's views and loads the rest of the
+  project when you click **Load all views**.
+
+## [6.30.0] — 2026-11-02
+
+### Added
+- **Worksets & Elements Browser v4.3.0 (WSEB004)**
+  - **Group by** drop-down in the toolbar: **Category › Type** (the old layout, still the default),
+    **Type › Category**, **Category only** or **Type only**. Changing it re-shapes the tree instantly; check
+    marks are cleared because the rows change.
+  - **Select** and **Show in 3D** buttons on Category rows as well as Type rows. They act on every element under
+    the row. **Select** sets the Revit selection directly, without opening a 3D view.
+  - Right-click a row ▸ **Check same category / type in all worksets**, and a new **Check Filtered** button that
+    checks every row matching the filter box.
+  - **Save as Selection Set…** saves all checked elements as a Revit selection set (it appears under
+    Manage ▸ Selection ▸ Edit/Load Selection Sets). You pick the name; if it already exists you are asked
+    whether to replace its contents. A name used by a view filter is refused.
+
+### Changed
+- **User note:** the "checked" counter now counts rows instead of types. The selection set is a new model
+  element, so in a workshared model it is created on your current active workset. Defaults are unchanged: with
+  no changes to Group by the tree looks and behaves as before.
+
+## [6.29.0] — 2026-11-02
+
+### Added
+- **Align Spot Elevations v1.5.0 (V001)** — new **Align to detail lines** mode, and a new **Align to Detail Line**
+  button in the **Tagging** panel that opens the window in that mode.
+  - Pick up to three detail lines, each optional: one for the **bend points**, one for the **leader end points**
+    and one for the **text**. **Pick line…** hides the window until you click a straight detail line in the view;
+    **Clear** removes it. A part with no line stays where it is (the text still follows its end point, as in Revit).
+  - Each line has its own **Move** choice: **Auto** (whichever reaches the line, the shorter move when both do),
+    **Vertical** (X stays) or **Horizontal** (Y stays). Under each line the window says whether each direction is
+    possible and for how many spots; a direction that can never reach the line (a vertical line for a vertical
+    move, a horizontal line for a horizontal move) is greyed out.
+  - Bend points move first, then leader ends, then text. With a bend, Revit only lets the end slide along the
+    bend-to-end segment, so Auto prefers the direction the end can really reach; ends that still stop short are
+    marked * and counted.
+  - **Spots past the end of a line:** **Skip them** (default) or **Treat the line as endless**.
+  - New **Result** column in the preview: what happened to each part of each spot, and why a part was skipped.
+  - Select exactly one straight detail line together with the spots before starting, and the window opens in this
+    mode with that line set for the end points.
+
+### Changed
+- **User note:** settings files are now version 3 (new fields default to the old behaviour); version 1 and 2 files
+  still load. The other modes and the quick-align buttons work as before. Picked lines are not saved.
+
+## [6.28.0] — 2026-11-02
+
+### Added
+- **Align Spot Elevations v1.4.0 (V001)** — four new small buttons in the **Tagging** panel, in two stacks next to
+  Quick Align Vertical / Horizontal:
+  - **Quick Align Ends Vertical** and **Quick Align Ends Horizontal**: line the leader end points up in one column or
+    row right away, without the window. The text moves with each end.
+  - **Quick Align Bends Vertical** and **Quick Align Bends Horizontal**: the same for the leader bend points
+    (shoulders). The end and text move with each bend.
+  - They use the line position and spacing last used in the window, give one Undo step, and say when fewer than two
+    selected spots have a leader (or a bend). A leader with a bend only lets its end slide along the bend-to-end
+    segment; the result dialog counts ends that stop short of the line.
+
+## [6.27.0] — 2026-11-02
+
+### Added
+- **Align Spot Elevations v1.3.0 (V001)**
+  - New **Move** group with three checkboxes: **Text** (on by default), **Leader end point** and **Leader bend
+    point (shoulder)**. Any mix can be ticked; each ticked part goes on its own column or row, is spaced on its own,
+    or (Offset from point) gets its own Right / Up offset. All three modes work with all three parts.
+  - Parts that are not ticked follow, as Revit moves them: the text moves with the leader end, and the end and
+    text move with the bend point.
+  - Spots without a leader (or without a bend) keep that point; the preview and result say how many.
+  - With a bend, Revit only lets the leader end slide along the bend-to-end segment, so an end may stop short of
+    its line. The preview marks these ends with * and the result dialog counts them; tick the bend point too to
+    move them further.
+  - The preview shows the leader end and bend moves in their own columns while those parts are ticked.
+
+### Changed
+- **Align Spot Elevations:** the preview's "Move X / Move Y" columns are now "Text X / Text Y".
+- **User note:** old settings load as before (text only). Quick Align Vertical / Horizontal use the parts last
+  ticked in the window.
+
+## [6.26.0] — 2026-10-31
+
+### Added
+- **Align Spot Elevations v1.2.0 (V001)**
+  - **Quick Align Vertical** and **Quick Align Horizontal**: two small buttons next to Align Spot Elevations in the
+    **Tagging** panel. They line the selected tags up in one column or one row right away, without the window, using
+    the line position, tolerance and spacing last used in the window. If "Reference spot" was last used, they use
+    Average. One Undo step; the result dialog says what was done and lists any skipped tags.
+  - **Overlap check:** the preview marks tags that would overlap another selected tag in red, and the warning counts
+    them. Tag sizes are estimated from the spot type's text size and width factor and the length of the value, so
+    the check is a guide, not exact. Quick align reports possible overlaps after it runs.
+  - **Fit** button next to Fixed gap: sets a gap that clears the tags (the tallest tag plus 1 mm for a column, the
+    widest tag plus 1 mm for a row).
+
+### Changed
+- **Align Spot Elevations:** rows of tags that stay are shown in grey in the preview.
+- **User note:** the old "tags on top of each other" warning is replaced by the overlap check, which uses tag size
+  instead of a 1 mm distance, so it also catches tags that are close but not stacked.
+
+## [6.25.0] — 2026-10-31
+
+### Added
+- **Align Spot Elevations v1.1.0 (V001)** — the window now has three ways to arrange the selected tags:
+  - **Align to a line** (as before), now with **Spacing along the line**: keep the current spacing, **Even**
+    (first and last tag stay, the rest are spaced evenly) or **Fixed gap** (the top tag of a column or the left
+    tag of a row stays, the rest follow at the gap).
+  - **Distribute only**: spaces the tags evenly or at a fixed gap down their column or along their row,
+    without lining them up.
+  - **Offset from point**: places every tag the same distance right and up from its own measured point, so
+    all leaders get the same length and direction.
+  - A warning when tags would sit on top of each other after the move.
+  - The last-used options are remembered in `%AppData%\Revit26_Plugin_Revised\AlignSpotElevations\settings.json`
+    (versioned; a missing or unreadable file falls back to the defaults).
+
+### Changed
+- **Align Spot Elevations:** all distances (tolerance, gap, offset and the preview) are now in **paper mm**
+  (model distance ÷ view scale), so they match the printed drawing at any view scale. The preview shows the
+  move in X and Y for each tag.
+- **User note:** the "Most common" tolerance default is now **1 mm on paper** (was 5 mm of model space, which
+  at 1:100 was only 0.05 mm on paper, so it almost never found a shared line).
+
+## [6.24.0] — 2026-10-31
+
+### Added
+- **Align Spot Elevations v1.0.0 (V001)** — new tool: **Align Spot Elevations** button in the **Tagging** panel.
+  Lines up the tags of the selected spot elevations in the active view.
+  - **Direction:** Vertical (one column, same position left-right) or Horizontal (one row, same position up-down).
+  - **Align to:** Average, Most common (the position shared by the most tags, within a tolerance, default 5 mm),
+    Median, Min, Max, or one chosen Reference spot. If "Most common" finds no shared position, the average is used.
+  - Live preview with the current position, the new position and the distance each tag moves.
+  - Works from the current selection, or asks you to select spot elevations.
+  - Apply is **one Undo step**; if any tag cannot be moved nothing changes.
+  - Pinned, grouped and other-user-owned tags are skipped and listed with the reason.
+- **User note:** only the tag text moves. The measured point and the leader end stay where they are, so the
+  elevation values do not change. Spot coordinates and spot slopes are not touched.
+- Unit tests for the alignment maths: `dotnet test Tests/AlignSpotElevations.Tests`.
+## [6.23.0] — 2026-10-31
+
+### Added
+- **Tag To Text 1.3.0 (V001)** — **multi-level grouping** in the tag table. Under *Group by type* there is now a
+  **Group by … then … then …** row with three drop-downs. Each level can be **Type** (as before), **Tag category**,
+  **Tag family & type** (e.g. "Roof Tag : Slope 2%"), **Tagged element's category** (e.g. Roofs, Rooms, Doors),
+  **Status** (OK, no text, in a group, owned by another user, problem) or **Identical text**.
+  - Levels nest in the order chosen; a level set to *(none)*, or repeated, is skipped. Every heading, at every
+    level, has its own tick box and "n of N ticked".
+  - The choice is remembered (`settings.json` version 3 adds `GroupLevel1`–`GroupLevel3`; older files load as before).
+- **User note:** nothing changes until you pick a second or third level: the default is Type only, which is the
+  grouping the table had before.
+- Unit tests for the new settings: `dotnet test Tests/TagToText.Tests`.
+
+## [6.22.0] — 2026-10-31
+
+### Added
+- **Sheet Text Replace v1.0.0 (V001)** — new tool: **Text Replace** button in the new **Sheet Edit** panel
+  (next to Sheet Create). Finds
+  and replaces text in the text notes on one sheet, in the views you tick.
+  - **Sheet picker** with search (number or name). The active sheet is preselected when the tool opens on one.
+  - **Views…** pop-up: the sheet's views grouped by view type, with a tick box and a select / clear button per
+    type, a filter box and All / None. Shows each view's scale and number of text notes; views without text notes
+    are greyed out, views owned by another user show a lock, legends that are also on other sheets show ⧉.
+    Notes placed directly on the sheet are listed as **Sheet (no view)**.
+  - **Find**, **Replace with**, **Prefix**, **Suffix**, with **Match case**, **Whole word**, **Regex** and
+    **Trim spaces** (removes spaces at the start and end of each line and turns double spaces into one; line
+    breaks are kept). An invalid regular expression is shown under Find and disables Apply. Prefix and suffix
+    are added only to notes that change.
+  - **Preview** with one row per matching note: only the found text is coloured (red, struck through) and the
+    replacement (green). Rows can be unticked; only ticked rows are applied. Double-click a row to show the note
+    in Revit.
+  - **Summary** cards before Apply (views checked, notes scanned, matches, will change, excluded, will skip,
+    plus an example) and after Apply (changed, skipped, failed, views affected, time), with one line per skipped
+    or failed note. Any change to the inputs, options or views returns to the before-Apply cards.
+  - **Refresh** re-reads the sheet after changes made in Revit.
+  - Apply runs as **one Undo step**. Only the found text is replaced, so bold, italic, underline and lists in the
+    rest of each note are kept. Notes owned by another user, in a group, read-only, needing Reload Latest, or
+    changed in Revit since the preview are skipped and listed with the reason.
+- **User note:** legend notes start unticked, because a legend can be on several sheets and a change shows on all
+  of them; tick them in the preview to change them anyway.
+- Unit tests for the find / replace rules: `dotnet test Tests/SheetTextReplace.Tests`.
+
+## [6.21.4] — 2026-10-31
+
+### Fixed
+- **Tag To Text 1.2.1 (V001)** — the plugin builds again. The hidden-annotations check called
+  `View.AreAnnotationCategoriesHidden` as a method; in the Revit 2026 API it is a property.
+  No change in behaviour.
+
+## [6.21.3] — 2026-10-30
+
+### Fixed
+- **Ribbon** — the Auto Slope By Point V033 button tooltip now shows the tool's real version (33.0.1) from the tool catalog.
+
+## [6.21.2] — 2026-10-30
+
+### Fixed
+- **Auto Slope By Point 33.0.1 (V033)** — the roof's `AutoSlope_*` parameters are written to whatever data
+  type the parameter has (whole number, number/length or text) instead of being skipped on a type mismatch.
+  Parameters that still cannot be written are listed by name with the reason in the run log.
+- **User note:** if a parameter stays empty, the log now says why (not bound to Roofs, read-only, unsupported type).
+
+## [6.21.1] — 2026-10-29
+
+### Changed
+- **View Auto Renamer 7.1.1 (V007)** — faster with many views. The view-type filter is now a direct lookup
+  instead of a search per row, filter changes (typing in the search boxes, ticking view types) are grouped
+  into one refresh instead of one per keystroke or tick, checking a row no longer recomputes every preview
+  at once, and **Load all views** refreshes the grid once instead of once per added view.
+- **User note:** previews and the grid now update a fraction of a second after your last change.
+
+## [6.21.0] — 2026-10-29
+
+### Changed
+- **View Auto Renamer 7.1.0 (V007)** — opens with only the current sheet's views instead of loading the whole
+  project. If you start it on a view placed on a sheet, that sheet's views load.
+  - New **Load all views** button (above the grid) loads the rest of the project when you want it. Your edits and
+    selections are kept; Legends and Schedules then show all their sheets, and the sheet and view-type filters
+    include the new views. The sheet filter switches to **All**.
+  - If the active view is not on a sheet, the grid starts empty with a log hint; click **Load all views**.
+- **User note:** the grid no longer shows every view straight away. Click **Load all views** to get the old
+  behaviour. Legends and Schedules on other sheets show only the current sheet until you do.
+
+## [6.20.0] — 2026-10-29
+
+### Added
+- **Tag To Text v1.2.0** — warns when the new text won't show in its view. After the notes are made, the tool
+  checks the view for: the Text Notes category switched off in Visibility/Graphics, all annotation categories
+  hidden, a view template doing either, a filter whose Visibility box is off and that matches the new notes,
+  a hidden workset, and notes outside the crop region. Each reason is named in the run log ("Not visible: …")
+  and in a message box after the run, and the log summary counts the warnings.
+- **User note:** nothing is blocked or changed by this; the text is still created. Fix the cause in
+  Visibility/Graphics (VV), the view template or the filters, and the text appears.
+
+## [6.19.0] — 2026-10-29
+
+### Added
+- **Auto Slope By Point v33.0.0 (V033)** — new version of By Point, first in the **By Point** pulldown. Same as
+  V032, plus optional **ridge lines**:
+  - New **Ridge lines** section in the options: a tick box, **Draw ridge lines between drain groups** (off by
+    default), and a **Line style** list with the project's line styles.
+  - When ticked, the run joins the highest shape points between each pair of neighbouring drain groups and draws
+    them as detail lines in the active plan view, in the chosen line style. Where three or more groups meet, the
+    ridges meet at one point. Ridges never cross an opening, and small zig-zags are straightened.
+  - A drain group is one pick plus its nearby points. Picks that share a shape point are one group. Ridge lines
+    need 2 or more groups.
+  - If the chosen line style is missing or Revit refuses it, **Thin Lines** is used; if that fails too, Revit's
+    default line style. Each fallback is written to the log.
+  - The Excel **Run Summary** sheet has a new last row, **Ridge lines** (lines placed, ridges, line style).
+
+### Changed
+- **By Point** pulldown — order is now V033, V032, V030, Ridge V003, Multi Copies 30. V033 supplies the
+  pulldown's icon. V032 stays as the fallback.
+- **User note:** V033 never changes elevations for ridge lines: the slope is exactly what V032 calculates. Ridge
+  lines are placed in the same undo step as the slope, so Ctrl+Z removes both. Lines from an earlier run are
+  kept, as circle markers are. The first time V033 opens it reads V032's settings (ridge lines off); after that
+  it keeps its own file, `settings.v033.json`.
+
+## [6.18.0] — 2026-10-28
+
+### Added
+- **Tag To Text v1.1.0** — work with the tag table by tag type (the Type column: Spot Elevation, Spot Slope,
+  Roof Tags, Door Tags, Room Tags…):
+  - **Group by type** (above the table): one collapsible heading per type, showing "3 of 5 ticked". Each heading
+    has a tick box that ticks every tag of that type, or clears them when they are all ticked; a partly ticked
+    type shows a partial tick, and clicking it ticks the rest. Groups stay in the table's order (spots first)
+    when a column is sorted.
+  - **Type** list with **Select Type** / **Clear Type**: tick or clear every tag of one type, grouped or not.
+    The list shows only the types the Source tick boxes show, with how many tags each has.
+  - Tags that can't be copied are never ticked, the same as **Select All**.
+
+### Changed
+- **Tag To Text** — in the table, element tags and room/area tags are now listed by type name, then by text
+  (spots still come first). Before, all element tags were sorted by text only, so types were mixed.
+- **Tag To Text** — changing the Source tick boxes, grouping or reloading the list while a text is being edited
+  now ends the edit first, so it can't stop with an error.
+- **User note:** the table opens **grouped by type** (also with settings saved by v1.0.x). Untick
+  **Group by type** to get the flat list back; the choice is remembered. The settings file is now version 2;
+  older files are read as before.
+
+## [6.17.0] — 2026-10-28
+
+### Added
+- **Roof Edge Around Sections v7.2.0 (V007)** — choose which created sections to open. With **Open Views After
+  Creation** set to **Ask Me**, a panel now opens inside the tool window after a run. It lists every section just
+  created (name, roof, direction) with a checkbox, a search box, Select All / Clear, and **Open selected**. Only the
+  ticked sections open. Close, Esc or a click outside the panel closes it without opening anything. Views that
+  cannot be opened are listed in the log.
+
+### Changed
+- **Roof Edge Around Sections v7.2.0 (V007)** — Run turns off after a run that created sections. After a run the
+  tool re-scans the roofs and finds the same edges again (with new names, because the views now exist), so a second
+  click made duplicate sections. Run comes back on when you click **Refresh** or change a setting (distances, view
+  template, merge, or naming). A run that created nothing can be retried straight away.
+- **Roof Edge Around Sections** — the tool's Revit event handler now goes through the plugin's standard error
+  handling (`ToolGuard`), so an unexpected error is shown and written to `%AppData%\Revit26_Plugin_Revised\Logs`.
+- **User note:** "Ask Me" no longer asks Yes/No to open all sections; tick the ones you want in the list instead.
+  "Open All" and "Don't Open" work as before. Old settings files load unchanged.
+
+### Fixed
+- **Roof Edge Around Sections v7.2.0 (V007)** and **Roof Edge Element Sections v4.1.2 (V004)** — switching to another
+  open project while the tool window was open made Refresh and Run work on that other project, using roofs and edges
+  from the first one, so section views could be created in the wrong project. Both tools now refuse, and the log names
+  the project to switch back to. Run also refuses on a read-only project.
+- **Roof Edge Element Sections** — its Revit event handler now goes through the plugin's standard error handling
+  (`ToolGuard`), like Roof Edge Around Sections.
+- **User note:** if the log says another project is active, switch back to the project the window was opened in and
+  click **Refresh** (the planned-sections list is cleared when a refresh is refused).
 
 ## [6.16.1] — 2026-10-28
 

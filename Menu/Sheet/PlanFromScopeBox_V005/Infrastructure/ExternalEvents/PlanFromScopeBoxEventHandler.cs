@@ -5,6 +5,7 @@ using Autodesk.Revit.DB;
 using Revit26_Plugin_Revised.PlanFromScopeBox.V005.Core.Engine;
 using Revit26_Plugin_Revised.PlanFromScopeBox.V005.Core.Services;
 using Revit26_Plugin_Revised.Shared.Models;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace Revit26_Plugin_Revised.PlanFromScopeBox.V005.Infrastructure.ExternalEvents
 {
@@ -49,7 +50,10 @@ namespace Revit26_Plugin_Revised.PlanFromScopeBox.V005.Infrastructure.ExternalEv
             while (_queue.TryDequeue(out _)) { }
         }
 
-        public void Execute(UIApplication app)
+        public void Execute(UIApplication app) =>
+            ToolGuard.RunHandler(GetType(), app, ExecuteCore);
+
+        private void ExecuteCore(UIApplication app)
         {
             UIDocument uidoc = app.ActiveUIDocument;
             if (uidoc == null)

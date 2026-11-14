@@ -1,0 +1,262 @@
+<title>Sheet Auto Rearrange V029</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<!-- UI preview (CLAUDE.md "UI previews"): Sheet Auto Rearrange 29.0.2 (V029) — new version next to V028. Plugin 7.1.1.
+     Shown: Rearrange dropdown with the new V029 entry + tooltip, the tool window with the new
+     Align & Distribute section open (table: Align Rows Bottom, Align Columns Left, Distribute H Edge to edge,
+     Distribute V Equal spacing), the Live Sheet Preview of that layout, the "skipped" note, and what each option does.
+     Mirrors: Menu/Sheet/SheetAutoRearrange_V029/UI/Views/SheetAutoRearrangeWindow.xaml
+              (+ UI/ViewModels/SheetAutoRearrangeViewModel.cs, Menu/00_Push_Button_Menu_items/Ribbon/SheetToolsRibbon.cs;
+              version from Shared/Services/ToolCatalog.cs).
+     Artifact: https://claude.ai/artifact/YPSJkBD9rMa5GgCE6SAtVW (republish to this URL on every update)
+     Colours: Shared/SharedStyles.xaml tokens, one light look on purpose (mirrors the light WPF window). -->
+<style>
+/* Layout: one column; the fixed-width WPF window scrolls inside its own frame, notes sit around it. */
+:root{
+  color-scheme:light;
+  --page:#E9EDF1; --window:#F3F5F7; --card:#FFFFFF; --border:#D6DCE3; --input:#B5C2CF; --sep:#E6EAEF;
+  --navy:#1E3A5F; --navy-dark:#14283F; --navy-light:#2C4A6E; --on-dark:#EAF1F8;
+  --text:#1A2B3C; --text2:#5B7185; --text3:#8FA3B8; --bg2:#ECEFF3; --bg3:#E1E6EC;
+  --blue:#2D6CDF; --info:#1F5FBF; --info-soft:#E6EEFB; --info-border:#A9C3EE;
+  --ok:#2E7D4F; --ok-soft:#E6F4EC; --ok-border:#9FCFB2;
+  --warn:#9A5B00; --warn-soft:#FDF1E1; --warn-border:#E8B66B;
+  --err:#B23A35; --err-soft:#FBE8E7;
+  --log-text:#EAF1F8; --log-dim:#7E94AA; --log-ok:#4CC18A; --log-warn:#F0AE5C;
+  --view-fill:#EAF1F8;
+  --ui:'Segoe UI',system-ui,-apple-system,sans-serif; --mono:Consolas,'Cascadia Mono',Menlo,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--text);font-family:var(--ui);font-size:12.5px;
+  padding-block:24px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.page{max-width:1212px;margin:0 auto;display:grid;gap:22px}
+.page>*{min-width:0}
+h1{font-size:20px;margin:0 0 4px;font-weight:600;text-wrap:balance}
+h2{font-size:14px;margin:0 0 8px;font-weight:600;text-wrap:balance}
+p{margin:0;line-height:1.5;max-width:78ch}
+.muted{color:var(--text2)}
+.tag{display:inline-block;background:var(--ok);color:#FFFFFF;font-size:10px;font-weight:600;letter-spacing:.04em;
+  padding:1px 6px;border-radius:3px;vertical-align:middle;margin-left:6px}
+.sample{display:inline-block;background:var(--warn-soft);color:var(--warn);border:1px solid var(--warn-border);border-radius:3px;padding:2px 8px;font-size:11.5px;margin-top:6px}
+.frame{overflow-x:auto;padding-bottom:4px}
+
+/* Ribbon dropdown mock */
+.rib{display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start}
+.menu{width:230px;background:var(--card);border:1px solid var(--input);box-shadow:0 4px 12px rgba(16,32,48,.18);font-size:12px}
+.menu .head{padding:5px 8px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px}
+.menu .it{padding:5px 8px;display:flex;align-items:center;gap:7px}
+.menu i{width:14px;height:14px;border-radius:2px;background:var(--bg3);border:1px solid var(--input);display:inline-block;flex:none}
+.menu .it.hl{background:var(--ok-soft);outline:2px solid var(--ok);outline-offset:-2px}
+.tip{width:min(420px,100%);background:var(--card);border:1px solid var(--input);box-shadow:0 4px 12px rgba(16,32,48,.18);padding:8px 10px;font-size:12px;line-height:1.45}
+.tip b{display:block;margin-bottom:3px}
+
+/* Window */
+.win{width:1180px;background:var(--window);border:1px solid var(--navy-dark);box-shadow:0 8px 24px rgba(16,32,48,.22)}
+.tb{background:var(--card);border-bottom:1px solid var(--border);padding:6px 10px;display:flex;justify-content:space-between;font-size:12px}
+.hdr{background:var(--navy);color:var(--on-dark);padding:12px 16px;display:flex;align-items:center;gap:14px}
+.hdr .t{font-size:16px;font-weight:600}
+.hdr .s{font-size:11.5px;color:var(--log-dim)}
+.hdr .v{margin-left:auto;font-size:11.5px;background:var(--navy-light);padding:2px 8px;border-radius:10px}
+.sub{padding:10px 14px 0;display:grid;gap:10px}
+.chip{justify-self:start;background:var(--info-soft);color:var(--info);border-radius:10px;padding:2px 10px;font-size:11.5px;font-weight:600}
+.metrics{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.metric{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:6px;text-align:center}
+.metric span{display:block;font-size:10.5px;color:var(--text2);text-transform:uppercase;letter-spacing:.05em}
+.metric b{font-size:18px;font-variant-numeric:tabular-nums}
+.body{padding:10px 14px;display:grid;grid-template-columns:1.25fr 1fr;gap:10px;align-items:start}
+.card{background:var(--card);border:1px solid var(--border);border-radius:6px}
+.card h3{margin:0;padding:9px 12px 6px;font-size:13px;font-weight:600}
+.tools{display:flex;gap:6px;padding:0 12px 6px}
+.btn{border:1px solid var(--input);background:var(--card);border-radius:4px;padding:3px 9px;font-size:11.5px;white-space:nowrap}
+.inp{border:1px solid var(--input);background:var(--card);border-radius:4px;padding:3px 7px;font-size:11.5px;color:var(--text3)}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{background:var(--bg2);text-align:left;font-weight:600;padding:5px 8px;border-block:1px solid var(--border)}
+td{padding:5px 8px;border-bottom:1px solid var(--sep);font-variant-numeric:tabular-nums}
+.pill{background:var(--ok-soft);color:var(--ok);border-radius:9px;padding:1px 8px;font-size:11px;font-weight:600}
+.cb{display:inline-block;width:12px;height:12px;border:1px solid var(--navy);background:var(--navy);border-radius:2px;vertical-align:-2px}
+.right{display:grid;gap:8px}
+.exp{background:var(--card);border:1px solid var(--border);border-radius:6px}
+.exp>.eh{padding:8px 12px;font-weight:600;font-size:12.5px;display:flex;align-items:center;gap:8px}
+.exp>.eh::before{content:"›";color:var(--text2);font-size:14px;line-height:1}
+.exp.open>.eh::before{transform:rotate(90deg)}
+.exp.new{outline:2px solid var(--ok);outline-offset:1px}
+.badge{margin-left:auto;background:var(--bg2);color:var(--text2);border-radius:9px;padding:1px 8px;font-size:10.5px;font-weight:600}
+.eb{padding:0 12px 10px;display:grid;gap:5px}
+.row{display:flex;align-items:center;gap:0}
+.row label{width:130px;color:var(--text2);font-size:12px}
+.combo{width:120px;border:1px solid var(--input);border-radius:4px;padding:3px 7px;font-size:12px;display:flex;justify-content:space-between;background:var(--card)}
+.combo::after{content:"▾";color:var(--text2)}
+.hint{color:var(--text3);font-size:10.5px;line-height:1.4}
+.note{border-radius:6px;padding:6px 8px;font-size:10.5px;line-height:1.4;background:var(--info-soft);border:1px solid var(--info-border);color:var(--navy)}
+.note.w{background:var(--warn-soft);border-color:var(--warn-border);color:var(--warn)}
+.canvas{height:200px;background:var(--window);border:1px solid var(--border);border-radius:6px;overflow:hidden}
+.canvas svg{height:100%;display:block}
+.log{margin:0 14px 10px;background:var(--navy-dark);border-radius:6px;overflow:hidden}
+.log .lh{background:var(--navy);color:var(--log-text);padding:6px 10px;font-size:11.5px;font-weight:600;display:flex;justify-content:space-between}
+.log .lh span{font-weight:400;color:var(--log-dim)}
+.log pre{margin:0;padding:8px 10px;font-family:var(--mono);font-size:11.5px;color:var(--log-text);line-height:1.55;white-space:pre-wrap}
+.log .d{color:var(--log-dim)} .log .ok{color:var(--log-ok)} .log .wn{color:var(--log-warn)}
+.foot{border-top:1px solid var(--border);background:var(--card);padding:8px 14px;display:flex;align-items:center;gap:8px}
+.foot .st{color:var(--text2);font-size:11.5px;margin-right:auto}
+.pri{background:var(--navy);color:#FFFFFF;border-color:var(--navy);padding:5px 18px}
+.sec{padding:5px 14px}
+
+/* Option explainer */
+.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.opt{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:10px 12px;display:grid;gap:6px;align-content:start}
+.opt b{font-size:12.5px}
+.opt svg{width:100%;height:auto;background:var(--window);border:1px solid var(--border);border-radius:4px}
+.v{fill:var(--view-fill);stroke:var(--blue);stroke-width:1.2}
+.g{stroke:var(--ok);stroke-width:1;stroke-dasharray:4 3;fill:none}
+ul{margin:0;padding-left:18px;line-height:1.55;max-width:78ch}
+</style>
+
+<div class="page">
+  <header>
+    <h1>Sheet Auto Rearrange 29.0.2</h1>
+    <p class="muted">V029 is V028 plus Align &amp; Distribute: views line up on shared row and column lines and spread across the usable area. Green marks what is new. V028 stays in the dropdown, unchanged.</p>
+    <p class="muted" style="margin-top:6px"><span class="tag" style="margin-left:0">29.0.2</span> Fixes only: the progress bar now stops when Run finishes, and closing the window no longer shows the "not within an API context" error. V030 now sits above this version in the dropdown; V027 is removed.</p>
+    <span class="sample">Sample data. Sheet, view names and sizes are made up.</span>
+  </header>
+
+  <section>
+    <h2>Ribbon: Sheet Create slide-out, Rearrange dropdown</h2>
+    <div class="rib">
+      <div class="menu">
+        <div class="head"><i></i> Rearrange ▾</div>
+        <div class="it"><i></i> Rearrange V030</div>
+        <div class="it"><i></i> Rearrange V029</div>
+        <div class="it"><i></i> Rearrange V028</div>
+
+      </div>
+      <div class="tip">
+        <b>Sheet Auto Rearrange — v29.0.2 (build V029)</b>
+        V028 plus Align &amp; Distribute: line views up on shared row / column lines and spread them across the usable area.
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Tool window</h2>
+    <div class="frame">
+      <div class="win">
+        <div class="tb"><span>Sheet Auto Rearrange — v29.0.2</span><span>—  ☐  ✕</span></div>
+        <div class="hdr"><div><div class="t">Sheet Auto Rearrange</div><div class="s">Repack the views on the active sheet</div></div><span class="v">v29.0.2</span></div>
+        <div class="sub">
+          <span class="chip">Active Sheet: A-501 — Wall Sections</span>
+          <div class="metrics">
+            <div class="metric"><span>Total Views</span><b>6</b></div>
+            <div class="metric"><span>Selected</span><b style="color:var(--blue)">6</b></div>
+            <div class="metric"><span>Removed</span><b style="color:var(--err)">0</b></div>
+            <div class="metric"><span>Placed Ok</span><b style="color:var(--ok)">6</b></div>
+            <div class="metric"><span>Failed to Fit</span><b style="color:var(--err)">0</b></div>
+          </div>
+        </div>
+
+        <div class="body">
+          <div class="card">
+            <h3>Views on Sheet</h3>
+            <div class="tools"><span class="inp" style="width:170px">Filter by name…</span><span class="btn">View Types ▾</span><span class="btn">Select All</span><span class="btn">Clear</span><span class="btn">Refresh</span></div>
+            <table>
+              <tr><th style="width:28px"></th><th>View Name</th><th>Scale</th><th>Size on Sheet (mm)</th><th>Type</th><th>Fit</th></tr>
+              <tr><td><span class="cb"></span></td><td>Section 1</td><td>1 : 20</td><td>180 × 140</td><td>Section</td><td><span class="pill">Fits</span></td></tr>
+              <tr><td><span class="cb"></span></td><td>Section 2</td><td>1 : 20</td><td>150 × 110</td><td>Section</td><td><span class="pill">Fits</span></td></tr>
+              <tr><td><span class="cb"></span></td><td>Parapet Detail</td><td>1 : 5</td><td>200 × 150</td><td>Detail</td><td><span class="pill">Fits</span></td></tr>
+              <tr><td><span class="cb"></span></td><td>Section 3</td><td>1 : 20</td><td>160 × 120</td><td>Section</td><td><span class="pill">Fits</span></td></tr>
+              <tr><td><span class="cb"></span></td><td>Sill Detail</td><td>1 : 5</td><td>190 × 100</td><td>Detail</td><td><span class="pill">Fits</span></td></tr>
+              <tr><td><span class="cb"></span></td><td>Head Detail</td><td>1 : 5</td><td>140 × 130</td><td>Detail</td><td><span class="pill">Fits</span></td></tr>
+            </table>
+          </div>
+
+          <div class="right">
+            <div class="exp"><div class="eh">Layout Settings</div></div>
+            <div class="exp"><div class="eh">Sheet Positioning</div></div>
+
+            <div class="exp open new">
+              <div class="eh">Align &amp; Distribute <span class="tag">NEW</span><span class="badge">Table</span></div>
+              <div class="eb">
+                <div class="row"><label>Align Rows</label><span class="combo">Bottom</span></div>
+                <div class="row"><label>Align Columns</label><span class="combo">Left</span></div>
+                <div class="hint">Rows: views in a row share one top / centre / bottom line. Columns: views in a column share one left / centre / right line. Both on = a table.</div>
+                <div class="row"><label>Distribute H</label><span class="combo">Edge to edge</span></div>
+                <div class="row"><label>Distribute V</label><span class="combo">Equal spacing</span></div>
+                <div class="hint">Spreads the rows / columns across the usable area. Edge to edge: first and last view on the area edges. Equal spacing: same gap between views and to the edges. Off: the H / V gap, placed by Sheet Position. Needs Align Rows or Align Columns.</div>
+                <div class="note">Align &amp; Distribute applied — 2 row(s) × 3 column(s), 6 view(s).</div>
+              </div>
+            </div>
+
+            <div class="exp"><div class="eh">Priority Groups</div></div>
+            <div class="exp"><div class="eh">Row Fill Strategy <span class="badge">MaxFill</span></div></div>
+
+            <div class="exp open">
+              <div class="eh">Live Sheet Preview</div>
+              <div class="eb">
+                <div class="canvas">
+                  <!-- usable area 611 x 414 mm, drawn to scale -->
+                  <svg viewBox="-6 -6 623 426" role="img" aria-label="Six views in a 3 by 2 table: bottoms aligned in each row, lefts aligned in each column, spread edge to edge across the width">
+                    <rect class="v" x="0" y="54.7" width="180" height="140" rx="3"/>
+                    <rect class="v" x="200.5" y="84.7" width="150" height="110" rx="3"/>
+                    <rect class="v" x="411" y="44.7" width="200" height="150" rx="3"/>
+                    <rect class="v" x="0" y="249.3" width="160" height="120" rx="3"/>
+                    <rect class="v" x="200.5" y="269.3" width="190" height="100" rx="3"/>
+                    <rect class="v" x="411" y="239.3" width="140" height="130" rx="3"/>
+                  </svg>
+                </div>
+                <div class="hint">Preview updates on algorithm / alignment / gap change.</div>
+              </div>
+            </div>
+
+            <div class="exp"><div class="eh">Overflow Handling <span class="badge">PlaceWhatsPlaceable</span></div></div>
+            <div class="exp"><div class="eh">Gap &amp; Margin Settings</div></div>
+          </div>
+        </div>
+
+        <div class="log">
+          <div class="lh">Activity Log <span>Copy All · Copy Selected · Clear</span></div>
+<pre><span class="d">10:42:07</span>  Info  Row fill strategy: MaxFill.
+<span class="d">10:42:07</span>  Info  Run started — 6 selected, 0 to remove.
+<span class="d">10:42:07</span>  Info  Align &amp; Distribute applied — 2 row(s) × 3 column(s), 6 view(s).
+<span class="d">10:42:07</span>  Info  Packing complete — 6 fit, 0 overflow.
+<span class="d">10:42:08</span>  <span class="ok">Success</span>  Run complete — 6 placed | 0 removed | 0 failed.</pre>
+        </div>
+
+        <div class="foot"><span class="st">Ready</span><span class="btn sec">Export Log</span><span class="btn pri">Run</span><span class="btn sec">Close</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>When the aligned layout does not fit <span class="tag">NEW</span></h2>
+    <p class="muted" style="margin-bottom:8px">Nothing is aligned. The normal packing is kept, and the note and the log say why. No view goes to overflow because of alignment.</p>
+    <div class="note w" style="max-width:520px">Align &amp; Distribute skipped — the aligned layout needs 690 mm of width, the usable area has 611 mm. Normal packing kept.</div>
+  </section>
+
+  <section>
+    <h2>What each option does</h2>
+    <div class="opts">
+      <div class="opt"><b>All Off (default)</b>
+        <svg viewBox="0 0 240 130"><rect class="v" x="8" y="8" width="70" height="55"/><rect class="v" x="84" y="8" width="58" height="42"/><rect class="v" x="148" y="8" width="60" height="60"/><rect class="v" x="8" y="69" width="62" height="46"/><rect class="v" x="84" y="56" width="58" height="50"/></svg>
+        <span class="muted">Same layout as V028: the fill strategy's own positions.</span></div>
+      <div class="opt"><b>Align Rows: Bottom</b>
+        <svg viewBox="0 0 240 130"><rect class="v" x="8" y="8" width="70" height="55"/><rect class="v" x="84" y="21" width="58" height="42"/><rect class="v" x="148" y="3" width="60" height="60"/><rect class="v" x="8" y="74" width="62" height="46"/><rect class="v" x="76" y="70" width="58" height="50"/><path class="g" d="M4 63H236M4 120H236"/></svg>
+        <span class="muted">Each row shares one line. Columns stay free.</span></div>
+      <div class="opt"><b>Rows + Columns: table</b>
+        <svg viewBox="0 0 240 130"><rect class="v" x="8" y="8" width="70" height="55"/><rect class="v" x="84" y="21" width="58" height="42"/><rect class="v" x="148" y="3" width="60" height="60"/><rect class="v" x="8" y="74" width="62" height="46"/><rect class="v" x="84" y="70" width="58" height="50"/><path class="g" d="M4 63H236M4 120H236M8 0V130M84 0V130M148 0V130"/></svg>
+        <span class="muted">A column is as wide as its widest view.</span></div>
+      <div class="opt"><b>Distribute H: Edge to edge</b>
+        <svg viewBox="0 0 240 130"><rect class="v" x="4" y="38" width="60" height="55"/><rect class="v" x="91" y="51" width="58" height="42"/><rect class="v" x="176" y="33" width="60" height="60"/><path class="g" d="M4 0V130M236 0V130"/></svg>
+        <span class="muted">First and last view on the area edges, equal gaps between.</span></div>
+      <div class="opt"><b>Distribute H: Equal spacing</b>
+        <svg viewBox="0 0 240 130"><rect class="v" x="19" y="38" width="60" height="55"/><rect class="v" x="94" y="51" width="58" height="42"/><rect class="v" x="167" y="33" width="60" height="60"/><path class="g" d="M4 0V130M236 0V130"/></svg>
+        <span class="muted">Same gap between views and to the edges.</span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Notes</h2>
+    <ul class="muted">
+      <li>Rows and columns are read from the result of the chosen Row Fill Strategy. Row Tolerance and Column Tolerance decide what counts as the same row or column.</li>
+      <li>Distribute H and Distribute V are greyed out until Align Rows or Align Columns is on.</li>
+      <li>Views already in overflow stay below the sheet and are not aligned.</li>
+      <li>V029 and V028 share one settings file. Saving from V028 turns the new options back to Off.</li>
+    </ul>
+  </section>
+</div>

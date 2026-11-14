@@ -19,6 +19,7 @@ using Revit26_Plugin_Revised.AutoSlopeByPointRidge.V003.Core.Engine;
 using Revit26_Plugin_Revised.AutoSlopeByPointRidge.V003.Core.Models;
 using Revit26_Plugin_Revised.Shared.Models;
 using System;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace Revit26_Plugin_Revised.AutoSlopeByPointRidge.V003.Infrastructure.ExternalEvents
 {
@@ -31,13 +32,19 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPointRidge.V003.Infrastructure.Exter
         /// </summary>
         public static AutoSlopePayload Payload;
 
-        public void Execute(UIApplication app)
+        public void Execute(UIApplication app) =>
+            ToolGuard.RunHandler(GetType(), app, ExecuteCore);
+
+        private void ExecuteCore(UIApplication app)
         {
             if (Payload == null) return;
 
             // Capture local ref so Payload can be cleared/overwritten safely
             // by the next invocation while this one is still running.
             AutoSlopePayload current = Payload;
+
+            // Esc / Cancel with a Yes-No confirm; the engine reports the cancel to the window, then the group is rolled back.
+            using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.AutoSlopeByPointRidge, app);
 
             using (TransactionGroup tg = new TransactionGroup(
                 app.ActiveUIDocument.Document, "AutoSlope"))
@@ -48,6 +55,11 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPointRidge.V003.Infrastructure.Exter
                 {
                     AutoSlopeEngine.Execute(app, current);
                     tg.Assimilate();
+                }
+                catch (OperationCanceledException)
+                {
+                    tg.RollBack(); // the engine already told the window; ToolGuard treats this as a user cancel
+                    throw;
                 }
                 catch (Exception ex)
                 {

@@ -18,6 +18,7 @@ using Revit26_Plugin_Revised.Shared.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace Revit26_Plugin_Revised.RoofDetailLineIntersect.V014.Infrastructure.ExternalEvents
 {
@@ -30,13 +31,18 @@ namespace Revit26_Plugin_Revised.RoofDetailLineIntersect.V014.Infrastructure.Ext
         /// </summary>
         public static RoofDetailLineIntersectPayload Payload;
 
-        public void Execute(UIApplication app)
+        public void Execute(UIApplication app) =>
+            ToolGuard.RunHandler(GetType(), app, ExecuteCore);
+
+        private void ExecuteCore(UIApplication app)
         {
             if (Payload == null) return;
 
             RoofDetailLineIntersectPayload current = Payload;
             Document doc = app.ActiveUIDocument.Document;
 
+            // Esc / Cancel with a Yes-No confirm; the engine's single transaction rolls back on cancel.
+            using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.RoofDetailLineIntersect, app);
             try
             {
                 var roof = doc.GetElement(current.RoofId) as FootPrintRoof;
@@ -56,6 +62,16 @@ namespace Revit26_Plugin_Revised.RoofDetailLineIntersect.V014.Infrastructure.Ext
                 var result = RoofDetailLineIntersectEngine.Execute(
                     doc, roof, detailLines, current.Log, current.IncludeLineToLineIntersections);
                 current.OnCompleted?.Invoke(result);
+            }
+            catch (OperationCanceledException)
+            {
+                current.Log?.Invoke(new LogEntry(LogLevel.Warning, "Cancelled by user. Nothing was changed."));
+                current.OnCompleted?.Invoke(new RoofDetailLineIntersectResult
+                {
+                    Success = false,
+                    ErrorMessage = "Cancelled by user."
+                });
+                throw; // ToolGuard treats it as a user cancel
             }
             catch (Exception ex)
             {

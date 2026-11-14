@@ -1,102 +1,114 @@
 # Architecture
 
-How a request actually flows through this add-in, end to end. Conventions
-and folder layout are in the root `CLAUDE.md`; this file is the runtime
-picture — what calls what, and where the sharp edges are.
+How a request flows through this add-in, end to end. Updated 2026-11-03 (plugin 6.37.0). The rules (folder
+layout, versioning, robustness) are in the root `CLAUDE.md`. This file is the runtime picture: what calls what,
+and where the sharp edges are.
 
 ## 1. Startup → ribbon
 
-`App.cs : OnStartup` creates the `"SloperPro"` ribbon tab, then calls
-one `Build(application, tabName, assemblyPath)` per category from
-`Menu/00_Push_Button_Menu_items/Ribbon/*Ribbon.cs` (`RoofToolsRibbon`,
-`FloorToolsRibbon`, `SheetToolsRibbon`, ... plus `QuickAcces.cs` →
-`QuickAccessRibbon`, named without "Ribbon").
+`App.cs : OnStartup` creates two ribbon tabs, **SloperPro_Rev_88-MDL** (Modelling) and **SloperPro_Rev_88-DCM**
+(Documents), then `InitializeRibbonPanels` calls one builder per area from
+`Menu/00_Push_Button_Menu_items/Ribbon/`. Panels appear in the order they are created. The full layout is in
+`Claude/RIBBON_AND_ICONS.md`.
 
-Each `*Ribbon.cs` builds `RibbonPanel`s and `PushButtonData` (often via
-`RibbonLayoutHelper.AddStackedButtons` / `CreatePulldownButtonData`), wiring
-each button to a **command class by fully-qualified type-name string**, e.g.:
+Each builder makes `RibbonPanel`s and `PushButtonData`, usually through `RibbonLayoutHelper`
+(`AddStackedButtons`, `AddStackedButtonsWithSlideOut`, `CreatePulldownButtonData`, `WirePulldownButton`). Each
+button is wired to a **command class by its fully-qualified name, as a string**:
 
 ```csharp
-new PushButtonData("Btn_AutoSlopeByDrain_V010", "By Drain V010", assemblyPath,
-    "Revit26_Plugin.MultiRoofSlopeByDrain.V010.Commands.AutoSlopeByDrain")
+new PushButtonData("Btn_FloorSlopeByDrain_V001", "By Drain", assemblyPath,
+    "Revit26_Plugin_Revised.FloorSlopeByDrain.V001.Commands.FloorSlopeByDrainCommand")
 ```
 
-This string is not compiler-checked. A typo, or a namespace that drifts from
-what's in the ribbon file, fails silently at build and only breaks when the
-button is clicked in Revit. When renaming a namespace or moving a tool,
-grep the ribbon files for the old fully-qualified name — folder moves alone
-don't update it.
+This string is not compiler-checked. A typo, or a namespace that drifts from the ribbon file, builds fine and only
+breaks when the button is clicked in Revit. When renaming a namespace or moving a tool, grep the ribbon files for
+the old fully-qualified name. Moving folders doesn't update it.
 
-**Namespace does not mirror the folder path.** `AutoSlopeByDrain_V010` lives
-under `Menu/RoofTools/RoofSlope/ByDrains/` on disk but its code is in
-namespace `Revit26_Plugin.MultiRoofSlopeByDrain.V010` — a leftover/renamed
-identity from when it was split out as a multi-roof variant. To find what
-code a ribbon button actually runs, read the fully-qualified type string in
-the `*Ribbon.cs` file — don't infer it from the folder name.
+**Floor ports keep their roof tool's class names with Roof → Floor**, but command classes do not always sit in a
+`.Commands` namespace (for example `Revit26_Plugin_Revised.FloorEdgeAroundSections.V001.FloorEdgeAroundSectionsCommand`
+and `Revit26_Plugin_Revised.FloorPointElevationSync.V001.Command`). The floor panels are built in `FloorRibbon.cs`
+(`FloorToolsRibbon.BuildSlopePanel`, `BuildPointsPanel`, `BuildLinesPanel`, `BuildEditPanel`, `BuildViewsPanel`),
+called from `RoofToolsRibbon` and `ViewToolsRibbon`.
+
+**The namespace does not always mirror the folder path.** `AutoSlopeByDrain_V013` lives under
+`Menu/RoofTools/RoofSlope/ByDrains/`, but its code is in `Revit26_Plugin_Revised.MultiRoofSlopeByDrain.V013`, a
+name kept from when it was split out as the multi-roof variant. To find what a button runs, read the type string in
+the ribbon file rather than inferring it from the folder name.
 
 ## 2. Per-tool request lifecycle
 
 ```
 PushButton click
-  → Command.Execute(ExternalCommandData)      [Commands/]
-      synchronous Revit API work that must happen before the window
-      shows: PickObject(s), enable shape editing, reset vertices,
-      initial detection/analysis — safe here because no window is open yet
-  → new Window(new ViewModel(...)).Show()      [UI/Views, UI/ViewModels]
-      modeless; user edits settings, previews, adjusts options
-  → ViewModel builds a Payload (Core/Models), sets it on a static field
-    on the Handler, then calls EventManager.Init() (idempotent — guarded
-    by `if (Handler != null) return`) followed by Event.Raise()
-  → Handler.Execute(UIApplication)             [Infrastructure/ExternalEvents/]
-      runs on Revit's API thread; opens a TransactionGroup, does the
-      actual document mutation (often delegating to a Core/Engine or
-      Core/Services class), commits/rolls back, then reports results
-      back to the ViewModel (static event/callback + Dispatcher for
-      cross-thread UI update)
+  → Command.Execute(ExternalCommandData)                      [Commands/]
+      delegates to ToolGuard.RunCommand(GetType(), …, ExecuteCore)
+      ExecuteCore: bring an open window to the front if there is one (newer tools),
+      pick elements (PickObject(s)), validate them, read what the window needs.
+      Synchronous API work is safe here because no window is open yet.
+  → new Window(…).Show()                                      [UI/Views, UI/ViewModels]
+      modeless; the user edits settings, previews, adjusts options
+  → ViewModel builds a request/payload (Core/Models), hands it to the handler,
+    and raises the tool's ExternalEvent
+  → Handler.Execute(UIApplication)                            [Infrastructure/ExternalEvents/]
+      delegates to ToolGuard.RunHandler; runs on Revit's API thread, opens a
+      TransactionGroup, does the model change (often through a Core/Engine or
+      Core/Services class), assimilates or rolls back, then reports back to the
+      ViewModel (callback + Dispatcher for the cross-thread UI update)
 ```
 
-Each tool's `EventManager` (`Infrastructure/ExternalEvents/*EventManager.cs`)
-is a static holder for one `Handler` + one `ExternalEvent`, created once.
-
-**Documented vs. actual `Init()` call site:** several `EventManager.cs`
-header comments say `Init()` "must be called once from
-`IExternalApplication.OnStartup` — NOT from the Command or the ViewModel
-constructor." In practice, **every tool in the repo calls `Init()` from
-the ViewModel**, not from `App.cs`. This works because `Init()` no-ops if
-`Handler` is already set, but it means the stated convention in those
-comments is aspirational, not real — follow the actual repo-wide pattern
-(call from the ViewModel) rather than the comment when adding a new tool.
+- **ToolGuard** (`Shared/Services/ToolGuard.cs`) is the last line of defence. Cancellation (Esc during a pick)
+  returns `Result.Cancelled`. Anything else is shown with the tool's name and version from `ToolCatalog`, and
+  written to `%AppData%\Revit26_Plugin_Revised\Logs`.
+- **EventManager:** each tool's `Infrastructure/ExternalEvents/*EventManager.cs` (or a static holder in the handler
+  file) keeps one handler and one `ExternalEvent`, created once. `Init()` no-ops when already initialised. Most tools
+  call it from the ViewModel. A few call it from the Command, and none from `App.cs`, whatever an older header
+  comment says. Follow the repo pattern.
 
 ## 3. Layer dependency direction
 
 ```
-Commands/        → Core/, Infrastructure/, UI/
-UI/ViewModels     → Core/, Infrastructure/ExternalEvents/ (to raise events)
+Commands/         → Core/, Infrastructure/, UI/
+UI/ViewModels/    → Core/, Infrastructure/ExternalEvents/ (to raise events)
 Infrastructure/   → Core/, Revit API
-Core/Services,Engine,Models → nothing but plain .NET (no Revit API, no WPF)
+Core/             → plain .NET where possible; many tools also use Revit types here
 ```
 
-`Core/` being Revit-free is the one layering rule the audit found completely
-clean repo-wide — keep it that way; it's what would make these classes
-unit-testable if a test project is ever added.
+`Core/` is meant for the tool's logic. It is **not** reliably free of the Revit API: 85 of the 105 `Core/` folders
+outside WIP use Revit types (`XYZ`, `SlabShapeVertex`, `Element`…). The newer split, seen in Auto Slope By Point
+V033 and Floor Slope By Point V001, keeps pure maths in `Core/Services` (`ShortestPathSolver`, `RidgeFinder`,
+`SpatialGrid2D`) and Revit calls in `Infrastructure/` (`RoofOps` / `FloorOps`). The unit tests in `Tests/` link
+exactly those Revit-free files. Copy that split when a tool's logic needs tests.
 
 ## 4. Shared cross-tool code
 
-`Shared/` (namespace `Revit26_Plugin.Shared.*`) holds code used by multiple
-tools: `Services/SettingsService.cs` (JSON settings load/save, try/catch
-with defaults-fallback), `Services/LogExportService.cs`, `LogEntry.cs` /
-`LogLevel.cs`, `Converters.cs`, `SharedStyles.xaml`. A change here has
-repo-wide blast radius — check for other tools' usages before editing
-signatures, since there's no test suite to catch a break in a tool that
-wasn't manually tested afterward.
+`Shared/` holds code used by many tools. A change here has a repo-wide blast radius, so check other tools' usages
+before changing a signature.
 
-## 5. Multi-item batch pattern (where it exists)
+| Path | Namespace | What |
+|---|---|---|
+| `Services/ToolGuard.cs` | `Shared.Services` | Entry-point guard, error reporting and logs |
+| `Services/ToolCatalog.cs` | `Shared.Services` | Tool names and semantic versions (window titles, tooltips, errors) |
+| `Services/SettingsService.cs`, `JsonFileStore.cs` | `Shared.Services` | JSON files under `%AppData%\Revit26_Plugin_Revised\<Tool>`. `SettingsService` falls back to defaults; `JsonFileStore` throws on a failed save so the tool can tell the user |
+| `Services/LogExportService.cs`, `LogClipboardService.cs` | `Shared.Services` | Save and copy the log |
+| `Services/ModelIdentity.cs` | `Shared.Services` | Stable identity of a project model, for filing per-model data (saved sets, settings) |
+| `Services/FloorShapeEditChecks.cs` | `Shared.Services` | Floor pre-checks (group, read-only, borrowed, shape-editing support) and the no-Variable-layer dialog, used by every floor tool that edits a floor |
+| `Services/FloorSketchProfile.cs` | `Shared.Services` | A floor's sketch loops (`floor.SketchId`, else the dependent `Sketch`). Floors have no `GetProfiles()`; the floor ports use this instead |
+| `Services/FloorPickFilter.cs` | `Shared.Services` | Selection filter: floors outside groups only |
+| `Controls/ToolWindowShell.cs`, `ToolWindowShellTemplate.xaml`, `ShellBehaviors.cs` | `Shared.Controls` | The standard tool window (see `CLAUDE.md` next to this folder) |
+| `ViewModels/ToolViewModelBase.cs` | `Shared.ViewModels` | Base ViewModel with the shared log and shell properties |
+| `LogEntry.cs`, `LogLevel.cs`, `Converters.cs` | `Shared.Models` | The one log model, and the shared value converters |
+| `SharedStyles.xaml` | resource dictionary | Colour tokens and styles (v4.0 semantic tokens) |
 
-Newer tools that operate on multiple picked elements in one run (e.g.
-`AutoSlopeByDrain_V010`'s multi-roof support) wrap the whole batch in a
-single `TransactionGroup`, with each item's own `Transaction` still
-committing/rolling back independently inside it. The group is
-`Assimilate()`d (kept) as long as at least one item succeeded — `RollBack()`
-on the group would undo every item's transaction, including ones that
-already succeeded. If you add batch support to another tool, this is the
-established pattern to copy, not a per-item `TransactionGroup`.
+All namespaces start with `Revit26_Plugin_Revised.`
+
+## 5. Multi-item batch pattern
+
+Tools that change several picked elements in one run (Auto Slope By Drain V013, Floor Slope By Drain V001) use
+nested groups, in `Infrastructure/ExternalEvents/DrainJobs.cs`:
+
+- **One outer `TransactionGroup` per run**, so the whole run is one Undo step.
+- **Inside it, one `TransactionGroup` per element.** It is `Assimilate()`d when that element succeeds, and
+  `RollBack()`ed when it fails or is cancelled, so a failed element is left exactly as it was.
+- **The outer group is assimilated when at least one element succeeded**, and rolled back otherwise.
+- A cancel stops later elements from starting. Elements that already finished stay applied.
+
+If you add batch support to another tool, copy this pattern.

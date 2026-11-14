@@ -1,5 +1,6 @@
 using Autodesk.Revit.UI;
 using System;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace Revit26_Plugin_Revised.WorksetManager.V014.Core.Services
 {
@@ -9,11 +10,18 @@ namespace Revit26_Plugin_Revised.WorksetManager.V014.Core.Services
 
         public void Queue(Action<UIApplication> action) => _pending = action;
 
-        public void Execute(UIApplication app)
+        public void Execute(UIApplication app) =>
+            ToolGuard.RunHandler(GetType(), app, ExecuteCore);
+
+        private void ExecuteCore(UIApplication app)
         {
             var action = _pending;
             _pending = null;
-            action?.Invoke(app);
+            if (action == null) return;
+
+            // Esc / Cancel with a Yes-No confirm while the queued Revit work runs; the service rolls back on cancel.
+            using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.WorksetManager, app);
+            action.Invoke(app);
         }
 
         public string GetName() => "Workset Manager V012";

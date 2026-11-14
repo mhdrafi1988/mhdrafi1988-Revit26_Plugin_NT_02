@@ -14,6 +14,7 @@ using Autodesk.Revit.UI;
 using Autodesk.Revit.UI.Selection;
 using Revit26_Plugin_Revised.CombinedRoofTools.V003.Core;
 using System;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace Revit26_Plugin_Revised.CombinedRoofTools.V003.Infrastructure.ExternalEvents
 {
@@ -21,7 +22,10 @@ namespace Revit26_Plugin_Revised.CombinedRoofTools.V003.Infrastructure.ExternalE
     {
         public static ChangeRoofPayload Payload;
 
-        public void Execute(UIApplication app)
+        public void Execute(UIApplication app) =>
+            ToolGuard.RunHandler(GetType(), app, ExecuteCore);
+
+        private void ExecuteCore(UIApplication app)
         {
             if (Payload == null) return;
             ChangeRoofPayload current = Payload;
@@ -53,10 +57,17 @@ namespace Revit26_Plugin_Revised.CombinedRoofTools.V003.Infrastructure.ExternalE
                 return;
             }
 
+            // Esc / Cancel with a Yes-No confirm while the roof is analysed (picking keeps Revit's own Esc).
+            using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.CombinedRoofTools, app);
             try
             {
                 var result = CombinedRoofToolsInitializer.BuildAll(app, roof);
                 current.OnCompleted?.Invoke(result);
+            }
+            catch (OperationCanceledException)
+            {
+                current.OnCancelled?.Invoke();
+                throw; // ToolGuard treats it as a user cancel
             }
             catch (Exception ex)
             {

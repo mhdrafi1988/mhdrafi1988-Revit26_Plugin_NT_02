@@ -7,6 +7,7 @@ using Autodesk.Revit.UI;
 using Revit26_Plugin_Revised.LinkVersionChecker_V005.Services;
 using Revit26_Plugin_Revised.LinkVersionChecker_V005.UI.ViewModels;
 using Revit26_Plugin_Revised.LinkVersionChecker_V005.UI.Views;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace Revit26_Plugin_Revised.LinkVersionChecker_V005.Commands
 {
@@ -15,6 +16,9 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker_V005.Commands
     public class CmdLinkCheckPreOpen : IExternalCommand
     {
         public Result Execute(ExternalCommandData data, ref string message, ElementSet elements) =>
+            ToolGuard.RunCommand(GetType(), data, ref message, elements, ExecuteCore);
+
+        private Result ExecuteCore(ExternalCommandData data, ref string message, ElementSet elements) =>
             LinkCheckLauncher.Show(data.Application, ScanMode.PreOpen, ref message);
     }
 
@@ -22,7 +26,10 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker_V005.Commands
     [Transaction(TransactionMode.Manual)]
     public class CmdLinkCheckInModel : IExternalCommand
     {
-        public Result Execute(ExternalCommandData data, ref string message, ElementSet elements)
+        public Result Execute(ExternalCommandData data, ref string message, ElementSet elements) =>
+            ToolGuard.RunCommand(GetType(), data, ref message, elements, ExecuteCore);
+
+        private Result ExecuteCore(ExternalCommandData data, ref string message, ElementSet elements)
         {
             Document doc = data.Application.ActiveUIDocument?.Document;
             if (doc == null || doc.IsFamilyDocument)
@@ -39,6 +46,9 @@ namespace Revit26_Plugin_Revised.LinkVersionChecker_V005.Commands
     public class CmdLinkCheckFolder : IExternalCommand
     {
         public Result Execute(ExternalCommandData data, ref string message, ElementSet elements) =>
+            ToolGuard.RunCommand(GetType(), data, ref message, elements, ExecuteCore);
+
+        private Result ExecuteCore(ExternalCommandData data, ref string message, ElementSet elements) =>
             LinkCheckLauncher.Show(data.Application, ScanMode.Folder, ref message);
     }
 

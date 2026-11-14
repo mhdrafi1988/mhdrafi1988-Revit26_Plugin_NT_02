@@ -13,6 +13,7 @@ using Revit26_Plugin_Revised.MultiplePoints.V003.Core.Engine;
 using Revit26_Plugin_Revised.MultiplePoints.V003.Core.Models;
 using Revit26_Plugin_Revised.Shared.Models;
 using System;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace Revit26_Plugin_Revised.MultiplePoints.V003.Infrastructure.ExternalEvents
 {
@@ -25,11 +26,17 @@ namespace Revit26_Plugin_Revised.MultiplePoints.V003.Infrastructure.ExternalEven
         /// </summary>
         public static MultiplePointsPayload Payload;
 
-        public void Execute(UIApplication app)
+        public void Execute(UIApplication app) =>
+            ToolGuard.RunHandler(GetType(), app, ExecuteCore);
+
+        private void ExecuteCore(UIApplication app)
         {
             if (Payload == null) return;
 
             MultiplePointsPayload current = Payload;
+
+            // Esc / Cancel with a Yes-No confirm; the transaction group below is rolled back on cancel.
+            using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.MultiplePoints, app);
 
             using (TransactionGroup tg = new TransactionGroup(
                 app.ActiveUIDocument.Document, "Multiple Edge Points"))
@@ -46,6 +53,17 @@ namespace Revit26_Plugin_Revised.MultiplePoints.V003.Infrastructure.ExternalEven
                         tg.RollBack();
 
                     current.OnCompleted?.Invoke(result);
+                }
+                catch (OperationCanceledException)
+                {
+                    if (tg.GetStatus() == TransactionStatus.Started) tg.RollBack();
+                    current.Log?.Invoke(new LogEntry(LogLevel.Warning, "Cancelled by user. Nothing was changed."));
+                    current.OnCompleted?.Invoke(new MultiplePointsResult
+                    {
+                        Success = false,
+                        ErrorMessage = "Cancelled by user."
+                    });
+                    throw; // ToolGuard treats it as a user cancel
                 }
                 catch (Exception ex)
                 {

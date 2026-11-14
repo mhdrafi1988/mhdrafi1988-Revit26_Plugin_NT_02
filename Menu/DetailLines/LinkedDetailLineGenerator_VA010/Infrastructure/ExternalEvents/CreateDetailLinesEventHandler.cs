@@ -7,6 +7,7 @@ using Autodesk.Revit.UI;
 using Revit26_Plugin_Revised.LinkedDetailLineGenerator.VA010.Core.Engine;
 using Revit26_Plugin_Revised.LinkedDetailLineGenerator.VA010.Core.Models;
 using Revit26_Plugin_Revised.LinkedDetailLineGenerator.VA010.Core.Services;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace Revit26_Plugin_Revised.LinkedDetailLineGenerator.VA010.Infrastructure.ExternalEvents
 {
@@ -36,7 +37,10 @@ namespace Revit26_Plugin_Revised.LinkedDetailLineGenerator.VA010.Infrastructure.
         /// consistent with the rest of the suite's ExternalEvent pattern).</summary>
         public Action<ProcessingResult>? OnComplete { get; set; }
 
-        public void Execute(UIApplication app)
+        public void Execute(UIApplication app) =>
+            ToolGuard.RunHandler(GetType(), app, ExecuteCore);
+
+        private void ExecuteCore(UIApplication app)
         {
             var request = PendingRequest;
             PendingRequest = null;
@@ -56,6 +60,9 @@ namespace Revit26_Plugin_Revised.LinkedDetailLineGenerator.VA010.Infrastructure.
             var isolatedCleanup = new IsolatedElementCleanupService();
             var allCreatedGroups = new List<CreatedElementGroup>();
 
+            // Esc / Cancel with a Yes-No confirm; a cancel rolls the group back, so no line or region stays.
+            using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.LinkedDetailLineGenerator, app);
+
             using (TransactionGroup tg = new TransactionGroup(hostDoc, "Linked Detail Line Generator — Create Detail Lines"))
             {
                 tg.Start();
@@ -68,6 +75,7 @@ namespace Revit26_Plugin_Revised.LinkedDetailLineGenerator.VA010.Infrastructure.
 
                         foreach (var mappingGroup in request.EnabledMappings.GroupBy(m => m.LinkInstanceId))
                         {
+                            ToolCancellation.CheckCurrent();
                             RevitLinkInstance? linkInstance = new FilteredElementCollector(hostDoc)
                                 .OfClass(typeof(RevitLinkInstance))
                                 .Cast<RevitLinkInstance>()
@@ -81,6 +89,7 @@ namespace Revit26_Plugin_Revised.LinkedDetailLineGenerator.VA010.Infrastructure.
 
                             foreach (var mapping in mappingGroup)
                             {
+                                ToolCancellation.CheckCurrent();
                                 // Global Override (Section 3 master toggle): applied here,
                                 // right at the point of use, rather than by overwriting the
                                 // mapping row's own stored DetailLineStyleName/ColorName —
@@ -167,6 +176,7 @@ namespace Revit26_Plugin_Revised.LinkedDetailLineGenerator.VA010.Infrastructure.
                                 LogSeverity.Info);
                         }
 
+                        ToolCancellation.CheckCurrent(); // last chance to cancel before the commit
                         TransactionStatus status = tx.Commit();
                         if (status != TransactionStatus.Committed)
                         {
@@ -178,6 +188,17 @@ namespace Revit26_Plugin_Revised.LinkedDetailLineGenerator.VA010.Infrastructure.
                             OnComplete?.Invoke(overallResult);
                             return;
                         }
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        if (tx.GetStatus() == TransactionStatus.Started)
+                            tx.RollBack();
+                        tg.RollBack();
+                        stopwatch.Stop();
+                        request.OnLog?.Invoke("Cancelled by user. No detail lines or regions were created.", LogSeverity.Warning);
+                        overallResult = new ProcessingResult { Duration = stopwatch.Elapsed };
+                        OnComplete?.Invoke(overallResult);
+                        throw; // ToolGuard treats it as a user cancel
                     }
                     catch (Exception ex)
                     {

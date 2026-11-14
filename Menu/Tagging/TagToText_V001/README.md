@@ -6,13 +6,13 @@ UI mock-up: [`UI_Mockup.html`](UI_Mockup.html) (open it in a browser).
 
 | Item | Value |
 |---|---|
-| Tool name | Tag To Text, v1.0.2 (plugin 6.15.2) |
+| Tool name | Tag To Text, v1.1.0 (plugin 6.18.0) |
 | Folder | `Menu/Tagging/TagToText_V001/` |
 | Namespace | `Revit26_Plugin_Revised.TagToText.V001` |
 | Command | `Revit26_Plugin_Revised.TagToText.V001.Commands.TagToTextCommand` (via `ToolGuard.RunCommand`) |
 | Ribbon | **SloperPro-Documents › Tagging › Tag To Text** (`Btn_TagToText_V001`) |
 | Catalog | `ToolCatalog.TagToText` |
-| Settings | `%AppData%\Revit26_Plugin_Revised\TagToText\settings.json` (with a `Version` field) |
+| Settings | `%AppData%\Revit26_Plugin_Revised\TagToText\settings.json` (with a `Version` field; version 2 adds `GroupByType`, version 3 adds `GroupLevel1`–`GroupLevel3`) |
 | Tests | `dotnet test Tests/TagToText.Tests` |
 
 ## Code layout
@@ -25,7 +25,7 @@ UI mock-up: [`UI_Mockup.html`](UI_Mockup.html) (open it in a browser).
 | `Core/Services/TextRules.cs` | Revit-free rules: line splitting, prefixes, unique view names (unit-tested) |
 | `Core/Models/*` | Enums, the settings file, what was read from a tag |
 | `Infrastructure/TagToTextHandler.cs` | External event handler (via `ToolGuard.RunHandler`) |
-| `UI/*` | Window (shared `ToolWindowShell`) and view model |
+| `UI/*` | Window (shared `ToolWindowShell`), view model, `TagTypeGroup` (one per tag type: group heading tick box, Type list) |
 
 ## Tags it copies
 
@@ -44,6 +44,13 @@ area, section, elevation, detail and drafting.
 
 1. **Source**: selected tags / all tags in the active view, **Pick Tags…**, **Refresh List**, a tick box per tag type.
 2. **Table**: tick, type, text (editable), leader yes/no, status ("OK", "owned by X", "in a group", problems).
+   **Select All** / **Clear** for every tag shown. By tag type (the Type column):
+   - **Group by type** (on by default): one collapsible heading per type with "n of N ticked" and a tick box
+     that ticks the whole type, or clears it when it is all ticked (a partial tick becomes a full tick).
+   - **Type** list + **Select Type** / **Clear Type**: tick or clear one type, grouped or not.
+   - **Group by … then … then …**: up to three nested levels, in the order you pick: Type, Tag category,
+     Tag family & type, Tagged element's category, Status, Identical text. Every heading at every level has its
+     own tick box and "n of N ticked". Default is Type only (the same grouping as before). Remembered between runs.
 3. **Text Output**: text type, prefix, suffix, keep leader/arrow, match tag rotation, source note in Comments.
 4. **Place Text In**: same view, or a new view duplicated **without** or **with detailing**, view name,
    open the new view when done.
@@ -67,6 +74,9 @@ All options are remembered and restored when the window opens again.
   and the note is moved so its leader starts where the tag's leader leaves its text (read back from
   Revit after the note is made). A leader without a bend gets its bend on the straight line.
 - If Revit refuses a leader, the note is kept without it and a warning is logged.
+- **Visibility check:** after the notes are created, `TextVisibilityChecker` looks for what could hide them in the
+  target view (Text Notes / annotation categories off, view template, filters that hide and match the notes, hidden
+  workset, outside the crop region) and reports each reason in the log and in a message box. Nothing is blocked.
 - The window can't close while a run is in progress. Unexpected errors go to
   `%AppData%\Revit26_Plugin_Revised\Logs` through `ToolGuard.Report`.
 
@@ -78,3 +88,5 @@ Built and unit-tested on Linux; not yet run in Revit. Check these on a real mode
 2. Spot prefixes/indicators are not doubled (the tool only adds them when missing).
 3. Text sits centred on the tag head and the arrowhead matches the chosen text type.
 4. Progress updates and Cancel respond during a long run.
+5. Group by type (and the Group by … then … levels): headings, their tick boxes and "n of N ticked" update when rows are ticked; sorting a column
+   keeps the groups in order; editing a text and then toggling grouping or a Source tick box works.

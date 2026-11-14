@@ -8,6 +8,7 @@ using Revit26_Plugin_Revised.CalloutCOP.V021.Helpers;
 using Revit26_Plugin_Revised.CalloutCOP.V021.Services;
 using Revit26_Plugin_Revised.CalloutCOP.V021.ViewModels;
 using Revit26_Plugin_Revised.Shared.Models;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace Revit26_Plugin_Revised.CalloutCOP.V021.ExternalEvents
 {
@@ -37,7 +38,10 @@ namespace Revit26_Plugin_Revised.CalloutCOP.V021.ExternalEvents
             _onFinished = onFinished;
         }
 
-        public void Execute(UIApplication app)
+        public void Execute(UIApplication app) =>
+            ToolGuard.RunHandler(GetType(), app, ExecuteCore);
+
+        private void ExecuteCore(UIApplication app)
         {
             int success = 0;
             int failed = 0;
@@ -53,6 +57,9 @@ namespace Revit26_Plugin_Revised.CalloutCOP.V021.ExternalEvents
 
             var sizeMm = _sizeProvider();
 
+            // Esc / Cancel with a Yes-No confirm; the callout transaction is rolled back on cancel.
+            using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.CalloutCOP, app);
+
             using var tx = new Transaction(_doc, "Callout COP V018 - Reference Callouts");
             tx.Start();
 
@@ -60,8 +67,11 @@ namespace Revit26_Plugin_Revised.CalloutCOP.V021.ExternalEvents
             options.SetFailuresPreprocessor(new CalloutFailuresPreprocessor());
             tx.SetFailureHandlingOptions(options);
 
+            try
+            {
             foreach (var vm in targets)
             {
+                ToolCancellation.CheckCurrent();
                 var placements = BuildEffectivePlacements(vm);
 
                 if (!placements.Any())
@@ -102,6 +112,16 @@ namespace Revit26_Plugin_Revised.CalloutCOP.V021.ExternalEvents
                     _logs.Add(new LogEntry(LogLevel.Error, $"{vm.Name}: {ex.Message}"));
                     failed++;
                 }
+            }
+
+            ToolCancellation.CheckCurrent(); // last chance to cancel before the commit
+            }
+            catch (OperationCanceledException)
+            {
+                if (tx.GetStatus() == TransactionStatus.Started) tx.RollBack();
+                _logs.Add(new LogEntry(LogLevel.Warning, "Cancelled by user. No reference callouts were placed."));
+                _onFinished?.Invoke(0, 0, 0);
+                throw; // ToolGuard treats it as a user cancel
             }
 
             var status = tx.Commit();

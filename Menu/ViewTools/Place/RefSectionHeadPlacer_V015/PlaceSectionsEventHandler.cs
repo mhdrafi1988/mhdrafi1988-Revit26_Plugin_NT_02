@@ -6,6 +6,7 @@ using Revit26_Plugin_Revised.RefSectionHeadPlacer.V015.Core.Engine;
 using Revit26_Plugin_Revised.RefSectionHeadPlacer.V015.Core.Models;
 using Revit26_Plugin_Revised.RefSectionHeadPlacer.V015.Core.Services;
 using Revit26_Plugin_Revised.Shared.Models;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace Revit26_Plugin_Revised.RefSectionHeadPlacer.V015.Infrastructure.ExternalEvents
 {
@@ -30,7 +31,6 @@ namespace Revit26_Plugin_Revised.RefSectionHeadPlacer.V015.Infrastructure.Extern
             /// <summary>Head-&gt;tail marker length, Revit internal units (feet). Converted
             /// from the user's mm input in the ViewModel before the request is raised.</summary>
             public double TailLengthFeet { get; set; }
-            public Func<bool> CancellationRequested { get; set; }
         }
 
         public RequestArgs PendingRequest { get; set; }
@@ -40,7 +40,10 @@ namespace Revit26_Plugin_Revised.RefSectionHeadPlacer.V015.Infrastructure.Extern
         public event Action<LogEntry> LogEmitted;
         public event Action<int, int> ProgressChanged;
 
-        public void Execute(UIApplication app)
+        public void Execute(UIApplication app) =>
+            ToolGuard.RunHandler(GetType(), app, ExecuteCore);
+
+        private void ExecuteCore(UIApplication app)
         {
             var request = PendingRequest;
             if (request == null) return;
@@ -49,6 +52,8 @@ namespace Revit26_Plugin_Revised.RefSectionHeadPlacer.V015.Infrastructure.Extern
             var doc = uiDoc.Document;
             var activeView = uiDoc.ActiveView;
 
+            // Esc / Cancel with a Yes-No confirm while the run places sections.
+            using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.RefSectionHeadPlacer, app);
             try
             {
                 // Guard: reference sections need a graphical parent view (a plan here).
@@ -71,9 +76,15 @@ namespace Revit26_Plugin_Revised.RefSectionHeadPlacer.V015.Infrastructure.Extern
 
                 var summary = engine.Run(
                     request.SelectedTypes, request.Mappings, activeView.Id,
-                    request.SectionViewFamilyTypeId, request.TailLengthFeet, request.CancellationRequested);
+                    request.SectionViewFamilyTypeId, request.TailLengthFeet);
 
                 RunCompleted?.Invoke(summary);
+            }
+            catch (OperationCanceledException)
+            {
+                LogEmitted?.Invoke(new LogEntry(LogLevel.Warning, "Cancelled by user. No reference sections were placed."));
+                RunCompleted?.Invoke(new RunSummary());
+                throw; // ToolGuard treats it as a user cancel
             }
             catch (Exception ex)
             {

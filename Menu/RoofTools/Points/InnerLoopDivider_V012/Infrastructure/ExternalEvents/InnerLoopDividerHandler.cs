@@ -14,6 +14,7 @@ using Revit26_Plugin_Revised.InnerLoopDivider.V012.Core.Engine;
 using Revit26_Plugin_Revised.InnerLoopDivider.V012.Core.Models;
 using Revit26_Plugin_Revised.Shared.Models;
 using System;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace Revit26_Plugin_Revised.InnerLoopDivider.V012.Infrastructure.ExternalEvents
 {
@@ -22,11 +23,17 @@ namespace Revit26_Plugin_Revised.InnerLoopDivider.V012.Infrastructure.ExternalEv
         /// <summary>Set by the ViewModel immediately before raising the ExternalEvent.</summary>
         public static InnerLoopDividerPayload Payload;
 
-        public void Execute(UIApplication app)
+        public void Execute(UIApplication app) =>
+            ToolGuard.RunHandler(GetType(), app, ExecuteCore);
+
+        private void ExecuteCore(UIApplication app)
         {
             InnerLoopDividerPayload current = Payload;
             Payload = null;
             if (current == null) return;
+
+            // Esc / Cancel with a Yes-No confirm; a cancelled run rolls the group back (see Run).
+            using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.InnerLoopDivider, app);
 
             if (current.Operation == InnerLoopDividerOperation.Analyze)
             {
@@ -59,6 +66,21 @@ namespace Revit26_Plugin_Revised.InnerLoopDivider.V012.Infrastructure.ExternalEv
                     if (result.Success) tg.Assimilate();
                     else tg.RollBack();
                 }
+            }
+            catch (OperationCanceledException)
+            {
+                if (tg != null && tg.GetStatus() == TransactionStatus.Started)
+                    tg.RollBack();
+
+                current.Log?.Invoke(new LogEntry(LogLevel.Warning, "Cancelled by user. Nothing was changed."));
+                current.OnCompleted?.Invoke(new InnerLoopDividerResult
+                {
+                    Success = false,
+                    ErrorMessage = "Cancelled by user.",
+                    Operation = current.Operation,
+                    PointsAdded = -1
+                });
+                throw; // ToolGuard treats it as a user cancel
             }
             catch (Exception ex)
             {

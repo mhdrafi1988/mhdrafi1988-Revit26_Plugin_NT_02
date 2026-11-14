@@ -5,6 +5,7 @@ using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using Revit26_Plugin_Revised.ScheduleExportImport.V007.Core.Models;
 using Revit26_Plugin_Revised.ScheduleExportImport.V007.Core.Services;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace Revit26_Plugin_Revised.ScheduleExportImport.V007.Infrastructure.ExternalEvents
 {
@@ -54,9 +55,16 @@ namespace Revit26_Plugin_Revised.ScheduleExportImport.V007.Infrastructure.Extern
             _doc = doc;
         }
 
-        public void Execute(UIApplication app)
+        public void Execute(UIApplication app) =>
+            ToolGuard.RunHandler(GetType(), app, ExecuteCore);
+
+        private void ExecuteCore(UIApplication app)
         {
             ErrorMessage = string.Empty;
+            // Esc / Cancel with a Yes-No confirm while schedules are read, exported, analysed or imported.
+            using ToolCancellation cancel = Request == ScheduleImportRequest.LoadSchedules
+                ? null
+                : ToolCancellation.BeginFor(ToolCatalog.ScheduleExportImport, app);
             try
             {
                 switch (Request)
@@ -67,6 +75,13 @@ namespace Revit26_Plugin_Revised.ScheduleExportImport.V007.Infrastructure.Extern
                     case ScheduleImportRequest.ApplyChanges: ExecuteApplyChanges(); break;
                 }
                 LastRunSucceeded = true;
+            }
+            catch (OperationCanceledException)
+            {
+                // Every group / transaction was rolled back as the exception unwound.
+                LastRunSucceeded = false;
+                ErrorMessage = "Cancelled by user. Nothing was changed.";
+                throw; // ToolGuard treats it as a user cancel; finally still completes the request
             }
             catch (Exception ex)
             {
@@ -137,6 +152,7 @@ namespace Revit26_Plugin_Revised.ScheduleExportImport.V007.Infrastructure.Extern
             var columns = new List<ExportColumn>();
             foreach (var fieldId in def.GetFieldOrder())
             {
+                ToolCancellation.CheckCurrent();
                 var field = def.GetField(fieldId);
                 if (field.IsHidden && !IncludeHiddenFields) continue;
 
@@ -169,7 +185,15 @@ namespace Revit26_Plugin_Revised.ScheduleExportImport.V007.Infrastructure.Extern
             {
                 try
                 {
-                    tableValues = ReadScheduleTable(schedule, elements, tableColumns.Select(c => c.FieldId).ToList(), out tableOrder);
+                    tableValues = ReadScheduleTable(schedule, elements, tableColumns.Select(c => c.FieldId).ToList(),
+                        out tableOrder, out var discarded);
+                    if (discarded.Count > 0)
+                        notes.Add($"Revit raised {discarded.Count} warning(s) while reading the calculated columns; they were " +
+                                  $"discarded and the model is unchanged. First: {discarded[0]}");
+                }
+                catch (OperationCanceledException)
+                {
+                    throw; // user cancel: never swallowed as a failure
                 }
                 catch (Exception ex)
                 {
@@ -187,6 +211,7 @@ namespace Revit26_Plugin_Revised.ScheduleExportImport.V007.Infrastructure.Extern
 
             foreach (var elem in elements)
             {
+                ToolCancellation.CheckCurrent();
                 var row = new ScheduleRow { ElementId = elem.Id.Value };
                 Dictionary<int, string> elemTable = null;
                 if (tableValues != null && !tableValues.TryGetValue(elem.Id.Value, out elemTable))
@@ -194,6 +219,7 @@ namespace Revit26_Plugin_Revised.ScheduleExportImport.V007.Infrastructure.Extern
 
                 foreach (var col in columns)
                 {
+                    ToolCancellation.CheckCurrent();
                     string value = string.Empty;
                     try
                     {
@@ -281,15 +307,33 @@ namespace Revit26_Plugin_Revised.ScheduleExportImport.V007.Infrastructure.Extern
                && param.Element?.Id == elem.Id
                && elem.LookupParameter(col.Header)?.Id == param.Id;
 
+        /// <summary>
+        /// Reads the schedule's table text for the calculated columns. It tags every element's
+        /// Comments inside a transaction that is always rolled back. Changing an element makes
+        /// Revit regenerate it, which can raise family warnings ("Can't create sweep", "Line is
+        /// too short") on elements whose geometry is already faulty; those are collected in
+        /// <paramref name="discardedFailures"/> and never shown, because nothing is kept.
+        /// </summary>
         private Dictionary<long, Dictionary<int, string>> ReadScheduleTable(
-            ViewSchedule schedule, List<Element> elements, List<int> wantedFieldIds, out List<long> order)
+            ViewSchedule schedule, List<Element> elements, List<int> wantedFieldIds, out List<long> order,
+            out List<string> discardedFailures)
         {
             order = new List<long>();
+            discardedFailures = new List<string>();
             var result = new Dictionary<long, Dictionary<int, string>>();
             var def = schedule.Definition;
             var commentsId = new ElementId(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS);
 
             using var tx = new Transaction(_doc, "Read schedule table (rolled back)");
+            // This transaction is thrown away, so the failures it raises must go with it.
+            // Without ClearAfterRollback Revit keeps the warnings and shows them after export.
+            var quiet = new DiscardedFailures(discardedFailures);
+            var failureOptions = tx.GetFailureHandlingOptions();
+            failureOptions.SetFailuresPreprocessor(quiet);
+            failureOptions.SetClearAfterRollback(true);
+            failureOptions.SetDelayedMiniWarnings(false);
+            failureOptions.SetForcedModalHandling(false);
+            tx.SetFailureHandlingOptions(failureOptions);
             tx.Start();
             try
             {
@@ -299,6 +343,7 @@ namespace Revit26_Plugin_Revised.ScheduleExportImport.V007.Infrastructure.Extern
                 var sortFields = def.GetSortGroupFields();
                 foreach (var s in sortFields)
                 {
+                    ToolCancellation.CheckCurrent();
                     s.ShowHeader = false;
                     s.ShowFooter = false;
                     s.ShowBlankLine = false;
@@ -313,6 +358,7 @@ namespace Revit26_Plugin_Revised.ScheduleExportImport.V007.Infrastructure.Extern
                 int markerFieldId = -1;
                 foreach (var id in def.GetFieldOrder())
                 {
+                    ToolCancellation.CheckCurrent();
                     var f = def.GetField(id);
                     if (f.FieldType == ScheduleFieldType.Instance && !f.IsCalculatedField
                         && !f.IsCombinedParameterField && f.ParameterId == commentsId)
@@ -327,6 +373,7 @@ namespace Revit26_Plugin_Revised.ScheduleExportImport.V007.Infrastructure.Extern
 
                 foreach (var elem in elements)
                 {
+                    ToolCancellation.CheckCurrent();
                     var p = elem.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS);
                     if (p == null || p.IsReadOnly) continue;
                     try { p.Set(RowMarker + elem.Id.Value); } catch { }
@@ -349,6 +396,7 @@ namespace Revit26_Plugin_Revised.ScheduleExportImport.V007.Infrastructure.Extern
 
                 for (int r = body.FirstRowNumber; r <= body.LastRowNumber; r++)
                 {
+                    ToolCancellation.CheckCurrent();
                     var marker = schedule.GetCellText(SectionType.Body, r, markerCol);
                     if (string.IsNullOrEmpty(marker) || !marker.StartsWith(RowMarker, StringComparison.Ordinal)) continue;
                     if (!long.TryParse(marker.Substring(RowMarker.Length), out var elemId) || result.ContainsKey(elemId)) continue;
@@ -369,6 +417,39 @@ namespace Revit26_Plugin_Revised.ScheduleExportImport.V007.Infrastructure.Extern
         }
 
         /// <summary>
+        /// Failure handler for the rolled-back table read: removes warnings, and on errors tells
+        /// Revit to roll back quietly. Collects each distinct message for the export log.
+        /// </summary>
+        private sealed class DiscardedFailures : IFailuresPreprocessor
+        {
+            private readonly List<string> _messages;
+
+            public DiscardedFailures(List<string> messages) => _messages = messages;
+
+            /// <inheritdoc/>
+            public FailureProcessingResult PreprocessFailures(FailuresAccessor failuresAccessor)
+            {
+                bool hasErrors = false;
+                foreach (FailureMessageAccessor failure in failuresAccessor.GetFailureMessages())
+                {
+                    var text = failure.GetDescriptionText();
+                    if (!string.IsNullOrEmpty(text) && !_messages.Contains(text)) _messages.Add(text);
+
+                    if (failure.GetSeverity() == FailureSeverity.Warning)
+                        failuresAccessor.DeleteWarning(failure);
+                    else
+                        hasErrors = true;
+                }
+                if (!hasErrors) return FailureProcessingResult.Continue;
+
+                var options = failuresAccessor.GetFailureHandlingOptions();
+                options.SetClearAfterRollback(true);
+                failuresAccessor.SetFailureHandlingOptions(options);
+                return FailureProcessingResult.ProceedWithRollBack;
+            }
+        }
+
+        /// <summary>
         /// Rows in the schedule's own order: the table order when it was read, otherwise the
         /// schedule's sorting/grouping fields applied to the parameter values, then Element ID.
         /// </summary>
@@ -378,6 +459,7 @@ namespace Revit26_Plugin_Revised.ScheduleExportImport.V007.Infrastructure.Extern
             var keys = new List<(Func<Element, object> Key, bool Descending)>();
             foreach (var s in def.GetSortGroupFields())
             {
+                ToolCancellation.CheckCurrent();
                 var field = def.GetField(s.FieldId);
                 if (GetColumnSource(field) != ColumnSource.Parameter) continue;
                 var fieldType = field.FieldType;
@@ -392,6 +474,7 @@ namespace Revit26_Plugin_Revised.ScheduleExportImport.V007.Infrastructure.Extern
                 IOrderedEnumerable<(Element Elem, ScheduleRow Row)> o = null;
                 foreach (var (key, desc) in keys)
                 {
+                    ToolCancellation.CheckCurrent();
                     if (o == null)
                         o = desc ? rows.OrderByDescending(x => key(x.Elem), cmp) : rows.OrderBy(x => key(x.Elem), cmp);
                     else
@@ -444,6 +527,7 @@ namespace Revit26_Plugin_Revised.ScheduleExportImport.V007.Infrastructure.Extern
                 int i = 0, j = 0;
                 while (i < x.Length && j < y.Length)
                 {
+                    ToolCancellation.CheckCurrent();
                     if (char.IsDigit(x[i]) && char.IsDigit(y[j]))
                     {
                         int si = i, sj = j;
@@ -476,6 +560,7 @@ namespace Revit26_Plugin_Revised.ScheduleExportImport.V007.Infrastructure.Extern
             analysis.DuplicateRowsMerged = dedup.MergedDuplicateRows;
             foreach (var conflict in dedup.Conflicts)
             {
+                ToolCancellation.CheckCurrent();
                 var e = _doc.GetElement(new ElementId(conflict.ElementId));
                 if (e != null) conflict.ElementName = GetElementName(e);
                 analysis.Items.Add(conflict);
@@ -486,6 +571,7 @@ namespace Revit26_Plugin_Revised.ScheduleExportImport.V007.Infrastructure.Extern
 
             foreach (var row in dedup.UniqueRows)
             {
+                ToolCancellation.CheckCurrent();
                 var elem = _doc.GetElement(new ElementId(row.ElementId));
                 if (elem == null)
                 {
@@ -505,6 +591,7 @@ namespace Revit26_Plugin_Revised.ScheduleExportImport.V007.Infrastructure.Extern
                 bool editBlockChecked = false;
                 foreach (var header in file.Headers)
                 {
+                    ToolCancellation.CheckCurrent();
                     if (!row.Values.TryGetValue(header, out var newValue)) continue;
 
                     var param = elem.LookupParameter(header);
@@ -565,6 +652,7 @@ namespace Revit26_Plugin_Revised.ScheduleExportImport.V007.Infrastructure.Extern
                 var inFile = new HashSet<long>(file.Rows.Select(r => r.ElementId));
                 foreach (var elem in CollectScheduleElements(schedule).Where(e => !inFile.Contains(e.Id.Value)))
                 {
+                    ToolCancellation.CheckCurrent();
                     analysis.Items.Add(new ImportChange
                     {
                         ElementId = elem.Id.Value,
@@ -591,6 +679,7 @@ namespace Revit26_Plugin_Revised.ScheduleExportImport.V007.Infrastructure.Extern
 
             foreach (var byElement in ChangesToApply.GroupBy(c => c.ElementId))
             {
+                ToolCancellation.CheckCurrent();
                 var elem = _doc.GetElement(new ElementId(byElement.Key));
                 if (elem == null)
                 {
@@ -605,6 +694,7 @@ namespace Revit26_Plugin_Revised.ScheduleExportImport.V007.Infrastructure.Extern
                 {
                     foreach (var change in byElement)
                     {
+                        ToolCancellation.CheckCurrent();
                         var param = elem.LookupParameter(change.ParameterName);
                         if (param == null || param.IsReadOnly)
                         {
@@ -624,6 +714,10 @@ namespace Revit26_Plugin_Revised.ScheduleExportImport.V007.Infrastructure.Extern
                                 MarkFailed(change, $"Revit rejected the value \"{change.NewValue}\" (check units/format).");
                             }
                         }
+                        catch (OperationCanceledException)
+                        {
+                            throw; // user cancel: never swallowed as a failure
+                        }
                         catch (Exception ex)
                         {
                             MarkFailed(change, ex.Message);
@@ -640,6 +734,10 @@ namespace Revit26_Plugin_Revised.ScheduleExportImport.V007.Infrastructure.Extern
                     }
                     if (anyApplied) AppliedElementCount++;
                 }
+                catch (OperationCanceledException)
+                {
+                    throw; // user cancel: never swallowed as a failure
+                }
                 catch (Exception ex)
                 {
                     tx.RollBack();
@@ -648,6 +746,7 @@ namespace Revit26_Plugin_Revised.ScheduleExportImport.V007.Infrastructure.Extern
                 }
             }
 
+            ToolCancellation.CheckCurrent(); // last chance to cancel before the group is kept
             group.Assimilate();
         }
 
@@ -763,6 +862,10 @@ namespace Revit26_Plugin_Revised.ScheduleExportImport.V007.Infrastructure.Extern
                         return "Deleted in the central model. Reload Latest.";
                 }
             }
+            catch (OperationCanceledException)
+            {
+                throw; // user cancel: never swallowed as a failure
+            }
             catch (Exception)
             {
                 // Status unavailable (e.g. detached copy) — let Apply try and report.
@@ -870,6 +973,10 @@ namespace Revit26_Plugin_Revised.ScheduleExportImport.V007.Infrastructure.Extern
                     .OfClass(current.GetType())
                     .Where(e => current.Category == null || e.Category?.Id == current.Category.Id)
                     .ToList();
+            }
+            catch (OperationCanceledException)
+            {
+                throw; // user cancel: never swallowed as a failure
             }
             catch (Exception)
             {

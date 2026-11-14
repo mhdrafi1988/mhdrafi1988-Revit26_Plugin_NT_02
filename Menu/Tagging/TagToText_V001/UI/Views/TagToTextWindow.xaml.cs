@@ -3,6 +3,7 @@ using Revit26_Plugin_Revised.TagToText.V001.UI.ViewModels;
 using System;
 using System.ComponentModel;
 using System.Windows;
+using System.Windows.Controls;
 
 namespace Revit26_Plugin_Revised.TagToText.V001.UI.Views
 {
@@ -20,6 +21,8 @@ namespace Revit26_Plugin_Revised.TagToText.V001.UI.Views
             InitializeComponent();
             _viewModel = viewModel ?? throw new ArgumentNullException(nameof(viewModel));
             DataContext = _viewModel;
+            // The list can't be regrouped, filtered or reloaded while a text is being edited: end the edit first.
+            _viewModel.CommitTableEdit = () => TagGrid.CommitEdit(DataGridEditingUnit.Row, true);
             Title = ToolCatalog.TagToText.Title;
             Closing += OnClosing;
         }

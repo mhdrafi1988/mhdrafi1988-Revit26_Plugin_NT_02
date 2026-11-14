@@ -6,6 +6,7 @@ using Autodesk.Revit.UI;
 using Revit26_Plugin_Revised.WorksetRenamer.FX05.ViewModels;
 using Revit26_Plugin_Revised.WorksetRenamer.FX05.Views;
 using Revit26_Plugin_Revised.Utilities;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace Revit26_Plugin_Revised.WorksetRenamer.FX05
 {
@@ -13,7 +14,10 @@ namespace Revit26_Plugin_Revised.WorksetRenamer.FX05
     [Regeneration(RegenerationOption.Manual)]
     public class Command : IExternalCommand
     {
-        public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
+        public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements) =>
+            ToolGuard.RunCommand(GetType(), commandData, ref message, elements, ExecuteCore);
+
+        private Result ExecuteCore(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
             try
             {

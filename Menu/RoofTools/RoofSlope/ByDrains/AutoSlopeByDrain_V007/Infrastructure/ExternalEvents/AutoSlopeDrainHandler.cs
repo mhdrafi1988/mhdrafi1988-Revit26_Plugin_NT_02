@@ -30,6 +30,9 @@ namespace Revit26_Plugin_Revised.AutoSlopeByDrain.V007.Infrastructure.ExternalEv
 
             AutoSlopeDrainPayload current = Payload;
 
+            // Esc / Cancel with a Yes-No confirm; the engine reports a cancel as WasCancelled and the group is rolled back.
+            using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.AutoSlopeByDrain, app);
+
             using (TransactionGroup tg = new TransactionGroup(
                 app.ActiveUIDocument.Document, "AutoSlope By Drain"))
             {

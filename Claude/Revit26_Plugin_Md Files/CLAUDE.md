@@ -1,145 +1,111 @@
-# Revit26_Plugin
+# Revit26_Plugin — reference notes
 
-_CLAUDE.md v1.1 — adds the ToolWindowShell UI standard._
+_v2.2, 2026-11-03 (plugin 6.37.0): floor tools added. v2.1, 2026-11-03: preview Artifact is opened every tool update (Stop hook reminder). v2.0, 2026-11-02 (plugin 6.31.0): brought in line with the root `CLAUDE.md`. v1.1 (2026-10-04) added the
+ToolWindowShell standard._
 
-Revit add-in ("SloperPro" ribbon tab, see `App.cs`), single monolithic
-`Revit26_Plugin.csproj` (`net8.0-windows`) with ~60 independent tools under `Menu/`.
+**The development standard is the root `CLAUDE.md`.** It covers build, folder layout, versioning, robustness,
+documentation, UI previews, backward compatibility and the pre-release checklist. Where this file and the root one
+disagree, the root one wins. The `Claude/` folder next to this file holds the deeper reference notes, by topic:
 
-## Build prerequisites
+| File | What it covers |
+|---|---|
+| `Claude/ARCHITECTURE.md` | Runtime flow: startup → ribbon → command → window → external event |
+| `Claude/RIBBON_AND_ICONS.md` | Ribbon layout of both tabs, `RibbonLayoutHelper`, icons |
+| `Claude/TOOL_VERSIONING.md` | What `_V<NNN>` and `ToolCatalog` versions mean, and a tool version's states |
+| `Claude/UI_UX_PATTERNS.md` | Window patterns: shared styles, filtering, grouping, logging, tabs |
+| `Claude/CHANGELOG.md` | Engineering notes (the root `CHANGELOG.md` is the release log) |
 
-- `RevitAPI.dll` / `RevitAPIUI.dll` are referenced via a local `HintPath`
-  (currently `D:\Github\Revit_26\Apiref\...` in the `.csproj`) — not NuGet,
-  not committed. A build will fail on any machine without a Revit install at
-  that path; update the `HintPath` rather than trying to restore it as a package.
+## Project at a glance
 
-## Folder & versioning convention
+- Revit 2026 add-in, .NET 8 / WPF, one project: `Revit26_Plugin_Revised.csproj` (root namespace and assembly
+  `Revit26_Plugin_Revised`). The Revit API comes from the `Autodesk.Revit.SDK` NuGet package, so it builds on any
+  machine with `dotnet build Revit26_Plugin_Revised.csproj -p:EnableWindowsTargeting=true`.
+- Two ribbon tabs, **SloperPro_Rev_88-MDL** (Modelling) and **SloperPro_Rev_88-DCM** (Documents), built in
+  `App.cs : InitializeRibbonPanels`. See `Claude/RIBBON_AND_ICONS.md` for every panel.
+- Tools live in `Menu/<Area>/<Group>/<Tool>_V<NNN>/` with `Commands`, `Core`, `UI` and `Infrastructure` folders.
+  Each tool's semantic version is in `Shared/Services/ToolCatalog.cs`.
+- Unit tests are in `Tests/<Project>` (16 projects), and run with `dotnet test Tests/<Project>`. They link the
+  tool's Revit-free files rather than copying them.
+- UI previews for tool changes are in `Claude/Previews/` and are published as claude.ai Artifacts (root
+  `CLAUDE.md`, "UI previews"). Every tool update opens the Artifact for the owner in the same turn, before
+  the change is reported done; a Stop hook (`.claude/hooks/check-preview.sh`) reminds Claude if it is missing.
 
-Tools live at `Menu/<Category>/<Subcategory>/<ToolName>_V0xx/`, each with its
-own subtree:
+## Established patterns
 
-```
-<ToolName>_V0xx/
-  Commands/        IExternalCommand — thin, Revit-side entry point only
-  Core/
-    Models/        POCOs
-    Services/      business/geometry logic — zero Revit API dependency
-    (Engine/Parameters/... as needed)
-  Infrastructure/
-    ExternalEvents/  ExternalEventHandler + event-raising manager
-    Helpers/
-  UI/
-    ViewModels/
-    Views/         WPF window (.xaml/.xaml.cs)
-```
+- **Entry points:** every `IExternalCommand.Execute` and `IExternalEventHandler.Execute` delegates to
+  `ToolGuard.RunCommand` / `ToolGuard.RunHandler`. ToolGuard turns `OperationCanceledException` into
+  `Result.Cancelled`, and reports anything else with the tool's name and version from `ToolCatalog`, logged to
+  `%AppData%\Revit26_Plugin_Revised\Logs`.
+- **Model changes** happen through an `IExternalEventHandler` raised from the window (one `ExternalEvent` per tool,
+  created once), inside `using` `Transaction` / `TransactionGroup` blocks. A few older ViewModels commit from a
+  modeless window's click handler instead. This is a known exception; don't "fix" it on sight.
+- **Windows are modeless** (`Show()`) and owned by Revit's main window. Newer tools (Auto Slope By Point V032+,
+  By Drain V013, the Floor Slope tools) also allow only one open window at a time: a second click brings the open
+  one to the front (`TryActivateOpenWindow`).
+- **Settings** are JSON under `%AppData%\Revit26_Plugin_Revised\<Tool>\`, read with try/catch and defaults on
+  failure. New settings formats carry a version field (root `CLAUDE.md`, Backward compatibility 4).
+- **Floor versions of roof tools** (plugins 6.31.0–6.37.0) are new tools at `_V001`, copied from the latest roof
+  version only, with Roof → Floor names. They read a floor's sketch through `Shared/Services/FloorSketchProfile`
+  (floors have no `GetProfiles()`), refuse floors they can't change through `FloorShapeEditChecks`, and ask before
+  changing a floor type with no Variable layer. The full roof → floor list is in `Claude/TOOL_VERSIONING.md`.
+- **`Core/`** holds the tool's logic. Only some tools keep it free of the Revit API: 85 of the 105 `Core/` folders
+  outside WIP use Revit types. Where a tool has unit tests, the tested files are the Revit-free ones.
 
-A new tool version is a **new `_V0xx` folder**, not an in-place edit — older
-versions are routinely left on disk even after a newer one becomes "live."
-"Live" means wired into a `Menu/00_Push_Button_Menu_items/Ribbon/*Ribbon.cs`
-file that's called from `App.cs:InitializeRibbonPanels`. A folder with no
-`PushButtonData` referencing it is dead/orphaned — check the ribbon file
-before assuming a version is in use, and don't delete old version folders
-without confirming nothing references them.
-
-Some tool folders only contain a `.zip` with no extracted source — these were
-never wired up and can't have a PushButton added until unzipped.
-
-## Established architecture pattern
-
-(Confirmed by a full repo audit — see `Claude/REVIT_PLUGIN_AUDIT.md`.)
-
-- `Command.cs` (`IExternalCommand.Execute`) wraps its whole body in try/catch:
-  `OperationCanceledException` → `Result.Cancelled`, anything else →
-  `TaskDialog.Show` + `Result.Failed`. Keep it thin; move logic into
-  `Core/Services`.
-- `Core/Services` classes have **no Revit API dependency** — pure logic,
-  testable in principle even though no test project exists yet.
-- All Revit document mutation happens through `ExternalEvent.Raise()` /
-  an `IExternalEventHandler` in `Infrastructure/ExternalEvents/` — created
-  once (field, constructor/window-load), never re-created per click.
-  (A few older ViewModels commit transactions directly from a modeless
-  window's UI-thread click handler instead — known, intentionally left
-  alone; don't "fix" this pattern on sight, it's a confirmed exception.)
-- Every `Transaction`/`TransactionGroup` is in a `using` block.
-- WPF windows are modeless (`window.Show()`, not `ShowDialog()`); set the
-  window's `Owner` via `WindowInteropHelper` — stated convention, but
-  historically missed by some tools, so don't assume it's already done.
-- Settings load via `JsonSerializer.Deserialize` wrapped in try/catch,
-  falling back to defaults on failure.
-
-## ToolWindowShell — tool window standard (v1.1)
+## ToolWindowShell — tool window standard
 
 Every tool window's content is a `Shared/Controls/ToolWindowShell`
-(`xmlns:shell="clr-namespace:Revit26_Plugin.Shared.Controls"`) with three
-zones (it's a templated `Control`, template in
-`ToolWindowShellTemplate.xaml` — not a UserControl, so `x:Name` inside
-tool content still works):
+(`xmlns:shell="clr-namespace:Revit26_Plugin_Revised.Shared.Controls"`). It is a templated `Control` (template in
+`ToolWindowShellTemplate.xaml`), not a UserControl, so `x:Name` inside tool content still works. It has three zones:
 
-- **Header** — `Title`, `Subtitle`, `Version` (navy bar, built in) plus
-  `HeaderContent`: status badges and metric tiles. Never scrolls.
-- **Body** — `BodyContent`, hosted in the shell's single ScrollViewer.
-  Inputs, expanders, DataGrids **and the log** live here.
-- **Footer** — status strip bound to the ViewModel's `IsRunning`,
-  `Progress` (0–100) and `SummaryText`, then `FooterContent`: secondary
-  actions left, Primary → Close right. Never scrolls.
+- **Header:** `Title`, `Subtitle`, `Version` (navy bar, built in), plus `HeaderContent` for status badges and metric
+  tiles. It never scrolls.
+- **Body:** `BodyContent`, hosted in the shell's single ScrollViewer. Inputs, expanders, DataGrids and the log live
+  here.
+- **Footer:** a status strip bound to the ViewModel's `IsRunning`, `Progress` (0–100) and `SummaryText`, then
+  `FooterContent`: secondary actions on the left, Primary → Close on the right. It never scrolls.
 
 Rules:
-- No `ScrollViewer` inside tool content — the shell body is the only one.
-- Every DataGrid and log list sets
-  `shell:ShellBehaviors.MaxHeightRatio` (fraction of window height,
-  e.g. `0.45` grid / `0.25` log) and `shell:ShellBehaviors.ForwardMouseWheel="True"`.
-- No inline colours (`#RRGGBB`, named colours) in window XAML — add a
-  `Color` + `Brush…` token (or a style) to `Shared/SharedStyles.xaml`.
-  `Transparent` is the one exception and stays inline (Rafi, 2026-10-04).
-  Metric tiles use `MetricTile[Info|Danger|Success|Warning]` with the
-  matching `MetricTileLabel…` / `MetricTileNumber…` text styles.
-- The shell's `IsRunning` / `Progress` / `SummaryText` bind to the
-  ViewModel. If it already has an equivalent (e.g. `IsBusy`,
-  `RunSummary`), bind to that; only add what's missing, as a plain
-  observable property (per Rafi's decision, 2026-10-04). A tool that never
-  reports a percentage sets `IsIndeterminate="True"` on the shell so the
-  bar animates while running. Don't otherwise
-  change ViewModel logic, Revit API code or transactions during a shell
-  migration.
-- A migration is a normal version bump: new `_V0xx` folder + namespace.
+- No `ScrollViewer` inside tool content; the shell body is the only one.
+- Every DataGrid and log list sets `shell:ShellBehaviors.MaxHeightRatio` (a fraction of the window height, e.g.
+  `0.45` for a grid and `0.25` for a log) and `shell:ShellBehaviors.ForwardMouseWheel="True"`.
+- No inline colours (`#RRGGBB` or named colours) in window XAML. Add a `Color` + `Brush…` token, or a style, to
+  `Shared/SharedStyles.xaml` (semantic tokens are v4.0). `Transparent` is the one exception and stays inline (Rafi,
+  2026-10-04). Metric tiles use `MetricTile[Info|Danger|Success|Warning]` with the matching `MetricTileLabel…` /
+  `MetricTileNumber…` text styles.
+- The shell's `IsRunning` / `Progress` / `SummaryText` bind to the ViewModel. If it already has an equivalent (e.g.
+  `IsBusy`, `RunSummary`), bind to that, and add only what's missing, as a plain observable property (Rafi,
+  2026-10-04). A tool that never reports a percentage sets `IsIndeterminate="True"` on the shell.
+- The window title and version badge come from `ToolCatalog` (`Name — vX.Y.Z`), never a hard-coded string.
+- A shell migration is a normal tool change: change the tool in place and bump its `ToolCatalog` version (root
+  `CLAUDE.md`). Don't otherwise change ViewModel logic, Revit API code or transactions during a migration.
 
-Reference implementation: SectionAutoRenamer V026.
+Reference implementations: Section Auto Renamer V026, and Floor Slope By Drain V001 / By Point V001.
 
-## Ribbon & icons — read before touching either
+## Ribbon & icons — sharp edges
 
-Full detail in `Claude/LOGO PROMPT FOLDER/Ribbon_Code_Notes.md`. Sharp edges:
+Full detail is in `Claude/RIBBON_AND_ICONS.md`.
 
-- Only the parent `PulldownButton` gets an icon by default. To icon an
-  individual `PushButtonData`, capture `AddPushButton`'s return value (cast
-  to `PushButton`) and set `.Image`/`.LargeImage` on it explicitly.
-- `Resources/Icons/**/*.png` is embedded by one wildcard in the `.csproj`;
-  a new PNG dropped in a category folder is picked up automatically. A wrong
-  (or wrong-case) path in `ImageUtils.Load` throws `FileNotFoundException`
-  at `OnStartup` the first time that button is built.
-- `QuickAcces.cs` (note: not `*Ribbon*.cs`) defines `QuickAccessRibbon`,
-  called from `App.cs` — easy to miss in a filename-based search.
-
-## Known gaps — don't "fix" these without asking
-
-Deliberate/accepted per the audit, not oversights to patch reflexively:
-- No test project (no xUnit/NUnit anywhere).
-- No `AssemblyVersion`/`AssemblyInfo.cs` — single assembly, SDK default
-  `1.0.0.0`; the `V0xx` in folder/class names tracks tool revision, not
-  assembly version.
-- No `SchemaVersion` on settings POCOs — no migration logic exists to need one.
-- The `.addin` manifest is `Installer/rf12_Revit_2026.addin` (since 4.0.1); the installer
-  scripts also write their own copy at install time.
+- A command class is wired by its fully-qualified name **as a string**. A typo builds fine and only fails when
+  the button is clicked.
+- Build stacks, pulldowns and slide-outs through `RibbonLayoutHelper`, not the Revit API directly. It works around
+  Revit's stacked-label bug and the blank-icon bug of a lone large button.
+- `Resources/Icons/**/*.png` is embedded by one wildcard in the `.csproj`. A wrong (or wrong-case) path in
+  `ImageUtils.Load` throws `FileNotFoundException` at `OnStartup` the first time that button is built.
+- Never rename a ribbon button's internal name or a panel just for its title. Revit keys keyboard shortcuts and
+  Quick Access Toolbar items on tab + panel + button name.
 
 ## Decision trail in code
 
-Non-obvious decisions are recorded as dated comments in the relevant file
-header rather than in a separate doc, e.g. `// per Rafi's confirmed decision
-(2026-07-21)`. Check a tool's `Commands/*.cs` header before assuming
-behavior is accidental — it may be a deliberate, previously-confirmed choice.
+Non-obvious decisions are recorded as dated comments in the relevant file header rather than in a separate doc,
+e.g. `// per Rafi's confirmed decision (2026-07-21)`. Check a tool's `Commands/*.cs` header before assuming
+behaviour is accidental. It may be a deliberate, previously confirmed choice.
 
 ## Other docs
 
-- `Claude/REVIT_PLUGIN_AUDIT.md` — repeatable audit checklist (memory,
-  threading, error handling, structure) + findings log.
-- `Claude/LOGO PROMPT FOLDER/Ribbon_Code_Notes.md` — ribbon/icon wiring notes.
-- `Claude/LOGO PROMPT FOLDER/Icon_Prompts.md` — icon generation prompts per
-  live button.
+Paths from the repository root:
+
+- `Claude/REVIT_PLUGIN_AUDIT.md`: repeatable audit checklist (memory, threading, error handling, structure) and the
+  2026-09-03 findings log.
+- `Claude/LOGO PROMPT FOLDER/Icon_Prompts.md`: icon-generation prompts.
+- `Claude/LOGO PROMPT FOLDER/Ribbon_Code_Notes.md`: historical notes from the first ribbon/icon cleanup.
+- `Claude/Previews/`: HTML UI previews of tool windows.

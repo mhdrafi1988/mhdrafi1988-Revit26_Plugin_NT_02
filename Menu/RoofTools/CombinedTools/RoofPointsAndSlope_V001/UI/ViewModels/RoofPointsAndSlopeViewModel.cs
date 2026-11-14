@@ -339,7 +339,6 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.UI.ViewModels
                 RunCommand.NotifyCanExecuteChanged();
                 RunAllCommand.NotifyCanExecuteChanged();
                 AnalyzeCommand.NotifyCanExecuteChanged();
-                CancelCommand.NotifyCanExecuteChanged();
                 CheckReachCommand.NotifyCanExecuteChanged();
             }
 
@@ -714,7 +713,6 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.UI.ViewModels
                     {
                         Progress = (index * 100 + pct) / roofs.Count;
                         SummaryText = prefix + text;
-                        UiPumpHelper.DoEvents(); // repaint + let a Cancel click through
                     }
                 });
             }
@@ -971,19 +969,6 @@ namespace Revit26_Plugin_Revised.RoofPointsAndSlope.V001.UI.ViewModels
             };
             Raise(payload, "Showing markers…");
         }
-
-        /// <summary>Stops the running steps; the whole run is rolled back.</summary>
-        [RelayCommand(CanExecute = nameof(CanCancel))]
-        private void Cancel()
-        {
-            if (_runCts == null || _runCts.IsCancellationRequested) return;
-            _runCts.Cancel();
-            SummaryText = "Cancelling…";
-            AddLog(LogLevel.Warning, "Cancel requested — stopping and rolling back.");
-            CancelCommand.NotifyCanExecuteChanged();
-        }
-
-        private bool CanCancel() => IsRunning && _runCts != null && !_runCts.IsCancellationRequested;
 
         // ── Slope reach estimate ────────────────────────────────────────────
         /// <summary>

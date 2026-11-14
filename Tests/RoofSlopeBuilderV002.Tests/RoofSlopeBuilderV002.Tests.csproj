@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    Unit tests for Roof Slope Builder V002's Revit-free code (Core: 2D geometry,
+    drain detection, slope solver, settings JSON). The tool's files are linked, not copied.
+    Run:  dotnet test Tests/RoofSlopeBuilderV002.Tests
+  -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <ToolDir>..\..\Menu\RoofTools\CombinedTools\RoofSlopeBuilder_V002\</ToolDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="$(ToolDir)Core\*.cs" Link="Tool\Core\%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+  </ItemGroup>
+</Project>

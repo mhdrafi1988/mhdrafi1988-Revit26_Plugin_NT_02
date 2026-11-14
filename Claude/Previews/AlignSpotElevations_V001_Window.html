@@ -1,0 +1,219 @@
+<title>Align Spot Elevations Window</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<!-- UI preview (CLAUDE.md "UI previews"): Align Spot Elevations V001, tool 1.8.0, plugin 6.43.0.
+     New in 1.8.0: Distribute Spot Elev. button (opens the window in Distribute only) and two quick split buttons
+     (Quick Distribute Vertical, Quick Distribute Horizontal; each lists tags, ends, bends). The window itself is unchanged.
+     Earlier, 1.7.1: the eight Quick Align buttons became three small split buttons (Vertical, Horizontal, to Tag).
+     Earlier, 1.6.0: "Pick tag…" for the bend point and end point lines in Align to detail lines mode.
+     Mirrors: Menu/Tagging/AlignSpotElevations_V001/UI/Views/AlignWindow.xaml (+ AlignViewModel),
+              Menu/00_Push_Button_Menu_items/Ribbon/TaggingRibbon.cs
+     Artifact: https://claude.ai/artifact/2VHrumnthLR5qSpzTFHfpi (republish to this URL on every update)
+     Colours: Shared/SharedStyles.xaml tokens, one light look on purpose (mirrors the light WPF window). -->
+<style>
+/* Layout: one column of captioned mock-ups; each fixed-width Revit piece scrolls in its own frame. */
+:root{
+  color-scheme:light;
+  --page:#E9EDF1; --window:#F3F5F7; --card:#FFFFFF; --border:#D6DCE3; --input:#B5C2CF;
+  --action:#1E3A5F; --text:#1A2B3C; --text2:#5B7185; --text3:#8FA3B8; --disabled:#C3CFDB;
+  --bg2:#ECEFF3; --info:#1F5FBF; --warn:#9A5B00; --warn-soft:#FDF1E1;
+  --new:#0E7C66; --new-soft:#E0F4EF; --end:#C2410C; --bend:#7C3AED;
+  --ribbon-tabs:#1C2B3A; --ribbon-bg:#F7F8FA; --hover:#DCE8F5;
+  --ui:'Segoe UI',system-ui,-apple-system,sans-serif; --mono:Consolas,'Cascadia Mono',monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--text);font-family:var(--ui);font-size:12.5px;
+  padding-block:24px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.page{max-width:980px;margin:0 auto;display:grid;gap:22px}
+h1{font-size:20px;margin:0 0 4px;font-weight:600;text-wrap:balance}
+h2{font-size:14px;margin:0 0 8px;font-weight:600}
+p{margin:0;line-height:1.5;max-width:75ch}
+.muted{color:var(--text2)}
+.tag{display:inline-block;background:var(--new);color:#FFFFFF;font-size:10px;font-weight:600;letter-spacing:.04em;
+  padding:1px 6px;border-radius:3px;vertical-align:middle;margin-left:6px}
+.sample{display:inline-block;background:var(--warn-soft);color:var(--warn);border:1px solid #E8B66B;border-radius:3px;padding:2px 8px;font-size:11.5px}
+.frame{overflow-x:auto;padding-bottom:4px}
+/* Revit window */
+.win{width:640px;background:var(--window);border:1px solid var(--input);box-shadow:0 6px 20px rgba(16,32,48,.18)}
+.tbar{background:var(--card);border-bottom:1px solid var(--border);padding:7px 10px;display:flex;justify-content:space-between}
+.tbar .x{color:var(--text2)}
+.wbody{padding:16px;display:grid;gap:8px}
+fieldset{border:1px solid var(--border);margin:0;min-width:0;padding:6px 10px 8px;display:grid;gap:4px;background:var(--window)}
+legend{padding:0 4px;color:var(--text)}
+fieldset.new{border-color:var(--new);background:var(--new-soft)}
+.r{display:flex;align-items:center;gap:6px}
+.row{display:flex;flex-wrap:wrap;align-items:center;gap:4px 16px}
+.rad,.chk{width:12px;height:12px;border:1px solid var(--text2);border-radius:50%;display:inline-block;background:var(--card);flex:none}
+.chk{border-radius:2px}
+.chk.on{background:var(--text);box-shadow:inset 0 0 0 2px var(--card)}
+.num{display:inline-block;border:1px solid var(--input);background:var(--card);padding:1px 6px;min-width:44px}
+.big.new{background:var(--new-soft);outline:1px solid var(--new)} .big.new .ico{background:var(--new)}
+.rad.on{background:radial-gradient(circle,var(--text) 0 3px,var(--card) 3.5px)}
+.dis{color:var(--disabled)} .dis .rad{border-color:var(--disabled)}
+.btn{display:inline-block;border:1px solid var(--input);background:var(--bg2);padding:2px 0;text-align:center;width:80px}
+.btn.sm{width:56px}
+.btn.new{border-color:var(--new);background:var(--card);color:var(--new);font-weight:600}
+.btn.pri{background:var(--action);color:#FFFFFF;border-color:var(--action)}
+.gray{color:var(--text2)}
+.newline{border:1px dashed var(--new);background:var(--new-soft);padding:4px 6px}
+table{border-collapse:collapse;width:100%;background:var(--card);font-variant-numeric:tabular-nums}
+th,td{border:1px solid var(--border);padding:3px 6px;text-align:left;white-space:nowrap}
+th{background:var(--bg2);font-weight:600}
+tr.ref td{background:var(--new-soft)}
+.foot{display:flex;justify-content:space-between;align-items:center}
+/* view sketch */
+.sheet{background:var(--card);border:1px solid var(--border);width:640px}
+.sheet svg{display:block;width:640px;height:auto}
+/* ribbon */
+.rib{width:860px;background:var(--ribbon-bg);border:1px solid var(--border)}
+.tabs{background:var(--ribbon-tabs);color:#EAF1F8;padding:4px 10px;font-size:11.5px}
+.panel{display:flex;gap:4px;padding:6px 8px 0;align-items:stretch}
+.big{width:70px;text-align:center;padding:4px 2px;font-size:11px;line-height:1.2}
+.ico{width:32px;height:32px;margin:0 auto 4px;border-radius:4px;background:var(--action)}
+.stack{display:grid;gap:2px;align-content:start;font-size:11px}
+.small{display:flex;align-items:center;gap:5px;padding:2px 4px;white-space:nowrap}
+.small i{width:16px;height:16px;border-radius:3px;background:var(--text2);display:inline-block}
+.small.new{background:var(--new-soft);outline:1px solid var(--new)}
+.small.new i{background:var(--new)}
+.ptitle{text-align:center;color:var(--text2);border-top:1px solid var(--border);margin-top:6px;padding:2px;font-size:11px}
+.tip{width:380px;background:var(--card);border:1px solid var(--input);padding:10px 12px;box-shadow:0 4px 14px rgba(16,32,48,.18);display:grid;gap:6px;margin-top:8px}
+.prompt{width:860px;background:var(--bg2);border:1px solid var(--border);padding:4px 8px;font-size:11.5px;margin-top:8px}
+ul{margin:0;padding-left:18px;line-height:1.6}
+.q{background:var(--card);border:1px solid var(--border);border-left:3px solid var(--info);padding:10px 14px}
+</style>
+
+<div class="page">
+  <header>
+    <h1>Align Spot Elevations v1.8.0 — distribute buttons</h1>
+    <p class="muted">Three new ribbon buttons space the selected spot elevations along their column or row without lining them up: one opens the window in Distribute only, two split buttons do it in one click for the tags, the leader ends or the leader bends. Green tags mark what is new.</p>
+    <p style="margin-top:8px"><span class="sample">Sample data: spot labels and positions are made up.</span></p>
+  </header>
+
+  <!-- 1. Ribbon -->
+  <section>
+    <h2>1 · Ribbon, Tagging panel</h2>
+    <p class="muted" style="margin-bottom:8px">One new large button and one new stack of two small split buttons, after the Quick Align split buttons. The main click runs the item used last (the first until you pick another); the arrow lists the rest.</p>
+    <div class="frame">
+      <div class="rib">
+        <div class="tabs">… · Tagging · …</div>
+        <div class="panel">
+          <div class="big"><div class="ico"></div>Tag To Text</div>
+          <div class="big"><div class="ico"></div>Align Spot Elevations</div>
+          <div class="big"><div class="ico"></div>Align to Detail Line</div>
+          <div class="big new"><div class="ico"></div>Distribute Spot Elev.</div>
+          <div class="stack">
+            <span class="small"><i></i>Quick Align Vertical ▾</span>
+            <span class="small"><i></i>Quick Align Horizontal ▾</span>
+            <span class="small"><i></i>Quick Align to Tag ▾</span>
+          </div>
+          <div class="stack">
+            <span class="small new"><i></i>Quick Distribute Vertical ▾</span>
+            <span class="small new"><i></i>Quick Distribute Horizontal ▾</span>
+          </div>
+        </div>
+        <div class="ptitle">Tagging</div>
+      </div>
+      <div class="tip">
+        <b>Arrow lists<span class="tag">NEW</span></b>
+        <span><b>Vertical ▾</b> Quick Distribute Vertical · Quick Distribute Ends Vertical · Quick Distribute Bends Vertical</span>
+        <span><b>Horizontal ▾</b> Quick Distribute Horizontal · Quick Distribute Ends Horizontal · Quick Distribute Bends Horizontal</span>
+        <span><b>Quick Distribute Ends Vertical</b>: Spaces the leader end points of the selected spot elevations up-down along their column right away. The text moves with each end. A leader with a bend only lets its end slide along the bend-to-end segment. Uses the spacing last used in the window. One Undo step.</span>
+        <span class="gray">Align Spot Elevations v1.8.0</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. Window -->
+  <section>
+    <h2>2 · Window, opened by Distribute Spot Elev.</h2>
+    <p class="muted" style="margin-bottom:8px">The same window as before; the new button only preselects <b>Distribute only</b>.</p>
+    <div class="frame"><div class="win">
+      <div class="tbar"><span>Align Spot Elevations — v1.8.0</span><span class="x">✕</span></div>
+      <div class="wbody">
+        <div>5 spot elevation(s) selected · view 1:100. Distances are paper mm. The measured point never moves.</div>
+
+        <fieldset class="new"><legend>Arrange</legend>
+          <span class="r"><span class="rad"></span>Align to a line</span>
+          <span class="r"><span class="rad on"></span>Distribute only (space along the column or row)<span class="tag">PRESELECTED</span></span>
+          <span class="r"><span class="rad"></span>Offset from point (same distance from each measured point)</span>
+          <span class="r"><span class="rad"></span>Align to detail lines or a tag (slide onto picked lines, vertically or horizontally)</span>
+        </fieldset>
+
+        <fieldset><legend>Move</legend>
+          <span class="r"><span class="chk on"></span>Text</span>
+          <span class="r"><span class="chk"></span>Leader end point&nbsp;&nbsp;(5 of 5 have a leader)</span>
+          <span class="r"><span class="chk"></span>Leader bend point (shoulder)&nbsp;&nbsp;(0 of 5 have one)</span>
+          <span class="gray">Parts that are not ticked follow, as in Revit: the text moves with the leader end, and the end and text move with the bend point.</span>
+        </fieldset>
+
+        <fieldset><legend>Direction</legend>
+          <div class="row">
+            <span class="r"><span class="rad on"></span>Vertical — one column</span>
+            <span class="r"><span class="rad"></span>Horizontal — one row</span>
+          </div>
+        </fieldset>
+
+        <fieldset><legend>Spacing along the line</legend>
+          <span class="r dis"><span class="rad"></span>Keep current spacing</span>
+          <span class="r"><span class="rad on"></span>Even (first and last tag stay)</span>
+          <span class="r"><span class="rad"></span>Fixed gap <span class="num">6</span> mm (top / left tag stays) <span class="btn sm">Fit</span></span>
+        </fieldset>
+
+        <div><b>3 of 5 spots change: text spaced down their column.</b></div>
+
+        <table>
+          <tr><th>Spot</th><th>Text X (mm)</th><th>Text Y (mm)</th><th>End X, Y (mm)</th><th>Bend X, Y (mm)</th></tr>
+          <tr><td>+3.100&nbsp;&nbsp;(412205)</td><td>–</td><td>–</td><td>–</td><td>no bend</td></tr>
+          <tr><td>+3.150&nbsp;&nbsp;(412206)</td><td>–</td><td>-3.0</td><td>–</td><td>no bend</td></tr>
+          <tr><td>+3.150&nbsp;&nbsp;(412207)</td><td>–</td><td>+2.5</td><td>–</td><td>no bend</td></tr>
+          <tr><td>+3.200&nbsp;&nbsp;(412208)</td><td>–</td><td>-1.5</td><td>–</td><td>no bend</td></tr>
+          <tr><td>+3.250&nbsp;&nbsp;(412209)</td><td>–</td><td>–</td><td>–</td><td>no bend</td></tr>
+        </table>
+
+        <div class="foot"><span></span>
+          <span class="r"><span class="btn pri">Apply</span><span class="btn">Cancel</span></span></div>
+      </div>
+    </div></div>
+  </section>
+
+  <!-- 3. View sketch -->
+  <section>
+    <h2>3 · What happens in the view</h2>
+    <p class="muted" style="margin-bottom:8px">Pale = before, solid = after. Even spacing, vertical: the top and bottom tags stay, the three between them get equal gaps. No tag moves left or right.</p>
+    <div class="frame"><div class="sheet">
+      <svg viewBox="0 0 640 260" role="img" aria-label="Five spot elevation tags in a loose column; the middle three move up or down so all gaps are equal">
+        <g font-family="Segoe UI,sans-serif" font-size="11">
+          <g stroke="#0E7C66" stroke-dasharray="3 3" fill="none"><line x1="470" y1="30" x2="520" y2="30"/><line x1="470" y1="80" x2="520" y2="80"/><line x1="470" y1="130" x2="520" y2="130"/><line x1="470" y1="180" x2="520" y2="180"/><line x1="470" y1="230" x2="520" y2="230"/></g>
+          <text x="528" y="59" fill="#0E7C66">equal</text><text x="528" y="109" fill="#0E7C66">equal</text><text x="528" y="159" fill="#0E7C66">equal</text><text x="528" y="209" fill="#0E7C66">equal</text>
+
+          <line x1="120" y1="50" x2="300" y2="34" stroke="#5B7185" fill="none"/><circle cx="120" cy="50" r="3" fill="#1A2B3C"/><text x="305" y="34" fill="#1A2B3C">+3.100  (stays)</text>
+
+          <g opacity=".35"><line x1="150" y1="92" x2="330" y2="58" stroke="#5B7185" fill="none"/><text x="335" y="58" fill="#5B7185">+3.150</text></g>
+          <line x1="150" y1="92" x2="330" y2="84" stroke="#5B7185" fill="none"/><circle cx="150" cy="92" r="3" fill="#1A2B3C"/><text x="335" y="84" fill="#1A2B3C">+3.150</text>
+
+          <g opacity=".35"><line x1="200" y1="140" x2="290" y2="156" stroke="#5B7185" fill="none"/><text x="295" y="156" fill="#5B7185">+3.150</text></g>
+          <line x1="200" y1="140" x2="290" y2="134" stroke="#5B7185" fill="none"/><circle cx="200" cy="140" r="3" fill="#1A2B3C"/><text x="295" y="134" fill="#1A2B3C">+3.150</text>
+
+          <g opacity=".35"><line x1="110" y1="190" x2="320" y2="170" stroke="#5B7185" fill="none"/><text x="325" y="170" fill="#5B7185">+3.200</text></g>
+          <line x1="110" y1="190" x2="320" y2="184" stroke="#5B7185" fill="none"/><circle cx="110" cy="190" r="3" fill="#1A2B3C"/><text x="325" y="184" fill="#1A2B3C">+3.200</text>
+
+          <line x1="170" y1="240" x2="310" y2="234" stroke="#5B7185" fill="none"/><circle cx="170" cy="240" r="3" fill="#1A2B3C"/><text x="315" y="234" fill="#1A2B3C">+3.250  (stays)</text>
+        </g>
+      </svg>
+    </div></div>
+  </section>
+
+  <section class="q">
+    <h2>What changed in 1.8.0</h2>
+    <ul>
+      <li><b>Distribute Spot Elev.</b>: opens the window with Distribute only chosen. Even spacing or a fixed gap; text, leader ends and bend points.</li>
+      <li><b>Quick Distribute Vertical / Horizontal</b> split buttons: one click. Each lists tags (parts last ticked in the window), <b>Ends</b> (leader end points only) and <b>Bends</b> (bend points only), and remembers the item used last.</li>
+      <li>All use the spacing last used in the window. "Keep current spacing" counts as even. Even spacing needs at least three spots that have the part.</li>
+      <li>The window, its settings file and the Quick Align buttons are unchanged.</li>
+    </ul>
+    <h2>Earlier</h2>
+    <ul>
+      <li>1.7.1: the eight Quick Align buttons became three split buttons that remember the item used last.</li>
+      <li>1.6.0: <b>Pick tag…</b> on the bend point and end point lines; Quick Align Ends / Bends to Tag.</li>
+    </ul>
+  </section>
+</div>

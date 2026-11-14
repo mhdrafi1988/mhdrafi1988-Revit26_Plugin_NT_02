@@ -47,6 +47,12 @@ Changes vs WSEB003 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
             <!-- Recursive template: a workset/category/type row plus its children. -->
             <HierarchicalDataTemplate DataType="{x:Type vm:TreeNodeViewModel}" ItemsSource="{Binding Children}">
                 <Border Padding="2,3" Background="Transparent">
+                    <Border.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="Check same category / type in all worksets" Click="CheckSameInAllWorksets_Click"/>
+                            <MenuItem Header="Select these elements in Revit" Click="SelectRow_Click"/>
+                        </ContextMenu>
+                    </Border.ContextMenu>
                     <StackPanel Orientation="Horizontal">
                         <CheckBox IsThreeState="True"
                                   IsChecked="{Binding IsChecked, Mode=TwoWay}"
@@ -80,6 +86,31 @@ Changes vs WSEB003 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                             <TextBlock Text="{Binding EditableBadge}" Style="{StaticResource BadgeText}"/>
                         </Border>
 
+                        <!-- Open / closed state of the workset (Workset rows only). Closed is shown in the warning colours. -->
+                        <Border Margin="6,0,0,0"
+                                Visibility="{Binding OpenBadge, Converter={StaticResource StringToVisibilityConverter}, FallbackValue=Collapsed}">
+                            <Border.Style>
+                                <Style TargetType="Border" BasedOn="{StaticResource BadgePill}">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsClosed}" Value="True">
+                                            <Setter Property="Background" Value="{StaticResource BrushStatusWarnSoft}"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                            <TextBlock Text="{Binding OpenBadge}">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock" BasedOn="{StaticResource BadgeText}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsClosed}" Value="True">
+                                                <Setter Property="Foreground" Value="{StaticResource BrushStatusWarn}"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </Border>
+
                         <TextBlock Text="{Binding ElementCount, StringFormat={}{0:N0} elements}"
                                    Margin="10,0,0,0"
                                    VerticalAlignment="Center"
@@ -94,9 +125,17 @@ Changes vs WSEB003 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                                    Foreground="{StaticResource BrushTextTertiary}"
                                    Visibility="{Binding Owner, Converter={StaticResource StringToVisibilityConverter}, FallbackValue=Collapsed}"/>
 
-                        <!-- Explicit per-row action, in addition to clicking the (easy to miss) name text. -->
-                        <Button Content="Show in 3D"
+                        <!-- Explicit per-row actions on Category/Type rows (act on every element under the row). -->
+                        <Button Content="Select"
                                 Margin="10,0,0,0"
+                                Padding="6,1"
+                                FontSize="10.5"
+                                ToolTip="Select every element of this row in Revit"
+                                Style="{StaticResource SmallSecondaryButton}"
+                                Click="SelectRow_Click"
+                                Visibility="{Binding Kind, Converter={StaticResource KindToTypeVisibilityConverter}, FallbackValue=Collapsed}"/>
+                        <Button Content="Show in 3D"
+                                Margin="6,0,0,0"
                                 Padding="6,1"
                                 FontSize="10.5"
                                 Style="{StaticResource SmallSecondaryButton}"
@@ -155,13 +194,24 @@ Changes vs WSEB003 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                         <Button Content="Expand All" Margin="10,0,0,0" Style="{StaticResource SmallSecondaryButton}" Command="{Binding ExpandAllCommand}"/>
                         <Button Content="Collapse All" Margin="6,0,0,0" Style="{StaticResource SmallSecondaryButton}" Command="{Binding CollapseAllCommand}"/>
                         <Border Width="1" Margin="10,2" Background="{StaticResource BrushSeparator}"/>
+                        <TextBlock Text="Group by" Margin="10,0,6,0" VerticalAlignment="Center" Foreground="{StaticResource BrushTextSecondary}"/>
+                        <ComboBox Width="140" VerticalAlignment="Center"
+                                  ItemsSource="{Binding GroupByOptions}"
+                                  DisplayMemberPath="Label"
+                                  SelectedValuePath="Mode"
+                                  SelectedValue="{Binding GroupBy, Mode=TwoWay}"/>
+                        <Border Width="1" Margin="10,2" Background="{StaticResource BrushSeparator}"/>
                         <Button Content="Check All" Margin="10,0,0,0" Style="{StaticResource SmallSecondaryButton}" Command="{Binding CheckAllCommand}"/>
+                        <Button Content="Check Filtered" Margin="6,0,0,0" ToolTip="Check every row currently matching the filter box" Style="{StaticResource SmallSecondaryButton}" Command="{Binding CheckFilteredCommand}"/>
                         <Button Content="Clear Checks" Margin="6,0,0,0" Style="{StaticResource SmallSecondaryButton}" Command="{Binding ClearChecksCommand}"/>
                         <Border Width="1" Margin="10,2" Background="{StaticResource BrushSeparator}"/>
                         <CheckBox Content="Hide Empty Worksets"
                                   Margin="10,0,0,0"
                                   VerticalAlignment="Center"
                                   IsChecked="{Binding HideEmptyWorksets, Mode=TwoWay}"/>
+                        <Border Width="1" Margin="10,2" Background="{StaticResource BrushSeparator}"/>
+                        <Button Content="Open / Close Worksets…" Margin="10,0,0,0" ToolTip="Open Revit's Worksets dialog to open or close worksets. Press Reload afterwards." Style="{StaticResource SmallSecondaryButton}" Command="{Binding OpenWorksetsDialogCommand}"/>
+                        <Button Content="Reload" Margin="6,0,0,0" ToolTip="Read the worksets and elements from the model again (checks are cleared)" Style="{StaticResource SmallSecondaryButton}" Command="{Binding ReloadCommand}"/>
                     </WrapPanel>
                     <!-- Tree -->
                     <Border Margin="0" Background="{StaticResource BrushSurfaceCard}" BorderBrush="{StaticResource BrushSeparator}" BorderThickness="1" CornerRadius="4">
@@ -184,6 +234,7 @@ Changes vs WSEB003 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
                         <Button Content="Isolate Checked" Style="{StaticResource SecondaryButton}" Command="{Binding IsolateCheckedCommand}"/>
                         <Button Content="Select Checked" Margin="8,0,0,0" Style="{StaticResource SecondaryButton}" Command="{Binding SelectCheckedCommand}"/>
                         <Button Content="Isolate + Select Checked" Margin="8,0,0,0" Style="{StaticResource SecondaryButton}" Command="{Binding IsolateAndSelectCheckedCommand}"/>
+                        <Button Content="Save as Selection Set…" Margin="8,0,0,0" ToolTip="Save the checked elements as a Revit selection set" Style="{StaticResource SecondaryButton}" Command="{Binding SaveSelectionSetCommand}"/>
                     </WrapPanel>
                     <StackPanel Grid.Column="1" Orientation="Horizontal">
                         <Button Content="Show Checked In 3D" Margin="0,0,8,0" Style="{StaticResource PrimaryButton}" Command="{Binding ShowCheckedIn3DCommand}"/>

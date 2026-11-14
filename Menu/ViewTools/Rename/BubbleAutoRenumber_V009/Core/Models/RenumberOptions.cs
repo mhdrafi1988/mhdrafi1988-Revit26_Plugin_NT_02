@@ -5,8 +5,16 @@ namespace Revit26_Plugin_Revised.BubbleAutoRenumber.V009.Core.Models
     /// </summary>
     public class RenumberOptions
     {
-        /// <summary>First number of the sequence. 1-based, always &gt; 0.</summary>
+        /// <summary>First position of the sequence. 1-based, always &gt; 0. In letters,
+        /// 1 is "A" and 27 is "AA" — see SequenceLabel.</summary>
         public int StartNumber { get; set; } = 1;
+
+        /// <summary>Numbers (1, 2, 3) or letters (A, B, C). NEW in 9.3.0; the default is
+        /// Numbers, which is what every earlier version wrote.</summary>
+        public NumberingStyle Style { get; set; } = NumberingStyle.Numbers;
+
+        /// <summary>The first value of the sequence as it will be written: "1" or "A".</summary>
+        public string StartLabel => Services.SequenceLabel.Format(StartNumber, Style);
 
         /// <summary>Row-banding tolerance in internal units (feet), converted from the
         /// window's millimetres by the ViewModel.</summary>

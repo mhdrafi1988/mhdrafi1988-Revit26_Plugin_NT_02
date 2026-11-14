@@ -5,6 +5,7 @@ using Revit26_Plugin_Revised.ParaManager.V005.Services;
 using Revit26_Plugin_Revised.ParaManager.V005.ViewModels;
 using Revit26_Plugin_Revised.ParaManager.V005.Views;
 using Revit26_Plugin_Revised.Utilities;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace Revit26_Plugin_Revised.ParaManager.V005
 {
@@ -21,7 +22,10 @@ namespace Revit26_Plugin_Revised.ParaManager.V005
         // while modeless — standard pattern already used by this suite's other tools.
         private static ParaManagerWindow _window;
 
-        public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
+        public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements) =>
+            ToolGuard.RunCommand(GetType(), commandData, ref message, elements, ExecuteCore);
+
+        private Result ExecuteCore(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
             try
             {

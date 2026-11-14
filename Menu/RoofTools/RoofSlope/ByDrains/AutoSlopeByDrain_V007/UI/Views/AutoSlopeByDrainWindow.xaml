@@ -627,12 +627,6 @@
                         Command="{Binding OpenExportFolderCommand}"
                         HorizontalAlignment="Left"/>
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
-                    <Button Content="Cancel"
-                            Command="{Binding CancelRunCommand}"
-                            ToolTip="Stop the run. Nothing has been written to the model yet, so cancelling is a true no-op."
-                            Style="{StaticResource OutlineButton}"
-                            Width="80"
-                            Margin="0,0,8,0"/>
                     <Button Command="{Binding RunAutoSlopeCommand}"
                             ToolTip="Calculate and apply slope to the selected drains"
                             MinWidth="150" Margin="0,0,8,0">

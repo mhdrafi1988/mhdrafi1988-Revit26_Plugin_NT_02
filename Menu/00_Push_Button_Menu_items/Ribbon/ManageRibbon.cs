@@ -29,8 +29,24 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             // and a Memory panel for the remember-and-restore tools.
             RibbonPanel panel = app.CreateRibbonPanel(tabName, "Manage");
 
-            var overlapV004 = Btn(assemblyPath, "Btn_AnnotationOverlapDetection_V004", "Overlap Detection V004", "Revit26_Plugin_Revised.AnnotationOverlapDetection.V004.Command",
-                "Manage.AnnotationOverlapDetection_16.png", "Annotation Overlap Detection", "V004", "V003 on the shared ToolWindowShell (capped lists).");
+            var overlapV006 = Btn(assemblyPath, "Btn_AnnotationOverlapDetection_V006", "Overlap Detection V006", "Revit26_Plugin_Revised.AnnotationOverlapDetection.V006.Command",
+                "Manage.AnnotationOverlapDetection_16.png", "Annotation Overlap Detection", "V006");
+            overlapV006.ToolTip = Revit26_Plugin_Revised.Shared.Services.ToolCatalog.AnnotationOverlapDetectionV006.Tip(
+                "Find overlapping annotations in the active view, then move them apart. By priority: you choose which " +
+                "annotations stay (e.g. dimensions) and which move first (e.g. text notes), or use the recommended order.");
+            var overlapV005 = Btn(assemblyPath, "Btn_AnnotationOverlapDetection_V005", "Overlap Detection V005", "Revit26_Plugin_Revised.AnnotationOverlapDetection.V005.Command",
+                "Manage.AnnotationOverlapDetection_16.png", "Annotation Overlap Detection", "V005");
+            overlapV005.ToolTip = Revit26_Plugin_Revised.Shared.Services.ToolCatalog.AnnotationOverlapDetectionV005.Tip(
+                "Find overlapping annotations in the active view (plans, sections, elevations, drafting views, legends, sheets), then move them apart: Move Up, Move Down or Distribute.");
+            // Annotation Overlap Report (plugin 7.5.0): a separate report-only tool, its own button under the Overlaps pulldown.
+            var overlapReportV001 = Btn(assemblyPath, "Btn_AnnotationOverlapReport_V001", "Overlap Report", "Revit26_Plugin_Revised.AnnotationOverlapReport.V001.Commands.AnnotationOverlapReportCommand",
+                "Manage.AnnotationOverlapDetection_16.png", "Annotation Overlap Report", "V001");
+            overlapReportV001.ToolTip = Revit26_Plugin_Revised.Shared.Services.ToolCatalog.AnnotationOverlapReport.Tip(
+                "Lists overlapping annotations of every type on the active view or on chosen views and sheets, " +
+                "with zoom to pair and Excel export. Report only: nothing is moved.");
+
+            // Overlap Detection V004 left the pulldown in plugin 6.53.0 (latest two versions only);
+            // its code and ToolCatalog entry stay, button name Btn_AnnotationOverlapDetection_V004.
 
             var paraManagerV005 = Btn(assemblyPath, "Btn_ParaManager_V005", "ParaManager V005", "Revit26_Plugin_Revised.ParaManager.V005.ParaManagerCommand",
                 "Manage.ParaManager_16.png", "ParaManager", "V005", "V004 on the shared ToolWindowShell (log in body, capped queue grid).");
@@ -50,7 +66,12 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                 "SetupTools.WorksetRename_16.png", "Workset Renamer", "V005", "V004 on the shared ToolWindowShell (capped grid).");
 
             // Newest build first. "#" at the end of the label marks the version added last.
-            var worksetCreatorV016 = Btn(assemblyPath, "Btn_WorksetCreator_V016", "Workset Creator V016 #",
+            var worksetCreatorV017 = Btn(assemblyPath, "Btn_WorksetCreator_V017", "Workset Creator V017 #",
+                "Revit26_Plugin_Revised.WorksetCreator.V017.Commands.WorksetCreatorCommand",
+                "SetupTools.WorksetManager_16.png", "Workset Creator", "V017",
+                "V016 plus Esc / Cancel with a Yes / No confirm; a cancel undoes the whole run.");
+
+            var worksetCreatorV016 = Btn(assemblyPath, "Btn_WorksetCreator_V016", "Workset Creator V016",
                 "Revit26_Plugin_Revised.WorksetCreator.V016.Commands.WorksetCreatorCommand",
                 "SetupTools.WorksetManager_16.png", "Workset Creator", "V016",
                 "V015 with its own tool name/version source (WorksetCreatorTool).");
@@ -189,7 +210,8 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             // Slide-out (plugin 6.13.0): cleanup and rename tools that change many elements sit inside the arrow.
             var manageItems = RibbonLayoutHelper.AddStackedButtonsWithSlideOut(panel, new List<RibbonItemData>
             {
-                RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_AnnotationOverlapDetection", "Overlaps", overlapV004),
+                RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_AnnotationOverlapDetection", "Overlaps", overlapV006),
+                overlapReportV001,
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_ParaManager", "ParaManager", paraManagerV005),
                 sharedParamStudioV001,
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_ScheduleExportImport", "Schedule I/O", scheduleExportImportV007),
@@ -201,7 +223,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_BulkRename", "Bulk Rename", bulkRenameV001),
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_TrackerId", "Tracker ID", trackerIdV002),
             });
-            RibbonLayoutHelper.WirePulldownButton(manageItems, "Pulldown_AnnotationOverlapDetection", overlapV004);
+            RibbonLayoutHelper.WirePulldownButton(manageItems, "Pulldown_AnnotationOverlapDetection", overlapV006, overlapV005);
             RibbonLayoutHelper.WirePulldownButton(manageItems, "Pulldown_ParaManager", paraManagerV005);
             RibbonLayoutHelper.WirePulldownButton(manageItems, "Pulldown_DeleteLineStyles", deleteLineStylesV001);
             RibbonLayoutHelper.WirePulldownButton(manageItems, "Pulldown_BulkRename", bulkRenameV001);
@@ -222,7 +244,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             var worksetItems = RibbonLayoutHelper.AddStackedButtonsWithSlideOut(worksetPanel, new List<RibbonItemData>
             {
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_WorksetsElementsBrowser", "WS Browser", wsebV004),
-                RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_WorksetCreator", "WS Creator", worksetCreatorV016),
+                RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_WorksetCreator", "WS Creator", worksetCreatorV017),
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_WorksetRenamer", "WS Renamer", worksetRenamerV005),
             }, new List<RibbonItemData>
             {
@@ -230,7 +252,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_DeleteWorkset", "Delete Workset", deleteWorksetV001),
             });
             RibbonLayoutHelper.WirePulldownButton(worksetItems, "Pulldown_WorksetsElementsBrowser", wsebV004, wsebV003);
-            RibbonLayoutHelper.WirePulldownButton(worksetItems, "Pulldown_WorksetCreator", worksetCreatorV016, worksetCreatorV015);
+            RibbonLayoutHelper.WirePulldownButton(worksetItems, "Pulldown_WorksetCreator", worksetCreatorV017, worksetCreatorV016, worksetCreatorV015);
             RibbonLayoutHelper.WirePulldownButton(worksetItems, "Pulldown_WorksetRenamer", worksetRenamerV005);
             RibbonLayoutHelper.WirePulldownButton(worksetItems, "Pulldown_WorksetRenamerFx", worksetRenamerFx05);
             RibbonLayoutHelper.WirePulldownButton(worksetItems, "Pulldown_DeleteWorkset", deleteWorksetV001);

@@ -1,3 +1,4 @@
+using Revit26_Plugin_Revised.Shared.Services;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -57,6 +58,7 @@ namespace Revit26_Plugin_Revised.RoofEdgeAroundSections.V007
 
             foreach (Element el in selectedRoofs)
             {
+                ToolCancellation.CheckCurrent();
                 if (el is not RoofBase roof)
                 {
                     // Defensive — should already be filtered before this point.

@@ -7,6 +7,7 @@ using Revit26_Plugin_Revised.Shared.Models;
 using System.Collections.Generic;
 using System.Linq;
 using Revit26_Plugin_Revised.Utilities;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace Revit26_Plugin_Revised.RoofTag.V018
 {
@@ -16,10 +17,10 @@ namespace Revit26_Plugin_Revised.RoofTag.V018
     {
         private const double PointDedupTolFt = 10.0 / 304.8;
 
-        public Result Execute(
-            ExternalCommandData commandData,
-            ref string          message,
-            ElementSet          elements)
+        public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements) =>
+            ToolGuard.RunCommand(GetType(), commandData, ref message, elements, ExecuteCore);
+
+        private Result ExecuteCore(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
             try
             {
@@ -27,6 +28,11 @@ namespace Revit26_Plugin_Revised.RoofTag.V018
             }
             catch (Autodesk.Revit.Exceptions.OperationCanceledException)
             {
+                return Result.Cancelled;
+            }
+            catch (System.OperationCanceledException)
+            {
+                // Confirmed Esc / Cancel: the run group was rolled back as the exception unwound.
                 return Result.Cancelled;
             }
             catch (System.Exception ex)
@@ -51,6 +57,10 @@ namespace Revit26_Plugin_Revised.RoofTag.V018
                 TaskDialog.Show("Roof Tag V015 (FaceRef)", "No roof selected.");
                 return Result.Cancelled;
             }
+            // One group for the whole run, so a cancel also undoes enabling shape editing.
+            using TransactionGroup runGroup = new TransactionGroup(doc, "Roof Tag");
+            runGroup.Start();
+
 
             // ── 2. Ensure SlabShapeEditor is enabled ─────────────────────
             SlabShapeEditor editor = roof.GetSlabShapeEditor();
@@ -68,6 +78,9 @@ namespace Revit26_Plugin_Revised.RoofTag.V018
 
             RoofTagViewModel vm = (RoofTagViewModel)window.DataContext;
             vm.ResetCounters();
+
+            // Esc / Cancel with a Yes-No confirm while the points are filtered and the tags placed.
+            using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.RoofTag, uiApp);
 
             // ── 4. Collect points ────────────────────────────────────────
             List<XYZ> rawPoints;
@@ -183,6 +196,7 @@ namespace Revit26_Plugin_Revised.RoofTag.V018
 
                 foreach (XYZ pt in points)
                 {
+                    ToolCancellation.CheckCurrent();
                     RoofTagGeometryHelper.GetTaggingReferenceOnRoof(
                         roof, pt,
                         out Reference faceRef,
@@ -194,9 +208,11 @@ namespace Revit26_Plugin_Revised.RoofTag.V018
                     vm.AddLog(result);
                 }
 
+                ToolCancellation.CheckCurrent(); // last chance to cancel before the commit
                 tx.Commit();
             }
 
+            runGroup.Assimilate();
             return Result.Succeeded;
         }
 
@@ -206,6 +222,7 @@ namespace Revit26_Plugin_Revised.RoofTag.V018
 
             foreach (XYZ candidate in points)
             {
+                ToolCancellation.CheckCurrent();
                 bool isDuplicate = unique.Any(u => u.DistanceTo(candidate) <= tolFt);
                 if (!isDuplicate)
                     unique.Add(candidate);

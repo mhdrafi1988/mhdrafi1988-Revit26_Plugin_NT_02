@@ -13,6 +13,7 @@ using Revit26_Plugin_Revised.OuterCurveDivider.V006.Core.Engine;
 using Revit26_Plugin_Revised.OuterCurveDivider.V006.Core.Models;
 using Revit26_Plugin_Revised.Shared.Models;
 using System;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace Revit26_Plugin_Revised.OuterCurveDivider.V006.Infrastructure.ExternalEvents
 {
@@ -25,11 +26,17 @@ namespace Revit26_Plugin_Revised.OuterCurveDivider.V006.Infrastructure.ExternalE
         /// </summary>
         public static CurveDividerPayload Payload;
 
-        public void Execute(UIApplication app)
+        public void Execute(UIApplication app) =>
+            ToolGuard.RunHandler(GetType(), app, ExecuteCore);
+
+        private void ExecuteCore(UIApplication app)
         {
             if (Payload == null) return;
 
             CurveDividerPayload current = Payload;
+
+            // Esc / Cancel with a Yes-No confirm; the transaction group below is rolled back on cancel.
+            using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.OuterCurveDivider, app);
 
             using (TransactionGroup tg = new TransactionGroup(
                 app.ActiveUIDocument.Document, "Curve Point Divider"))
@@ -46,6 +53,17 @@ namespace Revit26_Plugin_Revised.OuterCurveDivider.V006.Infrastructure.ExternalE
                         tg.RollBack();
 
                     current.OnCompleted?.Invoke(result);
+                }
+                catch (OperationCanceledException)
+                {
+                    if (tg.GetStatus() == TransactionStatus.Started) tg.RollBack();
+                    current.Log?.Invoke(new LogEntry(LogLevel.Warning, "Cancelled by user. Nothing was changed."));
+                    current.OnCompleted?.Invoke(new CurveDividerResult
+                    {
+                        Success = false,
+                        ErrorMessage = "Cancelled by user."
+                    });
+                    throw; // ToolGuard treats it as a user cancel
                 }
                 catch (Exception ex)
                 {

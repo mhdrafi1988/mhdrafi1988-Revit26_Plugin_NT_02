@@ -1,0 +1,780 @@
+<!--
+=======================================================
+File: FloorSlopeByPointRidgeWindow.xaml
+Floor Slope By Point (Ridge) V001: the Auto Slope By Point (Ridge) V003
+window, unchanged apart from the floor wording, title and version source.
+Roof V003 notes, changes vs V002 (layout only, per CLAUDE.md v1.1 — ToolWindowShell):
+  - Window content is a shared ToolWindowShell:
+      HEADER  title bar + V003, both metrics rows
+      BODY    left: slope / drain / Circle Markers expander (closed by
+              default, unchanged); right: curve handling + export — both
+              columns' own ScrollViewers removed; below: Processing Log
+              (moved here from the footer)
+      FOOTER  status strip (replaces the footer progress strip: bound to
+              IsProgressVisible / ProgressPercent / ProgressIsIndeterminate /
+              ProgressPhaseText), run timing, Cancel · Run → Close
+  - Log: ShellBehaviors.MaxHeightRatio + ForwardMouseWheel.
+  - No behaviour change — every binding/command is the V002 one.
+=======================================================
+-->
+<Window x:Class="Revit26_Plugin_Revised.FloorSlopeByPointRidge.V001.UI.Views.FloorSlopeByPointRidgeWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:svc="clr-namespace:Revit26_Plugin_Revised.Shared.Services"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:shared="clr-namespace:Revit26_Plugin_Revised.Shared.Models"
+        xmlns:shell="clr-namespace:Revit26_Plugin_Revised.Shared.Controls"       
+        mc:Ignorable="d"
+        Title="{Binding Source={x:Static svc:ToolCatalog.FloorSlopeByPointRidge}, Path=Title}"
+        Width="1180"
+        Height="840"
+        MinWidth="1180"
+        MinHeight="840"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="CanResizeWithGrip"
+        Background="White"
+        KeyDown="Window_KeyDown">
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <!-- SharedStyles provides all theme brushes, card styles, button styles, etc. -->
+                <ResourceDictionary Source="pack://application:,,,/Revit26_Plugin_Revised;component/Shared/SharedStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+
+            <!--
+                Converters from Shared.Models registered here (NOT inside SharedStyles.xaml).
+                Rule: never instantiate converters inside a shared ResourceDictionary.
+            -->
+            <shared:InverseBoolConverter            x:Key="InverseBool"/>
+            <shared:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibility"/>
+            <shared:LogLevelToColorConverter        x:Key="LogLevelToColor"/>
+            <BooleanToVisibilityConverter x:Key="BoolToVisibility"/>
+
+            <!-- NEW: thin ProgressBar for the Run progress strip — defined
+                 LOCALLY so this stays scoped to this window only. Keeps WPF's
+                 DEFAULT ControlTemplate (only Height/Foreground/Background are
+                 restyled) — the default template's built-in PART_Track/
+                 PART_Indicator sizing correctly handles both determinate width
+                 and the indeterminate animation. -->
+            <Style x:Key="ThinProgressBar" TargetType="ProgressBar">
+                <Setter Property="Height" Value="6"/>
+                <Setter Property="Minimum" Value="0"/>
+                <Setter Property="Maximum" Value="100"/>
+                <Setter Property="Foreground" Value="{StaticResource BrushAppleBlue}"/>
+                <Setter Property="Background" Value="{StaticResource BrushSystemTertiaryBackground}"/>
+                <Setter Property="BorderThickness" Value="0"/>
+            </Style>
+
+            <!-- Collapsible card section (Circle Markers): the whole header row is
+                 the toggle, with a chevron on the right; body is hidden until
+                 expanded. Same pattern as AutoSlopeByDrain V010. -->
+            <Style x:Key="CardExpander" TargetType="Expander">
+                <Setter Property="IsExpanded" Value="False"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Expander">
+                            <DockPanel LastChildFill="True">
+                                <ToggleButton DockPanel.Dock="Top"
+                                              IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
+                                              Background="Transparent" BorderThickness="0"
+                                              Padding="12,10" Cursor="Hand"
+                                              HorizontalContentAlignment="Stretch">
+                                    <ToggleButton.Template>
+                                        <ControlTemplate TargetType="ToggleButton">
+                                            <Border Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+                                                <ContentPresenter/>
+                                            </Border>
+                                        </ControlTemplate>
+                                    </ToggleButton.Template>
+                                    <DockPanel LastChildFill="True">
+                                        <TextBlock x:Name="Chevron" DockPanel.Dock="Right" Text="▾"
+                                                   Foreground="{StaticResource BrushTextSecondary}"
+                                                   FontSize="12" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                                        <ContentPresenter ContentSource="Header" RecognizesAccessKey="False"/>
+                                    </DockPanel>
+                                </ToggleButton>
+                                <StackPanel x:Name="BodyHost" Visibility="Collapsed">
+                                    <Border Style="{StaticResource SeparatorLine}" Margin="12,0,12,4"/>
+                                    <ContentPresenter/>
+                                </StackPanel>
+                            </DockPanel>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsExpanded" Value="True">
+                                    <Setter TargetName="BodyHost" Property="Visibility" Value="Visible"/>
+                                    <Setter TargetName="Chevron" Property="Text" Value="▴"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <!-- Small pill shown in the collapsed header for each enabled marker group. -->
+            <Style x:Key="SummaryChip" TargetType="Border">
+                <Setter Property="Background" Value="{StaticResource BrushSystemTertiaryBackground}"/>
+                <Setter Property="CornerRadius" Value="6"/>
+                <Setter Property="Padding" Value="5,0"/>
+                <Setter Property="Margin" Value="4,0,0,0"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+            </Style>
+            <Style x:Key="SummaryChipText" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="10"/>
+                <Setter Property="Foreground" Value="{StaticResource BrushTextSecondary}"/>
+            </Style>
+
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <shell:ToolWindowShell Title="Floor Slope By Point (Ridge)"
+                           Subtitle="Revit 2026 · floor shape points + ridge points"
+                           Version="{Binding Source={x:Static svc:ToolCatalog.FloorSlopeByPointRidge}, Path=Version, StringFormat=v{0}}"
+                           IsRunning="{Binding IsProgressVisible}"
+                           IsIndeterminate="{Binding ProgressIsIndeterminate}"
+                           Progress="{Binding ProgressPercent}"
+                           SummaryText="{Binding ProgressPhaseText}">
+
+        <!-- ═══ HEADER ═══════════════════════════════════════════ -->
+        <shell:ToolWindowShell.HeaderContent>
+            <StackPanel>
+                <!-- Row 0: Longest Path | Highest Elevation | Percentage Applied | Run Duration | Tolerance Applied -->
+                <UniformGrid Columns="5" Rows="1" Margin="0,0,0,6">
+                    <Border Style="{StaticResource MetricCard}" Padding="10,6" Margin="0,0,3,0">
+                        <StackPanel>
+                            <TextBlock Text="Longest Path" Style="{StaticResource MetricLabel}"/>
+                            <TextBlock Text="{Binding LongestPath_m, StringFormat=F2, FallbackValue=0.00}"
+                                       Style="{StaticResource MetricNumberWarning}" FontSize="18"/>
+                            <TextBlock Text="Meters" Style="{StaticResource MetricUnit}"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource MetricCard}" Padding="10,6" Margin="3,0,3,0">
+                        <StackPanel>
+                            <TextBlock Text="Highest elevation" Style="{StaticResource MetricLabel}"/>
+                            <TextBlock Text="{Binding HighestElevation_mm, StringFormat=F0, FallbackValue=0}"
+                                       Style="{StaticResource MetricNumberDanger}" FontSize="18"/>
+                            <TextBlock Text="Millimeters" Style="{StaticResource MetricUnit}"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource MetricCard}" Padding="10,6" Margin="3,0,3,0">
+                        <StackPanel>
+                            <TextBlock Text="Percentage applied" Style="{StaticResource MetricLabel}"/>
+                            <TextBlock Text="{Binding SlopePercent, FallbackValue=0, StringFormat=F1}"
+                                       Style="{StaticResource MetricNumberWarning}" FontSize="18"/>
+                            <TextBlock Text="Percent" Style="{StaticResource MetricUnit}"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource MetricCard}" Padding="10,6" Margin="3,0,3,0">
+                        <StackPanel>
+                            <TextBlock Text="Run duration" Style="{StaticResource MetricLabel}"/>
+                            <TextBlock Text="{Binding RunDuration_ms, FallbackValue=0}"
+                                       Style="{StaticResource MetricNumberSuccess}" FontSize="18"/>
+                            <TextBlock Text="Milliseconds" Style="{StaticResource MetricUnit}"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource MetricCard}" Padding="10,6" Margin="3,0,0,0">
+                        <StackPanel>
+                            <TextBlock Text="Tolerance Applied" Style="{StaticResource MetricLabel}"/>
+                            <TextBlock Text="{Binding DrainToleranceMm, StringFormat=F0, FallbackValue=0}"
+                                       Style="{StaticResource MetricNumberWarning}" FontSize="18"/>
+                            <TextBlock Text="Millimeters" Style="{StaticResource MetricUnit}"/>
+                        </StackPanel>
+                    </Border>
+                </UniformGrid>
+
+                <!-- Row 2: Vertices Processed | Vertices Skipped | Picked Drain | Final Drain Count | Curves Calculated | Ridge Points -->
+                <UniformGrid Columns="6" Rows="1" Margin="0,0,0,6">
+                    <Border Style="{StaticResource MetricCard}" Padding="10,6" Margin="0,0,3,0">
+                        <StackPanel>
+                            <TextBlock Text="Vertices processed" Style="{StaticResource MetricLabel}"/>
+                            <TextBlock Text="{Binding VerticesProcessed, FallbackValue=0}"
+                                       Style="{StaticResource MetricNumberAccent}" FontSize="18"/>
+                            <TextBlock Text="Vertices" Style="{StaticResource MetricUnit}"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource MetricCard}" Padding="10,6" Margin="3,0,3,0">
+                        <StackPanel>
+                            <TextBlock Text="Vertices skipped" Style="{StaticResource MetricLabel}"/>
+                            <TextBlock Text="{Binding VerticesSkipped, FallbackValue=0}"
+                                       Style="{StaticResource MetricNumberAccent}" FontSize="18"/>
+                            <TextBlock Text="Boundary" Style="{StaticResource MetricUnit}"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource MetricCard}" Padding="10,6" Margin="3,0,3,0">
+                        <StackPanel>
+                            <TextBlock Text="Picked Drain" Style="{StaticResource MetricLabel}"/>
+                            <TextBlock Text="{Binding PickedDrainCount, FallbackValue=0}"
+                                       Style="{StaticResource MetricNumberAccent}" FontSize="18"/>
+                            <TextBlock Text="Detected" Style="{StaticResource MetricUnit}"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource MetricCard}" Padding="10,6" Margin="3,0,3,0">
+                        <StackPanel>
+                            <TextBlock Text="Final Drain Count" Style="{StaticResource MetricLabel}"/>
+                            <TextBlock Text="{Binding FinalDrainCount, FallbackValue=0}"
+                                       Style="{StaticResource MetricNumberSuccess}" FontSize="18"/>
+                            <TextBlock Text="Detected" Style="{StaticResource MetricUnit}"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource MetricCard}" Padding="10,6" Margin="3,0,3,0">
+                        <StackPanel>
+                            <TextBlock Text="Curves Calculated" Style="{StaticResource MetricLabel}"/>
+                            <TextBlock Text="{Binding CurvesCalculated, FallbackValue=0}"
+                                       Style="{StaticResource MetricNumberAccent}" FontSize="18"/>
+                            <TextBlock Text="Arcs found" Style="{StaticResource MetricUnit}"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource MetricCard}" Padding="10,6" Margin="3,0,0,0"
+                            ToolTip="{Binding WatershedMovedCount, StringFormat='Watershed moved on {0} vertex/vertices'}">
+                        <StackPanel>
+                            <TextBlock Text="Ridge Points" Style="{StaticResource MetricLabel}"/>
+                            <TextBlock Text="{Binding RidgePointCount, FallbackValue=0}"
+                                       Style="{StaticResource MetricNumberAccent}" FontSize="18"/>
+                            <TextBlock Text="{Binding DrainGroupCount, StringFormat='{}{0} drain groups', FallbackValue='0 drain groups'}" Style="{StaticResource MetricUnit}"/>
+                        </StackPanel>
+                    </Border>
+                </UniformGrid>
+            </StackPanel>
+        </shell:ToolWindowShell.HeaderContent>
+
+        <!-- ═══ BODY ═════════════════════════════════════════════ -->
+        <shell:ToolWindowShell.BodyContent>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="340"/>
+                    <ColumnDefinition Width="10"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Left: inputs (own ScrollViewer removed) -->
+                <StackPanel Grid.Column="0">
+                    <!-- Slope Section — Percentage + Threshold in one row -->
+                    <Border Style="{StaticResource ContentCard}">
+                        <StackPanel>
+                            <TextBlock Text="Slope" Style="{StaticResource SectionTitle}"/>
+
+                            <Grid Margin="12,0,12,10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="8"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Percentage" Style="{StaticResource FieldLabel}"/>
+                                    <ComboBox ItemsSource="{Binding SlopeOptions}"
+                                              SelectedItem="{Binding SlopePercent, Mode=TwoWay}">
+                                        <ComboBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding StringFormat={}{0}%}"/>
+                                            </DataTemplate>
+                                        </ComboBox.ItemTemplate>
+                                    </ComboBox>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="Threshold (m)" Style="{StaticResource FieldLabel}"/>
+                                    <TextBox Style="{StaticResource BorderlessTextInput}"
+                                             Text="{Binding ThresholdMeters, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                             MaxLength="10"/>
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Drain Detection Section — tolerance toggle + radius in one row -->
+                    <Border Style="{StaticResource ContentCard}">
+                        <StackPanel>
+                            <TextBlock Text="Drain Detection" Style="{StaticResource SectionTitle}"
+                                       ToolTip="Note: Ensure floor shape editing is enabled in Revit before running."/>
+
+                            <Grid Margin="12,0,12,10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="8"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0" VerticalAlignment="Bottom">
+                                    <TextBlock Text="Tolerance" Style="{StaticResource FieldLabel}"/>
+                                    <ToggleButton Style="{StaticResource AppleToggleButton}"
+                                                  IsChecked="{Binding EnableDrainTolerance}"
+                                                  HorizontalAlignment="Left"
+                                                  Margin="0,4,0,0"
+                                                  ToolTip="Finds plumbing fixtures and floor drains within the radius of selected points."/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="Radius (mm)" Style="{StaticResource FieldLabel}"/>
+                                    <TextBox Style="{StaticResource BorderlessTextInput}"
+                                             Text="{Binding DrainToleranceMm, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                             IsEnabled="{Binding EnableDrainTolerance}"
+                                             MaxLength="10"/>
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Ridge Detection Section (V001) — toggle + drain group radius -->
+                    <Border Style="{StaticResource ContentCard}">
+                        <StackPanel>
+                            <TextBlock Text="Ridge Detection" Style="{StaticResource SectionTitle}"
+                                       ToolTip="Finds the ridge between drain groups from the drains alone and raises each ridge point so water leaves it towards every surrounding drain at the given slope."/>
+
+                            <Grid Margin="12,0,12,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="8"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0" VerticalAlignment="Bottom">
+                                    <TextBlock Text="Enable ridge rule" Style="{StaticResource FieldLabel}"/>
+                                    <ToggleButton Style="{StaticResource AppleToggleButton}"
+                                                  IsChecked="{Binding RidgeDetectionEnabled}"
+                                                  HorizontalAlignment="Left"
+                                                  Margin="0,4,0,0"
+                                                  ToolTip="Off = plain nearest-drain slope, identical to V028."/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="Drain group radius (mm)" Style="{StaticResource FieldLabel}"/>
+                                    <TextBox Style="{StaticResource BorderlessTextInput}"
+                                             Text="{Binding DrainGroupRadiusMm, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                             IsEnabled="{Binding RidgeDetectionEnabled}"
+                                             MaxLength="10"
+                                             ToolTip="Drains closer than this (plan distance) count as ONE drain, so no ridge is created between them. 0 = every drain is its own group."/>
+                                </StackPanel>
+                            </Grid>
+
+                            <TextBlock Text="Each floor point belongs to the nearest drain group by path along the floor. Points on the boundary between two groups are ridge points; their height = slope × path to the FARTHEST neighbouring group. Points behind a ridge are re-routed to the far drain so nothing ponds."
+                                       Style="{StaticResource HintText}"
+                                       Margin="12,0,12,10"
+                                       TextWrapping="Wrap"
+                                       Visibility="{Binding RidgeDetectionEnabled, Converter={StaticResource BoolToVisibility}}"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Circle Markers Section (V026) — Drain / Highest Point / Allowed Offset / Ridge -->
+                    <Border Style="{StaticResource ContentCard}">
+                        <Expander Style="{StaticResource CardExpander}">
+                            <Expander.Header>
+                                <WrapPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock Text="Circle Markers" Style="{StaticResource SectionTitle}" Margin="0"
+                                               VerticalAlignment="Center"
+                                               ToolTip="Placed in the active plan view when Run completes. Skipped with a warning if the active view is not a plan view."/>
+                                    <Border Style="{StaticResource SummaryChip}"
+                                            Visibility="{Binding DrainMarkerGroup.IsEnabled, Converter={StaticResource BoolToVisibility}}">
+                                        <TextBlock Text="Drains" Style="{StaticResource SummaryChipText}"/>
+                                    </Border>
+                                    <Border Style="{StaticResource SummaryChip}"
+                                            Visibility="{Binding HighestPointMarkerGroup.IsEnabled, Converter={StaticResource BoolToVisibility}}">
+                                        <TextBlock Text="Highest Pt" Style="{StaticResource SummaryChipText}"/>
+                                    </Border>
+                                    <Border Style="{StaticResource SummaryChip}"
+                                            Visibility="{Binding AllowedOffsetMarkerGroup.IsEnabled, Converter={StaticResource BoolToVisibility}}">
+                                        <TextBlock Style="{StaticResource SummaryChipText}">
+                                            <Run Text="Offset ≥"/>
+                                            <Run Text="{Binding AllowedOffsetThresholdMm, Mode=OneWay, StringFormat={}{0:0.#}}"/>
+                                        </TextBlock>
+                                    </Border>
+                                    <Border Style="{StaticResource SummaryChip}"
+                                            Visibility="{Binding RidgeMarkerGroup.IsEnabled, Converter={StaticResource BoolToVisibility}}">
+                                        <TextBlock Text="Ridge" Style="{StaticResource SummaryChipText}"/>
+                                    </Border>
+                                    <TextBlock Text="Off" Margin="6,0,0,0" FontSize="10" VerticalAlignment="Center"
+                                               Foreground="{StaticResource BrushTextSecondary}">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                <Style.Triggers>
+                                                    <MultiDataTrigger>
+                                                        <MultiDataTrigger.Conditions>
+                                                            <Condition Binding="{Binding DrainMarkerGroup.IsEnabled}" Value="False"/>
+                                                            <Condition Binding="{Binding HighestPointMarkerGroup.IsEnabled}" Value="False"/>
+                                                            <Condition Binding="{Binding AllowedOffsetMarkerGroup.IsEnabled}" Value="False"/>
+                                                            <Condition Binding="{Binding RidgeMarkerGroup.IsEnabled}" Value="False"/>
+                                                        </MultiDataTrigger.Conditions>
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </MultiDataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </WrapPanel>
+                            </Expander.Header>
+                        <StackPanel>
+
+                            <!-- Group 1: Drain -->
+                            <StackPanel Orientation="Horizontal" Margin="4,4,4,0" VerticalAlignment="Center">
+                                <CheckBox IsChecked="{Binding DrainMarkerGroup.IsEnabled}" VerticalAlignment="Center"/>
+                                <TextBlock Text="Place Circles on Drains" Style="{StaticResource FieldValue}"
+                                           Margin="6,0,0,0" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                            </StackPanel>
+                            <Grid Margin="4,4,4,4" IsEnabled="{Binding DrainMarkerGroup.IsEnabled}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1.1*"/>
+                                    <ColumnDefinition Width="6"/>
+                                    <ColumnDefinition Width="0.9*"/>
+                                    <ColumnDefinition Width="6"/>
+                                    <ColumnDefinition Width="0.8*"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Line Style" Style="{StaticResource FieldLabel}"/>
+                                    <ComboBox ItemsSource="{Binding LineStyleOptions}"
+                                              SelectedValue="{Binding DrainMarkerGroup.LineStyleId, Mode=TwoWay}"
+                                              SelectedValuePath="Id"
+                                              DisplayMemberPath="Name"
+                                              Padding="2"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="Color" Style="{StaticResource FieldLabel}"/>
+                                    <ComboBox ItemsSource="{Binding ColorPalette}"
+                                              SelectedItem="{Binding DrainMarkerGroup.ColorName, Mode=TwoWay}"
+                                              Padding="2"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="4">
+                                    <TextBlock Text="Radius (mm)" Style="{StaticResource FieldLabel}"/>
+                                    <TextBox Style="{StaticResource BorderlessTextInput}"
+                                             Text="{Binding DrainMarkerGroup.RadiusMm, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                             MaxLength="10" Padding="2"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <Border Style="{StaticResource SeparatorLine}" Margin="12,8,12,8"/>
+
+                            <!-- Group 2: Highest Point -->
+                            <StackPanel Orientation="Horizontal" Margin="4,0,4,0" VerticalAlignment="Center">
+                                <CheckBox IsChecked="{Binding HighestPointMarkerGroup.IsEnabled}" VerticalAlignment="Center"/>
+                                <TextBlock Text="Highest Point" Style="{StaticResource FieldValue}"
+                                           Margin="6,0,0,0" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                            </StackPanel>
+                            <Grid Margin="4,4,4,4" IsEnabled="{Binding HighestPointMarkerGroup.IsEnabled}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1.1*"/>
+                                    <ColumnDefinition Width="6"/>
+                                    <ColumnDefinition Width="0.9*"/>
+                                    <ColumnDefinition Width="6"/>
+                                    <ColumnDefinition Width="0.8*"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Line Style" Style="{StaticResource FieldLabel}"/>
+                                    <ComboBox ItemsSource="{Binding LineStyleOptions}"
+                                              SelectedValue="{Binding HighestPointMarkerGroup.LineStyleId, Mode=TwoWay}"
+                                              SelectedValuePath="Id"
+                                              DisplayMemberPath="Name"
+                                              Padding="2"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="Color" Style="{StaticResource FieldLabel}"/>
+                                    <ComboBox ItemsSource="{Binding ColorPalette}"
+                                              SelectedItem="{Binding HighestPointMarkerGroup.ColorName, Mode=TwoWay}"
+                                              Padding="2"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="4">
+                                    <TextBlock Text="Radius (mm)" Style="{StaticResource FieldLabel}"/>
+                                    <TextBox Style="{StaticResource BorderlessTextInput}"
+                                             Text="{Binding HighestPointMarkerGroup.RadiusMm, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                             MaxLength="10" Padding="2"/>
+                                </StackPanel>
+                            </Grid>
+                            <StackPanel Orientation="Horizontal" Margin="4,0,4,4" VerticalAlignment="Center"
+                                        IsEnabled="{Binding HighestPointMarkerGroup.IsEnabled}">
+                                <CheckBox IsChecked="{Binding HighestPointMarkerGroup.ShowOffsetText}" VerticalAlignment="Center"/>
+                                <TextBlock Text="Show offset text label" Style="{StaticResource FieldValue}"
+                                           Margin="6,0,0,0" VerticalAlignment="Center"
+                                           ToolTip="Places a red &quot;Offset: X mm&quot; text note with a leader next to the Highest Point circle."/>
+                            </StackPanel>
+
+                            <Border Style="{StaticResource SeparatorLine}" Margin="12,8,12,8"/>
+
+                            <!-- Group 3: Allowed Offset -->
+                            <StackPanel Orientation="Horizontal" Margin="4,0,4,0" VerticalAlignment="Center">
+                                <CheckBox IsChecked="{Binding AllowedOffsetMarkerGroup.IsEnabled}" VerticalAlignment="Center"/>
+                                <TextBlock Text="Allowed Offset (Visual Clamping Offset)" Style="{StaticResource FieldValue}"
+                                           Margin="6,0,0,0" VerticalAlignment="Center" FontWeight="SemiBold"
+                                           ToolTip="Circles processed vertices with offset ≥ threshold. Excludes vertices already marked Highest Point."/>
+                            </StackPanel>
+                            <Grid Margin="4,4,4,4" IsEnabled="{Binding AllowedOffsetMarkerGroup.IsEnabled}"
+                                  Visibility="{Binding AllowedOffsetMarkerGroup.IsEnabled, Converter={StaticResource BoolToVisibility}}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Threshold (mm)" Style="{StaticResource FieldLabel}"/>
+                                    <TextBox Style="{StaticResource BorderlessTextInput}"
+                                             Text="{Binding AllowedOffsetThresholdMm, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                             MaxLength="10" Padding="2"/>
+                                </StackPanel>
+                            </Grid>
+                            <Grid Margin="4,0,4,10" IsEnabled="{Binding AllowedOffsetMarkerGroup.IsEnabled}"
+                                  Visibility="{Binding AllowedOffsetMarkerGroup.IsEnabled, Converter={StaticResource BoolToVisibility}}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1.1*"/>
+                                    <ColumnDefinition Width="6"/>
+                                    <ColumnDefinition Width="0.9*"/>
+                                    <ColumnDefinition Width="6"/>
+                                    <ColumnDefinition Width="0.8*"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Line Style" Style="{StaticResource FieldLabel}"/>
+                                    <ComboBox ItemsSource="{Binding LineStyleOptions}"
+                                              SelectedValue="{Binding AllowedOffsetMarkerGroup.LineStyleId, Mode=TwoWay}"
+                                              SelectedValuePath="Id"
+                                              DisplayMemberPath="Name"
+                                              Padding="2"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="Color" Style="{StaticResource FieldLabel}"/>
+                                    <ComboBox ItemsSource="{Binding ColorPalette}"
+                                              SelectedItem="{Binding AllowedOffsetMarkerGroup.ColorName, Mode=TwoWay}"
+                                              Padding="2"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="4">
+                                    <TextBlock Text="Radius (mm)" Style="{StaticResource FieldLabel}"/>
+                                    <TextBox Style="{StaticResource BorderlessTextInput}"
+                                             Text="{Binding AllowedOffsetMarkerGroup.RadiusMm, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                             MaxLength="10" Padding="2"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <Border Style="{StaticResource SeparatorLine}" Margin="12,8,12,8"/>
+
+                            <!-- Group 4: Ridge Points (V001) -->
+                            <StackPanel Orientation="Horizontal" Margin="4,0,4,0" VerticalAlignment="Center">
+                                <CheckBox IsChecked="{Binding RidgeMarkerGroup.IsEnabled}" VerticalAlignment="Center"/>
+                                <TextBlock Text="Ridge Points" Style="{StaticResource FieldValue}"
+                                           Margin="6,0,0,0" VerticalAlignment="Center" FontWeight="SemiBold"
+                                           ToolTip="Circles every vertex the ridge rule applied to."/>
+                            </StackPanel>
+                            <Grid Margin="4,4,4,10" IsEnabled="{Binding RidgeMarkerGroup.IsEnabled}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1.1*"/>
+                                    <ColumnDefinition Width="6"/>
+                                    <ColumnDefinition Width="0.9*"/>
+                                    <ColumnDefinition Width="6"/>
+                                    <ColumnDefinition Width="0.8*"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Line Style" Style="{StaticResource FieldLabel}"/>
+                                    <ComboBox ItemsSource="{Binding LineStyleOptions}"
+                                              SelectedValue="{Binding RidgeMarkerGroup.LineStyleId, Mode=TwoWay}"
+                                              SelectedValuePath="Id"
+                                              DisplayMemberPath="Name"
+                                              Padding="2"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="Color" Style="{StaticResource FieldLabel}"/>
+                                    <ComboBox ItemsSource="{Binding ColorPalette}"
+                                              SelectedItem="{Binding RidgeMarkerGroup.ColorName, Mode=TwoWay}"
+                                              Padding="2"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="4">
+                                    <TextBlock Text="Radius (mm)" Style="{StaticResource FieldLabel}"/>
+                                    <TextBox Style="{StaticResource BorderlessTextInput}"
+                                             Text="{Binding RidgeMarkerGroup.RadiusMm, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                             MaxLength="10" Padding="2"/>
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+                        </Expander>
+                    </Border>
+                </StackPanel>
+
+                <GridSplitter Grid.Column="1"
+                              Width="1"
+                              HorizontalAlignment="Stretch"
+                              Background="{StaticResource BrushSeparator}"/>
+
+                <!-- Right: curve handling + export (own ScrollViewer removed) -->
+                <!--
+                    Row 4: Merged card — Curve handling, Ready status, Export settings,
+                    Run button, Export Results button. Content-sized (Auto row);
+                    the Log panel below (row 7) now fills remaining height instead.
+                -->
+                <Border Grid.Column="2" Style="{StaticResource ContentCard}" Padding="12">
+                    <StackPanel>
+
+                        <!-- Curve Handling toggle -->
+                        <StackPanel Style="{StaticResource AppleToggleRow}" Margin="0,0,0,0">
+                            <TextBlock Text="Curve handling — insert intersection points"
+                                       Style="{StaticResource FieldValue}"
+                                       VerticalAlignment="Center"
+                                       TextWrapping="Wrap"/>
+                            <ToggleButton Style="{StaticResource AppleToggleButton}"
+                                          IsChecked="{Binding InsertCurveIntersectionPoints}"
+                                          Margin="8,0,0,0"/>
+                        </StackPanel>
+
+                        <TextBlock Text="When a path edge overlaps an arc (boundary or opening), inserts real floor shape points at the entry/exit locations so distances and elevations follow the true arc length instead of a straight chord."
+                                   Style="{StaticResource HintText}"
+                                   Margin="0,0,0,8"
+                                   Visibility="{Binding InsertCurveIntersectionPoints, Converter={StaticResource BoolToVisibility}}"/>
+
+                        <Border Style="{StaticResource SeparatorLine}" Margin="0,0,0,8"/>
+
+                        <!-- Export -->
+                        <TextBlock Text="Export" Style="{StaticResource SectionTitle}" Margin="0,0,0,5"/>
+
+                        <!-- Row 1: Export to Excel (left) + Browse + Folder address + Export Results -->
+                        <Grid Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="12"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="8"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="12"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="Export to Excel" Style="{StaticResource FieldValue}" VerticalAlignment="Center"/>
+                                <ToggleButton Style="{StaticResource AppleToggleButton}"
+                                              IsChecked="{Binding ExportToExcel}"
+                                              Margin="6,0,0,0"/>
+                            </StackPanel>
+
+                            <Button Grid.Column="2" Content="Browse"
+                                    Style="{StaticResource OutlineButton}"
+                                    Command="{Binding BrowseFolderCommand}"
+                                    VerticalAlignment="Center" Width="60"/>
+
+                            <TextBox Grid.Column="4" Style="{StaticResource BorderlessTextInput}"
+                                     Text="{Binding ExportFolderPath, Mode=TwoWay}"
+                                     IsReadOnly="True"
+                                     VerticalAlignment="Center"
+                                     Foreground="{StaticResource BrushAppleBlue}"/>
+
+                            <Button Grid.Column="6" Content="Export Results"
+                                    Style="{StaticResource SecondaryButton}"
+                                    Command="{Binding ExportResultsCommand}"
+                                    Height="30" Width="120" VerticalAlignment="Center"/>
+                        </Grid>
+
+                        <!-- Row 1b: Ask to open file after export — unchecked/disabled by default;
+                             enabled only when Export to Excel is on; when checked, a Yes/No prompt
+                             appears after a successful export (Run-completion or manual Export). -->
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,10" VerticalAlignment="Center">
+                            <CheckBox IsChecked="{Binding AskToOpenAfterExport}"
+                                      IsEnabled="{Binding CanAskToOpenAfterExport}"
+                                      VerticalAlignment="Center"/>
+                            <TextBlock Text="Ask to open file after export"
+                                       Style="{StaticResource FieldValue}"
+                                       Margin="6,0,0,0"
+                                       VerticalAlignment="Center"/>
+                        </StackPanel>
+
+                    </StackPanel>
+                </Border>
+
+                <!-- Processing Log (moved from footer) -->
+                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Grid.Row="1" Grid.ColumnSpan="3" Padding="10,8" Margin="0,10,0,0">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Processing Log" Foreground="{StaticResource BrushLogText}"
+                                       FontSize="11.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                <Button Content="Copy All" Style="{StaticResource DarkGhostButton}" Click="CopyAllLogs_Click" Margin="0,0,6,0"/>
+                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Click="CopySelectedLogs_Click" Margin="0,0,6,0"/>
+                                <Button Content="Clear" Style="{StaticResource DarkGhostButton}" Command="{Binding ClearLogCommand}"/>
+                            </StackPanel>
+                        </Grid>
+                        <ListBox Grid.Row="1" x:Name="LogListBox"
+                                 ItemsSource="{Binding LogEntries}"
+                                 SelectionMode="Extended"
+                                 Background="Transparent"
+                                 BorderThickness="0"
+                                 ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                 FontFamily="Menlo, Monaco, Courier New, monospace"
+                                 FontSize="10"
+                                 MinHeight="110"
+                                 shell:ShellBehaviors.MaxHeightRatio="0.2"
+                                 shell:ShellBehaviors.ForwardMouseWheel="True">
+                            <ListBox.ItemContainerStyle>
+                                <Style TargetType="ListBoxItem">
+                                    <Setter Property="Padding" Value="4,4"/>
+                                    <Setter Property="Background" Value="Transparent"/>
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="ListBoxItem">
+                                                <Border Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+                                                    <ContentPresenter/>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsSelected" Value="True">
+                                                        <Setter Property="Background" Value="{StaticResource BrushLogTitleBar}"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </ListBox.ItemContainerStyle>
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Foreground="{Binding Level, Converter={StaticResource LogLevelToColor}}"
+                                               TextWrapping="Wrap">
+                                        <Run Text="{Binding Time, Mode=OneWay, StringFormat=[HH:mm:ss]}"/>
+                                        <Run Text=" "/>
+                                        <Run Text="{Binding Message, Mode=OneWay}"/>
+                                    </TextBlock>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </Grid>
+                </Border>
+            </Grid>
+        </shell:ToolWindowShell.BodyContent>
+
+        <!-- ═══ FOOTER ═══════════════════════════════════════════ -->
+        <shell:ToolWindowShell.FooterContent>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Command="{Binding RunCommand}"
+                        ToolTip="Calculate and apply slope to floor"
+                        Height="32"
+                        Width="150"
+                        Margin="0,0,8,0">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
+                            <Setter Property="Content" Value="Run Floor Slope"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding StatusMessage}" Value="Processing...">
+                                    <Setter Property="Content" Value="Processing..."/>
+                                    <Setter Property="IsEnabled" Value="False"/>
+                                    <Setter Property="Background" Value="{StaticResource BrushStatusWarn}"/>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding StatusMessage}" Value="Completed">
+                                    <Setter Property="Content" Value="✓ Complete"/>
+                                    <Setter Property="Background" Value="{StaticResource BrushStatusOk}"/>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding StatusMessage}" Value="Cancelled">
+                                    <Setter Property="Content" Value="Cancelled — Run Again"/>
+                                    <Setter Property="Background" Value="{StaticResource BrushStatusWarn}"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+
+                <Button Content="Close"
+                        Style="{StaticResource OutlineButton}"
+                        Click="CloseButton_Click"
+                        Height="32"
+                        Width="90"/>
+            </StackPanel>
+        </shell:ToolWindowShell.FooterContent>
+    </shell:ToolWindowShell>
+</Window>

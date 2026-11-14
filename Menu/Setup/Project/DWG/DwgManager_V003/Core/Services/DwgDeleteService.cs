@@ -1,3 +1,4 @@
+using Revit26_Plugin_Revised.Shared.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -47,6 +48,7 @@ namespace Revit26_Plugin_Revised.DwgManager.V003.Core.Services
 
                 foreach (var request in requests)
                 {
+                    ToolCancellation.CheckCurrent();
                     foreach (var id in request.InstanceIds)
                         DeleteOne(doc, id, $"{request.FileName} in {request.ViewName}", result, isType: false);
 

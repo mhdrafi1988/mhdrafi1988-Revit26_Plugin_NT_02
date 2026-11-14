@@ -1,4 +1,4 @@
-using Autodesk.Revit.UI;
+﻿using Autodesk.Revit.UI;
 using Revit26_Plugin_Revised.Resources.Icons;
 using System.Collections.Generic;
 
@@ -24,12 +24,14 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
 
         /// <summary>
         /// Creates the roof panels on <paramref name="tabName"/>, in workflow order: Roof Slope,
-        /// Shape Points, Roof Tools, Roof Edit, Plan View, Compare, Insulation. The Utilities panel is built
-        /// separately by <see cref="BuildUtilities"/> so it can sit at the end of the tab.
+        /// Floor Slope (<see cref="FloorToolsRibbon.BuildSlopePanel"/>), Shape Points, Floor Points
+        /// (<see cref="FloorToolsRibbon.BuildPointsPanel"/>), Floor Lines (<see cref="FloorToolsRibbon.BuildLinesPanel"/>),
+        /// Floor Edit (<see cref="FloorToolsRibbon.BuildEditPanel"/>) and Roof Tools. Roof Edit, Plan View, Compare and Insulation
+        /// come from <see cref="BuildEditComparePanels"/>, and Utilities from <see cref="BuildUtilities"/>, so the app can place them on a second tab.
         /// </summary>
         public static void Build(UIControlledApplication app, string tabName, string assemblyPath)
         {
-            // Slope — By Point (3 coexisting implementations) and By Drain (2)
+            // Slope — By Point (coexisting implementations) and By Drain (2)
             // each collected under one pulldown button. Each implementation's
             // UI-standard rebuild sits right after it in the dropdown.
             // Only versions whose source still exists are listed here.
@@ -41,11 +43,19 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                 "by_point_16.png", "Auto Slope By Point", "V030", "V029 on the shared ToolWindowShell (log in body).");
             var byPointV032 = Btn(assemblyPath, "Btn_AutoSlopeByPoint_032", "By Point V032", "Revit26_Plugin_Revised.AutoSlopeByPoint.V032.Commands.AutoSlopeCommand",
                 "by_point_16.png", "Auto Slope By Point", "V032", "V031 with ToolGuard.RunCommand, single-instance window, and shape editing guarded inside the TransactionGroup.");
+            var byPointV033 = Btn(assemblyPath, "Btn_AutoSlopeByPoint_033", "By Point V033", "Revit26_Plugin_Revised.AutoSlopeByPoint.V033.Commands.AutoSlopeCommand",
+                "by_point_16.png", "Auto Slope By Point", "V033", "V032 plus optional ridge lines: detail lines joining the highest points between drain groups.");
+            byPointV033.ToolTip = Revit26_Plugin_Revised.Shared.Services.ToolCatalog.AutoSlopeByPointV033.Tip(
+                "V032 plus optional ridge lines: detail lines joining the highest points between drain groups.");
+            var byPointV034 = Btn(assemblyPath, "Btn_AutoSlopeByPoint_034", "By Point V034", "Revit26_Plugin_Revised.AutoSlopeByPoint.V034.Commands.AutoSlopeCommand",
+                "by_point_16.png", "Auto Slope By Point", "V034", "V033 plus user-set path checking: spacing of the on-roof checks and projection tolerance.");
+            byPointV034.ToolTip = Revit26_Plugin_Revised.Shared.Services.ToolCatalog.AutoSlopeByPointV034.Tip(
+                "V033 plus user-set path checking: spacing of the on-roof checks along each link and the projection tolerance.");
             var byPointRidgeV003 = Btn(assemblyPath, "Btn_AutoSlopeByPointRidge_003", "By Point Ridge V003", "Revit26_Plugin_Revised.AutoSlopeByPointRidge.V003.Commands.AutoSlopeCommand",
                 "AutoSlopeByPoint_Ridge_16.png", "Auto Slope By Point (Ridge)", "V003", "Ridge V002 on the shared ToolWindowShell (log in body).");
             var byPointMultiCopies30 = Btn(assemblyPath, "Btn_AutoSlopeByPoint_MultiCopies30", "By Point Multi Copies 30", "Revit26_Plugin_Revised.AutoSlopeByPoint.MultiCopies30.Commands.AutoSlopeCommand",
                 "by_point_16.png", "Auto Slope By Point (Multi Copies)", "MultiCopies30", "MultiCopies29 on the shared ToolWindowShell (log in body).");
-            var byPointPulldownData = RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_AutoSlopeByPoint", "By Point", byPointV032);
+            var byPointPulldownData = RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_AutoSlopeByPoint", "By Point", byPointV034);
 
             var byDrainV011 = Btn(assemblyPath, "Btn_AutoSlopeByDrain_V011", "By Drain V011", "Revit26_Plugin_Revised.MultiRoofSlopeByDrain.V011.Commands.AutoSlopeByDrain",
                 "AutoSlopeByDrain_MultiRoof_16.png", "Auto Slope By Drain (Multi-Roof)", "V011", "V010 with the standard three-zone window layout.");
@@ -62,12 +72,34 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             var pointsAndSlopeV001 = Btn(assemblyPath, "Btn_RoofPointsAndSlope_V001", "Points & Slope", "Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Commands.RoofPointsAndSlopeCommand",
                 "CombinedTools_16.png", "Roof Points & Slope", "V001",
                 "Adds shape points around openings, perpendicular to the boundary, at mid/quarter points and in long gaps, builds the ridges between the chosen drains, then slopes the roof to them — one window, one Undo. Pick one roof or several.");
+            // Roof Slope Builder — inner-loop, perpendicular, ridge and curve points plus slope by drain
+            // on every selected footprint roof, watershed or saddle ridges (plugin 7.3.0).
+            // A large pulldown after the stack (plugin 7.4.0): V002 first (draws ridge lines and
+            // points), V001 below it. V002 supplies the pulldown's icon.
+            var roofSlopeBuilderV001 = Btn(assemblyPath, "Btn_RoofSlopeBuilder_V001", "Roof Slope Builder V001", "Revit26_Plugin_Revised.RoofSlopeBuilder.V001.Commands.RoofSlopeBuilderCommand",
+                "RoofSlopeBuilder_16.png", "Roof Slope Builder", "V001");
+            roofSlopeBuilderV001.LargeImage = ImageUtils.Load(Icons + "RoofSlopeBuilder_32.png");
+            roofSlopeBuilderV001.ToolTip = Revit26_Plugin_Revised.Shared.Services.ToolCatalog.RoofSlopeBuilder.Tip(
+                "Adds shape points (openings, perpendicular, ridges between drains, curves) and slopes every selected footprint roof to its drains. Watershed or saddle ridges; options are remembered.");
+            var roofSlopeBuilderV002 = Btn(assemblyPath, "Btn_RoofSlopeBuilder_V002", "Roof Slope Builder V002", "Revit26_Plugin_Revised.RoofSlopeBuilder.V002.Commands.RoofSlopeBuilderCommand",
+                "RoofSlopeBuilder_V002_16.png", "Roof Slope Builder", "V002");
+            roofSlopeBuilderV002.LargeImage = ImageUtils.Load(Icons + "RoofSlopeBuilder_V002_32.png");
+            roofSlopeBuilderV002.ToolTip = Revit26_Plugin_Revised.Shared.Services.ToolCatalog.RoofSlopeBuilderV002.Tip(
+                "V001 plus ridge drawing: draws the ridge lines (detail lines, or a line-based detail family with detail-line fallback) and marks ridge points with circles in the active plan view. 'Find ridges only' draws them without changing the roofs.");
             var pointsAndSlopePulldownData = RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_RoofPointsAndSlope", "Points & Slope", pointsAndSlopeV001);
 
             var slopeItems = RibbonLayoutHelper.AddStackedButtons(slopePanel, new List<RibbonItemData> { byPointPulldownData, byDrainPulldownData, pointsAndSlopePulldownData });
-            RibbonLayoutHelper.WirePulldownButton(slopeItems, "Pulldown_AutoSlopeByPoint", byPointV032, byPointV030, byPointRidgeV003, byPointMultiCopies30);
+            RibbonLayoutHelper.WirePulldownButton(slopeItems, "Pulldown_AutoSlopeByPoint", byPointV034, byPointV033, byPointV032, byPointV030, byPointRidgeV003, byPointMultiCopies30);
             RibbonLayoutHelper.WirePulldownButton(slopeItems, "Pulldown_AutoSlopeByDrain", byDrainV013, byDrainV012, byDrainV011, byDrainV007);
             RibbonLayoutHelper.WirePulldownButton(slopeItems, "Pulldown_RoofPointsAndSlope", pointsAndSlopeV001);
+            PulldownButtonData roofSlopeBuilderPulldown = RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_RoofSlopeBuilder", "Roof Slope\nBuilder", roofSlopeBuilderV002);
+            roofSlopeBuilderPulldown.LargeImage = roofSlopeBuilderV002.LargeImage;
+            var roofSlopeBuilderItem = slopePanel.AddItem(roofSlopeBuilderPulldown);
+            RibbonLayoutHelper.WirePulldownButton(new List<RibbonItem> { roofSlopeBuilderItem }, "Pulldown_RoofSlopeBuilder",
+                roofSlopeBuilderV002, roofSlopeBuilderV001);
+
+            // Floor Slope — floor versions of By Drain and By Point, next to Roof Slope (plugin 6.31.0).
+            FloorToolsRibbon.BuildSlopePanel(app, tabName, assemblyPath);
 
             // Shape Points — one pulldown per tool (current version, then its rebuild)
             RibbonPanel shapePointsPanel = app.CreateRibbonPanel(tabName, "Shape Points");
@@ -125,6 +157,15 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             RibbonLayoutHelper.WirePulldownButton(shapePointsItems, "Pulldown_MultiplePoints", multiPointsV003, multiPointsV002);
             RibbonLayoutHelper.WirePulldownButton(shapePointsItems, "Pulldown_RoofShapeFromLink", shapeFromLinkV001);
 
+            // Floor Points — floor versions of the Shape Points tools, next to Shape Points (plugin 6.34.0).
+            FloorToolsRibbon.BuildPointsPanel(app, tabName, assemblyPath);
+
+            // Floor Lines — floor versions of Ridge By Openings / By Points and Creaser Adv (plugin 6.35.0).
+            FloorToolsRibbon.BuildLinesPanel(app, tabName, assemblyPath);
+
+            // Floor Edit — floor versions of Roof Types, Name Builder, Roof Tag, Comparison and Elevation Sync (plugin 6.36.0).
+            FloorToolsRibbon.BuildEditPanel(app, tabName, assemblyPath);
+
             // Slope Liner + Tag + Floor From Rooms in one stack
             // (Revit's stacked-item limit is exactly 3 per column).
             RibbonPanel roofToolsPanel = app.CreateRibbonPanel(tabName, "Roof Tools");
@@ -159,8 +200,6 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             RibbonLayoutHelper.WirePulldownButton(roofToolsItems, "Pulldown_RoofTag", roofTagV018, roofTagV017);
             RibbonLayoutHelper.WirePulldownButton(roofToolsItems, FloorToolsRibbon.FromRoomsPulldownName, fromRoomsVersions);
             RibbonLayoutHelper.WirePulldownButton(roofToolsItems, "Pulldown_RoofToolsPanel_RoofShapeFromLink", shapeFromLinkRoofPanelV001);
-
-            BuildEditComparePanels(app, tabName, assemblyPath);
         }
 
         /// <summary>
@@ -169,7 +208,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
         /// </summary>
         public static void BuildUtilities(UIControlledApplication app, string tabName, string assemblyPath)
         {
-            RibbonPanel utilitiesPanel = app.CreateRibbonPanel(tabName, "Utilities");
+            RibbonPanel utilitiesPanel = app.CreateRibbonPanel(tabName, "Roof Utilities");
 
             var ridgeLinesMultiShapeV069 = Btn(assemblyPath, "Btn_RoofRidgeLines_V69", "Ridge By Openings V069", "Revit26_Plugin_Revised.RoofRidgeLines.V069.Commands.RoofRidgeCommand",
                 "RidgeLinesMultiShape_16.png", "Ridge By Openings", "V069", "V068 with the standard three-zone window layout.");
@@ -210,9 +249,9 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
         }
 
         /// <summary>Creates the Roof Edit, Plan View, Compare and Insulation panels, in that order.</summary>
-        private static void BuildEditComparePanels(UIControlledApplication app, string tabName, string assemblyPath)
+        public static void BuildEditComparePanels(UIControlledApplication app, string tabName, string assemblyPath)
         {
-            // Roof Edit — Roof Name Builder (V002) and Island Roof Splitter (V002, V001 WIP).
+            // Roof Edit — Roof Name Builder (V002), Island Roof Splitter (V002, V001 WIP) and Merge Roofs (V001).
             RibbonPanel roofEditPanel = app.CreateRibbonPanel(tabName, "Roof Edit");
             var nameBuilderV002 = Btn(assemblyPath, "Btn_RoofNameBuilder_V002", "Name Builder V002", "Revit26_Plugin_Revised.RoofNameBuilder.V002.Commands.RoofNameBuilderCommand",
                 "CreateRoofromLInes_16.png", "Roof Name Builder", "V002", "Bulk rename roof types/instances with configurable INS/SLP/MAT codes; re-runs update existing codes.");
@@ -220,24 +259,30 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                 "DetailLineIntersect_16.png", "Island Roof Splitter (WIP)", "V001", "Splits a roof into islands bounded by detail lines. Work in progress - test on a copy of your model.");
             var islandSplitterV002 = Btn(assemblyPath, "Btn_IslandRoofSplitter_V002", "Island Splitter V002", "Revit26_Plugin_Revised.IslandRoofSplitter.V002.Commands.IslandRoofSplitterCommand",
                 "DetailLineIntersect_16.png", "Island Roof Splitter", "V002", "V001 plus an output choice (roof only / roof, floor if it fails / floor only) and a floor type picker. Test on a copy of your model.");
+            var mergeRoofs = Btn(assemblyPath, "Btn_MergeRoofs_V001", "Merge Roofs", "Revit26_Plugin_Revised.MergeRoofs.V001.Commands.MergeRoofsCommand",
+                "MergeRoofs_16.png", "Merge Roofs", "V001");
+            mergeRoofs.LargeImage = ImageUtils.Load(Icons + "MergeRoofs_32.png");
+            mergeRoofs.ToolTip = Revit26_Plugin_Revised.Shared.Services.ToolCatalog.MergeRoofs.Tip(
+                "Select several footprint roofs and create one new roof from their combined outline. The original roofs are kept.");
             var roofEditItems = RibbonLayoutHelper.AddStackedButtons(roofEditPanel, new List<RibbonItemData>
             {
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_RoofNameBuilder", "Name Builder", nameBuilderV002),
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_IslandRoofSplitter", "Island Splitter", islandSplitterV002),
+                mergeRoofs,
             });
             RibbonLayoutHelper.WirePulldownButton(roofEditItems, "Pulldown_RoofNameBuilder", nameBuilderV002);
             RibbonLayoutHelper.WirePulldownButton(roofEditItems, "Pulldown_IslandRoofSplitter", islandSplitterV002, islandSplitterV001);
 
             // Plan View — a second, direct button for Island Roof Splitter V002 (the tool works
             // from detail lines drawn in a plan view). Same command as the Roof Edit dropdown entry.
-            RibbonPanel planViewPanel = app.CreateRibbonPanel(tabName, "Plan View");
+            RibbonPanel planViewPanel = app.CreateRibbonPanel(tabName, "Roof Plan View");
             var planViewIslandSplitter = Btn(assemblyPath, "Btn_PlanView_IslandRoofSplitter_V002", "Island Splitter", "Revit26_Plugin_Revised.IslandRoofSplitter.V002.Commands.IslandRoofSplitterCommand",
                 "DetailLineIntersect_16.png", "Island Roof Splitter", "V002", "Split a sloped roof into one new roof per closed detail-line island, with a floor fallback. Test on a copy of your model.");
             planViewIslandSplitter.LargeImage = ImageUtils.Load(Icons + "DetailLineIntersect_32.png");
             planViewPanel.AddItem(planViewIslandSplitter);
 
             // Compare
-            RibbonPanel comparePanel = app.CreateRibbonPanel(tabName, "Compare");
+            RibbonPanel comparePanel = app.CreateRibbonPanel(tabName, "Roof Compare");
 
             var comparisonV002 = Btn(assemblyPath, "Btn_RoofPointComparison_V002", "Comparison V002", "Revit26_Plugin_Revised.RoofPointComparison.V002.Commands.RoofComparisonCommand",
                 "PointComparison_16.png", "Roof Point Comparison", "V002", "V001 with the standard three-zone window layout.");
@@ -259,7 +304,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             RibbonLayoutHelper.WirePulldownButton(compareItems, "Pulldown_RoofPointElevationSync", elevationSyncV005, elevationSyncV004);
 
             // Insulation — Tapered EPS 2D Pattern (V006 highest, descending per CLAUDE.md rule)
-            RibbonPanel insulationPanel = app.CreateRibbonPanel(tabName, "Insulation");
+            RibbonPanel insulationPanel = app.CreateRibbonPanel(tabName, "Roof Insulation");
 
             var taperedEpsPattern2DV001 = Btn(assemblyPath,
                 "Btn_TaperedEpsPattern2D_V001", "EPS Pattern 2D V001",

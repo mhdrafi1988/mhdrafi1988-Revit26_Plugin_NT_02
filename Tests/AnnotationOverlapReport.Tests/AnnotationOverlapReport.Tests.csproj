@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    Unit tests for Annotation Overlap Report V001 Revit-free code (overlap finder, Excel writer).
+    The tool's files are linked, not copied.
+    Run:  dotnet test Tests/AnnotationOverlapReport.Tests
+  -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <ToolDir>..\..\Menu\Manage\AnnotationOverlapReport_V001\</ToolDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="$(ToolDir)Core\*.cs" Link="Tool\Core\%(Filename)%(Extension)" />
+    <Compile Include="$(ToolDir)Infrastructure\ExcelReportWriter.cs" Link="Tool\Infrastructure\ExcelReportWriter.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ClosedXML" Version="0.105.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+  </ItemGroup>
+</Project>

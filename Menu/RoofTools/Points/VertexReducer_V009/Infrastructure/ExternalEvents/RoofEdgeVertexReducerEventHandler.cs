@@ -21,6 +21,7 @@ using Revit26_Plugin_Revised.RoofEdgeVertexReducer.V009.Core.Services;
 using Revit26_Plugin_Revised.RoofEdgeVertexReducer.V009.Infrastructure.Helpers;
 using Revit26_Plugin_Revised.RoofEdgeVertexReducer.V009.UI.ViewModels;
 using Revit26_Plugin_Revised.Shared.Models;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace Revit26_Plugin_Revised.RoofEdgeVertexReducer.V009.Infrastructure.ExternalEvents
 {
@@ -51,8 +52,15 @@ namespace Revit26_Plugin_Revised.RoofEdgeVertexReducer.V009.Infrastructure.Exter
             _vm = vm;
         }
 
-        public void Execute(UIApplication app)
+        public void Execute(UIApplication app) =>
+            ToolGuard.RunHandler(GetType(), app, ExecuteCore);
+
+        private void ExecuteCore(UIApplication app)
         {
+            // Esc / Cancel with a Yes-No confirm during Preview and Apply (picking keeps Revit's own Esc).
+            using ToolCancellation cancel = PendingRequest is ReducerRequest.Preview or ReducerRequest.Apply
+                ? ToolCancellation.BeginFor(ToolCatalog.RoofEdgeVertexReducer, app)
+                : null;
             try
             {
                 switch (PendingRequest)
@@ -71,6 +79,12 @@ namespace Revit26_Plugin_Revised.RoofEdgeVertexReducer.V009.Infrastructure.Exter
             catch (Autodesk.Revit.Exceptions.OperationCanceledException)
             {
                 // user cancelled the pick — no log needed
+            }
+            catch (OperationCanceledException)
+            {
+                // The transaction group in HandleApply is rolled back as the exception unwinds.
+                _vm.AddLog(LogLevel.Warning, "Cancelled by user. Nothing was changed.");
+                throw; // ToolGuard treats it as a user cancel
             }
             catch (Exception ex)
             {

@@ -29,6 +29,7 @@
 //   ADDED   TotalDetectedCount / SelectedCount / ArcsCalculated metric
 //     bindings for the new UI metric cards.
 
+using Revit26_Plugin_Revised.Shared.Services;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -63,7 +64,6 @@ namespace Revit26_Plugin_Revised.AutoSlopeByDrain.V007.UI.ViewModels
         [NotifyPropertyChangedFor(nameof(LongestPathDisplay))]
         [NotifyPropertyChangedFor(nameof(HighestElevationDisplay))]
         [NotifyCanExecuteChangedFor(nameof(RunAutoSlopeCommand))]
-        [NotifyCanExecuteChangedFor(nameof(CancelRunCommand))]
         private RunState state = RunState.Ready;
 
         private bool IsRunning => State == RunState.Running;
@@ -200,17 +200,6 @@ namespace Revit26_Plugin_Revised.AutoSlopeByDrain.V007.UI.ViewModels
         private string progressPhaseText = "";
 
         private CancellationTokenSource _runCts;
-
-        private bool CanCancelRun() => State == RunState.Running;
-
-        [RelayCommand(CanExecute = nameof(CanCancelRun))]
-        private void CancelRun()
-        {
-            if (_runCts == null || _runCts.IsCancellationRequested) return;
-            _runCts.Cancel();
-            ProgressPhaseText = "Cancellingâ€¦";
-            AddLog(new LogEntry(LogLevel.Warning, "Cancel requested â€” the run rolls back (nothing has been written to the model yet) and stops."));
-        }
 
         [ObservableProperty]
         private int finalDrainCount;
@@ -568,7 +557,9 @@ namespace Revit26_Plugin_Revised.AutoSlopeByDrain.V007.UI.ViewModels
                         ProgressIsIndeterminate = true;
                     }
 
-                    UiPumpHelper.DoEvents();
+                    // Repaints the bar, delivers Esc / the Cancel button and asks "Cancel the process?".
+                    // A confirmed cancel throws here and the engine rolls the run back.
+                    ToolCancellation.CheckCurrent();
                 },
                 OnCompleted = result =>
                 {

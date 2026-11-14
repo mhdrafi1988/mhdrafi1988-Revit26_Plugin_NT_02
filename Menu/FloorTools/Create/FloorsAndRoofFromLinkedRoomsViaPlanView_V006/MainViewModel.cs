@@ -176,7 +176,6 @@ namespace Revit26_Plugin_Revised.FloorsAndRoofFromLinkedRoomsViaPlanView.V006
         private void StartRun(CreationMode mode, ElementId typeId)
         {
             IsBusy = true;
-            _cancelFlag.IsCancelled = false;
 
             var selected = Rooms.Where(r => r.IsSelected).ToList();
             TotalCount = selected.Count;
@@ -190,15 +189,9 @@ namespace Revit26_Plugin_Revised.FloorsAndRoofFromLinkedRoomsViaPlanView.V006
                 LinkTransform = SelectedInstance.Transform,
                 TypeId = typeId,
                 TargetLevel = _activeLevel,
-                Cancel = _cancelFlag
             };
             _externalEvent.Raise();
         }
-
-        private bool CanCancel() => IsBusy;
-
-        [RelayCommand(CanExecute = nameof(CanCancel))]
-        private void Cancel() => _cancelFlag.IsCancelled = true;
 
         /// <summary>Called by the handler on the Revit API thread; ObservableCollection
         /// updates are safe here since the handler runs on Revit's idling/API context,
@@ -228,7 +221,6 @@ namespace Revit26_Plugin_Revised.FloorsAndRoofFromLinkedRoomsViaPlanView.V006
 
             RunFloorCommand.NotifyCanExecuteChanged();
             RunRoofCommand.NotifyCanExecuteChanged();
-            CancelCommand.NotifyCanExecuteChanged();
         }
 
         /// <summary>Shows a Task Dialog for a transaction-level failure (spec: critical

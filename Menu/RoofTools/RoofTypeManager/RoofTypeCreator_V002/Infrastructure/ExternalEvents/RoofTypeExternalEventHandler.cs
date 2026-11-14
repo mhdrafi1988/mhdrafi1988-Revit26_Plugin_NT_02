@@ -6,6 +6,7 @@ using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using Revit26_Plugin_Revised.RoofTypeCreator.V002.Core.Models;
 using Revit26_Plugin_Revised.RoofTypeCreator.V002.Core.Services;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace Revit26_Plugin_Revised.RoofTypeCreator.V002.Infrastructure.ExternalEvents
 {
@@ -28,7 +29,10 @@ namespace Revit26_Plugin_Revised.RoofTypeCreator.V002.Infrastructure.ExternalEve
         public Action<string>                  OnTemplateDone     { get; set; }
         public Action<string, string>          OnLog              { get; set; }
 
-        public void Execute(UIApplication app)
+        public void Execute(UIApplication app) =>
+            ToolGuard.RunHandler(GetType(), app, ExecuteCore);
+
+        private void ExecuteCore(UIApplication app)
         {
             var doc = app.ActiveUIDocument?.Document;
             if (doc == null) return;

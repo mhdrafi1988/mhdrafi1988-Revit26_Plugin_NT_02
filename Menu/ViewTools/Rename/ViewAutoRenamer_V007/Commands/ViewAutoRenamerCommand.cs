@@ -12,32 +12,13 @@ using Revit26_Plugin_Revised.Shared.Services;
 namespace Revit26_Plugin_Revised.ViewAutoRenamer.V007.Commands;
 
 /// <summary>
-/// Opens View Auto Renamer V007. V007 = V006 with faster opening: one document-wide
-/// sheet-placement scan and a capped grid height on first layout.
+/// Opens View Auto Renamer V007. The window is shown first; the current sheet's views are read
+/// right after, and the rest of the project is loaded on demand from the window.
 /// </summary>
 [Transaction(TransactionMode.Manual)]
 [Regeneration(RegenerationOption.Manual)]
 public class OpenViewAutoRenamerCommand : IExternalCommand
 {
-    // Exact ViewType values in scope, per confirmed requirements:
-    // Sections & Callouts, Plans (Floor/Ceiling/Structural/Area), Elevations,
-    // Drafting, Legends, Schedules.
-    private static readonly HashSet<ViewType> InScopeViewTypes = new()
-    {
-        ViewType.Section,
-        ViewType.Elevation,
-        ViewType.FloorPlan,
-        ViewType.CeilingPlan,
-        ViewType.EngineeringPlan,   // Structural Plan
-        ViewType.AreaPlan,
-        ViewType.DraftingView,
-        ViewType.Legend,
-        ViewType.Schedule,
-    };
-    // NOTE: Callouts of sections report ViewType.Section (no separate
-    // ViewType exists for them) and are included automatically by this
-    // filter. See ClassifyView for the SectionOrCallout grouping rationale.
-
     /// <summary>Ribbon entry point; runs through ToolGuard so no exception reaches Revit.</summary>
     public Result Execute(ExternalCommandData c, ref string m, ElementSet e) =>
         ToolGuard.RunCommand(typeof(OpenViewAutoRenamerCommand), c, ref m, e, ExecuteInternal);
@@ -54,51 +35,12 @@ public class OpenViewAutoRenamerCommand : IExternalCommand
 
         RevitEventManager.Initialize();
 
-        var activeSheet       = uidoc.ActiveView as ViewSheet;
-        string activeSheetNum = activeSheet?.SheetNumber ?? "";
-
-        // ── Build sheet-placement lookup for Legend/Schedule (can appear on
-        // multiple sheets — ViewSheet.GetAllPlacedViews / ScheduleSheetInstance) ──
-        var placedSheetsByViewId = ViewClassificationService.BuildPlacedSheetsLookup(doc);
-
-        // ── Collect all in-scope views ──────────────────────────────────────
-        var allViews = new FilteredElementCollector(doc)
-            .OfClass(typeof(View))
-            .Cast<View>()
-            .Where(v => !v.IsTemplate && InScopeViewTypes.Contains(v.ViewType))
-            .ToList();
-
-        var items = new List<ViewItemViewModel>();
-        foreach (var v in allViews)
-        {
-            var (group, display) = ViewClassificationService.ClassifyView(v);
-
-            IReadOnlyList<string> placedSheets;
-            string? detailNumber = null;
-
-            if (v.ViewType == ViewType.Legend || v.ViewType == ViewType.Schedule)
-            {
-                // Legends/Schedules: look up from the multi-sheet lookup table.
-                placedSheets = placedSheetsByViewId.TryGetValue(v.Id, out var list)
-                    ? list
-                    : new List<string>();
-            }
-            else
-            {
-                // Sections/Callouts/Elevations/Plans/Drafting: single placement
-                // via VIEWER_SHEET_NUMBER, same approach as V012.
-                var sheetNum = v.get_Parameter(BuiltInParameter.VIEWER_SHEET_NUMBER)?.AsString();
-                detailNumber = v.get_Parameter(BuiltInParameter.VIEWER_DETAIL_NUMBER)?.AsString();
-                placedSheets = string.IsNullOrWhiteSpace(sheetNum)
-                    ? new List<string>()
-                    : new List<string> { sheetNum };
-            }
-
-            items.Add(new ViewItemViewModel(v, group, display, placedSheets, detailNumber));
-        }
-
-        var vm = new ViewsListViewModel(items, activeSheetNum);
+        // 7.4.0: show the window first, then read the current sheet's views in an external
+        // event, so the window appears at once. The rest of the project loads on request
+        // ("Load all views" / "Load by type").
+        var vm = new ViewsListViewModel(new List<ViewItemViewModel>(), "", allViewsLoaded: false, initialLoadPending: true);
         new ViewsListWindow(vm).Show();
+        RevitEventManager.RequestInitialLoad(vm);
 
         return Result.Succeeded;
     }

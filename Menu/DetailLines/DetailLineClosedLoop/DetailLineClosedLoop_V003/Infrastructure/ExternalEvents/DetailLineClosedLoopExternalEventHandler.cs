@@ -10,6 +10,7 @@ using Revit26_Plugin_Revised.DetailLineClosedLoop.V003.Core.Services;
 using Revit26_Plugin_Revised.DetailLineClosedLoop.V003.Infrastructure.SelectionFilters;
 using Revit26_Plugin_Revised.DetailLineClosedLoop.V003.UI.ViewModels;
 using Revit26_Plugin_Revised.Shared.Models;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace Revit26_Plugin_Revised.DetailLineClosedLoop.V003.Infrastructure.ExternalEvents
 {
@@ -27,7 +28,10 @@ namespace Revit26_Plugin_Revised.DetailLineClosedLoop.V003.Infrastructure.Extern
 
         public DetailLineClosedLoopExternalEventHandler(DetailLineClosedLoopViewModel vm) => _vm = vm;
 
-        public void Execute(UIApplication app)
+        public void Execute(UIApplication app) =>
+            ToolGuard.RunHandler(GetType(), app, ExecuteCore);
+
+        private void ExecuteCore(UIApplication app)
         {
             UIDocument uiDoc = app.ActiveUIDocument;
             Document doc = uiDoc?.Document;
@@ -40,6 +44,10 @@ namespace Revit26_Plugin_Revised.DetailLineClosedLoop.V003.Infrastructure.Extern
                     return;
                 }
 
+                // Esc / Cancel with a Yes-No confirm while Run analyses the lines and draws the loop.
+                using ToolCancellation cancel = PendingRequest == DetailLineClosedLoopRequest.Run
+                    ? ToolCancellation.BeginFor(ToolCatalog.DetailLineClosedLoop, app)
+                    : null;
                 switch (PendingRequest)
                 {
                     case DetailLineClosedLoopRequest.SelectLines:
@@ -55,6 +63,13 @@ namespace Revit26_Plugin_Revised.DetailLineClosedLoop.V003.Infrastructure.Extern
                         RunRefreshCreatedLines(doc);
                         break;
                 }
+            }
+            catch (OperationCanceledException)
+            {
+                // The draw group is rolled back as the exception unwinds: no line was drawn.
+                _vm.Log(LogLevel.Warning, "Cancelled by user. No lines were drawn.");
+                _vm.ApplyRunResult(new ProcessResult { Success = false, ErrorMessage = "Cancelled by user." });
+                throw; // ToolGuard treats it as a user cancel; finally resets the busy state
             }
             catch (Exception ex)
             {
@@ -149,6 +164,7 @@ namespace Revit26_Plugin_Revised.DetailLineClosedLoop.V003.Infrastructure.Extern
                         }
                     }
 
+                    ToolCancellation.CheckCurrent(); // last chance to cancel before the group is kept
                     tg.Assimilate();
 
                     List<CreatedLineItem> rows = BuildCreatedLineItems(doc, result.CreatedElementIds);

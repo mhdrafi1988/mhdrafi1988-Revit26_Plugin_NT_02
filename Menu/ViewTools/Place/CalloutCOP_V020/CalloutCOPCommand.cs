@@ -5,6 +5,7 @@ using System;
 using System.Windows.Interop;
 using Revit26_Plugin_Revised.CalloutCOP.V020.Views;
 using Revit26_Plugin_Revised.Utilities;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace Revit26_Plugin_Revised.CalloutCOP.V020.Commands
 {
@@ -12,10 +13,10 @@ namespace Revit26_Plugin_Revised.CalloutCOP.V020.Commands
     [Regeneration(RegenerationOption.Manual)]
     public class CalloutCOPCommand : IExternalCommand
     {
-        public Result Execute(
-            ExternalCommandData commandData,
-            ref string message,
-            ElementSet elements)
+        public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements) =>
+            ToolGuard.RunCommand(GetType(), commandData, ref message, elements, ExecuteCore);
+
+        private Result ExecuteCore(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
             // FIX: window/ViewModel construction was unguarded, so any exception
             // (e.g. no active document) surfaced as Revit's generic "Command

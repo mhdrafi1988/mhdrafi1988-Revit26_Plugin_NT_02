@@ -14,6 +14,7 @@ using Revit26_Plugin_Revised.InnerLoopsAndPerpendicular.V007.Core.Engine;
 using Revit26_Plugin_Revised.InnerLoopsAndPerpendicular.V007.Core.Models;
 using Revit26_Plugin_Revised.Shared.Models;
 using System;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace Revit26_Plugin_Revised.InnerLoopsAndPerpendicular.V007.Infrastructure.ExternalEvents
 {
@@ -26,7 +27,10 @@ namespace Revit26_Plugin_Revised.InnerLoopsAndPerpendicular.V007.Infrastructure.
         /// </summary>
         public static InnerLoopsAndPerpendicularPayload Payload;
 
-        public void Execute(UIApplication app)
+        public void Execute(UIApplication app) =>
+            ToolGuard.RunHandler(GetType(), app, ExecuteCore);
+
+        private void ExecuteCore(UIApplication app)
         {
             if (Payload == null) return;
 
@@ -34,10 +38,22 @@ namespace Revit26_Plugin_Revised.InnerLoopsAndPerpendicular.V007.Infrastructure.
 
             if (current.Operation != InnerLoopsAndPerpendicularOperation.Apply)
             {
+                using ToolCancellation analyzeCancel = ToolCancellation.BeginFor(ToolCatalog.InnerLoopsAndPerpendicular, app);
                 try
                 {
                     var result = InnerLoopsAndPerpendicularEngine.Execute(app, current);
                     current.OnCompleted?.Invoke(result);
+                }
+                catch (OperationCanceledException)
+                {
+                    current.Log?.Invoke(new LogEntry(LogLevel.Warning, "Cancelled by user."));
+                    current.OnCompleted?.Invoke(new InnerLoopsAndPerpendicularResult
+                    {
+                        Success = false,
+                        ErrorMessage = "Cancelled by user.",
+                        Operation = current.Operation
+                    });
+                    throw; // ToolGuard treats it as a user cancel
                 }
                 catch (Exception ex)
                 {
@@ -52,6 +68,9 @@ namespace Revit26_Plugin_Revised.InnerLoopsAndPerpendicular.V007.Infrastructure.
                 }
                 return;
             }
+
+            // Esc / Cancel with a Yes-No confirm; the transaction group below is rolled back on cancel.
+            using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.InnerLoopsAndPerpendicular, app);
 
             using (TransactionGroup tg = new TransactionGroup(
                 app.ActiveUIDocument.Document, "Inner Loops And Perpendicular"))
@@ -68,6 +87,18 @@ namespace Revit26_Plugin_Revised.InnerLoopsAndPerpendicular.V007.Infrastructure.
                         tg.RollBack();
 
                     current.OnCompleted?.Invoke(result);
+                }
+                catch (OperationCanceledException)
+                {
+                    if (tg.GetStatus() == TransactionStatus.Started) tg.RollBack();
+                    current.Log?.Invoke(new LogEntry(LogLevel.Warning, "Cancelled by user. Nothing was changed."));
+                    current.OnCompleted?.Invoke(new InnerLoopsAndPerpendicularResult
+                    {
+                        Success = false,
+                        ErrorMessage = "Cancelled by user.",
+                        Operation = current.Operation
+                    });
+                    throw; // ToolGuard treats it as a user cancel
                 }
                 catch (Exception ex)
                 {

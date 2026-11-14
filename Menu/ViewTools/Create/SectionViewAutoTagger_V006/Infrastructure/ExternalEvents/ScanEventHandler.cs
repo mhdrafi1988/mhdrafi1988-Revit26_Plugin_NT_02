@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace Revit26_Plugin_Revised.SectionViewAutoTagger.V006
 {
@@ -50,7 +51,10 @@ namespace Revit26_Plugin_Revised.SectionViewAutoTagger.V006
         /// </summary>
         public bool IsPending { get; private set; }
 
-        public void Execute(UIApplication app)
+        public void Execute(UIApplication app) =>
+            ToolGuard.RunHandler(GetType(), app, ExecuteCore);
+
+        private void ExecuteCore(UIApplication app)
         {
             IsPending = true;
             var doc = app.ActiveUIDocument?.Document;
@@ -61,6 +65,10 @@ namespace Revit26_Plugin_Revised.SectionViewAutoTagger.V006
                 return;
             }
 
+            // Esc / Cancel with a Yes-No confirm during the (read-only) category scan.
+            using ToolCancellation cancel = Mode == ScanMode.ScanCategoriesForViews
+                ? ToolCancellation.BeginFor(ToolCatalog.SectionViewAutoTagger, app)
+                : null;
             try
             {
                 switch (Mode)

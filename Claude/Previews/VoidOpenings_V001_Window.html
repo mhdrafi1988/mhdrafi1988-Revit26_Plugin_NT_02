@@ -1,0 +1,299 @@
+<title>Void Openings Window</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<!-- UI preview (CLAUDE.md "UI previews"): Void Openings V001, tool 0.2.0, plugin 6.46.0.
+     New in 0.2.0 (first version with a button): the Coordination ribbon panel and the Void Openings window with
+     the STRUCTURAL MODEL and MEP MODEL panels (model list, status, categories with element counts, Refresh).
+     Shows: the ribbon button and tooltip, the window as built in 0.2.0, the same window with an unloaded link,
+     and below them the planned full window (design wireframe, not built yet) from
+     docs/superpowers/specs/2026-11-10-void-openings-design.md.
+     Mirrors: Menu/Coordination/Openings/VoidOpenings_V001/UI/Views/VoidOpeningsWindow.xaml
+              (+ MainViewModel, ModelPanelViewModel, CategoryItemViewModel),
+              Menu/00_Push_Button_Menu_items/Ribbon/CoordinationRibbon.cs
+     Artifact: https://claude.ai/artifact/Ch9vZ7dfEa5kHAksAE9GQH (republish to this URL on every update)
+     Colours: Shared/SharedStyles.xaml tokens, one light look on purpose (mirrors the light WPF window). -->
+<style>
+/* Layout: one column of captioned mock-ups; each fixed-width Revit piece scrolls in its own frame. */
+:root{--surface-window:#F3F5F7;--surface-card:#FFFFFF;--navy:#1E3A5F;--navy-dark:#14283F;--border:#D6DCE3;--border-in:#B5C2CF;
+--text:#1A2B3C;--text-2:#5B7185;--text-3:#8FA3B8;--on-dark:#EAF1F8;--blue:#2D6CDF;
+--ok:#2E7D4F;--ok-bg:#E6F4EC;--ok-bd:#9FCFB2;--warn:#9A5B00;--warn-bg:#FDF1E1;--warn-bd:#E8B66B;
+--bad:#B23A35;--bad-bg:#FBE8E7;--bad-bd:#EDA5A1;--info:#1F5FBF;--info-bg:#E6EEFB;--info-bd:#A9C3EE;
+--new:#1F8A4C;--new-bg:#E3F4EA;--page:#E9EDF1;--sel:#E6EEFB;
+--font:"Segoe UI",system-ui,-apple-system,sans-serif;--mono:ui-monospace,Consolas,monospace;color-scheme:light}
+html{background:var(--page)}
+body{margin:0;background:var(--page);color:var(--text);font:14px/1.45 var(--font);
+padding-block:20px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:1040px;margin:0 auto;display:flex;flex-direction:column;gap:24px}
+section{display:flex;flex-direction:column;gap:8px;min-width:0}
+h1{font-size:22px;margin:0;color:var(--navy);text-wrap:balance}
+h2{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-2);margin:0}
+p{margin:0;max-width:72ch}.muted{color:var(--text-2)}
+.tag{display:inline-block;font-size:11px;font-weight:600;color:var(--new);background:var(--new-bg);border-radius:3px;padding:1px 6px;margin-left:6px;vertical-align:middle;text-transform:none;letter-spacing:0}
+.frame{overflow-x:auto;padding-bottom:6px}
+/* ribbon */
+.ribbon{display:inline-flex;gap:14px;align-items:flex-start;background:var(--surface-card);border:1px solid var(--border);padding:8px 12px}
+.panel{display:flex;flex-direction:column;align-items:center;gap:4px}
+.big{display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 10px;border:1px solid var(--info-bd);background:var(--info-bg);font-size:12px;text-align:center;line-height:1.2}
+.ico{width:32px;height:32px;border:2px solid var(--navy);position:relative;background:var(--surface-card)}
+.ico::after{content:"";position:absolute;inset:7px;border:2px dashed var(--blue);border-radius:50%}
+.pname{font-size:11px;color:var(--text-2)}
+.tip{width:300px;background:var(--surface-card);border:1px solid var(--border-in);box-shadow:0 3px 10px rgba(0,0,0,.15);padding:8px 10px;font-size:12.5px;display:flex;flex-direction:column;gap:4px}
+.tip b{font-size:13px}
+/* window */
+.win{width:1000px;background:var(--surface-window);border:1px solid var(--border);box-shadow:0 4px 14px rgba(0,0,0,.15)}
+.title{background:var(--navy);color:var(--on-dark);padding:7px 12px;font-size:12.5px;display:flex;justify-content:space-between}
+.body{padding:12px;display:flex;flex-direction:column;gap:10px}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.card{background:var(--surface-card);border:1px solid var(--border);display:flex;flex-direction:column;min-width:0}
+.card>header{background:var(--navy);color:var(--on-dark);font-size:11.5px;font-weight:600;letter-spacing:.08em;padding:5px 10px;display:flex;justify-content:space-between;align-items:center}
+.card>header span{font-weight:400;letter-spacing:0;opacity:.85}
+.pad{padding:10px;display:flex;flex-direction:column;gap:8px}
+.lbl{font-size:11.5px;color:var(--text-2);font-weight:600}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.combo{flex:1;min-width:0;border:1px solid var(--border-in);background:var(--surface-card);padding:4px 8px;display:flex;justify-content:space-between;gap:8px;font-size:13px}
+.combo::after{content:"▾";color:var(--text-2)}
+.pill{font-size:11px;font-weight:600;border:1px solid;border-radius:9px;padding:0 8px;white-space:nowrap}
+.pill.ok{color:var(--ok);background:var(--ok-bg);border-color:var(--ok-bd)}
+.pill.warn{color:var(--warn);background:var(--warn-bg);border-color:var(--warn-bd)}
+.pill.bad{color:var(--bad);background:var(--bad-bg);border-color:var(--bad-bd)}
+.pill.info{color:var(--info);background:var(--info-bg);border-color:var(--info-bd)}
+.pill.off{color:var(--text-2);background:var(--surface-window);border-color:var(--border)}
+table{border-collapse:collapse;width:100%;font-size:12.5px}
+th{background:var(--surface-window);color:var(--text-2);font-weight:600;text-align:left;padding:4px 8px;border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:3px 8px;border-bottom:1px solid var(--border);white-space:nowrap}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+tr.sel td{background:var(--sel)}
+.dim td{color:var(--text-3)}
+.chk{width:13px;height:13px;border:1px solid var(--border-in);background:var(--surface-card);display:inline-block;position:relative;vertical-align:-2px}
+.chk.on{border-color:var(--navy);background:var(--navy)}
+.chk.on::after{content:"";position:absolute;left:3px;top:0;width:3px;height:7px;border:solid var(--on-dark);border-width:0 2px 2px 0;transform:rotate(45deg)}
+.cell{border:1px solid var(--border-in);background:var(--surface-card);padding:1px 6px;display:inline-block;min-width:44px;text-align:right;font-variant-numeric:tabular-nums}
+.cell.t{text-align:left;min-width:92px}
+.btn{border:1px solid var(--border-in);background:var(--surface-card);padding:5px 12px;font-weight:600;font-size:12.5px;white-space:nowrap}
+.btn.p{background:var(--navy);color:var(--on-dark);border-color:var(--navy)}
+.btn.s{padding:2px 8px;font-weight:400}
+.btn.dis{color:var(--text-3)}
+.bar{flex:1;min-width:120px;height:8px;background:var(--border);position:relative}
+.bar i{position:absolute;inset:0 0 0 0;width:100%;background:var(--ok)}
+.note{border:1px solid var(--info-bd);background:var(--info-bg);color:var(--info);padding:6px 10px;font-size:12.5px}
+.note.warn{border-color:var(--warn-bd);background:var(--warn-bg);color:var(--warn)}
+.status{font-size:12px;color:var(--text-2);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.scroll{overflow-x:auto}
+.mono{font-family:var(--mono);font-size:12px}
+ul{margin:0;padding-left:18px;max-width:72ch}
+</style>
+<main>
+<section>
+  <h1>Void Openings <span class="tag">new tool · 0.2.0</span></h1>
+  <p class="muted">Tool in development. Version 0.2.0 adds the ribbon button and the model and category selection. Analyze, Generate Void and Export come in later versions. All names and counts below are sample data.</p>
+</section>
+
+<section>
+  <h2>Ribbon · Rafi_Pro_Docs2 tab, after Memory <span class="tag">new panel</span></h2>
+  <div class="frame"><div class="row" style="align-items:flex-start;flex-wrap:nowrap;width:max-content">
+    <div class="ribbon"><div class="panel"><div class="big"><span class="ico"></span>Void<br>Openings</div><span class="pname">Coordination</span></div></div>
+    <div class="tip"><b>Void Openings — v0.2.0 (build V001)</b><span>Openings for MEP through structure. In this version: choose the structural model and the MEP model (the active model or a Revit link) and their categories, and see how many elements each has. Clash analysis and void placement follow in later versions.</span></div>
+  </div></div>
+</section>
+
+<section>
+  <h2>Window as built in 0.2.0 <span class="tag">new</span></h2>
+  <div class="frame"><div class="win">
+    <div class="title"><span>Void Openings — v0.2.0</span><span>—  ☐  ✕</span></div>
+    <div class="body">
+      <div class="cols">
+        <div class="card">
+          <header>STRUCTURAL MODEL <span>4 of 9 categories · 1,933 elements selected</span></header>
+          <div class="pad">
+            <div class="lbl">Structural link</div>
+            <div class="row"><div class="combo">Sample_Tower_STR.rvt</div><b style="color:var(--ok);min-width:84px">Loaded</b></div>
+            <div class="lbl">Categories</div>
+            <div class="scroll"><table>
+              <tr><th></th><th>Category</th><th class="n">Elements</th><th>Link</th><th>Status</th></tr>
+              <tr><td><span class="chk on"></span></td><td>Floors</td><td class="n">84</td><td>Sample_Tower_STR.rvt</td><td>Selected</td></tr>
+              <tr><td><span class="chk on"></span></td><td>Walls</td><td class="n">612</td><td>Sample_Tower_STR.rvt</td><td>Selected</td></tr>
+              <tr><td><span class="chk on"></span></td><td>Structural Framing</td><td class="n">1,216</td><td>Sample_Tower_STR.rvt</td><td>Selected</td></tr>
+              <tr><td><span class="chk"></span></td><td>Structural Columns</td><td class="n">298</td><td>Sample_Tower_STR.rvt</td><td>Not selected</td></tr>
+              <tr><td><span class="chk on"></span></td><td>Stairs</td><td class="n">21</td><td>Sample_Tower_STR.rvt</td><td>Selected · Marker only, no cut</td></tr>
+              <tr><td><span class="chk"></span></td><td>Landings</td><td class="n">12</td><td>Sample_Tower_STR.rvt</td><td>Not selected</td></tr>
+              <tr><td><span class="chk"></span></td><td>Ramps</td><td class="n">4</td><td>Sample_Tower_STR.rvt</td><td>Not selected</td></tr>
+              <tr><td><span class="chk"></span></td><td>Structural Foundations</td><td class="n">46</td><td>Sample_Tower_STR.rvt</td><td>Not selected</td></tr>
+              <tr class="dim"><td><span class="chk"></span></td><td>Generic Models</td><td class="n">0</td><td>Sample_Tower_STR.rvt</td><td>Empty</td></tr>
+            </table></div>
+          </div>
+        </div>
+        <div class="card">
+          <header>MEP MODEL <span>3 of 10 categories · 5,430 elements selected</span></header>
+          <div class="pad">
+            <div class="lbl">MEP link</div>
+            <div class="row"><div class="combo">Sample_Tower_MEP.rvt</div><b style="color:var(--ok);min-width:84px">Loaded</b></div>
+            <div class="lbl">Categories</div>
+            <div class="scroll"><table>
+              <tr><th></th><th>Category</th><th class="n">Elements</th><th>Link</th><th>Status</th></tr>
+              <tr><td><span class="chk on"></span></td><td>Pipes</td><td class="n">2,140</td><td>Sample_Tower_MEP.rvt</td><td>Selected</td></tr>
+              <tr><td><span class="chk"></span></td><td>Pipe Accessories</td><td class="n">310</td><td>Sample_Tower_MEP.rvt</td><td>Not selected</td></tr>
+              <tr><td><span class="chk"></span></td><td>Pipe Fittings</td><td class="n">3,010</td><td>Sample_Tower_MEP.rvt</td><td>Not selected</td></tr>
+              <tr><td><span class="chk on"></span></td><td>Ducts</td><td class="n">890</td><td>Sample_Tower_MEP.rvt</td><td>Selected</td></tr>
+              <tr><td><span class="chk"></span></td><td>Duct Accessories</td><td class="n">95</td><td>Sample_Tower_MEP.rvt</td><td>Not selected</td></tr>
+              <tr><td><span class="chk"></span></td><td>Duct Fittings</td><td class="n">1,010</td><td>Sample_Tower_MEP.rvt</td><td>Not selected</td></tr>
+              <tr><td><span class="chk"></span></td><td>Cable Trays</td><td class="n">260</td><td>Sample_Tower_MEP.rvt</td><td>Not selected</td></tr>
+              <tr><td><span class="chk"></span></td><td>Cable Tray Fittings</td><td class="n">150</td><td>Sample_Tower_MEP.rvt</td><td>Not selected</td></tr>
+              <tr><td><span class="chk on"></span></td><td>Conduits</td><td class="n">2,400</td><td>Sample_Tower_MEP.rvt</td><td>Selected</td></tr>
+              <tr><td><span class="chk"></span></td><td>Conduit Fittings</td><td class="n">1,870</td><td>Sample_Tower_MEP.rvt</td><td>Not selected</td></tr>
+            </table></div>
+          </div>
+        </div>
+      </div>
+      <div class="row"><span class="status" style="flex:1">(Active model) Sample_Tower_COORD · 3 Revit link(s), 1 not loaded</span><span class="btn">Refresh</span><span class="btn">Close</span></div>
+    </div>
+  </div></div>
+  <ul>
+    <li>Each model list holds <b>(Active model)</b> first, then every Revit link by name. One model per side.</li>
+    <li>A category with no elements shows <b>Empty</b> and cannot be ticked. Ticks are kept when you press Refresh.</li>
+    <li>Stairs, Landings and Ramps show "Marker only, no cut" once ticked.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>Unloaded link and messages <span class="tag">new</span></h2>
+  <div class="frame"><div class="win" style="width:520px">
+    <div class="title"><span>Void Openings — v0.2.0</span><span>—  ☐  ✕</span></div>
+    <div class="body">
+        <div class="card">
+          <header>STRUCTURAL MODEL <span>Link not loaded</span></header>
+          <div class="pad">
+            <div class="lbl">Structural link</div>
+            <div class="row"><div class="combo">Sample_Podium_STR.rvt</div><b style="color:var(--warn);min-width:84px">Not loaded</b></div>
+            <div class="lbl">Categories</div>
+            <div class="scroll"><table>
+              <tr><th></th><th>Category</th><th class="n">Elements</th><th>Link</th><th>Status</th></tr>
+              <tr class="dim"><td><span class="chk"></span></td><td>Floors</td><td class="n">0</td><td>Sample_Podium_STR.rvt</td><td>Empty</td></tr>
+              <tr class="dim"><td><span class="chk"></span></td><td>Walls</td><td class="n">0</td><td>Sample_Podium_STR.rvt</td><td>Empty</td></tr>
+              <tr class="dim"><td><span class="chk"></span></td><td>Structural Framing</td><td class="n">0</td><td>Sample_Podium_STR.rvt</td><td>Empty</td></tr>
+            </table></div>
+          </div>
+        </div>
+      <div class="note" style="border-color:var(--bad-bd);background:var(--bad-bg);color:var(--text)">Revit is busy and could not run the request. Close any open Revit dialog or command, then try again. <span class="btn s" style="margin-left:8px">Dismiss</span></div>
+    </div>
+  </div></div>
+  <p class="muted">Messages appear in this strip inside the window (red for errors, blue for information), not in pop-up dialogs.</p>
+</section>
+
+<section>
+  <h2>Planned full window (design wireframe, not built yet)</h2>
+  <div class="frame"><div class="win">
+    <div class="title"><span>Void Openings — planned 1.0.0</span><span>—  ☐  ✕</span></div>
+    <div class="body">
+
+      <div class="cols">
+        <div class="card">
+          <header>STRUCTURAL MODEL <span>1 link · 3 categories · 1,912 elements</span></header>
+          <div class="pad">
+            <div class="lbl">Structural link</div>
+            <div class="row"><div class="combo">Sample_Tower_STR.rvt</div><span class="pill ok">Loaded</span><span class="btn s">Refresh</span></div>
+            <div class="lbl">Categories</div>
+            <div class="scroll"><table>
+              <tr><th></th><th>Category</th><th class="n">Elements</th><th>Link</th><th>Status</th></tr>
+              <tr><td><span class="chk on"></span></td><td>Floors</td><td class="n">84</td><td>Sample_Tower_STR</td><td><span class="pill info">Selected</span></td></tr>
+              <tr><td><span class="chk on"></span></td><td>Walls</td><td class="n">612</td><td>Sample_Tower_STR</td><td><span class="pill info">Selected</span></td></tr>
+              <tr><td><span class="chk on"></span></td><td>Structural Framing</td><td class="n">1,216</td><td>Sample_Tower_STR</td><td><span class="pill info">Selected</span></td></tr>
+              <tr><td><span class="chk"></span></td><td>Structural Columns</td><td class="n">298</td><td>Sample_Tower_STR</td><td><span class="pill off">Not selected</span></td></tr>
+              <tr><td><span class="chk"></span></td><td>Structural Foundations</td><td class="n">46</td><td>Sample_Tower_STR</td><td><span class="pill off">Not selected</span></td></tr>
+              <tr><td><span class="chk"></span></td><td>Stairs · Landings · Ramps</td><td class="n">37</td><td>Sample_Tower_STR</td><td><span class="pill warn">Marker only, no cut</span></td></tr>
+              <tr class="dim"><td><span class="chk"></span></td><td>Generic Models (optional)</td><td class="n">0</td><td>Sample_Tower_STR</td><td><span class="pill off">Empty</span></td></tr>
+            </table></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <header>MEP MODEL <span>1 link · 3 categories · 5,430 elements</span></header>
+          <div class="pad">
+            <div class="lbl">MEP link</div>
+            <div class="row"><div class="combo">Sample_Tower_MEP.rvt</div><span class="pill ok">Loaded</span><span class="btn s">Refresh</span></div>
+            <div class="lbl">Categories</div>
+            <div class="scroll"><table>
+              <tr><th></th><th>Category</th><th class="n">Elements</th><th>Link</th><th>Status</th></tr>
+              <tr><td><span class="chk on"></span></td><td>Pipes</td><td class="n">2,140</td><td>Sample_Tower_MEP</td><td><span class="pill info">Selected</span></td></tr>
+              <tr><td><span class="chk"></span></td><td>Pipe Fittings · Accessories</td><td class="n">3,320</td><td>Sample_Tower_MEP</td><td><span class="pill off">Not selected</span></td></tr>
+              <tr><td><span class="chk on"></span></td><td>Ducts</td><td class="n">890</td><td>Sample_Tower_MEP</td><td><span class="pill info">Selected</span></td></tr>
+              <tr><td><span class="chk"></span></td><td>Duct Fittings · Accessories</td><td class="n">1,105</td><td>Sample_Tower_MEP</td><td><span class="pill off">Not selected</span></td></tr>
+              <tr><td><span class="chk"></span></td><td>Cable Trays · Fittings</td><td class="n">410</td><td>Sample_Tower_MEP</td><td><span class="pill off">Not selected</span></td></tr>
+              <tr><td><span class="chk on"></span></td><td>Conduits</td><td class="n">2,400</td><td>Sample_Tower_MEP</td><td><span class="pill info">Selected</span></td></tr>
+              <tr><td><span class="chk"></span></td><td>Conduit Fittings</td><td class="n">1,870</td><td>Sample_Tower_MEP</td><td><span class="pill off">Not selected</span></td></tr>
+            </table></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <header>OPENING CLEARANCE <span>millimetres</span></header>
+        <div class="pad">
+          <div class="scroll"><table>
+            <tr><th>MEP category</th><th class="n">Size from</th><th class="n">Size to</th><th class="n">Offset</th><th>Applies</th><th>Opening shape</th><th></th></tr>
+            <tr><td><span class="cell t">Conduit ▾</span></td><td class="n"><span class="cell">0</span></td><td class="n"><span class="cell">25</span></td><td class="n"><span class="cell">25</span></td><td><span class="cell t">Each side ▾</span></td><td><span class="cell t">Circular ▾</span></td><td><span class="btn s">Delete</span></td></tr>
+            <tr class="sel"><td><span class="cell t">Conduit ▾</span></td><td class="n"><span class="cell">26</span></td><td class="n"><span class="cell">50</span></td><td class="n"><span class="cell">30</span></td><td><span class="cell t">Each side ▾</span></td><td><span class="cell t">Circular ▾</span></td><td><span class="btn s">Delete</span></td></tr>
+            <tr><td><span class="cell t">Pipe ▾</span></td><td class="n"><span class="cell">0</span></td><td class="n"><span class="cell">50</span></td><td class="n"><span class="cell">25</span></td><td><span class="cell t">Each side ▾</span></td><td><span class="cell t">Circular ▾</span></td><td><span class="btn s">Delete</span></td></tr>
+            <tr><td><span class="cell t">Pipe ▾</span></td><td class="n"><span class="cell">51</span></td><td class="n"><span class="cell">100</span></td><td class="n"><span class="cell">40</span></td><td><span class="cell t">Each side ▾</span></td><td><span class="cell t">Circular ▾</span></td><td><span class="btn s">Delete</span></td></tr>
+            <tr><td><span class="cell t">Duct ▾</span></td><td class="n"><span class="cell">0</span></td><td class="n"><span class="cell">500</span></td><td class="n"><span class="cell">75</span></td><td><span class="cell t">Total ▾</span></td><td><span class="cell t">Rectangular ▾</span></td><td><span class="btn s">Delete</span></td></tr>
+          </table></div>
+          <div class="row">
+            <span class="btn s">+ Add rule</span>
+            <span class="lbl">Default offset</span><span class="cell">50</span>
+            <span class="lbl">Overshoot</span><span class="cell">50</span>
+            <span class="lbl">Round up to</span><span class="cell">10</span>
+            <span><span class="chk on"></span> Include insulation</span>
+            <span class="lbl">Opening axis</span><span class="cell t" style="min-width:150px">Perpendicular to face ▾</span>
+          </div>
+          <div class="muted" style="font-size:12px">Selected rule: conduit 40 + 2 × 30 = <b>100 mm</b> opening diameter.</div>
+        </div>
+      </div>
+
+      <div class="row">
+        <span class="btn p">ANALYZE</span>
+        <span class="btn p">GENERATE VOID (5 approved)</span>
+        <span class="btn">Export ▾</span>
+        <span class="btn">Apply package…</span>
+        <span class="lbl">Void family</span><span class="combo" style="flex:0 1 210px">Built-in (BIM_Void_DummySplice)</span>
+        <div class="bar"><i></i></div><span class="btn dis">Cancel</span>
+      </div>
+
+      <div class="note warn">Structural model is a link, so Revit cannot cut it from this project. Generate records the openings and Job IDs here; use Export ▸ Opening package, then Apply package in Sample_Tower_STR.rvt to place and cut.</div>
+
+      <div class="card">
+        <header>RESULTS <span>7 clashes · 5 approved · 1 rejected · 1 to review</span></header>
+        <div class="pad">
+          <div class="row">
+            <span class="lbl">Find</span><span class="cell t" style="min-width:150px">Job ID or element</span>
+            <span class="lbl">Show</span><span class="cell t">All statuses ▾</span>
+            <span style="flex:1"></span>
+            <span class="btn s">Zoom to</span><span class="btn s">Highlight MEP</span><span class="btn s">Highlight structure</span>
+            <span class="btn s">Approve</span><span class="btn s">Reject</span><span class="btn s">Regenerate</span>
+          </div>
+          <div class="scroll"><table>
+            <tr><th></th><th>Clash ID</th><th>Job ID</th><th>Structural model</th><th>Str. category</th><th class="n">Str. element</th><th>MEP model</th><th>MEP category</th><th class="n">MEP element</th><th class="n">Width</th><th class="n">Height</th><th class="n">Diameter</th><th class="n">Clearance</th><th>Tracking</th><th>Status</th></tr>
+            <tr><td><span class="chk on"></span></td><td class="mono">CL-0001</td><td class="mono">VOID-2026-000001</td><td>Sample_Tower_STR</td><td>Wall</td><td class="n">418822</td><td>Sample_Tower_MEP</td><td>Conduit</td><td class="n">771204</td><td class="n">–</td><td class="n">–</td><td class="n">100</td><td class="n">30</td><td>Existing</td><td><span class="pill ok">Cut</span></td></tr>
+            <tr class="sel"><td><span class="chk on"></span></td><td class="mono">CL-0002</td><td class="mono">VOID-2026-000002</td><td>Sample_Tower_STR</td><td>Floor</td><td class="n">402115</td><td>Sample_Tower_MEP</td><td>Pipe</td><td class="n">765530</td><td class="n">–</td><td class="n">–</td><td class="n">190</td><td class="n">40</td><td>Updated</td><td><span class="pill info">Generated</span></td></tr>
+            <tr><td><span class="chk on"></span></td><td class="mono">CL-0003</td><td class="muted">on generate</td><td>Sample_Tower_STR</td><td>Floor</td><td class="n">402115</td><td>Sample_Tower_MEP</td><td>Duct</td><td class="n">780091</td><td class="n">680</td><td class="n">380</td><td class="n">–</td><td class="n">75</td><td>New</td><td><span class="pill off">Detected</span></td></tr>
+            <tr><td><span class="chk on"></span></td><td class="mono">CL-0004</td><td class="muted">on generate</td><td>Sample_Tower_STR</td><td>Str. Framing</td><td class="n">455310</td><td>Sample_Tower_MEP</td><td>Pipe</td><td class="n">765871</td><td class="n">–</td><td class="n">–</td><td class="n">100</td><td class="n">25</td><td>New</td><td><span class="pill off">Detected</span></td></tr>
+            <tr><td><span class="chk on"></span></td><td class="mono">CL-0005</td><td class="muted">on generate</td><td>Sample_Tower_STR</td><td>Wall</td><td class="n">419004</td><td>Sample_Tower_MEP</td><td>Pipe (sloped 12°)</td><td class="n">766102</td><td class="n">210</td><td class="n">160</td><td class="n">–</td><td class="n">40</td><td>New</td><td><span class="pill warn">Review</span></td></tr>
+            <tr class="dim"><td><span class="chk"></span></td><td class="mono">CL-0006</td><td>–</td><td>Sample_Tower_STR</td><td>Wall</td><td class="n">419377</td><td>Sample_Tower_MEP</td><td>Conduit</td><td class="n">771650</td><td class="n">–</td><td class="n">–</td><td class="n">75</td><td class="n">25</td><td>New</td><td><span class="pill off">Rejected</span></td></tr>
+            <tr><td><span class="chk"></span></td><td class="mono">CL-0007</td><td class="mono">VOID-2026-000003</td><td>Sample_Tower_STR</td><td>Str. Framing</td><td class="n">455981</td><td>Sample_Tower_MEP</td><td>Pipe</td><td class="n">–</td><td class="n">–</td><td class="n">–</td><td class="n">130</td><td class="n">40</td><td>Source deleted</td><td><span class="pill bad">Failed</span></td></tr>
+          </table></div>
+        </div>
+      </div>
+
+      <div class="note">Analyze finished: 7 clashes from 5,430 MEP and 1,912 structural elements. 2 fittings could not be analysed (see log).</div>
+      <div class="status"><span>Ready · Structural: Sample_Tower_STR · MEP: Sample_Tower_MEP</span><span>Cut 1 · Generated 1 · Detected 3 · Rejected 1 · Failed 1</span></div>
+    </div>
+  </div></div>
+</section>
+
+<section>
+  <h2>What the columns and states mean</h2>
+  <ul>
+    <li><b>Status</b>: Detected → Generated (void placed) → Cut (cut verified), or Failed / Rejected / Review.</li>
+    <li><b>Tracking</b> (re-runs): New, Existing, Updated, Manually modified, Source deleted.</li>
+    <li>Width and Height are for rectangular openings, Diameter for circular ones. All sizes in millimetres.</li>
+    <li>Messages appear in the strip above the status bar, not in pop-up dialogs.</li>
+  </ul>
+</section>
+</main>

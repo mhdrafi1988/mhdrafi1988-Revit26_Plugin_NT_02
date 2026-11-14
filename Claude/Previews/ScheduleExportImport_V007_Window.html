@@ -1,0 +1,166 @@
+<title>Schedule Export / Import</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<!-- UI preview (CLAUDE.md "UI previews"): Schedule Export / Import 7.2.1 (V007). Plugin 7.1.2.
+     Change shown: export no longer leaves Revit family warnings ("Can't create sweep", "Line is too short") on screen;
+     the log gets one line with the count and the first message instead.
+     Mirrors: Menu/Manage/ScheduleExportImport/ScheduleExportImport_V007/UI/Views/ScheduleExportImportWindow.xaml
+              (labels from it and UI/ViewModels/ScheduleExportImportViewModel.cs; version from Shared/Services/ToolCatalog.cs).
+     Artifact: https://claude.ai/artifact/C4iB4qVKanarZL4bJyCMMJ (republish to this URL on every update)
+     Colours: Shared/SharedStyles.xaml tokens, one light look on purpose (mirrors the light WPF window). -->
+<style>
+/* Layout: one column; the fixed-width WPF window scrolls inside its own frame, notes sit under it. */
+:root{
+  color-scheme:light;
+  --page:#E9EDF1; --window:#F3F5F7; --card:#FFFFFF; --border:#D6DCE3; --input:#B5C2CF; --sep:#E6EAEF;
+  --navy:#1E3A5F; --navy-dark:#14283F; --navy-light:#2C4A6E; --on-dark:#EAF1F8;
+  --text:#1A2B3C; --text2:#5B7185; --text3:#8FA3B8; --bg2:#ECEFF3;
+  --info:#1F5FBF; --info-soft:#E6EEFB;
+  --ok:#2E7D4F; --ok-soft:#E6F4EC;
+  --warn:#9A5B00; --warn-soft:#FDF1E1; --warn-border:#E8B66B;
+  --err:#B23A35; --err-soft:#FBE8E7;
+  --log-text:#EAF1F8; --log-dim:#7E94AA; --log-ok:#4CC18A; --log-warn:#F0B45A;
+  --new:#2E7D4F;
+  --ui:'Segoe UI',system-ui,-apple-system,sans-serif; --mono:Consolas,'Cascadia Mono',Menlo,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--text);font-family:var(--ui);font-size:12.5px;
+  padding-block:24px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.page{max-width:920px;margin:0 auto;display:grid;gap:18px}
+.page>*{min-width:0}
+h1{font-size:20px;margin:0 0 4px;font-weight:600;text-wrap:balance}
+h2{font-size:14px;margin:0 0 8px;font-weight:600}
+p{margin:0;line-height:1.5;max-width:75ch}
+.muted{color:var(--text2)}
+.tag{display:inline-block;background:var(--new);color:#FFFFFF;font-size:10px;font-weight:600;letter-spacing:.04em;
+  padding:1px 6px;border-radius:3px;vertical-align:middle;margin-left:6px}
+.sample{display:inline-block;background:var(--warn-soft);color:var(--warn);border:1px solid var(--warn-border);border-radius:3px;padding:2px 8px;font-size:11.5px}
+.frame{overflow-x:auto;padding-bottom:4px}
+.win{width:860px;background:var(--window);border:1px solid var(--input);box-shadow:0 6px 20px rgba(16,32,48,.18)}
+.tbar{background:var(--card);border-bottom:1px solid var(--border);padding:7px 10px;display:flex;justify-content:space-between}
+.hdr{background:var(--navy);color:var(--on-dark);padding:10px 12px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.hdr b{font-size:15px;font-weight:600;display:block}
+.hdr .s{font-size:11px;opacity:.8}
+.badge{background:var(--navy-light);border-radius:10px;padding:3px 8px;font-size:11px;font-weight:600;white-space:nowrap;outline:2px solid var(--log-ok);outline-offset:1px}
+.body{padding:10px 12px;display:grid;gap:8px}
+.lbl{font-size:11px;font-weight:600;color:var(--text2);display:flex;justify-content:space-between;align-items:center}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.mc{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:7px 10px}
+.mc span{display:block;font-size:11px;color:var(--text2)}
+.mc b{font-size:20px;font-variant-numeric:tabular-nums}
+.sec{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 12px;display:grid;gap:8px}
+.act{display:grid;grid-template-columns:210px 1fr;gap:12px;align-items:center}
+.big{height:40px;border-radius:9px;color:#FFFFFF;font-weight:600;font-size:13.5px;display:flex;align-items:center;justify-content:center}
+.big.ex{background:var(--ok)} .big.im{background:var(--err)}
+.hint{font-size:10.5px;color:var(--text2)}
+.sbtn{border:1px solid var(--border);background:var(--bg2);border-radius:4px;height:24px;padding:0 9px;display:inline-flex;align-items:center;font-size:11px;white-space:nowrap}
+.in{border:1px solid var(--input);background:var(--card);border-radius:4px;height:26px;padding:0 6px;flex:1}
+table.g{width:100%;border-collapse:collapse;font-size:11px}
+.g th{background:var(--bg2);text-align:left;font-weight:600;padding:5px 8px;border-bottom:1px solid var(--border)}
+.g td{padding:6px 8px;border-bottom:1px solid var(--sep)}
+.g tr.sel td{background:var(--info-soft)}
+.log{background:var(--navy-dark);border-radius:6px;font-family:var(--mono);font-size:10.5px;color:var(--log-text)}
+.log .h{font-family:var(--ui);font-weight:600;padding:5px 10px;background:var(--navy);border-radius:6px 6px 0 0;display:flex;justify-content:space-between;gap:10px}
+.log .h span{color:var(--log-dim);font-weight:400}
+.log .l{padding:2px 10px;line-height:1.5}
+.log .w{color:var(--log-warn)} .log .s{color:var(--log-ok)}
+.log .n{background:rgba(76,193,138,.12);outline:1px dashed var(--log-ok)}
+.foot{border-top:1px solid var(--border);padding:8px 12px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.obtn{border:1px solid var(--navy);color:var(--navy);padding:8px 26px;border-radius:4px}
+.dlg{width:520px;background:var(--card);border:1px solid var(--input);box-shadow:0 6px 20px rgba(16,32,48,.18)}
+.dlg .t{padding:7px 10px;border-bottom:1px solid var(--border);font-weight:600}
+.dlg .m{padding:12px;display:grid;gap:8px;line-height:1.45}
+.gone{position:relative;opacity:.75}
+.gone::after{content:"";position:absolute;left:-6px;right:-6px;top:50%;border-top:2px solid var(--err);transform:rotate(-9deg)}
+.cap{font-size:11.5px;color:var(--text2);margin-top:6px}
+ul{margin:0;padding-left:18px;line-height:1.6;max-width:80ch}
+code{font-family:var(--mono);font-size:11.5px;background:var(--bg2);padding:0 4px;border-radius:3px}
+</style>
+
+<div class="page">
+  <header>
+    <h1>Schedule Export / Import <span class="muted" style="font-weight:400;font-size:14px">v7.2.1 · plugin 7.1.2</span></h1>
+    <p class="muted">Export no longer leaves Revit family warnings on screen. The window layout is the same as 7.2.0; only the version and one log line change. <span class="sample">Sample data: schedules, counts and file names are made up.</span></p>
+  </header>
+
+  <section>
+    <h2>Tool window after an export <span class="tag">CHANGED: version, log line</span></h2>
+    <div class="frame">
+      <div class="win">
+        <div class="tbar"><span>Schedule Export / Import — v7.2.1</span><span>—  ☐  ✕</span></div>
+        <div class="hdr"><div><b>Schedule Export / Import</b><span class="s">Export a schedule to Excel, edit the green columns, then import — you review every change before it is applied.</span></div><span class="badge">v7.2.1</span></div>
+        <div class="body">
+          <div class="lbl"><span>Last export — Beam Schedule</span><span class="sbtn">↻ Refresh</span></div>
+          <div class="cards">
+            <div class="mc"><b style="color:var(--info)">148</b><span>Rows exported</span></div>
+            <div class="mc"><b style="color:var(--ok)">4</b><span>Editable fields</span></div>
+            <div class="mc"><b>5</b><span>Read-only fields</span></div>
+          </div>
+
+          <div class="sec">
+            <div><span class="muted" style="font-size:11px">Selected schedule:&nbsp; </span><b style="font-size:13px">Beam Schedule</b></div>
+            <div class="act">
+              <div class="big ex">Export to Excel…</div>
+              <div style="display:grid;gap:4px">
+                <span class="hint">1 · Export the ticked schedule, then edit the green columns in Excel and save.</span>
+                <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="sbtn">Open Exported File</span><span style="font-size:11px">☐ Include hidden fields</span><span style="font-size:10px;color:var(--info)">Beam Schedule.xlsx</span></div>
+              </div>
+            </div>
+            <div class="act">
+              <div class="big im">Import from Excel…</div>
+              <span class="hint">2 · Import the saved file. The schedule is picked from the file; review the preview, then Apply.</span>
+            </div>
+          </div>
+
+          <div class="sec">
+            <b style="font-size:12px">Schedules in Document</b>
+            <div style="display:flex;gap:8px;align-items:center"><span class="muted">🔍 Search:</span><div class="in"></div><span class="sbtn">✕</span></div>
+            <table class="g">
+              <thead><tr><th style="width:34px">✔</th><th>Schedule Name</th><th style="width:130px">Category</th><th style="width:115px">Rows / Fields</th></tr></thead>
+              <tbody>
+                <tr class="sel"><td>☑</td><td>Beam Schedule</td><td>Structural Framing</td><td>148 / 9</td></tr>
+                <tr><td>☐</td><td>Door Schedule</td><td>Doors</td><td>62 / 7</td></tr>
+                <tr><td>☐</td><td>Room Schedule</td><td>Rooms</td><td>35 / 6</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="log">
+            <div class="h"><div>Log <span>6</span></div><span>Copy All &nbsp; Copy Selected &nbsp; Save… &nbsp; Clear</span></div>
+            <div class="l">Editable columns (4): Mark, Comments, Phase Created, Zone</div>
+            <div class="l">Read-only columns (5): Family and Type, Length, Volume, Weight, Level</div>
+            <div class="l w n">Revit raised 2 warning(s) while reading the calculated columns; they were discarded and the model is unchanged. First: An error occurred in family "Concrete-Rectangular Beam" and was automatically resolved, but may require review by the family creator.</div>
+            <div class="l s">Exported 148 row(s) × 9 field(s) → Beam Schedule.xlsx  (21 KB)</div>
+            <div class="l">Folder: C:\Exports\Schedules</div>
+            <div class="l" style="padding-bottom:6px">&nbsp;</div>
+          </div>
+        </div>
+        <div class="foot"><span class="muted">Export finished.</span><span class="obtn">Close</span></div>
+      </div>
+    </div>
+    <p class="cap">The dashed line is the new log entry. It appears only when Revit raised warnings during the export.</p>
+  </section>
+
+  <section>
+    <h2>Revit warning that no longer appears <span class="tag">REMOVED</span></h2>
+    <div class="frame">
+      <div class="dlg gone">
+        <div class="t">Autodesk Revit 2026 — Warning</div>
+        <div class="m">
+          <span>An error occurred in family "Concrete-Rectangular Beam" and was automatically resolved, but may require review by the family creator.</span>
+          <span class="muted">Error Information: "Can't create sweep" · "Line is too short."<br>Error Resolution: Delete Element(s)</span>
+        </div>
+      </div>
+    </div>
+    <p class="cap">Before 7.2.1 this came up after an export of a schedule with calculated, combined or room columns.</p>
+  </section>
+
+  <section>
+    <h2>What changed</h2>
+    <ul>
+      <li><b>Cause.</b> To read calculated columns the export tags each element's Comments in a transaction that is always rolled back. Revit rebuilds each element, and a family with faulty geometry raises its warning again.</li>
+      <li><b>Fix.</b> The warnings are now discarded together with the rolled-back transaction (<code>ScheduleImportEventHandler.ReadScheduleTable</code>).</li>
+      <li><b>Unchanged.</b> The Excel file, the window layout and import. Export does not change the model, before or after this fix.</li>
+      <li><b>Still to do in the model.</b> The beams that raised the warning are still faulty. Fix them in the family or on the element.</li>
+    </ul>
+  </section>
+</div>

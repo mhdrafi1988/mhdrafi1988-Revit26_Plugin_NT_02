@@ -1,0 +1,59 @@
+<Window x:Class="Revit26_Plugin_Revised.MergeRoofs.V001.UI.Views.MergeRoofsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Merge Roofs"
+        Width="520" Height="560" MinWidth="440" MinHeight="460"
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource BrushSurfaceWindow}">
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Revit26_Plugin_Revised;component/Shared/SharedStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+    <Grid Margin="14">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="Roofs to merge" FontWeight="SemiBold" Margin="0,0,0,4"/>
+        <ListBox Grid.Row="1" ItemsSource="{Binding Roofs}" MinHeight="70"/>
+
+        <StackPanel Grid.Row="2" Margin="0,10,0,10">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="Gap tolerance (mm)" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                <TextBox Width="70" Text="{Binding ToleranceMm, UpdateSourceTrigger=PropertyChanged}" VerticalContentAlignment="Center"/>
+            </StackPanel>
+            <CheckBox Content="Place connecting lines across gaps" IsChecked="{Binding PlaceGapLinks}" Margin="0,8,0,0"/>
+            <ItemsControl ItemsSource="{Binding Notes}" Margin="0,8,0,0">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate><TextBlock Text="{Binding}" TextWrapping="Wrap" Foreground="{DynamicResource BrushTextSecondary}"/></DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </StackPanel>
+
+        <GroupBox Grid.Row="3" Header="Issues">
+            <ListBox ItemsSource="{Binding Issues}">
+                <ListBox.ItemTemplate>
+                    <DataTemplate><TextBlock Text="{Binding}" TextWrapping="Wrap"/></DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </GroupBox>
+
+        <TextBlock Grid.Row="4" Text="{Binding Status}" TextWrapping="Wrap" Margin="0,10,0,10"/>
+
+        <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="Cancel run" Command="{Binding CancelRunCommand}" Style="{DynamicResource SecondaryButton}" Width="90" Margin="0,0,8,0"
+                    ToolTip="Stops the running Check or Create (same as Esc). Asks you to confirm."/>
+            <Button Content="Check" Command="{Binding CheckCommand}" Style="{DynamicResource SecondaryButton}" Width="90" Margin="0,0,8,0"/>
+            <Button Content="Create roof" Command="{Binding CreateCommand}" Style="{DynamicResource PrimaryButton}" Width="110" Margin="0,0,8,0"/>
+            <Button Content="Close" IsCancel="True" Style="{DynamicResource SecondaryButton}" Width="80"/>
+        </StackPanel>
+    </Grid>
+</Window>

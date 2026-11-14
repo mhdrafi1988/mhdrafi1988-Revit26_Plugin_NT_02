@@ -4,6 +4,7 @@ using System.Linq;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using Revit26_Plugin_Revised.Shared.Models;
+using Revit26_Plugin_Revised.Shared.Services;
 
 
 namespace Revit26_Plugin_Revised.RoofEdgeAroundSections.V006
@@ -46,7 +47,10 @@ namespace Revit26_Plugin_Revised.RoofEdgeAroundSections.V006
         /// <summary>Callback invoked on the UI thread once RunCreate finishes.</summary>
         public Action<RunResult, System.Collections.ObjectModel.ObservableCollection<LogEntry>> OnRunComplete { get; set; }
 
-        public void Execute(UIApplication app)
+        public void Execute(UIApplication app) =>
+            ToolGuard.RunHandler(GetType(), app, ExecuteCore);
+
+        private void ExecuteCore(UIApplication app)
         {
             Document doc = app.ActiveUIDocument.Document;
             var log = new System.Collections.ObjectModel.ObservableCollection<LogEntry>();

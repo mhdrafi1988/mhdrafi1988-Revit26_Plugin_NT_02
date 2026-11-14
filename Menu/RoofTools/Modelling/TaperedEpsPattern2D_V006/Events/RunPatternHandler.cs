@@ -1,6 +1,7 @@
 using System;
 using Autodesk.Revit.UI;
 using Revit26_Plugin_Revised.TaperedEpsPattern2D.V006.Revit;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace Revit26_Plugin_Revised.TaperedEpsPattern2D.V006.Events
 {
@@ -15,17 +16,27 @@ namespace Revit26_Plugin_Revised.TaperedEpsPattern2D.V006.Events
         /// <summary>Raised on Revit's UI thread after every attempt.</summary>
         public event Action<PatternWriteResult>? Completed;
 
-        public void Execute(UIApplication app)
+        public void Execute(UIApplication app) =>
+            ToolGuard.RunHandler(GetType(), app, ExecuteCore);
+
+        private void ExecuteCore(UIApplication app)
         {
             PatternWriteRequest? request = Pending;
             Pending = null;
 
             PatternWriteResult result;
+            // Esc / Cancel with a Yes-No confirm; the writer's transaction rolls back on cancel.
+            using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.TaperedEpsPattern2D, app);
             try
             {
                 result = request == null
                     ? PatternWriteResult.Failed("Nothing to run.")
                     : DetailPatternWriter.Write(request);
+            }
+            catch (OperationCanceledException)
+            {
+                Completed?.Invoke(PatternWriteResult.Failed("Cancelled by user. Nothing was created."));
+                throw; // ToolGuard treats it as a user cancel
             }
             catch (Exception ex)
             {

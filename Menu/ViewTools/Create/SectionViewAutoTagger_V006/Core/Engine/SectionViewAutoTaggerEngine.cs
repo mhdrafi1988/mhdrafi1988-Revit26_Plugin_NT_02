@@ -1,3 +1,4 @@
+using Revit26_Plugin_Revised.Shared.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -47,6 +48,7 @@ namespace Revit26_Plugin_Revised.SectionViewAutoTagger.V006
 
             foreach (var entry in worklist)
             {
+                ToolCancellation.CheckCurrent();
                 foreach (var viewOption in entry.Views)
                 {
                     var view = doc.GetElement(viewOption.ViewId) as View;
@@ -143,6 +145,7 @@ namespace Revit26_Plugin_Revised.SectionViewAutoTagger.V006
 
             foreach (var plan in stacked)
             {
+                ToolCancellation.CheckCurrent();
                 if (!elementLookup.TryGetValue(plan.ElementId, out var meta))
                     continue;
 
@@ -164,6 +167,10 @@ namespace Revit26_Plugin_Revised.SectionViewAutoTagger.V006
 
                     placedByCategory[meta.CategoryName] = placedByCategory.GetValueOrDefault(meta.CategoryName) + 1;
                     results.Add(new TagResult(plan.ElementId, meta.CategoryName, view.Name, TagResultStatus.Placed));
+                }
+                catch (OperationCanceledException)
+                {
+                    throw; // user cancel: never swallowed as a failure
                 }
                 catch (Exception ex)
                 {

@@ -6,6 +6,7 @@ using BatchDwgFamilyLinker.V002.Services;
 using BatchDwgFamilyLinker.V002.Logging;
 using System.IO;
 using System.Linq;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace BatchDwgFamilyLinker.V002
 {
@@ -19,13 +20,21 @@ namespace BatchDwgFamilyLinker.V002
             _vm = vm;
         }
 
-        public void Execute(UIApplication app)
+        public void Execute(UIApplication app) =>
+            ToolGuard.RunHandler(GetType(), app, ExecuteCore);
+
+        private void ExecuteCore(UIApplication app)
         {
             var famFiles = Directory.GetFiles(Options.FamilyFolderPath, "*.rfa");
             _vm.TotalFamilies = famFiles.Length;
 
+            // Esc / Cancel with a Yes-No confirm between and during families. Families already saved are kept.
+            using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.BatchDwgFamilyLinker, app);
+            cancel.ConfirmMessage = "Cancel the process?\nThe family being processed is not saved. Families already linked and saved are kept.";
+
             foreach (var famPath in famFiles)
             {
+                ToolCancellation.CheckCurrent();
                 Document famDoc = null;
 
                 try
@@ -65,9 +74,15 @@ namespace BatchDwgFamilyLinker.V002
                         tx.Commit();
                     }
 
+                    ToolCancellation.CheckCurrent(); // last chance before this family is saved
                     FamilySaveService.Save(famDoc);
                     _vm.ProcessedCount++;
                     BatchLogger.Info(_vm, $"? Linked {famName}");
+                }
+                catch (System.OperationCanceledException)
+                {
+                    BatchLogger.Warn(_vm, $"Cancelled: {_vm.ProcessedCount} of {famFiles.Length} families linked and saved. Saved files are kept; the family being processed was not saved.");
+                    throw; // ToolGuard treats it as a user cancel; finally closes the open family without saving
                 }
                 catch (System.Exception ex)
                 {

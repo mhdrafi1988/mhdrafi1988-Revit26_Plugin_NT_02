@@ -20,6 +20,7 @@ public partial class ViewsListWindow : Window
     {
         InitializeComponent();
         DataContext = vm;
+        vm.OwnerWindow = this; // owner of the cancel confirmation; Esc and window-close are handled while a run is active
 
         // Auto-scroll log panel to latest entry
         // Deferred: scrolling inside CollectionChanged makes WPF throw "ItemsControl is
@@ -31,22 +32,59 @@ public partial class ViewsListWindow : Window
                     LogList.ScrollIntoView(LogList.Items[^1]);
             }));
 
+        // 7.3.0: the log starts minimised; when it is expanded, show the latest line.
+        vm.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName != nameof(ViewsListViewModel.IsLogExpanded) || !vm.IsLogExpanded) return;
+            Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Background, new System.Action(() =>
+            {
+                if (LogList.Items.Count > 0)
+                    LogList.ScrollIntoView(LogList.Items[^1]);
+            }));
+        };
+
+        // 7.5.0: the views grid fills the height left in the window.
+        Loaded += (_, _) =>
+        {
+            var body = Shell.BodyScrollViewer;
+            if (body == null) return;
+            body.ScrollChanged += (_, e) =>
+            {
+                // Inner lists (grid, log) bubble their own ScrollChanged; only the body's size matters.
+                if (!ReferenceEquals(e.OriginalSource, body)) return;
+                if (e.ExtentHeightChange == 0 && e.ViewportHeightChange == 0) return;
+                FitViewsGrid(body);
+            };
+            FitViewsGrid(body);
+        };
+
         // Save filter/rename settings on close, per project convention.
         Closing += (_, _) => Vm.SaveSettings();
     }
 
-    // ── Header checkbox ──────────────────────────────────────────────────────
-    private void HeaderCheckBox_Checked(object sender, RoutedEventArgs e)
+    // ── Views grid height ────────────────────────────────────────────────────
+    // The shell body is one ScrollViewer, so a list in it has no "fill" size of its own.
+    // Give the grid whatever the viewport has left after the other body content (filter
+    // bar, rename panel, toolbar, chips, log), never less than its MinHeight; below that
+    // the body scrolls. Re-run whenever the viewport or the content height changes
+    // (window resize, rename panel or log folded). Setting the height changes the extent
+    // once more, but the second pass computes the same value and stops.
+    private void FitViewsGrid(ScrollViewer body)
     {
-        foreach (var item in ViewsGridControl.Items.OfType<ViewItemViewModel>())
-            item.IsSelected = true;
+        double others = body.ExtentHeight - ViewsGridControl.ActualHeight;
+        double target = Math.Floor(body.ViewportHeight - others);
+        if (double.IsNaN(target) || double.IsInfinity(target)) return;
+
+        target = Math.Max(ViewsGridControl.MinHeight, target);
+        if (double.IsNaN(ViewsGridControl.Height) || Math.Abs(ViewsGridControl.Height - target) > 0.5)
+            ViewsGridControl.Height = target;
     }
 
-    private void HeaderCheckBox_Unchecked(object sender, RoutedEventArgs e)
-    {
-        foreach (var item in ViewsGridControl.Items.OfType<ViewItemViewModel>())
-            item.IsSelected = false;
-    }
+    // ── Header checkbox ──────────────────────────────────────────────────────
+    // Through the view model's bulk path: counts and previews update once, not once per row.
+    private void HeaderCheckBox_Checked(object sender, RoutedEventArgs e) => Vm.SetSelection(_ => true);
+
+    private void HeaderCheckBox_Unchecked(object sender, RoutedEventArgs e) => Vm.SetSelection(_ => false);
 
     // ── Row click — Ctrl+Click / Shift+Click extend checkbox selection.
     // A PLAIN click does NOT clear existing selections — selection state is

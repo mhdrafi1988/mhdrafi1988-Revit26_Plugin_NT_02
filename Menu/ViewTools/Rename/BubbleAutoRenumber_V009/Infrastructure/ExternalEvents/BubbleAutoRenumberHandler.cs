@@ -54,6 +54,8 @@ namespace Revit26_Plugin_Revised.BubbleAutoRenumber.V009.Infrastructure.External
                 SheetName = request.Sheet.Name
             };
 
+            // Esc / Cancel with a Yes-No confirm; the renumber transaction is rolled back on cancel.
+            using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.BubbleAutoRenumberV009, app);
             try
             {
                 var rows = ViewportReader.Read(doc, request.Sheet);
@@ -90,7 +92,14 @@ namespace Revit26_Plugin_Revised.BubbleAutoRenumber.V009.Infrastructure.External
 
                 DetailNumberWriter.Apply(doc, plan, summary, ProgressChanged);
 
+                ToolCancellation.CheckCurrent(); // last chance to cancel before the commit
                 transaction.Commit();
+            }
+            catch (OperationCanceledException)
+            {
+                // The using block rolled the transaction back: no number changed.
+                summary.ErrorMessage = "Cancelled by user. No detail numbers were changed.";
+                throw; // ToolGuard treats it as a user cancel; finally still completes the run
             }
             catch (Exception ex)
             {

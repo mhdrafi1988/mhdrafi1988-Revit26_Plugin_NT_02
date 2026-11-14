@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using Revit26_Plugin_Revised.Shared.Models;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace Revit26_Plugin_Revised.SectionViewAutoTagger.V006
 {
@@ -24,7 +25,10 @@ namespace Revit26_Plugin_Revised.SectionViewAutoTagger.V006
 
         private readonly SectionViewAutoTaggerEngine _engine = new();
 
-        public void Execute(UIApplication app)
+        public void Execute(UIApplication app) =>
+            ToolGuard.RunHandler(GetType(), app, ExecuteCore);
+
+        private void ExecuteCore(UIApplication app)
         {
             var doc = app.ActiveUIDocument?.Document;
             if (doc == null)
@@ -36,6 +40,9 @@ namespace Revit26_Plugin_Revised.SectionViewAutoTagger.V006
             }
 
             void Log(LogLevel level, string message) => LogSink?.Invoke(level, message);
+
+            // Esc / Cancel with a Yes-No confirm; the tag transaction is rolled back on cancel.
+            using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.SectionViewAutoTagger, app);
 
             using (var tx = new Transaction(doc, "Section View Auto Tagger — Place Tags"))
             {
@@ -49,6 +56,7 @@ namespace Revit26_Plugin_Revised.SectionViewAutoTagger.V006
                     }
 
                     Result = _engine.RunBatch(doc, Worklist, Settings, Log);
+                    ToolCancellation.CheckCurrent(); // last chance to cancel before the commit
 
                     if (tx.Commit() != TransactionStatus.Committed)
                     {
@@ -59,6 +67,15 @@ namespace Revit26_Plugin_Revised.SectionViewAutoTagger.V006
                     {
                         Log(LogLevel.Success, $"Batch complete — {Result}");
                     }
+                }
+                catch (OperationCanceledException)
+                {
+                    if (tx.GetStatus() == TransactionStatus.Started)
+                        tx.RollBack();
+
+                    Log(LogLevel.Warning, "Cancelled by user. No tags were placed.");
+                    Result = new RunResult(new List<TagResult>());
+                    throw; // ToolGuard treats it as a user cancel; finally still completes the request
                 }
                 catch (Exception ex)
                 {

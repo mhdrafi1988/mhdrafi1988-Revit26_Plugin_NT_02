@@ -2,6 +2,7 @@ using Autodesk.Revit.UI;
 using Revit26_Plugin_Revised.ParaManager.V005.Models;
 using System;
 using System.Collections.Generic;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace Revit26_Plugin_Revised.ParaManager.V005.Services
 {
@@ -20,11 +21,16 @@ namespace Revit26_Plugin_Revised.ParaManager.V005.Services
         /// <summary>Raised on the API thread when the batch finishes (success or handled failure).</summary>
         public event Action<List<RowResult>, Exception> Completed;
 
-        public void Execute(UIApplication app)
+        public void Execute(UIApplication app) =>
+            ToolGuard.RunHandler(GetType(), app, ExecuteCore);
+
+        private void ExecuteCore(UIApplication app)
         {
             List<RowResult> results = null;
             Exception failure = null;
 
+            // Esc / Cancel with a Yes-No confirm; the service's transaction group rolls back on cancel.
+            using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.ParaManager, app);
             try
             {
                 var doc = app.ActiveUIDocument?.Document;
@@ -33,6 +39,11 @@ namespace Revit26_Plugin_Revised.ParaManager.V005.Services
 
                 var service = new ParameterAssignmentService(doc, SharedParameterFilePath);
                 results = service.RunBatch(RowsToAssign, Binding);
+            }
+            catch (OperationCanceledException ex)
+            {
+                Completed?.Invoke(null, ex); // the window is told, so it never stays busy
+                throw; // ToolGuard treats it as a user cancel
             }
             catch (Exception ex)
             {

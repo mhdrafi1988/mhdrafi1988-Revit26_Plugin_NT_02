@@ -3,6 +3,7 @@ using System.Windows.Threading;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using Revit26_Plugin_Revised.Shared.Models;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace Revit26_Plugin_Revised.FloorsAndRoofFromLinkedRoomsViaPlanView.V006
 {
@@ -24,11 +25,17 @@ namespace Revit26_Plugin_Revised.FloorsAndRoofFromLinkedRoomsViaPlanView.V006
         public MainViewModel ViewModel { get; set; }
         public CreateRunRequest PendingRequest { get; set; }
 
-        public void Execute(UIApplication app)
+        public void Execute(UIApplication app) =>
+            ToolGuard.RunHandler(GetType(), app, ExecuteCore);
+
+        private void ExecuteCore(UIApplication app)
         {
             var doc = app.ActiveUIDocument.Document;
             var request = PendingRequest;
             if (request == null) return;
+
+            // Esc / Cancel with a Yes-No confirm; a cancel undoes every element this run created.
+            using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.FloorsAndRoofFromLinkedRoomsViaPlanView, app);
 
             bool isRoof = request.Mode == CreationMode.Roof;
             string verb = isRoof ? "roof" : "floor";
@@ -47,17 +54,11 @@ namespace Revit26_Plugin_Revised.FloorsAndRoofFromLinkedRoomsViaPlanView.V006
             tx.SetFailureHandlingOptions(failureOptions);
             tx.Start();
 
+            try
+            {
             foreach (var candidate in request.Rooms)
             {
-                if (request.Cancel != null && request.Cancel.IsCancelled)
-                {
-                    wasCancelled = true;
-                    summary.NotProcessedCount = total - processed;
-                    ViewModel.AddLog(LogLevel.Warning,
-                        $"Run cancelled by user — {summary.NotProcessedCount} remaining room(s) not processed; " +
-                        "already-created elements are kept.");
-                    break;
-                }
+                ToolCancellation.CheckCurrent(); // outside the per-room try, so a cancel is never counted as a failed room
 
                 using (var subTx = new SubTransaction(doc))
                 {
@@ -122,10 +123,9 @@ namespace Revit26_Plugin_Revised.FloorsAndRoofFromLinkedRoomsViaPlanView.V006
                 processed++;
                 ViewModel.ReportProgress(processed);
 
-                System.Windows.Application.Current?.Dispatcher.Invoke(
-                    DispatcherPriority.Background, new Action(() => { }));
             }
 
+            ToolCancellation.CheckCurrent(); // last chance to cancel before the commit
             var status = tx.Commit();
             if (status != TransactionStatus.Committed)
             {
@@ -133,6 +133,18 @@ namespace Revit26_Plugin_Revised.FloorsAndRoofFromLinkedRoomsViaPlanView.V006
                 ViewModel.ShowCriticalError(
                     $"The transaction ended with status '{status}' instead of committing. " +
                     "Check the model for overlapping or invalid geometry and try again.");
+            }
+
+            }
+            catch (OperationCanceledException)
+            {
+                // Undo-all: the transaction is rolled back, so no element of this run stays.
+                if (tx.GetStatus() == TransactionStatus.Started) tx.RollBack();
+                var cancelledSummary = new RunSummary { NotProcessedCount = total };
+                ViewModel.AddLog(LogLevel.Warning,
+                    $"Run cancelled by user: {summary.SuccessCount} of {total} room(s) had been processed; all of them were undone.");
+                ViewModel.OnRunComplete(request.Mode, cancelledSummary, true);
+                throw; // ToolGuard treats it as a user cancel
             }
 
             ViewModel.OnRunComplete(request.Mode, summary, wasCancelled);

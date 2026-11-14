@@ -5,6 +5,7 @@ using Autodesk.Revit.DB;
 using Revit26_Plugin_Revised.PlanFromScopeBox.V006.Core.Engine;
 using Revit26_Plugin_Revised.PlanFromScopeBox.V006.Core.Services;
 using Revit26_Plugin_Revised.Shared.Models;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace Revit26_Plugin_Revised.PlanFromScopeBox.V006.Infrastructure.ExternalEvents
 {
@@ -49,7 +50,10 @@ namespace Revit26_Plugin_Revised.PlanFromScopeBox.V006.Infrastructure.ExternalEv
             while (_queue.TryDequeue(out _)) { }
         }
 
-        public void Execute(UIApplication app)
+        public void Execute(UIApplication app) =>
+            ToolGuard.RunHandler(GetType(), app, ExecuteCore);
+
+        private void ExecuteCore(UIApplication app)
         {
             UIDocument uidoc = app.ActiveUIDocument;
             if (uidoc == null)
@@ -74,6 +78,11 @@ namespace Revit26_Plugin_Revised.PlanFromScopeBox.V006.Infrastructure.ExternalEv
                             RunGenerate(uidoc, doc, g);
                             break;
                     }
+                }
+                catch (OperationCanceledException)
+                {
+                    ClearPending(); // a cancelled run drops whatever was queued behind it
+                    throw;
                 }
                 catch (Exception ex)
                 {
@@ -100,6 +109,8 @@ namespace Revit26_Plugin_Revised.PlanFromScopeBox.V006.Infrastructure.ExternalEv
         {
             try
             {
+                // Esc / Cancel with a Yes-No confirm; the generator's group rolls back every view and sheet on cancel.
+                using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.PlanFromScopeBox, null);
                 var generator = new PlanSheetGenerator(doc, Log);
                 GenerationSummary summary = generator.Run(req.Payload);
 
@@ -111,6 +122,12 @@ namespace Revit26_Plugin_Revised.PlanFromScopeBox.V006.Infrastructure.ExternalEv
                 }
 
                 req.OnComplete?.Invoke(summary);
+            }
+            catch (OperationCanceledException)
+            {
+                Log?.Invoke(LogLevel.Warning, "Cancelled by user. No plan views or sheets were created.");
+                req.OnComplete?.Invoke(new GenerationSummary());
+                throw; // ToolGuard treats it as a user cancel
             }
             catch (Exception ex)
             {

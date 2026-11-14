@@ -6,6 +6,7 @@
 using Autodesk.Revit.UI;
 using System;
 using Revit26_Plugin_Revised.Utilities;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace Revit26_Plugin_Revised.DwgToDetailLines.V013.Infrastructure.ExternalEvents
 {
@@ -25,7 +26,10 @@ namespace Revit26_Plugin_Revised.DwgToDetailLines.V013.Infrastructure.ExternalEv
             externalEvent.Raise();
         }
 
-        public void Execute(UIApplication app)
+        public void Execute(UIApplication app) =>
+            ToolGuard.RunHandler(GetType(), app, ExecuteCore);
+
+        private void ExecuteCore(UIApplication app)
         {
             try
             {

@@ -6,6 +6,7 @@ using Autodesk.Revit.UI;
 using Revit26_Plugin_Revised.Shared.Models;
 using Revit26_Plugin_Revised.SmartViewToSheetPlacer.V224.Models;
 using Revit26_Plugin_Revised.SmartViewToSheetPlacer.V224.Services;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace Revit26_Plugin_Revised.SmartViewToSheetPlacer.V224.Infrastructure.ExternalEvents
 {
@@ -76,6 +77,12 @@ namespace Revit26_Plugin_Revised.SmartViewToSheetPlacer.V224.Infrastructure.Exte
         /// <summary>Sheets that failed to create entirely (0 = normal run). Reported separately from FailedCount (views) in the Stage 5 summary.</summary>
         public int FailedSheetCount { get; private set; }
 
+        /// <summary>Placed views whose real size on the sheet differs from the size the packing used by more than <see cref="SizeMismatchToleranceMm"/>.</summary>
+        public int SizeMismatchCount { get; private set; }
+
+        /// <summary>A placed view may differ from its estimated size by this much (mm) before it is logged.</summary>
+        public const double SizeMismatchToleranceMm = 2.0;
+
         /// <summary>
         /// Raised after every placement is processed during PlaceViews
         /// (placed, skipped or failed) so the ViewModel can drive the Stage 4
@@ -102,8 +109,15 @@ namespace Revit26_Plugin_Revised.SmartViewToSheetPlacer.V224.Infrastructure.Exte
             _uiDoc = uiDoc;
         }
 
-        public void Execute(UIApplication app)
+        public void Execute(UIApplication app) =>
+            ToolGuard.RunHandler(GetType(), app, ExecuteCore);
+
+        private void ExecuteCore(UIApplication app)
         {
+            // Esc / Cancel with a Yes-No confirm while views load or are placed (opening sheets is instant).
+            using ToolCancellation cancel = Request == SmartViewToSheetPlacerRequest.OpenSheets
+                ? null
+                : ToolCancellation.BeginFor(ToolCatalog.SmartViewToSheetPlacer, app);
             try
             {
                 switch (Request)
@@ -118,6 +132,13 @@ namespace Revit26_Plugin_Revised.SmartViewToSheetPlacer.V224.Infrastructure.Exte
                         ExecuteOpenSheets();
                         break;
                 }
+            }
+            catch (OperationCanceledException)
+            {
+                // The placement transaction was rolled back as the exception unwound.
+                Logs.Add(new LogEntry(LogLevel.Warning, "Cancelled by user. No views were placed."));
+                LastRunSucceeded = false;
+                throw; // ToolGuard treats it as a user cancel; finally still completes the request
             }
             catch (Exception ex)
             {
@@ -143,16 +164,23 @@ namespace Revit26_Plugin_Revised.SmartViewToSheetPlacer.V224.Infrastructure.Exte
             LoadedViews = new List<ViewInfo>();
             LoadedTitleblocks = new List<TitleblockOption>();
 
-            var views = new FilteredElementCollector(doc)
+            var printable = new FilteredElementCollector(doc)
                 .OfClass(typeof(View))
                 .Cast<View>()
                 .Where(v => !v.IsTemplate && v.CanBePrinted)
                 .ToList();
 
+            // Sheets, schedules and reports cannot go on a sheet as a viewport, so they are not offered.
+            var views = printable.Where(CanBecomeViewport).ToList();
+
             Logs.Add(new LogEntry(LogLevel.Info, $"LoadViews: {views.Count} candidate views collected (excluding templates, non-printable)."));
+            if (views.Count < printable.Count)
+                Logs.Add(new LogEntry(LogLevel.Info,
+                    $"LoadViews: {printable.Count - views.Count} sheet(s), schedule(s) and report(s) left out — they cannot be placed as viewports."));
 
             foreach (var v in views)
             {
+                ToolCancellation.CheckCurrent();
                 try
                 {
                     var (widthMm, heightMm) = ComputeSizeOnSheetMm(v);
@@ -203,6 +231,10 @@ namespace Revit26_Plugin_Revised.SmartViewToSheetPlacer.V224.Infrastructure.Exte
                         parameterValues: CollectParameterValues(v));
                     LoadedViews.Add(info);
                 }
+                catch (OperationCanceledException)
+                {
+                    throw; // user cancel: never swallowed as a failure
+                }
                 catch (Exception ex)
                 {
                     Logs.Add(new LogEntry(LogLevel.Warning, $"LoadViews: skipped view '{v.Name}' — {ex.Message}"));
@@ -231,6 +263,10 @@ namespace Revit26_Plugin_Revised.SmartViewToSheetPlacer.V224.Infrastructure.Exte
                     string name = $"{ts.Family.Name} - {ts.Name}";
                     LoadedTitleblocks.Add(new TitleblockOption(ts.Id, name, wMm, hMm));
                 }
+                catch (OperationCanceledException)
+                {
+                    throw; // user cancel: never swallowed as a failure
+                }
                 catch (Exception ex)
                 {
                     Logs.Add(new LogEntry(LogLevel.Warning, $"LoadViews: skipped titleblock '{ts.Name}' — {ex.Message}"));
@@ -251,6 +287,7 @@ namespace Revit26_Plugin_Revised.SmartViewToSheetPlacer.V224.Infrastructure.Exte
             SkippedCount = 0;
             FailedCount = 0;
             FailedSheetCount = 0;
+            SizeMismatchCount = 0;
             _processedCount = 0;
             _totalToProcess = SheetsToPlace.Sum(sh => sh.Placements.Count);
 
@@ -276,9 +313,19 @@ namespace Revit26_Plugin_Revised.SmartViewToSheetPlacer.V224.Infrastructure.Exte
 
                 foreach (var sheet in SheetsToPlace)
                 {
+                    ToolCancellation.CheckCurrent();
                     int processedBeforeSheet = _processedCount;
+                    int placedBeforeSheet = PlacedCount;
+                    int skippedBeforeSheet = SkippedCount;
+                    int failedBeforeSheet = FailedCount;
+                    int mismatchBeforeSheet = SizeMismatchCount;
+
+                    // One sub-transaction per sheet: if the sheet fails partway, the sheet and
+                    // every viewport already on it are removed, and the other sheets are kept.
+                    using var sheetTx = new SubTransaction(doc);
                     try
                     {
+                        sheetTx.Start();
                         var newSheet = ViewSheet.Create(doc, TitleblockFamilySymbolId);
                         newSheet.Name = sheet.GeneratedName;
                         // Sheet Number auto-increments by Revit's own numbering rules
@@ -312,9 +359,15 @@ namespace Revit26_Plugin_Revised.SmartViewToSheetPlacer.V224.Infrastructure.Exte
 
                         foreach (var placement in sheet.Placements)
                         {
+                            ToolCancellation.CheckCurrent();
                             PlaceSingleViewport(doc, newSheet, placement, usableOrigin ?? XYZ.Zero);
                             ReportProgress(1, placement.View.Name);
                         }
+                        sheetTx.Commit();
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        throw; // user cancel: never swallowed as a failure
                     }
                     catch (Exception ex)
                     {
@@ -322,20 +375,55 @@ namespace Revit26_Plugin_Revised.SmartViewToSheetPlacer.V224.Infrastructure.Exte
                         // (failed), so the progress bar still reaches its total.
                         ReportProgress(sheet.Placements.Count - (_processedCount - processedBeforeSheet), sheet.GeneratedName);
 
+                        // Remove the half-built sheet and undo what it had counted.
+                        bool removed = false;
+                        try
+                        {
+                            if (sheetTx.HasStarted() && !sheetTx.HasEnded())
+                            {
+                                sheetTx.RollBack();
+                                removed = true;
+                            }
+                        }
+                        catch (Exception rollbackEx)
+                        {
+                            Logs.Add(new LogEntry(LogLevel.Error,
+                                $"PlaceViews: could not remove the incomplete sheet \"{sheet.GeneratedName}\" — {rollbackEx.Message}. Check it in the model."));
+                        }
+                        if (removed)
+                        {
+                            sheet.CreatedSheetId = null;
+                            sheet.AssignedSheetNumber = null;
+                        }
+                        PlacedCount = placedBeforeSheet;
+                        SkippedCount = skippedBeforeSheet;
+                        FailedCount = failedBeforeSheet;
+                        SizeMismatchCount = mismatchBeforeSheet;
+
                         // V213 fix: sheet creation itself failed — every queued
                         // placement on this sheet counts as a failed view, not
                         // a single generic failure, so FailedCount matches what
                         // the Stage 5 summary claims ("Z failed" = views).
                         FailedSheetCount++;
                         FailedCount += sheet.Placements.Count;
-                        Logs.Add(new LogEntry(LogLevel.Error, $"PlaceViews: failed to create sheet for \"{sheet.GeneratedName}\" — {ex.Message} ({sheet.Placements.Count} view(s) not placed)."));
+                        Logs.Add(new LogEntry(LogLevel.Error, $"PlaceViews: sheet \"{sheet.GeneratedName}\" failed — {ex.Message}. " +
+                            (removed ? "The sheet was removed again; any \"placed\" lines above for it are undone. " : string.Empty) +
+                            $"{sheet.Placements.Count} view(s) not placed."));
                     }
                 }
 
+                ToolCancellation.CheckCurrent(); // last chance to cancel before the commit
                 tx.Commit();
                 LastRunSucceeded = true;
                 Logs.Add(new LogEntry(LogLevel.Success,
                     $"PlaceViews complete: {SheetsToPlace.Count} sheet(s) attempted ({FailedSheetCount} failed) | {PlacedCount} view(s) placed | {SkippedCount} skipped | {FailedCount} failed."));
+                if (SizeMismatchCount > 0)
+                    Logs.Add(new LogEntry(LogLevel.Warning,
+                        $"PlaceViews: {SizeMismatchCount} view(s) are a different size on the sheet than estimated — check them for overlaps (see the warnings above)."));
+            }
+            catch (OperationCanceledException)
+            {
+                throw; // user cancel: never swallowed as a failure
             }
             catch (Exception ex)
             {
@@ -421,6 +509,10 @@ namespace Revit26_Plugin_Revised.SmartViewToSheetPlacer.V224.Infrastructure.Exte
             {
                 vp = Viewport.Create(doc, sheet.Id, view.Id, defaultPoint);
             }
+            catch (OperationCanceledException)
+            {
+                throw; // user cancel: never swallowed as a failure
+            }
             catch (Exception ex)
             {
                 FailedCount++;
@@ -444,7 +536,8 @@ namespace Revit26_Plugin_Revised.SmartViewToSheetPlacer.V224.Infrastructure.Exte
             // HeightMm is added before converting to Revit sheet-space
             // (Y increasing upward, hence usableAreaOrigin.Y - offsetY).
             double offsetXFeet = MmToFeet(placement.OffsetXMm + placement.View.WidthMm / 2.0);
-            double offsetYFeet = MmToFeet(placement.OffsetYMm + placement.View.HeightMm / 2.0);
+            // The view sits at the top of its slot; any title space is left free below it.
+            double offsetYFeet = MmToFeet(placement.OffsetYMm + placement.View.ViewHeightMm / 2.0);
             var targetCenter = new XYZ(
                 usableAreaOrigin.X + offsetXFeet,
                 usableAreaOrigin.Y - offsetYFeet,
@@ -452,6 +545,18 @@ namespace Revit26_Plugin_Revised.SmartViewToSheetPlacer.V224.Infrastructure.Exte
 
             var translation = targetCenter - currentCenter;
             ElementTransformUtils.MoveElement(doc, vp.Id, translation);
+
+            // Compare the real size on the sheet with the size the packing used.
+            double actualWidthMm = FeetToMm(outline.MaximumPoint.X - outline.MinimumPoint.X);
+            double actualHeightMm = FeetToMm(outline.MaximumPoint.Y - outline.MinimumPoint.Y);
+            if (Math.Abs(actualWidthMm - placement.View.WidthMm) > SizeMismatchToleranceMm ||
+                Math.Abs(actualHeightMm - placement.View.ViewHeightMm) > SizeMismatchToleranceMm)
+            {
+                SizeMismatchCount++;
+                Logs.Add(new LogEntry(LogLevel.Warning,
+                    $"PlaceViews: '{placement.View.Name}' is {actualWidthMm:F0} x {actualHeightMm:F0} mm on sheet {sheet.SheetNumber}, " +
+                    $"estimated {placement.View.WidthMm:F0} x {placement.View.ViewHeightMm:F0} mm — it may overlap its neighbours."));
+            }
 
             PlacedCount++;
             Logs.Add(new LogEntry(LogLevel.Info, $"PlaceViews: placed '{placement.View.Name}' at {placement.Position} on sheet {sheet.SheetNumber}."));
@@ -473,6 +578,10 @@ namespace Revit26_Plugin_Revised.SmartViewToSheetPlacer.V224.Infrastructure.Exte
                     if (view != null)
                         _uiDoc.ActiveView = view;
                 }
+                catch (OperationCanceledException)
+                {
+                    throw; // user cancel: never swallowed as a failure
+                }
                 catch (Exception ex)
                 {
                     Logs.Add(new LogEntry(LogLevel.Warning, $"OpenSheets: could not open sheet {id} — {ex.Message}"));
@@ -488,8 +597,53 @@ namespace Revit26_Plugin_Revised.SmartViewToSheetPlacer.V224.Infrastructure.Exte
         private static double FeetToMm(double feet) => feet * 304.8;
         private static double MmToFeet(double mm) => mm / 304.8;
 
+        /// <summary>False for views that can never be placed on a sheet as a viewport: sheets, schedules, reports and internal views.</summary>
+        private static bool CanBecomeViewport(View v)
+        {
+            if (v is ViewSheet || v is ViewSchedule) return false;
+            switch (v.ViewType)
+            {
+                case ViewType.DrawingSheet:
+                case ViewType.Schedule:
+                case ViewType.ColumnSchedule:
+                case ViewType.PanelSchedule:
+                case ViewType.Report:
+                case ViewType.CostReport:
+                case ViewType.LoadsReport:
+                case ViewType.PresureLossReport:
+                case ViewType.Internal:
+                case ViewType.ProjectBrowser:
+                case ViewType.SystemBrowser:
+                case ViewType.Undefined:
+                    return false;
+                default:
+                    return true;
+            }
+        }
+
+        /// <summary>
+        /// Size the view takes on a sheet, in mm. Uses the view's own paper-space outline
+        /// (<see cref="View.Outline"/>), which is what Revit draws on the sheet, also for views
+        /// with no crop. Falls back to crop box ÷ scale when the outline is missing or empty.
+        /// </summary>
         private (double widthMm, double heightMm) ComputeSizeOnSheetMm(View v)
         {
+            try
+            {
+                BoundingBoxUV outline = v.Outline;
+                if (outline != null)
+                {
+                    double w = FeetToMm(outline.Max.U - outline.Min.U);
+                    double h = FeetToMm(outline.Max.V - outline.Min.V);
+                    if (w > 0.1 && h > 0.1 && !double.IsInfinity(w) && !double.IsInfinity(h))
+                        return (w, h);
+                }
+            }
+            catch
+            {
+                // Some view types have no outline — use the crop box below.
+            }
+
             var cropBox = v.CropBox;
             double widthFeet = cropBox.Max.X - cropBox.Min.X;
             double heightFeet = cropBox.Max.Y - cropBox.Min.Y;

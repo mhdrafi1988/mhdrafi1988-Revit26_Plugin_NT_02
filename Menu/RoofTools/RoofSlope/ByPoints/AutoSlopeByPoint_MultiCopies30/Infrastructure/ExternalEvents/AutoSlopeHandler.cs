@@ -21,6 +21,7 @@ using Revit26_Plugin_Revised.AutoSlopeByPoint.MultiCopies30.Core.Engine;
 using Revit26_Plugin_Revised.AutoSlopeByPoint.MultiCopies30.Core.Models;
 using Revit26_Plugin_Revised.Shared.Models;
 using System;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace Revit26_Plugin_Revised.AutoSlopeByPoint.MultiCopies30.Infrastructure.ExternalEvents
 {
@@ -33,13 +34,19 @@ namespace Revit26_Plugin_Revised.AutoSlopeByPoint.MultiCopies30.Infrastructure.E
         /// </summary>
         public static MultiSlopePayload Payload;
 
-        public void Execute(UIApplication app)
+        public void Execute(UIApplication app) =>
+            ToolGuard.RunHandler(GetType(), app, ExecuteCore);
+
+        private void ExecuteCore(UIApplication app)
         {
             if (Payload == null) return;
 
             // Capture local ref so Payload can be cleared/overwritten safely
             // by the next invocation while this one is still running.
             MultiSlopePayload current = Payload;
+
+            // Esc / Cancel with a Yes-No confirm; a cancel undoes every copy made by this run.
+            using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.AutoSlopeByPointMultiCopies, app);
 
             using (TransactionGroup tg = new TransactionGroup(
                 app.ActiveUIDocument.Document, "Multi-Slope Roof Variants"))

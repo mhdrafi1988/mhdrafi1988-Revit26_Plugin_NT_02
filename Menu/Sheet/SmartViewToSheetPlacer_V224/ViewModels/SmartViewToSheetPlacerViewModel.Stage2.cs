@@ -255,10 +255,18 @@ namespace Revit26_Plugin_Revised.SmartViewToSheetPlacer.V224.ViewModels
             EnsureGapSettingsGroups();
 
             SuggestedSheets.Clear();
-            var selected = AllViews.Where(v => v.IsSelected).ToList();
+            // Views already on a sheet (legends excepted) cannot be placed again, so they
+            // take no room on the new sheets.
+            var alreadyOnSheet = AllViews.Where(v => v.IsSelected && !v.CanBePlaced).ToList();
+            var selected = AllViews.Where(v => v.IsSelected && v.CanBePlaced).ToList();
+            if (alreadyOnSheet.Count > 0)
+                Logs.Add(new LogEntry(LogLevel.Warning,
+                    $"Packing: {alreadyOnSheet.Count} selected view(s) are already on a sheet and were left out: " +
+                    string.Join(", ", alreadyOnSheet.Take(10).Select(v => $"'{v.Name}'")) +
+                    (alreadyOnSheet.Count > 10 ? ", …" : string.Empty) + "."));
 
             Logs.Add(new LogEntry(LogLevel.Info,
-                $"Packing started: {selected.Count} view(s) selected | Margins T{MarginTopMm}/B{MarginBottomMm}/L{MarginLeftMm}/R{MarginRightMm}mm | Reading order: {ReadingDirection}, tiebreak {RowTiebreak}, Y-tolerance {YToleranceMm}mm."));
+                $"Packing started: {selected.Count} view(s) selected | Margins T{MarginTopMm}/B{MarginBottomMm}/L{MarginLeftMm}/R{MarginRightMm}mm | Title space {TitleSpaceMm}mm | Reading order: {ReadingDirection}, tiebreak {RowTiebreak}, Y-tolerance {YToleranceMm}mm."));
 
             var gapSettingsByType = GapSettingsGroups.ToDictionary(g => g.RevitViewType, g => g);
             var packResult = ReadingOrderPackingService.Pack(

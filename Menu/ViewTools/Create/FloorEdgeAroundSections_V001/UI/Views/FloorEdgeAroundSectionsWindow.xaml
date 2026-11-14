@@ -1,0 +1,609 @@
+<!--
+=======================================================
+File: FloorEdgeAroundSectionsWindow.xaml  (V007 — ToolWindowShell, CLAUDE.md v1.1)
+Changes vs V006 (layout only):
+  - Hosted in Shared/Controls/ToolWindowShell.
+    HEADER: title / subtitle / version + selection metric cards.
+    BODY:   parameters + naming pattern, Planned Sections grid, then the
+            log (moved from the footer).
+    FOOTER: shell status strip (IsBusy, indeterminate; "Last run: …"
+            summary) + Run / Close.
+  - Parameters pane's own ScrollViewer removed — the shell body is the
+    one ScrollViewer. Grid and log cap their height
+    (ShellBehaviors.MaxHeightRatio) and forward the mouse wheel.
+  - Chip order-badge tint → SharedStyles BrushBadgeOnDark.
+  - No behaviour change — every binding/command is the V006 one.
+Tool v7.2.0:
+  - "Ask Me" shows an in-window popover listing every created
+    section with a checkbox; only the ticked ones are opened.
+  - Run turns off after a run that created sections, until
+    Refresh or a setting change (footer hint explains).
+=======================================================
+-->
+<Window x:Class="Revit26_Plugin_Revised.FloorEdgeAroundSections.V001.FloorEdgeSectionsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:svc="clr-namespace:Revit26_Plugin_Revised.Shared.Services"
+        xmlns:converters="clr-namespace:Revit26_Plugin_Revised.Shared.Models"
+        xmlns:local="clr-namespace:Revit26_Plugin_Revised.FloorEdgeAroundSections.V001"
+        xmlns:shell="clr-namespace:Revit26_Plugin_Revised.Shared.Controls"
+        Title="{Binding Source={x:Static svc:ToolCatalog.FloorEdgeAroundSections}, Path=Title}"
+        Width="960" Height="950" MinWidth="960" MinHeight="950"
+        ResizeMode="CanResizeWithGrip"
+        WindowStartupLocation="Manual"
+        Background="{DynamicResource BrushSurfaceWindow}">
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Revit26_Plugin_Revised;component/Shared/SharedStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+
+            <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+            <converters:LogLevelToColorConverter x:Key="LogLevelToColorConverter"/>
+            <converters:InverseBoolConverter x:Key="InverseBoolConverter"/>
+            <local:StatusToEnabledConverter x:Key="StatusToEnabledConverter"/>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <Grid>
+    <shell:ToolWindowShell Title="Floor Edge Sections"
+                           Subtitle="Section views around every edge of the selected floors"
+                           Version="{Binding Source={x:Static svc:ToolCatalog.FloorEdgeAroundSections}, Path=Version, StringFormat=v{0}}"
+                           IsRunning="{Binding IsBusy}"
+                           IsIndeterminate="True"
+                           Progress="{Binding Progress}"
+                           SummaryText="{Binding LastRunSummary, StringFormat='Last run: {0}'}">
+
+        <!-- ═══ HEADER ═══════════════════════════════════════════ -->
+        <shell:ToolWindowShell.HeaderContent>
+            <Grid Margin="0,2,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="8"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="8"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="8"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="8"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Border Grid.Column="0" Style="{StaticResource MetricCard}" Padding="10,8">
+                    <StackPanel>
+                        <TextBlock Text="Total Floors" Style="{StaticResource MetricLabel}"/>
+                        <TextBlock Text="{Binding TotalFloorsCount}" Style="{StaticResource MetricNumber}"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Column="2" Style="{StaticResource MetricCard}" Padding="10,8">
+                    <StackPanel>
+                        <TextBlock Text="Sections Detected" Style="{StaticResource MetricLabel}"/>
+                        <TextBlock Text="{Binding SectionsDetectedCount}" Style="{StaticResource MetricNumber}"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Column="4" Style="{StaticResource MetricCard}" Padding="10,8">
+                    <StackPanel>
+                        <TextBlock Text="Sections Suggested" Style="{StaticResource MetricLabel}"/>
+                        <TextBlock Text="{Binding SectionsSuggestedCount}" Style="{StaticResource MetricNumberAccent}"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Column="6" Style="{StaticResource MetricCard}" Padding="10,8">
+                    <StackPanel>
+                        <TextBlock Text="Finally Created" Style="{StaticResource MetricLabel}"/>
+                        <TextBlock Text="{Binding FinallyCreatedCount}" Style="{StaticResource MetricNumberSuccess}"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Column="8" Style="{StaticResource MetricCard}" Padding="10,8">
+                    <StackPanel>
+                        <TextBlock Text="Skipped" Style="{StaticResource MetricLabel}"/>
+                        <TextBlock Text="{Binding SkippedCount}" Style="{StaticResource MetricNumberWarning}"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </shell:ToolWindowShell.HeaderContent>
+
+        <!-- ═══ BODY ═════════════════════════════════════════════ -->
+        <shell:ToolWindowShell.BodyContent>
+            <StackPanel>
+                <!-- PARAMETERS + NAMING (scroll with the shell body) -->
+                <StackPanel>
+                    <!-- SECTION PARAMETERS — 4 per row, 2 rows (no wall-search: all distances are fixed) -->
+                    <Border Style="{StaticResource ContentCard}" Margin="0,0,0,8">
+                        <StackPanel>
+                            <TextBlock Text="Section Parameters" Style="{StaticResource SectionTitle}"/>
+                            <Grid Margin="12,4,12,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="12"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="12"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="12"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Style="{StaticResource FieldLabel}" ToolTip="How far below the floor edge's own elevation the crop reaches — e.g. how much of the wall/structure below the floor edge is shown.">
+                                        <Run Text="Below Floor (mm)"/>
+                                    </TextBlock>
+                                    <TextBox Style="{StaticResource BoxedTextInput}" MaxLength="10"
+                                             Text="{Binding BelowFloorMm, UpdateSourceTrigger=PropertyChanged}"
+                                             ToolTip="How far below the floor edge's own elevation the crop reaches — e.g. how much of the wall/structure below the floor edge is shown."/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Style="{StaticResource FieldLabel}" ToolTip="How far above the floor edge's own elevation the crop reaches — e.g. how much of the floor covering above the edge is shown.">
+                                        <Run Text="Above Floor (mm)"/>
+                                    </TextBlock>
+                                    <TextBox Style="{StaticResource BoxedTextInput}" MaxLength="10"
+                                             Text="{Binding AboveFloorMm, UpdateSourceTrigger=PropertyChanged}"
+                                             ToolTip="How far above the floor edge's own elevation the crop reaches — e.g. how much of the floor covering above the edge is shown."/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="4">
+                                    <TextBlock Style="{StaticResource FieldLabel}" ToolTip="How much of the floor edge's length (along the edge, not into it) is captured in the section.">
+                                        <Run Text="Section Far Length (mm)"/>
+                                    </TextBlock>
+                                    <TextBox Style="{StaticResource BoxedTextInput}" MaxLength="10"
+                                             Text="{Binding SectionFarLengthMm, UpdateSourceTrigger=PropertyChanged}"
+                                             ToolTip="How much of the floor edge's length (along the edge, not into it) is captured in the section."/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="6">
+                                    <TextBlock Style="{StaticResource FieldLabel}" ToolTip="How far the crop extends OUTWARD from the floor edge, away from the floor — e.g. to show the eave/fascia/gutter beyond the wall line.">
+                                        <Run Text="Margin Outward (mm)"/>
+                                    </TextBlock>
+                                    <TextBox Style="{StaticResource BoxedTextInput}" MaxLength="10"
+                                             Text="{Binding MarginOutwardMm, UpdateSourceTrigger=PropertyChanged}"
+                                             ToolTip="How far the crop extends OUTWARD from the floor edge, away from the floor — e.g. to show the eave/fascia/gutter beyond the wall line."/>
+                                </StackPanel>
+                            </Grid>
+
+                            <Grid Margin="12,4,12,12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="12"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="12"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="12"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Style="{StaticResource FieldLabel}" ToolTip="How far the crop extends INWARD from the floor edge, into the floor toward the wall/structure below. Fixed distance — no automatic wall search.">
+                                        <Run Text="Length Inside Floor (mm)"/>
+                                    </TextBlock>
+                                    <TextBox Style="{StaticResource BoxedTextInput}" MaxLength="10"
+                                             Text="{Binding LengthInsideFloorMm, UpdateSourceTrigger=PropertyChanged}"
+                                             ToolTip="How far the crop extends INWARD from the floor edge, into the floor toward the wall/structure below. Fixed distance — no automatic wall search."/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="View Template" Style="{StaticResource FieldLabel}" ToolTip="Optional view template applied to created section views."/>
+                                    <ComboBox Style="{StaticResource StandardComboBox}"
+                                              ItemsSource="{Binding ViewTemplateNames}"
+                                              SelectedItem="{Binding SelectedViewTemplateName}"
+                                              ToolTip="Optional view template applied to created section views."/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="4">
+                                    <TextBlock Text="Open Views After Creation" Style="{StaticResource FieldLabel}" ToolTip="Ask Me lists the created sections so you can tick the ones to open. Open All opens every created section. Don't Open leaves them closed."/>
+                                    <ComboBox Style="{StaticResource StandardComboBox}"
+                                              SelectedValue="{Binding OpenViewsMode}" SelectedValuePath="Tag"
+                                              ToolTip="Ask Me lists the created sections so you can tick the ones to open. Open All opens every created section. Don't Open leaves them closed.">
+                                        <ComboBoxItem Content="Ask Me" Tag="AskMe"/>
+                                        <ComboBoxItem Content="Open All" Tag="OpenAll"/>
+                                        <ComboBoxItem Content="Don't Open" Tag="DontOpen"/>
+                                    </ComboBox>
+                                </StackPanel>
+
+                                <!-- Proximity Merge, folded into the parameters grid as its own field -->
+                                <StackPanel Grid.Column="6">
+                                    <CheckBox Content="Merge nearby (mm)" VerticalAlignment="Center" Margin="0,0,0,4"
+                                              IsChecked="{Binding MergeEnabled, UpdateSourceTrigger=PropertyChanged}"
+                                              ToolTip="When on, planned sections whose floor edges are close together are combined into one — only the first-found section is kept, the rest are marked Merged."/>
+                                    <TextBox Style="{StaticResource BoxedTextInput}" MaxLength="10"
+                                             Text="{Binding MergeDistanceMm, UpdateSourceTrigger=PropertyChanged}"
+                                             IsEnabled="{Binding MergeEnabled}"
+                                             ToolTip="If two planned sections' edge midpoints fall within this distance, only the first-found one is kept."/>
+                                    <TextBlock Text="Applies across all selected floors when enabled."
+                                               Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <TextBlock Text="All fields editable — defaults shown are starting suggestions, not fixed values."
+                                       Style="{StaticResource HintText}" Margin="12,0,12,10"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- SECTION NAMING PATTERN -->
+                    <Border Style="{StaticResource ContentCard}" Margin="0,0,0,8">
+                        <StackPanel>
+                            <TextBlock Text="Section Naming Pattern" Style="{StaticResource SectionTitle}"/>
+                            <TextBlock Text="Click a token to include/exclude it. Order below = order in the built name."
+                                       Style="{StaticResource HintText}" Margin="12,0,12,6"/>
+
+                            <!-- Tokens and Separator on one row — tokens take remaining width, separator pinned right -->
+                            <Grid Margin="12,0,12,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="16"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <ItemsControl Grid.Column="0" ItemsSource="{Binding NamingTokenChips}" VerticalAlignment="Center">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <WrapPanel Orientation="Horizontal"/>
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Button Margin="0,0,8,4" Padding="10,6" Cursor="Hand"
+                                                    Command="{Binding DataContext.ToggleNamingTokenCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                    CommandParameter="{Binding}"
+                                                    ToolTip="{Binding DisplayLabel, StringFormat='Click to include/exclude {0} in the section name. The number badge shows its position in the built name.'}">
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border x:Name="ChipBg" CornerRadius="8" Padding="10,6">
+                                                                        <StackPanel Orientation="Horizontal">
+                                                                            <Border x:Name="OrderBadge" CornerRadius="8" Width="16" Height="16" Margin="0,0,6,0">
+                                                                                <TextBlock Text="{Binding Order}" FontSize="9" FontWeight="Bold"
+                                                                                           Foreground="{StaticResource BrushTextOnAccent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                            </Border>
+                                                                            <TextBlock x:Name="ChipText" Text="{Binding DisplayLabel}" FontSize="12" FontWeight="SemiBold"/>
+                                                                        </StackPanel>
+                                                                    </Border>
+                                                                    <ControlTemplate.Triggers>
+                                                                        <DataTrigger Binding="{Binding IsEnabled}" Value="True">
+                                                                            <Setter TargetName="ChipBg" Property="Background" Value="{StaticResource BrushNavyPrimary}"/>
+                                                                            <Setter TargetName="ChipText" Property="Foreground" Value="{StaticResource BrushTextOnDark}"/>
+                                                                            <Setter TargetName="OrderBadge" Property="Background" Value="{StaticResource BrushBadgeOnDark}"/>
+                                                                        </DataTrigger>
+                                                                        <DataTrigger Binding="{Binding IsEnabled}" Value="False">
+                                                                            <Setter TargetName="ChipBg" Property="Background" Value="{StaticResource BrushSystemSecondaryBackground}"/>
+                                                                            <Setter TargetName="ChipBg" Property="BorderBrush" Value="{StaticResource BrushSeparator}"/>
+                                                                            <Setter TargetName="ChipBg" Property="BorderThickness" Value="1"/>
+                                                                            <Setter TargetName="ChipText" Property="Foreground" Value="{StaticResource BrushTextTertiary}"/>
+                                                                            <Setter TargetName="OrderBadge" Property="Visibility" Value="Collapsed"/>
+                                                                        </DataTrigger>
+                                                                    </ControlTemplate.Triggers>
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+
+                                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center"
+                                            ToolTip="Character placed between each enabled naming token in the built section view name.">
+                                    <TextBlock Text="Separator" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                    <ComboBox Style="{StaticResource StandardComboBox}" Width="140"
+                                              SelectedValue="{Binding NamingSeparator}" SelectedValuePath="Tag"
+                                              ToolTip="Character placed between each enabled naming token in the built section view name.">
+                                        <ComboBoxItem Content="_ (underscore)" Tag="_"/>
+                                        <ComboBoxItem Content="- (hyphen)" Tag="-"/>
+                                        <ComboBoxItem Content="  (space)" Tag=" "/>
+                                    </ComboBox>
+                                </StackPanel>
+                            </Grid>
+
+                            <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Margin="12,0,12,10" Padding="10,8">
+                                <StackPanel>
+                                    <TextBlock Text="LIVE PREVIEW" FontSize="10" Foreground="{StaticResource BrushLogTextDim}" Margin="0,0,0,4"/>
+                                    <TextBlock Text="{Binding NamingPreviewText}" FontFamily="Consolas" FontSize="12.5"
+                                               Foreground="{StaticResource BrushLogSuccess}"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Background="{StaticResource BrushSystemSecondaryBackground}" CornerRadius="6" Margin="12,0,12,12" Padding="10,8">
+                                <TextBlock Style="{StaticResource HintText}" Margin="0" TextWrapping="Wrap">
+                                    On duplicate name: a D-series suffix (D1, D2, ...) is appended automatically and the view is still created — no view is ever skipped or overwritten.
+                                </TextBlock>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <!-- PLANNED SECTIONS TABLE -->
+                <Border Style="{StaticResource ContentCard}" Margin="0,0,0,8">
+                    <Grid Margin="0,0,0,8">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Grid.Row="0" Text="Planned Sections" Style="{StaticResource SectionTitle}"/>
+
+                        <Grid Grid.Row="1" Margin="12,0,12,6">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox Grid.Column="0" Style="{StaticResource StyledTextInput}"
+                                     HorizontalAlignment="Left" Width="200"
+                                     Tag="Filter floor / direction..."
+                                     ToolTip="Type part of a floor name or direction (e.g. North) to show only matching rows below."/>
+                            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                <Button Content="Select All" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,6,0"
+                                        Command="{Binding SelectAllCommand}"
+                                        ToolTip="Check every eligible row (Ready status) so it will be created on Run."/>
+                                <Button Content="Clear" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,6,0"
+                                        Command="{Binding ClearAllCommand}"
+                                        ToolTip="Uncheck every row so nothing is created on Run."/>
+                                <Button Content="Refresh" Style="{StaticResource SmallSecondaryButton}"
+                                        Command="{Binding RefreshCommand}"
+                                        ToolTip="Re-scan the selected floors and rebuild the plan below using the current parameters."/>
+                            </StackPanel>
+                        </Grid>
+
+                        <DataGrid Grid.Row="2" Margin="12,0,12,0" MinHeight="200" shell:ShellBehaviors.MaxHeightRatio="0.5" shell:ShellBehaviors.ForwardMouseWheel="True"
+                                  ItemsSource="{Binding PlannedSections}"
+                                  Style="{StaticResource StandardDataGrid}"
+                                  ColumnHeaderStyle="{StaticResource StandardDataGridColumnHeader}"
+                                  CellStyle="{StaticResource StandardDataGridCell}"
+                                  RowStyle="{StaticResource StandardDataGridRow}"
+                                  AutoGenerateColumns="False"
+                                  EnableRowVirtualization="True"
+                                  VirtualizingPanel.VirtualizationMode="Recycling"
+                                  CanUserAddRows="False">
+                            <DataGrid.Resources>
+                                <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource StandardDataGridColumnHeader}">
+                                    <Setter Property="ToolTipService.ShowOnDisabled" Value="True"/>
+                                </Style>
+                            </DataGrid.Resources>
+                            <DataGrid.Columns>
+                                <DataGridTemplateColumn Width="40">
+                                    <DataGridTemplateColumn.Header>
+                                        <TextBlock Text="" ToolTip="Include this row when Run is clicked. Disabled for rows that are Merged or have No Edge Found."/>
+                                    </DataGridTemplateColumn.Header>
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <CheckBox HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                      IsChecked="{Binding IsIncluded, UpdateSourceTrigger=PropertyChanged}"
+                                                      IsEnabled="{Binding Status, Converter={StaticResource StatusToEnabledConverter}}"
+                                                      PreviewMouseLeftButtonDown="CheckBox_PreviewMouseLeftButtonDown"
+                                                      ToolTip="Include this row when Run is clicked."/>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+
+                                <DataGridTextColumn Width="*" IsReadOnly="True" Binding="{Binding FloorDisplayName}">
+                                    <DataGridTextColumn.Header>
+                                        <TextBlock Text="Floor" ToolTip="The source floor element this planned section belongs to."/>
+                                    </DataGridTextColumn.Header>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn Width="90" IsReadOnly="True" Binding="{Binding Direction}">
+                                    <DataGridTextColumn.Header>
+                                        <TextBlock Text="Direction" ToolTip="Which side of the floor this edge is on (N/S/E/W of the current view), not compass North."/>
+                                    </DataGridTextColumn.Header>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn Width="2*" IsReadOnly="True" Binding="{Binding SectionViewName}">
+                                    <DataGridTextColumn.Header>
+                                        <TextBlock Text="Section View Name" ToolTip="The name the created section view will have, built from the Section Naming Pattern above."/>
+                                    </DataGridTextColumn.Header>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn Width="120" IsReadOnly="True" Binding="{Binding EdgeLengthMm, StringFormat={}{0:F0}}">
+                                    <DataGridTextColumn.Header>
+                                        <TextBlock Text="Edge Length (mm)" ToolTip="Length of the actual floor boundary edge this section is built from."/>
+                                    </DataGridTextColumn.Header>
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="HorizontalAlignment" Value="Right"/>
+                                            <Setter Property="Margin" Value="0,0,10,0"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn Width="180" IsReadOnly="True" Binding="{Binding StatusText}">
+                                    <DataGridTextColumn.Header>
+                                        <TextBlock Text="Status" ToolTip="Ready = will be created. Merged = absorbed into a nearby section. No Edge Found = no boundary edge detected for this direction."/>
+                                    </DataGridTextColumn.Header>
+                                </DataGridTextColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Grid>
+                </Border>
+
+                <!-- LOG (moved from footer) -->
+                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="10,8">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="{Binding LogEntries.Count, StringFormat='Log ({0} entries)'}" Foreground="{StaticResource BrushLogText}"
+                                       FontSize="11.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                <Button Content="Copy All" Style="{StaticResource DarkGhostButton}" Margin="0,0,6,0"
+                                        Command="{Binding CopyAllLogsCommand}"/>
+                                <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Margin="0,0,6,0"
+                                        Command="{Binding CopySelectedLogsCommand}"
+                                        CommandParameter="{Binding SelectedItems, ElementName=LogListBox}"/>
+                                <Button Content="Clear" Style="{StaticResource DarkGhostButton}"
+                                        Command="{Binding ClearLogsCommand}"/>
+                            </StackPanel>
+                        </Grid>
+                        <ListBox Grid.Row="1" x:Name="LogListBox" MinHeight="110" shell:ShellBehaviors.MaxHeightRatio="0.2" shell:ShellBehaviors.ForwardMouseWheel="True" Background="Transparent" BorderThickness="0"
+                                  ItemsSource="{Binding LogEntries}" SelectionMode="Extended"
+                                  ScrollViewer.VerticalScrollBarVisibility="Auto">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="{Binding Time, StringFormat={}{0:HH:mm:ss}}" Foreground="{StaticResource BrushLogTextDim}" FontFamily="Consolas" FontSize="11" Width="60"/>
+                                        <TextBlock Text="{Binding Level}" Foreground="{Binding Level, Converter={StaticResource LogLevelToColorConverter}}" FontFamily="Consolas" FontSize="11" FontWeight="SemiBold" Width="60"/>
+                                        <TextBlock Text="{Binding Message}" Foreground="{StaticResource BrushLogText}" FontFamily="Consolas" FontSize="11" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </Grid>
+                </Border>
+            </StackPanel>
+        </shell:ToolWindowShell.BodyContent>
+
+        <!-- ═══ FOOTER ═══════════════════════════════════════════ -->
+        <shell:ToolWindowShell.FooterContent>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0" Style="{StaticResource HintText}" Margin="0,0,12,0" VerticalAlignment="Center"
+                           Text="Sections created — click Refresh or change a setting to run again."
+                           Visibility="{Binding IsRunLocked, Converter={StaticResource BoolToVisibilityConverter}}"/>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Button Style="{StaticResource PrimaryButton}" Width="130" Margin="0,0,8,0"
+                            Command="{Binding RunCommand}"
+                            ToolTipService.ShowOnDisabled="True"
+                            ToolTip="Create a section view for every checked row in the Planned Sections table below. Turns off after a run until you click Refresh or change a setting.">
+                        <Button.Content>
+                            <TextBlock Text="{Binding SectionsSuggestedCount, StringFormat='Run ({0})'}"/>
+                        </Button.Content>
+                    </Button>
+                    <Button Content="Close" Style="{StaticResource OutlineButton}" Width="90" Click="CloseButton_Click"
+                            ToolTip="Close this window without creating any sections."/>
+                </StackPanel>
+            </Grid>
+        </shell:ToolWindowShell.FooterContent>
+    </shell:ToolWindowShell>
+
+    <!-- ═══ OPEN CREATED SECTIONS popover ("Ask Me" mode) ═════
+         In-window overlay (not a WPF Popup) so it moves and resizes with the window.
+         Clicking the dimmed backdrop or pressing Esc closes it. -->
+    <Grid Visibility="{Binding IsOpenSectionsPopoverOpen, Converter={StaticResource BoolToVisibilityConverter}}">
+        <Border Background="#66000000" MouseLeftButtonDown="PopoverBackdrop_MouseLeftButtonDown"/>
+
+        <Border Style="{StaticResource ContentCard}" Width="600" MaxHeight="560" Margin="0,0,16,96"
+                HorizontalAlignment="Right" VerticalAlignment="Bottom">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="18" ShadowDepth="2" Opacity="0.25"/>
+            </Border.Effect>
+            <Grid Margin="0,0,0,12">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0" Style="{StaticResource SectionTitle}"
+                           Text="{Binding CreatedSections.Count, StringFormat='Open created sections ({0})'}"/>
+                <TextBlock Grid.Row="1" Style="{StaticResource HintText}" Margin="12,0,12,8"
+                           Text="Tick the sections to open. Each one opens as a tab in Revit."/>
+
+                <Grid Grid.Row="2" Margin="12,0,12,6">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="Search" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <TextBox Grid.Column="1" Style="{StaticResource StyledTextInput}" Margin="0,0,12,0"
+                             Text="{Binding CreatedSectionsFilter, UpdateSourceTrigger=PropertyChanged}"
+                             ToolTip="Type part of a section name, floor name or direction to show only matching rows."/>
+                    <StackPanel Grid.Column="2" Orientation="Horizontal">
+                        <Button Content="Select All" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,6,0"
+                                Command="{Binding SelectAllCreatedCommand}"
+                                ToolTip="Tick every row shown below."/>
+                        <Button Content="Clear" Style="{StaticResource SmallSecondaryButton}"
+                                Command="{Binding ClearCreatedCommand}"
+                                ToolTip="Untick every row shown below."/>
+                    </StackPanel>
+                </Grid>
+
+                <Border Grid.Row="3" Margin="12,0,12,0" BorderBrush="{StaticResource BrushSeparator}" BorderThickness="1" CornerRadius="4">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <Grid Grid.Row="0" Background="{StaticResource BrushSystemSecondaryBackground}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="36"/>
+                                <ColumnDefinition Width="2*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="80"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="1" Text="Section View Name" Style="{StaticResource FieldLabel}" Margin="0,6"/>
+                            <TextBlock Grid.Column="2" Text="Floor" Style="{StaticResource FieldLabel}" Margin="0,6"/>
+                            <TextBlock Grid.Column="3" Text="Direction" Style="{StaticResource FieldLabel}" Margin="0,6"/>
+                        </Grid>
+
+                        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                            <ItemsControl ItemsSource="{Binding CreatedSectionsView}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border BorderBrush="{StaticResource BrushSeparatorThin}" BorderThickness="0,0,0,1">
+                                            <Grid MinHeight="28">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="36"/>
+                                                    <ColumnDefinition Width="2*"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="80"/>
+                                                </Grid.ColumnDefinitions>
+                                                <CheckBox Grid.Column="0" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                          IsChecked="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}"
+                                                          ToolTip="Open this section."/>
+                                                <TextBlock Grid.Column="1" Text="{Binding Name}" VerticalAlignment="Center" FontSize="12"
+                                                           Foreground="{StaticResource BrushTextPrimary}" TextTrimming="CharacterEllipsis"
+                                                           ToolTip="{Binding Name}"/>
+                                                <TextBlock Grid.Column="2" Text="{Binding FloorDisplayName}" VerticalAlignment="Center" FontSize="12"
+                                                           Foreground="{StaticResource BrushTextSecondary}" TextTrimming="CharacterEllipsis"
+                                                           ToolTip="{Binding FloorDisplayName}"/>
+                                                <TextBlock Grid.Column="3" Text="{Binding Direction}" VerticalAlignment="Center" FontSize="12"
+                                                           Foreground="{StaticResource BrushTextSecondary}"/>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Grid>
+                </Border>
+
+                <Grid Grid.Row="4" Margin="12,10,12,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Style="{StaticResource HintText}" Margin="0" VerticalAlignment="Center"
+                               Text="{Binding SelectedCreatedCount, StringFormat='{}{0} selected'}"/>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <Button Style="{StaticResource PrimaryButton}" MinWidth="130" Margin="0,0,8,0"
+                                Command="{Binding OpenSelectedSectionsCommand}"
+                                ToolTipService.ShowOnDisabled="True"
+                                ToolTip="Open the ticked sections in Revit.">
+                            <TextBlock Text="{Binding SelectedCreatedCount, StringFormat='Open selected ({0})'}"/>
+                        </Button>
+                        <Button Content="Close" Style="{StaticResource OutlineButton}" Width="90"
+                                Command="{Binding CloseOpenSectionsPopoverCommand}"
+                                ToolTip="Close this list without opening anything."/>
+                    </StackPanel>
+                </Grid>
+            </Grid>
+        </Border>
+    </Grid>
+    </Grid>
+</Window>

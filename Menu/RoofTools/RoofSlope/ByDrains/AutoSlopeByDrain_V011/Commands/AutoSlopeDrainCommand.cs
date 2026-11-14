@@ -35,6 +35,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Interop;
 using Revit26_Plugin_Revised.Utilities;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace Revit26_Plugin_Revised.MultiRoofSlopeByDrain.V011.Commands
 {
@@ -42,7 +43,10 @@ namespace Revit26_Plugin_Revised.MultiRoofSlopeByDrain.V011.Commands
     [Regeneration(RegenerationOption.Manual)]
     public class AutoSlopeByDrain : IExternalCommand
     {
-        public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
+        public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements) =>
+            ToolGuard.RunCommand(GetType(), commandData, ref message, elements, ExecuteCore);
+
+        private Result ExecuteCore(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
             try
             {

@@ -1,0 +1,37 @@
+<!--
+=======================================================
+File: ToolProgressWindow.xaml
+Small modeless pop-up for tools that have no window of their own: progress text, bar and a Cancel
+button. Created by ToolCancellation.BeginWithProgressWindow; closed when the run ends.
+=======================================================
+-->
+<Window x:Class="Revit26_Plugin_Revised.Shared.Controls.ToolProgressWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Width="420" SizeToContent="Height"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False"
+        Topmost="False">
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/Revit26_Plugin_Revised;component/Shared/SharedStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <Grid Background="{StaticResource BrushSurfaceWindow}">
+        <StackPanel Margin="16">
+            <TextBlock x:Name="StatusText" Style="{StaticResource HintText}"
+                       TextWrapping="Wrap" Margin="0,0,0,8"/>
+            <ProgressBar x:Name="Bar" Height="6" Minimum="0" Maximum="100"
+                         Foreground="{StaticResource BrushAppleBlue}"
+                         Background="{StaticResource BrushSeparatorThin}"
+                         BorderThickness="0"/>
+            <Button Content="Cancel" Style="{StaticResource OutlineButton}"
+                    Width="90" Height="32" Margin="0,12,0,0" HorizontalAlignment="Right"
+                    Click="CancelButton_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

@@ -5,6 +5,7 @@
     xmlns:converters="clr-namespace:Revit26_Plugin_Revised.Shared.Models"
     xmlns:shell="clr-namespace:Revit26_Plugin_Revised.Shared.Controls"
     xmlns:svc="clr-namespace:Revit26_Plugin_Revised.Shared.Services"
+    xmlns:local="clr-namespace:Revit26_Plugin_Revised.TagToText.V001.UI.Views"
     Title="{Binding Source={x:Static svc:ToolCatalog.TagToText}, Path=Title}"
     Background="{DynamicResource BrushSurfaceWindow}"
     Height="860"
@@ -22,6 +23,50 @@
 
             <converters:LogLevelToColorConverter x:Key="LogLevelToColor"/>
             <BooleanToVisibilityConverter        x:Key="NativeBoolToVis"/>
+            <local:GroupTickStateConverter       x:Key="GroupTickState"/>
+            <local:GroupTickTextConverter        x:Key="GroupTickText"/>
+
+            <!-- Group heading, any level: collapsible, with a tick box for every tag under it.
+                 The heading's DataContext is the CollectionViewGroup (Name, ItemCount, Items). -->
+            <ControlTemplate x:Key="TagGroupTemplate" TargetType="GroupItem">
+                <Expander IsExpanded="True" Padding="0,2"
+                          BorderBrush="{StaticResource BrushSeparatorThin}" BorderThickness="0,0,0,1">
+                    <Expander.Header>
+                        <StackPanel Orientation="Horizontal">
+                            <CheckBox Command="{Binding DataContext.ToggleGroupCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                      CommandParameter="{Binding}"
+                                      VerticalAlignment="Center" Margin="0,0,8,0"
+                                      ToolTip="Tick or clear every tag under this heading.">
+                                <CheckBox.IsChecked>
+                                    <MultiBinding Converter="{StaticResource GroupTickState}" Mode="OneWay">
+                                        <Binding/>
+                                        <Binding Path="DataContext.TicksVersion" RelativeSource="{RelativeSource AncestorType=DataGrid}"/>
+                                    </MultiBinding>
+                                </CheckBox.IsChecked>
+                            </CheckBox>
+                            <TextBlock Text="{Binding Name}" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center"
+                                       Foreground="{StaticResource BrushTextPrimary}"/>
+                            <TextBlock FontSize="10.5" VerticalAlignment="Center" Margin="8,0,0,0"
+                                       Foreground="{StaticResource BrushTextSecondary}">
+                                <TextBlock.Text>
+                                    <MultiBinding Converter="{StaticResource GroupTickText}" Mode="OneWay">
+                                        <Binding/>
+                                        <Binding Path="DataContext.TicksVersion" RelativeSource="{RelativeSource AncestorType=DataGrid}"/>
+                                    </MultiBinding>
+                                </TextBlock.Text>
+                            </TextBlock>
+                        </StackPanel>
+                    </Expander.Header>
+                    <ItemsPresenter/>
+                </Expander>
+            </ControlTemplate>
+            <Style x:Key="TagGroupStyle" TargetType="GroupItem">
+                <Setter Property="Template" Value="{StaticResource TagGroupTemplate}"/>
+            </Style>
+            <!-- Levels 2 and 3 sit inside the heading above them: indent them. -->
+            <Style x:Key="TagSubGroupStyle" TargetType="GroupItem" BasedOn="{StaticResource TagGroupStyle}">
+                <Setter Property="Margin" Value="14,0,0,0"/>
+            </Style>
 
             <Style x:Key="TagRowStyle" TargetType="DataGridRow" BasedOn="{StaticResource DataGridRowStyle}">
                 <Style.Triggers>
@@ -128,19 +173,58 @@
                 <!-- Tag table -->
                 <Border Background="{StaticResource BrushSystemSecondaryBackground}" BorderBrush="{StaticResource BrushBorderDefault}"
                         BorderThickness="1,1,1,0" CornerRadius="4,4,0,0" Padding="8,6">
-                    <DockPanel LastChildFill="False">
-                        <TextBlock VerticalAlignment="Center" FontSize="11" Foreground="{StaticResource BrushTextSecondary}">
-                            <Run Text="Found:"/> <Run Text="{Binding FoundCount, Mode=OneWay}"/>
-                            <Run Text="tags ·"/> <Run Text="{Binding SelectedCount, Mode=OneWay}"/>
-                            <Run Text="ticked · double-click a text to edit it"/>
-                        </TextBlock>
-                        <Button DockPanel.Dock="Right" Content="Clear" Command="{Binding ClearSelectionCommand}"
-                                Style="{StaticResource SmallSecondaryButton}"/>
-                        <Button DockPanel.Dock="Right" Content="Select All" Command="{Binding SelectAllCommand}"
-                                Style="{StaticResource SmallSecondaryButton}" Margin="0,0,4,0"/>
-                    </DockPanel>
+                    <StackPanel>
+                        <DockPanel LastChildFill="False">
+                            <TextBlock VerticalAlignment="Center" FontSize="11" Foreground="{StaticResource BrushTextSecondary}">
+                                <Run Text="Found:"/> <Run Text="{Binding FoundCount, Mode=OneWay}"/>
+                                <Run Text="tags ·"/> <Run Text="{Binding SelectedCount, Mode=OneWay}"/>
+                                <Run Text="ticked · double-click a text to edit it"/>
+                            </TextBlock>
+                            <Button DockPanel.Dock="Right" Content="Clear" Command="{Binding ClearSelectionCommand}"
+                                    Style="{StaticResource SmallSecondaryButton}"/>
+                            <Button DockPanel.Dock="Right" Content="Select All" Command="{Binding SelectAllCommand}"
+                                    Style="{StaticResource SmallSecondaryButton}" Margin="0,0,4,0"/>
+                        </DockPanel>
+                        <!-- By tag type: group the table, or tick / clear one type from the list -->
+                        <DockPanel LastChildFill="False" Margin="0,6,0,0" IsEnabled="{Binding IsIdle}">
+                            <CheckBox Content="Group by type" IsChecked="{Binding GroupByType}" Style="{StaticResource Opt}"
+                                      ToolTip="Show the tags under headings, in the levels chosen below. Tick a heading's box to tick or clear every tag under it."/>
+                            <Button DockPanel.Dock="Right" Content="Clear Type" Command="{Binding ClearTypeCommand}"
+                                    Style="{StaticResource SmallSecondaryButton}"
+                                    ToolTip="Untick every tag of the type picked in the list."/>
+                            <Button DockPanel.Dock="Right" Content="Select Type" Command="{Binding SelectTypeCommand}"
+                                    Style="{StaticResource SmallSecondaryButton}" Margin="0,0,4,0"
+                                    ToolTip="Tick every tag of the type picked in the list."/>
+                            <ComboBox DockPanel.Dock="Right" Width="190" Margin="0,0,6,0"
+                                      ItemsSource="{Binding TypeGroupsView}" SelectedItem="{Binding SelectedTypeGroup}"
+                                      IsSynchronizedWithCurrentItem="False" DisplayMemberPath="Label"
+                                      Style="{StaticResource StandardComboBox}" FontSize="11"
+                                      ToolTip="Pick a tag type, then Select Type or Clear Type."/>
+                            <TextBlock DockPanel.Dock="Right" Text="Type" Style="{StaticResource FieldLabel}"
+                                       VerticalAlignment="Center" Margin="0,0,6,0"/>
+                        </DockPanel>
+                        <!-- Grouping levels: outermost first. A level set to (none), or repeated, is skipped. -->
+                        <WrapPanel Margin="0,4,0,0" IsEnabled="{Binding GroupByType}">
+                            <TextBlock Text="Group by" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                            <ComboBox Width="150" Margin="0,0,6,0" ItemsSource="{Binding GroupLevelOptions}"
+                                      SelectedValuePath="Level" DisplayMemberPath="Label" SelectedValue="{Binding GroupLevel1}"
+                                      Style="{StaticResource StandardComboBox}" FontSize="11"
+                                      ToolTip="Outer grouping level."/>
+                            <TextBlock Text="then" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                            <ComboBox Width="150" Margin="0,0,6,0" ItemsSource="{Binding GroupLevelOptions}"
+                                      SelectedValuePath="Level" DisplayMemberPath="Label" SelectedValue="{Binding GroupLevel2}"
+                                      Style="{StaticResource StandardComboBox}" FontSize="11"
+                                      ToolTip="Second level, nested under the first."/>
+                            <TextBlock Text="then" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                            <ComboBox Width="150" Margin="0,0,6,0" ItemsSource="{Binding GroupLevelOptions}"
+                                      SelectedValuePath="Level" DisplayMemberPath="Label" SelectedValue="{Binding GroupLevel3}"
+                                      Style="{StaticResource StandardComboBox}" FontSize="11"
+                                      ToolTip="Third level, nested under the second."/>
+                        </WrapPanel>
+                    </StackPanel>
                 </Border>
-                <DataGrid MinHeight="140"
+                <DataGrid x:Name="TagGrid"
+                          MinHeight="140"
                           shell:ShellBehaviors.MaxHeightRatio="0.35"
                           shell:ShellBehaviors.ForwardMouseWheel="True"
                           ItemsSource="{Binding RowsView}"
@@ -156,7 +240,13 @@
                           GridLinesVisibility="Horizontal"
                           HorizontalGridLinesBrush="{StaticResource BrushSeparatorThin}"
                           BorderThickness="1"
-                          BorderBrush="{StaticResource BrushBorderDefault}">
+                          BorderBrush="{StaticResource BrushBorderDefault}"
+                          VirtualizingPanel.IsVirtualizingWhenGrouping="True">
+                    <!-- Grouping: one collapsible heading per group at every level (levels 2+ are indented). -->
+                    <DataGrid.GroupStyle>
+                        <GroupStyle ContainerStyle="{StaticResource TagGroupStyle}"/>
+                        <GroupStyle ContainerStyle="{StaticResource TagSubGroupStyle}"/>
+                    </DataGrid.GroupStyle>
                     <DataGrid.Columns>
                         <DataGridTemplateColumn Header="" Width="36" CanUserResize="False">
                             <DataGridTemplateColumn.CellTemplate>
@@ -386,8 +476,6 @@
         <shell:ToolWindowShell.FooterContent>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                 <Button Content="Create Text" Command="{Binding CreateTextCommand}" Style="{StaticResource PrimaryButton}" Margin="0,0,8,0"/>
-                <Button Content="Cancel" Command="{Binding CancelRunCommand}" Style="{StaticResource OutlineButton}" Width="90" Margin="0,0,8,0"
-                        ToolTip="Stops the run and rolls back everything it did."/>
                 <Button Content="Close" Style="{StaticResource OutlineButton}" Width="90" Click="CloseButton_Click"/>
             </StackPanel>
         </shell:ToolWindowShell.FooterContent>

@@ -1,0 +1,122 @@
+<title>Merge Roofs Window</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<!-- UI preview (CLAUDE.md "UI previews"): Merge Roofs V001, tool 1.1.0, plugin 6.44.0.
+     New in 1.1.0: Esc / Cancel run with a Yes/No confirm, and the button's own icon.
+     Shows: the Roof Edit ribbon button and tooltip, the Merge Roofs window after Check, and the two prompts
+     shown when the roof cannot be created.
+     Mirrors: Menu/RoofTools/Modelling/MergeRoofs_V001/UI/Views/MergeRoofsWindow.xaml (+ MergeRoofsViewModel),
+              Shared/Services/ToolCancellation.cs (dialog text),
+              Menu/00_Push_Button_Menu_items/Ribbon/RoofToolsRibbon.cs
+     Artifact: https://claude.ai/artifact/Lz5CNYLnRoGeyv844vKtyg (republish to this URL on every update)
+     Colours: Shared/SharedStyles.xaml tokens, one light look on purpose (mirrors the light WPF window). -->
+<style>
+/* Layout: one column of captioned mock-ups; each fixed-width Revit piece scrolls in its own frame. */
+:root{--surface-window:#F3F5F7;--surface-card:#FFFFFF;--navy:#1E3A5F;--border:#D6DCE3;--text:#1A2B3C;--text-2:#5B7185;
+--new:#1F8A4C;--new-bg:#E3F4EA;--warn:#B26A00;--warn-bg:#FFF1D6;--bad:#B3261E;--page:#E9EDF1;
+--font:"Segoe UI",system-ui,-apple-system,sans-serif;--mono:ui-monospace,Consolas,monospace;color-scheme:light}
+html{background:var(--page)}
+body{margin:0;background:var(--page);color:var(--text);font:14px/1.45 var(--font);
+padding-block:20px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+h1{font-size:22px;margin:0;color:var(--navy);text-wrap:balance}
+h2{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-2);margin:0 0 8px}
+p{margin:0}.muted{color:var(--text-2)}
+.tag{display:inline-block;font-size:11px;font-weight:600;color:var(--new);background:var(--new-bg);border-radius:3px;padding:1px 6px;margin-left:6px;vertical-align:middle}
+.frame{overflow-x:auto}
+.win{width:520px;background:var(--surface-window);border:1px solid var(--border);box-shadow:0 4px 14px rgba(0,0,0,.15)}
+.title{background:var(--navy);color:#fff;padding:7px 12px;font-size:12.5px}
+.body{padding:14px;display:flex;flex-direction:column;gap:10px}
+.list{background:var(--surface-card);border:1px solid var(--border);padding:4px 0;min-height:48px}
+.list div{padding:3px 8px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.input{background:var(--surface-card);border:1px solid var(--border);padding:3px 8px;width:54px;text-align:right}
+.chk{width:13px;height:13px;border:1px solid var(--navy);background:var(--navy);display:inline-block;position:relative}
+.chk::after{content:"";position:absolute;left:3px;top:0;width:3px;height:7px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}
+.note{color:var(--text-2);font-size:12.5px}
+.issues{background:var(--surface-card);border:1px solid var(--border);padding:6px 8px;display:flex;flex-direction:column;gap:3px;min-height:64px}
+.status{font-size:13px}
+.btns{display:flex;gap:8px;justify-content:flex-end}
+.btn{border:1px solid var(--border);background:var(--surface-card);padding:5px 0;text-align:center;font-weight:600;font-size:12.5px}
+.btn.p{background:var(--navy);color:#fff;border-color:var(--navy)}
+.ribbon{display:inline-flex;gap:0;background:var(--surface-card);border:1px solid var(--border);padding:8px 10px}
+.rb{display:flex;align-items:center;gap:6px;padding:3px 8px;font-size:12px;border:1px solid transparent}
+.rb.hot{border-color:var(--navy);background:#E6EEF7}
+.panel-name{border-top:1px solid var(--border);margin-top:6px;padding-top:3px;text-align:center;font-size:11px;color:var(--text-2)}
+.tip{width:340px;background:#FFFFF4;border:1px solid #B8B8A0;padding:8px 10px;font-size:12px;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+.dlg{width:430px;background:var(--surface-card);border:1px solid var(--border);box-shadow:0 4px 14px rgba(0,0,0,.15)}
+.dlg .h{padding:12px 14px 4px;color:var(--navy);font-size:15px}
+.dlg .c{padding:0 14px 12px;font-size:12.5px;color:var(--text-2)}
+.dlg .f{background:var(--surface-window);padding:8px 14px;display:flex;gap:8px;justify-content:flex-end}
+.dlg .f span{border:1px solid var(--border);background:var(--surface-card);padding:3px 18px;font-size:12.5px}
+.warn{color:var(--warn)}
+.ico{width:16px;height:16px;border-radius:2px;background:#B6502F;display:inline-block;position:relative}
+.ico::after{content:"";position:absolute;left:2px;top:4px;width:8px;height:5px;border:solid #fff;border-width:2px 2px 0 2px;transform:skewX(0)}
+.btn.off{color:var(--text-2);background:var(--surface-window)}
+.q{color:var(--navy);font-weight:700;margin-right:6px}
+</style>
+<main>
+<header>
+  <h1>Merge Roofs <span class="tag">1.1.0: Cancel + icon</span></h1>
+  <p class="muted">Static mock-up of what you see in Revit. All roof ids and numbers are sample data.</p>
+</header>
+
+<section>
+  <h2>Ribbon: Rafi_Pro_MOds2 &gt; Roof Edit</h2>
+  <div class="frame">
+    <div class="ribbon"><div>
+      <div style="display:flex;gap:6px">
+        <div class="rb">Name Builder ▾</div><div class="rb">Island Splitter ▾</div>
+        <div class="rb hot"><span class="ico"></span>Merge Roofs <span class="tag">New icon</span></div>
+      </div>
+      <div class="panel-name">Roof Edit</div></div></div>
+    <div class="tip" style="margin-top:6px"><b>Merge Roofs — v1.1.0 (build V001)</b><br>Select several footprint roofs and create one new roof from their combined outline. The original roofs are kept.</div>
+  </div>
+</section>
+
+<section>
+  <h2>Window after Check</h2>
+  <div class="frame"><div class="win">
+    <div class="title">Merge Roofs — v1.1.0</div>
+    <div class="body">
+      <b>Roofs to merge</b>
+      <div class="list"><div>Roof 482113 — Roof Main</div><div>Roof 482130 — Roof Main</div><div>Roof 482154 — Roof Main</div></div>
+      <div class="row">Gap tolerance (mm) <span class="input">5</span> <span class="tag">New</span></div>
+      <div class="row"><span class="chk"></span> Place connecting lines across gaps <span class="tag">New</span></div>
+      <div class="note">Roofs differ in type or level: the new roof uses the first selected roof's type and level.</div>
+      <b>Issues</b>
+      <div class="issues"><span class="warn">Overlap: Roofs 482113 and 482130 overlap.</span><span class="warn">Gap: Gap between roofs closed within the tolerance.</span></div>
+      <div class="status">The roofs form one outline (see issues). Ready to create.</div>
+      <div class="btns"><span class="btn" style="width:90px">Cancel run <span class="tag">New</span></span><span class="btn" style="width:90px">Check</span><span class="btn p" style="width:110px">Create roof</span><span class="btn" style="width:80px">Close</span></div>
+    </div>
+  </div></div>
+</section>
+
+<section>
+  <h2>Cancelling a run <span class="tag">New</span></h2>
+  <p class="muted" style="margin-bottom:8px">Esc or Cancel run while Check or Create roof is working. While it runs, Check and Create roof are disabled.</p>
+  <div class="frame" style="display:flex;flex-direction:column;gap:10px">
+    <div class="win"><div class="title">Merge Roofs — v1.1.0</div><div class="body">
+      <div class="status">Creating the roof… press Esc or Cancel run to stop.</div>
+      <div class="btns"><span class="btn" style="width:90px">Cancel run</span><span class="btn off" style="width:90px">Check</span><span class="btn off p" style="width:110px">Create roof</span><span class="btn" style="width:80px">Close</span></div></div></div>
+    <div class="dlg"><div class="h"><span class="q">?</span>Cancel the process?</div><div class="c">All changes made by this run will be undone. Files already exported are kept.</div><div class="f"><span>Yes</span><span>No</span></div></div>
+    <div class="win"><div class="title">Merge Roofs — v1.1.0</div><div class="body"><div class="status">Cancelled by user. Nothing was changed.</div></div></div>
+  </div>
+</section>
+
+<section>
+  <h2>After Create roof</h2>
+  <div class="frame"><div class="win">
+    <div class="title">Merge Roofs — v1.1.0</div>
+    <div class="body"><div class="status">Created roof 483907 (arcs kept). The original roofs were kept.</div></div>
+  </div></div>
+</section>
+
+<section>
+  <h2>If the roof cannot be created <span class="tag">New</span></h2>
+  <p class="muted" style="margin-bottom:8px">Two separate questions. Answering No to both leaves the model unchanged.</p>
+  <div class="frame" style="display:flex;flex-direction:column;gap:10px">
+    <div class="dlg"><div class="h">Place the profile as detail lines in the current view?</div><div class="c">The merged outline is drawn so you can inspect it. No roof is created.</div><div class="f"><span>Yes</span><span>No</span></div></div>
+    <div class="dlg"><div class="h">Mark issue areas with circles?</div><div class="c">2 circle(s) will be drawn at the problem areas.</div><div class="f"><span>Yes</span><span>No</span></div></div>
+  </div>
+</section>
+</main>

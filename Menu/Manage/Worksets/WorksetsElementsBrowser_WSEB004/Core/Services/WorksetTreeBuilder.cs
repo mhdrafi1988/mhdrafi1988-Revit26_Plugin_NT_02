@@ -1,3 +1,4 @@
+using Revit26_Plugin_Revised.Shared.Services;
 using System.Collections.Generic;
 using System.Linq;
 using Autodesk.Revit.DB;
@@ -32,6 +33,7 @@ namespace Revit26_Plugin_Revised.WorksetsElementsBrowser.WSEB004.Core.Services
 
             foreach (var element in elements)
             {
+                ToolCancellation.CheckCurrent();
                 var worksetParam = element.get_Parameter(BuiltInParameter.ELEM_PARTITION_PARAM);
                 if (worksetParam == null || !worksetParam.HasValue) continue;
 
@@ -62,6 +64,7 @@ namespace Revit26_Plugin_Revised.WorksetsElementsBrowser.WSEB004.Core.Services
             var result = new List<WorksetNodeData>();
             foreach (var ws in worksetsById.Values.OrderBy(w => w.Name))
             {
+                ToolCancellation.CheckCurrent();
                 List<CategoryNodeData> categories;
                 if (grouped.TryGetValue(ws.Id.IntegerValue, out var byCategory))
                 {
@@ -85,7 +88,8 @@ namespace Revit26_Plugin_Revised.WorksetsElementsBrowser.WSEB004.Core.Services
                     ws.Id.IntegerValue,
                     ws.IsEditable,
                     ws.Owner ?? string.Empty,
-                    categories));
+                    categories,
+                    ws.IsOpen));
             }
 
             return result;

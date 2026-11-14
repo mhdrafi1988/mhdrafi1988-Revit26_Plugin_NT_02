@@ -7,6 +7,7 @@ using Revit26_Plugin_Revised.Shared.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using Revit26_Plugin_Revised.Shared.Services;
 
 namespace Revit26_Plugin_Revised.SheetAutoRearrange.V028.Infrastructure.ExternalEvents
 {
@@ -60,16 +61,42 @@ namespace Revit26_Plugin_Revised.SheetAutoRearrange.V028.Infrastructure.External
         public ObservableCollection<LogEntry>? Log { get; set; }
         public RunResult? LastRunResult { get; private set; }
 
+        /// <summary>Unhooks the window's Revit event subscriptions. Runs inside Execute, where Revit allows it.</summary>
+        public Action<UIApplication>? DetachCallback { get; set; }
+
+        /// <summary>Set when the window closes: the next Execute runs <see cref="DetachCallback"/>.</summary>
+        public bool DetachRequested { get; set; }
+
+        /// <summary>True when nothing else is pending, so the next Execute only detaches.</summary>
+        public bool DetachOnly { get; set; }
+
+        /// <summary>True once <see cref="DetachCallback"/> has run; the window is gone and no result is wanted.</summary>
+        public bool Detached { get; private set; }
+
         public event Action? Completed;
 
         private readonly ViewportCollectorService _collector = new();
         private readonly TitleBlockDetectionService _detectionService = new();
         private readonly RearrangeEngine _engine = new();
 
-        public void Execute(UIApplication app)
+        public void Execute(UIApplication app) =>
+            ToolGuard.RunHandler(GetType(), app, ExecuteCore);
+
+        private void ExecuteCore(UIApplication app)
         {
+            if (DetachRequested && DetachOnly)
+            {
+                RunDetach(app);
+                Completed?.Invoke();
+                return;
+            }
+
             var doc = app.ActiveUIDocument.Document;
 
+            // Esc / Cancel with a Yes-No confirm while Run rearranges; the engine's transaction is rolled back.
+            using ToolCancellation cancel = Action == SheetAutoRearrangeAction.RunRearrange
+                ? ToolCancellation.BeginFor(ToolCatalog.SheetAutoRearrange, app)
+                : null;
             try
             {
                 switch (Action)
@@ -83,9 +110,35 @@ namespace Revit26_Plugin_Revised.SheetAutoRearrange.V028.Infrastructure.External
                         break;
                 }
             }
+            catch (OperationCanceledException)
+            {
+                LastRunResult = new RunResult { Success = false, ErrorMessage = "Cancelled by user. Nothing was changed." };
+                Log?.Add(new LogEntry(LogLevel.Warning, "Cancelled by user. Nothing was changed."));
+                throw; // ToolGuard treats it as a user cancel; finally still completes the request
+            }
             finally
             {
+                if (DetachRequested)
+                    RunDetach(app);
                 Completed?.Invoke();
+            }
+        }
+
+        /// <summary>Runs the window's detach callback inside the API context. Never throws: the window is already closed.</summary>
+        private void RunDetach(UIApplication app)
+        {
+            try
+            {
+                DetachCallback?.Invoke(app);
+            }
+            catch (Exception ex)
+            {
+                Revit26_Plugin_Revised.Utilities.Logger.Error("SheetAutoRearrangeEventHandler.Detach", ex);
+            }
+            finally
+            {
+                DetachRequested = false;
+                Detached = true;
             }
         }
 
