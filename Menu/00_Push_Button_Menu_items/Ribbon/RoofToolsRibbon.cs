@@ -73,7 +73,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                 "CombinedTools_16.png", "Roof Points & Slope", "V001",
                 "Adds shape points around openings, perpendicular to the boundary, at mid/quarter points and in long gaps, builds the ridges between the chosen drains, then slopes the roof to them — one window, one Undo. Pick one roof or several.");
             // Roof Slope Builder — inner-loop, perpendicular, ridge and curve points plus slope by drain
-            // on every selected footprint roof, watershed or saddle ridges (plugin 7.2.0). A different
+            // on every selected footprint roof, watershed or saddle ridges (plugin 7.3.0). A different
             // tool from Points & Slope, grouped in the same pulldown below it.
             var roofSlopeBuilderV001 = Btn(assemblyPath, "Btn_RoofSlopeBuilder_V001", "Roof Slope Builder", "Revit26_Plugin_Revised.RoofSlopeBuilder.V001.Commands.RoofSlopeBuilderCommand",
                 "CombinedTools_16.png", "Roof Slope Builder", "V001");
