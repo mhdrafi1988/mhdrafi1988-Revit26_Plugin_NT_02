@@ -38,6 +38,13 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                 "Manage.AnnotationOverlapDetection_16.png", "Annotation Overlap Detection", "V005");
             overlapV005.ToolTip = Revit26_Plugin_Revised.Shared.Services.ToolCatalog.AnnotationOverlapDetectionV005.Tip(
                 "Find overlapping annotations in the active view (plans, sections, elevations, drafting views, legends, sheets), then move them apart: Move Up, Move Down or Distribute.");
+            // Annotation Overlap Report (plugin 7.3.0): a separate report-only tool, its own button under the Overlaps pulldown.
+            var overlapReportV001 = Btn(assemblyPath, "Btn_AnnotationOverlapReport_V001", "Overlap Report", "Revit26_Plugin_Revised.AnnotationOverlapReport.V001.Commands.AnnotationOverlapReportCommand",
+                "Manage.AnnotationOverlapDetection_16.png", "Annotation Overlap Report", "V001");
+            overlapReportV001.ToolTip = Revit26_Plugin_Revised.Shared.Services.ToolCatalog.AnnotationOverlapReport.Tip(
+                "Lists overlapping annotations of every type on the active view or on chosen views and sheets, " +
+                "with zoom to pair and Excel export. Report only: nothing is moved.");
+
             // Overlap Detection V004 left the pulldown in plugin 6.53.0 (latest two versions only);
             // its code and ToolCatalog entry stay, button name Btn_AnnotationOverlapDetection_V004.
 
@@ -204,6 +211,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             var manageItems = RibbonLayoutHelper.AddStackedButtonsWithSlideOut(panel, new List<RibbonItemData>
             {
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_AnnotationOverlapDetection", "Overlaps", overlapV006),
+                overlapReportV001,
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_ParaManager", "ParaManager", paraManagerV005),
                 sharedParamStudioV001,
                 RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_ScheduleExportImport", "Schedule I/O", scheduleExportImportV007),

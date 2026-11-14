@@ -1,10 +1,10 @@
 <title>Annotation Overlap Report V001</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<!-- UI preview (CLAUDE.md "UI previews"): Annotation Overlap Report V001, tool 1.0.0 (proposed), plugin 7.2.1.
-     DESIGN MOCK-UP: no code exists yet. Tool name, ribbon position and every label are proposals for the owner.
-     Decided by the owner: separate tool (not Annotation Overlap Detection V007); overlap only; every annotation
-     type found in the views is listed; batch of views and sheets; report only.
-     Mirrors: no XAML yet (planned: Menu/Manage/AnnotationOverlapReport_V001/UI/AnnotationOverlapReportWindow.xaml)
+<!-- UI preview (CLAUDE.md "UI previews"): Annotation Overlap Report V001, tool 1.0.0 (new tool), plugin 7.3.0.
+     Separate report-only tool: overlap only, every annotation type found in the scope, active view or a batch of
+     views and sheets, zoom to pair, Excel export. Head types are listed greyed out ("coming in 1.1").
+     Mirrors: Menu/Manage/AnnotationOverlapReport_V001/UI/AnnotationOverlapReportWindow.xaml (+ AnnotationOverlapReportViewModel),
+              Infrastructure/ExcelReportWriter.cs, Menu/00_Push_Button_Menu_items/Ribbon/ManageRibbon.cs
      Artifact: https://claude.ai/artifact/9ZhpmxsCCcUjZTNKbqE23j (republish to this URL on every update)
      Colours: Shared/SharedStyles.xaml tokens, one light look on purpose (mirrors the light WPF window). -->
 <style>
@@ -105,7 +105,8 @@ tr.vg td span{font-weight:400;color:var(--text2)}
 .status{color:var(--ok);font-size:11.5px}
 .foot .btns{display:flex;gap:8px}
 
-.list.tall{max-height:none}
+.chk.off{color:var(--text3)}
+.chk.off .cnt{color:var(--text3)}
 .idc{font-family:var(--mono);color:var(--text2);font-size:11px}
 </style>
 
@@ -113,18 +114,18 @@ tr.vg td span{font-weight:400;color:var(--text2)}
 
 <section>
   <h1>Annotation Overlap Report <span class="tag">NEW TOOL</span></h1>
-  <p class="muted">Design mock-up for review. A separate tool from Annotation Overlap Detection: it scans a batch of views
+  <p class="muted">Preview of tool 1.0.0, plugin 7.3.0. A separate tool from Annotation Overlap Detection: it scans a batch of views
   and sheets, checks every annotation type it finds, and lists each overlapping pair. It reports only and changes nothing
   in the model.</p>
   <div>
     <span class="note">Sample data. No real project names.</span>
-    <span class="note">Nothing is built yet. Name, ribbon position and labels are proposals.</span>
+    <span class="note">Everything on this page is new in 1.0.0.</span>
   </div>
 </section>
 
 <section>
-  <h2>1. Ribbon button and tooltip <span class="tag">PROPOSED</span></h2>
-  <p class="muted">Proposed place: its own button under the existing Overlaps pulldown. The pulldown keeps Overlap Detection V006 and V005.</p>
+  <h2>1. Ribbon · Rafi_Pro_Docs2 › Manage › Overlap Report <span class="tag">NEW</span></h2>
+  <p class="muted">Its own button under the Overlaps pulldown. The pulldown keeps Overlap Detection V006 and V005.</p>
   <div class="frame">
     <div class="rib">
       <div class="tabs"><span>Rafi_Pro_Docs</span><b>Rafi_Pro_Docs2</b></div>
@@ -132,9 +133,9 @@ tr.vg td span{font-weight:400;color:var(--text2)}
         <div class="stack">
           <div class="small"><i></i>Overlaps ▾</div>
           <div class="small new"><i></i>Overlap Report</div>
+          <div class="small"><i></i>ParaManager ▾</div>
         </div>
-        <div class="tip"><b>Annotation Overlap Report</b> v1.0.0<br>Lists overlapping annotations of every type on the
-          chosen views and sheets. Report only: nothing is moved.</div>
+        <div class="tip"><b>Annotation Overlap Report — v1.0.0 (build V001)</b><br>Lists overlapping annotations of every type on the active view or on chosen views and sheets, with zoom to pair and Excel export. Report only: nothing is moved.</div>
       </div>
       <div class="ptitle">Manage</div>
     </div>
@@ -144,10 +145,10 @@ tr.vg td span{font-weight:400;color:var(--text2)}
 <section>
   <h2>2. Main window, after a run</h2>
   <p class="muted">Modeless, so Revit stays usable while it is open. The type list shows every annotation type found in
-  the chosen views, with its count. Selecting a row and pressing Zoom to pair opens that view and highlights both annotations.</p>
+  the scope, with its count. Grids, levels, section, elevation and callout marks and view titles are listed greyed out and are not checked yet. Selecting a row and pressing Zoom to pair opens that view and highlights both annotations.</p>
   <div class="frame">
     <div class="win">
-      <div class="tbar"><span>Annotation Overlap Report v1.0.0</span><span class="x">–□×</span></div>
+      <div class="tbar"><span>Annotation Overlap Report — v1.0.0</span><span class="x">–□×</span></div>
       <div class="shead">
         <div><b>Annotation Overlap Report</b><span class="sub">Find overlapping annotations across views and sheets. Report only.</span></div>
         <span class="ver">v1.0.0</span>
@@ -159,7 +160,7 @@ tr.vg td span{font-weight:400;color:var(--text2)}
             <div class="ctitle">Scope</div>
             <div class="rad"><span class="dot"></span>Active view</div>
             <div class="rad"><span class="dot on"></span>Chosen views and sheets<span class="cnt">4 of 86</span></div>
-            <div class="search">Search views and sheets…</div>
+            <div class="search">plan</div>
             <div class="list">
               <div class="grp">Sheets</div>
               <div class="chk"><span class="box"></span>A-201 · Level 02 Plan</div>
@@ -170,33 +171,34 @@ tr.vg td span{font-weight:400;color:var(--text2)}
               <div class="chk"><span class="box"></span>L02 Ceiling Plan · 1:100</div>
               <div class="more">82 more…</div>
             </div>
-            <div class="hint">A sheet is checked through the views placed on it.</div>
+            <div class="hint">A sheet is checked through the annotations on it and the views placed on it.</div>
           </div>
 
           <div class="card">
-            <div class="ctitle">Annotation types <span class="tag">ALL TYPES</span><span><span class="sbtn">All</span><span class="sbtn">None</span></span></div>
-            <div class="hint">20 types found in the chosen views · 859 annotations</div>
+            <div class="ctitle">Annotation types<span><span class="sbtn">All</span><span class="sbtn">None</span></span></div>
+            <div class="hint">14 types found · 772 annotations</div>
             <div class="list">
+<div class="chk"><span class="box"></span>Ceiling Tags<span class="cnt">22</span></div>
 <div class="chk"><span class="box"></span>Dimensions<span class="cnt">238</span></div>
-<div class="chk"><span class="box"></span>Text notes<span class="cnt">96</span></div>
-<div class="chk"><span class="box"></span>Door tags<span class="cnt">64</span></div>
-<div class="chk"><span class="box"></span>Window tags<span class="cnt">52</span></div>
-<div class="chk"><span class="box"></span>Room tags<span class="cnt">48</span></div>
-<div class="chk"><span class="box"></span>Wall tags<span class="cnt">71</span></div>
-<div class="chk"><span class="box"></span>Ceiling tags<span class="cnt">22</span></div>
-<div class="chk"><span class="box"></span>Keynote tags<span class="cnt">35</span></div>
-<div class="chk"><span class="box"></span>Multi-category tags<span class="cnt">18</span></div>
-<div class="chk"><span class="box"></span>Spot elevations<span class="cnt">57</span></div>
-<div class="chk"><span class="box"></span>Spot coordinates<span class="cnt">9</span></div>
-<div class="chk"><span class="box"></span>Spot slopes<span class="cnt">14</span></div>
-<div class="chk"><span class="box"></span>Generic annotations<span class="cnt">41</span></div>
-<div class="chk"><span class="box"></span>Grid heads<span class="cnt">36</span></div>
-<div class="chk"><span class="box"></span>Level heads<span class="cnt">12</span></div>
-<div class="chk"><span class="box"></span>Section marks<span class="cnt">16</span></div>
-<div class="chk"><span class="box"></span>Elevation marks<span class="cnt">8</span></div>
-<div class="chk"><span class="box"></span>Callout heads<span class="cnt">11</span></div>
-<div class="chk"><span class="box"></span>Revision tags<span class="cnt">7</span></div>
-<div class="chk"><span class="box"></span>View titles<span class="cnt">4</span></div>
+<div class="chk"><span class="box"></span>Door Tags<span class="cnt">64</span></div>
+<div class="chk"><span class="box"></span>Generic Annotations<span class="cnt">41</span></div>
+<div class="chk"><span class="box"></span>Keynote Tags<span class="cnt">35</span></div>
+<div class="chk"><span class="box"></span>Multi-Category Tags<span class="cnt">18</span></div>
+<div class="chk"><span class="box"></span>Revision Tags<span class="cnt">7</span></div>
+<div class="chk"><span class="box"></span>Room Tags<span class="cnt">48</span></div>
+<div class="chk"><span class="box"></span>Spot Coordinates<span class="cnt">9</span></div>
+<div class="chk"><span class="box"></span>Spot Elevations<span class="cnt">57</span></div>
+<div class="chk"><span class="box"></span>Spot Slopes<span class="cnt">14</span></div>
+<div class="chk"><span class="box"></span>Text Notes<span class="cnt">96</span></div>
+<div class="chk"><span class="box"></span>Wall Tags<span class="cnt">71</span></div>
+<div class="chk"><span class="box"></span>Window Tags<span class="cnt">52</span></div>
+<div class="chk off"><span class="box off"></span>Callout Heads<span class="cnt">11 · coming in 1.1</span></div>
+<div class="chk off"><span class="box off"></span>Elevation Marks<span class="cnt">8 · coming in 1.1</span></div>
+<div class="chk off"><span class="box off"></span>Grids<span class="cnt">36 · coming in 1.1</span></div>
+<div class="chk off"><span class="box off"></span>Levels<span class="cnt">12 · coming in 1.1</span></div>
+<div class="chk off"><span class="box off"></span>Section Marks<span class="cnt">16 · coming in 1.1</span></div>
+<div class="chk off"><span class="box off"></span>Viewports<span class="cnt">4 · coming in 1.1</span></div>
+
             </div>
             <div class="chk"><span class="box"></span>Also check overlaps between different types</div>
             <div class="hint">On by default, so a door tag over a text note is found.</div>
@@ -209,31 +211,31 @@ tr.vg td span{font-weight:400;color:var(--text2)}
           <div class="metrics">
             <div class="metric"><div class="mlabel">Overlaps</div><div class="mnum">23</div></div>
             <div class="metric"><div class="mlabel">Views with overlaps</div><div class="mnum">3 of 4</div></div>
-            <div class="metric"><div class="mlabel">Scanned</div><div class="mnum">859</div></div>
-            <div class="metric"><div class="mlabel">Types checked</div><div class="mnum">20</div></div>
+            <div class="metric"><div class="mlabel">Scanned</div><div class="mnum">772</div></div>
+            <div class="metric"><div class="mlabel">Types checked</div><div class="mnum">14</div></div>
           </div>
 
           <div class="filter">
             <span class="muted">Show</span><span class="combo">All types</span><span class="combo">All views</span>
-            <span class="muted" style="margin-left:auto">23 overlapping pairs in 3 views</span>
+            <span class="muted" style="margin-left:auto">23 overlapping pair(s) in 3 view(s)</span>
           </div>
 
           <div class="grid">
             <table>
-<tr><th>Annotation A</th><th>ID</th><th>Annotation B</th><th>ID</th><th class="r">Overlap</th></tr>
-<tr class="vg"><td colspan="5">L02 Floor Plan · 1:100 <span>· on sheet A-201 · 11 overlaps</span></td></tr>
-<tr><td>Door tag · 204A</td><td class="idc">412880</td><td>Room tag · 2.14 Office</td><td class="idc">398114</td><td class="r">1.8 mm</td></tr>
-<tr class="sel"><td>Text note · "SEE DETAIL 5"</td><td class="idc">405511</td><td>Dimension · 1200</td><td class="idc">405530</td><td class="r">0.7 mm</td></tr>
-<tr><td>Window tag · W12</td><td class="idc">412902</td><td>Dimension · 3600</td><td class="idc">405544</td><td class="r">0.6 mm</td></tr>
-<tr><td>Spot elevation · +3.450</td><td class="idc">420117</td><td>Wall tag · WT-03</td><td class="idc">413050</td><td class="r">1.1 mm</td></tr>
-<tr><td>Grid head · C</td><td class="idc">301204</td><td>Section mark · 3</td><td class="idc">377120</td><td class="r">2.9 mm</td></tr>
-<tr><td>Generic annotation · North arrow</td><td class="idc">430008</td><td>Text note · "SCALE 1:100"</td><td class="idc">405602</td><td class="r">0.4 mm</td></tr>
-<tr class="vg"><td colspan="5">L02 Ceiling Plan · 1:100 <span>· on sheet A-201 · 4 overlaps</span></td></tr>
-<tr><td>Ceiling tag · CT-2</td><td class="idc">415330</td><td>Text note · "ACCESS PANEL"</td><td class="idc">405710</td><td class="r">1.4 mm</td></tr>
-<tr><td>Spot elevation · +2.700</td><td class="idc">420240</td><td>Keynote tag · 09 51 00.A1</td><td class="idc">418802</td><td class="r">0.5 mm</td></tr>
-<tr class="vg"><td colspan="5">L03 Floor Plan · 1:100 <span>· on sheet A-202 · 8 overlaps</span></td></tr>
-<tr><td>Dimension · 450</td><td class="idc">406012</td><td>Dimension · 2400</td><td class="idc">406019</td><td class="r">2.3 mm</td></tr>
-<tr><td>Level head · L03</td><td class="idc">300410</td><td>Callout head · 7</td><td class="idc">377344</td><td class="r">1.2 mm</td></tr>
+<tr><th>Annotation A</th><th>ID</th><th>Annotation B</th><th>ID</th><th class="r">Overlap (mm)</th></tr>
+<tr class="vg"><td colspan="5">L02 Floor Plan · 1:100 <span>· on sheet A-201 · 11 overlap(s)</span></td></tr>
+<tr><td>Door Tags · 204A</td><td class="idc">412880</td><td>Room Tags · 2.14 Office</td><td class="idc">398114</td><td class="r">1.8</td></tr>
+<tr class="sel"><td>Text Notes · SEE DETAIL 5</td><td class="idc">405511</td><td>Dimensions · 1200</td><td class="idc">405530</td><td class="r">0.7</td></tr>
+<tr><td>Window Tags · W12</td><td class="idc">412902</td><td>Dimensions · 3600</td><td class="idc">405544</td><td class="r">0.6</td></tr>
+<tr><td>Spot Elevations · +3.450</td><td class="idc">420117</td><td>Wall Tags · WT-03</td><td class="idc">413050</td><td class="r">1.1</td></tr>
+<tr><td>Revision Tags · 2</td><td class="idc">431204</td><td>Wall Tags · WT-05</td><td class="idc">413120</td><td class="r">2.9</td></tr>
+<tr><td>Generic Annotations · North arrow</td><td class="idc">430008</td><td>Text Notes · SCALE 1:100</td><td class="idc">405602</td><td class="r">0.4</td></tr>
+<tr class="vg"><td colspan="5">L02 Ceiling Plan · 1:100 <span>· on sheet A-201 · 4 overlap(s)</span></td></tr>
+<tr><td>Ceiling Tags · CT-2</td><td class="idc">415330</td><td>Text Notes · ACCESS PANEL</td><td class="idc">405710</td><td class="r">1.4</td></tr>
+<tr><td>Spot Elevations · +2.700</td><td class="idc">420240</td><td>Keynote Tags · 09 51 00.A1</td><td class="idc">418802</td><td class="r">0.5</td></tr>
+<tr class="vg"><td colspan="5">L03 Floor Plan · 1:100 <span>· on sheet A-202 · 8 overlap(s)</span></td></tr>
+<tr><td>Dimensions · 450</td><td class="idc">406012</td><td>Dimensions · 2400</td><td class="idc">406019</td><td class="r">2.3</td></tr>
+<tr><td>Spot Slopes · 2.0%</td><td class="idc">420410</td><td>Text Notes · FALL TO DRAIN</td><td class="idc">405344</td><td class="r">1.2</td></tr>
             </table>
           </div>
           <div class="hint">Overlap is how far one annotation sits inside the other, in millimetres on paper. Double-click a row, or select it and press Zoom to pair.</div>
@@ -241,23 +243,29 @@ tr.vg td span{font-weight:400;color:var(--text2)}
       </div>
 
       <div class="foot">
-        <span class="status">✔ Check finished in 3.2 s. Nothing in the model was changed.</span>
-        <div class="btns"><span class="btn">Export to Excel <span class="tag">NEW</span></span><span class="btn">Zoom to pair</span><span class="btn">Close</span></div>
+        <span class="status">23 overlapping pair(s) in 3 view(s). Nothing in the model was changed.</span>
+        <div class="btns"><span class="btn">Export to Excel</span><span class="btn">Zoom to pair</span><span class="btn">Close</span></div>
       </div>
     </div>
   </div>
 </section>
 
 <section>
-  <h2>3. Excel export <span class="tag">NEW</span></h2>
+  <h2>3. Known limits in 1.0.0</h2>
+  <p class="muted">Boxes are Revit's bounding boxes: a tag's box includes its leader, and a dimension's box includes its
+  witness lines. Annotations inside linked models, and overlaps between two viewports on a sheet, are not checked.</p>
+</section>
+
+<section>
+  <h2>4. Excel export</h2>
   <p class="muted">Export to Excel saves the listed pairs to one .xlsx file, one row per overlapping pair, using the current
-  Show filters. You choose the file name and folder.</p>
+  Show filters. You choose the file name and folder. A second sheet, Run info, records the tool version, counts and any skipped views.</p>
   <div class="frame">
     <div class="grid" style="width:900px">
       <table>
         <tr><th>Sheet</th><th>View</th><th>Scale</th><th>Type A</th><th>Text A</th><th>ID A</th><th>Type B</th><th>Text B</th><th>ID B</th><th class="r">Overlap (mm)</th></tr>
-        <tr><td>A-201</td><td>L02 Floor Plan</td><td>1:100</td><td>Door tags</td><td>204A</td><td class="idc">412880</td><td>Room tags</td><td>2.14 Office</td><td class="idc">398114</td><td class="r">1.8</td></tr>
-        <tr><td>A-201</td><td>L02 Floor Plan</td><td>1:100</td><td>Text notes</td><td>SEE DETAIL 5</td><td class="idc">405511</td><td>Dimensions</td><td>1200</td><td class="idc">405530</td><td class="r">0.7</td></tr>
+        <tr><td>A-201</td><td>L02 Floor Plan</td><td>1:100</td><td>Door Tags</td><td>204A</td><td class="idc">412880</td><td>Room Tags</td><td>2.14 Office</td><td class="idc">398114</td><td class="r">1.8</td></tr>
+        <tr><td>A-201</td><td>L02 Floor Plan</td><td>1:100</td><td>Text Notes</td><td>SEE DETAIL 5</td><td class="idc">405511</td><td>Dimensions</td><td>1200</td><td class="idc">405530</td><td class="r">0.7</td></tr>
         <tr><td>A-202</td><td>L03 Floor Plan</td><td>1:100</td><td>Dimensions</td><td>450</td><td class="idc">406012</td><td>Dimensions</td><td>2400</td><td class="idc">406019</td><td class="r">2.3</td></tr>
       </table>
     </div>

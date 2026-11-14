@@ -1,6 +1,6 @@
 # Annotation Overlap Report — design
 
-Status: **draft, awaiting the owner's approval.** Nothing is built yet.
+Status: **approved by the owner on 2026-11-14 (Q1: option a). Version 1.0.0 is implemented; it awaits the owner's test in Revit.**
 Date: 2026-11-14 · Target: Revit 2026, .NET 8, WPF, plugin `Revit26_Plugin_Revised`.
 
 UI mock-up: `Claude/Previews/AnnotationOverlapReport_V001_Window.html`, published at
@@ -44,7 +44,7 @@ the model. Moving annotations apart stays the job of Annotation Overlap Detectio
 - C8. Excel: one `.xlsx`, sheet "Overlaps" (columns below) and sheet "Run info" (tool version, format version 1,
   date, views scanned). Uses the library the existing exports use.
 
-**Open question for the owner (Q1): datum and view-mark heads.** For grids, levels, section marks, elevation
+**Q1, answered by the owner: option (a). Datum and view-mark heads.** For grids, levels, section marks, elevation
 marks, callout heads and view titles, Revit's bounding box covers the whole line or region, not just the head,
 so a plain box test would report false overlaps along every grid line. Options:
 

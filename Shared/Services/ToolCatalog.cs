@@ -63,6 +63,7 @@ namespace Revit26_Plugin_Revised.Shared.Services
         public static readonly ToolInfo AnnotationOverlapDetection = Add("Annotation Overlap Detection", "4.2.0", "V004", "Revit26_Plugin_Revised.AnnotationOverlapDetection.V004");
         public static readonly ToolInfo AnnotationOverlapDetectionV005 = Add("Annotation Overlap Detection", "5.0.0", "V005", "Revit26_Plugin_Revised.AnnotationOverlapDetection.V005");
         public static readonly ToolInfo AnnotationOverlapDetectionV006 = Add("Annotation Overlap Detection", "6.0.0", "V006", "Revit26_Plugin_Revised.AnnotationOverlapDetection.V006");
+        public static readonly ToolInfo AnnotationOverlapReport = Add("Annotation Overlap Report", "1.0.0", "V001", "Revit26_Plugin_Revised.AnnotationOverlapReport.V001");
         public static readonly ToolInfo WorksetsElementsBrowser = Add("Worksets & Elements Browser", "4.5.0", "WSEB004", "Revit26_Plugin_Revised.WorksetsElementsBrowser.WSEB004");
         public static readonly ToolInfo WorksetManager = Add("Workset Manager", "14.2.0", "V014", "Revit26_Plugin_Revised.WorksetManager.V014");
         public static readonly ToolInfo WorksetRenamer = Add("Workset Renamer", "5.2.0", "V005", "Revit26_Plugin_Revised.WorksetRenamer.V005");
