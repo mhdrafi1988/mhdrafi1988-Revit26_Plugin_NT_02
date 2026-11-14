@@ -1,0 +1,241 @@
+<title>Wet Area Waterproofing</title>
+<!--
+  Tool: Wet Area Waterproofing — v1.0.0 (build V001), Part A of three
+  Plugin: 7.11.0
+  Mirrors: Menu/Sheet/WetAreaWaterproofing_V001/UI/Views/WetAreaWaterproofingWindow.xaml
+  Artifact: https://claude.ai/artifact/AxccNteVMVibgsyeXAjEiq
+-->
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: workflow strip, then the tool window in its own scroll box, then the result dialog. Window colours = SharedStyles.xaml */
+:root{
+  --page:#F3F5F7; --ink:#1B2430; --muted:#5A6878; --line:#D6DCE3;
+  --win:#F3F5F7; --card:#FFFFFF; --head:#1E3A5F; --headDark:#14283F; --input:#B5C2CF; --sep:#E6EAEF;
+  --blue:#2D6CDF; --ok:#2E7D4F; --okSoft:#E6F4EC; --okBd:#9FCFB2;
+  --warn:#9A5B00; --warnSoft:#FDF1E1; --warnBd:#E8B66B;
+  --info:#1F5FBF; --infoSoft:#E6EEFB; --infoBd:#A9C3EE; --err:#B23A35; --errSoft:#FBE8E7;
+  --winInk:#1B2430; --winMuted:#5A6878;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--page:#111821;--ink:#E4EAF1;--muted:#9AA8B8;--line:#2A3644;color-scheme:dark}}
+:root[data-theme="dark"]{--page:#111821;--ink:#E4EAF1;--muted:#9AA8B8;--line:#2A3644;color-scheme:dark}
+body{background:var(--page);color:var(--ink);font:14px/1.45 "Segoe UI",system-ui,sans-serif;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
+.wrap{max-width:1060px;margin:0 auto;display:grid;gap:22px}
+h1{font-size:22px;margin:0;text-wrap:balance}
+h2{font-size:16px;margin:0 0 10px}
+.note{color:var(--muted);font-size:13px;margin:4px 0 0}
+.new{display:inline-block;background:var(--okSoft);color:var(--ok);border:1px solid var(--okBd);border-radius:3px;font-size:10px;font-weight:700;letter-spacing:.04em;padding:0 5px;margin-left:6px;vertical-align:1px}
+/* workflow */
+.flow{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;counter-reset:s}
+.step{border:1px solid var(--line);border-radius:6px;padding:10px;font-size:12.5px;min-width:0}
+.step b{display:block;font-size:13px;margin-bottom:3px}
+.step b::before{counter-increment:s;content:counter(s) ". ";color:var(--blue)}
+.step span{color:var(--muted)}
+/* window */
+.scroll{overflow-x:auto;padding-bottom:6px}
+.win{width:1020px;background:var(--win);color:var(--winInk);border:1px solid #9AA8B8;border-radius:6px;box-shadow:0 6px 24px rgba(20,40,63,.18);overflow:hidden;font-size:12.5px}
+.tb{background:var(--head);color:#fff;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;font-weight:600}
+.tb i{font-style:normal;opacity:.7;font-weight:400}
+.body{display:grid;grid-template-columns:1fr 360px;gap:10px;padding:10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:5px;padding:10px;display:grid;gap:8px;align-content:start}
+.card h3{margin:0;font-size:12.5px;color:var(--head);text-transform:uppercase;letter-spacing:.05em}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.lbl{color:var(--winMuted);width:118px;flex:none}
+.in{border:1px solid var(--input);border-radius:3px;background:#fff;padding:3px 7px;min-height:18px;flex:1;color:var(--winInk)}
+.sel::after{content:" ▾";float:right;color:var(--winMuted)}
+.btn{border:1px solid var(--input);background:#fff;border-radius:3px;padding:4px 10px;color:var(--winInk)}
+.btn.pri{background:var(--head);border-color:var(--head);color:#fff;font-weight:600}
+.chk::before{content:"☑ ";color:var(--blue)}
+.unchk::before{content:"☐ ";color:var(--winMuted)}
+.rad::before{content:"◉ ";color:var(--blue)}
+.unrad::before{content:"○ ";color:var(--winMuted)}
+.chips{display:flex;gap:4px;flex-wrap:wrap}
+.chip{background:var(--infoSoft);border:1px solid var(--infoBd);color:var(--info);border-radius:10px;padding:0 7px;font-size:11.5px}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+th{background:#ECEFF3;text-align:left;font-weight:600;padding:4px 6px;border-bottom:1px solid var(--line);font-size:11.5px;white-space:nowrap}
+td{padding:3px 6px;border-bottom:1px solid var(--sep);white-space:nowrap}
+tr.off td{color:#9AA8B8}
+.pill{border-radius:3px;padding:0 5px;font-size:11px;border:1px solid}
+.p-ok{background:var(--okSoft);color:var(--ok);border-color:var(--okBd)}
+.p-warn{background:var(--warnSoft);color:var(--warn);border-color:var(--warnBd)}
+.p-link{background:var(--infoSoft);color:var(--info);border-color:var(--infoBd)}
+.foot{border-top:1px solid var(--line);background:var(--card);padding:8px 10px;display:grid;gap:6px}
+.gtb .btn{white-space:nowrap}
+.gwrap{position:relative;overflow-x:auto}
+.grid th{cursor:pointer}
+.f{color:#9AA8B8;font-size:10px}.f.on{color:var(--blue)}
+sup{font-size:8px;color:var(--blue)}
+tr.grp td{background:#F3F5F7;font-weight:600;color:var(--head)}
+.pop{position:absolute;left:34px;top:24px;width:170px;background:#fff;border:1px solid #9AA8B8;border-radius:4px;box-shadow:0 4px 14px rgba(20,40,63,.2);padding:8px;display:grid;gap:4px;font-size:12px}
+.lv{border:1px solid var(--input);background:#fff;border-radius:3px;padding:1px 8px;font-size:11.5px;color:var(--winMuted)}
+.lv.on{background:var(--head);border-color:var(--head);color:#fff}
+.p-err{background:var(--errSoft);color:var(--err);border-color:#EDA5A1}
+.warnbar{background:var(--warnSoft);border:1px solid var(--warnBd);color:var(--warn);border-radius:3px;padding:5px 8px}
+.hint{margin:0;color:var(--winMuted);font-size:11.5px}
+.log{font-family:Consolas,monospace;font-size:11.5px;background:#ECEFF3;border-radius:3px;padding:6px 8px;color:var(--winInk)}
+.dlg{width:460px;background:var(--win);color:var(--winInk);border:1px solid #9AA8B8;border-radius:6px;overflow:hidden;box-shadow:0 6px 24px rgba(20,40,63,.18)}
+.dlg .c{padding:12px;display:grid;gap:6px;font-size:12.5px}
+.tip{width:340px;background:#fff;color:var(--winInk);border:1px solid #9AA8B8;padding:10px;font-size:12px;box-shadow:0 3px 10px rgba(0,0,0,.15)}
+.ribbon{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap}
+.rbtn{width:90px;background:#fff;border:1px solid #9AA8B8;border-radius:4px;text-align:center;padding:8px 4px;font-size:11.5px;color:var(--winInk)}
+.later{opacity:.75}
+.tagb{display:inline-block;background:var(--infoSoft);color:var(--info);border:1px solid var(--infoBd);border-radius:3px;font-size:10px;font-weight:700;letter-spacing:.04em;padding:0 5px;margin-left:6px;vertical-align:1px}
+.logd{background:#14283F;color:#DCE6F2;border-radius:6px;padding:8px 10px;font-family:Consolas,monospace;font-size:11.5px;display:grid;gap:2px;margin:0 10px 10px}
+.logd .w{color:#F2C078}.logd .g{color:#8FD6A8}.logd .d{color:#8FA3B8}
+.sub{background:#fff;border-bottom:1px solid var(--line);padding:6px 12px;color:var(--winMuted);font-size:12px}
+.ico{width:32px;height:32px;margin:0 auto 4px;position:relative}
+.ico::before{content:"";position:absolute;left:3px;right:3px;bottom:4px;height:10px;background:linear-gradient(180deg,#2D6CDF 0 28%,#1E3A5F 28% 100%);border-radius:1px}
+.ico::after{content:"";position:absolute;left:12px;top:3px;width:8px;height:8px;background:#5B8DEF;border-radius:0 50% 50% 50%;transform:rotate(45deg)}
+</style>
+
+<div class="wrap">
+<header>
+  <h1>Wet Area Waterproofing <span class="new">NEW TOOL · v1.0.0</span></h1>
+  <p class="note">Part A is built: rooms, outline repair, waterproofing roofs, Excel report, remove a run. Every room, level, link and file name below is <b>sample data</b>.</p>
+</header>
+
+<section>
+  <h2>Workflow</h2>
+  <div class="flow">
+    <div class="step"><b>Find rooms</b><span>Host model and every loaded link <span class="new">PART A</span></span></div>
+    <div class="step"><b>Flag wet areas</b><span>Room-name keywords; you tick or untick <span class="new">PART A</span></span></div>
+    <div class="step"><b>Waterproofing roof</b><span>Outline repaired if needed; roof on the slab top, or level + offset <span class="new">PART A</span></span></div>
+    <div class="step"><b>Excel report</b><span>Rooms, repairs, issues; saved after every run <span class="new">PART A</span></span></div>
+    <div class="step later"><b>Plan per room</b><span>Cropped plan, close rooms on a level grouped, 1:100 <span class="tagb">PART B/C</span></span></div>
+    <div class="step later"><b>Up to 6 reference sections</b><span>Doors, drains, corners, WC, shower; drafting views <span class="tagb">PART B</span></span></div>
+    <div class="step later"><b>Sheets and print set</b><span>Title block list (A0 first), fit check <span class="tagb">PART C</span></span></div>
+  </div>
+</section>
+
+<section>
+  <h2>Ribbon button <span class="new">NEW</span></h2>
+  <div class="ribbon">
+    <div class="rbtn"><div class="ico"></div>Wet Area<br>Waterproofing</div>
+    <div class="tip"><b>Wet Area Waterproofing — v1.0.0 (build V001)</b><br>Finds wet rooms (toilets, baths, kitchens…) in the model and its links, repairs their outlines and adds a waterproofing roof on top of the slab under each one. Advanced room grid with level filter; Excel report; one Undo step.</div>
+  </div>
+  <p class="note">Sheet Create panel, stacked after Combine Sheets.</p>
+</section>
+
+<section>
+  <h2>Tool window <span class="new">NEW</span></h2>
+  <div class="scroll"><div class="win">
+    <div class="tb">Wet Area Waterproofing — v1.0.0 <i>✕</i></div>
+    <div class="sub">Find wet rooms, repair their outlines and add a waterproofing roof on top of each slab</div>
+    <div class="body">
+      <div class="card">
+        <h3>1 · Rooms</h3>
+        <div class="row"><span class="lbl" style="width:90px">Source</span><span class="chk">Host model</span><span class="chk">Links:</span><span class="chk">ARC_Model</span><span class="unchk">STR_Model</span><span style="flex:1"></span><span style="color:var(--warn);font-size:11px">Press Refresh to apply</span><button class="btn">Refresh</button></div>
+        <div class="row"><span class="lbl" style="width:90px">Wet keywords</span><span class="in">toilet, wc, bath, shower, kitchen, pantry, laundry, wash, balcony</span><button class="btn">Apply</button></div>
+        <div class="row"><span class="lbl" style="width:90px">Show</span><span class="rad">Wet rooms only</span><span class="unrad">All rooms</span></div>
+        <div class="row"><span class="lbl" style="width:90px">Levels</span>
+          <div class="chips"><span class="lv">All</span><span class="lv on">L01 · 2</span><span class="lv on">L02 · 3</span><span class="lv">L03 · 1</span></div></div>
+        <div class="row gtb">
+          <span class="in" style="flex:1 1 140px;color:#9AA8B8">Search every column</span>
+          <span class="lbl" style="width:auto">Group by</span><span class="in sel" style="flex:0 0 80px">Level</span>
+          <button class="btn">Columns ▾</button><button class="btn">Clear filters</button>
+        </div>
+        <div class="gwrap">
+        <table class="grid">
+          <tr><th></th><th>Source ● <span class="f on">⏷</span></th><th>Level <span class="f">⏷</span></th><th>No. ▲ <span class="f">⏷</span></th><th>Name <span class="f">⏷</span></th><th>Area m² <span class="f">⏷</span></th><th>Matched <span class="f">⏷</span></th><th>Slab top <span class="f">⏷</span></th><th>Status <span class="f">⏷</span></th></tr>
+          <tr class="grp"><td colspan="9">▾ L01 · 2 room(s)</td></tr>
+          <tr><td class="chk"></td><td>Host</td><td>L01</td><td>101</td><td>Toilet 01</td><td>4.20</td><td>toilet</td><td>Floor · +3.150</td><td><span class="pill p-ok">Ready</span></td></tr>
+          <tr><td class="unchk"></td><td>Host</td><td>L01</td><td>102</td><td>Kitchen</td><td>12.85</td><td>kitchen</td><td>Floor · +3.150</td><td><span class="pill p-link">Already done</span></td></tr>
+          <tr class="grp"><td colspan="9">▾ L02 · 3 room(s)</td></tr>
+          <tr><td class="chk"></td><td>ARC_Model</td><td>L02</td><td>201</td><td>Master Bath</td><td>7.60</td><td>bath</td><td>Floor · +6.300</td><td><span class="pill p-warn">Repaired</span></td></tr>
+          <tr><td class="chk"></td><td>ARC_Model</td><td>L02</td><td>202</td><td>Shower Room</td><td>3.10</td><td>shower</td><td>No slab</td><td><span class="pill p-warn">No slab</span></td></tr>
+          <tr><td class="chk"></td><td>ARC_Model</td><td>L02</td><td>205</td><td>Laundry</td><td>5.40</td><td>laundry</td><td>Floor · +6.300</td><td><span class="pill p-warn">Area +3.4%</span></td></tr>
+        </table>
+        <div class="pop" style="left:40px">
+          <b>Filter: Source</b>
+          <div class="row"><button class="btn">All</button><button class="btn">None</button></div>
+          <span class="chk">ARC_Model</span><span class="chk">Host</span><span class="unchk">MEP_Model</span>
+          <div class="row" style="justify-content:flex-end"><button class="btn">Clear</button><button class="btn">OK</button></div>
+        </div>
+        </div>
+        <p class="hint">Click a header to sort, Shift+click to add a second sort. ⏷ opens the column's filter. Hover a status to see why.</p>
+        <div class="row"><button class="btn">Tick visible</button><button class="btn">Untick visible</button><button class="btn">Invert</button><span style="flex:1"></span><span style="color:var(--winMuted)">5 shown · 4 ticked · 38 total · 2 filters active</span></div>
+      </div>
+
+      <div style="display:grid;gap:10px;align-content:start">
+        <div class="card">
+          <h3>2 · Waterproofing roof</h3>
+          <div class="row"><span class="lbl">Roof type</span><span class="in sel">WP Membrane 3 mm</span></div>
+          <div class="row"><span class="lbl">Workset</span><span class="in sel">WP_Waterproofing</span></div>
+          <div class="row"><span class="lbl">Offset above slab</span><span class="in" style="flex:0 0 60px">0</span> mm</div>
+          <div class="row"><span class="lbl">No slab found</span><span>Use room level + offset</span></div>
+          <div class="row"><span class="chk">Add room No. + name to the roof's Comments</span></div>
+          <p class="hint">A room that already has a roof from an earlier run gets it replaced (same room, new outline).</p>
+        </div>
+        <div class="card">
+          <h3>Boundary repair</h3>
+          <div class="row"><span class="lbl">Snap gaps up to</span><span class="in" style="flex:0 0 60px">5</span> mm</div>
+          <div class="row"><span class="lbl">Bridge gaps up to</span><span class="in" style="flex:0 0 60px">50</span> mm</div>
+          <div class="row"><span class="lbl">Area check ±</span><span class="in" style="flex:0 0 60px">2</span> % of room area</div>
+          <div class="row"><span class="unchk">Allow approximate outline (last resort)</span></div>
+          <p class="hint">Tried in order: other boundary location → clean → merge → snap → bridge → remove overlaps → room 3D shape → skip hole → approximate. An outline outside the area check still gets a roof, with a warning. Curved walls are drawn as short straight edges.</p>
+        </div>
+        <div class="card">
+          <h3>Excel report</h3>
+          <div class="row"><span class="chk">Save Excel report after run</span></div>
+          <div class="row"><span class="in" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">%AppData%\Revit26_Plugin_Revised\WetAreaWaterproofing\Reports</span><button class="btn">…</button></div>
+          <div class="row"><button class="btn">Export now</button><button class="btn">Open report</button><button class="btn">Open folder</button></div>
+        </div>
+      </div>
+    </div>
+    <div class="logd">
+      <b>Activity Log</b>
+      <span><span class="d">15:30:01</span> Info &nbsp;&nbsp;&nbsp;Read 38 room(s); 6 match a wet-area keyword.</span>
+      <span class="w"><span class="d">15:30:01</span> Warning 1 link(s) are not loaded and were not read.</span>
+      <span class="g"><span class="d">15:30:07</span> Success Run 20261114-153007: 3 created, 1 replaced, 0 skipped. One Undo step.</span>
+    </div>
+    <div class="foot">
+      <div class="row"><div class="warnbar" style="flex:1">⚠ 3 ticked room(s) need attention: 201 Master Bath (Snap: gap 3 mm snapped) · 202 Shower Room (No slab under the room: level + offset is used) · 205 Laundry (Area +3.4%) <button class="btn">Show these rooms</button></div>
+        <button class="btn">Remove a run…</button><button class="btn pri">Run for 4 rooms</button><button class="btn">Close</button></div>
+    </div>
+  </div></div>
+</section>
+
+<section>
+  <h2>Result card and “Remove a run” <span class="new">NEW</span></h2>
+  <div class="ribbon">
+  <div class="scroll"><div class="dlg" style="width:520px">
+    <div class="c">
+      <b style="font-size:14px">Wet Area Waterproofing — done</b>
+      <div style="color:var(--ok)">3 waterproofing roof(s) created</div>
+      <div style="color:var(--ok)">1 roof(s) from an earlier run replaced</div>
+      <div style="color:var(--ok)">Excel report saved: WP_Report_Sample_Model_20261114_1530.xlsx</div>
+      <div style="color:var(--warn)">Room 201: Outline repaired (Snap): gap 3 mm snapped.</div>
+      <div style="color:var(--warn)">Room 202: No slab found under the room: roof placed at level L02 + 0 mm.</div>
+      <div style="color:var(--warn)">Room 205: Roof area differs from the room area by +3.4% (limit ± 2%).</div>
+      <div class="row" style="justify-content:flex-end"><button class="btn">Open report</button><button class="btn pri">OK</button></div>
+    </div>
+  </div></div>
+  <div class="scroll"><div class="dlg" style="width:420px">
+    <div class="c">
+      <b style="font-size:14px">Remove a run</b>
+      <span class="hint">Deletes every element the picked run created (found by the run ID in Comments). Elements another user owns are left. One Undo step.</span>
+      <div class="in" style="display:grid;gap:3px;font-family:Consolas,monospace"><span style="background:var(--infoSoft)">20261114-153007 &nbsp; 4 element(s)</span><span>20261112-091544 &nbsp; 2 element(s)</span></div>
+      <div class="row" style="justify-content:flex-end"><button class="btn">Cancel</button><button class="btn" style="background:var(--err);border-color:var(--err);color:#fff">Remove</button></div>
+    </div>
+  </div></div>
+  </div>
+</section>
+
+<section>
+  <h2>Excel report <span class="new">NEW</span></h2>
+  <div class="scroll"><table style="min-width:760px;font-size:12.5px">
+    <tr><th>Sheet</th><th>One row per</th><th>Columns</th></tr>
+    <tr><td>Summary</td><td>run</td><td style="white-space:normal">Run ID, date, user, model, versions, run time, totals, settings used</td></tr>
+    <tr><td>Rooms</td><td>ticked room, and wet room not ticked</td><td style="white-space:normal">Room ElementId, Source, Level, Number, Name, Room area, Matched keyword, Slab ElementId, Slab top, Roof ElementId, Roof area, Area difference %, Boundary result, Status, Reason, Phase, Workset, Group, Scale, Run ID</td></tr>
+    <tr><td>Boundary repair</td><td>repair attempt</td><td style="white-space:normal">Room, Method, Method name, Result (Passed / Failed), Detail, X, Y, Room area, Outline area</td></tr>
+    <tr><td>Issues</td><td>warning or error</td><td style="white-space:normal">Severity, Step, Room number, Message, Suggested fix, Room key</td></tr>
+  </table></div>
+  <p class="note">Header filters, frozen top row, status coloured green / yellow / red. Group and Scale are filled from Part C on.</p>
+</section>
+
+<section class="later">
+  <h2>Coming next <span class="tagb">PART B · PART C</span></h2>
+  <p class="note"><b>Part B:</b> a cropped plan per room; up to 6 reference sections per room (full room H and V, door, drain, wall corner, WC, shower, wall–floor), one per item or all matches; one drafting view for all targets or one per target; an expandable list of models and categories to search. Grid columns Doors, Drains, Fixtures and Sections arrive with it.<br>
+  <b>Part C:</b> close rooms on the same level share a plan (1000 mm gap); scale 1:100, changeable; title blocks from your list with A0 first; extra sheet or smaller scale when it does not fit; sheets and the print set; Sections and Sheets tabs in the Excel report.</p>
+</section>
+</div>
