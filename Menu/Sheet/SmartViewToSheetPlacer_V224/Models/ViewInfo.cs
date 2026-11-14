@@ -38,11 +38,38 @@ namespace Revit26_Plugin_Revised.SmartViewToSheetPlacer.V224.Models
         /// <summary>Display string for scale, e.g. "1:100" or "—" if not applicable.</summary>
         public string ScaleLabel => Scale > 0 ? $"1:{Scale}" : "—";
 
-        /// <summary>Computed width on sheet in millimeters (crop box width × scale factor, converted from feet).</summary>
+        /// <summary>Width on sheet in millimeters (the view's paper-space outline; crop box ÷ scale as a fallback).</summary>
         public double WidthMm { get; }
 
-        /// <summary>Computed height on sheet in millimeters (crop box height × scale factor, converted from feet).</summary>
-        public double HeightMm { get; }
+        /// <summary>
+        /// Height of the view itself on sheet in millimeters, without the title space
+        /// (the view's paper-space outline; crop box ÷ scale as a fallback).
+        /// </summary>
+        public double ViewHeightMm { get; }
+
+        /// <summary>
+        /// Extra height in millimeters reserved below the view for its viewport title.
+        /// 0 (the default) reserves nothing. Set by the view model from the Title space field.
+        /// </summary>
+        public double TitleSpaceMm
+        {
+            get => _titleSpaceMm;
+            set
+            {
+                double clamped = value > 0 ? value : 0;
+                if (clamped == _titleSpaceMm) return;
+                _titleSpaceMm = clamped;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(HeightMm));
+            }
+        }
+        private double _titleSpaceMm;
+
+        /// <summary>
+        /// Height the view takes up on the sheet in millimeters: <see cref="ViewHeightMm"/> plus
+        /// <see cref="TitleSpaceMm"/>. This is the height the packing uses.
+        /// </summary>
+        public double HeightMm => ViewHeightMm + TitleSpaceMm;
 
         /// <summary>View's Right direction vector (model space), used to project the
         /// crop box center onto the U axis for reading-order sort. Null if the
@@ -93,6 +120,17 @@ namespace Revit26_Plugin_Revised.SmartViewToSheetPlacer.V224.Models
         public bool IsAlreadyPlaced { get; }
 
         /// <summary>
+        /// False when Revit will refuse to put this view on another sheet: it is already
+        /// on one and is not a legend (a legend may sit on any number of sheets).
+        /// Such views are left out of the packing.
+        /// </summary>
+        public bool CanBePlaced => !IsAlreadyPlaced || RevitViewType == ViewType.Legend;
+
+        /// <summary>Text for the grid's "On Sheet" column.</summary>
+        public string OnSheetLabel =>
+            !IsAlreadyPlaced ? "—" : (CanBePlaced ? "Yes – reusable" : "Yes – skipped");
+
+        /// <summary>
         /// Every parameter this View element carries — built-in (exposed as an
         /// instance Parameter), project, and shared parameters bound to the
         /// Views category alike — keyed by Definition.Name, value as its
@@ -125,7 +163,7 @@ namespace Revit26_Plugin_Revised.SmartViewToSheetPlacer.V224.Models
             ViewTypeLabel = viewTypeLabel;
             Scale = scale;
             WidthMm = widthMm;
-            HeightMm = heightMm;
+            ViewHeightMm = heightMm;
             RightDirection = rightDirection;
             UpDirection = upDirection;
             CropCenterModel = cropCenterModel;

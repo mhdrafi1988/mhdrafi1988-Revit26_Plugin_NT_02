@@ -44,6 +44,19 @@ namespace Revit26_Plugin_Revised.SmartViewToSheetPlacer.V224.ViewModels
                 g.VerticalGapMm = value;
         }
 
+        /// <summary>
+        /// Height in mm kept free below every view for its viewport title. 0 (the default)
+        /// reserves nothing, as before 224.3.0. Changing it repacks.
+        /// </summary>
+        [ObservableProperty] private double _titleSpaceMm;
+
+        partial void OnTitleSpaceMmChanged(double value)
+        {
+            foreach (var v in AllViews)
+                v.TitleSpaceMm = value;
+            RepackIfReady();
+        }
+
         [ObservableProperty] private int _selectedViewCount;
         [ObservableProperty] private int _totalViewCount;
         [ObservableProperty] private bool _stage1Complete;
@@ -286,6 +299,12 @@ namespace Revit26_Plugin_Revised.SmartViewToSheetPlacer.V224.ViewModels
                 Logs.Add(new LogEntry(LogLevel.Warning, "No titleblock selected — cannot proceed."));
                 return;
             }
+            if (!AllViews.Any(v => v.IsSelected && v.CanBePlaced))
+            {
+                Logs.Add(new LogEntry(LogLevel.Warning,
+                    "Every selected view is already on a sheet, and Revit allows a view on one sheet only (legends excepted) — nothing to place."));
+                return;
+            }
 
             SelectedTitleblock.ApplyMargins(MarginTopMm, MarginBottomMm, MarginLeftMm, MarginRightMm);
             SaveSettings();
@@ -362,6 +381,7 @@ namespace Revit26_Plugin_Revised.SmartViewToSheetPlacer.V224.ViewModels
             AllViews.Clear();
             foreach (var v in _handler.LoadedViews)
             {
+                v.TitleSpaceMm = TitleSpaceMm;
                 v.PropertyChanged += OnViewInfoPropertyChanged;
                 AllViews.Add(v);
             }

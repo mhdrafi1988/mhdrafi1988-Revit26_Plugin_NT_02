@@ -34,6 +34,9 @@ namespace Revit26_Plugin_Revised.SmartViewToSheetPlacer.V224.Models
         /// <summary>Last-used global vertical gap in mm, applied to every ViewType group.</summary>
         public double LastVerticalGapMm { get; set; } = 5.0;
 
+        /// <summary>Height (mm) kept free below each view for its title. New in 224.3.0; 0 = none, the earlier behaviour.</summary>
+        public double LastTitleSpaceMm { get; set; } = 0.0;
+
         /// <summary>Last-used global reading-order direction. Defaults to top-to-bottom, left-to-right.</summary>
         public string LastReadingDirection { get; set; } = "TopToBottom_LeftToRight";
 

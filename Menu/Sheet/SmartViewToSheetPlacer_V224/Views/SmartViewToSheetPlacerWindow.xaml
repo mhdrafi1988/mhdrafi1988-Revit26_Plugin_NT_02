@@ -446,16 +446,23 @@ Changes vs V223 (layout only):
                                                         <TextBox Style="{StaticResource CompactBoxedInput}" MaxLength="10"
                                                                  Text="{Binding GlobalHorizontalGapMm, UpdateSourceTrigger=PropertyChanged}"/>
                                                     </StackPanel>
-                                                    <StackPanel>
+                                                    <StackPanel Margin="0,0,6,0">
                                                         <TextBlock Text="Vertical" Style="{StaticResource CompactFieldLabel}"/>
                                                         <TextBox Style="{StaticResource CompactBoxedInput}" MaxLength="10"
                                                                  Text="{Binding GlobalVerticalGapMm, UpdateSourceTrigger=PropertyChanged}"/>
+                                                    </StackPanel>
+                                                    <!-- 224.3.0: height kept free below each view for its viewport title. -->
+                                                    <StackPanel>
+                                                        <TextBlock Text="Title space" Style="{StaticResource CompactFieldLabel}"/>
+                                                        <TextBox Style="{StaticResource CompactBoxedInput}" MaxLength="10"
+                                                                 ToolTip="Height kept free below every view for its title. 0 = none."
+                                                                 Text="{Binding TitleSpaceMm, UpdateSourceTrigger=PropertyChanged}"/>
                                                     </StackPanel>
                                                 </StackPanel>
                                             </StackPanel>
                                         </StackPanel>
                                         <TextBlock Style="{StaticResource HintText}" Margin="0,4,0,0"
-                                                   Text="Usable area = titleblock paper size minus each margin. Used directly by the packing calculation."/>
+                                                   Text="Usable area = titleblock paper size minus each margin. Used directly by the packing calculation. Title space is kept free below every view for its title (0 = none)."/>
                                     </StackPanel>
                                 </Border>
 
@@ -689,6 +696,8 @@ Changes vs V223 (layout only):
                                                         <Style TargetType="TextBlock"><Setter Property="HorizontalAlignment" Value="Right"/></Style>
                                                     </DataGridTextColumn.ElementStyle>
                                                 </DataGridTextColumn>
+                                                <!-- 224.3.0: views already on a sheet are flagged here and left out of the packing (legends can repeat). -->
+                                                <DataGridTextColumn Header="On Sheet" Width="110" Binding="{Binding OnSheetLabel}" IsReadOnly="True"/>
                                                 <DataGridTextColumn Header="Size on Sheet (mm)" Width="160" IsReadOnly="True">
                                                     <DataGridTextColumn.Binding>
                                                         <MultiBinding StringFormat="{}{0:0} x {1:0}">
@@ -1227,7 +1236,7 @@ Changes vs V223 (layout only):
                                         </DataGrid>
 
                                         <TextBlock Style="{StaticResource HintText}" Margin="0,4,0,0"
-                                                   Text="Editing &quot;Suggested Sheet #&quot; manually re-validates fit and recomputes that sheet's name. The dropdown only offers sheets in that view's own ViewType group. Rows that no longer fit are flagged in red with an Overflow warning — placement can still proceed, but flagged views should be reviewed."/>
+                                                   Text="Editing &quot;Suggested Sheet #&quot; manually re-validates fit and recomputes that sheet's name. The dropdown only offers sheets in that view's own ViewType group. Rows that no longer fit are flagged in red with an Overflow warning — Place Views asks for confirmation before placing flagged views."/>
                                     </StackPanel>
                                 </Border>
 

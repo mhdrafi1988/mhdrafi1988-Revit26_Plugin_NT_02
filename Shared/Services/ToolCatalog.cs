@@ -124,7 +124,7 @@ namespace Revit26_Plugin_Revised.Shared.Services
         public static readonly ToolInfo DwgStatistics = Add("DWG Statistics", "5.2.0", "V005", "Revit26_Plugin_Revised.DwgStatistics.V005");
         public static readonly ToolInfo ExportDwgToFolder = Add("Export DWG to Folder", "4.3.0", "V004", "Revit26_Plugin_Revised.ExportDwgToFolder.V004");
         public static readonly ToolInfo PlanFromScopeBox = Add("Plan From Scope Box", "6.2.0", "V006", "Revit26_Plugin_Revised.PlanFromScopeBox.V006");
-        public static readonly ToolInfo SmartViewToSheetPlacer = Add("Smart View To Sheet Placer", "224.2.0", "V224", "Revit26_Plugin_Revised.SmartViewToSheetPlacer.V224");
+        public static readonly ToolInfo SmartViewToSheetPlacer = Add("Smart View To Sheet Placer", "224.3.0", "V224", "Revit26_Plugin_Revised.SmartViewToSheetPlacer.V224");
         public static readonly ToolInfo AutomatedSectionPlacer = Add("Automated Section Placer", "3.2.0", "V003", "Revit26_Plugin_Revised.AutomatedSectionPlacer.V003");
         public static readonly ToolInfo SheetAutoRearrange = Add("Sheet Auto Rearrange", "28.2.2", "V028", "Revit26_Plugin_Revised.SheetAutoRearrange.V028");
         public static readonly ToolInfo SheetAutoRearrangeV029 = Add("Sheet Auto Rearrange", "29.0.2", "V029", "Revit26_Plugin_Revised.SheetAutoRearrange.V029");
