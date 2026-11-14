@@ -20,6 +20,10 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Run
             RoomRow row = c?.Row;
             if (row == null) return;
             RoomOutline outline = c.Outline;
+            row.HasExistingRoof = c.ExistingRoofIds != null && c.ExistingRoofIds.Count > 0;
+            string done = !row.HasExistingRoof ? string.Empty
+                : string.IsNullOrEmpty(c.ExistingRunId) ? " · already has a roof; a run replaces it"
+                : $" · already has a roof (run {c.ExistingRunId}); a run replaces it";
 
             row.SlabText = row.SlabTopMm.HasValue
                 ? "Floor · " + (row.SlabTopMm.Value / 1000).ToString("+0.000;-0.000", CultureInfo.InvariantCulture)
@@ -30,7 +34,13 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Run
                 Set(row, RoomStatus.Owned, "Owned by " + row.Owner);
                 return;
             }
-            if (outline == null || outline.Status == RoomStatus.NotEnclosed)
+            if (outline == null)
+            {
+                Set(row, RoomStatus.NotChecked, "Not a wet room: outline and slab are checked when it is run" + done);
+                row.SlabText = string.Empty;
+                return;
+            }
+            if (outline.Status == RoomStatus.NotEnclosed)
             {
                 Set(row, RoomStatus.NotEnclosed, "Not placed or not enclosed");
                 return;
@@ -44,19 +54,19 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Run
                     Set(row, RoomStatus.Failed, failed == null ? "No closed outline" : $"{failed.Name}: {failed.Detail}");
                     return;
                 case RoomStatus.Approximate:
-                    Set(row, RoomStatus.Approximate, "Approximate outline · " + area);
+                    Set(row, RoomStatus.Approximate, "Approximate outline · " + area + done);
                     return;
                 case RoomStatus.AreaWarning:
-                    Set(row, RoomStatus.AreaWarning, area);
+                    Set(row, RoomStatus.AreaWarning, area + done);
                     return;
                 case RoomStatus.Repaired:
                     RepairStep passed = outline.Steps.LastOrDefault(s => s.Passed);
-                    Set(row, RoomStatus.Repaired, passed == null ? "Repaired" : $"{passed.Name}: {passed.Detail}");
+                    Set(row, RoomStatus.Repaired, (passed == null ? "Repaired" : $"{passed.Name}: {passed.Detail}") + done);
                     return;
             }
 
-            if (!row.SlabTopMm.HasValue) Set(row, RoomStatus.NoSlab, "No slab under the room: level + offset is used");
-            else if (c.ExistingRoofIds != null && c.ExistingRoofIds.Count > 0)
+            if (!row.SlabTopMm.HasValue) Set(row, RoomStatus.NoSlab, "No slab under the room: level + offset is used" + done);
+            else if (row.HasExistingRoof)
                 Set(row, RoomStatus.AlreadyDone, string.IsNullOrEmpty(c.ExistingRunId)
                     ? "Already done; a run replaces the roof" : $"Already done (run {c.ExistingRunId}); a run replaces the roof");
             else Set(row, RoomStatus.Ready, string.Empty);

@@ -172,6 +172,11 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.UI.ViewModels
             TickDefaults();
             RebuildRows();
             AddLog(LogLevel.Info, $"Keywords applied: {_all.Count(c => !string.IsNullOrEmpty(c.Row.Matched))} wet room(s) found; ticks reset.");
+            if (_all.Any(c => !string.IsNullOrEmpty(c.Row.Matched) && c.Row.Status == RoomStatus.NotChecked))
+            {
+                NeedsRefresh = true;
+                AddLog(LogLevel.Info, "Newly matched rooms show \"Not checked\": press Refresh to check their outlines and slabs (a run checks them anyway).");
+            }
         }
 
         private void ApplySnapshot(ModelSnapshot snapshot, bool firstLoad)
@@ -212,13 +217,14 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.UI.ViewModels
             RebuildRows();
         }
 
-        /// <summary>Ticks every wet room a run can do that has no roof from an earlier run.</summary>
+        /// <summary>Ticks every wet room a run can do that has no roof from an earlier run (whatever its status).</summary>
         private void TickDefaults()
         {
             _ticked.Clear();
             foreach (RoomCandidate c in _all)
                 if (!string.IsNullOrEmpty(c.Row.Matched)
-                    && c.Row.Status is not (RoomStatus.Owned or RoomStatus.NotEnclosed or RoomStatus.Failed or RoomStatus.AlreadyDone))
+                    && !c.Row.HasExistingRoof
+                    && c.Row.Status is not (RoomStatus.Owned or RoomStatus.NotEnclosed or RoomStatus.Failed))
                     _ticked.Add(c.Row.RoomKey);
         }
 

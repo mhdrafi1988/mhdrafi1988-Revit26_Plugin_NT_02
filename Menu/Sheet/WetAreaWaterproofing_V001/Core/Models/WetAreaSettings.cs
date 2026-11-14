@@ -78,7 +78,7 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Models
         /// <summary>Folder for the Excel reports; empty = <see cref="DefaultReportFolder"/>.</summary>
         public string ReportFolder { get; set; } = string.Empty;
 
-        /// <summary>Write the run ID, room number and name to the roof's Comments.</summary>
+        /// <summary>Add the room number and name to the roof's Comments. The run ID and room key are always written.</summary>
         public bool WriteComments { get; set; } = true;
 
         /// <summary>What a run does with rooms that already have a roof from an earlier run.</summary>

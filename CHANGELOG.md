@@ -40,6 +40,9 @@ Each release lists every tool whose version changed, under the plugin version.
 **User notes**
 - Curved room boundaries are drawn as short straight edges in the roof outline.
 - The roof's **Comments** hold `WP|run|room…`. Do not edit them: re-runs and *Remove a run* rely on them.
+- Rooms that are not wet show **Not checked**: their outline and slab are only read when you run them, which keeps
+  the list fast on large models.
+- A room that already has a roof from an earlier run starts unticked; tick it to replace the roof.
 - Plans, detail sections, sheets and the print set are parts B and C and are not in this release.
 
 ## [7.10.1] — 2026-11-14

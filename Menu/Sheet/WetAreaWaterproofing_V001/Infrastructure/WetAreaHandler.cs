@@ -31,9 +31,13 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
             _pending = null;
             if (action == null) return;
 
-            // Esc / Cancel with a Yes-No confirm while the queued Revit work runs.
-            using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.WetAreaWaterproofing, app);
-            action.Invoke(app);
+            // Esc / Cancel with a Yes-No confirm while the queued Revit work runs. If that cannot be set
+            // up the work still runs (without cancel), so the window always gets its answer.
+            ToolCancellation cancel = null;
+            try { cancel = ToolCancellation.BeginFor(ToolCatalog.WetAreaWaterproofing, app); }
+            catch (Exception ex) when (ex is not OperationCanceledException) { cancel = null; }
+            try { action.Invoke(app); }
+            finally { cancel?.Dispose(); }
         }
 
         /// <summary>Name shown by Revit for this handler.</summary>

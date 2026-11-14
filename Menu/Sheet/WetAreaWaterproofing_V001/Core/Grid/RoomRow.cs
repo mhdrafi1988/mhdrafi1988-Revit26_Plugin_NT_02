@@ -50,6 +50,9 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Grid
         /// <summary>User who has the room or slab checked out; null when free.</summary>
         public string Owner { get; set; }
 
+        /// <summary>True when a roof from an earlier run exists for this room, whatever its status.</summary>
+        public bool HasExistingRoof { get; set; }
+
         /// <summary>Room phase name.</summary>
         public string Phase { get; set; }
 

@@ -1,6 +1,5 @@
 using Autodesk.Revit.DB;
 using Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Geometry;
-using Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Models;
 using Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Run;
 using System;
 using System.Collections.Generic;
@@ -42,8 +41,7 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
         /// <param name="job">What to create.</param>
         /// <param name="roofType">Roof type to use.</param>
         /// <param name="worksetId">Workset for the roof; null = leave it on the active workset.</param>
-        /// <param name="s">Settings (Comments on or off).</param>
-        public static (long RoofId, double AreaM2) Create(Document doc, RoofJob job, RoofType roofType, WorksetId worksetId, WetAreaSettings s)
+        public static (long RoofId, double AreaM2) Create(Document doc, RoofJob job, RoofType roofType, WorksetId worksetId)
         {
             if (doc.GetElement(new ElementId(job.HostLevelId)) is not Level level)
                 throw new InvalidOperationException("The level for the roof no longer exists.");
@@ -71,8 +69,8 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
 
                 FootPrintRoof roof = doc.Create.NewFootPrintRoof(footprint, level, roofType, out _);
                 roof.get_Parameter(BuiltInParameter.ROOF_LEVEL_OFFSET_PARAM)?.Set(job.BaseOffsetFromLevelMm / BoundaryReader.FtToMm);
-                if (s.WriteComments)
-                    roof.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS)?.Set(job.CommentsTag);
+                // Always written: re-runs and "Remove a run" find the roof by this tag.
+                roof.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS)?.Set(job.CommentsTag);
                 if (worksetId != null)
                 {
                     Parameter workset = roof.get_Parameter(BuiltInParameter.ELEM_PARTITION_PARAM);

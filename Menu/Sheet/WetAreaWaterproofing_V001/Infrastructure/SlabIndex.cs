@@ -26,6 +26,8 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
             public Transform ToHost;
             public string SourceKey;
             public double MinX, MinY, MaxX, MaxY, MinZ, MaxZ; // host coordinates, feet
+            public double LocalMinZ, LocalMaxZ;               // the floor's own coordinates, feet
+            public List<Face> TopFaces;                       // read once, on first use
         }
 
         private readonly Document _host;
@@ -52,6 +54,7 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
                 var entry = new Entry
                 {
                     Floor = floor, ToHost = toHost, SourceKey = sourceKey,
+                    LocalMinZ = box.Min.Z, LocalMaxZ = box.Max.Z,
                     MinX = double.MaxValue, MinY = double.MaxValue, MinZ = double.MaxValue,
                     MaxX = double.MinValue, MaxY = double.MinValue, MaxZ = double.MinValue
                 };
@@ -114,14 +117,19 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
             try
             {
                 XYZ local = entry.ToHost.Inverse.OfPoint(hostPoint);
-                BoundingBoxXYZ box = entry.Floor.get_BoundingBox(null);
                 Line probe = Line.CreateBound(
-                    new XYZ(local.X, local.Y, box.Min.Z - 1), new XYZ(local.X, local.Y, box.Max.Z + 1));
+                    new XYZ(local.X, local.Y, entry.LocalMinZ - 1), new XYZ(local.X, local.Y, entry.LocalMaxZ + 1));
+
+                if (entry.TopFaces == null)
+                {
+                    entry.TopFaces = new List<Face>();
+                    foreach (Reference reference in HostObjectUtils.GetTopFaces(entry.Floor))
+                        if (entry.Floor.GetGeometryObjectFromReference(reference) is Face topFace) entry.TopFaces.Add(topFace);
+                }
 
                 double? top = null;
-                foreach (Reference reference in HostObjectUtils.GetTopFaces(entry.Floor))
+                foreach (Face face in entry.TopFaces)
                 {
-                    if (entry.Floor.GetGeometryObjectFromReference(reference) is not Face face) continue;
                     if (face.Intersect(probe, out IntersectionResultArray hits) != SetComparisonResult.Overlap || hits == null) continue;
                     foreach (IntersectionResult hit in hits)
                     {
@@ -133,6 +141,7 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
             }
             catch (Autodesk.Revit.Exceptions.ApplicationException)
             {
+                entry.TopFaces ??= new List<Face>();
                 return null; // a floor Revit cannot give faces for is not used
             }
         }

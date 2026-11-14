@@ -313,8 +313,8 @@ Overlay cards: result of a run, "Remove a run". Column filters open in a pop-up.
                                         <TextBlock Text="No slab found" Style="{StaticResource RowLabel}"/>
                                         <TextBlock Text="Use room level + offset" Style="{StaticResource FieldValue}" VerticalAlignment="Center"/>
                                     </DockPanel>
-                                    <CheckBox Content="Write run ID + room No. + name to Comments" IsChecked="{Binding WriteComments}" Margin="0,2,0,4"
-                                              ToolTip="Needed for re-runs to update in place and for 'Remove a run'. Leave it on."/>
+                                    <CheckBox Content="Add room No. + name to the roof's Comments" IsChecked="{Binding WriteComments}" Margin="0,2,0,4"
+                                              ToolTip="The run ID and room key are always written to Comments: re-runs and 'Remove a run' need them."/>
                                     <TextBlock Style="{StaticResource HintText}" TextWrapping="Wrap"
                                                Text="A room that already has a roof from an earlier run gets it replaced (same room, new outline)."/>
                                 </StackPanel>

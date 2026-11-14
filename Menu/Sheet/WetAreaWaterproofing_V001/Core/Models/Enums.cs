@@ -34,6 +34,8 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Models
         /// <summary>A roof from an earlier run exists for this room.</summary>
         AlreadyDone,
         /// <summary>No closed outline could be built.</summary>
-        Failed
+        Failed,
+        /// <summary>Not a wet room: its outline and slab are read when it is run.</summary>
+        NotChecked
     }
 }

@@ -85,6 +85,7 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.UI.ViewModels
             }
 
             _lastReport = outcome.Report;
+            ExportNowCommand.NotifyCanExecuteChanged(); // the report exists even when it was not saved
             LastReportPath = outcome.ReportPath;
             if (outcome.Snapshot != null)
             {

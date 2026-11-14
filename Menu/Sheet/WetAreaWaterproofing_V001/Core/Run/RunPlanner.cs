@@ -129,7 +129,7 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Run
 
                 jobs.Add(new RoofJob(row.RoomKey, row.Number, row.Name, outline.Outer, outline.Inner,
                     c.HostLevelId, target - c.HostLevelElevationMm, replace,
-                    RunTag.Make(runId, row.RoomKey, row.Number, row.Name)));
+                    RunTag.Make(runId, row.RoomKey, s.WriteComments ? row.Number : string.Empty, s.WriteComments ? row.Name : string.Empty)));
             }
             return new PlannedRun(runId, jobs, issues);
         }

@@ -39,8 +39,13 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
 
         private sealed record LevelInfo(long Id, string Name, double ZFt);
 
-        /// <summary>Reads the model. Must run inside Revit's API context.</summary>
-        public static ModelSnapshot Read(Document doc, WetAreaSettings s)
+        /// <summary>
+        /// Reads the model. Must run inside Revit's API context. Every placed room is listed, but the
+        /// costly part (outline, slab, ownership) is only done for wet rooms, or, when
+        /// <paramref name="checkOnly"/> is given, for exactly the rooms with those keys. The others
+        /// come back with status <see cref="RoomStatus.NotChecked"/>.
+        /// </summary>
+        public static ModelSnapshot Read(Document doc, WetAreaSettings s, ISet<string> checkOnly = null)
         {
             if (doc == null) throw new ArgumentNullException(nameof(doc));
             s ??= new WetAreaSettings().Normalize();
@@ -61,7 +66,7 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
             var rooms = new List<RoomCandidate>();
 
             if (s.IncludeHost)
-                ReadRooms(doc, doc, Transform.Identity, HostKey, HostKey, hostLevels, slabs, existing, s, rooms, notes);
+                ReadRooms(doc, doc, Transform.Identity, HostKey, HostKey, hostLevels, slabs, existing, s, checkOnly, rooms, notes);
 
             if (s.IncludeLinks)
                 foreach (RevitLinkInstance link in loadedLinks)
@@ -69,7 +74,7 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
                     string name = LinkName(link);
                     if (s.IncludedLinks.Count > 0 && !s.IncludedLinks.Contains(name)) continue;
                     ReadRooms(doc, link.GetLinkDocument(), link.GetTotalTransform(), link.UniqueId, name,
-                        hostLevels, slabs, existing, s, rooms, notes);
+                        hostLevels, slabs, existing, s, checkOnly, rooms, notes);
                 }
 
             var worksets = new List<string>();
@@ -124,7 +129,7 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
         private static void ReadRooms(
             Document host, Document source, Transform toHost, string sourceKey, string sourceName,
             List<LevelInfo> hostLevels, SlabIndex slabs, Dictionary<string, (List<long> Ids, string RunId)> existing,
-            WetAreaSettings s, List<RoomCandidate> rooms, List<string> notes)
+            WetAreaSettings s, ISet<string> checkOnly, List<RoomCandidate> rooms, List<string> notes)
         {
             var all = new FilteredElementCollector(source).OfCategory(BuiltInCategory.OST_Rooms)
                 .WhereElementIsNotElementType().OfType<Room>().ToList();
@@ -173,6 +178,14 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
                 {
                     candidate.ExistingRoofIds = old.Ids;
                     candidate.ExistingRunId = old.RunId;
+                }
+
+                bool check = checkOnly != null ? checkOnly.Contains(row.RoomKey) : !string.IsNullOrEmpty(row.Matched);
+                if (!check)
+                {
+                    RoomStatusRules.Apply(candidate); // listed, not checked: no outline, no slab search
+                    rooms.Add(candidate);
+                    continue;
                 }
 
                 try

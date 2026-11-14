@@ -158,6 +158,16 @@ namespace WetAreaWaterproofing.Tests
         }
 
         [Fact]
+        public void TagIsAlwaysWrittenEvenWithoutNumberAndName()
+        {
+            var s = new WetAreaSettings { WriteComments = false }.Normalize();
+            string tag = RunPlanner.Plan(new[] { Candidate("101") }, s, RunId).Jobs[0].CommentsTag;
+            Assert.True(RunTag.TryParse(tag, out string run, out string key)); // re-runs and Remove a run need it
+            Assert.Equal((RunId, "Host:101"), (run, key));
+            Assert.DoesNotContain("Toilet", tag);
+        }
+
+        [Fact]
         public void NullInputGivesEmptyPlan()
         {
             var plan = RunPlanner.Plan(null, Defaults, RunId);

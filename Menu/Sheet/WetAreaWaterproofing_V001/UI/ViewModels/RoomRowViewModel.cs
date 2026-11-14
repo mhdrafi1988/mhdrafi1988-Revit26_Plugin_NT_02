@@ -75,6 +75,7 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.UI.ViewModels
             RoomStatus.Owned => Row.StatusDetail,
             RoomStatus.NotEnclosed => "Not enclosed",
             RoomStatus.AlreadyDone => "Already done",
+            RoomStatus.NotChecked => "Not checked",
             _ => "No outline"
         };
 
@@ -82,7 +83,7 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.UI.ViewModels
         public string StatusKind => Row.Status switch
         {
             RoomStatus.Ready => "ok",
-            RoomStatus.AlreadyDone => "info",
+            RoomStatus.AlreadyDone or RoomStatus.NotChecked => "info",
             RoomStatus.Repaired or RoomStatus.AreaWarning or RoomStatus.Approximate or RoomStatus.NoSlab => "warn",
             _ => "error"
         };

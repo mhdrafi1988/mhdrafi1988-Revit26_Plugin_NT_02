@@ -21,6 +21,7 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.UI.Views
     {
         private readonly ViewModel_WetAreaWaterproofing _viewModel;
         private readonly Dictionary<DataGridColumn, string> _headers = new();
+        private bool _closeRefusedOnce;
 
         /// <summary>Creates the window for <paramref name="viewModel"/>.</summary>
         public WetAreaWaterproofingWindow(ViewModel_WetAreaWaterproofing viewModel)
@@ -55,10 +56,19 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.UI.Views
         {
             if (_viewModel.IsBusy)
             {
-                e.Cancel = true;
-                MessageBox.Show(this, "Revit is still working on the last request. Close the window when it has finished.",
-                    ToolCatalog.WetAreaWaterproofing.Name, MessageBoxButton.OK, MessageBoxImage.Information);
-                return;
+                // First attempt: wait. A later attempt may close anyway, so the window can never be stuck open.
+                bool closeAnyway = _closeRefusedOnce && MessageBox.Show(this,
+                    "Revit is still working on the last request.\n\nClose the window anyway? Work already started in Revit is not undone.",
+                    ToolCatalog.WetAreaWaterproofing.Name, MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes;
+                if (!closeAnyway)
+                {
+                    e.Cancel = true;
+                    if (!_closeRefusedOnce)
+                        MessageBox.Show(this, "Revit is still working on the last request. Close the window when it has finished.",
+                            ToolCatalog.WetAreaWaterproofing.Name, MessageBoxButton.OK, MessageBoxImage.Information);
+                    _closeRefusedOnce = true;
+                    return;
+                }
             }
             SaveColumnLayout();
             _viewModel.SaveSettings();

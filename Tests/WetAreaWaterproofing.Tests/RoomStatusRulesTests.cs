@@ -80,6 +80,34 @@ namespace WetAreaWaterproofing.Tests
         }
 
         [Fact]
+        public void RepairedRoomWithAnEarlierRoofIsStillFlaggedAsDone()
+        {
+            var c = Candidate(x => { x.ExistingRoofIds = new long[] { 9 }; x.ExistingRunId = "20261114-153007"; }, RectWithGap(3));
+            Assert.Equal(RoomStatus.Repaired, c.Row.Status);
+            Assert.True(c.Row.HasExistingRoof);
+            Assert.Contains("already has a roof", c.Row.StatusDetail);
+        }
+
+        [Fact]
+        public void NoSlabRoomWithAnEarlierRoofIsStillFlaggedAsDone()
+        {
+            var c = Candidate(x => { x.Row.SlabTopMm = null; x.ExistingRoofIds = new long[] { 9 }; });
+            Assert.Equal(RoomStatus.NoSlab, c.Row.Status);
+            Assert.True(c.Row.HasExistingRoof);
+        }
+
+        [Fact]
+        public void RoomWithoutAnEarlierRoofIsNotFlagged()
+            => Assert.False(Candidate().Row.HasExistingRoof);
+
+        [Fact]
+        public void RoomWhoseOutlineWasNotReadIsNotChecked()
+        {
+            var c = Candidate(x => x.Outline = null);
+            Assert.Equal(RoomStatus.NotChecked, c.Row.Status);
+        }
+
+        [Fact]
         public void NegativeSlabElevationKeepsItsSign()
             => Assert.Equal("Floor · -0.150", Candidate(x => x.Row.SlabTopMm = -150).Row.SlabText);
     }

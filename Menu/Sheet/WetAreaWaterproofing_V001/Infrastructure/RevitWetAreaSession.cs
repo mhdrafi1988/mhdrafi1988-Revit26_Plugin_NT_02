@@ -91,8 +91,8 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
             }
 
             // Read again: the model may have changed since the grid was filled.
-            ModelSnapshot before = RoomCollector.Read(_doc, s);
             var keys = new HashSet<string>(roomKeys ?? Array.Empty<string>());
+            ModelSnapshot before = RoomCollector.Read(_doc, s, keys);
             var ticked = before.Rooms.Where(r => keys.Contains(r.Row.RoomKey)).ToList();
             PlannedRun plan = RunPlanner.Plan(ticked, s, runId);
             var issues = plan.Issues.ToList();
@@ -112,7 +112,7 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
                         ToolCancellation.ReportCurrent(i, plan.Jobs.Count, $"Creating roof {i + 1} of {plan.Jobs.Count} — room {job.Number}");
                         try
                         {
-                            (long roofId, double areaM2) = RoofCreator.Create(_doc, job, roofType, worksetId, s);
+                            (long roofId, double areaM2) = RoofCreator.Create(_doc, job, roofType, worksetId);
                             created[job.RoomKey] = new CreatedRoof(roofId, areaM2, job.ReplaceRoofIds.Count > 0);
                         }
                         catch (OperationCanceledException) { throw; }
@@ -134,27 +134,45 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
                 }
             }
 
-            var summary = new ReportSummary
-            {
-                RunId = runId,
-                Started = started,
-                User = app.Application.Username,
-                Model = before.ModelTitle,
-                PluginVersion = Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? string.Empty,
-                ToolVersion = ToolCatalog.WetAreaWaterproofing.Version,
-                DurationSeconds = watch.Elapsed.TotalSeconds
-            };
-            RunReport report = RunReport.Build(summary, before.Rooms, keys, plan, created, issues, s);
-
+            // From here on the roofs are in the model. Nothing below may turn that into "not run":
+            // a report or re-read that fails is reported as a warning beside the result.
+            RunReport report = null;
             string reportPath = null, reportError = null;
-            if (s.AutoSaveReport)
+            ModelSnapshot after = null;
+            try
             {
-                try { reportPath = ReportWriter.Write(report, s.ReportFolder); }
-                catch (Exception ex)
+                var summary = new ReportSummary
                 {
-                    // The roofs are already in the model; a report that cannot be saved is reported, not fatal.
-                    reportError = ex.Message;
-                }
+                    RunId = runId,
+                    Started = started,
+                    User = app.Application.Username,
+                    Model = before.ModelTitle,
+                    PluginVersion = Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? string.Empty,
+                    ToolVersion = ToolCatalog.WetAreaWaterproofing.Version,
+                    DurationSeconds = watch.Elapsed.TotalSeconds
+                };
+                report = RunReport.Build(summary, before.Rooms, keys, plan, created, issues, s);
+                if (s.AutoSaveReport) reportPath = ReportWriter.Write(report, s.ReportFolder);
+            }
+            catch (Exception ex)
+            {
+                reportError = ex.Message;
+            }
+
+            try
+            {
+                after = RoomCollector.Read(_doc, s);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException and not Autodesk.Revit.Exceptions.OperationCanceledException)
+            {
+                issues.Add(new Issue("Warning", "Refresh", null, string.Empty,
+                    "The room list could not be read again after the run: " + ex.Message, "Press Refresh."));
+            }
+            catch (Exception)
+            {
+                // Cancelled while refreshing the list: the roofs stay, the list is simply not refreshed.
+                issues.Add(new Issue("Warning", "Refresh", null, string.Empty,
+                    "The room list was not refreshed after the run.", "Press Refresh."));
             }
 
             return new RunOutcome
@@ -167,7 +185,7 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
                 ReportPath = reportPath,
                 ReportError = reportError,
                 Report = report,
-                Snapshot = RoomCollector.Read(_doc, s)
+                Snapshot = after
             };
         }
 
@@ -191,7 +209,14 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
                     onError(ex);
                 }
             }, onCancelled);
-            _externalEvent.Raise();
+
+            // Without this check a refused request would leave the window waiting for ever.
+            ExternalEventRequest request = _externalEvent.Raise();
+            if (request != ExternalEventRequest.Accepted && request != ExternalEventRequest.Pending)
+            {
+                _handler.Queue(null, null);
+                onError(new InvalidOperationException("Revit did not accept the request (" + request + "). Try again."));
+            }
         }
 
         /// <summary>Releases the ExternalEvent.</summary>
