@@ -38,7 +38,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                 "Manage.AnnotationOverlapDetection_16.png", "Annotation Overlap Detection", "V005");
             overlapV005.ToolTip = Revit26_Plugin_Revised.Shared.Services.ToolCatalog.AnnotationOverlapDetectionV005.Tip(
                 "Find overlapping annotations in the active view (plans, sections, elevations, drafting views, legends, sheets), then move them apart: Move Up, Move Down or Distribute.");
-            // Annotation Overlap Report (plugin 7.3.0): a separate report-only tool, its own button under the Overlaps pulldown.
+            // Annotation Overlap Report (plugin 7.5.0): a separate report-only tool, its own button under the Overlaps pulldown.
             var overlapReportV001 = Btn(assemblyPath, "Btn_AnnotationOverlapReport_V001", "Overlap Report", "Revit26_Plugin_Revised.AnnotationOverlapReport.V001.Commands.AnnotationOverlapReportCommand",
                 "Manage.AnnotationOverlapDetection_16.png", "Annotation Overlap Report", "V001");
             overlapReportV001.ToolTip = Revit26_Plugin_Revised.Shared.Services.ToolCatalog.AnnotationOverlapReport.Tip(

@@ -36,7 +36,7 @@ Each item is a pulldown unless marked *button*. A pulldown lists its versions hi
 
 | Tab | Panel | Items | Builder |
 |---|---|---|---|
-| Rafi_Pro_MOds | Roof Slope | By Point (V034, V033, V032, V030, Ridge V003, Multi Copies 30) · By Drain (V013, V012, V011, V007) · Points & Slope (V001) | `RoofToolsRibbon.Build` |
+| Rafi_Pro_MOds | Roof Slope | By Point (V034, V033, V032, V030, Ridge V003, Multi Copies 30) · By Drain (V013, V012, V011, V007) · Points & Slope (V001) · Roof Slope Builder (large; V002, V001) | `RoofToolsRibbon.Build` |
 | Rafi_Pro_MOds | Floor Slope | By Drain *button* (Floor Slope By Drain V001) · By Point (By Point V001, Ridge V001, Multi Copies V001) · Points & Slope *button* (Floor Points & Slope V001) | `FloorToolsRibbon.BuildSlopePanel` |
 | Rafi_Pro_MOds | Shape Points | Inner Loops · Outer Curve · Line Intersect · Loops + Perp. ▸ Vertex Reducer · Multi Points · Shape From Link | `RoofToolsRibbon.Build` |
 | Rafi_Pro_MOds | Floor Points | Inner Loops *button* · Outer Curve *button* · Line Intersect *button* · Loops + Perp. *button* · Vertex Reducer *button* · Multi Points *button* · Shape From Link (large *button*) — each V001 | `FloorToolsRibbon.BuildPointsPanel` |
@@ -68,7 +68,10 @@ Each item is a pulldown unless marked *button*. A pulldown lists its versions hi
 | Rafi_Pro_Docs2 | Memory | WS Memory (large *button*) · Link Memory (large; V002, V001) | `ManageRibbon` |
 | Rafi_Pro_Docs2 | Coordination | Void Openings (large *button*) · Base Level to Parameter (large *button*) | `CoordinationRibbon` |
 
-The latest change was plugin 7.2.0, which added **Base Level to Parameter** to the Coordination panel, after
+The latest change was plugin 7.4.0, which turned the large **Roof Slope Builder** button into a large pulldown with
+V002 first and V001 below it; V002's icons are `Resources/Icons/RoofTools/RoofSlopeBuilder_V002_16/32.png`. Before it,
+plugin 7.3.0 added **Roof Slope Builder** to the Roof Slope panel as a large button after the stack; its icons are
+`Resources/Icons/RoofTools/RoofSlopeBuilder_16/32.png`. Before it, plugin 7.2.0 added **Base Level to Parameter** to the Coordination panel, after
 Void Openings; its icons are `Resources/Icons/Coordination/BaseLevelToParameter_16/32.png`. Before it, plugin 6.52.0 added **Combine Sheets** (Sheet Views Combine) to the Sheet Create panel,
 after Sections To Sheet (stacked with it); its icons are `Resources/Icons/SheetTools/SheetViewsCombine_16/32.png`.
 6.46.0 added the **Coordination** panel (Documents 2 tab, after Memory) with

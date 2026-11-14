@@ -30,7 +30,7 @@ the model. Moving annotations apart stays the job of Annotation Overlap Detectio
 **Claude's calls** (not yet confirmed by the owner)
 
 - C1. Tool version 1.0.0, folder `Menu/Manage/AnnotationOverlapReport_V001`, namespace
-  `Revit26_Plugin_Revised.AnnotationOverlapReport.V001`. Plugin 7.2.1 → 7.3.0 (new feature).
+  `Revit26_Plugin_Revised.AnnotationOverlapReport.V001`. Plugin 7.4.0 → 7.5.0 (new feature).
 - C2. The type list is grouped by Revit category name (Door Tags, Text Notes, Dimensions, Spot Elevations,
   Generic Annotations, ...), so new categories appear without code changes.
 - C3. Overlap is measured as the smaller of the two overlap depths (horizontal, vertical), in millimetres on
@@ -124,7 +124,7 @@ Type B, Text B, ID B, Overlap (mm).
 - `Shared/Services/ToolCatalog.cs`: new entry `AnnotationOverlapReport` ("Annotation Overlap Report", 1.0.0, V001).
 - `Menu/00_Push_Button_Menu_items/Ribbon/ManageRibbon.cs`: new button `Btn_AnnotationOverlapReport_V001`,
   label "Overlap Report", tooltip from `ToolCatalog`, beside the Overlaps pulldown.
-- `RIBBON_AND_ICONS.md`, `README.md` ribbon section, `CHANGELOG.md`, `<Version>` 7.3.0.
+- `RIBBON_AND_ICONS.md`, `README.md` ribbon section, `CHANGELOG.md`, `<Version>` 7.5.0.
 - The preview page is updated to mirror the real XAML and republished to the same link.
 
 ## 8. Left to the builder

@@ -9,7 +9,7 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
-## [7.3.0] — 2026-11-14
+## [7.5.0] — 2026-11-14
 
 ### Annotation Overlap Report 1.0.0 (V001, new tool)
 
@@ -35,6 +35,67 @@ User notes:
 - Boxes are Revit's bounding boxes: a tag's box includes its leader and a dimension's box includes its witness
   lines, so two crossing dimension strings are reported as an overlap.
 - Annotations inside linked models are not checked. Overlaps between two different viewports on a sheet are not checked.
+## [7.4.0] — 2026-11-14
+
+### Roof Slope Builder 2.0.0 (V002) — new version, V001 kept
+
+The Roof Slope Builder button on the Roof Slope panel is now a dropdown: **Roof Slope Builder V002** first, V001 below it.
+V002 has its own icon (two drains with the ridge line between them).
+
+#### Added
+- New tab **5 - Ridges**:
+  - **Draw ridge lines in the active plan view**: the lines between drains (watershed mode) or the saddle crests
+    (saddle mode). Draw them as **Detail line** (pick a line style) or **Line-based detail family** (pick a
+    family type; only line-based detail families are listed).
+  - **Mark ridge points with detail circles** (diameter in mm): the ends and meeting points of the ridges and the
+    points along them at the ridge point spacing.
+- **Find ridges only** button next to Apply: draws the ridges and leaves the roofs unchanged, to check the layout
+  before sloping. Needs a plan view and at least one of the two options ticked.
+- With **Apply**, the ridges are drawn in the same step as the slope; one Undo removes both.
+- The end-of-run report counts ridge detail lines, family instances, fallback lines and circles per roof.
+
+#### Fallbacks (nothing stops the run)
+- Family type not loaded, not line-based or not activatable: every ridge is drawn as a detail line.
+- A family placement Revit refuses: that ridge piece is drawn as a detail line instead, and counted.
+- Line style missing or refused: Thin Lines, then Revit's default line style.
+- Not a plan view: ridges are not drawn (Apply still slopes the roofs); the window says so and Find ridges only is
+  disabled.
+- Pieces shorter than Revit allows are left out and counted.
+
+User note: V002 keeps its options in `settings_v002.json`. The first time it runs it copies your V001 options; the
+V001 file is not changed, so V001 keeps its own. Ridge drawing is off until you tick it, so V002 slopes roofs exactly as
+V001 does by default. V001 (1.1.0) is unchanged and stays in the dropdown.
+
+## [7.3.0] — 2026-11-14
+
+### Roof Slope Builder 1.1.0 (V001) — new tool
+
+Its own large button on the Roof Slope panel, after the By Point / By Drain / Points & Slope stack, with its own icon.
+
+#### Added
+- **Roof Slope Builder**: one command that adds shape points and slopes every selected footprint roof to its drains.
+  Points: corners of non-drain openings, perpendicular feet from each drain onto the boundary and the ridges, points
+  along ridges between drains, and points along arcs and splines. Ridges are watershed lines (level deck, falls to each
+  drain) or saddles (diamond crickets). One transaction per roof, one Undo for the whole run.
+- Options are remembered between runs in `%AppData%\Revit26_Plugin_Revised\RoofSlopeBuilder\settings.json`
+  (versioned file; an unreadable file is kept aside and the defaults are used).
+- The drains grid shows each opening's centre (X, Y in metres) so you can find it in the model.
+- Roofs whose type has no Variable layer are flagged in the roof list ("the whole roof will tilt").
+
+#### Changed (from the 1.0.0 draft received for review, never released)
+- Heights are measured from each drain's **outline**, not from a circle round its centre. On square or long drains the
+  draft left a flat zone next to the drain (up to ~230 mm wide beside a 600 x 150 mm drain).
+- Every number is checked on Apply; a wrong entry is named instead of being silently replaced by the default.
+  "1,5" still reads as 1.5; "1,500.0" style input is refused.
+- Ticking or unticking a roof now updates the drains grid straight away (the draft read the tick before it changed).
+- Roofs are checked before the window opens and listed when left out: read-only model, in a group, slope-defining
+  edges, no shape editing, borrowed by another user (workshared). Non-roof elements in the selection are counted.
+- When no roof succeeds, the whole run is rolled back (no empty Undo entry). A roof whose commit Revit refuses is
+  reported as skipped. Rejected split lines are counted in the report.
+- Runs through `ToolGuard`; unexpected errors go to `%AppData%\Revit26_Plugin_Revised\Logs`.
+
+User note: new tool, no existing behaviour changes. The draft's README asked for the namespace
+`Revit26_Plugin.RoofSlopeBuilder_V001`; in the plugin it is `Revit26_Plugin_Revised.RoofSlopeBuilder.V001`.
 
 ## [7.2.1] — 2026-11-13
 
@@ -82,6 +143,7 @@ parameter file stays (a file cannot be rolled back).
 A new parameter is created with "values can vary by group instance" switched on, so elements inside model groups
 can get their own value; for an existing parameter that does not allow this, grouped elements are skipped. Elements
 owned by another user or changed in central are skipped.
+
 ## [7.1.2] — 2026-11-13
 
 ### Schedule Export / Import 7.2.1 (V007)

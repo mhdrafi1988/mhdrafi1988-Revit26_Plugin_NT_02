@@ -13,7 +13,7 @@
 ## Global Constraints
 
 - Folder `Menu/Manage/AnnotationOverlapReport_V001/`; namespace `Revit26_Plugin_Revised.AnnotationOverlapReport.V001`.
-- Tool name "Annotation Overlap Report", version 1.0.0, build tag V001; plugin `<Version>` 7.2.1 → 7.3.0.
+- Tool name "Annotation Overlap Report", version 1.0.0, build tag V001; plugin `<Version>` 7.4.0 → 7.5.0.
 - No transaction is ever opened; the command is `TransactionMode.ReadOnly`. V005/V006 files are not edited.
 - Every `IExternalCommand.Execute` / `IExternalEventHandler.Execute` delegates to `ToolGuard.RunCommand` / `RunHandler`.
 - `///` comments on all public types and members.
@@ -85,7 +85,7 @@
 
 **Files:**
 - Create: `Commands/AnnotationOverlapReportCommand.cs`, `UI/AnnotationOverlapReportWindow.xaml(.cs)`, `UI/AnnotationOverlapReportViewModel.cs`, `UI/ViewRow.cs`, `UI/TypeRow.cs`
-- Modify: `Shared/Services/ToolCatalog.cs` (entry `AnnotationOverlapReport` after `AnnotationOverlapDetectionV006`), `Menu/00_Push_Button_Menu_items/Ribbon/ManageRibbon.cs` (button `Btn_AnnotationOverlapReport_V001`, text "Overlap Report", icon `Manage.AnnotationOverlapDetection_16.png`, placed right after the Overlaps pulldown in the visible stack), `Revit26_Plugin_Revised.csproj` (`<Version>7.3.0`), `CHANGELOG.md`, `README.md` ribbon row, `Claude/Revit26_Plugin_Md Files/Claude/RIBBON_AND_ICONS.md`, `Claude/Previews/AnnotationOverlapReport_V001_Window.html`
+- Modify: `Shared/Services/ToolCatalog.cs` (entry `AnnotationOverlapReport` after `AnnotationOverlapDetectionV006`), `Menu/00_Push_Button_Menu_items/Ribbon/ManageRibbon.cs` (button `Btn_AnnotationOverlapReport_V001`, text "Overlap Report", icon `Manage.AnnotationOverlapDetection_16.png`, placed right after the Overlaps pulldown in the visible stack), `Revit26_Plugin_Revised.csproj` (`<Version>7.5.0`), `CHANGELOG.md`, `README.md` ribbon row, `Claude/Revit26_Plugin_Md Files/Claude/RIBBON_AND_ICONS.md`, `Claude/Previews/AnnotationOverlapReport_V001_Window.html`
 
 **Window** (follows the mock-up; `ToolWindowShell`, `SharedStyles.xaml`): Scope card, Annotation types card (deferred rows disabled with "coming in 1.1"), "Also check overlaps between different types" (default on), Check overlaps; tiles Overlaps / Views with overlaps / Scanned / Types checked; Show filters; grid grouped by view; status line; Export to Excel (disabled with no rows), Zoom to pair (disabled with no selection; also on row double-click), Close.
 

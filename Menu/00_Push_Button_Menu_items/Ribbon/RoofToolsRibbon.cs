@@ -72,12 +72,31 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             var pointsAndSlopeV001 = Btn(assemblyPath, "Btn_RoofPointsAndSlope_V001", "Points & Slope", "Revit26_Plugin_Revised.RoofPointsAndSlope.V001.Commands.RoofPointsAndSlopeCommand",
                 "CombinedTools_16.png", "Roof Points & Slope", "V001",
                 "Adds shape points around openings, perpendicular to the boundary, at mid/quarter points and in long gaps, builds the ridges between the chosen drains, then slopes the roof to them — one window, one Undo. Pick one roof or several.");
+            // Roof Slope Builder — inner-loop, perpendicular, ridge and curve points plus slope by drain
+            // on every selected footprint roof, watershed or saddle ridges (plugin 7.3.0).
+            // A large pulldown after the stack (plugin 7.4.0): V002 first (draws ridge lines and
+            // points), V001 below it. V002 supplies the pulldown's icon.
+            var roofSlopeBuilderV001 = Btn(assemblyPath, "Btn_RoofSlopeBuilder_V001", "Roof Slope Builder V001", "Revit26_Plugin_Revised.RoofSlopeBuilder.V001.Commands.RoofSlopeBuilderCommand",
+                "RoofSlopeBuilder_16.png", "Roof Slope Builder", "V001");
+            roofSlopeBuilderV001.LargeImage = ImageUtils.Load(Icons + "RoofSlopeBuilder_32.png");
+            roofSlopeBuilderV001.ToolTip = Revit26_Plugin_Revised.Shared.Services.ToolCatalog.RoofSlopeBuilder.Tip(
+                "Adds shape points (openings, perpendicular, ridges between drains, curves) and slopes every selected footprint roof to its drains. Watershed or saddle ridges; options are remembered.");
+            var roofSlopeBuilderV002 = Btn(assemblyPath, "Btn_RoofSlopeBuilder_V002", "Roof Slope Builder V002", "Revit26_Plugin_Revised.RoofSlopeBuilder.V002.Commands.RoofSlopeBuilderCommand",
+                "RoofSlopeBuilder_V002_16.png", "Roof Slope Builder", "V002");
+            roofSlopeBuilderV002.LargeImage = ImageUtils.Load(Icons + "RoofSlopeBuilder_V002_32.png");
+            roofSlopeBuilderV002.ToolTip = Revit26_Plugin_Revised.Shared.Services.ToolCatalog.RoofSlopeBuilderV002.Tip(
+                "V001 plus ridge drawing: draws the ridge lines (detail lines, or a line-based detail family with detail-line fallback) and marks ridge points with circles in the active plan view. 'Find ridges only' draws them without changing the roofs.");
             var pointsAndSlopePulldownData = RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_RoofPointsAndSlope", "Points & Slope", pointsAndSlopeV001);
 
             var slopeItems = RibbonLayoutHelper.AddStackedButtons(slopePanel, new List<RibbonItemData> { byPointPulldownData, byDrainPulldownData, pointsAndSlopePulldownData });
             RibbonLayoutHelper.WirePulldownButton(slopeItems, "Pulldown_AutoSlopeByPoint", byPointV034, byPointV033, byPointV032, byPointV030, byPointRidgeV003, byPointMultiCopies30);
             RibbonLayoutHelper.WirePulldownButton(slopeItems, "Pulldown_AutoSlopeByDrain", byDrainV013, byDrainV012, byDrainV011, byDrainV007);
             RibbonLayoutHelper.WirePulldownButton(slopeItems, "Pulldown_RoofPointsAndSlope", pointsAndSlopeV001);
+            PulldownButtonData roofSlopeBuilderPulldown = RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_RoofSlopeBuilder", "Roof Slope\nBuilder", roofSlopeBuilderV002);
+            roofSlopeBuilderPulldown.LargeImage = roofSlopeBuilderV002.LargeImage;
+            var roofSlopeBuilderItem = slopePanel.AddItem(roofSlopeBuilderPulldown);
+            RibbonLayoutHelper.WirePulldownButton(new List<RibbonItem> { roofSlopeBuilderItem }, "Pulldown_RoofSlopeBuilder",
+                roofSlopeBuilderV002, roofSlopeBuilderV001);
 
             // Floor Slope — floor versions of By Drain and By Point, next to Roof Slope (plugin 6.31.0).
             FloorToolsRibbon.BuildSlopePanel(app, tabName, assemblyPath);
