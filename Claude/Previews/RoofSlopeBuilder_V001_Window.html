@@ -1,0 +1,221 @@
+<title>Roof Slope Builder Window</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<!-- UI preview (CLAUDE.md "UI previews"): Roof Slope Builder V001, tool 1.1.0, plugin 7.2.0. New tool.
+     Changed from the 1.0.0 draft: heights from the drain outline, checked number boxes, roofs checked before the
+     window opens (notice box), Variable-layer note per roof, drain centre column, remembered options.
+     Shows: the Points & Slope pulldown with the new button and its tooltip, the window on tab 3 (Drains & Slope),
+     the number-check message and the end-of-run report.
+     Mirrors: Menu/RoofTools/CombinedTools/RoofSlopeBuilder_V001/UI/RoofSlopeBuilderWindow.xaml (+ .xaml.cs),
+              Menu/RoofTools/CombinedTools/RoofSlopeBuilder_V001/Commands/RoofSlopeBuilderCommand.cs (report),
+              Menu/00_Push_Button_Menu_items/Ribbon/RoofToolsRibbon.cs
+     Artifact: https://claude.ai/artifact/79tjE4Wz2xfXi8nuj4wXch (republish to this URL on every update)
+     Colours: Shared/SharedStyles.xaml tokens, one light look on purpose (mirrors the light WPF window). -->
+<style>
+/* Layout: one column of captioned mock-ups; each fixed-width Revit piece scrolls in its own frame. */
+:root{--surface-window:#F3F5F7;--surface-card:#FFFFFF;--navy:#1E3A5F;--border:#D6DCE3;--border-input:#B5C2CF;
+--text:#1A2B3C;--text-2:#5B7185;--gray:#808080;--new:#2E7D4F;--new-bg:#E6F4EC;--warn:#9A5B00;--warn-text:#7A4A00;
+--warn-bg:#FDF1E1;--warn-border:#E8B66B;--info-bg:#E6EEFB;--page:#E9EDF1;--win-chrome:#FFFFFF;
+--font:"Segoe UI",system-ui,-apple-system,sans-serif;--mono:ui-monospace,Consolas,monospace;color-scheme:light}
+html{background:var(--page)}
+body{margin:0;background:var(--page);color:var(--text);font:14px/1.45 var(--font);
+padding-block:20px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:24px}
+h1{font-size:22px;margin:0;color:var(--navy);text-wrap:balance}
+h2{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-2);margin:0 0 8px}
+p{margin:0}.muted{color:var(--text-2)}
+.tag{display:inline-block;font-size:10.5px;font-weight:600;color:var(--new);background:var(--new-bg);border-radius:3px;padding:0 5px;margin-left:6px;vertical-align:middle;white-space:nowrap}
+.frame{overflow-x:auto;padding-bottom:6px}
+.sample{font-size:12.5px;color:var(--warn-text);background:var(--warn-bg);border:1px solid var(--warn-border);padding:6px 10px;align-self:flex-start}
+ul.changes{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:3px}
+
+/* ribbon */
+.rib{display:flex;gap:18px;align-items:flex-start;width:760px}
+.panel{background:var(--surface-card);border:1px solid var(--border);width:230px}
+.panel .items{padding:6px;display:flex;flex-direction:column;gap:2px;font-size:12px}
+.panel .ri{padding:2px 6px;display:flex;align-items:center;gap:6px}
+.panel .ri.open{background:var(--info-bg)}
+.panel .pt{background:var(--surface-window);border-top:1px solid var(--border);text-align:center;font-size:11px;color:var(--text-2);padding:2px}
+.ico{width:16px;height:16px;background:var(--navy);border-radius:2px;flex:none}
+.menu{background:var(--surface-card);border:1px solid var(--border);box-shadow:0 4px 12px rgba(0,0,0,.15);font-size:12px;width:200px;margin-top:44px}
+.menu div{padding:5px 8px;display:flex;align-items:center;gap:6px}
+.menu .hi{background:var(--info-bg)}
+.tip{background:var(--surface-card);border:1px solid var(--border);box-shadow:0 4px 12px rgba(0,0,0,.15);font-size:12px;width:280px;padding:8px 10px;margin-top:70px}
+.tip b{display:block;margin-bottom:3px}
+
+/* window */
+.win{width:940px;background:var(--win-chrome);border:1px solid var(--border);box-shadow:0 4px 14px rgba(0,0,0,.18);font-size:12px}
+.wt{display:flex;justify-content:space-between;align-items:center;padding:6px 10px;border-bottom:1px solid var(--border)}
+.wt .x{color:var(--text-2)}
+.wb{display:flex;height:560px}
+.side{width:250px;border-right:1px solid #CCC;display:flex;flex-direction:column}
+.side h3{font-size:12px;margin:8px 10px 4px;font-weight:600}
+.btnrow{display:flex;gap:6px;margin:0 10px 6px}
+.b{border:1px solid #ADADAD;background:#E1E1E1;padding:2px 0;text-align:center;font-size:12px}
+.b.def{border-color:#0078D7;border-width:2px}
+.roofs{flex:1;display:flex;flex-direction:column}
+.roof{display:flex;gap:6px;padding:4px 10px;align-items:flex-start}
+.roof .n{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px}
+.roof .i{color:var(--gray);font-size:11px}
+.roof .w{color:var(--warn);font-size:11px}
+.cb{width:13px;height:13px;border:1px solid #333;background:#fff;flex:none;margin-top:2px;position:relative}
+.cb.on::after{content:"";position:absolute;left:3px;top:0;width:3px;height:7px;border:solid #333;border-width:0 2px 2px 0;transform:rotate(45deg)}
+.cb.dis{border-color:#BCBCBC}.cb.dis::after{border-color:#BCBCBC}
+.notice{margin:6px 10px 0;padding:4px 6px;background:var(--warn-bg);border:1px solid var(--warn-border);color:var(--warn-text);font-size:11px;white-space:pre-line}
+.hint{color:var(--gray);margin:6px 10px}
+.main{flex:1;padding:8px;display:flex;flex-direction:column;min-width:0}
+.tabs{display:flex;gap:0;border-bottom:1px solid #ACACAC}
+.tab{padding:3px 10px;border:1px solid #ACACAC;border-bottom:none;background:#F0F0F0;margin-right:-1px;color:var(--text)}
+.tab.on{background:#fff;position:relative;top:1px;padding-bottom:4px}
+.tb{border:1px solid #ACACAC;border-top:none;flex:1;padding:8px;display:flex;flex-direction:column;gap:10px;background:#fff}
+fieldset{border:1px solid #D5DFE5;border-radius:3px;margin:0;padding:6px 8px 8px}
+legend{padding:0 3px}
+.r{display:flex;align-items:center;gap:6px;margin:3px 0;flex-wrap:nowrap}
+.lbl{width:160px;flex:none}
+.tx{width:58px;border:1px solid #ABADB3;padding:1px 5px;text-align:right;background:#fff}
+.u{color:var(--gray)}
+.cmb{border:1px solid #ACACAC;background:#EDEDED;padding:1px 18px 1px 5px;min-width:60px;position:relative}
+.cmb::after{content:"\25BE";position:absolute;right:5px;top:0}
+.sb{font-weight:600}
+table.dg{border-collapse:collapse;width:100%;font-size:12px}
+.dg th{background:#F5F5F5;border:1px solid #D5D5D5;border-width:0 1px 1px 0;text-align:left;font-weight:normal;padding:3px 5px}
+.dg td{border-bottom:1px solid #E5E5E5;padding:3px 5px;font-variant-numeric:tabular-nums}
+.dg td.c{text-align:center}
+.foot{border-top:1px solid #CCC;padding:8px 12px;display:flex;justify-content:space-between;align-items:center}
+.foot .s{color:#444}
+
+/* dialogs */
+.row2{display:flex;gap:18px;align-items:flex-start;width:900px}
+.dlg{background:var(--win-chrome);border:1px solid var(--border);box-shadow:0 4px 14px rgba(0,0,0,.18);font-size:12px}
+.dlg .wt{font-size:12px}
+.dlg .c{padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.mi{font-size:14px;color:#1E3A5F}
+.mono{font-family:var(--mono);font-size:11.5px;white-space:pre;line-height:1.5}
+.dlg .ft{background:var(--surface-window);border-top:1px solid var(--border);padding:6px 14px;color:var(--text-2);font-size:11px;display:flex;justify-content:space-between;align-items:center}
+</style>
+
+<main>
+  <header style="display:flex;flex-direction:column;gap:6px">
+    <h1>Roof Slope Builder 1.1.0</h1>
+    <p class="muted">Roof Slope Builder V001 · plugin 7.2.0 · new tool on the Roof Slope panel</p>
+  </header>
+  <p class="sample">Sample data: the roof names, sizes and results below are invented for this preview.</p>
+
+  <section>
+    <h2>What changed from the 1.0.0 draft</h2>
+    <ul class="changes">
+      <li>Heights are measured from each drain's outline, so square and long drains no longer leave a flat strip beside them.</li>
+      <li>Every number box is checked on Apply. A wrong entry is named instead of quietly replaced.</li>
+      <li>Roofs that can't be sloped are listed in the window (group, read-only, slope-defining edges, borrowed).</li>
+      <li>A roof whose type has no Variable layer is flagged. The drains grid shows each opening's centre.</li>
+      <li>Options are remembered for next time.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Ribbon · Roof Slope panel</h2>
+    <div class="frame">
+      <div class="rib">
+        <div class="panel">
+          <div class="items">
+            <div class="ri"><span class="ico"></span>By Point ▾</div>
+            <div class="ri"><span class="ico"></span>By Drain ▾</div>
+            <div class="ri open"><span class="ico"></span>Points &amp; Slope ▾</div>
+          </div>
+          <div class="pt">Roof Slope</div>
+        </div>
+        <div class="menu">
+          <div><span class="ico"></span>Points &amp; Slope</div>
+          <div class="hi"><span class="ico"></span>Roof Slope Builder<span class="tag">New</span></div>
+        </div>
+        <div class="tip">
+          <b>Roof Slope Builder — v1.1.0 (build V001)</b>
+          Adds shape points (openings, perpendicular, ridges between drains, curves) and slopes every selected
+          footprint roof to its drains. Watershed or saddle ridges; options are remembered.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Window · tab 3, Drains &amp; Slope</h2>
+    <div class="frame">
+      <div class="win">
+        <div class="wt"><span>Roof Slope Builder — v1.1.0<span class="tag">Version in title</span></span><span class="x">✕</span></div>
+        <div class="wb">
+          <div class="side">
+            <h3>Selected roofs</h3>
+            <div class="btnrow"><div class="b" style="width:50px">All</div><div class="b" style="width:50px">None</div></div>
+            <div class="roofs">
+              <div class="roof"><span class="cb on"></span><div><div class="n">Roof - Flat 250 [412877]</div><div class="i">412.6 m2 - 6 openings</div></div></div>
+              <div class="roof"><span class="cb on"></span><div><div class="n">Roof - Flat 200 [413120]</div><div class="i">186.0 m2 - 3 openings</div><div class="w">No Variable layer: the whole roof will tilt<span class="tag">New</span></div></div></div>
+            </div>
+            <div class="notice">Not processed:<span class="tag">New</span>
+Roof - Canopy [413455]: it is in a group (ungroup it first)
+Roof - Plant deck [413601]: 2 sketch edge(s) define slope - shape editing needs a flat roof (untick 'Defines Slope')</div>
+            <div class="hint">Settings apply to every ticked roof. Each roof gets its own drains and ridges.</div>
+          </div>
+          <div class="main">
+            <div class="tabs"><span class="tab">1 - Points</span><span class="tab">2 - Curves</span><span class="tab on">3 - Drains &amp; Slope</span><span class="tab">4 - Options</span></div>
+            <div class="tb">
+              <fieldset style="flex:1">
+                <legend>Drains (openings in the roof)</legend>
+                <div class="r"><span class="cb on"></span><span class="sb">Select lowest-size openings by default</span></div>
+                <div class="r"><span class="lbl">Max drain opening size</span><span class="tx">0.25</span><span class="u">m2 - larger = hatch / skylight</span><span class="b" style="width:80px;margin-left:12px">Re-detect</span></div>
+                <table class="dg" style="margin-top:8px">
+                  <tr><th style="width:50px">Drain</th><th>Roof</th><th style="width:90px">Opening</th><th style="width:80px">Size (m2)</th><th style="width:120px">Centre X, Y (m)<span class="tag">New</span></th></tr>
+                  <tr><td class="c"><span class="cb on" style="display:inline-block"></span></td><td>Roof - Flat 250 [412877]</td><td>Opening 1</td><td>0.090</td><td>12.40, 8.15</td></tr>
+                  <tr><td class="c"><span class="cb on" style="display:inline-block"></span></td><td>Roof - Flat 250 [412877]</td><td>Opening 2</td><td>0.090</td><td>24.60, 8.15</td></tr>
+                  <tr><td class="c"><span class="cb on" style="display:inline-block"></span></td><td>Roof - Flat 250 [412877]</td><td>Opening 3</td><td>0.090</td><td>18.50, 16.30</td></tr>
+                  <tr><td class="c"><span class="cb" style="display:inline-block"></span></td><td>Roof - Flat 250 [412877]</td><td>Opening 4</td><td>0.360</td><td>6.20, 14.00</td></tr>
+                  <tr><td class="c"><span class="cb" style="display:inline-block"></span></td><td>Roof - Flat 250 [412877]</td><td>Opening 5</td><td>1.440</td><td>30.10, 3.80</td></tr>
+                  <tr><td class="c"><span class="cb on" style="display:inline-block"></span></td><td>Roof - Flat 200 [413120]</td><td>Opening 1</td><td>0.090</td><td>48.25, 6.00</td></tr>
+                  <tr><td class="c"><span class="cb on" style="display:inline-block"></span></td><td>Roof - Flat 200 [413120]</td><td>Opening 2</td><td>0.090</td><td>56.75, 6.00</td></tr>
+                </table>
+              </fieldset>
+              <fieldset>
+                <legend>Slope by drain</legend>
+                <div class="r"><span class="lbl">Slope</span><span class="tx">1.5</span><span class="cmb">%</span><span class="u">&nbsp; = 1.5 %  =  1:67  =  15 mm per metre</span></div>
+                <div class="r"><span class="lbl">Minimum finished fall  1 :</span><span class="tx">80</span><span class="u">warn when flatter</span></div>
+                <div class="r"><span class="lbl">Max height</span><span class="tx">300</span><span class="u">mm - warn when exceeded</span></div>
+              </fieldset>
+            </div>
+          </div>
+        </div>
+        <div class="foot"><span class="s">2 roofs, 5 drains selected</span><span style="display:flex;gap:8px"><span class="b def" style="width:100px">Apply</span><span class="b" style="width:80px">Cancel</span></span></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Number check on Apply · end-of-run report</h2>
+    <div class="frame">
+      <div class="row2">
+        <div class="dlg" style="width:340px">
+          <div class="wt"><span>Roof Slope Builder — v1.1.0</span><span class="x">✕</span></div>
+          <div class="c">
+            <span>Please correct:<span class="tag">New</span></span>
+            <span>- Point spacing along ridge: "1,500.0" is not a number.<br>- Minimum gap: enter 0 to 100000 mm.</span>
+            <span style="align-self:flex-end" class="b def" ><span style="padding:0 22px">OK</span></span>
+          </div>
+        </div>
+        <div class="dlg" style="width:540px">
+          <div class="wt"><span>Roof Slope Builder</span><span class="x">✕</span></div>
+          <div class="c">
+            <span class="mi">2 of 2 roofs sloped</span>
+            <div class="frame"><div class="mono">Roof - Flat 250 [412877]
+   3 drains, 41 points added (18 ridge), 16 split lines, max height 168 mm
+
+Roof - Flat 200 [413120]
+   2 drains, 22 points added (7 ridge), 6 split lines, max height 96 mm,
+   1 split lines rejected
+
+Not processed:
+Roof - Canopy [413455]: it is in a group (ungroup it first)
+Roof - Plant deck [413601]: 2 sketch edge(s) define slope ...</div></div>
+          </div>
+          <div class="ft"><span>Roof Slope Builder — v1.1.0</span><span class="b" style="width:60px">Close</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
