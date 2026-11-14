@@ -9,6 +9,37 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [7.4.0] — 2026-11-14
+
+### Roof Slope Builder 2.0.0 (V002) — new version, V001 kept
+
+The Roof Slope Builder button on the Roof Slope panel is now a dropdown: **Roof Slope Builder V002** first, V001 below it.
+V002 has its own icon (two drains with the ridge line between them).
+
+#### Added
+- New tab **5 - Ridges**:
+  - **Draw ridge lines in the active plan view**: the lines between drains (watershed mode) or the saddle crests
+    (saddle mode). Draw them as **Detail line** (pick a line style) or **Line-based detail family** (pick a
+    family type; only line-based detail families are listed).
+  - **Mark ridge points with detail circles** (diameter in mm): the ends and meeting points of the ridges and the
+    points along them at the ridge point spacing.
+- **Find ridges only** button next to Apply: draws the ridges and leaves the roofs unchanged, to check the layout
+  before sloping. Needs a plan view and at least one of the two options ticked.
+- With **Apply**, the ridges are drawn in the same step as the slope; one Undo removes both.
+- The end-of-run report counts ridge detail lines, family instances, fallback lines and circles per roof.
+
+#### Fallbacks (nothing stops the run)
+- Family type not loaded, not line-based or not activatable: every ridge is drawn as a detail line.
+- A family placement Revit refuses: that ridge piece is drawn as a detail line instead, and counted.
+- Line style missing or refused: Thin Lines, then Revit's default line style.
+- Not a plan view: ridges are not drawn (Apply still slopes the roofs); the window says so and Find ridges only is
+  disabled.
+- Pieces shorter than Revit allows are left out and counted.
+
+User note: V002 keeps its options in `settings_v002.json`. The first time it runs it copies your V001 options; the
+V001 file is not changed, so V001 keeps its own. Ridge drawing is off until you tick it, so V002 slopes roofs exactly as
+V001 does by default. V001 (1.1.0) is unchanged and stays in the dropdown.
+
 ## [7.3.0] — 2026-11-14
 
 ### Roof Slope Builder 1.1.0 (V001) — new tool

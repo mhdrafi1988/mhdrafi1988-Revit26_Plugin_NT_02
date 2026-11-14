@@ -1,0 +1,237 @@
+<title>Roof Slope Builder V002</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<!-- UI preview (CLAUDE.md "UI previews"): Roof Slope Builder V002, tool 2.0.0, plugin 7.4.0. New version; V001 1.1.0 kept.
+     New in V002: tab "5 - Ridges" (ridge lines as detail lines or a line-based detail family with detail-line
+     fallback; ridge points as detail circles), the "Find ridges only" button, ridge counts in the report, and the
+     Roof Slope Builder dropdown (V002 first, V001 below) with V002's own icon.
+     Shows: the ribbon dropdown and tooltip, the window on tab 5, what is drawn in the plan view, and the report.
+     Mirrors: Menu/RoofTools/CombinedTools/RoofSlopeBuilder_V002/UI/RoofSlopeBuilderWindow.xaml (+ .xaml.cs),
+              Menu/RoofTools/CombinedTools/RoofSlopeBuilder_V002/Commands/RoofSlopeBuilderCommand.cs (report),
+              Menu/RoofTools/CombinedTools/RoofSlopeBuilder_V002/Infrastructure/RidgeDrawer.cs (fallback notes),
+              Menu/00_Push_Button_Menu_items/Ribbon/RoofToolsRibbon.cs
+     Artifact: https://claude.ai/artifact/Mw6d1E7GBC3ACmQSoDn8hj (republish to this URL on every update)
+     Colours: Shared/SharedStyles.xaml tokens, one light look on purpose (mirrors the light WPF window). -->
+<style>
+/* Layout: one column of captioned mock-ups; each fixed-width Revit piece scrolls in its own frame. */
+:root{--surface-window:#F3F5F7;--surface-card:#FFFFFF;--navy:#1E3A5F;--border:#D6DCE3;--text:#1A2B3C;--text-2:#5B7185;
+--gray:#808080;--new:#2E7D4F;--new-bg:#E6F4EC;--warn-text:#7A4A00;--warn-bg:#FDF1E1;--warn-border:#E8B66B;--info-bg:#E6EEFB;
+--page:#E9EDF1;--chrome:#FFFFFF;--roof:#B6502F;--ridge:#1F5FBF;--plan-bg:#FBFCFD;
+--font:"Segoe UI",system-ui,-apple-system,sans-serif;--mono:ui-monospace,Consolas,monospace;color-scheme:light}
+html{background:var(--page)}
+body{margin:0;background:var(--page);color:var(--text);font:14px/1.45 var(--font);
+padding-block:20px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:24px}
+h1{font-size:22px;margin:0;color:var(--navy);text-wrap:balance}
+h2{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-2);margin:0 0 8px}
+p{margin:0}.muted{color:var(--text-2)}
+.tag{display:inline-block;font-size:10.5px;font-weight:600;color:var(--new);background:var(--new-bg);border-radius:3px;padding:0 5px;margin-left:6px;vertical-align:middle;white-space:nowrap;letter-spacing:0;text-transform:none}
+.frame{overflow-x:auto;padding-bottom:6px}
+.sample{font-size:12.5px;color:var(--warn-text);background:var(--warn-bg);border:1px solid var(--warn-border);padding:6px 10px;align-self:flex-start}
+ul.changes{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:3px}
+
+/* ribbon */
+.rib{display:flex;gap:16px;align-items:flex-start;width:820px}
+.panel{background:var(--surface-card);border:1px solid var(--border)}
+.cols{display:flex}
+.stack{padding:6px;display:flex;flex-direction:column;gap:2px;font-size:12px;width:140px}
+.ri{padding:2px 6px;display:flex;align-items:center;gap:6px}
+.ico{width:16px;height:16px;background:var(--navy);border-radius:2px;flex:none}
+.big{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 8px;font-size:12px;text-align:center;line-height:1.2;border-left:1px solid var(--border);background:var(--info-bg);outline:1px solid #7FA6E0;outline-offset:-1px}
+.big img{width:32px;height:32px;image-rendering:pixelated}
+.pt{background:var(--surface-window);border-top:1px solid var(--border);text-align:center;font-size:11px;color:var(--text-2);padding:2px}
+.menu{background:var(--surface-card);border:1px solid var(--border);box-shadow:0 4px 12px rgba(0,0,0,.15);font-size:12px;width:220px;margin-top:62px}
+.menu div{padding:5px 8px;display:flex;align-items:center;gap:6px}
+.menu .hi{background:var(--info-bg)}
+.menu img{width:16px;height:16px;image-rendering:pixelated}
+.tip{background:var(--surface-card);border:1px solid var(--border);box-shadow:0 4px 12px rgba(0,0,0,.15);font-size:12px;width:300px;padding:8px 10px;margin-top:62px}
+.tip b{display:block;margin-bottom:3px}
+
+/* window */
+.win{width:940px;background:var(--chrome);border:1px solid var(--border);box-shadow:0 4px 14px rgba(0,0,0,.18);font-size:12px}
+.wt{display:flex;justify-content:space-between;align-items:center;padding:6px 10px;border-bottom:1px solid var(--border)}
+.x{color:var(--text-2)}
+.wb{display:flex;height:540px}
+.side{width:250px;border-right:1px solid #CCC;display:flex;flex-direction:column}
+.side h3{font-size:12px;margin:8px 10px 4px;font-weight:600}
+.btnrow{display:flex;gap:6px;margin:0 10px 6px}
+.b{border:1px solid #ADADAD;background:#E1E1E1;padding:2px 0;text-align:center;font-size:12px}
+.b.def{border-color:#0078D7;border-width:2px}
+.roofs{flex:1}
+.roof{display:flex;gap:6px;padding:4px 10px;align-items:flex-start}
+.roof .i{color:var(--gray);font-size:11px}
+.cb{width:13px;height:13px;border:1px solid #333;background:#fff;flex:none;margin-top:2px;position:relative;display:inline-block}
+.cb.on::after{content:"";position:absolute;left:3px;top:0;width:3px;height:7px;border:solid #333;border-width:0 2px 2px 0;transform:rotate(45deg)}
+.rb{width:13px;height:13px;border:1px solid #333;border-radius:50%;background:#fff;flex:none;position:relative;display:inline-block}
+.rb.on::after{content:"";position:absolute;left:3px;top:3px;width:5px;height:5px;border-radius:50%;background:#333}
+.hint{color:var(--gray);margin:6px 10px}
+.main{flex:1;padding:8px;display:flex;flex-direction:column;min-width:0}
+.tabs{display:flex;border-bottom:1px solid #ACACAC}
+.tab{padding:3px 10px;border:1px solid #ACACAC;border-bottom:none;background:#F0F0F0;margin-right:-1px}
+.tab.on{background:#fff;position:relative;top:1px;padding-bottom:4px}
+.tb{border:1px solid #ACACAC;border-top:none;flex:1;padding:8px;display:flex;flex-direction:column;gap:10px;background:#fff}
+fieldset{border:1px solid #D5DFE5;border-radius:3px;margin:0;padding:6px 8px 8px}
+legend{padding:0 3px}
+.r{display:flex;align-items:center;gap:6px;margin:4px 0}
+.ind{margin-left:20px}
+.lbl{width:160px;flex:none}
+.tx{width:58px;border:1px solid #ABADB3;padding:1px 5px;text-align:right;background:#fff}
+.u{color:var(--gray)}
+.cmb{border:1px solid #ACACAC;background:#EDEDED;padding:1px 20px 1px 5px;position:relative}
+.cmb::after{content:"\25BE";position:absolute;right:5px;top:0}
+.cmb.dis{color:#A0A0A0;background:#F4F4F4;border-color:#D0D0D0}
+.sb{font-weight:600}
+.gray{color:var(--gray)}
+.foot{border-top:1px solid #CCC;padding:8px 12px;display:flex;justify-content:space-between;align-items:center}
+
+/* plan + report */
+.row2{display:flex;gap:18px;align-items:flex-start;width:930px}
+.plan{background:var(--surface-card);border:1px solid var(--border);padding:10px;display:flex;flex-direction:column;gap:6px;font-size:12px}
+.plan svg{display:block}
+.legend{display:flex;gap:14px;flex-wrap:wrap;color:var(--text-2)}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.sw{width:18px;height:0;border-top:2px solid var(--ridge);display:inline-block}
+.dlg{background:var(--chrome);border:1px solid var(--border);box-shadow:0 4px 14px rgba(0,0,0,.18);font-size:12px}
+.dlg .c{padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.mi{font-size:14px;color:var(--navy)}
+.mono{font-family:var(--mono);font-size:11.5px;white-space:pre;line-height:1.5}
+.dlg .ft{background:var(--surface-window);border-top:1px solid var(--border);padding:6px 14px;color:var(--text-2);font-size:11px;display:flex;justify-content:space-between;align-items:center}
+</style>
+
+<main>
+  <header style="display:flex;flex-direction:column;gap:6px">
+    <h1>Roof Slope Builder V002 · 2.0.0</h1>
+    <p class="muted">Plugin 7.4.0 · V001 (1.1.0) stays available in the same dropdown</p>
+  </header>
+  <p class="sample">Sample data: the roof names, styles, family names and results below are invented for this preview.</p>
+
+  <section>
+    <h2>New in V002</h2>
+    <ul class="changes">
+      <li>Draws the ridge lines between drains in the active plan view, as detail lines or as a line-based detail family.</li>
+      <li>If a family can't be placed, that ridge is drawn as a detail line instead, and the report counts it.</li>
+      <li>Marks ridge points (ends, meeting points and points along the ridges) with small detail circles.</li>
+      <li>Find ridges only draws the ridges without changing the roofs.</li>
+      <li>Its own icon, first in the Roof Slope Builder dropdown. Options carry over from V001 on first run.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Ribbon · Roof Slope panel <span class="tag">Dropdown</span></h2>
+    <div class="frame">
+      <div class="rib">
+        <div class="panel">
+          <div class="cols">
+            <div class="stack">
+              <div class="ri"><span class="ico"></span>By Point ▾</div>
+              <div class="ri"><span class="ico"></span>By Drain ▾</div>
+              <div class="ri"><span class="ico"></span>Points &amp; Slope ▾</div>
+            </div>
+            <div class="big"><img alt="Roof Slope Builder V002 icon" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAErklEQVR4nMWXz2tcVRTHP+fe9950xknSaEGq4kJBQdum1S6kGgSpghjaQDviovgfiIjQTf2xMDsp0pUrNyJYUiOxNkpdVhtE7I9opYWuutBSKG0ymcyvd989LmZeZqZ5k0wr2AtvMW/OO+d7vufnlelSyb554kQyt3/HgVxg3nNen/dKDhAGOSKgOoikGqERGDnXcP6zN777Y2a6VLICcGpy7INiYD5JFBqJH8yuMfgkAVVMEKCqAwHJWYMVqDj/4cTswpScmty+vxgEszXnvaoqIhbp77wAqoqr18kNDSFGqC8tY6MIYy3KOiBaIBMRkXxgTMW5yUCQI07RVeOAOgeZigSvihjDM/te59HdY4gx3PjrCpdPnsbV64g1fZgQxFoQsaqaOEUFORIAu5qJl9Q4IkTDmzNjK8bQrNV5+tVxnpjYC8sroMrje18mzOVYmPmRIBetBdDWFVcrrf9EbLMV6l3yw+SYpkLqYqLhUfYcPU74wBBiDIjpVeYdwfUzaKMCYhEUVUXCCLd1HIJCm712GNWj3hOvLDP//ls0y7eRIFwFGaxlSoiGRwnyBZJatR1T6f67rTjFJmlsW472hE4RMQTFImIDsnJrLYC2Mler8su7B4iXFzuIjcHV6mzb/xqPvfIiulhuGR4Z5uaFS5z76FNsFKY0oy4mHNrMS8dmVvVuDKDLzXh5qZcyETTxXJqdw4SWrWPPImK5efESF7+eIa6USQLbA2CVvT6VZTLfpjiCAAnCzmMDbC6Hjx3nvzxB9eYtsIY/vzlJ9fYSYT6P2Du+CbJ9XJ+B9GRQpqqItQTWdhIpijrNaAAdgwMg7Qm9isRatCsx0y6ozqHa7qSrIfgvANo9QcLe2nbVCup9pqx2/VYXI8bCHZW0IQARwbuYsFBk98efEw2PriYWwPzhQyxfu4qIAQTvHGGhyJ6jxwkKxa6Edfw+9Q6+2cRu2nTvDITF4d7XxvaVtZsKGbL9wzBYDqQ13N2FBpDVpN9MuQsAiHQMrzMlM2U3kmeDPvB/nEwG0lp31Qrzhw9holxPFdRu/I0No3bJKcZaXHWR+cOHehhQF5PUqpgwh/rsUKwTAkG9p3LtKnRNLwAbRr30SkfWp3JtAPmHHl43FBvmgM3le8Yn0Gk2GbKmG0CfCXhXAFQ9qO9tqSI9bUXaCafqu9qx9AXafdZPwjSTux4xBk0SXKO56p1rNvHOtReYtd/cMwB1DnVx50kcSaOBCQOee7tEYcuDkHi2H9xHYXSEuFZDkzu+SWdJn5MdgnYjCYdGAM1cSB4ZfwFdLKPq2LJzGzsVzn31bcZCMtLRORCANm1BvsD4sZm1K5k67D9n0FuL6ZaLLpXZ8tST7P3ie9TmU8kWeASbL+Bq1cFXsmb5Npq4zKW0K8dajtKV9doxnAqpeuJKmXhlOZMFmZvcEQvSASJCWCje1VrO8BDXf/518LU8dQZ1AXAhsmZ30yUeEdtiYJHsISKoKlfmfkKTpHMx+e08l0+eJqnX8Y0NLiYtGpMosKaRJBfu+9Xsvl9OzXSpZCdmF6ZW4uSgomeNUGejIQ6o94i0aFXvBzGuRqgrenYlTg5OzC5MTZdK9l8mLsAahHa16AAAAABJRU5ErkJggg=="><span>Roof Slope<br>Builder ▾</span></div>
+          </div>
+          <div class="pt">Roof Slope</div>
+        </div>
+        <div class="menu">
+          <div class="hi"><img alt="" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABA0lEQVR4nMWTvU4CQRSFz70zszausQfsbZSEl3ArpfAJfAJsJLEnUGBPwRNYbIPRx9jOXqE3wcadnbkWrAUMrigmnGaSM/cv38ylUatljhp2YBRfWSf7AjAqRIA3it6t8+OXV3Oja/WiH0emM88LSFVmKQHYOjmII9Op1Quhh4uTnEHqLM3Czs/3i/P4Mrh6aje9hzhNIPPV+bHdXApKerfr/TSDAEwg5sVUf5YwANqiAFUS30RBgSTNkKRZEPidv/UEetVYJf6T/y8MdvuMWiCWQQoAB5TLr7yOPgHeQxxNzk+Hh3v6etNlKpMRRxpvH8Wdnk11VzUs/Xad57kdz6am+wnR5mHH+rrCBAAAAABJRU5ErkJggg==">Roof Slope Builder V002<span class="tag">New</span></div>
+          <div><img alt="" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABB0lEQVR4nJVTO3LCMBB9u5KcJuYCfI7AeIZLhA6fgRNAE46QdJmhouAMrjLhGD5DgJ4ZaLBsbwocQjyWDFtppH1v973V0mo0MoO+fTeKp7aQZwEYniCgNIpOtijX31vzqru9/C0MzOyY5RAfsgoB2BbSCQMz6/Zyoc/JMGOQeklSb+V6bOKoLCGFJpC5rfwVR17gOEmvnRCI+XL+A/8muMC1AsIA6PbGRdIABgBq1N0kwyXNa9w4Sb2SWgnuCe17bJuIswOXiS4CqSe6TGwg+T9GF9hDQloglkGq6qbV9SsSuHxlEVqGT3q+iaO7lqkCIww0H875h97v9EL1LT26zsfMrvc7s/gBeWFyWq6qqycAAAAASUVORK5CYII=">Roof Slope Builder V001</div>
+        </div>
+        <div class="tip">
+          <b>Roof Slope Builder — v2.0.0 (build V002)</b>
+          V001 plus ridge drawing: draws the ridge lines (detail lines, or a line-based detail family with detail-line
+          fallback) and marks ridge points with circles in the active plan view. 'Find ridges only' draws them without
+          changing the roofs.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Window · tab 5, Ridges</h2>
+    <div class="frame">
+      <div class="win">
+        <div class="wt"><span>Roof Slope Builder — v2.0.0</span><span class="x">✕</span></div>
+        <div class="wb">
+          <div class="side">
+            <h3>Selected roofs</h3>
+            <div class="btnrow"><div class="b" style="width:50px">All</div><div class="b" style="width:50px">None</div></div>
+            <div class="roofs">
+              <div class="roof"><span class="cb on"></span><div><div>Roof - Flat 250 [412877]</div><div class="i">412.6 m2 - 6 openings</div></div></div>
+              <div class="roof"><span class="cb on"></span><div><div>Roof - Flat 200 [413120]</div><div class="i">186.0 m2 - 3 openings</div></div></div>
+            </div>
+            <div class="hint">Settings apply to every ticked roof. Each roof gets its own drains and ridges.</div>
+          </div>
+          <div class="main">
+            <div class="tabs"><span class="tab">1 - Points</span><span class="tab">2 - Curves</span><span class="tab">3 - Drains &amp; Slope</span><span class="tab">4 - Options</span><span class="tab on">5 - Ridges<span class="tag">New</span></span></div>
+            <div class="tb">
+              <fieldset>
+                <legend>Ridge lines (between drains: watershed lines, or saddle crests)</legend>
+                <div class="r"><span class="cb on"></span><span class="sb">Draw ridge lines in the active plan view</span></div>
+                <div class="ind">
+                  <div class="r"><span class="rb"></span>Detail line</div>
+                  <div class="r ind"><span class="lbl">Line style</span><span class="cmb dis" style="min-width:200px">Medium Lines</span></div>
+                  <div class="r"><span class="rb on"></span>Line-based detail family</div>
+                  <div class="r ind"><span class="lbl">Family type</span><span class="cmb" style="min-width:300px">Ridge Line - Dashed : 2.0 mm</span></div>
+                  <div class="r ind gray" style="max-width:520px">If a family cannot be placed, that ridge is drawn as a detail line in the line style above instead. The report says how many.</div>
+                </div>
+              </fieldset>
+              <fieldset>
+                <legend>Ridge points</legend>
+                <div class="r"><span class="cb on"></span><span class="sb">Mark ridge points with detail circles</span></div>
+                <div class="r ind"><span class="lbl">Circle diameter</span><span class="tx">150</span><span class="u">mm - same line style as the ridge lines</span></div>
+                <div class="r ind gray" style="max-width:560px">Ridge points: the ends and meeting points of the ridges, and points along them at the ridge point spacing (tab 1).</div>
+              </fieldset>
+              <p class="gray">Apply slopes the roofs and draws the ridges in the same step (one Undo). Find ridges only draws them and leaves the roofs as they are.</p>
+            </div>
+          </div>
+        </div>
+        <div class="foot"><span style="color:#444">2 roofs, 5 drains selected</span><span style="display:flex;gap:8px"><span class="b" style="width:120px">Find ridges only<span class="tag">New</span></span><span class="b def" style="width:100px">Apply</span><span class="b" style="width:80px">Cancel</span></span></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>In the plan view · after Find ridges only</h2>
+    <div class="frame">
+      <div class="row2">
+        <div class="plan" style="width:400px">
+          <svg viewBox="0 0 380 210" width="380" height="210" role="img" aria-label="Sample roof plan with three drains, three ridge lines meeting at one point, and ridge point circles">
+            <rect x="0" y="0" width="380" height="210" fill="var(--plan-bg)"/>
+            <rect x="10" y="10" width="360" height="190" fill="none" stroke="var(--roof)" stroke-width="2"/>
+            <g fill="var(--text)">
+              <rect x="86" y="66" width="8" height="8"/><rect x="286" y="66" width="8" height="8"/><rect x="186" y="156" width="8" height="8"/>
+            </g>
+            <g stroke="var(--ridge)" stroke-width="2" stroke-dasharray="7 4" fill="none">
+              <line x1="190" y1="10" x2="190" y2="115"/>
+              <line x1="190" y1="115" x2="10" y2="200"/>
+              <line x1="190" y1="115" x2="370" y2="200"/>
+            </g>
+            <g stroke="var(--ridge)" stroke-width="1.3" fill="none">
+              <circle cx="190" cy="10" r="4"/><circle cx="190" cy="45" r="4"/><circle cx="190" cy="80" r="4"/><circle cx="190" cy="115" r="4"/>
+              <circle cx="130" cy="143" r="4"/><circle cx="70" cy="172" r="4"/><circle cx="10" cy="200" r="4"/>
+              <circle cx="250" cy="143" r="4"/><circle cx="310" cy="172" r="4"/><circle cx="370" cy="200" r="4"/>
+            </g>
+          </svg>
+          <div class="legend">
+            <span><span class="sw" style="border-top-style:dashed"></span>ridge line (detail family)</span>
+            <span><svg width="12" height="12" aria-hidden="true"><circle cx="6" cy="6" r="4" fill="none" stroke="var(--ridge)" stroke-width="1.3"/></svg>ridge point</span>
+            <span><svg width="10" height="10" aria-hidden="true"><rect width="8" height="8" x="1" y="1" fill="var(--text)"/></svg>drain</span>
+          </div>
+        </div>
+        <div class="dlg" style="width:500px">
+          <div class="wt"><span>Roof Slope Builder</span><span class="x">✕</span></div>
+          <div class="c">
+            <span class="mi">Ridges drawn on 2 of 2 roofs</span>
+            <div class="frame"><div class="mono">Roof - Flat 250 [412877]
+   3 drains, 3 ridge detail families, 10 ridge point circles
+
+Roof - Flat 200 [413120]
+   2 drains, 1 ridge detail families, 1 fallback detail lines,
+   5 ridge point circles
+   ! 1 ridge piece(s) could not be placed as "Ridge Line -
+     Dashed : 2.0 mm" and were drawn as detail lines (...)</div></div>
+          </div>
+          <div class="ft"><span>Roof Slope Builder — v2.0.0</span><span class="b" style="width:60px">Close</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
