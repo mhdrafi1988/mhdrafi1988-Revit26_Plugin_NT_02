@@ -66,7 +66,19 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                     "in plan order, bottom-aligned so titles line up. Live preview before anything changes; one Undo step.")
             };
 
-            // Sheet Text Replace: finds and replaces text in the text notes on a sheet, in the views
+            // Sheet Views Combine: lists the views of the active sheet and a second sheet in one
+            // grid and moves the ticked ones onto one target sheet with the packing layout.
+            var sheetViewsCombineV001 = new PushButtonData("Btn_SheetViewsCombine.V001", "Combine Sheets", assemblyPath, "Revit26_Plugin_Revised.SheetViewsCombine.V001.Commands.SheetViewsCombineCommand")
+            {
+                Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SheetTools.SheetViewsCombine_16.png"),
+                LargeImage = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SheetTools.SheetViewsCombine_32.png"),
+                ToolTip = ToolCatalog.SheetViewsCombine.Tip(
+                    "Lists the views on the active sheet and a second sheet in one grid, grouped by sheet and view type. " +
+                    "Tick the views to combine, pick the target (either sheet, another sheet or a new one), preview the packed " +
+                    "layout, then move them in one Undo step. Legends are copied to the same spot.")
+            };
+
+                        // Sheet Text Replace: finds and replaces text in the text notes on a sheet, in the views
             // the user ticks (and in notes placed on the sheet itself).
             var sheetTextReplaceV001 = new PushButtonData("Btn_SheetTextReplace.V001", "Text Replace", assemblyPath, "Revit26_Plugin_Revised.SheetTextReplace.V001.Commands.SheetTextReplaceCommand")
             {
@@ -77,17 +89,22 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
 
             // Rearrange and Arrange Views follow in the same panel (the one-column Sheet Place
             // panel was merged in, plugin 2.4.0, so Revit has room to show every button name).
-            var rearrangeV027 = new PushButtonData("Btn_SheetAutoRearrange.V027", "Rearrange V027", assemblyPath, "Revit26_Plugin_Revised.SheetAutoRearrange.V027.Commands.SheetAutoRearrangeCommand")
-            {
-                Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SheetTools.SheetAutoRearrange_V026_16.png"),
-                ToolTip = RibbonLayoutHelper.VersionTip("Sheet Auto Rearrange", "V027", "UI Standard layout: metrics on top, always-visible log in the footer (Copy All / Copy Selected), Run → Close.")
-            };
             var rearrangeV028 = new PushButtonData("Btn_SheetAutoRearrange.V028", "Rearrange V028", assemblyPath, "Revit26_Plugin_Revised.SheetAutoRearrange.V028.Commands.SheetAutoRearrangeCommand")
             {
                 Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SheetTools.SheetAutoRearrange_V026_16.png"),
                 ToolTip = RibbonLayoutHelper.VersionTip("Sheet Auto Rearrange", "V028", "V027 on the shared ToolWindowShell (log in body, capped grid).")
             };
-            var rearrangePulldownData = RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_SheetAutoRearrange", "Rearrange", rearrangeV028);
+            var rearrangeV029 = new PushButtonData("Btn_SheetAutoRearrange.V029", "Rearrange V029", assemblyPath, "Revit26_Plugin_Revised.SheetAutoRearrange.V029.Commands.SheetAutoRearrangeCommand")
+            {
+                Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SheetTools.SheetAutoRearrange_V026_16.png"),
+                ToolTip = ToolCatalog.SheetAutoRearrangeV029.Tip("V028 plus Align & Distribute: line views up on shared row / column lines and spread them across the usable area.")
+            };
+            var rearrangeV030 = new PushButtonData("Btn_SheetAutoRearrange.V030", "Rearrange V030", assemblyPath, "Revit26_Plugin_Revised.SheetAutoRearrange.V030.Commands.SheetAutoRearrangeCommand")
+            {
+                Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SheetTools.SheetAutoRearrange_V026_16.png"),
+                ToolTip = ToolCatalog.SheetAutoRearrangeV030.Tip("Redesigned window: large live sheet preview, quick layouts, and settings in three tabs.")
+            };
+            var rearrangePulldownData = RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_SheetAutoRearrange", "Rearrange", rearrangeV030);
 
             // Sheet View Arrange: separate tool (not a Rearrange version) — keeps the views'
             // sizes, orders them by detail number and lays them out as a reading table.
@@ -103,12 +120,12 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
 
             // Slide-out (plugin 6.13.0): Rearrange and Arrange Views come after creating and placing views.
             var sheetCreateItems = RibbonLayoutHelper.AddStackedButtonsWithSlideOut(createPanel,
-                new List<RibbonItemData> { scopeBoxPulldownData, sheetPlacerPulldownData, autoSectionPlacerPulldownData, sectionsToSheetV001 },
+                new List<RibbonItemData> { scopeBoxPulldownData, sheetPlacerPulldownData, autoSectionPlacerPulldownData, sectionsToSheetV001, sheetViewsCombineV001 },
                 new List<RibbonItemData> { rearrangePulldownData, viewArrangeV001 });
             RibbonLayoutHelper.WirePulldownButton(sheetCreateItems, "Pulldown_PlanFromScopeBox", scopeBoxV006, scopeBoxV005);
             RibbonLayoutHelper.WirePulldownButton(sheetCreateItems, "Pulldown_SmartViewToSheetPlacer", sheetPlacerV224, sheetPlacerV223);
             RibbonLayoutHelper.WirePulldownButton(sheetCreateItems, "Pulldown_AutomatedSectionPlacer", autoSectionPlacerV003, autoSectionPlacerV002);
-            RibbonLayoutHelper.WirePulldownButton(sheetCreateItems, "Pulldown_SheetAutoRearrange", rearrangeV028, rearrangeV027);
+            RibbonLayoutHelper.WirePulldownButton(sheetCreateItems, "Pulldown_SheetAutoRearrange", rearrangeV030, rearrangeV029, rearrangeV028);
 
             // Sheet Edit panel (plugin 6.22.0): tools that change what is already on a sheet.
             // A lone item is added as a full-size button with its 32 px icon.

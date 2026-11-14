@@ -22,70 +22,55 @@ public static class ViewClassificationService
     /// Per confirmed decision, both are labeled "Section" and share one
     /// duplicate-name group (SectionOrCallout), which matches Revit's
     /// actual name-uniqueness rule regardless of the cosmetic label.
+    ///
+    /// Returns null for a view type the tool does not rename (sheets, 3D views…),
+    /// so this is also the single "is this view in scope" test.
     /// </summary>
-    public static (ViewTypeGroup group, string display) ClassifyView(View v)
+    public static (ViewTypeGroup group, string display)? Classify(ViewType viewType) => viewType switch
     {
-        switch (v.ViewType)
-        {
-            case ViewType.Section:
-                return (ViewTypeGroup.SectionOrCallout, "Section");
+        ViewType.Section         => (ViewTypeGroup.SectionOrCallout, "Section"),
+        ViewType.Elevation       => (ViewTypeGroup.Elevation, "Elevation"),
+        ViewType.FloorPlan       => (ViewTypeGroup.FloorPlan, "Floor Plan"),
+        ViewType.CeilingPlan     => (ViewTypeGroup.CeilingPlan, "Ceiling Plan"),
+        ViewType.EngineeringPlan => (ViewTypeGroup.StructuralPlan, "Structural Plan"),
+        ViewType.AreaPlan        => (ViewTypeGroup.AreaPlan, "Area Plan"),
+        ViewType.DraftingView    => (ViewTypeGroup.Drafting, "Drafting View"),
+        ViewType.Legend          => (ViewTypeGroup.Legend, "Legend"),
+        ViewType.Schedule        => (ViewTypeGroup.Schedule, "Schedule"),
+        _                        => null, // not a view type this tool renames
+    };
 
-            case ViewType.Elevation:
-                return (ViewTypeGroup.Elevation, "Elevation");
-
-            case ViewType.FloorPlan:
-                return (ViewTypeGroup.FloorPlan, "Floor Plan");
-
-            case ViewType.CeilingPlan:
-                return (ViewTypeGroup.CeilingPlan, "Ceiling Plan");
-
-            case ViewType.EngineeringPlan:
-                return (ViewTypeGroup.StructuralPlan, "Structural Plan");
-
-            case ViewType.AreaPlan:
-                return (ViewTypeGroup.AreaPlan, "Area Plan");
-
-            case ViewType.DraftingView:
-                return (ViewTypeGroup.Drafting, "Drafting View");
-
-            case ViewType.Legend:
-                return (ViewTypeGroup.Legend, "Legend");
-
-            case ViewType.Schedule:
-                return (ViewTypeGroup.Schedule, "Schedule");
-
-            default:
-                // Callers filter to exactly the 9 types handled above, so this
-                // should be unreachable. Fail loudly rather than silently
-                // mis-bucketing an unexpected view type into an unrelated
-                // duplicate-name group.
-                throw new System.InvalidOperationException(
-                    $"Unhandled ViewType '{v.ViewType}' reached ClassifyView — " +
-                    "update the in-scope ViewType set and ClassifyView together if a new type was added.");
-        }
+    /// <summary>Where a view sits: its sheet numbers (in sheet order) and, for a view placed once, its detail number.</summary>
+    public sealed class Placement
+    {
+        /// <summary>Sheet numbers the view is placed on.</summary>
+        public List<string> Sheets { get; } = new();
+        /// <summary>Detail number of the view's first viewport; null for schedules.</summary>
+        public string? DetailNumber { get; set; }
     }
 
     /// <summary>
-    /// Builds a ViewId → list-of-sheet-numbers lookup for views that can be
-    /// placed on multiple sheets (Legends via Viewport, Schedules via
-    /// ScheduleSheetInstance). Section/Callout/Elevation/Plan/Drafting views
-    /// use the simpler VIEWER_SHEET_NUMBER parameter directly (single place).
+    /// Builds a ViewId → placement lookup for every placed view, from two project-wide
+    /// collectors: Viewport (all placed views, with the detail number) and
+    /// ScheduleSheetInstance (schedules). 7.3.0: this replaces reading the sheet-number and
+    /// detail-number parameters on every view, so unplaced views cost no parameter reads.
     /// </summary>
     /// <param name="doc">The project document.</param>
     /// <param name="cancel">Optional cancel helper; checked in every loop so a long lookup can be cancelled.</param>
-    public static Dictionary<ElementId, List<string>> BuildPlacedSheetsLookup(Document doc, ToolCancellation? cancel = null)
+    public static Dictionary<ElementId, Placement> BuildPlacementLookup(Document doc, ToolCancellation? cancel = null)
     {
-        var result = new Dictionary<ElementId, List<string>>();
+        var result = new Dictionary<ElementId, Placement>();
 
-        void Add(ElementId viewId, string sheetNumber)
+        Placement? Add(ElementId viewId, string sheetNumber)
         {
-            if (viewId == ElementId.InvalidElementId || string.IsNullOrWhiteSpace(sheetNumber)) return;
-            if (!result.TryGetValue(viewId, out var list))
+            if (viewId == ElementId.InvalidElementId || string.IsNullOrWhiteSpace(sheetNumber)) return null;
+            if (!result.TryGetValue(viewId, out var p))
             {
-                list = new List<string>();
-                result[viewId] = list;
+                p = new Placement();
+                result[viewId] = p;
             }
-            if (!list.Contains(sheetNumber)) list.Add(sheetNumber);
+            if (!p.Sheets.Contains(sheetNumber)) p.Sheets.Add(sheetNumber);
+            return p;
         }
 
         // Sheet id -> sheet number. Placements below are matched against this,
@@ -95,18 +80,16 @@ public static class ViewClassificationService
             .Cast<ViewSheet>()
             .ToDictionary(s => s.Id, s => s.SheetNumber);
 
-        // V007: two document-wide collectors instead of two per-sheet ones.
-        // Per-sheet (view-scoped) collectors cost one model scan each, which made
-        // opening the tool slow on projects with many sheets. Same result.
-
-        // Legends (and every other placed view) sit on sheets via Viewport.
+        // Every placed view sits on its sheet via a Viewport.
         foreach (var vp in new FilteredElementCollector(doc)
                      .OfClass(typeof(Viewport))
                      .Cast<Viewport>())
         {
             cancel?.Check();
-            if (sheetNumbers.TryGetValue(vp.SheetId, out var number))
-                Add(vp.ViewId, number);
+            if (!sheetNumbers.TryGetValue(vp.SheetId, out var number)) continue;
+            var p = Add(vp.ViewId, number);
+            if (p != null && p.DetailNumber == null)
+                p.DetailNumber = ViewLoadService.DetailNumberOf(vp);
         }
 
         // Schedules sit on sheets via ScheduleSheetInstance (owner view = the sheet).
@@ -119,16 +102,17 @@ public static class ViewClassificationService
                 Add(si.ScheduleId, number);
         }
 
-        // Keep V006's order: each view's sheets in sheet-collector order, so the
-        // grid's Sheet column (first entry) shows the same sheet as before.
+        // Each view's sheets in sheet-collector order, so the grid's Sheet column
+        // (first entry) shows the same sheet as before.
         var sheetOrder = sheetNumbers.Keys
             .Select((id, i) => (number: sheetNumbers[id], i))
             .GroupBy(x => x.number)
             .ToDictionary(g => g.Key, g => g.Min(x => x.i));
-        foreach (var list in result.Values)
+        foreach (var p in result.Values)
         {
             cancel?.Check();
-            list.Sort((a, b) => sheetOrder[a].CompareTo(sheetOrder[b]));
+            if (p.Sheets.Count > 1)
+                p.Sheets.Sort((a, b) => sheetOrder[a].CompareTo(sheetOrder[b]));
         }
 
         return result;

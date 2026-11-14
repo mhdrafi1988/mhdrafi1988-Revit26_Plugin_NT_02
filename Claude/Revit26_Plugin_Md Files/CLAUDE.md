@@ -24,7 +24,7 @@ disagree, the root one wins. The `Claude/` folder next to this file holds the de
   `App.cs : InitializeRibbonPanels`. See `Claude/RIBBON_AND_ICONS.md` for every panel.
 - Tools live in `Menu/<Area>/<Group>/<Tool>_V<NNN>/` with `Commands`, `Core`, `UI` and `Infrastructure` folders.
   Each tool's semantic version is in `Shared/Services/ToolCatalog.cs`.
-- Unit tests are in `Tests/<Project>` (12 projects), and run with `dotnet test Tests/<Project>`. They link the
+- Unit tests are in `Tests/<Project>` (16 projects), and run with `dotnet test Tests/<Project>`. They link the
   tool's Revit-free files rather than copying them.
 - UI previews for tool changes are in `Claude/Previews/` and are published as claude.ai Artifacts (root
   `CLAUDE.md`, "UI previews"). Every tool update opens the Artifact for the owner in the same turn, before

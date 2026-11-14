@@ -21,7 +21,7 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 
 | Tab | Panel | Tools |
 |---|---|---|
-| Rafi_Pro_MOds | Roof Slope | By Point · By Drain · Points & Slope |
+| Rafi_Pro_MOds | Roof Slope | By Point · By Drain · Points & Slope · Roof Slope Builder (V002, V001) |
 | Rafi_Pro_MOds | Floor Slope | By Drain · By Point (By Point, Ridge, Multi Copies) · Points & Slope |
 | Rafi_Pro_MOds | Shape Points | Inner Loops · Outer Curve · Line Intersect · Loops + Perp. ▸ slide-out: Vertex Reducer · Multi Points · Shape From Link |
 | Rafi_Pro_MOds | Floor Points | Inner Loops · Outer Curve · Line Intersect · Loops + Perp. · Vertex Reducer · Multi Points · Shape From Link |
@@ -42,25 +42,32 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 | Rafi_Pro_Docs | View Create | From Lines · Around Edges · Edge Element ▸ slide-out: Roof Focus · Isolated Section |
 | Rafi_Pro_Docs | Floor Views | Floor Around Edges · Floor Edge Element · Floor Focus |
 | Rafi_Pro_Docs | View Place | Place Sections · Callout To Section · Head Placer · View Tagger |
-| Rafi_Pro_Docs | View Rename | Bubble Renumber · Section Renamer · Auto Renamer |
+| Rafi_Pro_Docs | View Rename | Bubble Renumber *button* · Section Renamer *button* · Auto Renamer *button* |
 | Rafi_Pro_Docs2 | Tagging | Tag To Text · Align Spot Elevations · Align to Detail Line · Distribute Spot Elev. · Quick Align split buttons: Vertical · Horizontal · to Tag (each lists tags, ends, bends) · Quick Distribute split buttons: Vertical · Horizontal (each lists tags, ends, bends) |
-| Rafi_Pro_Docs | Sheet Create | Scope Box · Sheet Placer · Section Placer · Sections To Sheet ▸ slide-out: Rearrange · Arrange Views |
+| Rafi_Pro_Docs | Sheet Create | Scope Box · Sheet Placer · Section Placer · Sections To Sheet · Combine Sheets ▸ slide-out: Rearrange (V030, V029, V028) · Arrange Views |
 | Rafi_Pro_Docs | Sheet Edit | Text Replace |
 | Rafi_Pro_Docs2 | DWG Tools | DWG To DL(P) · Export DWG · DWG Manager · DWG Statistics |
 | Rafi_Pro_Docs2 | Family Tools | Batch Link DWG · DWG To Lines |
-| Rafi_Pro_Docs2 | Manage | Overlaps · ParaManager · Shared Params · Schedule I/O · Link Check ▸ slide-out: Del. Line Styles · Bulk Rename · Tracker ID |
+| Rafi_Pro_Docs2 | Manage | Overlaps (V006, V005) · Overlap Report · ParaManager · Shared Params · Schedule I/O · Link Check ▸ slide-out: Del. Line Styles · Bulk Rename · Tracker ID |
 | Rafi_Pro_Docs2 | Worksets | WS Browser · WS Creator · WS Renamer ▸ slide-out: WS Renamer XL · Delete Workset |
 | Rafi_Pro_Docs2 | Memory | WS Memory · Link Memory |
+| Rafi_Pro_Docs2 | Coordination | Void Openings · Base Level to Parameter |
 
 ## Features
 
 ### Roof slope
 - **Auto Slope By Point**: slope a roof's shape points down to drain points you pick. V033 adds optional ridge
-  lines between drain groups. The dropdown also has the Ridge and Multi Copies variants.
+  lines between drain groups; V034 lets you set the on-roof path check spacing and projection tolerance. The dropdown also has the Ridge and Multi Copies variants.
 - **Auto Slope By Drain (Multi-Roof)**: pick one or more roofs and slope each one down to the drain openings in its
   sketch, with circle markers, Excel export and `AutoSlope_*` parameters.
 - **Roof Points & Slope**: shape points around openings, perpendicular to the boundary, at mid/quarter points and in
   long gaps, the ridges between drains, then the slope, in one window and one Undo.
+- **Roof Slope Builder** (new in 7.3.0, own button on the Roof Slope panel): one command for every selected footprint
+  roof. Adds opening-corner, perpendicular, ridge and curve points, then sets each point to slope x distance to its
+  nearest drain. Ridges between drains are watershed lines or saddles (diamond crickets). Options are remembered.
+  **V002** (new in 7.4.0, first in the Roof Slope Builder dropdown) also draws the ridge lines (detail lines, or a
+  line-based detail family that falls back to detail lines) and marks the ridge points with circles in the plan view;
+  **Find ridges only** draws them without changing the roofs.
 
 ### Floor slope (new in 6.31.0)
 - **Floor Slope By Drain**: the floor version of Auto Slope By Drain. Drains are openings in the floor sketch and
@@ -137,7 +144,13 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 - **Plan From Scope Box, Smart View To Sheet Placer, Automated Section Placer, Sections To Sheet**: create plans and
   place views and sections on sheets.
 - **Sheet Auto Rearrange, Sheet View Arrange**: rearrange sheet layouts.
+  Sheet Auto Rearrange V029 adds Align & Distribute: views line up on shared row / column lines and spread
+  across the usable area. V030 is the same engine in a redesigned window: large live preview, quick layouts
+  and settings in three tabs.
 - **Sheet Text Replace**: find and replace text notes in views on a sheet.
+- **Sheet Views Combine** (Combine Sheets): list the views of two sheets in one grid, grouped by sheet and view type,
+  and move the ticked ones onto one sheet (either sheet, another sheet or a new one) with the packing layout.
+  Legends are copied to the same spot.
 
 ### DWG and families
 - **DWG To DL(P), DWG To Lines**: convert DWGs to detail lines and hatches.
@@ -150,7 +163,12 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 - **Detail Line Manager**: find, clean up and join detail lines, and rename line styles.
 
 ### Manage, worksets and memory
-- **Annotation Overlap Detection, ParaManager, Shared Parameter Studio, Schedule Export / Import**.
+- **Annotation Overlap Detection**: find overlapping text notes, tags, room tags and dimensions, then move them
+  apart. V006: By priority, with a recommended order (dimensions stay, text notes move first), presets and your own
+  order; also Move Up, Move Down or Distribute. Runs in plans, sections, elevations, drafting views, legends and sheets.
+- **Annotation Overlap Report**: report-only list of overlapping annotations of every type on the active view or a
+  batch of views and sheets, with zoom to pair and Excel export.
+- **ParaManager, Shared Parameter Studio, Schedule Export / Import**.
 - **Link Version Checker**: status of RVT links, including ACC Desktop Connector and Autodesk Docs cloud links.
 - **Delete Line Styles, Bulk Rename, Tracker ID**: clean up and rename styles and patterns, and give elements a
   permanent tracker ID.
@@ -159,6 +177,16 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 - **Link Memory** (dropdown): V002 remembers which links (Revit, IFC, CAD, point clouds, images/PDF) the active view
   and its related views, or a print set, show, loads them back in one click, and exports the list to Excel.
   *Link Memory (classic)* (V001) remembers which Revit links are loaded as named sets.
+
+### Coordination
+- **Void Openings** (in development): openings for MEP through structure. So far: choose the structural model and
+  the MEP model (the active model or a Revit link) and their categories, with element counts. Clash analysis, void
+  placement and cutting follow.
+- **Base Level to Parameter**: writes each element's base level and base offset to a text instance parameter as
+  "Level 02 (+450)" (offset in mm). Lists the active view's model elements or the whole host model, checks the
+  target parameter first (name, data type, binding, shared parameter file, categories, ownership), and can create
+  the parameter as a shared instance Text parameter. One transaction; Ctrl+Z undoes it. The value can be the level
+  name only or level name + offset in one of several patterns (or a custom one); elements already up to date are not rewritten.
 
 ## Installation
 
