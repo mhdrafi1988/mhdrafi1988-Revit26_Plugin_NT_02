@@ -1,8 +1,9 @@
 <title>Base Level to Parameter</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<!-- UI preview (CLAUDE.md "UI previews"): Base Level to Parameter V001, tool 1.0.1, plugin 7.2.1.
-     New in 1.0.1: new parameters go under Data (was Identity Data); pre-check c blocks a name that is in the
-     shared parameter file more than once, and a file GUID already used by another project parameter.
+<!-- UI preview (CLAUDE.md "UI previews"): Base Level to Parameter V001, tool 1.1.0 (proposed), plugin 7.4.0 (proposed).
+     Status: value-format options shown FOR APPROVAL (section 2a); the code follows after the owner picks the patterns.
+     New in 1.1.0: "Value format" in the Target parameter card: Level name only, or Level name + offset with a pattern.
+     1.0.1: new parameters go under Data; pre-check c blocks duplicate names and a file GUID used by another parameter.
      Shows: the Coordination ribbon button + tooltip, the main window after "Load Base Level" with the pre-checks run,
             the New Parameter dialog, and the footer while running and after a run.
      Mirrors: Menu/Coordination/Parameters/BaseLevelToParameter_V001/UI/Views/BaseLevelToParameterWindow.xaml,
@@ -162,17 +163,17 @@ tr.dim td{color:var(--text3)}
     </div>
     <div class="rtitle">Coordination</div>
   </div>
-  <div class="tip"><b>Base Level to Parameter — v1.0.1 (build V001)</b>Reads each element's base level and offset and writes them to a text parameter as "Level 02 (+450)". Lists the active view's model elements (or the whole host model), checks the target parameter first, and can create it as a shared instance Text parameter.</div>
+  <div class="tip"><b>Base Level to Parameter — v1.1.0 (build V001)</b>Reads each element's base level and offset and writes them to a text parameter as "Level 02 (+450)". Lists the active view's model elements (or the whole host model), checks the target parameter first, and can create it as a shared instance Text parameter.</div>
 </div>
 
 <!-- ============ MAIN WINDOW ============ -->
 <h2>2 · Main window, after “Load Base Level”</h2>
 <div class="scroll">
 <div class="win" style="width:1240px">
-  <div class="titlebar"><span>Base Level to Parameter — v1.0.1</span><span>—□✕</span></div>
+  <div class="titlebar"><span>Base Level to Parameter — v1.1.0</span><span>—□✕</span></div>
   <div class="header">
     <div><div class="t">Base Level to Parameter <span class="new">NEW</span></div><div class="s">Sample Project · Active view: Level 02 – Floor Plan</div></div>
-    <div class="v">v1.0.1</div>
+    <div class="v">v1.1.0</div>
   </div>
 
   <!-- HEADER CONTENT: metrics -->
@@ -217,8 +218,15 @@ tr.dim td{color:var(--text3)}
           <span class="row"><span class="sbtn">New Parameter…</span><span class="hint">Opens the dialog in section 3.</span></span>
           <span class="l">Existing values</span>
           <label><input type="checkbox">Overwrite existing values</label>
+          <span class="l" style="align-self:start;padding-top:2px">Value format<span class="new">NEW</span></span>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <label><input type="radio" name="vf" disabled>Level name only</label>
+            <label><input type="radio" name="vf" checked disabled>Level name + offset</label>
+            <div class="row" style="padding-left:20px"><span class="lbl" style="margin:0">Pattern</span><span class="combo" style="width:210px">Level 02 (+450)</span></div>
+            <div class="hint" style="padding-left:20px">Sample: <b style="font-family:var(--mono);color:var(--text)">Level 02 (+450)</b> · <b style="font-family:var(--mono);color:var(--text)">Level 01 (0)</b> · <b style="font-family:var(--mono);color:var(--text)">Level 01 (-150)</b></div>
+          </div>
         </div>
-        <div class="hint">Value: "Level 02 (+450)" — offset in mm, signed, whole millimetres; zero is "(0)". The list shows every project parameter; a wrong data type or a type parameter is Blocked in check b.</div>
+        <div class="hint">Offset in mm, signed, whole millimetres. Changing the format updates the New Value column at once (no Revit call). The list shows every project parameter; a wrong data type or a type parameter is Blocked in check b.</div>
       </div>
     </div>
 
@@ -298,12 +306,32 @@ tr.dim td{color:var(--text3)}
 </div>
 </div>
 
+<!-- ============ VALUE FORMAT OPTIONS (FOR APPROVAL) ============ -->
+<h2>2a · Value format options <span class="new">NEW · for approval</span></h2>
+<p class="note">Pick the patterns to keep. The default stays the 1.0.x format, so existing results do not change unless you choose another pattern. Samples use offsets +450, 0 and −150 mm (sample data).</p>
+<div class="scroll">
+<div class="card" style="width:860px;padding:8px 12px">
+  <table>
+    <tr><th style="width:40px">#</th><th style="width:200px">Choice in the Pattern list</th><th>+450</th><th>0</th><th>−150</th><th style="width:150px">Note</th></tr>
+    <tr><td>L</td><td><b>Level name only</b></td><td class="mono">Level 02</td><td class="mono">Level 01</td><td class="mono">Level 01</td><td class="hint">Offset ignored; Pattern list disabled</td></tr>
+    <tr><td>1</td><td>Level (offset)</td><td class="mono">Level 02 (+450)</td><td class="mono">Level 01 (0)</td><td class="mono">Level 01 (-150)</td><td><span class="chip ok">Default · 1.0.x</span></td></tr>
+    <tr><td>2</td><td>Level offset</td><td class="mono">Level 02 +450</td><td class="mono">Level 01 0</td><td class="mono">Level 01 -150</td><td></td></tr>
+    <tr><td>3</td><td>Level (offset mm)</td><td class="mono">Level 02 (+450 mm)</td><td class="mono">Level 01 (0 mm)</td><td class="mono">Level 01 (-150 mm)</td><td></td></tr>
+    <tr><td>4</td><td>Level / offset</td><td class="mono">Level 02 / +450</td><td class="mono">Level 01 / 0</td><td class="mono">Level 01 / -150</td><td></td></tr>
+    <tr><td>5</td><td>Level [offset]</td><td class="mono">Level 02 [+450]</td><td class="mono">Level 01 [0]</td><td class="mono">Level 01 [-150]</td><td></td></tr>
+    <tr><td>6</td><td>Level, Offset offset</td><td class="mono">Level 02, Offset +450</td><td class="mono">Level 01, Offset 0</td><td class="mono">Level 01, Offset -150</td><td></td></tr>
+    <tr><td>7</td><td>Level only when offset is 0</td><td class="mono">Level 02 (+450)</td><td class="mono">Level 01</td><td class="mono">Level 01 (-150)</td><td class="hint">Like 1, but no “(0)”</td></tr>
+    <tr><td>C</td><td>Custom…</td><td colspan="3"><span class="text" style="width:220px">{Level} ({Offset})</span> <span class="hint">tokens {Level} and {Offset}</span></td><td class="hint">Typed by the user; checked before Run</td></tr>
+  </table>
+</div>
+</div>
+
 <!-- ============ NEW PARAMETER DIALOG ============ -->
 <h2>3 · New Parameter dialog</h2>
 <p class="note"><span class="new" style="margin:0 6px 0 0">NEW in 1.0.1</span>Pre-check c (here and in the main window) blocks a name that appears twice in the shared parameter file; the main window also blocks a file GUID that another project parameter already uses (example: “The GUID of “Base Level Info” in SharedParameters.txt (3f2a…c9e1) is already used in the project by “Old Level Note”.”). Opened by “New Parameter…”. Nothing is created here: Create sets this parameter as the target, and Run in the main window creates it (shared parameter file first, then the project, in the run's transaction).</p>
 <div class="scroll">
 <div class="win dlg">
-  <div class="titlebar"><span>New Parameter — Base Level to Parameter v1.0.1</span><span>✕</span></div>
+  <div class="titlebar"><span>New Parameter — Base Level to Parameter v1.1.0</span><span>✕</span></div>
   <div style="padding:12px 16px;display:flex;flex-direction:column;gap:10px">
     <div class="form" style="grid-template-columns:130px 1fr">
       <span class="l">Name</span><span class="row"><span class="text" style="flex:1">Base Level Info</span><span class="hint">15 / 25</span></span>
@@ -349,6 +377,14 @@ tr.dim td{color:var(--text3)}
 
 <!-- ============ DECISIONS ============ -->
 <h2>5 · Decisions</h2>
+<div class="card" style="padding:10px 12px;margin-bottom:12px;max-width:1200px;border-color:var(--warn-border);background:var(--warn-soft)">
+  <div class="section" style="color:var(--warn);margin-bottom:4px">Open for 1.1.0</div>
+  <ol style="margin:0;padding-left:20px;line-height:1.55">
+    <li>Which patterns from 2a to keep (L and 1 are always in)?</li>
+    <li>Include “Custom…” with {Level} / {Offset} tokens?</li>
+    <li>Remember the chosen format for next time (settings file), or always start with the default?</li>
+  </ol>
+</div>
 <div class="lists">
   <div>
     <div class="section" style="margin-bottom:6px">From the brief</div>
