@@ -22,7 +22,7 @@ namespace Revit26_Plugin_Revised.WorksetMemory.V001.UI.ViewModels
         private readonly Document _doc;               // active project, or null
         private readonly ModelIdentity _current;      // identity of _doc, or null
         private readonly List<SavedWorkset> _live;    // _doc's worksets, or empty
-        private readonly WorksetMemoryFile _file;
+        private WorksetMemoryFile _file;              // as last read from or saved to disk
         private readonly string _startHint = string.Empty;
 
         /// <summary>Raised when the window should close (after Reload is accepted).</summary>
@@ -83,6 +83,8 @@ namespace Revit26_Plugin_Revised.WorksetMemory.V001.UI.ViewModels
                 _current = ModelIdentity.FromDocument(doc);
             }
             _live = _current != null ? WorksetMemoryService.ReadWorksets(doc) : new List<SavedWorkset>();
+            RestoreActiveWorkset = WorksetMemoryService.LoadSettings().RestoreActiveWorkset;
+            RefreshSavedLocation();
 
             if (_current != null)
                 Models.Add(new ModelChoice(_current, _file.Find(_current.Key), true));
@@ -128,18 +130,23 @@ namespace Revit26_Plugin_Revised.WorksetMemory.V001.UI.ViewModels
             string name = (NewSetName ?? string.Empty).Trim();
             if (name.Length == 0) name = DefaultSetName();
 
-            WorksetModelEntry entry = EnsureEntry();
-            WorksetSet existing = entry.Sets.FirstOrDefault(s => string.Equals(s.Name, name, StringComparison.OrdinalIgnoreCase));
-            if (existing != null && Ask($"A set called '{name}' already exists. Replace it with the current worksets?") != MessageBoxResult.Yes)
+            if (SelectedModel.Entry?.FindSet(name) != null
+                && Ask($"A set called '{name}' already exists. Replace it with the current worksets?") != MessageBoxResult.Yes)
                 return;
 
             WorksetSet set = WorksetMemoryService.Capture(_doc, name);
-            if (existing != null) entry.Sets.Remove(existing);
-            entry.Sets.Insert(0, set);
-            entry.Model = _current;   // keep the latest local path
+            ModelIdentity model = _current;
+            bool saved = Commit(file =>
+            {
+                WorksetModelEntry entry = file.Ensure(model);
+                entry.Sets.RemoveAll(s => SameName(s.Name, name));
+                entry.Sets.Insert(0, set);
+                entry.Model = model;   // keep the latest local path
+                return true;
+            });
 
-            if (Persist()) NewSetName = DefaultSetName();
-            ReloadSets(set);
+            if (saved) NewSetName = DefaultSetName();
+            ReloadSets(name);
         }
 
         private bool CanRemember() => IsCurrentModel && _doc != null && _doc.IsValidObject;
@@ -148,18 +155,21 @@ namespace Revit26_Plugin_Revised.WorksetMemory.V001.UI.ViewModels
         [RelayCommand(CanExecute = nameof(CanOverwrite))]
         private void Overwrite()
         {
-            var old = SelectedSet.Set;
-            if (Ask($"Replace '{old.Name}' with the worksets open now?") != MessageBoxResult.Yes) return;
+            string name = SelectedSet.Name;
+            if (Ask($"Replace '{name}' with the worksets open now?") != MessageBoxResult.Yes) return;
 
-            WorksetModelEntry entry = EnsureEntry();
-            WorksetSet set = WorksetMemoryService.Capture(_doc, old.Name);
-            int index = Math.Max(0, entry.Sets.IndexOf(old));
-            entry.Sets.Remove(old);
-            entry.Sets.Insert(index, set);
-            entry.Model = _current;
-
-            Persist();
-            ReloadSets(set);
+            WorksetSet set = WorksetMemoryService.Capture(_doc, name);
+            ModelIdentity model = _current;
+            Commit(file =>
+            {
+                WorksetModelEntry entry = file.Ensure(model);
+                int index = entry.Sets.FindIndex(s => SameName(s.Name, name));
+                if (index >= 0) entry.Sets[index] = set;
+                else entry.Sets.Insert(0, set);   // deleted in another session meanwhile
+                entry.Model = model;
+                return true;
+            });
+            ReloadSets(name);
         }
 
         private bool CanOverwrite() => CanRemember() && SelectedSet != null;
@@ -168,15 +178,19 @@ namespace Revit26_Plugin_Revised.WorksetMemory.V001.UI.ViewModels
         [RelayCommand(CanExecute = nameof(HasSet))]
         private void Delete()
         {
-            var set = SelectedSet.Set;
-            if (Ask($"Delete the set '{set.Name}'?") != MessageBoxResult.Yes) return;
+            string name = SelectedSet.Name;
+            if (Ask($"Delete the set '{name}'?") != MessageBoxResult.Yes) return;
 
-            WorksetModelEntry entry = SelectedModel.Entry;
-            entry?.Sets.Remove(set);
-            if (entry != null && entry.Sets.Count == 0 && !SelectedModel.IsCurrent)
-                _file.Models.Remove(entry);
-
-            Persist();
+            string key = SelectedModel.Model.Key;
+            bool keepEntry = SelectedModel.IsCurrent;
+            Commit(file =>
+            {
+                WorksetModelEntry entry = file.Find(key);
+                if (entry == null) return false;
+                int removed = entry.Sets.RemoveAll(s => SameName(s.Name, name));
+                if (entry.Sets.Count == 0 && !keepEntry) file.Models.Remove(entry);
+                return removed > 0;
+            });
             ReloadSets(null);
         }
 
@@ -214,23 +228,33 @@ namespace Revit26_Plugin_Revised.WorksetMemory.V001.UI.ViewModels
             => _doc != null && _doc.IsValidObject
                && WorksetReopenService.FindOpen(_doc.Application, model) != null;
 
-        private WorksetModelEntry EnsureEntry()
-        {
-            if (SelectedModel.Entry != null) return SelectedModel.Entry;
-            var entry = new WorksetModelEntry { Model = _current };
-            _file.Models.Add(entry);
-            SelectedModel.Entry = entry;
-            return entry;
-        }
-
-        private void ReloadSets(WorksetSet select)
+        // Shows the sets of the selected model, selecting the one called selectName (or the first).
+        private void ReloadSets(string selectName)
         {
             Sets.Clear();
             foreach (var s in SelectedModel?.Entry?.Sets ?? new List<WorksetSet>())
                 Sets.Add(new SetRow(s));
             SavedSetCount = Sets.Count;
-            SelectedSet = Sets.FirstOrDefault(r => r.Set == select) ?? Sets.FirstOrDefault();
+            SelectedSet = Sets.FirstOrDefault(r => SameName(r.Name, selectName)) ?? Sets.FirstOrDefault();
             Rebuild();
+        }
+
+        // The open model may be a new local copy (or the central moved): store where it is now, so
+        // the next session opens the right file when no model is open.
+        private void RefreshSavedLocation()
+        {
+            if (_current == null) return;
+            WorksetModelEntry entry = _file.Find(_current.Key);
+            if (entry == null || !WorksetMemoryService.LocationChanged(entry.Model, _current)) return;
+
+            ModelIdentity model = _current;
+            Commit(file =>
+            {
+                WorksetModelEntry latest = file.Find(model.Key);
+                if (latest == null || !WorksetMemoryService.LocationChanged(latest.Model, model)) return false;
+                latest.Model = model;
+                return true;
+            });
         }
 
         // Builds the comparison grid, tiles and summary for the selected model and set.
@@ -320,21 +344,31 @@ namespace Revit26_Plugin_Revised.WorksetMemory.V001.UI.ViewModels
 
         private static string DefaultSetName() => $"Set {DateTime.Now:dd MMM HH:mm}";
 
-        private bool Persist()
+        /// <summary>Saves the window options so the next session starts with them.</summary>
+        public void SaveSettings()
+            => WorksetMemoryService.SaveSettings(new WorksetMemorySettings { RestoreActiveWorkset = RestoreActiveWorkset });
+
+        // Applies change to the latest memory file on disk (so sets saved by another Revit session
+        // are kept), saves it and points the model list at the result. False when it could not be saved.
+        private bool Commit(Func<WorksetMemoryFile, bool> change)
         {
             try
             {
-                WorksetMemoryService.Save(_file);
-                return true;
+                _file = WorksetMemoryService.Update(change);
             }
             catch (Exception ex) when (ex is System.IO.IOException || ex is UnauthorizedAccessException
                                        || ex is NotSupportedException)
             {
-                MessageBox.Show($"The set could not be saved to {WorksetMemoryService.FilePath}:\n{ex.Message}",
+                MessageBox.Show($"The sets could not be saved to {WorksetMemoryService.FilePath}:\n{ex.Message}",
                     ToolCatalog.WorksetMemory.Title, MessageBoxButton.OK, MessageBoxImage.Error);
                 return false;
             }
+
+            foreach (ModelChoice choice in Models) choice.Entry = _file.Find(choice.Model.Key);
+            return true;
         }
+
+        private static bool SameName(string a, string b) => string.Equals(a, b, StringComparison.OrdinalIgnoreCase);
 
         private static MessageBoxResult Ask(string text)
             => MessageBox.Show(text, ToolCatalog.WorksetMemory.Title, MessageBoxButton.YesNo, MessageBoxImage.Question);

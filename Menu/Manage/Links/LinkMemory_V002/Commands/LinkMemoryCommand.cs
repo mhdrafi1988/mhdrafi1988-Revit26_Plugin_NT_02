@@ -35,6 +35,7 @@ namespace Revit26_Plugin_Revised.LinkMemory.V002.Commands
             var window = new LinkMemoryWindow(viewModel);
             new WindowInteropHelper(window).Owner = commandData.Application.MainWindowHandle;
             window.ShowDialog();
+            viewModel.SaveSettings();
             return Result.Succeeded;
         }
     }

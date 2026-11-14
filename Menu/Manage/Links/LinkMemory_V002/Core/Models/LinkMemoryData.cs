@@ -64,9 +64,20 @@ namespace Revit26_Plugin_Revised.LinkMemory.V002.Core.Models
         /// <summary>Remembered models.</summary>
         public List<LinkModelEntry> Models { get; set; } = new();
 
-        /// <summary>The entry for <paramref name="key"/>, or null.</summary>
+        /// <summary>The entry for <paramref name="key"/>, or null (also for an empty key).</summary>
         public LinkModelEntry Find(string key)
-            => Models.FirstOrDefault(m => string.Equals(m.Model?.Key, key, StringComparison.OrdinalIgnoreCase));
+            => string.IsNullOrEmpty(key) ? null
+                : Models.FirstOrDefault(m => string.Equals(m.Model?.Key, key, StringComparison.OrdinalIgnoreCase));
+
+        /// <summary>The entry for <paramref name="model"/>, added when there is none yet.</summary>
+        public LinkModelEntry Ensure(ModelIdentity model)
+        {
+            LinkModelEntry entry = Find(model.Key);
+            if (entry != null) return entry;
+            entry = new LinkModelEntry { Model = model };
+            Models.Add(entry);
+            return entry;
+        }
     }
 
     /// <summary>One host model and its memories.</summary>
@@ -77,6 +88,10 @@ namespace Revit26_Plugin_Revised.LinkMemory.V002.Core.Models
 
         /// <summary>Saved memories, newest first.</summary>
         public List<LinkMemoryItem> Memories { get; set; } = new();
+
+        /// <summary>The memory called <paramref name="name"/> (ignoring case), or null.</summary>
+        public LinkMemoryItem FindMemory(string name)
+            => Memories.FirstOrDefault(m => string.Equals(m.Name, name, StringComparison.OrdinalIgnoreCase));
     }
 
     /// <summary>What to collect.</summary>

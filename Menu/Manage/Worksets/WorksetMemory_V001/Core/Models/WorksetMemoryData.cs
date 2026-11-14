@@ -21,9 +21,33 @@ namespace Revit26_Plugin_Revised.WorksetMemory.V001.Core.Models
         /// <summary>Remembered models.</summary>
         public List<WorksetModelEntry> Models { get; set; } = new();
 
-        /// <summary>The entry for <paramref name="key"/>, or null.</summary>
+        /// <summary>The entry for <paramref name="key"/>, or null (also for an empty key).</summary>
         public WorksetModelEntry Find(string key)
-            => Models.FirstOrDefault(m => string.Equals(m.Model?.Key, key, StringComparison.OrdinalIgnoreCase));
+            => string.IsNullOrEmpty(key) ? null
+                : Models.FirstOrDefault(m => string.Equals(m.Model?.Key, key, StringComparison.OrdinalIgnoreCase));
+
+        /// <summary>The entry for <paramref name="model"/>, added when there is none yet.</summary>
+        public WorksetModelEntry Ensure(ModelIdentity model)
+        {
+            WorksetModelEntry entry = Find(model.Key);
+            if (entry != null) return entry;
+            entry = new WorksetModelEntry { Model = model };
+            Models.Add(entry);
+            return entry;
+        }
+
+        /// <summary>Replaces missing lists (a hand-edited or older file) with empty ones.</summary>
+        public void Normalize()
+        {
+            Models ??= new List<WorksetModelEntry>();
+            Models.RemoveAll(m => m == null);
+            foreach (WorksetModelEntry entry in Models)
+            {
+                entry.Sets ??= new List<WorksetSet>();
+                entry.Sets.RemoveAll(s => s == null);
+                foreach (WorksetSet set in entry.Sets) set.Worksets ??= new List<SavedWorkset>();
+            }
+        }
     }
 
     /// <summary>One model and its saved workset sets.</summary>
@@ -34,6 +58,10 @@ namespace Revit26_Plugin_Revised.WorksetMemory.V001.Core.Models
 
         /// <summary>Saved sets, newest first.</summary>
         public List<WorksetSet> Sets { get; set; } = new();
+
+        /// <summary>The set called <paramref name="name"/> (ignoring case), or null.</summary>
+        public WorksetSet FindSet(string name)
+            => Sets.FirstOrDefault(s => string.Equals(s.Name, name, StringComparison.OrdinalIgnoreCase));
     }
 
     /// <summary>A named snapshot of which user worksets were open, and which one was active.</summary>

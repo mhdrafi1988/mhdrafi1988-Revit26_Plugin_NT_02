@@ -71,13 +71,15 @@ namespace Revit26_Plugin_Revised.WorksetMemory.V001.Core.Services
             if (request?.Model == null || request.Set == null) throw new ArgumentNullException(nameof(request));
             var result = new ReopenResult();
 
-            ModelPath path = request.Model.ToModelPath()
-                ?? throw new InvalidOperationException("No path is saved for this model, so it can't be reopened.");
-
-            if (!request.Model.IsCloud && !File.Exists(request.Model.OpenPath ?? request.Model.CentralPath))
-                throw new InvalidOperationException($"The model file was not found:\n{request.Model.OpenPath ?? request.Model.CentralPath}");
-
+            // A model open in this session is reopened from where it is open now, which may be a newer
+            // local copy than the one saved with the set.
             Document openDoc = FindOpen(_uiapp.Application, request.Model);
+            ModelIdentity target = (openDoc != null ? ModelIdentity.FromDocument(openDoc) : null) ?? request.Model;
+
+            ModelPath path = target.ToModelPath()
+                ?? throw new InvalidOperationException("No path is saved for this model, so it can't be reopened.");
+            if (!target.IsCloud) CheckFileExists(target, path);
+
             if (openDoc != null && openDoc.IsModified)
                 throw new InvalidOperationException(
                     $"'{openDoc.Title}' has unsaved changes. Save or Synchronize with Central first, then reload.");
@@ -101,7 +103,19 @@ namespace Revit26_Plugin_Revised.WorksetMemory.V001.Core.Services
             if (openDoc != null)
             {
                 bool isActive = _uiapp.ActiveUIDocument?.Document?.Equals(openDoc) == true;
-                if (isActive) placeholder = OpenPlaceholder();
+                if (isActive)
+                {
+                    try
+                    {
+                        placeholder = OpenPlaceholder();
+                    }
+                    catch (Autodesk.Revit.Exceptions.ApplicationException ex)
+                    {
+                        throw new InvalidOperationException(
+                            $"The placeholder project could not be opened ({ex.Message}), so the model was not closed. " +
+                            "If another Revit session is reloading worksets, wait for it to finish and try again.", ex);
+                    }
+                }
 
                 if (!openDoc.Close(false))
                     throw new InvalidOperationException(
@@ -134,6 +148,25 @@ namespace Revit26_Plugin_Revised.WorksetMemory.V001.Core.Services
                 RestoreActive(reopened.Document, request.Set, result);
 
             return result;
+        }
+
+        // A file path that is gone can't be opened; say so before anything is closed. Revit Server
+        // paths are not files, so they are left to Revit.
+        private static void CheckFileExists(ModelIdentity model, ModelPath path)
+        {
+            if (path.ServerPath) return;
+            string file = ModelPathUtils.ConvertModelPathToUserVisiblePath(path);
+            if (File.Exists(file)) return;
+
+            bool hasCentral = !string.IsNullOrWhiteSpace(model.CentralPath)
+                              && !string.Equals(model.CentralPath, file, StringComparison.OrdinalIgnoreCase);
+            if (hasCentral)
+                throw new InvalidOperationException(
+                    $"The local copy of '{model.Name}' saved with this set was not found:\n{file}\n\n" +
+                    $"Its central model is {model.CentralPath}.\n" +
+                    "Open the central with File › Open and 'Create New Local' ticked, then run WS Memory again: " +
+                    "the new local copy is remembered and the saved sets still apply.");
+            throw new InvalidOperationException($"The model file was not found:\n{file}");
         }
 
         private static void RestoreActive(Document doc, WorksetSet set, ReopenResult result)

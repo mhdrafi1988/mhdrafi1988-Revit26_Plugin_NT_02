@@ -21,13 +21,50 @@ namespace Revit26_Plugin_Revised.WorksetMemory.V001.Core.Services
 
         /// <summary>Loads the memory file; <paramref name="warning"/> is set when it could not be read.</summary>
         public static WorksetMemoryFile Load(out string warning)
-            => JsonFileStore.Load<WorksetMemoryFile>(FilePath, out warning);
-
-        /// <summary>Saves the memory file. Throws on failure.</summary>
-        public static void Save(WorksetMemoryFile file)
         {
-            file.FormatVersion = WorksetMemoryFile.CurrentFormat;
-            JsonFileStore.Save(FilePath, file);
+            WorksetMemoryFile file = JsonFileStore.Load<WorksetMemoryFile>(FilePath, out warning);
+            file.Normalize();
+            return file;
+        }
+
+        /// <summary>
+        /// Re-reads the memory file, runs <paramref name="change"/> on the latest content and saves it
+        /// when <paramref name="change"/> returns true, so sets another Revit session saved in the
+        /// meantime are kept. Returns the file as saved. Throws <see cref="System.IO.IOException"/>,
+        /// <see cref="UnauthorizedAccessException"/> or <see cref="NotSupportedException"/> on failure.
+        /// </summary>
+        public static WorksetMemoryFile Update(Func<WorksetMemoryFile, bool> change)
+            => JsonFileStore.Update<WorksetMemoryFile>(FilePath, file =>
+            {
+                file.Normalize();
+                if (!change(file)) return false;
+                file.FormatVersion = WorksetMemoryFile.CurrentFormat;
+                return true;
+            });
+
+        /// <summary>Loads the window options (defaults when there are none or they can't be read).</summary>
+        public static WorksetMemorySettings LoadSettings()
+            => SettingsService<WorksetMemorySettings>.Load(ToolFolder, WorksetMemorySettings.FileName);
+
+        /// <summary>Saves the window options (a failure only means they are not remembered).</summary>
+        public static void SaveSettings(WorksetMemorySettings settings)
+        {
+            settings.FormatVersion = WorksetMemorySettings.CurrentFormat;
+            SettingsService<WorksetMemorySettings>.Save(ToolFolder, WorksetMemorySettings.FileName, settings);
+        }
+
+        /// <summary>
+        /// True when <paramref name="saved"/> no longer describes where <paramref name="now"/> is
+        /// (for example a new local copy), so the saved identity should be refreshed.
+        /// </summary>
+        public static bool LocationChanged(ModelIdentity saved, ModelIdentity now)
+        {
+            if (saved == null) return now != null;
+            if (now == null) return false;
+            static bool Same(string a, string b) => string.Equals(a ?? "", b ?? "", StringComparison.OrdinalIgnoreCase);
+            return !Same(saved.OpenPath, now.OpenPath) || !Same(saved.CentralPath, now.CentralPath)
+                || !Same(saved.Name, now.Name) || saved.IsCloud != now.IsCloud || !Same(saved.CloudRegion, now.CloudRegion)
+                || !Same(saved.ProjectGuid, now.ProjectGuid) || !Same(saved.ModelGuid, now.ModelGuid);
         }
 
         /// <summary>Every user workset of <paramref name="doc"/>, sorted by name.</summary>
