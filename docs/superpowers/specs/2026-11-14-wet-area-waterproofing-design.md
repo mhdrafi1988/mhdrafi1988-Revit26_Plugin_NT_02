@@ -18,6 +18,7 @@ fixtures), lay everything out on sheets and hand back a print set plus an Excel 
 - Manual boundary sketching (owner: not required).
 - Comparing against a previous run's report.
 - New shared parameters (write-back uses Comments).
+- Wall upturns: floor roof only; upturns appear only in the referenced details (owner choice).
 
 ## Anti-goals
 - Silently producing wrong geometry: every repaired/approximate outline is flagged in grid, dialog, log and Excel.
