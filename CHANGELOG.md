@@ -9,7 +9,7 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
-## [7.4.0] — 2026-11-14
+## [7.6.0] — 2026-11-14
 
 ### Base Level to Parameter 1.1.0 (V001)
 
@@ -28,6 +28,63 @@ Each release lists every tool whose version changed, under the plugin version.
 
 User note: with the default format nothing changes in what is written. Settings files from 1.0.x load as before
 (format "Level 02 (+450)"); the settings file is now version 2.
+
+## [7.5.0] — 2026-11-14
+
+### Annotation Overlap Report 1.0.0 (V001, new tool)
+
+#### Added
+- New **Overlap Report** button on the Manage panel (Documents 2 tab), under the Overlaps pulldown.
+- Lists every pair of overlapping annotations on the **active view** or on a **chosen batch of views and sheets**.
+  A sheet is checked through the annotations on it and each view placed on it.
+- The type list shows **every annotation type found** in the scope with its count (all tags, text notes,
+  dimensions, spot elevations / coordinates / slopes, generic annotations, keynote and revision tags and so on).
+  Untick a type to leave it out.
+- **Also check overlaps between different types** (on by default), so a door tag over a text note is found.
+- Results are grouped by view and show both annotations, their element IDs and the overlap in millimetres on
+  paper (how far one annotation sits inside the other). **Show** filters the list by type and by view.
+- **Zoom to pair** (or double-click a row) opens the view, zooms to both annotations and selects them.
+- **Export to Excel** saves the pairs shown to an .xlsx file: sheet "Overlaps" (Sheet, View, Scale, Type A, Text A,
+  ID A, Type B, Text B, ID B, Overlap (mm)) and sheet "Run info" (tool version, format version 1, counts, skipped views).
+- Options are saved to `%AppData%\Revit26_Plugin_Revised\AnnotationOverlapReport\settings.json` (version 1).
+
+User notes:
+- The tool only reports. It never moves anything; use Annotation Overlap Detection V006 to move annotations apart.
+- Grids, levels, section / elevation / callout marks and view titles are listed greyed out as "coming in 1.1" and are
+  not checked yet, because Revit's box for them covers the whole line, not just the head.
+- Boxes are Revit's bounding boxes: a tag's box includes its leader and a dimension's box includes its witness
+  lines, so two crossing dimension strings are reported as an overlap.
+- Annotations inside linked models are not checked. Overlaps between two different viewports on a sheet are not checked.
+## [7.4.0] — 2026-11-14
+
+### Roof Slope Builder 2.0.0 (V002) — new version, V001 kept
+
+The Roof Slope Builder button on the Roof Slope panel is now a dropdown: **Roof Slope Builder V002** first, V001 below it.
+V002 has its own icon (two drains with the ridge line between them).
+
+#### Added
+- New tab **5 - Ridges**:
+  - **Draw ridge lines in the active plan view**: the lines between drains (watershed mode) or the saddle crests
+    (saddle mode). Draw them as **Detail line** (pick a line style) or **Line-based detail family** (pick a
+    family type; only line-based detail families are listed).
+  - **Mark ridge points with detail circles** (diameter in mm): the ends and meeting points of the ridges and the
+    points along them at the ridge point spacing.
+- **Find ridges only** button next to Apply: draws the ridges and leaves the roofs unchanged, to check the layout
+  before sloping. Needs a plan view and at least one of the two options ticked.
+- With **Apply**, the ridges are drawn in the same step as the slope; one Undo removes both.
+- The end-of-run report counts ridge detail lines, family instances, fallback lines and circles per roof.
+
+#### Fallbacks (nothing stops the run)
+- Family type not loaded, not line-based or not activatable: every ridge is drawn as a detail line.
+- A family placement Revit refuses: that ridge piece is drawn as a detail line instead, and counted.
+- Line style missing or refused: Thin Lines, then Revit's default line style.
+- Not a plan view: ridges are not drawn (Apply still slopes the roofs); the window says so and Find ridges only is
+  disabled.
+- Pieces shorter than Revit allows are left out and counted.
+
+User note: V002 keeps its options in `settings_v002.json`. The first time it runs it copies your V001 options; the
+V001 file is not changed, so V001 keeps its own. Ridge drawing is off until you tick it, so V002 slopes roofs exactly as
+V001 does by default. V001 (1.1.0) is unchanged and stays in the dropdown.
 
 ## [7.3.0] — 2026-11-14
 

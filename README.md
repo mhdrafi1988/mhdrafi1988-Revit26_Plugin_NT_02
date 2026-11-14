@@ -21,7 +21,7 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 
 | Tab | Panel | Tools |
 |---|---|---|
-| Rafi_Pro_MOds | Roof Slope | By Point · By Drain · Points & Slope · Roof Slope Builder |
+| Rafi_Pro_MOds | Roof Slope | By Point · By Drain · Points & Slope · Roof Slope Builder (V002, V001) |
 | Rafi_Pro_MOds | Floor Slope | By Drain · By Point (By Point, Ridge, Multi Copies) · Points & Slope |
 | Rafi_Pro_MOds | Shape Points | Inner Loops · Outer Curve · Line Intersect · Loops + Perp. ▸ slide-out: Vertex Reducer · Multi Points · Shape From Link |
 | Rafi_Pro_MOds | Floor Points | Inner Loops · Outer Curve · Line Intersect · Loops + Perp. · Vertex Reducer · Multi Points · Shape From Link |
@@ -48,7 +48,7 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 | Rafi_Pro_Docs | Sheet Edit | Text Replace |
 | Rafi_Pro_Docs2 | DWG Tools | DWG To DL(P) · Export DWG · DWG Manager · DWG Statistics |
 | Rafi_Pro_Docs2 | Family Tools | Batch Link DWG · DWG To Lines |
-| Rafi_Pro_Docs2 | Manage | Overlaps (V006, V005) · ParaManager · Shared Params · Schedule I/O · Link Check ▸ slide-out: Del. Line Styles · Bulk Rename · Tracker ID |
+| Rafi_Pro_Docs2 | Manage | Overlaps (V006, V005) · Overlap Report · ParaManager · Shared Params · Schedule I/O · Link Check ▸ slide-out: Del. Line Styles · Bulk Rename · Tracker ID |
 | Rafi_Pro_Docs2 | Worksets | WS Browser · WS Creator · WS Renamer ▸ slide-out: WS Renamer XL · Delete Workset |
 | Rafi_Pro_Docs2 | Memory | WS Memory · Link Memory |
 | Rafi_Pro_Docs2 | Coordination | Void Openings · Base Level to Parameter |
@@ -65,6 +65,9 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 - **Roof Slope Builder** (new in 7.3.0, own button on the Roof Slope panel): one command for every selected footprint
   roof. Adds opening-corner, perpendicular, ridge and curve points, then sets each point to slope x distance to its
   nearest drain. Ridges between drains are watershed lines or saddles (diamond crickets). Options are remembered.
+  **V002** (new in 7.4.0, first in the Roof Slope Builder dropdown) also draws the ridge lines (detail lines, or a
+  line-based detail family that falls back to detail lines) and marks the ridge points with circles in the plan view;
+  **Find ridges only** draws them without changing the roofs.
 
 ### Floor slope (new in 6.31.0)
 - **Floor Slope By Drain**: the floor version of Auto Slope By Drain. Drains are openings in the floor sketch and
@@ -163,6 +166,8 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 - **Annotation Overlap Detection**: find overlapping text notes, tags, room tags and dimensions, then move them
   apart. V006: By priority, with a recommended order (dimensions stay, text notes move first), presets and your own
   order; also Move Up, Move Down or Distribute. Runs in plans, sections, elevations, drafting views, legends and sheets.
+- **Annotation Overlap Report**: report-only list of overlapping annotations of every type on the active view or a
+  batch of views and sheets, with zoom to pair and Excel export.
 - **ParaManager, Shared Parameter Studio, Schedule Export / Import**.
 - **Link Version Checker**: status of RVT links, including ACC Desktop Connector and Autodesk Docs cloud links.
 - **Delete Line Styles, Bulk Rename, Tracker ID**: clean up and rename styles and patterns, and give elements a
