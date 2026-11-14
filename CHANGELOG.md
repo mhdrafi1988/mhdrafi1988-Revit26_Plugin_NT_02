@@ -9,6 +9,20 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [7.10.0] — 2026-11-14
+
+### Added
+- **Base Level to Parameter v1.3.0** — third *Existing values* option, **Clear old values, write only new values**:
+  every ticked element ends up with only its new value. Different values are rewritten whatever the row's
+  *If value exists* choice says (the column and its Skip / Rewrite / Reset buttons are disabled in this mode), and the
+  old value of an element with no base level is cleared (emptied). The *Rewrite existing values?* dialog lists the
+  values to clear as “(cleared)”; cleared rows show *Assigned · cleared value* and are logged. *Has Value* now also
+  counts elements with an old value but no base level.
+
+**User note:** Skip is still the default and the new option is not remembered, so nothing is cleared unless you pick
+it. Only ticked elements are touched; elements owned by another user, read-only, in groups or out of date are still
+skipped. *Skip these* in the dialog keeps every old value, including the ones that would have been cleared.
+
 ## [7.9.0] — 2026-11-14
 
 ### Added

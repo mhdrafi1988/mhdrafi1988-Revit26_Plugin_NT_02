@@ -16,6 +16,9 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.UI.ViewModels
     /// <summary>One element in the "Rewrite existing values?" dialog.</summary>
     public sealed class RewriteRow
     {
+        /// <summary>New-value text for an element whose old value "Clear old values" empties.</summary>
+        public const string Cleared = "(cleared)";
+
         /// <summary>Creates a row.</summary>
         public RewriteRow(long id, string currentValue, string newValue)
         {
@@ -54,7 +57,8 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.UI.ViewModels
 
         /// <summary>Lead sentence of the dialog.</summary>
         public string Message =>
-            $"{Count} of the {Total} elements Run will write already have a different value in “{TargetName}”.";
+            $"{Count} of the {Total} elements Run will write already have a different value in “{TargetName}”; " +
+            "Run replaces it (or clears it where there is no base level).";
 
         /// <summary>Hint under the list.</summary>
         public string Hint =>

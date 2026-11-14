@@ -120,17 +120,26 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.UI.ViewModels
             NewValue = FormattedValue ?? "—";
             IsSame = FormattedValue != null && string.Equals(FormattedValue, Facts.CurrentValue, StringComparison.Ordinal);
             IsChanged = FormattedValue != null && !IsSame;
-            HasExistingValue = Facts != null && BaseLevelRules.HasDifferentValue(Facts, FormattedValue);
+            // Only an element with a base level can be rewritten; one without a base level can only be cleared.
+            HasExistingValue = Facts?.HasLevel == true && BaseLevelRules.HasDifferentValue(Facts, FormattedValue);
+            HasOldValue = HasExistingValue || BaseLevelRules.ClearsValue(Facts);
         }
+
+        /// <summary>
+        /// True when the element has an old value that differs from the new one, or an old value but no base level
+        /// (what the Has Value tile counts).
+        /// </summary>
+        [ObservableProperty] private bool _hasOldValue;
 
         /// <summary>Records a value written by Run.</summary>
         public void MarkWritten(string value)
         {
             if (Facts != null) Facts.CurrentValue = value;
-            CurrentValue = value;
+            CurrentValue = string.IsNullOrEmpty(value) ? "—" : value;
             IsSame = true;
             IsChanged = false;
             HasExistingValue = false;
+            HasOldValue = false;
         }
 
         /// <summary>Forgets the facts (the element no longer exists).</summary>
@@ -138,6 +147,7 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.UI.ViewModels
         {
             Facts = null;
             HasExistingValue = false;
+            HasOldValue = false;
             SetStatus(RowState.Warning, "Skipped · element no longer exists");
         }
 

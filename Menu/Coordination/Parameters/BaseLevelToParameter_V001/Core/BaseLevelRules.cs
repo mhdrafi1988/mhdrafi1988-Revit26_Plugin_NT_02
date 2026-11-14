@@ -69,6 +69,15 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.Core
         /// their own <see cref="ExistingChoice"/>; a missing id (or a null map) follows <paramref name="overwrite"/>.
         /// </summary>
         public static List<PrecheckItem> EvaluateChecks(TargetFacts t, IReadOnlyList<ElementFacts> elements, bool overwrite,
+            IReadOnlyDictionary<long, ExistingChoice> choices, ValueFormat format, string customPattern) =>
+            EvaluateChecks(t, elements, overwrite, false, choices, format, customPattern);
+
+        /// <summary>
+        /// Pre-check lines with the "Clear old values, write only new values" option (1.3.0). When
+        /// <paramref name="clearOld"/> is true every different value is rewritten (row choices are ignored) and the
+        /// value of an element without a base level is cleared.
+        /// </summary>
+        public static List<PrecheckItem> EvaluateChecks(TargetFacts t, IReadOnlyList<ElementFacts> elements, bool overwrite, bool clearOld,
             IReadOnlyDictionary<long, ExistingChoice> choices, ValueFormat format, string customPattern)
         {
             var list = new List<PrecheckItem>
@@ -77,7 +86,7 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.Core
                 CheckProject(t),
                 CheckFile(t),
                 CheckCategories(t, elements),
-                CheckDocument(t, elements, overwrite, choices, format, customPattern)
+                CheckDocument(t, elements, overwrite, clearOld, choices, format, customPattern)
             };
             if (format == ValueFormat.Custom)
             {
@@ -123,16 +132,30 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.Core
         /// <paramref name="overwriteDefault"/> is the window's "Existing values" option (true = Rewrite).
         /// </summary>
         public static RowVerdict EvaluateRow(ElementFacts e, bool blocked, bool overwriteDefault, ExistingChoice choice,
-            bool variesAcrossGroups, string newValue)
+            bool variesAcrossGroups, string newValue) =>
+            EvaluateRow(e, blocked, overwriteDefault, choice, false, variesAcrossGroups, newValue);
+
+        /// <summary>
+        /// True when "Clear old values" empties this element: it has a value but no base level to write.
+        /// </summary>
+        public static bool ClearsValue(ElementFacts e) => e != null && !e.HasLevel && !string.IsNullOrEmpty(e.CurrentValue);
+
+        /// <summary>
+        /// Status of one ticked element. With <paramref name="clearOld"/> every different value is rewritten whatever
+        /// <paramref name="choice"/> says, and an element with a value but no base level is "Ready · clears value".
+        /// </summary>
+        public static RowVerdict EvaluateRow(ElementFacts e, bool blocked, bool overwriteDefault, ExistingChoice choice,
+            bool clearOld, bool variesAcrossGroups, string newValue)
         {
-            bool overwrite = Rewrites(overwriteDefault, choice);
+            bool overwrite = clearOld || Rewrites(overwriteDefault, choice);
             if (blocked) return new RowVerdict(RowState.Blocked, "Blocked · see pre-checks");
-            if (!e.HasLevel) return new RowVerdict(RowState.Warning, "Skipped · no base level");
-            if (e.CategoryUnsupported) return new RowVerdict(RowState.Warning, "Skipped · category takes no parameters");
-            if (!string.IsNullOrEmpty(e.OwnedBy)) return new RowVerdict(RowState.Warning, $"Skipped · owned by {e.OwnedBy}");
-            if (e.OutOfDate) return new RowVerdict(RowState.Warning, "Skipped · changed in central, reload latest");
-            if (e.InGroup && !variesAcrossGroups) return new RowVerdict(RowState.Warning, "Skipped · in a group (value cannot vary by group)");
-            if (e.ParamReadOnly) return new RowVerdict(RowState.Warning, "Skipped · parameter is read-only");
+            if (!e.HasLevel)
+            {
+                if (!clearOld || !ClearsValue(e)) return new RowVerdict(RowState.Warning, "Skipped · no base level");
+                return SkipReason(e, variesAcrossGroups) ?? new RowVerdict(RowState.Ready, "Ready · clears value");
+            }
+            RowVerdict? skip = SkipReason(e, variesAcrossGroups);
+            if (skip.HasValue) return skip.Value;
             if (newValue != null && string.Equals(e.CurrentValue, newValue, StringComparison.Ordinal))
                 return new RowVerdict(RowState.UpToDate, "Up to date");
             if (!string.IsNullOrEmpty(e.CurrentValue))
@@ -142,6 +165,16 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.Core
                 return new RowVerdict(RowState.Ready, "Ready · rewrites value");
             }
             return new RowVerdict(RowState.Ready, "Ready");
+        }
+
+        private static RowVerdict? SkipReason(ElementFacts e, bool variesAcrossGroups)
+        {
+            if (e.CategoryUnsupported) return new RowVerdict(RowState.Warning, "Skipped · category takes no parameters");
+            if (!string.IsNullOrEmpty(e.OwnedBy)) return new RowVerdict(RowState.Warning, $"Skipped · owned by {e.OwnedBy}");
+            if (e.OutOfDate) return new RowVerdict(RowState.Warning, "Skipped · changed in central, reload latest");
+            if (e.InGroup && !variesAcrossGroups) return new RowVerdict(RowState.Warning, "Skipped · in a group (value cannot vary by group)");
+            if (e.ParamReadOnly) return new RowVerdict(RowState.Warning, "Skipped · parameter is read-only");
+            return null;
         }
 
         /// <summary>The summary line "X ready | Y warnings | Z blocked" for the given row states.</summary>
@@ -259,7 +292,7 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.Core
         }
 
         // ── e · Document and elements ─────────────────────────────────────────
-        private static PrecheckItem CheckDocument(TargetFacts t, IReadOnlyList<ElementFacts> elements, bool overwrite,
+        private static PrecheckItem CheckDocument(TargetFacts t, IReadOnlyList<ElementFacts> elements, bool overwrite, bool clearOld,
             IReadOnlyDictionary<long, ExistingChoice> choices, ValueFormat format, string customPattern)
         {
             const string title = "e · Document and elements";
@@ -270,7 +303,7 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.Core
             int outOfDate = elements.Count(e => e.OutOfDate);
             int readOnly = elements.Count(e => e.ParamReadOnly);
             int inGroup = t.VariesAcrossGroups ? 0 : elements.Count(e => e.InGroup);
-            int withValue = elements.Count(e => !string.IsNullOrEmpty(e.CurrentValue));
+            int withValue = elements.Count(e => e.HasLevel && !string.IsNullOrEmpty(e.CurrentValue));
             int noLevel = elements.Count(e => !e.HasLevel);
 
             var parts = new List<string> { $"Project document, editable{(t.IsWorkshared ? ", workshared" : string.Empty)}." };
@@ -282,21 +315,23 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.Core
             int rewritten = 0, kept = 0;
             foreach (ElementFacts e in elements)
             {
-                if (string.IsNullOrEmpty(e.CurrentValue)) continue;
+                if (string.IsNullOrEmpty(e.CurrentValue) || !e.HasLevel) continue;
                 string newValue = e.HasLevel ? SafeFormat(e, format, customPattern) : null;
                 if (newValue != null && string.Equals(e.CurrentValue, newValue, StringComparison.Ordinal)) continue;
                 ExistingChoice c = choices != null && choices.TryGetValue(e.Id, out ExistingChoice own) ? own : ExistingChoice.Default;
-                if (Rewrites(overwrite, c)) rewritten++; else kept++;
+                if (clearOld || Rewrites(overwrite, c)) rewritten++; else kept++;
             }
-            bool anyOwn = choices != null && choices.Values.Any(c => c != ExistingChoice.Default);
-            if (withValue == 0) parts.Add("No element has a value yet.");
+            bool anyOwn = !clearOld && choices != null && choices.Values.Any(c => c != ExistingChoice.Default);
+            int cleared = clearOld ? elements.Count(ClearsValue) : 0;
+            if (withValue == 0) { if (cleared == 0) parts.Add("No element has a value yet."); }
             else if (rewritten + kept == 0) parts.Add($"{withValue} element(s) already have the new value → up to date.");
             else if (kept == 0) parts.Add($"{rewritten} element(s) already have a different value → rewritten.");
             else if (rewritten == 0) parts.Add($"{kept} element(s) already have a different value → skipped{(anyOwn ? string.Empty : " (Existing values: Skip)")}.");
             else parts.Add($"{rewritten + kept} element(s) already have a different value → {kept} skipped, {rewritten} rewritten (row choice).");
-            if (noLevel > 0) parts.Add($"{noLevel} element(s) have no base level → skipped.");
+            if (cleared > 0) parts.Add($"{cleared} element(s) with no base level have an old value → cleared (Clear old values).");
+            if (noLevel - cleared > 0) parts.Add($"{noLevel - cleared} element(s) have no base level → skipped.");
 
-            bool warn = owned + outOfDate + readOnly + inGroup + noLevel > 0 || kept > 0;
+            bool warn = owned + outOfDate + readOnly + inGroup + (noLevel - cleared) > 0 || kept > 0;
             return new PrecheckItem(title, warn ? CheckResult.Warning : CheckResult.Pass, string.Join(" ", parts));
         }
 
