@@ -1,0 +1,179 @@
+<title>Wet Area Waterproofing</title>
+<!--
+  Tool: Wet Area Waterproofing — v1.0.0 (build V001)  [PROPOSAL, not built yet]
+  Plugin: 7.9.0 (proposed)
+  Mirrors (planned): Menu/<Area>/<Group>/WetAreaWaterproofing_V001/UI/WetAreaWaterproofingWindow.xaml
+  Artifact: https://claude.ai/artifact/AxccNteVMVibgsyeXAjEiq
+-->
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: workflow strip, then the tool window in its own scroll box, then the result dialog. Window colours = SharedStyles.xaml */
+:root{
+  --page:#F3F5F7; --ink:#1B2430; --muted:#5A6878; --line:#D6DCE3;
+  --win:#F3F5F7; --card:#FFFFFF; --head:#1E3A5F; --headDark:#14283F; --input:#B5C2CF; --sep:#E6EAEF;
+  --blue:#2D6CDF; --ok:#2E7D4F; --okSoft:#E6F4EC; --okBd:#9FCFB2;
+  --warn:#9A5B00; --warnSoft:#FDF1E1; --warnBd:#E8B66B;
+  --info:#1F5FBF; --infoSoft:#E6EEFB; --infoBd:#A9C3EE; --err:#B23A35; --errSoft:#FBE8E7;
+  --winInk:#1B2430; --winMuted:#5A6878;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--page:#111821;--ink:#E4EAF1;--muted:#9AA8B8;--line:#2A3644;color-scheme:dark}}
+:root[data-theme="dark"]{--page:#111821;--ink:#E4EAF1;--muted:#9AA8B8;--line:#2A3644;color-scheme:dark}
+body{background:var(--page);color:var(--ink);font:14px/1.45 "Segoe UI",system-ui,sans-serif;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
+.wrap{max-width:1060px;margin:0 auto;display:grid;gap:22px}
+h1{font-size:22px;margin:0;text-wrap:balance}
+h2{font-size:16px;margin:0 0 10px}
+.note{color:var(--muted);font-size:13px;margin:4px 0 0}
+.new{display:inline-block;background:var(--okSoft);color:var(--ok);border:1px solid var(--okBd);border-radius:3px;font-size:10px;font-weight:700;letter-spacing:.04em;padding:0 5px;margin-left:6px;vertical-align:1px}
+/* workflow */
+.flow{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;counter-reset:s}
+.step{border:1px solid var(--line);border-radius:6px;padding:10px;font-size:12.5px;min-width:0}
+.step b{display:block;font-size:13px;margin-bottom:3px}
+.step b::before{counter-increment:s;content:counter(s) ". ";color:var(--blue)}
+.step span{color:var(--muted)}
+/* window */
+.scroll{overflow-x:auto;padding-bottom:6px}
+.win{width:1020px;background:var(--win);color:var(--winInk);border:1px solid #9AA8B8;border-radius:6px;box-shadow:0 6px 24px rgba(20,40,63,.18);overflow:hidden;font-size:12.5px}
+.tb{background:var(--head);color:#fff;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;font-weight:600}
+.tb i{font-style:normal;opacity:.7;font-weight:400}
+.body{display:grid;grid-template-columns:1fr 360px;gap:10px;padding:10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:5px;padding:10px;display:grid;gap:8px;align-content:start}
+.card h3{margin:0;font-size:12.5px;color:var(--head);text-transform:uppercase;letter-spacing:.05em}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.lbl{color:var(--winMuted);width:118px;flex:none}
+.in{border:1px solid var(--input);border-radius:3px;background:#fff;padding:3px 7px;min-height:18px;flex:1;color:var(--winInk)}
+.sel::after{content:" ▾";float:right;color:var(--winMuted)}
+.btn{border:1px solid var(--input);background:#fff;border-radius:3px;padding:4px 10px;color:var(--winInk)}
+.btn.pri{background:var(--head);border-color:var(--head);color:#fff;font-weight:600}
+.chk::before{content:"☑ ";color:var(--blue)}
+.unchk::before{content:"☐ ";color:var(--winMuted)}
+.rad::before{content:"◉ ";color:var(--blue)}
+.unrad::before{content:"○ ";color:var(--winMuted)}
+.chips{display:flex;gap:4px;flex-wrap:wrap}
+.chip{background:var(--infoSoft);border:1px solid var(--infoBd);color:var(--info);border-radius:10px;padding:0 7px;font-size:11.5px}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+th{background:#ECEFF3;text-align:left;font-weight:600;padding:4px 6px;border-bottom:1px solid var(--line);font-size:11.5px;white-space:nowrap}
+td{padding:3px 6px;border-bottom:1px solid var(--sep);white-space:nowrap}
+tr.off td{color:#9AA8B8}
+.pill{border-radius:3px;padding:0 5px;font-size:11px;border:1px solid}
+.p-ok{background:var(--okSoft);color:var(--ok);border-color:var(--okBd)}
+.p-warn{background:var(--warnSoft);color:var(--warn);border-color:var(--warnBd)}
+.p-link{background:var(--infoSoft);color:var(--info);border-color:var(--infoBd)}
+.foot{border-top:1px solid var(--line);background:var(--card);padding:8px 10px;display:grid;gap:6px}
+.log{font-family:Consolas,monospace;font-size:11.5px;background:#ECEFF3;border-radius:3px;padding:6px 8px;color:var(--winInk)}
+.dlg{width:460px;background:var(--win);color:var(--winInk);border:1px solid #9AA8B8;border-radius:6px;overflow:hidden;box-shadow:0 6px 24px rgba(20,40,63,.18)}
+.dlg .c{padding:12px;display:grid;gap:6px;font-size:12.5px}
+.tip{width:340px;background:#fff;color:var(--winInk);border:1px solid #9AA8B8;padding:10px;font-size:12px;box-shadow:0 3px 10px rgba(0,0,0,.15)}
+.ribbon{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap}
+.rbtn{width:90px;background:#fff;border:1px solid #9AA8B8;border-radius:4px;text-align:center;padding:8px 4px;font-size:11.5px;color:var(--winInk)}
+.ico{width:32px;height:32px;margin:0 auto 4px;border-radius:4px;background:linear-gradient(180deg,#5B8DEF 0 45%,#1E3A5F 45% 100%)}
+</style>
+
+<div class="wrap">
+<header>
+  <h1>Wet Area Waterproofing <span class="new">NEW TOOL</span></h1>
+  <p class="note">Design proposal for review. Every room, level and sheet below is <b>sample data</b>. Nothing is built yet.</p>
+</header>
+
+<section>
+  <h2>Workflow</h2>
+  <div class="flow">
+    <div class="step"><b>Find rooms</b><span>Read rooms from the host model and every loaded link</span></div>
+    <div class="step"><b>Flag wet areas</b><span>Match room names against keywords; you tick or untick</span></div>
+    <div class="step"><b>Waterproofing roof</b><span>Find the slab under each room and place a roof from the room boundary on the slab top (or level + offset if there is no slab)</span></div>
+    <div class="step"><b>Plan per room</b><span>A cropped floor plan per room (crop = room + margin)</span></div>
+    <div class="step"><b>2 reference sections</b><span>One horizontal and one vertical through the room, pointing to a drafting view (existing or new)</span></div>
+    <div class="step"><b>Sheets</b><span>One sheet per room, or several rooms packed per sheet</span></div>
+    <div class="step"><b>Print set</b><span>A View/Sheet Set of the new sheets</span></div>
+  </div>
+  <p class="note">Each step runs in its own transaction; run all of them, or only some (see “Run steps” at the bottom of the window). Rooms whose slab or elements are checked out by another user are skipped and listed in the log.</p>
+</section>
+
+<section>
+  <h2>Ribbon button <span class="new">NEW</span></h2>
+  <div class="ribbon">
+    <div class="rbtn"><div class="ico"></div>Wet Area<br>Waterproofing</div>
+    <div class="tip"><b>Wet Area Waterproofing — v1.0.0 (build V001)</b><br>Finds wet rooms (toilets, baths, kitchens…), adds a waterproofing roof on top of each slab, creates a plan and reference sections per room, places them on sheets and builds a print set.</div>
+  </div>
+  <p class="note">Panel: to be confirmed with you.</p>
+</section>
+
+<section>
+  <h2>Tool window</h2>
+  <div class="scroll"><div class="win">
+    <div class="tb">Wet Area Waterproofing — v1.0.0 <i>✕</i></div>
+    <div class="body">
+      <!-- LEFT: rooms -->
+      <div class="card">
+        <h3>1 · Rooms</h3>
+        <div class="row"><span class="lbl">Source</span><span class="chk">Host model</span><span class="chk">Links:</span><span class="in sel" style="flex:0 0 190px">ARC_Model.rvt (1 of 1)</span></div>
+        <div class="row"><span class="lbl">Wet keywords</span>
+          <div class="chips"><span class="chip">toilet</span><span class="chip">wc</span><span class="chip">bath</span><span class="chip">shower</span><span class="chip">kitchen</span><span class="chip">pantry</span><span class="chip">laundry</span><span class="chip">wash</span><span class="chip">balcony</span><span class="chip">+ Add</span></div></div>
+        <div class="row"><span class="lbl">Show</span><span class="rad">Wet rooms only</span><span class="unrad">All rooms</span><span style="flex:1"></span><span class="in" style="flex:0 0 150px;color:#9AA8B8">Search…</span></div>
+        <table>
+          <tr><th></th><th>Source</th><th>Level</th><th>No.</th><th>Name</th><th>Area m²</th><th>Matched</th><th>Slab top</th></tr>
+          <tr><td class="chk"></td><td>Host</td><td>L01</td><td>101</td><td>Toilet 01</td><td>4.20</td><td>toilet</td><td><span class="pill p-ok">Floor · +3.150</span></td></tr>
+          <tr><td class="chk"></td><td>Host</td><td>L01</td><td>102</td><td>Kitchen</td><td>12.85</td><td>kitchen</td><td><span class="pill p-ok">Floor · +3.150</span></td></tr>
+          <tr><td class="chk"></td><td><span class="pill p-link">ARC_Model</span></td><td>L02</td><td>201</td><td>Master Bath</td><td>7.60</td><td>bath</td><td><span class="pill p-ok">Floor · +6.300</span></td></tr>
+          <tr><td class="chk"></td><td><span class="pill p-link">ARC_Model</span></td><td>L02</td><td>202</td><td>Shower Room</td><td>3.10</td><td>shower</td><td><span class="pill p-warn">No slab · level +0</span></td></tr>
+          <tr><td class="chk"></td><td><span class="pill p-link">ARC_Model</span></td><td>L02</td><td>205</td><td>Laundry</td><td>5.40</td><td>laundry</td><td><span class="pill p-ok">Floor · +6.300</span></td></tr>
+          <tr class="off"><td class="unchk"></td><td>Host</td><td>L03</td><td>301</td><td>Balcony</td><td>9.00</td><td>balcony</td><td><span class="pill p-ok">Floor · +9.420</span></td></tr>
+        </table>
+        <div class="row"><button class="btn">Select all</button><button class="btn">Select none</button><span style="flex:1"></span><span style="color:var(--winMuted)">5 of 6 wet rooms ticked · 38 rooms total</span></div>
+      </div>
+
+      <!-- RIGHT: settings -->
+      <div style="display:grid;gap:10px;align-content:start">
+        <div class="card">
+          <h3>2 · Waterproofing roof</h3>
+          <div class="row"><span class="lbl">Roof type</span><span class="in sel">WP Membrane 3 mm</span></div>
+          <div class="row"><span class="lbl">Offset above slab</span><span class="in" style="flex:0 0 70px">0</span> mm</div>
+          <div class="row"><span class="lbl">No slab found</span><span class="in sel">Use room level + offset</span></div>
+          <div class="row"><span class="chk">Write room No. + name to Comments</span></div>
+          <div class="row"><span class="chk">Skip rooms that already have one</span></div>
+        </div>
+        <div class="card">
+          <h3>3 · Views</h3>
+          <div class="row"><span class="lbl">Plan type</span><span class="in sel">Floor Plan</span></div>
+          <div class="row"><span class="lbl">View template</span><span class="in sel">WP Plan 1:50</span></div>
+          <div class="row"><span class="lbl">Crop margin</span><span class="in" style="flex:0 0 70px">500</span> mm</div>
+          <div class="row"><span class="lbl">Ref. sections</span><span>2 per room (horizontal + vertical)</span></div>
+          <div class="row"><span class="lbl">Points to</span><span class="in sel">＋ Create new drafting view…</span></div>
+          <div class="row"><span class="lbl">New view name</span><span class="in">WP Detail - Typical Wet Area</span></div>
+          <div class="row"><span class="lbl">View name pattern</span><span class="in">WP - {Level} - {Number} {Name}</span></div>
+        </div>
+        <div class="card">
+          <h3>4 · Sheets &amp; print set</h3>
+          <div class="row"><span class="rad">One sheet per room</span><span class="unrad">Pack rooms per sheet</span></div>
+          <div class="row"><span class="lbl">Title block</span><span class="in sel">A1 Landscape</span></div>
+          <div class="row"><span class="lbl">Sheet number</span><span class="in" style="flex:0 0 60px">WP-</span><span class="in" style="flex:0 0 50px">101</span></div>
+          <div class="row"><span class="lbl">Sheet name</span><span class="in">Waterproofing - {Number} {Name}</span></div>
+          <div class="row"><span class="chk">Create print set</span><span class="in">Waterproofing - 2026-11-14</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="foot">
+      <div class="row"><b>Run steps:</b><span class="chk">Roofs</span><span class="chk">Plans</span><span class="chk">Ref. sections</span><span class="chk">Sheets</span><span class="chk">Print set</span>
+        <span style="flex:1"></span><button class="btn">Cancel</button><button class="btn pri">Run for 5 rooms</button></div>
+      <div class="log">Ready. 5 rooms ticked · 1 without slab (will use level + 0 mm) · drafting view “WP Detail - Typical Wet Area” will be created.</div>
+    </div>
+  </div></div>
+</section>
+
+<section>
+  <h2>Result dialog</h2>
+  <div class="scroll"><div class="dlg">
+    <div class="tb">Wet Area Waterproofing — Done <i>✕</i></div>
+    <div class="c">
+      <div>✅ 5 waterproofing roofs created</div>
+      <div>✅ 5 plans and 10 reference sections created</div>
+      <div>✅ Drafting view “WP Detail - Typical Wet Area” created</div>
+      <div>✅ 5 sheets (WP-101 … WP-105)</div>
+      <div>✅ Print set “Waterproofing - 2026-11-14” (5 sheets)</div>
+      <div style="color:var(--warn)">⚠ Room 202 Shower Room: no slab found, roof placed at level L02 + 0 mm</div>
+      <div class="row" style="justify-content:flex-end"><button class="btn">Open log</button><button class="btn pri">OK</button></div>
+    </div>
+  </div></div>
+  <p class="note">If the print set name already exists, an in-window prompt asks you whether to overwrite it or add a suffix.</p>
+</section>
+</div>
