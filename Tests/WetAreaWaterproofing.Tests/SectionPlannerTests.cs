@@ -123,6 +123,18 @@ namespace WetAreaWaterproofing.Tests
         }
 
         [Fact]
+        public void ItemsOfTheFloorAboveAreLeftOutWhenStoreysAreLow()
+        {
+            // Storey height 2900: the door and the drain of the room above must not count for this room.
+            var above = new[] { Item(SectionTargetKind.Door, 2000, -100, z: 2900), Item(SectionTargetKind.Drain, 2000, 1500, z: 2750) };
+            Assert.Empty(RoomItemMatcher.ForRoom(Room, 0, above, nextLevelMm: 2900));
+            Assert.Empty(RoomItemMatcher.ForRoom(Room, 0, above));                       // no level above known: 2000 mm band
+            Assert.Single(RoomItemMatcher.ForRoom(Room, 0, new[] { Item(SectionTargetKind.Wc, 2000, 1500, z: 400) }, nextLevelMm: 2900));
+            // Very low storey (mezzanine 1800 above): the band stops 500 below the next level.
+            Assert.Empty(RoomItemMatcher.ForRoom(Room, 0, new[] { Item(SectionTargetKind.Drain, 2000, 1500, z: 1400) }, nextLevelMm: 1800));
+        }
+
+        [Fact]
         public void ItemsOnOtherLevelsAreLeftOut()
         {
             Assert.Empty(RoomItemMatcher.ForRoom(Room, 3000, new[] { Item(SectionTargetKind.Drain, 2000, 1500, z: 6300) }));

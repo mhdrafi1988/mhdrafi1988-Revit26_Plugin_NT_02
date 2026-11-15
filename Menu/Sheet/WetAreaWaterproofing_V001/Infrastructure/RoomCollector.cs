@@ -241,7 +241,9 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
 
                     if (candidate.Outline.Outer.Count >= 3)
                     {
-                        candidate.Items = RoomItemMatcher.ForRoom(candidate.Outline.Outer, row.LevelElevationMm, items);
+                        LevelInfo above = hostLevels.FirstOrDefault(l => l.ZFt > levelZ + 1 / BoundaryReader.FtToMm);
+                        candidate.Items = RoomItemMatcher.ForRoom(candidate.Outline.Outer, row.LevelElevationMm, items,
+                            above == null ? null : above.ZFt * BoundaryReader.FtToMm);
                         row.DoorCount = candidate.Items.Count(i => i.Kind == SectionTargetKind.Door);
                         row.DrainCount = candidate.Items.Count(i => i.Kind == SectionTargetKind.Drain);
                         row.FixtureCount = candidate.Items.Count(i => i.Kind is SectionTargetKind.Wc or SectionTargetKind.Shower);

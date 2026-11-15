@@ -124,14 +124,15 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
 
         /// <summary>
         /// Deletes the roofs, plans and section markers of run <paramref name="runId"/> in one transaction.
-        /// Elements checked out by another user are left and counted. Drafting views are never deleted.
+        /// Elements checked out by another user, or that Revit will not delete (the active view), are left
+        /// and counted. Drafting views are never deleted.
         /// </summary>
-        public static (int Deleted, int SkippedOwned) Remove(Document doc, string runId)
+        public static (int Deleted, int Left) Remove(Document doc, string runId)
         {
             var ids = Tagged(doc).Where(t => t.RunId == runId).Select(t => t.Id).Distinct().ToList();
             var free = ids.Where(id => RoomCollector.OwnerOf(doc, id) == null).ToList();
             if (free.Count == 0) return (0, ids.Count);
-            int wanted = free.Count;
+            int deleted = 0;
 
             using var tx = new Transaction(doc, "Remove waterproofing run " + runId);
             tx.Start();
@@ -139,7 +140,18 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
             {
                 // Deleting a plan also deletes the markers on it, so each id is checked before it is deleted.
                 foreach (ElementId id in free)
-                    if (doc.GetElement(id) != null) doc.Delete(id);
+                {
+                    if (doc.GetElement(id) == null) { deleted++; continue; } // went with its plan
+                    try
+                    {
+                        doc.Delete(id);
+                        deleted++;
+                    }
+                    catch (Autodesk.Revit.Exceptions.ApplicationException)
+                    {
+                        // Revit refuses some deletes (a plan that is the active view, for one): it is left and counted.
+                    }
+                }
                 if (tx.Commit() != TransactionStatus.Committed)
                     throw new InvalidOperationException("Revit did not accept the removal.");
             }
@@ -148,7 +160,7 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
                 if (tx.HasStarted() && !tx.HasEnded()) tx.RollBack();
                 throw;
             }
-            return (wanted, ids.Count - wanted);
+            return (deleted, ids.Count - deleted);
         }
 
         private static IEnumerable<(ElementId Id, string RunId)> Tagged(Document doc)

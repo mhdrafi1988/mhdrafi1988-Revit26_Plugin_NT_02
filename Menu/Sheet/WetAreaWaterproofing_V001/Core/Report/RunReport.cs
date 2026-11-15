@@ -260,7 +260,7 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Report
                 else
                 {
                     item.Status = errors.Count > 0 ? "Skipped" : "Failed";
-                    item.Reason = errors.Count > 0 ? string.Join(" ", errors) : "The roof was not created.";
+                    item.Reason = errors.Count > 0 ? string.Join(" ", errors) : "Nothing was created for the room.";
                 }
                 if (isTicked && views.TryGetValue(row.RoomKey, out CreatedViews made))
                 {

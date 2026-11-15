@@ -6,7 +6,8 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
 {
     /// <summary>
     /// Marks the views and section markers the tool creates, in Extensible Storage (views have no
-    /// Comments parameter). Schema version 1: never change this GUID or its fields; a new layout
+    /// Comments parameter). Fields: RunId, RoomKey (for a drafting view: the name it was asked for),
+    /// Kind, OwnerUniqueId. Schema version 1: never change this GUID or its fields; a new layout
     /// gets a new schema and a migration.
     /// </summary>
     public static class ElementTag
@@ -26,6 +27,7 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
         private const string FieldRunId = "RunId";
         private const string FieldRoomKey = "RoomKey";
         private const string FieldKind = "Kind";
+        private const string FieldOwner = "OwnerUniqueId";
 
         private static Schema GetOrCreate()
         {
@@ -40,6 +42,7 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
             builder.AddSimpleField(FieldRunId, typeof(string));
             builder.AddSimpleField(FieldRoomKey, typeof(string));
             builder.AddSimpleField(FieldKind, typeof(string));
+            builder.AddSimpleField(FieldOwner, typeof(string));
             return builder.Finish();
         }
 
@@ -52,10 +55,15 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
             entity.Set(FieldRunId, runId ?? string.Empty);
             entity.Set(FieldRoomKey, roomKey ?? string.Empty);
             entity.Set(FieldKind, kind ?? string.Empty);
+            entity.Set(FieldOwner, element.UniqueId); // a copy of the element keeps this value and is then ignored
             element.SetEntity(entity);
         }
 
-        /// <summary>Reads the tag; false when the element has none.</summary>
+        /// <summary>
+        /// Reads the tag; false when the element has none, or when the tag was written for another
+        /// element (Revit copies the tag when a view is duplicated or a marker is copied: such copies
+        /// are the user's, not the tool's).
+        /// </summary>
         public static bool TryGet(Element element, out string runId, out string roomKey, out string kind)
         {
             runId = roomKey = kind = null;
@@ -63,6 +71,7 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
             if (element == null || schema == null) return false;
             Entity entity = element.GetEntity(schema);
             if (entity == null || !entity.IsValid()) return false;
+            if (entity.Get<string>(FieldOwner) != element.UniqueId) return false;
             runId = entity.Get<string>(FieldRunId);
             roomKey = entity.Get<string>(FieldRoomKey);
             kind = entity.Get<string>(FieldKind);

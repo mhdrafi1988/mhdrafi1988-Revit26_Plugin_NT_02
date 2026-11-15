@@ -403,7 +403,7 @@ Overlay cards: result of a run, "Remove a run". Column filters open in a pop-up.
                                                         </DockPanel>
                                                         <DockPanel Margin="20,4,0,0" IsEnabled="{Binding On}">
                                                             <ComboBox DockPanel.Dock="Left" Width="150" Style="{StaticResource StandardComboBox}"
-                                                                      ItemsSource="{Binding DataContext.PerItemChoices, ElementName=Root}" SelectedItem="{Binding PerItem}"
+                                                                      ItemsSource="{Binding Choices}" SelectedItem="{Binding PerItem}"
                                                                       IsEnabled="{Binding CanHaveMany}" ToolTip="One section at the match nearest the room centre, or one for every match"/>
                                                             <TextBlock DockPanel.Dock="Right" Text="mm" Style="{StaticResource UnitLabel}" VerticalAlignment="Center" Margin="6,0,0,0"/>
                                                             <TextBox DockPanel.Dock="Right" Text="{Binding LengthText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MmBox}"

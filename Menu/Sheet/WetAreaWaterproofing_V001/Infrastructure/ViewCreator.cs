@@ -23,8 +23,10 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
         private readonly HashSet<string> _viewNames;
         private readonly Dictionary<string, (ElementId Id, string Name)> _drafting = new(StringComparer.OrdinalIgnoreCase);
 
-        /// <summary>Drafting views this run created.</summary>
-        public int DraftingCreated { get; private set; }
+        private readonly List<ElementId> _draftingCreated = new();
+
+        /// <summary>Drafting views this run created that are still in the model (a rolled-back room does not count).</summary>
+        public int DraftingCreated => _draftingCreated.Count(id => _doc.GetElement(id) != null);
 
         /// <summary>Reads the view names in use so new views never clash with them.</summary>
         public ViewCreator(Document doc, WetAreaSettings settings, string runId)
@@ -55,7 +57,7 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
             .Cast<ViewFamilyType>().Where(t => t.ViewFamily == ViewFamily.Drafting).OrderBy(t => t.Name).FirstOrDefault();
 
         private View Template() => new FilteredElementCollector(_doc).OfClass(typeof(ViewPlan)).Cast<ViewPlan>()
-            .FirstOrDefault(v => v.IsTemplate && v.Name == _s.PlanTemplateName);
+            .FirstOrDefault(v => v.IsTemplate && v.ViewType == ViewType.FloorPlan && v.Name == _s.PlanTemplateName);
 
         /// <summary>
         /// The room's plan: the one an earlier run made (found by its tag) or a new one. The crop is
@@ -117,10 +119,17 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
         {
             name = ViewNames.Clean(name);
             if (name.Length == 0) name = WetAreaSettings.DefaultSharedDraftingViewName;
-            if (_drafting.TryGetValue(name, out var known)) return known;
+            // A cached view may be gone again: the room that created it was rolled back.
+            if (_drafting.TryGetValue(name, out var known) && _doc.GetElement(known.Id) != null) return known;
 
             ViewDrafting view = new FilteredElementCollector(_doc).OfClass(typeof(ViewDrafting)).Cast<ViewDrafting>()
                 .FirstOrDefault(v => !v.IsTemplate && string.Equals(v.Name, name, StringComparison.OrdinalIgnoreCase));
+
+            // The tool may have had to name its view "X (2)" because another view held "X": find it by
+            // the name it was asked for, so later runs keep pointing at the same view.
+            view ??= ElementTag.Tagged(_doc).OfType<ViewDrafting>().FirstOrDefault(v => !v.IsTemplate
+                && ElementTag.TryGet(v, out _, out string asked, out string kind) && kind == ElementTag.Drafting
+                && string.Equals(asked, name, StringComparison.OrdinalIgnoreCase));
             if (view == null)
             {
                 view = ViewDrafting.Create(_doc, DraftingType().Id);
@@ -129,8 +138,8 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
                 _viewNames.Add(unique);
                 try { view.Scale = _s.DraftingScale; }
                 catch (Autodesk.Revit.Exceptions.ApplicationException) { /* keep the default scale */ }
-                ElementTag.Set(view, _runId, string.Empty, ElementTag.Drafting);
-                DraftingCreated++;
+                ElementTag.Set(view, _runId, name, ElementTag.Drafting);
+                _draftingCreated.Add(view.Id);
             }
             var result = (view.Id, view.Name);
             _drafting[name] = result;
@@ -144,8 +153,9 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
         /// </summary>
         public List<CreatedSection> PlaceSections(ViewPlan plan, string roomKey, IReadOnlyList<PlannedSection> sections, List<string> problems)
         {
-            var old = Markers().Where(m => m.OwnerViewId == plan.Id
-                && ElementTag.TryGet(m, out _, out string key, out string kind) && kind == ElementTag.Section && key == roomKey)
+            // By tag only: a marker's owner view is not relied on. Copies made by the user are not matched.
+            var old = Markers().Where(m =>
+                ElementTag.TryGet(m, out _, out string key, out string kind) && kind == ElementTag.Section && key == roomKey)
                 .Select(m => m.Id).ToList();
             if (old.Count > 0) _doc.Delete(old);
 

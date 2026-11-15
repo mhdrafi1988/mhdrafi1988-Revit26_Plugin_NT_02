@@ -219,7 +219,7 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.UI.ViewModels
                 }
                 AddLog(deleted > 0 ? LogLevel.Success : LogLevel.Warning,
                     $"Run {run.RunId}: {deleted} element(s) removed"
-                    + (owned > 0 ? $", {owned} left because another user owns them." : "."));
+                    + (owned > 0 ? $", {owned} left: another user owns them, or Revit would not delete them (close the plan if it is the open view, then remove again)." : "."));
                 Refresh();
             });
         }

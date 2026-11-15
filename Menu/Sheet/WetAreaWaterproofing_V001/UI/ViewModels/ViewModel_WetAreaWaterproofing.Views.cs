@@ -31,6 +31,9 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.UI.ViewModels
         /// <summary>Choices for "Per item".</summary>
         public static IReadOnlyList<string> PerItemChoices { get; } = new[] { "One (nearest centre)", "All matches" };
 
+        /// <summary>Choices for this row's "Per item" box.</summary>
+        public IReadOnlyList<string> Choices => PerItemChoices;
+
         /// <summary>What is cut.</summary>
         public SectionTargetKind Kind { get; }
         /// <summary>Text shown for the target.</summary>
@@ -188,12 +191,13 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.UI.ViewModels
             string wantedTemplate = SelectedPlanTemplate ?? _settings.PlanTemplateName;
             SelectedPlanTemplate = PlanTemplates.Contains(wantedTemplate) ? wantedTemplate : NoTemplate;
 
-            // Editable boxes: keep what the user typed while the list behind them is refreshed.
-            string shared = SharedDraftingViewName;
-            var perTarget = Targets.Select(t => t.DraftingViewName).ToList();
-            Replace(DraftingViews, snapshot.DraftingViews);
-            SharedDraftingViewName = shared;
-            for (int i = 0; i < Targets.Count; i++) Targets[i].DraftingViewName = perTarget[i];
+            // Editable boxes show this list: it is updated in place (never cleared), so a box whose text
+            // matches an entry does not go blank.
+            var wanted = new HashSet<string>(snapshot.DraftingViews);
+            for (int i = DraftingViews.Count - 1; i >= 0; i--)
+                if (!wanted.Contains(DraftingViews[i])) DraftingViews.RemoveAt(i);
+            foreach (string name in snapshot.DraftingViews)
+                if (!DraftingViews.Contains(name)) DraftingViews.Add(name);
 
             Sources.Clear();
             foreach (var model in snapshot.Sources.GroupBy(x => x.Model))

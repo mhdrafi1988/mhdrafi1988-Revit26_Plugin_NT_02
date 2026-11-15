@@ -43,19 +43,23 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Sections
         public const double DoorReachMm = 400;
         /// <summary>Items this far below the room's level still count (a drain set into the slab), mm.</summary>
         public const double BelowLevelMm = 500;
-        /// <summary>Items up to this far above the room's level count, mm.</summary>
-        public const double AboveLevelMm = 3000;
+        /// <summary>Items up to this far above the room's level count, mm; less when the next level is closer.</summary>
+        public const double AboveLevelMm = 2000;
 
         /// <summary>
         /// Items of the room with outline <paramref name="outer"/> on level <paramref name="levelMm"/>:
         /// those inside the outline, and doors within <see cref="DoorReachMm"/> of it. A door between
-        /// two rooms belongs to both.
+        /// two rooms belongs to both. The height band runs from <see cref="BelowLevelMm"/> under the level to
+        /// <see cref="AboveLevelMm"/> over it, and stops 500 mm short of <paramref name="nextLevelMm"/> (the
+        /// level above) so the floor above is never counted.
         /// </summary>
-        public static IReadOnlyList<FoundItem> ForRoom(IReadOnlyList<Pt> outer, double levelMm, IEnumerable<FoundItem> items)
+        public static IReadOnlyList<FoundItem> ForRoom(IReadOnlyList<Pt> outer, double levelMm, IEnumerable<FoundItem> items, double? nextLevelMm = null)
         {
             if (outer == null || outer.Count < 3 || items == null) return new List<FoundItem>();
+            double top = levelMm + AboveLevelMm;
+            if (nextLevelMm.HasValue && nextLevelMm.Value > levelMm) top = System.Math.Min(top, nextLevelMm.Value - BelowLevelMm);
             return items.Where(i => i != null
-                && i.ZMm >= levelMm - BelowLevelMm && i.ZMm <= levelMm + AboveLevelMm
+                && i.ZMm >= levelMm - BelowLevelMm && i.ZMm <= top
                 && (Polyline2D.Contains(outer, i.At)
                     || (i.Kind == SectionTargetKind.Door && Polyline2D.Nearest(outer, i.At).Distance <= DoorReachMm)))
                 .ToList();

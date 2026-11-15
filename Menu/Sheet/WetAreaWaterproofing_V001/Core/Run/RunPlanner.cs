@@ -111,7 +111,7 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Run
                 if (c.HostLevelId == 0)
                 {
                     issues.Add(new Issue("Error", "Roof", row.RoomKey, row.Number,
-                        "The host model has no level to put the roof on: room skipped.", "Add a level to the host model."));
+                        "The host model has no level to work on: room skipped.", "Add a level to the host model."));
                     continue;
                 }
 
