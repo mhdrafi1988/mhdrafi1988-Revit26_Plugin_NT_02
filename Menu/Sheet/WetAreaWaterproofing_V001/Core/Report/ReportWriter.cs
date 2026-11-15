@@ -15,14 +15,14 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Report
     public static class ReportWriter
     {
         /// <summary>Report format version, written to the Summary sheet.</summary>
-        public const int FormatVersion = 1;
+        public const int FormatVersion = 2;
 
         /// <summary>Rooms sheet columns, in order.</summary>
         public static IReadOnlyList<string> RoomColumns { get; } = new[]
         {
             "Room ElementId", "Source", "Level", "Number", "Name", "Room area m²", "Matched keyword", "Slab ElementId",
             "Slab top mm", "Roof ElementId", "Roof area m²", "Area difference %", "Boundary result", "Status", "Reason",
-            "Phase", "Workset", "Group", "Scale", "Run ID"
+            "Phase", "Workset", "Group", "Scale", "Run ID", "Plan view Id", "Plan view", "Sections"
         };
 
         /// <summary>Boundary repair sheet columns, in order.</summary>
@@ -30,6 +30,14 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Report
         {
             "Room ElementId", "Number", "Name", "Method", "Method name", "Result", "Detail", "X mm", "Y mm",
             "Room area m²", "Outline area m²"
+        };
+
+        /// <summary>Sections sheet columns, in order.</summary>
+        public static IReadOnlyList<string> SectionColumns { get; } = new[]
+        {
+            "Section marker Id", "Section", "Target", "Room ElementId", "Room number", "Room name",
+            "Cut ElementId", "Cut category", "Cut family : type", "Cut model",
+            "Plan view Id", "Plan view", "Drafting view Id", "Drafting view", "Head X mm", "Head Y mm", "Tail X mm", "Tail Y mm"
         };
 
         /// <summary>Issues sheet columns, in order.</summary>
@@ -103,6 +111,8 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Report
                 ("Rooms ticked", s.RoomsTicked),
                 ("Roofs created", s.RoofsCreated),
                 ("Roofs replaced", s.RoofsReplaced),
+                ("Plans created", s.PlansCreated),
+                ("Reference sections placed", s.SectionsPlaced),
                 ("Rooms skipped", s.Skipped),
                 ("Warnings", s.Warnings),
                 ("Errors", s.Errors)
@@ -143,11 +153,14 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Report
                 rooms.Cell(row, col++).Value = r.Workset ?? string.Empty;
                 rooms.Cell(row, col++).Value = r.Group ?? string.Empty;
                 rooms.Cell(row, col++).Value = r.Scale ?? string.Empty;
-                rooms.Cell(row, col).Value = r.RoofId != 0 ? s.RunId ?? string.Empty : string.Empty;
+                rooms.Cell(row, col++).Value = r.RoofId != 0 || r.PlanViewId != 0 ? s.RunId ?? string.Empty : string.Empty;
+                SetId(rooms.Cell(row, col++), r.PlanViewId);
+                rooms.Cell(row, col++).Value = r.PlanView ?? string.Empty;
+                if (r.PlanViewId != 0 || r.SectionCount > 0) rooms.Cell(row, col).Value = r.SectionCount;
 
                 XLColor fill = r.Status switch
                 {
-                    "Created" or "Replaced" => r.HasWarning ? Yellow : Green,
+                    "Created" or "Replaced" or "Views only" => r.HasWarning ? Yellow : Green,
                     "Skipped" or "Failed" => Red,
                     _ => null
                 };
@@ -176,6 +189,33 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Report
                 repairs.Cell(row, col).Value = Math.Round(r.OutlineAreaM2, 3);
             }
             FinishSheet(repairs, RepairColumns.Count);
+
+            IXLWorksheet sections = workbook.AddWorksheet("Sections");
+            WriteHeader(sections, SectionColumns);
+            for (int i = 0; i < report.Sections.Count; i++)
+            {
+                ReportSection x = report.Sections[i];
+                int row = i + 2, col = 1;
+                SetId(sections.Cell(row, col++), x.MarkerId);
+                sections.Cell(row, col++).Value = x.Label ?? string.Empty;
+                sections.Cell(row, col++).Value = x.Target ?? string.Empty;
+                SetId(sections.Cell(row, col++), x.RoomId);
+                sections.Cell(row, col++).Value = x.Number ?? string.Empty;
+                sections.Cell(row, col++).Value = x.Name ?? string.Empty;
+                SetId(sections.Cell(row, col++), x.CutElementId);
+                sections.Cell(row, col++).Value = x.CutCategory ?? string.Empty;
+                sections.Cell(row, col++).Value = x.CutName ?? string.Empty;
+                sections.Cell(row, col++).Value = x.CutModel ?? string.Empty;
+                SetId(sections.Cell(row, col++), x.PlanViewId);
+                sections.Cell(row, col++).Value = x.PlanView ?? string.Empty;
+                SetId(sections.Cell(row, col++), x.DraftingViewId);
+                sections.Cell(row, col++).Value = x.DraftingView ?? string.Empty;
+                SetNumber(sections.Cell(row, col++), x.HeadX, 1);
+                SetNumber(sections.Cell(row, col++), x.HeadY, 1);
+                SetNumber(sections.Cell(row, col++), x.TailX, 1);
+                SetNumber(sections.Cell(row, col), x.TailY, 1);
+            }
+            FinishSheet(sections, SectionColumns.Count);
 
             IXLWorksheet issues = workbook.AddWorksheet("Issues");
             WriteHeader(issues, IssueColumns);

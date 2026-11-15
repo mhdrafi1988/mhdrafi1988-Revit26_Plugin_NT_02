@@ -2,6 +2,7 @@ using Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Geometry;
 using Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Grid;
 using Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Models;
 using Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Run;
+using Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Sections;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -14,6 +15,20 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Report
     /// <param name="AreaM2">Its area, m².</param>
     /// <param name="Replaced">True when it replaced a roof from an earlier run.</param>
     public sealed record CreatedRoof(long RoofId, double AreaM2, bool Replaced);
+
+    /// <summary>A reference section the run placed.</summary>
+    /// <param name="Plan">What was planned: target, cut line, element cut.</param>
+    /// <param name="MarkerId">ElementId of the section marker.</param>
+    /// <param name="DraftingViewId">ElementId of the drafting view it points to.</param>
+    /// <param name="DraftingViewName">That view's name as it is in the model.</param>
+    public sealed record CreatedSection(PlannedSection Plan, long MarkerId, long DraftingViewId, string DraftingViewName);
+
+    /// <summary>The plan and sections a run made (or reused) for one room.</summary>
+    /// <param name="PlanId">ElementId of the room's plan; 0 when there is none.</param>
+    /// <param name="PlanName">The plan's name.</param>
+    /// <param name="PlanIsNew">True when this run created the plan; false when it reused one.</param>
+    /// <param name="Sections">Sections placed on it.</param>
+    public sealed record CreatedViews(long PlanId, string PlanName, bool PlanIsNew, IReadOnlyList<CreatedSection> Sections);
 
     /// <summary>The Summary sheet.</summary>
     public sealed class ReportSummary
@@ -40,6 +55,10 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Report
         public int RoofsReplaced { get; set; }
         /// <summary>Ticked rooms that got no roof.</summary>
         public int Skipped { get; set; }
+        /// <summary>Plans this run created.</summary>
+        public int PlansCreated { get; set; }
+        /// <summary>Reference sections this run placed.</summary>
+        public int SectionsPlaced { get; set; }
         /// <summary>Warnings raised.</summary>
         public int Warnings { get; set; }
         /// <summary>Errors raised.</summary>
@@ -89,6 +108,12 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Report
         public string Group { get; set; }
         /// <summary>Plan scale (Part C).</summary>
         public string Scale { get; set; }
+        /// <summary>ElementId of the room's plan; 0 = none.</summary>
+        public long PlanViewId { get; set; }
+        /// <summary>Name of the room's plan.</summary>
+        public string PlanView { get; set; }
+        /// <summary>Reference sections placed for the room.</summary>
+        public int SectionCount { get; set; }
         /// <summary>True when the room was done but something needs checking.</summary>
         public bool HasWarning { get; set; }
     }
@@ -120,6 +145,47 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Report
         public double OutlineAreaM2 { get; set; }
     }
 
+    /// <summary>One row of the Sections sheet.</summary>
+    public sealed class ReportSection
+    {
+        /// <summary>ElementId of the section marker.</summary>
+        public long MarkerId { get; set; }
+        /// <summary>Section name, e.g. "Floor drain 2".</summary>
+        public string Label { get; set; }
+        /// <summary>Target kind text.</summary>
+        public string Target { get; set; }
+        /// <summary>Room ElementId.</summary>
+        public long RoomId { get; set; }
+        /// <summary>Room number.</summary>
+        public string Number { get; set; }
+        /// <summary>Room name.</summary>
+        public string Name { get; set; }
+        /// <summary>ElementId of the element cut; 0 = none.</summary>
+        public long CutElementId { get; set; }
+        /// <summary>Its category.</summary>
+        public string CutCategory { get; set; }
+        /// <summary>Its "Family : Type".</summary>
+        public string CutName { get; set; }
+        /// <summary>Model it is in.</summary>
+        public string CutModel { get; set; }
+        /// <summary>ElementId of the plan the marker is on.</summary>
+        public long PlanViewId { get; set; }
+        /// <summary>That plan's name.</summary>
+        public string PlanView { get; set; }
+        /// <summary>ElementId of the drafting view referenced.</summary>
+        public long DraftingViewId { get; set; }
+        /// <summary>Its name.</summary>
+        public string DraftingView { get; set; }
+        /// <summary>Head of the cut line, mm.</summary>
+        public double HeadX { get; set; }
+        /// <summary>Head of the cut line, mm.</summary>
+        public double HeadY { get; set; }
+        /// <summary>Tail of the cut line, mm.</summary>
+        public double TailX { get; set; }
+        /// <summary>Tail of the cut line, mm.</summary>
+        public double TailY { get; set; }
+    }
+
     /// <summary>Everything one run writes to Excel.</summary>
     public sealed class RunReport
     {
@@ -129,6 +195,8 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Report
         public List<ReportRoom> Rooms { get; } = new();
         /// <summary>Boundary repair sheet.</summary>
         public List<ReportRepair> Repairs { get; } = new();
+        /// <summary>Sections sheet.</summary>
+        public List<ReportSection> Sections { get; } = new();
         /// <summary>Issues sheet.</summary>
         public List<Issue> Issues { get; } = new();
 
@@ -143,8 +211,10 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Report
             PlannedRun plan,
             IReadOnlyDictionary<string, CreatedRoof> created,
             IEnumerable<Issue> issues,
-            WetAreaSettings settings)
+            WetAreaSettings settings,
+            IReadOnlyDictionary<string, CreatedViews> views = null)
         {
+            views ??= new Dictionary<string, CreatedViews>();
             var report = new RunReport { Summary = summary ?? new ReportSummary() };
             var ticked = new HashSet<string>(tickedKeys ?? Enumerable.Empty<string>());
             created ??= new Dictionary<string, CreatedRoof>();
@@ -181,10 +251,33 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Report
                     item.Reason = string.Join(" ", warnings);
                     item.HasWarning = warnings.Count > 0;
                 }
+                else if (views.ContainsKey(row.RoomKey))
+                {
+                    item.Status = "Views only"; // plan or sections made, roof step off or roof failed
+                    item.Reason = string.Join(" ", errors.Concat(warnings));
+                    item.HasWarning = errors.Count + warnings.Count > 0;
+                }
                 else
                 {
                     item.Status = errors.Count > 0 ? "Skipped" : "Failed";
                     item.Reason = errors.Count > 0 ? string.Join(" ", errors) : "The roof was not created.";
+                }
+                if (isTicked && views.TryGetValue(row.RoomKey, out CreatedViews made))
+                {
+                    item.PlanViewId = made.PlanId;
+                    item.PlanView = made.PlanName;
+                    item.SectionCount = made.Sections.Count;
+                    foreach (CreatedSection section in made.Sections)
+                        report.Sections.Add(new ReportSection
+                        {
+                            MarkerId = section.MarkerId, Label = section.Plan.Label, Target = SectionTargets.Label(section.Plan.Kind),
+                            RoomId = row.RoomId, Number = row.Number, Name = row.Name,
+                            CutElementId = section.Plan.CutElementId, CutCategory = section.Plan.CutCategory,
+                            CutName = section.Plan.CutName, CutModel = section.Plan.CutModel,
+                            PlanViewId = made.PlanId, PlanView = made.PlanName,
+                            DraftingViewId = section.DraftingViewId, DraftingView = section.DraftingViewName,
+                            HeadX = section.Plan.Head.X, HeadY = section.Plan.Head.Y, TailX = section.Plan.Tail.X, TailY = section.Plan.Tail.Y
+                        });
                 }
                 report.Rooms.Add(item);
 
@@ -202,6 +295,8 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Report
             s.RoomsTicked = ticked.Count;
             s.RoofsCreated = created.Values.Count(r => !r.Replaced);
             s.RoofsReplaced = created.Values.Count(r => r.Replaced);
+            s.PlansCreated = views.Values.Count(v => v.PlanIsNew && v.PlanId != 0);
+            s.SectionsPlaced = report.Sections.Count;
             s.Skipped = report.Rooms.Count(r => r.Status == "Skipped" || r.Status == "Failed");
             s.Warnings = report.Issues.Count(i => i.Severity == "Warning");
             s.Errors = report.Issues.Count(i => i.Severity == "Error");
@@ -236,6 +331,14 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Report
             yield return new("Bridge gaps up to (mm)", N(s.BridgeMm));
             yield return new("Area check (± %)", N(s.AreaTolerancePct));
             yield return new("Allow approximate outline", s.AllowApproximate ? "Yes" : "No");
+            yield return new("Run steps", string.Join(", ", new[] { s.CreateRoofs ? "Roofs" : null, s.CreatePlans ? "Plans" : null, s.CreateSections ? "Reference sections" : null }.Where(x => x != null)));
+            yield return new("Plan type", s.PlanViewTypeName);
+            yield return new("Plan template", s.PlanTemplateName);
+            yield return new("Plan scale", "1:" + s.PlanScale);
+            yield return new("Crop margin (mm)", N(s.CropMarginMm));
+            yield return new("Section targets", string.Join(", ", (s.Targets ?? new List<SectionTargetSetting>()).Where(t => t.On)
+                .Select(t => SectionTargets.Label(t.Kind) + (t.AllMatches ? " (all)" : " (one)"))));
+            yield return new("Drafting view", s.OneDraftingViewForAll ? s.SharedDraftingViewName : "one per target");
             yield return new("Host rooms", s.IncludeHost ? "Yes" : "No");
             yield return new("Linked rooms", !s.IncludeLinks ? "No"
                 : s.IncludedLinks == null || s.IncludedLinks.Count == 0 ? "All loaded links" : string.Join(", ", s.IncludedLinks));

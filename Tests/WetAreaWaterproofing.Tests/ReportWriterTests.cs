@@ -4,6 +4,7 @@ using Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Grid;
 using Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Models;
 using Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Report;
 using Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Run;
+using Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Sections;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -54,7 +55,14 @@ namespace WetAreaWaterproofing.Tests
                 RunId = plan.RunId, Started = new DateTime(2026, 11, 14, 15, 30, 7), User = "tester", Model = "Sample Model",
                 PluginVersion = "7.11.0", ToolVersion = "1.0.0", DurationSeconds = 3.5
             };
-            return RunReport.Build(summary, rooms, ticked, plan, created, plan.Issues, Defaults);
+            var cut = new PlannedSection(SectionTargetKind.Drain, "Floor drain", new Pt(100, 200), new Pt(100, 1400),
+                555, "Plumbing Fixtures", "Floor Drain : 100", "MEP_Model", "WP Detail - Floor Drain");
+            var views = new Dictionary<string, CreatedViews>
+            {
+                ["Host:101"] = new CreatedViews(7001, "WP - L1 - 101 Room 101", true,
+                    new[] { new CreatedSection(cut, 8001, 7100, "WP Detail - Floor Drain") })
+            };
+            return RunReport.Build(summary, rooms, ticked, plan, created, plan.Issues, Defaults, views);
         }
 
         [Fact]
@@ -96,14 +104,14 @@ namespace WetAreaWaterproofing.Tests
             string path = ReportWriter.Write(Build(), _folder);
             Assert.True(File.Exists(path));
             using var wb = new XLWorkbook(path);
-            Assert.Equal(new[] { "Summary", "Rooms", "Boundary repair", "Issues" }, wb.Worksheets.Select(w => w.Name));
+            Assert.Equal(new[] { "Summary", "Rooms", "Boundary repair", "Sections", "Issues" }, wb.Worksheets.Select(w => w.Name));
             var rooms = wb.Worksheet("Rooms");
             var headers = Enumerable.Range(1, ReportWriter.RoomColumns.Count).Select(c => rooms.Cell(1, c).GetString()).ToArray();
             Assert.Equal(new[]
             {
                 "Room ElementId", "Source", "Level", "Number", "Name", "Room area m²", "Matched keyword", "Slab ElementId",
                 "Slab top mm", "Roof ElementId", "Roof area m²", "Area difference %", "Boundary result", "Status", "Reason",
-                "Phase", "Workset", "Group", "Scale", "Run ID"
+                "Phase", "Workset", "Group", "Scale", "Run ID", "Plan view Id", "Plan view", "Sections"
             }, headers);
             Assert.True(rooms.Cell(1, 1).Style.Font.Bold);
             Assert.True(rooms.AutoFilter.IsEnabled);
@@ -123,6 +131,43 @@ namespace WetAreaWaterproofing.Tests
             Assert.Equal(XLColor.FromHtml("#FDF1E1"), rooms.Cell(3, status).Style.Fill.BackgroundColor); // created, repaired
             Assert.Equal(XLColor.FromHtml("#FBE8E7"), rooms.Cell(4, status).Style.Fill.BackgroundColor); // skipped
             Assert.True(rooms.Cell(4, 10).IsEmpty()); // no roof for the skipped room
+        }
+
+        [Fact]
+        public void SectionsAreListedWithWhatTheyCut()
+        {
+            var report = Build();
+            var section = Assert.Single(report.Sections);
+            Assert.Equal("101", section.Number);
+            Assert.Equal("Floor drain", section.Label);
+            Assert.Equal(555, section.CutElementId);
+            Assert.Equal("MEP_Model", section.CutModel);
+            Assert.Equal(7001, section.PlanViewId);
+            Assert.Equal("WP Detail - Floor Drain", section.DraftingView);
+            Assert.Equal(1, report.Rooms[0].SectionCount);
+            Assert.Equal("WP - L1 - 101 Room 101", report.Rooms[0].PlanView);
+            Assert.Equal(1, report.Summary.PlansCreated);
+            Assert.Equal(1, report.Summary.SectionsPlaced);
+
+            using var wb = new XLWorkbook(ReportWriter.Write(report, _folder));
+            var sheet = wb.Worksheet("Sections");
+            Assert.Equal(ReportWriter.SectionColumns, Enumerable.Range(1, ReportWriter.SectionColumns.Count).Select(c => sheet.Cell(1, c).GetString()));
+            Assert.Equal("Section marker Id", sheet.Cell(1, 1).GetString());
+            Assert.Equal(8001, sheet.Cell(2, 1).GetValue<long>());
+            var rooms = wb.Worksheet("Rooms");
+            Assert.Equal(7001, rooms.Cell(2, 21).GetValue<long>());
+            Assert.Equal(1, rooms.Cell(2, 23).GetValue<int>());
+        }
+
+        [Fact]
+        public void RoomWithViewsButNoRoofIsNotReportedAsFailed()
+        {
+            var room = Candidate("101");
+            var plan = RunPlanner.Plan(new[] { room }, Defaults, "r1");
+            var views = new Dictionary<string, CreatedViews> { ["Host:101"] = new CreatedViews(7001, "Plan", false, new CreatedSection[0]) };
+            var report = RunReport.Build(new ReportSummary { RunId = "r1", Started = DateTime.Now }, new[] { room },
+                new[] { "Host:101" }, plan, new Dictionary<string, CreatedRoof>(), plan.Issues, Defaults, views);
+            Assert.Equal("Views only", report.Rooms[0].Status);
         }
 
         [Fact]
