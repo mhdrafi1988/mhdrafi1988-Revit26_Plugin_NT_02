@@ -123,20 +123,23 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
                 .OrderByDescending(r => r.RunId, StringComparer.Ordinal).ToList();
 
         /// <summary>
-        /// Deletes every element of run <paramref name="runId"/> in one transaction. Elements checked
-        /// out by another user are left and counted.
+        /// Deletes the roofs, plans and section markers of run <paramref name="runId"/> in one transaction.
+        /// Elements checked out by another user are left and counted. Drafting views are never deleted.
         /// </summary>
         public static (int Deleted, int SkippedOwned) Remove(Document doc, string runId)
         {
-            var ids = Tagged(doc).Where(t => t.RunId == runId).Select(t => t.Id).ToList();
+            var ids = Tagged(doc).Where(t => t.RunId == runId).Select(t => t.Id).Distinct().ToList();
             var free = ids.Where(id => RoomCollector.OwnerOf(doc, id) == null).ToList();
             if (free.Count == 0) return (0, ids.Count);
+            int wanted = free.Count;
 
             using var tx = new Transaction(doc, "Remove waterproofing run " + runId);
             tx.Start();
             try
             {
-                doc.Delete(free);
+                // Deleting a plan also deletes the markers on it, so each id is checked before it is deleted.
+                foreach (ElementId id in free)
+                    if (doc.GetElement(id) != null) doc.Delete(id);
                 if (tx.Commit() != TransactionStatus.Committed)
                     throw new InvalidOperationException("Revit did not accept the removal.");
             }
@@ -145,7 +148,7 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
                 if (tx.HasStarted() && !tx.HasEnded()) tx.RollBack();
                 throw;
             }
-            return (free.Count, ids.Count - free.Count);
+            return (wanted, ids.Count - wanted);
         }
 
         private static IEnumerable<(ElementId Id, string RunId)> Tagged(Document doc)
@@ -155,6 +158,13 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
                 string comments = element.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS)?.AsString();
                 if (RunTag.TryParse(comments, out string runId, out _)) yield return (element.Id, runId);
             }
+
+            // Plans and section markers carry the tag in Extensible Storage. Drafting views are left
+            // alone on purpose: they may hold details the user has drawn.
+            foreach (Element element in ElementTag.Tagged(doc))
+                if (ElementTag.TryGet(element, out string runId, out _, out string kind)
+                    && (kind == ElementTag.Plan || kind == ElementTag.Section) && !string.IsNullOrEmpty(runId))
+                    yield return (element.Id, runId);
         }
     }
 }

@@ -1,6 +1,7 @@
 using Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Geometry;
 using Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Grid;
 using Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Models;
+using Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Sections;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -28,6 +29,18 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Run
 
         /// <summary>Run ID of the newest of those roofs; null when there is none.</summary>
         public string ExistingRunId { get; set; }
+
+        /// <summary>A point inside the room (its location point), mm, host coordinates.</summary>
+        public Pt Inside { get; set; }
+
+        /// <summary>Doors, drains and fixtures that belong to the room.</summary>
+        public IReadOnlyList<FoundItem> Items { get; set; } = Array.Empty<FoundItem>();
+
+        /// <summary>Plan an earlier run made for this room; 0 when there is none.</summary>
+        public long ExistingPlanId { get; set; }
+
+        /// <summary>That plan's name.</summary>
+        public string ExistingPlanName { get; set; }
     }
 
     /// <summary>One roof to create.</summary>

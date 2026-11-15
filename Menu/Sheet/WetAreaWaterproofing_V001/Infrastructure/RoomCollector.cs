@@ -6,6 +6,7 @@ using Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Grid;
 using Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Matching;
 using Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Models;
 using Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Run;
+using Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Sections;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,6 +26,14 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
         public string ActiveWorkset { get; init; } = string.Empty;
         /// <summary>Names of the loaded links.</summary>
         public IReadOnlyList<string> Links { get; init; } = Array.Empty<string>();
+        /// <summary>The "Search targets in" list: model × category, with counts.</summary>
+        public IReadOnlyList<TargetSource> Sources { get; init; } = Array.Empty<TargetSource>();
+        /// <summary>Floor plan view type names.</summary>
+        public IReadOnlyList<string> PlanTypes { get; init; } = Array.Empty<string>();
+        /// <summary>Floor plan view template names.</summary>
+        public IReadOnlyList<string> PlanTemplates { get; init; } = Array.Empty<string>();
+        /// <summary>Drafting view names.</summary>
+        public IReadOnlyList<string> DraftingViews { get; init; } = Array.Empty<string>();
         /// <summary>Model title.</summary>
         public string ModelTitle { get; init; } = string.Empty;
         /// <summary>Things worth telling the user about the read (rooms left out, links not loaded).</summary>
@@ -63,10 +72,12 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
 
             var slabs = new SlabIndex(doc, loadedLinks);
             var existing = ExistingRoofs(doc);
+            (List<FoundItem> items, List<TargetSource> sources) = TargetCollector.Collect(doc, loadedLinks, s);
+            var plans = ExistingPlans(doc);
             var rooms = new List<RoomCandidate>();
 
             if (s.IncludeHost)
-                ReadRooms(doc, doc, Transform.Identity, HostKey, HostKey, hostLevels, slabs, existing, s, checkOnly, rooms, notes);
+                ReadRooms(doc, doc, Transform.Identity, HostKey, HostKey, hostLevels, slabs, existing, plans, items, s, checkOnly, rooms, notes);
 
             if (s.IncludeLinks)
                 foreach (RevitLinkInstance link in loadedLinks)
@@ -74,7 +85,7 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
                     string name = LinkName(link);
                     if (s.IncludedLinks.Count > 0 && !s.IncludedLinks.Contains(name)) continue;
                     ReadRooms(doc, link.GetLinkDocument(), link.GetTotalTransform(), link.UniqueId, name,
-                        hostLevels, slabs, existing, s, checkOnly, rooms, notes);
+                        hostLevels, slabs, existing, plans, items, s, checkOnly, rooms, notes);
                 }
 
             var worksets = new List<string>();
@@ -95,6 +106,13 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
                 Worksets = worksets,
                 ActiveWorkset = activeWorkset,
                 Links = linkNames,
+                Sources = sources,
+                PlanTypes = new FilteredElementCollector(doc).OfClass(typeof(ViewFamilyType)).Cast<ViewFamilyType>()
+                    .Where(t => t.ViewFamily == ViewFamily.FloorPlan).Select(t => t.Name).Distinct().OrderBy(n => n).ToList(),
+                PlanTemplates = new FilteredElementCollector(doc).OfClass(typeof(ViewPlan)).Cast<ViewPlan>()
+                    .Where(v => v.IsTemplate && v.ViewType == ViewType.FloorPlan).Select(v => v.Name).Distinct().OrderBy(n => n).ToList(),
+                DraftingViews = new FilteredElementCollector(doc).OfClass(typeof(ViewDrafting)).Cast<ViewDrafting>()
+                    .Where(v => !v.IsTemplate).Select(v => v.Name).Distinct().OrderBy(n => n).ToList(),
                 ModelTitle = doc.Title ?? string.Empty,
                 Notes = notes
             };
@@ -126,9 +144,22 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
             return result;
         }
 
+        /// <summary>Plans earlier runs made, by room key.</summary>
+        public static Dictionary<string, (long Id, string Name)> ExistingPlans(Document doc)
+        {
+            var result = new Dictionary<string, (long Id, string Name)>();
+            foreach (Element element in ElementTag.Tagged(doc))
+                if (element is ViewPlan plan && !plan.IsTemplate
+                    && ElementTag.TryGet(plan, out _, out string roomKey, out string kind)
+                    && kind == ElementTag.Plan && !string.IsNullOrEmpty(roomKey))
+                    result[roomKey] = (plan.Id.Value, plan.Name);
+            return result;
+        }
+
         private static void ReadRooms(
             Document host, Document source, Transform toHost, string sourceKey, string sourceName,
             List<LevelInfo> hostLevels, SlabIndex slabs, Dictionary<string, (List<long> Ids, string RunId)> existing,
+            Dictionary<string, (long Id, string Name)> plans, List<FoundItem> items,
             WetAreaSettings s, ISet<string> checkOnly, List<RoomCandidate> rooms, List<string> notes)
         {
             var all = new FilteredElementCollector(source).OfCategory(BuiltInCategory.OST_Rooms)
@@ -174,6 +205,13 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
                     HostLevelId = hostLevel?.Id ?? 0,
                     HostLevelElevationMm = (hostLevel?.ZFt ?? 0) * BoundaryReader.FtToMm
                 };
+                candidate.Inside = BoundaryReader.ToPt(toHost.OfPoint(location.Point));
+                if (plans.TryGetValue(row.RoomKey, out var plan))
+                {
+                    candidate.ExistingPlanId = plan.Id;
+                    candidate.ExistingPlanName = plan.Name;
+                    row.HasPlan = true;
+                }
                 if (existing.TryGetValue(row.RoomKey, out var old))
                 {
                     candidate.ExistingRoofIds = old.Ids;
@@ -199,6 +237,17 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
                     {
                         row.SlabId = slab.FloorId;
                         row.SlabTopMm = slab.TopFt * BoundaryReader.FtToMm;
+                    }
+
+                    if (candidate.Outline.Outer.Count >= 3)
+                    {
+                        candidate.Items = RoomItemMatcher.ForRoom(candidate.Outline.Outer, row.LevelElevationMm, items);
+                        row.DoorCount = candidate.Items.Count(i => i.Kind == SectionTargetKind.Door);
+                        row.DrainCount = candidate.Items.Count(i => i.Kind == SectionTargetKind.Drain);
+                        row.FixtureCount = candidate.Items.Count(i => i.Kind is SectionTargetKind.Wc or SectionTargetKind.Shower);
+                        row.PlannedSections = SectionPlanner.Plan(
+                            new RoomSectionInput(row.Number, candidate.Outline.Outer, candidate.Inside, candidate.Items),
+                            s.Targets, s.OneDraftingViewForAll, s.SharedDraftingViewName).Sections.Count;
                     }
 
                     row.Owner = (isHost ? OwnerOf(host, room.Id) : null) ?? slab?.Owner

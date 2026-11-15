@@ -15,7 +15,15 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
         public int Created { get; init; }
         /// <summary>Roofs that replaced one from an earlier run.</summary>
         public int Replaced { get; init; }
-        /// <summary>Ticked rooms that got no roof.</summary>
+        /// <summary>Plans this run created.</summary>
+        public int PlansCreated { get; init; }
+        /// <summary>Plans from an earlier run that were reused.</summary>
+        public int PlansReused { get; init; }
+        /// <summary>Reference sections placed.</summary>
+        public int SectionsPlaced { get; init; }
+        /// <summary>Drafting views this run created.</summary>
+        public int DraftingCreated { get; init; }
+        /// <summary>Ticked rooms that got nothing.</summary>
         public int Skipped { get; init; }
         /// <summary>Everything the user should know.</summary>
         public IReadOnlyList<Issue> Issues { get; init; } = Array.Empty<Issue>();

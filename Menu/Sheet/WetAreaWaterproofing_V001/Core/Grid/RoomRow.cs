@@ -53,6 +53,21 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Grid
         /// <summary>True when a roof from an earlier run exists for this room, whatever its status.</summary>
         public bool HasExistingRoof { get; set; }
 
+        /// <summary>Doors found for the room.</summary>
+        public int DoorCount { get; set; }
+
+        /// <summary>Floor drains found in the room.</summary>
+        public int DrainCount { get; set; }
+
+        /// <summary>WCs, showers and baths found in the room.</summary>
+        public int FixtureCount { get; set; }
+
+        /// <summary>Reference sections the current targets would place.</summary>
+        public int PlannedSections { get; set; }
+
+        /// <summary>True when a plan from an earlier run exists for this room.</summary>
+        public bool HasPlan { get; set; }
+
         /// <summary>Room phase name.</summary>
         public string Phase { get; set; }
 
