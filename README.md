@@ -46,6 +46,7 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 | Rafi_Pro_Docs2 | Tagging | Tag To Text · Align Spot Elevations · Align to Detail Line · Distribute Spot Elev. · Quick Align split buttons: Vertical · Horizontal · to Tag (each lists tags, ends, bends) · Quick Distribute split buttons: Vertical · Horizontal (each lists tags, ends, bends) |
 | Rafi_Pro_Docs | Sheet Create | Scope Box · Sheet Placer · Section Placer · Sections To Sheet · Combine Sheets ▸ slide-out: Rearrange (V030, V029, V028) · Arrange Views |
 | Rafi_Pro_Docs | Sheet Edit | Text Replace |
+| Rafi_Pro_Docs | Waterproofing | Wet Area Waterproofing |
 | Rafi_Pro_Docs2 | DWG Tools | DWG To DL(P) · Export DWG · DWG Manager · DWG Statistics |
 | Rafi_Pro_Docs2 | Family Tools | Batch Link DWG · DWG To Lines |
 | Rafi_Pro_Docs2 | Manage | Overlaps (V006, V005) · Overlap Report · ParaManager · Shared Params · Schedule I/O · Link Check ▸ slide-out: Del. Line Styles · Bulk Rename · Tracker ID |
@@ -151,6 +152,9 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 - **Sheet Views Combine** (Combine Sheets): list the views of two sheets in one grid, grouped by sheet and view type,
   and move the ticked ones onto one sheet (either sheet, another sheet or a new one) with the packing layout.
   Legends are copied to the same spot.
+- **Wet Area Waterproofing**: find wet rooms (toilets, baths, kitchens…) in the model and its links, repair their
+  outlines and add a waterproofing roof on top of the slab under each one; room grid with level buttons, column
+  filters and multi-column sort; Excel report of every run. (Plans, detail sections, sheets and the print set follow.)
 
 ### DWG and families
 - **DWG To DL(P), DWG To Lines**: convert DWGs to detail lines and hatches.

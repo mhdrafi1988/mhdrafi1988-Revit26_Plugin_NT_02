@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    Unit tests for Wet Area Waterproofing V001's Revit-free code (keyword matching, outline repair,
+    grid query, run planner, Excel report, settings). The tool's Core files are linked, not copied.
+    Run:  dotnet test Tests/WetAreaWaterproofing.Tests
+  -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <ToolDir>..\..\Menu\Sheet\WetAreaWaterproofing_V001\</ToolDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="$(ToolDir)Core\**\*.cs" LinkBase="Tool" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Clipper2" Version="1.4.0" />
+    <PackageReference Include="ClosedXML" Version="0.105.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+  </ItemGroup>
+</Project>
