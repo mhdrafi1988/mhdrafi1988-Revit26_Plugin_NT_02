@@ -56,6 +56,7 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.UI.ViewModels
             _writeComments = _settings.WriteComments;
             _autoSaveReport = _settings.AutoSaveReport;
             _reportFolder = _settings.ReportFolder;
+            InitViews();
             _loading = false;
 
             ApplySnapshot(session.Initial, firstLoad: true);
@@ -202,6 +203,7 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.UI.ViewModels
             LinkItems.Clear();
             foreach (string link in snapshot.Links)
                 LinkItems.Add(new FilterItemViewModel(link, allLinks || chosen.Contains(link)));
+            ApplyViewLists(snapshot);
             _loading = false;
 
             var keys = new HashSet<string>(_all.Select(c => c.Row.RoomKey));
@@ -256,6 +258,7 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.UI.ViewModels
             _settings.IncludedLinks = LinkItems.All(l => l.IsChecked)
                 ? new List<string>() : LinkItems.Where(l => l.IsChecked).Select(l => l.Text).ToList();
             if (IncludeLinks && LinkItems.Count > 0 && LinkItems.All(l => !l.IsChecked)) _settings.IncludeLinks = false;
+            if (!PushViewSettings()) return false;
             _settings.AutoSaveReport = AutoSaveReport;
             _settings.ReportFolder = ReportFolder;
             _settings.Normalize();

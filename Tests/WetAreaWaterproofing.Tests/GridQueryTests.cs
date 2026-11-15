@@ -151,6 +151,18 @@ namespace WetAreaWaterproofing.Tests
         }
 
         [Fact]
+        public void CountColumnsSortAsNumbersAndFilter()
+        {
+            var rows = new List<RoomRow> { Row("1", "A", "L1", 0), Row("2", "B", "L1", 0), Row("3", "C", "L1", 0) };
+            rows[0].DrainCount = 10; rows[1].DrainCount = 2; rows[2].DrainCount = 0;
+            var st = new GridState();
+            st.Sort.Add(new SortKey("Drains", true));
+            Assert.Equal(new[] { "1", "2", "3" }, GridQuery.Apply(rows, st).Select(r => r.Number));
+            st.TickFilters["Drains"] = new HashSet<string> { "0" };
+            Assert.Equal(new[] { "3" }, GridQuery.Apply(rows, st).Select(r => r.Number));
+        }
+
+        [Fact]
         public void NullRowsGiveEmptyResult()
             => Assert.Empty(GridQuery.Apply(null, new GridState()));
     }

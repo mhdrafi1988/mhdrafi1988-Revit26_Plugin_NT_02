@@ -1,11 +1,11 @@
 <!--
 =======================================================
-File: WetAreaWaterproofingWindow.xaml  (Wet Area Waterproofing V001, Part A)
+File: WetAreaWaterproofingWindow.xaml  (Wet Area Waterproofing V001, Parts A and B)
 ToolWindowShell layout:
   BODY    left:  1 · Rooms — sources, keywords, level buttons, search, group, grid, tick helpers
-          right: 2 · Waterproofing roof, Boundary repair, Excel report
+          right: 2 · Waterproofing roof, Boundary repair, 3 · Plans, 4 · Section targets, Excel report
           below: activity log
-  FOOTER  attention bar · Remove a run… · Run for N rooms · Close
+  FOOTER  attention bar · run steps · Remove a run… · Run for N rooms · Close
 Overlay cards: result of a run, "Remove a run". Column filters open in a pop-up.
 =======================================================
 -->
@@ -17,8 +17,8 @@ Overlay cards: result of a run, "Remove a run". Column filters open in a pop-up.
         xmlns:shell="clr-namespace:Revit26_Plugin_Revised.Shared.Controls"
         x:Name="Root"
         Title="Wet Area Waterproofing"
-        Height="860" Width="1320"
-        MinHeight="640" MinWidth="1080"
+        Height="880" Width="1440"
+        MinHeight="640" MinWidth="1180"
         WindowStartupLocation="CenterOwner">
 
     <Window.Resources>
@@ -119,7 +119,7 @@ Overlay cards: result of a run, "Remove a run". Column filters open in a pop-up.
 
     <Grid>
         <shell:ToolWindowShell Title="Wet Area Waterproofing"
-                               Subtitle="Find wet rooms, repair their outlines and add a waterproofing roof on top of each slab"
+                               Subtitle="Find wet rooms, add a waterproofing roof on each slab, and create a plan with detail references per room"
                                Version="{Binding Source={x:Static svc:ToolCatalog.WetAreaWaterproofing}, Path=Version, StringFormat=v{0}}"
                                IsRunning="{Binding IsBusy}"
                                IsIndeterminate="True"
@@ -130,7 +130,7 @@ Overlay cards: result of a run, "Remove a run". Column filters open in a pop-up.
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="10"/>
-                        <ColumnDefinition Width="350"/>
+                        <ColumnDefinition Width="450"/>
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*"/>
@@ -217,7 +217,7 @@ Overlay cards: result of a run, "Remove a run". Column filters open in a pop-up.
                             </DockPanel>
 
                             <TextBlock DockPanel.Dock="Bottom" Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="0,6,0,0"
-                                       Text="Click a header to sort, Shift+click to add a second sort. ⏷ opens the column's filter. Hover a status to see why."/>
+                                       Text="Click a header to sort, Shift+click to add a second sort. ⏷ opens the column's filter. Hover a status to see why. Doors, Drains, Fixtures and Sections are what the current targets find for the room."/>
 
                             <DataGrid x:Name="RoomsGrid"
                                       ItemsSource="{Binding RowsView}"
@@ -273,6 +273,16 @@ Overlay cards: result of a run, "Remove a run". Column filters open in a pop-up.
                                     <DataGridTextColumn Header="Matched" SortMemberPath="Matched" Binding="{Binding Matched}" Width="84" IsReadOnly="True"
                                                         HeaderTemplate="{StaticResource FilterHeader}"/>
                                     <DataGridTextColumn Header="Slab top" SortMemberPath="Slab" Binding="{Binding SlabText}" Width="112" IsReadOnly="True"
+                                                        HeaderTemplate="{StaticResource FilterHeader}"/>
+                                    <DataGridTextColumn Header="Doors" SortMemberPath="Doors" Binding="{Binding Doors}" Width="62" IsReadOnly="True"
+                                                        HeaderTemplate="{StaticResource FilterHeader}"/>
+                                    <DataGridTextColumn Header="Drains" SortMemberPath="Drains" Binding="{Binding Drains}" Width="64" IsReadOnly="True"
+                                                        HeaderTemplate="{StaticResource FilterHeader}"/>
+                                    <DataGridTextColumn Header="Fixtures" SortMemberPath="Fixtures" Binding="{Binding Fixtures}" Width="72" IsReadOnly="True"
+                                                        HeaderTemplate="{StaticResource FilterHeader}"/>
+                                    <DataGridTextColumn Header="Sections" SortMemberPath="Sections" Binding="{Binding Sections}" Width="74" IsReadOnly="True"
+                                                        HeaderTemplate="{StaticResource FilterHeader}"/>
+                                    <DataGridTextColumn Header="Plan" SortMemberPath="Plan" Binding="{Binding Plan}" Width="56" IsReadOnly="True"
                                                         HeaderTemplate="{StaticResource FilterHeader}"/>
                                     <DataGridTemplateColumn Header="Status" SortMemberPath="Status" Width="150" CanUserSort="True"
                                                             HeaderTemplate="{StaticResource FilterHeader}">
@@ -342,6 +352,129 @@ Overlay cards: result of a run, "Remove a run". Column filters open in a pop-up.
                                               ToolTip="When no repair closes the outline, use a hull around the boundary. Off by default: it can cover the wrong area."/>
                                     <TextBlock Style="{StaticResource HintText}" TextWrapping="Wrap"
                                                Text="Tried in order: other boundary location → clean → merge → snap → bridge → remove overlaps → room 3D shape → skip hole → approximate. An outline outside the area check still gets a roof, with a warning. Curved walls are drawn as short straight edges."/>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Style="{StaticResource SectionCard}" Padding="12,10" Margin="0,0,0,10">
+                                <StackPanel>
+                                    <TextBlock Text="3 · PLANS" Style="{StaticResource SectionTitle}" Margin="0,0,0,8"/>
+                                    <DockPanel Style="{StaticResource SettingRow}">
+                                        <TextBlock Text="Plan type" Style="{StaticResource RowLabel}"/>
+                                        <ComboBox ItemsSource="{Binding PlanTypes}" SelectedItem="{Binding SelectedPlanType}" Style="{StaticResource StandardComboBox}"/>
+                                    </DockPanel>
+                                    <DockPanel Style="{StaticResource SettingRow}">
+                                        <TextBlock Text="View template" Style="{StaticResource RowLabel}"/>
+                                        <ComboBox ItemsSource="{Binding PlanTemplates}" SelectedItem="{Binding SelectedPlanTemplate}" Style="{StaticResource StandardComboBox}"/>
+                                    </DockPanel>
+                                    <DockPanel Style="{StaticResource SettingRow}">
+                                        <TextBlock Text="Scale 1:" Style="{StaticResource RowLabel}"/>
+                                        <TextBlock DockPanel.Dock="Right" Text="mm" Style="{StaticResource UnitLabel}" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                                        <TextBox DockPanel.Dock="Right" Text="{Binding CropMarginText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MmBox}"/>
+                                        <TextBlock DockPanel.Dock="Right" Text="Crop margin" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="14,0,6,0"/>
+                                        <TextBox Text="{Binding PlanScaleText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MmBox}" HorizontalAlignment="Left"
+                                                 ToolTip="Used unless the view template sets the scale"/>
+                                    </DockPanel>
+                                    <DockPanel Style="{StaticResource SettingRow}">
+                                        <TextBlock Text="Plan name" Style="{StaticResource RowLabel}"/>
+                                        <TextBox Text="{Binding PlanNamePattern, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BoxedTextInput}"
+                                                 ToolTip="{}{Level}, {Number} and {Name} are filled in. A name already in use gets (2), (3)…"/>
+                                    </DockPanel>
+                                    <TextBlock Style="{StaticResource HintText}" TextWrapping="Wrap"
+                                               Text="One plan per room, cropped to the room plus the margin. A room that already has a plan from an earlier run keeps it (your annotations stay); its crop is refreshed."/>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Style="{StaticResource SectionCard}" Padding="12,10" Margin="0,0,0,10">
+                                <StackPanel>
+                                    <TextBlock Text="4 · SECTION TARGETS" Style="{StaticResource SectionTitle}" Margin="0,0,0,4"/>
+                                    <TextBlock Text="{Binding SectionsSummary}" Style="{StaticResource HintText}" Margin="0,0,0,8"/>
+
+                                    <ItemsControl ItemsSource="{Binding Targets}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border BorderBrush="{StaticResource BrushSeparatorThin}" BorderThickness="0,0,0,1" Padding="0,4">
+                                                    <StackPanel>
+                                                        <DockPanel>
+                                                            <Button DockPanel.Dock="Right" Content="▼" Width="22" Padding="0" Style="{StaticResource SmallSecondaryButton}" ToolTip="Move down"
+                                                                    Command="{Binding DataContext.TargetDownCommand, ElementName=Root}" CommandParameter="{Binding}"/>
+                                                            <Button DockPanel.Dock="Right" Content="▲" Width="22" Padding="0" Margin="0,0,3,0" Style="{StaticResource SmallSecondaryButton}" ToolTip="Move up: higher rows win when a room would get more than six sections"
+                                                                    Command="{Binding DataContext.TargetUpCommand, ElementName=Root}" CommandParameter="{Binding}"/>
+                                                            <CheckBox Content="{Binding Label}" IsChecked="{Binding On}" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                                                        </DockPanel>
+                                                        <DockPanel Margin="20,4,0,0" IsEnabled="{Binding On}">
+                                                            <ComboBox DockPanel.Dock="Left" Width="150" Style="{StaticResource StandardComboBox}"
+                                                                      ItemsSource="{Binding DataContext.PerItemChoices, ElementName=Root}" SelectedItem="{Binding PerItem}"
+                                                                      IsEnabled="{Binding CanHaveMany}" ToolTip="One section at the match nearest the room centre, or one for every match"/>
+                                                            <TextBlock DockPanel.Dock="Right" Text="mm" Style="{StaticResource UnitLabel}" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                                                            <TextBox DockPanel.Dock="Right" Text="{Binding LengthText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MmBox}"
+                                                                     ToolTip="Length of the cut line. For the full-room cuts: how far the line runs past the room on each side."/>
+                                                            <TextBlock Text="{Binding LengthLabel}" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,6,0"/>
+                                                        </DockPanel>
+                                                        <DockPanel Margin="20,4,0,0" IsEnabled="{Binding On}"
+                                                                   Visibility="{Binding DataContext.DraftingViewPerTarget, ElementName=Root, Converter={StaticResource BoolToVis}}">
+                                                            <TextBlock Text="Points to" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Width="62"/>
+                                                            <ComboBox IsEditable="True" ItemsSource="{Binding DataContext.DraftingViews, ElementName=Root}"
+                                                                      Text="{Binding DraftingViewName, UpdateSourceTrigger=LostFocus}"
+                                                                      ToolTip="Pick a drafting view, or type a new name: the view is created when it does not exist"/>
+                                                        </DockPanel>
+                                                    </StackPanel>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+
+                                    <TextBlock Text="Drafting view" Style="{StaticResource FieldLabel}" Margin="0,10,0,4"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                        <RadioButton Content="One view for all targets" IsChecked="{Binding OneDraftingViewForAll}" Margin="0,0,14,0"/>
+                                        <RadioButton Content="One view per target" IsChecked="{Binding DraftingViewPerTarget}"/>
+                                    </StackPanel>
+                                    <DockPanel Style="{StaticResource SettingRow}" Visibility="{Binding OneDraftingViewForAll, Converter={StaticResource BoolToVis}}">
+                                        <TextBlock Text="Points to" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Width="62"/>
+                                        <ComboBox IsEditable="True" ItemsSource="{Binding DraftingViews}" Text="{Binding SharedDraftingViewName, UpdateSourceTrigger=LostFocus}"
+                                                  ToolTip="Pick a drafting view, or type a new name: the view is created when it does not exist"/>
+                                    </DockPanel>
+                                    <TextBlock Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="0,0,0,8"
+                                               Text="Pick an existing drafting view or type a new name; a view that does not exist is created at the run."/>
+
+                                    <Expander Header="Search targets in" IsExpanded="False" Margin="0,0,0,6">
+                                        <ItemsControl ItemsSource="{Binding Sources}" Margin="0,4,0,0">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Expander Header="{Binding Header}" IsExpanded="True" Margin="6,0,0,2">
+                                                        <ItemsControl ItemsSource="{Binding Categories}" Margin="22,2,0,2">
+                                                            <ItemsControl.ItemTemplate>
+                                                                <DataTemplate>
+                                                                    <DockPanel Margin="0,1">
+                                                                        <TextBlock DockPanel.Dock="Right" Text="{Binding Count}" Foreground="{StaticResource BrushTextSecondary}"/>
+                                                                        <CheckBox Content="{Binding Category}" IsChecked="{Binding IsOn}"/>
+                                                                    </DockPanel>
+                                                                </DataTemplate>
+                                                            </ItemsControl.ItemTemplate>
+                                                        </ItemsControl>
+                                                    </Expander>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </Expander>
+
+                                    <Expander Header="Fixture keywords" IsExpanded="False">
+                                        <StackPanel Margin="0,6,0,0">
+                                            <DockPanel Style="{StaticResource SettingRow}">
+                                                <TextBlock Text="Floor drain" Style="{StaticResource RowLabel}" Width="92"/>
+                                                <TextBox Text="{Binding DrainKeywordsText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BoxedTextInput}"/>
+                                            </DockPanel>
+                                            <DockPanel Style="{StaticResource SettingRow}">
+                                                <TextBlock Text="WC / closet" Style="{StaticResource RowLabel}" Width="92"/>
+                                                <TextBox Text="{Binding WcKeywordsText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BoxedTextInput}"/>
+                                            </DockPanel>
+                                            <DockPanel Style="{StaticResource SettingRow}">
+                                                <TextBlock Text="Shower / bath" Style="{StaticResource RowLabel}" Width="92"/>
+                                                <TextBox Text="{Binding ShowerKeywordsText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BoxedTextInput}"/>
+                                            </DockPanel>
+                                            <TextBlock Style="{StaticResource HintText}" TextWrapping="Wrap"
+                                                       Text="Matched against each fixture's family and type name. Every door counts as a door. Press Refresh after a change."/>
+                                        </StackPanel>
+                                    </Expander>
                                 </StackPanel>
                             </Border>
 
@@ -419,9 +552,16 @@ Overlay cards: result of a run, "Remove a run". Column filters open in a pop-up.
                 <DockPanel LastChildFill="True">
                     <Button DockPanel.Dock="Right" Content="Close" Style="{StaticResource SecondaryButton}" Click="CloseButton_Click"/>
                     <Button DockPanel.Dock="Right" Content="{Binding RunButtonText}" Style="{StaticResource PrimaryButton}" Margin="0,0,8,0"
-                            Command="{Binding RunCommand}" ToolTip="Create the waterproofing roofs for the ticked rooms. One Undo step."/>
+                            Command="{Binding RunCommand}" ToolTip="Run the ticked steps for the ticked rooms. One Undo step."/>
                     <Button DockPanel.Dock="Right" Content="Remove a run…" Style="{StaticResource SecondaryButton}" Margin="0,0,8,0"
-                            Command="{Binding RemoveRunCommand}" ToolTip="Delete everything an earlier run created"/>
+                            Command="{Binding RemoveRunCommand}" ToolTip="Delete the roofs, plans and section markers an earlier run created"/>
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,14,0">
+                        <TextBlock Text="Run steps:" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <CheckBox Content="Roofs" IsChecked="{Binding CreateRoofs}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <CheckBox Content="Plans" IsChecked="{Binding CreatePlans}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <CheckBox Content="Reference sections" IsChecked="{Binding CreateSections}" VerticalAlignment="Center"
+                                  ToolTip="Sections sit on the room's plan: a plan is created when the room has none"/>
+                    </StackPanel>
                     <Border Background="{StaticResource BrushBannerWarningBackground}" BorderBrush="{StaticResource BrushBannerWarningBorder}"
                             BorderThickness="1" CornerRadius="4" Padding="8,4" Margin="0,0,10,0" VerticalAlignment="Center"
                             Visibility="{Binding HasAttention, Converter={StaticResource BoolToVis}}">
@@ -527,7 +667,7 @@ Overlay cards: result of a run, "Remove a run". Column filters open in a pop-up.
                 <DockPanel>
                     <TextBlock DockPanel.Dock="Top" Text="Remove a run" FontSize="15" FontWeight="SemiBold" Margin="0,0,0,4"/>
                     <TextBlock DockPanel.Dock="Top" Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="0,0,0,8"
-                               Text="Deletes every element the picked run created (found by the run ID in Comments). Elements another user owns are left. One Undo step."/>
+                               Text="Deletes the roofs, plans and section markers the picked run created. Drafting views are kept (they may hold your details). Elements another user owns are left. One Undo step."/>
                     <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
                         <Button Content="Cancel" Style="{StaticResource SecondaryButton}" Margin="0,0,8,0" Command="{Binding CancelRemoveRunCommand}"/>
                         <Button Content="Remove" Style="{StaticResource DangerButton}" Command="{Binding ConfirmRemoveRunCommand}"/>

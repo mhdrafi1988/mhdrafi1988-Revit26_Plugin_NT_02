@@ -55,6 +55,20 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.UI.ViewModels
         public string Matched => Row.Matched ?? string.Empty;
         /// <summary>Slab text.</summary>
         public string SlabText => Row.SlabText;
+        /// <summary>Doors found for the room; empty for rooms that were not checked.</summary>
+        public string Doors => Counted(Row.DoorCount);
+        /// <summary>Floor drains found in the room.</summary>
+        public string Drains => Counted(Row.DrainCount);
+        /// <summary>WCs, showers and baths found in the room.</summary>
+        public string Fixtures => Counted(Row.FixtureCount);
+        /// <summary>Reference sections the current targets would place.</summary>
+        public string Sections => Counted(Row.PlannedSections);
+        /// <summary>"Yes" when a plan from an earlier run exists.</summary>
+        public string Plan => Row.HasPlan ? "Yes" : string.Empty;
+
+        private string Counted(int count)
+            => Row.Status == RoomStatus.NotChecked ? string.Empty : count.ToString(System.Globalization.CultureInfo.CurrentCulture);
+
         /// <summary>True when a slab was found.</summary>
         public bool HasSlab => Row.SlabTopMm.HasValue;
         /// <summary>Room state.</summary>

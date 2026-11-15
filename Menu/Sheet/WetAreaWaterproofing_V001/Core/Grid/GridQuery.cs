@@ -27,6 +27,11 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Grid
                 "Slab" => row.SlabText,
                 "Status" => row.Status.ToString(),
                 "Area" => row.AreaM2.ToString("0.00", CultureInfo.InvariantCulture),
+                "Doors" => row.DoorCount.ToString(CultureInfo.InvariantCulture),
+                "Drains" => row.DrainCount.ToString(CultureInfo.InvariantCulture),
+                "Fixtures" => row.FixtureCount.ToString(CultureInfo.InvariantCulture),
+                "Sections" => row.PlannedSections.ToString(CultureInfo.InvariantCulture),
+                "Plan" => row.HasPlan ? "Yes" : "No",
                 _ => null
             };
             return string.IsNullOrEmpty(text) ? NoValue : text;

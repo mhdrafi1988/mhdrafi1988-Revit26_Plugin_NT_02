@@ -9,6 +9,37 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [7.12.0] — 2026-11-15
+
+### Added
+- **Wet Area Waterproofing v1.1.0** — part B: plans and detail references.
+  - **Plans:** a floor plan per ticked room, cropped to the room plus a margin (500 mm), with the plan type, view
+    template, scale (1:100) and name pattern you pick. A room that already has a plan from an earlier run keeps it
+    (your annotations stay); only its crop is refreshed.
+  - **Section targets:** up to 6 reference sections per room, placed on the room's plan: full room (horizontal and
+    vertical), door / threshold, floor drain, wall corner, WC / closet, shower / bath, wall–floor. Per target: one
+    section at the match nearest the room centre, or one for every match; the cut length; the order (rows higher up win
+    when a room would get more than six). A target with no match in a room is skipped and reported.
+  - **Drafting views:** all targets point to one drafting view, or each target to its own. Pick an existing view or
+    type a new name; a view that does not exist is created.
+  - **Search targets in:** the host model and every loaded link, each with Doors, Plumbing Fixtures and Pipe
+    Accessories, tickable, with counts. Drains, WCs and showers are recognised by editable keywords.
+  - **Run steps:** Roofs, Plans and Reference sections can be run together or separately.
+  - Room grid: new columns Doors, Drains, Fixtures, Sections and Plan.
+  - Excel report: new **Sections** sheet (marker, target, element cut, plan, drafting view, cut line); the Rooms
+    sheet gains *Plan view Id*, *Plan view* and *Sections* at the end.
+  - **Remove a run…** now also deletes the run's plans and section markers.
+
+### Changed
+- **Wet Area Waterproofing** — wet-room and fixture keywords may now have several words ("powder room") or dots ("w.c.").
+
+**User notes**
+- A run now also creates plans and sections. Untick *Plans* and *Reference sections* under *Run steps* to create
+  roofs only, as in 1.0.0.
+- *Remove a run* never deletes drafting views, because they may hold details you have drawn.
+- Reference sections show the detail number of the drafting view they point to; they cannot be named one by one.
+- Grouping close rooms into one plan, sheets and the print set are part C and are not in this release.
+
 ## [7.11.0] — 2026-11-14
 
 ### Added

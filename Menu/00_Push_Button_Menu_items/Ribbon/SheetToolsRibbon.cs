@@ -85,8 +85,9 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                 Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SheetTools.WetAreaWaterproofing_16.png"),
                 LargeImage = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SheetTools.WetAreaWaterproofing_32.png"),
                 ToolTip = ToolCatalog.WetAreaWaterproofing.Tip(
-                    "Finds wet rooms (toilets, baths, kitchens…) in the model and its links, repairs their outlines and adds a " +
-                    "waterproofing roof on top of the slab under each one. Advanced room grid with level filter; Excel report; one Undo step.")
+                    "Finds wet rooms (toilets, baths, kitchens…) in the model and its links, adds a waterproofing roof on top of the " +
+                    "slab under each one, and creates a cropped plan per room with up to 6 reference sections (doors, drains, corners, " +
+                    "fixtures) pointing to drafting views. Excel report; one Undo step.")
             };
 
                         // Sheet Text Replace: finds and replaces text in the text notes on a sheet, in the views

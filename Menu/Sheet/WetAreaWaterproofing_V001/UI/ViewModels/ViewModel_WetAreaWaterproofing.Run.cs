@@ -45,13 +45,13 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.UI.ViewModels
 
         partial void OnSelectedRunChanged(RunInfo value) => ConfirmRemoveRunCommand.NotifyCanExecuteChanged();
 
-        private bool CanRun() => !IsBusy && _ticked.Count > 0;
+        private bool CanRun() => !IsBusy && _ticked.Count > 0 && (CreateRoofs || CreatePlans || CreateSections);
 
         /// <summary>Creates the roofs for the ticked rooms.</summary>
         [RelayCommand(CanExecute = nameof(CanRun))]
         private void Run()
         {
-            if (string.IsNullOrEmpty(SelectedRoofType))
+            if (CreateRoofs && string.IsNullOrEmpty(SelectedRoofType))
             {
                 AddLog(LogLevel.Error, "Pick a roof type first. The project has none? Load or create one, then press Refresh.");
                 return;
@@ -97,7 +97,12 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.UI.ViewModels
             ResultTitle = "Wet Area Waterproofing — done";
             if (outcome.Created > 0) ResultLines.Add(new ResultLine("ok", $"{outcome.Created} waterproofing roof(s) created"));
             if (outcome.Replaced > 0) ResultLines.Add(new ResultLine("ok", $"{outcome.Replaced} roof(s) from an earlier run replaced"));
-            if (outcome.Created + outcome.Replaced == 0) ResultLines.Add(new ResultLine("error", "No roof was created. The model was not changed."));
+            if (outcome.PlansCreated > 0) ResultLines.Add(new ResultLine("ok", $"{outcome.PlansCreated} plan(s) created"));
+            if (outcome.PlansReused > 0) ResultLines.Add(new ResultLine("ok", $"{outcome.PlansReused} plan(s) from an earlier run kept and updated"));
+            if (outcome.SectionsPlaced > 0) ResultLines.Add(new ResultLine("ok", $"{outcome.SectionsPlaced} reference section(s) placed"));
+            if (outcome.DraftingCreated > 0) ResultLines.Add(new ResultLine("ok", $"{outcome.DraftingCreated} drafting view(s) created"));
+            bool anything = outcome.Created + outcome.Replaced + outcome.PlansCreated + outcome.PlansReused + outcome.SectionsPlaced > 0;
+            if (!anything) ResultLines.Add(new ResultLine("error", "Nothing was created. The model was not changed."));
             if (outcome.Skipped > 0) ResultLines.Add(new ResultLine("error", $"{outcome.Skipped} room(s) skipped"));
             if (outcome.ReportPath != null) ResultLines.Add(new ResultLine("ok", "Excel report saved: " + Path.GetFileName(outcome.ReportPath)));
             if (outcome.ReportError != null) ResultLines.Add(new ResultLine("error", "The Excel report could not be saved: " + outcome.ReportError));
@@ -108,8 +113,9 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.UI.ViewModels
                 ResultLines.Add(new ResultLine(issue.Severity == "Error" ? "error" : "warn", text));
                 AddLog(issue.Severity == "Error" ? LogLevel.Error : LogLevel.Warning, text);
             }
-            AddLog(outcome.Created + outcome.Replaced > 0 ? LogLevel.Success : LogLevel.Warning,
-                $"Run {outcome.RunId}: {outcome.Created} created, {outcome.Replaced} replaced, {outcome.Skipped} skipped. One Undo step.");
+            AddLog(anything ? LogLevel.Success : LogLevel.Warning,
+                $"Run {outcome.RunId}: roofs {outcome.Created} created, {outcome.Replaced} replaced; plans {outcome.PlansCreated} created, "
+                + $"{outcome.PlansReused} kept; {outcome.SectionsPlaced} section(s); {outcome.Skipped} room(s) skipped. One Undo step.");
             ResultVisible = true;
         }
 

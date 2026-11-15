@@ -3,12 +3,13 @@
 Finds wet rooms in the host model and its links, repairs their outlines and adds a **waterproofing roof on
 top of the slab** under each one. Writes an Excel report of every run.
 
-Built in three parts. **Part A (this release):** rooms, outline repair, roofs, report, remove a run.
-Part B: plans, detail sections, drafting views. Part C: grouping, sheets, print set.
+Built in three parts. **Part A (1.0.0):** rooms, outline repair, roofs, report, remove a run.
+**Part B (1.1.0):** a plan per room, up to 6 reference sections per room, drafting views.
+Part C: grouping, sheets, print set.
 
 | Item | Value |
 |---|---|
-| Tool name | Wet Area Waterproofing, v1.0.0 (plugin 7.11.0) |
+| Tool name | Wet Area Waterproofing, v1.1.0 (plugin 7.12.0) |
 | Folder | `Menu/Sheet/WetAreaWaterproofing_V001/` |
 | Namespace | `Revit26_Plugin_Revised.WetAreaWaterproofing.V001` |
 | Command | `…V001.Commands.WetAreaWaterproofingCommand` (via `ToolGuard.RunCommand`) |
@@ -28,8 +29,9 @@ Part B: plans, detail sections, drafting views. Part C: grouping, sheets, print 
 | `Core/Geometry` | `LoopRepair` — the outline repair chain; `Polyline2D`, `Hull` |
 | `Core/Grid` | `GridQuery`, `GridState` — filters, sort, level buttons |
 | `Core/Run` | `RunPlanner` (what a run does per room), `RunTag` (Comments text), `RoomStatusRules` |
+| `Core/Sections` | `SectionTargets` (the table), `ItemClassifier` / `RoomItemMatcher` (which door, drain or fixture belongs to which room), `SectionPlanner` (which cuts, where, max 6), `ViewNames` |
 | `Core/Report` | `RunReport`, `ReportWriter` — the Excel workbook |
-| `Infrastructure` | Revit: `RoomCollector`, `BoundaryReader`, `SlabIndex`, `RoofCreator`, `RunRemover`, the session and its ExternalEvent handler |
+| `Infrastructure` | Revit: `RoomCollector`, `BoundaryReader`, `SlabIndex`, `RoofCreator`, `RunRemover`, `TargetCollector`, `ViewCreator`, `ElementTag`, the session and its ExternalEvent handler |
 | `UI` | `WetAreaWaterproofingWindow`, `ViewModel_WetAreaWaterproofing` (+ `.Grid`, `.Run`) |
 
 `Core` has no Revit references and is covered by the unit tests. Lengths in `Core` are millimetres.
@@ -40,13 +42,21 @@ Every roof gets `WP|<RunId>|<RoomKey>|<Number>|<Name>` in **Comments** (`RunId` 
 `RoomKey` = `Host:<room UniqueId>` or `<link instance UniqueId>:<room UniqueId>`). A later run finds the roof by
 its room key and replaces it; *Remove a run* finds elements by run ID. The format is append-only.
 
+Views have no Comments, so plans, section markers and tool-made drafting views carry the same data in
+Extensible Storage: schema `WetAreaWaterproofing_Tag_V1` (`ElementTag`, fields `RunId`, `RoomKey`, `Kind`).
+Never change that schema's GUID or fields; a new layout gets a new schema and a migration.
+Reference sections are created with `ViewSection.CreateReferenceSection`, which returns nothing: the marker
+is found by comparing the `OST_Viewers` ids before and after.
+
 ## Excel report
 
-Sheets: Summary, Rooms, Boundary repair, Issues. Column names and order are fixed (`ReportWriter.RoomColumns`
+Sheets: Summary, Rooms, Boundary repair, Sections, Issues. Column names and order are fixed (`ReportWriter.RoomColumns`
 and friends); new columns are added at the end only. `Group` and `Scale` are filled from part C on.
 
 ## Known limits
 
 - Curved boundaries are faceted (the repair chain works on straight pieces).
 - A slab is looked for within 500 mm above or below the room's level.
+- Reference sections cannot be named one by one; they show the drafting view's detail number.
+- *Remove a run* leaves drafting views in place.
 - Needs testing in Revit on: a rotated link, a workshared model, rooms with columns inside.
