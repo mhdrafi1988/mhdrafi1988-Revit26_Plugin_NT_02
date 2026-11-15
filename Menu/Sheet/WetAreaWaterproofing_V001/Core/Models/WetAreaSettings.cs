@@ -1,4 +1,5 @@
 using Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Grid;
+using Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Sections;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -84,8 +85,71 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Models
         /// <summary>What a run does with rooms that already have a roof from an earlier run.</summary>
         public ReRunMode ReRun { get; set; } = ReRunMode.UpdateInPlace;
 
+        // ── Part B: plans and reference sections (added in tool 1.1.0; missing in older files = these defaults) ──
+
+        /// <summary>Default name of the drafting view shared by all targets.</summary>
+        public const string DefaultSharedDraftingViewName = "WP Detail - Typical Wet Area";
+
+        /// <summary>Default plan name pattern.</summary>
+        public const string DefaultPlanNamePattern = "WP - {Level} - {Number} {Name}";
+
+        /// <summary>Run step: create the waterproofing roofs.</summary>
+        public bool CreateRoofs { get; set; } = true;
+
+        /// <summary>Run step: create a cropped plan per room.</summary>
+        public bool CreatePlans { get; set; } = true;
+
+        /// <summary>Run step: place the reference sections on the room's plan.</summary>
+        public bool CreateSections { get; set; } = true;
+
+        /// <summary>Floor plan type for the room plans, by name; empty = first in the project.</summary>
+        public string PlanViewTypeName { get; set; } = string.Empty;
+
+        /// <summary>View template for the room plans, by name; empty = none.</summary>
+        public string PlanTemplateName { get; set; } = string.Empty;
+
+        /// <summary>The plan's crop is the room's outline box plus this margin, mm.</summary>
+        public double CropMarginMm { get; set; } = 500;
+
+        /// <summary>Plan scale, 1:n.</summary>
+        public int PlanScale { get; set; } = 100;
+
+        /// <summary>Plan name; {Level}, {Number} and {Name} are filled in.</summary>
+        public string PlanNamePattern { get; set; } = DefaultPlanNamePattern;
+
+        /// <summary>The "Section targets" table, in order; rows higher up win when a room would get more than six.</summary>
+        public List<SectionTargetSetting> Targets { get; set; } = SectionTargets.Defaults();
+
+        /// <summary>All targets point to one drafting view; off = each target has its own.</summary>
+        public bool OneDraftingViewForAll { get; set; } = true;
+
+        /// <summary>Name of the drafting view shared by all targets.</summary>
+        public string SharedDraftingViewName { get; set; } = DefaultSharedDraftingViewName;
+
+        /// <summary>Scale of drafting views the tool creates, 1:n.</summary>
+        public int DraftingScale { get; set; } = 100;
+
+        /// <summary>Fixture names that mark a floor drain.</summary>
+        public List<string> DrainKeywords { get; set; } = new() { "drain", "fd", "floor drain" };
+
+        /// <summary>Fixture names that mark a WC.</summary>
+        public List<string> WcKeywords { get; set; } = new() { "wc", "closet", "toilet" };
+
+        /// <summary>Fixture names that mark a shower or bath.</summary>
+        public List<string> ShowerKeywords { get; set; } = new() { "shower", "bath", "tray" };
+
+        /// <summary>Unticked rows of the "Search targets in" list, as "Model|Category".</summary>
+        public List<string> SourcesOff { get; set; } = new();
+
         /// <summary>Room grid filters, sort, grouping and hidden columns.</summary>
         public GridState Grid { get; set; } = new();
+
+        private static List<string> CleanKeywords(List<string> keywords, string[] fallback)
+        {
+            var cleaned = (keywords ?? new List<string>())
+                .Select(k => (k ?? string.Empty).Trim().ToLowerInvariant()).Where(k => k.Length > 0).Distinct().ToList();
+            return cleaned.Count > 0 ? cleaned : fallback.ToList();
+        }
 
         /// <summary>Fills missing values and clamps the numbers to usable ranges. Returns this.</summary>
         public WetAreaSettings Normalize()
@@ -104,6 +168,18 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Models
             if (!(AreaTolerancePct > 0) || AreaTolerancePct > 50) AreaTolerancePct = DefaultAreaTolerancePct;
             if (double.IsNaN(OffsetMm) || double.IsInfinity(OffsetMm)) OffsetMm = 0;
 
+            Targets = SectionTargets.Normalize(Targets);
+            if (!(CropMarginMm >= 0) || CropMarginMm > 10000) CropMarginMm = 500;
+            if (PlanScale < 1 || PlanScale > 5000) PlanScale = 100;
+            if (DraftingScale < 1 || DraftingScale > 5000) DraftingScale = 100;
+            if (string.IsNullOrWhiteSpace(PlanNamePattern)) PlanNamePattern = DefaultPlanNamePattern;
+            if (string.IsNullOrWhiteSpace(SharedDraftingViewName)) SharedDraftingViewName = DefaultSharedDraftingViewName;
+            PlanViewTypeName ??= string.Empty;
+            PlanTemplateName ??= string.Empty;
+            DrainKeywords = CleanKeywords(DrainKeywords, new[] { "drain", "fd", "floor drain" });
+            WcKeywords = CleanKeywords(WcKeywords, new[] { "wc", "closet", "toilet" });
+            ShowerKeywords = CleanKeywords(ShowerKeywords, new[] { "shower", "bath", "tray" });
+            SourcesOff ??= new List<string>();
             Grid = (Grid ?? new GridState()).Normalize();
             RoofTypeName ??= string.Empty;
             WorksetName ??= string.Empty;

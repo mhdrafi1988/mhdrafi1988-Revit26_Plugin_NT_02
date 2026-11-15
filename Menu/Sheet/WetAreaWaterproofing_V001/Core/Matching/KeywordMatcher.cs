@@ -4,34 +4,46 @@ using System.Text;
 
 namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Matching
 {
-    /// <summary>Decides whether a room name marks a wet area.</summary>
+    /// <summary>Decides whether a name (a room, a fixture family) matches a keyword.</summary>
     public static class KeywordMatcher
     {
         /// <summary>
-        /// Returns the first keyword that a word of <paramref name="roomName"/> starts with, or null.
-        /// Case and punctuation are ignored ("W.C." matches "wc"); a keyword inside a word does not
-        /// count ("Dishwasher" does not match "wash").
+        /// Returns the first keyword that matches <paramref name="name"/>, or null. Case and
+        /// punctuation are ignored ("W.C." and "wc" are the same). A one-word keyword must start a
+        /// word of the name ("wash" matches "Washroom", not "Dishwasher"); a keyword of several
+        /// words must match words that follow each other ("powder room").
         /// </summary>
-        public static string Match(string roomName, IEnumerable<string> keywords)
+        public static string Match(string name, IEnumerable<string> keywords)
         {
-            if (string.IsNullOrWhiteSpace(roomName) || keywords == null) return null;
-            var words = Words(roomName);
+            if (string.IsNullOrWhiteSpace(name) || keywords == null) return null;
+            List<string> words = Words(name);
             foreach (string raw in keywords)
             {
                 string keyword = raw?.Trim().ToLowerInvariant();
                 if (string.IsNullOrEmpty(keyword)) continue;
-                foreach (string word in words)
-                    if (word.StartsWith(keyword, StringComparison.Ordinal)) return keyword;
+                List<string> parts = Words(keyword);
+                if (parts.Count == 0) continue;
+
+                for (int start = 0; start + parts.Count <= words.Count; start++)
+                {
+                    bool hit = true;
+                    for (int i = 0; i < parts.Count && hit; i++)
+                    {
+                        bool last = i == parts.Count - 1;
+                        hit = last ? words[start + i].StartsWith(parts[i], StringComparison.Ordinal) : words[start + i] == parts[i];
+                    }
+                    if (hit) return keyword;
+                }
             }
             return null;
         }
 
-        /// <summary>Lower-case words of the name; dots are dropped so "W.C." reads "wc".</summary>
-        private static List<string> Words(string name)
+        /// <summary>Lower-case words of the text; dots are dropped so "W.C." reads "wc".</summary>
+        private static List<string> Words(string text)
         {
             var words = new List<string>();
             var current = new StringBuilder();
-            foreach (char c in name.ToLowerInvariant())
+            foreach (char c in text.ToLowerInvariant())
             {
                 if (char.IsLetterOrDigit(c)) current.Append(c);
                 else if (c == '.') continue;

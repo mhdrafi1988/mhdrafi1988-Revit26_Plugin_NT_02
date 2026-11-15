@@ -76,6 +76,25 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Geometry
             return inside;
         }
 
+        /// <summary>Nearest point of the outline to <paramref name="p"/>, its distance and the edge it lies on.</summary>
+        public static (Pt Point, double Distance, int EdgeIndex) Nearest(IReadOnlyList<Pt> pts, Pt p)
+        {
+            if (pts == null || pts.Count == 0) return (p, double.MaxValue, 0);
+            Pt best = pts[0];
+            double bestDistance = double.MaxValue;
+            int bestEdge = 0;
+            for (int i = 0; i < pts.Count; i++)
+            {
+                Pt a = pts[i], b = pts[(i + 1) % pts.Count];
+                double dx = b.X - a.X, dy = b.Y - a.Y, len2 = dx * dx + dy * dy;
+                double t = len2 < 1e-12 ? 0 : Math.Max(0, Math.Min(1, ((p.X - a.X) * dx + (p.Y - a.Y) * dy) / len2));
+                var q = new Pt(a.X + t * dx, a.Y + t * dy);
+                double distance = q.DistanceTo(p);
+                if (distance < bestDistance - 1e-9) { bestDistance = distance; best = q; bestEdge = i; }
+            }
+            return (best, bestDistance, bestEdge);
+        }
+
         private static double Cross(Pt o, Pt a, Pt b) => (a.X - o.X) * (b.Y - o.Y) - (a.Y - o.Y) * (b.X - o.X);
 
         private static bool OnSegment(Pt a, Pt b, Pt p)
