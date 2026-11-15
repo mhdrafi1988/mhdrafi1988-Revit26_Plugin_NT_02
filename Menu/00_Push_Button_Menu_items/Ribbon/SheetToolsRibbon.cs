@@ -78,7 +78,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                     "layout, then move them in one Undo step. Legends are copied to the same spot.")
             };
 
-            // Wet Area Waterproofing: finds wet rooms (host + links), repairs their outlines and adds a
+            // Wet Area Waterproofing (own "Waterproofing" panel, below): finds wet rooms (host + links), repairs their outlines and adds a
             // waterproofing roof on top of each slab; writes an Excel report.
             var wetAreaWaterproofingV001 = new PushButtonData("Btn_WetAreaWaterproofing_V001", "Wet Area Waterproofing", assemblyPath, "Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Commands.WetAreaWaterproofingCommand")
             {
@@ -131,7 +131,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
 
             // Slide-out (plugin 6.13.0): Rearrange and Arrange Views come after creating and placing views.
             var sheetCreateItems = RibbonLayoutHelper.AddStackedButtonsWithSlideOut(createPanel,
-                new List<RibbonItemData> { scopeBoxPulldownData, sheetPlacerPulldownData, autoSectionPlacerPulldownData, sectionsToSheetV001, sheetViewsCombineV001, wetAreaWaterproofingV001 },
+                new List<RibbonItemData> { scopeBoxPulldownData, sheetPlacerPulldownData, autoSectionPlacerPulldownData, sectionsToSheetV001, sheetViewsCombineV001 },
                 new List<RibbonItemData> { rearrangePulldownData, viewArrangeV001 });
             RibbonLayoutHelper.WirePulldownButton(sheetCreateItems, "Pulldown_PlanFromScopeBox", scopeBoxV006, scopeBoxV005);
             RibbonLayoutHelper.WirePulldownButton(sheetCreateItems, "Pulldown_SmartViewToSheetPlacer", sheetPlacerV224, sheetPlacerV223);
@@ -142,6 +142,11 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             // A lone item is added as a full-size button with its 32 px icon.
             RibbonPanel editPanel = app.CreateRibbonPanel(tabName, "Sheet Edit");
             RibbonLayoutHelper.AddStackedButtons(editPanel, new List<RibbonItemData> { sheetTextReplaceV001 });
+
+            // Waterproofing panel (plugin 7.11.0): Wet Area Waterproofing on its own, as a full-size button.
+            // Its later parts (plans, detail sections, sheets, print set) open from the same window.
+            RibbonPanel waterproofingPanel = app.CreateRibbonPanel(tabName, "Waterproofing");
+            RibbonLayoutHelper.AddStackedButtons(waterproofingPanel, new List<RibbonItemData> { wetAreaWaterproofingV001 });
         }
     }
 }

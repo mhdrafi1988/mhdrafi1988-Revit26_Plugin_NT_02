@@ -12,7 +12,7 @@ Each release lists every tool whose version changed, under the plugin version.
 ## [7.11.0] — 2026-11-14
 
 ### Added
-- **Wet Area Waterproofing v1.0.0** (new tool, Sheet Create panel) — part A of three.
+- **Wet Area Waterproofing v1.0.0** (new tool, on its own new **Waterproofing** ribbon panel after Sheet Edit) — part A of three.
   - Lists the rooms of the host model and of the loaded links and marks the wet ones by room-name keywords
     (toilet, wc, bath, shower, kitchen, pantry, laundry, wash, balcony; editable). A keyword must start a word, so
     "Washroom" matches *wash* and "Dishwasher" does not.

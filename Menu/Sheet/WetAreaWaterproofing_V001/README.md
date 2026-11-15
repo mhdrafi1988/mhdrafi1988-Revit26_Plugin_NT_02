@@ -12,7 +12,7 @@ Part B: plans, detail sections, drafting views. Part C: grouping, sheets, print 
 | Folder | `Menu/Sheet/WetAreaWaterproofing_V001/` |
 | Namespace | `Revit26_Plugin_Revised.WetAreaWaterproofing.V001` |
 | Command | `…V001.Commands.WetAreaWaterproofingCommand` (via `ToolGuard.RunCommand`) |
-| Ribbon | **Sheet Create › Wet Area Waterproofing** (`Btn_WetAreaWaterproofing_V001`) |
+| Ribbon | **Waterproofing › Wet Area Waterproofing** (`Btn_WetAreaWaterproofing_V001`, large button) |
 | Catalog | `ToolCatalog.WetAreaWaterproofing` |
 | Settings | `%AppData%\Revit26_Plugin_Revised\WetAreaWaterproofing\settings.json` (with a `Version` field) |
 | Reports | `%AppData%\Revit26_Plugin_Revised\WetAreaWaterproofing\Reports\WP_Report_<Model>_<yyyyMMdd_HHmm>.xlsx` |
