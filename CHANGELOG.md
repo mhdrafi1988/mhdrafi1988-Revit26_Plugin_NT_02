@@ -9,6 +9,15 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [7.13.1] — 2026-11-16
+
+### Changed
+- **Base Level to Parameter v1.4.1** — the **Activity Log** is collapsible and starts collapsed; its header shows the
+  number of lines. Click the header to open it. Open / closed is remembered. An error opens it automatically.
+
+**User notes**
+- The log no longer shows on first open. Click *▸ Activity Log* to see it.
+
 ## [7.13.0] — 2026-11-16
 
 ### Added

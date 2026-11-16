@@ -33,5 +33,8 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.UI.ViewModels
 
         /// <summary>The "Pre-checks" card is open (settings version 3; missing in an older file → open).</summary>
         public bool ChecksExpanded { get; set; } = true;
+
+        /// <summary>The activity log is open (1.4.1; missing in an older file → collapsed).</summary>
+        public bool LogExpanded { get; set; }
     }
 }

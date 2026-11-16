@@ -46,6 +46,14 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.UI.ViewModels
             RowsView.SortDescriptions.Add(new SortDescription(nameof(ElementRowViewModel.Category), ListSortDirection.Ascending));
             RowsView.Filter = FilterRow;
 
+            // 1.4.1: the log starts collapsed; an error opens it so it is never missed.
+            LogEntries.CollectionChanged += (_, e) =>
+            {
+                if (e.NewItems == null || LogExpanded) return;
+                foreach (object item in e.NewItems)
+                    if (item is LogEntry entry && entry.Level == LogLevel.Error) { LogExpanded = true; break; }
+            };
+
             _recheckTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(700) };
             _recheckTimer.Tick += (_, _) =>
             {
@@ -104,6 +112,9 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.UI.ViewModels
 
         /// <summary>The "Pre-checks" card is open (1.4.0; remembered).</summary>
         [ObservableProperty] private bool _checksExpanded = true;
+
+        /// <summary>The activity log is open (1.4.1; collapsed by default, remembered).</summary>
+        [ObservableProperty] private bool _logExpanded;
 
         /// <summary>
         /// "Clear old values, write only new values" (1.3.0): every different value is rewritten (row choices are
@@ -259,6 +270,7 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.UI.ViewModels
             RestoreFormat();
             TargetExpanded = _settings.TargetExpanded;
             ChecksExpanded = _settings.ChecksExpanded;
+            LogExpanded = _settings.LogExpanded;
             LoadParameters(doc);
             ListFromView(doc, activeView);
             if (!string.IsNullOrWhiteSpace(_settings.LastTargetName) &&
@@ -278,6 +290,7 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.UI.ViewModels
             _settings.CustomPattern = CustomPattern ?? ValueFormatter.DefaultCustomPattern;
             _settings.TargetExpanded = TargetExpanded;
             _settings.ChecksExpanded = ChecksExpanded;
+            _settings.LogExpanded = LogExpanded;
             _settings.Version = 3;
             SettingsService<BaseLevelToParameterSettings>.Save(ToolCatalog.BaseLevelToParameter.Name, _settings);
         }

@@ -1,6 +1,8 @@
 <title>Base Level to Parameter</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<!-- UI preview (CLAUDE.md "UI previews"): Base Level to Parameter V001, tool 1.4.0, plugin 7.13.0.
+<!-- UI preview (CLAUDE.md "UI previews"): Base Level to Parameter V001, tool 1.4.1, plugin 7.13.1.
+     New in 1.4.1: the Activity Log is collapsible, collapsed by default ("▸ Activity Log · N lines"), remembered,
+     and opens by itself when an error is logged. Section 2 shows it collapsed, 2d shows it open.
      New in 1.4.0: New Parameter dialog → Categories: "Categories of the ticked elements" (default, as before) or
      "Only the selected categories" with a search box, "Ticked only" filter and a category data grid (tick, Category,
      Ticked elements) plus Ticked elements / Select shown / Clear shown. Elements of ticked categories left out are
@@ -177,8 +179,8 @@ tr.dim td{color:var(--text3)}
 @media (max-width:760px){.lists{grid-template-columns:1fr}}
 </style>
 
-<h1>Base Level to Parameter <span class="new">1.4.0 · CATEGORY PICKER · EXPANDABLE CARDS</span></h1>
-<p class="note">All element ids, names, paths and values on this page are <b>sample data</b>. Green tags mark what is new in 1.4.0: the <b>Target parameter</b> and <b>Pre-checks</b> cards can be collapsed (section 2 and 2c), and a new parameter can be bound to <b>only the selected categories</b> chosen in a searchable grid (section 3). The decisions behind the layout are listed at the end.</p>
+<h1>Base Level to Parameter <span class="new">1.4.1 · ACTIVITY LOG COLLAPSED</span></h1>
+<p class="note">All element ids, names, paths and values on this page are <b>sample data</b>. New in 1.4.1: the <b>Activity Log</b> starts collapsed (section 2) and opens on click (2d). Green tags also mark what is new in 1.4.0: the <b>Target parameter</b> and <b>Pre-checks</b> cards can be collapsed (section 2 and 2c), and a new parameter can be bound to <b>only the selected categories</b> chosen in a searchable grid (section 3). The decisions behind the layout are listed at the end.</p>
 
 <!-- ============ RIBBON ============ -->
 <h2>1 · Ribbon button and tooltip (Documents 2 tab · Coordination panel)</h2>
@@ -197,10 +199,10 @@ tr.dim td{color:var(--text3)}
 <h2>2 · Main window, after “Load Base Level”</h2>
 <div class="scroll">
 <div class="win" style="width:1240px">
-  <div class="titlebar"><span>Base Level to Parameter — v1.4.0</span><span>—□✕</span></div>
+  <div class="titlebar"><span>Base Level to Parameter — v1.4.1</span><span>—□✕</span></div>
   <div class="header">
     <div><div class="t">Base Level to Parameter</div><div class="s">Sample Project · Active view: Level 02 – Floor Plan</div></div>
-    <div class="v">v1.4.0</div>
+    <div class="v">v1.4.1</div>
   </div>
 
   <!-- HEADER CONTENT: metrics -->
@@ -337,16 +339,10 @@ tr.dim td{color:var(--text3)}
     <div class="hint" style="margin-top:6px"> “If value exists” shows only on rows whose current value differs from the new one: <b>Default</b> follows the Existing values option, <b>Skip</b> / <b>Rewrite</b> (bold) are the row’s own choice. The Skip / Rewrite / Reset buttons set it for the highlighted rows, or for every shown row when none is highlighted (e.g. after clicking the Has Value tile). New Value is green when it differs from Current Value and grey when it is the same; same-value rows are "Up to date" and are never rewritten. Hover Base Level to see which parameters it was read from. Select in Revit / Zoom to act on the highlighted grid rows. Columns sort on click (arrow shows direction). Rows are virtualized. Offsets are rounded to whole millimetres, half away from zero (2849.6 → +2850).</div>
   </div>
 
-  <!-- Log -->
+  <!-- Log (collapsed, 1.4.1) -->
   <div class="log">
-    <div class="loghead"><span style="font-size:11px;margin-right:6px">▾</span><b>Activity log</b><span class="dim">6 lines · 1 selected</span>
+    <div class="loghead"><span style="font-size:11px;margin-right:6px">▸</span><b>Activity Log</b><span class="dim">6 lines</span><span class="new">NEW · COLLAPSED</span>
       <span class="sp"></span><span class="ghost">Copy All</span><span class="ghost">Copy Selected</span></div>
-    <div class="logline"><span class="tm">10:14:02</span><span class="lv" style="color:var(--log-hi)">Info</span>Listed 151 model elements in the active view “Level 02 – Floor Plan” (host model only).</div>
-    <div class="logline"><span class="tm">10:14:20</span><span class="lv" style="color:var(--log-ok)">Success</span>Read base level and offset for 136 of 142 checked elements.</div>
-    <div class="logline sel"><span class="tm">10:14:20</span><span class="lv" style="color:var(--log-warn)">Warning</span>6 element(s) have no base level and are skipped (e.g. 503902 Generic Models).</div>
-    <div class="logline"><span class="tm">10:14:20</span><span class="lv" style="color:var(--log-warn)">Warning</span>3 elements are owned by User B and are skipped (319001, 319004, 612230).</div>
-    <div class="logline"><span class="tm">10:14:31</span><span class="lv" style="color:var(--log-hi)">Info</span>Target “Base Level Text”: Ducts and Pipes will be added to its binding.</div>
-    <div class="logline"><span class="tm">10:14:31</span><span class="lv" style="color:var(--log-hi)">Info</span>Pre-checks: 3 pass, 2 warnings, 0 blocked → 134 ready | 7 warnings | 0 blocked.</div>
   </div>
 
   <!-- FOOTER (fixed, not scrolled) -->
@@ -367,6 +363,25 @@ tr.dim td{color:var(--text3)}
     <div class="card" style="padding:8px 12px;align-self:start"><div class="row"><span class="chev">▼</span><span class="section">Pre-checks</span><span class="sbtn" style="height:22px">Re-check</span><b style="margin-left:4px"><span style="color:var(--ok)">134 ready</span> | <span style="color:var(--warn)">7 warnings</span> | <span style="color:var(--err)">0 blocked</span> · 1 up to date</b></div></div>
   </div>
   <div class="card grid-card" style="margin-bottom:8px"><div class="ghead"><span class="section">Elements</span><span class="pill">151</span><span class="hint">… the grid follows directly, with more rows in view.</span></div></div>
+</div>
+</div>
+
+<h2>2d · Activity Log open <span class="new">NEW</span></h2>
+<p class="note">Click <b>▸ Activity Log</b> to open it, click again to close. Open / closed is remembered for next time; the first time it is closed. An error line opens it by itself. Copy All / Copy Selected work in both states.</p>
+<div class="scroll">
+<div class="win" style="width:1240px">
+  <!-- Log (open) -->
+  <div class="log">
+    <div class="loghead"><span style="font-size:11px;margin-right:6px">▾</span><b>Activity Log</b><span class="dim">6 lines · 1 selected</span>
+      <span class="sp"></span><span class="ghost">Copy All</span><span class="ghost">Copy Selected</span></div>
+    <div class="logline"><span class="tm">10:14:02</span><span class="lv" style="color:var(--log-hi)">Info</span>Listed 151 model elements in the active view “Level 02 – Floor Plan” (host model only).</div>
+    <div class="logline"><span class="tm">10:14:20</span><span class="lv" style="color:var(--log-ok)">Success</span>Read base level and offset for 136 of 142 checked elements.</div>
+    <div class="logline sel"><span class="tm">10:14:20</span><span class="lv" style="color:var(--log-warn)">Warning</span>6 element(s) have no base level and are skipped (e.g. 503902 Generic Models).</div>
+    <div class="logline"><span class="tm">10:14:20</span><span class="lv" style="color:var(--log-warn)">Warning</span>3 elements are owned by User B and are skipped (319001, 319004, 612230).</div>
+    <div class="logline"><span class="tm">10:14:31</span><span class="lv" style="color:var(--log-hi)">Info</span>Target “Base Level Text”: Ducts and Pipes will be added to its binding.</div>
+    <div class="logline"><span class="tm">10:14:31</span><span class="lv" style="color:var(--log-hi)">Info</span>Pre-checks: 3 pass, 2 warnings, 0 blocked → 134 ready | 7 warnings | 0 blocked.</div>
+  </div>
+
 </div>
 </div>
 
@@ -416,7 +431,7 @@ tr.dim td{color:var(--text3)}
 <p class="note">Pre-check c (here and in the main window) blocks a name that appears twice in the shared parameter file; the main window also blocks a file GUID that another project parameter already uses (example: “The GUID of “Base Level Info” in SharedParameters.txt (3f2a…c9e1) is already used in the project by “Old Level Note”.”). Opened by “New Parameter…”. Nothing is created here: Create sets this parameter as the target, and Run in the main window creates it (shared parameter file first, then the project, in the run's transaction).</p>
 <div class="scroll">
 <div class="win dlg" style="width:640px">
-  <div class="titlebar"><span>New Parameter — Base Level to Parameter v1.4.0</span><span>✕</span></div>
+  <div class="titlebar"><span>New Parameter — Base Level to Parameter v1.4.1</span><span>✕</span></div>
   <div style="padding:12px 16px;display:flex;flex-direction:column;gap:10px">
     <div class="form" style="grid-template-columns:130px 1fr">
       <span class="l">Name</span><span class="row"><span class="text" style="flex:1">Base Level Info</span><span class="hint">15 / 25</span></span>
@@ -492,6 +507,7 @@ tr.dim td{color:var(--text3)}
     <li>Switching to the list the first time ticks the ticked elements' categories, so you start from the old binding and add or remove.</li>
     <li>The choice belongs to the pending new parameter (kept when you reopen the dialog), not remembered across sessions. An existing parameter is not affected: missing categories are still added to its binding on Run, as before.</li>
     <li>Target parameter and Pre-checks are Expanders, open by default; open / closed is remembered (settings version 3).</li>
+    <li>1.4.1: the Activity Log collapses too, and starts collapsed; it opens by itself on an error so problems are never hidden.</li>
   </ul>
   <div class="section" style="margin-bottom:4px">1.3.0 · clear old values</div>
   <ul style="margin:0 0 8px;padding-left:20px;line-height:1.55">

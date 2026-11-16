@@ -4,7 +4,7 @@ File: BaseLevelToParameterWindow.xaml  (Base Level to Parameter V001)
 ToolWindowShell layout:
   HEADER  metric tiles (Elements Listed / Checked / Ready / Up to Date / Has Value / Warnings / Blocked)
   BODY    source toolbar, target parameter + pre-checks a–e (each an expandable card, 1.4.0),
-          element grid grouped by category, activity log
+          element grid grouped by category, activity log (collapsible, collapsed by default, 1.4.1)
   FOOTER  run summary, Run, Close
 Preview: Claude/Previews/BaseLevelToParameter_V001_Window.html
 =======================================================
@@ -429,18 +429,35 @@ Preview: Claude/Previews/BaseLevelToParameter_V001_Window.html
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
-                        <Grid Margin="0,0,0,6">
+                        <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Text="Activity Log" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource BrushLogText}" VerticalAlignment="Center"/>
+                            <ToggleButton IsChecked="{Binding LogExpanded}" Cursor="Hand" Focusable="True" HorizontalAlignment="Left"
+                                          ToolTip="Show or hide the activity log. Remembered for next time.">
+                                <ToggleButton.Template>
+                                    <ControlTemplate TargetType="ToggleButton">
+                                        <Border Background="Transparent" Padding="0,2"><ContentPresenter/></Border>
+                                    </ControlTemplate>
+                                </ToggleButton.Template>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="▾" Foreground="{StaticResource BrushLogText}" FontSize="11" Width="14" VerticalAlignment="Center"
+                                               Visibility="{Binding LogExpanded, Converter={StaticResource BoolToVis}}"/>
+                                    <TextBlock Text="▸" Foreground="{StaticResource BrushLogText}" FontSize="11" Width="14" VerticalAlignment="Center"
+                                               Visibility="{Binding LogExpanded, Converter={StaticResource InverseBoolToVis}}"/>
+                                    <TextBlock Text="Activity Log" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource BrushLogText}" VerticalAlignment="Center"/>
+                                    <TextBlock Foreground="{StaticResource BrushLogTextDim}" FontSize="10.5" VerticalAlignment="Center" Margin="8,0,0,0"
+                                               Text="{Binding LogEntries.Count, StringFormat={}{0} lines}"/>
+                                </StackPanel>
+                            </ToggleButton>
                             <StackPanel Grid.Column="1" Orientation="Horizontal">
                                 <Button Content="Copy All" Style="{StaticResource DarkGhostButton}" Command="{Binding CopyAllLogCommand}"/>
                                 <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Margin="6,0,0,0" Command="{Binding CopySelectedLogCommand}"/>
                             </StackPanel>
                         </Grid>
-                        <ListBox Grid.Row="1" x:Name="LogListBox"
+                        <ListBox Grid.Row="1" x:Name="LogListBox" Margin="0,6,0,0"
+                                 Visibility="{Binding LogExpanded, Converter={StaticResource BoolToVis}}"
                                  ItemsSource="{Binding LogEntries}"
                                  SelectionMode="Extended" SelectionChanged="LogListBox_SelectionChanged"
                                  Background="Transparent" BorderThickness="0"
