@@ -88,9 +88,29 @@
 
     <Grid Margin="12">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Tab chooser: Setup (models and clearance) or Results (the table of the last Analyze). -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
+            <RadioButton GroupName="VoidOpeningsTabs" Style="{StaticResource ChipToggle}" Content="1  Setup"
+                         IsChecked="{Binding IsSetupTab, Mode=TwoWay}"
+                         ToolTip="Choose the models and categories and set the clearance rules."/>
+            <RadioButton GroupName="VoidOpeningsTabs" Style="{StaticResource ChipToggle}"
+                         IsChecked="{Binding IsResultsTab, Mode=TwoWay}"
+                         ToolTip="The clashes found by the last Analyze, with the opening sized for each.">
+                <TextBlock><Run Text="2  Results"/><Run Text="{Binding Results.TabCount, Mode=OneWay}"/></TextBlock>
+            </RadioButton>
+        </StackPanel>
+
+        <!-- ═══ Setup tab ═══ -->
+        <Grid Grid.Row="1" Visibility="{Binding IsSetupTab, Converter={StaticResource BoolToVisibility}}">
+        <Grid.RowDefinitions>
             <RowDefinition Height="*" MinHeight="170"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
@@ -273,13 +293,146 @@
                                 ToolTip="Saves the rules and options for the next time you open the tool. Disabled while a rule has an error."/>
                     </StackPanel>
                     <TextBlock VerticalAlignment="Center" TextWrapping="Wrap" Foreground="{DynamicResource BrushTextSecondary}"
-                               Text="The first rule that fits an element is used; a fitting or accessory with no rule of its own uses its pipe, duct, tray or conduit rules. Analyze, which applies these rules, comes in a later version."/>
+                               Text="The first rule that fits an element is used; a fitting or accessory with no rule of its own uses its pipe, duct, tray or conduit rules. Analyze uses the rules as shown here, saved or not."/>
                 </DockPanel>
             </StackPanel>
         </Border>
+        </Grid>
+
+        <!-- ═══ Results tab ═══ -->
+        <Border Grid.Row="1" DataContext="{Binding Results}"
+                Visibility="{Binding DataContext.IsResultsTab, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BoolToVisibility}}"
+                Background="{DynamicResource BrushSurfaceCard}" BorderBrush="{DynamicResource BrushBorderDefault}" BorderThickness="1">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <Border Grid.Row="0" Background="{DynamicResource BrushSurfaceHeader}" Padding="10,6">
+                    <DockPanel>
+                        <TextBlock DockPanel.Dock="Right" Text="{Binding Summary}" Foreground="{DynamicResource BrushTextOnDark}"
+                                   VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="12,0,0,0"/>
+                        <TextBlock Foreground="{DynamicResource BrushTextOnDark}" FontWeight="SemiBold">
+                            <Run Text="RESULTS"/><Run Text="  (sizes in millimetres)" FontWeight="Normal"/>
+                        </TextBlock>
+                    </DockPanel>
+                </Border>
+
+                <DockPanel Grid.Row="1" Margin="10,8,10,6">
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                        <Button Content="Zoom to" Command="{Binding ZoomCommand}" Style="{DynamicResource SmallSecondaryButton}" Margin="0,0,6,0"
+                                ToolTip="Zooms the active plan, section or 3D view to the selected row's opening."/>
+                        <Button Content="Highlight MEP" Command="{Binding HighlightMepCommand}" Style="{DynamicResource SmallSecondaryButton}" Margin="0,0,6,0"
+                                ToolTip="Selects the selected row's MEP element in Revit."/>
+                        <Button Content="Highlight structure" Command="{Binding HighlightStructureCommand}" Style="{DynamicResource SmallSecondaryButton}" Margin="0,0,16,0"
+                                ToolTip="Selects the selected row's structural element in Revit."/>
+                        <Button Content="Approve" Command="{Binding ApproveCommand}" Style="{DynamicResource SmallSecondaryButton}" Margin="0,0,6,0"
+                                ToolTip="Ticks the selected rows. A rejected row comes back."/>
+                        <Button Content="Reject" Command="{Binding RejectCommand}" Style="{DynamicResource SmallSecondaryButton}"
+                                ToolTip="Rejects the selected rows: they stay in the list and no opening is generated for them."/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="Find" FontWeight="SemiBold" FontSize="11.5" Foreground="{DynamicResource BrushTextSecondary}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                        <TextBox Width="170" Style="{StaticResource BoxedTextInput}" Text="{Binding FindText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 ToolTip="Clash id, element id, model, category or note."/>
+                        <TextBlock Text="Show" FontWeight="SemiBold" FontSize="11.5" Foreground="{DynamicResource BrushTextSecondary}" VerticalAlignment="Center" Margin="14,0,6,0"/>
+                        <ComboBox Width="120" Style="{StaticResource StandardComboBox}"
+                                  ItemsSource="{Binding FilterOptions}" DisplayMemberPath="Label" SelectedValuePath="Value"
+                                  SelectedValue="{Binding Filter, Mode=TwoWay}"/>
+                    </StackPanel>
+                </DockPanel>
+
+                <DataGrid Grid.Row="2" Margin="10,0,10,0" ItemsSource="{Binding Rows}"
+                          Style="{StaticResource StandardDataGrid}"
+                          ColumnHeaderStyle="{StaticResource StandardDataGridColumnHeader}"
+                          AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False"
+                          CanUserReorderColumns="False" HeadersVisibility="Column" SelectionMode="Extended"
+                          SelectionChanged="OnResultsSelectionChanged">
+                    <DataGrid.Resources>
+                        <Style x:Key="NumberCell" TargetType="TextBlock">
+                            <Setter Property="HorizontalAlignment" Value="Right"/>
+                            <Setter Property="Margin" Value="0,0,8,0"/>
+                        </Style>
+                    </DataGrid.Resources>
+                    <DataGrid.Columns>
+                        <DataGridTemplateColumn Width="34" CanUserResize="False">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <CheckBox IsChecked="{Binding IsApproved, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                              IsEnabled="{Binding CanTick}" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                              ToolTip="Ticked: an opening will be generated for this clash."/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTextColumn Header="Clash ID" Binding="{Binding ClashId}" IsReadOnly="True" Width="96"/>
+                        <DataGridTextColumn Header="Status" Binding="{Binding Status}" IsReadOnly="True" Width="74"/>
+                        <DataGridTextColumn Header="Structural model" Binding="{Binding StructuralModel}" IsReadOnly="True" Width="130"/>
+                        <DataGridTextColumn Header="Str. category" Binding="{Binding StructuralCategory}" IsReadOnly="True" Width="120"/>
+                        <DataGridTextColumn Header="Str. element" Binding="{Binding StructuralElementId}" IsReadOnly="True" Width="84" ElementStyle="{StaticResource NumberCell}"/>
+                        <DataGridTextColumn Header="MEP model" Binding="{Binding MepModel}" IsReadOnly="True" Width="130"/>
+                        <DataGridTextColumn Header="MEP category" Binding="{Binding MepCategory}" IsReadOnly="True" Width="110"/>
+                        <DataGridTextColumn Header="MEP element" Binding="{Binding MepElementId}" IsReadOnly="True" Width="84" ElementStyle="{StaticResource NumberCell}"/>
+                        <DataGridTextColumn Header="MEP size" Binding="{Binding MepSize}" IsReadOnly="True" Width="80" ElementStyle="{StaticResource NumberCell}"/>
+                        <DataGridTextColumn Header="Width" Binding="{Binding Width}" IsReadOnly="True" Width="60" ElementStyle="{StaticResource NumberCell}"/>
+                        <DataGridTextColumn Header="Height" Binding="{Binding Height}" IsReadOnly="True" Width="60" ElementStyle="{StaticResource NumberCell}"/>
+                        <DataGridTextColumn Header="Diameter" Binding="{Binding Diameter}" IsReadOnly="True" Width="68" ElementStyle="{StaticResource NumberCell}"/>
+                        <DataGridTextColumn Header="Depth" Binding="{Binding Depth}" IsReadOnly="True" Width="60" ElementStyle="{StaticResource NumberCell}"/>
+                        <DataGridTextColumn Header="Clearance" Binding="{Binding Clearance}" IsReadOnly="True" Width="74" ElementStyle="{StaticResource NumberCell}"/>
+                        <DataGridTextColumn Header="Note" Binding="{Binding Note}" IsReadOnly="True" Width="360"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+                <TextBlock Grid.Row="2" Text="{Binding EmptyText}" Margin="24,48,24,0" TextWrapping="Wrap" HorizontalAlignment="Center"
+                           VerticalAlignment="Top" IsHitTestVisible="False" Foreground="{DynamicResource BrushTextSecondary}"
+                           Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVisibility}}"/>
+
+                <DockPanel Grid.Row="3" Margin="10,6,10,8">
+                    <Button DockPanel.Dock="Right" Content="Copy list" Click="OnCopyNotAnalysedClick" Style="{DynamicResource SmallSecondaryButton}" Margin="10,0,0,0"
+                            ToolTip="Copies the elements that could not be analysed (model, category, element id, reason), ready to paste into Excel."
+                            Visibility="{Binding HasNotAnalysed, Converter={StaticResource BoolToVisibility}}"/>
+                    <TextBlock VerticalAlignment="Center" TextWrapping="Wrap" Foreground="{DynamicResource BrushTextSecondary}">
+                        <Run Text="{Binding NotAnalysedSummary, Mode=OneWay}" Foreground="{DynamicResource BrushStatusWarn}" FontWeight="SemiBold"/>
+                        <Run Text=" Ticked rows get an opening when Generate Void arrives in a later version. Rows marked Review start unticked."/>
+                    </TextBlock>
+                </DockPanel>
+            </Grid>
+        </Border>
+
+        <!-- Analyze bar: always visible, under both tabs. -->
+        <DockPanel Grid.Row="2" Margin="0,10,0,0">
+            <Button DockPanel.Dock="Left" Content="ANALYZE" Command="{Binding AnalyzeCommand}" Style="{DynamicResource RunButton}" Margin="0,0,8,0"
+                    ToolTip="Finds where the ticked MEP categories pass through the ticked structural categories and sizes an opening for each place. Nothing in the model is changed."/>
+            <Button DockPanel.Dock="Left" Content="Cancel" Command="{Binding CancelAnalyzeCommand}" Style="{DynamicResource SecondaryButton}" Width="70" Margin="0,0,10,0"
+                    ToolTip="Stops the running Analyze. The earlier results stay."/>
+            <Grid>
+                <Grid Visibility="{Binding IsAnalyzing, Converter={StaticResource BoolToVisibility}}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="220"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <ProgressBar Grid.Column="0" Height="8" Minimum="0" Maximum="100" Value="{Binding ProgressPercent, Mode=OneWay}" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Column="1" Text="{Binding ProgressText}" Margin="10,0,0,0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                               Foreground="{DynamicResource BrushTextSecondary}"/>
+                </Grid>
+                <TextBlock Text="{Binding AnalyzeHint}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                           Foreground="{DynamicResource BrushTextSecondary}">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsAnalyzing}" Value="True">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+            </Grid>
+        </DockPanel>
 
         <!-- Notification strip: messages appear here instead of in pop-up dialogs. -->
-        <Border Grid.Row="2" Margin="0,10,0,0" Padding="10,6" BorderThickness="1"
+        <Border Grid.Row="3" Margin="0,10,0,0" Padding="10,6" BorderThickness="1"
                 Visibility="{Binding HasNotification, Converter={StaticResource BoolToVisibility}}">
             <Border.Style>
                 <Style TargetType="Border">
@@ -301,7 +454,7 @@
             </DockPanel>
         </Border>
 
-        <DockPanel Grid.Row="3" Margin="0,10,0,0">
+        <DockPanel Grid.Row="4" Margin="0,10,0,0">
             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
                 <Button Content="Refresh" Command="{Binding RefreshCommand}" Style="{DynamicResource SecondaryButton}" Width="90" Margin="0,0,8,0"
                         ToolTip="Reads the links and element counts of the active project again."/>

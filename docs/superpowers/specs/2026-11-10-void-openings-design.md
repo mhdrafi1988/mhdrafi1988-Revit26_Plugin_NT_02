@@ -1,6 +1,6 @@
 # Void Openings — design (first deliverable, A–G)
 
-Status: **approved by the owner on 2026-11-11. Phases 1 to 3 are implemented; phases 2 and 3 await the owner's test in Revit.**
+Status: **approved by the owner on 2026-11-11. Phases 1 to 4 are implemented; phases 2 to 4 await the owner's test in Revit.**
 Date: 2026-11-10 · Target: Revit 2026, .NET 8, WPF, plugin `Revit26_Plugin_Revised`.
 
 UI wireframe (deliverable C): `Claude/Previews/VoidOpenings_V001_Window.html`, published at
@@ -88,7 +88,7 @@ Rules that keep the layers honest:
 ## B. Folder and project structure
 
 No new solution. One new tool folder, one new test project, one `ToolCatalog` entry
-(`VoidOpenings`, `0.x` while in development (`0.3.0` after phase 3) and `1.0.0` when all phases are done, `V001`, namespace `Revit26_Plugin_Revised.VoidOpenings.V001`).
+(`VoidOpenings`, `0.x` while in development (`0.4.0` after phase 4) and `1.0.0` when all phases are done, `V001`, namespace `Revit26_Plugin_Revised.VoidOpenings.V001`).
 
 ```
 Menu/Coordination/Openings/VoidOpenings_V001/
@@ -408,11 +408,22 @@ CHANGELOG entry. Phases marked *Revit* need the owner to test in Revit on Window
 | 1 ✅ done | Domain: geometry primitives, `SpatialGrid`, `ClashEngine`, `ClearanceRuleSet`, `OpeningCalculator`, `ClashKey` | Unit tests: perpendicular / sloped / vertical crossings, multi-penetration, grazing, duplicates, the 40 + 2×30 = 100 case. Runs on Linux. |
 | 2 ✅ built, Revit test pending | Tool shell: command, DI root, ribbon button, window, model + category selection with counts | *Revit*: links listed with loaded state; counts match a schedule; selection changes without reopening. |
 | 3 ✅ built, Revit test pending | Clearance rules UI, validation, settings file (versioned) | Unit tests for rules + settings round-trip. *Revit*: rules survive a restart. |
-| 4 | Extractors, Analyze, results table, zoom / highlight, approve / reject | *Revit*: clashes on a test model match a manual count; rotated and moved links give correct points. |
+| 4 ✅ built, Revit test pending | Extractors, Analyze, results table, zoom / highlight, approve / reject | *Revit*: clashes on a test model match a manual count; rotated and moved links give correct points. |
 | 5 | Void families (build + custom), placement, cutting, verification, Job IDs, records | *Revit*: cut-compatibility matrix filled in per category; every instance has a unique Job ID. |
 | 6 | Re-run reconciliation: Existing / Updated / Manually modified / Source deleted; find by Job ID | Unit tests for the reconciler. *Revit*: move a pipe, re-run, opening updates and keeps its ID. |
 | 7 | Linked-structure workflow: export package, Apply package, result file | Unit tests for the package. *Revit*: round trip host → structural RVT → host. |
 | 8 | Excel / JSON export, nested links, polish, final docs | *Revit*: export columns match the results table; pre-release checklist. |
+
+As built in phase 4 (differences from the sections above):
+
+- The window has two tabs, Setup and Results, instead of one tall page; the Analyze bar sits under both.
+- Geometry is read through `IGeometryReader` in batches (list ids, then read 400 MEP or 40 structural elements
+  per external-event job), so progress and Cancel work during extraction.
+- Fittings and accessories: one segment between the two connectors when they face away from each other, otherwise
+  one segment from each connector to the fitting's insertion point (F1 said one segment per connector pair).
+- The results table has no Job ID and Tracking columns yet (phases 5 and 6); it has MEP size, Depth and Note.
+- Approval is a tick on the row, separate from the status; "Review" rows start unticked.
+- Results are held in the window only; nothing is stored in the model until phase 5.
 
 ## 7. Risks and limits
 

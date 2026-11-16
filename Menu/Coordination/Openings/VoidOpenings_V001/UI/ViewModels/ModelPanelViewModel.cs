@@ -101,6 +101,18 @@ namespace Revit26_Plugin_Revised.VoidOpenings.V001.UI.ViewModels
         /// <summary>Keys of the ticked categories.</summary>
         public IReadOnlyList<string> SelectedCategoryKeys => Categories.Where(c => c.IsSelected).Select(c => c.Key).ToList();
 
+        /// <summary>The ticked categories as values of <typeparamref name="TCategory"/> (the keys are enum names).</summary>
+        public IReadOnlyList<TCategory> SelectedCategories<TCategory>() where TCategory : struct, Enum
+        {
+            var selected = new List<TCategory>();
+            foreach (string key in SelectedCategoryKeys)
+            {
+                if (Enum.TryParse(key, out TCategory category))
+                    selected.Add(category);
+            }
+            return selected;
+        }
+
         /// <summary>
         /// Replaces the model list, keeping the current choice when that model is still there, and
         /// reads its counts again.

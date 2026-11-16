@@ -9,6 +9,47 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [7.17.0] — 2026-11-16
+
+### Void Openings 0.4.0 (in development, phase 4 of 8)
+
+#### Added
+- **ANALYZE** button (bar under the tabs, always visible). It reads the ticked MEP categories of the MEP model and the
+  ticked structural categories of the structural model, finds every place where an MEP element passes through a
+  structural element, and sizes an opening for it from the clearance rules. Nothing in the model is changed.
+  - Works with the active model or a Revit link on either side; moved and rotated links are read in the active
+    model's coordinates.
+  - Only structural elements near the MEP elements are read. Progress is shown next to the button and **Cancel**
+    stops the run; the earlier results then stay.
+  - The button is disabled, with the reason next to it, until both models are chosen and loaded, at least one category
+    is ticked on each side and the OPENING CLEARANCE card has no error. Analyze uses the rules as shown, saved or not.
+- **Results** tab with one row per clash: Clash ID, Status, structural model / category / element id, MEP model /
+  category / element id, MEP size, opening Width, Height or Diameter, Depth, Clearance and a Note.
+  - The checkbox approves a row (an opening will be generated for it in a later version). Rows start ticked; rows
+    with status **Review** start unticked. Review means the MEP element starts or ends inside the structure, only
+    its body (not its centreline) touches the structure, or it runs almost parallel to the face.
+  - **Approve** and **Reject** work on the selected rows (several can be selected). A rejected row stays in the list
+    and cannot be ticked until it is approved again.
+  - **Zoom to** zooms the active plan, section or 3D view to the opening. **Highlight MEP** and **Highlight
+    structure** select the element in Revit, also when it is in a link.
+  - **Find** (clash id, element id, model, category, note) and **Show** (All, Approved, Not approved, To review,
+    Rejected).
+  - Elements that could not be analysed (for example a fitting with fewer than two connectors, or an element with no
+    solid geometry) are counted under the table; **Copy list** copies them with the reason, ready for Excel.
+  - Running Analyze again keeps the decisions made on clashes that are still there.
+- Unit tests: `Tests/VoidOpenings.Tests/AnalyzeTests.cs`.
+
+#### Changed
+- The window has two tabs, **1 Setup** (the model panels and the OPENING CLEARANCE card, as before) and
+  **2 Results**. The window switches to Results when an Analyze finishes.
+- **Refresh** is disabled while Analyze runs.
+
+User note: this version still changes nothing in the model; Generate Void comes in the next phase, and the results
+are not stored: they are gone when the window closes. How fittings and accessories are read: straight-through ones
+(couplings, valves, transitions) as one centreline between their two connectors, elbows and tees as lines from each
+connector to the middle of the fitting. Curved pipes and ducts are split into short straight pieces. Pipe and conduit
+sizes are the outside diameter.
+
 ## [7.16.0] — 2026-11-16
 
 ### Void Openings 0.3.0 (in development, phase 3 of 8)
