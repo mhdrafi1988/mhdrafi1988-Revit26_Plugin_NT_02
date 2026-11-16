@@ -1,0 +1,310 @@
+<title>Annotation Overlap Detection V007</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<!-- UI preview (CLAUDE.md "UI previews"): Annotation Overlap Detection V007, tool 7.0.0, plugin 7.15.0.
+     New in 7.0.0 (V007, from V006 6.0.0): "Keep clear of other annotations in the view" checkbox and
+     "Neighbour tolerance (mm)" and "Maximum move (mm)" boxes in the Resolve Overlaps card; Status "Kept in place: … would
+     overlap …", "no free space within … mm", "(its moves were undone)"; banner lines for undone and left-in-place moves; ribbon Overlaps pulldown lists V007 then V006 (V005 left the pulldown).
+     Mirrors: Menu/Manage/AnnotationOverlapDetection_V007/Views/AnnotationOverlapPanel.xaml (+ AnnotationOverlapViewModel,
+              MoveAnnotationsEventHandler, Helpers/OverlapResolver.cs), Menu/00_Push_Button_Menu_items/Ribbon/ManageRibbon.cs
+     Artifact: https://claude.ai/artifact/TR1X3AFUDgCR8JpJqeWak1 (republish to this URL on every update)
+     Colours: Shared/SharedStyles.xaml tokens, one light look on purpose (mirrors the light WPF window). -->
+<style>
+/* Layout: one column of captioned mock-ups; each fixed-width Revit piece scrolls in its own frame. */
+:root{
+  color-scheme:light;
+  --page:#E9EDF1; --window:#F3F5F7; --card:#FFFFFF; --border:#D6DCE3; --sep:#E6EAEF; --input:#B5C2CF;
+  --navy:#1E3A5F; --text:#1A2B3C; --text2:#5B7185;
+  --bg2:#ECEFF3; --bg3:#E1E6EC; --blue:#2D6CDF; --hover:#DCE8F5;
+  --ok:#2E7D4F; --ok-soft:#E6F4EC; --ok-border:#9FCFB2;
+  --warn:#9A5B00; --warn-soft:#FDF1E1; --warn-border:#E8B66B;
+  --err:#B23A35;
+  --new:#0E7C66; --new-soft:#E0F4EF; --on-dark:#EAF1F8; --tip:#FFFFE8; --tip-border:#A0A0A0; --ribbon-tabs:#1C2B3A; --ribbon:#F7F8FA;
+  --a:#2D6CDF; --b:#B23A35; --c:#8A6D1F; --ghost:#8FA3B8;
+  --ui:'Segoe UI',system-ui,-apple-system,sans-serif; --mono:Consolas,'Cascadia Mono',monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--text);font-family:var(--ui);font-size:12.5px;
+  padding-block:24px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.page{max-width:980px;margin:0 auto;display:grid;gap:26px}
+h1{font-size:20px;margin:0 0 4px;font-weight:600;text-wrap:balance}
+h2{font-size:14px;margin:0 0 8px;font-weight:600;text-wrap:balance}
+p{margin:0;line-height:1.5;max-width:75ch}
+.muted{color:var(--text2)}
+.tag{display:inline-block;background:var(--new);color:#FFFFFF;font-size:10px;font-weight:600;letter-spacing:.04em;
+  padding:1px 6px;border-radius:3px;vertical-align:middle;margin-left:6px}
+.sample{display:inline-block;background:var(--warn-soft);color:var(--warn);border:1px solid var(--warn-border);border-radius:3px;padding:2px 8px;font-size:11.5px;margin-top:8px}
+.frame{overflow-x:auto;padding-bottom:6px}
+section{display:grid;gap:6px;min-width:0}
+
+/* Ribbon */
+.rib{width:620px;background:var(--ribbon);border:1px solid var(--border)}
+.tabs{background:var(--ribbon-tabs);color:var(--on-dark);padding:4px 10px;font-size:11.5px;display:flex;gap:18px}
+.tabs b{font-weight:600;border-bottom:2px solid var(--on-dark)}
+.rpanel{display:flex;gap:18px;padding:8px 10px 0;align-items:flex-start}
+.stack{display:grid;gap:2px;font-size:11px;min-width:150px}
+.small{display:flex;align-items:center;gap:5px;padding:2px 4px;white-space:nowrap}
+.small i{width:16px;height:16px;border-radius:3px;background:var(--text2);display:inline-block}
+.small.open{background:var(--hover);outline:1px solid var(--input)}
+.small.open i{background:var(--navy)}
+.menu{background:var(--card);border:1px solid var(--input);box-shadow:0 4px 12px rgba(16,32,48,.18);width:230px;font-size:11.5px}
+.menu div{display:flex;align-items:center;gap:8px;padding:5px 8px}
+.menu div i{width:16px;height:16px;border-radius:3px;background:var(--text2);display:inline-block;flex:none}
+.menu .new{background:var(--new-soft)}
+.menu .new i{background:var(--new)}
+.tip{background:var(--tip);border:1px solid var(--tip-border);padding:6px 8px;width:300px;font-size:11px;line-height:1.45;margin-top:6px}
+.ptitle{text-align:center;color:var(--text2);font-size:11px;border-top:1px solid var(--border);margin-top:8px;padding:2px}
+
+/* WPF window */
+.win{width:820px;background:var(--window);border:1px solid var(--input);box-shadow:0 6px 20px rgba(16,32,48,.18)}
+.tbar{background:var(--card);border-bottom:1px solid var(--border);padding:7px 10px;display:flex;justify-content:space-between;font-size:12px}
+.tbar .x{color:var(--text2);letter-spacing:10px}
+.shead{background:var(--navy);color:var(--on-dark);padding:12px 16px;display:flex;justify-content:space-between;align-items:baseline}
+.shead b{font-size:16px;font-weight:600}
+.shead .sub{font-size:11.5px;opacity:.8;display:block;margin-top:2px}
+.ver{font-family:var(--mono);font-size:11px;background:rgba(255,255,255,.14);padding:2px 7px;border-radius:10px}
+.zone{padding:12px 16px;display:grid;gap:10px}
+.metrics{display:grid;grid-template-columns:1fr 1fr 2fr;gap:8px}
+.metric{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:8px 10px}
+.mlabel{font-size:10.5px;color:var(--text2);text-transform:uppercase;letter-spacing:.05em}
+.mnum{font-size:18px;font-weight:600;font-variant-numeric:tabular-nums}
+.mnum.danger{color:var(--err)}
+.card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px}
+.ctitle{font-size:13px;font-weight:600;display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.sbtn{font-size:11px;border:1px solid var(--input);background:var(--bg2);border-radius:5px;padding:2px 10px;margin-left:6px;font-weight:400}
+.types{display:grid;grid-template-columns:1fr 1fr;gap:4px 16px}
+.chk{display:flex;align-items:center;gap:6px}
+.box{width:13px;height:13px;border:1px solid var(--text2);border-radius:2px;background:var(--navy);position:relative;flex:none}
+.box::after{content:"";position:absolute;left:3.5px;top:1px;width:3px;height:7px;border:solid #FFFFFF;border-width:0 2px 2px 0;transform:rotate(45deg)}
+.box.off{background:var(--card)} .box.off::after{display:none}
+.cnt{color:var(--text2)}
+table{border-collapse:collapse;width:100%;background:var(--card);font-variant-numeric:tabular-nums;font-size:11.5px}
+th,td{border-bottom:1px solid var(--sep);padding:5px 7px;text-align:left;white-space:nowrap}
+th{background:var(--bg2);font-weight:600;color:var(--text2);font-size:11px}
+td a{color:var(--blue);text-decoration:none}
+.grid{border:1px solid var(--border);border-radius:6px;overflow:hidden}
+.pill{display:inline-block;border-radius:10px;padding:0 8px;font-size:10.5px;border:1px solid}
+.p-warn{background:var(--warn-soft);color:var(--warn);border-color:var(--warn-border)}
+.p-new{background:var(--new-soft);color:var(--new);border-color:var(--new)}
+.modes{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.mode{border:1px solid var(--border);border-radius:6px;padding:8px;display:grid;gap:4px;align-content:start}
+.mode.on{border-color:var(--navy);background:var(--hover)}
+.mode .r{display:flex;align-items:center;gap:6px;font-weight:600}
+.rad{width:13px;height:13px;border:1px solid var(--text2);border-radius:50%;background:var(--card);flex:none}
+.on .rad{background:radial-gradient(circle,var(--navy) 0 3.5px,var(--card) 4px)}
+.mode small{color:var(--text2);line-height:1.4;font-size:11px}
+.resrow{display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap}
+.input{border:1px solid var(--input);background:var(--card);color:var(--text);border-radius:5px;padding:3px 8px;width:70px;font-variant-numeric:tabular-nums;text-align:right;font:inherit}
+.hint{color:var(--text2);font-size:11px}
+.newblock{margin-top:10px;border:1px dashed var(--new);background:var(--new-soft);border-radius:6px;padding:8px 10px;display:grid;gap:4px}
+.newblock .chk{font-weight:600}
+.indent{padding-left:19px}
+.btn{border-radius:6px;padding:7px 16px;font-size:12px;border:1px solid var(--input);background:var(--card);white-space:nowrap}
+.btn.pri{background:var(--navy);color:#FFFFFF;border-color:var(--navy);font-weight:600}
+.btn.acc{background:var(--new);border-color:var(--new);color:#FFFFFF;font-weight:600}
+.status{background:var(--bg3);border-top:1px solid var(--border);padding:5px 16px;font-size:11px;color:var(--text2);display:flex;gap:10px;align-items:center}
+.bar{flex:none;width:120px;height:5px;border-radius:3px;background:var(--card);overflow:hidden}
+.bar i{display:block;height:100%;width:100%;background:var(--ok)}
+.foot{display:flex;justify-content:flex-end;gap:8px;padding:10px 16px 14px}
+.okbanner{background:var(--ok-soft);border:1px solid var(--ok-border);color:var(--ok);border-radius:6px;padding:7px 10px}
+.okbanner b{font-weight:600}
+
+/* Before / after sketch */
+.cmpgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.sketch{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 12px;display:grid;gap:6px;min-width:0}
+.sketch h3{margin:0;font-size:12.5px;font-weight:600}
+.sketch svg{width:100%;height:auto;display:block;max-width:100%}
+.legend{display:flex;gap:14px;flex-wrap:wrap;color:var(--text2);font-size:11.5px}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.legend i{width:12px;height:12px;border-radius:2px;display:inline-block}
+ul{margin:0;padding-left:18px;line-height:1.55;max-width:75ch}
+</style>
+
+<div class="page">
+  <header>
+    <h1>Annotation Overlap Detection V007</h1>
+    <p class="muted">Preview of tool 7.0.0, plugin 7.15.0. V007 is V006 plus one fix: when it moves an annotation
+      out of an overlap, it no longer drops it onto a third annotation. New or changed items carry a green <span class="tag">NEW</span> tag.</p>
+    <span class="sample">Sample data: element IDs, counts and coordinates are made up.</span>
+  </header>
+
+  <!-- Ribbon -->
+  <section>
+    <h2>Ribbon · Rafi_Pro_Docs2 › Manage › Overlaps <span class="tag">NEW</span></h2>
+    <p class="muted">The Overlaps pulldown lists V007 first, then V006 (latest two versions). V005 left the pulldown; its code stays.</p>
+    <div class="frame">
+      <div class="rib">
+        <div class="tabs"><span>Rafi_Pro_Docs</span><b>Rafi_Pro_Docs2</b></div>
+        <div class="rpanel">
+          <div class="stack">
+            <div class="small open"><i></i>Overlaps ▾</div>
+            <div class="small"><i></i>Overlap Report</div>
+            <div class="small"><i></i>ParaManager ▾</div>
+          </div>
+          <div>
+            <div class="menu">
+              <div class="new"><i></i>Overlap Detection V007 <span class="tag">NEW</span></div>
+              <div><i></i>Overlap Detection V006</div>
+            </div>
+            <div class="tip"><b>Annotation Overlap Detection — v7.0.0</b><br>
+              Find overlapping annotations in the active view, then move them apart. Keep clear of other annotations: a moved annotation is pushed past its neighbours (with a tolerance you set), and a move that would still land on another annotation is undone.</div>
+          </div>
+        </div>
+        <div class="ptitle">Manage ▾</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Before / after -->
+  <section>
+    <h2>What changes when you resolve a pair <span class="tag">NEW</span></h2>
+    <p class="muted">Tag A overlaps tag B. Move Up lifts A just clear of B. In V006, A then landed on text note C, which was not part of the pair.</p>
+    <div class="cmpgrid">
+      <div class="sketch">
+        <h3>V006, or box unticked</h3>
+        <svg viewBox="0 0 260 150" role="img" aria-label="A moves up just clear of B and lands on C">
+          <rect x="40" y="18" width="130" height="26" rx="3" fill="var(--c)" opacity=".75"/>
+          <text x="105" y="35" text-anchor="middle" font-size="11" fill="#FFFFFF">C  text note</text>
+          <rect x="30" y="38" width="110" height="26" rx="3" fill="var(--a)" opacity=".8"/>
+          <text x="85" y="55" text-anchor="middle" font-size="11" fill="#FFFFFF">A</text>
+          <rect x="30" y="84" width="110" height="26" rx="3" fill="none" stroke="var(--ghost)" stroke-dasharray="4 3"/>
+          <rect x="50" y="100" width="110" height="26" rx="3" fill="var(--b)" opacity=".8"/>
+          <text x="105" y="117" text-anchor="middle" font-size="11" fill="#FFFFFF">B</text>
+          <path d="M190 96 V52 M185 58 L190 50 L195 58" stroke="var(--text2)" fill="none" stroke-width="1.5"/>
+          <text x="200" y="44" font-size="10.5" fill="var(--err)">new overlap</text>
+          <text x="200" y="57" font-size="10.5" fill="var(--err)">A on C</text>
+        </svg>
+      </div>
+      <div class="sketch">
+        <h3>V007, Keep clear ticked, tolerance 1 mm</h3>
+        <svg viewBox="0 0 260 150" role="img" aria-label="A is pushed past C to the first free spot">
+          <rect x="30" y="2" width="110" height="26" rx="3" fill="var(--a)" opacity=".85"/>
+          <text x="85" y="19" text-anchor="middle" font-size="11" fill="#FFFFFF">A</text>
+          <rect x="40" y="36" width="130" height="26" rx="3" fill="var(--c)" opacity=".75"/>
+          <text x="105" y="53" text-anchor="middle" font-size="11" fill="#FFFFFF">C  text note</text>
+          <rect x="30" y="84" width="110" height="26" rx="3" fill="none" stroke="var(--ghost)" stroke-dasharray="4 3"/>
+          <rect x="50" y="100" width="110" height="26" rx="3" fill="var(--b)" opacity=".8"/>
+          <text x="105" y="117" text-anchor="middle" font-size="11" fill="#FFFFFF">B</text>
+          <path d="M190 96 V12 M185 18 L190 10 L195 18" stroke="var(--text2)" fill="none" stroke-width="1.5"/>
+          <text x="200" y="30" font-size="10.5" fill="var(--new)">pushed past C</text>
+          <text x="200" y="43" font-size="10.5" fill="var(--new)">+ 1 mm</text>
+        </svg>
+      </div>
+    </div>
+    <div class="legend"><span><i style="background:var(--a)"></i>Moved annotation</span><span><i style="background:var(--b)"></i>Its partner</span><span><i style="background:var(--c)"></i>Another annotation in the view</span><span><i style="border:1px dashed var(--ghost)"></i>Position before the move</span></div>
+  </section>
+
+  <!-- Window -->
+  <section>
+    <h2>Tool window, Distribute, after one Resolve All run</h2>
+    <p class="muted">Keep clear is ticked. Six pairs were moved apart without landing on anything. Three are left, each with its reason:
+      one move was undone in the check before saving (the text note's real box, after its text reflowed, touched a dimension);
+      one door tag had no free spot within the 1000 mm limit; and one pair never separated, so the moves it had made were taken back.</p>
+    <div class="frame">
+      <div class="win">
+        <div class="tbar"><span>Annotation Overlap Detection — v7.0.0</span><span class="x">–▢✕</span></div>
+        <div class="shead">
+          <div><b>Annotation Overlap Detection</b><span class="sub">Find overlapping annotations in the active view, then move them apart</span></div>
+          <span class="ver">v7.0.0</span>
+        </div>
+
+        <div class="zone">
+          <div class="metrics">
+            <div class="metric"><div class="mlabel">Scanned</div><div class="mnum">186</div></div>
+            <div class="metric"><div class="mlabel">Overlaps Found</div><div class="mnum danger">3</div></div>
+            <div class="metric"><div class="mlabel">Breakdown</div><div>1 Text notes, 2 Door &amp; window tags</div></div>
+          </div>
+
+          <div class="card">
+            <div class="ctitle">Annotation Types To Check <span style="margin-left:auto"><span class="sbtn">Select All</span><span class="sbtn">Clear All</span></span></div>
+            <div class="types">
+              <div class="chk"><span class="box"></span>Dimensions <span class="cnt">(41 items)</span></div>
+              <div class="chk"><span class="box"></span>Keynote tags <span class="cnt">(12 items)</span></div>
+              <div class="chk"><span class="box"></span>Door &amp; window tags <span class="cnt">(38 items)</span></div>
+              <div class="chk"><span class="box"></span>Other element tags <span class="cnt">(28 items)</span></div>
+              <div class="chk"><span class="box"></span>Room / space / area tags <span class="cnt">(22 items)</span></div>
+              <div class="chk"><span class="box"></span>Text notes <span class="cnt">(45 items)</span></div>
+            </div>
+            <div class="chk" style="margin-top:8px"><span class="box off"></span>Also check overlaps between different types (e.g. a door tag over a text note)</div>
+          </div>
+
+          <div class="grid frame" style="padding:0">
+            <table>
+              <thead><tr>
+                <th>ID 1</th><th>Type</th><th>X (mm)</th><th>Y (mm)</th><th>Aligned</th><th>V-Dist (mm)</th><th>H-Dist (mm)</th><th>ID 2</th><th>Status</th>
+              </tr></thead>
+              <tbody>
+                <tr><td><a href="#">398114</a></td><td>Text notes</td><td>22105.7500</td><td>4480.0000</td><td>No</td><td>0.00</td><td>0.00</td><td><a href="#">398220</a></td>
+                  <td><span class="pill p-new">Kept in place: 398220 would overlap 405530</span> <span class="tag">NEW</span></td></tr>
+                <tr><td><a href="#">412893</a></td><td>Door &amp; window tags</td><td>15240.0000</td><td>9120.2500</td><td>Yes</td><td>0.00</td><td>0.00</td><td><a href="#">412907</a></td>
+                  <td><span class="pill p-warn">Skipped: no free space within 1000 mm for 412907</span> <span class="tag">NEW</span></td></tr>
+                <tr><td><a href="#">413150</a></td><td>Door &amp; window tags</td><td>17830.5000</td><td>9122.0000</td><td>No</td><td>0.00</td><td>0.00</td><td><a href="#">413162</a></td>
+                  <td><span class="pill p-warn">Skipped: still overlapping after 10 passes (its moves were undone)</span> <span class="tag">NEW</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="okbanner">Resolved 6 of 9 pair(s): moved 11 element(s). 3 pair(s) skipped or failed; see the Status column.
+            <b>1 move(s) undone because they would land on another annotation. 1 annotation(s) left in place because their pair could not be separated.</b> <span class="tag">NEW</span> One Undo in Revit reverts this run. 3 overlap(s) remain.</div>
+
+          <div class="card">
+            <div class="ctitle">Resolve Overlaps</div>
+            <div class="modes">
+              <div class="mode"><div class="r"><span class="rad"></span>Move Up</div><small>The upper element moves up until the pair is clear.</small></div>
+              <div class="mode"><div class="r"><span class="rad"></span>Move Down</div><small>The lower element moves down until the pair is clear.</small></div>
+              <div class="mode on"><div class="r"><span class="rad"></span>Distribute</div><small>Both move apart, half the distance each.</small></div>
+              <div class="mode"><div class="r"><span class="rad"></span>By priority</div><small>The lower-priority one moves away; the higher-priority one stays.</small></div>
+            </div>
+            <div class="resrow">
+              <label for="gap">Clear gap (mm)</label><input id="gap" class="input" value="1.00" readonly>
+              <span class="hint">Extra space left between the two after the move.</span>
+            </div>
+            <div class="newblock">
+              <div class="chk"><span class="box"></span>Keep clear of other annotations in the view <span class="tag">NEW</span></div>
+              <p class="hint indent">A moved annotation is pushed on past any annotation in its way, and the pairs are checked again until none changes. Before saving, a move that still lands on another annotation is undone.</p>
+              <div class="resrow indent" style="margin-top:2px">
+                <label for="tol">Neighbour tolerance (mm)</label><input id="tol" class="input" value="1.00" readonly>
+                <span class="hint">Least space kept from nearby annotations; anything closer counts as in the way.</span> <span class="tag">NEW</span>
+              </div>
+              <div class="resrow indent" style="margin-top:2px">
+                <label for="maxmove">Maximum move (mm)</label><input id="maxmove" class="input" value="1000" readonly>
+                <span class="hint">Furthest one annotation may move in a run; a pair with no free spot within it is skipped. 0 = no limit.</span> <span class="tag">NEW</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="status"><span class="bar"><i></i></span>186 annotations scanned · 3 overlaps</div>
+        <div class="foot">
+          <span class="btn">Resolve Selected</span>
+          <span class="btn acc">Resolve All</span>
+          <span class="btn pri">Check Overlaps</span>
+          <span class="btn">Close</span>
+        </div>
+      </div>
+    </div>
+    <p class="hint">The Priority order card appears below Resolve Overlaps in By priority mode. It is unchanged from V006.</p>
+  </section>
+
+  <section>
+    <h2>How a resolve works with Keep clear ticked <span class="tag">NEW</span></h2>
+    <ul>
+      <li>Every annotation in the view is an obstacle, including types that are not ticked and pinned ones. Obstacles never move.</li>
+      <li>The distance starts as before: vertical overlap of the two boxes + the clear gap. If the new spot is in the way of anything,
+        the annotation keeps going in the same direction to the first free spot.</li>
+      <li><b>Neighbour tolerance</b> is the least space kept from every other annotation. With 1 mm, an annotation 0.5 mm away counts as in the way.
+        The clear gap still sets the space to the partner.</li>
+      <li><b>Maximum move</b> (default 1000 mm, the same view units as the gap: 10 mm on paper at 1:100) caps how far one annotation may
+        travel in a run, counting all its moves. A pair whose free spot is further away is skipped: "no free space within 1000 mm". 0 = no limit. <span class="tag">NEW</span></li>
+      <li>After a pass over the pairs, they are checked again, up to 10 passes, so a later move cannot undo an earlier one.
+        A pair still overlapping after that is skipped: "still overlapping after 10 passes".</li>
+      <li>A pair that is skipped but had already moved in earlier passes is put back: its annotations stay where they were, and Status adds
+        "(its moves were undone)". Any other move that would then land on one of them is taken back too. Moves of pairs that did separate are kept. <span class="tag">NEW</span></li>
+      <li>Before saving, the real boxes are read back. A move that lands on an annotation it did not overlap before is undone,
+        and Status says "Kept in place". The check repeats until it finds nothing, and every good move is kept. <span class="tag">NEW</span>
+        Only if a move cannot be put back does the whole run roll back, so a new overlap is never saved.</li>
+      <li>With the box unticked, V007 resolves exactly like V006. Your choice and the tolerance are remembered
+        (V007 settings file; the first time it starts from your V006 settings).</li>
+      <li>One run is one transaction: one Undo reverts it. Esc / Cancel during a run moves nothing.</li>
+    </ul>
+  </section>
+</div>

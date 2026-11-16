@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <!--
-    Unit tests for Annotation Overlap Detection V005 and V006 Revit-free code (resolve maths,
-    V006 priority order).
+    Unit tests for Annotation Overlap Detection V005, V006 and V007 Revit-free code (resolve maths,
+    V006 priority order, V007 neighbour clearance).
     The tool's files are linked, not copied.
     Run:  dotnet test Tests/AnnotationOverlapDetection.Tests
   -->
@@ -16,12 +16,15 @@
   <PropertyGroup>
     <ToolDir>..\..\Menu\Manage\AnnotationOverlapDetection_V005\</ToolDir>
     <ToolDir6>..\..\Menu\Manage\AnnotationOverlapDetection_V006\</ToolDir6>
+    <ToolDir7>..\..\Menu\Manage\AnnotationOverlapDetection_V007\</ToolDir7>
   </PropertyGroup>
 
   <ItemGroup>
     <Compile Include="$(ToolDir)Helpers\OverlapResolver.cs" Link="Tool\Helpers\OverlapResolver.cs" />
     <Compile Include="$(ToolDir6)Helpers\OverlapResolver.cs" Link="ToolV006\Helpers\OverlapResolver.cs" />
     <Compile Include="$(ToolDir6)Helpers\AnnotationPriority.cs" Link="ToolV006\Helpers\AnnotationPriority.cs" />
+    <Compile Include="$(ToolDir7)Helpers\OverlapResolver.cs" Link="ToolV007\Helpers\OverlapResolver.cs" />
+    <Compile Include="$(ToolDir7)Helpers\AnnotationPriority.cs" Link="ToolV007\Helpers\AnnotationPriority.cs" />
   </ItemGroup>
 
   <ItemGroup>
