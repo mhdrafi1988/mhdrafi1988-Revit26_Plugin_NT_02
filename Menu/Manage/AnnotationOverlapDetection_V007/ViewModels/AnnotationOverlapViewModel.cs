@@ -141,6 +141,10 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V007.ViewModels
         [ObservableProperty]
         private string toleranceText = "1.00";
 
+        /// <summary>V007: maximum move text box (mm, 0 = no limit).</summary>
+        [ObservableProperty]
+        private string maxMoveText = "1000";
+
         /// <summary>True when the neighbour tolerance box can be edited.</summary>
         public bool IsToleranceEnabled => AvoidOthers && IsIdle;
 
@@ -192,6 +196,9 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V007.ViewModels
             double tol = settings.NeighbourToleranceMm >= 0 && settings.NeighbourToleranceMm <= OverlapResolver.MaxGapMm
                 ? settings.NeighbourToleranceMm : 1.0;
             ToleranceText = tol.ToString("F2", CultureInfo.CurrentCulture);
+            double maxMove = settings.MaxMoveMm >= 0 && settings.MaxMoveMm <= OverlapResolver.MaxMoveLimitMm
+                ? settings.MaxMoveMm : AnnotationOverlapSettings.DefaultMaxMoveMm;
+            MaxMoveText = maxMove.ToString("0.##", CultureInfo.CurrentCulture);
 
             // V006 priority settings (a V005 settings file has none: defaults are the recommended order).
             AcrossTypes = settings.AcrossTypes;
@@ -307,6 +314,8 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V007.ViewModels
                 settings.GapMm = gap;
             if (TryParseMm(ToleranceText, out double tol))
                 settings.NeighbourToleranceMm = tol;
+            if (TryParseMm(MaxMoveText, out double maxMove, OverlapResolver.MaxMoveLimitMm))
+                settings.MaxMoveMm = maxMove;
             SettingsService<AnnotationOverlapSettings>.Save(SettingsFolder, settings);
         }
 
@@ -486,6 +495,13 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V007.ViewModels
                 return;
             }
 
+            double maxMoveMm = 0;
+            if (AvoidOthers && !TryParseMm(MaxMoveText, out maxMoveMm, OverlapResolver.MaxMoveLimitMm))
+            {
+                ShowError($"Maximum move must be a number from 0 (no limit) to {OverlapResolver.MaxMoveLimitMm:F0} mm.");
+                return;
+            }
+
             if (IsLoading)
                 return;
 
@@ -500,7 +516,8 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V007.ViewModels
                 NeverMove = new HashSet<AnnotationCategory>(PriorityRows.Where(r => r.NeverMove).Select(r => r.Category)),
                 Tie = SelectedTie?.Value ?? TieRule.Distribute,
                 AvoidOthers = AvoidOthers,
-                NeighbourToleranceMm = tolerance
+                NeighbourToleranceMm = tolerance,
+                MaxMoveMm = maxMoveMm
             };
 
             SaveSettings();
@@ -543,6 +560,8 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V007.ViewModels
                 text += $" {outcome.PairsSkipped} pair(s) skipped or failed; see the Status column.";
             if (outcome.KeptInPlace.Count > 0)
                 text += $" {outcome.KeptInPlace.Count} move(s) undone because they would land on another annotation.";
+            if (outcome.TakenBack > 0)
+                text += $" {outcome.TakenBack} annotation(s) left in place because their pair could not be separated.";
             if (outcome.ElementsMoved > 0)
                 text += " One Undo in Revit reverts this run.";
             if (TotalOverlaps > 0)
@@ -554,13 +573,16 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V007.ViewModels
 
         private bool TryParseGap(out double gap) => TryParseMm(GapText, out gap);
 
-        /// <summary>Parses a mm value from 0 to <see cref="OverlapResolver.MaxGapMm"/> (current or invariant culture).</summary>
-        private static bool TryParseMm(string text, out double value)
+        /// <summary>
+        /// Parses a mm value from 0 to <paramref name="max"/> (default <see cref="OverlapResolver.MaxGapMm"/>),
+        /// in the current or the invariant culture.
+        /// </summary>
+        private static bool TryParseMm(string text, out double value, double max = OverlapResolver.MaxGapMm)
         {
             string s = (text ?? string.Empty).Trim();
             bool ok = double.TryParse(s, NumberStyles.Float, CultureInfo.CurrentCulture, out value)
                    || double.TryParse(s, NumberStyles.Float, CultureInfo.InvariantCulture, out value);
-            return ok && !double.IsNaN(value) && value >= 0 && value <= OverlapResolver.MaxGapMm;
+            return ok && !double.IsNaN(value) && value >= 0 && value <= max;
         }
 
         private void ShowError(string message)

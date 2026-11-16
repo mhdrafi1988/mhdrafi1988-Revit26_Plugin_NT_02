@@ -44,6 +44,9 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V007
 
         /// <summary>V007: least space kept from other (neighbouring) annotations, mm.</summary>
         public double NeighbourToleranceMm { get; set; }
+
+        /// <summary>V007: longest total move of one annotation in a run, mm (0 = no limit).</summary>
+        public double MaxMoveMm { get; set; }
     }
 
     /// <summary>Result of one resolve run, handed back to the window.</summary>
@@ -67,6 +70,12 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V007
         /// </summary>
         public Dictionary<long, long> KeptInPlace { get; } = new();
 
+        /// <summary>
+        /// V007: elements whose planned moves were taken back before anything moved, because their
+        /// pair could not be separated (see <see cref="ResolvePlan.Undone"/>).
+        /// </summary>
+        public int TakenBack { get; set; }
+
         /// <summary>Fresh scan of the view after the run (null when the scan could not run).</summary>
         public List<AnnotationData> Rescan { get; set; }
 
@@ -85,15 +94,11 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V007
     /// sub-transaction, so one refused move does not undo the others.
     /// V007, with <see cref="ResolveRequest.AvoidOthers"/>: every annotation in the view is an
     /// obstacle for the planner, and before the commit the real boxes are read back; a move that
-    /// made a new overlap is undone (the element stays where it was).
+    /// made a new overlap is undone (the element stays where it was) and the good moves are kept.
     /// </summary>
     public class MoveAnnotationsEventHandler : IExternalEventHandler
     {
         private const string TransactionName = "Resolve Annotation Overlaps";
-
-        // Rounds of "read back, undo the moves that made a new overlap". Undoing one move can
-        // uncover another (two moved elements landing on each other), hence more than one.
-        private const int VerifyRounds = 3;
 
         /// <summary>The run to perform on the next <see cref="Execute"/>.</summary>
         public ResolveRequest Request { get; set; }
@@ -198,7 +203,12 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V007
                     if (!boxes.ContainsKey(id))
                         boxes[id] = BoundingBoxCalculator.ToResolveBox(a);
                 }
-                clearance = new ClearanceOptions { AvoidOthers = true, NeighbourToleranceMm = request.NeighbourToleranceMm };
+                clearance = new ClearanceOptions
+                {
+                    AvoidOthers = true,
+                    NeighbourToleranceMm = request.NeighbourToleranceMm,
+                    MaxMoveMm = request.MaxMoveMm
+                };
             }
 
             PriorityOptions priority = null;
@@ -216,6 +226,7 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V007
 
             ResolvePlan plan = OverlapResolver.Plan(boxes, request.Pairs, request.Mode, request.GapMm,
                 id => blocked.TryGetValue(id, out var why) ? why : null, priority, clearance);
+            outcome.TakenBack = plan.Undone.Count;
 
             // Move each element once by its total planned distance.
             var failed = new Dictionary<long, string>();
@@ -311,15 +322,21 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V007
         /// V007 check before the commit. Reads the real box of every moved element (text can reflow,
         /// a dimension may only move its text) and compares it with the boxes before the run. A moved
         /// element that now overlaps an annotation it did not overlap before is moved back, and noted
-        /// in <see cref="ResolveOutcome.KeptInPlace"/>. Overlaps that existed before the run (such as a
-        /// pair that could not be fully separated) are not counted as new.
+        /// in <see cref="ResolveOutcome.KeptInPlace"/>; every other move is kept. Moving one back can
+        /// leave another moved element on its old spot, so the check repeats until it finds nothing.
+        /// Each round moves at least one element back, so it ends after at most one round per moved
+        /// element. Overlaps that existed before the run are not counted as new.
         /// </summary>
-        /// <exception cref="InvalidOperationException">New overlaps remain after the undo rounds; the caller's transaction then rolls back.</exception>
+        /// <exception cref="InvalidOperationException">
+        /// An element that landed on another could not be moved back; the caller's transaction then
+        /// rolls back, because keeping it would save a new overlap.
+        /// </exception>
         private static void UndoMovesThatMakeNewOverlaps(Document doc, View view,
             IReadOnlyDictionary<long, ResolveBox> before, Dictionary<long, XYZ> moved,
             Dictionary<long, string> failed, ResolveOutcome outcome, ToolCancellation cancel)
         {
-            for (int round = 0; round < VerifyRounds; round++)
+            int rounds = moved.Count + 1;
+            for (int round = 0; round < rounds && moved.Count > 0; round++)
             {
                 doc.Regenerate();
 
@@ -353,8 +370,6 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V007
 
                 if (offenders.Count == 0)
                     return;
-                if (round == VerifyRounds - 1)
-                    break;
 
                 foreach (var kv in offenders)
                 {
@@ -362,7 +377,7 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V007
                     string error = MoveOne(doc, elem, moved[kv.Key].Negate());
                     if (error != null)
                     {
-                        // Cannot put it back: let the whole run roll back rather than keep a new overlap.
+                        // Cannot put it back: roll the whole run back rather than save a new overlap.
                         throw new InvalidOperationException(
                             $"{kv.Key} landed on {kv.Value} and could not be moved back ({error}).");
                     }
@@ -372,9 +387,6 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V007
                     outcome.ElementsMoved--;
                 }
             }
-
-            throw new InvalidOperationException(
-                "the moves would still make new overlaps after the check. Try a larger neighbour tolerance or resolve fewer pairs at a time.");
         }
 
         /// <summary>

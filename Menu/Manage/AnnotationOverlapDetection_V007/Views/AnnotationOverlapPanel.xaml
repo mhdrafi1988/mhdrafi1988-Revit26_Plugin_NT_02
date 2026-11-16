@@ -13,7 +13,8 @@ Changes vs V005:
   - Title / version read ToolCatalog.AnnotationOverlapDetectionV007.
 Changes in V007 (7.0.0):
   - "Keep clear of other annotations in the view" checkbox (off = V006
-    behaviour) and "Neighbour tolerance (mm)" box in the Resolve card.
+    behaviour), "Neighbour tolerance (mm)" and "Maximum move (mm)" boxes in
+    the Resolve card.
 =======================================================
 -->
 <Window x:Class="Revit26_Plugin_Revised.AnnotationOverlapDetection.V007.Views.AnnotationOverlapPanel"
@@ -211,6 +212,14 @@ Changes in V007 (7.0.0):
                                      Style="{StaticResource BoxedTextInput}" TextAlignment="Right"
                                      IsEnabled="{Binding IsToleranceEnabled}" />
                             <TextBlock Text="Least space kept from nearby annotations; anything closer counts as in the way."
+                                       Style="{StaticResource HintText}" VerticalAlignment="Center" Margin="10,0,0,0" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="20,6,0,0">
+                            <TextBlock Text="Maximum move (mm)" VerticalAlignment="Center" Margin="0,0,8,0" />
+                            <TextBox Text="{Binding MaxMoveText, UpdateSourceTrigger=PropertyChanged}" Width="70"
+                                     Style="{StaticResource BoxedTextInput}" TextAlignment="Right"
+                                     IsEnabled="{Binding IsToleranceEnabled}" />
+                            <TextBlock Text="Furthest one annotation may move in a run; a pair with no free spot within it is skipped. 0 = no limit."
                                        Style="{StaticResource HintText}" VerticalAlignment="Center" Margin="10,0,0,0" />
                         </StackPanel>
                     </StackPanel>

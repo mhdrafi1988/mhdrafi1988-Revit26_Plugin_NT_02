@@ -170,6 +170,116 @@ namespace AnnotationOverlapDetection.Tests
                 OverlapResolver.Plan(PairWithNeighbourAbove(), OnePair, ResolveMode.MoveUp, 1.0, null, null, Avoid(-1)));
         }
 
+        private static ClearanceOptions AvoidMax(double maxMoveMm, double tol = 0) =>
+            new() { AvoidOthers = true, NeighbourToleranceMm = tol, MaxMoveMm = maxMoveMm };
+
+        [Fact]
+        public void MaxMove_SkipsPairWhoseFreeSpotIsTooFar()
+        {
+            // The free spot is 21 mm up (past neighbour 3); the limit is 10 mm.
+            var plan = OverlapResolver.Plan(PairWithNeighbourAbove(), OnePair, ResolveMode.MoveUp, 1.0, null, null, AvoidMax(10));
+
+            Assert.Equal(PairOutcome.Skipped, plan.Pairs[0].Outcome);
+            Assert.Equal("no free space within 10 mm for 1", plan.Pairs[0].Reason);
+            Assert.Empty(plan.MovesMm);
+        }
+
+        [Fact]
+        public void MaxMove_AllowsAMoveWithinTheLimit()
+        {
+            var plan = OverlapResolver.Plan(PairWithNeighbourAbove(), OnePair, ResolveMode.MoveUp, 1.0, null, null, AvoidMax(25));
+
+            Assert.Equal(PairOutcome.Planned, plan.Pairs[0].Outcome);
+            Assert.Equal(21.0, plan.MovesMm[1], 6);
+        }
+
+        [Fact]
+        public void MaxMove_Zero_MeansNoLimit()
+        {
+            var plan = OverlapResolver.Plan(PairWithNeighbourAbove(), OnePair, ResolveMode.MoveUp, 1.0, null, null, AvoidMax(0));
+
+            Assert.Equal(21.0, plan.MovesMm[1], 6);
+        }
+
+        [Fact]
+        public void MaxMove_CountsEarlierMovesOfTheSameElement()
+        {
+            var box = Box(1, 0, 0);
+            Assert.Null(OverlapResolver.FindFreeDelta(box, 5, -1, new List<ResolveBox>(), 0, null, maxMoveMm: 10, alreadyMovedMm: 8));
+            Assert.Equal(5.0, OverlapResolver.FindFreeDelta(box, 5, -1, new List<ResolveBox>(), 0, null, maxMoveMm: 10, alreadyMovedMm: 4)!.Value, 6);
+            Assert.Null(OverlapResolver.FindFreeDelta(box, -5, -1, new List<ResolveBox>(), 0, null, maxMoveMm: 10, alreadyMovedMm: -8));
+        }
+
+        [Fact]
+        public void InvalidMaxMove_Throws()
+        {
+            Assert.Throws<System.ArgumentOutOfRangeException>(() =>
+                OverlapResolver.Plan(PairWithNeighbourAbove(), OnePair, ResolveMode.MoveUp, 1.0, null, null, AvoidMax(-1)));
+        }
+
+        [Fact]
+        public void UnresolvedPair_ItsMovesAreTakenBack_AndSoIsAMoveThatWouldLandOnIt()
+        {
+            // Before the run: 1 and 2 overlap; 4 and 5 overlap; 4 is clear of 1.
+            var original = new Dictionary<long, ResolveBox>
+            {
+                [1] = Box(1, 0, 0), [2] = Box(2, 0, 5), [4] = Box(4, 0, 30), [5] = Box(5, 0, 25),
+            };
+            // Planned state: 1 moved up 6 but still overlaps 2 (pair given up); 4 moved down to 1's old spot.
+            var work = new Dictionary<long, ResolveBox>
+            {
+                [1] = Box(1, 0, 6), [2] = Box(2, 0, 5), [4] = Box(4, 0, -8), [5] = Box(5, 0, 25),
+            };
+            var plan = new ResolvePlan();
+            var p12 = new PairPlan { Id1 = 1, Id2 = 2, Outcome = PairOutcome.Skipped, Reason = "still overlapping after 10 passes" };
+            p12.MovedIds.Add(1);
+            var p45 = new PairPlan { Id1 = 4, Id2 = 5, Outcome = PairOutcome.Planned };
+            p45.MovedIds.Add(4);
+            plan.Pairs.Add(p12);
+            plan.Pairs.Add(p45);
+            plan.MovesMm[1] = 6;
+            plan.MovesMm[4] = -38;
+
+            OverlapResolver.UndoUnresolved(work, plan, original);
+
+            Assert.Empty(plan.MovesMm);                       // nothing moves
+            Assert.Equal(0.0, work[1].Y, 6);
+            Assert.Equal(30.0, work[4].Y, 6);
+            Assert.True(plan.Undone.ContainsKey(1));
+            Assert.Equal("would land on 1 once that stays put", plan.Undone[4]);
+            Assert.Equal("still overlapping after 10 passes (its moves were undone)", p12.Reason);
+            Assert.Equal(PairOutcome.Skipped, p45.Outcome);
+            Assert.Equal("not moved: 4 would land on 1 once that stays put", p45.Reason);
+        }
+
+        [Fact]
+        public void UndoUnresolved_KeepsMovesOfPairsThatSeparated()
+        {
+            var original = new Dictionary<long, ResolveBox>
+            {
+                [1] = Box(1, 0, 0), [2] = Box(2, 0, 5), [4] = Box(4, 100, 30), [5] = Box(5, 100, 25),
+            };
+            var work = new Dictionary<long, ResolveBox>
+            {
+                [1] = Box(1, 0, 6), [2] = Box(2, 0, 5), [4] = Box(4, 100, 35), [5] = Box(5, 100, 25),
+            };
+            var plan = new ResolvePlan();
+            var p12 = new PairPlan { Id1 = 1, Id2 = 2, Outcome = PairOutcome.Skipped, Reason = "no free space for 1" };
+            p12.MovedIds.Add(1);
+            var p45 = new PairPlan { Id1 = 4, Id2 = 5, Outcome = PairOutcome.Planned };
+            p45.MovedIds.Add(4);
+            plan.Pairs.Add(p12);
+            plan.Pairs.Add(p45);
+            plan.MovesMm[1] = 6;
+            plan.MovesMm[4] = 5;
+
+            OverlapResolver.UndoUnresolved(work, plan, original);
+
+            Assert.False(plan.MovesMm.ContainsKey(1));
+            Assert.Equal(5.0, plan.MovesMm[4], 6);
+            Assert.Equal(PairOutcome.Planned, p45.Outcome);
+        }
+
         [Fact]
         public void Near_WithZeroTolerance_MatchesIntersect()
         {

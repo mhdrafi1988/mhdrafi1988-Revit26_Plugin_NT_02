@@ -21,17 +21,25 @@ Each release lists every tool whose version changed, under the plugin version.
   - A moved annotation keeps going in the same direction past anything in its way, to the first free spot.
   - The pairs are checked again after each pass, up to 10 passes, so a later move cannot undo an earlier fix.
     A pair still overlapping after that is skipped ("still overlapping after 10 passes").
+  - A skipped pair that had already moved in earlier passes is put back: its annotations stay where they were, and
+    Status adds "(its moves were undone)". A move that would then land on one of them is taken back too. Moves of pairs
+    that did separate are kept. The banner counts them: "N annotation(s) left in place because their pair could not be
+    separated".
   - Before the run is saved, the real boxes are read back. A move that still lands on an annotation it did not overlap
     before is undone: the element stays where it was, and Status shows "Kept in place: 412893 would overlap 413020".
-    If a move cannot be undone, the whole run rolls back and nothing moves.
+    The check repeats until it finds nothing; every good move is kept. Only when a move cannot be put back does the
+    whole run roll back, so a new overlap is never saved.
 - **Neighbour tolerance (mm)** (default 1.00): the least space kept between a moved annotation and any other
   annotation. Anything closer than this counts as in the way. The clear gap still sets the space to the partner.
+- **Maximum move (mm)** (default 1000, in the same view units as the gap, so 10 mm on paper at 1:100; 0 = no limit):
+  the furthest one annotation may move in a run, all its moves counted. A pair whose free spot is further away is
+  skipped ("no free space within 1000 mm for 412907").
 - Everything else is as in V006 (By priority, priority order, cross-type checking).
 - Unit tests: `Tests/AnnotationOverlapDetection.Tests/ClearanceTests.cs`.
 
 #### Changed
 - V007 settings are saved to `%AppData%\Revit26_Plugin_Revised\AnnotationOverlapDetection\V007\settings.json`
-  (version 3, adds `AvoidOthers` and `NeighbourToleranceMm`). The first time, V007 starts from the V006 file (or the
+  (version 3, adds `AvoidOthers`, `NeighbourToleranceMm` and `MaxMoveMm`). The first time, V007 starts from the V006 file (or the
   V005 file), so your mode, gap and priority order carry over.
 
 ### Ribbon

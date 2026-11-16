@@ -7,7 +7,8 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V007.Models
     /// %AppData%\Revit26_Plugin_Revised\AnnotationOverlapDetection\V007\settings.json.
     /// On first run V007 reads the V006 file (AnnotationOverlapDetection\V006\settings.json, version 2),
     /// else the V005 file (AnnotationOverlapDetection\settings.json, version 1); missing fields keep
-    /// their defaults. Version 3 (V007) adds <see cref="AvoidOthers"/> and <see cref="NeighbourToleranceMm"/>;
+    /// their defaults. Version 3 (V007) adds <see cref="AvoidOthers"/>, <see cref="NeighbourToleranceMm"/>
+    /// and <see cref="MaxMoveMm"/>;
     /// a version 2 file loads with their defaults (off, 1 mm), which is the V006 behaviour.
     /// </summary>
     public sealed class AnnotationOverlapSettings
@@ -44,5 +45,11 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V007.Models
 
         /// <summary>V007: least space kept from neighbouring annotations, mm.</summary>
         public double NeighbourToleranceMm { get; set; } = 1.0;
+
+        /// <summary>Default for <see cref="MaxMoveMm"/>: 1000 mm in the view (10 mm on paper at 1:100).</summary>
+        public const double DefaultMaxMoveMm = 1000.0;
+
+        /// <summary>V007: longest total move of one annotation in a run, mm (0 = no limit).</summary>
+        public double MaxMoveMm { get; set; } = DefaultMaxMoveMm;
     }
 }

@@ -2,8 +2,8 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <!-- UI preview (CLAUDE.md "UI previews"): Annotation Overlap Detection V007, tool 7.0.0, plugin 7.13.0.
      New in 7.0.0 (V007, from V006 6.0.0): "Keep clear of other annotations in the view" checkbox and
-     "Neighbour tolerance (mm)" box in the Resolve Overlaps card; Status "Kept in place: … would overlap …";
-     banner line for undone moves; ribbon Overlaps pulldown lists V007 then V006 (V005 left the pulldown).
+     "Neighbour tolerance (mm)" and "Maximum move (mm)" boxes in the Resolve Overlaps card; Status "Kept in place: … would
+     overlap …", "no free space within … mm", "(its moves were undone)"; banner lines for undone and left-in-place moves; ribbon Overlaps pulldown lists V007 then V006 (V005 left the pulldown).
      Mirrors: Menu/Manage/AnnotationOverlapDetection_V007/Views/AnnotationOverlapPanel.xaml (+ AnnotationOverlapViewModel,
               MoveAnnotationsEventHandler, Helpers/OverlapResolver.cs), Menu/00_Push_Button_Menu_items/Ribbon/ManageRibbon.cs
      Artifact: https://claude.ai/artifact/TR1X3AFUDgCR8JpJqeWak1 (republish to this URL on every update)
@@ -196,8 +196,9 @@ ul{margin:0;padding-left:18px;line-height:1.55;max-width:75ch}
   <!-- Window -->
   <section>
     <h2>Tool window, Distribute, after one Resolve All run</h2>
-    <p class="muted">Keep clear is ticked. Seven pairs were moved apart without landing on anything. One move was undone in the check before saving,
-      because the real box of the text note (after its text reflowed) touched a dimension. One pair was skipped because a tag is pinned.</p>
+    <p class="muted">Keep clear is ticked. Six pairs were moved apart without landing on anything. Three are left, each with its reason:
+      one move was undone in the check before saving (the text note's real box, after its text reflowed, touched a dimension);
+      one door tag had no free spot within the 1000 mm limit; and one pair never separated, so the moves it had made were taken back.</p>
     <div class="frame">
       <div class="win">
         <div class="tbar"><span>Annotation Overlap Detection — v7.0.0</span><span class="x">–▢✕</span></div>
@@ -209,8 +210,8 @@ ul{margin:0;padding-left:18px;line-height:1.55;max-width:75ch}
         <div class="zone">
           <div class="metrics">
             <div class="metric"><div class="mlabel">Scanned</div><div class="mnum">186</div></div>
-            <div class="metric"><div class="mlabel">Overlaps Found</div><div class="mnum danger">2</div></div>
-            <div class="metric"><div class="mlabel">Breakdown</div><div>1 Text notes, 1 Door &amp; window tags</div></div>
+            <div class="metric"><div class="mlabel">Overlaps Found</div><div class="mnum danger">3</div></div>
+            <div class="metric"><div class="mlabel">Breakdown</div><div>1 Text notes, 2 Door &amp; window tags</div></div>
           </div>
 
           <div class="card">
@@ -235,13 +236,15 @@ ul{margin:0;padding-left:18px;line-height:1.55;max-width:75ch}
                 <tr><td><a href="#">398114</a></td><td>Text notes</td><td>22105.7500</td><td>4480.0000</td><td>No</td><td>0.00</td><td>0.00</td><td><a href="#">398220</a></td>
                   <td><span class="pill p-new">Kept in place: 398220 would overlap 405530</span> <span class="tag">NEW</span></td></tr>
                 <tr><td><a href="#">412893</a></td><td>Door &amp; window tags</td><td>15240.0000</td><td>9120.2500</td><td>Yes</td><td>0.00</td><td>0.00</td><td><a href="#">412907</a></td>
-                  <td><span class="pill p-warn">Skipped: 412907 pinned</span></td></tr>
+                  <td><span class="pill p-warn">Skipped: no free space within 1000 mm for 412907</span> <span class="tag">NEW</span></td></tr>
+                <tr><td><a href="#">413150</a></td><td>Door &amp; window tags</td><td>17830.5000</td><td>9122.0000</td><td>No</td><td>0.00</td><td>0.00</td><td><a href="#">413162</a></td>
+                  <td><span class="pill p-warn">Skipped: still overlapping after 10 passes (its moves were undone)</span> <span class="tag">NEW</span></td></tr>
               </tbody>
             </table>
           </div>
 
-          <div class="okbanner">Resolved 7 of 9 pair(s): moved 13 element(s). 2 pair(s) skipped or failed; see the Status column.
-            <b>1 move(s) undone because they would land on another annotation.</b> <span class="tag">NEW</span> One Undo in Revit reverts this run. 2 overlap(s) remain.</div>
+          <div class="okbanner">Resolved 6 of 9 pair(s): moved 11 element(s). 3 pair(s) skipped or failed; see the Status column.
+            <b>1 move(s) undone because they would land on another annotation. 1 annotation(s) left in place because their pair could not be separated.</b> <span class="tag">NEW</span> One Undo in Revit reverts this run. 3 overlap(s) remain.</div>
 
           <div class="card">
             <div class="ctitle">Resolve Overlaps</div>
@@ -262,11 +265,15 @@ ul{margin:0;padding-left:18px;line-height:1.55;max-width:75ch}
                 <label for="tol">Neighbour tolerance (mm)</label><input id="tol" class="input" value="1.00" readonly>
                 <span class="hint">Least space kept from nearby annotations; anything closer counts as in the way.</span> <span class="tag">NEW</span>
               </div>
+              <div class="resrow indent" style="margin-top:2px">
+                <label for="maxmove">Maximum move (mm)</label><input id="maxmove" class="input" value="1000" readonly>
+                <span class="hint">Furthest one annotation may move in a run; a pair with no free spot within it is skipped. 0 = no limit.</span> <span class="tag">NEW</span>
+              </div>
             </div>
           </div>
         </div>
 
-        <div class="status"><span class="bar"><i></i></span>186 annotations scanned · 2 overlaps</div>
+        <div class="status"><span class="bar"><i></i></span>186 annotations scanned · 3 overlaps</div>
         <div class="foot">
           <span class="btn">Resolve Selected</span>
           <span class="btn acc">Resolve All</span>
@@ -286,10 +293,15 @@ ul{margin:0;padding-left:18px;line-height:1.55;max-width:75ch}
         the annotation keeps going in the same direction to the first free spot.</li>
       <li><b>Neighbour tolerance</b> is the least space kept from every other annotation. With 1 mm, an annotation 0.5 mm away counts as in the way.
         The clear gap still sets the space to the partner.</li>
+      <li><b>Maximum move</b> (default 1000 mm, the same view units as the gap: 10 mm on paper at 1:100) caps how far one annotation may
+        travel in a run, counting all its moves. A pair whose free spot is further away is skipped: "no free space within 1000 mm". 0 = no limit. <span class="tag">NEW</span></li>
       <li>After a pass over the pairs, they are checked again, up to 10 passes, so a later move cannot undo an earlier one.
         A pair still overlapping after that is skipped: "still overlapping after 10 passes".</li>
+      <li>A pair that is skipped but had already moved in earlier passes is put back: its annotations stay where they were, and Status adds
+        "(its moves were undone)". Any other move that would then land on one of them is taken back too. Moves of pairs that did separate are kept. <span class="tag">NEW</span></li>
       <li>Before saving, the real boxes are read back. A move that lands on an annotation it did not overlap before is undone,
-        and Status says "Kept in place". If a move cannot be undone, the whole run rolls back and nothing moves.</li>
+        and Status says "Kept in place". The check repeats until it finds nothing, and every good move is kept. <span class="tag">NEW</span>
+        Only if a move cannot be put back does the whole run roll back, so a new overlap is never saved.</li>
       <li>With the box unticked, V007 resolves exactly like V006. Your choice and the tolerance are remembered
         (V007 settings file; the first time it starts from your V006 settings).</li>
       <li>One run is one transaction: one Undo reverts it. Esc / Cancel during a run moves nothing.</li>

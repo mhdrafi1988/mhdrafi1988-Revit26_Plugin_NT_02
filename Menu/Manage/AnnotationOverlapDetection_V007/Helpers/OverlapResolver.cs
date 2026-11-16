@@ -125,6 +125,12 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V007.Helpers
 
         /// <summary>Most passes over the pairs before giving up on the ones still overlapping.</summary>
         public int MaxPasses { get; set; } = OverlapResolver.DefaultMaxPasses;
+
+        /// <summary>
+        /// Longest total move of one element in a run, mm (0 = no limit, up to
+        /// <see cref="OverlapResolver.MaxMoveLimitMm"/>). A pair whose free spot is further away is skipped.
+        /// </summary>
+        public double MaxMoveMm { get; set; }
     }
 
     /// <summary>Planned moves for a whole resolve run.</summary>
@@ -135,6 +141,13 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V007.Helpers
 
         /// <summary>One entry per requested pair, in request order.</summary>
         public List<PairPlan> Pairs { get; } = new();
+
+        /// <summary>
+        /// With <see cref="ClearanceOptions.AvoidOthers"/>: elements whose planned moves were taken back
+        /// because a pair they belong to could not be separated (or because they would then land on an
+        /// element that was taken back). They stay where they are. Value: why.
+        /// </summary>
+        public Dictionary<long, string> Undone { get; } = new();
     }
 
     /// <summary>
@@ -154,6 +167,9 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V007.Helpers
 
         /// <summary>Most obstacles one element may be pushed past in one move before it gives up.</summary>
         public const int MaxPushSteps = 500;
+
+        /// <summary>Largest maximum move accepted, mm.</summary>
+        public const double MaxMoveLimitMm = 100000.0;
 
         /// <summary>
         /// Plans the moves that separate each pair vertically.
@@ -191,6 +207,9 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V007.Helpers
             double tolerance = avoid ? clearance.NeighbourToleranceMm : 0;
             if (avoid && (double.IsNaN(tolerance) || tolerance < 0 || tolerance > MaxGapMm))
                 throw new ArgumentOutOfRangeException(nameof(clearance), $"Neighbour tolerance must be between 0 and {MaxGapMm} mm.");
+            double maxMove = avoid ? clearance.MaxMoveMm : 0;
+            if (avoid && (double.IsNaN(maxMove) || maxMove < 0 || maxMove > MaxMoveLimitMm))
+                throw new ArgumentOutOfRangeException(nameof(clearance), $"Maximum move must be between 0 and {MaxMoveLimitMm} mm.");
 
             // Working copy, updated as moves are planned.
             var work = new Dictionary<long, ResolveBox>();
@@ -204,7 +223,7 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V007.Helpers
             var ctx = new PlanContext
             {
                 Work = work, Plan = plan, Mode = mode, GapMm = gapMm, BlockReason = blockReason,
-                Priority = priority, Avoid = avoid, ToleranceMm = tolerance
+                Priority = priority, Avoid = avoid, ToleranceMm = tolerance, MaxMoveMm = maxMove
             };
 
             // Pass 1 is the V006 algorithm (plus the free-spot search when avoiding others). Later
@@ -243,7 +262,82 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V007.Helpers
                 }
             }
 
+            if (avoid)
+                UndoUnresolved(work, plan, boxes);
+
             return plan;
+        }
+
+        /// <summary>
+        /// A pair that ends skipped but still overlapping may have moved in earlier passes. Those moves
+        /// fixed nothing, so they are taken back: the pair's moved elements return to where they were.
+        /// Taking one back can leave another moved element on top of it (it moved into the gap the first
+        /// one was going to leave); that one is taken back too, until nothing changes. Moves of pairs
+        /// that did separate are kept.
+        /// </summary>
+        internal static void UndoUnresolved(Dictionary<long, ResolveBox> work, ResolvePlan plan,
+            IReadOnlyDictionary<long, ResolveBox> original)
+        {
+            var undo = new Dictionary<long, string>();
+            foreach (PairPlan entry in plan.Pairs)
+            {
+                if (entry.Outcome != PairOutcome.Skipped || entry.MovedIds.Count == 0)
+                    continue;
+                if (!work.TryGetValue(entry.Id1, out var a) || !work.TryGetValue(entry.Id2, out var b) || !Intersect(a, b))
+                    continue;
+                foreach (long id in entry.MovedIds)
+                    if (!undo.ContainsKey(id))
+                        undo[id] = $"pair {entry.Id1} / {entry.Id2} could not be separated";
+            }
+            if (undo.Count == 0)
+                return;
+
+            var reverted = new HashSet<long>();
+            bool grew = true;
+            while (grew)
+            {
+                grew = false;
+                foreach (var kv in undo)
+                {
+                    if (!reverted.Add(kv.Key))
+                        continue;
+                    work[kv.Key].Y = original[kv.Key].Y;
+                    plan.MovesMm.Remove(kv.Key);
+                    plan.Undone[kv.Key] = kv.Value;
+                }
+
+                // A kept move that now overlaps something it did not overlap before the run goes too.
+                foreach (long m in new List<long>(plan.MovesMm.Keys))
+                {
+                    ResolveBox mine = work[m];
+                    foreach (ResolveBox o in work.Values)
+                    {
+                        if (o.Id == m || !Intersect(mine, o) || Intersect(original[m], original[o.Id]))
+                            continue;
+                        undo[m] = $"would land on {o.Id} once that stays put";
+                        grew = true;
+                        break;
+                    }
+                }
+            }
+
+            foreach (PairPlan entry in plan.Pairs)
+            {
+                long first = entry.MovedIds.Find(reverted.Contains);
+                if (first == 0)
+                    continue;
+                entry.MovedIds.RemoveAll(reverted.Contains);
+                bool overlaps = work.TryGetValue(entry.Id1, out var a) && work.TryGetValue(entry.Id2, out var b) && Intersect(a, b);
+                if (entry.Outcome == PairOutcome.Skipped)
+                    entry.Reason += " (its moves were undone)";
+                else if (overlaps)
+                {
+                    entry.Outcome = PairOutcome.Skipped;
+                    entry.Reason = $"not moved: {first} {plan.Undone[first]}";
+                }
+                else if (entry.MovedIds.Count == 0)
+                    entry.Outcome = PairOutcome.AlreadyClear;
+            }
         }
 
         private sealed class PlanContext
@@ -256,6 +350,7 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V007.Helpers
             public PriorityOptions Priority;
             public bool Avoid;
             public double ToleranceMm;
+            public double MaxMoveMm;
         }
 
         /// <summary>
@@ -349,13 +444,17 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V007.Helpers
             {
                 var (box, delta) = movers[i];
                 long partnerId = box.Id == a.Id ? b.Id : a.Id;
-                double? free = FindFreeDelta(box, delta, partnerId, ctx.Work.Values, ctx.ToleranceMm, pushed);
+                double already = ctx.Plan.MovesMm.TryGetValue(box.Id, out var sum) ? sum : 0;
+                double? free = FindFreeDelta(box, delta, partnerId, ctx.Work.Values, ctx.ToleranceMm, pushed,
+                    ctx.MaxMoveMm, already);
                 if (free == null)
                 {
                     for (int k = 0; k < i; k++)
                         movers[k].box.Y = originalY[k];
                     entry.Outcome = PairOutcome.Skipped;
-                    entry.Reason = $"no free space for {box.Id}";
+                    entry.Reason = ctx.MaxMoveMm > 0
+                        ? $"no free space within {ctx.MaxMoveMm:0.##} mm for {box.Id}"
+                        : $"no free space for {box.Id}";
                     return false;
                 }
 
@@ -377,10 +476,12 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V007.Helpers
         /// Smallest move of <paramref name="box"/>, in the direction of <paramref name="delta"/> and at
         /// least as long, that leaves it at least <paramref name="toleranceMm"/> from every box in
         /// <paramref name="others"/> except itself and <paramref name="partnerId"/>. Null when no spot
-        /// is found within <see cref="MaxPushSteps"/> pushes.
+        /// is found within <see cref="MaxPushSteps"/> pushes, or (with <paramref name="maxMoveMm"/> above 0)
+        /// when the element's total move, <paramref name="alreadyMovedMm"/> included, would exceed it.
         /// </summary>
         public static double? FindFreeDelta(ResolveBox box, double delta, long partnerId,
-            IEnumerable<ResolveBox> others, double toleranceMm, List<long> pushedPast = null)
+            IEnumerable<ResolveBox> others, double toleranceMm, List<long> pushedPast = null,
+            double maxMoveMm = 0, double alreadyMovedMm = 0)
         {
             if (box == null) throw new ArgumentNullException(nameof(box));
             if (others == null) throw new ArgumentNullException(nameof(others));
@@ -389,6 +490,10 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V007.Helpers
             double y = box.Y + delta;
             for (int step = 0; step < MaxPushSteps; step++)
             {
+                // Pushes only go further in one direction, so once past the limit there is no spot.
+                if (maxMoveMm > 0 && Math.Abs(alreadyMovedMm + (y - box.Y)) > maxMoveMm + 1e-9)
+                    return null;
+
                 // Every box in the way at this spot; jump past the furthest one in one go.
                 ResolveBox far = null;
                 foreach (ResolveBox o in others)
