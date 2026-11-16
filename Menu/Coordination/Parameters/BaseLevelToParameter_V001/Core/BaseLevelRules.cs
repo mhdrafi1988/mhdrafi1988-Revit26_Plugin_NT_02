@@ -170,6 +170,7 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.Core
         private static RowVerdict? SkipReason(ElementFacts e, bool variesAcrossGroups)
         {
             if (e.CategoryUnsupported) return new RowVerdict(RowState.Warning, "Skipped · category takes no parameters");
+            if (e.CategoryNotSelected) return new RowVerdict(RowState.Warning, "Skipped · category not selected for the new parameter");
             if (!string.IsNullOrEmpty(e.OwnedBy)) return new RowVerdict(RowState.Warning, $"Skipped · owned by {e.OwnedBy}");
             if (e.OutOfDate) return new RowVerdict(RowState.Warning, "Skipped · changed in central, reload latest");
             if (e.InGroup && !variesAcrossGroups) return new RowVerdict(RowState.Warning, "Skipped · in a group (value cannot vary by group)");
@@ -285,10 +286,24 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.Core
             int supported = t.CategoryCount - t.UnsupportedCategories.Count;
             if (supported <= 0)
                 return new PrecheckItem(title, CheckResult.Blocked, "None of the ticked elements' categories allow bound parameters.");
+
+            // 1.4.0: a new parameter bound to selected categories only.
+            int selectedUsable = supported - t.NotSelectedCategories.Count;
+            if (t.SelectedCategoryCount > 0 && selectedUsable <= 0)
+                return new PrecheckItem(title, CheckResult.Blocked,
+                    $"None of the ticked elements' categories is selected for the new parameter ({t.SelectedCategoryCount} selected). Tick other elements or change the categories in New Parameter….");
+
+            var parts = new List<string>();
+            if (t.SelectedCategoryCount > 0)
+                parts.Add($"New parameter bound to {t.SelectedCategoryCount} selected categor{(t.SelectedCategoryCount == 1 ? "y" : "ies")}.");
             if (t.UnsupportedCategories.Count > 0)
-                return new PrecheckItem(title, CheckResult.Warning,
-                    $"{supported} of {t.CategoryCount} categories allow bound parameters. {Join(t.UnsupportedCategories)} do not; their elements are skipped.");
-            return new PrecheckItem(title, CheckResult.Pass, $"{t.CategoryCount} of {t.CategoryCount} categories allow bound parameters.");
+                parts.Add($"{supported} of {t.CategoryCount} categories allow bound parameters. {Join(t.UnsupportedCategories)} do not; their elements are skipped.");
+            if (t.NotSelectedCategories.Count > 0)
+                parts.Add($"{Join(t.NotSelectedCategories)} {(t.NotSelectedCategories.Count == 1 ? "is" : "are")} not selected; {(t.NotSelectedCategories.Count == 1 ? "its" : "their")} elements are skipped.");
+            if (t.UnsupportedCategories.Count > 0 || t.NotSelectedCategories.Count > 0)
+                return new PrecheckItem(title, CheckResult.Warning, string.Join(" ", parts));
+            parts.Add($"{t.CategoryCount} of {t.CategoryCount} categories allow bound parameters.");
+            return new PrecheckItem(title, CheckResult.Pass, string.Join(" ", parts));
         }
 
         // ── e · Document and elements ─────────────────────────────────────────

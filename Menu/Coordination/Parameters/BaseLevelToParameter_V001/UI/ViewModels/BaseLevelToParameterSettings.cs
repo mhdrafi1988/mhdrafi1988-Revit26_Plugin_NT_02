@@ -8,7 +8,7 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.UI.ViewModels
     public class BaseLevelToParameterSettings
     {
         /// <summary>Settings format version.</summary>
-        public int Version { get; set; } = 2;
+        public int Version { get; set; } = 3;
 
         /// <summary>Shared parameter file last used for a new parameter.</summary>
         public string SharedParamFilePath { get; set; } = string.Empty;
@@ -27,5 +27,11 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.UI.ViewModels
 
         /// <summary>Custom pattern with {Level} and {Offset} (settings version 2).</summary>
         public string CustomPattern { get; set; } = Core.ValueFormatter.DefaultCustomPattern;
+
+        /// <summary>The "Target parameter" card is open (settings version 3; missing in an older file → open).</summary>
+        public bool TargetExpanded { get; set; } = true;
+
+        /// <summary>The "Pre-checks" card is open (settings version 3; missing in an older file → open).</summary>
+        public bool ChecksExpanded { get; set; } = true;
     }
 }

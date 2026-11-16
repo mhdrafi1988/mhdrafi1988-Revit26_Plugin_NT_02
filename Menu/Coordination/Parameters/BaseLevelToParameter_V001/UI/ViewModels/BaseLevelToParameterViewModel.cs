@@ -32,6 +32,7 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.UI.ViewModels
         private bool _bulkTick;
         private string _revitSharedParamFile = string.Empty;
         private BaseLevelToParameterSettings _settings;
+        private List<string> _bindableCategories = new();
 
         /// <summary>Creates the view model; call <see cref="Initialize"/> on the Revit API thread before showing the window.</summary>
         public BaseLevelToParameterViewModel(BaseLevelEventHandler handler, ExternalEvent externalEvent, string documentTitle)
@@ -97,6 +98,12 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.UI.ViewModels
         [ObservableProperty] private int _upToDateCount;
         [ObservableProperty] private int _hasValueCount;
         private bool _bulkChoice;
+
+        /// <summary>The "Target parameter" card is open (1.4.0; remembered).</summary>
+        [ObservableProperty] private bool _targetExpanded = true;
+
+        /// <summary>The "Pre-checks" card is open (1.4.0; remembered).</summary>
+        [ObservableProperty] private bool _checksExpanded = true;
 
         /// <summary>
         /// "Clear old values, write only new values" (1.3.0): every different value is rewritten (row choices are
@@ -219,7 +226,9 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.UI.ViewModels
             TargetKind = option != null
                 ? option.Kind
                 : PendingNew != null && string.Equals(PendingNew.Name, value?.Trim(), StringComparison.OrdinalIgnoreCase)
-                    ? "New · Shared · Instance · Text (created on Run)"
+                    ? (PendingNew.HasCategorySelection
+                        ? $"New · Shared · Instance · Text (created on Run) · {PendingNew.Categories.Count} selected categor{(PendingNew.Categories.Count == 1 ? "y" : "ies")}"
+                        : "New · Shared · Instance · Text (created on Run)")
                     : string.IsNullOrWhiteSpace(value) ? string.Empty : "Not in the project · use New Parameter…";
             ScheduleRecheck();
         }
@@ -248,6 +257,8 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.UI.ViewModels
             _settings = SettingsService<BaseLevelToParameterSettings>.Load(ToolCatalog.BaseLevelToParameter.Name);
             _revitSharedParamFile = doc.Application.SharedParametersFilename ?? string.Empty;
             RestoreFormat();
+            TargetExpanded = _settings.TargetExpanded;
+            ChecksExpanded = _settings.ChecksExpanded;
             LoadParameters(doc);
             ListFromView(doc, activeView);
             if (!string.IsNullOrWhiteSpace(_settings.LastTargetName) &&
@@ -265,7 +276,9 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.UI.ViewModels
             _settings.LastTargetName = TargetName ?? string.Empty;
             _settings.ValueFormat = Format.ToString();
             _settings.CustomPattern = CustomPattern ?? ValueFormatter.DefaultCustomPattern;
-            _settings.Version = 2;
+            _settings.TargetExpanded = TargetExpanded;
+            _settings.ChecksExpanded = ChecksExpanded;
+            _settings.Version = 3;
             SettingsService<BaseLevelToParameterSettings>.Save(ToolCatalog.BaseLevelToParameter.Name, _settings);
         }
 
@@ -355,10 +368,12 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.UI.ViewModels
                 : TargetName?.Trim() ?? string.Empty;
             string file = PendingNew?.FilePath;
             if (string.IsNullOrWhiteSpace(file)) file = string.IsNullOrWhiteSpace(_settings?.SharedParamFilePath) ? _revitSharedParamFile : _settings.SharedParamFilePath;
-            var categories = Rows.Where(r => r.IsChecked).Select(r => r.Category).Distinct().OrderBy(c => c);
+            var categories = Rows.Where(r => r.IsChecked).Select(r => r.Category).Distinct().OrderBy(c => c).ToList();
+            var tickedCounts = Rows.Where(r => r.IsChecked).GroupBy(r => r.Category, StringComparer.OrdinalIgnoreCase)
+                .ToDictionary(g => g.Key, g => g.Count(), StringComparer.OrdinalIgnoreCase);
 
             var dialog = new NewParameterViewModel(startName, file, PendingNew?.FileGroup ?? _settings?.FileGroup,
-                ProjectParameters.Select(p => p.Name), categories);
+                ProjectParameters.Select(p => p.Name), categories, _bindableCategories, tickedCounts, PendingNew?.Categories);
             if (ShowNewParameterDialog(dialog) != true) return;
 
             PendingNew = dialog.Result;
@@ -368,6 +383,8 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.UI.ViewModels
                 _settings.FileGroup = PendingNew.FileGroup;
             }
             AddLog(LogLevel.Info, $"New parameter “{PendingNew.Name}” set as target; it is created in {PendingNew.FilePath} / {PendingNew.FileGroup} and the project when you press Run.");
+            if (PendingNew.HasCategorySelection)
+                AddLog(LogLevel.Info, $"“{PendingNew.Name}” is bound only to the {PendingNew.Categories.Count} selected categor{(PendingNew.Categories.Count == 1 ? "y" : "ies")}: {string.Join(", ", PendingNew.Categories)}. Ticked elements of other categories are skipped.");
             TargetName = PendingNew.Name;
             OnTargetNameChanged(TargetName); // refresh the kind text even when the name did not change
         }
@@ -614,6 +631,7 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.UI.ViewModels
             string keep = TargetName;
             ProjectParameters.Clear();
             foreach (var p in TargetParameterService.ListProjectParameters(doc)) ProjectParameters.Add(p);
+            _bindableCategories = TargetParameterService.ListBindableCategories(doc);
             if (TargetName != keep) TargetName = keep;
         }
 

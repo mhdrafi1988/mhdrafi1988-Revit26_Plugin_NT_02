@@ -3,6 +3,8 @@
 File: NewParameterDialog.xaml  (Base Level to Parameter V001)
 Defines a new shared instance Text parameter. Nothing is created here: the main window creates it
 (in the shared parameter file and the project) when Run is pressed.
+Categories (1.4.0): bind to the ticked elements' categories (default) or only to the categories
+ticked in a searchable grid.
 Preview: Claude/Previews/BaseLevelToParameter_V001_Window.html (section 3)
 =======================================================
 -->
@@ -12,7 +14,7 @@ Preview: Claude/Previews/BaseLevelToParameter_V001_Window.html (section 3)
         xmlns:svc="clr-namespace:Revit26_Plugin_Revised.Shared.Services"
         xmlns:local="clr-namespace:Revit26_Plugin_Revised.BaseLevelToParameter.V001.UI.Views"
         Title="{Binding Source={x:Static svc:ToolCatalog.BaseLevelToParameter}, Path=Title, StringFormat=New Parameter — {0}}"
-        Width="600" SizeToContent="Height" ResizeMode="NoResize"
+        Width="640" SizeToContent="Height" ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
         Background="{DynamicResource BrushSurfaceWindow}">
 
@@ -22,6 +24,7 @@ Preview: Claude/Previews/BaseLevelToParameter_V001_Window.html (section 3)
                 <ResourceDictionary Source="pack://application:,,,/Revit26_Plugin_Revised;component/Shared/SharedStyles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
             <local:StatusBrushConverter x:Key="StatusBrush"/>
+            <BooleanToVisibilityConverter x:Key="BoolToVis"/>
         </ResourceDictionary>
     </Window.Resources>
 
@@ -75,8 +78,55 @@ Preview: Claude/Previews/BaseLevelToParameter_V001_Window.html (section 3)
                 <TextBlock Grid.Row="4" Text="Properties group" Style="{StaticResource FieldLabel}" VerticalAlignment="Center"/>
                 <TextBlock Grid.Row="4" Grid.Column="1" Text="Data" Margin="0,0,0,8"/>
 
-                <TextBlock Grid.Row="5" Text="Categories" Style="{StaticResource FieldLabel}" VerticalAlignment="Top"/>
-                <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding CategoriesText}" TextWrapping="Wrap" Margin="0,0,0,8"/>
+                <TextBlock Grid.Row="5" Text="Categories" Style="{StaticResource FieldLabel}" VerticalAlignment="Top" Margin="0,2,0,0"/>
+                <StackPanel Grid.Row="5" Grid.Column="1" Margin="0,0,0,8">
+                    <RadioButton GroupName="BindTo" Content="{Binding TickedElementCategoriesLabel}" IsChecked="{Binding TickedElementCategories}" Margin="0,2"
+                                 ToolTip="Bind the new parameter to the categories of the elements ticked in the main window (the default)."/>
+                    <RadioButton GroupName="BindTo" Content="Only the selected categories" IsChecked="{Binding OnlySelectedCategories}" Margin="0,2"
+                                 ToolTip="Bind the new parameter only to the categories ticked in the list below. Ticked elements of other categories are skipped."/>
+                    <TextBlock Text="{Binding CategoriesText}" Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="20,2,0,0" MaxHeight="48"
+                               TextTrimming="CharacterEllipsis"/>
+
+                    <StackPanel Margin="20,6,0,0" Visibility="{Binding OnlySelectedCategories, Converter={StaticResource BoolToVis}}">
+                        <DockPanel Margin="0,0,0,6">
+                            <CheckBox DockPanel.Dock="Right" Content="Ticked only" IsChecked="{Binding TickedCategoriesOnly}" VerticalAlignment="Center" Margin="8,0,0,0"
+                                      ToolTip="Show only categories that have ticked elements in the main window."/>
+                            <TextBox Text="{Binding CategorySearch, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BoxedTextInput}"
+                                     ToolTip="Search categories by name."/>
+                        </DockPanel>
+                        <DataGrid ItemsSource="{Binding CategoryOptionsView}" Style="{StaticResource StandardDataGrid}"
+                                  ColumnHeaderStyle="{StaticResource StandardDataGridColumnHeader}"
+                                  CellStyle="{StaticResource StandardDataGridCell}" RowStyle="{StaticResource StandardDataGridRow}"
+                                  AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" CanUserSortColumns="True"
+                                  SelectionMode="Single" HeadersVisibility="Column" Height="220"
+                                  BorderBrush="{StaticResource BrushSeparator}" BorderThickness="1"
+                                  EnableRowVirtualization="True" VirtualizingPanel.IsVirtualizing="True">
+                            <DataGrid.Columns>
+                                <DataGridTemplateColumn Header="" Width="34" SortMemberPath="IsSelected">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <CheckBox HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                      IsChecked="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}"/>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTextColumn Header="Category" Width="*" Binding="{Binding Name, Mode=OneWay}"/>
+                                <DataGridTextColumn Header="Ticked elements" Width="120" Binding="{Binding TickedText, Mode=OneWay}" SortMemberPath="TickedCount"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                        <DockPanel Margin="0,6,0,0">
+                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                <Button Content="Ticked elements" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,4,0" Command="{Binding SelectTickedCategoriesCommand}"
+                                        ToolTip="Select exactly the categories of the ticked elements."/>
+                                <Button Content="Select shown" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,4,0" Command="{Binding SelectShownCategoriesCommand}"
+                                        ToolTip="Tick every category the search shows."/>
+                                <Button Content="Clear shown" Style="{StaticResource SmallSecondaryButton}" Command="{Binding ClearShownCategoriesCommand}"
+                                        ToolTip="Untick every category the search shows."/>
+                            </StackPanel>
+                            <TextBlock Text="{Binding SelectedCategoriesText}" Style="{StaticResource HintText}" VerticalAlignment="Center"/>
+                        </DockPanel>
+                    </StackPanel>
+                </StackPanel>
             </Grid>
 
             <ItemsControl ItemsSource="{Binding Checks}" Margin="0,4,0,0">

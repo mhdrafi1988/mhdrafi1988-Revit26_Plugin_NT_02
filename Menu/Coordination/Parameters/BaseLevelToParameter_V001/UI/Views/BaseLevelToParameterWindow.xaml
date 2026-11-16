@@ -3,7 +3,8 @@
 File: BaseLevelToParameterWindow.xaml  (Base Level to Parameter V001)
 ToolWindowShell layout:
   HEADER  metric tiles (Elements Listed / Checked / Ready / Up to Date / Has Value / Warnings / Blocked)
-  BODY    source toolbar, target parameter + pre-checks a–e, element grid grouped by category, activity log
+  BODY    source toolbar, target parameter + pre-checks a–e (each an expandable card, 1.4.0),
+          element grid grouped by category, activity log
   FOOTER  run summary, Run, Close
 Preview: Claude/Previews/BaseLevelToParameter_V001_Window.html
 =======================================================
@@ -30,6 +31,7 @@ Preview: Claude/Previews/BaseLevelToParameter_V001_Window.html
             <local:StatusBrushConverter x:Key="StatusBrush"/>
             <converters:InverseBoolConverter x:Key="InverseBool"/>
             <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+            <converters:InverseBoolToVisibilityConverter x:Key="InverseBoolToVis"/>
         </ResourceDictionary>
     </Window.Resources>
 
@@ -132,9 +134,18 @@ Preview: Claude/Previews/BaseLevelToParameter_V001_Window.html
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
 
-                    <Border Style="{StaticResource BaseCard}" Padding="12,10">
-                        <StackPanel>
-                            <TextBlock Text="Target parameter" Style="{StaticResource SectionTitle}" Margin="0,0,0,8"/>
+                    <Border Style="{StaticResource BaseCard}" Padding="12,10" VerticalAlignment="Top">
+                        <Expander IsExpanded="{Binding TargetExpanded}" BorderThickness="0"
+                                  ToolTip="Click the title to show or hide this card. Remembered for next time.">
+                            <Expander.Header>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="Target parameter" Style="{StaticResource SectionTitle}" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{Binding TargetName}" Style="{StaticResource HintText}" VerticalAlignment="Center" Margin="10,0,0,0"
+                                               MaxWidth="240" TextTrimming="CharacterEllipsis"
+                                               Visibility="{Binding TargetExpanded, Converter={StaticResource InverseBoolToVis}}"/>
+                                </StackPanel>
+                            </Expander.Header>
+                        <StackPanel Margin="0,8,0,0">
                             <TextBlock Text="Parameter" Style="{StaticResource FieldLabel}"/>
                             <ComboBox IsEditable="True" IsTextSearchEnabled="True" TextSearch.TextPath="Name"
                                       ItemsSource="{Binding ProjectParameters}"
@@ -188,16 +199,25 @@ Preview: Claude/Previews/BaseLevelToParameter_V001_Window.html
                             <TextBlock Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="0,4,0,0"
                                        Text="Offset in mm, signed, whole millimetres. The format is remembered for next time."/>
                         </StackPanel>
+                        </Expander>
                     </Border>
 
-                    <Border Grid.Column="2" Style="{StaticResource BaseCard}">
-                        <DockPanel>
-                            <DockPanel DockPanel.Dock="Top" Margin="12,10,12,4">
-                                <Button DockPanel.Dock="Right" Content="Re-check" Style="{StaticResource SmallSecondaryButton}" Command="{Binding RecheckCommand}"/>
-                                <TextBlock Text="Pre-checks" Style="{StaticResource SectionTitle}" VerticalAlignment="Center"/>
-                                <TextBlock Text="Run before any change; refreshed when the parameter or the ticked rows change." Style="{StaticResource HintText}"
-                                           VerticalAlignment="Center" Margin="8,0,0,0" TextTrimming="CharacterEllipsis"/>
-                            </DockPanel>
+                    <Border Grid.Column="2" Style="{StaticResource BaseCard}" VerticalAlignment="Top">
+                        <Expander IsExpanded="{Binding ChecksExpanded}" BorderThickness="0" Margin="12,10,12,0"
+                                  ToolTip="Click the title to show or hide this card. Remembered for next time.">
+                            <Expander.Header>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="Pre-checks" Style="{StaticResource SectionTitle}" VerticalAlignment="Center"/>
+                                    <Button Content="Re-check" Style="{StaticResource SmallSecondaryButton}" Command="{Binding RecheckCommand}" Margin="10,0,0,0"/>
+                                    <TextBlock Text="Run before any change; refreshed when the parameter or the ticked rows change." Style="{StaticResource HintText}"
+                                               VerticalAlignment="Center" Margin="8,0,0,0" MaxWidth="440" TextTrimming="CharacterEllipsis"
+                                               Visibility="{Binding ChecksExpanded, Converter={StaticResource BoolToVis}}"/>
+                                    <TextBlock Text="{Binding ChecksSummary}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="10,0,0,0"
+                                               MaxWidth="500" TextTrimming="CharacterEllipsis"
+                                               Visibility="{Binding ChecksExpanded, Converter={StaticResource InverseBoolToVis}}"/>
+                                </StackPanel>
+                            </Expander.Header>
+                        <DockPanel Margin="-12,4,-12,0">
                             <Border DockPanel.Dock="Bottom" Background="{StaticResource BrushSystemSecondaryBackground}" BorderBrush="{StaticResource BrushBorderDefault}"
                                     BorderThickness="0,1,0,0" CornerRadius="0,0,4,4" Padding="12,8">
                                 <TextBlock Text="{Binding ChecksSummary}" FontWeight="SemiBold" TextWrapping="Wrap"/>
@@ -224,6 +244,7 @@ Preview: Claude/Previews/BaseLevelToParameter_V001_Window.html
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
                         </DockPanel>
+                        </Expander>
                     </Border>
                 </Grid>
 
