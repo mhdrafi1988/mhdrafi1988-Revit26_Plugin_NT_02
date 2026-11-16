@@ -49,7 +49,7 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 | Rafi_Pro_Docs | Waterproofing | Wet Area Waterproofing |
 | Rafi_Pro_Docs2 | DWG Tools | DWG To DL(P) · Export DWG · DWG Manager · DWG Statistics |
 | Rafi_Pro_Docs2 | Family Tools | Batch Link DWG · DWG To Lines |
-| Rafi_Pro_Docs2 | Manage | Overlaps (V006, V005) · Overlap Report · ParaManager · Shared Params · Schedule I/O · Link Check ▸ slide-out: Del. Line Styles · Bulk Rename · Tracker ID |
+| Rafi_Pro_Docs2 | Manage | Overlaps (V007, V006) · Overlap Report · ParaManager · Shared Params · Schedule I/O · Link Check ▸ slide-out: Del. Line Styles · Bulk Rename · Tracker ID |
 | Rafi_Pro_Docs2 | Worksets | WS Browser · WS Creator · WS Renamer ▸ slide-out: WS Renamer XL · Delete Workset |
 | Rafi_Pro_Docs2 | Memory | WS Memory · Link Memory |
 | Rafi_Pro_Docs2 | Coordination | Void Openings · Base Level to Parameter |
