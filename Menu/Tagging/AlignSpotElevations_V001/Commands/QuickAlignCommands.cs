@@ -62,9 +62,13 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Commands
         /// <summary>
         /// Quick Align Ends / Bends to Tag: the user clicks one spot elevation, and the <paramref name="part"/>
         /// (leader end or bend point) of every selected spot slides onto an endless line through that tag's
-        /// point. The line is vertical (same X) or horizontal (same Y) as last chosen in the window.
+        /// point. The line is vertical (same X) or horizontal (same Y) as last chosen in the window, unless
+        /// <paramref name="forceDirection"/> is given (then that direction is used and the saved one is left as is).
         /// </summary>
-        public static Result RunToTag(ExternalCommandData commandData, SpotPart part)
+        /// <param name="commandData">Revit command data.</param>
+        /// <param name="part">Leader end or bend point.</param>
+        /// <param name="forceDirection">Fixed line direction, or null for the one last chosen in the window.</param>
+        public static Result RunToTag(ExternalCommandData commandData, SpotPart part, AlignDirection? forceDirection = null)
         {
             AlignContext ctx = AlignRunner.Prepare(commandData);
             if (ctx == null) return Result.Cancelled;
@@ -79,7 +83,7 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Commands
             }
 
             AlignOptions o = AlignSettingsStore.Load().Clone();
-            AlignDirection direction = ends ? o.EndTagLineDirection : o.ShoulderTagLineDirection;
+            AlignDirection direction = forceDirection ?? (ends ? o.EndTagLineDirection : o.ShoulderTagLineDirection);
             // Esc throws OperationCanceledException, which ToolGuard turns into Cancelled.
             DetailLine2D line = AlignRunner.PickTagLine(ctx, part, direction, escThrows: true);
             if (line == null) return Result.Cancelled;
@@ -297,6 +301,25 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Commands
                 {
                     QuickSplitMemory.Remember(QuickSplitMemory.SplitToTag, "Btn_AlignSpotElevations_QuickBendsToTag_V001");
                     return QuickAlign.RunToTag(d, SpotPart.LeaderShoulder);
+                });
+    }
+
+    /// <summary>
+    /// Quick Align Bends to Tag Horizontal: lines the selected leader bend points up in one row with the bend
+    /// point of a clicked tag (same Y), no window. Always horizontal, whatever direction the window last used;
+    /// the leader end and text move with each bend.
+    /// </summary>
+    [Transaction(TransactionMode.Manual)]
+    [Regeneration(RegenerationOption.Manual)]
+    public class AlignSpotElevationsQuickBendsToTagHorizontalCommand : IExternalCommand
+    {
+        /// <summary>Revit entry point — delegates to <see cref="ToolGuard.RunCommand"/>.</summary>
+        public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
+            => ToolGuard.RunCommand(GetType(), commandData, ref message, elements,
+                (ExternalCommandData d, ref string m, ElementSet e) =>
+                {
+                    QuickSplitMemory.Remember(QuickSplitMemory.SplitToTag, "Btn_AlignSpotElevations_QuickBendsToTagHorizontal_V001");
+                    return QuickAlign.RunToTag(d, SpotPart.LeaderShoulder, AlignDirection.Horizontal);
                 });
     }
 
