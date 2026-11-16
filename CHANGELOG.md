@@ -9,6 +9,73 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [7.12.0] — 2026-11-15
+
+### Added
+- **Wet Area Waterproofing v1.1.0** — part B: plans and detail references.
+  - **Plans:** a floor plan per ticked room, cropped to the room plus a margin (500 mm), with the plan type, view
+    template, scale (1:100) and name pattern you pick. A room that already has a plan from an earlier run keeps it
+    (your annotations stay); only its crop is refreshed.
+  - **Section targets:** up to 6 reference sections per room, placed on the room's plan: full room (horizontal and
+    vertical), door / threshold, floor drain, wall corner, WC / closet, shower / bath, wall–floor. Per target: one
+    section at the match nearest the room centre, or one for every match; the cut length; the order (rows higher up win
+    when a room would get more than six). A target with no match in a room is skipped and reported.
+  - **Drafting views:** all targets point to one drafting view, or each target to its own. Pick an existing view or
+    type a new name; a view that does not exist is created.
+  - **Search targets in:** the host model and every loaded link, each with Doors, Plumbing Fixtures and Pipe
+    Accessories, tickable, with counts. Drains, WCs and showers are recognised by editable keywords.
+  - **Run steps:** Roofs, Plans and Reference sections can be run together or separately.
+  - Room grid: new columns Doors, Drains, Fixtures, Sections and Plan.
+  - Excel report: new **Sections** sheet (marker, target, element cut, plan, drafting view, cut line); the Rooms
+    sheet gains *Plan view Id*, *Plan view* and *Sections* at the end.
+  - **Remove a run…** now also deletes the run's plans and section markers.
+
+### Changed
+- **Wet Area Waterproofing** — wet-room and fixture keywords may now have several words ("powder room") or dots ("w.c.").
+
+**User notes**
+- A run now also creates plans and sections. Untick *Plans* and *Reference sections* under *Run steps* to create
+  roofs only, as in 1.0.0.
+- *Remove a run* never deletes drafting views, because they may hold details you have drawn.
+- Reference sections show the detail number of the drafting view they point to; they cannot be named one by one.
+- Grouping close rooms into one plan, sheets and the print set are part C and are not in this release.
+
+## [7.11.0] — 2026-11-14
+
+### Added
+- **Wet Area Waterproofing v1.0.0** (new tool, on its own new **Waterproofing** ribbon panel after Sheet Edit) — part A of three.
+  - Lists the rooms of the host model and of the loaded links and marks the wet ones by room-name keywords
+    (toilet, wc, bath, shower, kitchen, pantry, laundry, wash, balcony; editable). A keyword must start a word, so
+    "Washroom" matches *wash* and "Dishwasher" does not.
+  - Room grid: level buttons with room counts (click to show or hide, Ctrl+click to show only that level), a filter
+    on every column (tick list, "contains", or an area range), search across all columns, multi-column sort
+    (Shift+click), grouping by level, source or keyword, a column chooser, and Tick visible / Untick visible / Invert.
+    Filters, sort, column order and widths are remembered.
+  - Creates a roof of the picked type from each ticked room's outline, on top of the slab under the room (host model
+    first, then the room's link, then other links); with no slab it uses the room's level plus the offset and says so.
+    New roofs go on the workset you pick. The whole run is one Undo step.
+  - Outline repair when a room's boundary does not close: other boundary location, clean, merge, snap small gaps
+    (5 mm), bridge larger gaps (50 mm), remove overlaps, the room's 3D shape, leave out a hole that will not close,
+    and (off by default) an approximate hull. Every repair is shown in the grid, the log and the report.
+  - Area check: an outline that differs from the room area by more than ± 2 % still gets its roof and is flagged
+    in the grid, in the bar above Run, in the result card, in the log and in the report.
+  - Rooms or slabs checked out by another user are skipped and reported.
+  - Run again on the same room and its roof is replaced (found by the run ID in the roof's Comments).
+    **Remove a run…** deletes everything an earlier run created.
+  - Excel report after every run (Summary, Rooms, Boundary repair, Issues) in
+    `%AppData%\Revit26_Plugin_Revised\WetAreaWaterproofing\Reports` (folder can be changed); **Export now** saves it again.
+
+### Changed
+- Plugin version in `Revit26_Plugin_Revised.csproj` brought in line with this changelog (it still read 7.8.0).
+
+**User notes**
+- Curved room boundaries are drawn as short straight edges in the roof outline.
+- The roof's **Comments** hold `WP|run|room…`. Do not edit them: re-runs and *Remove a run* rely on them.
+- Rooms that are not wet show **Not checked**: their outline and slab are only read when you run them, which keeps
+  the list fast on large models.
+- A room that already has a roof from an earlier run starts unticked; tick it to replace the roof.
+- Plans, detail sections, sheets and the print set are parts B and C and are not in this release.
+
 ## [7.10.1] — 2026-11-14
 
 ### Changed
