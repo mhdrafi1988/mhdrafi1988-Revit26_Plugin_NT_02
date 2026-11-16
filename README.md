@@ -43,7 +43,7 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 | Rafi_Pro_Docs | Floor Views | Floor Around Edges · Floor Edge Element · Floor Focus |
 | Rafi_Pro_Docs | View Place | Place Sections · Callout To Section · Head Placer · View Tagger |
 | Rafi_Pro_Docs | View Rename | Bubble Renumber *button* · Section Renamer *button* · Auto Renamer *button* |
-| Rafi_Pro_Docs2 | Tagging | Tag To Text · Align Spot Elevations · Align to Detail Line · Distribute Spot Elev. · Quick Align split buttons: Vertical · Horizontal (each lists tags, ends, bends) · to Tag (ends, bends, bends horizontal) · Quick Distribute split buttons: Vertical · Horizontal (each lists tags, ends, bends) |
+| Rafi_Pro_Docs2 | Tagging | Tag To Text · Align Spot Elevations · Align to Detail Line · Distribute Spot Elev. · Quick Align split buttons: Vertical · Horizontal (each lists tags, ends, bends) · to Tag (ends, bends, bends horizontal, bends vertical) · Quick Distribute split buttons: Vertical · Horizontal (each lists tags, ends, bends) |
 | Rafi_Pro_Docs | Sheet Create | Scope Box · Sheet Placer · Section Placer · Sections To Sheet · Combine Sheets ▸ slide-out: Rearrange (V030, V029, V028) · Arrange Views |
 | Rafi_Pro_Docs | Sheet Edit | Text Replace |
 | Rafi_Pro_Docs | Waterproofing | Wet Area Waterproofing |
@@ -138,7 +138,7 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 - **Tag To Text**: copy spot elevations, coordinates, slopes and tags into text notes with leaders.
 - **Align Spot Elevations**: line spot elevation tags up in a column or row, onto detail lines, or with the end or
   bend point of a tag you click. The Quick Align buttons do it in one click with the last-used settings.
-  **Quick Align Bends to Tag Horizontal** always lines the bend points up in a row with a clicked tag.
+  **Quick Align Bends to Tag Horizontal / Vertical** always line the bend points up in a row / column with a clicked tag.
   **Distribute Spot Elev.** spaces them evenly or at a fixed gap along their column or row; the Quick Distribute
   buttons do that in one click.
 
@@ -202,6 +202,9 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 ## Version History
 
 See [CHANGELOG.md](CHANGELOG.md) for the full history and per-tool versions.
+
+### 7.16.0 — 2026-11-16
+- **Align Spot Elevations 1.10.0**: Quick Align Bends to Tag Vertical (bend points in a column with a clicked tag).
 
 ### 7.14.0 — 2026-11-16
 - **Align Spot Elevations 1.9.0**: Quick Align Bends to Tag Horizontal (bend points in a row with a clicked tag).

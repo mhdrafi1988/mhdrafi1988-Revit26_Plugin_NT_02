@@ -305,6 +305,25 @@ namespace Revit26_Plugin_Revised.AlignSpotElevations.V001.Commands
     }
 
     /// <summary>
+    /// Quick Align Bends to Tag Vertical: lines the selected leader bend points up in one column with the bend
+    /// point of a clicked tag (same X), no window. Always vertical, whatever direction the window last used;
+    /// the leader end and text move with each bend.
+    /// </summary>
+    [Transaction(TransactionMode.Manual)]
+    [Regeneration(RegenerationOption.Manual)]
+    public class AlignSpotElevationsQuickBendsToTagVerticalCommand : IExternalCommand
+    {
+        /// <summary>Revit entry point — delegates to <see cref="ToolGuard.RunCommand"/>.</summary>
+        public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
+            => ToolGuard.RunCommand(GetType(), commandData, ref message, elements,
+                (ExternalCommandData d, ref string m, ElementSet e) =>
+                {
+                    QuickSplitMemory.Remember(QuickSplitMemory.SplitToTag, "Btn_AlignSpotElevations_QuickBendsToTagVertical_V001");
+                    return QuickAlign.RunToTag(d, SpotPart.LeaderShoulder, AlignDirection.Vertical);
+                });
+    }
+
+    /// <summary>
     /// Quick Align Bends to Tag Horizontal: lines the selected leader bend points up in one row with the bend
     /// point of a clicked tag (same Y), no window. Always horizontal, whatever direction the window last used;
     /// the leader end and text move with each bend.

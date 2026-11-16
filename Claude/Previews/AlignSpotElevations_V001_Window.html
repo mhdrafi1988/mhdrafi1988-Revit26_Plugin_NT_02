@@ -1,7 +1,9 @@
 <title>Align Spot Elevations Window</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<!-- UI preview (CLAUDE.md "UI previews"): Align Spot Elevations V001, tool 1.9.0, plugin 7.14.0.
-     New in 1.9.0: "Quick Align Bends to Tag Horizontal", a third item in the Quick Align to Tag split button
+<!-- UI preview (CLAUDE.md "UI previews"): Align Spot Elevations V001, tool 1.10.0, plugin 7.16.0.
+     New in 1.10.0: "Quick Align Bends to Tag Vertical", a fourth item in the Quick Align to Tag split button
+     (always a column through the clicked tag's bend point). The window is unchanged.
+     Earlier, 1.9.0: "Quick Align Bends to Tag Horizontal", a third item in the Quick Align to Tag split button
      (always a row through the clicked tag's bend point). The window is unchanged.
      Earlier, 1.8.0: Distribute Spot Elev. button (opens the window in Distribute only) and two quick split buttons
      (Quick Distribute Vertical, Quick Distribute Horizontal; each lists tags, ends, bends). The window itself is unchanged.
@@ -86,15 +88,15 @@ ul{margin:0;padding-left:18px;line-height:1.6}
 
 <div class="page">
   <header>
-    <h1>Align Spot Elevations v1.9.0 — bends to tag, horizontal</h1>
-    <p class="muted">A new item in the <b>Quick Align to Tag</b> split button lines the leader bend points of the selected spot elevations up in one row with the bend point of a tag you click. It is always horizontal. The leader end and the text follow each bend. Green tags mark what is new.</p>
+    <h1>Align Spot Elevations v1.10.0 — bends to tag, vertical</h1>
+    <p class="muted">A new item in the <b>Quick Align to Tag</b> split button lines the leader bend points of the selected spot elevations up in one column with the bend point of a tag you click. It is always vertical, the counterpart of the Horizontal item added in 1.9.0. The leader end and the text follow each bend. Green tags mark what is new.</p>
     <p style="margin-top:8px"><span class="sample">Sample data: spot labels and positions are made up.</span></p>
   </header>
 
   <!-- 1. Ribbon -->
   <section>
     <h2>1 · Ribbon, Tagging panel</h2>
-    <p class="muted" style="margin-bottom:8px">No new button on the panel itself. The arrow of <b>Quick Align to Tag</b> lists a third item. Once you use it, the split button's main click runs it (remembered across Revit restarts).</p>
+    <p class="muted" style="margin-bottom:8px">No new button on the panel itself. The arrow of <b>Quick Align to Tag</b> lists a fourth item. Once you use it, the split button's main click runs it (remembered across Revit restarts).</p>
     <div class="frame">
       <div class="rib">
         <div class="tabs">… · Tagging · …</div>
@@ -119,12 +121,13 @@ ul{margin:0;padding-left:18px;line-height:1.6}
         <b>Quick Align to Tag ▾ (arrow list)</b>
         <span class="small"><i></i>Quick Align Ends to Tag</span>
         <span class="small"><i></i>Quick Align Bends to Tag</span>
-        <span class="small new"><i></i>Quick Align Bends to Tag Horizontal<span class="tag">NEW</span></span>
+        <span class="small"><i></i>Quick Align Bends to Tag Horizontal</span>
+        <span class="small new"><i></i>Quick Align Bends to Tag Vertical<span class="tag">NEW</span></span>
       </div>
       <div class="tip">
-        <b>Quick Align Bends to Tag Horizontal<span class="tag">NEW</span></b>
-        <span>Lines up the leader bend points (shoulders) of the selected spot elevations in one row with the bend point of one spot elevation you click, right away. Always horizontal (same Y), whatever direction the window last used. The leader end and text move with each bend. One Undo step.</span>
-        <span class="gray">Align Spot Elevations v1.9.0</span>
+        <b>Quick Align Bends to Tag Vertical<span class="tag">NEW</span></b>
+        <span>Lines up the leader bend points (shoulders) of the selected spot elevations in one column with the bend point of one spot elevation you click, right away. Always vertical (same X), whatever direction the window last used. The leader end and text move with each bend. One Undo step.</span>
+        <span class="gray">Align Spot Elevations v1.10.0</span>
       </div>
     </div>
   </section>
@@ -140,7 +143,7 @@ ul{margin:0;padding-left:18px;line-height:1.6}
   <!-- 3. View sketch -->
   <section>
     <h2>3 · What happens in the view</h2>
-    <p class="muted" style="margin-bottom:8px">Pale = before, solid = after. The middle tag is the one clicked (ring). The other bend points move straight up or down onto its row; each leader end and text move with its bend, so the leader shape stays the same. The measured points never move.</p>
+    <p class="muted" style="margin-bottom:8px">Shown for the Horizontal item; the new Vertical item works the same way turned 90°: bend points move left or right onto the clicked tag's column. Pale = before, solid = after. The middle tag is the one clicked (ring). The other bend points move straight up or down onto its row; each leader end and text move with its bend, so the leader shape stays the same. The measured points never move.</p>
     <div class="frame"><div class="sheet">
       <svg viewBox="0 0 640 250" role="img" aria-label="Three spot elevations; the bend points of the outer two move up or down onto the row of the clicked tag's bend point">
         <g font-family="Segoe UI,sans-serif" font-size="11">
@@ -175,14 +178,15 @@ ul{margin:0;padding-left:18px;line-height:1.6}
   </section>
 
   <section class="q">
-    <h2>What changed in 1.9.0</h2>
+    <h2>What changed in 1.10.0</h2>
     <ul>
-      <li><b>Quick Align Bends to Tag Horizontal</b> in the Quick Align to Tag split button: bend points in one row with a clicked tag's bend point, always horizontal.</li>
-      <li>The existing <b>Quick Align Bends to Tag</b> still uses the direction last chosen in the window. The new button does not change that saved direction.</li>
+      <li><b>Quick Align Bends to Tag Vertical</b> in the Quick Align to Tag split button: bend points in one column with a clicked tag's bend point, always vertical.</li>
+      <li>The existing <b>Quick Align Bends to Tag</b> still uses the direction last chosen in the window. Neither fixed-direction item changes that saved direction.</li>
       <li>Spots without a bend point are left as they are. The window and its settings file are unchanged.</li>
     </ul>
     <h2>Earlier</h2>
     <ul>
+      <li>1.9.0: <b>Quick Align Bends to Tag Horizontal</b> (always a row).</li>
       <li>1.8.0: Distribute Spot Elev. button and the Quick Distribute Vertical / Horizontal split buttons.</li>
       <li>1.7.1: the eight Quick Align buttons became three split buttons that remember the item used last.</li>
       <li>1.6.0: <b>Pick tag…</b> on the bend point and end point lines; Quick Align Ends / Bends to Tag.</li>

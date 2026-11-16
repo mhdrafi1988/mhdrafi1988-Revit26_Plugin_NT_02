@@ -122,19 +122,24 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                 "Lines up the leader bend points (shoulders) of the selected spot elevations in one row with the bend " +
                 "point of one spot elevation you click, right away. Always horizontal (same Y), whatever direction " +
                 "the window last used. The leader end and text move with each bend. One Undo step.");
+            var bendsToTagVertical = QuickPart(assemblyPath, "QuickBendsToTagVertical", "Quick Align Bends to Tag Vertical",
+                "BendsToTagVertical",
+                "Lines up the leader bend points (shoulders) of the selected spot elevations in one column with the bend " +
+                "point of one spot elevation you click, right away. Always vertical (same X), whatever direction " +
+                "the window last used. The leader end and text move with each bend. One Undo step.");
 
             var splitVertical = QuickSplit(QuickSplitMemory.SplitVertical, "Quick Align Vertical", quickVertical,
                 "Quick align in one column: tags, leader ends or leader bends. The button runs the one you used last.");
             var splitHorizontal = QuickSplit(QuickSplitMemory.SplitHorizontal, "Quick Align Horizontal", quickHorizontal,
                 "Quick align in one row: tags, leader ends or leader bends. The button runs the one you used last.");
             var splitToTag = QuickSplit(QuickSplitMemory.SplitToTag, "Quick Align to Tag", endsToTag,
-                "Quick align to a spot elevation you click: leader ends, leader bends, or leader bends in a row. The button runs the one you used last.");
+                "Quick align to a spot elevation you click: leader ends, leader bends, or leader bends in a row or a column. The button runs the one you used last.");
 
             IList<RibbonItem> created = RibbonLayoutHelper.AddStackedButtons(panel,
                 new RibbonItemData[] { splitVertical, splitHorizontal, splitToTag });
             AddSplitItems(created, splitVertical.Name, quickVertical, endsVertical, bendsVertical);
             AddSplitItems(created, splitHorizontal.Name, quickHorizontal, endsHorizontal, bendsHorizontal);
-            AddSplitItems(created, splitToTag.Name, endsToTag, bendsToTag, bendsToTagHorizontal);
+            AddSplitItems(created, splitToTag.Name, endsToTag, bendsToTag, bendsToTagHorizontal, bendsToTagVertical);
 
             // Quick distribute: no window, parts and spacing last used in the window (Keep current spacing = even).
             var distributeVertical = QuickPart(assemblyPath, "QuickDistributeVertical", "Quick Distribute Vertical", "DistributeVertical",
