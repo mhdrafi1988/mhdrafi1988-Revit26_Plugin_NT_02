@@ -9,6 +9,36 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [7.13.1] — 2026-11-16
+
+### Changed
+- **Base Level to Parameter v1.4.1** — the **Activity Log** is collapsible and starts collapsed; its header shows the
+  number of lines. Click the header to open it. Open / closed is remembered. An error opens it automatically.
+
+**User notes**
+- The log no longer shows on first open. Click *▸ Activity Log* to see it.
+
+## [7.13.0] — 2026-11-16
+
+### Added
+- **Base Level to Parameter v1.4.0** — **New Parameter… → Categories** has a second option, **Only the selected
+  categories**: a searchable grid of every model category that takes parameters (tick, Category, Ticked elements),
+  with a *Ticked only* filter and *Ticked elements* / *Select shown* / *Clear shown* buttons. The new parameter is
+  bound to the ticked categories only, including categories with no ticked element yet.
+  - Ticked elements of categories left out are skipped (“Skipped · category not selected for the new parameter”);
+    pre-check **d · Categories** warns about them, and is Blocked when no ticked element is left.
+
+### Changed
+- **Base Level to Parameter** — the **Target parameter** and **Pre-checks** cards are expandable. A collapsed card
+  shows the target name or the pre-check summary (with Re-check). Open / closed is remembered (settings version 3).
+- Plugin version in the `.csproj` set to 7.13.0 (it still read 7.8.0 after the 7.9.0–7.12.0 releases).
+
+**User notes**
+- The default binding is unchanged: a new parameter is bound to the categories of the ticked elements unless you
+  choose *Only the selected categories*.
+- The category choice applies when the parameter is created. A later run with that parameter as the target still adds
+  the ticked elements' missing categories to its binding, as for any existing parameter.
+
 ## [7.12.0] — 2026-11-15
 
 ### Added

@@ -168,6 +168,12 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.Infrastructure
                     t.FileGuidUsedBy = used.Name;
             }
 
+            // 1.4.0: a new parameter bound to selected categories only.
+            HashSet<string> selected = t.IsNew && request.Pending.HasCategorySelection
+                ? new HashSet<string>(request.Pending.Categories, StringComparer.OrdinalIgnoreCase)
+                : null;
+            t.SelectedCategoryCount = selected?.Count ?? 0;
+
             // Elements.
             var categories = new Dictionary<long, Category>();
             var sampleByCategory = new Dictionary<long, Element>();
@@ -188,13 +194,16 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.Infrastructure
                     categories[catId] = e.Category;
                     sampleByCategory[catId] = e;
                 }
-                result.Elements.Add(ReadElement(doc, e, def, t));
+                ElementFacts facts = ReadElement(doc, e, def, t);
+                facts.CategoryNotSelected = selected != null && !facts.CategoryUnsupported && !selected.Contains(e.Category.Name);
+                result.Elements.Add(facts);
             }
 
             t.CategoryCount = categories.Count;
             foreach (Category c in categories.Values.OrderBy(c => c.Name))
             {
                 if (!c.AllowsBoundParameters) t.UnsupportedCategories.Add(c.Name);
+                else if (selected != null && !selected.Contains(c.Name)) t.NotSelectedCategories.Add(c.Name);
                 else if (binding != null && !binding.Categories.Contains(c)) t.MissingCategories.Add(c.Name);
             }
 
@@ -268,7 +277,7 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.Infrastructure
                 tx.Start();
 
                 InternalDefinition target = t.IsNew
-                    ? BindNew(doc, newDefinition, facts, run)
+                    ? BindNew(doc, newDefinition, facts, request.Pending, run)
                     : ExtendBinding(doc, t, request, run);
 
                 int done = 0;
@@ -391,9 +400,13 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.Infrastructure
             return created;
         }
 
-        private static InternalDefinition BindNew(Document doc, ExternalDefinition definition, FactsResult facts, RunResult run)
+        private static InternalDefinition BindNew(Document doc, ExternalDefinition definition, FactsResult facts, NewParameterSpec spec, RunResult run)
         {
-            CategorySet categories = BindableCategories(doc, facts);
+            CategorySet categories = spec != null && spec.HasCategorySelection
+                ? SelectedCategories(doc, spec.Categories, run)
+                : BindableCategories(doc, facts);
+            if (categories.IsEmpty)
+                throw new InvalidOperationException($"“{definition.Name}” has no category to bind to. Nothing was changed in the project.");
             InstanceBinding binding = doc.Application.Create.NewInstanceBinding(categories);
             if (!doc.ParameterBindings.Insert(definition, binding, GroupTypeId.Data))
                 throw new InvalidOperationException($"Revit rejected the binding of “{definition.Name}”.");
@@ -464,6 +477,37 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.Infrastructure
         }
 
         // ── helpers ───────────────────────────────────────────────────────────
+
+        /// <summary>
+        /// Names of the model categories of <paramref name="doc"/> that allow bound parameters, sorted, for the
+        /// "Only the selected categories" list of the New Parameter dialog (1.4.0).
+        /// </summary>
+        public static List<string> ListBindableCategories(Document doc)
+        {
+            var names = new List<string>();
+            foreach (Category c in doc.Settings.Categories)
+            {
+                if (c == null || c.CategoryType != CategoryType.Model || !c.AllowsBoundParameters) continue;
+                if (string.IsNullOrWhiteSpace(c.Name)) continue;
+                names.Add(c.Name);
+            }
+            return names.Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(n => n, StringComparer.CurrentCultureIgnoreCase).ToList();
+        }
+
+        private static CategorySet SelectedCategories(Document doc, IEnumerable<string> names, RunResult run)
+        {
+            var wanted = new HashSet<string>(names, StringComparer.OrdinalIgnoreCase);
+            var set = new CategorySet();
+            foreach (Category c in doc.Settings.Categories)
+            {
+                if (c == null || !wanted.Remove(c.Name)) continue;
+                if (c.AllowsBoundParameters) set.Insert(c);
+                else run.Log.Add((Shared.Models.LogLevel.Warning, $"{c.Name} does not allow bound parameters; left out of the binding."));
+            }
+            if (wanted.Count > 0)
+                run.Log.Add((Shared.Models.LogLevel.Warning, $"Not found in this project, left out of the binding: {string.Join(", ", wanted)}."));
+            return set;
+        }
         private static CategorySet BindableCategories(Document doc, FactsResult facts) =>
             BindableCategories(doc, facts.Elements.Select(e => e.Id));
 

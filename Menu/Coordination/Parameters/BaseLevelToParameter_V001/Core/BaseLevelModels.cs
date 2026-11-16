@@ -86,6 +86,15 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.Core
 
         /// <summary>Group inside the shared parameter file.</summary>
         public string FileGroup { get; set; } = string.Empty;
+
+        /// <summary>
+        /// "Only the selected categories" (1.4.0): names of the categories the new parameter is bound to. Empty (the
+        /// default) binds it to the categories of the ticked elements, as before 1.4.0.
+        /// </summary>
+        public List<string> Categories { get; set; } = new();
+
+        /// <summary>True when the parameter is bound to <see cref="Categories"/> only.</summary>
+        public bool HasCategorySelection => Categories != null && Categories.Count > 0;
     }
 
     /// <summary>What the Revit side found about the target parameter, the document and the shared parameter file.</summary>
@@ -123,6 +132,15 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.Core
 
         /// <summary>Ticked-element categories that do not allow bound parameters.</summary>
         public List<string> UnsupportedCategories { get; set; } = new();
+
+        /// <summary>
+        /// Categories of the ticked elements that are left out of a new parameter's selected categories (1.4.0);
+        /// their elements are skipped. Always empty for a parameter already in the project.
+        /// </summary>
+        public List<string> NotSelectedCategories { get; set; } = new();
+
+        /// <summary>How many categories a new parameter with a category selection is bound to (1.4.0); 0 otherwise.</summary>
+        public int SelectedCategoryCount { get; set; }
 
         /// <summary>Number of distinct categories among the ticked elements.</summary>
         public int CategoryCount { get; set; }
@@ -199,6 +217,9 @@ namespace Revit26_Plugin_Revised.BaseLevelToParameter.V001.Core
 
         /// <summary>True when the element's category does not allow bound parameters.</summary>
         public bool CategoryUnsupported { get; set; }
+
+        /// <summary>True when the element's category is not among a new parameter's selected categories (1.4.0).</summary>
+        public bool CategoryNotSelected { get; set; }
     }
 
     /// <summary>Status of one row after evaluation.</summary>
