@@ -9,6 +9,19 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [7.16.0] — 2026-11-16
+
+### Added
+- **Align Spot Elevations v1.10.0** — new item **Quick Align Bends to Tag Vertical** in the **Quick Align to Tag**
+  split button (Tagging panel), the column counterpart of Bends to Tag Horizontal. Select spot elevations, click it,
+  then click one spot elevation: every selected leader bend point moves onto a vertical line through that tag's bend
+  point (same X). The leader end and the text move with each bend. One Undo step. Icon:
+  `Resources/Icons/Tagging/AlignSpotElevationsBendsToTagVertical_16/32.png`.
+
+**User notes**
+- The new button is always vertical. **Quick Align Bends to Tag** still uses the direction last chosen in the window,
+  and neither fixed-direction button changes that saved direction.
+
 ## [7.15.0] — 2026-11-16
 
 ### Annotation Overlap Detection 7.0.0 (V007, new version next to V006)
