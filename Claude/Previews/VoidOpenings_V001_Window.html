@@ -1,15 +1,18 @@
 <title>Void Openings Window</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<!-- UI preview (CLAUDE.md "UI previews"): Void Openings V001, tool 0.2.0, plugin 6.46.0.
-     New in 0.2.0 (first version with a button): the Coordination ribbon panel and the Void Openings window with
-     the STRUCTURAL MODEL and MEP MODEL panels (model list, status, categories with element counts, Refresh).
-     Shows: the ribbon button and tooltip, the window as built in 0.2.0, the same window with an unloaded link,
-     and below them the planned full window (design wireframe, not built yet) from
-     docs/superpowers/specs/2026-11-10-void-openings-design.md.
-     Mirrors: Menu/Coordination/Openings/VoidOpenings_V001/UI/Views/VoidOpeningsWindow.xaml
-              (+ MainViewModel, ModelPanelViewModel, CategoryItemViewModel),
+<!-- UI preview (CLAUDE.md "UI previews"): Void Openings V001, tool 0.3.0, plugin 7.16.0.
+     New in 0.3.0 (phase 3): the OPENING CLEARANCE card (rule rows, Example and Check columns, default offset and
+     sizing options, Save rules / Revert), the unsaved-changes question on close, the settings file, the taller
+     window and the changed ribbon tooltip.
+     Shows: the ribbon button and tooltip, the window as built in 0.3.0, the card with errors and a warning, the
+     unsaved-changes dialog, the window with an unloaded link, and below them the planned full window (design
+     wireframe, not built yet) from docs/superpowers/specs/2026-11-10-void-openings-design.md.
+     Mirrors: Menu/Coordination/Openings/VoidOpenings_V001/UI/Views/VoidOpeningsWindow.xaml (+ .xaml.cs)
+              (+ MainViewModel, ModelPanelViewModel, CategoryItemViewModel, ClearanceRulesViewModel,
+                 ClearanceRuleRowViewModel, ClearanceOptions),
               Menu/00_Push_Button_Menu_items/Ribbon/CoordinationRibbon.cs
-     Artifact: https://claude.ai/artifact/Ch9vZ7dfEa5kHAksAE9GQH (republish to this URL on every update)
+     Artifact: https://claude.ai/artifact/EaDQAnYotLuWeE7jHrpDBa (republish to this URL on every update;
+               the earlier link, Ch9vZ7dfEa5kHAksAE9GQH, could not be opened from this account on 2026-11-16)
      Colours: Shared/SharedStyles.xaml tokens, one light look on purpose (mirrors the light WPF window). -->
 <style>
 /* Layout: one column of captioned mock-ups; each fixed-width Revit piece scrolls in its own frame. */
@@ -80,25 +83,32 @@ tr.sel td{background:var(--sel)}
 .scroll{overflow-x:auto}
 .mono{font-family:var(--mono);font-size:12px}
 ul{margin:0;padding-left:18px;max-width:72ch}
+li,p,.note{overflow-wrap:anywhere}
+.rules td{border-bottom:0;padding:2px 6px 2px 0}.rules th{background:none;border-bottom:1px solid var(--border);padding-left:0}
+.rules .cell{min-width:52px}.rules .cell.t{min-width:104px}
+.okc{color:var(--ok)}.warnc{color:var(--warn)}.badc{color:var(--bad);font-weight:600}
+.cell.badb{border-color:var(--bad)}
+.dlg{width:380px;background:var(--surface-card);border:1px solid var(--border-in);box-shadow:0 4px 14px rgba(0,0,0,.2)}
+.dlg .title{background:var(--surface-card);color:var(--text);border-bottom:1px solid var(--border)}
 </style>
 <main>
 <section>
-  <h1>Void Openings <span class="tag">new tool · 0.2.0</span></h1>
-  <p class="muted">Tool in development. Version 0.2.0 adds the ribbon button and the model and category selection. Analyze, Generate Void and Export come in later versions. All names and counts below are sample data.</p>
+  <h1>Void Openings <span class="tag">0.3.0 · phase 3 of 8</span></h1>
+  <p class="muted">Tool in development. Version 0.3.0 adds the opening clearance rules: you set them, the window checks them, and they are saved between sessions. They are not applied to anything yet. Analyze, Generate Void and Export come in later versions. All names, counts and clearance values below are sample data.</p>
 </section>
 
 <section>
-  <h2>Ribbon · Rafi_Pro_Docs2 tab, after Memory <span class="tag">new panel</span></h2>
+  <h2>Ribbon · Rafi_Pro_Docs2 tab, Coordination panel <span class="tag">tooltip changed</span></h2>
   <div class="frame"><div class="row" style="align-items:flex-start;flex-wrap:nowrap;width:max-content">
     <div class="ribbon"><div class="panel"><div class="big"><span class="ico"></span>Void<br>Openings</div><span class="pname">Coordination</span></div></div>
-    <div class="tip"><b>Void Openings — v0.2.0 (build V001)</b><span>Openings for MEP through structure. In this version: choose the structural model and the MEP model (the active model or a Revit link) and their categories, and see how many elements each has. Clash analysis and void placement follow in later versions.</span></div>
+    <div class="tip"><b>Void Openings — v0.3.0 (build V001)</b><span>Openings for MEP through structure. In this version: choose the structural model and the MEP model (the active model or a Revit link) and their categories, see how many elements each has, and set the opening clearance rules. Clash analysis and void placement follow in later versions.</span></div>
   </div></div>
 </section>
 
 <section>
-  <h2>Window as built in 0.2.0 <span class="tag">new</span></h2>
+  <h2>Window as built in 0.3.0 <span class="tag">taller · new card</span></h2>
   <div class="frame"><div class="win">
-    <div class="title"><span>Void Openings — v0.2.0</span><span>—  ☐  ✕</span></div>
+    <div class="title"><span>Void Openings — v0.3.0</span><span>—  ☐  ✕</span></div>
     <div class="body">
       <div class="cols">
         <div class="card">
@@ -143,10 +153,36 @@ ul{margin:0;padding-left:18px;max-width:72ch}
           </div>
         </div>
       </div>
+      <div class="card">
+        <header><span style="font-weight:600;letter-spacing:.08em;opacity:1">OPENING CLEARANCE <span style="letter-spacing:0">(millimetres)</span> <span class="tag">new</span></span><span>5 rules · unsaved changes</span></header>
+        <div class="pad">
+          <div class="scroll"><table class="rules">
+            <tr><th>#</th><th>MEP category</th><th>Size from</th><th>Size to</th><th>Offset</th><th>Applies</th><th>Opening shape</th><th>Example</th><th>Check</th><th></th></tr>
+            <tr><td class="muted">1</td><td><span class="cell t">Conduits ▾</span></td><td><span class="cell">0</span></td><td><span class="cell">25</span></td><td><span class="cell">25</span></td><td><span class="cell t">Each side ▾</span></td><td><span class="cell t">Circular ▾</span></td><td class="muted">25 + 2 × 25 = 75 → 80 mm</td><td class="okc">OK</td><td><span class="btn s">Delete</span></td></tr>
+            <tr><td class="muted">2</td><td><span class="cell t">Conduits ▾</span></td><td><span class="cell">25</span></td><td><span class="cell">50</span></td><td><span class="cell">30</span></td><td><span class="cell t">Each side ▾</span></td><td><span class="cell t">Circular ▾</span></td><td class="muted">50 + 2 × 30 = 110 mm</td><td class="okc">OK</td><td><span class="btn s">Delete</span></td></tr>
+            <tr><td class="muted">3</td><td><span class="cell t">Pipes ▾</span></td><td><span class="cell">0</span></td><td><span class="cell">100</span></td><td><span class="cell">40</span></td><td><span class="cell t">Each side ▾</span></td><td><span class="cell t">Auto ▾</span></td><td class="muted">100 + 2 × 40 = 180 mm</td><td class="okc">OK</td><td><span class="btn s">Delete</span></td></tr>
+            <tr><td class="muted">4</td><td><span class="cell t">Pipes ▾</span></td><td><span class="cell">100</span></td><td><span class="cell">&nbsp;</span></td><td><span class="cell">50</span></td><td><span class="cell t">Each side ▾</span></td><td><span class="cell t">Auto ▾</span></td><td class="muted">100 + 2 × 50 = 200 mm</td><td class="okc">OK</td><td><span class="btn s">Delete</span></td></tr>
+            <tr><td class="muted">5</td><td><span class="cell t">Ducts ▾</span></td><td><span class="cell">0</span></td><td><span class="cell">500</span></td><td><span class="cell">75</span></td><td><span class="cell t">Total ▾</span></td><td><span class="cell t">Rectangular ▾</span></td><td class="muted">500 + 75 = 575 → 580 mm</td><td class="okc">OK</td><td><span class="btn s">Delete</span></td></tr>
+          </table></div>
+          <div class="row">
+            <span class="btn s">+ Add rule</span>
+            <span class="lbl">Default offset</span><span class="cell">50</span><span class="cell t" style="min-width:80px">Each side ▾</span>
+            <span class="lbl">Overshoot</span><span class="cell">50</span>
+            <span class="lbl">Round up to</span><span class="cell">10</span>
+            <span><span class="chk on"></span> Include insulation</span>
+            <span class="lbl">Opening axis</span><span class="cell t" style="min-width:170px">Perpendicular to structure ▾</span>
+          </div>
+          <div class="row"><span class="muted" style="flex:1;min-width:260px;font-size:12.5px">The first rule that fits an element is used; a fitting or accessory with no rule of its own uses its pipe, duct, tray or conduit rules. Analyze, which applies these rules, comes in a later version.</span><span class="btn" style="border:0;color:var(--blue);font-weight:400">Revert</span><span class="btn p">Save rules</span></div>
+        </div>
+      </div>
       <div class="row"><span class="status" style="flex:1">(Active model) Sample_Tower_COORD · 3 Revit link(s), 1 not loaded</span><span class="btn">Refresh</span><span class="btn">Close</span></div>
     </div>
   </div></div>
   <ul>
+    <li><span class="tag" style="margin-left:0">new</span> <b>OPENING CLEARANCE</b>: one row per MEP category and size range. An empty <b>Size from</b> means 0, an empty <b>Size to</b> means no upper limit (rule 4). Size is the diameter for round MEP and the larger side for rectangular.</li>
+    <li><b>Applies</b>: Each side gives size + 2 × offset, Total gives size + offset. <b>Example</b> works the rule out for its largest size, with <b>Round up to</b> applied.</li>
+    <li><b>Default offset</b> is used for every element no rule covers. A first run has no rules, 50 mm each side, 50 mm overshoot and no rounding.</li>
+    <li><b>Save rules</b> writes <span class="mono">%AppData%\Revit26_Plugin_Revised\VoidOpenings\settings.json</span>; the rules are back the next time the tool opens. <b>Revert</b> drops unsaved changes.</li>
     <li>Each model list holds <b>(Active model)</b> first, then every Revit link by name. One model per side.</li>
     <li>A category with no elements shows <b>Empty</b> and cannot be ticked. Ticks are kept when you press Refresh.</li>
     <li>Stairs, Landings and Ramps show "Marker only, no cut" once ticked.</li>
@@ -154,9 +190,58 @@ ul{margin:0;padding-left:18px;max-width:72ch}
 </section>
 
 <section>
-  <h2>Unloaded link and messages <span class="tag">new</span></h2>
+  <h2>Checks: errors block saving, overlaps warn <span class="tag">new</span></h2>
+  <div class="frame"><div class="win">
+    <div class="title"><span>Void Openings — v0.3.0</span><span>—  ☐  ✕</span></div>
+    <div class="body">
+      <div class="card">
+        <header><span>OPENING CLEARANCE (millimetres)</span><span>4 rules · 3 error(s) · 1 warning(s) · unsaved changes</span></header>
+        <div class="pad">
+          <div class="scroll"><table class="rules">
+            <tr><th>#</th><th>MEP category</th><th>Size from</th><th>Size to</th><th>Offset</th><th>Applies</th><th>Opening shape</th><th>Example</th><th>Check</th><th></th></tr>
+            <tr><td class="muted">1</td><td><span class="cell t">Pipes ▾</span></td><td><span class="cell">0</span></td><td><span class="cell">50</span></td><td><span class="cell">25</span></td><td><span class="cell t">Each side ▾</span></td><td><span class="cell t">Auto ▾</span></td><td class="muted">50 + 2 × 25 = 100 mm</td><td class="okc">OK</td><td><span class="btn s">Delete</span></td></tr>
+            <tr><td class="muted">2</td><td><span class="cell t">Pipes ▾</span></td><td><span class="cell">40</span></td><td><span class="cell">100</span></td><td><span class="cell">40</span></td><td><span class="cell t">Each side ▾</span></td><td><span class="cell t">Auto ▾</span></td><td class="muted">100 + 2 × 40 = 180 mm</td><td class="warnc">Rule 1 already covers Pipes 40 to 50 mm; rule 1 is used there.</td><td><span class="btn s">Delete</span></td></tr>
+            <tr><td class="muted">3</td><td><span class="cell t">Ducts ▾</span></td><td><span class="cell">600</span></td><td><span class="cell">300</span></td><td><span class="cell">75</span></td><td><span class="cell t">Total ▾</span></td><td><span class="cell t">Rectangular ▾</span></td><td></td><td class="badc">Size from is larger than Size to.</td><td><span class="btn s">Delete</span></td></tr>
+            <tr><td class="muted">4</td><td><span class="cell t">Cable Trays ▾</span></td><td><span class="cell">0</span></td><td><span class="cell">&nbsp;</span></td><td><span class="cell">abc</span></td><td><span class="cell t">Each side ▾</span></td><td><span class="cell t">Auto ▾</span></td><td></td><td class="badc">Offset must be a number from 0 to 100000.</td><td><span class="btn s">Delete</span></td></tr>
+          </table></div>
+          <div class="row">
+            <span class="btn s">+ Add rule</span>
+            <span class="lbl">Default offset</span><span class="cell">&nbsp;</span><span class="cell t" style="min-width:80px">Each side ▾</span>
+            <span class="lbl">Overshoot</span><span class="cell">50</span>
+            <span class="lbl">Round up to</span><span class="cell">0</span>
+            <span><span class="chk on"></span> Include insulation</span>
+            <span class="lbl">Opening axis</span><span class="cell t" style="min-width:170px">Perpendicular to structure ▾</span>
+          </div>
+          <div class="badc" style="font-size:12.5px">Default offset is required.</div>
+          <div class="row"><span style="flex:1"></span><span class="btn" style="border:0;color:var(--blue);font-weight:400">Revert</span><span class="btn p" style="opacity:.45">Save rules</span></div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+  <ul>
+    <li>Every edit is checked at once. <b>Save rules</b> is disabled while anything is red.</li>
+    <li>Two rules of one category covering the same sizes give an amber warning and can still be saved; the upper row is used. Ranges that only share an end point (0–25 and 25–50) are fine.</li>
+    <li>A decimal comma or a decimal point is accepted (12,5 or 12.5).</li>
+  </ul>
+</section>
+
+<section>
+  <h2>Closing with unsaved rules <span class="tag">new</span></h2>
+  <div class="frame"><div class="dlg">
+    <div class="title"><span>Void Openings — v0.3.0</span><span>✕</span></div>
+    <div class="body" style="background:var(--surface-card)">
+      <div>The clearance rules have unsaved changes.</div>
+      <div>Save them before closing?</div>
+      <div class="row" style="justify-content:flex-end"><span class="btn" style="outline:1px solid var(--blue)">Yes</span><span class="btn">No</span><span class="btn">Cancel</span></div>
+    </div>
+  </div></div>
+  <p class="muted">Yes saves and closes; if the card still has an error the window stays open and the message strip says why. No closes without saving. Cancel keeps the window open.</p>
+</section>
+
+<section>
+  <h2>Unloaded link and messages</h2>
   <div class="frame"><div class="win" style="width:520px">
-    <div class="title"><span>Void Openings — v0.2.0</span><span>—  ☐  ✕</span></div>
+    <div class="title"><span>Void Openings — v0.3.0</span><span>—  ☐  ✕</span></div>
     <div class="body">
         <div class="card">
           <header>STRUCTURAL MODEL <span>Link not loaded</span></header>
@@ -173,9 +258,10 @@ ul{margin:0;padding-left:18px;max-width:72ch}
           </div>
         </div>
       <div class="note" style="border-color:var(--bad-bd);background:var(--bad-bg);color:var(--text)">Revit is busy and could not run the request. Close any open Revit dialog or command, then try again. <span class="btn s" style="margin-left:8px">Dismiss</span></div>
+      <div class="note" style="color:var(--text)">Clearance rules saved to C:\Users\sample.user\AppData\Roaming\Revit26_Plugin_Revised\VoidOpenings\settings.json. <span class="btn s" style="margin-left:8px">Dismiss</span> <span class="tag">new</span></div>
     </div>
   </div></div>
-  <p class="muted">Messages appear in this strip inside the window (red for errors, blue for information), not in pop-up dialogs.</p>
+  <p class="muted">Messages appear in this strip inside the window (red for errors, blue for information), not in pop-up dialogs. A settings file that cannot be read shows a red message, the defaults are loaded, and the old file is copied to settings.corrupt-&lt;time&gt;.json.</p>
 </section>
 
 <section>

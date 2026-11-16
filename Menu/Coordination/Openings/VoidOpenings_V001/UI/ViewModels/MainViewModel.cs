@@ -5,12 +5,13 @@ using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Revit26_Plugin_Revised.Shared.Services;
+using Revit26_Plugin_Revised.VoidOpenings.V001.Core.Application.Features.ClearanceConfiguration;
 using Revit26_Plugin_Revised.VoidOpenings.V001.Core.Application.Features.ModelSelection;
 using Revit26_Plugin_Revised.VoidOpenings.V001.Core.Domain.Entities;
 
 namespace Revit26_Plugin_Revised.VoidOpenings.V001.UI.ViewModels
 {
-    /// <summary>View model of the Void Openings window: the two model panels, the notification strip and the status line.</summary>
+    /// <summary>View model of the Void Openings window: the two model panels, the clearance card, the notification strip and the status line.</summary>
     public sealed class MainViewModel : ObservableObject
     {
         private readonly ModelSelectionService _models;
@@ -20,9 +21,11 @@ namespace Revit26_Plugin_Revised.VoidOpenings.V001.UI.ViewModels
         private bool _isBusy;
 
         /// <summary>Creates the view model.</summary>
-        public MainViewModel(ModelSelectionService models)
+        public MainViewModel(ModelSelectionService models, ClearanceConfigurationService clearance)
         {
             _models = models ?? throw new ArgumentNullException(nameof(models));
+            if (clearance == null) throw new ArgumentNullException(nameof(clearance));
+            Clearance = new ClearanceRulesViewModel(clearance, ShowError, ShowInfo);
             Structural = new ModelPanelViewModel("STRUCTURAL MODEL", "Structural link", _models.GetStructuralCountsAsync, ShowError);
             Mep = new ModelPanelViewModel("MEP MODEL", "MEP link", _models.GetMepCountsAsync, ShowError);
             RefreshCommand = new AsyncRelayCommand(RefreshAsync, () => !IsBusy);
@@ -37,6 +40,9 @@ namespace Revit26_Plugin_Revised.VoidOpenings.V001.UI.ViewModels
 
         /// <summary>Right panel.</summary>
         public ModelPanelViewModel Mep { get; }
+
+        /// <summary>The OPENING CLEARANCE card.</summary>
+        public ClearanceRulesViewModel Clearance { get; }
 
         /// <summary>Reads the links of the active project again.</summary>
         public IAsyncRelayCommand RefreshCommand { get; }
@@ -83,8 +89,14 @@ namespace Revit26_Plugin_Revised.VoidOpenings.V001.UI.ViewModels
             }
         }
 
-        /// <summary>First read of the project; called once when the window has loaded.</summary>
-        public Task InitializeAsync() => RefreshAsync();
+        /// <summary>
+        /// First read of the saved clearance rules and of the project; called once when the window has loaded.
+        /// </summary>
+        public Task InitializeAsync()
+        {
+            Clearance.Load();
+            return RefreshAsync();
+        }
 
         private async Task RefreshAsync()
         {
@@ -104,7 +116,7 @@ namespace Revit26_Plugin_Revised.VoidOpenings.V001.UI.ViewModels
                 StatusLine = $"{host?.DisplayName ?? "No active model"} · {links} Revit link(s)"
                     + (unloaded > 0 ? $", {unloaded} not loaded" : string.Empty);
 
-                if (links == 0)
+                if (links == 0 && !(HasNotification && NotificationIsError))
                     ShowInfo("This project has no Revit links. You can still choose the active model on both sides.");
                 else if (HasNotification && !NotificationIsError)
                     Notification = string.Empty;

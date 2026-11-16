@@ -2,7 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Void Openings"
-        Width="1000" Height="600" MinWidth="760" MinHeight="460"
+        Width="1000" Height="820" MinWidth="900" MinHeight="640"
         WindowStartupLocation="CenterScreen"
         Background="{DynamicResource BrushSurfaceWindow}">
     <Window.Resources>
@@ -88,7 +88,8 @@
 
     <Grid Margin="12">
         <Grid.RowDefinitions>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="*" MinHeight="170"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
@@ -103,8 +104,182 @@
             <ContentControl Grid.Column="2" Content="{Binding Mep}" ContentTemplate="{StaticResource ModelPanelTemplate}" Focusable="False"/>
         </Grid>
 
+
+        <!-- OPENING CLEARANCE: rule rows, default offset and sizing options. Column widths of the
+             header row and of the row template must stay the same. -->
+        <Border Grid.Row="1" Margin="0,10,0,0" DataContext="{Binding Clearance}"
+                Background="{DynamicResource BrushSurfaceCard}" BorderBrush="{DynamicResource BrushBorderDefault}" BorderThickness="1">
+            <StackPanel>
+                <Border Background="{DynamicResource BrushSurfaceHeader}" Padding="10,6">
+                    <DockPanel>
+                        <TextBlock DockPanel.Dock="Right" Text="{Binding Summary}" Foreground="{DynamicResource BrushTextOnDark}"
+                                   VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="12,0,0,0"/>
+                        <TextBlock Foreground="{DynamicResource BrushTextOnDark}" FontWeight="SemiBold">
+                            <Run Text="OPENING CLEARANCE"/><Run Text="  (millimetres)" FontWeight="Normal"/>
+                        </TextBlock>
+                    </DockPanel>
+                </Border>
+
+                <Grid Margin="10,8,27,2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="26"/>
+                        <ColumnDefinition Width="158"/>
+                        <ColumnDefinition Width="72"/>
+                        <ColumnDefinition Width="72"/>
+                        <ColumnDefinition Width="72"/>
+                        <ColumnDefinition Width="100"/>
+                        <ColumnDefinition Width="112"/>
+                        <ColumnDefinition Width="150"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="64"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.Resources>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="FontWeight" Value="SemiBold"/>
+                            <Setter Property="FontSize" Value="11.5"/>
+                            <Setter Property="Foreground" Value="{DynamicResource BrushTextSecondary}"/>
+                            <Setter Property="Margin" Value="2,0,6,0"/>
+                        </Style>
+                    </Grid.Resources>
+                    <TextBlock Grid.Column="0" Text="#"/>
+                    <TextBlock Grid.Column="1" Text="MEP category"/>
+                    <TextBlock Grid.Column="2" Text="Size from" ToolTip="Smallest size the rule covers. Diameter for round MEP, the larger side for rectangular. Empty = 0."/>
+                    <TextBlock Grid.Column="3" Text="Size to" ToolTip="Largest size the rule covers. Empty = no upper limit."/>
+                    <TextBlock Grid.Column="4" Text="Offset" ToolTip="Clearance added to the MEP size."/>
+                    <TextBlock Grid.Column="5" Text="Applies" ToolTip="Each side: opening = size + 2 × offset. Total: opening = size + offset."/>
+                    <TextBlock Grid.Column="6" Text="Opening shape" ToolTip="Auto: circular for round MEP, rectangular for rectangular MEP."/>
+                    <TextBlock Grid.Column="7" Text="Example" ToolTip="The rule worked out for the largest size it covers (the smallest when it has no upper limit), for a straight crossing without insulation."/>
+                    <TextBlock Grid.Column="8" Text="Check"/>
+                </Grid>
+
+                <ScrollViewer Margin="10,0,10,0" Height="132" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Disabled"
+                              BorderBrush="{DynamicResource BrushBorderDefault}" BorderThickness="0,1,0,1" Focusable="False">
+                    <Grid>
+                        <TextBlock Text="No rules yet. Every element uses the default offset. Press &quot;+ Add rule&quot; to give a category or size range its own offset."
+                                   Foreground="{DynamicResource BrushTextSecondary}" Margin="2,10,0,0" TextWrapping="Wrap"
+                                   Visibility="{Binding HasNoRules, Converter={StaticResource BoolToVisibility}}"/>
+                        <ItemsControl ItemsSource="{Binding Rules}" Focusable="False">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Margin="0,3,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="26"/>
+                                            <ColumnDefinition Width="158"/>
+                                            <ColumnDefinition Width="72"/>
+                                            <ColumnDefinition Width="72"/>
+                                            <ColumnDefinition Width="72"/>
+                                            <ColumnDefinition Width="100"/>
+                                            <ColumnDefinition Width="112"/>
+                                            <ColumnDefinition Width="150"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="64"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="{Binding Number}" VerticalAlignment="Center" Margin="2,0,0,0"
+                                                   Foreground="{DynamicResource BrushTextSecondary}"/>
+                                        <ComboBox Grid.Column="1" Margin="0,0,6,0" Style="{StaticResource StandardComboBox}"
+                                                  ItemsSource="{Binding CategoryOptions}" DisplayMemberPath="Label" SelectedValuePath="Value"
+                                                  SelectedValue="{Binding Category, Mode=TwoWay}"/>
+                                        <TextBox Grid.Column="2" Margin="0,0,6,0" Style="{StaticResource BoxedTextInput}" TextAlignment="Right"
+                                                 Text="{Binding FromText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                        <TextBox Grid.Column="3" Margin="0,0,6,0" Style="{StaticResource BoxedTextInput}" TextAlignment="Right"
+                                                 Text="{Binding ToText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                 ToolTip="Empty = no upper limit."/>
+                                        <TextBox Grid.Column="4" Margin="0,0,6,0" Style="{StaticResource BoxedTextInput}" TextAlignment="Right"
+                                                 Text="{Binding ClearanceText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                        <ComboBox Grid.Column="5" Margin="0,0,6,0" Style="{StaticResource StandardComboBox}"
+                                                  ItemsSource="{Binding ModeOptions}" DisplayMemberPath="Label" SelectedValuePath="Value"
+                                                  SelectedValue="{Binding Mode, Mode=TwoWay}"/>
+                                        <ComboBox Grid.Column="6" Margin="0,0,6,0" Style="{StaticResource StandardComboBox}"
+                                                  ItemsSource="{Binding ShapeOptions}" DisplayMemberPath="Label" SelectedValuePath="Value"
+                                                  SelectedValue="{Binding Shape, Mode=TwoWay}"/>
+                                        <TextBlock Grid.Column="7" Text="{Binding Example}" VerticalAlignment="Center" Margin="2,0,6,0"
+                                                   TextTrimming="CharacterEllipsis" ToolTip="{Binding Example}"
+                                                   Foreground="{DynamicResource BrushTextSecondary}"/>
+                                        <TextBlock Grid.Column="8" Text="{Binding Check}" VerticalAlignment="Center" Margin="2,0,6,0"
+                                                   TextTrimming="CharacterEllipsis" ToolTip="{Binding Check}">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Foreground" Value="{DynamicResource BrushStatusOk}"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding HasWarning}" Value="True">
+                                                            <Setter Property="Foreground" Value="{DynamicResource BrushStatusWarn}"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding HasError}" Value="True">
+                                                            <Setter Property="Foreground" Value="{DynamicResource BrushStatusError}"/>
+                                                            <Setter Property="FontWeight" Value="SemiBold"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                        <Button Grid.Column="9" Content="Delete" Command="{Binding DeleteCommand}"
+                                                Style="{DynamicResource SmallSecondaryButton}" ToolTip="Removes this rule. Nothing is saved until you press Save rules."/>
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </Grid>
+                </ScrollViewer>
+
+                <WrapPanel Margin="10,8,10,0">
+                    <WrapPanel.Resources>
+                        <Style x:Key="OptionLabel" TargetType="TextBlock">
+                            <Setter Property="FontWeight" Value="SemiBold"/>
+                            <Setter Property="FontSize" Value="11.5"/>
+                            <Setter Property="Foreground" Value="{DynamicResource BrushTextSecondary}"/>
+                            <Setter Property="VerticalAlignment" Value="Center"/>
+                            <Setter Property="Margin" Value="0,0,6,0"/>
+                        </Style>
+                    </WrapPanel.Resources>
+                    <Button Content="+ Add rule" Command="{Binding AddRuleCommand}" Style="{DynamicResource SmallSecondaryButton}" Margin="0,0,16,6"
+                            ToolTip="Adds a rule below the last one. The first rule that fits an element is used."/>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,16,6" ToolTip="Used for every element no rule covers.">
+                        <TextBlock Text="Default offset" Style="{StaticResource OptionLabel}"/>
+                        <TextBox Width="56" Style="{StaticResource BoxedTextInput}" TextAlignment="Right"
+                                 Text="{Binding DefaultClearanceText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                        <ComboBox Width="96" Margin="6,0,0,0" Style="{StaticResource StandardComboBox}"
+                                  ItemsSource="{Binding ModeOptions}" DisplayMemberPath="Label" SelectedValuePath="Value"
+                                  SelectedValue="{Binding DefaultMode, Mode=TwoWay}"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,16,6" ToolTip="How far a void extends beyond the structure on each side, so it always cuts clean through.">
+                        <TextBlock Text="Overshoot" Style="{StaticResource OptionLabel}"/>
+                        <TextBox Width="56" Style="{StaticResource BoxedTextInput}" TextAlignment="Right"
+                                 Text="{Binding OvershootText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,16,6" ToolTip="Opening sizes are rounded up to a multiple of this. 0 or empty = no rounding.">
+                        <TextBlock Text="Round up to" Style="{StaticResource OptionLabel}"/>
+                        <TextBox Width="56" Style="{StaticResource BoxedTextInput}" TextAlignment="Right"
+                                 Text="{Binding RoundUpToText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                    </StackPanel>
+                    <CheckBox Content="Include insulation" IsChecked="{Binding IncludeInsulation, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,16,6"
+                              ToolTip="Adds the insulation thickness to the MEP size. The rule is still chosen by the size without insulation."/>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,6" ToolTip="Perpendicular to structure: square to a wall or floor face, and across a beam or column. Follow MEP direction: along the MEP element, whatever its slope.">
+                        <TextBlock Text="Opening axis" Style="{StaticResource OptionLabel}"/>
+                        <ComboBox Width="190" Style="{StaticResource StandardComboBox}"
+                                  ItemsSource="{Binding AxisOptions}" DisplayMemberPath="Label" SelectedValuePath="Value"
+                                  SelectedValue="{Binding AxisMode, Mode=TwoWay}"/>
+                    </StackPanel>
+                </WrapPanel>
+
+                <TextBlock Text="{Binding GeneralIssues}" Margin="10,0,10,4" TextWrapping="Wrap" FontWeight="SemiBold"
+                           Foreground="{DynamicResource BrushStatusError}"
+                           Visibility="{Binding HasGeneralIssues, Converter={StaticResource BoolToVisibility}}"/>
+
+                <DockPanel Margin="10,2,10,10">
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                        <Button Content="Revert" Command="{Binding RevertCommand}" Style="{DynamicResource SecondaryButton}" Width="80" Margin="0,0,8,0"
+                                ToolTip="Drops the unsaved changes and shows the saved rules again."/>
+                        <Button Content="Save rules" Command="{Binding SaveCommand}" Style="{DynamicResource PrimaryButton}"
+                                ToolTip="Saves the rules and options for the next time you open the tool. Disabled while a rule has an error."/>
+                    </StackPanel>
+                    <TextBlock VerticalAlignment="Center" TextWrapping="Wrap" Foreground="{DynamicResource BrushTextSecondary}"
+                               Text="The first rule that fits an element is used; a fitting or accessory with no rule of its own uses its pipe, duct, tray or conduit rules. Analyze, which applies these rules, comes in a later version."/>
+                </DockPanel>
+            </StackPanel>
+        </Border>
+
         <!-- Notification strip: messages appear here instead of in pop-up dialogs. -->
-        <Border Grid.Row="1" Margin="0,10,0,0" Padding="10,6" BorderThickness="1"
+        <Border Grid.Row="2" Margin="0,10,0,0" Padding="10,6" BorderThickness="1"
                 Visibility="{Binding HasNotification, Converter={StaticResource BoolToVisibility}}">
             <Border.Style>
                 <Style TargetType="Border">
@@ -126,7 +301,7 @@
             </DockPanel>
         </Border>
 
-        <DockPanel Grid.Row="2" Margin="0,10,0,0">
+        <DockPanel Grid.Row="3" Margin="0,10,0,0">
             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
                 <Button Content="Refresh" Command="{Binding RefreshCommand}" Style="{DynamicResource SecondaryButton}" Width="90" Margin="0,0,8,0"
                         ToolTip="Reads the links and element counts of the active project again."/>

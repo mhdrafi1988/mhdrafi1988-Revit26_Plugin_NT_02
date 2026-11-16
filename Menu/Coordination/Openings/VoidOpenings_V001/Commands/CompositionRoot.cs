@@ -1,9 +1,11 @@
 using System;
 using Autodesk.Revit.UI;
 using Microsoft.Extensions.DependencyInjection;
+using Revit26_Plugin_Revised.VoidOpenings.V001.Core.Application.Features.ClearanceConfiguration;
 using Revit26_Plugin_Revised.VoidOpenings.V001.Core.Application.Features.ModelSelection;
 using Revit26_Plugin_Revised.VoidOpenings.V001.Core.Application.Ports;
 using Revit26_Plugin_Revised.VoidOpenings.V001.Infrastructure.ExternalEvents;
+using Revit26_Plugin_Revised.VoidOpenings.V001.Infrastructure.Json;
 using Revit26_Plugin_Revised.VoidOpenings.V001.Infrastructure.Revit;
 using Revit26_Plugin_Revised.VoidOpenings.V001.UI.ViewModels;
 
@@ -24,7 +26,9 @@ namespace Revit26_Plugin_Revised.VoidOpenings.V001.Commands
             services.AddSingleton(new RevitContext(application));
             services.AddSingleton<IRevitDispatcher, RevitDispatcher>();
             services.AddSingleton<IModelReader, RevitModelReader>();
+            services.AddSingleton<ISettingsStore>(new FileSettingsStore());
             services.AddSingleton<ModelSelectionService>();
+            services.AddSingleton<ClearanceConfigurationService>();
             services.AddSingleton<MainViewModel>();
             return services.BuildServiceProvider();
         }

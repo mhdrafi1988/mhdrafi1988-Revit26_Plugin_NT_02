@@ -9,6 +9,36 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [7.16.0] — 2026-11-16
+
+### Void Openings 0.3.0 (in development, phase 3 of 8)
+
+#### Added
+- **OPENING CLEARANCE** card in the window, under the two model panels. All values are millimetres.
+  - **Rules**: one row per MEP category and size range, with **Size from**, **Size to**, **Offset**, **Applies**
+    (Each side: opening = size + 2 × offset; Total: opening = size + offset) and **Opening shape** (Auto, Circular,
+    Rectangular). **+ Add rule** adds a row, **Delete** removes one. The first rule that fits an element is used; a
+    fitting or accessory with no rule of its own uses its pipe, duct, tray or conduit rules.
+  - An empty **Size from** means 0; an empty **Size to** means no upper limit. A decimal comma or point is accepted.
+  - **Example** column: the rule worked out, for example "50 + 2 × 30 = 110 mm" (with **Round up to** applied).
+  - **Check** column: "OK", or what is wrong with the row. Errors (a value that is not a number from 0 to 100000, a
+    missing offset, Size from above Size to) block saving. Two rules of one category covering the same sizes give a
+    warning and can still be saved.
+  - Options: **Default offset** (used when no rule fits) with Each side / Total, **Overshoot**, **Round up to**,
+    **Include insulation**, **Opening axis** (Perpendicular to structure / Follow MEP direction).
+  - **Save rules** and **Revert**. Closing the window with unsaved changes asks whether to save them (Yes / No / Cancel).
+- The rules and options are saved to `%AppData%\Revit26_Plugin_Revised\VoidOpenings\settings.json` (format version 1)
+  and read back the next time the tool opens. A file that cannot be read is copied to `settings.corrupt-<time>.json`
+  and the defaults are shown, with a message in the window.
+- Unit tests: `Tests/VoidOpenings.Tests/ClearanceValidationTests.cs` and `SettingsTests.cs`.
+
+#### Changed
+- The window is taller (1000 × 820, minimum 900 × 640) to hold the new card.
+
+User note: nothing in the model is changed by this version, and the rules are not applied to anything yet. Analyze,
+which uses them, comes in the next phase. A first run starts with no rules, a default offset of 50 mm each side,
+50 mm overshoot, no rounding, insulation included and openings perpendicular to the structure.
+
 ## [7.15.0] — 2026-11-16
 
 ### Annotation Overlap Detection 7.0.0 (V007, new version next to V006)

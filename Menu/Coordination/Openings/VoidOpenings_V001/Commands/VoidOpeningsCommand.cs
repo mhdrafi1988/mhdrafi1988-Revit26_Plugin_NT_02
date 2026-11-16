@@ -11,7 +11,8 @@ namespace Revit26_Plugin_Revised.VoidOpenings.V001.Commands
 {
     /// <summary>
     /// Opens the Void Openings window (modeless). This version covers choosing the structural and MEP
-    /// models and their categories; analysis and void placement are added in later versions.
+    /// models and their categories, and the opening clearance rules; analysis and void placement are
+    /// added in later versions.
     /// </summary>
     [Transaction(TransactionMode.Manual)]
     [Regeneration(RegenerationOption.Manual)]
