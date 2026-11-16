@@ -173,6 +173,43 @@ namespace BaseLevelToParameter.Tests
         }
 
         [Fact]
+        public void SelectedCategories_SomeLeftOut_IsWarning_AllLeftOut_IsBlocked()
+        {
+            var t = ExistingTarget();
+            t.SelectedCategoryCount = 1;
+            t.NotSelectedCategories.Add("Floors");
+            var warn = BaseLevelRules.EvaluateChecks(t, new[] { Ready(1) }, false)[3];
+            Assert.Equal(CheckResult.Warning, warn.Result);
+            Assert.Contains("Floors", warn.Detail);
+            t.NotSelectedCategories.Add("Walls");
+            Assert.Equal(CheckResult.Blocked, BaseLevelRules.EvaluateChecks(t, new[] { Ready(1) }, false)[3].Result);
+        }
+
+        [Fact]
+        public void SelectedCategories_AllIncluded_Pass()
+        {
+            var t = ExistingTarget();
+            t.SelectedCategoryCount = 5;
+            var check = BaseLevelRules.EvaluateChecks(t, new[] { Ready(1) }, false)[3];
+            Assert.Equal(CheckResult.Pass, check.Result);
+            Assert.Contains("5 selected categories", check.Detail);
+        }
+
+        [Fact]
+        public void CategoryNotSelected_RowIsSkipped()
+        {
+            var e = Ready(1);
+            e.CategoryNotSelected = true;
+            RowVerdict v = BaseLevelRules.EvaluateRow(e, false, false, true, "Level 01 (0)");
+            Assert.Equal(RowState.Warning, v.State);
+            Assert.Contains("not selected", v.Text);
+        }
+
+        [Fact]
+        public void NewParameterSpec_NoCategories_KeepsOldBinding() =>
+            Assert.False(new NewParameterSpec().HasCategorySelection);
+
+        [Fact]
         public void NothingTicked_IsBlocked() =>
             Assert.Equal(CheckResult.Blocked, BaseLevelRules.EvaluateChecks(ExistingTarget(), new List<ElementFacts>(), false)[3].Result);
 

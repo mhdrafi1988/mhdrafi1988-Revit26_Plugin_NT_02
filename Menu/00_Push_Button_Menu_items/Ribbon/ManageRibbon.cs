@@ -47,7 +47,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                 "Lists overlapping annotations of every type on the active view or on chosen views and sheets, " +
                 "with zoom to pair and Excel export. Report only: nothing is moved.");
 
-            // Overlap Detection V004 left the pulldown in plugin 6.53.0 and V005 in 7.13.0 (latest two versions only);
+            // Overlap Detection V004 left the pulldown in plugin 6.53.0 and V005 in 7.14.0 (latest two versions only);
             // their code and ToolCatalog entries stay, button names Btn_AnnotationOverlapDetection_V004 / _V005.
 
             var paraManagerV005 = Btn(assemblyPath, "Btn_ParaManager_V005", "ParaManager V005", "Revit26_Plugin_Revised.ParaManager.V005.ParaManagerCommand",
