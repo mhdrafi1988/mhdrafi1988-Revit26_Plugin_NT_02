@@ -1,13 +1,16 @@
 <title>Align Spot Elevations Window</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<!-- UI preview (CLAUDE.md "UI previews"): Align Spot Elevations V001, tool 1.8.0, plugin 6.43.0.
-     New in 1.8.0: Distribute Spot Elev. button (opens the window in Distribute only) and two quick split buttons
+<!-- UI preview (CLAUDE.md "UI previews"): Align Spot Elevations V001, tool 1.9.0, plugin 7.14.0.
+     New in 1.9.0: "Quick Align Bends to Tag Horizontal", a third item in the Quick Align to Tag split button
+     (always a row through the clicked tag's bend point). The window is unchanged.
+     Earlier, 1.8.0: Distribute Spot Elev. button (opens the window in Distribute only) and two quick split buttons
      (Quick Distribute Vertical, Quick Distribute Horizontal; each lists tags, ends, bends). The window itself is unchanged.
      Earlier, 1.7.1: the eight Quick Align buttons became three small split buttons (Vertical, Horizontal, to Tag).
      Earlier, 1.6.0: "Pick tag…" for the bend point and end point lines in Align to detail lines mode.
      Mirrors: Menu/Tagging/AlignSpotElevations_V001/UI/Views/AlignWindow.xaml (+ AlignViewModel),
               Menu/00_Push_Button_Menu_items/Ribbon/TaggingRibbon.cs
-     Artifact: https://claude.ai/artifact/2VHrumnthLR5qSpzTFHfpi (republish to this URL on every update)
+     Artifact: https://claude.ai/artifact/Km2rqAQL5fCn1fZBDuTXTT (republish to this URL on every update;
+               replaces 2VHrumnthLR5qSpzTFHfpi, which this account could no longer open)
      Colours: Shared/SharedStyles.xaml tokens, one light look on purpose (mirrors the light WPF window). -->
 <style>
 /* Layout: one column of captioned mock-ups; each fixed-width Revit piece scrolls in its own frame. */
@@ -83,15 +86,15 @@ ul{margin:0;padding-left:18px;line-height:1.6}
 
 <div class="page">
   <header>
-    <h1>Align Spot Elevations v1.8.0 — distribute buttons</h1>
-    <p class="muted">Three new ribbon buttons space the selected spot elevations along their column or row without lining them up: one opens the window in Distribute only, two split buttons do it in one click for the tags, the leader ends or the leader bends. Green tags mark what is new.</p>
+    <h1>Align Spot Elevations v1.9.0 — bends to tag, horizontal</h1>
+    <p class="muted">A new item in the <b>Quick Align to Tag</b> split button lines the leader bend points of the selected spot elevations up in one row with the bend point of a tag you click. It is always horizontal. The leader end and the text follow each bend. Green tags mark what is new.</p>
     <p style="margin-top:8px"><span class="sample">Sample data: spot labels and positions are made up.</span></p>
   </header>
 
   <!-- 1. Ribbon -->
   <section>
     <h2>1 · Ribbon, Tagging panel</h2>
-    <p class="muted" style="margin-bottom:8px">One new large button and one new stack of two small split buttons, after the Quick Align split buttons. The main click runs the item used last (the first until you pick another); the arrow lists the rest.</p>
+    <p class="muted" style="margin-bottom:8px">No new button on the panel itself. The arrow of <b>Quick Align to Tag</b> lists a third item. Once you use it, the split button's main click runs it (remembered across Revit restarts).</p>
     <div class="frame">
       <div class="rib">
         <div class="tabs">… · Tagging · …</div>
@@ -99,119 +102,88 @@ ul{margin:0;padding-left:18px;line-height:1.6}
           <div class="big"><div class="ico"></div>Tag To Text</div>
           <div class="big"><div class="ico"></div>Align Spot Elevations</div>
           <div class="big"><div class="ico"></div>Align to Detail Line</div>
-          <div class="big new"><div class="ico"></div>Distribute Spot Elev.</div>
+          <div class="big"><div class="ico"></div>Distribute Spot Elev.</div>
           <div class="stack">
             <span class="small"><i></i>Quick Align Vertical ▾</span>
             <span class="small"><i></i>Quick Align Horizontal ▾</span>
-            <span class="small"><i></i>Quick Align to Tag ▾</span>
+            <span class="small new"><i></i>Quick Align to Tag ▾</span>
           </div>
           <div class="stack">
-            <span class="small new"><i></i>Quick Distribute Vertical ▾</span>
-            <span class="small new"><i></i>Quick Distribute Horizontal ▾</span>
+            <span class="small"><i></i>Quick Distribute Vertical ▾</span>
+            <span class="small"><i></i>Quick Distribute Horizontal ▾</span>
           </div>
         </div>
         <div class="ptitle">Tagging</div>
       </div>
       <div class="tip">
-        <b>Arrow lists<span class="tag">NEW</span></b>
-        <span><b>Vertical ▾</b> Quick Distribute Vertical · Quick Distribute Ends Vertical · Quick Distribute Bends Vertical</span>
-        <span><b>Horizontal ▾</b> Quick Distribute Horizontal · Quick Distribute Ends Horizontal · Quick Distribute Bends Horizontal</span>
-        <span><b>Quick Distribute Ends Vertical</b>: Spaces the leader end points of the selected spot elevations up-down along their column right away. The text moves with each end. A leader with a bend only lets its end slide along the bend-to-end segment. Uses the spacing last used in the window. One Undo step.</span>
-        <span class="gray">Align Spot Elevations v1.8.0</span>
+        <b>Quick Align to Tag ▾ (arrow list)</b>
+        <span class="small"><i></i>Quick Align Ends to Tag</span>
+        <span class="small"><i></i>Quick Align Bends to Tag</span>
+        <span class="small new"><i></i>Quick Align Bends to Tag Horizontal<span class="tag">NEW</span></span>
+      </div>
+      <div class="tip">
+        <b>Quick Align Bends to Tag Horizontal<span class="tag">NEW</span></b>
+        <span>Lines up the leader bend points (shoulders) of the selected spot elevations in one row with the bend point of one spot elevation you click, right away. Always horizontal (same Y), whatever direction the window last used. The leader end and text move with each bend. One Undo step.</span>
+        <span class="gray">Align Spot Elevations v1.9.0</span>
       </div>
     </div>
   </section>
 
-  <!-- 2. Window -->
+  <!-- 2. Prompt -->
   <section>
-    <h2>2 · Window, opened by Distribute Spot Elev.</h2>
-    <p class="muted" style="margin-bottom:8px">The same window as before; the new button only preselects <b>Distribute only</b>.</p>
-    <div class="frame"><div class="win">
-      <div class="tbar"><span>Align Spot Elevations — v1.8.0</span><span class="x">✕</span></div>
-      <div class="wbody">
-        <div>5 spot elevation(s) selected · view 1:100. Distances are paper mm. The measured point never moves.</div>
-
-        <fieldset class="new"><legend>Arrange</legend>
-          <span class="r"><span class="rad"></span>Align to a line</span>
-          <span class="r"><span class="rad on"></span>Distribute only (space along the column or row)<span class="tag">PRESELECTED</span></span>
-          <span class="r"><span class="rad"></span>Offset from point (same distance from each measured point)</span>
-          <span class="r"><span class="rad"></span>Align to detail lines or a tag (slide onto picked lines, vertically or horizontally)</span>
-        </fieldset>
-
-        <fieldset><legend>Move</legend>
-          <span class="r"><span class="chk on"></span>Text</span>
-          <span class="r"><span class="chk"></span>Leader end point&nbsp;&nbsp;(5 of 5 have a leader)</span>
-          <span class="r"><span class="chk"></span>Leader bend point (shoulder)&nbsp;&nbsp;(0 of 5 have one)</span>
-          <span class="gray">Parts that are not ticked follow, as in Revit: the text moves with the leader end, and the end and text move with the bend point.</span>
-        </fieldset>
-
-        <fieldset><legend>Direction</legend>
-          <div class="row">
-            <span class="r"><span class="rad on"></span>Vertical — one column</span>
-            <span class="r"><span class="rad"></span>Horizontal — one row</span>
-          </div>
-        </fieldset>
-
-        <fieldset><legend>Spacing along the line</legend>
-          <span class="r dis"><span class="rad"></span>Keep current spacing</span>
-          <span class="r"><span class="rad on"></span>Even (first and last tag stay)</span>
-          <span class="r"><span class="rad"></span>Fixed gap <span class="num">6</span> mm (top / left tag stays) <span class="btn sm">Fit</span></span>
-        </fieldset>
-
-        <div><b>3 of 5 spots change: text spaced down their column.</b></div>
-
-        <table>
-          <tr><th>Spot</th><th>Text X (mm)</th><th>Text Y (mm)</th><th>End X, Y (mm)</th><th>Bend X, Y (mm)</th></tr>
-          <tr><td>+3.100&nbsp;&nbsp;(412205)</td><td>–</td><td>–</td><td>–</td><td>no bend</td></tr>
-          <tr><td>+3.150&nbsp;&nbsp;(412206)</td><td>–</td><td>-3.0</td><td>–</td><td>no bend</td></tr>
-          <tr><td>+3.150&nbsp;&nbsp;(412207)</td><td>–</td><td>+2.5</td><td>–</td><td>no bend</td></tr>
-          <tr><td>+3.200&nbsp;&nbsp;(412208)</td><td>–</td><td>-1.5</td><td>–</td><td>no bend</td></tr>
-          <tr><td>+3.250&nbsp;&nbsp;(412209)</td><td>–</td><td>–</td><td>–</td><td>no bend</td></tr>
-        </table>
-
-        <div class="foot"><span></span>
-          <span class="r"><span class="btn pri">Apply</span><span class="btn">Cancel</span></span></div>
-      </div>
-    </div></div>
+    <h2>2 · After the click: status bar prompt</h2>
+    <div class="frame">
+      <div class="prompt">Click the spot elevation to line the bend points up with (Esc cancels)</div>
+    </div>
   </section>
 
   <!-- 3. View sketch -->
   <section>
     <h2>3 · What happens in the view</h2>
-    <p class="muted" style="margin-bottom:8px">Pale = before, solid = after. Even spacing, vertical: the top and bottom tags stay, the three between them get equal gaps. No tag moves left or right.</p>
+    <p class="muted" style="margin-bottom:8px">Pale = before, solid = after. The middle tag is the one clicked (ring). The other bend points move straight up or down onto its row; each leader end and text move with its bend, so the leader shape stays the same. The measured points never move.</p>
     <div class="frame"><div class="sheet">
-      <svg viewBox="0 0 640 260" role="img" aria-label="Five spot elevation tags in a loose column; the middle three move up or down so all gaps are equal">
+      <svg viewBox="0 0 640 250" role="img" aria-label="Three spot elevations; the bend points of the outer two move up or down onto the row of the clicked tag's bend point">
         <g font-family="Segoe UI,sans-serif" font-size="11">
-          <g stroke="#0E7C66" stroke-dasharray="3 3" fill="none"><line x1="470" y1="30" x2="520" y2="30"/><line x1="470" y1="80" x2="520" y2="80"/><line x1="470" y1="130" x2="520" y2="130"/><line x1="470" y1="180" x2="520" y2="180"/><line x1="470" y1="230" x2="520" y2="230"/></g>
-          <text x="528" y="59" fill="#0E7C66">equal</text><text x="528" y="109" fill="#0E7C66">equal</text><text x="528" y="159" fill="#0E7C66">equal</text><text x="528" y="209" fill="#0E7C66">equal</text>
+          <line x1="30" y1="90" x2="610" y2="90" stroke="#0E7C66" stroke-dasharray="4 3"/>
+          <text x="612" y="86" fill="#0E7C66" text-anchor="end">row through clicked bend</text>
 
-          <line x1="120" y1="50" x2="300" y2="34" stroke="#5B7185" fill="none"/><circle cx="120" cy="50" r="3" fill="#1A2B3C"/><text x="305" y="34" fill="#1A2B3C">+3.100  (stays)</text>
+          <!-- left: bend moves up 40 -->
+          <g opacity=".35" fill="none" stroke="#5B7185"><line x1="80" y1="220" x2="120" y2="130"/><line x1="120" y1="130" x2="170" y2="130"/></g>
+          <g opacity=".35"><circle cx="120" cy="130" r="4" fill="#7C3AED"/><text x="174" y="134" fill="#5B7185">+3.150</text></g>
+          <line x1="80" y1="220" x2="120" y2="90" stroke="#5B7185"/><line x1="120" y1="90" x2="170" y2="90" stroke="#5B7185"/>
+          <circle cx="80" cy="220" r="3" fill="#1A2B3C"/><circle cx="120" cy="90" r="4" fill="#7C3AED"/>
+          <text x="174" y="80" fill="#1A2B3C">+3.150</text>
+          <text x="128" y="114" fill="#7C3AED">↑ bend</text>
 
-          <g opacity=".35"><line x1="150" y1="92" x2="330" y2="58" stroke="#5B7185" fill="none"/><text x="335" y="58" fill="#5B7185">+3.150</text></g>
-          <line x1="150" y1="92" x2="330" y2="84" stroke="#5B7185" fill="none"/><circle cx="150" cy="92" r="3" fill="#1A2B3C"/><text x="335" y="84" fill="#1A2B3C">+3.150</text>
+          <!-- middle: reference -->
+          <line x1="290" y1="200" x2="320" y2="90" stroke="#5B7185"/><line x1="320" y1="90" x2="370" y2="90" stroke="#5B7185"/>
+          <circle cx="290" cy="200" r="3" fill="#1A2B3C"/><circle cx="320" cy="90" r="4" fill="#7C3AED"/>
+          <circle cx="320" cy="90" r="10" fill="none" stroke="#0E7C66" stroke-width="2.5"/>
+          <text x="374" y="80" fill="#1A2B3C">+3.200</text>
+          <text x="290" y="222" fill="#0E7C66">clicked tag (stays)</text>
 
-          <g opacity=".35"><line x1="200" y1="140" x2="290" y2="156" stroke="#5B7185" fill="none"/><text x="295" y="156" fill="#5B7185">+3.150</text></g>
-          <line x1="200" y1="140" x2="290" y2="134" stroke="#5B7185" fill="none"/><circle cx="200" cy="140" r="3" fill="#1A2B3C"/><text x="295" y="134" fill="#1A2B3C">+3.150</text>
-
-          <g opacity=".35"><line x1="110" y1="190" x2="320" y2="170" stroke="#5B7185" fill="none"/><text x="325" y="170" fill="#5B7185">+3.200</text></g>
-          <line x1="110" y1="190" x2="320" y2="184" stroke="#5B7185" fill="none"/><circle cx="110" cy="190" r="3" fill="#1A2B3C"/><text x="325" y="184" fill="#1A2B3C">+3.200</text>
-
-          <line x1="170" y1="240" x2="310" y2="234" stroke="#5B7185" fill="none"/><circle cx="170" cy="240" r="3" fill="#1A2B3C"/><text x="315" y="234" fill="#1A2B3C">+3.250  (stays)</text>
+          <!-- right: bend moves down 30 -->
+          <g opacity=".35" fill="none" stroke="#5B7185"><line x1="480" y1="210" x2="510" y2="60"/><line x1="510" y1="60" x2="560" y2="60"/></g>
+          <g opacity=".35"><circle cx="510" cy="60" r="4" fill="#7C3AED"/><text x="564" y="64" fill="#5B7185">+3.250</text></g>
+          <line x1="480" y1="210" x2="510" y2="90" stroke="#5B7185"/><line x1="510" y1="90" x2="560" y2="90" stroke="#5B7185"/>
+          <circle cx="480" cy="210" r="3" fill="#1A2B3C"/><circle cx="510" cy="90" r="4" fill="#7C3AED"/>
+          <text x="564" y="80" fill="#1A2B3C">+3.250</text>
+          <text x="518" y="112" fill="#7C3AED">↓ bend</text>
         </g>
       </svg>
     </div></div>
   </section>
 
   <section class="q">
-    <h2>What changed in 1.8.0</h2>
+    <h2>What changed in 1.9.0</h2>
     <ul>
-      <li><b>Distribute Spot Elev.</b>: opens the window with Distribute only chosen. Even spacing or a fixed gap; text, leader ends and bend points.</li>
-      <li><b>Quick Distribute Vertical / Horizontal</b> split buttons: one click. Each lists tags (parts last ticked in the window), <b>Ends</b> (leader end points only) and <b>Bends</b> (bend points only), and remembers the item used last.</li>
-      <li>All use the spacing last used in the window. "Keep current spacing" counts as even. Even spacing needs at least three spots that have the part.</li>
-      <li>The window, its settings file and the Quick Align buttons are unchanged.</li>
+      <li><b>Quick Align Bends to Tag Horizontal</b> in the Quick Align to Tag split button: bend points in one row with a clicked tag's bend point, always horizontal.</li>
+      <li>The existing <b>Quick Align Bends to Tag</b> still uses the direction last chosen in the window. The new button does not change that saved direction.</li>
+      <li>Spots without a bend point are left as they are. The window and its settings file are unchanged.</li>
     </ul>
     <h2>Earlier</h2>
     <ul>
+      <li>1.8.0: Distribute Spot Elev. button and the Quick Distribute Vertical / Horizontal split buttons.</li>
       <li>1.7.1: the eight Quick Align buttons became three split buttons that remember the item used last.</li>
       <li>1.6.0: <b>Pick tag…</b> on the bend point and end point lines; Quick Align Ends / Bends to Tag.</li>
     </ul>

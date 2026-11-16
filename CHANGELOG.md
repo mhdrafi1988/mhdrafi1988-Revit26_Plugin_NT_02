@@ -9,7 +9,7 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
-## [7.14.0] — 2026-11-16
+## [7.15.0] — 2026-11-16
 
 ### Annotation Overlap Detection 7.0.0 (V007, new version next to V006)
 
@@ -48,6 +48,18 @@ Each release lists every tool whose version changed, under the plugin version.
 **User note:** with the box unticked, V007 resolves exactly like V006. Tick it once and it is remembered. With it
 ticked, a move can be longer than the overlap, because the annotation goes on past its neighbours. V006 and V005 are
 unchanged.
+
+## [7.14.0] — 2026-11-16
+
+### Added
+- **Align Spot Elevations v1.9.0** — new item **Quick Align Bends to Tag Horizontal** in the **Quick Align to Tag**
+  split button (Tagging panel). Select spot elevations, click it, then click one spot elevation: every selected
+  leader bend point (shoulder) moves onto a horizontal line through that tag's bend point (same Y). The leader end
+  and the text move with each bend. One Undo step. Icon: `Resources/Icons/Tagging/AlignSpotElevationsBendsToTagHorizontal_16/32.png`.
+
+**User notes**
+- The new button is always horizontal. The existing **Quick Align Bends to Tag** still uses the direction last
+  chosen in the window, and the new button does not change that saved direction.
 
 ## [7.13.1] — 2026-11-16
 
