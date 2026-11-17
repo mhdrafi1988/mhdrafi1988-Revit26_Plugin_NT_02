@@ -45,7 +45,7 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 | Rafi_Pro_Docs | View Rename | Bubble Renumber *button* · Section Renamer *button* · Auto Renamer *button* |
 | Rafi_Pro_Docs2 | Tagging | Tag To Text · Align Spot Elevations · Align to Detail Line · Distribute Spot Elev. · Quick Align split buttons: Vertical · Horizontal (each lists tags, ends, bends) · to Tag (ends, bends, bends horizontal, bends vertical) · Quick Distribute split buttons: Vertical · Horizontal (each lists tags, ends, bends) |
 | Rafi_Pro_Docs | Sheet Create | Scope Box · Sheet Placer · Section Placer · Sections To Sheet · Combine Sheets ▸ slide-out: Rearrange (V030, V029, V028) · Arrange Views |
-| Rafi_Pro_Docs | Sheet Edit | Text Replace |
+| Rafi_Pro_Docs | Sheet Edit | Text Replace · Align & Distribute |
 | Rafi_Pro_Docs | Waterproofing | Wet Area Waterproofing |
 | Rafi_Pro_Docs2 | DWG Tools | DWG To DL(P) · Export DWG · DWG Manager · DWG Statistics |
 | Rafi_Pro_Docs2 | Family Tools | Batch Link DWG · DWG To Lines |

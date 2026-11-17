@@ -60,7 +60,7 @@ Each item is a pulldown unless marked *button*. A pulldown lists its versions hi
 | Rafi_Pro_Docs | View Rename | Bubble Renumber *button* · Section Renamer *button* · Auto Renamer *button* | `ViewToolsRibbon` |
 | Rafi_Pro_Docs2 | Tagging | Tag To Text, Align Spot Elevations, Align to Detail Line, Distribute Spot Elev. (large *buttons*) · 3 small *split buttons* (last used item runs, kept across restarts): Quick Align Vertical ▾ (tags / ends / bends) · Quick Align Horizontal ▾ (tags / ends / bends) · Quick Align to Tag ▾ (ends / bends / bends horizontal / bends vertical) · 2 small *split buttons* (same memory): Quick Distribute Vertical ▾ (tags / ends / bends) · Quick Distribute Horizontal ▾ (tags / ends / bends) | `TaggingRibbon` |
 | Rafi_Pro_Docs | Sheet Create | Scope Box · Sheet Placer · Section Placer · Sections To Sheet *button* · Combine Sheets *button* ▸ Rearrange (V030, V029, V028) · Arrange Views *button* | `SheetToolsRibbon` |
-| Rafi_Pro_Docs | Sheet Edit | Text Replace *button* (large) | `SheetToolsRibbon` |
+| Rafi_Pro_Docs | Sheet Edit | Text Replace *button* (large) · Align & Distribute *button* (large) | `SheetToolsRibbon` |
 | Rafi_Pro_Docs | Waterproofing | Wet Area Waterproofing *button* (large) | `SheetToolsRibbon` |
 | Rafi_Pro_Docs2 | DWG Tools | DWG To DL(P) · Export DWG · DWG Manager · DWG Statistics | `SetupRibbon` |
 | Rafi_Pro_Docs2 | Family Tools | Batch Link DWG · DWG To Lines | `SetupRibbon` |
@@ -69,7 +69,10 @@ Each item is a pulldown unless marked *button*. A pulldown lists its versions hi
 | Rafi_Pro_Docs2 | Memory | WS Memory (large *button*) · Link Memory (large; V002, V001) | `ManageRibbon` |
 | Rafi_Pro_Docs2 | Coordination | Void Openings (large *button*) · Base Level to Parameter (large *button*) | `CoordinationRibbon` |
 
-The latest change was plugin 7.16.2, which gave **Quick Align Bends to Tag Vertical** its own icon (a green
+The latest change was plugin 7.17.0, which added **Align & Distribute** (Sheet Align and Distribute V001) to the
+Sheet Edit panel, after Text Replace, as a second large button. It temporarily reuses the Rearrange icons
+(`Resources/Icons/SheetTools/SheetAutoRearrange_16/32.png`); dedicated
+`Resources/Icons/SheetTools/SheetAlignDistribute_16/32.png` icons are still to be drawn. Before it, plugin 7.16.2 gave **Quick Align Bends to Tag Vertical** its own icon (a green
 vertical line with arrowheads through the bend points). Before it, plugin 7.16.0 added **Quick Align Bends to Tag Vertical** to the Quick Align to Tag
 split button on the Tagging panel; its icons are `Resources/Icons/Tagging/AlignSpotElevationsBendsToTagVertical_16/32.png`.
 Before it, plugin 7.14.0 added **Quick Align Bends to Tag Horizontal** to the Quick Align to Tag
