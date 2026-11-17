@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    Unit tests for Sheet Align & Distribute V001's Revit-free code: the row and column detection,
+    the median shared line and its clamp, the distribute spread, the snap and move limits, the
+    overlap check, and the margin detection.
+    The tool's files are linked, not copied.
+    Run:  dotnet test Tests/SheetAlignDistribute.Tests
+  -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <ToolDir>..\..\Menu\Sheet\SheetAlignDistribute_V001\</ToolDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="$(ToolDir)Core\Layout\LayoutRect.cs" Link="Tool\Layout\LayoutRect.cs" />
+    <Compile Include="$(ToolDir)Core\Layout\Units.cs" Link="Tool\Layout\Units.cs" />
+    <Compile Include="$(ToolDir)Core\Layout\TrackDetection.cs" Link="Tool\Layout\TrackDetection.cs" />
+    <Compile Include="$(ToolDir)Core\Layout\AxisAlign.cs" Link="Tool\Layout\AxisAlign.cs" />
+    <Compile Include="$(ToolDir)Core\Layout\AlignEngine.cs" Link="Tool\Layout\AlignEngine.cs" />
+    <Compile Include="$(ToolDir)Core\Models\AlignEnums.cs" Link="Tool\Models\AlignEnums.cs" />
+    <Compile Include="$(ToolDir)Core\Models\DetectedLayout.cs" Link="Tool\Models\DetectedLayout.cs" />
+    <Compile Include="$(ToolDir)Core\Services\MarginDetector.cs" Link="Tool\Services\MarginDetector.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,753 @@
+<title>Sheet Align &amp; Distribute</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<!-- UI preview (CLAUDE.md "UI previews"): Sheet Align & Distribute 1.0.0 (V001) — NEW tool. Plugin 7.17.0.
+     Shown: the new ribbon button + tooltip on the Sheet Edit panel, the tool window (Usable area & margins,
+     Current grid, Align & Distribute, Movement limits, the Elements grid with the per-view margin box, and the
+     live sheet preview), and the Apply result dialog.
+     Rev 4 (2026-11-17): the button has its own icon now — three views of different widths flush to a green
+     guide down the left and along the bottom, the margin corner the tool aligns into. Shown below at 1x and 2x.
+     Rev 3 (built, 2026-11-17): matches the shipped window. "What is collected" is two toggles, not three
+     ticks (plans / sections / details / drafting / legends are all viewports and always in). The margin badge
+     now reads Detected or Custom: typing in a box makes the margins yours, Re-detect hands them back to the
+     sheet. Labels taken from SheetAlignDistributeWindow.xaml and ViewModel_SheetAlignDistribute.cs.
+     Rev 2 (owner sign-off, 2026-11-17): per-view four-sided margin kept as previewed; schedules listed but
+     unticked by default; Distribute defaults to Off; Max move default 25 mm (was 15). The shared row / column
+     line is now the MEDIAN of the current edges, not the average — one badly placed view no longer drags its
+     whole row, which is what makes the Max move guard meaningful. Worked example reset accordingly: A3 is the
+     outlier (44.1 mm, left alone), A7 and A8 are already in place.
+     Rev 1: design proposal before any C# was written.
+     Mirrors: Menu/Sheet/SheetAlignDistribute_V001/UI/Views/SheetAlignDistributeWindow.xaml
+              (+ UI/ViewModels/ViewModel_SheetAlignDistribute.cs; version from Shared/Services/ToolCatalog.cs).
+     Artifact: https://claude.ai/artifact/4CeaSWpnMoiZQ5KzcgBCTJ (republish to this URL on every update)
+     Colours: Shared/SharedStyles.xaml tokens, one light look on purpose (mirrors the light WPF window). -->
+<style>
+/* Layout: one column of sections; the fixed-width WPF window scrolls inside its own frame, notes sit under it. */
+:root{
+  color-scheme:light;
+  --page:#E9EDF1; --window:#F3F5F7; --card:#FFFFFF; --border:#D6DCE3; --input:#B5C2CF; --sep:#E6EAEF;
+  --navy:#1E3A5F; --navy-dark:#14283F; --navy-light:#2C4A6E; --on-dark:#EAF1F8;
+  --text:#1A2B3C; --text2:#5B7185; --text3:#8FA3B8; --disabled:#C3CFDB;
+  --bg2:#ECEFF3; --bg3:#E1E6EC;
+  --info:#1F5FBF; --info-soft:#E6EEFB; --info-border:#A9C3EE;
+  --ok:#2E7D4F; --ok-soft:#E6F4EC; --ok-border:#9FCFB2;
+  --warn:#9A5B00; --warn-soft:#FDF1E1; --warn-border:#E8B66B;
+  --err:#B23A35; --err-soft:#FBE8E7; --err-border:#EDA5A1;
+  --log-bg:#14283F; --log-text:#EAF1F8; --log-dim:#7E94AA; --log-ok:#4CC18A; --log-warn:#F0AE5C; --log-hl:#7FB0FF;
+  --new:#2E7D4F;
+  --ui:'Segoe UI',system-ui,-apple-system,sans-serif; --mono:Consolas,'Cascadia Mono',Menlo,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--text);font-family:var(--ui);font-size:12.5px;
+  padding-block:24px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.page{max-width:1100px;margin:0 auto;display:grid;gap:22px}
+h1{font-size:21px;margin:0 0 5px;font-weight:600;text-wrap:balance}
+h2{font-size:14px;margin:0 0 8px;font-weight:600;text-wrap:balance}
+p{margin:0;line-height:1.55;max-width:80ch}
+ul{margin:4px 0 0;padding-left:18px;line-height:1.6;max-width:80ch}
+li{margin-bottom:3px}
+.muted{color:var(--text2)}
+.tag{display:inline-block;background:var(--new);color:#FFFFFF;font-size:9.5px;font-weight:600;letter-spacing:.04em;
+  padding:1px 5px;border-radius:3px;vertical-align:middle;margin-left:5px;white-space:nowrap}
+.tag.ok2{background:var(--info)}
+.sample{display:inline-block;background:var(--warn-soft);color:var(--warn);border:1px solid var(--warn-border);
+  border-radius:3px;padding:3px 9px;font-size:11.5px}
+.frame{overflow-x:auto;padding-bottom:4px}
+.icons{display:flex;gap:18px;align-items:flex-end;flex-wrap:wrap;margin-top:10px;
+  background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px 14px}
+.icons figure{margin:0;display:grid;gap:5px;justify-items:center}
+.icons figcaption{font-size:10.5px;color:var(--text2)}
+.icons img{image-rendering:pixelated;display:block}
+.note{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px 14px;display:grid;gap:8px}
+.note.good{border-color:var(--ok-border);background:var(--ok-soft)}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;font-size:12px;align-items:baseline}
+.kv dt{color:var(--text2)} .kv dd{margin:0}
+
+/* ── Ribbon mock ───────────────────────────────────────────── */
+.ribbon{width:640px;background:var(--card);border:1px solid var(--input);display:flex;font-size:11.5px}
+.rp{border-right:1px solid var(--border);padding:6px 10px 0;display:flex;flex-direction:column;min-width:0}
+.rp .items{display:flex;gap:12px;align-items:flex-start}
+.big{display:grid;justify-items:center;gap:3px;padding:3px 7px;border-radius:3px;width:84px;text-align:center;line-height:1.2}
+.big i{width:30px;height:30px;border-radius:3px;background:var(--bg3);border:1px solid var(--input);display:block}
+.big.hl{outline:2px solid var(--new);outline-offset:1px;background:var(--ok-soft)}
+.big.hl i{background:linear-gradient(135deg,var(--info) 0 48%,var(--ok) 52% 100%);border:none}
+.rpt{margin-top:6px;border-top:1px solid var(--sep);text-align:center;color:var(--text2);font-size:11px;padding:3px 0}
+.tip{width:440px;margin-top:10px;background:var(--card);border:1px solid var(--input);
+  box-shadow:0 4px 12px rgba(16,32,48,.18);padding:9px 11px;font-size:12px;line-height:1.45}
+.tip b{display:block;margin-bottom:4px}
+.tip .vn{color:var(--text2);font-weight:400}
+
+/* ── Window ────────────────────────────────────────────────── */
+.win{width:1060px;background:var(--window);border:1px solid var(--input);box-shadow:0 6px 20px rgba(16,32,48,.18)}
+.tbar{background:var(--card);border-bottom:1px solid var(--border);padding:7px 11px;font-size:11.5px;color:var(--text2)}
+.hdr{background:var(--navy);color:var(--on-dark);padding:10px 13px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.hdr b{font-size:15px;font-weight:600;display:block}
+.hdr .s{font-size:11px;opacity:.82;margin-top:2px}
+.badge{background:var(--navy-light);border-radius:10px;padding:3px 9px;font-size:11px;font-weight:600;white-space:nowrap}
+.body{padding:11px 13px;display:grid;gap:10px}
+.cards{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.mc{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:7px 10px}
+.mc span{display:block;font-size:10.5px;color:var(--text2);letter-spacing:.02em}
+.mc b{font-size:19px;font-variant-numeric:tabular-nums;line-height:1.15}
+.mc.ok{border-color:var(--ok-border);background:var(--ok-soft)} .mc.ok b{color:var(--ok)}
+.mc.wn{border-color:var(--warn-border);background:var(--warn-soft)} .mc.wn b{color:var(--warn)}
+.mc.inf{border-color:var(--info-border);background:var(--info-soft)} .mc.inf b{color:var(--info)}
+
+.sec{background:var(--card);border:1px solid var(--border);border-radius:8px}
+.sh{display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid var(--sep)}
+.num{width:21px;height:21px;border-radius:50%;background:var(--navy);color:#FFFFFF;display:grid;place-items:center;
+  font-size:11px;font-weight:600;flex:none}
+.sh .t{font-size:13px;font-weight:600}
+.sh .s{font-size:11.5px;color:var(--text2)}
+.sh .sum{margin-left:auto;font-size:11.5px;color:var(--text2);text-align:right}
+.sb{padding:10px 12px;display:grid;gap:10px}
+.cols3{display:grid;grid-template-columns:1.15fr 1fr 1fr;gap:10px}
+.cols2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grp{border:1px solid var(--border);border-radius:6px;padding:9px 10px;display:grid;gap:7px;align-content:start;min-width:0}
+.gl{font-size:11.5px;font-weight:600;color:var(--text2);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.fl{font-size:11.5px;color:var(--text2)}
+.four{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.fld{display:grid;gap:3px;min-width:0}
+.fld>span{font-size:10.5px;color:var(--text2)}
+.in{border:1px solid var(--input);background:var(--card);border-radius:4px;height:26px;padding:0 8px;
+  display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:12px;font-variant-numeric:tabular-nums}
+.in .u{color:var(--text3);font-size:10.5px}
+.det{font-size:10px;color:var(--ok);font-weight:600}
+.hint{font-size:11px;color:var(--text3);line-height:1.45}
+.sbtn{border:1px solid var(--border);background:var(--bg2);border-radius:4px;height:24px;padding:0 9px;
+  display:inline-flex;align-items:center;font-size:11px;white-space:nowrap}
+.sbtn.on{background:var(--navy);color:#FFFFFF;border-color:var(--navy)}
+.bar{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.seg{display:inline-flex;border:1px solid var(--input);border-radius:4px;overflow:hidden}
+.seg span{padding:3px 9px;font-size:11px;border-right:1px solid var(--input);white-space:nowrap}
+.seg span:last-child{border-right:none}
+.seg span.on{background:var(--navy);color:#FFFFFF}
+.pill{display:inline-block;border-radius:9px;padding:1px 8px;font-size:10.5px;font-weight:600;border:1px solid;white-space:nowrap}
+.pill.ok{background:var(--ok-soft);color:var(--ok);border-color:var(--ok-border)}
+.pill.mv{background:var(--info-soft);color:var(--info);border-color:var(--info-border)}
+.pill.wn{background:var(--warn-soft);color:var(--warn);border-color:var(--warn-border)}
+.pill.off{background:var(--bg2);color:var(--text2);border-color:var(--border)}
+.cb{display:inline-block;width:13px;height:13px;border:1px solid var(--input);border-radius:2px;background:var(--card);
+  vertical-align:middle;position:relative;flex:none}
+.cb.on{background:var(--navy);border-color:var(--navy)}
+.cb.on::after{content:"";position:absolute;left:3.5px;top:.5px;width:4px;height:8px;border:solid #FFFFFF;
+  border-width:0 2px 2px 0;transform:rotate(45deg)}
+.rd{display:inline-block;width:13px;height:13px;border:1px solid var(--input);border-radius:50%;background:var(--card);
+  vertical-align:middle;position:relative;flex:none}
+.rd.on{border-color:var(--navy);border-width:2px}
+.rd.on::after{content:"";position:absolute;left:2.5px;top:2.5px;width:6px;height:6px;border-radius:50%;background:var(--navy)}
+.ck{display:flex;align-items:center;gap:6px;font-size:11.5px}
+
+/* ── Grid ──────────────────────────────────────────────────── */
+table.g{width:100%;border-collapse:collapse;font-size:11.5px}
+.g th{background:var(--bg2);text-align:left;font-weight:600;padding:5px 7px;border-bottom:1px solid var(--border);white-space:nowrap}
+.g th.n,.g td.n{text-align:right;font-variant-numeric:tabular-nums}
+.g td{padding:4px 7px;border-bottom:1px solid var(--sep);vertical-align:middle;white-space:nowrap}
+.g td.c{width:26px;text-align:center}
+.g td.name{white-space:normal;min-width:210px}
+.g tr.selrow td{background:var(--info-soft)}
+.g tr.selrow td:first-child{box-shadow:inset 3px 0 0 var(--info)}
+.g tr.offrow td{color:var(--text3)}
+.g th.newcol,.g td.newcol{background:var(--ok-soft)}
+.g tr.selrow td.newcol{background:#DFEFE6}
+code{font-family:var(--mono);font-size:11px;background:var(--bg2);border:1px solid var(--border);border-radius:3px;padding:0 4px}
+
+/* ── Sheet preview ─────────────────────────────────────────── */
+.prev{display:grid;grid-template-columns:1fr 208px;gap:10px;align-items:start}
+.pbox{border:1px solid var(--border);border-radius:6px;background:var(--bg2);padding:8px;min-width:0}
+.pbox svg{display:block;width:100%;height:auto;max-width:100%}
+.lg{display:grid;gap:6px;font-size:11px;min-width:0}
+.lg .r{display:flex;align-items:center;gap:7px}
+.sw{width:22px;height:12px;border-radius:2px;flex:none}
+.zoom{border:1px solid var(--border);border-radius:6px;background:var(--card);padding:7px;display:grid;gap:4px}
+.zoom svg{display:block;width:100%;height:auto}
+
+/* ── Footer / log ──────────────────────────────────────────── */
+.logw{background:var(--log-bg);border-radius:6px;padding:8px 10px;font-family:var(--mono);font-size:11px;
+  color:var(--log-text);line-height:1.65}
+.logw .d{color:var(--log-dim)} .logw .g{color:var(--log-ok)} .logw .w{color:var(--log-warn)} .logw .h{color:var(--log-hl)}
+.strip{border-top:1px solid var(--border);background:var(--bg2);padding:6px 13px;display:flex;align-items:center;
+  gap:10px;font-size:11.5px;color:var(--text2)}
+.ftr{border-top:1px solid var(--border);background:var(--card);padding:9px 13px;display:flex;align-items:center;gap:8px}
+.ftr .sp{margin-left:auto}
+.btn{border:1px solid var(--input);background:var(--bg2);border-radius:4px;height:28px;padding:0 14px;
+  display:inline-flex;align-items:center;font-size:12px;white-space:nowrap}
+.btn.pri{background:var(--navy);color:#FFFFFF;border-color:var(--navy);font-weight:600}
+
+/* ── Dialog ────────────────────────────────────────────────── */
+.dlg{width:470px;background:var(--window);border:1px solid var(--input);box-shadow:0 8px 24px rgba(16,32,48,.22)}
+.dlg .dh{background:var(--card);border-bottom:1px solid var(--border);padding:8px 12px;font-size:12px;font-weight:600}
+.dlg .db{padding:12px;display:grid;gap:9px;font-size:12px;line-height:1.5}
+.dlg .df{border-top:1px solid var(--border);background:var(--card);padding:9px 12px;display:flex;justify-content:flex-end}
+
+@media (max-width:620px){
+  .cards{grid-template-columns:repeat(2,1fr)}
+  .prev{grid-template-columns:1fr}
+}
+</style>
+
+<div class="page">
+
+<header>
+  <h1>Sheet Align &amp; Distribute <span class="tag">NEW TOOL</span></h1>
+  <p class="muted">Tool <b>1.0.0</b> (V001) &middot; plugin <b>7.17.0</b> &middot; ribbon: <b>Documents &rsaquo; Sheet Edit</b>.
+  Built and signed off 2026&#8209;11&#8209;17; 83 unit tests on the layout maths.</p>
+  <p style="margin-top:9px"><span class="sample">Sample data &mdash; the sheet, view names and numbers below are invented for this preview. No real project or client data.</span></p>
+</header>
+
+<!-- ───────────────────────────── 1. What it does ───────────────────────────── -->
+<section class="note">
+  <h2>What this tool does &mdash; and how it differs from the two tools you already have</h2>
+  <p>It tidies the sheet that is <b>already open</b>, in place. It reads the rows and columns the views are
+  <i>currently</i> sitting in, snaps each row and column to one shared line, and moves nothing further than it has to.
+  No re-ordering, no re-packing, no detail-number sort.</p>
+  <ul>
+    <li><b>Rearrange V030</b> &mdash; re-packs the whole sheet from scratch with a packing algorithm. Views change row, column and neighbour.</li>
+    <li><b>Arrange Views V001</b> &mdash; re-orders by detail number and rebuilds the sheet as a reading table. Views change position and order.</li>
+    <li><b>Align &amp; Distribute V001</b> <span class="tag">THIS</span> &mdash; keeps every view in its own row and column. The only movement is the
+    few millimetres needed to line things up. A view that would have to travel further than the <b>Max move</b> limit is reported and left exactly where it is.</li>
+  </ul>
+</section>
+
+<!-- ───────────────────────────── 2. Ribbon ───────────────────────────── -->
+<section>
+  <h2>Ribbon &mdash; new button on the <b>Sheet Edit</b> panel <span class="tag">NEW</span></h2>
+  <div class="frame">
+    <div class="ribbon">
+      <div class="rp">
+        <div class="items">
+          <div class="big"><i></i><span>Text<br>Replace</span></div>
+          <div class="big hl"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAkklEQVR4nGNgGCxAr9b/v16t/39628uCTVDOKp6mDnl0bCEjXgcwMDAw7Fg1gyaWe4RloPCZaGILCWDUAQPuAJyJED2x0NUByNmE1mBwRgGlBREpIUj1gojUtDPgUTDqgAF3wGhBNDijgNotInwhSvMWEaG0NOBRMOqAAXfAgBdE8OwxEL2iS80bGQc8CkbBgAMAD8ok5D/bN2AAAAAASUVORK5CYII=" width="30" height="30" alt="Align and Distribute icon"><span>Align &amp;<br>Distribute</span></div>
+        </div>
+        <div class="rpt">Sheet Edit</div>
+      </div>
+      <div class="rp" style="flex:1;border-right:none">
+        <div class="items">
+          <div class="big"><i></i><span>Wet Area<br>Waterproofing</span></div>
+        </div>
+        <div class="rpt">Waterproofing</div>
+      </div>
+    </div>
+  </div>
+  <div class="frame">
+    <div class="tip">
+      <b>Sheet Align &amp; Distribute &mdash; v1.0.0 <span class="vn">(build V001)</span></b>
+      Lines up the views already on the open sheet without re-ordering them: detects the rows and columns they are in,
+      snaps each to one shared edge and evens out the gaps. Margins and gaps are read off the sheet as it is, so the
+      layout keeps its own look. Each view can carry its own extra clearance. Live preview; one Undo step.
+    </div>
+  </div>
+  <div class="icons">
+    <figure><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAkklEQVR4nGNgGCxAr9b/v16t/39628uCTVDOKp6mDnl0bCEjXgcwMDAw7Fg1gyaWe4RloPCZaGILCWDUAQPuAJyJED2x0NUByNmE1mBwRgGlBREpIUj1gojUtDPgUTDqgAF3wGhBNDijgNotInwhSvMWEaG0NOBRMOqAAXfAgBdE8OwxEL2iS80bGQc8CkbBgAMAD8ok5D/bN2AAAAAASUVORK5CYII=" width="64" height="64" alt="Align and Distribute icon, 32 px shown at 2x"><figcaption>32 px (&times;2)</figcaption></figure>
+    <figure><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAkklEQVR4nGNgGCxAr9b/v16t/39628uCTVDOKp6mDnl0bCEjXgcwMDAw7Fg1gyaWe4RloPCZaGILCWDUAQPuAJyJED2x0NUByNmE1mBwRgGlBREpIUj1gojUtDPgUTDqgAF3wGhBNDijgNotInwhSvMWEaG0NOBRMOqAAXfAgBdE8OwxEL2iS80bGQc8CkbBgAMAD8ok5D/bN2AAAAAASUVORK5CYII=" width="32" height="32" alt="Align and Distribute icon at its real 32 px size"><figcaption>32 px (&times;1)</figcaption></figure>
+    <figure><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAASklEQVR4nGNgYGBg0Kv1/89AJmBB5shZxZNk0KNjCxmZyLUZBgbeAJQweHRsISNFBuALRFyGD3wYDKFAxGXRwIcBIwMDZbmRYgAApPsUrAWhnUMAAAAASUVORK5CYII=" width="32" height="32" alt="Align and Distribute small icon, 16 px shown at 2x"><figcaption>16 px (&times;2)</figcaption></figure>
+    <figure><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAASklEQVR4nGNgYGBg0Kv1/89AJmBB5shZxZNk0KNjCxmZyLUZBgbeAJQweHRsISNFBuALRFyGD3wYDKFAxGXRwIcBIwMDZbmRYgAApPsUrAWhnUMAAAAASUVORK5CYII=" width="16" height="16" alt="Align and Distribute small icon at its real 16 px size"><figcaption>16 px (&times;1)</figcaption></figure>
+    <p class="hint" style="max-width:46ch">Three views of different widths, flush to a guide down the left and along the
+    bottom &mdash; the margin corner the tool aligns them into, evenly spaced down it. The 16 px version is drawn on its
+    own rather than shrunk, so it stays crisp on a small button.</p>
+  </div>
+  <p class="muted" style="margin-top:8px">Internal button name <code>Btn_SheetAlignDistribute.V001</code>, command
+  <code>Revit26_Plugin_Revised.SheetAlignDistribute.V001.Commands.SheetAlignDistributeCommand</code>, icons
+  <code>Resources/Icons/SheetTools/SheetAlignDistribute_16/32.png</code>.</p>
+</section>
+
+<!-- ───────────────────────────── 3. The window ───────────────────────────── -->
+<section>
+  <h2>Tool window</h2>
+  <div class="frame">
+  <div class="win">
+    <div class="tbar">Sheet Align &amp; Distribute &mdash; v1.0.0</div>
+
+    <div class="hdr">
+      <div>
+        <b>Sheet Align &amp; Distribute</b>
+        <div class="s">Active sheet only &mdash; views keep their row and column</div>
+      </div>
+      <div class="badge">WP&#8209;204 &nbsp;Waterproofing Details &mdash; Level 03</div>
+    </div>
+
+    <div class="body">
+
+      <!-- metrics -->
+      <div class="cards">
+        <div class="mc"><span>ELEMENTS ON SHEET</span><b>9</b></div>
+        <div class="mc inf"><span>GRID DETECTED</span><b>3 &times; 3</b></div>
+        <div class="mc inf"><span>TO MOVE</span><b>5</b></div>
+        <div class="mc ok"><span>ALREADY IN PLACE</span><b>2</b></div>
+        <div class="mc wn"><span>OVER MOVE LIMIT</span><b>1</b></div>
+        <div class="mc"><span>LARGEST MOVE</span><b>5.7<span style="font-size:11px"> mm</span></b></div>
+      </div>
+
+      <!-- 1 · usable area & margins -->
+      <div class="sec">
+        <div class="sh">
+          <div class="num">1</div>
+          <div>
+            <div class="t">Usable area &amp; margins</div>
+            <div class="s">Measured inward from the title block</div>
+          </div>
+          <div class="sum">Title block found &middot; 841 &times; 594 mm (A1)<br><span class="pill ok">margins detected from this sheet</span></div>
+        </div>
+        <div class="sb">
+          <div class="cols2">
+            <div class="grp">
+              <div class="gl">Sheet margins
+                <span class="pill ok">Detected</span>
+                <span class="sbtn">Re&#8209;detect from this sheet</span>
+              </div>
+              <div class="four">
+                <div class="fld"><span>Top <span class="det">det. 10</span></span><div class="in">10<span class="u">mm</span></div></div>
+                <div class="fld"><span>Bottom <span class="det">det. 18</span></span><div class="in">20<span class="u">mm</span></div></div>
+                <div class="fld"><span>Left <span class="det">det. 17</span></span><div class="in">15<span class="u">mm</span></div></div>
+                <div class="fld"><span>Right <span class="det">det. 186</span></span><div class="in">185<span class="u">mm</span></div></div>
+              </div>
+              <div class="ck"><span class="cb on"></span> Round detected margins to the nearest <span class="in" style="height:22px;width:62px;padding:0 6px">5<span class="u">mm</span></span></div>
+              <div class="hint">Detected = the gap between the title block edge and the outermost view on that side, as the sheet
+              stands now. So "align" keeps the margins you already drew; change a box only where you want a different one.
+              The right margin came out at 186&nbsp;mm because that is where your views stop, just inside the title strip &mdash;
+              type 180 if you want the strip cleared exactly. The badge then reads <b>Custom</b> and the sheet stops
+              overwriting what you typed; <b>Re&#8209;detect</b> hands the margins back to the sheet.</div>
+            </div>
+
+            <div class="grp" style="border-color:var(--ok-border)">
+              <div class="gl">Per&#8209;view margin <span class="tag">CONFIRMED</span></div>
+              <div class="fl" style="font-weight:600;color:var(--text)">TWP DETAIL @ INFILL DRAIN &mdash; MOTHER SLAB</div>
+              <div class="four">
+                <div class="fld"><span>Top <span class="det">det. 12</span></span><div class="in">12<span class="u">mm</span></div></div>
+                <div class="fld"><span>Bottom <span class="det">det. 12</span></span><div class="in">12<span class="u">mm</span></div></div>
+                <div class="fld"><span>Left <span class="det">det. 14</span></span><div class="in">12<span class="u">mm</span></div></div>
+                <div class="fld"><span>Right <span class="det">det. 12</span></span><div class="in">12<span class="u">mm</span></div></div>
+              </div>
+              <div class="bar">
+                <span class="sbtn">Re&#8209;detect from sheet</span>
+                <span class="sbtn">Clear (use sheet gap)</span>
+                <span class="sbtn">Apply to all ticked</span>
+              </div>
+              <div class="hint">Pick a view in the grid below to set its own clearance. Detected = the smallest clear space that view
+              currently has on each side. The clearance is added to the minimum gap around that view, so a crowded detail keeps
+              its breathing room when the row is evened out. Blank = use the sheet gap.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2 · current grid -->
+      <div class="sec">
+        <div class="sh">
+          <div class="num">2</div>
+          <div>
+            <div class="t">Current grid</div>
+            <div class="s">Read off the sheet &mdash; nothing is re&#8209;ordered</div>
+          </div>
+          <div class="sum">3 rows &middot; 3 columns &middot; 8 ticked views placed<br><span class="pill ok">every view has a row and a column partner</span></div>
+        </div>
+        <div class="sb">
+          <div class="cols3">
+            <div class="grp">
+              <div class="gl">How views are grouped</div>
+              <div class="two">
+                <div class="fld"><span>Row tolerance</span><div class="in">25<span class="u">mm</span></div></div>
+                <div class="fld"><span>Column tolerance</span><div class="in">25<span class="u">mm</span></div></div>
+              </div>
+              <div class="hint">Two views share a row when their current edges are within the row tolerance (or their boxes
+              overlap vertically). Columns are the mirror. A view with no partner within tolerance keeps its own row or column
+              and is left alone on that axis.</div>
+              <div class="bar"><span class="sbtn">Re&#8209;detect grid</span></div>
+            </div>
+            <div class="grp">
+              <div class="gl">Why the title counts</div>
+              <div class="hint">A viewport's footprint is its box united with its title (label) outline. That is what makes
+              the titles line up, and what stops a long title sitting over the view next to it. Turn it off to measure the
+              view box alone.</div>
+              <div class="hint" style="margin-top:6px">A tall view that genuinely spans two bands of the sheet joins them
+              into one row, and the plan says so rather than splitting it quietly.</div>
+            </div>
+            <div class="grp">
+              <div class="gl">What is collected <span class="pill off">this sheet only</span></div>
+              <div class="ck"><span class="cb on"></span> Count the view title in the footprint</div>
+              <div class="ck"><span class="cb"></span> Include schedules on the sheet <span class="muted">(1)</span><span class="tag">OFF BY DEFAULT</span></div>
+              <div class="hint">Plans, sections, details, drafting views and legends are all viewports and are always
+              included &mdash; 8 of them here. Views owned by another user, or changed in central since the last Reload
+              Latest, are listed but cannot be ticked. Pinned views are moved and re&#8209;pinned when "Move pinned" is on.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3 · align & distribute -->
+      <div class="sec">
+        <div class="sh">
+          <div class="num">3</div>
+          <div>
+            <div class="t">Align &amp; distribute</div>
+            <div class="s">Defaults move as little as possible</div>
+          </div>
+          <div class="sum">Rows: bottom &middot; Columns: left<br>Distribute: off on both axes</div>
+        </div>
+        <div class="sb">
+          <div class="cols2">
+            <div class="grp">
+              <div class="gl">Align rows &mdash; the shared horizontal line</div>
+              <div class="bar">
+                <span class="seg"><span>Off</span><span>Least&nbsp;movement</span><span>Top</span><span>Centre</span><span class="on">Bottom</span></span>
+              </div>
+              <div class="gl" style="margin-top:2px">Align columns &mdash; the shared vertical line</div>
+              <div class="bar">
+                <span class="seg"><span>Off</span><span>Least&nbsp;movement</span><span class="on">Left</span><span>Centre</span><span>Right</span></span>
+              </div>
+              <div class="hint"><b>Bottom</b> is the default for rows: viewport titles sit under the view, so a shared bottom edge
+              lines the titles up. The line itself is the <b>median</b> of that row's current bottom edges, clamped inside the margins
+              &mdash; the median so that one badly placed view cannot drag the whole row with it. <b>Least movement</b> picks, per row,
+              whichever of top / centre / bottom needs the smallest total travel.</div>
+            </div>
+            <div class="grp">
+              <div class="gl">Distribute &mdash; what happens to the gaps</div>
+              <div class="two">
+                <div class="fld"><span>Across a row (horizontal)</span>
+                  <div class="bar"><span class="seg"><span class="on">Off</span><span>Even&nbsp;gaps</span><span>Fit&nbsp;margins</span></span></div></div>
+                <div class="fld"><span>Down the sheet (vertical)</span>
+                  <div class="bar"><span class="seg"><span class="on">Off</span><span>Even&nbsp;gaps</span><span>Fit&nbsp;margins</span></span></div></div>
+              </div>
+              <div class="two">
+                <div class="fld"><span>Minimum gap, horizontal <span class="det">det. 20</span></span><div class="in">20<span class="u">mm</span></div></div>
+                <div class="fld"><span>Minimum gap, vertical <span class="det">det. 22</span></span><div class="in">20<span class="u">mm</span></div></div>
+              </div>
+              <div class="hint"><b>Off</b> (your default) keeps every gap as it is &mdash; pure alignment, the smallest possible change.
+              <b>Even gaps</b> makes the gaps inside a row equal, without touching the row's outer edges. <b>Fit margins</b> spreads
+              the row from the left margin to the right one. Detected gaps are the current median, shown so you can keep them.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4 · movement limits -->
+      <div class="sec">
+        <div class="sh">
+          <div class="num">4</div>
+          <div>
+            <div class="t">Movement limits</div>
+            <div class="s">"Do not reposition beyond the tolerance"</div>
+          </div>
+          <div class="sum"><span class="pill wn">1 view over the 25 mm limit &mdash; left alone</span></div>
+        </div>
+        <div class="sb">
+          <div class="cols3">
+            <div class="grp">
+              <div class="fld"><span>Snap tolerance &mdash; leave a view alone when it is already this close</span>
+                <div class="in">2<span class="u">mm</span></div></div>
+              <div class="hint">Stops the tool nudging a view by a tenth of a millimetre and claiming a change.</div>
+            </div>
+            <div class="grp">
+              <div class="fld"><span>Max move &mdash; refuse to move a view further than this</span>
+                <div class="in">25<span class="u">mm</span></div></div>
+              <div class="ck"><span class="rd on"></span> Report it and leave it where it is</div>
+              <div class="ck"><span class="rd"></span> Move it anyway</div>
+            </div>
+            <div class="grp">
+              <div class="gl">Safety</div>
+              <div class="ck"><span class="cb on"></span> Move pinned views (re&#8209;pinned afterwards)</div>
+              <div class="ck"><span class="cb on"></span> Never let a view cross the margins</div>
+              <div class="ck"><span class="cb on"></span> Stop if any two views would overlap</div>
+              <div class="hint">All moves go in one transaction: a single Undo step, and nothing is applied if any check fails.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5 · elements grid -->
+      <div class="sec">
+        <div class="sh">
+          <div class="num">5</div>
+          <div>
+            <div class="t">Elements on this sheet</div>
+            <div class="s">Tick what takes part &middot; click a row to set its per&#8209;view margin</div>
+          </div>
+          <div class="sum">8 of 9 ticked &middot; sorted by row then column</div>
+        </div>
+        <div class="sb">
+          <div class="bar" style="margin-bottom:2px">
+            <span class="sbtn on">Tick all</span><span class="sbtn">Untick all</span>
+            <span class="sbtn">Group by: Row</span><span class="sbtn">Only views that move</span>
+            <span style="margin-left:auto" class="fl">&Delta;X / &Delta;Y are in sheet mm, Y positive up</span>
+          </div>
+          <table class="g">
+            <thead><tr>
+              <th class="c"></th><th class="n">#</th><th>Detail&nbsp;No</th><th>View name</th><th>Type</th>
+              <th class="n">W &times; H</th><th class="n">Row</th><th class="n">Col</th>
+              <th class="n newcol">Pad</th><th class="n">&Delta;X</th><th class="n">&Delta;Y</th><th class="n">Move</th><th>Status</th>
+            </tr></thead>
+            <tbody>
+              <tr class="selrow">
+                <td class="c"><span class="cb on"></span></td><td class="n">1</td><td>A1</td>
+                <td class="name"><b>TWP DETAIL @ INFILL DRAIN &mdash; MOTHER SLAB</b></td><td>Drafting</td>
+                <td class="n">200 &times; 175</td><td class="n">1</td><td class="n">1</td>
+                <td class="n newcol">12</td><td class="n">+3</td><td class="n">0</td><td class="n">3.0</td>
+                <td><span class="pill mv">Move</span></td>
+              </tr>
+              <tr>
+                <td class="c"><span class="cb on"></span></td><td class="n">2</td><td>A2</td>
+                <td class="name">TWP DETAIL @ UPSTAND &mdash; DOOR THRESHOLD</td><td>Drafting</td>
+                <td class="n">200 &times; 175</td><td class="n">1</td><td class="n">2</td>
+                <td class="n newcol">&ndash;</td><td class="n">+3</td><td class="n">+3</td><td class="n">4.2</td>
+                <td><span class="pill mv">Move</span></td>
+              </tr>
+              <tr>
+                <td class="c"><span class="cb on"></span></td><td class="n">3</td><td>A3</td>
+                <td class="name">TWP DETAIL @ PIPE PENETRATION</td><td>Drafting</td>
+                <td class="n">190 &times; 120</td><td class="n">1</td><td class="n">3</td>
+                <td class="n newcol">&ndash;</td><td class="n">&minus;3</td><td class="n">&minus;44</td><td class="n">44.1</td>
+                <td><span class="pill wn">Over 25 mm &mdash; left alone</span></td>
+              </tr>
+              <tr>
+                <td class="c"><span class="cb on"></span></td><td class="n">4</td><td>A4</td>
+                <td class="name">WET AREA PLAN &mdash; TOILET T&#8209;03</td><td>Floor Plan</td>
+                <td class="n">200 &times; 160</td><td class="n">2</td><td class="n">1</td>
+                <td class="n newcol">&ndash;</td><td class="n">&minus;4</td><td class="n">&minus;4</td><td class="n">5.7</td>
+                <td><span class="pill mv">Move</span></td>
+              </tr>
+              <tr>
+                <td class="c"><span class="cb on"></span></td><td class="n">5</td><td>A5</td>
+                <td class="name">TWP DETAIL @ KERB &mdash; SHOWER</td><td>Drafting</td>
+                <td class="n">185 &times; 125</td><td class="n">2</td><td class="n">2</td>
+                <td class="n newcol">&ndash;</td><td class="n">&minus;3</td><td class="n">0</td><td class="n">3.0</td>
+                <td><span class="pill mv">Move</span></td>
+              </tr>
+              <tr>
+                <td class="c"><span class="cb on"></span></td><td class="n">6</td><td>A6</td>
+                <td class="name">TWP DETAIL @ MOVEMENT JOINT</td><td>Drafting</td>
+                <td class="n">195 &times; 160</td><td class="n">2</td><td class="n">3</td>
+                <td class="n newcol">&ndash;</td><td class="n">+4</td><td class="n">+4</td><td class="n">5.7</td>
+                <td><span class="pill mv">Move</span></td>
+              </tr>
+              <tr>
+                <td class="c"><span class="cb on"></span></td><td class="n">7</td><td>A7</td>
+                <td class="name">WET AREA PLAN &mdash; BATH B&#8209;01</td><td>Floor Plan</td>
+                <td class="n">200 &times; 174</td><td class="n">3</td><td class="n">1</td>
+                <td class="n newcol">&ndash;</td><td class="n">0</td><td class="n">&minus;1</td><td class="n">1.0</td>
+                <td><span class="pill ok">In place</span></td>
+              </tr>
+              <tr>
+                <td class="c"><span class="cb on"></span></td><td class="n">8</td><td>A8</td>
+                <td class="name">TWP LAYER BUILD&#8209;UP &mdash; LEGEND</td><td>Legend</td>
+                <td class="n">200 &times; 100</td><td class="n">3</td><td class="n">2</td>
+                <td class="n newcol">&ndash;</td><td class="n">0</td><td class="n">+2</td><td class="n">2.0</td>
+                <td><span class="pill ok">In place</span></td>
+              </tr>
+              <tr class="offrow">
+                <td class="c"><span class="cb"></span></td><td class="n">9</td><td>&ndash;</td>
+                <td class="name">WATERPROOFING MATERIAL SCHEDULE</td><td>Schedule</td>
+                <td class="n">195 &times; 150</td><td class="n">3</td><td class="n">3</td>
+                <td class="n newcol">&ndash;</td><td class="n">&ndash;</td><td class="n">&ndash;</td><td class="n">&ndash;</td>
+                <td><span class="pill off">Not ticked</span></td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="hint"><b>Pad</b> <span class="tag">NEW COLUMN</span> is the per&#8209;view clearance from section&nbsp;1 &mdash;
+          <code>&ndash;</code> means the sheet gap is used. A3 sits 44&nbsp;mm above its row line, over the 25&nbsp;mm limit, so it is
+          reported and not touched: raise Max move, or drag it closer by hand and run again. Because the row line is the
+          <b>median</b>, A3 being out of place did not pull A1 and A2 off their own line.</div>
+        </div>
+      </div>
+
+      <!-- 6 · preview -->
+      <div class="sec">
+        <div class="sh">
+          <div class="num">6</div>
+          <div>
+            <div class="t">Sheet preview</div>
+            <div class="s">Current position, where it goes, and the move</div>
+          </div>
+          <div class="sum">WP&#8209;204 &middot; A1 landscape &middot; drawn to scale</div>
+        </div>
+        <div class="sb">
+          <div class="prev">
+            <div class="pbox">
+              <!-- viewBox is the sheet in mm: A1 landscape 841 x 594, y down -->
+              <svg viewBox="-2 -2 845 598" role="img"
+                   aria-label="Sheet WP-204 with nine elements. Blue filled outlines are the five views that will move a few millimetres; green outlines are the two already in place; the grey schedule is untouched. A3, top right, sits 44 millimetres above its row line, over the move limit, so it stays where it is and its planned slot is shown as a dashed amber outline below it. Dashed green lines are the three row lines and three column lines; the dashed blue rectangle is the margins.">
+                <!-- sheet / title block -->
+                <rect x="0" y="0" width="841" height="594" fill="#FFFFFF" stroke="#B5C2CF" stroke-width="1.6"/>
+                <rect x="661" y="0" width="180" height="594" fill="#ECEFF3" stroke="#D6DCE3" stroke-width="1.2"/>
+                <text x="751" y="298" fill="#8FA3B8" font-size="15" font-family="Segoe UI, sans-serif"
+                      text-anchor="middle">title strip</text>
+                <text x="751" y="320" fill="#8FA3B8" font-size="12" font-family="Segoe UI, sans-serif"
+                      text-anchor="middle">180 mm</text>
+
+                <!-- usable area: margins 10 top, 20 bottom, 15 left, 185 right -->
+                <rect x="15" y="10" width="641" height="564" fill="none" stroke="#1F5FBF" stroke-width="1.4"
+                      stroke-dasharray="10 7" opacity="0.75"/>
+
+                <!-- row lines (median bottoms) and column lines (median lefts) -->
+                <g stroke="#2E7D4F" stroke-width="1.2" stroke-dasharray="4 5" opacity="0.7">
+                  <line x1="15" y1="185" x2="656" y2="185"/>
+                  <line x1="15" y1="375" x2="656" y2="375"/>
+                  <line x1="15" y1="574" x2="656" y2="574"/>
+                  <line x1="20"  y1="10" x2="20"  y2="574"/>
+                  <line x1="240" y1="10" x2="240" y2="574"/>
+                  <line x1="460" y1="10" x2="460" y2="574"/>
+                </g>
+
+                <!-- current (ghost) positions of the views that move -->
+                <g fill="none" stroke="#8FA3B8" stroke-width="1.5" stroke-dasharray="7 5">
+                  <rect x="17"  y="10"  width="200" height="175"/>
+                  <rect x="237" y="13"  width="200" height="175"/>
+                  <rect x="24"  y="211" width="200" height="160"/>
+                  <rect x="243" y="250" width="185" height="125"/>
+                  <rect x="456" y="219" width="195" height="160"/>
+                </g>
+
+                <!-- aligned (planned) positions -->
+                <g fill="#E6EEFB" fill-opacity="0.85" stroke="#1F5FBF" stroke-width="1.8">
+                  <rect x="20"  y="10"  width="200" height="175"/>
+                  <rect x="240" y="10"  width="200" height="175"/>
+                  <rect x="20"  y="215" width="200" height="160"/>
+                  <rect x="240" y="250" width="185" height="125"/>
+                  <rect x="460" y="215" width="195" height="160"/>
+                </g>
+
+                <!-- already in place -->
+                <g fill="#E6F4EC" fill-opacity="0.9" stroke="#2E7D4F" stroke-width="1.8">
+                  <rect x="20"  y="400" width="200" height="174"/>
+                  <rect x="240" y="474" width="200" height="100"/>
+                </g>
+
+                <!-- A3: over the limit. It stays where it is; the planned slot is hollow. -->
+                <rect x="463" y="21" width="190" height="120" fill="#FDF1E1" fill-opacity="0.9"
+                      stroke="#9A5B00" stroke-width="1.8"/>
+                <rect x="460" y="65" width="190" height="120" fill="none" stroke="#9A5B00"
+                      stroke-width="1.5" stroke-dasharray="4 4" opacity="0.8"/>
+
+                <!-- not ticked -->
+                <rect x="460" y="424" width="195" height="150" fill="#ECEFF3" fill-opacity="0.9"
+                      stroke="#C3CFDB" stroke-width="1.5"/>
+
+                <!-- A3's refused move -->
+                <defs>
+                  <marker id="ahw" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+                    <path d="M 0 1 L 9 5 L 0 9 z" fill="#9A5B00"/>
+                  </marker>
+                </defs>
+                <line x1="640" y1="145" x2="640" y2="178" stroke="#9A5B00" stroke-width="2"
+                      stroke-dasharray="5 4" marker-end="url(#ahw)"/>
+
+                <!-- labels -->
+                <g font-family="Segoe UI, sans-serif" font-size="15" fill="#1A2B3C" font-weight="600">
+                  <text x="30" y="33">A1</text><text x="250" y="33">A2</text>
+                  <text x="473" y="44" fill="#9A5B00">A3</text>
+                  <text x="30" y="238">A4</text><text x="250" y="273">A5</text><text x="470" y="238">A6</text>
+                  <text x="30" y="423">A7</text><text x="250" y="497">A8</text>
+                  <text x="470" y="447" fill="#8FA3B8">SCHED</text>
+                </g>
+                <g font-family="Segoe UI, sans-serif" font-size="12" fill="#5B7185">
+                  <text x="30" y="50">infill drain</text><text x="250" y="50">upstand</text>
+                  <text x="473" y="61" fill="#9A5B00">penetration &mdash; 44 mm high</text>
+                  <text x="30" y="255">toilet T-03</text><text x="250" y="290">kerb</text><text x="470" y="255">movement joint</text>
+                  <text x="30" y="440">bath B-01</text><text x="250" y="514">layer build-up</text>
+                  <text x="470" y="464" fill="#8FA3B8">not ticked</text>
+                  <text x="464" y="105" fill="#9A5B00">planned slot &mdash; refused</text>
+                </g>
+              </svg>
+            </div>
+            <div class="lg">
+              <div class="r"><span class="sw" style="background:#E6EEFB;border:1.5px solid #1F5FBF"></span> Will move</div>
+              <div class="r"><span class="sw" style="background:#E6F4EC;border:1.5px solid #2E7D4F"></span> Already in place</div>
+              <div class="r"><span class="sw" style="background:transparent;border:1.5px dashed #8FA3B8"></span> Where it sits now</div>
+              <div class="r"><span class="sw" style="background:#FDF1E1;border:1.5px solid #9A5B00"></span> Over the move limit</div>
+              <div class="r"><span class="sw" style="background:#ECEFF3;border:1.5px solid #C3CFDB"></span> Not ticked &mdash; untouched</div>
+              <div class="r"><span class="sw" style="background:transparent;border-top:1.5px dashed #2E7D4F;height:0"></span> Row / column line</div>
+              <div class="r"><span class="sw" style="background:transparent;border-top:1.5px dashed #1F5FBF;height:0"></span> Margins</div>
+              <div class="zoom">
+                <div class="fl" style="font-weight:600;color:var(--text)">A1 bottom&#8209;left, &times;10</div>
+                <svg viewBox="0 0 170 60" role="img" aria-label="A ten-times zoom on view A1's bottom-left corner: the dashed grey outline where it sits now, the solid blue outline 3 millimetres to the right, and the green column line it lands on.">
+                  <line x1="50" y1="4" x2="50" y2="56" stroke="#2E7D4F" stroke-width="1.5" stroke-dasharray="4 4"/>
+                  <path d="M 20 10 L 20 46 L 160 46" fill="none" stroke="#8FA3B8" stroke-width="2" stroke-dasharray="6 4"/>
+                  <path d="M 50 10 L 50 46 L 160 46" fill="none" stroke="#1F5FBF" stroke-width="2.4"/>
+                  <line x1="20" y1="54" x2="50" y2="54" stroke="#1A2B3C" stroke-width="1"/>
+                  <text x="56" y="25" font-family="Segoe UI, sans-serif" font-size="11" fill="#1F5FBF">column line</text>
+                  <text x="22" y="51" font-family="Segoe UI, sans-serif" font-size="10" fill="#1A2B3C">3 mm</text>
+                </svg>
+                <div class="hint">At true scale on an A1 sheet, a 3&nbsp;mm correction is a hairline &mdash; this is what the
+                blue and grey outlines above are showing.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- log -->
+      <div class="logw">
+        <div><span class="d">09:41:02</span> Sheet <span class="h">WP-204 &mdash; Waterproofing Details &mdash; Level 03</span>: 7 viewports, 1 legend, 1 schedule.</div>
+        <div><span class="d">09:41:02</span> Title block found, 841 &times; 594 mm. Margins read off the sheet: top 10, bottom 18, left 17, right 186 mm &rarr; rounded to 10 / 20 / 15 / 185.</div>
+        <div><span class="d">09:41:02</span> Gaps read off the sheet: horizontal 20 mm, vertical 22 mm.</div>
+        <div><span class="d">09:41:03</span> Grid detected: 3 rows &times; 3 columns. Every ticked view has a row and a column partner.</div>
+        <div><span class="d">09:41:03</span> Row lines (median bottom edge): 185, 375, 574 mm. Column lines (median left edge): 20, 240, 460 mm.</div>
+        <div><span class="d">09:41:03</span> <span class="g">Plan: 5 to move, 2 already within the 2 mm snap tolerance, largest move 5.7 mm.</span></div>
+        <div><span class="d">09:41:03</span> <span class="w">A3 TWP DETAIL @ PIPE PENETRATION needs 44.1 mm, over the 25 mm limit. Left where it is.</span></div>
+        <div><span class="d">09:41:03</span> <span class="d">Press Apply to move the 5 views in one Undo step.</span></div>
+      </div>
+
+    </div>
+
+    <div class="strip"><span>Plan ready &mdash; 5 views to move, 1 over the limit.</span></div>
+    <div class="ftr">
+      <span class="btn">Refresh</span>
+      <span class="btn">Copy report</span>
+      <span class="btn">Reset to detected</span>
+      <span class="sp"></span>
+      <span class="btn pri">Apply (5)</span>
+      <span class="btn">Close</span>
+    </div>
+  </div>
+  </div>
+</section>
+
+<!-- ───────────────────────────── 4. Dialog ───────────────────────────── -->
+<section>
+  <h2>After Apply</h2>
+  <div class="frame">
+    <div class="dlg">
+      <div class="dh">Sheet Align &amp; Distribute &mdash; v1.0.0</div>
+      <div class="db">
+        <p><b>5 views aligned on WP&#8209;204.</b></p>
+        <p>2 views were already in place. 1 view (A3 TWP DETAIL @ PIPE PENETRATION) needed 44.1&nbsp;mm,
+        over the 25&nbsp;mm move limit, and was left where it is.</p>
+        <p class="muted">Largest move applied: 5.7&nbsp;mm. All moves are one Undo step &mdash; "Sheet Align &amp; Distribute".</p>
+      </div>
+      <div class="df"><span class="btn pri">OK</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ───────────────────────────── 5. Build notes ───────────────────────────── -->
+<section class="note">
+  <h2>What gets built</h2>
+  <dl class="kv">
+    <dt>Folder</dt><dd><code>Menu/Sheet/SheetAlignDistribute_V001/</code> &mdash; <code>Commands</code>, <code>Core</code>, <code>UI</code>, <code>Infrastructure</code></dd>
+    <dt>Namespace</dt><dd><code>Revit26_Plugin_Revised.SheetAlignDistribute.V001</code></dd>
+    <dt>View model</dt><dd><code>ViewModel_SheetAlignDistribute</code> (per CLAUDE.md naming)</dd>
+    <dt>Catalog</dt><dd>new <code>ToolCatalog.SheetAlignDistribute</code> entry, <code>1.0.0</code> / <code>V001</code></dd>
+    <dt>Plugin</dt><dd><code>7.16.2</code> &rarr; <code>7.17.0</code> (new feature)</dd>
+    <dt>Window</dt><dd><code>ToolWindowShell</code>, modeless, one instance, Apply through an <code>IExternalEvent</code></dd>
+    <dt>Settings</dt><dd><code>%AppData%\Revit26_Plugin_Revised\SheetAlignDistribute\settings.json</code>, with a version field</dd>
+    <dt>Tests</dt><dd><code>Tests/SheetAlignDistribute.Tests</code> &mdash; row/column detection, the median line and its clamp,
+      the snap and move limits, and the overlap check are all Revit&#8209;free and unit tested</dd>
+  </dl>
+  <p style="margin-top:4px">Also updated in the same change: <code>CHANGELOG.md</code>, the Ribbon section of
+  <code>README.md</code>, and the layout table in <code>Claude/Revit26_Plugin_Md Files/Claude/RIBBON_AND_ICONS.md</code>.</p>
+</section>
+
+<section class="note good">
+  <h2>Signed off, 2026&#8209;11&#8209;17</h2>
+  <ul>
+    <li><b>Per-view margin</b> &mdash; kept as previewed: pick a view, set its own four-sided clearance, pre-filled from the
+    clear space it currently has, on top of the four sheet margins.</li>
+    <li><b>Schedules</b> &mdash; listed in the grid, unticked by default; tick them per run.</li>
+    <li><b>Distribute</b> &mdash; defaults to <b>Off</b> on both axes, so a run changes nothing but the alignment.</li>
+    <li><b>Icon</b> &mdash; drawn for this button rather than borrowed from Rearrange, at both 16 and 32 px.</li>
+    <li><b>Max move</b> &mdash; defaults to <b>25 mm</b>. Raising it from 15 is what prompted the switch from the average to
+    the <b>median</b> for the shared line: with an average, one view 44 mm out of place drags its whole row 15 mm and every
+    view in it trips the guard. With the median the row holds still and only the outlier is refused.</li>
+  </ul>
+</section>
+
+</div>

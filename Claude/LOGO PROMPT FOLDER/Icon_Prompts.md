@@ -136,3 +136,38 @@ These buttons currently reuse the roof `by_drain_16/32.png` and `by_point_16.png
 
 65. **Btn_FloorSlopeByDrain_V001** → `FloorSlopeByDrain_16.png` / `FloorSlopeByDrain_32.png` — a flat rectangular floor slab seen in plan with a round floor-drain grate (circle with a cross) near one corner and three short slope arrows converging on it; a thin horizontal line under the slab hints at its thickness, to tell it apart from the roof By Drain icon.
 66. **Btn_FloorSlopeByPoint_V001** → `FloorSlopeByPoint_16.png` / `FloorSlopeByPoint_32.png` — the same flat floor slab in plan with two small target dots (picked points) and slope arrows running from the slab edges to each dot; same slab-thickness line as the By Drain icon so the two read as a pair.
+
+## Sheet Edit (`SheetToolsRibbon.cs`, plugin 7.17.0)
+
+67. **Btn_SheetAlignDistribute.V001** → `SheetAlignDistribute_16.png` / `SheetAlignDistribute_32.png` — **drawn, not
+    generated.** Three landscape view rectangles of different widths, all flush to a vertical guide down the left and
+    stacked with even gaps, plus a second guide along the bottom that the lowest view sits on: the margin corner the
+    tool aligns views into. Guides in the suite's green (`#2E7D4F`, SharedStyles `StatusOk`), views navy-outlined
+    (`#1E3A5F`, `NavyPrimary`) with a pale blue fill at 32 px and solid navy at 16 px.
+
+    Two earlier attempts were rejected and are worth recording, because both are the obvious thing to draw:
+    upright bars of different heights on a shared baseline read as a **bar chart**, and landscape bars with a title
+    line inside them read as **text alignment**. What fixes the read is the second guide — an L of guides is neither.
+
+    Note the shared style brief at the top of this file describes monochrome line art, which the suite no longer uses.
+    The icons added since roughly plugin 6.5 are flat **filled** shapes on a transparent background: navy outline,
+    pale fill, one bright accent. Match `SectionsToSheet_32.png` and `SheetViewsCombine_32.png`, not the brief.
+
+    Both sizes are drawn on their own at whole-pixel coordinates with no antialiasing, rather than shrinking 32 px to
+    16 px — a 1 px outline round a 4 px tall view turns to mush when it is resampled.
+
+68. **Btn_SheetViewArrange.V001** → `SheetViewArrange_16.png` / `SheetViewArrange_32.png` — **drawn, not generated.**
+    Four views in a two-by-two reading table, navy-outlined (`#1E3A5F`) with a pale blue fill, and the reading order
+    running through them in the suite's accent orange (`#F08D20`): a stroke across the top row, a diagonal wrapping
+    down to the start of the next row, a stroke across the bottom row, with an arrowhead in each gap at 32 px.
+
+    The flow is drawn **first**, so the views sit on top of it and it shows only in the gaps between them. Drawn over
+    the top it swamped the icon — four views lost behind one big orange Z.
+
+    This replaces a reuse of the Rearrange icon that had stood since plugin 2.4.0. Worth remembering why it mattered:
+    both buttons live in the Sheet Create slide-out, which stacks them, and a stacked button renders the 16 px
+    `Image`, so the two were the same picture with different labels. Check what a panel actually renders at before
+    judging whether two tools can share an icon.
+
+    The three sheet-layout tools now each say what they do: Rearrange a packed grid, Arrange Views an order running
+    through the views, Align & Distribute views flush to a guide. See `Claude/Previews/SheetRibbon_Panels.html`.

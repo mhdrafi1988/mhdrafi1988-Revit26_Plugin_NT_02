@@ -99,6 +99,21 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                 ToolTip = ToolCatalog.SheetTextReplace.Tip("Find and replace text notes in selected views on a sheet.")
             };
 
+            // Sheet Align & Distribute: tidies the open sheet in place. Unlike Rearrange (which
+            // re-packs) and Arrange Views (which re-orders by detail number), every view keeps the
+            // row and column it is already in — the only movement is the millimetres needed to line
+            // up, and a view that would travel further than the move limit is reported, not moved.
+            var alignDistributeV001 = new PushButtonData("Btn_SheetAlignDistribute.V001", "Align && Distribute", assemblyPath, "Revit26_Plugin_Revised.SheetAlignDistribute.V001.Commands.SheetAlignDistributeCommand")
+            {
+                Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SheetTools.SheetAlignDistribute_16.png"),
+                LargeImage = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SheetTools.SheetAlignDistribute_32.png"),
+                ToolTip = ToolCatalog.SheetAlignDistribute.Tip(
+                    "Lines the views already on the open sheet up on the rows and columns they are in, without re-ordering them: " +
+                    "each row gets one shared edge and each column one shared edge. Margins and gaps are read off the sheet as it " +
+                    "stands, so the layout keeps its own look, and each view can carry its own extra clearance. " +
+                    "Live preview; one Undo step.")
+            };
+
             // Rearrange and Arrange Views follow in the same panel (the one-column Sheet Place
             // panel was merged in, plugin 2.4.0, so Revit has room to show every button name).
             var rearrangeV028 = new PushButtonData("Btn_SheetAutoRearrange.V028", "Rearrange V028", assemblyPath, "Revit26_Plugin_Revised.SheetAutoRearrange.V028.Commands.SheetAutoRearrangeCommand")
@@ -120,11 +135,10 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
 
             // Sheet View Arrange: separate tool (not a Rearrange version) — keeps the views'
             // sizes, orders them by detail number and lays them out as a reading table.
-            // TODO: swap for a dedicated icon — temporarily reusing the Rearrange icon.
             var viewArrangeV001 = new PushButtonData("Btn_SheetViewArrange.V001", "Arrange Views", assemblyPath, "Revit26_Plugin_Revised.SheetViewArrange.V001.Commands.SheetViewArrangeCommand")
             {
-                Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SheetTools.SheetAutoRearrange_16.png"),
-                LargeImage = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SheetTools.SheetAutoRearrange_32.png"),
+                Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SheetTools.SheetViewArrange_16.png"),
+                LargeImage = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SheetTools.SheetViewArrange_32.png"),
                 ToolTip = ToolCatalog.SheetViewArrange.Tip(
                     "Orders the views already on the active sheet by detail number and lays them out like a reading table: " +
                     "left to right, rows top to bottom, evenly spread and bottom-aligned so titles line up.")
@@ -142,7 +156,11 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             // Sheet Edit panel (plugin 6.22.0): tools that change what is already on a sheet.
             // A lone item is added as a full-size button with its 32 px icon.
             RibbonPanel editPanel = app.CreateRibbonPanel(tabName, "Sheet Edit");
+            // One call each, on purpose. AddStackedButtons given both at once would stack them as
+            // two small buttons: that would shrink Text Replace, a full-size button since 6.22.0,
+            // and neither would ever show its 32 px icon. A lone item is added as a full-size button.
             RibbonLayoutHelper.AddStackedButtons(editPanel, new List<RibbonItemData> { sheetTextReplaceV001 });
+            RibbonLayoutHelper.AddStackedButtons(editPanel, new List<RibbonItemData> { alignDistributeV001 });
 
             // Waterproofing panel (plugin 7.11.0): Wet Area Waterproofing on its own, as a full-size button.
             // Its later parts (plans, detail sections, sheets, print set) open from the same window.

@@ -11,6 +11,14 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
     /// splitting 4 as 2 + 2 so no single full-size button is left over
     /// (4 → 2+2, 5 → 3+2, 7 → 3+2+2). Only a panel holding exactly one item
     /// gets a full-size button.
+    ///
+    /// That last rule has a sharp edge worth knowing before you add a button:
+    /// passing two items to one <see cref="AddStackedButtons"/> call stacks them
+    /// as two small buttons, so adding a second button to a panel that held one
+    /// silently demotes the button already there from full-size to small, and
+    /// neither then shows its 32 px LargeImage. To keep both full-size, call this
+    /// once per item — each lone call takes the full-size branch. The Sheet Edit
+    /// panel in <c>SheetToolsRibbon</c> does exactly that.
     /// </summary>
     internal static class RibbonLayoutHelper
     {
