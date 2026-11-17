@@ -157,7 +157,11 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             // Sheet Edit panel (plugin 6.22.0): tools that change what is already on a sheet.
             // A lone item is added as a full-size button with its 32 px icon.
             RibbonPanel editPanel = app.CreateRibbonPanel(tabName, "Sheet Edit");
-            RibbonLayoutHelper.AddStackedButtons(editPanel, new List<RibbonItemData> { sheetTextReplaceV001, alignDistributeV001 });
+            // One call each, on purpose. AddStackedButtons given both at once would stack them as
+            // two small buttons: that would shrink Text Replace, a full-size button since 6.22.0,
+            // and neither would ever show its 32 px icon. A lone item is added as a full-size button.
+            RibbonLayoutHelper.AddStackedButtons(editPanel, new List<RibbonItemData> { sheetTextReplaceV001 });
+            RibbonLayoutHelper.AddStackedButtons(editPanel, new List<RibbonItemData> { alignDistributeV001 });
 
             // Waterproofing panel (plugin 7.11.0): Wet Area Waterproofing on its own, as a full-size button.
             // Its later parts (plans, detail sections, sheets, print set) open from the same window.
