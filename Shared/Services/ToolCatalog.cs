@@ -130,7 +130,7 @@ namespace Revit26_Plugin_Revised.Shared.Services
         public static readonly ToolInfo SheetAutoRearrange = Add("Sheet Auto Rearrange", "28.2.2", "V028", "Revit26_Plugin_Revised.SheetAutoRearrange.V028");
         public static readonly ToolInfo SheetAutoRearrangeV029 = Add("Sheet Auto Rearrange", "29.0.2", "V029", "Revit26_Plugin_Revised.SheetAutoRearrange.V029");
         public static readonly ToolInfo SheetAutoRearrangeV030 = Add("Sheet Auto Rearrange", "30.0.1", "V030", "Revit26_Plugin_Revised.SheetAutoRearrange.V030");
-        public static readonly ToolInfo SheetViewArrange = Add("Sheet View Arrange", "1.3.1", "V001", "Revit26_Plugin_Revised.SheetViewArrange.V001");
+        public static readonly ToolInfo SheetViewArrange = Add("Sheet View Arrange", "1.4.0", "V001", "Revit26_Plugin_Revised.SheetViewArrange.V001");
         public static readonly ToolInfo SheetAlignDistribute = Add("Sheet Align and Distribute", "1.0.0", "V001", "Revit26_Plugin_Revised.SheetAlignDistribute.V001");
         public static readonly ToolInfo SectionsToSheet = Add("Sections To Sheet", "1.1.0", "V001", "Revit26_Plugin_Revised.SectionsToSheet.V001");
         public static readonly ToolInfo SheetTextReplace = Add("Sheet Text Replace", "1.2.0", "V001", "Revit26_Plugin_Revised.SheetTextReplace.V001");

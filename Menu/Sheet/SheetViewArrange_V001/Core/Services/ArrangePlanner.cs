@@ -122,9 +122,15 @@ namespace Revit26_Plugin_Revised.SheetViewArrange.V001.Core.Services
                 var layout = ReadingTableLayout.Compute(
                     participants.Select(v => (v.Footprint.Width, v.Footprint.Height)).ToList(),
                     usable,
-                    settings.MinHorizontalGapMm * MmToFeet,
-                    settings.MinVerticalGapMm * MmToFeet,
-                    settings.LastRowMode);
+                    new LayoutOptions
+                    {
+                        MinHorizontalGap = settings.MinHorizontalGapMm * MmToFeet,
+                        MinVerticalGap = settings.MinVerticalGapMm * MmToFeet,
+                        LastRowMode = settings.LastRowMode,
+                        Horizontal = settings.Horizontal,
+                        Vertical = settings.Vertical,
+                        RowAlign = settings.RowAlign
+                    });
                 rowCount = layout.RowCount;
 
                 foreach (var slot in layout.Slots)

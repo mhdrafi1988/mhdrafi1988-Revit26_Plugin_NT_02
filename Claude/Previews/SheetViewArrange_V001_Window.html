@@ -1,0 +1,357 @@
+<title>Sheet View Arrange</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<!-- UI preview (CLAUDE.md "UI previews"): Sheet View Arrange 1.4.0 (V001). Plugin 7.18.0.
+     Shown: the tool window's settings column with the new "Layout" block (Across the width / Down the
+     height / Align views in row), the "Last row" combo now greyed out because it only applies to Auto,
+     the live preview pane and the Views in Reading Order grid — plus a gallery of the layout modes.
+     Change in 1.4.0: the single fixed layout (rows spread to the full width and height, views on a
+     common bottom line) becomes three choices. Left / Right / Top / Bottom pack against the margins
+     you set; Auto reproduces the pre-1.4.0 layout and is the default, so existing settings files keep
+     their look. The Detail Number reading order is never changed by any mode.
+     Mirrors: Menu/Sheet/SheetViewArrange_V001/UI/Views/SheetViewArrangeWindow.xaml
+              (+ UI/ViewModels/SheetViewArrangeViewModel.cs; version from Shared/Services/ToolCatalog.cs).
+     Artifact: https://claude.ai/artifact/AzFk3MBeBCrh6uchnjqFrd (republish to this URL on every update)
+     Colours: Shared/SharedStyles.xaml tokens, one light look on purpose (mirrors the light WPF window). -->
+<style>
+/* Layout: one column — window mock first, then the layout-mode gallery, then the change notes. */
+:root{
+  color-scheme:light;
+  --page:#E9EDF1; --window:#F3F5F7; --card:#FFFFFF; --border:#D6DCE3; --input:#B5C2CF; --sep:#E6EAEF;
+  --navy:#1E3A5F; --navy-dark:#14283F; --on-dark:#EAF1F8;
+  --text:#1A2B3C; --text2:#5B7185; --text3:#8FA3B8; --disabled:#A9B6C4; --bg2:#ECEFF3; --bg3:#E1E6EC;
+  --info:#1F5FBF; --info-soft:#E6EEFB; --info-border:#A9C3EE;
+  --ok:#2E7D4F; --ok-soft:#E6F4EC; --ok-border:#9FCFB2;
+  --warn:#9A5B00; --warn-soft:#FDF1E1; --warn-border:#E8B66B;
+  --err:#B23A35; --err-soft:#FBE8E7;
+  --log-bg:#14283F; --log-text:#EAF1F8; --log-dim:#7E94AA; --log-ok:#4CC18A;
+  --ui:'Segoe UI',system-ui,-apple-system,sans-serif; --mono:Consolas,'Cascadia Mono',Menlo,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--text);font-family:var(--ui);font-size:12.5px;
+  padding-block:24px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.page{max-width:1080px;margin:0 auto;display:grid;gap:20px}
+h1{font-size:20px;margin:0;font-weight:600;text-wrap:balance}
+h2{font-size:14px;margin:0;font-weight:600;text-wrap:balance}
+p{margin:0;line-height:1.5;max-width:78ch}
+.lede{display:grid;gap:6px}
+.meta{color:var(--text2);font-size:12px}
+.tag{display:inline-block;padding:1px 7px;border-radius:999px;font-size:10.5px;font-weight:600;
+  letter-spacing:.03em;text-transform:uppercase;vertical-align:middle}
+.tag-new{background:var(--ok-soft);color:var(--ok);border:1px solid var(--ok-border)}
+.tag-chg{background:var(--warn-soft);color:var(--warn);border:1px solid var(--warn-border)}
+.note{background:var(--info-soft);border:1px solid var(--info-border);color:var(--text);
+  border-radius:8px;padding:10px 12px;line-height:1.5}
+
+/* ── the WPF window, fixed width, scrolls inside its own frame ── */
+.frame{overflow-x:auto;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px}
+.win{width:960px;background:var(--window);border:1px solid var(--border);border-radius:8px;overflow:hidden;
+  box-shadow:0 2px 10px rgba(20,40,63,.10)}
+.titlebar{background:var(--navy);color:var(--on-dark);padding:8px 12px;display:flex;justify-content:space-between;
+  align-items:center;font-size:12.5px}
+.titlebar b{font-weight:600}
+.titlebar .ver{font-family:var(--mono);font-size:11.5px;color:#BBD0E6}
+.body{display:grid;grid-template-columns:320px 1fr;gap:10px;padding:10px}
+.cardbox{background:var(--card);border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.sect{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--text2);
+  padding:9px 12px 6px}
+.fieldrow{display:grid;grid-template-columns:1fr 64px 22px;gap:6px;align-items:center;padding:3px 12px}
+.lbl{color:var(--text);font-size:12.5px}
+.box{border:1px solid var(--input);background:var(--card);border-radius:4px;padding:3px 6px;text-align:right;
+  font-family:var(--mono);font-size:11.5px}
+.unit{color:var(--text3);font-size:11.5px}
+.hint{color:var(--text2);font-size:11px;line-height:1.45;padding:4px 12px 9px}
+.sep{height:1px;background:var(--sep);margin:4px 0}
+.flabel{font-size:12.5px;padding:7px 12px 3px}
+.combo{margin:0 12px 4px;border:1px solid var(--input);background:var(--card);border-radius:4px;
+  padding:4px 8px;display:flex;justify-content:space-between;align-items:center;font-size:12.5px}
+.combo .cv{color:var(--text)}
+.combo::after{content:'';border-left:4px solid transparent;border-right:4px solid transparent;
+  border-top:5px solid var(--text2);margin-left:8px}
+.is-off .cv,.is-off.flabel{color:var(--disabled)}
+.is-off{border-color:var(--bg3);background:var(--bg2)}
+.is-off::after{border-top-color:var(--disabled)}
+.toggle{display:flex;align-items:center;gap:8px;padding:8px 12px 2px}
+.knob{width:34px;height:19px;border-radius:999px;background:var(--ok);position:relative;flex:none}
+.knob::after{content:'';position:absolute;top:2px;right:2px;width:15px;height:15px;border-radius:50%;background:#fff}
+.newline{display:flex;align-items:center;gap:8px;padding:9px 12px 2px}
+
+/* ── preview pane + grid ── */
+.canvas{margin:0 12px 6px;background:var(--bg2);border-radius:6px;padding:8px;display:grid;place-items:center}
+.legend{color:var(--text2);font-size:11px;padding:0 12px 8px;line-height:1.45}
+table{border-collapse:collapse;width:100%;font-size:11.5px}
+th{background:var(--bg2);color:var(--text2);text-align:left;font-weight:600;padding:5px 8px;
+  border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:4px 8px;border-bottom:1px solid var(--sep);white-space:nowrap}
+td.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.pill{display:inline-block;padding:1px 7px;border-radius:999px;font-size:10.5px;font-weight:600}
+.pill-move{background:var(--info-soft);color:var(--info)}
+.pill-skip{background:var(--bg2);color:var(--text2)}
+.counts{display:flex;gap:16px;padding:8px 12px;color:var(--text2);font-size:11.5px;flex-wrap:wrap}
+.counts b{color:var(--text);font-variant-numeric:tabular-nums}
+.log{background:var(--log-bg);color:var(--log-text);font-family:var(--mono);font-size:11px;line-height:1.7;
+  padding:8px 12px;margin:0 12px 10px;border-radius:6px;overflow-x:auto}
+.log .d{color:var(--log-dim)}
+.log .g{color:var(--log-ok)}
+.btnrow{display:flex;gap:8px;justify-content:flex-end;padding:0 12px 12px}
+.btn{border-radius:5px;padding:5px 16px;font-size:12.5px;border:1px solid var(--input);background:var(--card)}
+.btn-main{background:var(--navy);border-color:var(--navy-dark);color:var(--on-dark);font-weight:600}
+
+/* ── gallery ── */
+.gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(248px,1fr));gap:12px}
+.tile{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px;display:grid;gap:8px}
+.tile h3{margin:0;font-size:12.5px;font-weight:600;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.tile p{font-size:11.5px;color:var(--text2);line-height:1.45}
+.tile svg{width:100%;height:auto;max-width:100%;display:block}
+.sheet{fill:var(--card);stroke:var(--text3);stroke-width:1}
+.usable{fill:none;stroke:var(--text3);stroke-width:1;stroke-dasharray:4 3}
+.vp{fill:var(--info-soft);stroke:var(--info);stroke-width:1.2}
+.vpn{fill:var(--info);font-size:9px;font-family:var(--mono)}
+ul{margin:0;padding-left:18px;line-height:1.6}
+li{margin:2px 0}
+code{font-family:var(--mono);font-size:11.5px;background:var(--bg2);padding:1px 4px;border-radius:3px}
+@media (max-width:560px){.body{grid-template-columns:1fr}}
+</style>
+
+<div class="page">
+
+  <div class="lede">
+    <h1>Sheet View Arrange <span class="tag tag-new">v1.4.0</span></h1>
+    <p class="meta">SloperPro plugin 7.18.0 · tool folder <code>SheetViewArrange_V001</code> · Sheet Place panel, button <b>Arrange Views</b></p>
+    <p>Every name, label and number on this page is a static mock-up with <b>sample data</b> — no real project or client content.</p>
+  </div>
+
+  <div class="note">
+    <b>What is new in 1.4.0</b> — the layout was fixed before: rows spread to the full width, rows spread to the
+    full height, views on a common bottom line. It is now three choices: <b>Across the width</b>, <b>Down the
+    height</b> and <b>Align views in row</b>. Left, right, top and bottom pack against the margins you set, at the
+    minimum gaps. The reading order (Detail Number) is never changed by any mode. <b>Auto</b> is the default and
+    reproduces the old layout exactly, so settings saved by an earlier version look the same as before.
+  </div>
+
+  <!-- ─────────── the window ─────────── -->
+  <h2>Tool window — the new Layout block, set to Left + Bottom</h2>
+  <div class="frame">
+    <div class="win">
+      <div class="titlebar"><b>Sheet View Arrange</b><span class="ver">v1.4.0 &nbsp;·&nbsp; Sheet A-201 — Roof Details (sample)</span></div>
+
+      <div class="body">
+        <!-- left: settings -->
+        <div>
+          <div class="cardbox" style="margin-bottom:10px">
+            <div class="sect">Usable Area (inside title block)</div>
+            <div class="fieldrow"><span class="lbl">Top</span><span class="box">30</span><span class="unit">mm</span></div>
+            <div class="fieldrow"><span class="lbl">Bottom</span><span class="box">150</span><span class="unit">mm</span></div>
+            <div class="fieldrow"><span class="lbl">Left</span><span class="box">30</span><span class="unit">mm</span></div>
+            <div class="fieldrow"><span class="lbl">Right</span><span class="box">200</span><span class="unit">mm</span></div>
+            <div class="hint">Measured inward from the title block. Every layout mode works inside this area, so
+              “left” means your left margin and “bottom” means your bottom margin.</div>
+          </div>
+
+          <div class="cardbox">
+            <div class="sect">Spacing &amp; Alignment</div>
+            <div class="fieldrow"><span class="lbl">Min gap between views</span><span class="box">20</span><span class="unit">mm</span></div>
+            <div class="fieldrow"><span class="lbl">Min gap between rows</span><span class="box">20</span><span class="unit">mm</span></div>
+            <div class="hint">A row wraps when the next view won’t fit at the minimum gap. The reading order never
+              changes — only where the rows sit inside the usable area.</div>
+
+            <div class="sep"></div>
+
+            <div class="newline"><span class="tag tag-new">New</span><span class="lbl" style="font-weight:600">Layout</span></div>
+            <div class="flabel">Across the width</div>
+            <div class="combo"><span class="cv">Left — packed on the left margin</span></div>
+            <div class="flabel">Down the height</div>
+            <div class="combo"><span class="cv">Bottom — packed on the bottom margin</span></div>
+            <div class="flabel">Align views in row</div>
+            <div class="combo"><span class="cv">Bottom line (titles line up)</span></div>
+            <div class="hint">Left, right, top and bottom mean the margins you set above — everything stays inside
+              the usable area. Packed modes use the minimum gaps; spread modes fill the area.</div>
+
+            <div class="sep"></div>
+
+            <div class="flabel is-off">Last row <span class="tag tag-chg">Changed</span></div>
+            <div class="combo is-off"><span class="cv">Pack left (same gap as row above)</span></div>
+            <div class="hint">Used by Auto only, and only with two or more rows: full rows are spread to the width
+              and the short last row follows this choice. Greyed out here because <b>Across the width</b> is not Auto.</div>
+
+            <div class="sep"></div>
+
+            <div class="toggle"><span class="knob"></span><span class="lbl">Move pinned views</span></div>
+            <div class="hint">On: pinned views are moved and pinned again. Off: they stay where they are and are left
+              out of the order.</div>
+          </div>
+        </div>
+
+        <!-- right: preview + grid -->
+        <div>
+          <div class="cardbox" style="margin-bottom:10px">
+            <div class="sect">Preview</div>
+            <div class="canvas">
+              <svg viewBox="-20 -16 190 112" role="img" aria-label="Sample sheet preview: four views on the top row and one below, packed on the left margin and sitting on the bottom margin.">
+                <rect class="sheet" x="-20" y="-16" width="190" height="112" rx="2"/>
+                <rect x="140" y="-16" width="30" height="112" fill="#ECEFF3" stroke="#8FA3B8" stroke-width="1"/>
+                <text x="155" y="44" class="vpn" fill="#8FA3B8" text-anchor="middle" transform="rotate(-90 155 44)">TITLE BLOCK</text>
+                <rect class="usable" x="0" y="0" width="100" height="60"/>
+                <g>
+                  <rect class="vp" x="0"  y="25" width="20" height="10"/><text class="vpn" x="2" y="33">1</text>
+                  <rect class="vp" x="25" y="25" width="20" height="10"/><text class="vpn" x="27" y="33">2</text>
+                  <rect class="vp" x="50" y="25" width="20" height="10"/><text class="vpn" x="52" y="33">3</text>
+                  <rect class="vp" x="75" y="15" width="20" height="20"/><text class="vpn" x="77" y="33">4</text>
+                  <rect class="vp" x="0"  y="40" width="20" height="20"/><text class="vpn" x="2" y="58">5</text>
+                </g>
+              </svg>
+            </div>
+            <div class="legend">Blue: new position (number = detail number). Red: does not fit. Grey hatched: skipped,
+              stays put. Dashed: usable area. Here the block of rows sits on the bottom margin and each row starts at
+              the left margin, at the 20 mm minimum gaps.</div>
+            <div class="counts"><span><b>5</b> views on the sheet</span><span><b>5</b> to arrange</span>
+              <span><b>2</b> rows</span><span><b>0</b> skipped</span></div>
+          </div>
+
+          <div class="cardbox">
+            <div class="sect">Views in Reading Order</div>
+            <div style="overflow-x:auto">
+              <table>
+                <thead><tr><th>Detail No.</th><th>View</th><th>Type</th><th>Size (mm)</th><th>Row</th><th>Status</th></tr></thead>
+                <tbody>
+                  <tr><td class="num">1</td><td>Ridge detail — sample</td><td>Drafting</td><td class="num">180 × 95</td><td class="num">1</td><td><span class="pill pill-move">To move</span></td></tr>
+                  <tr><td class="num">2</td><td>Valley detail — sample</td><td>Drafting</td><td class="num">180 × 95</td><td class="num">1</td><td><span class="pill pill-move">To move</span></td></tr>
+                  <tr><td class="num">3</td><td>Eaves detail — sample</td><td>Drafting</td><td class="num">180 × 95</td><td class="num">1</td><td><span class="pill pill-move">To move</span></td></tr>
+                  <tr><td class="num">4</td><td>Parapet section — sample</td><td>Section</td><td class="num">180 × 190</td><td class="num">1</td><td><span class="pill pill-move">To move</span></td></tr>
+                  <tr><td class="num">5</td><td>Upstand section — sample</td><td>Section</td><td class="num">180 × 190</td><td class="num">2</td><td><span class="pill pill-move">To move</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="counts"><span>Showing <b>5</b> of <b>5</b></span><span>Group by: None</span><span>Sort: Detail No. ▲</span></div>
+
+            <div class="sect">Activity Log</div>
+            <div class="log">
+              <div><span class="d">10:42:05</span> Loaded sheet A-201 — 5 views, 0 skipped.</div>
+              <div><span class="d">10:42:19</span> Across the width: Left — packed on the left margin.</div>
+              <div><span class="d">10:42:24</span> Down the height: Bottom — packed on the bottom margin.</div>
+              <div><span class="d">10:42:24</span> <span class="g">Plan ready — 5 views move, 2 rows, all inside the usable area.</span></div>
+            </div>
+
+            <div class="btnrow">
+              <span class="btn">Reset</span><span class="btn">Refresh</span>
+              <span class="btn btn-main">Apply</span><span class="btn">Close</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────── gallery ─────────── -->
+  <h2>The layout modes <span class="tag tag-new">New</span></h2>
+  <p>The same five sample views (three 180 × 95 details, two 180 × 190 sections) in the same reading order, with the
+    same margins and 20 mm minimum gaps. Only the two Layout choices differ.</p>
+
+  <div class="gallery">
+
+    <div class="tile">
+      <h3>Auto + Auto <span class="tag tag-chg">Default</span></h3>
+      <svg viewBox="-14 -12 148 92" role="img" aria-label="Auto: rows spread to the full width and height, short last row packed left.">
+        <rect class="sheet" x="-14" y="-12" width="148" height="92" rx="2"/>
+        <rect class="usable" x="0" y="0" width="100" height="60"/>
+        <rect class="vp" x="0" y="10" width="20" height="10"/><text class="vpn" x="2" y="18">1</text>
+        <rect class="vp" x="26.67" y="10" width="20" height="10"/><text class="vpn" x="28.67" y="18">2</text>
+        <rect class="vp" x="53.33" y="10" width="20" height="10"/><text class="vpn" x="55.33" y="18">3</text>
+        <rect class="vp" x="80" y="0" width="20" height="20"/><text class="vpn" x="82" y="18">4</text>
+        <rect class="vp" x="0" y="40" width="20" height="20"/><text class="vpn" x="2" y="58">5</text>
+      </svg>
+      <p>Exactly the pre-1.4.0 layout: full rows spread to the width, rows spread to the height, short last row per
+        <b>Last row</b>.</p>
+    </div>
+
+    <div class="tile">
+      <h3>Left + Top</h3>
+      <svg viewBox="-14 -12 148 92" role="img" aria-label="Left and top: a compact block in the top-left of the usable area.">
+        <rect class="sheet" x="-14" y="-12" width="148" height="92" rx="2"/>
+        <rect class="usable" x="0" y="0" width="100" height="60"/>
+        <rect class="vp" x="0" y="10" width="20" height="10"/><text class="vpn" x="2" y="18">1</text>
+        <rect class="vp" x="25" y="10" width="20" height="10"/><text class="vpn" x="27" y="18">2</text>
+        <rect class="vp" x="50" y="10" width="20" height="10"/><text class="vpn" x="52" y="18">3</text>
+        <rect class="vp" x="75" y="0" width="20" height="20"/><text class="vpn" x="77" y="18">4</text>
+        <rect class="vp" x="0" y="25" width="20" height="20"/><text class="vpn" x="2" y="43">5</text>
+      </svg>
+      <p>Packed in both directions against the top and left margins — a compact block, the rest of the sheet left clear.</p>
+    </div>
+
+    <div class="tile">
+      <h3>Left + Bottom</h3>
+      <svg viewBox="-14 -12 148 92" role="img" aria-label="Left and bottom: packed on the left margin, sitting on the bottom margin.">
+        <rect class="sheet" x="-14" y="-12" width="148" height="92" rx="2"/>
+        <rect class="usable" x="0" y="0" width="100" height="60"/>
+        <rect class="vp" x="0" y="25" width="20" height="10"/><text class="vpn" x="2" y="33">1</text>
+        <rect class="vp" x="25" y="25" width="20" height="10"/><text class="vpn" x="27" y="33">2</text>
+        <rect class="vp" x="50" y="25" width="20" height="10"/><text class="vpn" x="52" y="33">3</text>
+        <rect class="vp" x="75" y="15" width="20" height="20"/><text class="vpn" x="77" y="33">4</text>
+        <rect class="vp" x="0" y="40" width="20" height="20"/><text class="vpn" x="2" y="58">5</text>
+      </svg>
+      <p>Rows start at the left margin and the block sits on the bottom margin, so free space collects at the top.</p>
+    </div>
+
+    <div class="tile">
+      <h3>Right + Bottom</h3>
+      <svg viewBox="-14 -12 148 92" role="img" aria-label="Right and bottom: packed on the right margin, sitting on the bottom margin.">
+        <rect class="sheet" x="-14" y="-12" width="148" height="92" rx="2"/>
+        <rect class="usable" x="0" y="0" width="100" height="60"/>
+        <rect class="vp" x="5" y="25" width="20" height="10"/><text class="vpn" x="7" y="33">1</text>
+        <rect class="vp" x="30" y="25" width="20" height="10"/><text class="vpn" x="32" y="33">2</text>
+        <rect class="vp" x="55" y="25" width="20" height="10"/><text class="vpn" x="57" y="33">3</text>
+        <rect class="vp" x="80" y="15" width="20" height="20"/><text class="vpn" x="82" y="33">4</text>
+        <rect class="vp" x="80" y="40" width="20" height="20"/><text class="vpn" x="82" y="58">5</text>
+      </svg>
+      <p>Every row ends on the right margin, next to the title strip; the short last row ends there too.</p>
+    </div>
+
+    <div class="tile">
+      <h3>Centre + Centre</h3>
+      <svg viewBox="-14 -12 148 92" role="img" aria-label="Centre and centre: the block centred in the usable area, views centred on their row line.">
+        <rect class="sheet" x="-14" y="-12" width="148" height="92" rx="2"/>
+        <rect class="usable" x="0" y="0" width="100" height="60"/>
+        <rect class="vp" x="2.5" y="12.5" width="20" height="10"/><text class="vpn" x="4.5" y="20.5">1</text>
+        <rect class="vp" x="27.5" y="12.5" width="20" height="10"/><text class="vpn" x="29.5" y="20.5">2</text>
+        <rect class="vp" x="52.5" y="12.5" width="20" height="10"/><text class="vpn" x="54.5" y="20.5">3</text>
+        <rect class="vp" x="77.5" y="7.5" width="20" height="20"/><text class="vpn" x="79.5" y="25.5">4</text>
+        <rect class="vp" x="40" y="32.5" width="20" height="20"/><text class="vpn" x="42" y="50.5">5</text>
+      </svg>
+      <p>Packed and centred both ways, with <b>Align views in row</b> on the centre line instead of the bottom line.</p>
+    </div>
+
+    <div class="tile">
+      <h3>Justify + Spread, top line</h3>
+      <svg viewBox="-14 -12 148 92" role="img" aria-label="Justify and spread with top-line alignment: every row filling the width, views hanging from a common top line.">
+        <rect class="sheet" x="-14" y="-12" width="148" height="92" rx="2"/>
+        <rect class="usable" x="0" y="0" width="100" height="60"/>
+        <rect class="vp" x="0" y="0" width="20" height="10"/><text class="vpn" x="2" y="8">1</text>
+        <rect class="vp" x="26.67" y="0" width="20" height="10"/><text class="vpn" x="28.67" y="8">2</text>
+        <rect class="vp" x="53.33" y="0" width="20" height="10"/><text class="vpn" x="55.33" y="8">3</text>
+        <rect class="vp" x="80" y="0" width="20" height="20"/><text class="vpn" x="82" y="18">4</text>
+        <rect class="vp" x="0" y="40" width="20" height="20"/><text class="vpn" x="2" y="58">5</text>
+      </svg>
+      <p>Every row is spread to the full width, the last row included, and views of differing height hang from a
+        common top line.</p>
+    </div>
+
+  </div>
+
+  <!-- ─────────── notes ─────────── -->
+  <h2>Behaviour notes</h2>
+  <ul>
+    <li><b>The order is untouched.</b> Views are still sorted by Detail Number in natural order (1, 2, 10 … A1, A2,
+      B1). No mode re-orders, resizes, rescales or removes anything — viewports are only moved.</li>
+    <li><b>The margins define everything.</b> Left / right / top / bottom pack against the usable area, which is the
+      title block inset by the four margins, so nothing crosses the title strip.</li>
+    <li><b>Auto is the default.</b> Settings files written before 1.4.0 (format versions 1 and 2) load unchanged and
+      keep the old look; the file is now version 3 and gains <code>Horizontal</code>, <code>Vertical</code> and
+      <code>RowAlign</code>.</li>
+    <li><b>Last row applies to Auto only</b>, and is greyed out for the other modes — they treat every row alike.</li>
+    <li><b>Overflow still blocks Apply.</b> If a row is wider than the usable area, or the rows need more height than
+      it has, the plan reports what is short and nothing moves — an over-wide row or over-tall block is drawn from
+      the left and top edges so the overflow is visible on one side.</li>
+    <li><b>Unchanged:</b> pinned views (moved and re-pinned, or skipped), views owned by another user or changed in
+      central are skipped and reported, one Undo step, Apply refused if the sheet changed after the preview.</li>
+  </ul>
+
+</div>

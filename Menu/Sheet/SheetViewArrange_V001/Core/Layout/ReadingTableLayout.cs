@@ -17,6 +17,85 @@ namespace Revit26_Plugin_Revised.SheetViewArrange.V001.Core.Layout
         Center
     }
 
+    /// <summary>Where each row of views sits across the usable width.</summary>
+    public enum HorizontalLayoutMode
+    {
+        /// <summary>Full rows spread to the whole width; a short last row follows <see cref="LastRowMode"/>.</summary>
+        Auto,
+
+        /// <summary>Every row spread to the whole width, the last row included.</summary>
+        Justify,
+
+        /// <summary>Every row packed at the minimum gap against the left edge.</summary>
+        Left,
+
+        /// <summary>Every row packed at the minimum gap against the right edge.</summary>
+        Right,
+
+        /// <summary>Every row packed at the minimum gap and centred in the width.</summary>
+        Center
+    }
+
+    /// <summary>Where the block of rows sits down the usable height.</summary>
+    public enum VerticalLayoutMode
+    {
+        /// <summary>Rows spread to the whole height when they fit, otherwise packed to the top.</summary>
+        Auto,
+
+        /// <summary>Rows spread to the whole height (falls back to the top when they do not fit).</summary>
+        Spread,
+
+        /// <summary>Rows packed at the minimum gap against the top edge.</summary>
+        Top,
+
+        /// <summary>Rows packed at the minimum gap against the bottom edge.</summary>
+        Bottom,
+
+        /// <summary>Rows packed at the minimum gap and centred in the height.</summary>
+        Center
+    }
+
+    /// <summary>How views of differing height sit inside their own row.</summary>
+    public enum RowAlignMode
+    {
+        /// <summary>Common bottom line, so the view titles under them line up.</summary>
+        Bottom,
+
+        /// <summary>Common top line.</summary>
+        Top,
+
+        /// <summary>Centred on the row's middle line.</summary>
+        Center
+    }
+
+    /// <summary>
+    /// Everything <see cref="ReadingTableLayout.Compute(IReadOnlyList{ValueTuple{double, double}}, LayoutRect, LayoutOptions)"/>
+    /// needs beyond the sizes and the usable area. The defaults reproduce the original
+    /// layout (<see cref="HorizontalLayoutMode.Auto"/> / <see cref="VerticalLayoutMode.Auto"/> /
+    /// <see cref="RowAlignMode.Bottom"/>), so settings files written before the modes existed
+    /// keep their look.
+    /// </summary>
+    public sealed class LayoutOptions
+    {
+        /// <summary>Minimum gap between views in a row (feet).</summary>
+        public double MinHorizontalGap { get; init; }
+
+        /// <summary>Minimum gap between rows (feet).</summary>
+        public double MinVerticalGap { get; init; }
+
+        /// <summary>How a short last row is placed. Only used by <see cref="HorizontalLayoutMode.Auto"/>.</summary>
+        public LastRowMode LastRowMode { get; init; } = LastRowMode.PackLeft;
+
+        /// <summary>Where each row sits across the width.</summary>
+        public HorizontalLayoutMode Horizontal { get; init; } = HorizontalLayoutMode.Auto;
+
+        /// <summary>Where the block of rows sits down the height.</summary>
+        public VerticalLayoutMode Vertical { get; init; } = VerticalLayoutMode.Auto;
+
+        /// <summary>How views of differing height sit inside their row.</summary>
+        public RowAlignMode RowAlign { get; init; } = RowAlignMode.Bottom;
+    }
+
     /// <summary>Axis-aligned rectangle in sheet space (feet).</summary>
     public readonly struct LayoutRect
     {
@@ -73,7 +152,7 @@ namespace Revit26_Plugin_Revised.SheetViewArrange.V001.Core.Layout
         public bool Fits { get; init; }
     }
 
-    /// <summary>Output of <see cref="ReadingTableLayout.Compute"/>.</summary>
+    /// <summary>Output of <see cref="ReadingTableLayout.Compute(IReadOnlyList{ValueTuple{double, double}}, LayoutRect, LayoutOptions)"/>.</summary>
     public sealed class LayoutResult
     {
         /// <summary>One slot per input item, in input order.</summary>
@@ -90,14 +169,16 @@ namespace Revit26_Plugin_Revised.SheetViewArrange.V001.Core.Layout
     }
 
     /// <summary>
-    /// Lays items out like text on a page: left → right, wrapping into rows top → bottom.
+    /// Lays items out like text on a page: left → right, wrapping into rows top → bottom. The
+    /// input order is the reading order and is never changed — only the geometry is.
     /// <list type="bullet">
     /// <item>Rows are filled until the next item would not fit at the minimum horizontal gap.</item>
-    /// <item>Each row is justified to the full usable width (equal gaps). The last row follows
-    /// <see cref="LastRowMode"/> when there are two or more rows; a single-row layout is justified.</item>
-    /// <item>Within a row every item's bottom edge sits on the row's bottom line, so view
-    /// titles under the views line up.</item>
-    /// <item>Rows are spread with equal gaps to fill the usable height (one row sits at the top).</item>
+    /// <item><see cref="LayoutOptions.Horizontal"/> places each row across the width: spread to the
+    /// full width, or packed at the minimum gap against the left edge, the right edge or the centre.</item>
+    /// <item><see cref="LayoutOptions.Vertical"/> places the block of rows down the height: spread to
+    /// the full height, or packed at the minimum gap against the top edge, the bottom edge or the centre.</item>
+    /// <item><see cref="LayoutOptions.RowAlign"/> places views of differing height inside their row —
+    /// a common bottom line by default, so the view titles line up.</item>
     /// </list>
     /// Pure math, no Revit types — so it can be tested outside Revit.
     /// </summary>
@@ -106,8 +187,9 @@ namespace Revit26_Plugin_Revised.SheetViewArrange.V001.Core.Layout
         private const double Eps = 1e-9;
 
         /// <summary>
-        /// Computes the layout. <paramref name="sizes"/> are footprint (width, height) pairs in
-        /// reading order; all lengths in feet.
+        /// Computes the original layout (rows spread to the full width and height, views on a common
+        /// bottom line). Kept so existing callers keep working; prefer the
+        /// <see cref="LayoutOptions"/> overload.
         /// </summary>
         public static LayoutResult Compute(
             IReadOnlyList<(double Width, double Height)> sizes,
@@ -115,10 +197,27 @@ namespace Revit26_Plugin_Revised.SheetViewArrange.V001.Core.Layout
             double minHGap,
             double minVGap,
             LastRowMode lastRowMode)
+            => Compute(sizes, area, new LayoutOptions
+            {
+                MinHorizontalGap = minHGap,
+                MinVerticalGap = minVGap,
+                LastRowMode = lastRowMode
+            });
+
+        /// <summary>
+        /// Computes the layout. <paramref name="sizes"/> are footprint (width, height) pairs in
+        /// reading order; all lengths in feet.
+        /// </summary>
+        public static LayoutResult Compute(
+            IReadOnlyList<(double Width, double Height)> sizes,
+            LayoutRect area,
+            LayoutOptions options)
         {
             var result = new LayoutResult();
             if (sizes == null || sizes.Count == 0)
                 return result;
+
+            options ??= new LayoutOptions();
 
             if (!area.IsValid)
             {
@@ -127,34 +226,109 @@ namespace Revit26_Plugin_Revised.SheetViewArrange.V001.Core.Layout
                 return result;
             }
 
-            minHGap = Math.Max(0, minHGap);
-            minVGap = Math.Max(0, minVGap);
+            double minHGap = Math.Max(0, options.MinHorizontalGap);
+            double minVGap = Math.Max(0, options.MinVerticalGap);
 
             var rows = BuildRows(sizes, area.Width, minHGap);
             result.RowCount = rows.Count;
 
-            // ── Horizontal: x of each item, per row ─────────────────────────
+            var xs = PlaceAcross(sizes, rows, area, minHGap, options);
+            var (rowTops, rowHeights, heightFits, totalRowHeight) = PlaceDown(sizes, rows, area, minVGap, options);
+
+            for (int r = 0; r < rows.Count; r++)
+            {
+                double rowTop = rowTops[r];
+                double rowBottom = rowTop - rowHeights[r];
+                for (int c = 0; c < rows[r].Count; c++)
+                {
+                    int i = rows[r][c];
+                    var (w, h) = sizes[i];
+                    double y = options.RowAlign switch
+                    {
+                        RowAlignMode.Top => rowTop - h,
+                        RowAlignMode.Center => rowBottom + (rowHeights[r] - h) / 2.0,
+                        _ => rowBottom
+                    };
+
+                    bool fits = xs[i] >= area.MinX - Eps
+                                && xs[i] + w <= area.MaxX + Eps
+                                && y >= area.MinY - Eps
+                                && y + h <= area.MaxY + Eps;
+
+                    result.Slots.Add(new LayoutSlot
+                    {
+                        Index = i,
+                        Row = r,
+                        Column = c,
+                        MinX = xs[i],
+                        MinY = y,
+                        Fits = fits
+                    });
+                }
+            }
+
+            result.Slots.Sort((a, b) => a.Index.CompareTo(b.Index));
+            result.AllFit = result.Slots.All(s => s.Fits);
+
+            if (!result.AllFit)
+                result.Problem = DescribeProblem(sizes, area, minVGap, rows.Count, totalRowHeight, heightFits);
+
+            return result;
+        }
+
+        /// <summary>x of every item, row by row, per <see cref="LayoutOptions.Horizontal"/>.</summary>
+        private static double[] PlaceAcross(
+            IReadOnlyList<(double Width, double Height)> sizes,
+            List<List<int>> rows,
+            LayoutRect area,
+            double minHGap,
+            LayoutOptions options)
+        {
             var xs = new double[sizes.Count];
             double previousGap = minHGap;
+
             for (int r = 0; r < rows.Count; r++)
             {
                 var row = rows[r];
-                bool isShortLastRow = r == rows.Count - 1 && rows.Count > 1 && lastRowMode != LastRowMode.Justify;
                 double sumW = row.Sum(i => sizes[i].Width);
-                double fullGap = row.Count > 1 ? (area.Width - sumW) / (row.Count - 1) : minHGap;
+                double spreadGap = row.Count > 1 ? Math.Max(minHGap, (area.Width - sumW) / (row.Count - 1)) : minHGap;
 
-                // A short last row reuses the row above's gap so it reads as part of the same
-                // table — never wider than the width allows, never below the minimum.
-                double gap = isShortLastRow && row.Count > 1
-                    ? Math.Max(minHGap, Math.Min(previousGap, fullGap))
-                    : fullGap;
-
-                double x = area.MinX;
-                if (isShortLastRow && lastRowMode == LastRowMode.Center)
+                // Auto keeps the original behaviour: full rows are spread to the width and only a
+                // short last row follows LastRowMode.
+                bool isShortLastRow = r == rows.Count - 1 && rows.Count > 1;
+                var mode = options.Horizontal;
+                if (mode == HorizontalLayoutMode.Auto)
                 {
-                    double rowWidth = sumW + gap * (row.Count - 1);
-                    x += Math.Max(0, (area.Width - rowWidth) / 2.0);
+                    mode = !isShortLastRow
+                        ? HorizontalLayoutMode.Justify
+                        : options.LastRowMode switch
+                        {
+                            LastRowMode.Justify => HorizontalLayoutMode.Justify,
+                            LastRowMode.Center => HorizontalLayoutMode.Center,
+                            _ => HorizontalLayoutMode.Left
+                        };
                 }
+
+                double gap = mode == HorizontalLayoutMode.Justify ? spreadGap : minHGap;
+
+                // A short last row that is not spread reuses the row above's gap, so it reads as
+                // part of the same table — never wider than the width allows, never below the minimum.
+                if (options.Horizontal == HorizontalLayoutMode.Auto && isShortLastRow
+                    && mode != HorizontalLayoutMode.Justify && row.Count > 1)
+                    gap = Math.Max(minHGap, Math.Min(previousGap, spreadGap));
+
+                double rowWidth = sumW + gap * (row.Count - 1);
+                double x = mode switch
+                {
+                    HorizontalLayoutMode.Right => area.MaxX - rowWidth,
+                    HorizontalLayoutMode.Center => area.MinX + (area.Width - rowWidth) / 2.0,
+                    _ => area.MinX
+                };
+
+                // An over-wide row starts at the left edge whatever the mode, so the overflow is
+                // visible on one side only and the "does not fit" report stays readable.
+                if (rowWidth > area.Width + Eps)
+                    x = area.MinX;
 
                 foreach (int i in row)
                 {
@@ -166,47 +340,55 @@ namespace Revit26_Plugin_Revised.SheetViewArrange.V001.Core.Layout
                     previousGap = gap;
             }
 
-            // ── Vertical: rows spread to fill the height ────────────────────
+            return xs;
+        }
+
+        /// <summary>Top edge of every row, per <see cref="LayoutOptions.Vertical"/>.</summary>
+        private static (double[] RowTops, List<double> RowHeights, bool HeightFits, double TotalRowHeight) PlaceDown(
+            IReadOnlyList<(double Width, double Height)> sizes,
+            List<List<int>> rows,
+            LayoutRect area,
+            double minVGap,
+            LayoutOptions options)
+        {
             var rowHeights = rows.Select(row => row.Max(i => sizes[i].Height)).ToList();
             double totalRowHeight = rowHeights.Sum();
-            double vGap = rows.Count > 1 ? (area.Height - totalRowHeight) / (rows.Count - 1) : 0;
-            bool heightFits = totalRowHeight + minVGap * (rows.Count - 1) <= area.Height + Eps;
-            if (!heightFits)
-                vGap = minVGap; // keep the minimum gap; overflowing rows run below the area
+            double packedHeight = totalRowHeight + minVGap * (rows.Count - 1);
+            bool heightFits = packedHeight <= area.Height + Eps;
 
-            double rowTop = area.MaxY;
+            var mode = options.Vertical;
+            if (mode == VerticalLayoutMode.Auto)
+                mode = VerticalLayoutMode.Spread;
+
+            // Spreading needs the rows to fit; otherwise they are packed from the top so the
+            // overflow runs off the bottom, as it always has.
+            if (mode == VerticalLayoutMode.Spread && (!heightFits || rows.Count < 2))
+                mode = VerticalLayoutMode.Top;
+
+            double vGap = mode == VerticalLayoutMode.Spread
+                ? (area.Height - totalRowHeight) / (rows.Count - 1)
+                : minVGap;
+
+            double top = mode switch
+            {
+                VerticalLayoutMode.Bottom => area.MinY + packedHeight,
+                VerticalLayoutMode.Center => area.MinY + packedHeight + (area.Height - packedHeight) / 2.0,
+                _ => area.MaxY
+            };
+
+            // An over-tall block starts at the top edge whatever the mode, for the same reason as
+            // an over-wide row starts at the left.
+            if (!heightFits)
+                top = area.MaxY;
+
+            var rowTops = new double[rows.Count];
             for (int r = 0; r < rows.Count; r++)
             {
-                double rowBottom = rowTop - rowHeights[r];
-                for (int c = 0; c < rows[r].Count; c++)
-                {
-                    int i = rows[r][c];
-                    var (w, h) = sizes[i];
-                    bool fits = xs[i] >= area.MinX - Eps
-                                && xs[i] + w <= area.MaxX + Eps
-                                && rowBottom >= area.MinY - Eps
-                                && rowBottom + h <= area.MaxY + Eps;
-
-                    result.Slots.Add(new LayoutSlot
-                    {
-                        Index = i,
-                        Row = r,
-                        Column = c,
-                        MinX = xs[i],
-                        MinY = rowBottom,
-                        Fits = fits
-                    });
-                }
-                rowTop = rowBottom - vGap;
+                rowTops[r] = top;
+                top -= rowHeights[r] + vGap;
             }
 
-            result.Slots.Sort((a, b) => a.Index.CompareTo(b.Index));
-            result.AllFit = result.Slots.All(s => s.Fits);
-
-            if (!result.AllFit)
-                result.Problem = DescribeProblem(sizes, area, minVGap, rows.Count, totalRowHeight);
-
-            return result;
+            return (rowTops, rowHeights, heightFits, totalRowHeight);
         }
 
         /// <summary>Flow-fills rows: an item starts a new row when it would exceed the width.</summary>
@@ -240,7 +422,8 @@ namespace Revit26_Plugin_Revised.SheetViewArrange.V001.Core.Layout
             LayoutRect area,
             double minVGap,
             int rowCount,
-            double totalRowHeight)
+            double totalRowHeight,
+            bool heightFits)
         {
             const double FeetToMm = 304.8;
             var problems = new List<string>();
@@ -250,7 +433,7 @@ namespace Revit26_Plugin_Revised.SheetViewArrange.V001.Core.Layout
                 problems.Add($"{tooWide} view(s) are wider than the usable area");
 
             double shortBy = totalRowHeight + minVGap * (rowCount - 1) - area.Height;
-            if (shortBy > Eps)
+            if (!heightFits && shortBy > Eps)
                 problems.Add($"{rowCount} row(s) need {shortBy * FeetToMm:F0} mm more height than the usable area");
 
             return problems.Count == 0

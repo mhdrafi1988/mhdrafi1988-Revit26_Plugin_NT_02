@@ -307,17 +307,41 @@ The preview canvas is drawn in code-behind from ViewModel.Plan.
                                 <TextBlock Grid.Row="2" Grid.Column="2" Text="mm" Style="{StaticResource UnitLabel}"/>
                             </Grid>
                             <TextBlock Style="{StaticResource HintText}" Margin="12,2,12,8"
-                                       Text="A row wraps when the next view won't fit at the minimum gap. Rows are then spread to the full width, and rows are spread to the full height. Views sit on a common bottom line so titles align."/>
+                                       Text="A row wraps when the next view won't fit at the minimum gap. The reading order never changes — only where the rows sit inside the usable area."/>
 
                             <Border Style="{StaticResource SeparatorLine}"/>
 
-                            <TextBlock Text="Last row" Style="{StaticResource FieldLabel}" Margin="12,8,12,4"/>
+                            <TextBlock Text="Across the width" Style="{StaticResource FieldLabel}" Margin="12,8,12,4"/>
+                            <ComboBox Style="{StaticResource StandardComboBox}" Margin="12,0,12,6"
+                                      ItemsSource="{Binding HorizontalOptions}"
+                                      DisplayMemberPath="Label" SelectedValuePath="Mode"
+                                      SelectedValue="{Binding Horizontal}"/>
+
+                            <TextBlock Text="Down the height" Style="{StaticResource FieldLabel}" Margin="12,2,12,4"/>
+                            <ComboBox Style="{StaticResource StandardComboBox}" Margin="12,0,12,6"
+                                      ItemsSource="{Binding VerticalOptions}"
+                                      DisplayMemberPath="Label" SelectedValuePath="Mode"
+                                      SelectedValue="{Binding Vertical}"/>
+
+                            <TextBlock Text="Align views in row" Style="{StaticResource FieldLabel}" Margin="12,2,12,4"/>
                             <ComboBox Style="{StaticResource StandardComboBox}" Margin="12,0,12,4"
+                                      ItemsSource="{Binding RowAlignOptions}"
+                                      DisplayMemberPath="Label" SelectedValuePath="Mode"
+                                      SelectedValue="{Binding RowAlign}"/>
+                            <TextBlock Style="{StaticResource HintText}" Margin="12,0,12,8"
+                                       Text="Left, right, top and bottom mean the margins you set above — everything stays inside the usable area. Packed modes use the minimum gaps; spread modes fill the area."/>
+
+                            <Border Style="{StaticResource SeparatorLine}"/>
+
+                            <TextBlock Text="Last row" Style="{StaticResource FieldLabel}" Margin="12,8,12,4"
+                                       IsEnabled="{Binding IsLastRowRelevant}"/>
+                            <ComboBox Style="{StaticResource StandardComboBox}" Margin="12,0,12,4"
+                                      IsEnabled="{Binding IsLastRowRelevant}"
                                       ItemsSource="{Binding LastRowOptions}"
                                       DisplayMemberPath="Label" SelectedValuePath="Mode"
                                       SelectedValue="{Binding LastRowMode}"/>
                             <TextBlock Style="{StaticResource HintText}" Margin="12,0,12,8"
-                                       Text="Only applies when there are two or more rows; a single row is always spread across the width."/>
+                                       Text="Used by Auto only, and only with two or more rows: full rows are spread to the width and the short last row follows this choice."/>
 
                             <Border Style="{StaticResource SeparatorLine}"/>
 

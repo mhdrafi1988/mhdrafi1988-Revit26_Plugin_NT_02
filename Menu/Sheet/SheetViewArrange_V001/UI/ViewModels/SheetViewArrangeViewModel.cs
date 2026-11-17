@@ -18,6 +18,15 @@ namespace Revit26_Plugin_Revised.SheetViewArrange.V001.UI.ViewModels
     /// <summary>A choice in the "Last row" combo box.</summary>
     public sealed record LastRowOption(LastRowMode Mode, string Label);
 
+    /// <summary>A choice in the "Across the width" combo box.</summary>
+    public sealed record HorizontalOption(HorizontalLayoutMode Mode, string Label);
+
+    /// <summary>A choice in the "Down the height" combo box.</summary>
+    public sealed record VerticalOption(VerticalLayoutMode Mode, string Label);
+
+    /// <summary>A choice in the "Align views in row" combo box.</summary>
+    public sealed record RowAlignOption(RowAlignMode Mode, string Label);
+
     /// <summary>A choice in the "Group by" combo box.</summary>
     public sealed record GroupByOption(ArrangeGroupBy Mode, string Label);
 
@@ -93,6 +102,34 @@ namespace Revit26_Plugin_Revised.SheetViewArrange.V001.UI.ViewModels
             new LastRowOption(LastRowMode.Center, "Centre (same gap as row above)")
         };
 
+        /// <summary>Choices for the horizontal-layout combo box.</summary>
+        public IReadOnlyList<HorizontalOption> HorizontalOptions { get; } = new[]
+        {
+            new HorizontalOption(HorizontalLayoutMode.Auto, "Auto (spread, last row as below)"),
+            new HorizontalOption(HorizontalLayoutMode.Justify, "Justify — every row to full width"),
+            new HorizontalOption(HorizontalLayoutMode.Left, "Left — packed on the left margin"),
+            new HorizontalOption(HorizontalLayoutMode.Right, "Right — packed on the right margin"),
+            new HorizontalOption(HorizontalLayoutMode.Center, "Centre — packed, centred")
+        };
+
+        /// <summary>Choices for the vertical-layout combo box.</summary>
+        public IReadOnlyList<VerticalOption> VerticalOptions { get; } = new[]
+        {
+            new VerticalOption(VerticalLayoutMode.Auto, "Auto (spread to full height)"),
+            new VerticalOption(VerticalLayoutMode.Spread, "Spread — rows fill the height"),
+            new VerticalOption(VerticalLayoutMode.Top, "Top — packed on the top margin"),
+            new VerticalOption(VerticalLayoutMode.Bottom, "Bottom — packed on the bottom margin"),
+            new VerticalOption(VerticalLayoutMode.Center, "Centre — packed, centred")
+        };
+
+        /// <summary>Choices for the row-alignment combo box.</summary>
+        public IReadOnlyList<RowAlignOption> RowAlignOptions { get; } = new[]
+        {
+            new RowAlignOption(RowAlignMode.Bottom, "Bottom line (titles line up)"),
+            new RowAlignOption(RowAlignMode.Top, "Top line"),
+            new RowAlignOption(RowAlignMode.Center, "Centre line")
+        };
+
         /// <summary>Choices for the group-by combo box.</summary>
         public IReadOnlyList<GroupByOption> GroupByOptions { get; } = new[]
         {
@@ -124,6 +161,9 @@ namespace Revit26_Plugin_Revised.SheetViewArrange.V001.UI.ViewModels
         [ObservableProperty] private double minHorizontalGapMm;
         [ObservableProperty] private double minVerticalGapMm;
         [ObservableProperty] private LastRowMode lastRowMode;
+        [ObservableProperty] private HorizontalLayoutMode horizontal;
+        [ObservableProperty] private VerticalLayoutMode vertical;
+        [ObservableProperty] private RowAlignMode rowAlign;
         [ObservableProperty] private bool movePinned;
 
         [ObservableProperty] private int viewCount;
@@ -187,6 +227,9 @@ namespace Revit26_Plugin_Revised.SheetViewArrange.V001.UI.ViewModels
             MinHorizontalGapMm = s.MinHorizontalGapMm;
             MinVerticalGapMm = s.MinVerticalGapMm;
             LastRowMode = Enum.IsDefined(typeof(LastRowMode), s.LastRowMode) ? s.LastRowMode : LastRowMode.PackLeft;
+            Horizontal = Enum.IsDefined(typeof(HorizontalLayoutMode), s.Horizontal) ? s.Horizontal : HorizontalLayoutMode.Auto;
+            Vertical = Enum.IsDefined(typeof(VerticalLayoutMode), s.Vertical) ? s.Vertical : VerticalLayoutMode.Auto;
+            RowAlign = Enum.IsDefined(typeof(RowAlignMode), s.RowAlign) ? s.RowAlign : RowAlignMode.Bottom;
             MovePinned = s.MovePinned;
             GroupBy = Enum.IsDefined(typeof(ArrangeGroupBy), s.GroupBy) ? s.GroupBy : ArrangeGroupBy.None;
 
@@ -206,6 +249,9 @@ namespace Revit26_Plugin_Revised.SheetViewArrange.V001.UI.ViewModels
             MinHorizontalGapMm = MinHorizontalGapMm,
             MinVerticalGapMm = MinVerticalGapMm,
             LastRowMode = LastRowMode,
+            Horizontal = Horizontal,
+            Vertical = Vertical,
+            RowAlign = RowAlign,
             MovePinned = MovePinned,
             GroupBy = GroupBy
         };
@@ -221,6 +267,22 @@ namespace Revit26_Plugin_Revised.SheetViewArrange.V001.UI.ViewModels
         partial void OnMinHorizontalGapMmChanged(double value) => ClampOrRecompute(value, v => MinHorizontalGapMm = v);
         partial void OnMinVerticalGapMmChanged(double value) => ClampOrRecompute(value, v => MinVerticalGapMm = v);
         partial void OnLastRowModeChanged(LastRowMode value) => Recompute();
+
+        partial void OnHorizontalChanged(HorizontalLayoutMode value)
+        {
+            OnPropertyChanged(nameof(IsLastRowRelevant));
+            Recompute();
+        }
+
+        partial void OnVerticalChanged(VerticalLayoutMode value) => Recompute();
+
+        partial void OnRowAlignChanged(RowAlignMode value) => Recompute();
+
+        /// <summary>
+        /// True while the "Last row" choice has any effect — only
+        /// <see cref="HorizontalLayoutMode.Auto"/> treats the last row differently from the rest.
+        /// </summary>
+        public bool IsLastRowRelevant => Horizontal == HorizontalLayoutMode.Auto;
         partial void OnMovePinnedChanged(bool value) => Recompute();
 
         // ── Grid inputs → re-filter / re-group ──────────────────────────────
