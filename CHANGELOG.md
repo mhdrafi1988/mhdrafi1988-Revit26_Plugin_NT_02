@@ -9,6 +9,71 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [7.17.0] — 2026-11-17
+
+### Added
+- **Sheet Align and Distribute v1.0.0** (V001, new tool) — new large button **Align & Distribute** on the
+  **Sheet Edit** panel (Documents tab), after Text Replace. It tidies the sheet you have open, in place: it reads
+  the rows and columns the views are *already* in, gives each row one shared edge and each column one shared edge,
+  and moves nothing further than it has to. Nothing is re-ordered and no other sheet is read.
+  - **Only the open sheet.** Run it from a sheet view; it collects that sheet's viewports (plans, sections,
+    details, drafting views and legends) and, if you tick it on, its schedules. A viewport's footprint is its box
+    united with its title, so the titles line up and a long title never sits over its neighbour.
+  - **Margins read off the sheet.** The four margins are measured from the title block edge to the outermost view
+    on each side, as the sheet stands, and rounded to 5 mm — so aligning keeps the margins you already drew. The
+    horizontal and vertical gaps are measured the same way. Type in a box and the badge reads **Custom** and the
+    sheet stops overwriting it; **Re-detect from this sheet** hands the margins back.
+  - **Per-view margin.** Pick a view in the grid and give it its own clearance on each of its four sides,
+    pre-filled with the clear space it currently has. It is added to the minimum gap around that view, so a
+    crowded detail keeps its breathing room when a row is evened out. **Apply to all ticked** copies it across.
+  - **Align.** Rows share their bottom edge by default, so viewport titles line up; columns share their left edge.
+    Top, centre, right and **Least movement** (whichever of the three needs the least travel) are also available,
+    and either axis can be turned off. The shared line is the **median** of that track's current edges, clamped
+    inside the margins — a median so that one badly placed view cannot drag its whole row with it.
+  - **Distribute** is **off** by default, which keeps every gap exactly as it is. **Even gaps** equalises the gaps
+    inside a row without moving the row's outer edges; **Fit the margins** spreads it from one margin to the other.
+  - **Movement limits.** A view within the **snap tolerance** (2 mm) of its line is left untouched. A view that
+    would travel further than **Max move** (25 mm) is reported and left exactly where it is, rather than being
+    dragged across the sheet in the name of alignment; set Max move to 0 for no limit, or switch to *move anyway*.
+    Pinned views are moved and re-pinned, aligned views never cross the margins, and the run stops before doing
+    anything if any two elements would end up overlapping.
+  - **Before anything moves.** A live to-scale sheet preview shows where each element sits now, where it goes and
+    which ones are over the limit; the grid lists the row, column, clearance, dX, dY and travel of every element,
+    and **Copy report** puts the whole table on the clipboard. Views owned by another user or changed in central
+    are listed but cannot be ticked.
+  - All moves go in one transaction, so it is a single Undo step (**"Sheet Align & Distribute"**) and nothing is
+    applied if a check fails. Settings are saved to
+    `%AppData%\Revit26_Plugin_Revised\SheetAlignDistribute\settings.json` (format version 1).
+  - The layout maths are Revit-free and unit tested: `Tests/SheetAlignDistribute.Tests`, 83 tests covering the row
+    and column detection, the median line and its clamp, the distribute spread, the snap and move limits, the
+    overlap check and the margin detection.
+  - Icon: `Resources/Icons/SheetTools/SheetAlignDistribute_16/32.png` — three views of different widths flush to a
+    green guide down the left and along the bottom, the margin corner the tool aligns them into. Each size is drawn
+    on its own rather than shrunk from the other, so the small one stays crisp.
+  - UI preview: `Claude/Previews/SheetAlignDistribute_V001_Window.html` —
+    https://claude.ai/artifact/4CeaSWpnMoiZQ5KzcgBCTJ
+
+**User notes**
+- This is a third, different sheet tool; the other two are unchanged. **Rearrange** re-packs a sheet from scratch,
+  so views change row, column and neighbour. **Arrange Views** re-orders by detail number into a reading table.
+  **Align & Distribute** changes neither the order nor the grid — with the defaults, the only change to your sheet
+  is the few millimetres each view needs to line up.
+- Running it twice does nothing the second time: once a sheet is aligned, every view is inside the snap tolerance.
+- The right margin is measured from where your views stop, which on a sheet with a title strip down the side is
+  normally just inside the strip (so it reads 186 rather than 180 mm). Type the number you want if that matters.
+- Schedules are listed but **not** ticked by default. Tick **Include schedules on the sheet** to align them too.
+
+### Changed
+- **Sheet View Arrange v1.3.1** — **Arrange Views** has its own icon instead of borrowing Rearrange's, which it had
+  done since plugin 2.4.0. The two sit together in the Sheet Create slide-out and both render at 16 px there, so the
+  buttons were identical apart from their labels. The new one shows four views in a reading table with the order
+  running through them — across the top row, wrapping down to the left, across the bottom — which is what this tool
+  does and the other two do not. `Resources/Icons/SheetTools/SheetViewArrange_16/32.png`.
+  - Ribbon preview: `Claude/Previews/SheetRibbon_Panels.html` — https://claude.ai/artifact/51UpNatmatwf6CvZcDFXRV
+
+**User notes**
+- Icon only; the tool works exactly as before. Rearrange keeps the icon it had.
+
 ## [7.16.2] — 2026-11-17
 
 ### Changed

@@ -1,0 +1,183 @@
+<title>Sheet Ribbon Icons</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<!-- UI preview (CLAUDE.md "UI previews") for the Sheet ribbon panels, plugin 7.17.0.
+     Shown: the Sheet Create panel and its slide-out, Sheet Edit and Waterproofing, with the real PNG
+     assets embedded, plus the three sheet-layout tools side by side so their icons can be compared.
+     7.17.0: Sheet View Arrange 1.3.1 — Arrange Views gets its own icon instead of borrowing Rearrange's
+             (the two were indistinguishable in the slide-out, where both render at 16 px).
+     7.17.0: Sheet Align and Distribute 1.0.0 — new tool, new icon, new button on Sheet Edit.
+     Mirrors: Menu/00_Push_Button_Menu_items/Ribbon/SheetToolsRibbon.cs (labels, order, panels),
+              Resources/Icons/SheetTools/*.png (the icons themselves), Shared/SharedStyles.xaml (palette).
+     Artifact: https://claude.ai/artifact/51UpNatmatwf6CvZcDFXRV (republish to this URL on every update) -->
+<style>
+/* Layout: panel mock-ups stacked down one column; the comparison strip sits under them. */
+:root{
+  color-scheme:light;
+  --page:#E9EDF1; --card:#FFFFFF; --border:#D6DCE3; --input:#B5C2CF; --sep:#E6EAEF;
+  --navy:#1E3A5F; --text:#1A2B3C; --text2:#5B7185; --text3:#8FA3B8; --bg2:#ECEFF3; --bg3:#E1E6EC;
+  --ok:#2E7D4F; --ok-soft:#E6F4EC; --ok-border:#9FCFB2;
+  --warn:#9A5B00; --warn-soft:#FDF1E1; --warn-border:#E8B66B;
+  --info:#1F5FBF; --info-soft:#E6EEFB;
+  --ui:'Segoe UI',system-ui,-apple-system,sans-serif; --mono:Consolas,'Cascadia Mono',Menlo,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--text);font-family:var(--ui);font-size:12.5px;
+  padding-block:24px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.page{max-width:900px;margin:0 auto;display:grid;gap:20px}
+h1{font-size:21px;margin:0 0 5px;font-weight:600;text-wrap:balance}
+h2{font-size:14px;margin:0 0 8px;font-weight:600;text-wrap:balance}
+p{margin:0;line-height:1.55;max-width:78ch}
+.muted{color:var(--text2)}
+.tag{display:inline-block;background:var(--ok);color:#FFFFFF;font-size:9.5px;font-weight:600;letter-spacing:.04em;
+  padding:1px 5px;border-radius:3px;vertical-align:middle;margin-left:5px;white-space:nowrap}
+.frame{overflow-x:auto;padding-bottom:4px}
+.note{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px 14px;display:grid;gap:8px}
+code{font-family:var(--mono);font-size:11px;background:var(--bg2);border:1px solid var(--border);border-radius:3px;padding:0 4px}
+img{image-rendering:pixelated;display:block}
+
+/* Ribbon */
+.ribbon{width:720px;background:var(--card);border:1px solid var(--input);display:flex;font-size:11.5px}
+.rp{border-right:1px solid var(--border);padding:6px 9px 0;display:flex;flex-direction:column;min-width:0}
+.rp:last-child{border-right:none}
+.items{display:flex;gap:10px;align-items:flex-start;flex:1}
+.stack{display:grid;gap:2px;align-content:start}
+.sb{display:flex;align-items:center;gap:5px;padding:2px 4px;border-radius:3px;white-space:nowrap}
+.sb.hl{outline:2px solid var(--ok);outline-offset:1px;background:var(--ok-soft)}
+.big{display:grid;justify-items:center;gap:3px;padding:3px 6px;border-radius:3px;width:76px;text-align:center;line-height:1.2}
+.big.hl{outline:2px solid var(--ok);outline-offset:1px;background:var(--ok-soft)}
+.rpt{margin-top:6px;border-top:1px solid var(--sep);text-align:center;color:var(--text2);font-size:11px;padding:3px 0;
+  display:flex;justify-content:center;align-items:center;gap:5px}
+.arrow{color:var(--text3);font-size:10px}
+.slide{margin-top:8px;width:300px;background:var(--card);border:1px solid var(--input);
+  box-shadow:0 4px 12px rgba(16,32,48,.18);padding:8px 10px}
+.slide .cap{font-size:10.5px;color:var(--text2);margin-bottom:6px}
+
+/* Comparison strip */
+.cmp{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.cc{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px;display:grid;gap:8px;justify-items:center;text-align:center}
+.cc.new{border-color:var(--ok-border);background:var(--ok-soft)}
+.cc .row{display:flex;gap:14px;align-items:flex-end}
+.cc figure{margin:0;display:grid;gap:4px;justify-items:center}
+.cc figcaption{font-size:10px;color:var(--text2)}
+.cc b{font-size:13px}
+.cc p{font-size:11.5px;color:var(--text2);line-height:1.45;margin:0}
+@media (max-width:640px){ .cmp{grid-template-columns:1fr} }
+</style>
+
+<div class="page">
+
+<header>
+  <h1>Sheet Ribbon Icons</h1>
+  <p class="muted">Plugin <b>7.17.0</b> &middot; the <b>Documents</b> tab's Sheet panels, drawn with the real PNG assets
+  from <code>Resources/Icons/SheetTools/</code>.</p>
+</header>
+
+<section class="note">
+  <h2>What changed</h2>
+  <p><b>Arrange Views</b> had borrowed the Rearrange icon since plugin 2.4.0. Both sit in the same slide-out and both
+  render at 16&nbsp;px there, so the two buttons were identical apart from their labels. It now has its own.
+  <b>Align &amp; Distribute</b> is new in 7.17.0 and arrives with its own icon.</p>
+</section>
+
+<section>
+  <h2>Sheet Create &mdash; panel and slide-out</h2>
+  <div class="frame">
+    <div class="ribbon">
+      <div class="rp" style="flex:1">
+        <div class="items">
+          <div class="stack">
+            <span class="sb"><img class="" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAJKSURBVDhPlZPLTxNRGMWbuPCVEAWpgNCp7vwLSIzujBtjFFsSN0QTXRiNj/jAIC20kzbqysRXTLQtZTrtTGmLRZIKtkIhlEepFRMU6UxrkBEfMwth4fKYe1uDEBZ2cXImc+f73W/ud65OZJlc2GlUBZYpS6RGZBlJJ7DMct+9vQg7jWWJ1Igss0IAhAbBbthQIstAZI0IdNaBt+rht+qp97B1ZE2jgJDDQBf8HTVrZdVDsNdDsDeg734j4q4TSHhM1GOPDpD3ms7fUavGHjRCSnPIZ0Xks0JJIuSMH/0PD4Fr24Fc2gtNeYeF2Zf4uZDG4mwEgc5aTcdbqtRktwmaMoOJ3isYj1zCeOQyUqELUL9kMMy3oOvmFkgZHmM959HdVoEh7ykoH6PFDnhLtTrCNUPOiuBu7yypEt5b2zE/6UEqfBEB2x7a0Yj/DIXF3SdpB/8AzCjMhEsH10Cd/L88zeOXKuFbYQy/V35gVDwHb+s2JDzm9YBm5LNB+CzV4C27qJNWc1NeTEavI3RnPz6/j2BUOIuu1q1IuE3rAWZ8L6QQdzfRE467mjD47BiWpCEk+RZ4bmyGNM0h6T8N97VNeP38OJQPL0pTsO5WBx4fxOLcAJRPg9T/PivzccSeHAbXVgH5bYBuQrpakobxda6fZKOYg7CThIVB0LFvjYohMkCw1ePV0yN0QhO9V+mU3riOkoysAshHG4kASBJJsHztlfC1V1EP2mpWk0iiXNzt/1WqoYDl6N3yLxOpKV4mOyOHHUaN0MpRqUb+A8CchVao+nZ4AAAAAElFTkSuQmCC" width="16" height="16" alt="">Scope Box &#9662;</span>
+            <span class="sb"><img class="" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAKmSURBVDhPfZPbS5NhHMd30UUHDVRstpwzIQihm6KMKCS1m5CCyssuom66CKPAw3KH921aGDI0dUiiO7TtfXfSrbnpPJQz03RzzpzHd0rZTOpdkP4B39gjFZnr4sNz8fD78v093+8jYGnJsr02l2doSXIo8T/YVBKepSWcgKHFmzYqA6x8G0aeDguVBUfdUTjqcmFX5cCiFMJKZf1FV60ILC3ZElhrj/EhTxWmvApM9SoQ6qPR334FJrkQZoUILnUBuEkDVkIsVkIMOVenLZjulYJRiuICT/NFnhvXwKU+DXfTeYwwtxD0KqCt2AuT7BAGO64jHgtjvKscY457GLXexfyoBhucD4zySFzgaSnmZ/oV0FemwFiTAWfDKawvDcHdeA76qlQMassQDbEwSNMIuop96Gu7jM8RBxhKHBd4W0v4GZ8MnQ/3QF+VAvvTfPCxEGKLPpgVh8k6q2E7GConMbDtqvPGHwGX+gz/Kcwg4K5G0FOD2WE13nc/wKy/ERF/E3o1l7AatiUXYOgc3tNUAG9rETwtRehpLoTlcR4sqjyszXmw8K4NXECfXMBMiXmTNJXYT6CrPABjTSZ0FfsRHniCH18XsTzRSYZ3FdgtxoSbnucXsLEyQtaJBk3JHeyMcdh4Ex9eN2At0oO37B14NSX/f8SdMTrqT2Dr+0fMj7aSyAY6rhEBs1IMszKbrJfoRtIYnQ0nsTShBUNl46U0DUPaMpKCUSaEUZYJQ/VB9LdfRWyue/cYI/5GTLqrSYlMMiF8L0qx+Y0jFY5OmcEFjfjCvcH6gjtRdRLjpq/lLPrbigl9mkI464+TT2RTieF8lo8x620EXt1HwPWLcvh1pQkHWwKGkkStlChulmf9JtFxlpYQGGV23PAo/W+kaXGLUpi4j/4ESVKa82qCKnoAAAAASUVORK5CYII=" width="16" height="16" alt="">Sheet Placer &#9662;</span>
+            <span class="sb"><img class="" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAKmSURBVDhPfZPbS5NhHMd30UUHDVRstpwzIQihm6KMKCS1m5CCyssuom66CKPAw3KH921aGDI0dUiiO7TtfXfSrbnpPJQz03RzzpzHd0rZTOpdkP4B39gjFZnr4sNz8fD78v093+8jYGnJsr02l2doSXIo8T/YVBKepSWcgKHFmzYqA6x8G0aeDguVBUfdUTjqcmFX5cCiFMJKZf1FV60ILC3ZElhrj/EhTxWmvApM9SoQ6qPR334FJrkQZoUILnUBuEkDVkIsVkIMOVenLZjulYJRiuICT/NFnhvXwKU+DXfTeYwwtxD0KqCt2AuT7BAGO64jHgtjvKscY457GLXexfyoBhucD4zySFzgaSnmZ/oV0FemwFiTAWfDKawvDcHdeA76qlQMassQDbEwSNMIuop96Gu7jM8RBxhKHBd4W0v4GZ8MnQ/3QF+VAvvTfPCxEGKLPpgVh8k6q2E7GConMbDtqvPGHwGX+gz/Kcwg4K5G0FOD2WE13nc/wKy/ERF/E3o1l7AatiUXYOgc3tNUAG9rETwtRehpLoTlcR4sqjyszXmw8K4NXECfXMBMiXmTNJXYT6CrPABjTSZ0FfsRHniCH18XsTzRSYZ3FdgtxoSbnucXsLEyQtaJBk3JHeyMcdh4Ex9eN2At0oO37B14NSX/f8SdMTrqT2Dr+0fMj7aSyAY6rhEBs1IMszKbrJfoRtIYnQ0nsTShBUNl46U0DUPaMpKCUSaEUZYJQ/VB9LdfRWyue/cYI/5GTLqrSYlMMiF8L0qx+Y0jFY5OmcEFjfjCvcH6gjtRdRLjpq/lLPrbigl9mkI464+TT2RTieF8lo8x620EXt1HwPWLcvh1pQkHWwKGkkStlChulmf9JtFxlpYQGGV23PAo/W+kaXGLUpi4j/4ESVKa82qCKnoAAAAASUVORK5CYII=" width="16" height="16" alt="">Section Placer &#9662;</span>
+          </div>
+          <div class="stack">
+            <span class="sb"><img class="" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACjElEQVR4nHWTS0iUURTHf+d+33zfPLQxP3XGRzg9ULSyFiEUFBEUgdRC6AEVQaugTRC0EKtdq6CV0MJFm4JaRiFGm6hdtJAipKI0dXR8pc44zjePe1tMpmbd1eVw7u+c+/+fI/znyH/i5u+89jN3nOmR4cTs8JiAMqDX3vp/ZbvgtW5nLjllPK9a7Lg7LvHOC+3hoDvU3BCzzTq+CFgKRORP6ZI2jCZn8Kq2sJTJsvhz6aQ99WmUo12HaD1yne9TeUKOsOwb7l2pZUc8QC5vUAqUCBEXTlzqoefaefqfvOTpowFsHAAxI6mCuXiswuxLBORG/zxz6RJ9Lxb4OOoTjSjmlzR9V+sIu4IpSyEAarXlsCPS2eLK3uaQxD1LMEgmp+Xu5a3yrDcmTbWWLK5osZSIMUZWAfYqYCGrefgqTUvDCp9+5AFIZzUD77P8mC7yPVXYbAGgKOdyqjNMJqsZ+lbg6O4QzbEA5w5X4lg2IylN98FKdtUH8PN6g8X2qunXT1dvon8c9Wn0bEQgYIETELT5bdEGgIGvL3pZmfkCygHRbD9xi/vPPRKez864y+PXGRJ1AUKuwhizDuCUL8vj7wi3nSNY30Jq8DaF9CS1VY3c7A7Sti3C52RhswDrRcRycWIdBJv2oUI1GK1Z8TWfJ4pEIzZz6SJa63LDZm3kbPIgSnR0q6dzb3uM70QkVJwl6sWor3F5MJjl0RtN1neprwmjtSEUdI2llFAqGYl1nN1TVVv9YX9LA6bklydEFJZbwXLeIl8oV1VKqAgKH4a/0dxYx+T0AhPJZJd0HL8Ymf5ZOjA1tqiwAwZMWeJcBuzi+k9CDmKJJlKzc8arikooVjn0x49/re+m1f1H7BcgGfK1SRuwGwAAAABJRU5ErkJggg==" width="16" height="16" alt="">Sections To Sheet</span>
+            <span class="sb"><img class="" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAADVElEQVR4nGWSTWhcZRSG3/N93/3LnbnpTDNNJU1KQ6i1lmhTtRotVVBpV12URDBuVNCNioKt4MKqBXUhiiBSIy6Kgq1ppREUXFRSjdGisSZOU20w/XFINE1mkpneuXPv/X5chFbBd3U27wPPOYe2vf+TNX5wJovSWfybdeh+5PZ48uNbQwD49Dl4X70N73sAAYAqgLsCYO9BhKL0xcI9Owc6j27puNnEiSbbZrLScMXoxKUjBDxjILAwK596+LXt+waCDqmShuBOk6rPneUXRorPi8rVxL2la3VhS4eHal1CkIbt5zBxfnaVAQAYEKxgQ/d9hbrJwsg6mJOBzucwPVH0hd/i6t8vL5lDw78ZqTXpWMve29aLwONyRUfBb87Kc2PHzeTotBQuBBTUTXdu5pkctKjPh9h0/wZ67IGtWA4lORajlHx688gZWgEIhJWQevc8TRsfbCPZqJHVFFBYmqTpM1MQcU2athZX9u9oNVEM7jlQ0/OgVxOtARCQIgrJ3LCxVzV17VKQVzlERpa+O2TqVWhhZ7g9HzqiOAuUqzF8hzmlmgUiygAwgA3bhhfPFzlzs1yGZVjBGkeW/4DtwRPr2nMXh74+f/jYyaIx4ZWtsPxLLLO2AtA3BMBAwfUx9uWH+w8vRZzPxat72tyFn32hZFDAr/Sf46P9jv4fSNhrTRr/RdxqAbM0DExquBVrscAYs8moG6+cHmwGKFnZEAxte2JQjA8+mTpB/lnDswnXdiVu/L2HYN7ijJOtote7vNoHkpRTk03ti0TJyZcgRl6Bpr6+Pj40NKTW3/34vdV6vceSNUOMW0RQYPajdcmaJc++qzXTYFBcx7rg6wsXxz4axoEDTMzM5BgAVast7R54qH+/m81DKw1jAN8hbCrEKP859QYYwGCwiFa898mp4wCGd46AiWv+gqVhkC/I4XMtMmmEIopS9Gxu4/t2z+HEiRcUdwU8krJ1+8uCnFXL13vXBsZAUhoKo5SSOKWoIRElWmulEEcgThLMgCBTIgL9DxCn3FHxMt/bbXOlNLQh5JvL+PGyAd/xIsAIiTF80XRCNUabrgM6Oyt6fBzI+Nlfjn72+TGPxYqIOCMgkQrvRBxutrDyU2AK8jR3efotAJxaM2X+AfgEhHW62WMCAAAAAElFTkSuQmCC" width="16" height="16" alt="">Combine Sheets</span>
+          </div>
+        </div>
+        <div class="rpt">Sheet Create <span class="arrow">&#9660;</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="frame">
+    <div class="slide">
+      <div class="cap">Slide&#8209;out (the arrow on the panel title bar) &mdash; both render at 16&nbsp;px</div>
+      <div class="stack">
+        <span class="sb"><img class="" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAHFSURBVDhPlVNBSwJREO4/dIgyfXYIIm/9gC7ZH1Dr35S7q4ZGlwoUOqhB5G61UV00cCv1UociiLq0C3XRCreDdf9iJg1fVtjCsO99M983783MGzA0cW8m/E1dE/8y4hiasAd0TbSOUmMwE36YcR/24t4vMxOCTcLiPo4ljqGJNxIgNdrAUH1suuplY0zr2rPPx3ib47YFPom31VU0nAoa9inq96copoMopmd4TRj5bqtrLMqcjgAdjTI8P5yj+zvZnIeVn5Owl8cLPgVxegQadkUKtnIRlLNhCXtyqn8JnEnBVi6McjYkYT8KUKWpMMVMECf5OVj5MJP3UwE2WhNGvmJmtl1E5nwTSM/Aykdg5UKceT8ZgJmc5DVh5KPC9gjsxjwoREdQ7+MK1AnpCgXV2zxYnoCZCnC7ur++iri9MNQsbwRxfRzD++ujFNx/G2Me7CbGYV9uodV0UKehsc+4qFQXai8d/cmp4a623hboGiQay0LUw46rkoKDlSkUosNcLDIeXx7hzl8e5dZhkh6TgL44iJuyiuP0NHaUoR8fE2UmMnE+H5MqHDPud3XF45qpSfeqpLh7SxOuroy6lOE3I46hCecD/Om0Hnsu444AAAAASUVORK5CYII=" width="16" height="16" alt="Rearrange icon">Rearrange &#9662;</span>
+        <span class="sb hl"><img class="" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAZUlEQVR4nGNgoBAwylnF/8cm8ejYQkZkPi51TJS6gAWXxIdeBRQb9dZiV0c7FwgUP4CHAbprkAEjLglsmpENhQG8XiCkGa8BxGhmYMDiBXT/4tPMwDCakPC6AD3w5KzscSYmigAAD04pdeLVHRMAAAAASUVORK5CYII=" width="16" height="16" alt="Arrange Views icon">Arrange Views<span class="tag">NEW ICON</span></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>Sheet Edit and Waterproofing</h2>
+  <div class="frame">
+    <div class="ribbon" style="width:480px">
+      <div class="rp">
+        <div class="items">
+          <div class="big"><img class="" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAFoElEQVR4nMWXXWwc1RXHf+femdkPr3fX2CkG4tgoDlVDUApKGgERD0URFbwEUQNFoZEgFaK0D5VaFGhoQYQqVJUq0ZdKbSrqKqkaVBUpSA5NSE2Bhq+kQKFFdb7sCAMhjj/i/ZidnXv6sHFiY2zWG6Sel52dPefe35zzv2fPwP/Z5PylSufG/lzHJa2Sy134wuPjMDQ0zlD04QTP3B7P5eeBCoh2bnwrp37qnwMfF/PF45GKiMwV9HmmiiY8kXTa57Jqx9c+gAF+qobHxH0GQM06LrHy32HXet2KRc1rlqUpV5RGEFQh6RveGyqw7+3TtAWe/WAe/3MAuRyUjsfRmmVp3bz+Uh2ZjMWahRPETmnNWO3tPynPvf4RyWxC5/P3pn8xiJQqKiOFmNFCtaEqqCoKFEJXV7z36RtGwBrBM0JT0i4YoBDGWCOYOuFnAaiCNYZC6Njce4TJUm3BefM4zR7u6aItG+C0vohZAFA7m7FT/nOiyFihimeFOtcjjBwLkc4sABGoOkcmafnTg1fWvfGUBb45C9FgCaaDZBrQQBQvjHhuACDwzIxeWY/Frtb0jIBnhba8Z1XVyKN1AlyoCB/6ZicXZSyFUoVPRkvs6X1tVB67xvXsUrtL1YrIjLb8hYnQqYKLQQxB0nL91R1suy+rd+y88a6uzA+eF5F3BdBPQVy4CAWcU5K+Id+SIE8Jhg/K6vIJVq9AcMt+4cIlP1fVl4HHRWSfqhqR2v9CwyJUwIjgnCOXCcgmHPEbT1E8tIN4bBBXLeMcWGtj29Jps6s23MCq7+1V1a0i8shUJhoWoYhQDiPSSY9s/AmTOzZRObofk2hG/BQ2SGMBVK0bPcZo35bYvv0Xspt2b1FVT0QeUlXbkAiNCIVyldXLsjyxoYPJHd+hemw/NnspuKi2yFTtRPCvuJnq0AEbDx/SM7+9JWre9MpmVX1RRPY0JEIjcKZY4Yd3LId3fkN4ZB9eUytaPMWMlIlBwwmSa3+Emxim+NwDEh3/h4kP/EzttQ9vU921tyERqipB4NHdVmVyey/WCMFV3yJYcTtoDGLPPYk6h8l3Ydu/SubbfRR3328nX/m15lZ9dyV+zw0NidDFjlzex338L6pjg2B8JJHB5DrAVVExTE0zog5sonYdZJGgmXjyI8fIu5b2tesWLEIBYuMQCzp2HKIikmohPLid8oGnEBHw06DubAnO0Hzvi2jxFIVnN6HhBOIlYeQwtK9d2pAIXVzllw+spNvWeoAVgxZOYi9bRbD8Vkr7fgzGp3ZYhdILW6ge6wcEaVqEhpM1QDANidC5mGIJJNcBXgKiIn73OtLrt6PlcaKBvyJB09QmaKWAv3QdrjiCOz0AxkBLpwKDc4swNU2EcvZhzmVJyWccmvoKNt2CzXfRdOefa/HJPJkNuz+zrNGRvRT+eBumaZHQdpUA/fNqoDk1589ElZAolyF59UaKf9tK6YVHSN34OG5skPJLTyJ+6nwvUIeKoGc+xMWhy668FRJfOgLMPoaqtfTHTgmjWWP8ND/DyHjExWu+j7zfR2n/VjScwO++ifDQ72YCAFgfjUrY/OWx9/UnfeAnIhLOAHCqJH3R1iarNTHOPwy42GGCDPm7e5n4wwZKB35FdPh5MS1d4Nz50rkqrjzqTHZxnLuvzwfv9yKyc0YrHh+HhG/kvRNF6e0/KYXw88cqEYiqMV3trdxyTx/68jbGD+50WjzlpgSIGCTVIs3X3G29m7YaJPs0j8q9qmoAJ1OvZkvuf6eFqHg0ciZfCitIvaOQCC6OWX9dOw/2dLO8dQzG/g2nj9ZOQW4JXHQlBIsOA0+IyNOqKrVQ0fO79Oyyi7OLL2/yPZtNB1qOK3URJM5+vrlnmC9fn+D97d+4GLgWWAoYYBB4lYG+v8sVN4fTZ4Ev1EwdPqo6q7f/D17exLP60pcLAAAAAElFTkSuQmCC" width="32" height="32" alt=""><span>Text<br>Replace</span></div>
+          <div class="big hl"><img class="" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAkklEQVR4nGNgGCxAr9b/v16t/39628uCTVDOKp6mDnl0bCEjXgcwMDAw7Fg1gyaWe4RloPCZaGILCWDUAQPuAJyJED2x0NUByNmE1mBwRgGlBREpIUj1gojUtDPgUTDqgAF3wGhBNDijgNotInwhSvMWEaG0NOBRMOqAAXfAgBdE8OwxEL2iS80bGQc8CkbBgAMAD8ok5D/bN2AAAAAASUVORK5CYII=" width="32" height="32" alt="Align and Distribute icon"><span>Align &amp;<br>Distribute</span></div>
+        </div>
+        <div class="rpt">Sheet Edit</div>
+      </div>
+      <div class="rp" style="flex:1">
+        <div class="items">
+          <div class="big"><img class="" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAEHUlEQVR4nNVXv28cRRT+3szunS+2zzmUuABLAZEi2EjBSEAKIlMg8Q9gIxQoItqgCBOEu/FVIRLkL6BJYSLZXZooooiCIkQQQjIOxgLHOUNQCkJO59i+8+7OfBTr9d3a5/jOPwq+bnfmffPeN2/emwH+zzCGyhiqvXDsynh4khoA5nvKH853l8cAYMjc9HbDJbsxSqL+I1+eEUhvsPT3c1PjAyFEAIDtcLWtwPAkdbEobr6z8rafOdTvZbuO+Pm+dyHCIRMrc6AO9P8aR+jEjgEC2ghCOzo8OanfAly7fG1twfAk9dQI3HuXy292+J3fhcGKE4J+Lq/DteV3JkZ7vh2ehJoaEdsqZ3sKTAGAUDl+qrQHqUdMOvsZIEwUahUtKxBHL/bM5fKrSmV+cjYg6gE45WXgbPDaxGjh52RuK7wtK5BERseL2s8KyHqkJLWXVXS82Di3FWxSgAImf2WDxBiqYlHc+18undAav9FZbrInAIjSYi1eunohP5fY7MS9SQEhRNg4AQBmB5KFwmPay5LgBlXdkNRelkB4LG3zdO6G6kU5eb7U43IFkbAU/PLVKyvJSF1Sf9FGa7JO0ugEAUE85i+mbWL0ffJ9rpDt70ClgplHd5YwNWJjBUgBgJPnSz02wo9epO6x1vMFUC+vxaI4Y6iuXsjPMYpu5LoOK5IBSAvSkgxyXYcVo+jGZvmHDD0AKITPfqxD3KN2c4N9p14AABiqjS1wgRIRHBHtFQiXRzOQAh2dDVaXp3P5Qtbv6NZ+R7fO5QvZYHV5Gjo6mwS0GQ7sFO0VBDgahnZD+VQOEAhpQ4pItJkgiWhitPdhJXhwOqxWx6Kodj2KatfDanWsEjw4PTHa+7BxbiNEaGlDAghF109QuoMRAhEhqGPpSt6QadjKceAfc1dd+/zEMiCXAFxqMJZ+czdzdBwOJp1nQ4Z49G9Jx9zrLaupA7GrEEj1VlEiAFuU2B7C2SKCJgMRAAycW1hJL93MAaFyYRUk3nj53IIRiCKYkpMNe7xRBlP+p49ZnUMNuXC10ayJA6RPW4PyMoPK7xpMn7Tt8fQeHHMwqsGFqxClNVCv0ikHRGefAMzTBjaKHrfVVHaCiAhENEStitYNSShCGKNmZu8sPV+evqkQfeBsBEiT/NgLSKe0Bwf9Q1QY/AswCkWhINaYx18/k18T3ldKP+NoW9O+TRckrsUQjy/+efubBcCojShrKvCUdAqUgrR/s2oZAkBsJpN81yuS5xM2KfH7uv1bnZBom0IkcA2r77cX63xs3g1F+6TDofVCdRA5EN8ElCcClboPEMaoxVtXKiCvQMSCKSX2AwRgRWlHa6/lHldKAAUobu1cfac+Ou6pg8lCUYr3b3/9e/KJJkHut+w7osmCZk+PzZ1RbPvxcqD4D2WG7sdQT4pEAAAAAElFTkSuQmCC" width="32" height="32" alt=""><span>Wet Area<br>Waterproofing</span></div>
+        </div>
+        <div class="rpt">Waterproofing</div>
+      </div>
+    </div>
+  </div>
+  <p class="muted" style="margin-top:8px">Both Sheet Edit buttons are full&#8209;size, so these are the 32&nbsp;px assets.
+  <code>RibbonLayoutHelper.AddStackedButtons</code> only gives a panel a full&#8209;size button when it holds exactly one
+  item, so each is added in its own call &mdash; one call with both would stack them small and shrink Text Replace.</p>
+</section>
+
+<section>
+  <h2>The three sheet&#8209;layout tools, side by side</h2>
+  <p class="muted" style="margin-bottom:10px">All three move views that are already on a sheet, so their icons have to say
+  which one you are about to run.</p>
+  <div class="cmp">
+    <div class="cc">
+      <div class="row">
+        <figure><img class="" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAEISURBVFhHY1jZJP+flvjg0rj/759f/b9tmhOGHAgzoAtQE69pU/v/6fWd/1smWWPIwTBNHXBxb8f/60emYYgjY5o64MmNnf+PrEzFEEfGNHXA98+v/m/sM8EQR8Y0dcDLB8f/718YjiGOjHE6AKTxysF+nBjZYFxqXz869f/FvSN4HYHTASAD8AGQPLFqrx6ejGE+XR3w4dUNcJZEt4NuDnj14Di4MALlCPRESRcHgORBJSEoW4JyBihx0t0B6OaPOoCgA3DlbRgmphzAphYd43QAvfDgdQApwUqKWnSM0wEgjfgASJ4cteh41AGjDhh1AE4HkJK3SVGLjnE6gF541AGjDhhwBwAAVarqrL3VvgYAAAAASUVORK5CYII=" width="32" height="32" alt="Rearrange icon at 32 px"><figcaption>32&nbsp;px</figcaption></figure>
+        <figure><img class="" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAHFSURBVDhPlVNBSwJREO4/dIgyfXYIIm/9gC7ZH1Dr35S7q4ZGlwoUOqhB5G61UV00cCv1UociiLq0C3XRCreDdf9iJg1fVtjCsO99M983783MGzA0cW8m/E1dE/8y4hiasAd0TbSOUmMwE36YcR/24t4vMxOCTcLiPo4ljqGJNxIgNdrAUH1suuplY0zr2rPPx3ib47YFPom31VU0nAoa9inq96copoMopmd4TRj5bqtrLMqcjgAdjTI8P5yj+zvZnIeVn5Owl8cLPgVxegQadkUKtnIRlLNhCXtyqn8JnEnBVi6McjYkYT8KUKWpMMVMECf5OVj5MJP3UwE2WhNGvmJmtl1E5nwTSM/Aykdg5UKceT8ZgJmc5DVh5KPC9gjsxjwoREdQ7+MK1AnpCgXV2zxYnoCZCnC7ur++iri9MNQsbwRxfRzD++ujFNx/G2Me7CbGYV9uodV0UKehsc+4qFQXai8d/cmp4a623hboGiQay0LUw46rkoKDlSkUosNcLDIeXx7hzl8e5dZhkh6TgL44iJuyiuP0NHaUoR8fE2UmMnE+H5MqHDPud3XF45qpSfeqpLh7SxOuroy6lOE3I46hCecD/Om0Hnsu444AAAAASUVORK5CYII=" width="16" height="16" alt="Rearrange icon at 16 px"><figcaption>16&nbsp;px</figcaption></figure>
+      </div>
+      <b>Rearrange</b>
+      <p>Re&#8209;packs the sheet from scratch. Views change row, column and neighbour. Unchanged.</p>
+    </div>
+    <div class="cc new">
+      <div class="row">
+        <figure><img class="" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAuElEQVR4nGNgGAUjHTAic+Ss4v8Tq/HRsYVU0cuCLrlj1QyCBniEZTB86FX4L1D8AMURxOpFBkwEdeABH3oViPY1LkCRA6jhCIodQKkjqOIA9LRAVwdQYjnFDqDUcgYGLNkQPZuQYjmxepEBxT6AAeSESErIUD0XkBotVC0HyEkTZEcBpRbDAFkhQC3LyXIANS0n2QHUtpyBAa0cIFSn661F5j1AkRttD5ALRtsDo+2B0fbAKBhwAAASml6LJI4OygAAAABJRU5ErkJggg==" width="32" height="32" alt="Arrange Views icon at 32 px"><figcaption>32&nbsp;px</figcaption></figure>
+        <figure><img class="" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAZUlEQVR4nGNgoBAwylnF/8cm8ejYQkZkPi51TJS6gAWXxIdeBRQb9dZiV0c7FwgUP4CHAbprkAEjLglsmpENhQG8XiCkGa8BxGhmYMDiBXT/4tPMwDCakPC6AD3w5KzscSYmigAAD04pdeLVHRMAAAAASUVORK5CYII=" width="16" height="16" alt="Arrange Views icon at 16 px"><figcaption>16&nbsp;px</figcaption></figure>
+      </div>
+      <b>Arrange Views <span class="tag">NEW ICON</span></b>
+      <p>Re&#8209;orders by detail number into a reading table. The order runs through the views: across the top row,
+      wrapping down, across the bottom.</p>
+    </div>
+    <div class="cc new">
+      <div class="row">
+        <figure><img class="" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAkklEQVR4nGNgGCxAr9b/v16t/39628uCTVDOKp6mDnl0bCEjXgcwMDAw7Fg1gyaWe4RloPCZaGILCWDUAQPuAJyJED2x0NUByNmE1mBwRgGlBREpIUj1gojUtDPgUTDqgAF3wGhBNDijgNotInwhSvMWEaG0NOBRMOqAAXfAgBdE8OwxEL2iS80bGQc8CkbBgAMAD8ok5D/bN2AAAAAASUVORK5CYII=" width="32" height="32" alt="Align and Distribute icon at 32 px"><figcaption>32&nbsp;px</figcaption></figure>
+        <figure><img class="" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAASklEQVR4nGNgYGBg0Kv1/89AJmBB5shZxZNk0KNjCxmZyLUZBgbeAJQweHRsISNFBuALRFyGD3wYDKFAxGXRwIcBIwMDZbmRYgAApPsUrAWhnUMAAAAASUVORK5CYII=" width="16" height="16" alt="Align and Distribute icon at 16 px"><figcaption>16&nbsp;px</figcaption></figure>
+      </div>
+      <b>Align &amp; Distribute <span class="tag">NEW</span></b>
+      <p>Keeps the order and the grid. Views flush to a guide down the left and along the bottom &mdash; the margin
+      corner it aligns them into.</p>
+    </div>
+  </div>
+</section>
+
+<section class="note">
+  <h2>How the icons are drawn</h2>
+  <p>Flat filled shapes on a transparent background: navy outline <code>#1E3A5F</code>, pale blue fill, one bright
+  accent &mdash; green <code>#2E7D4F</code> for guides, orange <code>#F08D20</code> for order. That matches
+  <code>SectionsToSheet</code> and <code>SheetViewsCombine</code>. Note the shared brief at the top of
+  <code>Icon_Prompts.md</code> still describes monochrome line art, which the suite stopped using around plugin 6.5;
+  that file now records the discrepancy.</p>
+  <p>Each size is drawn on its own at whole&#8209;pixel coordinates with no antialiasing rather than shrinking 32&nbsp;px
+  to 16&nbsp;px, because a 1&nbsp;px outline round a small view turns to mush when it is resampled. At 16&nbsp;px the
+  views are solid navy instead of outline&#8209;plus&#8209;fill.</p>
+</section>
+
+</div>

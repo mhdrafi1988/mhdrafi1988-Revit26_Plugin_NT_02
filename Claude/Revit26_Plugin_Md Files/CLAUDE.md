@@ -89,6 +89,10 @@ Full detail is in `Claude/RIBBON_AND_ICONS.md`.
   the button is clicked.
 - Build stacks, pulldowns and slide-outs through `RibbonLayoutHelper`, not the Revit API directly. It works around
   Revit's stacked-label bug and the blank-icon bug of a lone large button.
+- Only a panel holding **exactly one** item gets a full-size button, so adding a second button to a one-button panel
+  in the same `AddStackedButtons` call silently demotes the button already there to a small stacked one, and neither
+  then shows its 32 px icon. Call the helper **once per item** to keep both full-size (Sheet Edit does this). Check
+  what a panel renders as before and after, not just that the button appears.
 - `Resources/Icons/**/*.png` is embedded by one wildcard in the `.csproj`. A wrong (or wrong-case) path in
   `ImageUtils.Load` throws `FileNotFoundException` at `OnStartup` the first time that button is built.
 - Never rename a ribbon button's internal name or a panel just for its title. Revit keys keyboard shortcuts and
