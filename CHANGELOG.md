@@ -9,6 +9,16 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [7.16.2] — 2026-11-17
+
+### Changed
+- **Align Spot Elevations v1.10.1** — **Quick Align Bends to Tag Vertical** has its own icon: a green vertical line
+  with arrowheads through the bend points. Before, it reused the Bends to Tag icon, so the two looked the same in
+  the Quick Align to Tag list. `Resources/Icons/Tagging/AlignSpotElevationsBendsToTagVertical_16/32.png`.
+
+**User notes**
+- Icon only; the button works as before.
+
 ## [7.16.1] — 2026-11-16
 
 ### Fixed
