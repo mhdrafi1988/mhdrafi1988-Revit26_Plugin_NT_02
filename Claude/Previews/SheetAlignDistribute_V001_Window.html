@@ -4,6 +4,8 @@
      Shown: the new ribbon button + tooltip on the Sheet Edit panel, the tool window (Usable area & margins,
      Current grid, Align & Distribute, Movement limits, the Elements grid with the per-view margin box, and the
      live sheet preview), and the Apply result dialog.
+     Rev 4 (2026-11-17): the button has its own icon now — three views of different widths flush to a green
+     guide down the left and along the bottom, the margin corner the tool aligns into. Shown below at 1x and 2x.
      Rev 3 (built, 2026-11-17): matches the shipped window. "What is collected" is two toggles, not three
      ticks (plans / sections / details / drafting / legends are all viewports and always in). The margin badge
      now reads Detected or Custom: typing in a box makes the margins yours, Re-detect hands them back to the
@@ -50,6 +52,11 @@ li{margin-bottom:3px}
 .sample{display:inline-block;background:var(--warn-soft);color:var(--warn);border:1px solid var(--warn-border);
   border-radius:3px;padding:3px 9px;font-size:11.5px}
 .frame{overflow-x:auto;padding-bottom:4px}
+.icons{display:flex;gap:18px;align-items:flex-end;flex-wrap:wrap;margin-top:10px;
+  background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px 14px}
+.icons figure{margin:0;display:grid;gap:5px;justify-items:center}
+.icons figcaption{font-size:10.5px;color:var(--text2)}
+.icons img{image-rendering:pixelated;display:block}
 .note{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px 14px;display:grid;gap:8px}
 .note.good{border-color:var(--ok-border);background:var(--ok-soft)}
 .kv{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;font-size:12px;align-items:baseline}
@@ -210,7 +217,7 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg2);border:1px sol
       <div class="rp">
         <div class="items">
           <div class="big"><i></i><span>Text<br>Replace</span></div>
-          <div class="big hl"><i></i><span>Align &amp;<br>Distribute</span></div>
+          <div class="big hl"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAkklEQVR4nGNgGCxAr9b/v16t/39628uCTVDOKp6mDnl0bCEjXgcwMDAw7Fg1gyaWe4RloPCZaGILCWDUAQPuAJyJED2x0NUByNmE1mBwRgGlBREpIUj1gojUtDPgUTDqgAF3wGhBNDijgNotInwhSvMWEaG0NOBRMOqAAXfAgBdE8OwxEL2iS80bGQc8CkbBgAMAD8ok5D/bN2AAAAAASUVORK5CYII=" width="30" height="30" alt="Align and Distribute icon"><span>Align &amp;<br>Distribute</span></div>
         </div>
         <div class="rpt">Sheet Edit</div>
       </div>
@@ -230,8 +237,17 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg2);border:1px sol
       layout keeps its own look. Each view can carry its own extra clearance. Live preview; one Undo step.
     </div>
   </div>
+  <div class="icons">
+    <figure><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAkklEQVR4nGNgGCxAr9b/v16t/39628uCTVDOKp6mDnl0bCEjXgcwMDAw7Fg1gyaWe4RloPCZaGILCWDUAQPuAJyJED2x0NUByNmE1mBwRgGlBREpIUj1gojUtDPgUTDqgAF3wGhBNDijgNotInwhSvMWEaG0NOBRMOqAAXfAgBdE8OwxEL2iS80bGQc8CkbBgAMAD8ok5D/bN2AAAAAASUVORK5CYII=" width="64" height="64" alt="Align and Distribute icon, 32 px shown at 2x"><figcaption>32 px (&times;2)</figcaption></figure>
+    <figure><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAkklEQVR4nGNgGCxAr9b/v16t/39628uCTVDOKp6mDnl0bCEjXgcwMDAw7Fg1gyaWe4RloPCZaGILCWDUAQPuAJyJED2x0NUByNmE1mBwRgGlBREpIUj1gojUtDPgUTDqgAF3wGhBNDijgNotInwhSvMWEaG0NOBRMOqAAXfAgBdE8OwxEL2iS80bGQc8CkbBgAMAD8ok5D/bN2AAAAAASUVORK5CYII=" width="32" height="32" alt="Align and Distribute icon at its real 32 px size"><figcaption>32 px (&times;1)</figcaption></figure>
+    <figure><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAASklEQVR4nGNgYGBg0Kv1/89AJmBB5shZxZNk0KNjCxmZyLUZBgbeAJQweHRsISNFBuALRFyGD3wYDKFAxGXRwIcBIwMDZbmRYgAApPsUrAWhnUMAAAAASUVORK5CYII=" width="32" height="32" alt="Align and Distribute small icon, 16 px shown at 2x"><figcaption>16 px (&times;2)</figcaption></figure>
+    <figure><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAASklEQVR4nGNgYGBg0Kv1/89AJmBB5shZxZNk0KNjCxmZyLUZBgbeAJQweHRsISNFBuALRFyGD3wYDKFAxGXRwIcBIwMDZbmRYgAApPsUrAWhnUMAAAAASUVORK5CYII=" width="16" height="16" alt="Align and Distribute small icon at its real 16 px size"><figcaption>16 px (&times;1)</figcaption></figure>
+    <p class="hint" style="max-width:46ch">Three views of different widths, flush to a guide down the left and along the
+    bottom &mdash; the margin corner the tool aligns them into, evenly spaced down it. The 16 px version is drawn on its
+    own rather than shrunk, so it stays crisp on a small button.</p>
+  </div>
   <p class="muted" style="margin-top:8px">Internal button name <code>Btn_SheetAlignDistribute.V001</code>, command
-  <code>Revit26_Plugin_Revised.SheetAlignDistribute.V001.Commands.SheetAlignDistributeCommand</code>. Icons to be drawn:
+  <code>Revit26_Plugin_Revised.SheetAlignDistribute.V001.Commands.SheetAlignDistributeCommand</code>, icons
   <code>Resources/Icons/SheetTools/SheetAlignDistribute_16/32.png</code>.</p>
 </section>
 
@@ -727,6 +743,7 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg2);border:1px sol
     clear space it currently has, on top of the four sheet margins.</li>
     <li><b>Schedules</b> &mdash; listed in the grid, unticked by default; tick them per run.</li>
     <li><b>Distribute</b> &mdash; defaults to <b>Off</b> on both axes, so a run changes nothing but the alignment.</li>
+    <li><b>Icon</b> &mdash; drawn for this button rather than borrowed from Rearrange, at both 16 and 32 px.</li>
     <li><b>Max move</b> &mdash; defaults to <b>25 mm</b>. Raising it from 15 is what prompted the switch from the average to
     the <b>median</b> for the shared line: with an average, one view 44 mm out of place drags its whole row 15 mm and every
     view in it trips the guard. With the median the row holds still and only the outlier is refused.</li>

@@ -47,6 +47,9 @@ Each release lists every tool whose version changed, under the plugin version.
   - The layout maths are Revit-free and unit tested: `Tests/SheetAlignDistribute.Tests`, 83 tests covering the row
     and column detection, the median line and its clamp, the distribute spread, the snap and move limits, the
     overlap check and the margin detection.
+  - Icon: `Resources/Icons/SheetTools/SheetAlignDistribute_16/32.png` — three views of different widths flush to a
+    green guide down the left and along the bottom, the margin corner the tool aligns them into. Each size is drawn
+    on its own rather than shrunk from the other, so the small one stays crisp.
   - UI preview: `Claude/Previews/SheetAlignDistribute_V001_Window.html` —
     https://claude.ai/artifact/4CeaSWpnMoiZQ5KzcgBCTJ
 
@@ -59,7 +62,6 @@ Each release lists every tool whose version changed, under the plugin version.
 - The right margin is measured from where your views stop, which on a sheet with a title strip down the side is
   normally just inside the strip (so it reads 186 rather than 180 mm). Type the number you want if that matters.
 - Schedules are listed but **not** ticked by default. Tick **Include schedules on the sheet** to align them too.
-- The button temporarily reuses the Rearrange icon; a dedicated icon is still to be drawn.
 
 ## [7.16.2] — 2026-11-17
 

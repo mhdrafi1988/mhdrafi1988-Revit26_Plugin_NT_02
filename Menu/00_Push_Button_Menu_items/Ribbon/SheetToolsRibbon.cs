@@ -103,11 +103,10 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             // re-packs) and Arrange Views (which re-orders by detail number), every view keeps the
             // row and column it is already in — the only movement is the millimetres needed to line
             // up, and a view that would travel further than the move limit is reported, not moved.
-            // TODO: swap for a dedicated icon — temporarily reusing the Rearrange icon.
             var alignDistributeV001 = new PushButtonData("Btn_SheetAlignDistribute.V001", "Align && Distribute", assemblyPath, "Revit26_Plugin_Revised.SheetAlignDistribute.V001.Commands.SheetAlignDistributeCommand")
             {
-                Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SheetTools.SheetAutoRearrange_16.png"),
-                LargeImage = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SheetTools.SheetAutoRearrange_32.png"),
+                Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SheetTools.SheetAlignDistribute_16.png"),
+                LargeImage = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SheetTools.SheetAlignDistribute_32.png"),
                 ToolTip = ToolCatalog.SheetAlignDistribute.Tip(
                     "Lines the views already on the open sheet up on the rows and columns they are in, without re-ordering them: " +
                     "each row gets one shared edge and each column one shared edge. Margins and gaps are read off the sheet as it " +
