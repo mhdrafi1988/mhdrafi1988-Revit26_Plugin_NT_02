@@ -203,6 +203,9 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 
 See [CHANGELOG.md](CHANGELOG.md) for the full history and per-tool versions.
 
+### 7.16.1 — 2026-11-16
+- **Wet Area Waterproofing 1.1.1**: fixed the "Refresh is being deferred" error when the room list refreshes.
+
 ### 7.16.0 — 2026-11-16
 - **Align Spot Elevations 1.10.0**: Quick Align Bends to Tag Vertical (bend points in a column with a clicked tag).
 
