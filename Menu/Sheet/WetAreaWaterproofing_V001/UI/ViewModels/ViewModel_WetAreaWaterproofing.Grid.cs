@@ -245,14 +245,17 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.UI.ViewModels
             if (_loading) return;
             IReadOnlyList<RoomRow> rows = GridQuery.Apply(_all.Select(c => c.Row), State);
 
+            // The rows must change outside DeferRefresh: a ListCollectionView throws
+            // "Cannot change or check the contents ... while Refresh is being deferred"
+            // when its source collection gets an item while a refresh is pending.
+            Rows.Clear();
             using (RowsView.DeferRefresh())
             {
                 RowsView.GroupDescriptions.Clear();
-                Rows.Clear();
-                foreach (RoomRow row in rows)
-                    Rows.Add(new RoomRowViewModel(row, _ticked.Contains(row.RoomKey), GroupKey(row), OnRowTickChanged));
                 if (State.GroupBy != "None") RowsView.GroupDescriptions.Add(new PropertyGroupDescription(nameof(RoomRowViewModel.GroupKey)));
             }
+            foreach (RoomRow row in rows)
+                Rows.Add(new RoomRowViewModel(row, _ticked.Contains(row.RoomKey), GroupKey(row), OnRowTickChanged));
 
             LevelButtons.Clear();
             LevelButtons.Add(new LevelButtonViewModel(null, 0, State.Levels.Count == 0));

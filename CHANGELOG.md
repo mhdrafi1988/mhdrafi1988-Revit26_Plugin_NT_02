@@ -9,7 +9,7 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
-## [7.16.1] — 2026-11-16
+## [7.16.2] — 2026-11-17
 
 ### Changed
 - **Align Spot Elevations v1.10.1** — **Quick Align Bends to Tag Vertical** has its own icon: a green vertical line
@@ -18,6 +18,14 @@ Each release lists every tool whose version changed, under the plugin version.
 
 **User notes**
 - Icon only; the button works as before.
+
+## [7.16.1] — 2026-11-16
+
+### Fixed
+- **Wet Area Waterproofing v1.1.1** — the tool no longer stops with "Cannot change or check the contents or Current
+  position of CollectionView while Refresh is being deferred" when the room list is refilled (after a run, after
+  **Remove a run…**, or when a filter, the search box or **Group by** changes). The run itself had already finished;
+  only the refresh of the room list failed. No change to what the tool creates.
 
 ## [7.16.0] — 2026-11-16
 

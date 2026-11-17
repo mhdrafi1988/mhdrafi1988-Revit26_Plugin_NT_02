@@ -69,7 +69,7 @@ Each item is a pulldown unless marked *button*. A pulldown lists its versions hi
 | Rafi_Pro_Docs2 | Memory | WS Memory (large *button*) · Link Memory (large; V002, V001) | `ManageRibbon` |
 | Rafi_Pro_Docs2 | Coordination | Void Openings (large *button*) · Base Level to Parameter (large *button*) | `CoordinationRibbon` |
 
-The latest change was plugin 7.16.1, which gave **Quick Align Bends to Tag Vertical** its own icon (a green
+The latest change was plugin 7.16.2, which gave **Quick Align Bends to Tag Vertical** its own icon (a green
 vertical line with arrowheads through the bend points). Before it, plugin 7.16.0 added **Quick Align Bends to Tag Vertical** to the Quick Align to Tag
 split button on the Tagging panel; its icons are `Resources/Icons/Tagging/AlignSpotElevationsBendsToTagVertical_16/32.png`.
 Before it, plugin 7.14.0 added **Quick Align Bends to Tag Horizontal** to the Quick Align to Tag
