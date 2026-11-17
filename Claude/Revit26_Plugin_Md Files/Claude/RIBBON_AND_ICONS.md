@@ -69,7 +69,10 @@ Each item is a pulldown unless marked *button*. A pulldown lists its versions hi
 | Rafi_Pro_Docs2 | Memory | WS Memory (large *button*) · Link Memory (large; V002, V001) | `ManageRibbon` |
 | Rafi_Pro_Docs2 | Coordination | Void Openings (large *button*) · Base Level to Parameter (large *button*) | `CoordinationRibbon` |
 
-The latest change was plugin 7.17.0, which added **Align & Distribute** (Sheet Align and Distribute V001) to the
+The latest change was plugin 7.17.0, which gave **Arrange Views** its own icons
+(`Resources/Icons/SheetTools/SheetViewArrange_16/32.png`: four views in a reading table with the order running
+through them). It had reused the Rearrange icons since 2.4.0, and the two sit together in the Sheet Create
+slide-out where both render at 16 px, so the buttons were indistinguishable. The same version added **Align & Distribute** (Sheet Align and Distribute V001) to the
 Sheet Edit panel, after Text Replace, as a second large button; its icons are
 `Resources/Icons/SheetTools/SheetAlignDistribute_16/32.png` (three views of different widths flush to a green guide
 down the left and along the bottom). Before it, plugin 7.16.2 gave **Quick Align Bends to Tag Vertical** its own icon (a green

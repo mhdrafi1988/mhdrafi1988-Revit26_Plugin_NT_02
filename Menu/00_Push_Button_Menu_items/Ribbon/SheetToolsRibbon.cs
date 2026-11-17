@@ -135,11 +135,10 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
 
             // Sheet View Arrange: separate tool (not a Rearrange version) — keeps the views'
             // sizes, orders them by detail number and lays them out as a reading table.
-            // TODO: swap for a dedicated icon — temporarily reusing the Rearrange icon.
             var viewArrangeV001 = new PushButtonData("Btn_SheetViewArrange.V001", "Arrange Views", assemblyPath, "Revit26_Plugin_Revised.SheetViewArrange.V001.Commands.SheetViewArrangeCommand")
             {
-                Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SheetTools.SheetAutoRearrange_16.png"),
-                LargeImage = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SheetTools.SheetAutoRearrange_32.png"),
+                Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SheetTools.SheetViewArrange_16.png"),
+                LargeImage = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SheetTools.SheetViewArrange_32.png"),
                 ToolTip = ToolCatalog.SheetViewArrange.Tip(
                     "Orders the views already on the active sheet by detail number and lays them out like a reading table: " +
                     "left to right, rows top to bottom, evenly spread and bottom-aligned so titles line up.")

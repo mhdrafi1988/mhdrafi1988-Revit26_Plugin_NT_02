@@ -155,3 +155,19 @@ These buttons currently reuse the roof `by_drain_16/32.png` and `by_point_16.png
 
     Both sizes are drawn on their own at whole-pixel coordinates with no antialiasing, rather than shrinking 32 px to
     16 px — a 1 px outline round a 4 px tall view turns to mush when it is resampled.
+
+68. **Btn_SheetViewArrange.V001** → `SheetViewArrange_16.png` / `SheetViewArrange_32.png` — **drawn, not generated.**
+    Four views in a two-by-two reading table, navy-outlined (`#1E3A5F`) with a pale blue fill, and the reading order
+    running through them in the suite's accent orange (`#F08D20`): a stroke across the top row, a diagonal wrapping
+    down to the start of the next row, a stroke across the bottom row, with an arrowhead in each gap at 32 px.
+
+    The flow is drawn **first**, so the views sit on top of it and it shows only in the gaps between them. Drawn over
+    the top it swamped the icon — four views lost behind one big orange Z.
+
+    This replaces a reuse of the Rearrange icon that had stood since plugin 2.4.0. Worth remembering why it mattered:
+    both buttons live in the Sheet Create slide-out, which stacks them, and a stacked button renders the 16 px
+    `Image`, so the two were the same picture with different labels. Check what a panel actually renders at before
+    judging whether two tools can share an icon.
+
+    The three sheet-layout tools now each say what they do: Rearrange a packed grid, Arrange Views an order running
+    through the views, Align & Distribute views flush to a guide. See `Claude/Previews/SheetRibbon_Panels.html`.

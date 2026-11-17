@@ -63,6 +63,17 @@ Each release lists every tool whose version changed, under the plugin version.
   normally just inside the strip (so it reads 186 rather than 180 mm). Type the number you want if that matters.
 - Schedules are listed but **not** ticked by default. Tick **Include schedules on the sheet** to align them too.
 
+### Changed
+- **Sheet View Arrange v1.3.1** — **Arrange Views** has its own icon instead of borrowing Rearrange's, which it had
+  done since plugin 2.4.0. The two sit together in the Sheet Create slide-out and both render at 16 px there, so the
+  buttons were identical apart from their labels. The new one shows four views in a reading table with the order
+  running through them — across the top row, wrapping down to the left, across the bottom — which is what this tool
+  does and the other two do not. `Resources/Icons/SheetTools/SheetViewArrange_16/32.png`.
+  - Ribbon preview: `Claude/Previews/SheetRibbon_Panels.html` — https://claude.ai/artifact/51UpNatmatwf6CvZcDFXRV
+
+**User notes**
+- Icon only; the tool works exactly as before. Rearrange keeps the icon it had.
+
 ## [7.16.2] — 2026-11-17
 
 ### Changed
