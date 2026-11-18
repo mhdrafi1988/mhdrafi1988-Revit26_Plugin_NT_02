@@ -122,9 +122,17 @@ namespace Revit26_Plugin_Revised.SheetViewArrange.V001.Core.Services
                 var layout = ReadingTableLayout.Compute(
                     participants.Select(v => (v.Footprint.Width, v.Footprint.Height)).ToList(),
                     usable,
-                    settings.MinHorizontalGapMm * MmToFeet,
-                    settings.MinVerticalGapMm * MmToFeet,
-                    settings.LastRowMode);
+                    new LayoutOptions
+                    {
+                        MinHorizontalGap = settings.MinHorizontalGapMm * MmToFeet,
+                        MinVerticalGap = settings.MinVerticalGapMm * MmToFeet,
+                        LastRowMode = settings.LastRowMode,
+                        Horizontal = settings.Horizontal,
+                        Vertical = settings.Vertical,
+                        RowAlign = settings.RowAlign,
+                        Flow = settings.Flow,
+                        ColumnAlign = settings.ColumnAlign
+                    });
                 rowCount = layout.RowCount;
 
                 foreach (var slot in layout.Slots)
@@ -155,7 +163,8 @@ namespace Revit26_Plugin_Revised.SheetViewArrange.V001.Core.Services
                 Area = area,
                 Moves = moves,
                 Skipped = skipped.Select(s => s.Viewport).ToList(),
-                Rows = BuildRows(all, participants, moves, skipped, settings.MovePinned),
+                Rows = BuildRows(all, participants, moves, skipped, settings.MovePinned,
+                                 settings.Flow == FlowMode.Columns),
                 RowCount = rowCount,
                 Blocker = blocker,
                 Warnings = warnings
@@ -259,7 +268,8 @@ namespace Revit26_Plugin_Revised.SheetViewArrange.V001.Core.Services
             List<ViewportSnapshot> participants,
             List<PlannedMove> moves,
             List<(ViewportSnapshot Viewport, string Why)> skipped,
-            bool movePinned)
+            bool movePinned,
+            bool bandIsColumn)
         {
             // Moves are in participant order; look both up by viewport (reference equality).
             var arranged = new Dictionary<ViewportSnapshot, (int Order, PlannedMove Move)>();
@@ -286,11 +296,11 @@ namespace Revit26_Plugin_Revised.SheetViewArrange.V001.Core.Services
                                 : !m.NeedsMove ? ""
                                 : vp.IsPinned ? "Stays pinned" : "";
 
-                    rows.Add(NewRow(vp, k, a.Order, m == null ? null : m.Row + 1, status, note, canTick, isTicked: true));
+                    rows.Add(NewRow(vp, k, a.Order, m == null ? null : m.Row + 1, status, note, canTick, isTicked: true, bandIsColumn));
                 }
                 else
                 {
-                    rows.Add(NewRow(vp, k, null, null, ArrangeStatus.Skipped, skipWhy.TryGetValue(vp, out var why) ? why : "", canTick, isTicked: false));
+                    rows.Add(NewRow(vp, k, null, null, ArrangeStatus.Skipped, skipWhy.TryGetValue(vp, out var why) ? why : "", canTick, isTicked: false, bandIsColumn));
                 }
             }
 
@@ -298,7 +308,8 @@ namespace Revit26_Plugin_Revised.SheetViewArrange.V001.Core.Services
         }
 
         private static ArrangeRow NewRow(
-            ViewportSnapshot vp, int readingKey, int? order, int? row, ArrangeStatus status, string note, bool canTick, bool isTicked) => new()
+            ViewportSnapshot vp, int readingKey, int? order, int? row, ArrangeStatus status, string note, bool canTick, bool isTicked,
+            bool bandIsColumn = false) => new()
         {
             ViewportKey = vp.Key,
             ReadingKey = readingKey,
@@ -309,6 +320,7 @@ namespace Revit26_Plugin_Revised.SheetViewArrange.V001.Core.Services
             SizeText = $"{vp.Footprint.Width * FeetToMm:F0} × {vp.Footprint.Height * FeetToMm:F0}",
             SizeArea = vp.Footprint.Width * FeetToMm * vp.Footprint.Height * FeetToMm,
             Row = row,
+            BandIsColumn = bandIsColumn,
             Status = status,
             Note = note,
             CanTick = canTick,

@@ -10,10 +10,12 @@ namespace Revit26_Plugin_Revised.SheetViewArrange.V001.Core.Models
     public sealed class SheetViewArrangeSettings
     {
         /// <summary>
-        /// Current settings-file format version. 2 added <see cref="GroupBy"/>; version-1 files
-        /// load unchanged (the new field takes its default).
+        /// Current settings-file format version. 2 added <see cref="GroupBy"/>; 3 added
+        /// <see cref="Horizontal"/>, <see cref="Vertical"/> and <see cref="RowAlign"/>; 4 added
+        /// <see cref="Flow"/> and <see cref="ColumnAlign"/>. Older files load unchanged — every new
+        /// field defaults to the behaviour that version had.
         /// </summary>
-        public const int CurrentVersion = 2;
+        public const int CurrentVersion = 4;
 
         /// <summary>Format version of the file this was read from.</summary>
         public int Version { get; set; } = CurrentVersion;
@@ -44,5 +46,34 @@ namespace Revit26_Plugin_Revised.SheetViewArrange.V001.Core.Models
 
         /// <summary>How the Views grid was grouped last time (display only; added in version 2).</summary>
         public ArrangeGroupBy GroupBy { get; set; } = ArrangeGroupBy.None;
+
+        /// <summary>
+        /// Where each row sits across the usable width (added in version 3). Defaults to
+        /// <see cref="HorizontalLayoutMode.Auto"/>, the behaviour before the setting existed.
+        /// </summary>
+        public HorizontalLayoutMode Horizontal { get; set; } = HorizontalLayoutMode.Auto;
+
+        /// <summary>
+        /// Where the block of rows sits down the usable height (added in version 3). Defaults to
+        /// <see cref="VerticalLayoutMode.Auto"/>, the behaviour before the setting existed.
+        /// </summary>
+        public VerticalLayoutMode Vertical { get; set; } = VerticalLayoutMode.Auto;
+
+        /// <summary>
+        /// How views of differing height sit inside their row (added in version 3). Defaults to
+        /// <see cref="RowAlignMode.Bottom"/>, so view titles line up as they always have.
+        /// </summary>
+        public RowAlignMode RowAlign { get; set; } = RowAlignMode.Bottom;
+
+        /// <summary>
+        /// Which way the reading order flows before it wraps (added in version 4). Defaults to
+        /// <see cref="FlowMode.Rows"/>, the behaviour before the setting existed.
+        /// </summary>
+        public FlowMode Flow { get; set; } = FlowMode.Rows;
+
+        /// <summary>
+        /// How views of differing width sit inside their column, in column flow (added in version 4).
+        /// </summary>
+        public ColumnAlignMode ColumnAlign { get; set; } = ColumnAlignMode.Left;
     }
 }

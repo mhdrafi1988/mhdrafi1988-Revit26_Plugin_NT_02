@@ -76,10 +76,18 @@ namespace Revit26_Plugin_Revised.SheetViewArrange.V001.Core.Models
         /// <summary>Short explanation shown next to the status.</summary>
         public string Note { get; init; }
 
-        /// <summary>The row number as shown in the grid and the Row filter ("2", or "–" when none).</summary>
+        /// <summary>
+        /// True when <see cref="Row"/> counts columns because the layout flows down columns, so the
+        /// grid and the group headers say "Column" instead of "Row".
+        /// </summary>
+        public bool BandIsColumn { get; init; }
+
+        /// <summary>The band number as shown in the grid and its filter ("2", or "–" when none).</summary>
         public string RowLabel => Row?.ToString() ?? NoValue;
 
         /// <summary>Group header text when grouping by layout row.</summary>
-        public string GroupRowName => Row is int r ? $"Row {r}" : "Not on a row";
+        public string GroupRowName => Row is int r
+            ? (BandIsColumn ? $"Column {r}" : $"Row {r}")
+            : (BandIsColumn ? "Not in a column" : "Not on a row");
     }
 }
