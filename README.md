@@ -185,8 +185,10 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 
 ### Coordination
 - **Void Openings** (in development): openings for MEP through structure. So far: choose the structural model and
-  the MEP model (the active model or a Revit link) and their categories, with element counts. Clash analysis, void
-  placement and cutting follow.
+  the MEP model (the active model or a Revit link) and their categories, with element counts, set the opening
+  clearance rules (offset per MEP category and size range, saved between sessions), and **Analyze**: it finds where
+  MEP passes through structure and lists the opening sized for each place, with zoom, highlight and approve / reject.
+  Nothing in the model is changed yet; void placement and cutting follow.
 - **Base Level to Parameter**: writes each element's base level and base offset to a text instance parameter as
   "Level 02 (+450)" (offset in mm). Lists the active view's model elements or the whole host model, checks the
   target parameter first (name, data type, binding, shared parameter file, categories, ownership), and can create
