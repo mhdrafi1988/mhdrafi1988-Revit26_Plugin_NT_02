@@ -170,6 +170,7 @@ namespace Revit26_Plugin_Revised.Shared.Services
         public static readonly ToolInfo DeleteWorkset = Add("Delete Workset", "1.3.0", "V001", "Revit26_Plugin_Revised.DeleteWorkset.V001");
         public static readonly ToolInfo DeleteLineStyles = Add("Delete Line Styles", "1.3.0", "V001", "Revit26_Plugin_Revised.DeleteLineStyles.V001");
         public static readonly ToolInfo BulkRename = Add("Bulk Rename", "1.2.0", "V001", "Revit26_Plugin_Revised.BulkRename.V001");
+        public static readonly ToolInfo PlanRegionManager = Add("Plan Region Manager", "1.2.0", "V001", "Revit26_Plugin_Revised.PlanRegionManager.V001");
         public static readonly ToolInfo WorksetCreator = Add("Workset Creator", "16.1.1", "V016", "Revit26_Plugin_Revised.WorksetCreator.V016");
         public static readonly ToolInfo WorksetCreatorV017 = Add("Workset Creator", "17.1.0", "V017", "Revit26_Plugin_Revised.WorksetCreator.V017");
         public static readonly ToolInfo TrackerId = Add("Tracker ID", "1.0.0", "V001", "Revit26_Plugin_Revised.TrackerId.V001");

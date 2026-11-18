@@ -9,10 +9,10 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
-## [7.22.0] — 2026-11-18
+## [7.23.0] — 2026-11-18
 
-Built as plugin 7.11.0 on its branch, and prepared as 7.21.0; both numbers were taken by other
-tools before this landed, so it ships as 7.22.0.
+Built as plugin 7.11.0 on its branch, and prepared as 7.21.0 and 7.22.0; each number was taken by
+another tool before this landed, so it ships as 7.23.0.
 
 ### Annotation Overlap Detection 6.1.0 (V006)
 
@@ -36,6 +36,25 @@ tools before this landed, so it ships as 7.22.0.
 
 User note: nothing changes until you change an option. Values outside their range (for example a negative overlap)
 show a message and the scan or resolve does not run.
+
+## [7.22.0] — 2026-11-18
+
+### Added
+- **Plan Region Manager v1.2.0** (V001, new tool) — new large button **Plan Region Manager** on a new **View Manage**
+  panel (Rafi_Pro_Docs tab), between View Place and View Rename. Open it in a floor, ceiling or structural plan (other
+  views show a message). It lists the plan regions grouped **Visible** and **Hidden** (hidden individually, or because
+  the Plan Region category is hidden), with view, level, view range and element id, and lets you:
+  - **Hide** / **Unhide** the ticked regions in their views;
+  - **Delete** them (confirmation first; Ctrl+Z undoes it; regions owned by another user in a workshared model are blocked);
+  - **Delete All Hidden**: delete every hidden plan region in the current scope, after a confirmation that lists them;
+  - **Restore Hidden**: unhide every plan region hidden in the current scope in one step;
+  - **Show in Revit** (opens the region's view and selects the regions);
+  - switch the scope between *This view only* and *All plan views*, filter, and copy the run log.
+  - UI preview: https://claude.ai/artifact/C4WgkzsyjAMKMjGZKbMSr2
+
+User note: a plan region belongs to one view, so *This view only* lists the regions of the view you opened the tool in.
+Delete All Hidden and Restore Hidden ignore the ticks. Regions hidden only because the Plan Region category is hidden
+stay hidden after Restore Hidden; turn the category back on in Visibility/Graphics.
 
 ## [7.21.0] — 2026-11-18
 
