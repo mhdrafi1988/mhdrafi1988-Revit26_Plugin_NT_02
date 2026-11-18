@@ -77,11 +77,18 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V006.Helpers
         /// Axis-aligned bounding box intersection test. Overlap area must be > 0,
         /// so boxes that merely touch at an edge do not count as overlapping.
         /// </summary>
-        public static bool DoBoxesIntersect(AnnotationData a, AnnotationData b)
+        public static bool DoBoxesIntersect(AnnotationData a, AnnotationData b) => DoBoxesIntersect(a, b, 0);
+
+        /// <summary>
+        /// Overlap test with a threshold (6.1.0): the boxes must overlap by more than
+        /// <paramref name="minOverlapMm"/> on both axes. 0 = any overlap with area &gt; 0 (as before).
+        /// </summary>
+        public static bool DoBoxesIntersect(AnnotationData a, AnnotationData b, double minOverlapMm)
         {
-            bool overlapsX = a.X < b.Right && b.X < a.Right;
-            bool overlapsY = a.Y < b.Bottom && b.Y < a.Bottom;
-            return overlapsX && overlapsY;
+            double overlapX = Math.Min(a.Right, b.Right) - Math.Max(a.X, b.X);
+            double overlapY = Math.Min(a.Bottom, b.Bottom) - Math.Max(a.Y, b.Y);
+            double min = Math.Max(0, minOverlapMm);
+            return overlapX > min && overlapY > min;
         }
 
         /// <summary>
