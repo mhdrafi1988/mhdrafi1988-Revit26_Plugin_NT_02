@@ -513,7 +513,36 @@ ToolWindowShell layout:
                     <!-- Find & replace -->
                     <Border Grid.Column="2" Style="{StaticResource SectionCard}">
                         <StackPanel>
-                            <TextBlock Text="Find &amp; Replace" Style="{StaticResource SectionTitle}"/>
+                            <DockPanel>
+                                <Button x:Name="RecentButton" DockPanel.Dock="Right" Content="{Binding RecentButtonText}" Margin="0,8,12,0"
+                                        Style="{StaticResource SmallSecondaryButton}" Click="RecentButton_Click"
+                                        IsEnabled="{Binding HasRecent}"
+                                        ToolTip="Reuse a search from before. Searches are kept even after Revit is closed."/>
+                                <TextBlock Text="Find &amp; Replace" Style="{StaticResource SectionTitle}"/>
+                            </DockPanel>
+                            <Popup x:Name="RecentPopup" PlacementTarget="{Binding ElementName=RecentButton}" Placement="Bottom"
+                                   StaysOpen="False">
+                                <Border Style="{StaticResource PopupCard}" Width="420">
+                                    <StackPanel>
+                                        <DockPanel Margin="0,0,0,6">
+                                            <Button DockPanel.Dock="Right" Content="Clear list" Style="{StaticResource SmallSecondaryButton}"
+                                                    Command="{Binding ClearRecentCommand}" Click="RecentClear_Click"
+                                                    ToolTip="Forget every recent search. The boxes keep their text."/>
+                                            <TextBlock Text="Recent searches (newest first)" FontSize="11.5" FontWeight="SemiBold"
+                                                       Foreground="{StaticResource BrushTextSecondary}" VerticalAlignment="Center"/>
+                                        </DockPanel>
+                                        <ListBox x:Name="RecentList" ItemsSource="{Binding RecentSearches}" MaxHeight="260" BorderThickness="0"
+                                                 PreviewMouseLeftButtonUp="RecentList_PreviewMouseLeftButtonUp" KeyDown="RecentList_KeyDown">
+                                            <ListBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock Text="{Binding Label}" FontFamily="Consolas" FontSize="12"
+                                                               TextTrimming="CharacterEllipsis" ToolTip="{Binding Label}"/>
+                                                </DataTemplate>
+                                            </ListBox.ItemTemplate>
+                                        </ListBox>
+                                    </StackPanel>
+                                </Border>
+                            </Popup>
                             <Grid Margin="12,0,12,0">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
@@ -565,6 +594,8 @@ ToolWindowShell layout:
                                            Text="Only the found text is replaced, so bold, italic, underline and lists in the rest of the note are kept."/>
                                 <TextBlock Style="{StaticResource HintText}" TextWrapping="Wrap"
                                            Text="Prefix and suffix are added only to notes that change."/>
+                                <TextBlock Style="{StaticResource HintText}" TextWrapping="Wrap"
+                                           Text="Find, Replace with, Prefix, Suffix and the options are kept for next time, even after Revit is closed. Recent lists the last 10."/>
                                 <TextBlock Style="{StaticResource HintText}" TextWrapping="Wrap"
                                            Text="Trim spaces: removes spaces at the start and end of each line and turns double spaces into one. Line breaks are kept."/>
                             </StackPanel>

@@ -133,7 +133,7 @@ namespace Revit26_Plugin_Revised.Shared.Services
         public static readonly ToolInfo SheetViewArrange = Add("Sheet View Arrange", "1.5.0", "V001", "Revit26_Plugin_Revised.SheetViewArrange.V001");
         public static readonly ToolInfo SheetAlignDistribute = Add("Sheet Align and Distribute", "1.0.0", "V001", "Revit26_Plugin_Revised.SheetAlignDistribute.V001");
         public static readonly ToolInfo SectionsToSheet = Add("Sections To Sheet", "1.1.0", "V001", "Revit26_Plugin_Revised.SectionsToSheet.V001");
-        public static readonly ToolInfo SheetTextReplace = Add("Sheet Text Replace", "1.2.0", "V001", "Revit26_Plugin_Revised.SheetTextReplace.V001");
+        public static readonly ToolInfo SheetTextReplace = Add("Sheet Text Replace", "1.3.0", "V001", "Revit26_Plugin_Revised.SheetTextReplace.V001");
         public static readonly ToolInfo SheetViewsCombine = Add("Sheet Views Combine", "1.0.0", "V001", "Revit26_Plugin_Revised.SheetViewsCombine.V001");
         public static readonly ToolInfo WetAreaWaterproofing = Add("Wet Area Waterproofing", "1.1.1", "V001", "Revit26_Plugin_Revised.WetAreaWaterproofing.V001");
         public static readonly ToolInfo RoofEdgeAroundSections = Add("Roof Edge Around Sections", "7.3.0", "V007", "Revit26_Plugin_Revised.RoofEdgeAroundSections.V007");
