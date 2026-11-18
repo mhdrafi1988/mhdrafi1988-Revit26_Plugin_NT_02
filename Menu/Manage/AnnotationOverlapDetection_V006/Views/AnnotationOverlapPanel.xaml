@@ -11,6 +11,12 @@ Changes vs V005:
   - Type list groups by priority category; new checkbox
     "Also check overlaps between different types" (off = V005 behaviour).
   - Title / version read ToolCatalog.AnnotationOverlapDetectionV006.
+Changes in 6.1.0:
+  - Options card (expander): every former hard-coded value is a control:
+    minimum overlap, alignment tolerance, direction (vertical / horizontal),
+    dimension handling, re-check after resolve, select moved elements,
+    zoom margin, select on zoom, Restore defaults.
+  - Move Up / Move Down labels follow the direction (Move Right / Move Left).
 =======================================================
 -->
 <Window x:Class="Revit26_Plugin_Revised.AnnotationOverlapDetection.V006.Views.AnnotationOverlapPanel"
@@ -165,15 +171,15 @@ Changes vs V005:
                         <TextBlock Text="Resolve Overlaps" Style="{StaticResource SectionTitle}" Margin="0,0,0,8" />
                         <UniformGrid Columns="4">
                             <StackPanel Margin="0,0,8,0">
-                                <RadioButton GroupName="ResolveMode" Content="Move Up" FontWeight="SemiBold"
+                                <RadioButton GroupName="ResolveMode" Content="{Binding UpLabel}" FontWeight="SemiBold"
                                              IsChecked="{Binding IsMoveUp}" IsEnabled="{Binding IsIdle}" />
-                                <TextBlock Text="The upper element moves up until the pair is clear."
+                                <TextBlock Text="{Binding UpHint}"
                                            Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="20,2,0,0" />
                             </StackPanel>
                             <StackPanel Margin="0,0,8,0">
-                                <RadioButton GroupName="ResolveMode" Content="Move Down" FontWeight="SemiBold"
+                                <RadioButton GroupName="ResolveMode" Content="{Binding DownLabel}" FontWeight="SemiBold"
                                              IsChecked="{Binding IsMoveDown}" IsEnabled="{Binding IsIdle}" />
-                                <TextBlock Text="The lower element moves down until the pair is clear."
+                                <TextBlock Text="{Binding DownHint}"
                                            Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="20,2,0,0" />
                             </StackPanel>
                             <StackPanel>
@@ -185,7 +191,7 @@ Changes vs V005:
                             <StackPanel Margin="8,0,0,0">
                                 <RadioButton GroupName="ResolveMode" Content="By priority" FontWeight="SemiBold"
                                              IsChecked="{Binding IsByPriority}" IsEnabled="{Binding IsIdle}" />
-                                <TextBlock Text="The lower-priority one moves away; the higher-priority one stays."
+                                <TextBlock Text="The lower-priority one moves out of the way; the higher-priority one stays."
                                            Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="20,2,0,0" />
                             </StackPanel>
                         </UniformGrid>
@@ -199,6 +205,67 @@ Changes vs V005:
                         </StackPanel>
                     </StackPanel>
                 </Border>
+
+                <!-- Section 5b (6.1.0): Options - every value the tool uses, defaults = 6.0.0 behaviour -->
+                <Expander IsExpanded="{Binding OptionsExpanded}" Margin="0,8,0,0">
+                    <Expander.Header>
+                        <TextBlock Text="Options" Style="{StaticResource SectionTitle}" Margin="0" />
+                    </Expander.Header>
+                    <Border Style="{StaticResource ContentCard}" Padding="12" Margin="0,4,0,0">
+                        <Grid IsEnabled="{Binding IsIdle}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="16" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Detection + zoom -->
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="DETECTION" Style="{StaticResource FieldLabel}" Margin="0,0,0,6" />
+                                <Grid Margin="0,0,0,6">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="170" /><ColumnDefinition Width="70" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                                    <TextBlock Text="Minimum overlap (mm)" VerticalAlignment="Center" />
+                                    <TextBox Grid.Column="1" Text="{Binding MinOverlapText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BoxedTextInput}" TextAlignment="Right" />
+                                    <TextBlock Grid.Column="2" Text="Ignore smaller overlaps. 0 = any." Style="{StaticResource HintText}" VerticalAlignment="Center" Margin="8,0,0,0" TextWrapping="Wrap" />
+                                </Grid>
+                                <Grid Margin="0,0,0,10">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="170" /><ColumnDefinition Width="70" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                                    <TextBlock Text="Alignment tolerance (mm)" VerticalAlignment="Center" />
+                                    <TextBox Grid.Column="1" Text="{Binding AlignToleranceText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BoxedTextInput}" TextAlignment="Right" />
+                                    <TextBlock Grid.Column="2" Text="For the Aligned column." Style="{StaticResource HintText}" VerticalAlignment="Center" Margin="8,0,0,0" TextWrapping="Wrap" />
+                                </Grid>
+
+                                <TextBlock Text="ZOOM" Style="{StaticResource FieldLabel}" Margin="0,0,0,6" />
+                                <Grid Margin="0,0,0,6">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="170" /><ColumnDefinition Width="70" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                                    <TextBlock Text="Zoom margin (%)" VerticalAlignment="Center" />
+                                    <TextBox Grid.Column="1" Text="{Binding ZoomMarginText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BoxedTextInput}" TextAlignment="Right" />
+                                    <TextBlock Grid.Column="2" Text="Space around the element." Style="{StaticResource HintText}" VerticalAlignment="Center" Margin="8,0,0,0" TextWrapping="Wrap" />
+                                </Grid>
+                                <CheckBox Content="Select the element when zooming to it" IsChecked="{Binding SelectOnZoom}" />
+                            </StackPanel>
+
+                            <!-- Resolve -->
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="RESOLVE" Style="{StaticResource FieldLabel}" Margin="0,0,0,6" />
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                    <TextBlock Text="Direction" VerticalAlignment="Center" Width="90" />
+                                    <RadioButton GroupName="Direction" Content="Vertical (up / down)" IsChecked="{Binding IsVertical}" Margin="0,0,12,0" />
+                                    <RadioButton GroupName="Direction" Content="Horizontal (right / left)" IsChecked="{Binding Horizontal}" />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                    <TextBlock Text="Dimensions" VerticalAlignment="Center" Width="90" />
+                                    <ComboBox ItemsSource="{Binding DimensionOptions}" SelectedItem="{Binding SelectedDimension}"
+                                              DisplayMemberPath="Label" MinWidth="250" />
+                                </StackPanel>
+                                <CheckBox Content="Re-check overlaps after each resolve" IsChecked="{Binding RecheckAfterResolve}" Margin="0,0,0,4" />
+                                <CheckBox Content="Select the moved elements in Revit after a resolve" IsChecked="{Binding SelectMoved}" Margin="0,0,0,10" />
+                                <Button Content="Restore defaults" Style="{StaticResource SmallSecondaryButton}" HorizontalAlignment="Left"
+                                        Command="{Binding RestoreDefaultsCommand}" ToolTip="Put every option back to its default" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </Expander>
 
                 <!-- Section 6 (V006): Priority order, shown in By priority mode -->
                 <Border Style="{StaticResource ContentCard}" Padding="12" Margin="0,8,0,0"
