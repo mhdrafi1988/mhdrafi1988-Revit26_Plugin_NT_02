@@ -1,9 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <!--
-    Unit tests for Void Openings' Revit-free code (geometry, clash engine, clearance rules, opening
-    calculator, Job IDs). The tool's Core files are linked, not copied. This project references
-    neither Revit nor WPF, so a Core file that starts using either fails this build: that is how the
-    layer boundary is enforced.
+    Unit tests for Void Openings' Revit-free code (geometry, clash engine, clearance rules and their
+    validation, opening calculator, Job IDs, the settings file). The tool's Core files and its
+    Infrastructure/Json files are linked, not copied. This project references neither Revit nor WPF,
+    so a linked file that starts using either fails this build: that is how the layer boundary is
+    enforced.
     Run:  dotnet test Tests/VoidOpenings.Tests
   -->
   <PropertyGroup>
@@ -20,6 +21,7 @@
 
   <ItemGroup>
     <Compile Include="$(ToolDir)Core\**\*.cs" Link="Tool\%(RecursiveDir)%(Filename)%(Extension)" />
+    <Compile Include="$(ToolDir)Infrastructure\Json\**\*.cs" Link="Tool\Json\%(RecursiveDir)%(Filename)%(Extension)" />
   </ItemGroup>
 
   <ItemGroup>
