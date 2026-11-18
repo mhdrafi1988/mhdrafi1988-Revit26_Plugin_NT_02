@@ -9,6 +9,23 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [7.24.0] — 2026-11-18
+
+### Added
+- **Bulk Delete v1.0.0** (V001, new tool) — new **Bulk Delete** item in the **Manage** panel's slide-out
+  (Rafi_Pro_Docs2 tab), after Bulk Rename. It deletes many line styles, line patterns, arrowheads or fill patterns at once.
+  - **What to delete** picks the kind; the grid lists each item with its details and what uses it (**Used By**),
+    with a filter, **Select All**, **Select None** and **Select Unused**.
+  - Nothing is ticked at first. Built-in items, items in use and items owned by another user are **Locked** and
+    cannot be ticked.
+  - **Delete** asks first, then removes every ticked row in one transaction (one Ctrl+Z). Each item is re-checked
+    before it goes; one that was renamed, is now in use, or would take other elements with it is skipped and logged.
+  - The log can be copied or exported.
+  - UI preview: https://claude.ai/artifact/U7aFdtpoXJQhCYTZRx29Rg
+
+User note: Delete Line Styles stays as it is; Bulk Delete is a separate tool that also covers line patterns,
+arrowheads and fill patterns.
+
 ## [7.23.0] — 2026-11-18
 
 Built as plugin 7.11.0 on its branch, and prepared as 7.21.0 and 7.22.0; each number was taken by

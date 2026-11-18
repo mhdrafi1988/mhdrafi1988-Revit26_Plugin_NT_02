@@ -50,7 +50,7 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 | Rafi_Pro_Docs | Waterproofing | Wet Area Waterproofing |
 | Rafi_Pro_Docs2 | DWG Tools | DWG To DL(P) · Export DWG · DWG Manager · DWG Statistics |
 | Rafi_Pro_Docs2 | Family Tools | Batch Link DWG · DWG To Lines |
-| Rafi_Pro_Docs2 | Manage | Overlaps (V007, V006) · Overlap Report · ParaManager · Shared Params · Schedule I/O · Link Check ▸ slide-out: Del. Line Styles · Bulk Rename · Tracker ID |
+| Rafi_Pro_Docs2 | Manage | Overlaps (V007, V006) · Overlap Report · ParaManager · Shared Params · Schedule I/O · Link Check ▸ slide-out: Del. Line Styles · Bulk Rename · Bulk Delete · Tracker ID |
 | Rafi_Pro_Docs2 | Worksets | WS Browser · WS Creator · WS Renamer ▸ slide-out: WS Renamer XL · Delete Workset |
 | Rafi_Pro_Docs2 | Memory | WS Memory · Link Memory |
 | Rafi_Pro_Docs2 | Coordination | Void Openings · Base Level to Parameter |
@@ -179,7 +179,7 @@ Where a tool has several versions, its button is a dropdown listing the newest v
   batch of views and sheets, with zoom to pair and Excel export.
 - **ParaManager, Shared Parameter Studio, Schedule Export / Import**.
 - **Link Version Checker**: status of RVT links, including ACC Desktop Connector and Autodesk Docs cloud links.
-- **Delete Line Styles, Bulk Rename, Tracker ID**: clean up and rename styles and patterns, and give elements a
+- **Delete Line Styles, Bulk Rename, Bulk Delete, Tracker ID**: clean up, rename and bulk-delete styles and patterns, and give elements a
   permanent tracker ID.
 - **Worksets & Elements Browser, Workset Creator, Workset Renamer (also from Excel), Delete Workset**.
 - **WS Memory**: remember which worksets are open as named sets, then reopen the model with exactly those worksets.
