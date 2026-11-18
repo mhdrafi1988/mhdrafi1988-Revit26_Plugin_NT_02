@@ -1,14 +1,16 @@
 <title>Sheet View Arrange</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<!-- UI preview (CLAUDE.md "UI previews"): Sheet View Arrange 1.4.0 (V001). Plugin 7.18.0.
+<!-- UI preview (CLAUDE.md "UI previews"): Sheet View Arrange 1.5.0 (V001). Plugin 7.19.0.
      Shown: the tool window's settings column with the new "Layout" block (Flow / Across the width /
      Down the height / Align views in row), the "Last row" combo now greyed out because it only applies
      to Auto, the live preview pane and the Views in Reading Order grid — plus a gallery of the modes.
      Change in 1.4.0: the single fixed layout (rows spread to the full width and height, views on a
-     common bottom line) becomes four choices. Flow picks the axis the order wraps on (rows or columns);
+     common bottom line) became three choices — Across the width, Down the height, Align views in row.
      Left / Right / Top / Bottom pack against the margins you set; Auto reproduces the pre-1.4.0 layout
-     and is the default, so existing settings files keep their look. The Detail Number reading order is
-     never changed by any mode — only the direction it runs and where the bands sit.
+     and is the default, so existing settings files keep their look.
+     Change in 1.5.0: Flow, a fourth choice — the order can wrap down columns instead of across rows.
+     The Detail Number reading order is never changed by any mode — only the direction it runs and
+     where the bands sit.
      Mirrors: Menu/Sheet/SheetViewArrange_V001/UI/Views/SheetViewArrangeWindow.xaml
               (+ UI/ViewModels/SheetViewArrangeViewModel.cs; version from Shared/Services/ToolCatalog.cs).
      Artifact: https://claude.ai/artifact/AzFk3MBeBCrh6uchnjqFrd (republish to this URL on every update)
@@ -116,26 +118,26 @@ code{font-family:var(--mono);font-size:11.5px;background:var(--bg2);padding:1px 
 <div class="page">
 
   <div class="lede">
-    <h1>Sheet View Arrange <span class="tag tag-new">v1.4.0</span></h1>
-    <p class="meta">SloperPro plugin 7.18.0 · tool folder <code>SheetViewArrange_V001</code> · Sheet Place panel, button <b>Arrange Views</b></p>
+    <h1>Sheet View Arrange <span class="tag tag-new">v1.5.0</span></h1>
+    <p class="meta">SloperPro plugin 7.19.0 · tool folder <code>SheetViewArrange_V001</code> · Sheet Place panel, button <b>Arrange Views</b></p>
     <p>Every name, label and number on this page is a static mock-up with <b>sample data</b> — no real project or client content.</p>
   </div>
 
   <div class="note">
-    <b>What is new in 1.4.0</b> — the layout was fixed before: rows spread to the full width, rows spread to the
-    full height, views on a common bottom line. It is now four choices: <b>Flow</b>, <b>Across the width</b>,
-    <b>Down the height</b> and <b>Align views in row</b>. <b>Flow</b> picks which axis the order wraps on — rows
-    (left to right, wrapping down) or columns (top to bottom, wrapping across). Left, right, top and bottom pack
-    against the margins you set, at the minimum gaps. The reading order (Detail Number) is never changed by any
-    mode. <b>Rows + Auto + Auto</b> is the default and reproduces the old layout exactly, so settings saved by an
-    earlier version look the same as before.
+    <b>What is new</b> — the layout was fixed before 1.4.0: rows spread to the full width, rows spread to the full
+    height, views on a common bottom line. <b>1.4.0</b> turned that into three choices — <b>Across the width</b>,
+    <b>Down the height</b> and <b>Align views in row</b> — where left, right, top and bottom pack against the
+    margins you set, at the minimum gaps. <b>1.5.0</b> adds a fourth, <b>Flow</b>: the order can wrap down columns
+    (top to bottom, then across) instead of across rows. The reading order (Detail Number) is never changed by any
+    mode. <b>Rows + Auto + Auto</b> is the default and reproduces the pre-1.4.0 layout exactly, so settings saved by
+    an earlier version look the same as before.
   </div>
 
   <!-- ─────────── the window ─────────── -->
   <h2>Tool window — the new Layout block, set to Left + Bottom</h2>
   <div class="frame">
     <div class="win">
-      <div class="titlebar"><b>Sheet View Arrange</b><span class="ver">v1.4.0 &nbsp;·&nbsp; Sheet A-201 — Roof Details (sample)</span></div>
+      <div class="titlebar"><b>Sheet View Arrange</b><span class="ver">v1.5.0 &nbsp;·&nbsp; Sheet A-201 — Roof Details (sample)</span></div>
 
       <div class="body">
         <!-- left: settings -->
@@ -160,7 +162,7 @@ code{font-family:var(--mono);font-size:11.5px;background:var(--bg2);padding:1px 
             <div class="sep"></div>
 
             <div class="newline"><span class="tag tag-new">New</span><span class="lbl" style="font-weight:600">Layout</span></div>
-            <div class="flabel">Flow</div>
+            <div class="flabel">Flow <span class="tag tag-new">1.5.0</span></div>
             <div class="combo"><span class="cv">Rows — left to right, wrap down</span></div>
             <div class="hint">Rows: 1 2 3 across, then wrap down. Columns: 1 2 3 down, then wrap across. The Detail
               Number order is the same either way — only the direction it runs changes. In column flow the third
@@ -344,7 +346,7 @@ code{font-family:var(--mono);font-size:11.5px;background:var(--bg2);padding:1px 
     </div>
 
     <div class="tile">
-      <h3>Columns + Auto <span class="tag tag-new">Column flow</span></h3>
+      <h3>Columns + Auto <span class="tag tag-new">New in 1.5.0</span></h3>
       <svg viewBox="-14 -12 148 92" role="img" aria-label="Column flow with Auto: views 1 to 3 run down the first column spread over the height, views 4 and 5 down a second column at the right.">
         <rect class="sheet" x="-14" y="-12" width="148" height="92" rx="2"/>
         <rect class="usable" x="0" y="0" width="100" height="60"/>
@@ -359,7 +361,7 @@ code{font-family:var(--mono);font-size:11.5px;background:var(--bg2);padding:1px 
     </div>
 
     <div class="tile">
-      <h3>Columns + Top + Left <span class="tag tag-new">Column flow</span></h3>
+      <h3>Columns + Top + Left <span class="tag tag-new">New in 1.5.0</span></h3>
       <svg viewBox="-14 -12 148 92" role="img" aria-label="Column flow packed top and left: two columns of views against the top-left corner of the usable area.">
         <rect class="sheet" x="-14" y="-12" width="148" height="92" rx="2"/>
         <rect class="usable" x="0" y="0" width="100" height="60"/>
@@ -388,9 +390,10 @@ code{font-family:var(--mono);font-size:11.5px;background:var(--bg2);padding:1px 
       <b>Column</b> / <b>Columns</b>, and grouping by layout band groups by column.</li>
     <li><b>The margins define everything.</b> Left / right / top / bottom pack against the usable area, which is the
       title block inset by the four margins, so nothing crosses the title strip.</li>
-    <li><b>Auto is the default.</b> Settings files written before 1.4.0 (format versions 1 and 2) load unchanged and
-      keep the old look; the file is now version 3 and gains <code>Horizontal</code>, <code>Vertical</code> and
-      <code>RowAlign</code>.</li>
+    <li><b>Auto is the default.</b> Settings files written before 1.4.0 load unchanged and keep the old look. The
+      file is now format <b>version 4</b>: version 3 added <code>Horizontal</code>, <code>Vertical</code> and
+      <code>RowAlign</code> in 1.4.0, version 4 adds <code>Flow</code> and <code>ColumnAlign</code> in 1.5.0, and
+      every new field defaults to the behaviour of the version before it.</li>
     <li><b>Last row applies to Auto only</b>, and is greyed out for the other modes — they treat every row alike.</li>
     <li><b>Overflow still blocks Apply.</b> If a row is wider than the usable area, or the rows need more height than
       it has, the plan reports what is short and nothing moves — an over-wide row or over-tall block is drawn from

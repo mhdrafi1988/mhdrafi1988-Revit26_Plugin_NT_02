@@ -9,25 +9,44 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [7.19.0] — 2026-11-18
+
+### Added
+- **Sheet View Arrange v1.5.0** (V001) — **Flow**, a fourth choice in the **Layout** block: the reading order can
+  now wrap down columns instead of across rows. *Rows* (the default, unchanged) runs the order left to right and
+  wraps down; *Columns* runs it top to bottom down a column and then across to the next. The order itself is still
+  Detail Number in natural order — only the direction it runs changes.
+  - Column flow swaps what the two placement choices do: **Across the width** places the columns across the width
+    and **Down the height** places each column’s views down the height. A column wraps when the next view will not
+    fit at the minimum row gap.
+  - **Align views in row** becomes **Align views in column** in column flow: *Left line* (the default), *Right
+    line* or *Centre line*, for columns that mix view widths.
+  - *Auto* spreads a full column over the height and packs the short last column from the top at the gap the
+    column before it used — the transpose of the short-last-row rule. **Last row** places that last column.
+  - Left, right, top and bottom still mean the margins set in **Usable Area**. A view taller than the usable area,
+    or columns needing more width than it has, blocks Apply with a report of what is short, as before.
+  - UI preview: https://claude.ai/artifact/AzFk3MBeBCrh6uchnjqFrd
+
+### Changed
+- **Sheet View Arrange** — the Views grid follows the flow: in column flow its band column, that column’s filter
+  and the **Rows** count read **Column** / **Columns**, and grouping by layout band groups by column (the group-by
+  entry is now labelled "Layout row / column"). The settings file is format **version 4**: it gains `Flow` and
+  `ColumnAlign`. Files from versions 1–3 load unchanged and both new fields default to the 1.4.0 behaviour
+  (*Rows* / *Left line*), so an existing sheet arranges exactly as it did before.
+
 ## [7.18.0] — 2026-11-17
 
 ### Added
 - **Sheet View Arrange v1.4.0** (V001) — the layout is no longer fixed. The **Spacing & Alignment** panel gains a
   **Layout** block with three choices, and the reading order (Detail Number, natural order) is never changed by any
   of them — only where the rows sit inside the usable area.
-  - **Flow:** *Rows* (the default — the order runs left to right and wraps down) or *Columns* (the order runs
-    top to bottom down a column and then across to the next). Column flow wraps on the other axis, so the two
-    placement choices swap roles: they place the columns across the width and each column’s views down the height.
   - **Across the width:** *Auto* (full rows spread to the width, short last row per **Last row**), *Justify* (every
     row spread to the width, the last one included), *Left*, *Right* and *Centre* (packed at the minimum gap against
     the left margin, the right margin, or centred).
   - **Down the height:** *Auto* (rows spread to the full height), *Spread*, *Top*, *Bottom* and *Centre* (packed at
     the minimum row gap against the top margin, the bottom margin, or centred).
   - **Align views in row:** *Bottom line* (the default — view titles line up), *Top line* or *Centre line*, for rows
-    that mix view heights. In column flow this becomes **Align views in column**: *Left line* (the default), *Right
-    line* or *Centre line*.
-  - In column flow the grid’s band column, its filter and the **Rows** count read **Column** / **Columns**, and
-    grouping by layout band groups by column.
+    that mix view heights.
   - Left, right, top and bottom mean the margins you set in **Usable Area**, so nothing crosses the title strip. An
     over-wide row or an over-tall block is still drawn from the left and top edges and still blocks Apply with a
     report of what is short.
@@ -35,10 +54,9 @@ Each release lists every tool whose version changed, under the plugin version.
 
 ### Changed
 - **Sheet View Arrange** — **Last row** now applies to the *Auto* width mode only (the other modes treat every row
-  alike) and is greyed out otherwise; in column flow it places the short last *column* down the height. The settings
-  file is format **version 4**: it gains `Horizontal`, `Vertical`, `RowAlign`, `Flow` and `ColumnAlign`. Files from
-  versions 1–3 load unchanged and every new field defaults to the pre-1.4.0 behaviour (*Rows* / *Auto* / *Auto* /
-  *Bottom line*), so an existing sheet arranges exactly as it did before.
+  alike) and is greyed out otherwise. The settings file is format **version 3**: it gains `Horizontal`, `Vertical`
+  and `RowAlign`. Version-1 and version-2 files load unchanged and every new field defaults to the pre-1.4.0
+  behaviour (*Auto* / *Auto* / *Bottom line*), so an existing sheet arranges exactly as it did before.
 
 ## [7.17.0] — 2026-11-17
 
