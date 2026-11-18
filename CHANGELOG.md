@@ -9,9 +9,10 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
-## [7.21.0] — 2026-11-18
+## [7.22.0] — 2026-11-18
 
-Built as plugin 7.11.0 on its branch; that number was taken by another tool before this landed.
+Built as plugin 7.11.0 on its branch, and prepared as 7.21.0; both numbers were taken by other
+tools before this landed, so it ships as 7.22.0.
 
 ### Annotation Overlap Detection 6.1.0 (V006)
 
@@ -35,6 +36,23 @@ Built as plugin 7.11.0 on its branch; that number was taken by another tool befo
 
 User note: nothing changes until you change an option. Values outside their range (for example a negative overlap)
 show a message and the scan or resolve does not run.
+
+## [7.21.0] — 2026-11-18
+
+### Added
+- **Split Roof v1.0.0** (V001, new tool) — new **Split Roof** button on the **Roof Edit** panel (Rafi_Pro_MOds2 tab),
+  after Merge Roofs. Select one footprint roof and one or more straight detail or model lines, then split the roof into
+  separate footprint roofs along those lines.
+  - Each line is extended past its ends and cuts the whole roof; a line that does not cross it is ignored and listed in the window.
+  - **Check** previews the pieces with their plan areas and warns about a piece with no sloped edge (it would be flat).
+  - Every piece takes the roof's type, level and base offset, and each edge keeps the slope of the roof edge it came
+    from. New edges along a cut are flat. Arcs are kept when possible, otherwise the pieces are created once more with
+    straight segments.
+  - All pieces are created in one transaction: if Revit rejects any, nothing is changed.
+  - UI preview: https://claude.ai/artifact/SudsfmeNtNbRKpdfpHYRHA
+
+User note: the original roof is kept unless you tick "Delete the original roof after splitting". Shape-editing points
+and sub-elements are not copied to the pieces.
 
 ## [7.20.0] — 2026-11-18
 
