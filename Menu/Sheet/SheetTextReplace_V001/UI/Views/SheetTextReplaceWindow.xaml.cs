@@ -39,6 +39,7 @@ namespace Revit26_Plugin_Revised.SheetTextReplace.V001.UI.Views
             if (e.Key != Key.Escape) return;
             if (SheetPopup.IsOpen) SheetPopup.IsOpen = false;
             else if (ViewsPopup.IsOpen) ViewsPopup.IsOpen = false;
+            else if (RecentPopup.IsOpen) RecentPopup.IsOpen = false;
             else Close();
             e.Handled = true;
         }
@@ -99,6 +100,37 @@ namespace Revit26_Plugin_Revised.SheetTextReplace.V001.UI.Views
         {
             ViewsPopup.IsOpen = true;
             Dispatcher.BeginInvoke(DispatcherPriority.Input, new Action(() => ViewFilterBox.Focus()));
+        }
+
+        // ── Recent searches pop-up ──────────────────────────────────────────
+
+        private void RecentButton_Click(object sender, RoutedEventArgs e)
+        {
+            RecentPopup.IsOpen = true;
+            Dispatcher.BeginInvoke(DispatcherPriority.Input, new Action(() => RecentList.Focus()));
+        }
+
+        private void RecentList_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            if (FindAncestor<ListBoxItem>(e.OriginalSource as DependencyObject)?.DataContext is SavedSearch search)
+                UseRecent(search);
+        }
+
+        private void RecentList_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter && RecentList.SelectedItem is SavedSearch search)
+            {
+                UseRecent(search);
+                e.Handled = true;
+            }
+        }
+
+        private void RecentClear_Click(object sender, RoutedEventArgs e) => RecentPopup.IsOpen = false;
+
+        private void UseRecent(SavedSearch search)
+        {
+            RecentPopup.IsOpen = false;
+            _viewModel.UseRecent(search);
         }
 
         // ── Preview grid ────────────────────────────────────────────────────
