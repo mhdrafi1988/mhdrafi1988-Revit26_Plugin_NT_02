@@ -28,14 +28,20 @@ namespace Revit26_Plugin_Revised.VoidOpenings.V001.Core.Domain.Rules
     /// <summary>One user-defined clearance: an MEP category, a size range and the offset to apply.</summary>
     public sealed class ClearanceRule
     {
+        /// <summary>Value of <see cref="ToMm"/> for a rule with no upper size limit.</summary>
+        public const double NoUpperLimit = double.MaxValue;
+
         /// <summary>MEP category the rule is for.</summary>
         public MepCategory Category { get; }
 
         /// <summary>Smallest nominal size the rule covers, inclusive.</summary>
         public double FromMm { get; }
 
-        /// <summary>Largest nominal size the rule covers, inclusive.</summary>
+        /// <summary>Largest nominal size the rule covers, inclusive; <see cref="NoUpperLimit"/> when open-ended.</summary>
         public double ToMm { get; }
+
+        /// <summary>False when the rule covers every size from <see cref="FromMm"/> upwards.</summary>
+        public bool HasUpperLimit => ToMm < NoUpperLimit;
 
         /// <summary>Clearance to apply.</summary>
         public double ClearanceMm { get; }
@@ -104,7 +110,7 @@ namespace Revit26_Plugin_Revised.VoidOpenings.V001.Core.Domain.Rules
                     return rule;
             }
 
-            return new ClearanceRule(category, 0, double.MaxValue, DefaultClearanceMm, DefaultMode);
+            return new ClearanceRule(category, 0, ClearanceRule.NoUpperLimit, DefaultClearanceMm, DefaultMode);
         }
 
         /// <summary>The run category a fitting or accessory belongs with; the category itself otherwise.</summary>

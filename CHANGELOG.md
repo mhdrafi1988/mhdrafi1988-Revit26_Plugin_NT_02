@@ -9,7 +9,7 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
-## [7.20.0] — 2026-11-18
+## [7.21.0] — 2026-11-18
 
 ### Added
 - **Split Roof v1.0.0** (V001, new tool) — new **Split Roof** button on the **Roof Edit** panel (Rafi_Pro_MOds2 tab),
@@ -25,6 +25,78 @@ Each release lists every tool whose version changed, under the plugin version.
 
 User note: the original roof is kept unless you tick "Delete the original roof after splitting". Shape-editing points
 and sub-elements are not copied to the pieces.
+
+## [7.20.0] — 2026-11-18
+
+Void Openings phases 3 and 4, developed as plugin 7.16.0 and 7.17.0 on their branch; those numbers were
+taken by other tools in the meantime, so both phases land here under one version.
+
+### Void Openings 0.4.0 (in development, phase 4 of 8)
+
+#### Added
+- **ANALYZE** button (bar under the tabs, always visible). It reads the ticked MEP categories of the MEP model and the
+  ticked structural categories of the structural model, finds every place where an MEP element passes through a
+  structural element, and sizes an opening for it from the clearance rules. Nothing in the model is changed.
+  - Works with the active model or a Revit link on either side; moved and rotated links are read in the active
+    model's coordinates.
+  - Only structural elements near the MEP elements are read. Progress is shown next to the button and **Cancel**
+    stops the run; the earlier results then stay.
+  - The button is disabled, with the reason next to it, until both models are chosen and loaded, at least one category
+    is ticked on each side and the OPENING CLEARANCE card has no error. Analyze uses the rules as shown, saved or not.
+- **Results** tab with one row per clash: Clash ID, Status, structural model / category / element id, MEP model /
+  category / element id, MEP size, opening Width, Height or Diameter, Depth, Clearance and a Note.
+  - The checkbox approves a row (an opening will be generated for it in a later version). Rows start ticked; rows
+    with status **Review** start unticked. Review means the MEP element starts or ends inside the structure, only
+    its body (not its centreline) touches the structure, or it runs almost parallel to the face.
+  - **Approve** and **Reject** work on the selected rows (several can be selected). A rejected row stays in the list
+    and cannot be ticked until it is approved again.
+  - **Zoom to** zooms the active plan, section or 3D view to the opening. **Highlight MEP** and **Highlight
+    structure** select the element in Revit, also when it is in a link.
+  - **Find** (clash id, element id, model, category, note) and **Show** (All, Approved, Not approved, To review,
+    Rejected).
+  - Elements that could not be analysed (for example a fitting with fewer than two connectors, or an element with no
+    solid geometry) are counted under the table; **Copy list** copies them with the reason, ready for Excel.
+  - Running Analyze again keeps the decisions made on clashes that are still there.
+- Unit tests: `Tests/VoidOpenings.Tests/AnalyzeTests.cs`.
+
+#### Changed
+- The window has two tabs, **1 Setup** (the model panels and the OPENING CLEARANCE card, as before) and
+  **2 Results**. The window switches to Results when an Analyze finishes.
+- **Refresh** is disabled while Analyze runs.
+
+User note: this version still changes nothing in the model; Generate Void comes in the next phase, and the results
+are not stored: they are gone when the window closes. How fittings and accessories are read: straight-through ones
+(couplings, valves, transitions) as one centreline between their two connectors, elbows and tees as lines from each
+connector to the middle of the fitting. Curved pipes and ducts are split into short straight pieces. Pipe and conduit
+sizes are the outside diameter.
+
+### Void Openings 0.3.0 (in development, phase 3 of 8)
+
+#### Added
+- **OPENING CLEARANCE** card in the window, under the two model panels. All values are millimetres.
+  - **Rules**: one row per MEP category and size range, with **Size from**, **Size to**, **Offset**, **Applies**
+    (Each side: opening = size + 2 × offset; Total: opening = size + offset) and **Opening shape** (Auto, Circular,
+    Rectangular). **+ Add rule** adds a row, **Delete** removes one. The first rule that fits an element is used; a
+    fitting or accessory with no rule of its own uses its pipe, duct, tray or conduit rules.
+  - An empty **Size from** means 0; an empty **Size to** means no upper limit. A decimal comma or point is accepted.
+  - **Example** column: the rule worked out, for example "50 + 2 × 30 = 110 mm" (with **Round up to** applied).
+  - **Check** column: "OK", or what is wrong with the row. Errors (a value that is not a number from 0 to 100000, a
+    missing offset, Size from above Size to) block saving. Two rules of one category covering the same sizes give a
+    warning and can still be saved.
+  - Options: **Default offset** (used when no rule fits) with Each side / Total, **Overshoot**, **Round up to**,
+    **Include insulation**, **Opening axis** (Perpendicular to structure / Follow MEP direction).
+  - **Save rules** and **Revert**. Closing the window with unsaved changes asks whether to save them (Yes / No / Cancel).
+- The rules and options are saved to `%AppData%\Revit26_Plugin_Revised\VoidOpenings\settings.json` (format version 1)
+  and read back the next time the tool opens. A file that cannot be read is copied to `settings.corrupt-<time>.json`
+  and the defaults are shown, with a message in the window.
+- Unit tests: `Tests/VoidOpenings.Tests/ClearanceValidationTests.cs` and `SettingsTests.cs`.
+
+#### Changed
+- The window is taller (1000 × 820, minimum 900 × 640) to hold the new card.
+
+User note: nothing in the model is changed by this version, and the rules are not applied to anything yet. Analyze,
+which uses them, comes in the next phase. A first run starts with no rules, a default offset of 50 mm each side,
+50 mm overshoot, no rounding, insulation included and openings perpendicular to the structure.
 
 ## [7.19.0] — 2026-11-18
 
