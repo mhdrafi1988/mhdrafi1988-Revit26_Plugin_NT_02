@@ -9,6 +9,18 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [7.26.1] — 2026-11-18
+
+### Fixed
+- **Every tool with a progress strip** — a finished run could leave the strip showing the old progress bar or
+  summary line. The cancel helper now hands `IsRunning`, `Progress` and `SummaryText` back to the tool's view
+  model when it closes (re-reading each binding), instead of only `IsRunning`. "Cancelled by user." is still
+  shown when a run was cancelled. From `claude/peaceful-volta-23jyz8`; the Sheet Text Replace 1.3.0 half of
+  that branch arrived separately as plugin 7.25.0.
+
+**User notes**
+- No tool version changed; the progress strip just clears properly when a job ends.
+
 ## [7.26.0] — 2026-11-18
 
 ### Changed
