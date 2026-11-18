@@ -104,8 +104,8 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V006.ViewModels
         public IReadOnlyList<Choice<TieRule>> TieRules { get; } = new[]
         {
             new Choice<TieRule> { Value = TieRule.Distribute, Label = "Distribute (both move, half each)" },
-            new Choice<TieRule> { Value = TieRule.MoveUp, Label = "Move the upper one up" },
-            new Choice<TieRule> { Value = TieRule.MoveDown, Label = "Move the lower one down" },
+            new Choice<TieRule> { Value = TieRule.MoveUp, Label = "Move the upper (or right-hand) one" },
+            new Choice<TieRule> { Value = TieRule.MoveDown, Label = "Move the lower (or left-hand) one" },
             new Choice<TieRule> { Value = TieRule.Skip, Label = "Skip the pair" }
         };
 
@@ -143,6 +143,109 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V006.ViewModels
         /// <summary>Radio button: By priority (V006).</summary>
         public bool IsByPriority { get => Mode == ResolveMode.ByPriority; set { if (value) Mode = ResolveMode.ByPriority; } }
 
+        // ── 6.1.0: every former hard-coded value is a user option (defaults = 6.0.0 behaviour) ──
+
+        private const double DefaultMinOverlapMm = 0.0;
+        private const double DefaultZoomMarginPercent = 10.0;
+        private const double MaxOptionMm = 1000.0;
+
+        /// <summary>Minimum overlap (mm) text box: overlaps not deeper than this on both axes are ignored.</summary>
+        [ObservableProperty]
+        private string minOverlapText = "0.00";
+
+        /// <summary>Alignment tolerance (mm) text box, for the "Aligned" column.</summary>
+        [ObservableProperty]
+        private string alignToleranceText = "0.10";
+
+        /// <summary>Zoom margin (%) text box.</summary>
+        [ObservableProperty]
+        private string zoomMarginText = "10";
+
+        /// <summary>Move left / right instead of up / down.</summary>
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsVertical), nameof(UpLabel), nameof(DownLabel), nameof(UpHint), nameof(DownHint))]
+        private bool horizontal;
+
+        /// <summary>Radio button: Vertical (up / down).</summary>
+        public bool IsVertical { get => !Horizontal; set { if (value) Horizontal = false; } }
+
+        /// <summary>Label of the first mode: "Move Up" or "Move Right".</summary>
+        public string UpLabel => Horizontal ? "Move Right" : "Move Up";
+
+        /// <summary>Label of the second mode: "Move Down" or "Move Left".</summary>
+        public string DownLabel => Horizontal ? "Move Left" : "Move Down";
+
+        /// <summary>Hint under the first mode.</summary>
+        public string UpHint => Horizontal ? "The right-hand element moves right until the pair is clear." : "The upper element moves up until the pair is clear.";
+
+        /// <summary>Hint under the second mode.</summary>
+        public string DownHint => Horizontal ? "The left-hand element moves left until the pair is clear." : "The lower element moves down until the pair is clear.";
+
+        /// <summary>Dimension handling choices.</summary>
+        public IReadOnlyList<Choice<DimensionHandling>> DimensionOptions { get; } = new[]
+        {
+            new Choice<DimensionHandling> { Value = DimensionHandling.WholeThenText, Label = "Move the whole dimension (else its text)" },
+            new Choice<DimensionHandling> { Value = DimensionHandling.TextOnly, Label = "Move only the dimension text" },
+            new Choice<DimensionHandling> { Value = DimensionHandling.Never, Label = "Never move dimensions" }
+        };
+
+        /// <summary>Selected dimension handling.</summary>
+        [ObservableProperty]
+        private Choice<DimensionHandling> selectedDimension;
+
+        /// <summary>Re-check overlaps after each resolve (off: the grid keeps its rows and shows statuses).</summary>
+        [ObservableProperty]
+        private bool recheckAfterResolve = true;
+
+        /// <summary>Select the moved elements in Revit after a resolve.</summary>
+        [ObservableProperty]
+        private bool selectMoved;
+
+        /// <summary>Select the element when zooming to it from the grid.</summary>
+        [ObservableProperty]
+        private bool selectOnZoom = true;
+
+        /// <summary>Show the Options card.</summary>
+        [ObservableProperty]
+        private bool optionsExpanded;
+
+        /// <summary>Puts every option of the Options card back to its default (the 6.0.0 behaviour).</summary>
+        [RelayCommand]
+        private void RestoreDefaults()
+        {
+            ApplyOptions(new AnnotationOverlapSettings());
+            HasError = false;
+            InfoMessage = "Options restored to their defaults. Press Check Overlaps to apply them to the grid.";
+            HasInfo = true;
+        }
+
+        private void ApplyOptions(AnnotationOverlapSettings s)
+        {
+            MinOverlapText = Clamp(s.MinOverlapMm, 0, MaxOptionMm, DefaultMinOverlapMm).ToString("F2", CultureInfo.CurrentCulture);
+            AlignToleranceText = Clamp(s.AlignToleranceMm, 0, MaxOptionMm, OverlapDetectionHelper.DefaultAlignmentToleranceMm).ToString("F2", CultureInfo.CurrentCulture);
+            ZoomMarginText = Clamp(s.ZoomMarginPercent, 0, 500, DefaultZoomMarginPercent).ToString("0.##", CultureInfo.CurrentCulture);
+            Horizontal = s.Horizontal;
+            SelectedDimension = DimensionOptions.FirstOrDefault(d => (int)d.Value == s.Dimensions) ?? DimensionOptions[0];
+            RecheckAfterResolve = s.RecheckAfterResolve;
+            SelectMoved = s.SelectMoved;
+            SelectOnZoom = s.SelectOnZoom;
+        }
+
+        private static double Clamp(double v, double min, double max, double fallback) =>
+            double.IsNaN(v) || v < min || v > max ? fallback : v;
+
+        private static bool TryParseNumber(string text, double min, double max, out double value)
+        {
+            string s = (text ?? string.Empty).Trim();
+            bool ok = double.TryParse(s, NumberStyles.Float, CultureInfo.CurrentCulture, out value)
+                   || double.TryParse(s, NumberStyles.Float, CultureInfo.InvariantCulture, out value);
+            return ok && !double.IsNaN(value) && value >= min && value <= max;
+        }
+
+        // Detection values in use, validated in RunCheck.
+        private double _minOverlapMm = DefaultMinOverlapMm;
+        private double _alignToleranceMm = OverlapDetectionHelper.DefaultAlignmentToleranceMm;
+
         // Raw collected data, kept around so "Check Overlaps" doesn't re-scan the document
         private List<AnnotationData> _allAnnotations = new();
 
@@ -172,6 +275,7 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V006.ViewModels
 
             // V006 priority settings (a V005 settings file has none: defaults are the recommended order).
             AcrossTypes = settings.AcrossTypes;
+            ApplyOptions(settings);
             SelectedTie = TieRules.FirstOrDefault(t => (int)t.Value == settings.Tie) ?? TieRules[0];
             var neverMove = new HashSet<AnnotationCategory>();
             foreach (string name in settings.NeverMove ?? new List<string>())
@@ -277,8 +381,16 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V006.ViewModels
                 PriorityOrder = PriorityRows.Select(r => r.Category.ToString()).ToList(),
                 NeverMove = PriorityRows.Where(r => r.NeverMove).Select(r => r.Category.ToString()).ToList(),
                 Tie = (int)(SelectedTie?.Value ?? TieRule.Distribute),
-                AcrossTypes = AcrossTypes
+                AcrossTypes = AcrossTypes,
+                Horizontal = Horizontal,
+                Dimensions = (int)(SelectedDimension?.Value ?? DimensionHandling.WholeThenText),
+                RecheckAfterResolve = RecheckAfterResolve,
+                SelectMoved = SelectMoved,
+                SelectOnZoom = SelectOnZoom
             };
+            if (TryParseNumber(MinOverlapText, 0, MaxOptionMm, out double minOverlap)) settings.MinOverlapMm = minOverlap;
+            if (TryParseNumber(AlignToleranceText, 0, MaxOptionMm, out double align)) settings.AlignToleranceMm = align;
+            if (TryParseNumber(ZoomMarginText, 0, 500, out double margin)) settings.ZoomMarginPercent = margin;
             if (TryParseGap(out double gap))
                 settings.GapMm = gap;
             SettingsService<AnnotationOverlapSettings>.Save(SettingsFolder, settings);
@@ -340,6 +452,19 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V006.ViewModels
                 return false;
             }
 
+            if (!TryParseNumber(MinOverlapText, 0, MaxOptionMm, out double minOverlap))
+            {
+                ShowError($"Minimum overlap must be a number from 0 to {MaxOptionMm:F0} mm (Options).");
+                return false;
+            }
+            if (!TryParseNumber(AlignToleranceText, 0, MaxOptionMm, out double align))
+            {
+                ShowError($"Alignment tolerance must be a number from 0 to {MaxOptionMm:F0} mm (Options).");
+                return false;
+            }
+            _minOverlapMm = minOverlap;
+            _alignToleranceMm = align;
+
             IsLoading = true;
             // Esc / Cancel with a Yes-No confirm during the (read-only) overlap scan.
             using ToolCancellation cancel = ToolCancellation.BeginFor(ToolCatalog.AnnotationOverlapDetectionV006, null);
@@ -375,7 +500,7 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V006.ViewModels
                 .Where(a => selectedTypes.Contains(a.TypeName))
                 .ToList();
 
-            var results = OverlapDetectionHelper.DetectOverlaps(filtered, AcrossTypes);
+            var results = OverlapDetectionHelper.DetectOverlaps(filtered, AcrossTypes, _minOverlapMm, _alignToleranceMm);
 
             OverlapResults.Clear();
             foreach (var r in results)
@@ -413,7 +538,14 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V006.ViewModels
         [RelayCommand]
         private void ZoomToElement(long elementIdValue)
         {
+            if (!TryParseNumber(ZoomMarginText, 0, 500, out double margin))
+            {
+                ShowError("Zoom margin must be a number from 0 to 500 % (Options).");
+                return;
+            }
             _zoomHandler.ElementIdToZoom = new ElementId(elementIdValue);
+            _zoomHandler.PaddingRatio = margin / 100.0;
+            _zoomHandler.SelectOnZoom = SelectOnZoom;
             _zoomEvent.Raise();
         }
 
@@ -465,7 +597,10 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V006.ViewModels
                 GapMm = gap,
                 PriorityOrder = PriorityRows.Select(r => r.Category).ToList(),
                 NeverMove = new HashSet<AnnotationCategory>(PriorityRows.Where(r => r.NeverMove).Select(r => r.Category)),
-                Tie = SelectedTie?.Value ?? TieRule.Distribute
+                Tie = SelectedTie?.Value ?? TieRule.Distribute,
+                Horizontal = Horizontal,
+                Dimensions = SelectedDimension?.Value ?? DimensionHandling.WholeThenText,
+                SelectMoved = SelectMoved
             };
 
             SaveSettings();
@@ -494,7 +629,21 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V006.ViewModels
             }
 
             _lastStatus = outcome.PairStatus;
-            RunCheck();
+            if (RecheckAfterResolve)
+            {
+                RunCheck();
+            }
+            else
+            {
+                // Keep the rows as they were and show each pair's result in the Status column.
+                var rows = OverlapResults.ToList();
+                OverlapResults.Clear();
+                foreach (var r in rows)
+                {
+                    r.Status = _lastStatus.TryGetValue(ResolveOutcome.PairKey(r.ElementId1, r.ElementId2), out var st) ? st : "Not resolved";
+                    OverlapResults.Add(r);
+                }
+            }
 
             if (!string.IsNullOrEmpty(outcome.Error))
             {
@@ -508,7 +657,9 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V006.ViewModels
                 text += $" {outcome.PairsSkipped} pair(s) skipped or failed; see the Status column.";
             if (outcome.ElementsMoved > 0)
                 text += " One Undo in Revit reverts this run.";
-            if (TotalOverlaps > 0)
+            if (!RecheckAfterResolve)
+                text += " The grid was not re-checked (Options); press Check Overlaps to refresh it.";
+            else if (TotalOverlaps > 0)
                 text += $" {TotalOverlaps} overlap(s) remain.";
 
             InfoMessage = text;

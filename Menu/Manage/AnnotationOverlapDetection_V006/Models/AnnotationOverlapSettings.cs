@@ -10,8 +10,9 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V006.Models
     /// </summary>
     public sealed class AnnotationOverlapSettings
     {
-        /// <summary>Current file format version (2 = V006 priority fields).</summary>
-        public const int CurrentVersion = 2;
+        /// <summary>Current file format version (2 = V006 priority fields, 3 = 6.1.0 options).
+        /// Older files load as they are: missing fields keep the defaults below, which match 6.0.0.</summary>
+        public const int CurrentVersion = 3;
 
         /// <summary>File format version, for future migrations.</summary>
         public int Version { get; set; } = CurrentVersion;
@@ -36,5 +37,29 @@ namespace Revit26_Plugin_Revised.AnnotationOverlapDetection.V006.Models
 
         /// <summary>V006: also compare annotations of different types (false = V005 behaviour).</summary>
         public bool AcrossTypes { get; set; } = false;
+
+        /// <summary>6.1.0: overlap must be deeper than this on both axes, mm (0 = any overlap).</summary>
+        public double MinOverlapMm { get; set; } = 0.0;
+
+        /// <summary>6.1.0: tolerance of the "Aligned" column, mm.</summary>
+        public double AlignToleranceMm { get; set; } = 0.1;
+
+        /// <summary>6.1.0: move left / right instead of up / down.</summary>
+        public bool Horizontal { get; set; } = false;
+
+        /// <summary>6.1.0: dimensions (0 whole then text, 1 text only, 2 never).</summary>
+        public int Dimensions { get; set; } = 0;
+
+        /// <summary>6.1.0: re-check overlaps after each resolve.</summary>
+        public bool RecheckAfterResolve { get; set; } = true;
+
+        /// <summary>6.1.0: select the moved elements after a resolve.</summary>
+        public bool SelectMoved { get; set; } = false;
+
+        /// <summary>6.1.0: zoom margin, percent of the element size.</summary>
+        public double ZoomMarginPercent { get; set; } = 10.0;
+
+        /// <summary>6.1.0: select the element when zooming to it.</summary>
+        public bool SelectOnZoom { get; set; } = true;
     }
 }
