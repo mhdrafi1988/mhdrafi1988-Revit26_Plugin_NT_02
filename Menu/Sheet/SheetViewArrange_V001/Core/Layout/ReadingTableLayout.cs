@@ -68,6 +68,29 @@ namespace Revit26_Plugin_Revised.SheetViewArrange.V001.Core.Layout
         Center
     }
 
+    /// <summary>Which way the reading order flows before it wraps.</summary>
+    public enum FlowMode
+    {
+        /// <summary>Left → right, wrapping into rows top → bottom (the reading-table layout).</summary>
+        Rows,
+
+        /// <summary>Top → bottom, wrapping into columns left → right.</summary>
+        Columns
+    }
+
+    /// <summary>How views of differing width sit inside their own column (column flow only).</summary>
+    public enum ColumnAlignMode
+    {
+        /// <summary>Common left edge.</summary>
+        Left,
+
+        /// <summary>Common right edge.</summary>
+        Right,
+
+        /// <summary>Centred on the column's middle line.</summary>
+        Center
+    }
+
     /// <summary>
     /// Everything <see cref="ReadingTableLayout.Compute(IReadOnlyList{ValueTuple{double, double}}, LayoutRect, LayoutOptions)"/>
     /// needs beyond the sizes and the usable area. The defaults reproduce the original
@@ -92,8 +115,14 @@ namespace Revit26_Plugin_Revised.SheetViewArrange.V001.Core.Layout
         /// <summary>Where the block of rows sits down the height.</summary>
         public VerticalLayoutMode Vertical { get; init; } = VerticalLayoutMode.Auto;
 
-        /// <summary>How views of differing height sit inside their row.</summary>
+        /// <summary>How views of differing height sit inside their row (row flow).</summary>
         public RowAlignMode RowAlign { get; init; } = RowAlignMode.Bottom;
+
+        /// <summary>Which way the order flows before it wraps.</summary>
+        public FlowMode Flow { get; init; } = FlowMode.Rows;
+
+        /// <summary>How views of differing width sit inside their column (column flow).</summary>
+        public ColumnAlignMode ColumnAlign { get; init; } = ColumnAlignMode.Left;
     }
 
     /// <summary>Axis-aligned rectangle in sheet space (feet).</summary>
@@ -179,6 +208,10 @@ namespace Revit26_Plugin_Revised.SheetViewArrange.V001.Core.Layout
     /// the full height, or packed at the minimum gap against the top edge, the bottom edge or the centre.</item>
     /// <item><see cref="LayoutOptions.RowAlign"/> places views of differing height inside their row —
     /// a common bottom line by default, so the view titles line up.</item>
+    /// <item><see cref="FlowMode.Columns"/> wraps on the other axis instead: the order runs top → bottom
+    /// down a column and then across to the next column. The two placement modes swap roles — the
+    /// columns are placed across the width and each column's views down the height — and
+    /// <see cref="LayoutOptions.ColumnAlign"/> places views narrower than their column.</item>
     /// </list>
     /// Pure math, no Revit types — so it can be tested outside Revit.
     /// </summary>
@@ -228,6 +261,9 @@ namespace Revit26_Plugin_Revised.SheetViewArrange.V001.Core.Layout
 
             double minHGap = Math.Max(0, options.MinHorizontalGap);
             double minVGap = Math.Max(0, options.MinVerticalGap);
+
+            if (options.Flow == FlowMode.Columns)
+                return ComputeColumnFlow(sizes, area, minHGap, minVGap, options);
 
             var rows = BuildRows(sizes, area.Width, minHGap);
             result.RowCount = rows.Count;
@@ -389,6 +425,215 @@ namespace Revit26_Plugin_Revised.SheetViewArrange.V001.Core.Layout
             }
 
             return (rowTops, rowHeights, heightFits, totalRowHeight);
+        }
+
+        /// <summary>
+        /// Lays the items out down columns instead of across rows: the order runs top → bottom down a
+        /// column, then across to the next. A slot's <see cref="LayoutSlot.Row"/> is its column index
+        /// and its <see cref="LayoutSlot.Column"/> its place down that column, so the rest of the tool
+        /// reports "band, then position" either way.
+        /// </summary>
+        private static LayoutResult ComputeColumnFlow(
+            IReadOnlyList<(double Width, double Height)> sizes,
+            LayoutRect area,
+            double minHGap,
+            double minVGap,
+            LayoutOptions options)
+        {
+            var result = new LayoutResult();
+            var columns = BuildColumns(sizes, area.Height, minVGap);
+            result.RowCount = columns.Count;
+
+            var columnWidths = columns.Select(col => col.Max(i => sizes[i].Width)).ToList();
+            var (columnXs, _) = Distribute(columnWidths, area.MinX, area.Width, minHGap, AnchorFor(options.Horizontal));
+
+            double totalWidth = columnWidths.Sum();
+            bool widthFits = totalWidth + minHGap * (columns.Count - 1) <= area.Width + Eps;
+            double previousGap = minVGap;
+
+            for (int c = 0; c < columns.Count; c++)
+            {
+                var column = columns[c];
+                var heights = column.Select(i => sizes[i].Height).ToList();
+
+                // Auto spreads every full column over the height and lets only the short last column
+                // follow LastRowMode — the same rule row flow applies to its last row.
+                bool isShortLastColumn = c == columns.Count - 1 && columns.Count > 1;
+                var anchor = options.Vertical == VerticalLayoutMode.Auto
+                    ? (isShortLastColumn ? AnchorForLast(options.LastRowMode) : Anchor.Spread)
+                    : AnchorFor(options.Vertical);
+
+                // A short last column reuses the column before it's gap, so it reads as part of the
+                // same table rather than drifting to its own rhythm.
+                double gapOverride = options.Vertical == VerticalLayoutMode.Auto && isShortLastColumn
+                                     && anchor != Anchor.Spread && column.Count > 1
+                    ? previousGap
+                    : 0;
+
+                var (offsets, usedGap) = Distribute(heights, 0, area.Height, Math.Max(minVGap, gapOverride), anchor);
+                if (column.Count > 1)
+                    previousGap = usedGap;
+
+                for (int k = 0; k < column.Count; k++)
+                {
+                    int i = column[k];
+                    var (w, h) = sizes[i];
+                    double x = options.ColumnAlign switch
+                    {
+                        ColumnAlignMode.Right => columnXs[c] + columnWidths[c] - w,
+                        ColumnAlignMode.Center => columnXs[c] + (columnWidths[c] - w) / 2.0,
+                        _ => columnXs[c]
+                    };
+                    double y = area.MaxY - (offsets[k] + h);
+
+                    result.Slots.Add(new LayoutSlot
+                    {
+                        Index = i,
+                        Row = c,
+                        Column = k,
+                        MinX = x,
+                        MinY = y,
+                        Fits = x >= area.MinX - Eps && x + w <= area.MaxX + Eps
+                               && y >= area.MinY - Eps && y + h <= area.MaxY + Eps
+                    });
+                }
+            }
+
+            result.Slots.Sort((a, b) => a.Index.CompareTo(b.Index));
+            result.AllFit = result.Slots.All(s => s.Fits);
+
+            if (!result.AllFit)
+                result.Problem = DescribeColumnProblem(sizes, area, minHGap, columns.Count, totalWidth, widthFits);
+
+            return result;
+        }
+
+        /// <summary>Where a block of items sits in the span it is distributed over.</summary>
+        private enum Anchor
+        {
+            /// <summary>Spread with equal gaps to fill the span.</summary>
+            Spread,
+
+            /// <summary>Packed at the minimum gap against the start of the span.</summary>
+            Start,
+
+            /// <summary>Packed at the minimum gap against the end of the span.</summary>
+            End,
+
+            /// <summary>Packed at the minimum gap and centred in the span.</summary>
+            Center
+        }
+
+        private static Anchor AnchorFor(HorizontalLayoutMode mode) => mode switch
+        {
+            HorizontalLayoutMode.Left => Anchor.Start,
+            HorizontalLayoutMode.Right => Anchor.End,
+            HorizontalLayoutMode.Center => Anchor.Center,
+            _ => Anchor.Spread // Auto and Justify both spread the columns over the width
+        };
+
+        private static Anchor AnchorFor(VerticalLayoutMode mode) => mode switch
+        {
+            VerticalLayoutMode.Top => Anchor.Start,
+            VerticalLayoutMode.Bottom => Anchor.End,
+            VerticalLayoutMode.Center => Anchor.Center,
+            _ => Anchor.Spread // Auto and Spread both spread the views over the height
+        };
+
+        private static Anchor AnchorForLast(LastRowMode mode) => mode switch
+        {
+            LastRowMode.Justify => Anchor.Spread,
+            LastRowMode.Center => Anchor.Center,
+            _ => Anchor.Start
+        };
+
+        /// <summary>
+        /// Places items one after another along one axis: either spread with equal gaps to fill
+        /// <paramref name="span"/>, or packed at <paramref name="minGap"/> against its start, its end
+        /// or its middle. Returns each item's offset from <paramref name="start"/> and the gap used. A
+        /// block longer than the span always starts at <paramref name="start"/>, so the overflow runs
+        /// off one end only.
+        /// </summary>
+        private static (double[] Offsets, double Gap) Distribute(
+            IReadOnlyList<double> lengths, double start, double span, double minGap, Anchor anchor)
+        {
+            int n = lengths.Count;
+            var offsets = new double[n];
+            if (n == 0)
+                return (offsets, minGap);
+
+            double total = lengths.Sum();
+            double gap = anchor == Anchor.Spread && n > 1
+                ? Math.Max(minGap, (span - total) / (n - 1))
+                : minGap;
+
+            double blockLength = total + gap * (n - 1);
+            double pos = anchor switch
+            {
+                Anchor.End => start + span - blockLength,
+                Anchor.Center => start + (span - blockLength) / 2.0,
+                _ => start
+            };
+            if (blockLength > span + Eps)
+                pos = start;
+
+            for (int k = 0; k < n; k++)
+            {
+                offsets[k] = pos;
+                pos += lengths[k] + gap;
+            }
+
+            return (offsets, gap);
+        }
+
+        /// <summary>Flow-fills columns: an item starts a new column when it would exceed the height.</summary>
+        private static List<List<int>> BuildColumns(IReadOnlyList<(double Width, double Height)> sizes, double height, double minVGap)
+        {
+            var columns = new List<List<int>>();
+            var current = new List<int>();
+            double used = 0;
+
+            for (int i = 0; i < sizes.Count; i++)
+            {
+                double h = sizes[i].Height;
+                double needed = current.Count == 0 ? h : used + minVGap + h;
+                if (current.Count > 0 && needed > height + Eps)
+                {
+                    columns.Add(current);
+                    current = new List<int>();
+                    needed = h;
+                }
+                current.Add(i);
+                used = needed;
+            }
+
+            if (current.Count > 0)
+                columns.Add(current);
+            return columns;
+        }
+
+        private static string DescribeColumnProblem(
+            IReadOnlyList<(double Width, double Height)> sizes,
+            LayoutRect area,
+            double minHGap,
+            int columnCount,
+            double totalWidth,
+            bool widthFits)
+        {
+            const double FeetToMm = 304.8;
+            var problems = new List<string>();
+
+            int tooTall = sizes.Count(s => s.Height > area.Height + Eps);
+            if (tooTall > 0)
+                problems.Add($"{tooTall} view(s) are taller than the usable area");
+
+            double shortBy = totalWidth + minHGap * (columnCount - 1) - area.Width;
+            if (!widthFits && shortBy > Eps)
+                problems.Add($"{columnCount} column(s) need {shortBy * FeetToMm:F0} mm more width than the usable area");
+
+            return problems.Count == 0
+                ? "Some views do not fit in the usable area."
+                : string.Join("; ", problems) + ".";
         }
 
         /// <summary>Flow-fills rows: an item starts a new row when it would exceed the width.</summary>

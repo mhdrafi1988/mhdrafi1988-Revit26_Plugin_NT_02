@@ -190,7 +190,7 @@ The preview canvas is drawn in code-behind from ViewModel.Plan.
                 </Border>
                 <Border Grid.Column="2" Style="{StaticResource MetricCard}">
                     <StackPanel HorizontalAlignment="Center">
-                        <TextBlock Text="Rows" Style="{StaticResource MetricLabel}" HorizontalAlignment="Center"/>
+                        <TextBlock Text="{Binding BandCountLabel}" Style="{StaticResource MetricLabel}" HorizontalAlignment="Center"/>
                         <TextBlock Text="{Binding RowCount}" Style="{StaticResource MetricNumberAccent}" HorizontalAlignment="Center"/>
                         <TextBlock Text="on the sheet" Style="{StaticResource MetricUnit}" HorizontalAlignment="Center"/>
                     </StackPanel>
@@ -311,7 +311,15 @@ The preview canvas is drawn in code-behind from ViewModel.Plan.
 
                             <Border Style="{StaticResource SeparatorLine}"/>
 
-                            <TextBlock Text="Across the width" Style="{StaticResource FieldLabel}" Margin="12,8,12,4"/>
+                            <TextBlock Text="Flow" Style="{StaticResource FieldLabel}" Margin="12,8,12,4"/>
+                            <ComboBox Style="{StaticResource StandardComboBox}" Margin="12,0,12,4"
+                                      ItemsSource="{Binding FlowOptions}"
+                                      DisplayMemberPath="Label" SelectedValuePath="Mode"
+                                      SelectedValue="{Binding Flow}"/>
+                            <TextBlock Style="{StaticResource HintText}" Margin="12,0,12,6"
+                                       Text="Rows: 1 2 3 across, then wrap down. Columns: 1 2 3 down, then wrap across. The Detail Number order is the same either way — only the direction it runs changes."/>
+
+                            <TextBlock Text="Across the width" Style="{StaticResource FieldLabel}" Margin="12,2,12,4"/>
                             <ComboBox Style="{StaticResource StandardComboBox}" Margin="12,0,12,6"
                                       ItemsSource="{Binding HorizontalOptions}"
                                       DisplayMemberPath="Label" SelectedValuePath="Mode"
@@ -323,13 +331,22 @@ The preview canvas is drawn in code-behind from ViewModel.Plan.
                                       DisplayMemberPath="Label" SelectedValuePath="Mode"
                                       SelectedValue="{Binding Vertical}"/>
 
-                            <TextBlock Text="Align views in row" Style="{StaticResource FieldLabel}" Margin="12,2,12,4"/>
+                            <TextBlock Text="Align views in row" Style="{StaticResource FieldLabel}" Margin="12,2,12,4"
+                                       Visibility="{Binding IsRowFlow, Converter={StaticResource BoolToVis}}"/>
                             <ComboBox Style="{StaticResource StandardComboBox}" Margin="12,0,12,4"
+                                      Visibility="{Binding IsRowFlow, Converter={StaticResource BoolToVis}}"
                                       ItemsSource="{Binding RowAlignOptions}"
                                       DisplayMemberPath="Label" SelectedValuePath="Mode"
                                       SelectedValue="{Binding RowAlign}"/>
+                            <TextBlock Text="Align views in column" Style="{StaticResource FieldLabel}" Margin="12,2,12,4"
+                                       Visibility="{Binding IsColumnFlow, Converter={StaticResource BoolToVis}}"/>
+                            <ComboBox Style="{StaticResource StandardComboBox}" Margin="12,0,12,4"
+                                      Visibility="{Binding IsColumnFlow, Converter={StaticResource BoolToVis}}"
+                                      ItemsSource="{Binding ColumnAlignOptions}"
+                                      DisplayMemberPath="Label" SelectedValuePath="Mode"
+                                      SelectedValue="{Binding ColumnAlign}"/>
                             <TextBlock Style="{StaticResource HintText}" Margin="12,0,12,8"
-                                       Text="Left, right, top and bottom mean the margins you set above — everything stays inside the usable area. Packed modes use the minimum gaps; spread modes fill the area."/>
+                                       Text="Left, right, top and bottom mean the margins you set above — everything stays inside the usable area. Packed modes use the minimum gaps; spread modes fill the area. In column flow the two place the columns across the width and each column’s views down the height."/>
 
                             <Border Style="{StaticResource SeparatorLine}"/>
 
@@ -341,7 +358,7 @@ The preview canvas is drawn in code-behind from ViewModel.Plan.
                                       DisplayMemberPath="Label" SelectedValuePath="Mode"
                                       SelectedValue="{Binding LastRowMode}"/>
                             <TextBlock Style="{StaticResource HintText}" Margin="12,0,12,8"
-                                       Text="Used by Auto only, and only with two or more rows: full rows are spread to the width and the short last row follows this choice."/>
+                                       Text="Used by Auto only: full rows are spread to the width and the short last row follows this choice. In column flow it places the short last column down the height instead."/>
 
                             <Border Style="{StaticResource SeparatorLine}"/>
 
@@ -550,7 +567,8 @@ The preview canvas is drawn in code-behind from ViewModel.Plan.
                                     <DataGridTextColumn Header="View" Width="2*" SortMemberPath="ViewName" Binding="{Binding ViewName}"/>
                                     <DataGridTextColumn Header="Type" Width="84" SortMemberPath="ViewType" Binding="{Binding ViewTypeName}"/>
                                     <DataGridTextColumn Header="Size (mm)" Width="82" SortMemberPath="Size" Binding="{Binding SizeText}"/>
-                                    <DataGridTextColumn Header="Row" Width="42" SortMemberPath="Row" Binding="{Binding RowText}"/>
+                                    <DataGridTextColumn Header="{Binding DataContext.BandHeader, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                        Width="56" SortMemberPath="Row" Binding="{Binding RowText}"/>
                                     <DataGridTemplateColumn Header="Status" Width="1.4*" SortMemberPath="Status">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>

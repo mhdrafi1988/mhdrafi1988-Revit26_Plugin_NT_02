@@ -27,6 +27,12 @@ namespace Revit26_Plugin_Revised.SheetViewArrange.V001.UI.ViewModels
     /// <summary>A choice in the "Align views in row" combo box.</summary>
     public sealed record RowAlignOption(RowAlignMode Mode, string Label);
 
+    /// <summary>A choice in the "Flow" combo box.</summary>
+    public sealed record FlowOption(FlowMode Mode, string Label);
+
+    /// <summary>A choice in the "Align views in column" combo box.</summary>
+    public sealed record ColumnAlignOption(ColumnAlignMode Mode, string Label);
+
     /// <summary>A choice in the "Group by" combo box.</summary>
     public sealed record GroupByOption(ArrangeGroupBy Mode, string Label);
 
@@ -102,6 +108,21 @@ namespace Revit26_Plugin_Revised.SheetViewArrange.V001.UI.ViewModels
             new LastRowOption(LastRowMode.Center, "Centre (same gap as row above)")
         };
 
+        /// <summary>Choices for the flow combo box.</summary>
+        public IReadOnlyList<FlowOption> FlowOptions { get; } = new[]
+        {
+            new FlowOption(FlowMode.Rows, "Rows — left to right, wrap down"),
+            new FlowOption(FlowMode.Columns, "Columns — top to bottom, wrap across")
+        };
+
+        /// <summary>Choices for the column-alignment combo box (column flow).</summary>
+        public IReadOnlyList<ColumnAlignOption> ColumnAlignOptions { get; } = new[]
+        {
+            new ColumnAlignOption(ColumnAlignMode.Left, "Left line"),
+            new ColumnAlignOption(ColumnAlignMode.Right, "Right line"),
+            new ColumnAlignOption(ColumnAlignMode.Center, "Centre line")
+        };
+
         /// <summary>Choices for the horizontal-layout combo box.</summary>
         public IReadOnlyList<HorizontalOption> HorizontalOptions { get; } = new[]
         {
@@ -136,7 +157,7 @@ namespace Revit26_Plugin_Revised.SheetViewArrange.V001.UI.ViewModels
             new GroupByOption(ArrangeGroupBy.None, "None"),
             new GroupByOption(ArrangeGroupBy.ViewType, "View type"),
             new GroupByOption(ArrangeGroupBy.Status, "Status"),
-            new GroupByOption(ArrangeGroupBy.Row, "Layout row")
+            new GroupByOption(ArrangeGroupBy.Row, "Layout row / column")
         };
 
         /// <summary>Choices for the show combo box.</summary>
@@ -164,6 +185,8 @@ namespace Revit26_Plugin_Revised.SheetViewArrange.V001.UI.ViewModels
         [ObservableProperty] private HorizontalLayoutMode horizontal;
         [ObservableProperty] private VerticalLayoutMode vertical;
         [ObservableProperty] private RowAlignMode rowAlign;
+        [ObservableProperty] private FlowMode flow;
+        [ObservableProperty] private ColumnAlignMode columnAlign;
         [ObservableProperty] private bool movePinned;
 
         [ObservableProperty] private int viewCount;
@@ -230,6 +253,8 @@ namespace Revit26_Plugin_Revised.SheetViewArrange.V001.UI.ViewModels
             Horizontal = Enum.IsDefined(typeof(HorizontalLayoutMode), s.Horizontal) ? s.Horizontal : HorizontalLayoutMode.Auto;
             Vertical = Enum.IsDefined(typeof(VerticalLayoutMode), s.Vertical) ? s.Vertical : VerticalLayoutMode.Auto;
             RowAlign = Enum.IsDefined(typeof(RowAlignMode), s.RowAlign) ? s.RowAlign : RowAlignMode.Bottom;
+            Flow = Enum.IsDefined(typeof(FlowMode), s.Flow) ? s.Flow : FlowMode.Rows;
+            ColumnAlign = Enum.IsDefined(typeof(ColumnAlignMode), s.ColumnAlign) ? s.ColumnAlign : ColumnAlignMode.Left;
             MovePinned = s.MovePinned;
             GroupBy = Enum.IsDefined(typeof(ArrangeGroupBy), s.GroupBy) ? s.GroupBy : ArrangeGroupBy.None;
 
@@ -252,6 +277,8 @@ namespace Revit26_Plugin_Revised.SheetViewArrange.V001.UI.ViewModels
             Horizontal = Horizontal,
             Vertical = Vertical,
             RowAlign = RowAlign,
+            Flow = Flow,
+            ColumnAlign = ColumnAlign,
             MovePinned = MovePinned,
             GroupBy = GroupBy
         };
@@ -277,6 +304,32 @@ namespace Revit26_Plugin_Revised.SheetViewArrange.V001.UI.ViewModels
         partial void OnVerticalChanged(VerticalLayoutMode value) => Recompute();
 
         partial void OnRowAlignChanged(RowAlignMode value) => Recompute();
+
+        partial void OnColumnAlignChanged(ColumnAlignMode value) => Recompute();
+
+        partial void OnFlowChanged(FlowMode value)
+        {
+            OnPropertyChanged(nameof(IsColumnFlow));
+            OnPropertyChanged(nameof(IsRowFlow));
+            OnPropertyChanged(nameof(BandHeader));
+            OnPropertyChanged(nameof(BandCountLabel));
+            Recompute();
+            Log(LogLevel.Info, value == FlowMode.Columns
+                ? "Flow: columns — the order runs top to bottom down each column, then across."
+                : "Flow: rows — the order runs left to right, wrapping down.");
+        }
+
+        /// <summary>True while the order flows down columns rather than across rows.</summary>
+        public bool IsColumnFlow => Flow == FlowMode.Columns;
+
+        /// <summary>True while the order flows across rows (the inverse of <see cref="IsColumnFlow"/>).</summary>
+        public bool IsRowFlow => Flow == FlowMode.Rows;
+
+        /// <summary>"Row" or "Column" â what the gridâs band number counts in the current flow.</summary>
+        public string BandHeader => IsColumnFlow ? "Column" : "Row";
+
+        /// <summary>"Rows" or "Columns" â the label over the band count.</summary>
+        public string BandCountLabel => IsColumnFlow ? "Columns" : "Rows";
 
         /// <summary>
         /// True while the "Last row" choice has any effect — only
@@ -455,7 +508,7 @@ namespace Revit26_Plugin_Revised.SheetViewArrange.V001.UI.ViewModels
 
             TypeFilterLabel = PopupLabel("Type", TypeFilters);
             StatusFilterLabel = PopupLabel("Status", StatusFilters);
-            RowFilterLabel = PopupLabel("Row", RowFilters);
+            RowFilterLabel = PopupLabel(BandHeader, RowFilters);
 
             var chips = new List<FilterChipViewModel>();
             if (!string.IsNullOrWhiteSpace(SearchText))
@@ -514,7 +567,10 @@ namespace Revit26_Plugin_Revised.SheetViewArrange.V001.UI.ViewModels
                 SyncOptions(RowFilters,
                     data.GroupBy(d => d.RowLabel)
                         .OrderBy(g => g.Key == ArrangeRow.NoValue ? int.MaxValue : int.Parse(g.Key))
-                        .Select(g => (g.Key, g.Key == ArrangeRow.NoValue ? "No row" : "Row " + g.Key, g.Count())));
+                        .Select(g => (g.Key,
+                                      g.Key == ArrangeRow.NoValue ? "No " + BandHeader.ToLowerInvariant()
+                                                                  : BandHeader + " " + g.Key,
+                                      g.Count())));
             }
             finally { _filterSuspend--; }
 

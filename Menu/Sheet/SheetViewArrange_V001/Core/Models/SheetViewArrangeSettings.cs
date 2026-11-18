@@ -11,10 +11,11 @@ namespace Revit26_Plugin_Revised.SheetViewArrange.V001.Core.Models
     {
         /// <summary>
         /// Current settings-file format version. 2 added <see cref="GroupBy"/>; 3 added
-        /// <see cref="Horizontal"/>, <see cref="Vertical"/> and <see cref="RowAlign"/>. Older files
-        /// load unchanged — every new field defaults to the behaviour that version had.
+        /// <see cref="Horizontal"/>, <see cref="Vertical"/> and <see cref="RowAlign"/>; 4 added
+        /// <see cref="Flow"/> and <see cref="ColumnAlign"/>. Older files load unchanged — every new
+        /// field defaults to the behaviour that version had.
         /// </summary>
-        public const int CurrentVersion = 3;
+        public const int CurrentVersion = 4;
 
         /// <summary>Format version of the file this was read from.</summary>
         public int Version { get; set; } = CurrentVersion;
@@ -63,5 +64,16 @@ namespace Revit26_Plugin_Revised.SheetViewArrange.V001.Core.Models
         /// <see cref="RowAlignMode.Bottom"/>, so view titles line up as they always have.
         /// </summary>
         public RowAlignMode RowAlign { get; set; } = RowAlignMode.Bottom;
+
+        /// <summary>
+        /// Which way the reading order flows before it wraps (added in version 4). Defaults to
+        /// <see cref="FlowMode.Rows"/>, the behaviour before the setting existed.
+        /// </summary>
+        public FlowMode Flow { get; set; } = FlowMode.Rows;
+
+        /// <summary>
+        /// How views of differing width sit inside their column, in column flow (added in version 4).
+        /// </summary>
+        public ColumnAlignMode ColumnAlign { get; set; } = ColumnAlignMode.Left;
     }
 }
