@@ -1,0 +1,150 @@
+<title>Bulk Delete</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<!-- UI preview (CLAUDE.md "UI previews"): Bulk Delete 1.0.0 (V001, new tool). Plugin 7.23.0.
+     Shows: the Manage panel slide-out with the new Bulk Delete item and its tooltip, and the Bulk Delete window with line styles loaded.
+     Mirrors: Menu/Manage/BulkDelete_V001/UI/Views/BulkDeleteWindow.xaml (+ UI/ViewModels/ViewModel_BulkDelete.cs),
+              Menu/00_Push_Button_Menu_items/Ribbon/ManageRibbon.cs; version from Shared/Services/ToolCatalog.cs.
+     Artifact: https://claude.ai/artifact/U7aFdtpoXJQhCYTZRx29Rg (republish to this URL on every update)
+     Colours: Shared/SharedStyles.xaml tokens, one light look on purpose (mirrors the light WPF window). -->
+<style>
+/* Layout: one column; each fixed-width Revit piece scrolls inside its own frame. */
+:root{
+  color-scheme:light;
+  --page:#E9EDF1; --window:#F3F5F7; --card:#FFFFFF; --border:#D6DCE3; --input:#B5C2CF; --sep:#E6EAEF;
+  --navy:#1E3A5F; --navy-light:#2C4A6E; --on-dark:#EAF1F8;
+  --text:#1A2B3C; --text2:#5B7185; --text3:#8FA3B8; --bg2:#ECEFF3;
+  --info:#1F5FBF; --info-soft:#E6EEFB; --info-border:#A9C3EE;
+  --ok:#2E7D4F; --ok-soft:#E6F4EC;
+  --warn:#9A5B00; --warn-soft:#FDF1E1; --warn-border:#E8B66B;
+  --err:#B23A35; --err-soft:#FBE8E7;
+  --log-bg:#14283F; --log-text:#EAF1F8; --log-dim:#7E94AA; --log-ok:#4CC18A;
+  --new:#2E7D4F;
+  --ui:'Segoe UI',system-ui,-apple-system,sans-serif; --mono:Consolas,'Cascadia Mono',Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{background:var(--page)}
+body{margin:0;background:var(--page);color:var(--text);font-family:var(--ui);font-size:12.5px;
+  padding-block:24px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.page{max-width:900px;margin:0 auto;display:grid;gap:20px}
+h1{font-size:20px;margin:0 0 4px;font-weight:600;text-wrap:balance}
+h2{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--text2);margin:0 0 8px}
+p{margin:0;line-height:1.5;max-width:75ch}
+.muted{color:var(--text2)}
+.tag{display:inline-block;background:var(--new);color:#FFFFFF;font-size:10px;font-weight:600;letter-spacing:.04em;
+  padding:1px 6px;border-radius:3px;vertical-align:middle;margin-left:6px}
+.sample{display:inline-block;background:var(--warn-soft);color:var(--warn);border:1px solid var(--warn-border);border-radius:3px;padding:2px 8px;font-size:11.5px;margin-top:6px}
+.frame{overflow-x:auto;padding-bottom:4px}
+/* ribbon */
+.ribbon{display:inline-flex;background:var(--card);border:1px solid var(--border)}
+.pnl{display:flex;flex-direction:column;justify-content:space-between;padding:6px 8px 3px;border-right:1px solid var(--border);min-width:120px}
+.pnl:last-child{border-right:0}
+.pnl .items{display:flex;gap:6px;align-items:flex-start;color:var(--text2);font-size:11.5px}
+.pnl .nm{text-align:center;font-size:11px;color:var(--text2);border-top:1px solid var(--sep);margin-top:6px;padding-top:2px}
+.pnl.new{outline:2px solid var(--new);outline-offset:-2px}
+.big{display:flex;flex-direction:column;align-items:center;gap:3px;padding:2px 6px;border:1px solid var(--navy);background:var(--info-soft);color:var(--text);text-align:center;line-height:1.2}
+.ico{width:28px;height:28px;border:2px solid var(--navy);border-radius:3px;position:relative;background:var(--card)}
+.ico::after{content:"";position:absolute;left:5px;top:5px;width:10px;height:10px;border:2px dashed var(--info)}
+.stack{display:grid;gap:2px}
+.tip{width:360px;background:#FFFFF4;border:1px solid #B8B8A0;padding:8px 10px;font-size:12px;box-shadow:0 2px 6px rgba(0,0,0,.2);margin-top:8px;line-height:1.45}
+/* window */
+.win{width:860px;background:var(--window);border:1px solid var(--input);box-shadow:0 6px 20px rgba(16,32,48,.18)}
+.tbar{background:var(--card);border-bottom:1px solid var(--border);padding:7px 10px}
+.hdr{background:var(--navy);color:var(--on-dark);padding:10px 12px;display:flex;justify-content:space-between;align-items:center}
+.hdr b{font-size:15px;font-weight:600}
+.badge{background:var(--navy-light);border-radius:10px;padding:3px 8px;font-size:11px;font-weight:600}
+.body{padding:10px 12px;display:grid;gap:8px}
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.mc{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:7px 10px}
+.mc span{display:block;font-size:10px;letter-spacing:.06em;color:var(--text2);font-weight:600}
+.mc b{font-size:20px;font-variant-numeric:tabular-nums}
+.scope{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.opt{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:7px 10px;display:flex;gap:8px}
+.opt.on{border-color:var(--navy);background:var(--info-soft)}
+.rad{width:13px;height:13px;border-radius:50%;border:1px solid var(--navy);flex:none;margin-top:2px;position:relative;background:var(--card)}
+.opt.on .rad::after{content:"";position:absolute;inset:3px;border-radius:50%;background:var(--navy)}
+.opt b{display:block;font-size:12px;font-weight:600}
+.opt small{color:var(--text2);font-size:11px}
+.tools{display:grid;grid-template-columns:auto 170px auto 1fr auto;gap:8px;align-items:center}
+.sel{border:1px solid var(--input);background:var(--card);border-radius:4px;height:26px;padding:0 8px;display:flex;align-items:center;justify-content:space-between}
+.hdr .s{font-size:11px;opacity:.8;display:block}
+.pill.k{background:var(--text3)}.pill.x{background:var(--err)}
+.note{font-size:11px;color:var(--text2)}
+.in{border:1px solid var(--input);background:var(--card);border-radius:4px;height:26px;padding:0 8px;display:flex;align-items:center;color:var(--text3)}
+.sbtn{border:1px solid var(--border);background:var(--bg2);border-radius:4px;height:26px;padding:0 10px;display:inline-flex;align-items:center;font-size:11.5px;white-space:nowrap}
+.grid{background:var(--card);border:1px solid var(--border);border-radius:6px;overflow:hidden}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{background:var(--bg2);text-align:left;font-weight:600;padding:5px 8px;border-bottom:1px solid var(--border)}
+td{padding:5px 8px;border-bottom:1px solid var(--sep)}
+td.num{font-family:var(--mono);font-variant-numeric:tabular-nums;color:var(--text2)}
+tr.grp td{background:var(--bg2);font-weight:600;font-size:11px}
+tr.grp td small{font-weight:400;color:var(--text2)}
+.cb{width:13px;height:13px;border:1px solid var(--input);display:inline-block;background:var(--card);vertical-align:middle;position:relative}
+.cb.on{background:var(--navy);border-color:var(--navy)}
+.cb.on::after{content:"";position:absolute;left:3px;top:0;width:3px;height:7px;border:solid #FFFFFF;border-width:0 2px 2px 0;transform:rotate(45deg)}
+.pill{display:inline-block;border-radius:8px;padding:1px 8px;color:#FFFFFF;font-size:10px;font-weight:600}
+.pill.v{background:var(--ok)}.pill.h{background:var(--err)}.pill.c{background:var(--warn)}
+.log{background:var(--log-bg);border-radius:6px;padding:6px 10px;font-family:var(--mono);font-size:11.5px;color:var(--log-text);display:grid;gap:2px}
+.log .hd{display:flex;justify-content:space-between;font-family:var(--ui);font-size:10px;font-weight:600;letter-spacing:.06em;color:var(--log-dim)}
+.log .t{color:var(--log-dim);margin-right:8px}
+.log .ok{color:var(--log-ok)}
+.foot{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap;padding:8px 12px;border-top:1px solid var(--border);background:var(--card)}
+.btn{border:1px solid var(--navy);background:var(--navy);color:#FFFFFF;border-radius:4px;padding:5px 12px;font-size:12px;font-weight:600}
+.btn.o{background:var(--card);color:var(--navy)}
+.btn.d{background:var(--err);border-color:var(--err)}
+.btn.new{outline:2px solid var(--new);outline-offset:1px}
+</style>
+<div class="page">
+<header>
+  <h1>Bulk Delete <span class="tag">New tool · v1.0.0</span></h1>
+  <p class="muted">Static mock-up of what you see in Revit. Deletes many line styles, line patterns, arrowheads or fill patterns at once.</p>
+  <span class="sample">Sample data: style names and counts are made up.</span>
+</header>
+
+<section>
+  <h2>Ribbon: Rafi_Pro_Docs2 &gt; Manage (slide-out)</h2>
+  <div class="frame">
+    <div class="ribbon">
+      <div class="pnl"><div class="items stack"><span>Del. Line Styles ▾</span><span>Bulk Rename ▾</span><span class="big" style="flex-direction:row;padding:1px 6px">Bulk Delete ▾ <span class="tag">New</span></span><span>Tracker ID ▾</span></div><div class="nm">Manage ▾ slide-out</div></div>
+    </div>
+    <div class="tip"><b>Bulk Delete — v1.0.0 (build V001)</b><br>Deletes many line styles, line patterns, arrowheads or fill patterns at once. Nothing is ticked at first; you confirm before anything is removed.</div>
+  </div>
+</section>
+
+<section>
+  <h2>Window</h2>
+  <div class="frame"><div class="win">
+    <div class="tbar">Bulk Delete — v1.0.0</div>
+    <div class="hdr"><div><b>Bulk Delete</b><span class="s">Delete many line styles, line patterns, arrowheads or fill patterns at once</span></div><span class="badge">v1.0.0</span></div>
+    <div class="body">
+      <div class="tiles">
+        <div class="mc"><span>ITEMS</span><b>9</b></div>
+        <div class="mc"><span>CAN DELETE</span><b style="color:var(--ok)">6</b></div>
+        <div class="mc"><span>TO DELETE</span><b style="color:var(--err)">3</b></div>
+        <div class="mc"><span>LOCKED</span><b style="color:var(--text2)">3</b></div>
+      </div>
+      <div class="tools"><b>What to delete</b><div class="sel">Line styles <span>▾</span></div><b>Filter</b><div class="in">TMP</div><span class="sbtn">Reload</span></div>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><span class="sbtn">Select All</span><span class="sbtn">Select None</span><span class="sbtn">Select Unused</span><span class="note">Only ticked rows that match the filter are deleted. Locked rows cannot be ticked.</span></div>
+      <div class="grid"><table>
+        <thead><tr><th style="width:34px">☑</th><th>Name</th><th>Details</th><th>Used By</th><th style="width:96px">Status</th></tr></thead>
+        <tbody>
+          <tr><td><span class="cb on"></span></td><td><b>TMP_Old Grid 0.18</b></td><td>Weight 1 · Dash</td><td class="num">0</td><td><span class="pill x">Delete</span></td></tr>
+          <tr><td><span class="cb on"></span></td><td><b>TMP_Markup Red</b></td><td>Weight 3 · Solid</td><td class="num">0</td><td><span class="pill x">Delete</span></td></tr>
+          <tr><td><span class="cb on"></span></td><td><b>TMP_Setout Blue</b></td><td>Weight 2 · Center</td><td class="num">0</td><td><span class="pill x">Delete</span></td></tr>
+          <tr><td><span class="cb"></span></td><td><b>TMP_Survey Line</b></td><td>Weight 1 · Solid</td><td class="num">0</td><td><span class="pill k">Keep</span></td></tr>
+          <tr><td><span class="cb" style="opacity:.4"></span></td><td><b>TMP_Roof Ridge</b></td><td>Weight 4 · Solid</td><td class="num">27 lines</td><td><span class="pill c">Locked</span></td></tr>
+          <tr><td><span class="cb" style="opacity:.4"></span></td><td><b>TMP_Drain Fall</b></td><td>Weight 2 · Dash Dot</td><td class="num">12 lines</td><td><span class="pill c">Locked</span></td></tr>
+        </tbody>
+      </table></div>
+      <div class="log">
+        <div class="hd"><span>LOG</span><span style="display:flex;gap:6px"><span class="sbtn" style="height:20px;font-size:10.5px;color:var(--text)">Copy All</span><span class="sbtn" style="height:20px;font-size:10.5px;color:var(--text)">Copy Selected</span><span class="sbtn" style="height:20px;font-size:10.5px;color:var(--text)">Clear</span><span class="sbtn" style="height:20px;font-size:10.5px;color:var(--text)">Export Log</span></span></div>
+        <div><span class="t">14:05:12</span>Line styles: 9 found, 6 can be deleted.</div>
+      </div>
+    </div>
+    <div class="foot" style="align-items:center">
+      <span class="note" style="margin-right:auto">Delete asks first, then removes every ticked row in one step. Ctrl+Z in Revit undoes it.</span>
+      <span class="btn d">Delete</span><span class="btn o" style="width:90px;text-align:center">Close</span>
+    </div>
+  </div></div>
+  <p class="muted" style="margin-top:8px">Each item is checked again before it is deleted. One that was renamed, is now in use, is owned by another user, or would take other elements with it is skipped and logged.</p>
+</section>
+</div>
