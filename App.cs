@@ -12,6 +12,7 @@ namespace Revit26_Plugin_Revised
     {
         private const string ModellingTabName  = "Rafi_Pro_MOds";
         private const string Modelling2TabName = "Rafi_Pro_MOds2";
+        private const string FloorsTabName     = "Rafi_Pro_Floors";
         private const string DocumentsTabName  = "Rafi_Pro_Docs";
         private const string Documents2TabName = "Rafi_Pro_Docs2";
 
@@ -25,6 +26,7 @@ namespace Revit26_Plugin_Revised
             application.ControlledApplication.ApplicationInitialized += (_, _) => ToolGuard.WarnIfOtherCopiesLoaded();
             EnsureRibbonTabExists(application, ModellingTabName);
             EnsureRibbonTabExists(application, Modelling2TabName);
+            EnsureRibbonTabExists(application, FloorsTabName);
             EnsureRibbonTabExists(application, DocumentsTabName);
             EnsureRibbonTabExists(application, Documents2TabName);
             InitializeRibbonPanels(application);
@@ -54,13 +56,16 @@ namespace Revit26_Plugin_Revised
 
             // Panels appear in the order they are created, so each tab is built in workflow order.
 
-            // ── Modelling 1: roof and floor slope, points, lines, edit ──────
+            // ── Modelling 1: roof slope, shape points, roof tools ───────────
             RoofToolsRibbon.Build(application, ModellingTabName, assemblyPath);
 
             // ── Modelling 2: roof edit/compare, detail lines, utilities ─────
             RoofToolsRibbon.BuildEditComparePanels(application, Modelling2TabName, assemblyPath);
             DetailLInesRibbon.Build(application, Modelling2TabName, assemblyPath);
             RoofToolsRibbon.BuildUtilities(application, Modelling2TabName, assemblyPath);
+
+            // ── Floors: floor slope, points, lines, edit, views ─────────────
+            FloorToolsRibbon.Build(application, FloorsTabName, assemblyPath);
 
             // ── Documents 1: views, then sheets ─────────────────────────────
             ViewToolsRibbon.Build(application, DocumentsTabName, assemblyPath);

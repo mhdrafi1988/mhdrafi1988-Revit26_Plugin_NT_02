@@ -9,6 +9,21 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [7.26.0] — 2026-11-18
+
+### Changed
+- **Ribbon: floor tools have their own tab.** A new tab, **Rafi_Pro_Floors**, holds every floor panel, in workflow
+  order: **Floor Create**, Floor Slope, Floor Points, Floor Lines, Floor Edit and Floor Views.
+  - Floor Slope, Floor Points, Floor Lines and Floor Edit left **Rafi_Pro_MOds**, which now holds only roof panels
+    (Roof Slope, Shape Points, Roof Tools).
+  - Floor Views left **Rafi_Pro_Docs**.
+  - The **Floor From Rooms** pulldown left the Roof Tools panel for the new **Floor Create** panel, the first on the
+    Floors tab. Roof Tools now holds Creaser Adv, Roof Tag and Shape From Link.
+  - No tool version changed; button internal names, commands and settings are unchanged.
+
+User note: the floor buttons moved tabs. A Quick Access Toolbar item or keyboard shortcut you set on a floor button or
+on Floor From Rooms may need to be re-added.
+
 ## [7.25.0] — 2026-11-18
 
 ### Added

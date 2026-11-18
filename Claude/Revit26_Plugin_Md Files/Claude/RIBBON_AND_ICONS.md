@@ -8,20 +8,20 @@ record and not current.
 
 ## Where things live
 
-- `App.cs : InitializeRibbonPanels` creates four tabs and calls the builders in order. Panels appear in the order
+- `App.cs : InitializeRibbonPanels` creates five tabs and calls the builders in order. Panels appear in the order
   they are created.
-  - **Rafi_Pro_MOds** (model 1): `RoofToolsRibbon.Build` (which also calls `FloorToolsRibbon.BuildSlopePanel`,
-    `BuildPointsPanel`, `BuildLinesPanel` and `BuildEditPanel`).
+  - **Rafi_Pro_MOds** (model 1): `RoofToolsRibbon.Build` (roof panels only since 7.26.0).
   - **Rafi_Pro_MOds2** (model 2): `RoofToolsRibbon.BuildEditComparePanels`, `DetailLInesRibbon.Build`,
     `RoofToolsRibbon.BuildUtilities`.
-  - **Rafi_Pro_Docs** (sheets 1): `ViewToolsRibbon` (which also calls `FloorToolsRibbon.BuildViewsPanel`),
-    `SheetToolsRibbon`.
+  - **Rafi_Pro_Floors** (floors): `FloorToolsRibbon.Build` (Floor Create, Floor Slope, Floor Points, Floor Lines,
+    Floor Edit, Floor Views).
+  - **Rafi_Pro_Docs** (sheets 1): `ViewToolsRibbon`, `SheetToolsRibbon`.
   - **Rafi_Pro_Docs2** (sheets 2): `TaggingRibbon`, `SetupRibbon`, `ManageRibbon`.
 - `Menu/00_Push_Button_Menu_items/Ribbon/`: `RoofToolsRibbon.cs`, `FloorRibbon.cs` (class `FloorToolsRibbon`),
   `DetailLInesRibbon.cs`, `DimensionsRibbon.cs`, `ViewToolsRibbon.cs`, `TaggingRibbon.cs`, `SheetToolsRibbon.cs`,
   `SetupRibbon.cs`, `ManageRibbon.cs`, and `RibbonLayoutHelper.cs`. There is no `QuickAcces.cs` any more.
-- Some builders only return a pulldown for another file's panel: `FloorToolsRibbon.CreateFromRoomsPulldown` (Roof
-  Tools panel) and `DimensionsRibbon.CreateDetailLineDimPulldown` (Detail Lines panel).
+- Some builders only return a pulldown for another file's panel: `FloorToolsRibbon.CreateFromRoomsPulldown` (Floor
+  Create panel) and `DimensionsRibbon.CreateDetailLineDimPulldown` (Detail Lines panel).
 - `Resources/Icons/<Category>/<Name>_<16|32>.png`, with one subfolder per category: `RoofTools`, `FloorTools`,
   `DetailLiner`, `Dimensions`, `ViewTools`, `Tagging`, `SheetTools`, `SetupTools`, `Manage`.
 - `Utilities/ImageUtils.cs`: `ImageUtils.Load(resourcePath)` loads an embedded PNG by its dotted
@@ -32,17 +32,13 @@ record and not current.
 Left to right. **▸** marks a slide-out (the arrow on the panel title bar); the items after it sit inside it.
 Each item is a pulldown unless marked *button*. A pulldown lists its versions highest first.
 
-### Modelling (`Rafi_Pro_MOds`, `Rafi_Pro_MOds2`)
+### Roof modelling (`Rafi_Pro_MOds`, `Rafi_Pro_MOds2`)
 
 | Tab | Panel | Items | Builder |
 |---|---|---|---|
 | Rafi_Pro_MOds | Roof Slope | By Point (V034, V033, V032, V030, Ridge V003, Multi Copies 30) · By Drain (V013, V012, V011, V007) · Points & Slope (V001) · Roof Slope Builder (large; V002, V001) | `RoofToolsRibbon.Build` |
-| Rafi_Pro_MOds | Floor Slope | By Drain *button* (Floor Slope By Drain V001) · By Point (By Point V001, Ridge V001, Multi Copies V001) · Points & Slope *button* (Floor Points & Slope V001) | `FloorToolsRibbon.BuildSlopePanel` |
 | Rafi_Pro_MOds | Shape Points | Inner Loops · Outer Curve · Line Intersect · Loops + Perp. ▸ Vertex Reducer · Multi Points · Shape From Link | `RoofToolsRibbon.Build` |
-| Rafi_Pro_MOds | Floor Points | Inner Loops *button* · Outer Curve *button* · Line Intersect *button* · Loops + Perp. *button* · Vertex Reducer *button* · Multi Points *button* · Shape From Link (large *button*) — each V001 | `FloorToolsRibbon.BuildPointsPanel` |
-| Rafi_Pro_MOds | Floor Lines | Crease By Openings *button* · Crease By Points *button* · Floor Creaser *button* — each V001 | `FloorToolsRibbon.BuildLinesPanel` |
-| Rafi_Pro_MOds | Floor Edit | Floor Types *button* · Name Builder *button* · Floor Tag *button* · Comparison *button* · Elevation Sync *button* · Floor EPS *button* — each V001 | `FloorToolsRibbon.BuildEditPanel` |
-| Rafi_Pro_MOds | Roof Tools | Creaser Adv · Roof Tag · Floor From Rooms · Shape From Link | `RoofToolsRibbon.Build` |
+| Rafi_Pro_MOds | Roof Tools | Creaser Adv · Roof Tag · Shape From Link | `RoofToolsRibbon.Build` |
 | Rafi_Pro_MOds2 | Roof Edit | Name Builder · Island Splitter · Merge Roofs · Split Roof | `BuildEditComparePanels` |
 | Rafi_Pro_MOds2 | Roof Plan View | Island Splitter (large *button*) | `BuildEditComparePanels` |
 | Rafi_Pro_MOds2 | Roof Compare | Comparison · Elevation Sync | `BuildEditComparePanels` |
@@ -50,12 +46,24 @@ Each item is a pulldown unless marked *button*. A pulldown lists its versions hi
 | Rafi_Pro_MOds2 | Detail Lines | From Links · Closed Loop · Line Dims · Line Manager (large) | `DetailLInesRibbon.Build` |
 | Rafi_Pro_MOds2 | Roof Utilities | Combined Tools · Ridge Lines (By Openings V070, V069, By Points V059, V058) · Roof Types | `RoofToolsRibbon.BuildUtilities` |
 
+### Floors (`Rafi_Pro_Floors`)
+
+Built by `FloorToolsRibbon.Build` (7.26.0; before that the floor panels sat on the Rafi_Pro_MOds and Rafi_Pro_Docs tabs, and Floor From Rooms on Roof Tools).
+
+| Tab | Panel | Items | Builder |
+|---|---|---|---|
+| Rafi_Pro_Floors | Floor Create | Floor From Rooms (V013, V012, Rooms Plan View V006, V005) | `FloorToolsRibbon.BuildCreatePanel` |
+| Rafi_Pro_Floors | Floor Slope | By Drain *button* (Floor Slope By Drain V001) · By Point (By Point V001, Ridge V001, Multi Copies V001) · Points & Slope *button* (Floor Points & Slope V001) | `FloorToolsRibbon.BuildSlopePanel` |
+| Rafi_Pro_Floors | Floor Points | Inner Loops *button* · Outer Curve *button* · Line Intersect *button* · Loops + Perp. *button* · Vertex Reducer *button* · Multi Points *button* · Shape From Link (large *button*) — each V001 | `FloorToolsRibbon.BuildPointsPanel` |
+| Rafi_Pro_Floors | Floor Lines | Crease By Openings *button* · Crease By Points *button* · Floor Creaser *button* — each V001 | `FloorToolsRibbon.BuildLinesPanel` |
+| Rafi_Pro_Floors | Floor Edit | Floor Types *button* · Name Builder *button* · Floor Tag *button* · Comparison *button* · Elevation Sync *button* · Floor EPS *button* — each V001 | `FloorToolsRibbon.BuildEditPanel` |
+| Rafi_Pro_Floors | Floor Views | Floor Around Edges *button* · Floor Edge Element *button* · Floor Focus *button* — each V001 | `FloorToolsRibbon.BuildViewsPanel` |
+
 ### Documents (`Rafi_Pro_Docs`, `Rafi_Pro_Docs2`)
 
 | Tab | Panel | Items | Builder |
 |---|---|---|---|
 | Rafi_Pro_Docs | View Create | From Lines · Around Edges · Edge Element ▸ Roof Focus · Isolated Section *button* | `ViewToolsRibbon` |
-| Rafi_Pro_Docs | Floor Views | Floor Around Edges *button* · Floor Edge Element *button* · Floor Focus *button* — each V001 | `FloorToolsRibbon.BuildViewsPanel` (called from `ViewToolsRibbon`) |
 | Rafi_Pro_Docs | View Place | Place Sections · Callout To Section · Head Placer · View Tagger | `ViewToolsRibbon` |
 | Rafi_Pro_Docs | View Manage | Plan Region Manager (large *button*) | `ViewToolsRibbon` |
 | Rafi_Pro_Docs | View Rename | Bubble Renumber *button* · Section Renamer *button* · Auto Renamer *button* | `ViewToolsRibbon` |
@@ -70,7 +78,10 @@ Each item is a pulldown unless marked *button*. A pulldown lists its versions hi
 | Rafi_Pro_Docs2 | Memory | WS Memory (large *button*) · Link Memory (large; V002, V001) | `ManageRibbon` |
 | Rafi_Pro_Docs2 | Coordination | Void Openings (large *button*) · Base Level to Parameter (large *button*) | `CoordinationRibbon` |
 
-The latest change was plugin 7.17.0, which gave **Arrange Views** its own icons
+The latest change was plugin 7.26.0, which put every floor panel on a new **Rafi_Pro_Floors** tab, built by
+`FloorToolsRibbon.Build`: Floor Slope, Floor Points, Floor Lines and Floor Edit left Rafi_Pro_MOds, Floor Views left
+Rafi_Pro_Docs, and Floor From Rooms left the Roof Tools panel for a new **Floor Create** panel, the first on the tab.
+Before it, plugin 7.17.0 gave **Arrange Views** its own icons
 (`Resources/Icons/SheetTools/SheetViewArrange_16/32.png`: four views in a reading table with the order running
 through them). It had reused the Rearrange icons since 2.4.0, and the two sit together in the Sheet Create
 slide-out where both render at 16 px, so the buttons were indistinguishable. The same version added **Align & Distribute** (Sheet Align and Distribute V001) to the

@@ -13,21 +13,17 @@ section/sheet management, workset organisation, and detail line tools.
 
 ## Ribbon
 
-SloperPro adds four ribbon tabs (two for model tools, two for sheet tools). Panels are listed left to right, in the order `App.cs` builds them.
+SloperPro adds five ribbon tabs (two for roof and model tools, one for floor tools, two for sheet tools). Panels are listed left to right, in the order `App.cs` builds them.
 A **▸ slide-out** is the arrow on a panel's title bar; the tools listed after it sit in the slide-out.
 Where a tool has several versions, its button is a dropdown listing the newest version first.
 
-**Rafi_Pro_MOds** and **Rafi_Pro_MOds2** (Modelling)
+**Rafi_Pro_MOds** and **Rafi_Pro_MOds2** (Roof modelling)
 
 | Tab | Panel | Tools |
 |---|---|---|
 | Rafi_Pro_MOds | Roof Slope | By Point · By Drain · Points & Slope · Roof Slope Builder (V002, V001) |
-| Rafi_Pro_MOds | Floor Slope | By Drain · By Point (By Point, Ridge, Multi Copies) · Points & Slope |
 | Rafi_Pro_MOds | Shape Points | Inner Loops · Outer Curve · Line Intersect · Loops + Perp. ▸ slide-out: Vertex Reducer · Multi Points · Shape From Link |
-| Rafi_Pro_MOds | Floor Points | Inner Loops · Outer Curve · Line Intersect · Loops + Perp. · Vertex Reducer · Multi Points · Shape From Link |
-| Rafi_Pro_MOds | Floor Lines | Crease By Openings · Crease By Points · Floor Creaser |
-| Rafi_Pro_MOds | Floor Edit | Floor Types · Name Builder · Floor Tag · Comparison · Elevation Sync · Floor EPS |
-| Rafi_Pro_MOds | Roof Tools | Creaser Adv · Roof Tag · Floor From Rooms · Shape From Link |
+| Rafi_Pro_MOds | Roof Tools | Creaser Adv · Roof Tag · Shape From Link |
 | Rafi_Pro_MOds2 | Roof Edit | Name Builder · Island Splitter · Merge Roofs · Split Roof |
 | Rafi_Pro_MOds2 | Roof Plan View | Island Splitter |
 | Rafi_Pro_MOds2 | Roof Compare | Comparison · Elevation Sync |
@@ -35,12 +31,22 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 | Rafi_Pro_MOds2 | Detail Lines | From Links · Closed Loop · Line Dims · Line Manager |
 | Rafi_Pro_MOds2 | Roof Utilities | Combined Tools · Ridge Lines · Roof Types |
 
+**Rafi_Pro_Floors** (Floor modelling)
+
+| Tab | Panel | Tools |
+|---|---|---|
+| Rafi_Pro_Floors | Floor Create | Floor From Rooms |
+| Rafi_Pro_Floors | Floor Slope | By Drain · By Point (By Point, Ridge, Multi Copies) · Points & Slope |
+| Rafi_Pro_Floors | Floor Points | Inner Loops · Outer Curve · Line Intersect · Loops + Perp. · Vertex Reducer · Multi Points · Shape From Link |
+| Rafi_Pro_Floors | Floor Lines | Crease By Openings · Crease By Points · Floor Creaser |
+| Rafi_Pro_Floors | Floor Edit | Floor Types · Name Builder · Floor Tag · Comparison · Elevation Sync · Floor EPS |
+| Rafi_Pro_Floors | Floor Views | Floor Around Edges · Floor Edge Element · Floor Focus |
+
 **Rafi_Pro_Docs** and **Rafi_Pro_Docs2** (Documents)
 
 | Tab | Panel | Tools |
 |---|---|---|
 | Rafi_Pro_Docs | View Create | From Lines · Around Edges · Edge Element ▸ slide-out: Roof Focus · Isolated Section |
-| Rafi_Pro_Docs | Floor Views | Floor Around Edges · Floor Edge Element · Floor Focus |
 | Rafi_Pro_Docs | View Place | Place Sections · Callout To Section · Head Placer · View Tagger |
 | Rafi_Pro_Docs | View Manage | Plan Region Manager |
 | Rafi_Pro_Docs | View Rename | Bubble Renumber *button* · Section Renamer *button* · Auto Renamer *button* |
@@ -105,7 +111,7 @@ Where a tool has several versions, its button is a dropdown listing the newest v
   between matching points (asks before changing a floor type with no Variable layer).
 
 ### Floor views and insulation (new in 6.37.0)
-- **Floor Views** panel (Documents tab): **Floor Edge Around Sections**, **Floor Edge Element Sections** and
+- **Floor Views** panel (Floors tab since 7.26.0): **Floor Edge Around Sections**, **Floor Edge Element Sections** and
   **Floor View Focus**, the floor versions of the roof section and view-focus tools.
 - **Floor EPS** (Floor Edit panel): the floor version of Tapered EPS 2D Pattern. It draws the tapered insulation
   layout as a 2D detail pattern for a floor with a single outer loop.
@@ -126,7 +132,7 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 - **Ridge By Openings / By Points, Combined Roof Tools, Roof Type Manager** (Roof Utilities panel).
 
 ### Floors from rooms
-- **Floors And Roof From Linked Rooms** (Roof Tools ▸ Floor From Rooms): create floors or a roof from rooms in linked
+- **Floors And Roof From Linked Rooms** (Floors tab ▸ Floor Create ▸ Floor From Rooms): create floors or a roof from rooms in linked
   models, directly or through a plan view.
 
 ### Views and sections
@@ -219,7 +225,7 @@ See [CHANGELOG.md](CHANGELOG.md) for the full history and per-tool versions.
 - **Align Spot Elevations 1.9.0**: Quick Align Bends to Tag Horizontal (bend points in a row with a clicked tag).
 
 ### 6.37.0 — 2026-11-03
-- New **Floor Views** panel (Documents tab) and **Floor EPS** on Floor Edit.
+- New **Floor Views** panel (Documents tab; on the Floors tab since 7.26.0) and **Floor EPS** on Floor Edit.
 
 ### 6.36.0 — 2026-11-03
 - New **Floor Edit** panel: Floor Types, Name Builder, Floor Tag, Comparison and Elevation Sync.
