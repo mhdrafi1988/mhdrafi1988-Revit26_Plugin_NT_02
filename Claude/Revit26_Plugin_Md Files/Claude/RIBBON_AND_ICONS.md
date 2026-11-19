@@ -1,6 +1,6 @@
 # Ribbon & Icons
 
-Living reference for adding or changing ribbon buttons and their icons. Updated 2026-11-03 (plugin 6.37.0) from
+Living reference for adding or changing ribbon buttons and their icons. Updated 2026-11-19 (plugin 7.26.3) from
 `App.cs` and `Menu/00_Push_Button_Menu_items/Ribbon/*.cs`. The rules themselves are in the root `CLAUDE.md`
 (Repository conventions: Ribbon, Dropdown version order, Slide-out); this file is the how-to and the current
 layout. For the original cleanup pass, see `Claude/LOGO PROMPT FOLDER/Ribbon_Code_Notes.md`, which is kept as a
@@ -8,15 +8,15 @@ record and not current.
 
 ## Where things live
 
-- `App.cs : InitializeRibbonPanels` creates five tabs and calls the builders in order. Panels appear in the order
+- `App.cs : InitializeRibbonPanels` creates four tabs and calls the builders in order. Panels appear in the order
   they are created.
-  - **Rafi_Pro_MOds** (model 1): `RoofToolsRibbon.Build` (roof panels only since 7.26.0).
-  - **Rafi_Pro_MOds2** (model 2): `RoofToolsRibbon.BuildEditComparePanels`, `DetailLInesRibbon.Build`,
+  - **Rafi_Pro_Roof** (roof): `RoofToolsRibbon.Build`, `RoofToolsRibbon.BuildEditComparePanels`,
     `RoofToolsRibbon.BuildUtilities`.
-  - **Rafi_Pro_Floors** (floors): `FloorToolsRibbon.Build` (Floor Create, Floor Slope, Floor Points, Floor Lines,
-    Floor Edit, Floor Views).
-  - **Rafi_Pro_Docs** (sheets 1): `ViewToolsRibbon`, `SheetToolsRibbon`.
-  - **Rafi_Pro_Docs2** (sheets 2): `TaggingRibbon`, `SetupRibbon`, `ManageRibbon`.
+  - **Rafi_Pro_Floors** (floors + waterproofing): `FloorToolsRibbon.Build`,
+    `SheetToolsRibbon.BuildWaterproofingPanel`.
+  - **Rafi_Pro_Model** (model): `CoordinationRibbon.Build`, `ManageRibbon.Build`, `SetupRibbon.Build`.
+  - **Rafi_Pro_Docs** (docs): `ViewToolsRibbon.Build`, `SheetToolsRibbon.Build`, `TaggingRibbon.Build`,
+    `DetailLInesRibbon.Build`.
 - `Menu/00_Push_Button_Menu_items/Ribbon/`: `RoofToolsRibbon.cs`, `FloorRibbon.cs` (class `FloorToolsRibbon`),
   `DetailLInesRibbon.cs`, `DimensionsRibbon.cs`, `ViewToolsRibbon.cs`, `TaggingRibbon.cs`, `SheetToolsRibbon.cs`,
   `SetupRibbon.cs`, `ManageRibbon.cs`, and `RibbonLayoutHelper.cs`. There is no `QuickAcces.cs` any more.
@@ -32,23 +32,22 @@ record and not current.
 Left to right. **▸** marks a slide-out (the arrow on the panel title bar); the items after it sit inside it.
 Each item is a pulldown unless marked *button*. A pulldown lists its versions highest first.
 
-### Roof modelling (`Rafi_Pro_MOds`, `Rafi_Pro_MOds2`)
+### Roof (`Rafi_Pro_Roof`)
 
 | Tab | Panel | Items | Builder |
 |---|---|---|---|
-| Rafi_Pro_MOds | Roof Slope | By Point (V034, V033, V032, V030, Ridge V003, Multi Copies 30) · By Drain (V013, V012, V011, V007) · Points & Slope (V001) · Roof Slope Builder (large; V002, V001) | `RoofToolsRibbon.Build` |
-| Rafi_Pro_MOds | Shape Points | Inner Loops · Outer Curve · Line Intersect · Loops + Perp. ▸ Vertex Reducer · Multi Points · Shape From Link | `RoofToolsRibbon.Build` |
-| Rafi_Pro_MOds | Roof Tools | Creaser Adv · Roof Tag · Shape From Link | `RoofToolsRibbon.Build` |
-| Rafi_Pro_MOds2 | Roof Edit | Name Builder · Island Splitter · Merge Roofs · Split Roof | `BuildEditComparePanels` |
-| Rafi_Pro_MOds2 | Roof Plan View | Island Splitter (large *button*) | `BuildEditComparePanels` |
-| Rafi_Pro_MOds2 | Roof Compare | Comparison · Elevation Sync | `BuildEditComparePanels` |
-| Rafi_Pro_MOds2 | Roof Insulation | EPS 2D Pattern (V006, V005, V004, V002, V001) | `BuildEditComparePanels` |
-| Rafi_Pro_MOds2 | Detail Lines | From Links · Closed Loop · Line Dims · Line Manager (large) | `DetailLInesRibbon.Build` |
-| Rafi_Pro_MOds2 | Roof Utilities | Combined Tools · Ridge Lines (By Openings V070, V069, By Points V059, V058) · Roof Types | `RoofToolsRibbon.BuildUtilities` |
+| Rafi_Pro_Roof | Roof Slope | By Point (V034, V033, V032, V030, Ridge V003, Multi Copies 30) · By Drain (V013, V012, V011, V007) · Points & Slope (V001) · Roof Slope Builder (large; V002, V001) | `RoofToolsRibbon.Build` |
+| Rafi_Pro_Roof | Shape Points | Inner Loops · Outer Curve · Line Intersect · Loops + Perp. ▸ Vertex Reducer · Multi Points · Shape From Link | `RoofToolsRibbon.Build` |
+| Rafi_Pro_Roof | Roof Tools | Creaser Adv · Roof Tag · Shape From Link | `RoofToolsRibbon.Build` |
+| Rafi_Pro_Roof | Roof Edit | Name Builder · Island Splitter · Merge Roofs · Split Roof | `BuildEditComparePanels` |
+| Rafi_Pro_Roof | Roof Plan View | Island Splitter (large *button*) | `BuildEditComparePanels` |
+| Rafi_Pro_Roof | Roof Compare | Comparison · Elevation Sync | `BuildEditComparePanels` |
+| Rafi_Pro_Roof | Roof Insulation | EPS 2D Pattern (V006, V005, V004, V002, V001) | `BuildEditComparePanels` |
+| Rafi_Pro_Roof | Roof Utilities | Combined Tools · Ridge Lines (By Openings V070, V069, By Points V059, V058) · Roof Types | `RoofToolsRibbon.BuildUtilities` |
 
-### Floors (`Rafi_Pro_Floors`)
+### Floors + Waterproofing (`Rafi_Pro_Floors`)
 
-Built by `FloorToolsRibbon.Build` (7.26.0; before that the floor panels sat on the Rafi_Pro_MOds and Rafi_Pro_Docs tabs, and Floor From Rooms on Roof Tools).
+Floor panels built by `FloorToolsRibbon.Build`; Waterproofing panel built by `SheetToolsRibbon.BuildWaterproofingPanel`.
 
 | Tab | Panel | Items | Builder |
 |---|---|---|---|
@@ -58,8 +57,20 @@ Built by `FloorToolsRibbon.Build` (7.26.0; before that the floor panels sat on t
 | Rafi_Pro_Floors | Floor Lines | Crease By Openings *button* · Crease By Points *button* · Floor Creaser *button* — each V001 | `FloorToolsRibbon.BuildLinesPanel` |
 | Rafi_Pro_Floors | Floor Edit | Floor Types *button* · Name Builder *button* · Floor Tag *button* · Comparison *button* · Elevation Sync *button* · Floor EPS *button* — each V001 | `FloorToolsRibbon.BuildEditPanel` |
 | Rafi_Pro_Floors | Floor Views | Floor Around Edges *button* · Floor Edge Element *button* · Floor Focus *button* — each V001 | `FloorToolsRibbon.BuildViewsPanel` |
+| Rafi_Pro_Floors | Waterproofing | Wet Area Waterproofing *button* (large) | `SheetToolsRibbon.BuildWaterproofingPanel` |
 
-### Documents (`Rafi_Pro_Docs`, `Rafi_Pro_Docs2`)
+### Model (`Rafi_Pro_Model`)
+
+| Tab | Panel | Items | Builder |
+|---|---|---|---|
+| Rafi_Pro_Model | Coordination | Void Openings (large *button*) · Base Level to Parameter (large *button*) | `CoordinationRibbon` |
+| Rafi_Pro_Model | Manage | Overlaps (V007, V006) · Overlap Report *button* · ParaManager · Shared Params *button* · Schedule I/O · Link Check (8 entries: V007, V006, then V004 and V003 scan modes) ▸ Del. Line Styles · Bulk Rename · Bulk Delete · Tracker ID | `ManageRibbon` |
+| Rafi_Pro_Model | Worksets | WS Browser · WS Creator · WS Renamer ▸ WS Renamer XL · Delete Workset | `ManageRibbon` |
+| Rafi_Pro_Model | Memory | WS Memory (large *button*) · Link Memory (large; V002, V001) | `ManageRibbon` |
+| Rafi_Pro_Model | DWG Tools | DWG To DL(P) · Export DWG · DWG Manager · DWG Statistics | `SetupRibbon` |
+| Rafi_Pro_Model | Family Tools | Batch Link DWG · DWG To Lines | `SetupRibbon` |
+
+### Documents (`Rafi_Pro_Docs`)
 
 | Tab | Panel | Items | Builder |
 |---|---|---|---|
@@ -67,20 +78,16 @@ Built by `FloorToolsRibbon.Build` (7.26.0; before that the floor panels sat on t
 | Rafi_Pro_Docs | View Place | Place Sections · Callout To Section · Head Placer · View Tagger | `ViewToolsRibbon` |
 | Rafi_Pro_Docs | View Manage | Plan Region Manager (large *button*) | `ViewToolsRibbon` |
 | Rafi_Pro_Docs | View Rename | Bubble Renumber *button* · Section Renamer *button* · Auto Renamer *button* | `ViewToolsRibbon` |
-| Rafi_Pro_Docs2 | Tagging | Tag To Text, Align Spot Elevations, Align to Detail Line, Distribute Spot Elev. (large *buttons*) · 3 small *split buttons* (last used item runs, kept across restarts): Quick Align Vertical ▾ (tags / ends / bends) · Quick Align Horizontal ▾ (tags / ends / bends) · Quick Align to Tag ▾ (ends / bends / bends horizontal / bends vertical) · 2 small *split buttons* (same memory): Quick Distribute Vertical ▾ (tags / ends / bends) · Quick Distribute Horizontal ▾ (tags / ends / bends) | `TaggingRibbon` |
 | Rafi_Pro_Docs | Sheet Create | Scope Box · Sheet Placer · Section Placer · Sections To Sheet *button* · Combine Sheets *button* ▸ Rearrange (V030, V029, V028) · Arrange Views *button* | `SheetToolsRibbon` |
 | Rafi_Pro_Docs | Sheet Edit | Text Replace *button* (large) · Align & Distribute *button* (large) | `SheetToolsRibbon` |
-| Rafi_Pro_Docs | Waterproofing | Wet Area Waterproofing *button* (large) | `SheetToolsRibbon` |
-| Rafi_Pro_Docs2 | DWG Tools | DWG To DL(P) · Export DWG · DWG Manager · DWG Statistics | `SetupRibbon` |
-| Rafi_Pro_Docs2 | Family Tools | Batch Link DWG · DWG To Lines | `SetupRibbon` |
-| Rafi_Pro_Docs2 | Manage | Overlaps (V007, V006) · Overlap Report *button* · ParaManager · Shared Params *button* · Schedule I/O · Link Check (8 entries: V007, V006, then V004 and V003 scan modes) ▸ Del. Line Styles · Bulk Rename · Bulk Delete · Tracker ID | `ManageRibbon` |
-| Rafi_Pro_Docs2 | Worksets | WS Browser · WS Creator · WS Renamer ▸ WS Renamer XL · Delete Workset | `ManageRibbon` |
-| Rafi_Pro_Docs2 | Memory | WS Memory (large *button*) · Link Memory (large; V002, V001) | `ManageRibbon` |
-| Rafi_Pro_Docs2 | Coordination | Void Openings (large *button*) · Base Level to Parameter (large *button*) | `CoordinationRibbon` |
+| Rafi_Pro_Docs | Tagging | Tag To Text, Align Spot Elevations, Align to Detail Line, Distribute Spot Elev. (large *buttons*) · 3 small *split buttons* (last used item runs, kept across restarts): Quick Align Vertical ▾ (tags / ends / bends) · Quick Align Horizontal ▾ (tags / ends / bends) · Quick Align to Tag ▾ (ends / bends / bends horizontal / bends vertical) · 2 small *split buttons* (same memory): Quick Distribute Vertical ▾ (tags / ends / bends) · Quick Distribute Horizontal ▾ (tags / ends / bends) | `TaggingRibbon` |
+| Rafi_Pro_Docs | Detail Lines | From Links · Closed Loop · Line Dims · Line Manager (large) | `DetailLInesRibbon.Build` |
 
-The latest change was plugin 7.26.0, which put every floor panel on a new **Rafi_Pro_Floors** tab, built by
-`FloorToolsRibbon.Build`: Floor Slope, Floor Points, Floor Lines and Floor Edit left Rafi_Pro_MOds, Floor Views left
-Rafi_Pro_Docs, and Floor From Rooms left the Roof Tools panel for a new **Floor Create** panel, the first on the tab.
+The latest change was plugin 7.26.3, which reorganised five tabs into four: **Rafi_Pro_MOds** and **Rafi_Pro_MOds2**
+merged into **Rafi_Pro_Roof** (all roof panels); **Rafi_Pro_Floors** gained the **Waterproofing** panel (moved from
+Docs, built by `SheetToolsRibbon.BuildWaterproofingPanel`); a new **Rafi_Pro_Model** tab took Coordination, Manage,
+Worksets, Memory, DWG Tools and Family Tools; and **Rafi_Pro_Docs** (the only surviving Docs tab) now holds Views,
+Sheets, Tagging and Detail Lines. Before it, plugin 7.26.0 put every floor panel on a new **Rafi_Pro_Floors** tab.
 Before it, plugin 7.17.0 gave **Arrange Views** its own icons
 (`Resources/Icons/SheetTools/SheetViewArrange_16/32.png`: four views in a reading table with the order running
 through them). It had reused the Rearrange icons since 2.4.0, and the two sit together in the Sheet Create
