@@ -31,7 +31,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             {
                 Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.Dimensions.AutoDimDetailLine_16.png"),
                 ToolTip = RibbonLayoutHelper.VersionTip("Auto Dim Detail Line", "V010",
-                    "V009 on the shared ToolWindowShell (log in body).")
+                    "Adds dimensions to detail lines and line-based detail items in the active view.")
             };
             versions = new[] { dtlLineV010, dtlLineV009 };
             return RibbonLayoutHelper.CreatePulldownButtonData(DetailLineDimPulldownName, "Line Dims", dtlLineV010);
