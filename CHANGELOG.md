@@ -9,6 +9,22 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [7.26.3] — 2026-11-19
+
+### Fixed
+- **Auto Slope By Point (V033, V034), Auto Slope By Drain and DWG Statistics** — closing the window could leave a
+  Revit event handler attached. Unsubscribing happens on the WPF thread, where Revit refuses it ("Revit is
+  currently not within an API context"), so the handler now finishes the job itself the next time Revit calls it,
+  which is inside an API context. From `claude/dreamy-volta-2uiyhg`.
+
+### Changed
+- **CLAUDE.md** — new robustness rule: Revit events need an API context. Never unsubscribe in a window's
+  `Closing`/`Closed` handler or a ViewModel `Dispose`; set a flag there and let the event handler (or an
+  `ExternalEvent`) do it.
+
+**User notes**
+- No tool version changed and nothing looks different; the tools just let go of their Revit event handlers cleanly.
+
 ## [7.26.2] — 2026-11-19
 
 ### Changed
