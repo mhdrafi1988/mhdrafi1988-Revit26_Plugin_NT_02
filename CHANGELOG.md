@@ -9,6 +9,19 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [7.26.2] — 2026-11-19
+
+### Changed
+- **Ribbon tooltips** — eleven buttons described their own build history ("V006 on the shared ToolWindowShell
+  (log in body)") instead of what the tool does. They now say what the tool does: Detail Lines From Links,
+  Detail Line Closed Loop, Auto Dim Detail Line, Floors And Roof From Linked Rooms (both versions), DWG To Lines,
+  DWG To Detail Lines, Plan From Scope Box, Smart View To Sheet Placer, Automated Section Placer and Sheet Auto
+  Rearrange. From `claude/blissful-pascal-5giafk`; the tooltips it would have changed on the Manage, Roof Tools
+  and View Tools ribbons already carry descriptions in main, so those were left as they are.
+
+**User notes**
+- Tooltip text only. No button name, command or behaviour changed.
+
 ## [7.26.1] — 2026-11-18
 
 ### Fixed

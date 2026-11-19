@@ -25,7 +25,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             {
                 Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.DetailLiner.Linematch32_16.png"),
                 ToolTip = RibbonLayoutHelper.VersionTip("Detail Lines From Links", "VA009",
-                    "VA008 on the shared ToolWindowShell (log in body, element-selection lists scroll with the body).")
+                    "Draws detail lines in the active view from elements you choose in linked models.")
             };
             var linesVA010 = new PushButtonData("Btn_ DeatailLInes VA010", "From Links VA010", assemblyPath, "Revit26_Plugin_Revised.LinkedDetailLineGenerator.VA010.Commands.OpenLinkedDetailLineGeneratorCommand")
             {
@@ -45,7 +45,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             {
                 Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.DetailLiner.ClosedLoop_16.png"),
                 ToolTip = RibbonLayoutHelper.VersionTip("Detail Line Closed Loop", "V003",
-                    "V002 on the shared ToolWindowShell (log in body, capped grid).")
+                    "Trim, merge and close a detail-line boundary.")
             };
             var closedLoopPulldownData = RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_DetailLineClosedLoop", "Closed Loop", closedLoopV003);
 
