@@ -10,11 +10,10 @@ namespace Revit26_Plugin_Revised
     /// </summary>
     public partial class App : IExternalApplication
     {
-        private const string ModellingTabName  = "Rafi_Pro_MOds";
-        private const string Modelling2TabName = "Rafi_Pro_MOds2";
-        private const string FloorsTabName     = "Rafi_Pro_Floors";
-        private const string DocumentsTabName  = "Rafi_Pro_Docs";
-        private const string Documents2TabName = "Rafi_Pro_Docs2";
+        private const string RoofTabName   = "Rafi_Pro_Roof";
+        private const string FloorsTabName = "Rafi_Pro_Floors";
+        private const string ModelTabName  = "Rafi_Pro_Model";
+        private const string DocsTabName   = "Rafi_Pro_Docs";
 
         public Result OnStartup(UIControlledApplication application)
         {
@@ -24,11 +23,10 @@ namespace Revit26_Plugin_Revised
             // Once every add-in is loaded, warn if another copy of this one is loaded too: its old
             // styles can break tool windows.
             application.ControlledApplication.ApplicationInitialized += (_, _) => ToolGuard.WarnIfOtherCopiesLoaded();
-            EnsureRibbonTabExists(application, ModellingTabName);
-            EnsureRibbonTabExists(application, Modelling2TabName);
+            EnsureRibbonTabExists(application, RoofTabName);
             EnsureRibbonTabExists(application, FloorsTabName);
-            EnsureRibbonTabExists(application, DocumentsTabName);
-            EnsureRibbonTabExists(application, Documents2TabName);
+            EnsureRibbonTabExists(application, ModelTabName);
+            EnsureRibbonTabExists(application, DocsTabName);
             InitializeRibbonPanels(application);
             return Result.Succeeded;
         }
@@ -56,26 +54,25 @@ namespace Revit26_Plugin_Revised
 
             // Panels appear in the order they are created, so each tab is built in workflow order.
 
-            // ── Modelling 1: roof slope, shape points, roof tools ───────────
-            RoofToolsRibbon.Build(application, ModellingTabName, assemblyPath);
+            // ── Roof: all roof panels on one tab ───────────────────────────
+            RoofToolsRibbon.Build(application, RoofTabName, assemblyPath);
+            RoofToolsRibbon.BuildEditComparePanels(application, RoofTabName, assemblyPath);
+            RoofToolsRibbon.BuildUtilities(application, RoofTabName, assemblyPath);
 
-            // ── Modelling 2: roof edit/compare, detail lines, utilities ─────
-            RoofToolsRibbon.BuildEditComparePanels(application, Modelling2TabName, assemblyPath);
-            DetailLInesRibbon.Build(application, Modelling2TabName, assemblyPath);
-            RoofToolsRibbon.BuildUtilities(application, Modelling2TabName, assemblyPath);
-
-            // ── Floors: floor slope, points, lines, edit, views ─────────────
+            // ── Floors: floor tools + waterproofing ────────────────────────
             FloorToolsRibbon.Build(application, FloorsTabName, assemblyPath);
+            SheetToolsRibbon.BuildWaterproofingPanel(application, FloorsTabName, assemblyPath);
 
-            // ── Documents 1: views, then sheets ─────────────────────────────
-            ViewToolsRibbon.Build(application, DocumentsTabName, assemblyPath);
-            SheetToolsRibbon.Build(application, DocumentsTabName, assemblyPath);
+            // ── Model: coordination, manage, worksets, DWG/family setup ────
+            CoordinationRibbon.Build(application, ModelTabName, assemblyPath);
+            ManageRibbon.Build(application, ModelTabName, assemblyPath);
+            SetupRibbon.Build(application, ModelTabName, assemblyPath);
 
-            // ── Documents 2: tagging, DWG/family setup, model management ────
-            TaggingRibbon.Build(application, Documents2TabName, assemblyPath);
-            SetupRibbon.Build(application, Documents2TabName, assemblyPath);
-            ManageRibbon.Build(application, Documents2TabName, assemblyPath);
-            CoordinationRibbon.Build(application, Documents2TabName, assemblyPath);
+            // ── Docs: views, sheets, tagging, detail lines ─────────────────
+            ViewToolsRibbon.Build(application, DocsTabName, assemblyPath);
+            SheetToolsRibbon.Build(application, DocsTabName, assemblyPath);
+            TaggingRibbon.Build(application, DocsTabName, assemblyPath);
+            DetailLInesRibbon.Build(application, DocsTabName, assemblyPath);
         }
     }
 }
