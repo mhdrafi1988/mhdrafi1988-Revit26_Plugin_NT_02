@@ -25,14 +25,19 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.UI.ViewModels
             _perItem = setting.AllMatches ? PerItemChoices[1] : PerItemChoices[0];
             _lengthText = setting.LengthMm.ToString("0.#", CultureInfo.CurrentCulture);
             _draftingViewName = setting.DraftingViewName;
+            _selectedMode = setting.Mode == SectionMode.Callout ? ModeChoices[1] : ModeChoices[0];
             _changed = changed;
         }
 
         /// <summary>Choices for "Per item".</summary>
         public static IReadOnlyList<string> PerItemChoices { get; } = new[] { "One (nearest centre)", "All matches" };
+        /// <summary>Choices for "Mode".</summary>
+        public static IReadOnlyList<string> ModeChoices { get; } = new[] { "Ref. Section", "Callout" };
 
         /// <summary>Choices for this row's "Per item" box.</summary>
         public IReadOnlyList<string> Choices => PerItemChoices;
+        /// <summary>Choices for this row's "Mode" box.</summary>
+        public IReadOnlyList<string> Modes => ModeChoices;
 
         /// <summary>What is cut.</summary>
         public SectionTargetKind Kind { get; }
@@ -42,16 +47,20 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.UI.ViewModels
         public bool CanHaveMany => Kind is not (SectionTargetKind.FullRoomH or SectionTargetKind.FullRoomV or SectionTargetKind.WallFloor);
         /// <summary>"Past room" for the full-room cuts, "Length" for the others.</summary>
         public string LengthLabel => Kind is SectionTargetKind.FullRoomH or SectionTargetKind.FullRoomV ? "Past room" : "Length";
+        /// <summary>Whether this row is in callout mode.</summary>
+        public bool IsCallout => SelectedMode == ModeChoices[1];
 
         [ObservableProperty] private bool _on;
         [ObservableProperty] private string _perItem;
         [ObservableProperty] private string _lengthText;
         [ObservableProperty] private string _draftingViewName;
+        [ObservableProperty] private string _selectedMode;
 
         partial void OnOnChanged(bool value) => _changed?.Invoke();
         partial void OnPerItemChanged(string value) => _changed?.Invoke();
         partial void OnLengthTextChanged(string value) => _changed?.Invoke();
         partial void OnDraftingViewNameChanged(string value) => _changed?.Invoke();
+        partial void OnSelectedModeChanged(string value) { OnPropertyChanged(nameof(IsCallout)); _changed?.Invoke(); }
 
         /// <summary>The row as a setting; null (with <paramref name="error"/>) when the length is not a valid number.</summary>
         public SectionTargetSetting ToSetting(out string error)
@@ -67,7 +76,8 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.UI.ViewModels
             return new SectionTargetSetting
             {
                 Kind = Kind, On = On, AllMatches = CanHaveMany && PerItem == PerItemChoices[1],
-                LengthMm = length, DraftingViewName = (DraftingViewName ?? string.Empty).Trim()
+                LengthMm = length, DraftingViewName = (DraftingViewName ?? string.Empty).Trim(),
+                Mode = IsCallout ? SectionMode.Callout : SectionMode.ReferenceSection
             };
         }
     }
@@ -128,6 +138,8 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.UI.ViewModels
         public ObservableCollection<string> PlanTemplates { get; } = new();
         /// <summary>Drafting views in the project.</summary>
         public ObservableCollection<string> DraftingViews { get; } = new();
+        /// <summary>Detail view family types in the project (for callout sections).</summary>
+        public ObservableCollection<string> DetailViewTypes { get; } = new();
         /// <summary>The "Section targets" table, in order.</summary>
         public ObservableCollection<TargetRowViewModel> Targets { get; } = new();
         /// <summary>The "Search targets in" list.</summary>
@@ -150,6 +162,9 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.UI.ViewModels
         [ObservableProperty] private string _wcKeywordsText;
         [ObservableProperty] private string _showerKeywordsText;
         [ObservableProperty] private string _sectionsSummary = string.Empty;
+        [ObservableProperty] private string _selectedCalloutViewType;
+        [ObservableProperty] private string _calloutScaleText;
+        [ObservableProperty] private string _calloutMarginText;
 
         partial void OnCreateRoofsChanged(bool value) => RunCommand.NotifyCanExecuteChanged();
         partial void OnCreatePlansChanged(bool value) => RunCommand.NotifyCanExecuteChanged();
@@ -172,6 +187,8 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.UI.ViewModels
             _oneDraftingViewForAll = _settings.OneDraftingViewForAll;
             _draftingViewPerTarget = !_settings.OneDraftingViewForAll;
             _sharedDraftingViewName = _settings.SharedDraftingViewName;
+            _calloutScaleText = _settings.CalloutScale.ToString(CultureInfo.CurrentCulture);
+            _calloutMarginText = Text(_settings.CalloutMarginMm);
             _drainKeywordsText = string.Join(", ", _settings.DrainKeywords);
             _wcKeywordsText = string.Join(", ", _settings.WcKeywords);
             _showerKeywordsText = string.Join(", ", _settings.ShowerKeywords);
@@ -198,6 +215,10 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.UI.ViewModels
                 if (!wanted.Contains(DraftingViews[i])) DraftingViews.RemoveAt(i);
             foreach (string name in snapshot.DraftingViews)
                 if (!DraftingViews.Contains(name)) DraftingViews.Add(name);
+
+            Replace(DetailViewTypes, snapshot.DetailViewTypes);
+            string wantedCalloutType = SelectedCalloutViewType ?? _settings.CalloutViewTypeName;
+            SelectedCalloutViewType = DetailViewTypes.Contains(wantedCalloutType) ? wantedCalloutType : DetailViewTypes.FirstOrDefault();
 
             Sources.Clear();
             foreach (var model in snapshot.Sources.GroupBy(x => x.Model))
@@ -238,7 +259,9 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.UI.ViewModels
         private bool PushViewSettings()
         {
             if (!Number(CropMarginText, "Crop margin", 0, 10000, out double margin)
-                || !Number(PlanScaleText, "Plan scale", 1, 5000, out double scale)) return false;
+                || !Number(PlanScaleText, "Plan scale", 1, 5000, out double scale)
+                || !Number(CalloutScaleText, "Callout scale", 1, 5000, out double calloutScale)
+                || !Number(CalloutMarginText, "Callout margin", 0, 10000, out double calloutMargin)) return false;
 
             var targets = new List<SectionTargetSetting>();
             foreach (TargetRowViewModel row in Targets)
@@ -263,6 +286,9 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.UI.ViewModels
             _settings.Targets = targets;
             _settings.OneDraftingViewForAll = OneDraftingViewForAll;
             _settings.SharedDraftingViewName = SharedDraftingViewName;
+            _settings.CalloutViewTypeName = SelectedCalloutViewType ?? string.Empty;
+            _settings.CalloutScale = (int)Math.Round(calloutScale);
+            _settings.CalloutMarginMm = calloutMargin;
             _settings.DrainKeywords = Split(DrainKeywordsText);
             _settings.WcKeywords = Split(WcKeywordsText);
             _settings.ShowerKeywords = Split(ShowerKeywordsText);
