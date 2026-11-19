@@ -1,4 +1,5 @@
 using Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Geometry;
+using Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,10 +22,12 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Sections
     /// <param name="CutCategory">Its category, or empty.</param>
     /// <param name="CutName">Its "Family : Type", or empty.</param>
     /// <param name="CutModel">"Host", a link name, or empty.</param>
-    /// <param name="DraftingViewName">Drafting view the section points to.</param>
+    /// <param name="DraftingViewName">Drafting view the section points to (empty for callouts).</param>
+    /// <param name="Mode">Reference section or callout.</param>
     public sealed record PlannedSection(
         SectionTargetKind Kind, string Label, Pt Head, Pt Tail,
-        long CutElementId, string CutCategory, string CutName, string CutModel, string DraftingViewName);
+        long CutElementId, string CutCategory, string CutName, string CutModel, string DraftingViewName,
+        SectionMode Mode = SectionMode.ReferenceSection);
 
     /// <summary>The sections for one room, and what was left out and why.</summary>
     public sealed record SectionPlan(IReadOnlyList<PlannedSection> Sections, IReadOnlyList<string> Skipped);
@@ -60,9 +63,11 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Sections
                 }
                 if (!target.AllMatches) cuts = cuts.Take(1).ToList();
 
-                string view = oneDraftingViewForAll || string.IsNullOrWhiteSpace(target.DraftingViewName)
-                    ? (string.IsNullOrWhiteSpace(sharedDraftingViewName) ? SectionTargets.DefaultDraftingName(target.Kind) : sharedDraftingViewName)
-                    : target.DraftingViewName;
+                bool isCallout = target.Mode == SectionMode.Callout;
+                string view = isCallout ? string.Empty
+                    : oneDraftingViewForAll || string.IsNullOrWhiteSpace(target.DraftingViewName)
+                        ? (string.IsNullOrWhiteSpace(sharedDraftingViewName) ? SectionTargets.DefaultDraftingName(target.Kind) : sharedDraftingViewName)
+                        : target.DraftingViewName;
 
                 for (int i = 0; i < cuts.Count; i++)
                 {
@@ -75,7 +80,7 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Sections
                     Cut c = cuts[i];
                     sections.Add(new PlannedSection(target.Kind, name, c.Head, c.Tail,
                         c.Item?.ElementId ?? 0, c.Item?.Category ?? string.Empty, c.Item?.Name ?? string.Empty,
-                        c.Item?.Model ?? string.Empty, view));
+                        c.Item?.Model ?? string.Empty, view, target.Mode));
                 }
             }
             return new SectionPlan(sections, skipped);

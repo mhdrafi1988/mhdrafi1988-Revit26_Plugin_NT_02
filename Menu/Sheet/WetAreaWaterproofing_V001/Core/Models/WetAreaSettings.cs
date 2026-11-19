@@ -129,6 +129,17 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Models
         /// <summary>Scale of drafting views the tool creates, 1:n.</summary>
         public int DraftingScale { get; set; } = 100;
 
+        // ── Part C: callout option (added in tool 1.2.0; missing in older files = these defaults) ──
+
+        /// <summary>Detail view family type name used for callout sections; empty = the first detail type in the project.</summary>
+        public string CalloutViewTypeName { get; set; } = string.Empty;
+
+        /// <summary>Scale of callout detail views created by the tool, 1:n.</summary>
+        public int CalloutScale { get; set; } = 20;
+
+        /// <summary>Margin around the cut line that defines the callout's crop box, mm.</summary>
+        public double CalloutMarginMm { get; set; } = 300;
+
         /// <summary>Fixture names that mark a floor drain.</summary>
         public List<string> DrainKeywords { get; set; } = new() { "drain", "fd", "floor drain" };
 
@@ -172,6 +183,9 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Models
             if (!(CropMarginMm >= 0) || CropMarginMm > 10000) CropMarginMm = 500;
             if (PlanScale < 1 || PlanScale > 5000) PlanScale = 100;
             if (DraftingScale < 1 || DraftingScale > 5000) DraftingScale = 100;
+            CalloutViewTypeName ??= string.Empty;
+            if (CalloutScale < 1 || CalloutScale > 5000) CalloutScale = 20;
+            if (!(CalloutMarginMm >= 0) || CalloutMarginMm > 10000) CalloutMarginMm = 300;
             if (string.IsNullOrWhiteSpace(PlanNamePattern)) PlanNamePattern = DefaultPlanNamePattern;
             if (string.IsNullOrWhiteSpace(SharedDraftingViewName)) SharedDraftingViewName = DefaultSharedDraftingViewName;
             PlanViewTypeName ??= string.Empty;

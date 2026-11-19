@@ -1,4 +1,5 @@
 using Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Geometry;
+using Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Models;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -38,6 +39,8 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Sections
         public double LengthMm { get; set; }
         /// <summary>Drafting view this target points to when each target has its own; empty = the default name.</summary>
         public string DraftingViewName { get; set; } = string.Empty;
+        /// <summary>Reference section (points to a drafting view) or callout (creates a detail view).</summary>
+        public SectionMode Mode { get; set; } = SectionMode.ReferenceSection;
     }
 
     /// <summary>Names and defaults of the section targets.</summary>
