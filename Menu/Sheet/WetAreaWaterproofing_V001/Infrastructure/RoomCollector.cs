@@ -34,6 +34,8 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
         public IReadOnlyList<string> PlanTemplates { get; init; } = Array.Empty<string>();
         /// <summary>Drafting view names.</summary>
         public IReadOnlyList<string> DraftingViews { get; init; } = Array.Empty<string>();
+        /// <summary>Detail view family type names (for callout sections).</summary>
+        public IReadOnlyList<string> DetailViewTypes { get; init; } = Array.Empty<string>();
         /// <summary>Model title.</summary>
         public string ModelTitle { get; init; } = string.Empty;
         /// <summary>Things worth telling the user about the read (rooms left out, links not loaded).</summary>
@@ -113,6 +115,8 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
                     .Where(v => v.IsTemplate && v.ViewType == ViewType.FloorPlan).Select(v => v.Name).Distinct().OrderBy(n => n).ToList(),
                 DraftingViews = new FilteredElementCollector(doc).OfClass(typeof(ViewDrafting)).Cast<ViewDrafting>()
                     .Where(v => !v.IsTemplate).Select(v => v.Name).Distinct().OrderBy(n => n).ToList(),
+                DetailViewTypes = new FilteredElementCollector(doc).OfClass(typeof(ViewFamilyType)).Cast<ViewFamilyType>()
+                    .Where(t => t.ViewFamily == ViewFamily.Detail).Select(t => t.Name).Distinct().OrderBy(n => n).ToList(),
                 ModelTitle = doc.Title ?? string.Empty,
                 Notes = notes
             };

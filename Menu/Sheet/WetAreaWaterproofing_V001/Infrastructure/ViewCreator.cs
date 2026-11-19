@@ -24,9 +24,13 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
         private readonly Dictionary<string, (ElementId Id, string Name)> _drafting = new(StringComparer.OrdinalIgnoreCase);
 
         private readonly List<ElementId> _draftingCreated = new();
+        private readonly List<ElementId> _calloutsCreated = new();
 
         /// <summary>Drafting views this run created that are still in the model (a rolled-back room does not count).</summary>
         public int DraftingCreated => _draftingCreated.Count(id => _doc.GetElement(id) != null);
+
+        /// <summary>Callout detail views this run created that are still in the model.</summary>
+        public int CalloutsCreated => _calloutsCreated.Count(id => _doc.GetElement(id) != null);
 
         /// <summary>Reads the view names in use so new views never clash with them.</summary>
         public ViewCreator(Document doc, WetAreaSettings settings, string runId)
@@ -40,10 +44,11 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
         }
 
         /// <summary>Checks that the views this run needs can be made; null when they can, else what is missing.</summary>
-        public string CheckReady(bool needsDrafting)
+        public string CheckReady(bool needsDrafting, bool needsCallouts = false)
         {
             if (PlanType() == null) return "The project has no floor plan view type.";
             if (needsDrafting && DraftingType() == null) return "The project has no drafting view type.";
+            if (needsCallouts && DetailType() == null) return "The project has no detail view type. Add one before using callout sections.";
             if (!string.IsNullOrEmpty(_s.PlanTemplateName) && Template() == null)
                 return $"View template \"{_s.PlanTemplateName}\" is not in the project any more. Pick another, or none.";
             return null;
@@ -55,6 +60,10 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
 
         private ViewFamilyType DraftingType() => new FilteredElementCollector(_doc).OfClass(typeof(ViewFamilyType))
             .Cast<ViewFamilyType>().Where(t => t.ViewFamily == ViewFamily.Drafting).OrderBy(t => t.Name).FirstOrDefault();
+
+        private ViewFamilyType DetailType() => new FilteredElementCollector(_doc).OfClass(typeof(ViewFamilyType))
+            .Cast<ViewFamilyType>().Where(t => t.ViewFamily == ViewFamily.Detail)
+            .OrderBy(t => t.Name == _s.CalloutViewTypeName ? 0 : 1).ThenBy(t => t.Name).FirstOrDefault();
 
         private View Template() => new FilteredElementCollector(_doc).OfClass(typeof(ViewPlan)).Cast<ViewPlan>()
             .FirstOrDefault(v => v.IsTemplate && v.ViewType == ViewType.FloorPlan && v.Name == _s.PlanTemplateName);
@@ -165,27 +174,68 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
             {
                 try
                 {
-                    (ElementId draftingId, string draftingName) = EnsureDrafting(section.DraftingViewName);
-                    var before = new HashSet<ElementId>(Markers().Select(m => m.Id));
-
-                    // Returns nothing: it creates a marker (category Viewers), found by comparing ids.
-                    ViewSection.CreateReferenceSection(_doc, plan.Id, draftingId, ToXyz(section.Head, z), ToXyz(section.Tail, z));
-
-                    Element marker = Markers().FirstOrDefault(m => !before.Contains(m.Id));
-                    if (marker == null)
+                    if (section.Mode == SectionMode.Callout)
                     {
-                        problems.Add($"{section.Label}: Revit did not create the section marker.");
-                        continue;
+                        placed.Add(PlaceCallout(plan, section, roomKey, z, problems));
                     }
-                    ElementTag.Set(marker, _runId, roomKey, ElementTag.Section);
-                    placed.Add(new CreatedSection(section, marker.Id.Value, draftingId.Value, draftingName));
+                    else
+                    {
+                        (ElementId draftingId, string draftingName) = EnsureDrafting(section.DraftingViewName);
+                        var before = new HashSet<ElementId>(Markers().Select(m => m.Id));
+
+                        ViewSection.CreateReferenceSection(_doc, plan.Id, draftingId, ToXyz(section.Head, z), ToXyz(section.Tail, z));
+
+                        Element marker = Markers().FirstOrDefault(m => !before.Contains(m.Id));
+                        if (marker == null)
+                        {
+                            problems.Add($"{section.Label}: Revit did not create the section marker.");
+                            continue;
+                        }
+                        ElementTag.Set(marker, _runId, roomKey, ElementTag.Section);
+                        placed.Add(new CreatedSection(section, marker.Id.Value, draftingId.Value, draftingName));
+                    }
                 }
                 catch (Autodesk.Revit.Exceptions.ApplicationException ex)
                 {
                     problems.Add($"{section.Label}: {ex.Message}");
                 }
             }
-            return placed;
+            return placed.Where(s => s != null).ToList();
+        }
+
+        /// <summary>Places a callout on <paramref name="plan"/> for <paramref name="section"/>.</summary>
+        private CreatedSection PlaceCallout(ViewPlan plan, PlannedSection section, string roomKey, double z, List<string> problems)
+        {
+            double m = _s.CalloutMarginMm;
+            double hx = section.Head.X, hy = section.Head.Y, tx = section.Tail.X, ty = section.Tail.Y;
+            double dx = tx - hx, dy = ty - hy;
+            double len = Math.Sqrt(dx * dx + dy * dy);
+            double nx = len < 1e-6 ? 0 : -dy / len, ny = len < 1e-6 ? 1 : dx / len;
+            double minX = Math.Min(hx, tx) - Math.Abs(nx) * m - (nx == 0 ? m : 0);
+            double maxX = Math.Max(hx, tx) + Math.Abs(nx) * m + (nx == 0 ? m : 0);
+            double minY = Math.Min(hy, ty) - Math.Abs(ny) * m - (ny == 0 ? m : 0);
+            double maxY = Math.Max(hy, ty) + Math.Abs(ny) * m + (ny == 0 ? m : 0);
+
+            XYZ pt1 = ToXyz(new Pt(minX, minY), z);
+            XYZ pt2 = ToXyz(new Pt(maxX, maxY), z);
+
+            View calloutView = ViewSection.CreateCallout(_doc, plan.Id, DetailType().Id, pt1, pt2);
+            string name = ViewNames.Unique($"WP Callout - {section.Label}", _viewNames);
+            calloutView.Name = name;
+            _viewNames.Add(name);
+            try { calloutView.Scale = _s.CalloutScale; }
+            catch (Autodesk.Revit.Exceptions.ApplicationException) { /* template controls scale */ }
+
+            var marker = Markers().FirstOrDefault(mk =>
+                ElementTag.TryGet(mk, out _, out _, out _) == false
+                && !_calloutsCreated.Contains(mk.Id)
+                && mk.Id.Value > 0);
+
+            ElementTag.Set(calloutView, _runId, roomKey, ElementTag.Section);
+            _calloutsCreated.Add(calloutView.Id);
+
+            return new CreatedSection(section, calloutView.Id.Value, 0, string.Empty,
+                IsCallout: true, CalloutViewId: calloutView.Id.Value, CalloutViewName: name);
         }
 
         private IEnumerable<Element> Markers()

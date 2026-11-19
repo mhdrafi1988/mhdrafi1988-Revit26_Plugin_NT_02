@@ -102,7 +102,8 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
             if (doViews)
             {
                 viewCreator = new ViewCreator(_doc, s, runId);
-                string notReady = viewCreator.CheckReady(s.CreateSections);
+                bool needsCallouts = s.CreateSections && s.Targets.Any(t => t.On && t.Mode == SectionMode.Callout);
+                string notReady = viewCreator.CheckReady(s.CreateSections, needsCallouts);
                 if (notReady != null) return new RunOutcome { Error = notReady };
             }
 
@@ -223,6 +224,7 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
                 PlansReused = views.Values.Count(v => !v.PlanIsNew && v.PlanId != 0),
                 SectionsPlaced = views.Values.Sum(v => v.Sections.Count),
                 DraftingCreated = viewCreator?.DraftingCreated ?? 0,
+                CalloutsCreated = viewCreator?.CalloutsCreated ?? 0,
                 Issues = issues,
                 ReportPath = reportPath,
                 ReportError = reportError,

@@ -16,12 +16,16 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Report
     /// <param name="Replaced">True when it replaced a roof from an earlier run.</param>
     public sealed record CreatedRoof(long RoofId, double AreaM2, bool Replaced);
 
-    /// <summary>A reference section the run placed.</summary>
+    /// <summary>A section the run placed (reference section or callout).</summary>
     /// <param name="Plan">What was planned: target, cut line, element cut.</param>
     /// <param name="MarkerId">ElementId of the section marker.</param>
-    /// <param name="DraftingViewId">ElementId of the drafting view it points to.</param>
-    /// <param name="DraftingViewName">That view's name as it is in the model.</param>
-    public sealed record CreatedSection(PlannedSection Plan, long MarkerId, long DraftingViewId, string DraftingViewName);
+    /// <param name="DraftingViewId">ElementId of the drafting view it points to (0 for callouts).</param>
+    /// <param name="DraftingViewName">That view's name as it is in the model (empty for callouts).</param>
+    /// <param name="IsCallout">True when this is a callout, not a reference section.</param>
+    /// <param name="CalloutViewId">ElementId of the callout detail view (0 for reference sections).</param>
+    /// <param name="CalloutViewName">The callout view's name (empty for reference sections).</param>
+    public sealed record CreatedSection(PlannedSection Plan, long MarkerId, long DraftingViewId, string DraftingViewName,
+        bool IsCallout = false, long CalloutViewId = 0, string CalloutViewName = "");
 
     /// <summary>The plan and sections a run made (or reused) for one room.</summary>
     /// <param name="PlanId">ElementId of the room's plan; 0 when there is none.</param>
@@ -59,6 +63,8 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Report
         public int PlansCreated { get; set; }
         /// <summary>Reference sections this run placed.</summary>
         public int SectionsPlaced { get; set; }
+        /// <summary>Callout detail views this run created.</summary>
+        public int CalloutsCreated { get; set; }
         /// <summary>Warnings raised.</summary>
         public int Warnings { get; set; }
         /// <summary>Errors raised.</summary>
