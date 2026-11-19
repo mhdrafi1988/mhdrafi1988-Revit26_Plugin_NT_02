@@ -9,6 +9,23 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [7.26.3] — 2026-11-19
+
+### Added
+- **Wet Area Waterproofing 1.2.0** — per-target callout option. Each section target row can now
+  independently be "Reference Section" (existing behaviour, points to a drafting view) or "Callout"
+  (creates a cropped detail view on the plan via `ViewSection.CreateCallout`). New settings: detail
+  view type, callout scale and callout crop margin. Report includes callout columns.
+
+### Changed
+- **Ribbon reorganised** — four tabs instead of five: `Rafi_Pro_Roof` (all roof panels),
+  `Rafi_Pro_Floors` (floor tools + waterproofing), `Rafi_Pro_Model` (coordination, manage, setup),
+  `Rafi_Pro_Docs` (views, sheets, tagging, detail lines).
+
+**User notes**
+- Existing settings files load unchanged; new callout fields default to Reference Section mode.
+- The Waterproofing button moved from the Docs tab to the Floors tab.
+
 ## [7.26.2] — 2026-11-19
 
 ### Changed
