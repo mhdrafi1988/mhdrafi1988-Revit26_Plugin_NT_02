@@ -16,6 +16,12 @@ namespace Revit26_Plugin_Revised.VoidOpenings.V001.Infrastructure.Revit
         /// <summary>A length in feet as millimetres.</summary>
         public static double Length(double feet) => feet * PerFoot;
 
+        /// <summary>Millimetres for a length in feet (the same conversion as <see cref="Length"/>).</summary>
+        public static double ToMm(double feet) => feet * PerFoot;
+
+        /// <summary>Feet for a length in millimetres.</summary>
+        public static double ToFeet(double mm) => mm / PerFoot;
+
         /// <summary>A point of a model as host millimetres.</summary>
         public static Vec3 Point(XYZ point, Transform toHost)
         {
