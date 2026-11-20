@@ -1,6 +1,12 @@
 <title>Sheet Align &amp; Distribute</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<!-- UI preview (CLAUDE.md "UI previews"): Sheet Align & Distribute 1.0.0 (V001) — NEW tool. Plugin 7.17.0.
+<!-- UI preview (CLAUDE.md "UI previews"): Sheet Align & Distribute 1.1.0 (V001). Plugin 7.27.0.
+     Rev 5 (proposal, 2026-11-20): NEW "Suggested layouts" strip at the top of section 3 (Align & distribute).
+     The tool test-plans every row / column / distribute combination on the sheet, drops blocked ones and those
+     that move nothing, ranks the rest (fewest over the limit, most aligned, least total travel, smallest largest
+     move), de-duplicates by outcome and shows the best 4 as buttons. A click loads that combination into the
+     dropdowns and redraws the preview; the user then presses Apply. Shown with suggestion 1 picked.
+     Earlier (1.0.0, plugin 7.17.0):
      Shown: the new ribbon button + tooltip on the Sheet Edit panel, the tool window (Usable area & margins,
      Current grid, Align & Distribute, Movement limits, the Elements grid with the per-view margin box, and the
      live sheet preview), and the Apply result dialog.
@@ -18,7 +24,8 @@
      Rev 1: design proposal before any C# was written.
      Mirrors: Menu/Sheet/SheetAlignDistribute_V001/UI/Views/SheetAlignDistributeWindow.xaml
               (+ UI/ViewModels/ViewModel_SheetAlignDistribute.cs; version from Shared/Services/ToolCatalog.cs).
-     Artifact: https://claude.ai/artifact/4CeaSWpnMoiZQ5KzcgBCTJ (republish to this URL on every update)
+     Artifact: https://claude.ai/artifact/NsXRE37noFmtgxFsf76cyq (republish to this URL on every update;
+     the 1.0.0 link 4CeaSWpnMoiZQ5KzcgBCTJ could not be opened from this account on 2026-11-20)
      Colours: Shared/SharedStyles.xaml tokens, one light look on purpose (mirrors the light WPF window). -->
 <style>
 /* Layout: one column of sections; the fixed-width WPF window scrolls inside its own frame, notes sit under it. */
@@ -137,6 +144,24 @@ li{margin-bottom:3px}
 .rd.on{border-color:var(--navy);border-width:2px}
 .rd.on::after{content:"";position:absolute;left:2.5px;top:2.5px;width:6px;height:6px;border-radius:50%;background:var(--navy)}
 .ck{display:flex;align-items:center;gap:6px;font-size:11.5px}
+/* ── Suggested layouts (1.1.0) ─────────────────────────────── */
+.sug-grp{border-color:var(--ok-border)}
+.sug{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.sg{border:1px solid var(--input);background:var(--card);border-radius:6px;padding:8px 9px;display:grid;gap:4px;
+  align-content:start;cursor:pointer;min-width:0}
+.sg:hover{border-color:var(--navy-light);background:var(--bg2)}
+.sg.on{border:2px solid var(--navy);padding:7px 8px;background:var(--info-soft)}
+.sg b{font-size:12px;font-weight:600}
+.sg-top{display:flex;align-items:center;gap:6px;min-height:18px}
+.sg-n{width:18px;height:18px;border-radius:50%;background:var(--bg3);color:var(--text);display:grid;place-items:center;font-size:10.5px;font-weight:600}
+.sg.on .sg-n{background:var(--navy);color:#FFFFFF}
+.sg-pic{width:100%;height:auto;max-width:100%;background:var(--window);border:1px solid var(--sep);border-radius:3px;display:block}
+.sg-pic .bx{fill:var(--bg3);stroke:var(--text3);stroke-width:1}
+.sg-pic .gd{stroke:var(--ok);stroke-width:1;stroke-dasharray:3 2}
+.sg-pic .gp{stroke:var(--info);stroke-width:1.2}
+.sg-m{font-size:11px;color:var(--text2);font-variant-numeric:tabular-nums}
+.sg-f{font-size:10.5px;color:var(--text3);line-height:1.4}
+.wn-t{color:var(--warn);font-weight:600}
 
 /* ── Grid ──────────────────────────────────────────────────── */
 table.g{width:100%;border-collapse:collapse;font-size:11.5px}
@@ -189,11 +214,26 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg2);border:1px sol
 <div class="page">
 
 <header>
-  <h1>Sheet Align &amp; Distribute <span class="tag">NEW TOOL</span></h1>
-  <p class="muted">Tool <b>1.0.0</b> (V001) &middot; plugin <b>7.17.0</b> &middot; ribbon: <b>Documents &rsaquo; Sheet Edit</b>.
-  Built and signed off 2026&#8209;11&#8209;17; 83 unit tests on the layout maths.</p>
+  <h1>Sheet Align &amp; Distribute <span class="tag">1.1.0 &middot; SUGGESTED LAYOUTS</span></h1>
+  <p class="muted">Tool <b>1.0.0 &rarr; 1.1.0</b> (V001) &middot; plugin <b>7.26.5 &rarr; 7.27.0</b> &middot; ribbon: <b>Documents &rsaquo; Sheet Edit</b> (unchanged).
+  Proposal for review, 2026&#8209;11&#8209;20; no C# written yet.</p>
   <p style="margin-top:9px"><span class="sample">Sample data &mdash; the sheet, view names and numbers below are invented for this preview. No real project or client data.</span></p>
 </header>
+
+<section class="note good">
+  <h2>New in 1.1.0 &mdash; Suggested layouts <span class="tag">NEW</span></h2>
+  <ul>
+    <li>When the window opens, the tool tries every combination of <b>Align rows</b>, <b>Align columns</b> and both
+    <b>Distribute</b> settings on this sheet (144 test plans; nothing is moved).</li>
+    <li>It drops plans that are blocked by an overlap or the margins, and plans that move nothing. It ranks the rest by:
+    fewest views over the move limit, then most views aligned, then least total travel, then smallest largest move.</li>
+    <li>Combinations that end with the views in the same places are merged, so the <b>4 buttons</b> always give 4 different results.</li>
+    <li><b>A click previews.</b> The button loads its settings into the dropdowns and redraws the sheet preview and grid.
+    Nothing moves until you press <b>Apply</b>, which is still one Undo step.</li>
+    <li>The suggestions are worked out again on Refresh, after Apply, and when a margin, gap, tolerance, tick or limit changes.
+    They don't change when you pick a dropdown by hand. Doing that only clears the highlight.</li>
+  </ul>
+</section>
 
 <!-- ───────────────────────────── 1. What it does ───────────────────────────── -->
 <section class="note">
@@ -231,7 +271,7 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg2);border:1px sol
   </div>
   <div class="frame">
     <div class="tip">
-      <b>Sheet Align &amp; Distribute &mdash; v1.0.0 <span class="vn">(build V001)</span></b>
+      <b>Sheet Align &amp; Distribute &mdash; v1.1.0 <span class="vn">(build V001)</span></b>
       Lines up the views already on the open sheet without re-ordering them: detects the rows and columns they are in,
       snaps each to one shared edge and evens out the gaps. Margins and gaps are read off the sheet as it is, so the
       layout keeps its own look. Each view can carry its own extra clearance. Live preview; one Undo step.
@@ -256,7 +296,7 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg2);border:1px sol
   <h2>Tool window</h2>
   <div class="frame">
   <div class="win">
-    <div class="tbar">Sheet Align &amp; Distribute &mdash; v1.0.0</div>
+    <div class="tbar">Sheet Align &amp; Distribute &mdash; v1.1.0</div>
 
     <div class="hdr">
       <div>
@@ -382,9 +422,70 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg2);border:1px sol
             <div class="t">Align &amp; distribute</div>
             <div class="s">Defaults move as little as possible</div>
           </div>
-          <div class="sum">Rows: bottom &middot; Columns: left<br>Distribute: off on both axes</div>
+          <div class="sum"><span class="pill ok">Suggestion 1 picked</span><br>Rows: bottom &middot; Columns: left &middot; Distribute: off</div>
         </div>
         <div class="sb">
+          <div class="grp sug-grp">
+            <div class="gl">Suggested layouts &mdash; detected from this sheet <span class="tag">NEW</span>
+              <span class="fl" style="font-weight:400;margin-left:auto">Click one to preview it, then press Apply</span></div>
+            <div class="sug">
+              <div class="sg on">
+                <div class="sg-top"><span class="sg-n">1</span><span class="pill ok">Best fit</span></div>
+                <svg viewBox="0 0 120 54" class="sg-pic" aria-hidden="true">
+                  <rect x="8" y="6" width="26" height="16" class="bx"/><rect x="42" y="10" width="34" height="12" class="bx"/><rect x="84" y="4" width="28" height="18" class="bx"/>
+                  <rect x="8" y="30" width="26" height="18" class="bx"/><rect x="42" y="34" width="34" height="14" class="bx"/><rect x="84" y="32" width="28" height="16" class="bx"/>
+                  <line x1="2" y1="22" x2="118" y2="22" class="gd"/><line x1="2" y1="48" x2="118" y2="48" class="gd"/>
+                  <line x1="8" y1="1" x2="8" y2="53" class="gd"/><line x1="42" y1="1" x2="42" y2="53" class="gd"/><line x1="84" y1="1" x2="84" y2="53" class="gd"/>
+                </svg>
+                <b>Bottom + Left &middot; gaps kept</b>
+                <div class="sg-m">5 moves &middot; max 5.7&nbsp;mm</div>
+                <div class="sg-m">2 in place &middot; <span class="wn-t">1 over limit</span></div>
+                <div class="sg-f">Titles line up. Same result as Least movement on this sheet.</div>
+              </div>
+              <div class="sg">
+                <div class="sg-top"><span class="sg-n">2</span></div>
+                <svg viewBox="0 0 120 54" class="sg-pic" aria-hidden="true">
+                  <rect x="8" y="4" width="26" height="16" class="bx"/><rect x="42" y="4" width="34" height="12" class="bx"/><rect x="84" y="4" width="28" height="18" class="bx"/>
+                  <rect x="8" y="30" width="26" height="18" class="bx"/><rect x="42" y="30" width="34" height="14" class="bx"/><rect x="84" y="30" width="28" height="16" class="bx"/>
+                  <line x1="2" y1="4" x2="118" y2="4" class="gd"/><line x1="2" y1="30" x2="118" y2="30" class="gd"/>
+                  <line x1="8" y1="1" x2="8" y2="53" class="gd"/><line x1="42" y1="1" x2="42" y2="53" class="gd"/><line x1="84" y1="1" x2="84" y2="53" class="gd"/>
+                </svg>
+                <b>Top + Left &middot; gaps kept</b>
+                <div class="sg-m">6 moves &middot; max 8.1&nbsp;mm</div>
+                <div class="sg-m">1 in place &middot; <span class="wn-t">1 over limit</span></div>
+                <div class="sg-f">Tops line up; titles follow each view's height.</div>
+              </div>
+              <div class="sg">
+                <div class="sg-top"><span class="sg-n">3</span></div>
+                <svg viewBox="0 0 120 54" class="sg-pic" aria-hidden="true">
+                  <rect x="4" y="6" width="26" height="16" class="bx"/><rect x="43" y="10" width="34" height="12" class="bx"/><rect x="90" y="4" width="28" height="18" class="bx"/>
+                  <rect x="4" y="30" width="26" height="18" class="bx"/><rect x="43" y="34" width="34" height="14" class="bx"/><rect x="90" y="32" width="28" height="16" class="bx"/>
+                  <line x1="2" y1="22" x2="118" y2="22" class="gd"/><line x1="2" y1="48" x2="118" y2="48" class="gd"/>
+                  <line x1="31" y1="13" x2="42" y2="13" class="gp"/><line x1="78" y1="13" x2="89" y2="13" class="gp"/>
+                </svg>
+                <b>Bottom + Left &middot; even gaps across rows</b>
+                <div class="sg-m">7 moves &middot; max 12.0&nbsp;mm</div>
+                <div class="sg-m">0 in place &middot; <span class="wn-t">1 over limit</span></div>
+                <div class="sg-f">Equal gaps in each row; outer edges stay put.</div>
+              </div>
+              <div class="sg">
+                <div class="sg-top"><span class="sg-n">4</span></div>
+                <svg viewBox="0 0 120 54" class="sg-pic" aria-hidden="true">
+                  <rect x="8" y="6" width="26" height="16" class="bx"/><rect x="38" y="8" width="34" height="12" class="bx"/><rect x="84" y="5" width="28" height="18" class="bx"/>
+                  <rect x="8" y="30" width="26" height="18" class="bx"/><rect x="38" y="32" width="34" height="14" class="bx"/><rect x="84" y="31" width="28" height="16" class="bx"/>
+                  <line x1="2" y1="14" x2="118" y2="14" class="gd"/><line x1="2" y1="39" x2="118" y2="39" class="gd"/>
+                  <line x1="21" y1="1" x2="21" y2="53" class="gd"/><line x1="55" y1="1" x2="55" y2="53" class="gd"/><line x1="98" y1="1" x2="98" y2="53" class="gd"/>
+                </svg>
+                <b>Centre + Centre &middot; gaps kept</b>
+                <div class="sg-m">6 moves &middot; max 9.4&nbsp;mm</div>
+                <div class="sg-m">1 in place &middot; <span class="wn-t">2 over limit</span></div>
+                <div class="sg-f">Views centre on shared lines both ways.</div>
+              </div>
+            </div>
+            <div class="hint">Picked from 144 test plans on this sheet. 31 were blocked by an overlap or the margins, 9 moved nothing, and
+            the rest gave 23 different results. Ranked by: fewest over the limit, then most views aligned, then least total travel.
+            Changing a dropdown below by hand clears the highlight.</div>
+          </div>
           <div class="cols2">
             <div class="grp">
               <div class="gl">Align rows &mdash; the shared horizontal line</div>
@@ -706,7 +807,7 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg2);border:1px sol
   <h2>After Apply</h2>
   <div class="frame">
     <div class="dlg">
-      <div class="dh">Sheet Align &amp; Distribute &mdash; v1.0.0</div>
+      <div class="dh">Sheet Align &amp; Distribute &mdash; v1.1.0</div>
       <div class="db">
         <p><b>5 views aligned on WP&#8209;204.</b></p>
         <p>2 views were already in place. 1 view (A3 TWP DETAIL @ PIPE PENETRATION) needed 44.1&nbsp;mm,
