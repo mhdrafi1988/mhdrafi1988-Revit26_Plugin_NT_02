@@ -48,7 +48,10 @@ namespace Revit26_Plugin_Revised.SheetAlignDistribute.V001.Commands
             if (TryActivateOpenWindow(sheet.Id))
                 return Result.Succeeded;
 
-            var session = new RevitSheetAlignSession(uiDoc.Document, sheet, FootprintMode.BoxAndTitle);
+            // Read the sheet the way the saved settings measure it, so the first preview and the
+            // check Apply makes against it use the same footprints.
+            var saved = SettingsService<AlignDistributeSettings>.Load("SheetAlignDistribute");
+            var session = new RevitSheetAlignSession(uiDoc.Document, sheet, saved?.Footprint ?? FootprintMode.BoxAndTitle);
             SheetAlignDistributeWindow window;
             try
             {

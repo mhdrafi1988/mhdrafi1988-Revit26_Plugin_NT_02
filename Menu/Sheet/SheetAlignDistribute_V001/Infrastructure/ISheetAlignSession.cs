@@ -37,12 +37,12 @@ namespace Revit26_Plugin_Revised.SheetAlignDistribute.V001.Infrastructure
         bool Refresh(FootprintMode footprintMode, Action<SessionResult> done);
 
         /// <summary>
-        /// Re-reads the sheet, re-plans with <paramref name="settings"/> and moves the elements — but
-        /// only while the fresh plan still has <paramref name="previewSignature"/>, i.e. still matches
-        /// what the user saw. <paramref name="unticked"/> lists the element keys the user left out.
+        /// Moves the elements exactly as <paramref name="plan"/> (the plan the user previewed) says.
+        /// Before moving, the sheet is re-read with <paramref name="footprintMode"/> and every element
+        /// to be moved must still be where the preview found it; otherwise nothing moves. After the
+        /// commit the sheet is read again to confirm the elements really moved.
         /// Returns false when Revit did not accept the request.
         /// </summary>
-        bool Apply(AlignDistributeSettings settings, IReadOnlySet<long> unticked, string previewSignature,
-            Action<SessionResult> done);
+        bool Apply(AlignPlan plan, FootprintMode footprintMode, Action<SessionResult> done);
     }
 }

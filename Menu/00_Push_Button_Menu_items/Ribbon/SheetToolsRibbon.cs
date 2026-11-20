@@ -99,6 +99,8 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                     "Lines the views already on the open sheet up on the rows and columns they are in, without re-ordering them: " +
                     "each row gets one shared edge and each column one shared edge. Margins and gaps are read off the sheet as it " +
                     "stands, so the layout keeps its own look, and each view can carry its own extra clearance. " +
+                    "Suggests four ready-made layouts detected from the sheet: click one to preview it, then Apply. " +
+                    "Views that would go over the move limit or cross the margins are your call on Apply. " +
                     "Live preview; one Undo step.")
             };
 
