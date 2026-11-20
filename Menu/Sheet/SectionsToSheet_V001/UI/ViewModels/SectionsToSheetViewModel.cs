@@ -1001,7 +1001,9 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.UI.ViewModels
                 {
                     int moved = Plan.Rearranged.Count, stay = first.Obstacles.Count;
                     lines.Add($"{moved} view{(moved == 1 ? "" : "s")} already on {t.Number} move{(moved == 1 ? "s" : "")} and keep{(moved == 1 ? "s" : "")} {(moved == 1 ? "its" : "their")} detail number{(moved == 1 ? "" : "s")}. "
-                              + (stay > 0 ? $"{stay} other item{(stay == 1 ? "" : "s")} stay where they are; the layout keeps clear of them." : "Nothing else is on the sheet."));
+                              + (stay == 1 ? "1 other item stays where it is; the layout keeps clear of it."
+                                 : stay > 1 ? $"{stay} other items stay where they are; the layout keeps clear of them."
+                                 : "Nothing else is on the sheet."));
                 }
                 else
                 {

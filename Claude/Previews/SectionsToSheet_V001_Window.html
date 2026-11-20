@@ -1,7 +1,8 @@
 <title>Sections To Sheet</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<!-- UI preview (CLAUDE.md "UI previews"): Sections To Sheet 1.2.0 (V001), PROPOSED (design stage, not built yet).
-     Plugin 7.27.0 (proposed; was 7.26.5). Tool was 1.1.0.
+<!-- UI preview (CLAUDE.md "UI previews"): Sections To Sheet 1.2.0 (V001), was 1.1.0. Plugin 7.28.0.
+     Rev 2: matches the built window (labels from SectionsToSheetWindow.xaml and SectionsToSheetViewModel.cs).
+     Rev 1: design proposal.
      Shown: ribbon tooltip, the tool window with Target Sheet = Existing sheet, both modes
      ("Use free space" / "Re-arrange all views", click the chips to switch), and the confirm card.
      Owner decisions: both modes; Re-arrange moves every viewport on the sheet (schedules and other items stay
@@ -137,7 +138,7 @@ button.chip:focus-visible{outline:2px solid var(--info);outline-offset:2px}
 <div class="page">
   <header>
     <h1>Sections To Sheet: place on an existing sheet</h1>
-    <p class="muted">Design proposal for version 1.2.0, not built yet. The tool can now target an existing sheet as well as a new one. On an existing sheet it either uses the free space or re-arranges every view on the sheet. Green tags mark what is new or changed. Click the two chips in <b>Target Sheet</b> to switch between the modes.</p>
+    <p class="muted">Version 1.2.0. The tool can now target an existing sheet as well as a new one. On an existing sheet it either uses the free space or re-arranges every view on the sheet. Green tags mark what is new or changed. Click the two chips in <b>Target Sheet</b> to switch between the modes.</p>
     <p style="margin-top:8px"><span class="sample">Sample data: sheet, view and schedule names are made up.</span></p>
   </header>
 
@@ -159,7 +160,7 @@ button.chip:focus-visible{outline:2px solid var(--info);outline-offset:2px}
       </div>
       <div class="wbody">
         <div class="cards">
-          <div class="mc"><span>Ticked</span><b>8</b><i>sections in the list</i></div>
+          <div class="mc"><span>Ticked</span><b>8 of 8</b><i>sections in the list</i></div>
           <div class="mc w"><span>Moving</span><b>2</b><i>off other sheets</i></div>
           <div class="mc e"><span>Can't Place</span><b>0</b><i>locked / too big / no room</i></div>
           <div class="mc a"><span>New Sheets</span><b>0</b><i>to create</i></div>
@@ -172,9 +173,9 @@ button.chip:focus-visible{outline:2px solid var(--info);outline-offset:2px}
             <div class="ct">Sections <span class="sbtn r">Refresh</span></div>
             <div class="cb">
               <div class="fl">From <b style="color:var(--text)">Level 1 - Floor Plan</b></div>
-              <div class="chips"><span class="chip on">In view (8)</span><span class="chip">Selected (0)</span><span class="sbtn">Pick in view…</span></div>
+              <div class="chips"><span class="chip on">All in view (8)</span><span class="chip">Selection (0)</span><span class="sbtn">Pick in view…</span></div>
               <div style="display:flex;gap:6px"><div class="in tx" style="flex:1;color:var(--text3)">Filter by name or sheet…</div><span class="sbtn">Tick all</span><span class="sbtn">Untick all</span></div>
-              <div class="fl">8 sections, 8 ticked</div>
+              <div class="fl">8 in the list · 8 ticked</div>
               <div class="list" id="list"></div>
               <div class="hint">The list is in placement order. Status shows where each section goes, or why it is skipped.</div>
             </div>
@@ -182,7 +183,7 @@ button.chip:focus-visible{outline:2px solid var(--info);outline-offset:2px}
 
           <!-- Middle: preview -->
           <div class="card">
-            <div class="ct">Sheet Preview <span class="fl" style="font-weight:400">A-301 - SECTIONS (existing)</span><span class="tag">changed</span></div>
+            <div class="ct">Sheet Preview <span class="fl" style="font-weight:400">A-301 (existing) · A1 : Landscape</span><span class="tag">changed</span></div>
             <div class="pv"><svg id="sheet" viewBox="-6 -6 853 606" aria-label="Sheet preview"></svg></div>
             <div class="legend">
               <span><i class="sw b"></i>Not on a sheet yet</span>
@@ -191,7 +192,7 @@ button.chip:focus-visible{outline:2px solid var(--info);outline-offset:2px}
               <span id="lg-stay"><i class="sw g"></i>Already on this sheet, stays <span class="tag">new</span></span>
               <span id="lg-free"><i class="sw f"></i>Largest empty area <span class="tag">new</span></span>
             </div>
-            <div class="hint" style="margin:0 12px 8px">Number = detail number. Dashed grey: usable area (title block inset by the margins). Views in a row share a bottom line, so titles line up.</div>
+            <div class="hint" style="margin:0 12px 8px">Blue: not on a sheet yet. Orange: comes off another sheet. Navy: already on the existing sheet, moves. Grey: already on the existing sheet, stays. Green dashed: the largest empty area. Number = detail number. Dashed grey: usable area (title block inset by the margins). Views in a row share a bottom line, so titles line up.</div>
             <div class="sum">
               <span><b>Layout</b> <span id="s-layout"></span></span>
               <span><b>Gap side by side</b> <span id="s-h"></span></span>
@@ -210,23 +211,23 @@ button.chip:focus-visible{outline:2px solid var(--info);outline-offset:2px}
                 <div class="chips"><span class="chip">New sheet</span><span class="chip on">Existing sheet</span></div>
                 <div class="fl">Sheet</div>
                 <div class="in">A-301 - SECTIONS</div>
-                <div class="sheetinfo">Holds 2 views and 1 schedule. Title block: A1 Landscape (from the sheet). Highest detail number: 2.</div>
+                <div class="sheetinfo">Holds 2 views and 1 other item. Title block: A1 : Landscape (from the sheet). Highest detail number: 2.</div>
                 <div class="fl">Views already on the sheet</div>
                 <div class="chips" role="radiogroup" aria-label="Views already on the sheet">
                   <button class="chip on" id="m-free" role="radio" aria-checked="true">Use free space</button>
                   <button class="chip" id="m-re" role="radio" aria-checked="false">Re-arrange all views</button>
                 </div>
                 <div class="hint" id="modehint"></div>
-                <div class="sub">If they don't fit: extra new sheets</div>
+                <div class="sub">If they don’t all fit: extra new sheets</div>
                 <div class="fl">Title block (extra sheets)</div>
-                <div class="in">A1 Landscape</div>
+                <div class="in">A1 : Landscape</div>
+                <div class="fl">Viewport type (view title)</div>
+                <div class="in">Title w Line</div>
                 <div class="two">
                   <div><div class="fl">Sheet number</div><div class="in tx">A-302</div></div>
                   <div><div class="fl">Sheet name</div><div class="in tx">SECTIONS</div></div>
                 </div>
-                <div class="fl">Viewport type (view title)</div>
-                <div class="in">Title w Line</div>
-                <div class="hint">Applies to the new sections. Views already on the sheet keep their own viewport type.</div>
+                <div class="hint">Used only for sections that don’t fit on the existing sheet. Extra sheets count up from this number, skipping numbers in use.</div>
                 <div class="tog"><i></i>Open the sheet when done</div>
               </div>
             </div>
@@ -249,7 +250,7 @@ button.chip:focus-visible{outline:2px solid var(--info);outline-offset:2px}
             <div class="card">
               <div class="ct">Already on a Sheet</div>
               <div class="cb">
-                <div style="font-size:12px">2 of the ticked sections are on A-210.</div>
+                <div style="font-size:12px">2 ticked sections are already on A-210 (2).</div>
                 <div class="tog">Take them off their current sheet<i style="order:-1"></i></div>
                 <div class="tog off"><i></i>Delete sheets that end up empty</div>
               </div>
@@ -260,15 +261,15 @@ button.chip:focus-visible{outline:2px solid var(--info);outline-offset:2px}
               <div class="cb">
                 <div class="fl">Margins inside the title block: Top 30 · Bottom 150 · Left 30 · Right 200</div>
                 <div class="fl">Smallest gap between views: Side by side 20 · Rows 20</div>
-                <div class="hint" id="spacehint">The margins also apply on an existing sheet. Items already on it are kept clear by the same smallest gap.</div>
+                <div class="hint">Margins are measured inward from the title block's outer edge; use Right / Bottom to clear the title strip. Sizes include each view's title.</div>
               </div>
             </div>
           </div>
         </div>
 
         <div class="log">
-          <div><span class="t">10:42:07</span> <span class="ok">INFO</span>    Read 8 section markers in Level 1 - Floor Plan.</div>
-          <div><span class="t">10:42:08</span> <span class="ok">INFO</span>    Target A-301 - SECTIONS: 2 views, 1 schedule, title block A1 Landscape.</div>
+          <div><span class="t">10:42:07</span> <span class="ok">INFO</span>    Read 8 section marker(s) shown in 'Level 1 - Floor Plan'.</div>
+          <div><span class="t">10:42:08</span> <span class="ok">INFO</span>    Target A-301 – SECTIONS: 2 views and 1 other item.</div>
           <div id="logline"><span class="t">10:42:08</span> <span class="ok">INFO</span>    </div>
         </div>
       </div>
@@ -290,13 +291,13 @@ button.chip:focus-visible{outline:2px solid var(--info);outline-offset:2px}
         <div><b>Wall Section 05</b><span class="pill mv">A-210</span>→<span class="pill nw">A-301</span></div>
       </div>
       <div class="note" id="dlgnote"></div>
-      <div class="d" style="padding-top:8px;font-size:11.5px">The section views stay in the model, and the section heads in your plans point to the new sheet. One Undo (Ctrl+Z) reverts the whole run.</div>
+      <div class="d" style="padding-top:8px;font-size:11.5px">The section views stay in the model, and the section heads in your plans point to the sheet they are placed on. One Undo (Ctrl+Z) reverts the whole run.</div>
       <div class="ft"><span class="btn">Cancel</span><span class="btn p">Move &amp; Place</span></div>
     </div></div>
   </section>
 
   <section>
-    <h2>What changes in 1.2.0</h2>
+    <h2>What changed in 1.2.0</h2>
     <ul>
       <li><b>Target Sheet</b> card (was <i>New Sheet</i>): New sheet or Existing sheet, with a sheet picker. The existing sheet's own title block sets the frame.</li>
       <li><b>Use free space</b>: everything already on the sheet stays put. The new sections go into the largest empty rectangle inside the margins, using the chosen layout.</li>
@@ -328,22 +329,22 @@ button.chip:focus-visible{outline:2px solid var(--info);outline-offset:2px}
       secs:sections([30,136.2,242.4,348.6,454.8,561],220,[30,136.2],325),
       freeArea:{x:30,y:220,w:611,h:224},
       layout:'Rows · 2 rows in the free area',h:'26 mm',
-      banner:'A-301 already holds 2 views and 1 schedule. They stay where they are. The new sections go in the largest empty area, 611 × 224 mm, and continue the detail numbers from 3.',
-      hint:'Everything already on the sheet stays put. The new sections go in the largest empty area inside the margins.',
-      order:'Order applies to the new sections.',
-      dlg:'Nothing already on A-301 moves. The new sections get detail numbers 3 to 10.',
-      log:'Plan: 8 sections into the free area of A-301 (611 × 224 mm), 2 rows, no extra sheets.'
+      banner:'A-301 already holds 2 views and 1 other item. They stay where they are; the new sections go in the largest empty area (611 × 224 mm).',
+      hint:'Nothing on the sheet moves. The sections go in the largest empty area inside the margins, and continue its detail numbers.',
+      order:'Same order as the markers in the view: left to right, then the next row down.',
+      dlg:'',
+      log:'8 section(s) ready for A-301 · 2 come off A-210'
     },
     re:{
       existing:[Object.assign({x:30,y:30,kind:'move'},keyPlan),Object.assign({x:281,y:100,kind:'move'},legend)],
       secs:sections([30,143.7,257.3,371],210,[30,143.7,257.3,371],315),
       freeArea:null,
       layout:'Rows · 3 rows, clear of the schedule',h:'31 mm',
-      banner:'The 2 views already on A-301 move and keep their detail numbers 1 and 2. The Door Schedule stays where it is, and the layout keeps clear of it. New sections continue from 3.',
-      hint:'Every view on the sheet is laid out again with the new sections. Schedules and other items stay put.',
-      order:'Views already on the sheet come first, in their current order. Order applies to the new sections after them.',
+      banner:'2 views already on A-301 move and keep their detail numbers. 1 other item stays where it is; the layout keeps clear of it.',
+      hint:'Every view on the sheet is laid out again with the sections, the sheet’s own views first. They keep their detail numbers. Schedules and other items stay where they are.',
+      order:'Same order as the markers in the view: left to right, then the next row down.',
       dlg:'2 views already on A-301 also move to new positions. Their detail numbers stay the same.',
-      log:'Plan: 2 views on A-301 re-arranged + 8 new sections, 3 rows, no extra sheets.'
+      log:'8 section(s) ready for A-301 · 2 come off A-210'
     }
   };
   var NS='http://www.w3.org/2000/svg';
@@ -393,7 +394,7 @@ button.chip:focus-visible{outline:2px solid var(--info);outline-offset:2px}
   function show(key){
     var m=modes[key];
     draw(m);list(m);
-    set('s-layout',m.layout);set('s-h',m.h);set('banner',m.banner);set('modehint',m.hint);set('orderhint',m.order);set('dlgnote',m.dlg);
+    set('s-layout',m.layout);set('s-h',m.h);set('banner',m.banner);set('modehint',m.hint);set('orderhint',m.order);set('dlgnote',m.dlg);document.getElementById('dlgnote').hidden=!m.dlg;
     document.getElementById('logline').innerHTML='<span class="t">10:42:08</span> <span class="ok">INFO</span>    '+m.log;
     document.getElementById('lg-move').hidden=key!=='re';
     document.getElementById('lg-stay').hidden=false;
