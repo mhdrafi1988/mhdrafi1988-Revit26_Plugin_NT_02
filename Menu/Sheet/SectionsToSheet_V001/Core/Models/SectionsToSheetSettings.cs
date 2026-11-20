@@ -9,10 +9,19 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.Core.Models
     public sealed class SectionsToSheetSettings
     {
         /// <summary>Current settings-file format version.</summary>
-        public const int CurrentVersion = 1;
+        public const int CurrentVersion = 2;
 
         /// <summary>Format version of the file this was read from.</summary>
         public int Version { get; set; } = CurrentVersion;
+
+        /// <summary>New sheet (default) or an existing one. Added in version 2.</summary>
+        public TargetMode Target { get; set; } = TargetMode.NewSheet;
+
+        /// <summary>Existing sheet: use its free space (default) or re-arrange every view on it. Added in version 2.</summary>
+        public ExistingSheetMode ExistingMode { get; set; } = ExistingSheetMode.FreeSpace;
+
+        /// <summary>Number of the existing sheet last chosen as the target; empty = none. Added in version 2.</summary>
+        public string TargetSheetNumber { get; set; } = string.Empty;
 
         /// <summary>Title block for new sheets, as "Family : Type"; empty = the first one in the project.</summary>
         public string TitleBlockName { get; set; } = string.Empty;
@@ -72,7 +81,8 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.Core.Models
         public double RowToleranceMm { get; set; } = 10;
 
         /// <summary>
-        /// Brings a file from any version (or a hand-edited one) to valid values: unknown enum
+        /// Brings a file from any version (or a hand-edited one) to valid values. A version-1 file has
+        /// no target fields, so it loads as "new sheet", the behaviour it was saved with. Unknown enum
         /// values and negative or non-numeric lengths fall back to the defaults.
         /// </summary>
         public SectionsToSheetSettings Normalize()
@@ -81,6 +91,9 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.Core.Models
             TitleBlockName ??= string.Empty;
             ViewportTypeName ??= string.Empty;
             LastSheetNumber ??= string.Empty;
+            TargetSheetNumber ??= string.Empty;
+            if (!Enum.IsDefined(typeof(TargetMode), Target)) Target = d.Target;
+            if (!Enum.IsDefined(typeof(ExistingSheetMode), ExistingMode)) ExistingMode = d.ExistingMode;
             if (string.IsNullOrWhiteSpace(SheetName)) SheetName = d.SheetName;
             if (!Enum.IsDefined(typeof(ArrangeMode), Mode)) Mode = d.Mode;
             if (!Enum.IsDefined(typeof(SectionOrder), Order)) Order = d.Order;
