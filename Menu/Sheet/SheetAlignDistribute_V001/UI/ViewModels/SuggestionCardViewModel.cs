@@ -61,6 +61,26 @@ namespace Revit26_Plugin_Revised.SheetAlignDistribute.V001.UI.ViewModels
         /// <summary>The combination's name, e.g. "Bottom + Left · gaps kept".</summary>
         public string Title => Combo.Title;
 
+        /// <summary>Short chip label, e.g. "Bottom + Left" or "Bottom + Left · even".</summary>
+        public string ShortTitle
+        {
+            get
+            {
+                string text = Combo.Title;
+                int dot = text.IndexOf(" · ", StringComparison.Ordinal);
+                string head = dot < 0 ? text : text.Substring(0, dot);
+                bool even = Combo.Horizontal == DistributeMode.EvenGaps || Combo.Vertical == DistributeMode.EvenGaps;
+                bool fit = Combo.Horizontal == DistributeMode.FitMargins || Combo.Vertical == DistributeMode.FitMargins;
+                return head + (fit ? " · fit" : even ? " · even" : "");
+            }
+        }
+
+        /// <summary>Chip numbers: "5 · 5.7 mm" (moves · largest move).</summary>
+        public string ChipStats => $"{Suggestion.Outcome.Moves} · {Suggestion.Outcome.LargestMoveMm:0.0} mm";
+
+        /// <summary>How many views overflow, for the chip's orange badge.</summary>
+        public string OverflowCountText => Suggestion.Outcome.Overflow.ToString();
+
         /// <summary>"5 moves · max 5.7 mm".</summary>
         public string MovesText
         {

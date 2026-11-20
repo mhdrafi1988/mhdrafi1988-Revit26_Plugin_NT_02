@@ -1,9 +1,9 @@
 <title>Sheet Align &amp; Distribute</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<!-- UI preview (CLAUDE.md "UI previews"): Sheet Align & Distribute 1.1.1 (V001). Plugin 7.27.1.
-     Rev 8 (proposal, 2026-11-20): owner asked for the 4 suggestion buttons to be small and sit on top of the
+<!-- UI preview (CLAUDE.md "UI previews"): Sheet Align & Distribute 1.1.2 (V001). Plugin 7.27.2.
+     Rev 8 (built as 1.1.2, 2026-11-20): owner asked for the 4 suggestion buttons to be small and sit on top of the
      sheet preview. Shown as a strip of chips (rank, name, moves · largest move, orange overflow count; full
-     detail in the tooltip). The big cards in section 3 are removed. Not built yet.
+     detail in the tooltip). The big cards in section 3 are removed.
      Rev 7 (1.1.1, 2026-11-20): no visible change. Fix: Apply now moves the previewed plan itself (after
      checking each view is still where the preview found it) instead of re-planning and refusing on any
      difference, which had left Apply moving nothing.
@@ -238,7 +238,7 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg2);border:1px sol
 <div class="page">
 
 <header>
-  <h1>Sheet Align &amp; Distribute <span class="tag">1.1.1 &middot; APPLY FIX</span></h1>
+  <h1>Sheet Align &amp; Distribute <span class="tag">1.1.2 &middot; SMALL SUGGESTION CHIPS</span></h1>
   <p style="margin-bottom:6px"><b>1.1.1:</b> Apply now really moves the views; it no longer refuses because a re&#8209;read differed from the preview. Nothing else on screen changed.</p>
   <p class="muted">Tool <b>1.0.0 &rarr; 1.1.0</b> (V001) &middot; plugin <b>7.26.5 &rarr; 7.27.0</b> &middot; ribbon: <b>Documents &rsaquo; Sheet Edit</b> (unchanged).
   Built 2026&#8209;11&#8209;20; 93 unit tests on the layout maths and the suggestion ranking.</p>
@@ -299,7 +299,7 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg2);border:1px sol
   </div>
   <div class="frame">
     <div class="tip">
-      <b>Sheet Align &amp; Distribute &mdash; v1.1.1 <span class="vn">(build V001)</span></b>
+      <b>Sheet Align &amp; Distribute &mdash; v1.1.2 <span class="vn">(build V001)</span></b>
       Lines up the views already on the open sheet without re-ordering them: detects the rows and columns they are in,
       snaps each to one shared edge and evens out the gaps. Margins and gaps are read off the sheet as it is, so the
       layout keeps its own look. Each view can carry its own extra clearance.
@@ -327,7 +327,7 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg2);border:1px sol
   <h2>Tool window</h2>
   <div class="frame">
   <div class="win">
-    <div class="tbar">Sheet Align &amp; Distribute &mdash; v1.1.0</div>
+    <div class="tbar">Sheet Align &amp; Distribute &mdash; v1.1.2</div>
 
     <div class="hdr">
       <div>
@@ -787,7 +787,7 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg2);border:1px sol
   <p class="muted" style="margin-bottom:8px">When views overflow, Apply asks first <span class="tag">NEW</span></p>
   <div class="frame" style="margin-bottom:14px">
     <div class="dlg">
-      <div class="dh">Sheet Align &amp; Distribute &mdash; v1.1.0</div>
+      <div class="dh">Sheet Align &amp; Distribute &mdash; v1.1.2</div>
       <div class="db">
         <p>1 view overflows:<br>&bull; A3 TWP DETAIL @ PIPE PENETRATION &mdash; needs 44.1&nbsp;mm, over the 25&nbsp;mm limit</p>
         <p><b>Yes</b> &mdash; Place anyway: move all 6 views, these included.<br>
@@ -800,7 +800,7 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg2);border:1px sol
   <p class="muted" style="margin-bottom:8px">Then the result (after <b>No</b>; after <b>Yes</b> it adds "1 overflowing view was placed anyway, as you chose.")</p>
   <div class="frame">
     <div class="dlg">
-      <div class="dh">Sheet Align &amp; Distribute &mdash; v1.1.0</div>
+      <div class="dh">Sheet Align &amp; Distribute &mdash; v1.1.2</div>
       <div class="db">
         <p><b>5 views aligned on WP&#8209;204.</b></p>
         <p>2 views were already in place. 1 view (A3 TWP DETAIL @ PIPE PENETRATION) needed 44.1&nbsp;mm,

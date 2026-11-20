@@ -9,6 +9,17 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [7.27.2] — 2026-11-20
+
+### Changed
+- **Sheet Align & Distribute 1.1.2** — the four **Suggested layouts** buttons are now small chips in one row on
+  top of the sheet preview, instead of large cards in the *Align and distribute* section. Each chip shows its rank,
+  a short name, the number of moves and the largest move, plus an orange count when views overflow. Hover for the
+  full breakdown. Clicking works as before: the chip loads its settings and the preview redraws, and Apply moves.
+
+**User notes**
+- Only the layout of the window changed; the settings and Apply behaviour are the same.
+
 ## [7.27.1] — 2026-11-20
 
 ### Fixed
