@@ -46,5 +46,11 @@ namespace Revit26_Plugin_Revised.VoidOpenings.V001.Core.Domain.Entities
 
         /// <summary>Why the opening needs a review; empty when it does not.</summary>
         public string ReviewNote { get; set; } = string.Empty;
+
+        /// <summary>Unique id of the void instance placed for this opening, empty until one is generated.</summary>
+        public string InstanceUniqueId { get; set; } = string.Empty;
+
+        /// <summary>What happened on the last generate run for this opening; empty when it has not run.</summary>
+        public string ResultNote { get; set; } = string.Empty;
     }
 }

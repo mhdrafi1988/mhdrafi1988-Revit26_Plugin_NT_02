@@ -9,7 +9,7 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
-## [7.26.3] — 2026-11-19
+## [7.26.5] — 2026-11-20
 
 ### Added
 - **Wet Area Waterproofing 1.2.0** — per-target callout option. Each section target row can now
@@ -25,6 +25,39 @@ Each release lists every tool whose version changed, under the plugin version.
 **User notes**
 - Existing settings files load unchanged; new callout fields default to Reference Section mode.
 - The Waterproofing button moved from the Docs tab to the Floors tab.
+
+## [7.26.4] — 2026-11-19
+
+### Changed
+- **Void Openings** — the Generate Void and opening-package engine from the `ccr-5831eed2-qc9usy` branch is now
+  in the repository, ported onto the current 0.4.0 code. **Nothing is reachable from the tool yet**: no button or
+  command calls it, the writer is not registered, and the Results tab still says Generate Void comes in a later
+  version. This is groundwork for that phase, not the feature.
+  - Added: the placement use case and Revit void writer, the void family builder/provider, the opening package
+    builder and its file reader/writer, the Extensible Storage opening store, the reconciler and signature used to
+    match openings across runs, and the job-id generator and Revit job queue.
+  - `OpeningData` gains `InstanceUniqueId` and `ResultNote`, which the placement path records; `UnitsMm` gains
+    scalar `ToMm` / `ToFeet` wrappers over its existing constant. Neither changes existing behaviour.
+
+**User notes**
+- No tool version changed and nothing looks or behaves differently. The plugin DLL is larger.
+- The placement code writes to the model and **has never run in Revit**; it must be tested there before it is wired up.
+
+## [7.26.3] — 2026-11-19
+
+### Fixed
+- **Auto Slope By Point (V033, V034), Auto Slope By Drain and DWG Statistics** — closing the window could leave a
+  Revit event handler attached. Unsubscribing happens on the WPF thread, where Revit refuses it ("Revit is
+  currently not within an API context"), so the handler now finishes the job itself the next time Revit calls it,
+  which is inside an API context. From `claude/dreamy-volta-2uiyhg`.
+
+### Changed
+- **CLAUDE.md** — new robustness rule: Revit events need an API context. Never unsubscribe in a window's
+  `Closing`/`Closed` handler or a ViewModel `Dispose`; set a flag there and let the event handler (or an
+  `ExternalEvent`) do it.
+
+**User notes**
+- No tool version changed and nothing looks different; the tools just let go of their Revit event handlers cleanly.
 
 ## [7.26.2] — 2026-11-19
 

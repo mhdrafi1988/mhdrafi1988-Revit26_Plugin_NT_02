@@ -122,6 +122,7 @@ namespace Revit26_Plugin_Revised.DwgStatistics.V005.Commands
         {
             if (_watchedApp != null) return;
             _watchedApp = app;
+            app.DocumentClosing -= OnDocumentClosing; // avoid a duplicate if an earlier unsubscribe was deferred
             _watchedApp.DocumentClosing += OnDocumentClosing;
         }
 
@@ -135,7 +136,15 @@ namespace Revit26_Plugin_Revised.DwgStatistics.V005.Commands
 
         private static void OnDocumentClosing(object sender, DocumentClosingEventArgs e)
         {
-            if (_window != null && _window.ViewModel.IsFor(e.Document)) _window.Close();
+            if (_window == null)
+            {
+                // Window already closed: StopWatchingDocuments ran on the WPF thread, outside a Revit API
+                // context, where unsubscribing is refused. Revit calls this handler inside one, so finish it here.
+                try { if (sender is Autodesk.Revit.ApplicationServices.Application app) app.DocumentClosing -= OnDocumentClosing; }
+                catch (Autodesk.Revit.Exceptions.ApplicationException) { /* Revit is shutting down */ }
+                return;
+            }
+            if (_window.ViewModel.IsFor(e.Document)) _window.Close();
         }
     }
 }
