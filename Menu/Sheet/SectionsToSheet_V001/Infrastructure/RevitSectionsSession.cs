@@ -34,6 +34,10 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.Infrastructure
             InitialTitleBlockKey = ResolveKey(Initial.TitleBlocks, settings.TitleBlockName) ?? Initial.TitleBlocks.FirstOrDefault()?.Key ?? 0;
             InitialViewportTypeKey = ResolveKey(Initial.ViewportTypes, settings.ViewportTypeName) ?? Initial.DefaultViewportTypeKey;
             InitialMeasure = FootprintMeasurer.Measure(_doc, InitialTitleBlockKey, InitialViewportTypeKey, Initial.Sections.Values);
+            var savedTarget = string.IsNullOrWhiteSpace(settings.TargetSheetNumber) ? null
+                : Initial.AllSheets.FirstOrDefault(sh => string.Equals(sh.Number, settings.TargetSheetNumber, StringComparison.OrdinalIgnoreCase));
+            if (savedTarget != null)
+                InitialTarget = TargetSheetReader.Read(_doc, savedTarget.Key, out _);
             _externalEvent = ExternalEvent.Create(_handler);
         }
 
@@ -42,6 +46,9 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.Infrastructure
 
         /// <inheritdoc/>
         public MeasureResult InitialMeasure { get; }
+
+        /// <inheritdoc/>
+        public TargetSheetContent InitialTarget { get; }
 
         /// <inheritdoc/>
         public long InitialTitleBlockKey { get; }
@@ -55,10 +62,29 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.Infrastructure
                : types?.FirstOrDefault(t => string.Equals(t.Name, name, StringComparison.OrdinalIgnoreCase))?.Key;
 
         /// <inheritdoc/>
-        public bool Refresh(IReadOnlyCollection<long> keepKeys, Action<SessionResult> done) => Raise(done, app =>
+        public bool Refresh(IReadOnlyCollection<long> keepKeys, long targetSheetKey, Action<SessionResult> done) => Raise(done, app =>
         {
             var source = GetSource(out string error);
-            return source == null ? Failed(error) : new SessionResult { Snapshot = Read(app, source, keepKeys) };
+            if (source == null)
+                return Failed(error);
+            string problem = null;
+            var target = targetSheetKey != 0 ? TargetSheetReader.Read(_doc, targetSheetKey, out problem) : null;
+            return new SessionResult
+            {
+                Snapshot = Read(app, source, keepKeys),
+                TargetRead = targetSheetKey != 0,
+                Target = target,
+                TargetProblem = targetSheetKey != 0 && target == null ? problem : null
+            };
+        });
+
+        /// <inheritdoc/>
+        public bool ReadTarget(long sheetKey, Action<SessionResult> done) => Raise(done, app =>
+        {
+            if (!_doc.IsValidObject)
+                return Failed("The document was closed. Close this window.");
+            var target = TargetSheetReader.Read(_doc, sheetKey, out string problem);
+            return new SessionResult { TargetRead = true, Target = target, TargetProblem = target == null ? problem : null };
         });
 
         /// <inheritdoc/>
@@ -115,6 +141,9 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.Infrastructure
 
             var keep = request.TickedKeys.Concat(request.KeepKeys ?? Array.Empty<long>()).Distinct().ToList();
             var fresh = Read(app, source, keep);
+            bool toExisting = request.Settings.Target == TargetMode.ExistingSheet;
+            string targetProblem = null;
+            var target = toExisting ? TargetSheetReader.Read(_doc, request.TargetSheetKey, out targetProblem) : null;
             var ticked = request.TickedKeys.Where(fresh.Sections.ContainsKey).Select(k => fresh.Sections[k]).ToList();
 
             using var group = new TransactionGroup(_doc, PlacementRunner.TransactionName);
@@ -136,7 +165,9 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.Infrastructure
                     SourceViewScale = fresh.SourceViewScale,
                     FirstSheetNumber = request.FirstSheetNumber,
                     SheetName = request.SheetName,
-                    Settings = request.Settings
+                    Settings = request.Settings,
+                    Target = target,
+                    TargetProblem = targetProblem
                 });
 
                 if (plan.Signature != request.Signature)
@@ -147,14 +178,21 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.Infrastructure
                         Snapshot = fresh,
                         Measure = measure,
                         Level = LogLevel.Warning,
-                        Message = "The model changed since the preview, so nothing was changed. Check the updated preview and press Create again."
+                        TargetRead = toExisting,
+                        Target = target,
+                        TargetProblem = targetProblem,
+                        Message = "The model changed since the preview, so nothing was changed. Check the updated preview and press the button again."
                     };
                 }
 
                 if (!plan.CanApply)
                 {
                     group.RollBack();
-                    return new SessionResult { Snapshot = fresh, Measure = measure, Level = LogLevel.Warning, Message = "Nothing was changed: " + plan.Blocker };
+                    return new SessionResult
+                    {
+                        Snapshot = fresh, Measure = measure, TargetRead = toExisting, Target = target, TargetProblem = targetProblem,
+                        Level = LogLevel.Warning, Message = "Nothing was changed: " + plan.Blocker
+                    };
                 }
 
                 var run = PlacementRunner.Apply(_doc, plan, request.TitleBlockKey, request.ViewportTypeKey,
@@ -167,17 +205,25 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.Infrastructure
 
                 group.Assimilate();
 
-                if (request.OpenSheet && run.CreatedSheets.Count > 0 && _doc.GetElement(run.CreatedSheets[0]) is View firstSheet)
+                ElementId open = run.TargetSheet != ElementId.InvalidElementId ? run.TargetSheet
+                    : run.CreatedSheets.Count > 0 ? run.CreatedSheets[0] : ElementId.InvalidElementId;
+                if (request.OpenSheet && open != ElementId.InvalidElementId && _doc.GetElement(open) is View firstSheet)
                     app.ActiveUIDocument?.RequestViewChange(firstSheet);
 
+                string afterProblem = null;
+                var after = toExisting ? TargetSheetReader.Read(_doc, request.TargetSheetKey, out afterProblem) : null;
                 return new SessionResult
                 {
                     Snapshot = Read(app, source, keep),
                     Measure = measure,
+                    TargetRead = toExisting,
+                    Target = after,
+                    TargetProblem = toExisting && after == null ? afterProblem : null,
                     Applied = true,
-                    LastSheetNumber = plan.Sheets.Last().Number,
+                    LastSheetNumber = plan.Sheets.LastOrDefault(s => !s.IsExisting)?.Number,
                     Level = LogLevel.Success,
-                    Message = $"Placed {run.Placed} section(s) on {string.Join(", ", plan.Sheets.Select(s => s.Number))}"
+                    Message = $"Placed {run.Placed} section(s) on {string.Join(", ", plan.Sheets.Where(s => s.Viewports.Count > 0).Select(s => s.Number))}"
+                              + (run.Rearranged > 0 ? $", {run.Rearranged} view(s) on {plan.Target?.Number} moved" : string.Empty)
                               + (run.Removed > 0 ? $", {run.Removed} taken off their old sheet" : string.Empty)
                               + $". Undo with Ctrl+Z (\"{PlacementRunner.TransactionName}\").",
                     Details = Details(plan, run)
@@ -194,7 +240,12 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.Infrastructure
         {
             var lines = new List<LogEntry>();
             foreach (var sheet in plan.Sheets)
-                lines.Add(new LogEntry(LogLevel.Info, $"Sheet {sheet.Number} – {sheet.Name}: {sheet.Viewports.Count} view(s) in {sheet.RowCount} row(s)."));
+            {
+                int placed = sheet.Viewports.Count(v => !v.IsRearranged), moved = sheet.Viewports.Count(v => v.IsRearranged);
+                lines.Add(new LogEntry(LogLevel.Info, sheet.IsExisting
+                    ? $"Sheet {sheet.Number} – {sheet.Name} (existing): {placed} section(s) placed" + (moved > 0 ? $", {moved} view(s) already on it moved (detail numbers kept)." : ".")
+                    : $"Sheet {sheet.Number} – {sheet.Name}: {placed} view(s) in {sheet.RowCount} row(s)."));
+            }
             foreach (var move in plan.Moves)
                 lines.Add(new LogEntry(LogLevel.Info, $"Moved {move.Section.Name}: {move.Section.CurrentSheetNumber} → {plan.Sheets[move.Sheet].Number} (detail {move.DetailNumber})."));
             foreach (var skip in plan.Skipped)

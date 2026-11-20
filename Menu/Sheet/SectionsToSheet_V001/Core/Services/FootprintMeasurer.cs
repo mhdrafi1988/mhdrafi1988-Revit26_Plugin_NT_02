@@ -153,6 +153,23 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.Core.Services
         /// <summary>The viewport box united with its title, and where the box centre sits in it.</summary>
         private static Footprint ReadFootprint(Viewport vp)
         {
+            if (ReadOutline(vp) is not (LayoutRect rect, XYZ centre))
+                return null;
+            return new Footprint
+            {
+                Width = rect.Width,
+                Height = rect.Height,
+                CenterOffsetX = centre.X - rect.MinX,
+                CenterOffsetY = centre.Y - rect.MinY
+            };
+        }
+
+        /// <summary>
+        /// Where a viewport sits on its sheet: its box united with its title (the title is left out
+        /// when the viewport type hides it), and its box centre. Null when Revit gives no box.
+        /// </summary>
+        public static (LayoutRect Rect, XYZ Centre)? ReadOutline(Viewport vp)
+        {
             Outline box = vp.GetBoxOutline();
             if (box == null || box.IsEmpty)
                 return null;
@@ -179,16 +196,11 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.Core.Services
 
             if (!(maxX > minX) || !(maxY > minY))
                 return null;
-
-            XYZ centre = vp.GetBoxCenter();
-            return new Footprint
-            {
-                Width = maxX - minX,
-                Height = maxY - minY,
-                CenterOffsetX = centre.X - minX,
-                CenterOffsetY = centre.Y - minY
-            };
+            return (new LayoutRect(minX, minY, maxX, maxY), vp.GetBoxCenter());
         }
+
+        /// <summary>The extent of the first title block on <paramref name="sheet"/>, or why it can't be read.</summary>
+        public static (LayoutRect? Frame, string Problem) ReadSheetFrame(Document doc, ViewSheet sheet) => ReadFrame(doc, sheet);
 
         private static (LayoutRect? Frame, string Problem) ReadFrame(Document doc, ViewSheet sheet)
         {

@@ -13,7 +13,7 @@ using System.Windows.Shapes;
 namespace Revit26_Plugin_Revised.SectionsToSheet.V001.UI.Views
 {
     /// <summary>
-    /// Sections To Sheet window. Draws the to-scale preview of the current new sheet on a canvas,
+    /// Sections To Sheet window. Draws the to-scale preview of the current sheet on a canvas,
     /// steps aside while the user picks markers in the view, and keeps Revit's last request from
     /// being orphaned by closing mid-run. Everything else is bound.
     /// </summary>
@@ -26,7 +26,13 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.UI.Views
         private static readonly Brush NewStroke = Frozen(0x2D, 0x6C, 0xDF);
         private static readonly Brush MoveFill = Frozen(0xFD, 0xF1, 0xE1);
         private static readonly Brush MoveStroke = Frozen(0xC9, 0x8A, 0x2E);
+        private static readonly Brush RearrangeFill = Frozen(0xDC, 0xE3, 0xEC);
+        private static readonly Brush RearrangeStroke = Frozen(0x1E, 0x3A, 0x5F);
+        private static readonly Brush StayFill = Frozen(0xE1, 0xE6, 0xEC);
+        private static readonly Brush StayStroke = Frozen(0x8F, 0xA3, 0xB8);
+        private static readonly Brush FreeStroke = Frozen(0x2E, 0x7D, 0x4F);
         private static readonly Brush LabelBrush = Frozen(0x1A, 0x2B, 0x3C);
+        private static readonly Brush DimLabelBrush = Frozen(0x5B, 0x71, 0x85);
 
         private readonly SectionsToSheetViewModel _viewModel;
 
@@ -102,8 +108,10 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.UI.Views
         private void PreviewCanvas_SizeChanged(object sender, SizeChangedEventArgs e) => DrawPreview();
 
         /// <summary>
-        /// Draws the title block frame, the usable area (dashed) and the views of the sheet shown,
-        /// blue when new, orange when they come off another sheet. Sheet Y points up, canvas Y down.
+        /// Draws the sheet shown: title block frame, usable area (dashed) and its views — blue when
+        /// new, orange when they come off another sheet. On an existing sheet also the items that
+        /// stay (grey), its own views that move (navy) and the empty area used (green dashed).
+        /// Sheet Y points up, canvas Y down.
         /// </summary>
         private void DrawPreview()
         {
@@ -114,10 +122,17 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.UI.Views
                 return;
 
             var sheet = _viewModel.CurrentSheet;
-            LayoutRect? world = plan.Frame ?? plan.Area;
+            LayoutRect? frameRect = sheet?.Frame ?? plan.Frame;
+            LayoutRect? areaRect = sheet?.Area ?? plan.Area;
+            LayoutRect? world = frameRect ?? areaRect;
             if (sheet != null)
+            {
                 foreach (var v in sheet.Viewports)
                     world = world?.Union(v.Target) ?? v.Target;
+                foreach (var o in sheet.Obstacles)
+                    if (frameRect == null || o.Rect.Intersects(frameRect.Value))
+                        world = world?.Union(o.Rect) ?? o.Rect;
+            }
             if (world is not LayoutRect w || !w.IsValid)
             {
                 AddText("No preview yet — " + (plan.Blocker ?? "nothing to show."), canvasW / 2, canvasH / 2, canvasW - 40, 12, centre: true);
@@ -135,18 +150,34 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.UI.Views
                 Math.Max(1, r.Width * scale),
                 Math.Max(1, r.Height * scale));
 
-            if (plan.Frame is LayoutRect frame)
+            if (frameRect is LayoutRect frame)
                 AddRect(ToCanvas(frame), SheetFill, FrameStroke, 1, null);
-            if (plan.Area is LayoutRect area)
+            if (areaRect is LayoutRect area)
                 AddRect(ToCanvas(area), null, AreaStroke, 1, new DoubleCollection { 4, 3 });
 
             if (sheet == null)
                 return;
 
+            if (sheet.FreeArea is LayoutRect free)
+            {
+                var fr = ToCanvas(free);
+                AddRect(new Rect(fr.X - 2, fr.Y - 2, fr.Width + 4, fr.Height + 4), null, FreeStroke, 1.5, new DoubleCollection { 5, 3 });
+            }
+
+            foreach (var o in sheet.Obstacles)
+            {
+                var r = ToCanvas(o.Rect);
+                AddRect(r, StayFill, StayStroke, 1, null);
+                if (r.Width >= 30 && r.Height >= 14)
+                    AddText((o.IsViewport && !string.IsNullOrEmpty(o.DetailNumber) ? o.DetailNumber + " · " : string.Empty) + o.Name,
+                        r.Left + r.Width / 2, r.Top + r.Height / 2, r.Width - 6, Math.Max(8, Math.Min(11, r.Height / 4)), centre: true, brush: DimLabelBrush);
+            }
+
             foreach (var v in sheet.Viewports)
             {
                 var r = ToCanvas(v.Target);
-                AddRect(r, v.IsMove ? MoveFill : NewFill, v.IsMove ? MoveStroke : NewStroke, 1.2, null);
+                var (fill, stroke) = v.IsRearranged ? (RearrangeFill, RearrangeStroke) : v.IsMove ? (MoveFill, MoveStroke) : (NewFill, NewStroke);
+                AddRect(r, fill, stroke, 1.2, null);
 
                 // Title line along the bottom, as on the printed sheet.
                 double lineY = r.Bottom - Math.Min(10, r.Height * 0.18);
@@ -156,9 +187,9 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.UI.Views
                 if (r.Width >= 18 && r.Height >= 14)
                 {
                     double size = Math.Max(8, Math.Min(12, r.Height / 4));
-                    AddText(v.DetailNumber.ToString(), r.Left + r.Width / 2, r.Top + r.Height * 0.42, r.Width - 4, size + 2, centre: true, bold: true);
+                    AddText(v.DetailLabel, r.Left + r.Width / 2, r.Top + r.Height * 0.42, r.Width - 4, size + 2, centre: true, bold: true);
                     if (r.Height >= 34)
-                        AddText(v.Section.Name, r.Left + r.Width / 2, r.Top + r.Height * 0.42 + size + 4, r.Width - 6, Math.Max(8, size - 1), centre: true);
+                        AddText(v.Name, r.Left + r.Width / 2, r.Top + r.Height * 0.42 + size + 4, r.Width - 6, Math.Max(8, size - 1), centre: true);
                 }
             }
         }
@@ -179,14 +210,14 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.UI.Views
             PreviewCanvas.Children.Add(rect);
         }
 
-        private void AddText(string text, double centreX, double top, double width, double fontSize, bool centre, bool bold = false)
+        private void AddText(string text, double centreX, double top, double width, double fontSize, bool centre, bool bold = false, Brush brush = null)
         {
             var block = new TextBlock
             {
                 Text = text,
                 FontSize = fontSize,
                 FontWeight = bold ? FontWeights.SemiBold : FontWeights.Normal,
-                Foreground = LabelBrush,
+                Foreground = brush ?? LabelBrush,
                 Width = Math.Max(10, width),
                 TextAlignment = centre ? TextAlignment.Center : TextAlignment.Left,
                 TextTrimming = TextTrimming.CharacterEllipsis

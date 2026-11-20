@@ -39,6 +39,12 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.UI.ViewModels
         private bool _ready;
         private bool _syncingLists;
         private bool _measurePending;
+        private TargetSheetContent _target;
+        private string _targetProblem;
+        private long _targetReadKey;
+        private long _targetRequestedKey;
+        private bool _targetPending;
+        private string _savedTargetNumber = string.Empty;
 
         /// <summary>Raised whenever <see cref="Plan"/> is rebuilt (the window redraws the preview).</summary>
         public event EventHandler PlanChanged;
@@ -50,6 +56,9 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.UI.ViewModels
             _rowsView = new ListCollectionView(Rows) { Filter = o => o is SectionRowViewModel r && MatchesSearch(r) };
 
             var s = (settings ?? new SectionsToSheetSettings()).Normalize();
+            Target = s.Target;
+            ExistingMode = s.ExistingMode;
+            _savedTargetNumber = s.TargetSheetNumber;
             SheetName = s.SheetName;
             OpenSheetWhenDone = s.OpenSheetWhenDone;
             Mode = s.Mode;
@@ -76,12 +85,25 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.UI.ViewModels
             _syncingLists = false;
             StoreMeasure(session.InitialMeasure, session.Initial.Sections.Keys);
 
+            _syncingLists = true;
+            SelectedTargetSheet = session.InitialTarget != null
+                ? TargetSheets.FirstOrDefault(t => t.Key == session.InitialTarget.Key)
+                : TargetSheets.FirstOrDefault(t => string.Equals(t.Number, _savedTargetNumber, StringComparison.OrdinalIgnoreCase));
+            _syncingLists = false;
+            if (session.InitialTarget != null)
+            {
+                _target = session.InitialTarget;
+                _targetReadKey = _target.Key;
+            }
+            UpdateTargetTexts();
+
             SheetNumber = SheetNumbering.SuggestAfter(_lastSheetNumber, _snapshot.ExistingSheetNumbers);
             SourceMode = _snapshot.SelectionKeys.Count > 0 ? SourceMode.Selection : SourceMode.View;
 
             _ready = true;
             RebuildRows();
             Recompute();
+            RequestTargetIfNeeded();
 
             Log(LogLevel.Info, $"Read {_snapshot.InViewKeys.Count} section marker(s) shown in '{_snapshot.SourceViewName}'"
                 + (_snapshot.SelectionKeys.Count > 0 ? $", {_snapshot.SelectionKeys.Count} selected" : string.Empty) + ".");
@@ -89,6 +111,8 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.UI.ViewModels
                 Log(LogLevel.Info, $"{_snapshot.IgnoredSelectionCount} selected element(s) are not section markers and were left out.");
             if (TitleBlocks.Count == 0)
                 Log(LogLevel.Warning, "The project has no title block. Load one, then press Refresh.");
+            if (_target != null)
+                Log(LogLevel.Info, $"Target {_target.Number} – {_target.Name}: {TargetSummary(_target)}.");
         }
 
         // ── Collections ─────────────────────────────────────────────────
@@ -108,6 +132,9 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.UI.ViewModels
         /// <summary>Viewport types.</summary>
         public ObservableCollection<NamedType> ViewportTypes { get; } = new();
 
+        /// <summary>Sheets in the model that can be the target.</summary>
+        public ObservableCollection<SheetChoice> TargetSheets { get; } = new();
+
         /// <summary>One tab per new sheet (shown when there are two or more).</summary>
         public ObservableCollection<PageTabViewModel> PageTabs { get; } = new();
 
@@ -117,7 +144,7 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.UI.ViewModels
         /// <summary>Current plan; never null after construction.</summary>
         public SectionPlan Plan { get; private set; }
 
-        /// <summary>The new sheet shown in the preview, or null.</summary>
+        /// <summary>The sheet shown in the preview, or null.</summary>
         public PlannedSheet CurrentSheet => Plan?.Sheets.ElementAtOrDefault(CurrentPage);
 
         // ── Source ──────────────────────────────────────────────────────
@@ -131,6 +158,20 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.UI.ViewModels
         [ObservableProperty] private string sourceNote = string.Empty;
         [ObservableProperty] private string searchText = string.Empty;
         [ObservableProperty] private string listCountText = string.Empty;
+
+        // ── Target sheet ────────────────────────────────────────────────
+
+        [ObservableProperty] private TargetMode target;
+        [ObservableProperty] private ExistingSheetMode existingMode;
+        [ObservableProperty] private SheetChoice selectedTargetSheet;
+        [ObservableProperty] private bool isExistingTarget;
+        [ObservableProperty] private string targetSheetInfo = string.Empty;
+        [ObservableProperty] private string existingModeNote = string.Empty;
+        [ObservableProperty] private string createButtonText = "Create Sheet & Place";
+        [ObservableProperty] private string newSheetHeader = string.Empty;
+        [ObservableProperty] private string titleBlockLabel = "Title block";
+        [ObservableProperty] private string newSheetHint = string.Empty;
+        [ObservableProperty] private string openSheetText = "Open the new sheet when done";
 
         // ── New sheet ───────────────────────────────────────────────────
 
@@ -204,6 +245,10 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.UI.ViewModels
         [ObservableProperty] private string confirmSkipText = string.Empty;
         [ObservableProperty] private bool hasConfirmSkip;
         [ObservableProperty] private string confirmEmptyText = string.Empty;
+        [ObservableProperty] private string confirmIntro = string.Empty;
+        [ObservableProperty] private bool hasConfirmMoves;
+        [ObservableProperty] private string confirmRearrangeText = string.Empty;
+        [ObservableProperty] private bool hasConfirmRearrange;
 
         /// <summary>True when no request is running in Revit.</summary>
         public bool IsIdle => !IsBusy;
@@ -227,6 +272,28 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.UI.ViewModels
         partial void OnSelectedTitleBlockChanged(NamedType value) { if (!_syncingLists) Recompute(); }
         partial void OnSelectedViewportTypeChanged(NamedType value) { if (!_syncingLists) { RebuildRows(); Recompute(); } }
         partial void OnSheetNumberChanged(string value) => Recompute();
+
+        partial void OnTargetChanged(TargetMode value)
+        {
+            UpdateTargetTexts();
+            if (!_ready) return;
+            Recompute();
+            RequestTargetIfNeeded();
+        }
+
+        partial void OnExistingModeChanged(ExistingSheetMode value)
+        {
+            UpdateTargetTexts();
+            Recompute();
+        }
+
+        partial void OnSelectedTargetSheetChanged(SheetChoice value)
+        {
+            UpdateTargetTexts();
+            if (_syncingLists || !_ready) return;
+            Recompute();
+            RequestTargetIfNeeded();
+        }
         partial void OnSheetNameChanged(string value) => Recompute();
 
         partial void OnModeChanged(ArrangeMode value) { UpdateNotes(); Recompute(); }
@@ -287,6 +354,9 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.UI.ViewModels
         /// <summary>Settings as currently shown in the window.</summary>
         public SectionsToSheetSettings CurrentSettings() => new()
         {
+            Target = Target,
+            ExistingMode = ExistingMode,
+            TargetSheetNumber = SelectedTargetSheet?.Number ?? _savedTargetNumber ?? string.Empty,
             TitleBlockName = SelectedTitleBlock?.Name ?? string.Empty,
             ViewportTypeName = SelectedViewportType?.Name ?? string.Empty,
             LastSheetNumber = _lastSheetNumber ?? string.Empty,
@@ -342,6 +412,14 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.UI.ViewModels
                 long tb = TitleBlockKey, vp = ViewportTypeKey;
                 SyncList(TitleBlocks, snapshot.TitleBlocks);
                 SyncList(ViewportTypes, snapshot.ViewportTypes);
+                long targetKey = SelectedTargetSheet?.Key ?? 0;
+                if (!TargetSheets.SequenceEqual(snapshot.AllSheets))
+                {
+                    TargetSheets.Clear();
+                    foreach (var sheet in snapshot.AllSheets)
+                        TargetSheets.Add(sheet);
+                }
+                SelectedTargetSheet = TargetSheets.FirstOrDefault(t => t.Key == targetKey);
                 SelectedTitleBlock = TitleBlocks.FirstOrDefault(t => t.Key == tb) ?? SelectedTitleBlock ?? TitleBlocks.FirstOrDefault();
                 if (SelectedTitleBlock != null && !TitleBlocks.Contains(SelectedTitleBlock))
                     SelectedTitleBlock = TitleBlocks.FirstOrDefault();
@@ -526,14 +604,16 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.UI.ViewModels
                 SourceViewScale = _snapshot.SourceViewScale,
                 FirstSheetNumber = SheetNumber,
                 SheetName = SheetName,
-                Settings = CurrentSettings()
+                Settings = CurrentSettings(),
+                Target = CurrentTarget(),
+                TargetProblem = CurrentTargetProblem()
             });
 
             // Row status lines.
-            var placed = Plan.Viewports.ToDictionary(v => v.Section.Key);
-            var skipped = new Dictionary<long, string>();
+            var placed = Plan.Placed.ToDictionary(v => v.Section.Key);
+            var skipped = new Dictionary<long, SkippedSection>();
             foreach (var s in Plan.Skipped)
-                skipped[s.Section.Key] = s.Reason;
+                skipped[s.Section.Key] = s;
             foreach (var row in Rows)
             {
                 if (!row.IsTicked)
@@ -541,9 +621,10 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.UI.ViewModels
                 else if (placed.TryGetValue(row.Key, out var v))
                     row.SetStatus((v.IsMove ? $"{v.Section.CurrentSheetNumber} → " : "→ ") + $"{Plan.Sheets[v.Sheet].Number} · detail {v.DetailNumber}",
                         v.IsMove ? RowStatusKind.Moved : RowStatusKind.Placed);
-                else if (skipped.TryGetValue(row.Key, out var reason))
-                    row.SetStatus(reason == NotMeasured ? "Measuring…" : reason,
-                        reason == NotMeasured || reason.StartsWith("Already on", StringComparison.Ordinal) ? RowStatusKind.Warning : RowStatusKind.Problem);
+                else if (skipped.TryGetValue(row.Key, out var skip))
+                    row.SetStatus(skip.Reason == NotMeasured ? "Measuring…" : skip.Reason,
+                        skip.IsNote || skip.Reason == NotMeasured || skip.Reason.StartsWith("Already on", StringComparison.Ordinal)
+                            ? RowStatusKind.Warning : RowStatusKind.Problem);
                 else
                     row.SetStatus(null, RowStatusKind.None);
             }
@@ -551,8 +632,8 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.UI.ViewModels
             // Metrics.
             PickedText = $"{ticked.Count} of {Rows.Count}";
             MovingCount = Plan.Moves.Count;
-            CantPlaceCount = Plan.Skipped.Count(s => s.Reason != NotMeasured);
-            SheetCount = Plan.Sheets.Count;
+            CantPlaceCount = Plan.Skipped.Count(s => s.Reason != NotMeasured && !s.IsNote);
+            SheetCount = Plan.NewSheetCount;
 
             // Tabs.
             int page = Math.Max(0, Math.Min(CurrentPage, Plan.Sheets.Count - 1));
@@ -585,9 +666,7 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.UI.ViewModels
             // Banners.
             BlockerText = Plan.Blocker ?? string.Empty;
             HasBlocker = Plan.Blocker != null;
-            InfoText = Plan.Sheets.Count > 1
-                ? $"Doesn’t fit on one sheet: continues on {string.Join(", ", Plan.Sheets.Skip(1).Select(s => s.Number))}. Use the tabs above the preview to check each sheet."
-                : string.Empty;
+            InfoText = InfoLines();
             HasInfo = InfoText.Length > 0;
             WarningsText = string.Join(Environment.NewLine, Plan.Warnings);
             HasWarnings = Plan.Warnings.Count > 0;
@@ -603,8 +682,10 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.UI.ViewModels
         private void UpdatePreviewTexts()
         {
             var sheet = CurrentSheet;
-            string titleBlock = SelectedTitleBlock?.Name ?? "no title block";
-            PreviewTitle = sheet != null ? $"{sheet.Number} · {titleBlock}" : titleBlock;
+            string titleBlock = sheet?.IsExisting == true ? Plan.Target?.TitleBlockName ?? "no title block" : SelectedTitleBlock?.Name ?? "no title block";
+            PreviewTitle = sheet == null ? titleBlock
+                : sheet.IsExisting ? $"{sheet.Number} (existing) · {titleBlock}"
+                : $"{sheet.Number} · {titleBlock}";
             FillText = sheet == null ? "—" : $"{sheet.FillPercent:0}%";
             LayoutText = sheet == null ? "—"
                 : Mode == ArrangeMode.Grid ? $"{Plan.Columns} column(s) × {sheet.RowCount} row(s)"
@@ -613,7 +694,7 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.UI.ViewModels
             VerticalGapText = sheet?.VerticalGap is double v ? $"{v * SectionPlanner.MmPerFoot:0} mm" : "—";
 
             var scales = (Plan?.Viewports ?? Enumerable.Empty<PlannedViewport>())
-                .GroupBy(x => x.Section.Scale).OrderBy(g => g.Key == 0 ? int.MaxValue : g.Key).ToList();
+                .GroupBy(x => x.Scale).OrderBy(g => g.Key == 0 ? int.MaxValue : g.Key).ToList();
             ScalesText = scales.Count == 0 ? "—" : string.Join(", ", scales.Select(g => $"{(g.Key > 0 ? "1:" + g.Key : "?")} ×{g.Count()}"));
             HasMixedScales = scales.Count > 1;
         }
@@ -670,7 +751,8 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.UI.ViewModels
             _footprints.Clear();
             _problems.Clear();
             _frames.Clear();
-            Run(done => _session.Refresh(_pickedKeys, done), "Reading the model…", null);
+            _targetRequestedKey = Target == TargetMode.ExistingSheet ? SelectedTargetSheet?.Key ?? 0 : 0;
+            Run(done => _session.Refresh(_pickedKeys, _targetRequestedKey, done), "Reading the model…", null);
         }
 
         /// <summary>Lets the user pick section markers in the view (the window steps aside meanwhile).</summary>
@@ -698,7 +780,8 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.UI.ViewModels
             if (!Plan.CanApply)
                 return;
 
-            if (Plan.Moves.Count == 0)
+            var rearranged = Plan.Rearranged;
+            if (Plan.Moves.Count == 0 && rearranged.Count == 0)
             {
                 DoApply();
                 return;
@@ -707,7 +790,18 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.UI.ViewModels
             ConfirmMoves.Clear();
             foreach (var move in Plan.Moves)
                 ConfirmMoves.Add(new MoveLine(move.Section.Name, move.Section.CurrentSheetNumber, Plan.Sheets[move.Sheet].Number));
-            ConfirmTitle = $"Move {Plan.Moves.Count} section{(Plan.Moves.Count == 1 ? "" : "s")} to the new sheet?";
+            string destination = Plan.Target != null ? Plan.Target.Number : "the new sheet";
+            ConfirmTitle = Plan.Moves.Count > 0
+                ? $"Move {Plan.Moves.Count} section{(Plan.Moves.Count == 1 ? "" : "s")} to {destination}?"
+                : $"Re-arrange {destination}?";
+            HasConfirmMoves = Plan.Moves.Count > 0;
+            ConfirmIntro = Plan.Moves.Count > 0
+                ? $"These viewports come off their current sheets and go on {(Plan.Target != null ? Plan.Target.Number : "the new one")}."
+                : "No section comes off another sheet.";
+            HasConfirmRearrange = rearranged.Count > 0;
+            ConfirmRearrangeText = rearranged.Count > 0
+                ? $"{rearranged.Count} view{(rearranged.Count == 1 ? "" : "s")} already on {destination} also move{(rearranged.Count == 1 ? "s" : "")} to new positions. Their detail numbers stay the same."
+                : string.Empty;
             var locked = Plan.Skipped.Where(s => s.Section.LockReason != null).ToList();
             HasConfirmSkip = locked.Count > 0;
             ConfirmSkipText = string.Join(Environment.NewLine, locked.Select(s => $"Skipped: {s.Section.Name} — {s.Section.LockReason}."));
@@ -750,9 +844,11 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.UI.ViewModels
                 TitleBlockKey = TitleBlockKey,
                 ViewportTypeKey = ViewportTypeKey,
                 OpenSheet = OpenSheetWhenDone,
+                TargetSheetKey = Target == TargetMode.ExistingSheet ? SelectedTargetSheet?.Key ?? 0 : 0,
                 Signature = Plan.Signature
             };
-            Run(done => _session.Apply(request, done), "Creating the sheet and placing the views…", ticked);
+            Run(done => _session.Apply(request, done),
+                Plan.Target != null ? $"Placing the views on {Plan.Target.Number}…" : "Creating the sheet and placing the views…", ticked);
         }
 
         /// <summary>Sends one request to Revit and shows the busy state until it comes back.</summary>
@@ -765,6 +861,11 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.UI.ViewModels
                 IsBusy = false;
                 IsPicking = false;
                 Handle(result, measuredKeys);
+                if (_targetPending && !IsBusy)
+                {
+                    _targetPending = false;
+                    RequestTargetIfNeeded();
+                }
                 if (_measurePending && !IsBusy)
                 {
                     _measurePending = false;
@@ -791,6 +892,15 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.UI.ViewModels
 
             if (result.Snapshot != null)
                 LoadSnapshot(result.Snapshot);
+            if (result.TargetRead)
+            {
+                _target = result.Target;
+                _targetProblem = result.TargetProblem;
+                _targetReadKey = result.Target?.Key ?? _targetRequestedKey;
+                if (_target != null && !result.Applied)
+                    Log(LogLevel.Info, $"Target {_target.Number} – {_target.Name}: {TargetSummary(_target)}.");
+                UpdateTargetTexts();
+            }
             if (result.Measure != null)
                 StoreMeasure(result.Measure, measuredKeys);
 
@@ -808,13 +918,106 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.UI.ViewModels
 
             if (result.Applied)
             {
-                _lastSheetNumber = result.LastSheetNumber;
+                if (result.LastSheetNumber != null)
+                    _lastSheetNumber = result.LastSheetNumber;
                 SheetNumber = SheetNumbering.SuggestAfter(_lastSheetNumber, _snapshot.ExistingSheetNumbers);
                 SaveSettings();
             }
 
             RebuildRows();
             Recompute();
+        }
+
+        // ── Target sheet ────────────────────────────────────────────────
+
+        /// <summary>The target as read, when it is the one chosen; otherwise null.</summary>
+        private TargetSheetContent CurrentTarget()
+            => Target == TargetMode.ExistingSheet && SelectedTargetSheet != null && _target?.Key == SelectedTargetSheet.Key ? _target : null;
+
+        private string CurrentTargetProblem()
+        {
+            if (Target != TargetMode.ExistingSheet)
+                return null;
+            if (SelectedTargetSheet == null)
+                return TargetSheets.Count == 0 ? "The model has no sheets yet. Choose New sheet." : "Choose the sheet to place the sections on.";
+            return _targetReadKey == SelectedTargetSheet.Key && _targetProblem != null ? _targetProblem : $"Reading sheet {SelectedTargetSheet.Number}…";
+        }
+
+        /// <summary>Reads the chosen existing sheet when it has not been read yet.</summary>
+        private void RequestTargetIfNeeded()
+        {
+            if (!_ready || Target != TargetMode.ExistingSheet || SelectedTargetSheet == null)
+                return;
+            long key = SelectedTargetSheet.Key;
+            if (_targetReadKey == key)
+                return;
+            if (IsBusy)
+            {
+                _targetPending = true;
+                return;
+            }
+            _targetRequestedKey = key;
+            Run(done => _session.ReadTarget(key, done), $"Reading what is on sheet {SelectedTargetSheet.Number}…", null);
+        }
+
+        private static string TargetSummary(TargetSheetContent t)
+        {
+            int views = t.Items.Count(i => i.IsViewport), others = t.Items.Count - views;
+            return $"{views} view{(views == 1 ? "" : "s")} and {others} other item{(others == 1 ? "" : "s")}";
+        }
+
+        private void UpdateTargetTexts()
+        {
+            bool existing = Target == TargetMode.ExistingSheet;
+            IsExistingTarget = existing;
+            CreateButtonText = existing && SelectedTargetSheet != null ? $"Place on {SelectedTargetSheet.Number}" : "Create Sheet & Place";
+            NewSheetHeader = existing ? "If they don’t all fit: extra new sheets" : string.Empty;
+            TitleBlockLabel = existing ? "Title block (extra sheets)" : "Title block";
+            OpenSheetText = existing ? "Open the sheet when done" : "Open the new sheet when done";
+            NewSheetHint = existing
+                ? "Used only for sections that don’t fit on the existing sheet. Extra sheets count up from this number, skipping numbers in use."
+                : "Suggested: the next free number. Extra sheets count up from it, skipping numbers in use.";
+            ExistingModeNote = ExistingMode == ExistingSheetMode.Rearrange
+                ? "Every view on the sheet is laid out again with the sections, the sheet’s own views first. They keep their detail numbers. Schedules and other items stay where they are."
+                : "Nothing on the sheet moves. The sections go in the largest empty area inside the margins, and continue its detail numbers.";
+
+            var t = CurrentTarget();
+            TargetSheetInfo = !existing ? string.Empty
+                : SelectedTargetSheet == null ? CurrentTargetProblem()
+                : t == null ? CurrentTargetProblem()
+                : $"Holds {TargetSummary(t)}. Title block: {t.TitleBlockName ?? "none"} (from the sheet). Highest detail number: {SectionPlanner.HighestDetailNumber(t.Items.Where(i => i.IsViewport))}."
+                  + (t.LockReason != null ? $" Can’t place on it: {t.LockReason}." : string.Empty);
+        }
+
+        /// <summary>The blue banner: what happens to the existing sheet, and where the rest goes.</summary>
+        private string InfoLines()
+        {
+            var lines = new List<string>();
+            var t = Plan.Target;
+            var first = Plan.Sheets.FirstOrDefault();
+            if (t != null && first != null && first.IsExisting)
+            {
+                if (Plan.ExistingMode == ExistingSheetMode.Rearrange)
+                {
+                    int moved = Plan.Rearranged.Count, stay = first.Obstacles.Count;
+                    lines.Add($"{moved} view{(moved == 1 ? "" : "s")} already on {t.Number} move{(moved == 1 ? "s" : "")} and keep{(moved == 1 ? "s" : "")} {(moved == 1 ? "its" : "their")} detail number{(moved == 1 ? "" : "s")}. "
+                              + (stay > 0 ? $"{stay} other item{(stay == 1 ? "" : "s")} stay where they are; the layout keeps clear of them." : "Nothing else is on the sheet."));
+                }
+                else
+                {
+                    lines.Add($"{t.Number} already holds {TargetSummary(t)}. They stay where they are; the new sections go in the largest empty area"
+                              + (first.FreeArea is LayoutRect free
+                                  ? $" ({free.Width * SectionPlanner.MmPerFoot:0} × {free.Height * SectionPlanner.MmPerFoot:0} mm)."
+                                  : ". There is none, so they go on new sheets."));
+                }
+            }
+
+            var extra = Plan.Sheets.Where(s => !s.IsExisting).Select(s => s.Number).ToList();
+            if (t != null && extra.Count > 0)
+                lines.Add($"Not everything fits on {t.Number}: continues on {string.Join(", ", extra)}. Use the tabs above the preview to check each sheet.");
+            else if (t == null && extra.Count > 1)
+                lines.Add($"Doesn’t fit on one sheet: continues on {string.Join(", ", extra.Skip(1))}. Use the tabs above the preview to check each sheet.");
+            return string.Join(Environment.NewLine, lines);
         }
 
         private void Log(LogLevel level, string message) => LogEntries.Add(new LogEntry(level, message));

@@ -5,10 +5,11 @@ ToolWindowShell layout:
   HEADER  metric cards (picked / moving / can't place / new sheets / fill)
   BODY    left: sections list (source, pick, search, ticks)
           middle: live sheet preview, layout chips, banners
-          right: new sheet, layout, already on a sheet, spacing
+          right: target sheet (new / existing), layout, already on a sheet, spacing
           below: activity log
-  FOOTER  Create sheet & place → Close
-A confirm card covers the window before views come off other sheets.
+  FOOTER  Create sheet & place (or Place on <existing sheet>) → Close
+A confirm card covers the window before views come off other sheets, or
+views already on an existing target sheet move.
 The preview canvas is drawn in code-behind from ViewModel.Plan.
 =======================================================
 -->
@@ -65,7 +66,7 @@ The preview canvas is drawn in code-behind from ViewModel.Plan.
 
     <Grid>
         <shell:ToolWindowShell Title="Sections To Sheet"
-                               Subtitle="Pick sections from a view, take them off their old sheets, and lay them out on a new sheet"
+                               Subtitle="Pick sections from a view, take them off their old sheets, and lay them out on a new or existing sheet"
                                Version="{Binding Source={x:Static svc:ToolCatalog.SectionsToSheet}, Path=Version, StringFormat=v{0}}"
                                IsRunning="{Binding IsBusy}"
                                IsIndeterminate="True"
@@ -280,7 +281,7 @@ The preview canvas is drawn in code-behind from ViewModel.Plan.
                                 <Canvas x:Name="PreviewCanvas" SizeChanged="PreviewCanvas_SizeChanged"/>
                             </Border>
                             <TextBlock Style="{StaticResource HintText}" Margin="12,0,12,8"
-                                       Text="Blue: not on a sheet yet. Orange: comes off another sheet. Number = detail number. Dashed: usable area (title block inset by the margins). Views in a row share a bottom line, so titles line up."/>
+                                       Text="Blue: not on a sheet yet. Orange: comes off another sheet. Navy: already on the existing sheet, moves. Grey: already on the existing sheet, stays. Green dashed: the largest empty area. Number = detail number. Dashed grey: usable area (title block inset by the margins). Views in a row share a bottom line, so titles line up."/>
 
                             <WrapPanel Margin="12,0,12,2">
                                 <Border Style="{StaticResource SummaryChip}">
@@ -329,15 +330,46 @@ The preview canvas is drawn in code-behind from ViewModel.Plan.
                     <StackPanel Grid.Column="4">
                         <Border Style="{StaticResource SectionCard}">
                             <StackPanel>
-                                <TextBlock Text="New Sheet" Style="{StaticResource SectionTitle}"/>
+                                <TextBlock Text="Target Sheet" Style="{StaticResource SectionTitle}"/>
                                 <StackPanel Style="{StaticResource CardBody}">
-                                    <TextBlock Text="Title block" Style="{StaticResource FieldLabel}"/>
+                                    <WrapPanel Margin="0,2,0,6">
+                                        <RadioButton GroupName="Target" Style="{StaticResource ChipToggle}" Content="New sheet" Margin="0,0,6,4"
+                                                     IsChecked="{Binding Target, Converter={StaticResource EnumMatch}, ConverterParameter=NewSheet}"
+                                                     ToolTip="Create a new sheet for the sections."/>
+                                        <RadioButton GroupName="Target" Style="{StaticResource ChipToggle}" Content="Existing sheet" Margin="0,0,6,4"
+                                                     IsChecked="{Binding Target, Converter={StaticResource EnumMatch}, ConverterParameter=ExistingSheet}"
+                                                     ToolTip="Place the sections on a sheet that is already in the model."/>
+                                    </WrapPanel>
+
+                                    <StackPanel Visibility="{Binding IsExistingTarget, Converter={StaticResource BoolToVis}}">
+                                        <TextBlock Text="Sheet" Style="{StaticResource FieldLabel}"/>
+                                        <ComboBox Style="{StaticResource StandardComboBox}" ItemsSource="{Binding TargetSheets}"
+                                                  DisplayMemberPath="Label" SelectedItem="{Binding SelectedTargetSheet}" Margin="0,0,0,6"
+                                                  IsTextSearchEnabled="True" TextSearch.TextPath="Number"
+                                                  ToolTip="The sheet to place the sections on. Type the sheet number to jump to it."/>
+                                        <Border Padding="8,5" CornerRadius="5" Margin="0,0,0,8" Background="{StaticResource BrushSystemSecondaryBackground}">
+                                            <TextBlock Text="{Binding TargetSheetInfo}" TextWrapping="Wrap" FontSize="11.5" Foreground="{StaticResource BrushTextPrimary}"/>
+                                        </Border>
+                                        <TextBlock Text="Views already on the sheet" Style="{StaticResource FieldLabel}"/>
+                                        <WrapPanel Margin="0,2,0,0">
+                                            <RadioButton GroupName="ExistingMode" Style="{StaticResource ChipToggle}" Content="Use free space" Margin="0,0,6,4"
+                                                         IsChecked="{Binding ExistingMode, Converter={StaticResource EnumMatch}, ConverterParameter=FreeSpace}"/>
+                                            <RadioButton GroupName="ExistingMode" Style="{StaticResource ChipToggle}" Content="Re-arrange all views" Margin="0,0,6,4"
+                                                         IsChecked="{Binding ExistingMode, Converter={StaticResource EnumMatch}, ConverterParameter=Rearrange}"/>
+                                        </WrapPanel>
+                                        <TextBlock Text="{Binding ExistingModeNote}" Style="{StaticResource HintText}" Margin="0,0,0,8"/>
+                                        <Border BorderBrush="{StaticResource BrushSeparator}" BorderThickness="0,1,0,0" Margin="0,0,0,6"/>
+                                        <TextBlock Text="{Binding NewSheetHeader}" FontSize="11.5" FontWeight="SemiBold"
+                                                   Foreground="{StaticResource BrushTextSecondary}" Margin="0,0,0,6"/>
+                                    </StackPanel>
+
+                                    <TextBlock Text="{Binding TitleBlockLabel}" Style="{StaticResource FieldLabel}"/>
                                     <ComboBox Style="{StaticResource StandardComboBox}" ItemsSource="{Binding TitleBlocks}"
                                               DisplayMemberPath="Name" SelectedItem="{Binding SelectedTitleBlock}" Margin="0,0,0,8"/>
                                     <TextBlock Text="Viewport type (view title)" Style="{StaticResource FieldLabel}"/>
                                     <ComboBox Style="{StaticResource StandardComboBox}" ItemsSource="{Binding ViewportTypes}"
                                               DisplayMemberPath="Name" SelectedItem="{Binding SelectedViewportType}" Margin="0,0,0,8"
-                                              ToolTip="Every placed view gets this viewport type, so the titles match."/>
+                                              ToolTip="Every placed section gets this viewport type, so the titles match. Views already on an existing sheet keep their own."/>
                                     <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
@@ -355,12 +387,11 @@ The preview canvas is drawn in code-behind from ViewModel.Plan.
                                                      Text="{Binding SheetName, UpdateSourceTrigger=PropertyChanged, Delay=300}"/>
                                         </StackPanel>
                                     </Grid>
-                                    <TextBlock Style="{StaticResource HintText}"
-                                               Text="Suggested: the next free number. Extra sheets count up from it, skipping numbers in use."/>
+                                    <TextBlock Style="{StaticResource HintText}" Text="{Binding NewSheetHint}"/>
                                 </StackPanel>
                                 <StackPanel Orientation="Horizontal" Style="{StaticResource AppleToggleRow}" Margin="12,0,12,10">
                                     <ToggleButton Style="{StaticResource AppleToggleButton}" IsChecked="{Binding OpenSheetWhenDone}"/>
-                                    <TextBlock Text="Open the new sheet when done" FontSize="12.5" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{Binding OpenSheetText}" FontSize="12.5" Margin="8,0,0,0" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </StackPanel>
                         </Border>
@@ -454,7 +485,7 @@ The preview canvas is drawn in code-behind from ViewModel.Plan.
                                         <TextBlock Text="{Binding LockedText}" TextWrapping="Wrap" FontSize="11.5" Foreground="{StaticResource BrushStatusError}"/>
                                     </Border>
                                     <TextBlock Style="{StaticResource HintText}"
-                                               Text="A view can be on one sheet only. Only the old viewport is removed: the section view, its marker and its annotations stay. Section heads in your plans point to the new sheet."/>
+                                               Text="A view can be on one sheet only. Only the old viewport is removed: the section view, its marker and its annotations stay. Section heads in your plans point to the sheet it is placed on."/>
                                 </StackPanel>
                             </StackPanel>
                         </Border>
@@ -558,9 +589,9 @@ The preview canvas is drawn in code-behind from ViewModel.Plan.
             <!-- ═══ FOOTER ═══════════════════════════════════════════ -->
             <shell:ToolWindowShell.FooterContent>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                    <Button Content="Create Sheet &amp; Place" Style="{StaticResource PrimaryButton}" Margin="0,0,8,0"
+                    <Button Content="{Binding CreateButtonText}" Style="{StaticResource PrimaryButton}" Margin="0,0,8,0"
                             Command="{Binding CreateCommand}"
-                            ToolTip="Create the sheet(s) as shown in the preview (one Undo step)."/>
+                            ToolTip="Place the views as shown in the preview (one Undo step)."/>
                     <Button Content="Close" Style="{StaticResource SecondaryButton}" Click="CloseButton_Click"/>
                 </StackPanel>
             </shell:ToolWindowShell.FooterContent>
@@ -575,9 +606,10 @@ The preview canvas is drawn in code-behind from ViewModel.Plan.
                 </Border.Effect>
                 <StackPanel>
                     <TextBlock Text="{Binding ConfirmTitle}" FontSize="15" FontWeight="SemiBold" Foreground="{StaticResource BrushNavyPrimary}" Margin="18,14,18,4"/>
-                    <TextBlock Text="These viewports come off their current sheets and go on the new one." FontSize="12.5"
+                    <TextBlock Text="{Binding ConfirmIntro}" FontSize="12.5"
                                Foreground="{StaticResource BrushTextSecondary}" Margin="18,0,18,10" TextWrapping="Wrap"/>
-                    <Border Margin="18,0" BorderBrush="{StaticResource BrushSeparator}" BorderThickness="1" CornerRadius="5" MaxHeight="220">
+                    <Border Margin="18,0" BorderBrush="{StaticResource BrushSeparator}" BorderThickness="1" CornerRadius="5" MaxHeight="220"
+                            Visibility="{Binding HasConfirmMoves, Converter={StaticResource BoolToVis}}">
                         <ScrollViewer VerticalScrollBarVisibility="Auto">
                             <ItemsControl ItemsSource="{Binding ConfirmMoves}">
                                 <ItemsControl.ItemTemplate>
@@ -600,6 +632,11 @@ The preview canvas is drawn in code-behind from ViewModel.Plan.
                         </ScrollViewer>
                     </Border>
                     <Border Margin="18,10,18,0" Padding="8,5" CornerRadius="5" BorderThickness="1"
+                            Background="{StaticResource BrushStatusInfoSoft}" BorderBrush="{StaticResource BrushStatusInfoBorder}"
+                            Visibility="{Binding HasConfirmRearrange, Converter={StaticResource BoolToVis}}">
+                        <TextBlock Text="{Binding ConfirmRearrangeText}" TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource BrushStatusInfo}"/>
+                    </Border>
+                    <Border Margin="18,10,18,0" Padding="8,5" CornerRadius="5" BorderThickness="1"
                             Background="{StaticResource BrushStatusErrorSoft}" BorderBrush="{StaticResource BrushStatusErrorBorder}"
                             Visibility="{Binding HasConfirmSkip, Converter={StaticResource BoolToVis}}">
                         <TextBlock Text="{Binding ConfirmSkipText}" TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource BrushStatusError}"/>
@@ -608,7 +645,7 @@ The preview canvas is drawn in code-behind from ViewModel.Plan.
                         <TextBlock Text="{Binding ConfirmEmptyText}" TextWrapping="Wrap" FontSize="12.5"/>
                     </CheckBox>
                     <TextBlock Margin="18,8,18,0" FontSize="11.5" Foreground="{StaticResource BrushTextSecondary}" TextWrapping="Wrap"
-                               Text="The section views stay in the model, and the section heads in your plans point to the new sheet. One Undo (Ctrl+Z) reverts the whole run."/>
+                               Text="The section views stay in the model, and the section heads in your plans point to the sheet they are placed on. One Undo (Ctrl+Z) reverts the whole run."/>
                     <Border Margin="0,14,0,0" Padding="18,12" Background="{StaticResource BrushSystemBackground}" CornerRadius="0,0,8,8"
                             BorderBrush="{StaticResource BrushSeparator}" BorderThickness="0,1,0,0">
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
