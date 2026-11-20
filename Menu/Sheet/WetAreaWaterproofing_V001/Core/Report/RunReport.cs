@@ -16,12 +16,16 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Report
     /// <param name="Replaced">True when it replaced a roof from an earlier run.</param>
     public sealed record CreatedRoof(long RoofId, double AreaM2, bool Replaced);
 
-    /// <summary>A reference section the run placed.</summary>
+    /// <summary>A section the run placed (reference section or callout).</summary>
     /// <param name="Plan">What was planned: target, cut line, element cut.</param>
     /// <param name="MarkerId">ElementId of the section marker.</param>
-    /// <param name="DraftingViewId">ElementId of the drafting view it points to.</param>
-    /// <param name="DraftingViewName">That view's name as it is in the model.</param>
-    public sealed record CreatedSection(PlannedSection Plan, long MarkerId, long DraftingViewId, string DraftingViewName);
+    /// <param name="DraftingViewId">ElementId of the drafting view it points to (0 for callouts).</param>
+    /// <param name="DraftingViewName">That view's name as it is in the model (empty for callouts).</param>
+    /// <param name="IsCallout">True when this is a callout, not a reference section.</param>
+    /// <param name="CalloutViewId">ElementId of the callout detail view (0 for reference sections).</param>
+    /// <param name="CalloutViewName">The callout view's name (empty for reference sections).</param>
+    public sealed record CreatedSection(PlannedSection Plan, long MarkerId, long DraftingViewId, string DraftingViewName,
+        bool IsCallout = false, long CalloutViewId = 0, string CalloutViewName = "");
 
     /// <summary>The plan and sections a run made (or reused) for one room.</summary>
     /// <param name="PlanId">ElementId of the room's plan; 0 when there is none.</param>
@@ -59,6 +63,8 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Report
         public int PlansCreated { get; set; }
         /// <summary>Reference sections this run placed.</summary>
         public int SectionsPlaced { get; set; }
+        /// <summary>Callout detail views this run created.</summary>
+        public int CalloutsCreated { get; set; }
         /// <summary>Warnings raised.</summary>
         public int Warnings { get; set; }
         /// <summary>Errors raised.</summary>
@@ -184,6 +190,12 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Report
         public double TailX { get; set; }
         /// <summary>Tail of the cut line, mm.</summary>
         public double TailY { get; set; }
+        /// <summary>Whether this is a callout instead of a reference section.</summary>
+        public bool IsCallout { get; set; }
+        /// <summary>ElementId of the callout detail view; 0 when it is a reference section.</summary>
+        public long CalloutViewId { get; set; }
+        /// <summary>Name of the callout detail view.</summary>
+        public string CalloutView { get; set; }
     }
 
     /// <summary>Everything one run writes to Excel.</summary>
@@ -276,7 +288,8 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Report
                             CutName = section.Plan.CutName, CutModel = section.Plan.CutModel,
                             PlanViewId = made.PlanId, PlanView = made.PlanName,
                             DraftingViewId = section.DraftingViewId, DraftingView = section.DraftingViewName,
-                            HeadX = section.Plan.Head.X, HeadY = section.Plan.Head.Y, TailX = section.Plan.Tail.X, TailY = section.Plan.Tail.Y
+                            HeadX = section.Plan.Head.X, HeadY = section.Plan.Head.Y, TailX = section.Plan.Tail.X, TailY = section.Plan.Tail.Y,
+                            IsCallout = section.IsCallout, CalloutViewId = section.CalloutViewId, CalloutView = section.CalloutViewName
                         });
                 }
                 report.Rooms.Add(item);
@@ -297,6 +310,7 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Report
             s.RoofsReplaced = created.Values.Count(r => r.Replaced);
             s.PlansCreated = views.Values.Count(v => v.PlanIsNew && v.PlanId != 0);
             s.SectionsPlaced = report.Sections.Count;
+            s.CalloutsCreated = report.Sections.Count(x => x.IsCallout);
             s.Skipped = report.Rooms.Count(r => r.Status == "Skipped" || r.Status == "Failed");
             s.Warnings = report.Issues.Count(i => i.Severity == "Warning");
             s.Errors = report.Issues.Count(i => i.Severity == "Error");

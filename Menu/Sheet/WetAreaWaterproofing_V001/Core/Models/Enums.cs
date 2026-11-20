@@ -38,4 +38,13 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Models
         /// <summary>Not a wet room: its outline and slab are read when it is run.</summary>
         NotChecked
     }
+
+    /// <summary>How a section target is placed on the room's plan. Values are stored in settings: append only.</summary>
+    public enum SectionMode
+    {
+        /// <summary>A reference section pointing to a drafting view.</summary>
+        ReferenceSection = 0,
+        /// <summary>A callout that creates a cropped detail view of the model.</summary>
+        Callout = 1
+    }
 }

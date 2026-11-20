@@ -1,9 +1,9 @@
 <title>Wet Area Waterproofing</title>
 <!--
-  Tool: Wet Area Waterproofing — v1.1.1 (build V001), Parts A and B of three
-  Plugin: 7.16.1
+  Tool: Wet Area Waterproofing — v1.2.0 (build V001), Parts A and B of three
+  Plugin: 7.26.5
   Mirrors: Menu/Sheet/WetAreaWaterproofing_V001/UI/Views/WetAreaWaterproofingWindow.xaml
-  Artifact: https://claude.ai/artifact/6i1ubf8JvVtvRjnDb72nb5
+  Artifact: https://claude.ai/artifact/WJNar7eF92VM7M4Tq88oj8
 -->
 <meta name="claude:viewport-fit-sides" content="cover">
 <style>
@@ -94,9 +94,9 @@ tr.grp td{background:#F3F5F7;font-weight:600;color:var(--head)}
 
 <div class="wrap">
 <header>
-  <h1>Wet Area Waterproofing <span class="new">v1.1.1 · FIX</span></h1>
-  <p class="note">Parts A and B are built. Part B, tagged green below, adds a plan per room and up to 6 reference sections per room. Sheets and the print set are Part C. Every room, level, link and file name below is <b>sample data</b>.</p>
-  <p class="note"><span class="new">FIXED in 1.1.1</span> The room list now refreshes after a run, after Remove a run…, and when a filter, the search or Group by changes, without the “Refresh is being deferred” error. Nothing else in the window changed.</p>
+  <h1>Wet Area Waterproofing <span class=”new”>v1.2.0</span></h1>
+  <p class=”note”>Parts A and B are built. Part B adds a plan per room and up to 6 sections per room — each target can now be a <b>Reference Section</b> (points to a drafting view) or a <b>Callout</b> (creates a cropped detail view). Sheets and the print set are Part C. Every room, level, link and file name below is <b>sample data</b>.</p>
+  <p class=”note”><span class=”new”>NEW in 1.2.0</span> Per-target callout option: each section target row gets a Mode dropdown. When set to “Callout”, <code>ViewSection.CreateCallout</code> creates a cropped detail view on the plan instead of a reference section marker. New callout settings: detail view type, scale and crop margin.</p>
 </header>
 
 <section>
@@ -107,7 +107,7 @@ tr.grp td{background:#F3F5F7;font-weight:600;color:var(--head)}
     <div class="step"><b>Waterproofing roof</b><span>Outline repaired if needed; roof on the slab top, or level + offset</span></div>
     <div class="step"><b>Excel report</b><span>Rooms, repairs, issues; saved after every run</span></div>
     <div class="step"><b>Plan per room</b><span>Cropped to the room plus a margin, 1:100 <span class="new">NEW</span></span></div>
-    <div class="step"><b>Up to 6 reference sections</b><span>Doors, drains, corners, WC, shower; pointing to drafting views <span class="new">NEW</span></span></div>
+    <div class="step"><b>Up to 6 sections</b><span>Doors, drains, corners, WC, shower; each is a Ref. Section or a Callout <span class="new">CHANGED</span></span></div>
     <div class="step later"><b>Sheets and print set</b><span>Grouping close rooms, title block list (A0 first), fit check <span class="tagb">PART C</span></span></div>
   </div>
 </section>
@@ -116,7 +116,7 @@ tr.grp td{background:#F3F5F7;font-weight:600;color:var(--head)}
   <h2>Ribbon button</h2>
   <div class="ribbon">
     <div class="rbtn"><div class="ico"></div>Wet Area<br>Waterproofing</div>
-    <div class="tip"><b>Wet Area Waterproofing — v1.1.1 (build V001)</b><br>Finds wet rooms (toilets, baths, kitchens…) in the model and its links, adds a waterproofing roof on top of the slab under each one, and creates a cropped plan per room with up to 6 reference sections (doors, drains, corners, fixtures) pointing to drafting views. Excel report; one Undo step. <span class="new">CHANGED</span></div>
+    <div class="tip"><b>Wet Area Waterproofing — v1.2.0 (build V001)</b><br>Finds wet rooms (toilets, baths, kitchens…) in the model and its links, adds a waterproofing roof on top of the slab under each one, and creates a cropped plan per room with up to 6 sections — each a reference section or a callout. Excel report; one Undo step. <span class="new">CHANGED</span></div>
   </div>
   <p class="note">On its own new <b>Waterproofing</b> panel, after Sheet Edit, as a large button.</p>
 </section>
@@ -124,7 +124,7 @@ tr.grp td{background:#F3F5F7;font-weight:600;color:var(--head)}
 <section>
   <h2>Tool window</h2>
   <div class="scroll"><div class="win">
-    <div class="tb">Wet Area Waterproofing — v1.1.1 <i>✕</i></div>
+    <div class="tb">Wet Area Waterproofing — v1.2.0 <i>✕</i></div>
     <div class="sub">Find wet rooms, add a waterproofing roof on each slab, and create a plan with detail references per room</div>
     <div class="body">
       <div class="card">
@@ -188,20 +188,25 @@ tr.grp td{background:#F3F5F7;font-weight:600;color:var(--head)}
           <p class="hint">One plan per room, cropped to the room plus the margin. A room that already has a plan from an earlier run keeps it (your annotations stay); its crop is refreshed.</p>
         </div>
         <div class="card">
-          <h3>4 · Section targets <span class="new">NEW</span></h3>
+          <h3>4 · Section targets</h3>
           <p class="hint">4 target(s) on · at most 6 sections per room · rows higher up win</p>
           <div class="trow"><div class="row"><span class="chk"><b>Full room – horizontal</b></span><span style="flex:1"></span><button class="btn sm">▲</button><button class="btn sm">▼</button></div>
-            <div class="row ind"><span class="in sel dis" style="flex:0 0 150px">One (nearest centre)</span><span style="flex:1"></span>Past room <span class="in" style="flex:0 0 50px">300</span> mm</div></div>
+            <div class="row ind"><span class="in sel" style="flex:0 0 100px">Ref. Section</span><span class="in sel dis" style="flex:0 0 150px">One (nearest centre)</span><span style="flex:1"></span>Past room <span class="in" style="flex:0 0 50px">300</span> mm</div></div>
           <div class="trow"><div class="row"><span class="chk"><b>Full room – vertical</b></span><span style="flex:1"></span><button class="btn sm">▲</button><button class="btn sm">▼</button></div>
-            <div class="row ind"><span class="in sel dis" style="flex:0 0 150px">One (nearest centre)</span><span style="flex:1"></span>Past room <span class="in" style="flex:0 0 50px">300</span> mm</div></div>
+            <div class="row ind"><span class="in sel" style="flex:0 0 100px;background:var(--okSoft);border-color:var(--okBd);color:var(--ok);font-weight:600">Callout <span class="new">NEW</span></span><span class="in sel dis" style="flex:0 0 150px">One (nearest centre)</span><span style="flex:1"></span>Past room <span class="in" style="flex:0 0 50px">300</span> mm</div></div>
           <div class="trow"><div class="row"><span class="chk"><b>Door / threshold</b></span><span style="flex:1"></span><button class="btn sm">▲</button><button class="btn sm">▼</button></div>
-            <div class="row ind"><span class="in sel" style="flex:0 0 150px">One (nearest centre)</span><span style="flex:1"></span>Length <span class="in" style="flex:0 0 50px">1500</span> mm</div></div>
+            <div class="row ind"><span class="in sel" style="flex:0 0 100px">Ref. Section</span><span class="in sel" style="flex:0 0 150px">One (nearest centre)</span><span style="flex:1"></span>Length <span class="in" style="flex:0 0 50px">1500</span> mm</div></div>
           <div class="trow"><div class="row"><span class="chk"><b>Floor drain</b></span><span style="flex:1"></span><button class="btn sm">▲</button><button class="btn sm">▼</button></div>
-            <div class="row ind"><span class="in sel" style="flex:0 0 150px">All matches</span><span style="flex:1"></span>Length <span class="in" style="flex:0 0 50px">1200</span> mm</div></div>
+            <div class="row ind"><span class="in sel" style="flex:0 0 100px">Ref. Section</span><span class="in sel" style="flex:0 0 150px">All matches</span><span style="flex:1"></span>Length <span class="in" style="flex:0 0 50px">1200</span> mm</div></div>
           <div class="trow"><div class="row"><span class="unchk">Wall corner</span><span style="flex:1"></span><span class="unchk">WC / closet</span><span style="flex:1"></span><span class="unchk">Shower / bath</span><span style="flex:1"></span><span class="unchk">Wall–floor</span></div></div>
           <div class="row" style="margin-top:4px"><span class="lbl" style="width:auto">Drafting view</span><span class="rad">One view for all targets</span><span class="unrad">One view per target</span></div>
           <div class="row"><span class="lbl" style="width:60px">Points to</span><span class="in sel">WP Detail - Typical Wet Area</span></div>
           <p class="hint">Pick an existing drafting view or type a new name; a view that does not exist is created at the run.</p>
+          <div style="margin-top:6px"><b>Callout settings</b> <span class="new">NEW</span></div>
+          <p class="hint">Targets set to "Callout" create a cropped detail view instead of pointing to a drafting view.</p>
+          <div class="row"><span class="lbl" style="width:110px">Detail view type</span><span class="in sel">Detail</span></div>
+          <div class="row"><span class="lbl" style="width:110px">Scale 1:</span><span class="in" style="flex:0 0 60px">20</span></div>
+          <div class="row"><span class="lbl" style="width:110px">Crop margin</span><span class="in" style="flex:0 0 60px">300</span> mm</div>
           <div class="trow"><b>▾ Search targets in</b>
             <div class="ind">▾ Host model · 31 found<div class="row ind"><span class="chk">Doors</span><span style="flex:1"></span>31</div><div class="row ind"><span class="chk">Plumbing Fixtures</span><span style="flex:1"></span>0</div><div class="row ind"><span class="chk">Pipe Accessories</span><span style="flex:1"></span>0</div></div>
             <div class="ind">▾ MEP_Model · 64 found<div class="row ind"><span class="unchk">Doors</span><span style="flex:1"></span>0</div><div class="row ind"><span class="chk">Plumbing Fixtures</span><span style="flex:1"></span>41</div><div class="row ind"><span class="chk">Pipe Accessories</span><span style="flex:1"></span>23</div></div></div>
@@ -220,11 +225,11 @@ tr.grp td{background:#F3F5F7;font-weight:600;color:var(--head)}
       <span><span class="d">15:30:01</span> Info &nbsp;&nbsp;&nbsp;Read 38 room(s); 6 match a wet-area keyword.</span>
       <span class="w"><span class="d">15:30:01</span> Warning 1 link(s) are not loaded and were not read.</span>
       <span class="w"><span class="d">15:30:07</span> Warning Room 202: no floor drain found; section skipped.</span>
-      <span class="g"><span class="d">15:30:07</span> Success Run 20261115-153007: roofs 3 created, 1 replaced; plans 3 created, 1 kept; 15 section(s); 0 room(s) skipped. One Undo step.</span>
+      <span class="g"><span class="d">15:30:07</span> Success Run 20261115-153007: roofs 3 created, 1 replaced; plans 3 created, 1 kept; 12 ref. section(s), 3 callout(s); 0 room(s) skipped. One Undo step.</span>
     </div>
     <div class="foot">
       <div class="row"><div class="warnbar" style="flex:1">⚠ 3 ticked room(s) need attention: 201 Master Bath (Snap: gap 3 mm snapped) · 202 Shower Room (No slab under the room: level + offset is used) · 205 Laundry (Area +3.4%) <button class="btn">Show these rooms</button></div>
-        <span style="white-space:nowrap">Run steps: <span class="chk">Roofs</span> <span class="chk">Plans</span> <span class="chk">Reference sections</span> <span class="new">NEW</span></span><button class="btn">Remove a run…</button><button class="btn pri">Run for 4 rooms</button><button class="btn">Close</button></div>
+        <span style="white-space:nowrap">Run steps: <span class="chk">Roofs</span> <span class="chk">Plans</span> <span class="chk">Sections</span></span><button class="btn">Remove a run…</button><button class="btn pri">Run for 4 rooms</button><button class="btn">Close</button></div>
     </div>
   </div></div>
 </section>
@@ -239,7 +244,8 @@ tr.grp td{background:#F3F5F7;font-weight:600;color:var(--head)}
       <div style="color:var(--ok)">1 roof(s) from an earlier run replaced</div>
       <div style="color:var(--ok)">3 plan(s) created <span class="new">NEW</span></div>
       <div style="color:var(--ok)">1 plan(s) from an earlier run kept and updated</div>
-      <div style="color:var(--ok)">15 reference section(s) placed</div>
+      <div style="color:var(--ok)">12 reference section(s) placed</div>
+      <div style="color:var(--ok)">3 callout detail view(s) created <span class="new">NEW</span></div>
       <div style="color:var(--ok)">1 drafting view(s) created</div>
       <div style="color:var(--ok)">Excel report saved: WP_Report_Sample_Model_20261114_1530.xlsx</div>
       <div style="color:var(--warn)">Room 201: Outline repaired (Snap): gap 3 mm snapped.</div>
@@ -267,7 +273,7 @@ tr.grp td{background:#F3F5F7;font-weight:600;color:var(--head)}
     <tr><td>Summary</td><td>run</td><td style="white-space:normal">Run ID, date, user, model, versions, run time, totals, settings used</td></tr>
     <tr><td>Rooms</td><td>ticked room, and wet room not ticked</td><td style="white-space:normal">Room ElementId, Source, Level, Number, Name, Room area, Matched keyword, Slab ElementId, Slab top, Roof ElementId, Roof area, Area difference %, Boundary result, Status, Reason, Phase, Workset, Group, Scale, Run ID, Plan view Id, Plan view, Sections <span class="new">NEW</span></td></tr>
     <tr><td>Boundary repair</td><td>repair attempt</td><td style="white-space:normal">Room, Method, Method name, Result (Passed / Failed), Detail, X, Y, Room area, Outline area</td></tr>
-    <tr><td>Sections <span class="new">NEW</span></td><td>reference section</td><td style="white-space:normal">Section marker Id, Section, Target, Room, Cut ElementId, Cut category, Cut family : type, Cut model, Plan view, Drafting view, Head and Tail of the cut line</td></tr>
+    <tr><td>Sections</td><td>section or callout</td><td style="white-space:normal">Section marker Id, Section, Target, Room, Cut ElementId, Cut category, Cut family : type, Cut model, Plan view, Drafting view, Head and Tail of the cut line, Is Callout, Callout View Id, Callout View <span class="new">NEW cols</span></td></tr>
     <tr><td>Issues</td><td>warning or error</td><td style="white-space:normal">Severity, Step, Room number, Message, Suggested fix, Room key</td></tr>
   </table></div>
   <p class="note">Header filters, frozen top row, status coloured green / yellow / red. Group and Scale are filled from Part C on.</p>

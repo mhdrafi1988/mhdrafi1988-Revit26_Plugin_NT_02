@@ -23,6 +23,8 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
         public int SectionsPlaced { get; init; }
         /// <summary>Drafting views this run created.</summary>
         public int DraftingCreated { get; init; }
+        /// <summary>Callout detail views this run created.</summary>
+        public int CalloutsCreated { get; init; }
         /// <summary>Ticked rooms that got nothing.</summary>
         public int Skipped { get; init; }
         /// <summary>Everything the user should know.</summary>

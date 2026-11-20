@@ -271,6 +271,54 @@ namespace WetAreaWaterproofing.Tests
         [Fact]
         public void NoOutlineGivesNoSections()
             => Assert.Empty(Plan(Targets((SectionTargetKind.FullRoomH, false)), room: new List<Pt>()).Sections);
+
+        [Fact]
+        public void DefaultTargetModeIsReferenceSection()
+        {
+            var s = new WetAreaSettings().Normalize();
+            Assert.All(s.Targets, t => Assert.Equal(SectionMode.ReferenceSection, t.Mode));
+        }
+
+        [Fact]
+        public void CalloutModeIsCarriedThroughToPlannedSection()
+        {
+            var targets = Targets((SectionTargetKind.FullRoomH, false));
+            targets[0].Mode = SectionMode.Callout;
+            var plan = Plan(targets);
+            Assert.Equal(SectionMode.Callout, Assert.Single(plan.Sections).Mode);
+        }
+
+        [Fact]
+        public void CalloutSectionHasEmptyDraftingViewName()
+        {
+            var targets = Targets((SectionTargetKind.Door, false));
+            targets.First(t => t.Kind == SectionTargetKind.Door).Mode = SectionMode.Callout;
+            var plan = Plan(targets, new[] { Item(SectionTargetKind.Door, 2000, -100, 77) });
+            Assert.Empty(Assert.Single(plan.Sections).DraftingViewName);
+        }
+
+        [Fact]
+        public void NormalizePreservesCalloutModeFromSettings()
+        {
+            var s = new WetAreaSettings
+            {
+                Targets = new List<SectionTargetSetting>
+                {
+                    new() { Kind = SectionTargetKind.Door, On = true, LengthMm = 1500, Mode = SectionMode.Callout }
+                }
+            }.Normalize();
+            Assert.Equal(SectionMode.Callout, s.Targets.First(t => t.Kind == SectionTargetKind.Door).Mode);
+            Assert.All(s.Targets.Where(t => t.Kind != SectionTargetKind.Door), t => Assert.Equal(SectionMode.ReferenceSection, t.Mode));
+        }
+
+        [Fact]
+        public void CalloutSettingsHaveDefaults()
+        {
+            var s = new WetAreaSettings().Normalize();
+            Assert.Equal(string.Empty, s.CalloutViewTypeName);
+            Assert.Equal(20, s.CalloutScale);
+            Assert.Equal(300, s.CalloutMarginMm);
+        }
     }
 
     public class ViewNamesTests

@@ -13,25 +13,24 @@ section/sheet management, workset organisation, and detail line tools.
 
 ## Ribbon
 
-SloperPro adds five ribbon tabs (two for roof and model tools, one for floor tools, two for sheet tools). Panels are listed left to right, in the order `App.cs` builds them.
+SloperPro adds four ribbon tabs. Panels are listed left to right, in the order `App.cs` builds them.
 A **▸ slide-out** is the arrow on a panel's title bar; the tools listed after it sit in the slide-out.
 Where a tool has several versions, its button is a dropdown listing the newest version first.
 
-**Rafi_Pro_MOds** and **Rafi_Pro_MOds2** (Roof modelling)
+**Rafi_Pro_Roof** (Roof modelling)
 
 | Tab | Panel | Tools |
 |---|---|---|
-| Rafi_Pro_MOds | Roof Slope | By Point · By Drain · Points & Slope · Roof Slope Builder (V002, V001) |
-| Rafi_Pro_MOds | Shape Points | Inner Loops · Outer Curve · Line Intersect · Loops + Perp. ▸ slide-out: Vertex Reducer · Multi Points · Shape From Link |
-| Rafi_Pro_MOds | Roof Tools | Creaser Adv · Roof Tag · Shape From Link |
-| Rafi_Pro_MOds2 | Roof Edit | Name Builder · Island Splitter · Merge Roofs · Split Roof |
-| Rafi_Pro_MOds2 | Roof Plan View | Island Splitter |
-| Rafi_Pro_MOds2 | Roof Compare | Comparison · Elevation Sync |
-| Rafi_Pro_MOds2 | Roof Insulation | EPS 2D Pattern |
-| Rafi_Pro_MOds2 | Detail Lines | From Links · Closed Loop · Line Dims · Line Manager |
-| Rafi_Pro_MOds2 | Roof Utilities | Combined Tools · Ridge Lines · Roof Types |
+| Rafi_Pro_Roof | Roof Slope | By Point · By Drain · Points & Slope · Roof Slope Builder (V002, V001) |
+| Rafi_Pro_Roof | Shape Points | Inner Loops · Outer Curve · Line Intersect · Loops + Perp. ▸ slide-out: Vertex Reducer · Multi Points · Shape From Link |
+| Rafi_Pro_Roof | Roof Tools | Creaser Adv · Roof Tag · Shape From Link |
+| Rafi_Pro_Roof | Roof Edit | Name Builder · Island Splitter · Merge Roofs · Split Roof |
+| Rafi_Pro_Roof | Roof Plan View | Island Splitter |
+| Rafi_Pro_Roof | Roof Compare | Comparison · Elevation Sync |
+| Rafi_Pro_Roof | Roof Insulation | EPS 2D Pattern |
+| Rafi_Pro_Roof | Roof Utilities | Combined Tools · Ridge Lines · Roof Types |
 
-**Rafi_Pro_Floors** (Floor modelling)
+**Rafi_Pro_Floors** (Floor modelling + Waterproofing)
 
 | Tab | Panel | Tools |
 |---|---|---|
@@ -41,8 +40,20 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 | Rafi_Pro_Floors | Floor Lines | Crease By Openings · Crease By Points · Floor Creaser |
 | Rafi_Pro_Floors | Floor Edit | Floor Types · Name Builder · Floor Tag · Comparison · Elevation Sync · Floor EPS |
 | Rafi_Pro_Floors | Floor Views | Floor Around Edges · Floor Edge Element · Floor Focus |
+| Rafi_Pro_Floors | Waterproofing | Wet Area Waterproofing |
 
-**Rafi_Pro_Docs** and **Rafi_Pro_Docs2** (Documents)
+**Rafi_Pro_Model** (Model management)
+
+| Tab | Panel | Tools |
+|---|---|---|
+| Rafi_Pro_Model | Coordination | Void Openings · Base Level to Parameter |
+| Rafi_Pro_Model | Manage | Overlaps (V007, V006) · Overlap Report · ParaManager · Shared Params · Schedule I/O · Link Check ▸ slide-out: Del. Line Styles · Bulk Rename · Bulk Delete · Tracker ID |
+| Rafi_Pro_Model | Worksets | WS Browser · WS Creator · WS Renamer ▸ slide-out: WS Renamer XL · Delete Workset |
+| Rafi_Pro_Model | Memory | WS Memory · Link Memory |
+| Rafi_Pro_Model | DWG Tools | DWG To DL(P) · Export DWG · DWG Manager · DWG Statistics |
+| Rafi_Pro_Model | Family Tools | Batch Link DWG · DWG To Lines |
+
+**Rafi_Pro_Docs** (Documents)
 
 | Tab | Panel | Tools |
 |---|---|---|
@@ -50,16 +61,10 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 | Rafi_Pro_Docs | View Place | Place Sections · Callout To Section · Head Placer · View Tagger |
 | Rafi_Pro_Docs | View Manage | Plan Region Manager |
 | Rafi_Pro_Docs | View Rename | Bubble Renumber *button* · Section Renamer *button* · Auto Renamer *button* |
-| Rafi_Pro_Docs2 | Tagging | Tag To Text · Align Spot Elevations · Align to Detail Line · Distribute Spot Elev. · Quick Align split buttons: Vertical · Horizontal (each lists tags, ends, bends) · to Tag (ends, bends, bends horizontal, bends vertical) · Quick Distribute split buttons: Vertical · Horizontal (each lists tags, ends, bends) |
 | Rafi_Pro_Docs | Sheet Create | Scope Box · Sheet Placer · Section Placer · Sections To Sheet · Combine Sheets ▸ slide-out: Rearrange (V030, V029, V028) · Arrange Views |
 | Rafi_Pro_Docs | Sheet Edit | Text Replace · Align & Distribute |
-| Rafi_Pro_Docs | Waterproofing | Wet Area Waterproofing |
-| Rafi_Pro_Docs2 | DWG Tools | DWG To DL(P) · Export DWG · DWG Manager · DWG Statistics |
-| Rafi_Pro_Docs2 | Family Tools | Batch Link DWG · DWG To Lines |
-| Rafi_Pro_Docs2 | Manage | Overlaps (V007, V006) · Overlap Report · ParaManager · Shared Params · Schedule I/O · Link Check ▸ slide-out: Del. Line Styles · Bulk Rename · Bulk Delete · Tracker ID |
-| Rafi_Pro_Docs2 | Worksets | WS Browser · WS Creator · WS Renamer ▸ slide-out: WS Renamer XL · Delete Workset |
-| Rafi_Pro_Docs2 | Memory | WS Memory · Link Memory |
-| Rafi_Pro_Docs2 | Coordination | Void Openings · Base Level to Parameter |
+| Rafi_Pro_Docs | Tagging | Tag To Text · Align Spot Elevations · Align to Detail Line · Distribute Spot Elev. · Quick Align split buttons: Vertical · Horizontal (each lists tags, ends, bends) · to Tag (ends, bends, bends horizontal, bends vertical) · Quick Distribute split buttons: Vertical · Horizontal (each lists tags, ends, bends) |
+| Rafi_Pro_Docs | Detail Lines | From Links · Closed Loop · Line Dims · Line Manager |
 
 ## Features
 
