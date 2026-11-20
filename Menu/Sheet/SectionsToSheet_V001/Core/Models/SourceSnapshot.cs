@@ -6,6 +6,13 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.Core.Models
     /// <summary>A title block or viewport type the user can choose.</summary>
     public sealed record NamedType(long Key, string Name);
 
+    /// <summary>A sheet in the model that can be the target.</summary>
+    public sealed record SheetChoice(long Key, string Number, string Name)
+    {
+        /// <summary>"A-301 - SECTIONS", as shown in the picker.</summary>
+        public string Label => string.IsNullOrEmpty(Name) ? Number : $"{Number} - {Name}";
+    }
+
     /// <summary>
     /// Everything read from the model in one pass: the sections on offer, the sheets they are on,
     /// sheet numbers in use, and the title block / viewport type choices. Keys are element id values.
@@ -38,6 +45,9 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.Core.Models
 
         /// <summary>Every sheet number in the model.</summary>
         public IReadOnlyCollection<string> ExistingSheetNumbers { get; init; } = Array.Empty<string>();
+
+        /// <summary>Every sheet in the model (placeholders left out), by number — the target choices.</summary>
+        public IReadOnlyList<SheetChoice> AllSheets { get; init; } = Array.Empty<SheetChoice>();
 
         /// <summary>Title block types in the project, by name.</summary>
         public IReadOnlyList<NamedType> TitleBlocks { get; init; } = Array.Empty<NamedType>();

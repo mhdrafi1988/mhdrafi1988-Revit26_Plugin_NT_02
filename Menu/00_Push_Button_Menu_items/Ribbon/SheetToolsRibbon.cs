@@ -62,7 +62,8 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                 LargeImage = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SheetTools.SectionsToSheet_32.png"),
                 ToolTip = ToolCatalog.SectionsToSheet.Tip(
                     "Lists the section markers shown in the active view (or the selected ones, or picked ones), takes them off " +
-                    "the sheet they are on, and lays them out on a new sheet: columns that line up, or justified rows, " +
+                    "the sheet they are on, and lays them out on a new sheet, or on an existing one (in its free space, or " +
+                    "re-arranging every view on it): columns that line up, or justified rows, " +
                     "in plan order, bottom-aligned so titles line up. Live preview before anything changes; one Undo step.")
             };
 

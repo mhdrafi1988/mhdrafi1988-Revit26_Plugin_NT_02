@@ -143,6 +143,10 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.Core.Services
                 Sheets = sheets,
                 ExistingSheetNumbers = new FilteredElementCollector(doc).OfClass(typeof(ViewSheet)).Cast<ViewSheet>()
                     .Select(s => s.SheetNumber).Where(n => !string.IsNullOrEmpty(n)).ToList(),
+                AllSheets = new FilteredElementCollector(doc).OfClass(typeof(ViewSheet)).Cast<ViewSheet>()
+                    .Where(s => !s.IsPlaceholder && !s.IsTemplate && !string.IsNullOrEmpty(s.SheetNumber))
+                    .Select(s => new SheetChoice(s.Id.Value, s.SheetNumber, s.Name))
+                    .OrderBy(s => s.Number, NaturalStringComparer.Instance).ToList(),
                 TitleBlocks = new FilteredElementCollector(doc).OfCategory(BuiltInCategory.OST_TitleBlocks)
                     .OfClass(typeof(FamilySymbol)).Cast<FamilySymbol>()
                     .Select(s => new NamedType(s.Id.Value, $"{s.FamilyName} : {s.Name}"))
@@ -188,7 +192,11 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.Core.Services
             return reason;
         }
 
-        private static string Lock(Document doc, ElementId id, string what)
+        /// <summary>
+        /// Why <paramref name="id"/> can't be changed — owned by another user, or changed in central
+        /// since the last reload — in words that start with <paramref name="what"/>; null when it can.
+        /// </summary>
+        internal static string Lock(Document doc, ElementId id, string what)
         {
             CheckoutStatus status = WorksharingUtils.GetCheckoutStatus(doc, id, out string owner);
             if (status == CheckoutStatus.OwnedByOtherUser)

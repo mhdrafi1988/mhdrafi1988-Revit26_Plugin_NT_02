@@ -19,6 +19,15 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.Core.Services
         /// <summary>New sheets, in order.</summary>
         public List<ElementId> CreatedSheets { get; init; } = new();
 
+        /// <summary>The existing sheet placed onto, or <see cref="ElementId.InvalidElementId"/>.</summary>
+        public ElementId TargetSheet { get; init; } = ElementId.InvalidElementId;
+
+        /// <summary>Viewports already on the target sheet that were moved to new positions.</summary>
+        public int Rearranged { get; init; }
+
+        /// <summary>Of those, the ones that were pinned and are now unpinned.</summary>
+        public int Unpinned { get; init; }
+
         /// <summary>Viewports placed.</summary>
         public int Placed { get; init; }
 
@@ -34,7 +43,8 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.Core.Services
 
     /// <summary>
     /// Carries out a <see cref="SectionPlan"/> in one transaction: takes the moving views off their
-    /// old sheets, creates the new sheets, places the views with their detail numbers, and
+    /// old sheets, moves the re-arranged views of an existing target sheet, creates the new sheets,
+    /// places the views with their detail numbers, and
     /// (optionally) deletes old sheets left empty. Any failure rolls everything back — the model
     /// is never left half done.
     /// </summary>
@@ -58,7 +68,7 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.Core.Services
                 return new RunResult { Error = "The document is read-only." };
 
             var titleBlock = doc.GetElement(new ElementId(titleBlockKey)) as FamilySymbol;
-            if (titleBlock == null)
+            if (titleBlock == null && plan.NewSheetCount > 0)
                 return new RunResult { Error = "The chosen title block is no longer in the project. Press Refresh." };
             var viewportType = viewportTypeKey != 0 ? new ElementId(viewportTypeKey) : ElementId.InvalidElementId;
 
@@ -76,25 +86,43 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.Core.Services
                         removed++;
                 doc.Regenerate();
 
-                // 2. New sheets and viewports.
-                if (!titleBlock.IsActive)
+                // 2. The existing target sheet and new sheets, with their viewports.
+                if (titleBlock != null && plan.NewSheetCount > 0 && !titleBlock.IsActive)
                     titleBlock.Activate();
 
                 var created = new List<ElementId>();
-                int placed = 0;
+                ElementId targetSheet = ElementId.InvalidElementId;
+                int placed = 0, rearranged = 0, unpinned = 0;
                 foreach (var plannedSheet in plan.Sheets)
                 {
                     ToolCancellation.CheckCurrent();
-                    ToolCancellation.CheckCurrent();
-                    var sheet = ViewSheet.Create(doc, titleBlock.Id);
-                    sheet.SheetNumber = plannedSheet.Number;
-                    sheet.Name = plannedSheet.Name;
-                    created.Add(sheet.Id);
+                    ViewSheet sheet;
+                    if (plannedSheet.IsExisting)
+                    {
+                        sheet = doc.GetElement(new ElementId(plannedSheet.ExistingKey)) as ViewSheet
+                                ?? throw new InvalidOperationException($"Sheet {plannedSheet.Number} is no longer in the model.");
+                        targetSheet = sheet.Id;
+                    }
+                    else
+                    {
+                        sheet = ViewSheet.Create(doc, titleBlock.Id);
+                        sheet.SheetNumber = plannedSheet.Number;
+                        sheet.Name = plannedSheet.Name;
+                        created.Add(sheet.Id);
+                    }
 
                     var viewports = new List<(Viewport Viewport, int Detail)>();
                     foreach (var planned in plannedSheet.Viewports)
                     {
                         ToolCancellation.CheckCurrent();
+                        if (planned.IsRearranged)
+                        {
+                            if (Move(doc, sheet, planned))
+                                unpinned++;
+                            rearranged++;
+                            continue;
+                        }
+
                         var viewId = new ElementId(planned.Section.Key);
                         if (!Viewport.CanAddViewToSheet(doc, sheet.Id, viewId))
                             throw new InvalidOperationException($"Revit can’t put '{planned.Section.Name}' on sheet {plannedSheet.Number}.");
@@ -143,6 +171,9 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.Core.Services
                 {
                     Success = true,
                     CreatedSheets = created,
+                    TargetSheet = targetSheet,
+                    Rearranged = rearranged,
+                    Unpinned = unpinned,
                     Placed = placed,
                     Removed = removed,
                     DeletedSheets = deleted,
@@ -159,6 +190,24 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.Core.Services
                     tx.RollBack();
                 return new RunResult { Error = ex.Message + " Nothing was changed." };
             }
+        }
+
+        /// <summary>
+        /// Moves a viewport already on the target sheet to its planned box centre. A pinned
+        /// viewport is unpinned and left unpinned (the owner's choice for re-arranging). Returns
+        /// true when it was pinned.
+        /// </summary>
+        private static bool Move(Document doc, ViewSheet sheet, PlannedViewport planned)
+        {
+            var vp = doc.GetElement(new ElementId(planned.Existing.Key)) as Viewport;
+            if (vp == null || vp.SheetId != sheet.Id)
+                throw new InvalidOperationException($"'{planned.Existing.Name}' is no longer on sheet {sheet.SheetNumber}.");
+
+            bool pinned = vp.Pinned;
+            if (pinned)
+                vp.Pinned = false;
+            vp.SetBoxCenter(new XYZ(planned.CenterX, planned.CenterY, 0));
+            return pinned;
         }
 
         /// <summary>

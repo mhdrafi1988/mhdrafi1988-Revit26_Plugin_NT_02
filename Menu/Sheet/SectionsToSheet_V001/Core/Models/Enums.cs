@@ -74,4 +74,33 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.Core.Models
         /// <summary>Fill one sheet; the rest are skipped and reported.</summary>
         Skip
     }
+
+    /// <summary>Which sheet the sections go on.</summary>
+    public enum TargetMode
+    {
+        /// <summary>A new sheet the tool creates (the behaviour before 1.2.0).</summary>
+        NewSheet,
+
+        /// <summary>A sheet already in the model.</summary>
+        ExistingSheet
+    }
+
+    /// <summary>What happens to what is already on an existing target sheet.</summary>
+    public enum ExistingSheetMode
+    {
+        /// <summary>Nothing on the sheet moves; the sections go in the largest empty area.</summary>
+        FreeSpace,
+
+        /// <summary>
+        /// Every viewport on the sheet (pinned ones too) is laid out again: the sheet's views first in
+        /// their current order, then the sections. Other items stay put.
+        /// </summary>
+        Rearrange,
+
+        /// <summary>
+        /// Every viewport on the sheet (pinned ones too) and the sections are sorted together by the
+        /// Order setting and laid out again. Other items stay put. Added in 1.2.0.
+        /// </summary>
+        RearrangeAll
+    }
 }

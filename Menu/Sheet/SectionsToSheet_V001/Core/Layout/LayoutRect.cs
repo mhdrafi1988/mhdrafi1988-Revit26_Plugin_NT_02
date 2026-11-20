@@ -44,6 +44,24 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.Core.Layout
         public static LayoutRect FromCorner(double x, double y, double width, double height)
             => new(x, y, x + width, y + height);
 
+        /// <summary>Width × height (0 when not valid).</summary>
+        public double Area => IsValid ? Width * Height : 0;
+
+        /// <summary>True when the two rectangles overlap with a positive area (touching edges don't count).</summary>
+        public bool Intersects(LayoutRect other)
+            => MinX < other.MaxX && other.MinX < MaxX && MinY < other.MaxY && other.MinY < MaxY;
+
+        /// <summary>The overlap of the two rectangles, or null when they don't overlap.</summary>
+        public LayoutRect? Intersect(LayoutRect other)
+        {
+            var r = new LayoutRect(Math.Max(MinX, other.MinX), Math.Max(MinY, other.MinY),
+                                   Math.Min(MaxX, other.MaxX), Math.Min(MaxY, other.MaxY));
+            return r.IsValid ? r : null;
+        }
+
+        /// <summary>The rectangle grown by <paramref name="dx"/> left and right and <paramref name="dy"/> up and down.</summary>
+        public LayoutRect Grow(double dx, double dy) => new(MinX - dx, MinY - dy, MaxX + dx, MaxY + dy);
+
         /// <summary>The smallest rectangle holding both.</summary>
         public LayoutRect Union(LayoutRect other)
             => new(Math.Min(MinX, other.MinX), Math.Min(MinY, other.MinY),
