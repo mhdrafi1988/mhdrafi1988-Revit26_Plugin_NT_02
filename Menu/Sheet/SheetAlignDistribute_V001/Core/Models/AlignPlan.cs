@@ -143,6 +143,15 @@ namespace Revit26_Plugin_Revised.SheetAlignDistribute.V001.Core.Models
         /// <summary>Elements whose move is longer than the limit.</summary>
         public int OverLimitCount => Moves.Count(m => m.Status == AlignStatus.OverLimit);
 
+        /// <summary>Elements whose aligned position would cross the margins, so are left where they are.</summary>
+        public int CrossMarginsCount => Moves.Count(m => m.Status == AlignStatus.Blocked);
+
+        /// <summary>Elements that overflow: over the move limit or across the margins.</summary>
+        public int OverflowCount => OverLimitCount + CrossMarginsCount;
+
+        /// <summary>Sum of every move the plan makes, in mm.</summary>
+        public double TotalTravelMm => Moves.Where(m => m.NeedsMove).Sum(m => m.DistanceMm);
+
         /// <summary>Elements left out of this run.</summary>
         public int SkippedCount => Moves.Count(m => m.Status == AlignStatus.Skipped);
 

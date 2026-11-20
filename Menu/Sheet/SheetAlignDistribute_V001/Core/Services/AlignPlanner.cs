@@ -128,6 +128,57 @@ namespace Revit26_Plugin_Revised.SheetAlignDistribute.V001.Core.Services
             };
         }
 
+        /// <summary>
+        /// Test-plans every <see cref="LayoutCombo"/> on <paramref name="snapshot"/> with the user's
+        /// other settings unchanged, and returns the best few distinct results. Nothing is moved.
+        /// </summary>
+        public static SuggestionSet Suggest(SheetSnapshot snapshot, AlignDistributeSettings settings,
+            IReadOnlySet<long> unticked, int count = LayoutSuggester.DefaultCount)
+        {
+            if (snapshot == null || settings == null) return new SuggestionSet();
+
+            var candidates = new List<CandidateOutcome>(LayoutCombo.All.Count);
+            foreach (var combo in LayoutCombo.All)
+            {
+                var trial = settings.Clone();
+                trial.AlignRows = combo.Rows;
+                trial.AlignColumns = combo.Columns;
+                trial.DistributeHorizontal = combo.Horizontal;
+                trial.DistributeVertical = combo.Vertical;
+
+                var plan = Build(snapshot, trial, unticked);
+                candidates.Add(new CandidateOutcome
+                {
+                    Combo = combo,
+                    Signature = plan.Signature,
+                    IsBlocked = plan.Blocker != null,
+                    Moves = plan.MoveCount,
+                    InPlace = plan.InPlaceCount,
+                    OverLimit = plan.OverLimitCount,
+                    CrossMargins = plan.CrossMarginsCount,
+                    TotalTravelMm = plan.TotalTravelMm,
+                    LargestMoveMm = plan.LargestMoveMm,
+                    Frame = snapshot.TitleBlockFrame,
+                    Sketch = plan.Moves.Select(m => new SketchItem(m.Target, m.Status)).ToList()
+                });
+            }
+
+            return LayoutSuggester.Pick(candidates, count);
+        }
+
+        /// <summary>
+        /// A copy of <paramref name="settings"/> that places overflowing views too: views over the
+        /// move limit are moved anyway and views may cross the margins. The overlap check stays on.
+        /// Used only when the user picks "Place anyway" on Apply; the saved settings are untouched.
+        /// </summary>
+        public static AlignDistributeSettings PlaceAnyway(AlignDistributeSettings settings)
+        {
+            var copy = settings.Clone();
+            copy.OverLimit = OverLimitMode.MoveAnyway;
+            copy.KeepInsideMargins = false;
+            return copy;
+        }
+
         /// <summary>Measures the sheet's own margins and gaps, for the window's "Detected" labels.</summary>
         public static DetectedLayout Detect(SheetSnapshot snapshot, AlignDistributeSettings settings)
         {

@@ -2,7 +2,7 @@
   <!--
     Unit tests for Sheet Align & Distribute V001's Revit-free code: the row and column detection,
     the median shared line and its clamp, the distribute spread, the snap and move limits, the
-    overlap check, and the margin detection.
+    overlap check, the margin detection, and the suggested-layout ranking.
     The tool's files are linked, not copied.
     Run:  dotnet test Tests/SheetAlignDistribute.Tests
   -->
@@ -27,6 +27,7 @@
     <Compile Include="$(ToolDir)Core\Models\AlignEnums.cs" Link="Tool\Models\AlignEnums.cs" />
     <Compile Include="$(ToolDir)Core\Models\DetectedLayout.cs" Link="Tool\Models\DetectedLayout.cs" />
     <Compile Include="$(ToolDir)Core\Services\MarginDetector.cs" Link="Tool\Services\MarginDetector.cs" />
+    <Compile Include="$(ToolDir)Core\Services\LayoutSuggester.cs" Link="Tool\Services\LayoutSuggester.cs" />
   </ItemGroup>
 
   <ItemGroup>

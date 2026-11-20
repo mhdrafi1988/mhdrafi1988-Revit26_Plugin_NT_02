@@ -135,5 +135,11 @@ namespace Revit26_Plugin_Revised.SheetAlignDistribute.V001.Core.Models
         /// to the same detail on the next sheet that carries it. Views with no entry use the sheet gap.
         /// </summary>
         public Dictionary<string, ViewPadding> Padding { get; set; } = new();
+
+        /// <summary>
+        /// A shallow copy for one test plan or one Apply with different options. The per-view
+        /// clearance dictionary is shared and must not be edited through the copy.
+        /// </summary>
+        public AlignDistributeSettings Clone() => (AlignDistributeSettings)MemberwiseClone();
     }
 }

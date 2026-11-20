@@ -1,6 +1,12 @@
 <title>Sheet Align &amp; Distribute</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <!-- UI preview (CLAUDE.md "UI previews"): Sheet Align & Distribute 1.1.0 (V001). Plugin 7.27.0.
+     Rev 6 (built, 2026-11-20): matches the shipped 1.1.0 window. The four buttons sit in a 2 x 2 grid (the
+     settings column is 376 px wide), each with a sketch of where the views end up. Owner asked that overflowing
+     suggestions stay pickable: views over the move limit or across the margins are tagged, and Apply now asks
+     Yes = place anyway / No = place only the safe ones / Cancel (dialog shown under "After Apply"). Overlaps
+     are still refused. Labels from SheetAlignDistributeWindow.xaml, SuggestionCardViewModel.cs and
+     ViewModel_SheetAlignDistribute.cs.
      Rev 5 (proposal, 2026-11-20): NEW "Suggested layouts" strip at the top of section 3 (Align & distribute).
      The tool test-plans every row / column / distribute combination on the sheet, drops blocked ones and those
      that move nothing, ranks the rest (fewest over the limit, most aligned, least total travel, smallest largest
@@ -146,7 +152,7 @@ li{margin-bottom:3px}
 .ck{display:flex;align-items:center;gap:6px;font-size:11.5px}
 /* ── Suggested layouts (1.1.0) ─────────────────────────────── */
 .sug-grp{border-color:var(--ok-border)}
-.sug{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.sug{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;max-width:560px}
 .sg{border:1px solid var(--input);background:var(--card);border-radius:6px;padding:8px 9px;display:grid;gap:4px;
   align-content:start;cursor:pointer;min-width:0}
 .sg:hover{border-color:var(--navy-light);background:var(--bg2)}
@@ -216,7 +222,7 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg2);border:1px sol
 <header>
   <h1>Sheet Align &amp; Distribute <span class="tag">1.1.0 &middot; SUGGESTED LAYOUTS</span></h1>
   <p class="muted">Tool <b>1.0.0 &rarr; 1.1.0</b> (V001) &middot; plugin <b>7.26.5 &rarr; 7.27.0</b> &middot; ribbon: <b>Documents &rsaquo; Sheet Edit</b> (unchanged).
-  Proposal for review, 2026&#8209;11&#8209;20; no C# written yet.</p>
+  Built 2026&#8209;11&#8209;20; 93 unit tests on the layout maths and the suggestion ranking.</p>
   <p style="margin-top:9px"><span class="sample">Sample data &mdash; the sheet, view names and numbers below are invented for this preview. No real project or client data.</span></p>
 </header>
 
@@ -230,6 +236,9 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg2);border:1px sol
     <li>Combinations that end with the views in the same places are merged, so the <b>4 buttons</b> always give 4 different results.</li>
     <li><b>A click previews.</b> The button loads its settings into the dropdowns and redraws the sheet preview and grid.
     Nothing moves until you press <b>Apply</b>, which is still one Undo step.</li>
+    <li><b>Overflow is your call.</b> A suggestion whose views would go over the move limit or cross the margins is still
+    shown, with an orange tag. On Apply the tool lists those views and asks: <b>Yes</b> places them anyway, <b>No</b> places
+    only the safe ones, <b>Cancel</b> moves nothing. Two views ending up on top of each other is still refused.</li>
     <li>The suggestions are worked out again on Refresh, after Apply, and when a margin, gap, tolerance, tick or limit changes.
     They don't change when you pick a dropdown by hand. Doing that only clears the highlight.</li>
   </ul>
@@ -426,8 +435,8 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg2);border:1px sol
         </div>
         <div class="sb">
           <div class="grp sug-grp">
-            <div class="gl">Suggested layouts &mdash; detected from this sheet <span class="tag">NEW</span>
-              <span class="fl" style="font-weight:400;margin-left:auto">Click one to preview it, then press Apply</span></div>
+            <div class="gl">Suggested layouts <span class="tag">NEW</span>
+              <span class="fl" style="font-weight:400;margin-left:auto">Click one, then Apply</span></div>
             <div class="sug">
               <div class="sg on">
                 <div class="sg-top"><span class="sg-n">1</span><span class="pill ok">Best fit</span></div>
@@ -439,8 +448,9 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg2);border:1px sol
                 </svg>
                 <b>Bottom + Left &middot; gaps kept</b>
                 <div class="sg-m">5 moves &middot; max 5.7&nbsp;mm</div>
-                <div class="sg-m">2 in place &middot; <span class="wn-t">1 over limit</span></div>
-                <div class="sg-f">Titles line up. Same result as Least movement on this sheet.</div>
+                <div class="sg-m">2 in place</div>
+                <div class="sg-m wn-t">1 over limit</div>
+                <div class="sg-f">Titles line up. Same result as Least move + Least move &middot; gaps kept.</div>
               </div>
               <div class="sg">
                 <div class="sg-top"><span class="sg-n">2</span></div>
@@ -452,7 +462,8 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg2);border:1px sol
                 </svg>
                 <b>Top + Left &middot; gaps kept</b>
                 <div class="sg-m">6 moves &middot; max 8.1&nbsp;mm</div>
-                <div class="sg-m">1 in place &middot; <span class="wn-t">1 over limit</span></div>
+                <div class="sg-m">1 in place</div>
+                <div class="sg-m wn-t">1 over limit</div>
                 <div class="sg-f">Tops line up; titles follow each view's height.</div>
               </div>
               <div class="sg">
@@ -465,8 +476,9 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg2);border:1px sol
                 </svg>
                 <b>Bottom + Left &middot; even gaps across rows</b>
                 <div class="sg-m">7 moves &middot; max 12.0&nbsp;mm</div>
-                <div class="sg-m">0 in place &middot; <span class="wn-t">1 over limit</span></div>
-                <div class="sg-f">Equal gaps in each row; outer edges stay put.</div>
+                <div class="sg-m">0 in place</div>
+                <div class="sg-m wn-t">1 over limit</div>
+                <div class="sg-f">Titles line up.</div>
               </div>
               <div class="sg">
                 <div class="sg-top"><span class="sg-n">4</span></div>
@@ -478,13 +490,15 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg2);border:1px sol
                 </svg>
                 <b>Centre + Centre &middot; gaps kept</b>
                 <div class="sg-m">6 moves &middot; max 9.4&nbsp;mm</div>
-                <div class="sg-m">1 in place &middot; <span class="wn-t">2 over limit</span></div>
-                <div class="sg-f">Views centre on shared lines both ways.</div>
+                <div class="sg-m">1 in place</div>
+                <div class="sg-m wn-t">1 over limit &middot; 1 crosses the margins</div>
+                <div class="sg-f">Rows share a centre line.</div>
               </div>
             </div>
-            <div class="hint">Picked from 144 test plans on this sheet. 31 were blocked by an overlap or the margins, 9 moved nothing, and
-            the rest gave 23 different results. Ranked by: fewest over the limit, then most views aligned, then least total travel.
-            Changing a dropdown below by hand clears the highlight.</div>
+            <div class="hint">Picked from 144 test plans on this sheet. 31 were blocked by an overlap, 9 moved nothing, and
+            the rest gave 23 different result(s). Ranked by: fewest overflowing views, then most views aligned, then least total travel.</div>
+            <div class="hint">A suggestion with overflowing views (over the move limit or across the margins) can still be picked:
+            Apply asks whether to place them anyway, place only the safe ones, or cancel. <span class="tag">NEW</span></div>
           </div>
           <div class="cols2">
             <div class="grp">
@@ -805,6 +819,20 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg2);border:1px sol
 <!-- ───────────────────────────── 4. Dialog ───────────────────────────── -->
 <section>
   <h2>After Apply</h2>
+  <p class="muted" style="margin-bottom:8px">When views overflow, Apply asks first <span class="tag">NEW</span></p>
+  <div class="frame" style="margin-bottom:14px">
+    <div class="dlg">
+      <div class="dh">Sheet Align &amp; Distribute &mdash; v1.1.0</div>
+      <div class="db">
+        <p>1 view overflows:<br>&bull; A3 TWP DETAIL @ PIPE PENETRATION &mdash; needs 44.1&nbsp;mm, over the 25&nbsp;mm limit</p>
+        <p><b>Yes</b> &mdash; Place anyway: move all 6 views, these included.<br>
+        <b>No</b> &mdash; Place only the safe ones: move 5, leave these where they are.<br>
+        <b>Cancel</b> &mdash; move nothing.</p>
+      </div>
+      <div class="df" style="gap:6px"><span class="btn pri">Yes</span><span class="btn">No</span><span class="btn">Cancel</span></div>
+    </div>
+  </div>
+  <p class="muted" style="margin-bottom:8px">Then the result (after <b>No</b>; after <b>Yes</b> it adds "1 overflowing view was placed anyway, as you chose.")</p>
   <div class="frame">
     <div class="dlg">
       <div class="dh">Sheet Align &amp; Distribute &mdash; v1.1.0</div>

@@ -65,6 +65,13 @@ namespace Revit26_Plugin_Revised.SheetAlignDistribute.V001.UI.ViewModels
             nameof(MovePinned), nameof(KeepInsideMargins), nameof(StopOnOverlap)
         };
 
+        // The four settings a suggestion button loads. Changing one re-plans but does not re-rank the
+        // suggestions, so the buttons hold still while the user compares them.
+        private static readonly HashSet<string> AxisTriggers = new()
+        {
+            nameof(AlignRows), nameof(AlignColumns), nameof(DistributeHorizontal), nameof(DistributeVertical)
+        };
+
         // Editing one of these means the user has taken the margins over, so Refresh and Apply
         // stop measuring them off the sheet and overwriting what was typed.
         private static readonly HashSet<string> CustomMarginTriggers = new()
@@ -75,6 +82,9 @@ namespace Revit26_Plugin_Revised.SheetAlignDistribute.V001.UI.ViewModels
 
         private bool _loading;
         private SheetSnapshot _snapshot;
+
+        // Overflowing views the user chose to place anyway on the Apply in flight, for the result dialog.
+        private int _placedAnyway;
 
         /// <summary>Creates the view model for <paramref name="session"/>'s sheet.</summary>
         public ViewModel_SheetAlignDistribute(ISheetAlignSession session)
@@ -110,6 +120,17 @@ namespace Revit26_Plugin_Revised.SheetAlignDistribute.V001.UI.ViewModels
 
         /// <summary>The line the per-view clearance editor is pointed at.</summary>
         [ObservableProperty] private AlignRowViewModel _selectedRow;
+
+        // ── Suggested layouts ──────────────────────────────────────────────
+
+        /// <summary>The best few align and distribute combinations for this sheet, best first.</summary>
+        public ObservableCollection<SuggestionCardViewModel> Suggestions { get; } = new();
+
+        /// <summary>How the suggestions were picked, for the line under the buttons.</summary>
+        [ObservableProperty] private string _suggestionSummary = "";
+
+        /// <summary>True when there is at least one suggestion to show.</summary>
+        public bool HasSuggestions => Suggestions.Count > 0;
 
         // ── Margins ────────────────────────────────────────────────────────
 
@@ -289,29 +310,80 @@ namespace Revit26_Plugin_Revised.SheetAlignDistribute.V001.UI.ViewModels
             }
         }
 
-        /// <summary>Moves the elements the plan says to move, in one Undo step.</summary>
+        /// <summary>
+        /// Moves the elements the plan says to move, in one Undo step. When some views overflow
+        /// (over the move limit or across the margins) the user is asked first whether to place
+        /// them anyway, place only the safe ones, or cancel.
+        /// </summary>
         [RelayCommand]
         private void Apply()
         {
-            if (IsBusy) return;
-            if (Plan == null || !Plan.CanApply)
+            if (IsBusy || Plan == null) return;
+            if (Plan.Blocker != null)
             {
-                AddLog(LogLevel.Warning, "Nothing to apply: " + (Plan?.Blocker ?? "every element is already in place."));
+                AddLog(LogLevel.Warning, "Nothing to apply: " + Plan.Blocker);
                 return;
             }
 
             WriteToSettings();
+            AlignDistributeSettings runSettings = _settings;
+            string signature = Plan.Signature;
+            int moving = Plan.MoveCount;
+            _placedAnyway = 0;
+
+            if (Plan.OverflowCount > 0)
+            {
+                switch (AskAboutOverflow(out var anywaySettings, out var anywayPlan))
+                {
+                    case OverflowChoice.Cancel:
+                        AddLog(LogLevel.Info, "Apply cancelled — nothing was moved.");
+                        return;
+                    case OverflowChoice.PlaceAnyway:
+                        runSettings = anywaySettings;
+                        signature = anywayPlan.Signature;
+                        moving = anywayPlan.MoveCount;
+                        _placedAnyway = Plan.OverflowCount;
+                        break;
+                    default:
+                        AddLog(LogLevel.Info, $"Placing only the safe views; {Plan.OverflowCount} overflowing view(s) stay where they are.");
+                        break;
+                }
+            }
+
+            if (moving == 0)
+            {
+                AddLog(LogLevel.Warning, "Nothing to apply: every element is already in place.");
+                return;
+            }
+
             Save();
 
             IsBusy = true;
-            StatusText = $"Moving {Plan.MoveCount} element(s)…";
+            StatusText = $"Moving {moving} element(s)…";
 
-            if (!_session.Apply(_settings, _unticked, Plan.Signature, result => OnSessionDone(result, applied: true)))
+            if (!_session.Apply(runSettings, _unticked, signature, result => OnSessionDone(result, applied: true)))
             {
                 IsBusy = false;
                 AddLog(LogLevel.Error, "Revit would not take the request — finish what you are doing in Revit and press Apply again.");
                 Replan();
             }
+        }
+
+        /// <summary>Loads a suggestion's four settings into the dropdowns and previews it. Nothing moves.</summary>
+        [RelayCommand]
+        private void ApplySuggestion(SuggestionCardViewModel card)
+        {
+            if (card == null || IsBusy) return;
+
+            _loading = true;
+            AlignRows = card.Combo.Rows;
+            AlignColumns = card.Combo.Columns;
+            DistributeHorizontal = card.Combo.Horizontal;
+            DistributeVertical = card.Combo.Vertical;
+            _loading = false;
+
+            AddLog(LogLevel.Info, $"Suggestion {card.RankText} loaded: {card.Title}. Check the preview, then press Apply.");
+            Replan(refreshSuggestions: false);
         }
 
         /// <summary>Puts the margins and gaps back to what the sheet measures.</summary>
@@ -427,8 +499,12 @@ namespace Revit26_Plugin_Revised.SheetAlignDistribute.V001.UI.ViewModels
 
         // ── Planning ───────────────────────────────────────────────────────
 
-        /// <summary>Re-plans from the current snapshot and settings, and refreshes the grid and metrics.</summary>
-        private void Replan()
+        /// <summary>
+        /// Re-plans from the current snapshot and settings, and refreshes the grid and metrics.
+        /// <paramref name="refreshSuggestions"/> also re-ranks the suggestion buttons; it is false when
+        /// only one of the four settings the buttons load has changed.
+        /// </summary>
+        private void Replan(bool refreshSuggestions = true)
         {
             WriteToSettings();
             var plan = AlignPlanner.Build(_snapshot, _settings, _unticked);
@@ -439,12 +515,19 @@ namespace Revit26_Plugin_Revised.SheetAlignDistribute.V001.UI.ViewModels
             foreach (string note in plan.Notes)
                 AddLog(LogLevel.Warning, note);
 
+            if (refreshSuggestions) RefreshSuggestions();
+            UpdateSuggestionHighlight();
+
+            string overflow = plan.OverflowCount > 0
+                ? $" {plan.OverflowCount} overflow (over the limit or across the margins) — Apply asks whether to place them."
+                : "";
             StatusText = plan.Blocker != null
                 ? plan.Blocker
                 : plan.MoveCount > 0
-                    ? $"Plan ready — {plan.MoveCount} element(s) to move, largest {plan.LargestMoveMm:0.0} mm."
-                      + (plan.OverLimitCount > 0 ? $" {plan.OverLimitCount} over the limit, left alone." : "")
-                    : "Nothing to move — every ticked element is already on its line.";
+                    ? $"Plan ready — {plan.MoveCount} element(s) to move, largest {plan.LargestMoveMm:0.0} mm." + overflow
+                    : plan.OverflowCount > 0
+                        ? "Nothing safe to move." + overflow
+                        : "Nothing to move — every ticked element is already on its line.";
 
             OnPropertyChanged(nameof(ElementCount));
             OnPropertyChanged(nameof(GridText));
@@ -454,6 +537,94 @@ namespace Revit26_Plugin_Revised.SheetAlignDistribute.V001.UI.ViewModels
             OnPropertyChanged(nameof(LargestMoveText));
             OnPropertyChanged(nameof(ApplyCaption));
             OnPropertyChanged(nameof(SheetLabel));
+        }
+
+        /// <summary>Test-plans every combination on the current sheet and shows the best few as buttons.</summary>
+        private void RefreshSuggestions()
+        {
+            var set = AlignPlanner.Suggest(_snapshot, _settings, _unticked);
+            Suggestions.Clear();
+            foreach (var suggestion in set.Suggestions)
+                Suggestions.Add(new SuggestionCardViewModel(suggestion));
+            SuggestionSummary = set.Summary;
+            OnPropertyChanged(nameof(HasSuggestions));
+        }
+
+        /// <summary>Highlights the button whose combination the dropdowns now hold, if any.</summary>
+        private void UpdateSuggestionHighlight()
+        {
+            var current = new LayoutCombo(AlignRows, AlignColumns, DistributeHorizontal, DistributeVertical);
+            foreach (var card in Suggestions)
+                card.IsSelected = card.Combo == current
+                                  || card.Suggestion.SameResult.Contains(current);
+        }
+
+        private enum OverflowChoice { Cancel, PlaceAnyway, SafeOnly }
+
+        /// <summary>
+        /// Lists the overflowing views and asks what to do with them. Placing anyway moves views
+        /// over the limit and lets views cross the margins; overlaps are still refused.
+        /// </summary>
+        private OverflowChoice AskAboutOverflow(out AlignDistributeSettings anywaySettings, out AlignPlan anywayPlan)
+        {
+            anywaySettings = AlignPlanner.PlaceAnyway(_settings);
+            anywayPlan = AlignPlanner.Build(_snapshot, anywaySettings, _unticked);
+
+            var overflowing = Plan.Moves
+                .Where(m => m.Status == AlignStatus.OverLimit || m.Status == AlignStatus.Blocked)
+                .ToList();
+
+            var text = new StringBuilder();
+            text.Append(overflowing.Count).Append(overflowing.Count == 1 ? " view overflows:" : " views overflow:")
+                .Append(Environment.NewLine);
+            foreach (var move in overflowing.Take(8))
+                text.Append("• ").Append(move.Element?.Name).Append(" — ")
+                    .Append(move.Status == AlignStatus.OverLimit
+                        ? $"needs {move.DistanceMm:0.0} mm, over the {MaxMoveMm:0.#} mm limit"
+                        : "would cross the margins")
+                    .Append(Environment.NewLine);
+            if (overflowing.Count > 8)
+                text.Append("• … and ").Append(overflowing.Count - 8).Append(" more").Append(Environment.NewLine);
+            text.Append(Environment.NewLine);
+
+            bool canAnyway = anywayPlan.Blocker == null && anywayPlan.MoveCount > 0;
+            bool canSafe = Plan.MoveCount > 0;
+            string title = ToolCatalog.SheetAlignDistribute.Title;
+
+            if (!canAnyway)
+            {
+                string why = (anywayPlan.Blocker ?? "nothing would move.").Replace("Nothing was moved: ", "");
+                text.Append("They can't be placed anyway: ").Append(why);
+                if (!canSafe)
+                {
+                    MessageBox.Show(text.ToString(), title, MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return OverflowChoice.Cancel;
+                }
+                text.Append(Environment.NewLine).Append(Environment.NewLine)
+                    .Append("Place only the ").Append(Plan.MoveCount).Append(" safe view(s) and leave these where they are?");
+                return MessageBox.Show(text.ToString(), title, MessageBoxButton.OKCancel, MessageBoxImage.Question)
+                       == MessageBoxResult.OK ? OverflowChoice.SafeOnly : OverflowChoice.Cancel;
+            }
+
+            if (!canSafe)
+            {
+                text.Append("Place them anyway? ").Append(anywayPlan.MoveCount)
+                    .Append(" view(s) will move, these included.");
+                return MessageBox.Show(text.ToString(), title, MessageBoxButton.YesNo, MessageBoxImage.Question)
+                       == MessageBoxResult.Yes ? OverflowChoice.PlaceAnyway : OverflowChoice.Cancel;
+            }
+
+            text.Append("Yes — Place anyway: move all ").Append(anywayPlan.MoveCount).Append(" views, these included.")
+                .Append(Environment.NewLine)
+                .Append("No — Place only the safe ones: move ").Append(Plan.MoveCount).Append(", leave these where they are.")
+                .Append(Environment.NewLine)
+                .Append("Cancel — move nothing.");
+            return MessageBox.Show(text.ToString(), title, MessageBoxButton.YesNoCancel, MessageBoxImage.Question) switch
+            {
+                MessageBoxResult.Yes => OverflowChoice.PlaceAnyway,
+                MessageBoxResult.No => OverflowChoice.SafeOnly,
+                _ => OverflowChoice.Cancel
+            };
         }
 
         private void RebuildRows(AlignPlan plan)
@@ -510,6 +681,10 @@ namespace Revit26_Plugin_Revised.SheetAlignDistribute.V001.UI.ViewModels
             var text = new StringBuilder();
             text.Append(moved).Append(moved == 1 ? " element aligned on " : " elements aligned on ")
                 .Append(_snapshot?.SheetLabel).Append('.');
+            if (_placedAnyway > 0)
+                text.Append(Environment.NewLine)
+                    .Append(_placedAnyway).Append(_placedAnyway == 1 ? " overflowing view was" : " overflowing views were")
+                    .Append(" placed anyway, as you chose.");
 
             if (Plan != null)
             {
@@ -737,7 +912,8 @@ namespace Revit26_Plugin_Revised.SheetAlignDistribute.V001.UI.ViewModels
                 OnPropertyChanged(nameof(MarginSourceText));
             }
 
-            if (ReplanTriggers.Contains(e.PropertyName)) Replan();
+            if (ReplanTriggers.Contains(e.PropertyName))
+                Replan(refreshSuggestions: !AxisTriggers.Contains(e.PropertyName));
         }
 
         // ── Report ─────────────────────────────────────────────────────────

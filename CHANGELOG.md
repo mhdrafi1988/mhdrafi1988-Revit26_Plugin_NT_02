@@ -9,6 +9,35 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [7.27.0] — 2026-11-20
+
+### Added
+- **Sheet Align & Distribute 1.1.0** — **Suggested layouts**. Four buttons at the top of the *Align and
+  distribute* section offer the best align and distribute combinations for the open sheet.
+  - The tool test-plans all 144 combinations of row align, column align and the two distribute settings, keeping
+    your other settings. Nothing is moved while it does this.
+  - It drops plans blocked by an overlap and plans that move nothing. It ranks the rest by fewest overflowing views,
+    then most views aligned, then least total travel, then smallest largest move. Combinations that end with the
+    views in the same places are merged, so the four buttons always give four different results.
+  - Each button shows a small sketch of where the views end up, the number of moves, the largest move, the views
+    already in place and any overflow. A click loads that combination into the dropdowns and redraws the preview.
+    Nothing moves until you press **Apply**.
+  - The suggestions are worked out again on Refresh, after Apply, and when a margin, gap, tolerance, tick or limit
+    changes. Picking a dropdown by hand doesn't re-rank them; it only moves the highlight.
+- **Sheet Align & Distribute 1.1.0** — **place overflowing views anyway**. When some views overflow (they need
+  more than the move limit, or their aligned position would cross the margins), Apply lists them and asks:
+  **Yes** places them anyway, **No** places only the safe ones and leaves those where they are, **Cancel** moves
+  nothing. Overlaps are still refused. The choice applies to that one Apply; the saved settings don't change.
+  - Code: `Core/Services/LayoutSuggester.cs` (Revit-free ranking), `AlignPlanner.Suggest` / `PlaceAnyway`,
+    `UI/ViewModels/SuggestionCardViewModel.cs`. 10 new unit tests in `Tests/SheetAlignDistribute.Tests` (93 in all).
+  - UI preview: `Claude/Previews/SheetAlignDistribute_V001_Window.html` —
+    https://claude.ai/artifact/NsXRE37noFmtgxFsf76cyq
+
+**User notes**
+- Behaviour change: before, Apply silently left overflowing views where they were. Now it asks first, and
+  **No** gives the old result.
+- The settings file is unchanged (still format version 1); no new settings were added.
+
 ## [7.26.5] — 2026-11-20
 
 ### Added
