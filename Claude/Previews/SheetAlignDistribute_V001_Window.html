@@ -1,6 +1,9 @@
 <title>Sheet Align &amp; Distribute</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <!-- UI preview (CLAUDE.md "UI previews"): Sheet Align & Distribute 1.1.1 (V001). Plugin 7.27.1.
+     Rev 8 (proposal, 2026-11-20): owner asked for the 4 suggestion buttons to be small and sit on top of the
+     sheet preview. Shown as a strip of chips (rank, name, moves · largest move, orange overflow count; full
+     detail in the tooltip). The big cards in section 3 are removed. Not built yet.
      Rev 7 (1.1.1, 2026-11-20): no visible change. Fix: Apply now moves the previewed plan itself (after
      checking each view is still where the preview found it) instead of re-planning and refusing on any
      difference, which had left Apply moving nothing.
@@ -153,6 +156,18 @@ li{margin-bottom:3px}
 .rd.on{border-color:var(--navy);border-width:2px}
 .rd.on::after{content:"";position:absolute;left:2.5px;top:2.5px;width:6px;height:6px;border-radius:50%;background:var(--navy)}
 .ck{display:flex;align-items:center;gap:6px;font-size:11.5px}
+.chips{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
+.chl{font-size:11px;font-weight:600;color:var(--text2);margin-right:2px}
+.chip{display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 7px 0 3px;border:1px solid var(--input);
+  border-radius:12px;background:var(--card);font-size:11px;white-space:nowrap;cursor:pointer}
+.chip:hover{background:var(--bg2);border-color:var(--navy-light)}
+.chip.on{background:var(--info-soft);border:2px solid var(--navy);padding:0 6px 0 2px}
+.chip i{font-style:normal;width:17px;height:17px;border-radius:50%;background:var(--bg3);display:grid;place-items:center;font-size:10px;font-weight:600}
+.chip.on i{background:var(--navy);color:#FFFFFF}
+.chip em{font-style:normal;color:var(--text2);font-variant-numeric:tabular-nums}
+.w{display:inline-grid;place-items:center;min-width:15px;height:15px;border-radius:8px;padding:0 3px;
+  background:var(--warn-soft);color:var(--warn);border:1px solid var(--warn-border);font-size:9.5px;font-weight:700}
+.chh{font-size:10.5px;color:var(--text3);margin-left:4px}
 /* ── Suggested layouts (1.1.0) ─────────────────────────────── */
 .sug-grp{border-color:var(--ok-border)}
 .sug{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;max-width:560px}
@@ -438,75 +453,10 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg2);border:1px sol
             <div class="t">Align &amp; distribute</div>
             <div class="s">Defaults move as little as possible</div>
           </div>
-          <div class="sum"><span class="pill ok">Suggestion 1 picked</span><br>Rows: bottom &middot; Columns: left &middot; Distribute: off</div>
+          <div class="sum">Rows: bottom &middot; Columns: left &middot; Distribute: off</div>
         </div>
         <div class="sb">
-          <div class="grp sug-grp">
-            <div class="gl">Suggested layouts <span class="tag">NEW</span>
-              <span class="fl" style="font-weight:400;margin-left:auto">Click one, then Apply</span></div>
-            <div class="sug">
-              <div class="sg on">
-                <div class="sg-top"><span class="sg-n">1</span><span class="pill ok">Best fit</span></div>
-                <svg viewBox="0 0 120 54" class="sg-pic" aria-hidden="true">
-                  <rect x="8" y="6" width="26" height="16" class="bx"/><rect x="42" y="10" width="34" height="12" class="bx"/><rect x="84" y="4" width="28" height="18" class="bx"/>
-                  <rect x="8" y="30" width="26" height="18" class="bx"/><rect x="42" y="34" width="34" height="14" class="bx"/><rect x="84" y="32" width="28" height="16" class="bx"/>
-                  <line x1="2" y1="22" x2="118" y2="22" class="gd"/><line x1="2" y1="48" x2="118" y2="48" class="gd"/>
-                  <line x1="8" y1="1" x2="8" y2="53" class="gd"/><line x1="42" y1="1" x2="42" y2="53" class="gd"/><line x1="84" y1="1" x2="84" y2="53" class="gd"/>
-                </svg>
-                <b>Bottom + Left &middot; gaps kept</b>
-                <div class="sg-m">5 moves &middot; max 5.7&nbsp;mm</div>
-                <div class="sg-m">2 in place</div>
-                <div class="sg-m wn-t">1 over limit</div>
-                <div class="sg-f">Titles line up. Same result as Least move + Least move &middot; gaps kept.</div>
-              </div>
-              <div class="sg">
-                <div class="sg-top"><span class="sg-n">2</span></div>
-                <svg viewBox="0 0 120 54" class="sg-pic" aria-hidden="true">
-                  <rect x="8" y="4" width="26" height="16" class="bx"/><rect x="42" y="4" width="34" height="12" class="bx"/><rect x="84" y="4" width="28" height="18" class="bx"/>
-                  <rect x="8" y="30" width="26" height="18" class="bx"/><rect x="42" y="30" width="34" height="14" class="bx"/><rect x="84" y="30" width="28" height="16" class="bx"/>
-                  <line x1="2" y1="4" x2="118" y2="4" class="gd"/><line x1="2" y1="30" x2="118" y2="30" class="gd"/>
-                  <line x1="8" y1="1" x2="8" y2="53" class="gd"/><line x1="42" y1="1" x2="42" y2="53" class="gd"/><line x1="84" y1="1" x2="84" y2="53" class="gd"/>
-                </svg>
-                <b>Top + Left &middot; gaps kept</b>
-                <div class="sg-m">6 moves &middot; max 8.1&nbsp;mm</div>
-                <div class="sg-m">1 in place</div>
-                <div class="sg-m wn-t">1 over limit</div>
-                <div class="sg-f">Tops line up; titles follow each view's height.</div>
-              </div>
-              <div class="sg">
-                <div class="sg-top"><span class="sg-n">3</span></div>
-                <svg viewBox="0 0 120 54" class="sg-pic" aria-hidden="true">
-                  <rect x="4" y="6" width="26" height="16" class="bx"/><rect x="43" y="10" width="34" height="12" class="bx"/><rect x="90" y="4" width="28" height="18" class="bx"/>
-                  <rect x="4" y="30" width="26" height="18" class="bx"/><rect x="43" y="34" width="34" height="14" class="bx"/><rect x="90" y="32" width="28" height="16" class="bx"/>
-                  <line x1="2" y1="22" x2="118" y2="22" class="gd"/><line x1="2" y1="48" x2="118" y2="48" class="gd"/>
-                  <line x1="31" y1="13" x2="42" y2="13" class="gp"/><line x1="78" y1="13" x2="89" y2="13" class="gp"/>
-                </svg>
-                <b>Bottom + Left &middot; even gaps across rows</b>
-                <div class="sg-m">7 moves &middot; max 12.0&nbsp;mm</div>
-                <div class="sg-m">0 in place</div>
-                <div class="sg-m wn-t">1 over limit</div>
-                <div class="sg-f">Titles line up.</div>
-              </div>
-              <div class="sg">
-                <div class="sg-top"><span class="sg-n">4</span></div>
-                <svg viewBox="0 0 120 54" class="sg-pic" aria-hidden="true">
-                  <rect x="8" y="6" width="26" height="16" class="bx"/><rect x="38" y="8" width="34" height="12" class="bx"/><rect x="84" y="5" width="28" height="18" class="bx"/>
-                  <rect x="8" y="30" width="26" height="18" class="bx"/><rect x="38" y="32" width="34" height="14" class="bx"/><rect x="84" y="31" width="28" height="16" class="bx"/>
-                  <line x1="2" y1="14" x2="118" y2="14" class="gd"/><line x1="2" y1="39" x2="118" y2="39" class="gd"/>
-                  <line x1="21" y1="1" x2="21" y2="53" class="gd"/><line x1="55" y1="1" x2="55" y2="53" class="gd"/><line x1="98" y1="1" x2="98" y2="53" class="gd"/>
-                </svg>
-                <b>Centre + Centre &middot; gaps kept</b>
-                <div class="sg-m">6 moves &middot; max 9.4&nbsp;mm</div>
-                <div class="sg-m">1 in place</div>
-                <div class="sg-m wn-t">1 over limit &middot; 1 crosses the margins</div>
-                <div class="sg-f">Rows share a centre line.</div>
-              </div>
-            </div>
-            <div class="hint">Picked from 144 test plans on this sheet. 31 were blocked by an overlap, 9 moved nothing, and
-            the rest gave 23 different result(s). Ranked by: fewest overflowing views, then most views aligned, then least total travel.</div>
-            <div class="hint">A suggestion with overflowing views (over the move limit or across the margins) can still be picked:
-            Apply asks whether to place them anyway, place only the safe ones, or cancel. <span class="tag">NEW</span></div>
-          </div>
+          <div class="hint">The four <b>Suggested layouts</b> buttons now sit as a small strip on top of the sheet preview (section 6). <span class="tag">MOVED</span></div>
           <div class="cols2">
             <div class="grp">
               <div class="gl">Align rows &mdash; the shared horizontal line</div>
@@ -682,6 +632,14 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg2);border:1px sol
           <div class="sum">WP&#8209;204 &middot; A1 landscape &middot; drawn to scale</div>
         </div>
         <div class="sb">
+          <div class="chips">
+            <span class="chl">Suggested <span class="tag">NEW</span></span>
+            <span class="chip on" title="Bottom + Left · gaps kept — 5 moves, max 5.7 mm, 2 in place, 1 over limit"><i>1</i>Bottom + Left<em>5 &middot; 5.7&nbsp;mm</em><b class="w">1</b></span>
+            <span class="chip" title="Top + Left · gaps kept — 6 moves, max 8.1 mm, 1 in place, 1 over limit"><i>2</i>Top + Left<em>6 &middot; 8.1&nbsp;mm</em><b class="w">1</b></span>
+            <span class="chip" title="Bottom + Left · even gaps across rows — 7 moves, max 12.0 mm, 1 over limit"><i>3</i>Bottom + Left &middot; even<em>7 &middot; 12.0&nbsp;mm</em><b class="w">1</b></span>
+            <span class="chip" title="Centre + Centre · gaps kept — 6 moves, max 9.4 mm, 1 over limit, 1 crosses the margins"><i>4</i>Centre + Centre<em>6 &middot; 9.4&nbsp;mm</em><b class="w">2</b></span>
+            <span class="chh">moves &middot; largest &middot; <b class="w">n</b> overflow &mdash; click to preview, then Apply</span>
+          </div>
           <div class="prev">
             <div class="pbox">
               <!-- viewBox is the sheet in mm: A1 landscape 841 x 594, y down -->
