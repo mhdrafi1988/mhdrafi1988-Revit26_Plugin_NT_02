@@ -6,6 +6,8 @@ using Revit26_Plugin_Revised.Shared.Models;
 using Revit26_Plugin_Revised.Shared.Services;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using Revit26_Plugin_Revised.SheetAlignDistribute.V001.Core.Layout;
 
 namespace Revit26_Plugin_Revised.SheetAlignDistribute.V001.Infrastructure
 {
@@ -33,7 +35,7 @@ namespace Revit26_Plugin_Revised.SheetAlignDistribute.V001.Infrastructure
         public SheetSnapshot Initial { get; }
 
         /// <inheritdoc/>
-        public bool Refresh(FootprintMode footprintMode, Action<SessionResult> done) => Raise(done, () =>
+        public bool Refresh(FootprintMode footprintMode, Action<SessionResult> done) => Raise(done, _ =>
         {
             var sheet = GetSheet(out string error);
             return sheet == null
@@ -41,62 +43,99 @@ namespace Revit26_Plugin_Revised.SheetAlignDistribute.V001.Infrastructure
                 : new SessionResult { Snapshot = SheetElementReader.Read(_doc, sheet, footprintMode) };
         });
 
+        /// <summary>How far an element may sit from where the preview found it and still count as unmoved (~0.5 mm).</summary>
+        private const double StaleTolerance = 0.5 / 304.8;
+
         /// <inheritdoc/>
-        public bool Apply(AlignDistributeSettings settings, IReadOnlySet<long> unticked, string previewSignature,
-            Action<SessionResult> done) => Raise(done, () =>
+        public bool Apply(AlignPlan plan, FootprintMode footprintMode, Action<SessionResult> done) => Raise(done, app =>
         {
             var sheet = GetSheet(out string error);
             if (sheet == null)
                 return Failed(error);
-
-            // Re-read and re-plan rather than trusting the preview: someone may have moved a view,
-            // reloaded from central or deleted a viewport while this modeless window was open.
-            var fresh = SheetElementReader.Read(_doc, sheet, settings.Footprint);
-            var plan = AlignPlanner.Build(fresh, settings, unticked);
-
-            if (plan.Signature != previewSignature)
+            if (plan == null || !plan.CanApply)
                 return new SessionResult
                 {
-                    Snapshot = fresh,
                     Level = LogLevel.Warning,
-                    Message = "The sheet changed since the preview, so nothing was moved. " +
-                              "Check the updated preview and press Apply again."
+                    Snapshot = SheetElementReader.Read(_doc, sheet, footprintMode),
+                    Message = "Nothing moved: " + (plan?.Blocker ?? "every element is already in place.")
                 };
 
-            if (!plan.CanApply)
+            // Check the preview is still true rather than re-planning: a re-plan can differ from the
+            // preview for reasons that are not a change on the sheet, and then nothing would ever move.
+            // Someone may still have moved, deleted or taken ownership of a view while this modeless
+            // window was open, so every element to be moved must be where the preview found it.
+            var fresh = SheetElementReader.Read(_doc, sheet, footprintMode);
+            var now = fresh.Elements.ToDictionary(e => e.Key);
+            var stale = new List<string>();
+            foreach (var move in plan.Moves.Where(m => m.NeedsMove))
+            {
+                if (!now.TryGetValue(move.Key, out var current))
+                    stale.Add($"'{move.Element.Name}' is no longer on the sheet");
+                else if (current.LockReason != null)
+                    stale.Add($"'{move.Element.Name}': {current.LockReason}");
+                else if (!SamePlace(current.Footprint, move.Element.Footprint))
+                    stale.Add($"'{move.Element.Name}' has moved since the preview");
+            }
+
+            if (stale.Count > 0)
                 return new SessionResult
                 {
                     Snapshot = fresh,
                     Level = LogLevel.Warning,
-                    Message = "Nothing moved: " + (plan.Blocker ?? "every element is already in place.")
+                    Message = "Nothing was moved: " + string.Join("; ", stale.Take(3))
+                              + (stale.Count > 3 ? $" (and {stale.Count - 3} more)" : "")
+                              + ". Check the updated preview and press Apply again."
                 };
 
             var result = AlignApplier.Apply(_doc, plan);
+            if (!result.Success)
+                return new SessionResult
+                {
+                    Snapshot = SheetElementReader.Read(_doc, sheet, footprintMode),
+                    Level = LogLevel.Error,
+                    Message = result.Error
+                };
+
+            try { app?.ActiveUIDocument?.RefreshActiveView(); }
+            catch (Autodesk.Revit.Exceptions.ApplicationException) { /* the redraw follows on its own */ }
+
+            // Read back what Revit now has, so a commit that did not really move anything is reported.
+            var after = SheetElementReader.Read(_doc, sheet, footprintMode);
+            var afterByKey = after.Elements.ToDictionary(e => e.Key);
+            int notMoved = plan.Moves.Where(m => m.NeedsMove).Count(m =>
+                !afterByKey.TryGetValue(m.Key, out var placed)
+                || !SamePlace(placed.Footprint, m.Element.Footprint.Offset(m.DeltaX, m.DeltaY)));
+
             return new SessionResult
             {
-                Snapshot = SheetElementReader.Read(_doc, sheet, settings.Footprint),
-                Level = result.Success ? LogLevel.Success : LogLevel.Error,
-                Moved = result.Moved,
-                Applied = result.Success,
-                Message = result.Success
+                Snapshot = after,
+                Level = notMoved == 0 ? LogLevel.Success : LogLevel.Warning,
+                Moved = result.Moved - notMoved,
+                Applied = true,
+                Message = notMoved == 0
                     ? $"Aligned {result.Moved} element(s) in {plan.RowCount} row(s) and {plan.ColumnCount} column(s). " +
                       $"Undo with Ctrl+Z (\"{AlignApplier.TransactionName}\")."
-                    : result.Error
+                    : $"Committed, but {notMoved} of {result.Moved} element(s) are not where the plan put them — " +
+                      "check the sheet, and Undo with Ctrl+Z if it is wrong."
             };
         });
+
+        private static bool SamePlace(LayoutRect a, LayoutRect b) =>
+            Math.Abs(a.MinX - b.MinX) <= StaleTolerance && Math.Abs(a.MinY - b.MinY) <= StaleTolerance &&
+            Math.Abs(a.MaxX - b.MaxX) <= StaleTolerance && Math.Abs(a.MaxY - b.MaxY) <= StaleTolerance;
 
         /// <summary>
         /// Queues <paramref name="work"/>; <paramref name="done"/> always runs afterwards, also when
         /// the work throws (the exception then goes on to ToolGuard, which logs and shows it).
         /// </summary>
-        private bool Raise(Action<SessionResult> done, Func<SessionResult> work)
+        private bool Raise(Action<SessionResult> done, Func<UIApplication, SessionResult> work)
         {
-            _handler.Queue(_ =>
+            _handler.Queue(app =>
             {
                 SessionResult result = null;
                 try
                 {
-                    result = work();
+                    result = work(app);
                 }
                 finally
                 {

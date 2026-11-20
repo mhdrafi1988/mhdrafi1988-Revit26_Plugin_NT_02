@@ -326,9 +326,7 @@ namespace Revit26_Plugin_Revised.SheetAlignDistribute.V001.UI.ViewModels
             }
 
             WriteToSettings();
-            AlignDistributeSettings runSettings = _settings;
-            string signature = Plan.Signature;
-            int moving = Plan.MoveCount;
+            AlignPlan toApply = Plan;
             _placedAnyway = 0;
 
             if (Plan.OverflowCount > 0)
@@ -339,9 +337,7 @@ namespace Revit26_Plugin_Revised.SheetAlignDistribute.V001.UI.ViewModels
                         AddLog(LogLevel.Info, "Apply cancelled — nothing was moved.");
                         return;
                     case OverflowChoice.PlaceAnyway:
-                        runSettings = anywaySettings;
-                        signature = anywayPlan.Signature;
-                        moving = anywayPlan.MoveCount;
+                        toApply = anywayPlan;
                         _placedAnyway = Plan.OverflowCount;
                         break;
                     default:
@@ -350,7 +346,8 @@ namespace Revit26_Plugin_Revised.SheetAlignDistribute.V001.UI.ViewModels
                 }
             }
 
-            if (moving == 0)
+            int moving = toApply.MoveCount;
+            if (moving == 0 || !toApply.CanApply)
             {
                 AddLog(LogLevel.Warning, "Nothing to apply: every element is already in place.");
                 return;
@@ -361,7 +358,8 @@ namespace Revit26_Plugin_Revised.SheetAlignDistribute.V001.UI.ViewModels
             IsBusy = true;
             StatusText = $"Moving {moving} element(s)…";
 
-            if (!_session.Apply(runSettings, _unticked, signature, result => OnSessionDone(result, applied: true)))
+            // The previewed plan itself is applied, so what moves is exactly what the preview shows.
+            if (!_session.Apply(toApply, FootprintMode(), result => OnSessionDone(result, applied: true)))
             {
                 IsBusy = false;
                 AddLog(LogLevel.Error, "Revit would not take the request — finish what you are doing in Revit and press Apply again.");
@@ -910,6 +908,13 @@ namespace Revit26_Plugin_Revised.SheetAlignDistribute.V001.UI.ViewModels
                 _settings.MarginSource = MarginSource.Custom;
                 OnPropertyChanged(nameof(MarginsAreCustom));
                 OnPropertyChanged(nameof(MarginSourceText));
+            }
+
+            // The footprint is measured when the sheet is read, so a change to it needs a fresh read.
+            if (e.PropertyName == nameof(FootprintIncludesTitle))
+            {
+                Refresh();
+                return;
             }
 
             if (ReplanTriggers.Contains(e.PropertyName))

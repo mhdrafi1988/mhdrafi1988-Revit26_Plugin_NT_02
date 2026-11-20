@@ -1,6 +1,9 @@
 <title>Sheet Align &amp; Distribute</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<!-- UI preview (CLAUDE.md "UI previews"): Sheet Align & Distribute 1.1.0 (V001). Plugin 7.27.0.
+<!-- UI preview (CLAUDE.md "UI previews"): Sheet Align & Distribute 1.1.1 (V001). Plugin 7.27.1.
+     Rev 7 (1.1.1, 2026-11-20): no visible change. Fix: Apply now moves the previewed plan itself (after
+     checking each view is still where the preview found it) instead of re-planning and refusing on any
+     difference, which had left Apply moving nothing.
      Rev 6 (built, 2026-11-20): matches the shipped 1.1.0 window. The four buttons sit in a 2 x 2 grid (the
      settings column is 376 px wide), each with a sketch of where the views end up. Owner asked that overflowing
      suggestions stay pickable: views over the move limit or across the margins are tagged, and Apply now asks
@@ -220,7 +223,8 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg2);border:1px sol
 <div class="page">
 
 <header>
-  <h1>Sheet Align &amp; Distribute <span class="tag">1.1.0 &middot; SUGGESTED LAYOUTS</span></h1>
+  <h1>Sheet Align &amp; Distribute <span class="tag">1.1.1 &middot; APPLY FIX</span></h1>
+  <p style="margin-bottom:6px"><b>1.1.1:</b> Apply now really moves the views; it no longer refuses because a re&#8209;read differed from the preview. Nothing else on screen changed.</p>
   <p class="muted">Tool <b>1.0.0 &rarr; 1.1.0</b> (V001) &middot; plugin <b>7.26.5 &rarr; 7.27.0</b> &middot; ribbon: <b>Documents &rsaquo; Sheet Edit</b> (unchanged).
   Built 2026&#8209;11&#8209;20; 93 unit tests on the layout maths and the suggestion ranking.</p>
   <p style="margin-top:9px"><span class="sample">Sample data &mdash; the sheet, view names and numbers below are invented for this preview. No real project or client data.</span></p>

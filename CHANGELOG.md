@@ -9,6 +9,23 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [7.27.1] — 2026-11-20
+
+### Fixed
+- **Sheet Align & Distribute 1.1.1** — **Apply now moves the views.** Before, Apply re-read the sheet, planned it
+  again, and moved nothing unless the new plan matched the preview's exactly. A re-read could differ from the
+  preview even when the sheet had not changed. It then reported "The sheet changed since the preview" and
+  committed no transaction.
+  - Apply now moves exactly the plan you previewed. First it checks that every view it is about to move is still
+    where the preview found it (within 0.5 mm), is still on the sheet and isn't owned by another user. After the
+    commit it reads the sheet again and warns if any view is not where the plan put it.
+  - The window now first reads the sheet with your saved "Count the view title in the footprint" setting, instead
+    of always counting titles. Changing that tick now re-reads the sheet, so the preview and Apply measure views
+    the same way.
+
+**User notes**
+- No settings or behaviour change beyond Apply working; still one Undo step.
+
 ## [7.27.0] — 2026-11-20
 
 ### Added
