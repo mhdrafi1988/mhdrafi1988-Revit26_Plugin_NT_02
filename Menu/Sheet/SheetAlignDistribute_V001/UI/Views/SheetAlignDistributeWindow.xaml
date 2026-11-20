@@ -3,9 +3,8 @@
 File: SheetAlignDistributeWindow.xaml  (Sheet Align & Distribute V001)
 ToolWindowShell layout:
   HEADER  metric cards (elements / grid / to move / in place / over the limit / largest move)
-  BODY    left:  margins, per-view clearance, grid detection, align & distribute (with the four
-                 suggested-layout buttons on top), movement limits
-          right: live sheet preview and the Elements grid
+  BODY    left:  margins, per-view clearance, grid detection, align & distribute, movement limits
+          right: four small suggested-layout chips, the live sheet preview and the Elements grid
           below: activity log
   FOOTER  status strip, Refresh / Copy report / Reset, Apply → Close
 The preview canvas is drawn in code-behind from ViewModel.Plan.
@@ -44,23 +43,21 @@ UI preview: Claude/Previews/SheetAlignDistribute_V001_Window.html
 
             <BooleanToVisibilityConverter x:Key="BoolToVis"/>
 
-            <!-- One "Suggested layouts" button: a card that turns navy-edged while its combination is loaded. -->
-            <Style x:Key="SuggestionCard" TargetType="Button">
+            <!-- One "Suggested layouts" chip above the sheet preview: navy-edged while its combination is loaded. -->
+            <Style x:Key="SuggestionChip" TargetType="Button">
                 <Setter Property="Background" Value="{StaticResource BrushCardBackground}"/>
                 <Setter Property="BorderBrush" Value="{StaticResource BrushBorderDefault}"/>
                 <Setter Property="BorderThickness" Value="1"/>
-                <Setter Property="Padding" Value="7,6,7,7"/>
+                <Setter Property="Padding" Value="3,0,8,0"/>
+                <Setter Property="Height" Value="24"/>
                 <Setter Property="Cursor" Value="Hand"/>
-                <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-                <Setter Property="VerticalContentAlignment" Value="Top"/>
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="Button">
                             <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
-                                    BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6"
+                                    BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="12"
                                     Padding="{TemplateBinding Padding}">
-                                <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                                  VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                                <ContentPresenter VerticalAlignment="Center"/>
                             </Border>
                         </ControlTemplate>
                     </Setter.Value>
@@ -74,7 +71,7 @@ UI preview: Claude/Previews/SheetAlignDistribute_V001_Window.html
                         <Setter Property="Background" Value="{StaticResource BrushTileInfoBackground}"/>
                         <Setter Property="BorderBrush" Value="{StaticResource BrushNavyPrimary}"/>
                         <Setter Property="BorderThickness" Value="2"/>
-                        <Setter Property="Padding" Value="6,5,6,6"/>
+                        <Setter Property="Padding" Value="2,0,7,0"/>
                     </DataTrigger>
                 </Style.Triggers>
             </Style>
@@ -310,81 +307,6 @@ UI preview: Claude/Previews/SheetAlignDistribute_V001_Window.html
                         <StackPanel>
                             <TextBlock Text="Align and distribute" Style="{StaticResource SectionTitle}"/>
 
-                            <!-- Suggested layouts (1.1.0): the best four combinations for this sheet. A click
-                                 loads one into the dropdowns below; nothing moves until Apply. -->
-                            <DockPanel Margin="12,0,12,4">
-                                <TextBlock DockPanel.Dock="Right" Text="Click one, then Apply" Style="{StaticResource HintText}"
-                                           VerticalAlignment="Center"/>
-                                <TextBlock Text="Suggested layouts" Style="{StaticResource FieldLabel}" VerticalAlignment="Center"/>
-                            </DockPanel>
-                            <ItemsControl ItemsSource="{Binding Suggestions}" Margin="12,0,6,0"
-                                          Visibility="{Binding HasSuggestions, Converter={StaticResource BoolToVis}}">
-                                <ItemsControl.ItemsPanel>
-                                    <ItemsPanelTemplate><UniformGrid Columns="2"/></ItemsPanelTemplate>
-                                </ItemsControl.ItemsPanel>
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <Button Style="{StaticResource SuggestionCard}" Margin="0,0,6,6"
-                                                ToolTip="{Binding ToolTipText}"
-                                                AutomationProperties.Name="{Binding Title}"
-                                                Command="{Binding DataContext.ApplySuggestionCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                                CommandParameter="{Binding}">
-                                            <StackPanel>
-                                                <DockPanel Margin="0,0,0,4">
-                                                    <Border Width="18" Height="18" CornerRadius="9" Background="{StaticResource BrushNavyPrimary}">
-                                                        <TextBlock Text="{Binding RankText}" FontSize="10.5" FontWeight="SemiBold"
-                                                                   Foreground="{StaticResource BrushTextOnDark}"
-                                                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                    </Border>
-                                                    <Border Margin="6,0,0,0" Padding="7,0" CornerRadius="8" HorizontalAlignment="Left"
-                                                            Background="{StaticResource BrushTileSuccessBackground}"
-                                                            BorderBrush="{StaticResource BrushTileSuccessBorder}" BorderThickness="1"
-                                                            Visibility="{Binding IsBest, Converter={StaticResource BoolToVis}}">
-                                                        <TextBlock Text="Best fit" FontSize="10" FontWeight="SemiBold"
-                                                                   Foreground="{StaticResource BrushTileSuccessText}"/>
-                                                    </Border>
-                                                </DockPanel>
-                                                <Border BorderBrush="{StaticResource BrushSeparatorThin}" BorderThickness="1" CornerRadius="3"
-                                                        Background="{StaticResource BrushSystemBackground}" HorizontalAlignment="Left" Margin="0,0,0,5">
-                                                    <ItemsControl ItemsSource="{Binding Sketch}" Width="140" Height="54" IsHitTestVisible="False">
-                                                        <ItemsControl.ItemsPanel>
-                                                            <ItemsPanelTemplate><Canvas/></ItemsPanelTemplate>
-                                                        </ItemsControl.ItemsPanel>
-                                                        <ItemsControl.ItemContainerStyle>
-                                                            <Style TargetType="ContentPresenter">
-                                                                <Setter Property="Canvas.Left" Value="{Binding Left}"/>
-                                                                <Setter Property="Canvas.Top" Value="{Binding Top}"/>
-                                                            </Style>
-                                                        </ItemsControl.ItemContainerStyle>
-                                                        <ItemsControl.ItemTemplate>
-                                                            <DataTemplate>
-                                                                <Rectangle Width="{Binding Width}" Height="{Binding Height}" StrokeThickness="1"
-                                                                           Fill="{Binding Status, Converter={StaticResource StatusFill}}"
-                                                                           Stroke="{Binding Status, Converter={StaticResource StatusEdge}}"/>
-                                                            </DataTemplate>
-                                                        </ItemsControl.ItemTemplate>
-                                                    </ItemsControl>
-                                                </Border>
-                                                <TextBlock Text="{Binding Title}" FontSize="12" FontWeight="SemiBold" TextWrapping="Wrap"
-                                                           Foreground="{StaticResource BrushTextPrimary}"/>
-                                                <TextBlock Text="{Binding MovesText}" FontSize="11" Foreground="{StaticResource BrushTextSecondary}"/>
-                                                <TextBlock Text="{Binding InPlaceText}" FontSize="11" Foreground="{StaticResource BrushTextSecondary}"/>
-                                                <TextBlock Text="{Binding OverflowText}" FontSize="11" FontWeight="SemiBold" TextWrapping="Wrap"
-                                                           Foreground="{StaticResource BrushStatusWarn}"
-                                                           Visibility="{Binding HasOverflow, Converter={StaticResource BoolToVis}}"/>
-                                                <TextBlock Text="{Binding FootText}" FontSize="10.5" TextWrapping="Wrap" Margin="0,3,0,0"
-                                                           Foreground="{StaticResource BrushTextTertiary}"/>
-                                            </StackPanel>
-                                        </Button>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                            <TextBlock Style="{StaticResource HintText}" Margin="12,0,12,8" Text="{Binding SuggestionSummary}"/>
-                            <TextBlock Style="{StaticResource HintText}" Margin="12,0,12,8"
-                                       Text="A suggestion with overflowing views (over the move limit or across the margins) can still be picked: Apply asks whether to place them anyway, place only the safe ones, or cancel."/>
-
-                            <Border Style="{StaticResource SeparatorLine}"/>
-
                             <TextBlock Text="Align rows" Style="{StaticResource FieldLabel}" Margin="12,8,12,2"/>
                             <ComboBox Style="{StaticResource StandardComboBox}" Margin="12,0,12,6"
                                       ItemsSource="{Binding RowAlignOptions}"
@@ -480,6 +402,49 @@ UI preview: Claude/Previews/SheetAlignDistribute_V001_Window.html
                     <Border Style="{StaticResource SectionCard}">
                         <StackPanel>
                             <TextBlock Text="Sheet preview" Style="{StaticResource SectionTitle}"/>
+
+                            <!-- Suggested layouts (1.1.2): the best four combinations as small chips on top of the
+                                 preview. A click loads one into the dropdowns; nothing moves until Apply. -->
+                            <WrapPanel Margin="12,0,12,6" Visibility="{Binding HasSuggestions, Converter={StaticResource BoolToVis}}">
+                                <TextBlock Text="Suggested" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,6,0"
+                                           ToolTip="{Binding SuggestionSummary}"/>
+                                <ItemsControl ItemsSource="{Binding Suggestions}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Button Style="{StaticResource SuggestionChip}" Margin="0,0,5,4"
+                                                    ToolTip="{Binding ToolTipText}"
+                                                    AutomationProperties.Name="{Binding Title}"
+                                                    Command="{Binding DataContext.ApplySuggestionCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                    CommandParameter="{Binding}">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Border Width="17" Height="17" CornerRadius="9" Background="{StaticResource BrushNavyPrimary}">
+                                                        <TextBlock Text="{Binding RankText}" FontSize="10" FontWeight="SemiBold"
+                                                                   Foreground="{StaticResource BrushTextOnDark}"
+                                                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                    </Border>
+                                                    <TextBlock Text="{Binding ShortTitle}" FontSize="11" Margin="5,0,0,0" VerticalAlignment="Center"
+                                                               Foreground="{StaticResource BrushTextPrimary}"/>
+                                                    <TextBlock Text="{Binding ChipStats}" FontSize="11" Margin="5,0,0,0" VerticalAlignment="Center"
+                                                               Foreground="{StaticResource BrushTextSecondary}"/>
+                                                    <Border Margin="5,0,0,0" Padding="4,0" CornerRadius="7" MinWidth="15" Height="15"
+                                                            Background="{StaticResource BrushStatusWarnSoft}"
+                                                            BorderBrush="{StaticResource BrushStatusWarnBorder}" BorderThickness="1"
+                                                            Visibility="{Binding HasOverflow, Converter={StaticResource BoolToVis}}">
+                                                        <TextBlock Text="{Binding OverflowCountText}" FontSize="9.5" FontWeight="Bold"
+                                                                   Foreground="{StaticResource BrushStatusWarn}"
+                                                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                    </Border>
+                                                </StackPanel>
+                                            </Button>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                <TextBlock Style="{StaticResource HintText}" VerticalAlignment="Center"
+                                           Text="moves · largest · orange = overflow; click to preview, then Apply"/>
+                            </WrapPanel>
                             <Border Margin="12,0,12,6" Padding="8" CornerRadius="4"
                                     Background="{StaticResource BrushSystemSecondaryBackground}"
                                     BorderBrush="{StaticResource BrushBorderDefault}" BorderThickness="1">
