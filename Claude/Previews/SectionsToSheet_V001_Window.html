@@ -1,0 +1,407 @@
+<title>Sections To Sheet</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<!-- UI preview (CLAUDE.md "UI previews"): Sections To Sheet 1.2.0 (V001), PROPOSED (design stage, not built yet).
+     Plugin 7.27.0 (proposed; was 7.26.5). Tool was 1.1.0.
+     Shown: ribbon tooltip, the tool window with Target Sheet = Existing sheet, both modes
+     ("Use free space" / "Re-arrange all views", click the chips to switch), and the confirm card.
+     Owner decisions: both modes; Re-arrange moves every viewport on the sheet (schedules and other items stay
+     and are kept clear of); existing views keep their detail numbers, new ones continue from the highest;
+     existing views first in their current order, then the new sections; free space = the largest empty
+     rectangle inside the margins.
+     Mirrors: Menu/Sheet/SectionsToSheet_V001/UI/Views/SectionsToSheetWindow.xaml
+              (+ UI/ViewModels/SectionsToSheetViewModel.cs; version from Shared/Services/ToolCatalog.cs).
+     Artifact: https://claude.ai/artifact/HMYzMyc95SF4zyDxxZjHTQ (republish to this URL on every update)
+     Colours: Shared/SharedStyles.xaml tokens, one light look on purpose (mirrors the light WPF window). -->
+<style>
+/* Layout: one column; the fixed-width WPF window scrolls inside its own frame, notes sit under it. */
+:root{
+  color-scheme:light;
+  --page:#E9EDF1; --window:#F3F5F7; --card:#FFFFFF; --border:#D6DCE3; --input:#B5C2CF; --sep:#E6EAEF;
+  --navy:#1E3A5F; --navy-light:#2C4A6E; --on-dark:#EAF1F8;
+  --text:#1A2B3C; --text2:#5B7185; --text3:#8FA3B8; --bg2:#ECEFF3; --bg3:#E1E6EC;
+  --info:#1F5FBF; --info-soft:#E6EEFB; --info-border:#A9C3EE;
+  --ok:#2E7D4F; --ok-soft:#E6F4EC; --ok-border:#9FCFB2;
+  --warn:#9A5B00; --warn-soft:#FDF1E1; --warn-border:#E8B66B;
+  --err:#B23A35; --err-soft:#FBE8E7; --err-border:#EDA5A1;
+  --log-bg:#14283F; --log-text:#EAF1F8; --log-dim:#7E94AA; --log-ok:#4CC18A;
+  --new:#2E7D4F;
+  --ui:'Segoe UI',system-ui,-apple-system,sans-serif; --mono:Consolas,'Cascadia Mono',Menlo,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--text);font-family:var(--ui);font-size:12.5px;
+  padding-block:24px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.page{max-width:1200px;margin:0 auto;display:grid;gap:20px}
+h1{font-size:20px;margin:0 0 4px;font-weight:600;text-wrap:balance}
+h2{font-size:14px;margin:0 0 8px;font-weight:600;text-wrap:balance}
+p{margin:0;line-height:1.5;max-width:80ch}
+ul{margin:4px 0 0;padding-left:18px;line-height:1.55;max-width:90ch}
+.muted{color:var(--text2)}
+.tag{display:inline-block;background:var(--new);color:#FFFFFF;font-size:10px;font-weight:600;letter-spacing:.04em;
+  padding:1px 6px;border-radius:3px;vertical-align:middle;margin-left:6px;text-transform:uppercase}
+.sample{display:inline-block;background:var(--warn-soft);color:var(--warn);border:1px solid var(--warn-border);border-radius:3px;padding:2px 8px;font-size:11.5px}
+.frame{overflow-x:auto;padding-bottom:4px}
+
+/* Tooltip */
+.tip{width:460px;background:var(--card);border:1px solid var(--input);box-shadow:0 4px 12px rgba(16,32,48,.18);padding:8px 10px;font-size:12px;line-height:1.45}
+.tip b{display:block;margin-bottom:3px}
+
+/* Window */
+.win{width:1180px;background:var(--window);border:1px solid var(--input);box-shadow:0 6px 20px rgba(16,32,48,.18)}
+.tbar{background:var(--card);border-bottom:1px solid var(--border);padding:7px 10px;display:flex;justify-content:space-between}
+.tbar span{color:var(--text3);letter-spacing:6px}
+.hdr{background:var(--navy);color:var(--on-dark);padding:10px 12px;display:flex;justify-content:space-between;align-items:center}
+.hdr b{font-size:15px;font-weight:600;display:block}
+.hdr .s{font-size:11px;opacity:.85}
+.badge{background:var(--navy-light);border-radius:10px;padding:3px 8px;font-size:11px;font-weight:600}
+.wbody{padding:10px 12px;display:grid;gap:10px}
+.cards{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.mc{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:6px 10px;text-align:center}
+.mc span{display:block;font-size:11px;color:var(--text2)}
+.mc b{font-size:19px;font-variant-numeric:tabular-nums;display:block}
+.mc i{font-style:normal;font-size:10.5px;color:var(--text3)}
+.mc.w b{color:var(--warn)} .mc.e b{color:var(--err)} .mc.a b{color:var(--info)} .mc.o b{color:var(--ok)}
+.cols{display:grid;grid-template-columns:300px 1fr 290px;gap:10px;align-items:start}
+.card{background:var(--card);border:1px solid var(--border);border-radius:8px}
+.card.chg{outline:2px solid var(--new);outline-offset:1px}
+.ct{font-size:13px;font-weight:600;padding:9px 12px 6px;display:flex;align-items:center;gap:6px}
+.ct .r{margin-left:auto}
+.cb{padding:0 12px 10px;display:grid;gap:6px}
+.fl{font-size:11.5px;color:var(--text2)}
+.in{border:1px solid var(--input);background:var(--card);border-radius:4px;height:26px;padding:0 8px;display:flex;align-items:center;justify-content:space-between;font-size:12px;gap:6px}
+.in::after{content:"▾";color:var(--text2);font-size:10px}
+.in.tx::after{content:none}
+.hint{font-size:11px;color:var(--text3);line-height:1.4}
+.sbtn{border:1px solid var(--border);background:var(--bg2);border-radius:4px;height:24px;padding:0 9px;display:inline-flex;align-items:center;font-size:11px;white-space:nowrap}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--input);background:var(--card);border-radius:12px;padding:3px 10px;font-size:11.5px;white-space:nowrap;font-family:inherit;color:var(--text)}
+.chip.on{background:var(--navy);border-color:var(--navy);color:#FFFFFF}
+button.chip{cursor:pointer}
+button.chip:focus-visible{outline:2px solid var(--info);outline-offset:2px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tog{display:flex;align-items:center;gap:8px;font-size:12.5px}
+.tog i{width:30px;height:16px;border-radius:8px;background:var(--ok);position:relative;flex:none}
+.tog i::after{content:"";position:absolute;right:2px;top:2px;width:12px;height:12px;border-radius:50%;background:#FFFFFF}
+.tog.off i{background:var(--input)} .tog.off i::after{right:auto;left:2px}
+.sheetinfo{background:var(--bg2);border-radius:5px;padding:6px 8px;font-size:11.5px;line-height:1.45}
+.sub{border-top:1px solid var(--sep);padding-top:6px;margin-top:2px;font-size:11.5px;font-weight:600;color:var(--text2)}
+
+/* Sections list */
+.list{border:1px solid var(--sep);border-radius:4px}
+.row{display:grid;grid-template-columns:18px 1fr;gap:6px;padding:6px 8px;border-bottom:1px solid var(--sep)}
+.row:last-child{border-bottom:none}
+.ck{width:13px;height:13px;border-radius:2px;background:var(--navy);margin-top:2px;position:relative}
+.ck::after{content:"";position:absolute;left:3.5px;top:.5px;width:4px;height:8px;border:solid #FFFFFF;border-width:0 2px 2px 0;transform:rotate(45deg)}
+.rn{display:flex;justify-content:space-between;gap:6px;font-weight:600}
+.pill{border-radius:8px;padding:0 7px;font-size:10.5px;font-weight:400;white-space:nowrap}
+.pill.nw{background:var(--info-soft);color:var(--info)}
+.pill.mv{background:var(--warn-soft);color:var(--warn)}
+.meta{font-size:11px;color:var(--text2)}
+.st{font-size:11px;font-weight:600;color:var(--ok)}
+
+/* Preview */
+.pv{margin:0 12px 6px;background:var(--bg2);border-radius:6px;padding:8px}
+.pv svg{display:block;width:100%;height:auto}
+.legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:11px;color:var(--text2);margin:0 12px 6px}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.sw{width:11px;height:11px;border-radius:2px;display:inline-block;border:1px solid}
+.sw.b{background:var(--info-soft);border-color:var(--info)}
+.sw.o{background:var(--warn-soft);border-color:var(--warn)}
+.sw.n{background:#DCE3EC;border-color:var(--navy)}
+.sw.g{background:var(--bg3);border-color:var(--text3)}
+.sw.f{background:transparent;border:1.5px dashed var(--ok)}
+.sum{display:flex;flex-wrap:wrap;gap:6px;margin:0 12px 6px}
+.sum span{background:var(--bg2);border-radius:10px;padding:2px 9px;font-size:11.5px}
+.sum b{font-weight:600}
+.banner{margin:0 12px 10px;padding:6px 10px;border-radius:6px;border:1px solid var(--info-border);background:var(--info-soft);color:var(--info);font-size:12px;line-height:1.45}
+
+/* Log + footer */
+.log{background:var(--log-bg);border-radius:8px;padding:8px 10px;font-family:var(--mono);font-size:11px;color:var(--log-text);display:grid;gap:2px}
+.log .t{color:var(--log-dim)} .log .ok{color:var(--log-ok)}
+.foot{border-top:1px solid var(--border);background:var(--card);padding:9px 12px;display:flex;justify-content:flex-end;gap:8px}
+.btn{height:30px;padding:0 16px;border-radius:5px;display:inline-flex;align-items:center;font-size:12.5px;font-weight:600;border:1px solid var(--border);background:var(--bg2)}
+.btn.p{background:var(--navy);color:#FFFFFF;border-color:var(--navy)}
+
+/* Confirm */
+.dlg{width:520px;background:var(--card);border:1px solid var(--border);border-radius:8px;box-shadow:0 4px 18px rgba(16,32,48,.3)}
+.dlg h3{margin:0;padding:14px 18px 4px;font-size:15px;color:var(--navy)}
+.dlg .d{padding:0 18px 10px;color:var(--text2)}
+.mv-list{margin:0 18px;border:1px solid var(--sep);border-radius:5px}
+.mv-list div{display:flex;align-items:center;gap:6px;padding:6px 10px;border-bottom:1px solid var(--sep)}
+.mv-list div:last-child{border-bottom:none}
+.mv-list b{margin-right:auto}
+.dlg .note{margin:10px 18px 0;padding:6px 8px;border-radius:5px;background:var(--info-soft);border:1px solid var(--info-border);color:var(--info);font-size:12px}
+.dlg .ft{margin-top:14px;padding:12px 18px;background:var(--window);border-top:1px solid var(--border);border-radius:0 0 8px 8px;display:flex;justify-content:flex-end;gap:8px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="page">
+  <header>
+    <h1>Sections To Sheet: place on an existing sheet</h1>
+    <p class="muted">Design proposal for version 1.2.0, not built yet. The tool can now target an existing sheet as well as a new one. On an existing sheet it either uses the free space or re-arranges every view on the sheet. Green tags mark what is new or changed. Click the two chips in <b>Target Sheet</b> to switch between the modes.</p>
+    <p style="margin-top:8px"><span class="sample">Sample data: sheet, view and schedule names are made up.</span></p>
+  </header>
+
+  <section>
+    <h2>Ribbon tooltip <span class="tag">changed</span></h2>
+    <div class="frame"><div class="tip">
+      <b>Sections To Sheet (v1.2.0)</b>
+      Lists the section markers shown in the active view (or the selected ones, or picked ones), takes them off the sheet they are on, and lays them out on a new sheet <u>or an existing one, in its free space or re-arranging every view on it</u>: columns that line up, or justified rows, in plan order, bottom-aligned so titles line up. Live preview before anything changes; one Undo step.
+    </div></div>
+  </section>
+
+  <section>
+    <h2>Tool window: Target Sheet = Existing sheet</h2>
+    <div class="frame"><div class="win" role="img" aria-label="Sections To Sheet window mock-up">
+      <div class="tbar"><span style="letter-spacing:0;color:var(--text)">Sections To Sheet</span><span>— ▢ ✕</span></div>
+      <div class="hdr">
+        <div><b>Sections To Sheet</b><span class="s">Pick sections from a view, take them off their old sheets, and lay them out on a new <u>or existing</u> sheet</span><span class="tag">changed</span></div>
+        <span class="badge">v1.2.0</span>
+      </div>
+      <div class="wbody">
+        <div class="cards">
+          <div class="mc"><span>Ticked</span><b>8</b><i>sections in the list</i></div>
+          <div class="mc w"><span>Moving</span><b>2</b><i>off other sheets</i></div>
+          <div class="mc e"><span>Can't Place</span><b>0</b><i>locked / too big / no room</i></div>
+          <div class="mc a"><span>New Sheets</span><b>0</b><i>to create</i></div>
+          <div class="mc o"><span>Sheet Fill</span><b>53%</b><i>of the usable area</i></div>
+        </div>
+
+        <div class="cols">
+          <!-- Left: sections -->
+          <div class="card">
+            <div class="ct">Sections <span class="sbtn r">Refresh</span></div>
+            <div class="cb">
+              <div class="fl">From <b style="color:var(--text)">Level 1 - Floor Plan</b></div>
+              <div class="chips"><span class="chip on">In view (8)</span><span class="chip">Selected (0)</span><span class="sbtn">Pick in view…</span></div>
+              <div style="display:flex;gap:6px"><div class="in tx" style="flex:1;color:var(--text3)">Filter by name or sheet…</div><span class="sbtn">Tick all</span><span class="sbtn">Untick all</span></div>
+              <div class="fl">8 sections, 8 ticked</div>
+              <div class="list" id="list"></div>
+              <div class="hint">The list is in placement order. Status shows where each section goes, or why it is skipped.</div>
+            </div>
+          </div>
+
+          <!-- Middle: preview -->
+          <div class="card">
+            <div class="ct">Sheet Preview <span class="fl" style="font-weight:400">A-301 - SECTIONS (existing)</span><span class="tag">changed</span></div>
+            <div class="pv"><svg id="sheet" viewBox="-6 -6 853 606" aria-label="Sheet preview"></svg></div>
+            <div class="legend">
+              <span><i class="sw b"></i>Not on a sheet yet</span>
+              <span><i class="sw o"></i>Comes off another sheet</span>
+              <span id="lg-move"><i class="sw n"></i>Already on this sheet, moves <span class="tag">new</span></span>
+              <span id="lg-stay"><i class="sw g"></i>Already on this sheet, stays <span class="tag">new</span></span>
+              <span id="lg-free"><i class="sw f"></i>Largest empty area <span class="tag">new</span></span>
+            </div>
+            <div class="hint" style="margin:0 12px 8px">Number = detail number. Dashed grey: usable area (title block inset by the margins). Views in a row share a bottom line, so titles line up.</div>
+            <div class="sum">
+              <span><b>Layout</b> <span id="s-layout"></span></span>
+              <span><b>Gap side by side</b> <span id="s-h"></span></span>
+              <span><b>Gap between rows</b> 20 mm</span>
+              <span><b>Fill</b> 53%</span>
+              <span><b>Scales</b> 1:20 ×8, 1:100 ×1</span>
+            </div>
+            <div class="banner" id="banner"></div>
+          </div>
+
+          <!-- Right: settings -->
+          <div style="display:grid;gap:10px">
+            <div class="card chg">
+              <div class="ct">Target Sheet <span class="tag">new</span></div>
+              <div class="cb">
+                <div class="chips"><span class="chip">New sheet</span><span class="chip on">Existing sheet</span></div>
+                <div class="fl">Sheet</div>
+                <div class="in">A-301 - SECTIONS</div>
+                <div class="sheetinfo">Holds 2 views and 1 schedule. Title block: A1 Landscape (from the sheet). Highest detail number: 2.</div>
+                <div class="fl">Views already on the sheet</div>
+                <div class="chips" role="radiogroup" aria-label="Views already on the sheet">
+                  <button class="chip on" id="m-free" role="radio" aria-checked="true">Use free space</button>
+                  <button class="chip" id="m-re" role="radio" aria-checked="false">Re-arrange all views</button>
+                </div>
+                <div class="hint" id="modehint"></div>
+                <div class="sub">If they don't fit: extra new sheets</div>
+                <div class="fl">Title block (extra sheets)</div>
+                <div class="in">A1 Landscape</div>
+                <div class="two">
+                  <div><div class="fl">Sheet number</div><div class="in tx">A-302</div></div>
+                  <div><div class="fl">Sheet name</div><div class="in tx">SECTIONS</div></div>
+                </div>
+                <div class="fl">Viewport type (view title)</div>
+                <div class="in">Title w Line</div>
+                <div class="hint">Applies to the new sections. Views already on the sheet keep their own viewport type.</div>
+                <div class="tog"><i></i>Open the sheet when done</div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="ct">Layout</div>
+              <div class="cb">
+                <div class="fl">Arrangement</div>
+                <div class="chips"><span class="chip">Grid (columns line up)</span><span class="chip on">Rows (justified)</span></div>
+                <div class="fl">Order</div>
+                <div class="chips"><span class="chip on">Plan</span><span class="chip">Number</span><span class="chip">Scale</span><span class="chip">Size</span></div>
+                <div class="hint" id="orderhint"></div>
+                <div class="fl">Rows on the sheet</div>
+                <div class="chips"><span class="chip on">From the top</span><span class="chip">Centred</span><span class="chip">Spread</span></div>
+                <div class="fl">If it doesn't fit on one sheet</div>
+                <div class="chips"><span class="chip on">Add more sheets</span><span class="chip">Skip and report</span></div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="ct">Already on a Sheet</div>
+              <div class="cb">
+                <div style="font-size:12px">2 of the ticked sections are on A-210.</div>
+                <div class="tog">Take them off their current sheet<i style="order:-1"></i></div>
+                <div class="tog off"><i></i>Delete sheets that end up empty</div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="ct">Spacing (mm on paper)</div>
+              <div class="cb">
+                <div class="fl">Margins inside the title block: Top 30 · Bottom 150 · Left 30 · Right 200</div>
+                <div class="fl">Smallest gap between views: Side by side 20 · Rows 20</div>
+                <div class="hint" id="spacehint">The margins also apply on an existing sheet. Items already on it are kept clear by the same smallest gap.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="log">
+          <div><span class="t">10:42:07</span> <span class="ok">INFO</span>    Read 8 section markers in Level 1 - Floor Plan.</div>
+          <div><span class="t">10:42:08</span> <span class="ok">INFO</span>    Target A-301 - SECTIONS: 2 views, 1 schedule, title block A1 Landscape.</div>
+          <div id="logline"><span class="t">10:42:08</span> <span class="ok">INFO</span>    </div>
+        </div>
+      </div>
+      <div class="foot">
+        <span class="btn p">Place on A-301 <span class="tag">changed</span></span>
+        <span class="btn">Close</span>
+      </div>
+    </div></div>
+    <p class="hint" style="margin-top:6px">With <b>New sheet</b> picked, the Target Sheet card shows today's fields (title block, viewport type, sheet number and name, open when done) and the button reads <b>Create Sheet &amp; Place</b>.</p>
+  </section>
+
+  <section>
+    <h2>Confirm card (before views come off other sheets) <span class="tag">changed</span></h2>
+    <div class="frame"><div class="dlg">
+      <h3>Move 2 sections to A-301?</h3>
+      <div class="d">These viewports come off their current sheets and go on A-301.</div>
+      <div class="mv-list">
+        <div><b>Wall Section 02</b><span class="pill mv">A-210</span>→<span class="pill nw">A-301</span></div>
+        <div><b>Wall Section 05</b><span class="pill mv">A-210</span>→<span class="pill nw">A-301</span></div>
+      </div>
+      <div class="note" id="dlgnote"></div>
+      <div class="d" style="padding-top:8px;font-size:11.5px">The section views stay in the model, and the section heads in your plans point to the new sheet. One Undo (Ctrl+Z) reverts the whole run.</div>
+      <div class="ft"><span class="btn">Cancel</span><span class="btn p">Move &amp; Place</span></div>
+    </div></div>
+  </section>
+
+  <section>
+    <h2>What changes in 1.2.0</h2>
+    <ul>
+      <li><b>Target Sheet</b> card (was <i>New Sheet</i>): New sheet or Existing sheet, with a sheet picker. The existing sheet's own title block sets the frame.</li>
+      <li><b>Use free space</b>: everything already on the sheet stays put. The new sections go into the largest empty rectangle inside the margins, using the chosen layout.</li>
+      <li><b>Re-arrange all views</b>: every viewport on the sheet is laid out again with the new sections, existing views first in their current order. Schedules, text and other items stay where they are and are kept clear of.</li>
+      <li>Views already on the sheet keep their detail numbers; new sections continue from the highest one.</li>
+      <li>Sections that don't fit go on extra new sheets (or are skipped, if <i>Skip and report</i> is on).</li>
+      <li>If the sheet, or a view on it, is owned by another user, the run is blocked or that view is left out, and the reason is shown.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+(function(){
+  // Sheet A1 landscape, mm, y down. Usable area: frame inset by margins T30 B150 L30 R200.
+  var area={x:30,y:30,w:611,h:414};
+  var keyPlan={label:'Level 1 - Key Plan',w:220,h:160,d:1,scale:'1:100'};
+  var legend={label:'Wall Types Legend',w:170,h:90,d:2};
+  var sched={label:'Door Schedule',x:471,y:30,w:170,h:170};
+  var moving={2:true,5:true};
+  function sections(xs1,y1,xs2,y2){
+    var out=[],n=1;
+    xs1.forEach(function(x){out.push({x:x,y:y1,n:n++});});
+    xs2.forEach(function(x){out.push({x:x,y:y2,n:n++});});
+    return out.map(function(s){return {x:s.x,y:s.y,w:80,h:85,d:s.n+2,label:'Wall Section 0'+s.n,kind:moving[s.n]?'mv':'nw'};});
+  }
+  var modes={
+    free:{
+      existing:[Object.assign({x:30,y:30,kind:'stay'},keyPlan),Object.assign({x:270,y:30,kind:'stay'},legend)],
+      secs:sections([30,136.2,242.4,348.6,454.8,561],220,[30,136.2],325),
+      freeArea:{x:30,y:220,w:611,h:224},
+      layout:'Rows · 2 rows in the free area',h:'26 mm',
+      banner:'A-301 already holds 2 views and 1 schedule. They stay where they are. The new sections go in the largest empty area, 611 × 224 mm, and continue the detail numbers from 3.',
+      hint:'Everything already on the sheet stays put. The new sections go in the largest empty area inside the margins.',
+      order:'Order applies to the new sections.',
+      dlg:'Nothing already on A-301 moves. The new sections get detail numbers 3 to 10.',
+      log:'Plan: 8 sections into the free area of A-301 (611 × 224 mm), 2 rows, no extra sheets.'
+    },
+    re:{
+      existing:[Object.assign({x:30,y:30,kind:'move'},keyPlan),Object.assign({x:281,y:100,kind:'move'},legend)],
+      secs:sections([30,143.7,257.3,371],210,[30,143.7,257.3,371],315),
+      freeArea:null,
+      layout:'Rows · 3 rows, clear of the schedule',h:'31 mm',
+      banner:'The 2 views already on A-301 move and keep their detail numbers 1 and 2. The Door Schedule stays where it is, and the layout keeps clear of it. New sections continue from 3.',
+      hint:'Every view on the sheet is laid out again with the new sections. Schedules and other items stay put.',
+      order:'Views already on the sheet come first, in their current order. Order applies to the new sections after them.',
+      dlg:'2 views already on A-301 also move to new positions. Their detail numbers stay the same.',
+      log:'Plan: 2 views on A-301 re-arranged + 8 new sections, 3 rows, no extra sheets.'
+    }
+  };
+  var NS='http://www.w3.org/2000/svg';
+  function el(tag,attrs,parent,text){var e=document.createElementNS(NS,tag);for(var k in attrs)e.setAttribute(k,attrs[k]);if(text!=null)e.textContent=text;parent.appendChild(e);return e;}
+  var css=getComputedStyle(document.documentElement);
+  function c(name){return css.getPropertyValue(name).trim();}
+  var fills={nw:[c('--info-soft'),c('--info')],mv:[c('--warn-soft'),c('--warn')],move:['#DCE3EC',c('--navy')],stay:[c('--bg3'),c('--text3')]};
+
+  function viewport(g,v){
+    var f=fills[v.kind];
+    el('rect',{x:v.x,y:v.y,width:v.w,height:v.h-14,fill:f[0],stroke:f[1],'stroke-width':1.5,rx:2},g);
+    el('line',{x1:v.x+22,y1:v.y+v.h-4,x2:v.x+Math.min(v.w,140),y2:v.y+v.h-4,stroke:f[1],'stroke-width':1.5},g);
+    el('circle',{cx:v.x+9,cy:v.y+v.h-6,r:8,fill:c('--card'),stroke:f[1],'stroke-width':1.2},g);
+    el('text',{x:v.x+9,y:v.y+v.h-2.5,'text-anchor':'middle','font-size':10,'font-weight':600,fill:f[1]},g,String(v.d));
+    var label=v.w<100?v.label.replace('Wall Section ','WS '):v.label;
+    el('text',{x:v.x+v.w/2,y:v.y+(v.h-14)/2+4,'text-anchor':'middle','font-size':v.w<100?11:13,fill:c('--text')},g,label);
+  }
+  function draw(m){
+    var svg=document.getElementById('sheet');svg.innerHTML='';
+    var font={'font-family':'Segoe UI, system-ui, sans-serif'};
+    var g=el('g',font,svg);
+    el('rect',{x:0,y:0,width:841,height:594,fill:c('--card'),stroke:c('--text2'),'stroke-width':1.5},g);
+    el('rect',{x:10,y:10,width:821,height:574,fill:'none',stroke:c('--text2'),'stroke-width':1},g);
+    el('rect',{x:661,y:10,width:170,height:574,fill:c('--bg2'),stroke:c('--text2'),'stroke-width':1},g);
+    el('text',{x:746,y:540,'text-anchor':'middle','font-size':14,'font-weight':600,fill:c('--text2')},g,'A-301');
+    el('text',{x:746,y:560,'text-anchor':'middle','font-size':11,fill:c('--text3')},g,'SECTIONS');
+    el('rect',{x:area.x,y:area.y,width:area.w,height:area.h,fill:'none',stroke:c('--text3'),'stroke-dasharray':'6 4','stroke-width':1},g);
+    if(m.freeArea){var a=m.freeArea;el('rect',{x:a.x-3,y:a.y-3,width:a.w+6,height:a.h+6,fill:'none',stroke:c('--ok'),'stroke-dasharray':'8 5','stroke-width':2},g);}
+    // schedule (always stays)
+    el('rect',{x:sched.x,y:sched.y,width:sched.w,height:sched.h,fill:c('--bg3'),stroke:c('--text3'),'stroke-width':1.5},g);
+    for(var i=1;i<7;i++)el('line',{x1:sched.x,y1:sched.y+i*24,x2:sched.x+sched.w,y2:sched.y+i*24,stroke:c('--text3'),'stroke-width':.8},g);
+    el('text',{x:sched.x+sched.w/2,y:sched.y+16,'text-anchor':'middle','font-size':12,'font-weight':600,fill:c('--text2')},g,sched.label);
+    m.existing.forEach(function(v){viewport(g,v);});
+    m.secs.forEach(function(v){viewport(g,v);});
+  }
+  function list(m){
+    var host=document.getElementById('list');host.innerHTML='';
+    m.secs.forEach(function(s){
+      var r=document.createElement('div');r.className='row';
+      var mv=s.kind==='mv';
+      r.innerHTML='<i class="ck"></i><div><div class="rn"><span>'+s.label+'</span><span class="pill '+(mv?'mv':'nw')+'">'+(mv?'On A-210':'Not on a sheet')+'</span></div>'+
+        '<div class="meta">Section · 1:20</div><div class="st">→ A-301 · detail '+s.d+'</div></div>';
+      host.appendChild(r);
+    });
+  }
+  function set(id,t){document.getElementById(id).textContent=t;}
+  function show(key){
+    var m=modes[key];
+    draw(m);list(m);
+    set('s-layout',m.layout);set('s-h',m.h);set('banner',m.banner);set('modehint',m.hint);set('orderhint',m.order);set('dlgnote',m.dlg);
+    document.getElementById('logline').innerHTML='<span class="t">10:42:08</span> <span class="ok">INFO</span>    '+m.log;
+    document.getElementById('lg-move').hidden=key!=='re';
+    document.getElementById('lg-stay').hidden=false;
+    document.getElementById('lg-free').hidden=key!=='free';
+    ['free','re'].forEach(function(k){var b=document.getElementById('m-'+k);var on=k===key;b.classList.toggle('on',on);b.setAttribute('aria-checked',on?'true':'false');});
+  }
+  document.getElementById('m-free').addEventListener('click',function(){show('free');});
+  document.getElementById('m-re').addEventListener('click',function(){show('re');});
+  show('free');
+})();
+</script>
