@@ -166,7 +166,7 @@ namespace SectionsToSheet.Tests
 
             var re = SectionPlanner.Build(Request(sections, ExistingSheetMode.Rearrange));
             Assert.True(Assert.Single(re.Skipped).IsNote);
-            Assert.Contains("re-arranged", re.Skipped[0].Reason);
+            Assert.Contains("moves with the sheet", re.Skipped[0].Reason);
         }
 
         [Fact]
@@ -237,6 +237,67 @@ namespace SectionsToSheet.Tests
             Assert.True(plan.CanApply, plan.Blocker);
             Assert.False(Assert.Single(plan.Sheets).IsExisting);
             Assert.Null(plan.Target);
+        }
+
+        [Fact]
+        public void Rearrange_all_sorts_the_sheet_views_and_the_sections_together()
+        {
+            // Plan order: the sheet's views have no marker in the source view, so they follow the marked sections.
+            var plan = SectionPlanner.Build(Request(Sections(4), ExistingSheetMode.RearrangeAll));
+            Assert.True(plan.CanApply, plan.Blocker);
+            var sheet = Assert.Single(plan.Sheets);
+            Assert.Equal(new[] { "Wall Section 1", "Wall Section 2", "Wall Section 3", "Wall Section 4", "Key Plan", "Legend" },
+                         sheet.Viewports.Select(v => v.Name));
+            Assert.Equal(new[] { "1", "2" }, plan.Rearranged.Select(v => v.DetailLabel));
+            Assert.Equal(new[] { 3, 4, 5, 6 }, plan.Placed.Select(v => v.DetailNumber));
+
+            // Size order: the larger sheet views lead.
+            var bySize = Request(Sections(4), ExistingSheetMode.RearrangeAll);
+            bySize.Settings.Order = SectionOrder.Size;
+            Assert.Equal("Key Plan", SectionPlanner.Build(bySize).Sheets[0].Viewports[0].Name);
+
+            // Existing first keeps the sheet's views in front.
+            var first = SectionPlanner.Build(Request(Sections(4), ExistingSheetMode.Rearrange));
+            Assert.Equal(new[] { "Key Plan", "Legend" }, first.Sheets[0].Viewports.Take(2).Select(v => v.Name));
+        }
+
+        [Fact]
+        public void Rearrange_all_uses_the_marker_of_a_ticked_section_already_on_the_sheet()
+        {
+            // The legend's view (key 201) is also a ticked section whose marker sits left of section 1.
+            var onSheet = new SectionCandidate { Key = 201, Name = "Legend", Scale = 20, MarkerAcross = 0, MarkerUp = 0,
+                                                 InSourceView = true, CurrentSheetKey = SheetKey, CurrentSheetNumber = "A-301" };
+            var sections = Sections(2).Prepend(onSheet).ToList();
+            var r = Request(sections, ExistingSheetMode.RearrangeAll);
+            var plan = SectionPlanner.Build(r);
+            Assert.True(plan.CanApply, plan.Blocker);
+            Assert.Equal(new[] { "Legend", "Wall Section 1", "Wall Section 2", "Key Plan" }, plan.Sheets[0].Viewports.Select(v => v.Name));
+            Assert.True(Assert.Single(plan.Skipped).IsNote);
+        }
+
+        [Fact]
+        public void Pinned_views_are_moved_in_both_rearrange_modes()
+        {
+            var target = Sheet();
+            var key = target.Items[0];
+            target.Items[0] = new TargetItem
+            {
+                Key = key.Key, ViewKey = key.ViewKey, Name = key.Name, IsViewport = true, Rect = key.Rect, DetailNumber = "1",
+                BoxCenterX = key.BoxCenterX, BoxCenterY = key.BoxCenterY, IsPinned = true
+            };
+            foreach (var mode in new[] { ExistingSheetMode.Rearrange, ExistingSheetMode.RearrangeAll })
+            {
+                var plan = SectionPlanner.Build(Request(Sections(2), mode, target));
+                Assert.Contains(plan.Rearranged, v => v.Existing.IsPinned && v.Name == "Key Plan");
+            }
+            Assert.Empty(SectionPlanner.Build(Request(Sections(2), ExistingSheetMode.FreeSpace, target)).Rearranged);
+        }
+
+        [Fact]
+        public void Signature_differs_between_the_two_rearrange_modes()
+        {
+            Assert.NotEqual(SectionPlanner.Build(Request(Sections(3), ExistingSheetMode.Rearrange)).Signature,
+                            SectionPlanner.Build(Request(Sections(3), ExistingSheetMode.RearrangeAll)).Signature);
         }
     }
 }

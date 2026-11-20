@@ -247,7 +247,8 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.Core.Services
             var s = request.Settings ?? new SectionsToSheetSettings();
             bool toExisting = s.Target == TargetMode.ExistingSheet;
             var target = toExisting ? request.Target : null;
-            bool rearrange = toExisting && s.ExistingMode == ExistingSheetMode.Rearrange;
+            bool rearrange = toExisting && s.ExistingMode != ExistingSheetMode.FreeSpace;
+            bool mixed = toExisting && s.ExistingMode == ExistingSheetMode.RearrangeAll;
 
             // ── Which sections can take part ────────────────────────────
             var skipped = new List<SkippedSection>();
@@ -262,7 +263,7 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.Core.Services
                 {
                     note = true;
                     reason = rearrange
-                        ? $"Already on {target.Number}: re-arranged with the sheet’s views"
+                        ? $"Already on {target.Number}: moves with the sheet’s views"
                         : $"Already on {target.Number}: stays where it is";
                 }
                 else if (section.IsOnSheet && !s.RemoveFromOldSheets)
@@ -347,8 +348,15 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.Core.Services
                 }
                 else
                 {
-                    var sizes = movable.Select(i => (i.Rect.Width, i.Rect.Height))
-                        .Concat(ordered.Select(c => (request.Footprints[c.Key].Width, request.Footprints[c.Key].Height)))
+                    // The order on the sheet: the sheet's views first, then the new sections; or (mixed)
+                    // all of them sorted together by the Order setting.
+                    var sequence = mixed
+                        ? MixedOrder(movable, ordered, request, s)
+                        : movable.Select(i => (Existing: i, Section: (SectionCandidate)null))
+                                 .Concat(ordered.Select(c => (Existing: (TargetItem)null, Section: c))).ToList();
+                    var sizes = sequence.Select(e => e.Existing != null
+                            ? (e.Existing.Rect.Width, e.Existing.Rect.Height)
+                            : (request.Footprints[e.Section.Key].Width, request.Footprints[e.Section.Key].Height))
                         .ToList();
                     var layout = SheetGridLayout.Compute(sizes, free.Value, new GridLayoutOptions
                     {
@@ -357,13 +365,14 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.Core.Services
                     });
                     columns = layout.Columns;
 
-                    var notFitting = layout.TooBig.Concat(layout.NoRoom).Where(i => i < movable.Count).Select(i => movable[i].Name).ToList();
+                    var notFitting = layout.TooBig.Concat(layout.NoRoom).Where(i => sequence[i].Existing != null)
+                        .Select(i => sequence[i].Existing.Name).ToList();
                     if (notFitting.Count > 0)
                         blocker = $"The views already on {target.Number} don’t fit in the space its other items leave " +
                                   $"({Mm(free.Value.Width)} × {Mm(free.Value.Height)} mm): {string.Join(", ", notFitting)}. " +
                                   "Use “Use free space” instead, or reduce the margins.";
 
-                    var placedHere = new HashSet<int>();
+                    var placedHere = new HashSet<long>();
                     if (layout.Pages.Count > 0)
                     {
                         var page = layout.Pages[0];
@@ -372,10 +381,9 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.Core.Services
                         sheet.VerticalGap = page.VerticalGap;
                         foreach (var slot in page.Slots)
                         {
-                            placedHere.Add(slot.Index);
-                            if (slot.Index < movable.Count)
+                            var (item, section) = sequence[slot.Index];
+                            if (item != null)
                             {
-                                var item = movable[slot.Index];
                                 sheet.Viewports.Add(new PlannedViewport
                                 {
                                     Existing = item, Sheet = 0, Row = slot.Row, Column = slot.Column,
@@ -386,11 +394,12 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.Core.Services
                             }
                             else
                             {
-                                sheet.Viewports.Add(Place(ordered[slot.Index - movable.Count], request.Footprints, 0, slot, ++detail));
+                                placedHere.Add(section.Key);
+                                sheet.Viewports.Add(Place(section, request.Footprints, 0, slot, ++detail));
                             }
                         }
                     }
-                    leftovers = ordered.Where((c, i) => !placedHere.Contains(i + movable.Count)).ToList();
+                    leftovers = ordered.Where(c => !placedHere.Contains(c.Key)).ToList();
                 }
                 plan.Sheets.Add(sheet.Build(request.Footprints));
             }
@@ -506,6 +515,41 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.Core.Services
             return best;
         }
 
+        /// <summary>
+        /// "Re-arrange all, mixed": the sheet's views and the new sections sorted together by the
+        /// Order setting. A sheet view that is also a ticked section takes that section's marker
+        /// position; the others have no marker, so in Plan order they come after the marked ones,
+        /// by name.
+        /// </summary>
+        private static List<(TargetItem Existing, SectionCandidate Section)> MixedOrder(List<TargetItem> movable,
+            List<SectionCandidate> sections, PlanRequest request, SectionsToSheetSettings s)
+        {
+            var markers = (request.Sections ?? Array.Empty<SectionCandidate>()).ToDictionary(c => c.Key, c => c);
+            var byKey = new Dictionary<long, (TargetItem, SectionCandidate)>();
+            var candidates = new List<SectionCandidate>();
+            var footprints = new Dictionary<long, Footprint>();
+            foreach (var item in movable)
+            {
+                markers.TryGetValue(item.ViewKey, out var marked);
+                var stand = new SectionCandidate
+                {
+                    Key = item.ViewKey, Name = item.Name, Scale = item.Scale,
+                    MarkerAcross = marked?.MarkerAcross, MarkerUp = marked?.MarkerUp
+                };
+                candidates.Add(stand);
+                byKey[stand.Key] = (item, null);
+                footprints[stand.Key] = new Footprint { Width = item.Rect.Width, Height = item.Rect.Height };
+            }
+            foreach (var c in sections)
+            {
+                candidates.Add(c);
+                byKey[c.Key] = (null, c);
+                if (request.Footprints != null && request.Footprints.TryGetValue(c.Key, out var fp))
+                    footprints[c.Key] = fp;
+            }
+            return Order(candidates, s, request.SourceViewScale, footprints).Select(c => byKey[c.Key]).ToList();
+        }
+
         /// <summary>Viewports in reading order on the sheet: top to bottom in row bands, left to right.</summary>
         private static List<TargetItem> SortOnSheet(List<TargetItem> items, double tolerance)
         {
@@ -614,7 +658,12 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.Core.Services
         {
             var sb = new StringBuilder();
             if (plan.Target != null)
-                sb.Append("on:").Append(plan.Target.Key).Append(plan.ExistingMode == ExistingSheetMode.Rearrange ? "/R" : "/F").Append('|');
+                sb.Append("on:").Append(plan.Target.Key).Append(plan.ExistingMode switch
+                {
+                    ExistingSheetMode.Rearrange => "/R",
+                    ExistingSheetMode.RearrangeAll => "/A",
+                    _ => "/F"
+                }).Append('|');
             foreach (var sheet in plan.Sheets)
             {
                 sb.Append('[').Append(sheet.IsExisting ? "#" + sheet.ExistingKey : sheet.Number).Append('|').Append(sheet.Name).Append(']');

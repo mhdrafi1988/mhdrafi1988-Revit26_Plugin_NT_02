@@ -36,6 +36,9 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.Core.Models
         /// <summary>Scale denominator of the view, or 0.</summary>
         public int Scale { get; init; }
 
+        /// <summary>True when the viewport is pinned (re-arranging unpins it and leaves it unpinned).</summary>
+        public bool IsPinned { get; init; }
+
         /// <summary>Why the item can't be moved (owned by another user, changed in central), or null.</summary>
         public string LockReason { get; init; }
     }

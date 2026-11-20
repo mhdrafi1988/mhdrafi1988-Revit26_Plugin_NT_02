@@ -801,6 +801,7 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.UI.ViewModels
             HasConfirmRearrange = rearranged.Count > 0;
             ConfirmRearrangeText = rearranged.Count > 0
                 ? $"{rearranged.Count} view{(rearranged.Count == 1 ? "" : "s")} already on {destination} also move{(rearranged.Count == 1 ? "s" : "")} to new positions. Their detail numbers stay the same."
+                  + PinnedNote(rearranged.Count(v => v.Existing.IsPinned))
                 : string.Empty;
             var locked = Plan.Skipped.Where(s => s.Section.LockReason != null).ToList();
             HasConfirmSkip = locked.Count > 0;
@@ -960,6 +961,11 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.UI.ViewModels
             Run(done => _session.ReadTarget(key, done), $"Reading what is on sheet {SelectedTargetSheet.Number}…", null);
         }
 
+        private static string PinnedNote(int pinned)
+            => pinned == 0 ? string.Empty
+               : pinned == 1 ? " 1 of them is pinned; it is unpinned and left unpinned."
+               : $" {pinned} of them are pinned; they are unpinned and left unpinned.";
+
         private static string TargetSummary(TargetSheetContent t)
         {
             int views = t.Items.Count(i => i.IsViewport), others = t.Items.Count - views;
@@ -977,9 +983,14 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.UI.ViewModels
             NewSheetHint = existing
                 ? "Used only for sections that don’t fit on the existing sheet. Extra sheets count up from this number, skipping numbers in use."
                 : "Suggested: the next free number. Extra sheets count up from it, skipping numbers in use.";
-            ExistingModeNote = ExistingMode == ExistingSheetMode.Rearrange
-                ? "Every view on the sheet is laid out again with the sections, the sheet’s own views first. They keep their detail numbers. Schedules and other items stay where they are."
-                : "Nothing on the sheet moves. The sections go in the largest empty area inside the margins, and continue its detail numbers.";
+            ExistingModeNote = ExistingMode switch
+            {
+                ExistingSheetMode.Rearrange =>
+                    "Every view on the sheet, pinned ones too, is laid out again: the sheet’s own views first in their current order, then the sections. They keep their detail numbers; pinned views are left unpinned. Schedules and other items stay where they are.",
+                ExistingSheetMode.RearrangeAll =>
+                    "Every view on the sheet, pinned ones too, is laid out again together with the sections, all sorted by the Order below. They keep their detail numbers; pinned views are left unpinned. Schedules and other items stay where they are.",
+                _ => "Nothing on the sheet moves. The sections go in the largest empty area inside the margins, and continue its detail numbers."
+            };
 
             var t = CurrentTarget();
             TargetSheetInfo = !existing ? string.Empty
@@ -997,10 +1008,12 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.UI.ViewModels
             var first = Plan.Sheets.FirstOrDefault();
             if (t != null && first != null && first.IsExisting)
             {
-                if (Plan.ExistingMode == ExistingSheetMode.Rearrange)
+                if (Plan.ExistingMode != ExistingSheetMode.FreeSpace)
                 {
                     int moved = Plan.Rearranged.Count, stay = first.Obstacles.Count;
-                    lines.Add($"{moved} view{(moved == 1 ? "" : "s")} already on {t.Number} move{(moved == 1 ? "s" : "")} and keep{(moved == 1 ? "s" : "")} {(moved == 1 ? "its" : "their")} detail number{(moved == 1 ? "" : "s")}. "
+                    string order = Plan.ExistingMode == ExistingSheetMode.RearrangeAll ? ", mixed with the sections in the chosen order," : string.Empty;
+                    lines.Add($"{moved} view{(moved == 1 ? "" : "s")} already on {t.Number} move{(moved == 1 ? "s" : "")}{order} and keep{(moved == 1 ? "s" : "")} {(moved == 1 ? "its" : "their")} detail number{(moved == 1 ? "" : "s")}."
+                              + PinnedNote(Plan.Rearranged.Count(v => v.Existing.IsPinned)) + " "
                               + (stay == 1 ? "1 other item stays where it is; the layout keeps clear of it."
                                  : stay > 1 ? $"{stay} other items stay where they are; the layout keeps clear of them."
                                  : "Nothing else is on the sheet."));

@@ -58,10 +58,18 @@ Rearrange for the re-arrange part (two layout rules, preview ≠ result); a sepa
 - **Revit side**: `TargetSheetReader` reads the sheet's title block extent, viewports
   (box ∪ title), schedules and other items' bounding boxes, and worksharing locks.
   `PlacementRunner` places onto the existing sheet, moves re-arranged viewports with
-  `SetBoxCenter` (unpin → move → re-pin), numbers only the new viewports.
+  `SetBoxCenter` (unpin → move; left unpinned, see addendum), numbers only the new viewports.
 - **UI**: "New Sheet" card becomes "Target Sheet"; preview draws items that stay (grey), views that
   move (navy) and the free area (green dashed); button reads "Place on <number>"; the confirm card
   also opens when existing views will be moved.
+
+## Addendum (owner, same day): three modes
+
+- **Use free space** (unchanged).
+- **Re-arrange, existing first** (the mode above): sheet views first in their current order, new sections after.
+- **Re-arrange all, mixed** (new `ExistingSheetMode.RearrangeAll`): sheet views and new sections sorted together
+  by the Order setting. Views only: schedules and other items still stay put.
+- Pinned views are unpinned and **left unpinned** in both re-arrange modes.
 
 ## Left to the builder
 

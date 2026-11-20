@@ -91,7 +91,16 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.Core.Models
         /// <summary>Nothing on the sheet moves; the sections go in the largest empty area.</summary>
         FreeSpace,
 
-        /// <summary>Every viewport on the sheet is laid out again with the sections; other items stay put.</summary>
-        Rearrange
+        /// <summary>
+        /// Every viewport on the sheet (pinned ones too) is laid out again: the sheet's views first in
+        /// their current order, then the sections. Other items stay put.
+        /// </summary>
+        Rearrange,
+
+        /// <summary>
+        /// Every viewport on the sheet (pinned ones too) and the sections are sorted together by the
+        /// Order setting and laid out again. Other items stay put. Added in 1.2.0.
+        /// </summary>
+        RearrangeAll
     }
 }

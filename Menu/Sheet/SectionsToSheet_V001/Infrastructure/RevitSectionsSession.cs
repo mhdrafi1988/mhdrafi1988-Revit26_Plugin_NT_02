@@ -224,6 +224,7 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.Infrastructure
                     Level = LogLevel.Success,
                     Message = $"Placed {run.Placed} section(s) on {string.Join(", ", plan.Sheets.Where(s => s.Viewports.Count > 0).Select(s => s.Number))}"
                               + (run.Rearranged > 0 ? $", {run.Rearranged} view(s) on {plan.Target?.Number} moved" : string.Empty)
+                              + (run.Unpinned > 0 ? $" ({run.Unpinned} unpinned)" : string.Empty)
                               + (run.Removed > 0 ? $", {run.Removed} taken off their old sheet" : string.Empty)
                               + $". Undo with Ctrl+Z (\"{PlacementRunner.TransactionName}\").",
                     Details = Details(plan, run)

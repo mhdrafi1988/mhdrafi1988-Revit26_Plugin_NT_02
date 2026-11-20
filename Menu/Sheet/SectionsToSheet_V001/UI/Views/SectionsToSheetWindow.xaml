@@ -354,8 +354,12 @@ The preview canvas is drawn in code-behind from ViewModel.Plan.
                                         <WrapPanel Margin="0,2,0,0">
                                             <RadioButton GroupName="ExistingMode" Style="{StaticResource ChipToggle}" Content="Use free space" Margin="0,0,6,4"
                                                          IsChecked="{Binding ExistingMode, Converter={StaticResource EnumMatch}, ConverterParameter=FreeSpace}"/>
-                                            <RadioButton GroupName="ExistingMode" Style="{StaticResource ChipToggle}" Content="Re-arrange all views" Margin="0,0,6,4"
-                                                         IsChecked="{Binding ExistingMode, Converter={StaticResource EnumMatch}, ConverterParameter=Rearrange}"/>
+                                            <RadioButton GroupName="ExistingMode" Style="{StaticResource ChipToggle}" Content="Re-arrange, existing first" Margin="0,0,6,4"
+                                                         IsChecked="{Binding ExistingMode, Converter={StaticResource EnumMatch}, ConverterParameter=Rearrange}"
+                                                         ToolTip="Lay out every view on the sheet again: its own views first, in their current order, then the new sections."/>
+                                            <RadioButton GroupName="ExistingMode" Style="{StaticResource ChipToggle}" Content="Re-arrange all, mixed" Margin="0,0,6,4"
+                                                         IsChecked="{Binding ExistingMode, Converter={StaticResource EnumMatch}, ConverterParameter=RearrangeAll}"
+                                                         ToolTip="Lay out every view on the sheet again together with the new sections, all sorted by the Order setting."/>
                                         </WrapPanel>
                                         <TextBlock Text="{Binding ExistingModeNote}" Style="{StaticResource HintText}" Margin="0,0,0,8"/>
                                         <Border BorderBrush="{StaticResource BrushSeparator}" BorderThickness="0,1,0,0" Margin="0,0,0,6"/>

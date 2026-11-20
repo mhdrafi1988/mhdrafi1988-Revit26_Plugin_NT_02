@@ -62,9 +62,12 @@ aligned and evenly spaced, with a live preview before anything changes.
   legend components …; the title block and its revision schedule are left out), plus worksharing locks.
 - **Use free space**: every item stays; obstacles are grown by the smallest gaps and `FreeSpace.Largest` finds the
   largest empty rectangle of the usable area. The Grid / Rows layout runs in that rectangle (one page).
-- **Re-arrange all views**: the sheet's unlocked viewports, in reading order, then the ticked sections, are laid out
-  in the largest rectangle the other items leave. An existing view that doesn't fit blocks the run. Moved
-  viewports keep their detail number and type; `SetBoxCenter` moves them (pinned ones are unpinned and re-pinned).
+- **Re-arrange, existing first**: the sheet's unlocked viewports, in reading order, then the ticked sections, are
+  laid out in the largest rectangle the other items leave.
+- **Re-arrange all, mixed**: the same, but the sheet's viewports and the ticked sections are sorted together by the
+  Order setting (`SectionPlanner.MixedOrder`; a sheet view that is also a ticked section takes its marker).
+- In both: an existing view that doesn't fit blocks the run. Moved viewports keep their detail number and type;
+  `SetBoxCenter` moves them; pinned ones are unpinned and left unpinned.
 - New sections continue from the highest plain-number detail number on the sheet. What doesn't fit goes on extra
   new sheets (or is skipped). A ticked section already on the target is not moved again.
 - Settings version 2 adds `Target`, `ExistingMode` and `TargetSheetNumber`; version-1 files load as *New sheet*.
@@ -90,5 +93,5 @@ Built and unit-tested on Linux; not yet run in Revit. Check these on a real mode
 5. Default margins (30 / 150 / 30 / 200 mm, as in Sheet View Arrange) suit your title block.
 6. Existing sheet, free space: nothing on the sheet moves; the sections land in the empty area, clear of schedules
    and text; new detail numbers follow the sheet's highest.
-7. Existing sheet, re-arrange: the sheet's views move (pinned ones stay pinned) and keep their detail numbers;
-   schedules don't move; Ctrl+Z restores everything.
+7. Existing sheet, re-arrange (both modes): the sheet's views move, pinned ones too (left unpinned), and keep their
+   detail numbers; schedules don't move; *mixed* follows the Order setting; Ctrl+Z restores everything.

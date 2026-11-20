@@ -66,6 +66,7 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.Core.Services
                     BoxCenterY = centre.Y,
                     DetailNumber = vp.get_Parameter(BuiltInParameter.VIEWPORT_DETAIL_NUMBER)?.AsString(),
                     Scale = SafeScale(view),
+                    IsPinned = vp.Pinned,
                     LockReason = doc.IsWorkshared ? SectionCollector.Lock(doc, vp.Id, "the viewport") : null
                 });
             }

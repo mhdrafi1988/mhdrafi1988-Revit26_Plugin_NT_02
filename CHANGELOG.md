@@ -17,9 +17,13 @@ Each release lists every tool whose version changed, under the plugin version.
   sheet. For an existing sheet, choose what happens to what is already on it:
   - **Use free space**: nothing on the sheet moves. The sections go in the largest empty area inside the
     margins (kept clear of every view, schedule and other item by the smallest gap), laid out as before.
-  - **Re-arrange all views**: every view on the sheet is laid out again together with the sections, the sheet's
-    own views first in their current order. Schedules, text and other items stay where they are and are kept
-    clear of. A view owned by another user stays where it is (with a warning).
+  - **Re-arrange, existing first**: every view on the sheet, pinned ones too, is laid out again together with
+    the sections, the sheet's own views first in their current order and the new sections after them.
+  - **Re-arrange all, mixed**: every view on the sheet, pinned ones too, and the sections are sorted together
+    by the *Order* setting (Plan / Number / Scale / Size) and laid out again. Sheet views with no marker in the
+    source view come after the marked ones in Plan order.
+  - In both re-arrange modes pinned views are unpinned and left unpinned. Schedules, text and other items stay
+    where they are and are kept clear of. A view owned by another user stays where it is (with a warning).
   - Views already on the sheet keep their detail numbers; new sections continue from the highest number on it.
   - Sections that don't fit go on extra new sheets (title block, number and name from the card), or are
     skipped when *If it doesn't fit* is set to skip.

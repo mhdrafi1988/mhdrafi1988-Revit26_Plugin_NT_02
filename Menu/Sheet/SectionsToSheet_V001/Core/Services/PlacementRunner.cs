@@ -25,6 +25,9 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.Core.Services
         /// <summary>Viewports already on the target sheet that were moved to new positions.</summary>
         public int Rearranged { get; init; }
 
+        /// <summary>Of those, the ones that were pinned and are now unpinned.</summary>
+        public int Unpinned { get; init; }
+
         /// <summary>Viewports placed.</summary>
         public int Placed { get; init; }
 
@@ -89,7 +92,7 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.Core.Services
 
                 var created = new List<ElementId>();
                 ElementId targetSheet = ElementId.InvalidElementId;
-                int placed = 0, rearranged = 0;
+                int placed = 0, rearranged = 0, unpinned = 0;
                 foreach (var plannedSheet in plan.Sheets)
                 {
                     ToolCancellation.CheckCurrent();
@@ -114,7 +117,8 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.Core.Services
                         ToolCancellation.CheckCurrent();
                         if (planned.IsRearranged)
                         {
-                            Move(doc, sheet, planned);
+                            if (Move(doc, sheet, planned))
+                                unpinned++;
                             rearranged++;
                             continue;
                         }
@@ -169,6 +173,7 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.Core.Services
                     CreatedSheets = created,
                     TargetSheet = targetSheet,
                     Rearranged = rearranged,
+                    Unpinned = unpinned,
                     Placed = placed,
                     Removed = removed,
                     DeletedSheets = deleted,
@@ -189,9 +194,10 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.Core.Services
 
         /// <summary>
         /// Moves a viewport already on the target sheet to its planned box centre. A pinned
-        /// viewport is unpinned for the move and pinned again.
+        /// viewport is unpinned and left unpinned (the owner's choice for re-arranging). Returns
+        /// true when it was pinned.
         /// </summary>
-        private static void Move(Document doc, ViewSheet sheet, PlannedViewport planned)
+        private static bool Move(Document doc, ViewSheet sheet, PlannedViewport planned)
         {
             var vp = doc.GetElement(new ElementId(planned.Existing.Key)) as Viewport;
             if (vp == null || vp.SheetId != sheet.Id)
@@ -201,8 +207,7 @@ namespace Revit26_Plugin_Revised.SectionsToSheet.V001.Core.Services
             if (pinned)
                 vp.Pinned = false;
             vp.SetBoxCenter(new XYZ(planned.CenterX, planned.CenterY, 0));
-            if (pinned)
-                vp.Pinned = true;
+            return pinned;
         }
 
         /// <summary>
