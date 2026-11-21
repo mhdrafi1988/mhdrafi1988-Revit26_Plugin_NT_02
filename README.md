@@ -64,7 +64,7 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 | Rafi_Pro_Docs | Sheet Create | Scope Box · Sheet Placer · Section Placer · Sections To Sheet · Combine Sheets ▸ slide-out: Rearrange (V030, V029, V028) · Arrange Views |
 | Rafi_Pro_Docs | Sheet Edit | Text Replace · Align & Distribute |
 | Rafi_Pro_Docs | Tagging | Tag To Text · Align Spot Elevations · Align to Detail Line · Distribute Spot Elev. · Quick Align split buttons: Vertical · Horizontal (each lists tags, ends, bends) · to Tag (ends, bends, bends horizontal, bends vertical) · Quick Distribute split buttons: Vertical · Horizontal (each lists tags, ends, bends) |
-| Rafi_Pro_Docs | Detail Lines | From Links · Closed Loop · Line Dims · Line Manager |
+| Rafi_Pro_Docs | Detail Lines | From Links · Closed Loop · Line Dims · Line Manager · Section Lines |
 
 ## Features
 
@@ -183,6 +183,9 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 - **Detail Lines From Links, Detail Line Closed Loop, Auto Dim Detail Line**: generate detail lines from linked
   elements, close open loops, and dimension detail lines.
 - **Detail Line Manager**: find, clean up and join detail lines, and rename line styles.
+- **Section Roof Detail Lines**: open a sheet, and the tool lists every element its sections show — host model and
+  each loaded link — then traces the cut profile of the roofs you tick and draws a line over the visible height of
+  the walls beside them, in the sections themselves. Up to 10 sections in one run, one Undo step.
 
 ### Manage, worksets and memory
 - **Annotation Overlap Detection**: find overlapping text notes, tags, room tags and dimensions, then move them

@@ -81,7 +81,7 @@ Floor panels built by `FloorToolsRibbon.Build`; Waterproofing panel built by `Sh
 | Rafi_Pro_Docs | Sheet Create | Scope Box · Sheet Placer · Section Placer · Sections To Sheet *button* · Combine Sheets *button* ▸ Rearrange (V030, V029, V028) · Arrange Views *button* | `SheetToolsRibbon` |
 | Rafi_Pro_Docs | Sheet Edit | Text Replace *button* (large) · Align & Distribute *button* (large) | `SheetToolsRibbon` |
 | Rafi_Pro_Docs | Tagging | Tag To Text, Align Spot Elevations, Align to Detail Line, Distribute Spot Elev. (large *buttons*) · 3 small *split buttons* (last used item runs, kept across restarts): Quick Align Vertical ▾ (tags / ends / bends) · Quick Align Horizontal ▾ (tags / ends / bends) · Quick Align to Tag ▾ (ends / bends / bends horizontal / bends vertical) · 2 small *split buttons* (same memory): Quick Distribute Vertical ▾ (tags / ends / bends) · Quick Distribute Horizontal ▾ (tags / ends / bends) | `TaggingRibbon` |
-| Rafi_Pro_Docs | Detail Lines | From Links · Closed Loop · Line Dims · Line Manager (large) | `DetailLInesRibbon.Build` |
+| Rafi_Pro_Docs | Detail Lines | From Links · Closed Loop · Line Dims · Line Manager (large) · Section Lines (large) | `DetailLInesRibbon.Build` |
 
 The latest change was plugin 7.26.3, which reorganised five tabs into four: **Rafi_Pro_MOds** and **Rafi_Pro_MOds2**
 merged into **Rafi_Pro_Roof** (all roof panels); **Rafi_Pro_Floors** gained the **Waterproofing** panel (moved from
