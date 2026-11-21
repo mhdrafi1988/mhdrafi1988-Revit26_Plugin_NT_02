@@ -170,6 +170,9 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
                 .WhereElementIsNotElementType().OfType<Room>().ToList();
             int unplaced = 0, done = 0;
             bool isHost = sourceKey == HostKey;
+            // Display only, from the HOST document: a room's slab top is reported in the host's project
+            // elevations whichever model the room lives in.
+            double projectBaseOffsetMm = Elevations.ProjectBaseOffsetFt(host) * BoundaryReader.FtToMm;
             WorksetTable worksets = source.IsWorkshared ? source.GetWorksetTable() : null;
 
             foreach (Room room in all)
@@ -196,6 +199,7 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
                     Source = sourceName,
                     Level = twin?.Name ?? level?.Name ?? string.Empty,
                     LevelElevationMm = levelZ * BoundaryReader.FtToMm,
+                    ProjectBaseOffsetMm = projectBaseOffsetMm,
                     Number = room.Number ?? string.Empty,
                     Name = room.get_Parameter(BuiltInParameter.ROOM_NAME)?.AsString() ?? room.Name ?? string.Empty,
                     AreaM2 = room.Area * BoundaryReader.Ft2ToM2,

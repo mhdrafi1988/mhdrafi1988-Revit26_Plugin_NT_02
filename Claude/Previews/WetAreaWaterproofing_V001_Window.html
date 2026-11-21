@@ -1,7 +1,7 @@
 <title>Wet Area Waterproofing</title>
 <!--
-  Tool: Wet Area Waterproofing — v1.2.2 (build V001), Parts A and B of three
-  Plugin: 7.27.4
+  Tool: Wet Area Waterproofing — v1.2.3 (build V001), Parts A and B of three
+  Plugin: 7.27.5
   Mirrors: Menu/Sheet/WetAreaWaterproofing_V001/UI/Views/WetAreaWaterproofingWindow.xaml
   Artifact: https://claude.ai/artifact/BvqGfYjfbaqbNtwtj24eVz
 -->
@@ -94,9 +94,10 @@ tr.grp td{background:#F3F5F7;font-weight:600;color:var(--head)}
 
 <div class="wrap">
 <header>
-  <h1>Wet Area Waterproofing <span class="new">v1.2.2</span></h1>
+  <h1>Wet Area Waterproofing <span class="new">v1.2.3</span></h1>
   <p class="note">Parts A and B are built. Part B adds a plan per room and up to 6 sections per room — each target can now be a <b>Reference Section</b> (points to a drafting view) or a <b>Callout</b> (creates a cropped detail view). Sheets and the print set are Part C. Every room, level, link and file name below is <b>sample data</b>.</p>
-  <p class="note"><span class="new">FIXED in 1.2.2</span> <b>Elevations all come from one base now.</b> Level heights were read from the Project Base Point while slab tops and element geometry are in Revit’s internal coordinates. In a model whose Project Base Point is not at elevation 0 that made the tool miss the slab under a room, set the roof’s <b>Offset from Level</b> wrong, lose section targets, and place sections at the wrong Z. No setting in the window changed.</p>
+  <p class="note"><span class="new">CHANGED in 1.2.3</span> The <b>Slab top</b> figure is shown as a <b>project elevation</b> — the same number Revit’s Properties panel gives for that slab — instead of a Revit internal elevation. The sample model below has its Project Base Point at 100&thinsp;000&nbsp;mm, so the column reads <code>Floor · +103.150</code> where it used to read <code>Floor · +3.150</code>. The height the roof is built from has not moved.</p>
+  <p class="note"><span class="new">FIXED in 1.2.2</span> <b>Elevations used in geometry all come from one base.</b> Level heights were read from the Project Base Point while slab tops and element geometry are in Revit’s internal coordinates. In a model whose Project Base Point is not at elevation 0 that made the tool miss the slab under a room, set the roof’s <b>Offset from Level</b> wrong, lose section targets, and place sections at the wrong Z.</p>
   <p class="note"><span class="new">FIXED in 1.2.1</span> Two causes of <b>“The roof could not be created”</b>: the <b>Roof type</b> list now offers only roof types a footprint roof can be made from (sloped glazing is left out), and an outline whose last point sat on its first one no longer ends with a closing line below Revit’s short-curve tolerance.</p>
   <p class="note">From 1.2.0: a per-target callout option — each section target row has a Mode dropdown, and “Callout” creates a cropped detail view on the plan instead of a reference section marker.</p>
 </header>
@@ -118,7 +119,7 @@ tr.grp td{background:#F3F5F7;font-weight:600;color:var(--head)}
   <h2>Ribbon button</h2>
   <div class="ribbon">
     <div class="rbtn"><div class="ico"></div>Wet Area<br>Waterproofing</div>
-    <div class="tip"><b>Wet Area Waterproofing — v1.2.2 (build V001)</b><br>Finds wet rooms (toilets, baths, kitchens…) in the model and its links, adds a waterproofing roof on top of the slab under each one, and creates a cropped plan per room with up to 6 sections — each a reference section or a callout. Excel report; one Undo step.</div>
+    <div class="tip"><b>Wet Area Waterproofing — v1.2.3 (build V001)</b><br>Finds wet rooms (toilets, baths, kitchens…) in the model and its links, adds a waterproofing roof on top of the slab under each one, and creates a cropped plan per room with up to 6 sections — each a reference section or a callout. Excel report; one Undo step.</div>
   </div>
   <p class="note">On its own new <b>Waterproofing</b> panel, after Sheet Edit, as a large button.</p>
 </section>
@@ -126,7 +127,7 @@ tr.grp td{background:#F3F5F7;font-weight:600;color:var(--head)}
 <section>
   <h2>Tool window</h2>
   <div class="scroll"><div class="win">
-    <div class="tb">Wet Area Waterproofing — v1.2.2 <i>✕</i></div>
+    <div class="tb">Wet Area Waterproofing — v1.2.3 <i>✕</i></div>
     <div class="sub">Find wet rooms, add a waterproofing roof on each slab, and create a plan with detail references per room</div>
     <div class="body">
       <div class="card">
@@ -143,14 +144,14 @@ tr.grp td{background:#F3F5F7;font-weight:600;color:var(--head)}
         </div>
         <div class="gwrap">
         <table class="grid">
-          <tr><th></th><th>Source ● <span class="f on">⏷</span></th><th>Level <span class="f">⏷</span></th><th>No. ▲ <span class="f">⏷</span></th><th>Name <span class="f">⏷</span></th><th>Area m² <span class="f">⏷</span></th><th>Matched <span class="f">⏷</span></th><th>Slab top <span class="f">⏷</span></th><th>Doors <span class="new">NEW</span></th><th>Drains</th><th>Fixtures</th><th>Sections</th><th>Plan</th><th>Status <span class="f">⏷</span></th></tr>
+          <tr><th></th><th>Source ● <span class="f on">⏷</span></th><th>Level <span class="f">⏷</span></th><th>No. ▲ <span class="f">⏷</span></th><th>Name <span class="f">⏷</span></th><th>Area m² <span class="f">⏷</span></th><th>Matched <span class="f">⏷</span></th><th>Slab top <span class="f">⏷</span> <span class="new">CHANGED</span></th><th>Doors <span class="new">NEW</span></th><th>Drains</th><th>Fixtures</th><th>Sections</th><th>Plan</th><th>Status <span class="f">⏷</span></th></tr>
           <tr class="grp"><td colspan="14">▾ L01 · 2 room(s)</td></tr>
-          <tr><td class="chk"></td><td>Host</td><td>L01</td><td>101</td><td>Toilet 01</td><td>4.20</td><td>toilet</td><td>Floor · +3.150</td><td>1</td><td>1</td><td>2</td><td>4</td><td></td><td><span class="pill p-ok">Ready</span></td></tr>
-          <tr><td class="unchk"></td><td>Host</td><td>L01</td><td>102</td><td>Kitchen</td><td>12.85</td><td>kitchen</td><td>Floor · +3.150</td><td>2</td><td>1</td><td>1</td><td>4</td><td>Yes</td><td><span class="pill p-link">Already done</span></td></tr>
+          <tr><td class="chk"></td><td>Host</td><td>L01</td><td>101</td><td>Toilet 01</td><td>4.20</td><td>toilet</td><td>Floor · +103.150</td><td>1</td><td>1</td><td>2</td><td>4</td><td></td><td><span class="pill p-ok">Ready</span></td></tr>
+          <tr><td class="unchk"></td><td>Host</td><td>L01</td><td>102</td><td>Kitchen</td><td>12.85</td><td>kitchen</td><td>Floor · +103.150</td><td>2</td><td>1</td><td>1</td><td>4</td><td>Yes</td><td><span class="pill p-link">Already done</span></td></tr>
           <tr class="grp"><td colspan="14">▾ L02 · 3 room(s)</td></tr>
-          <tr><td class="chk"></td><td>ARC_Model</td><td>L02</td><td>201</td><td>Master Bath</td><td>7.60</td><td>bath</td><td>Floor · +6.300</td><td>1</td><td>2</td><td>4</td><td>4</td><td></td><td><span class="pill p-warn">Repaired</span></td></tr>
+          <tr><td class="chk"></td><td>ARC_Model</td><td>L02</td><td>201</td><td>Master Bath</td><td>7.60</td><td>bath</td><td>Floor · +106.300</td><td>1</td><td>2</td><td>4</td><td>4</td><td></td><td><span class="pill p-warn">Repaired</span></td></tr>
           <tr><td class="chk"></td><td>ARC_Model</td><td>L02</td><td>202</td><td>Shower Room</td><td>3.10</td><td>shower</td><td>No slab</td><td>1</td><td>0</td><td>1</td><td>3</td><td></td><td><span class="pill p-warn">No slab</span></td></tr>
-          <tr><td class="chk"></td><td>ARC_Model</td><td>L02</td><td>205</td><td>Laundry</td><td>5.40</td><td>laundry</td><td>Floor · +6.300</td><td>1</td><td>1</td><td>0</td><td>4</td><td></td><td><span class="pill p-warn">Area +3.4%</span></td></tr>
+          <tr><td class="chk"></td><td>ARC_Model</td><td>L02</td><td>205</td><td>Laundry</td><td>5.40</td><td>laundry</td><td>Floor · +106.300</td><td>1</td><td>1</td><td>0</td><td>4</td><td></td><td><span class="pill p-warn">Area +3.4%</span></td></tr>
         </table>
         <div class="pop" style="left:40px">
           <b>Filter: Source</b>
@@ -174,6 +175,7 @@ tr.grp td{background:#F3F5F7;font-weight:600;color:var(--head)}
           <div class="row"><span class="chk">Add room No. + name to the roof's Comments</span></div>
           <p class="hint">A room that already has a roof from an earlier run gets it replaced (same room, new outline).</p>
           <p class="hint"><b>1.2.2:</b> the roof's <b>Offset from Level</b> is measured from the slab top and the level in the same coordinate base. In a model whose Project Base Point is not at elevation 0, re-run the rooms of earlier runs to put their roofs at the right height.</p>
+          <p class="hint"><b>1.2.3:</b> the <b>Slab top</b> figure in the room grid and the report is a project elevation, as Revit shows it. This is a label, not a height: the roof is still built from the slab top itself.</p>
         </div>
         <div class="card">
           <h3>Boundary repair</h3>
@@ -275,7 +277,7 @@ tr.grp td{background:#F3F5F7;font-weight:600;color:var(--head)}
   <div class="scroll"><table style="min-width:760px;font-size:12.5px">
     <tr><th>Sheet</th><th>One row per</th><th>Columns</th></tr>
     <tr><td>Summary</td><td>run</td><td style="white-space:normal">Run ID, date, user, model, versions, run time, totals, settings used</td></tr>
-    <tr><td>Rooms</td><td>ticked room, and wet room not ticked</td><td style="white-space:normal">Room ElementId, Source, Level, Number, Name, Room area, Matched keyword, Slab ElementId, Slab top, Roof ElementId, Roof area, Area difference %, Boundary result, Status, Reason, Phase, Workset, Group, Scale, Run ID, Plan view Id, Plan view, Sections <span class="new">NEW</span></td></tr>
+    <tr><td>Rooms</td><td>ticked room, and wet room not ticked</td><td style="white-space:normal">Room ElementId, Source, Level, Number, Name, Room area, Matched keyword, Slab ElementId, Slab top <span class="new">CHANGED: project elevation</span>, Roof ElementId, Roof area, Area difference %, Boundary result, Status, Reason, Phase, Workset, Group, Scale, Run ID, Plan view Id, Plan view, Sections <span class="new">NEW</span></td></tr>
     <tr><td>Boundary repair</td><td>repair attempt</td><td style="white-space:normal">Room, Method, Method name, Result (Passed / Failed), Detail, X, Y, Room area, Outline area</td></tr>
     <tr><td>Sections</td><td>section or callout</td><td style="white-space:normal">Section marker Id, Section, Target, Room, Cut ElementId, Cut category, Cut family : type, Cut model, Plan view, Drafting view, Head and Tail of the cut line, Is Callout, Callout View Id, Callout View <span class="new">NEW cols</span></td></tr>
     <tr><td>Issues</td><td>warning or error</td><td style="white-space:normal">Severity, Step, Room number, Message, Suggested fix, Room key</td></tr>

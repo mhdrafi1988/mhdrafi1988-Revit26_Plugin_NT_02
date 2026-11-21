@@ -9,6 +9,29 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [7.27.5] — 2026-11-21
+
+### Changed
+- **Wet Area Waterproofing 1.2.3** — the **Slab top** figure is shown as a **project elevation**, the same
+  elevation Revit's Properties panel gives for that slab. It was a Revit internal elevation, which differs by
+  the Project Base Point's elevation. In a model whose Project Base Point sits at 100 000 mm, a slab the grid
+  called `Floor · +3.150` now reads `Floor · +103.150`, and the report's **Slab top** column writes `103150.0`
+  in place of `3150.0`.
+  - The figure the roof is built from has not moved. `Elevations.ProjectBaseOffsetFt` is read once per document
+    and carried as `RoomRow.ProjectBaseOffsetMm`; only `RoomStatusRules` and `RunReport` add it, when they
+    format the number. The slab search band, the item band and the roof's **Offset from Level** keep reading
+    internal Z, because a difference between two elevations is the same in either base.
+  - The report keeps the **Slab top** column's name and its position in the Rooms sheet.
+
+**User notes**
+- A model whose Project Base Point sits at elevation 0 shows exactly what it showed before: there the two bases
+  are equal.
+- Otherwise the grid's **Slab** column and the report's **Slab top** column now read higher (or lower) by the
+  Project Base Point's elevation. Nothing in the model changes, and a run started before this update put its
+  roofs at the same height as one started after it.
+- A report kept from an earlier run holds internal elevations in that column. Compare **Slab top** figures only
+  between reports from the same plugin version.
+
 ## [7.27.4] — 2026-11-21
 
 ### Fixed

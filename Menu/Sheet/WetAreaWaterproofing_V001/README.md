@@ -9,7 +9,7 @@ Part C: grouping, sheets, print set.
 
 | Item | Value |
 |---|---|
-| Tool name | Wet Area Waterproofing, v1.2.2 (plugin 7.27.4) |
+| Tool name | Wet Area Waterproofing, v1.2.3 (plugin 7.27.5) |
 | Folder | `Menu/Sheet/WetAreaWaterproofing_V001/` |
 | Namespace | `Revit26_Plugin_Revised.WetAreaWaterproofing.V001` |
 | Command | `…V001.Commands.WetAreaWaterproofingCommand` (via `ToolGuard.RunCommand`) |
@@ -58,9 +58,11 @@ and friends); new columns are added at the end only. `Group` and `Scale` are fil
 - Curved boundaries are faceted (the repair chain works on straight pieces).
 - A slab is looked for within 500 mm above or below the room's level.
 - Only roof types a footprint roof can be made from are offered: sloped glazing types are left out.
-- Every elevation is a Revit internal Z (`Elevations.InternalZFt`, i.e. `Level.Elevation`), never
-  `ProjectElevation`: one base for level heights, slab tops and the points handed back to Revit. The **Slab top**
-  shown in the grid and the report is therefore an internal elevation, which can differ from Revit's Properties panel.
+- Every elevation used in geometry is a Revit internal Z (`Elevations.InternalZFt`, i.e. `Level.Elevation`),
+  never `ProjectElevation`: one base for level heights, slab tops, the search bands and the points handed back
+  to Revit. The **Slab top** shown in the grid and written to the report is the only exception — it adds
+  `RoomRow.ProjectBaseOffsetMm` (`Elevations.ProjectBaseOffsetFt`) so it reads as Revit's Properties panel does.
+  That offset is display-only; never add it to a value that meets element geometry.
 - Reference sections cannot be named one by one; they show the drafting view's detail number.
 - *Remove a run* leaves drafting views in place.
 - Needs testing in Revit on: a rotated link, a workshared model, rooms with columns inside.
