@@ -1,4 +1,4 @@
-using Autodesk.Revit.DB;
+﻿using Autodesk.Revit.DB;
 using Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Geometry;
 using Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Models;
 using Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Report;
@@ -169,7 +169,7 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
             if (old.Count > 0) _doc.Delete(old);
 
             var placed = new List<CreatedSection>();
-            double z = plan.GenLevel?.ProjectElevation ?? 0;
+            double z = Elevations.InternalZFt(plan.GenLevel);
             foreach (PlannedSection section in sections)
             {
                 try

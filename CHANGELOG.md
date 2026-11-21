@@ -9,6 +9,30 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [7.27.4] — 2026-11-21
+
+### Fixed
+- **Wet Area Waterproofing 1.2.2** — **elevations are all read from one base now.** Level heights came from
+  `Level.ProjectElevation`, which is measured from the Project Base Point, while slab tops, element bounding
+  boxes and the points handed back to Revit are in Revit's internal coordinates. The two differ by the Project
+  Base Point's elevation, so in a model whose Project Base Point is not at elevation 0 the tool:
+  - searched for the slab under a room in a 500 mm band around the wrong height, so it often reported
+    **"No slab found under the room"** and fell back to the room's level;
+  - set the roof's **Offset from Level** from a slab top and a level height measured from different bases, so a
+    roof that did find its slab sat off by the Project Base Point's elevation;
+  - matched doors, drains and fixtures to a room in a band around the wrong height, so section targets went
+    missing;
+  - placed reference sections and callouts at the wrong Z on the plan.
+  - Every level height now comes from `Elevations.InternalZFt` (`Level.Elevation`), the one place the tool reads
+    a level from. A model whose Project Base Point sits at elevation 0 is unaffected — there the two were equal.
+
+**User notes**
+- If your Project Base Point is not at elevation 0, roofs, plans and sections from earlier runs are at the wrong
+  height, and rooms may have been reported as having no slab when they do. Re-run those rooms: the run replaces
+  the roof it made for each one.
+- The **Slab top** figure in the grid and the Excel report is unchanged — it was, and stays, a Revit internal
+  elevation, so it can differ from the elevation Revit's Properties panel shows for the same slab.
+
 ## [7.27.3] — 2026-11-21
 
 ### Fixed

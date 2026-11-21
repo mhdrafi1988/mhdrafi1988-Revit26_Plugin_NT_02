@@ -1,7 +1,7 @@
 <title>Wet Area Waterproofing</title>
 <!--
-  Tool: Wet Area Waterproofing — v1.2.1 (build V001), Parts A and B of three
-  Plugin: 7.27.3
+  Tool: Wet Area Waterproofing — v1.2.2 (build V001), Parts A and B of three
+  Plugin: 7.27.4
   Mirrors: Menu/Sheet/WetAreaWaterproofing_V001/UI/Views/WetAreaWaterproofingWindow.xaml
   Artifact: https://claude.ai/artifact/BvqGfYjfbaqbNtwtj24eVz
 -->
@@ -94,9 +94,10 @@ tr.grp td{background:#F3F5F7;font-weight:600;color:var(--head)}
 
 <div class="wrap">
 <header>
-  <h1>Wet Area Waterproofing <span class="new">v1.2.1</span></h1>
+  <h1>Wet Area Waterproofing <span class="new">v1.2.2</span></h1>
   <p class="note">Parts A and B are built. Part B adds a plan per room and up to 6 sections per room — each target can now be a <b>Reference Section</b> (points to a drafting view) or a <b>Callout</b> (creates a cropped detail view). Sheets and the print set are Part C. Every room, level, link and file name below is <b>sample data</b>.</p>
-  <p class="note"><span class="new">FIXED in 1.2.1</span> Two causes of <b>“The roof could not be created”</b>. The <b>Roof type</b> list now offers only roof types a footprint roof can be made from — sloped glazing (curtain) types are left out, because Revit refuses a footprint roof for them and every room of the run failed. And a room outline whose last point sat on its first one no longer ends with a closing line below Revit’s short-curve tolerance. Nothing else in the window changed.</p>
+  <p class="note"><span class="new">FIXED in 1.2.2</span> <b>Elevations all come from one base now.</b> Level heights were read from the Project Base Point while slab tops and element geometry are in Revit’s internal coordinates. In a model whose Project Base Point is not at elevation 0 that made the tool miss the slab under a room, set the roof’s <b>Offset from Level</b> wrong, lose section targets, and place sections at the wrong Z. No setting in the window changed.</p>
+  <p class="note"><span class="new">FIXED in 1.2.1</span> Two causes of <b>“The roof could not be created”</b>: the <b>Roof type</b> list now offers only roof types a footprint roof can be made from (sloped glazing is left out), and an outline whose last point sat on its first one no longer ends with a closing line below Revit’s short-curve tolerance.</p>
   <p class="note">From 1.2.0: a per-target callout option — each section target row has a Mode dropdown, and “Callout” creates a cropped detail view on the plan instead of a reference section marker.</p>
 </header>
 
@@ -117,7 +118,7 @@ tr.grp td{background:#F3F5F7;font-weight:600;color:var(--head)}
   <h2>Ribbon button</h2>
   <div class="ribbon">
     <div class="rbtn"><div class="ico"></div>Wet Area<br>Waterproofing</div>
-    <div class="tip"><b>Wet Area Waterproofing — v1.2.1 (build V001)</b><br>Finds wet rooms (toilets, baths, kitchens…) in the model and its links, adds a waterproofing roof on top of the slab under each one, and creates a cropped plan per room with up to 6 sections — each a reference section or a callout. Excel report; one Undo step.</div>
+    <div class="tip"><b>Wet Area Waterproofing — v1.2.2 (build V001)</b><br>Finds wet rooms (toilets, baths, kitchens…) in the model and its links, adds a waterproofing roof on top of the slab under each one, and creates a cropped plan per room with up to 6 sections — each a reference section or a callout. Excel report; one Undo step.</div>
   </div>
   <p class="note">On its own new <b>Waterproofing</b> panel, after Sheet Edit, as a large button.</p>
 </section>
@@ -125,7 +126,7 @@ tr.grp td{background:#F3F5F7;font-weight:600;color:var(--head)}
 <section>
   <h2>Tool window</h2>
   <div class="scroll"><div class="win">
-    <div class="tb">Wet Area Waterproofing — v1.2.1 <i>✕</i></div>
+    <div class="tb">Wet Area Waterproofing — v1.2.2 <i>✕</i></div>
     <div class="sub">Find wet rooms, add a waterproofing roof on each slab, and create a plan with detail references per room</div>
     <div class="body">
       <div class="card">
@@ -172,6 +173,7 @@ tr.grp td{background:#F3F5F7;font-weight:600;color:var(--head)}
           <div class="row"><span class="lbl">No slab found</span><span>Use room level + offset</span></div>
           <div class="row"><span class="chk">Add room No. + name to the roof's Comments</span></div>
           <p class="hint">A room that already has a roof from an earlier run gets it replaced (same room, new outline).</p>
+          <p class="hint"><b>1.2.2:</b> the roof's <b>Offset from Level</b> is measured from the slab top and the level in the same coordinate base. In a model whose Project Base Point is not at elevation 0, re-run the rooms of earlier runs to put their roofs at the right height.</p>
         </div>
         <div class="card">
           <h3>Boundary repair</h3>
@@ -251,7 +253,7 @@ tr.grp td{background:#F3F5F7;font-weight:600;color:var(--head)}
       <div style="color:var(--ok)">1 drafting view(s) created</div>
       <div style="color:var(--ok)">Excel report saved: WP_Report_Sample_Model_20261114_1530.xlsx</div>
       <div style="color:var(--warn)">Room 201: Outline repaired (Snap): gap 3 mm snapped.</div>
-      <div style="color:var(--warn)">Room 202: No slab found under the room: roof placed at level L02 + 0 mm.</div>
+      <div style="color:var(--warn)">Room 202: No slab found under the room: roof placed at level L02 + 0 mm. <span class="new">FIXED 1.2.2</span></div>
       <div style="color:var(--warn)">Room 202: no floor drain found; section skipped.</div>
       <div style="color:var(--warn)">Room 205: Roof area differs from the room area by +3.4% (limit ± 2%).</div>
       <div class="row" style="justify-content:flex-end"><button class="btn">Open report</button><button class="btn pri">OK</button></div>

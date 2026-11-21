@@ -9,7 +9,7 @@ Part C: grouping, sheets, print set.
 
 | Item | Value |
 |---|---|
-| Tool name | Wet Area Waterproofing, v1.2.1 (plugin 7.27.3) |
+| Tool name | Wet Area Waterproofing, v1.2.2 (plugin 7.27.4) |
 | Folder | `Menu/Sheet/WetAreaWaterproofing_V001/` |
 | Namespace | `Revit26_Plugin_Revised.WetAreaWaterproofing.V001` |
 | Command | `…V001.Commands.WetAreaWaterproofingCommand` (via `ToolGuard.RunCommand`) |
@@ -31,7 +31,7 @@ Part C: grouping, sheets, print set.
 | `Core/Run` | `RunPlanner` (what a run does per room), `RunTag` (Comments text), `RoomStatusRules` |
 | `Core/Sections` | `SectionTargets` (the table), `ItemClassifier` / `RoomItemMatcher` (which door, drain or fixture belongs to which room), `SectionPlanner` (which cuts, where, max 6), `ViewNames` |
 | `Core/Report` | `RunReport`, `ReportWriter` — the Excel workbook |
-| `Infrastructure` | Revit: `RoomCollector`, `BoundaryReader`, `SlabIndex`, `RoofCreator`, `RunRemover`, `TargetCollector`, `ViewCreator`, `ElementTag`, the session and its ExternalEvent handler |
+| `Infrastructure` | Revit: `RoomCollector`, `BoundaryReader`, `SlabIndex`, `RoofCreator`, `RunRemover`, `TargetCollector`, `ViewCreator`, `ElementTag`, `Elevations`, the session and its ExternalEvent handler |
 | `UI` | `WetAreaWaterproofingWindow`, `ViewModel_WetAreaWaterproofing` (+ `.Grid`, `.Run`) |
 
 `Core` has no Revit references and is covered by the unit tests. Lengths in `Core` are millimetres.
@@ -58,6 +58,9 @@ and friends); new columns are added at the end only. `Group` and `Scale` are fil
 - Curved boundaries are faceted (the repair chain works on straight pieces).
 - A slab is looked for within 500 mm above or below the room's level.
 - Only roof types a footprint roof can be made from are offered: sloped glazing types are left out.
+- Every elevation is a Revit internal Z (`Elevations.InternalZFt`, i.e. `Level.Elevation`), never
+  `ProjectElevation`: one base for level heights, slab tops and the points handed back to Revit. The **Slab top**
+  shown in the grid and the report is therefore an internal elevation, which can differ from Revit's Properties panel.
 - Reference sections cannot be named one by one; they show the drafting view's detail number.
 - *Remove a run* leaves drafting views in place.
 - Needs testing in Revit on: a rotated link, a workshared model, rooms with columns inside.

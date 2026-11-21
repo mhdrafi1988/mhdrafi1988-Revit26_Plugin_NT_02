@@ -92,7 +92,7 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
                     if (doc.GetElement(id) != null) doc.Delete(id);
                 }
 
-                double z = level.ProjectElevation;
+                double z = Elevations.InternalZFt(level);
                 double shortest = doc.Application.ShortCurveTolerance;
                 var footprint = new CurveArray();
                 AddLoop(footprint, job.Outer, z, shortest);

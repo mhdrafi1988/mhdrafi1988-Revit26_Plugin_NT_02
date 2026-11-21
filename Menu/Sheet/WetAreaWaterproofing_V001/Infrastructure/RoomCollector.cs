@@ -63,7 +63,7 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
             var notes = new List<string>();
 
             var hostLevels = new FilteredElementCollector(doc).OfClass(typeof(Level)).Cast<Level>()
-                .Select(l => new LevelInfo(l.Id.Value, l.Name, l.ProjectElevation))
+                .Select(l => new LevelInfo(l.Id.Value, l.Name, Elevations.InternalZFt(l)))
                 .OrderBy(l => l.ZFt).ToList();
 
             var allLinks = new FilteredElementCollector(doc).OfClass(typeof(RevitLinkInstance)).Cast<RevitLinkInstance>().ToList();
@@ -182,7 +182,8 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
                 if (room.Location is not LocationPoint location) { unplaced++; continue; }
 
                 Level level = room.Level;
-                double levelZ = toHost.OfPoint(new XYZ(0, 0, level?.ProjectElevation ?? location.Point.Z)).Z;
+                // Internal Z, so the slab search band and the item band line up with element geometry.
+                double levelZ = toHost.OfPoint(new XYZ(0, 0, Elevations.InternalZFt(level, location.Point.Z))).Z;
                 LevelInfo twin = hostLevels.FirstOrDefault(l => Math.Abs(l.ZFt - levelZ) < 1 / BoundaryReader.FtToMm);
                 LevelInfo hostLevel = twin
                     ?? hostLevels.LastOrDefault(l => l.ZFt <= levelZ + 1e-6)
