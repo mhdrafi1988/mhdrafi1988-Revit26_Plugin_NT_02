@@ -9,6 +9,52 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [7.28.0] — 2026-11-21
+
+### Added
+- **Section Roof Detail Lines 1.0.0** — a new tool on **Rafi_Pro_Docs › Detail Lines**, button **Section Lines**.
+  Open a sheet; the tool lists every element the sheet's sections show, from the host model and from each loaded
+  Revit link, then traces the cut profile of the roofs you tick and draws a line over the visible height of the
+  walls beside them — in the sections themselves, because a detail line belongs to one view.
+  - **What it lists.** The host model is read with Revit's own view visibility, so the crop, the far clip,
+    visibility/graphics, view filters and anything hidden by hand all count. Revit offers no such query for a
+    linked document, so a link is read by geometry instead: the section's crop box is brought into the link's
+    coordinates and each element's bounding box tested against it. That test is deliberately generous — an element
+    the view does not in fact show may be listed, and can be unticked, rather than a roof the user can see being
+    dropped in silence. The list is a tree of source → category → family : type, with the instances and sections
+    each type appears in; **List all to log** writes one line per element, ready for Copy All.
+  - **What it draws.** A ticked roof gets its whole cut profile: the section is cut on the view's own plane
+    (`BooleanOperationsUtils.CutWithHalfSpace`), and the face that leaves coplanar with it supplies the edge loops —
+    outer loop and any opening alike — already in the plane a detail curve needs. A ticked wall gets one vertical
+    line per face, over the wall's own height in the section held inside the crop, but only where its cut profile
+    comes within the adjacency tolerance (default 50 mm) of a ticked roof's. Off by default, **Line on both faces**
+    draws the far face as well as the near one.
+  - **Scope of a run.** Every section on the active sheet is ticked, capped at 10; a section open on its own is
+    offered by itself. A section owned by another user, or changed in central since the last reload, cannot be
+    ticked, and says why. Roofs and walls are ticked to start with, so a first run needs no setting up.
+  - **Safety.** The whole run — every section — is one transaction inside one transaction group, assimilated, so a
+    single Ctrl+Z undoes it. An element whose geometry Revit will not read, or that the section shows without
+    cutting, is reported and skipped; the rest still go in. A cancel (Esc or the Cancel button) rolls the group
+    back, so no half-run is left in the model. **Leave out lines the view already has** is on by default, so
+    running the tool twice does not stack duplicates.
+  - Line style for the roof profile and for the wall lines are chosen separately; an empty choice keeps the view's
+    default style, and a style the project no longer has falls back to it with a warning rather than failing.
+    Choices are kept in `%AppData%\Revit26_Plugin_Revised\SectionRoofDetailLines\settings.json`, which carries a
+    schema version.
+
+### Changed
+- **Ribbon** — the **Detail Lines** panel gains the **Section Lines** button beside the Line Manager dropdown. The
+  three stacked dropdowns (From Links, Closed Loop, Line Dims), the Line Manager dropdown and every internal
+  button name are unchanged.
+
+**User notes**
+- The lines go into the section views, not onto the sheet: that is where Revit keeps detail lines. Opening the
+  sheet is only how the tool finds which sections to draw in.
+- A wall line needs a roof. Wall lines are placed where a wall meets a ticked roof's cut profile, so a run with no
+  roof ticked draws none and says so.
+- A link whose display is set to "By linked view" rather than "By host view" may be listed a little more fully
+  than the section draws it; untick what you do not want before running.
+
 ## [7.27.6] — 2026-11-21
 
 ### Changed

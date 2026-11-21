@@ -7,7 +7,8 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
 {
     /// <summary>
     /// Builds the Detail Lines panel: From Links, Closed Loop and Line Dims stacked in one column,
-    /// then Line Manager as a large dropdown (V002, then V001) beside the stack (a stack holds at most three items).
+    /// then Line Manager as a large dropdown (V002, then V001) beside the stack (a stack holds at most three items),
+    /// then Section Lines as a large button of its own.
     /// Replaces the one-button Detail Line Create, Detail Line Process and Dimensions panels
     /// (plugin 2.4.0) so Revit has room to show every button name.
     /// </summary>
@@ -79,6 +80,19 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             var lineManagerItem = panel.AddItem(lineManagerPulldown);
             RibbonLayoutHelper.WirePulldownButton(new List<RibbonItem> { lineManagerItem }, "Pulldown_DetailLineManager",
                 lineManagerV002, lineManagerV001);
+
+            // Section Lines: one tool, one button — the only tool on this panel that draws in a
+            // section rather than a plan, so it does not belong in any of the stacked dropdowns.
+            var sectionLines = new PushButtonData("Btn_SectionRoofDetailLines_V001", "Section Lines", assemblyPath, "Revit26_Plugin_Revised.SectionRoofDetailLines.V001.Commands.SectionRoofDetailLinesCommand")
+            {
+                Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.DetailLiner.CreateDetailLines_16.png"),
+                LargeImage = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.DetailLiner.Addlines_32.png"),
+                ToolTip = ToolCatalog.SectionRoofDetailLines.Tip(
+                    "Open a sheet: lists every element its sections show, from the host model and from each loaded link, "
+                    + "then traces the cut profile of the roofs you tick and draws a line on the walls beside them, in the sections themselves. "
+                    + "Up to 10 sections in one run, one Undo step.")
+            };
+            panel.AddItem(sectionLines);
         }
     }
 }
