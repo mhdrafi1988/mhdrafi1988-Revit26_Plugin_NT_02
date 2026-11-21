@@ -9,6 +9,44 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [7.28.0] — 2026-11-21
+
+### Added
+- **Void Openings 0.5.0** — the tool now **places the voids** (phase 5 of 8). Until 0.4.0 it only analysed; from
+  this version the RESULTS tab can change the model.
+  - **GENERATE VOID** places a void family at every ticked row **in the active model** and cuts the structural
+    element where Revit allows it. The run is one undo step and each opening has its own transaction, so one
+    failure rolls back on its own and the other openings still go in. Each void is given a **Job ID**
+    (`VOID-<year>-<number>`, counted per model) and its record is stored on the instance, so a second run leaves
+    an unchanged void alone and reports it as already there.
+  - Two new table columns, **Job ID** and **Void** (`Cut`, `Generated`, `Failed` or `–`), and the reason for a
+    failure or for a missing cut is appended to that row's **Note**.
+  - **Export package… / Apply package…** for a structure that is a **Revit link**: Revit only lets the tool place
+    elements in the active model, so the ticked rows are written to a JSON package in the link's own coordinates;
+    opening that file as the project and pressing Apply package places them there. A package written for another
+    model is refused rather than applied to the wrong file.
+  - **Export results…** writes every row of the table as an Excel workbook or as JSON.
+  - A hint line next to the buttons says what Generate would do, or why it cannot run (nothing ticked, no Analyze
+    yet, or a linked structure).
+  - The ribbon button's **tooltip** no longer says that void placement comes in a later version; its internal name
+    (`Btn_VoidOpenings_V001`), label, panel and icons are unchanged.
+
+### Changed
+- The clearance setup of the OPENING CLEARANCE card is handed to a run as the settings it takes
+  (`VoidOpeningsSettings.From`), so the rules, the default offset, the overshoot, the rounding, the insulation
+  option and the axis mode all reach the writer. Saved settings files are read and written exactly as before.
+
+**User notes**
+- **This version writes to the model.** GENERATE VOID and Apply package… create void families and cut structural
+  elements; everything else in the tool, Analyze included, still changes nothing. Both are one undo step.
+- Voids can only be placed in the **active model**. With a linked structure, GENERATE VOID is disabled and the
+  hint points at Export package… instead.
+- Openings are skipped with a reason, never forced: an element owned by another user, a read-only model, an
+  element in a group or a category Revit cannot cut with a void are reported in the row's Note and in the
+  notification strip.
+- Nothing in Void Openings has been run in Revit yet. It builds and its 139 unit tests pass, but the writer has
+  only been exercised against a test double, so treat 0.5.0 as first-run software and try it on a copy.
+
 ## [7.27.6] — 2026-11-21
 
 ### Changed

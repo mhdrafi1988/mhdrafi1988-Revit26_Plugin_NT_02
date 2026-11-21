@@ -201,11 +201,15 @@ Where a tool has several versions, its button is a dropdown listing the newest v
   *Link Memory (classic)* (V001) remembers which Revit links are loaded as named sets.
 
 ### Coordination
-- **Void Openings** (in development): openings for MEP through structure. So far: choose the structural model and
-  the MEP model (the active model or a Revit link) and their categories, with element counts, set the opening
-  clearance rules (offset per MEP category and size range, saved between sessions), and **Analyze**: it finds where
-  MEP passes through structure and lists the opening sized for each place, with zoom, highlight and approve / reject.
-  Nothing in the model is changed yet; void placement and cutting follow.
+- **Void Openings** (in development): openings for MEP through structure. Choose the structural model and the MEP
+  model (the active model or a Revit link) and their categories, with element counts, set the opening clearance
+  rules (offset per MEP category and size range, saved between sessions), and **Analyze**: it finds where MEP
+  passes through structure and lists the opening sized for each place, with zoom, highlight and approve / reject.
+  **GENERATE VOID** then places a void family at every ticked row in the active model and cuts the structural
+  element where Revit allows it, giving each one a Job ID and storing its record so a second run leaves an
+  unchanged void alone. A structure that is a Revit link is handed over as a JSON **opening package** and applied
+  by running the tool inside that file; the results table exports to Excel or JSON. Analyze changes nothing;
+  Generate Void and Apply package change the active model, each as one undo step.
 - **Base Level to Parameter**: writes each element's base level and base offset to a text instance parameter as
   "Level 02 (+450)" (offset in mm). Lists the active view's model elements or the whole host model, checks the
   target parameter first (name, data type, binding, shared parameter file, categories, ownership), and can create

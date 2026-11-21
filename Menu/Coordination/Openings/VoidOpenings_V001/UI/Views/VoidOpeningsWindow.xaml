@@ -369,6 +369,8 @@
                         </DataGridTemplateColumn>
                         <DataGridTextColumn Header="Clash ID" Binding="{Binding ClashId}" IsReadOnly="True" Width="96"/>
                         <DataGridTextColumn Header="Status" Binding="{Binding Status}" IsReadOnly="True" Width="74"/>
+                        <DataGridTextColumn Header="Job ID" Binding="{Binding JobId}" IsReadOnly="True" Width="116"/>
+                        <DataGridTextColumn Header="Void" Binding="{Binding VoidStatus}" IsReadOnly="True" Width="78"/>
                         <DataGridTextColumn Header="Structural model" Binding="{Binding StructuralModel}" IsReadOnly="True" Width="130"/>
                         <DataGridTextColumn Header="Str. category" Binding="{Binding StructuralCategory}" IsReadOnly="True" Width="120"/>
                         <DataGridTextColumn Header="Str. element" Binding="{Binding StructuralElementId}" IsReadOnly="True" Width="84" ElementStyle="{StaticResource NumberCell}"/>
@@ -388,15 +390,36 @@
                            VerticalAlignment="Top" IsHitTestVisible="False" Foreground="{DynamicResource BrushTextSecondary}"
                            Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVisibility}}"/>
 
-                <DockPanel Grid.Row="3" Margin="10,6,10,8">
-                    <Button DockPanel.Dock="Right" Content="Copy list" Click="OnCopyNotAnalysedClick" Style="{DynamicResource SmallSecondaryButton}" Margin="10,0,0,0"
-                            ToolTip="Copies the elements that could not be analysed (model, category, element id, reason), ready to paste into Excel."
-                            Visibility="{Binding HasNotAnalysed, Converter={StaticResource BoolToVisibility}}"/>
-                    <TextBlock VerticalAlignment="Center" TextWrapping="Wrap" Foreground="{DynamicResource BrushTextSecondary}">
-                        <Run Text="{Binding NotAnalysedSummary, Mode=OneWay}" Foreground="{DynamicResource BrushStatusWarn}" FontWeight="SemiBold"/>
-                        <Run Text=" Ticked rows get an opening when Generate Void arrives in a later version. Rows marked Review start unticked."/>
-                    </TextBlock>
-                </DockPanel>
+                <StackPanel Grid.Row="3" Margin="10,6,10,8">
+
+                    <!-- Generate and the exports. The commands live on the window's view model, not on Results. -->
+                    <DockPanel Margin="0,0,0,8">
+                        <Button DockPanel.Dock="Left" Content="GENERATE VOID" Style="{DynamicResource RunButton}" Margin="0,0,8,0"
+                                Command="{Binding DataContext.GenerateCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                ToolTip="Places a void family for every ticked row in the active model and cuts the structural element where Revit allows it. This changes the model; it is one undo step."/>
+                        <Button DockPanel.Dock="Left" Content="Export package…" Style="{DynamicResource SmallSecondaryButton}" Margin="0,0,6,0"
+                                Command="{Binding DataContext.ExportPackageCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                ToolTip="Writes the ticked rows to a JSON package in the structural model's own coordinates. Use it when the structure is a Revit link: open that file and press Apply package there."/>
+                        <Button DockPanel.Dock="Left" Content="Apply package…" Style="{DynamicResource SmallSecondaryButton}" Margin="0,0,6,0"
+                                Command="{Binding DataContext.ApplyPackageCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                ToolTip="Reads a package written for this model and places its voids here. This changes the model."/>
+                        <Button DockPanel.Dock="Left" Content="Export results…" Style="{DynamicResource SmallSecondaryButton}" Margin="0,0,14,0"
+                                Command="{Binding DataContext.ExportResultsCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                ToolTip="Writes every row of the table as an Excel workbook or as JSON. Changes nothing in the model."/>
+                        <TextBlock Text="{Binding DataContext.GenerateHint, RelativeSource={RelativeSource AncestorType=Window}, Mode=OneWay}"
+                                   VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource BrushTextSecondary}"/>
+                    </DockPanel>
+
+                    <DockPanel>
+                        <Button DockPanel.Dock="Right" Content="Copy list" Click="OnCopyNotAnalysedClick" Style="{DynamicResource SmallSecondaryButton}" Margin="10,0,0,0"
+                                ToolTip="Copies the elements that could not be analysed (model, category, element id, reason), ready to paste into Excel."
+                                Visibility="{Binding HasNotAnalysed, Converter={StaticResource BoolToVisibility}}"/>
+                        <TextBlock VerticalAlignment="Center" TextWrapping="Wrap" Foreground="{DynamicResource BrushTextSecondary}">
+                            <Run Text="{Binding NotAnalysedSummary, Mode=OneWay}" Foreground="{DynamicResource BrushStatusWarn}" FontWeight="SemiBold"/>
+                            <Run Text=" Ticked rows get a void when you press GENERATE VOID. Rows marked Review start unticked."/>
+                        </TextBlock>
+                    </DockPanel>
+                </StackPanel>
             </Grid>
         </Border>
 

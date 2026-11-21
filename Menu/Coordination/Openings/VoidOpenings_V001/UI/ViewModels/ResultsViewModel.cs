@@ -148,6 +148,22 @@ namespace Revit26_Plugin_Revised.VoidOpenings.V001.UI.ViewModels
         /// <summary>The approved openings, for Generate.</summary>
         public IReadOnlyList<OpeningData> ApprovedOpenings => _all.Where(r => r.IsApproved).Select(r => r.Review.Opening).ToList();
 
+        /// <summary>How many rows are ticked; what Generate would place.</summary>
+        public int ApprovedCount => _all.Count(r => r.IsApproved);
+
+        /// <summary>True when the last Analyze produced rows, ticked or not.</summary>
+        public bool HasRows => _all.Count > 0;
+
+        /// <summary>
+        /// Shows what a Generate run wrote onto the openings (Job ID, void status, result note) in
+        /// every row, shown or not. Call it on the window's thread.
+        /// </summary>
+        public void RefreshResults()
+        {
+            foreach (ClashRowViewModel row in _all)
+                row.RefreshResult();
+        }
+
         /// <summary>
         /// Shows the result of an Analyze run. Decisions made on clashes that are still there are kept.
         /// </summary>
@@ -167,6 +183,8 @@ namespace Revit26_Plugin_Revised.VoidOpenings.V001.UI.ViewModels
             NotAnalysedText = NotAnalysedList(result.NotAnalysed);
 
             OnPropertyChanged(nameof(TabCount));
+            OnPropertyChanged(nameof(ApprovedCount));
+            OnPropertyChanged(nameof(HasRows));
             ApplyFilter();
         }
 
@@ -206,7 +224,11 @@ namespace Revit26_Plugin_Revised.VoidOpenings.V001.UI.ViewModels
 
         // A decision changes the counts but not which rows are listed: a row must not vanish from
         // under the cursor because its status left the current filter.
-        private void OnDecisionChanged() => UpdateSummary();
+        private void OnDecisionChanged()
+        {
+            UpdateSummary();
+            OnPropertyChanged(nameof(ApprovedCount));
+        }
 
         private void ApplyFilter()
         {

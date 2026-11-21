@@ -4,10 +4,13 @@ using Microsoft.Extensions.DependencyInjection;
 using Revit26_Plugin_Revised.VoidOpenings.V001.Core.Application.Features.ClashDetection;
 using Revit26_Plugin_Revised.VoidOpenings.V001.Core.Application.Features.ClearanceConfiguration;
 using Revit26_Plugin_Revised.VoidOpenings.V001.Core.Application.Features.ModelSelection;
+using Revit26_Plugin_Revised.VoidOpenings.V001.Core.Application.Features.Placement;
 using Revit26_Plugin_Revised.VoidOpenings.V001.Core.Application.Ports;
 using Revit26_Plugin_Revised.VoidOpenings.V001.Infrastructure.ExternalEvents;
+using Revit26_Plugin_Revised.VoidOpenings.V001.Infrastructure.Files;
 using Revit26_Plugin_Revised.VoidOpenings.V001.Infrastructure.Json;
 using Revit26_Plugin_Revised.VoidOpenings.V001.Infrastructure.Revit;
+using Revit26_Plugin_Revised.VoidOpenings.V001.UI.Services;
 using Revit26_Plugin_Revised.VoidOpenings.V001.UI.ViewModels;
 
 namespace Revit26_Plugin_Revised.VoidOpenings.V001.Commands
@@ -29,11 +32,16 @@ namespace Revit26_Plugin_Revised.VoidOpenings.V001.Commands
             services.AddSingleton<IModelReader, RevitModelReader>();
             services.AddSingleton<IGeometryReader, RevitGeometryReader>();
             services.AddSingleton<IViewNavigator, RevitViewNavigator>();
+            services.AddSingleton<IVoidWriter, RevitVoidWriter>();
             services.AddSingleton<ISettingsStore>(new FileSettingsStore());
             services.AddSingleton<ModelSelectionService>();
             services.AddSingleton<ClearanceConfigurationService>();
             services.AddSingleton<AnalyzeClashesUseCase>();
             services.AddSingleton<NavigationService>();
+            services.AddSingleton<GenerateVoidsUseCase>();
+            services.AddSingleton<VoidPlacementService>();
+            services.AddSingleton<VoidOpeningsFiles>();
+            services.AddSingleton<FileDialogService>();
             services.AddSingleton<MainViewModel>();
             return services.BuildServiceProvider();
         }

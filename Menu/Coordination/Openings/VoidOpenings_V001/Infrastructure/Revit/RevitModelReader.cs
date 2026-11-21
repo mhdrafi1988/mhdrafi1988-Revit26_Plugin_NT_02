@@ -4,6 +4,7 @@ using Autodesk.Revit.DB;
 using Revit26_Plugin_Revised.VoidOpenings.V001.Core.Application.Features.ModelSelection;
 using Revit26_Plugin_Revised.VoidOpenings.V001.Core.Application.Ports;
 using Revit26_Plugin_Revised.VoidOpenings.V001.Core.Domain.Entities;
+using Revit26_Plugin_Revised.VoidOpenings.V001.Core.Domain.Geometry;
 
 namespace Revit26_Plugin_Revised.VoidOpenings.V001.Infrastructure.Revit
 {
@@ -44,6 +45,23 @@ namespace Revit26_Plugin_Revised.VoidOpenings.V001.Infrastructure.Revit
                 counts[category] = Count(document, CategoryMap.Of(category));
             return counts;
         }
+
+        /// <inheritdoc/>
+        public Transform3 GetToHostTransform(ModelRef model)
+        {
+            ModelLocation location = LinkCatalog.Locate(_context.RequireProject(), model);
+            Transform toHost = location.ToHost;
+            if (Math.Abs(toHost.Scale - 1) > 1e-9)
+                throw new InvalidOperationException(
+                    $"The link {location.Name} is placed with a scale, so its openings cannot be written in its own coordinates.");
+
+            // The basis is a rotation, so it carries over unchanged; only the origin is a length.
+            return new Transform3(
+                new Vec3(toHost.Origin.X * UnitsMm.PerFoot, toHost.Origin.Y * UnitsMm.PerFoot, toHost.Origin.Z * UnitsMm.PerFoot),
+                Direction(toHost.BasisX), Direction(toHost.BasisY), Direction(toHost.BasisZ));
+        }
+
+        private static Vec3 Direction(XYZ vector) => new Vec3(vector.X, vector.Y, vector.Z);
 
         /// <summary>The model's document, or null when its link was removed or unloaded since the list was read.</summary>
         private Document DocumentOf(ModelRef model) => LinkCatalog.Resolve(_context.RequireProject(), model);

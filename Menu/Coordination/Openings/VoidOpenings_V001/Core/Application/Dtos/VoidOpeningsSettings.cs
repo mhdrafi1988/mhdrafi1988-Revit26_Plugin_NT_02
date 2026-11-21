@@ -88,6 +88,38 @@ namespace Revit26_Plugin_Revised.VoidOpenings.V001.Core.Application.Dtos
             return settings;
         }
 
+        /// <summary>
+        /// The settings for a run of the clearance setup the user has on the OPENING CLEARANCE card.
+        /// A rule with no upper size limit keeps <see cref="ClearanceRule.NoUpperLimit"/> as its
+        /// <see cref="ClearanceRuleDto.ToMm"/>, so it still covers every size above its lower bound.
+        /// The custom family names stay empty, because the card has no field for them: the run then
+        /// uses the built-in void families.
+        /// </summary>
+        public static VoidOpeningsSettings From(ClearanceSetup setup)
+        {
+            if (setup == null) throw new ArgumentNullException(nameof(setup));
+            OpeningSettings options = setup.Options;
+            return new VoidOpeningsSettings
+            {
+                Rules = setup.Rules.Select(r => new ClearanceRuleDto
+                {
+                    Category = r.Category.ToString(),
+                    FromMm = r.FromMm,
+                    ToMm = r.ToMm,
+                    ClearanceMm = r.ClearanceMm,
+                    Mode = r.Mode.ToString(),
+                    Shape = r.Shape.ToString(),
+                }).ToList(),
+                DefaultClearanceMm = setup.DefaultClearanceMm,
+                DefaultMode = setup.DefaultMode.ToString(),
+                OvershootMm = options.OvershootMm,
+                RoundUpToMm = options.RoundUpToMm,
+                IncludeInsulation = options.IncludeInsulation,
+                AxisMode = options.AxisMode.ToString(),
+                MaxCircularAngleDeg = options.MaxCircularAngleDeg,
+            };
+        }
+
         /// <summary>The rules as the domain rule set. Unknown names fall back to the default of their kind.</summary>
         public ClearanceRuleSet ToRuleSet() => new ClearanceRuleSet(
             Rules.Select(r => new ClearanceRule(

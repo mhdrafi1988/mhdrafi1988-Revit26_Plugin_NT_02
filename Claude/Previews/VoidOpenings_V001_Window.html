@@ -1,21 +1,26 @@
 <title>Void Openings Window</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<!-- UI preview (CLAUDE.md "UI previews"): Void Openings V001, tool 0.4.0, plugin 7.20.0.
+<!-- UI preview (CLAUDE.md "UI previews"): Void Openings V001, tool 0.5.0, plugin 7.28.0.
      Phases 3 and 4 were built as plugin 7.16.0 and 7.17.0 on their branch; those numbers were taken by other
-     tools before the branch landed, so both phases ship together as plugin 7.20.0.
-     New in 0.4.0 (phase 4): the Setup / Results tabs, the ANALYZE bar (button, Cancel, progress, hint), the
-     Results tab (table of clashes with the opening sized for each, tick to approve, Approve / Reject, Zoom to,
-     Highlight MEP / structure, Find, Show, the not-analysed line with Copy list) and the changed ribbon tooltip.
-     Shows: the ribbon button and tooltip, the Setup tab, the Results tab after an Analyze, the Analyze bar while
-     running and while blocked, the clearance card with errors, the unsaved-changes dialog, the window with an
-     unloaded link, and below them the planned full window (design wireframe, not built yet) from
+     tools before the branch landed, so both phases shipped together as plugin 7.20.0 (tool 0.4.0).
+     New in 0.5.0 (phase 5): the tool changes the model for the first time. The Results tab gains a
+     GENERATE VOID button (places a void family for every ticked row in the active model and cuts the
+     structure), Export package… / Apply package… for a structure that is a Revit link, Export results… to
+     Excel or JSON, a hint line saying what Generate would do, and two new table columns, Job ID and Void.
+     The ribbon tooltip no longer says void placement comes later.
+     Shows: the ribbon button and tooltip, the Setup tab, the Results tab after a Generate run, the Generate
+     bar in its three states (ready, linked structure, nothing ticked), the Analyze bar while running and
+     while blocked, the clearance card with errors, the unsaved-changes dialog, the window with an unloaded
+     link, and below them the planned full window (design wireframe, not built yet) from
      docs/superpowers/specs/2026-11-10-void-openings-design.md.
      Mirrors: Menu/Coordination/Openings/VoidOpenings_V001/UI/Views/VoidOpeningsWindow.xaml (+ .xaml.cs)
               (+ MainViewModel, ModelPanelViewModel, CategoryItemViewModel, ClearanceRulesViewModel,
-                 ClearanceRuleRowViewModel, ClearanceOptions, ResultsViewModel, ClashRowViewModel),
+                 ClearanceRuleRowViewModel, ClearanceOptions, ResultsViewModel, ClashRowViewModel,
+                 Core/Application/Features/Placement/VoidPlacementService.cs),
               Menu/00_Push_Button_Menu_items/Ribbon/CoordinationRibbon.cs
      Artifact: https://claude.ai/artifact/EaDQAnYotLuWeE7jHrpDBa (republish to this URL on every update;
                the earlier link, Ch9vZ7dfEa5kHAksAE9GQH, could not be opened from this account on 2026-11-16)
+     Note: nothing in this tool has been run in Revit; the voids below are a mock-up of the intended result.
      Colours: Shared/SharedStyles.xaml tokens, one light look on purpose (mirrors the light WPF window). -->
 <style>
 /* Layout: one column of captioned mock-ups; each fixed-width Revit piece scrolls in its own frame. */
@@ -98,22 +103,22 @@ li,p,.note{overflow-wrap:anywhere}
 </style>
 <main>
 <section>
-  <h1>Void Openings <span class="tag">0.4.0 · phase 4 of 8</span></h1>
-  <p class="muted">Tool in development. Version 0.4.0 adds Analyze: it finds where the MEP elements pass through the structure and lists the opening sized for each place, which you can zoom to, approve or reject. Nothing in the model is changed yet. Generate Void and Export come in later versions. All names, ids, counts and sizes below are sample data.</p>
+  <h1>Void Openings <span class="tag">0.5.0 · phase 5 of 8</span></h1>
+  <p class="muted">Tool in development. Version 0.5.0 places the voids: <b>GENERATE VOID</b> puts a void family at every ticked row in the active model and cuts the structural element where Revit allows it, <b>Export package…</b> hands the openings of a <i>linked</i> structure over to that file and <b>Apply package…</b> places them there, and <b>Export results…</b> writes the table to Excel or JSON. Up to 0.4.0 the tool changed nothing in the model; from 0.5.0 Generate Void and Apply package do. All names, ids, counts and sizes below are sample data, and the tool has not yet been run in Revit.</p>
 </section>
 
 <section>
   <h2>Ribbon · Rafi_Pro_Docs2 tab, Coordination panel <span class="tag">tooltip changed</span></h2>
   <div class="frame"><div class="row" style="align-items:flex-start;flex-wrap:nowrap;width:max-content">
     <div class="ribbon"><div class="panel"><div class="big"><span class="ico"></span>Void<br>Openings</div><span class="pname">Coordination</span></div></div>
-    <div class="tip"><b>Void Openings — v0.4.0 (build V001)</b><span>Openings for MEP through structure. In this version: choose the structural model and the MEP model (the active model or a Revit link) and their categories, set the opening clearance rules, and Analyze: find where MEP passes through structure, see the opening sized for each place, zoom to it and approve or reject it. Nothing in the model is changed; void placement follows in a later version.</span></div>
+    <div class="tip"><b>Void Openings — v0.5.0 (build V001)</b><span>Openings for MEP through structure. Choose the structural model and the MEP model (the active model or a Revit link) and their categories, set the opening clearance rules, and Analyze: find where MEP passes through structure, see the opening sized for each place, zoom to it and approve or reject it. GENERATE VOID then places a void family for every ticked row in the active model and cuts the structure; a linked structure is handed over as an opening package and applied inside that file. The results table exports to Excel or JSON.</span></div>
   </div></div>
 </section>
 
 <section>
-  <h2>Setup tab <span class="tag">tabs and Analyze bar are new</span></h2>
+  <h2>Setup tab <span class="tag">unchanged in 0.5.0</span></h2>
   <div class="frame"><div class="win">
-    <div class="title"><span>Void Openings — v0.4.0</span><span>—  ☐  ✕</span></div>
+    <div class="title"><span>Void Openings — v0.5.0</span><span>—  ☐  ✕</span></div>
     <div class="body">
       <div class="row"><span class="chip on">1&nbsp; Setup</span><span class="chip">2&nbsp; Results</span><span class="tag">new</span></div>
       <div class="cols">
@@ -198,9 +203,9 @@ li,p,.note{overflow-wrap:anywhere}
 </section>
 
 <section>
-  <h2>Results tab after Analyze <span class="tag">new</span></h2>
+  <h2>Results tab after Analyze and GENERATE VOID <span class="tag">Generate bar, Job ID and Void columns are new</span></h2>
   <div class="frame"><div class="win" style="width:1180px">
-    <div class="title"><span>Void Openings — v0.4.0</span><span>—  ☐  ✕</span></div>
+    <div class="title"><span>Void Openings — v0.5.0</span><span>—  ☐  ✕</span></div>
     <div class="body">
       <div class="row"><span class="chip">1&nbsp; Setup</span><span class="chip on">2&nbsp; Results (7)</span></div>
       <div class="card">
@@ -214,20 +219,21 @@ li,p,.note{overflow-wrap:anywhere}
             <span style="width:8px"></span><span class="btn s">Approve</span><span class="btn s">Reject</span>
           </div>
           <div class="scroll"><table>
-            <tr><th></th><th>Clash ID</th><th>Status</th><th>Structural model</th><th>Str. category</th><th class="n">Str. element</th><th>MEP model</th><th>MEP category</th><th class="n">MEP element</th><th class="n">MEP size</th><th class="n">Width</th><th class="n">Height</th><th class="n">Diameter</th><th class="n">Depth</th><th class="n">Clearance</th><th>Note</th></tr>
-            <tr><td><span class="chk on"></span></td><td class="mono">CL-3FA91C02</td><td>Detected</td><td>Sample_Tower_STR.rvt</td><td>Walls</td><td class="n">418822</td><td>Sample_Tower_MEP.rvt</td><td>Conduits</td><td class="n">771204</td><td class="n">Ø40</td><td class="n">–</td><td class="n">–</td><td class="n">100</td><td class="n">300</td><td class="n">30</td><td></td></tr>
-            <tr class="sel"><td><span class="chk on"></span></td><td class="mono">CL-7B20E4D1</td><td>Detected</td><td>Sample_Tower_STR.rvt</td><td>Floors</td><td class="n">402115</td><td>Sample_Tower_MEP.rvt</td><td>Pipes</td><td class="n">765530</td><td class="n">Ø110</td><td class="n">–</td><td class="n">–</td><td class="n">210</td><td class="n">350</td><td class="n">50</td><td></td></tr>
-            <tr><td><span class="chk on"></span></td><td class="mono">CL-0C5D77A8</td><td>Detected</td><td>Sample_Tower_STR.rvt</td><td>Floors</td><td class="n">402115</td><td>Sample_Tower_MEP.rvt</td><td>Ducts</td><td class="n">780091</td><td class="n">500 × 300</td><td class="n">580</td><td class="n">380</td><td class="n">–</td><td class="n">350</td><td class="n">75</td><td></td></tr>
-            <tr><td><span class="chk on"></span></td><td class="mono">CL-91E6B3F4</td><td>Detected</td><td>Sample_Tower_STR.rvt</td><td>Structural Framing</td><td class="n">455310</td><td>Sample_Tower_MEP.rvt</td><td>Pipes</td><td class="n">765871</td><td class="n">Ø60</td><td class="n">–</td><td class="n">–</td><td class="n">140</td><td class="n">400</td><td class="n">40</td><td></td></tr>
-            <tr><td><span class="chk on"></span></td><td class="mono">CL-D48A0F16</td><td>Detected</td><td>Sample_Tower_STR.rvt</td><td>Walls</td><td class="n">419004</td><td>Sample_Tower_MEP.rvt</td><td>Pipes</td><td class="n">766102</td><td class="n">Ø110</td><td class="n">240</td><td class="n">210</td><td class="n">–</td><td class="n">300</td><td class="n">50</td><td></td></tr>
-            <tr><td><span class="chk"></span></td><td class="mono">CL-5A17C9E0</td><td class="warnc">Review</td><td>Sample_Tower_STR.rvt</td><td>Walls</td><td class="n">419377</td><td>Sample_Tower_MEP.rvt</td><td>Conduits</td><td class="n">771650</td><td class="n">Ø25</td><td class="n">–</td><td class="n">–</td><td class="n">80</td><td class="n">220</td><td class="n">25</td><td>MEP element starts or ends inside the structure.</td></tr>
-            <tr><td><span class="chk" style="opacity:.45"></span></td><td class="mono">CL-E2903B7D</td><td>Rejected</td><td>Sample_Tower_STR.rvt</td><td>Structural Framing</td><td class="n">455981</td><td>Sample_Tower_MEP.rvt</td><td>Pipes</td><td class="n">766410</td><td class="n">Ø60</td><td class="n">–</td><td class="n">–</td><td class="n">140</td><td class="n">400</td><td class="n">40</td><td></td></tr>
+            <tr><th></th><th>Clash ID</th><th>Status</th><th>Job ID</th><th>Void</th><th>Structural model</th><th>Str. category</th><th class="n">Str. element</th><th>MEP model</th><th>MEP category</th><th class="n">MEP element</th><th class="n">MEP size</th><th class="n">Width</th><th class="n">Height</th><th class="n">Diameter</th><th class="n">Depth</th><th class="n">Clearance</th><th>Note</th></tr>
+            <tr><td><span class="chk on"></span></td><td class="mono">CL-3FA91C02</td><td>Detected</td><td class="mono">VOID-2026-000001</td><td class="okc">Cut</td><td>Sample_Tower_STR.rvt</td><td>Walls</td><td class="n">418822</td><td>Sample_Tower_MEP.rvt</td><td>Conduits</td><td class="n">771204</td><td class="n">Ø40</td><td class="n">–</td><td class="n">–</td><td class="n">100</td><td class="n">300</td><td class="n">30</td><td></td></tr>
+            <tr class="sel"><td><span class="chk on"></span></td><td class="mono">CL-7B20E4D1</td><td>Detected</td><td class="mono">VOID-2026-000002</td><td class="okc">Cut</td><td>Sample_Tower_STR.rvt</td><td>Floors</td><td class="n">402115</td><td>Sample_Tower_MEP.rvt</td><td>Pipes</td><td class="n">765530</td><td class="n">Ø110</td><td class="n">–</td><td class="n">–</td><td class="n">210</td><td class="n">350</td><td class="n">50</td><td></td></tr>
+            <tr><td><span class="chk on"></span></td><td class="mono">CL-0C5D77A8</td><td>Detected</td><td class="mono">VOID-2026-000003</td><td class="okc">Cut</td><td>Sample_Tower_STR.rvt</td><td>Floors</td><td class="n">402115</td><td>Sample_Tower_MEP.rvt</td><td>Ducts</td><td class="n">780091</td><td class="n">500 × 300</td><td class="n">580</td><td class="n">380</td><td class="n">–</td><td class="n">350</td><td class="n">75</td><td></td></tr>
+            <tr><td><span class="chk on"></span></td><td class="mono">CL-91E6B3F4</td><td>Detected</td><td class="mono">VOID-2026-000004</td><td class="warnc">Generated</td><td>Sample_Tower_STR.rvt</td><td>Structural Framing</td><td class="n">455310</td><td>Sample_Tower_MEP.rvt</td><td>Pipes</td><td class="n">765871</td><td class="n">Ø60</td><td class="n">–</td><td class="n">–</td><td class="n">140</td><td class="n">400</td><td class="n">40</td><td>The structural element is in a group, so it was not cut.</td></tr>
+            <tr><td><span class="chk on"></span></td><td class="mono">CL-D48A0F16</td><td>Detected</td><td class="n">–</td><td class="badc">Failed</td><td>Sample_Tower_STR.rvt</td><td>Walls</td><td class="n">419004</td><td>Sample_Tower_MEP.rvt</td><td>Pipes</td><td class="n">766102</td><td class="n">Ø110</td><td class="n">240</td><td class="n">210</td><td class="n">–</td><td class="n">300</td><td class="n">50</td><td>The structural element is owned by another user.</td></tr>
+            <tr><td><span class="chk"></span></td><td class="mono">CL-5A17C9E0</td><td class="warnc">Review</td><td class="n">–</td><td class="n">–</td><td>Sample_Tower_STR.rvt</td><td>Walls</td><td class="n">419377</td><td>Sample_Tower_MEP.rvt</td><td>Conduits</td><td class="n">771650</td><td class="n">Ø25</td><td class="n">–</td><td class="n">–</td><td class="n">80</td><td class="n">220</td><td class="n">25</td><td>MEP element starts or ends inside the structure.</td></tr>
+            <tr><td><span class="chk" style="opacity:.45"></span></td><td class="mono">CL-E2903B7D</td><td>Rejected</td><td class="n">–</td><td class="n">–</td><td>Sample_Tower_STR.rvt</td><td>Structural Framing</td><td class="n">455981</td><td>Sample_Tower_MEP.rvt</td><td>Pipes</td><td class="n">766410</td><td class="n">Ø60</td><td class="n">–</td><td class="n">–</td><td class="n">140</td><td class="n">400</td><td class="n">40</td><td></td></tr>
           </table></div>
-          <div class="row"><span style="flex:1;min-width:260px;font-size:12.5px"><b class="warnc">2 elements could not be analysed.</b> <span class="muted">Ticked rows get an opening when Generate Void arrives in a later version. Rows marked Review start unticked.</span></span><span class="btn s">Copy list</span></div>
+          <div class="row" style="flex-wrap:nowrap"><span class="btn p">GENERATE VOID</span><span class="btn s">Export package…</span><span class="btn s">Apply package…</span><span class="btn s">Export results…</span><span class="status" style="flex:1;min-width:0">5 ticked rows: Generate Void places a void for each in the active model and cuts the structure.</span><span class="tag">new</span></div>
+          <div class="row"><span style="flex:1;min-width:260px;font-size:12.5px"><b class="warnc">2 elements could not be analysed.</b> <span class="muted">Ticked rows get a void when you press GENERATE VOID. Rows marked Review start unticked.</span></span><span class="btn s">Copy list</span></div>
         </div>
       </div>
       <div class="row"><span class="btn p">ANALYZE</span><span class="btn dis" style="border:0;font-weight:400">Cancel</span><span class="status" style="flex:1">Ready. Nothing in the model is changed by Analyze.</span></div>
-      <div class="note" style="color:var(--text)">Analyze finished in 12.4 s: 7 clashes from 5,430 MEP and 412 nearby structural elements. 2 element(s) could not be analysed; see the list under the table. <span class="btn s" style="margin-left:8px">Dismiss</span></div>
+      <div class="note warn">3 cut, 1 placed without a cut, 0 already there, 1 failed. Built the void family Rafi_Void_Round. <span class="btn s" style="margin-left:8px">Dismiss</span> <span class="tag">new</span></div>
       <div class="row"><span class="status" style="flex:1">(Active model) Sample_Tower_COORD · 3 Revit link(s), 1 not loaded</span><span class="btn">Refresh</span><span class="btn">Close</span></div>
     </div>
   </div></div>
@@ -236,8 +242,33 @@ li,p,.note{overflow-wrap:anywhere}
     <li><b>Reject</b> keeps the row in the list with status Rejected and disables its checkbox; <b>Approve</b> brings it back. Both work on all selected rows.</li>
     <li><b>Zoom to</b> zooms the active plan, section or 3D view to the opening. <b>Highlight MEP</b> and <b>Highlight structure</b> select the element in Revit, also inside a link.</li>
     <li>Width and Height are for rectangular openings, Diameter for circular ones; Depth includes the overshoot on both sides. The sloped pipe in row 5 gets a rectangular opening because it crosses at more than 15°.</li>
+    <li><b>GENERATE VOID</b> places a void family at every ticked row <i>in the active model</i> and cuts the structural element. The run is one undo step, and each opening has its own transaction, so one failure rolls back alone and the rest still go in. <b>Job ID</b> then holds the id written onto the void (VOID-&lt;year&gt;-&lt;number&gt;, counted per model) and <b>Void</b> says what happened: <span class="okc">Cut</span> when the element's volume really went down, <span class="warnc">Generated</span> when the void went in but the element was not cut (it is in a group, or Revit cannot cut that category), <span class="badc">Failed</span> with the reason in Note. Pressing it again leaves an unchanged void alone and reports it as already there.</li>
+    <li><b>Export package…</b> is for a structure that is a <b>Revit link</b>: voids can only be placed in the active model, so the ticked rows are written to a JSON file in the link's own coordinates. Open that file as the project and press <b>Apply package…</b> there. A package written for another model is refused.</li>
+    <li><b>Export results…</b> writes every row of the table, shown or not, as an Excel workbook or as JSON. The columns and their order are fixed; new ones are appended.</li>
     <li><b>Copy list</b> copies the elements that were left out, with the reason, ready to paste into Excel.</li>
     <li>Running Analyze again keeps your ticks and rejections on clashes that are still there. The results are not stored yet: they are gone when the window closes.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>Generate bar in its three states <span class="tag">new</span></h2>
+  <div class="frame"><div style="width:1000px;display:flex;flex-direction:column;gap:10px">
+    <div class="win"><div class="body" style="gap:8px">
+      <div class="row" style="flex-wrap:nowrap"><span class="btn p">GENERATE VOID</span><span class="btn s">Export package…</span><span class="btn s">Apply package…</span><span class="btn s">Export results…</span><span class="status" style="flex:1;min-width:0">5 ticked rows: Generate Void places a void for each in the active model and cuts the structure.</span></div>
+    </div></div>
+    <div class="win"><div class="body" style="gap:8px">
+      <div class="row" style="flex-wrap:nowrap"><span class="btn p dis" style="background:var(--surface-card);color:var(--text-3);border-color:var(--border)">GENERATE VOID</span><span class="btn s">Export package…</span><span class="btn s">Apply package…</span><span class="btn s">Export results…</span><span class="status" style="flex:1;min-width:0">The structure is the link Sample_Tower_STR.rvt, which this session cannot change. Export package writes the 5 ticked rows for it; open that file and press Apply package there.</span></div>
+    </div></div>
+    <div class="win"><div class="body" style="gap:8px">
+      <div class="row" style="flex-wrap:nowrap"><span class="btn p dis" style="background:var(--surface-card);color:var(--text-3);border-color:var(--border)">GENERATE VOID</span><span class="btn s dis">Export package…</span><span class="btn s">Apply package…</span><span class="btn s">Export results…</span><span class="status" style="flex:1;min-width:0">Tick at least one row in the RESULTS table.</span></div>
+    </div></div>
+  </div></div>
+  <ul>
+    <li><b>Top:</b> the structure is the active model, so Generate Void runs. The hint counts the ticked rows and says what will change.</li>
+    <li><b>Middle:</b> the structure is a Revit link. Generate Void is disabled, because Revit only lets the tool place elements in the active model; Export package… stays on and the hint says what to do with the file.</li>
+    <li><b>Bottom:</b> nothing is ticked, so neither Generate Void nor Export package has anything to write. Apply package… and Export results… do not depend on the ticks.</li>
+    <li>While a run is on, all four are disabled and the window's Analyze and Refresh buttons with them. Everything the run reports — the counts, the families it had to build, the elements it could not cut — goes to the notification strip, and a run with a failure in it is shown as an error there.</li>
+    <li>A package is refused when it was written for a different model, so its voids cannot land in the wrong file by accident.</li>
   </ul>
 </section>
 
@@ -255,7 +286,7 @@ li,p,.note{overflow-wrap:anywhere}
 <section>
   <h2>Checks: errors block saving, overlaps warn</h2>
   <div class="frame"><div class="win">
-    <div class="title"><span>Void Openings — v0.4.0</span><span>—  ☐  ✕</span></div>
+    <div class="title"><span>Void Openings — v0.5.0</span><span>—  ☐  ✕</span></div>
     <div class="body">
       <div class="card">
         <header><span>OPENING CLEARANCE (millimetres)</span><span>4 rules · 3 error(s) · 1 warning(s) · unsaved changes</span></header>
@@ -291,7 +322,7 @@ li,p,.note{overflow-wrap:anywhere}
 <section>
   <h2>Closing with unsaved rules</h2>
   <div class="frame"><div class="dlg">
-    <div class="title"><span>Void Openings — v0.4.0</span><span>✕</span></div>
+    <div class="title"><span>Void Openings — v0.5.0</span><span>✕</span></div>
     <div class="body" style="background:var(--surface-card)">
       <div>The clearance rules have unsaved changes.</div>
       <div>Save them before closing?</div>
@@ -304,7 +335,7 @@ li,p,.note{overflow-wrap:anywhere}
 <section>
   <h2>Unloaded link and messages</h2>
   <div class="frame"><div class="win" style="width:520px">
-    <div class="title"><span>Void Openings — v0.4.0</span><span>—  ☐  ✕</span></div>
+    <div class="title"><span>Void Openings — v0.5.0</span><span>—  ☐  ✕</span></div>
     <div class="body">
         <div class="card">
           <header>STRUCTURAL MODEL <span>Link not loaded</span></header>
@@ -439,7 +470,8 @@ li,p,.note{overflow-wrap:anywhere}
 <section>
   <h2>What the columns and states mean</h2>
   <ul>
-    <li><b>Status</b>: Detected → Generated (void placed) → Cut (cut verified), or Failed / Rejected / Review.</li>
+    <li><b>Status</b> (built, 0.5.0): Detected, Review or Rejected — the review decision on the row. <b>Void</b> (built, 0.5.0): what the last Generate did — Cut, Generated, Failed, or “–” before any run. The planned window folds the two into one Status column: Detected → Generated (void placed) → Cut (cut verified), or Failed / Rejected / Review.</li>
+    <li><b>Job ID</b> (built, 0.5.0): VOID-&lt;year&gt;-&lt;number&gt;, counted per model and written onto the void instance with the clash id, the element ids and the categories.</li>
     <li><b>Tracking</b> (re-runs): New, Existing, Updated, Manually modified, Source deleted.</li>
     <li>Width and Height are for rectangular openings, Diameter for circular ones. All sizes in millimetres.</li>
     <li>Messages appear in the strip above the status bar, not in pop-up dialogs.</li>

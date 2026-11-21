@@ -10,9 +10,10 @@ using Revit26_Plugin_Revised.VoidOpenings.V001.UI.Views;
 namespace Revit26_Plugin_Revised.VoidOpenings.V001.Commands
 {
     /// <summary>
-    /// Opens the Void Openings window (modeless). This version covers choosing the structural and MEP
-    /// models and their categories, the opening clearance rules, and Analyze with its results table
-    /// (review, zoom, highlight). It changes nothing in the model; void placement is added in a later version.
+    /// Opens the Void Openings window (modeless). It covers choosing the structural and MEP models and
+    /// their categories, the opening clearance rules, Analyze with its results table (review, zoom,
+    /// highlight), placing the voids for the ticked rows, and the package and result exports. Analyze
+    /// changes nothing; Generate Void and Apply package change the active model.
     /// </summary>
     [Transaction(TransactionMode.Manual)]
     [Regeneration(RegenerationOption.Manual)]

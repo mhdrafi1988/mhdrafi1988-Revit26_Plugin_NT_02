@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Revit26_Plugin_Revised.VoidOpenings.V001.Core.Application.Features.ModelSelection;
 using Revit26_Plugin_Revised.VoidOpenings.V001.Core.Application.Ports;
 using Revit26_Plugin_Revised.VoidOpenings.V001.Core.Domain.Entities;
+using Revit26_Plugin_Revised.VoidOpenings.V001.Core.Domain.Geometry;
 using Xunit;
 
 namespace VoidOpenings.Tests
@@ -23,6 +24,10 @@ namespace VoidOpenings.Tests
             public IReadOnlyDictionary<StructuralCategory, int> CountStructural(ModelRef model) { CountCalls++; return Structural; }
 
             public IReadOnlyDictionary<MepCategory, int> CountMep(ModelRef model) { CountCalls++; return Mep; }
+
+            public Transform3 GetToHostTransform(ModelRef model) => ToHost;
+
+            public Transform3 ToHost = Transform3.Identity;
         }
 
         private sealed class InlineDispatcher : IRevitDispatcher

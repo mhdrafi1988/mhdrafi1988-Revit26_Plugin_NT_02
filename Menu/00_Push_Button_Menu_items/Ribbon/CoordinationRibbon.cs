@@ -20,10 +20,12 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                 Image = ImageUtils.Load(Icons + "VoidOpenings_16.png"),
                 LargeImage = ImageUtils.Load(Icons + "VoidOpenings_32.png"),
                 ToolTip = ToolCatalog.VoidOpenings.Tip(
-                    "Openings for MEP through structure. In this version: choose the structural model and the MEP " +
-                    "model (the active model or a Revit link) and their categories, set the opening clearance rules, " +
-                    "and Analyze: find where MEP passes through structure, see the opening sized for each place, " +
-                    "zoom to it and approve or reject it. Nothing in the model is changed; void placement follows in a later version.")
+                    "Openings for MEP through structure. Choose the structural model and the MEP model (the active " +
+                    "model or a Revit link) and their categories, set the opening clearance rules, and Analyze: find " +
+                    "where MEP passes through structure, see the opening sized for each place, zoom to it and approve " +
+                    "or reject it. GENERATE VOID then places a void family for every ticked row in the active model " +
+                    "and cuts the structure; a linked structure is handed over as an opening package and applied " +
+                    "inside that file. The results table exports to Excel or JSON.")
             };
             panel.AddItem(voidOpenings);
 

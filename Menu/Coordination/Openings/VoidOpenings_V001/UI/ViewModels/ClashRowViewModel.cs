@@ -1,5 +1,6 @@
 using System;
 using System.Globalization;
+using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Revit26_Plugin_Revised.VoidOpenings.V001.Core.Application.Features.ClashDetection;
 using Revit26_Plugin_Revised.VoidOpenings.V001.Core.Application.Features.ModelSelection;
@@ -12,6 +13,7 @@ namespace Revit26_Plugin_Revised.VoidOpenings.V001.UI.ViewModels
     {
         private const string None = "–";
         private readonly Action _decisionChanged;
+        private readonly string _reviewNote;
 
         /// <summary>Creates a row.</summary>
         /// <param name="row">The opening and its decision.</param>
@@ -42,7 +44,7 @@ namespace Revit26_Plugin_Revised.VoidOpenings.V001.UI.ViewModels
             Diameter = circular ? Mm(opening.DiameterMm) : None;
             Depth = Mm(opening.DepthMm);
             Clearance = Mm(opening.ClearanceMm);
-            Note = opening.ReviewNote ?? string.Empty;
+            _reviewNote = opening.ReviewNote ?? string.Empty;
         }
 
         /// <summary>The opening and its decision.</summary>
@@ -87,8 +89,43 @@ namespace Revit26_Plugin_Revised.VoidOpenings.V001.UI.ViewModels
         /// <summary>The clearance value that was applied.</summary>
         public string Clearance { get; }
 
-        /// <summary>Why the row needs a review; empty when it does not.</summary>
-        public string Note { get; }
+        /// <summary>
+        /// Why the row needs a review, followed by what the last Generate said about it; empty when
+        /// there is neither.
+        /// </summary>
+        public string Note => string.Join(" ", new[] { _reviewNote, Review.Opening.ResultNote }
+            .Where(part => !string.IsNullOrWhiteSpace(part)));
+
+        /// <summary>Job ID of the void placed for this row; "–" until one is generated.</summary>
+        public string JobId => string.IsNullOrEmpty(Review.Opening.JobId) ? None : Review.Opening.JobId;
+
+        /// <summary>
+        /// What the last Generate did with this row: "Cut", "Generated" or "Failed"; "–" when no void
+        /// has been generated for it.
+        /// </summary>
+        public string VoidStatus
+        {
+            get
+            {
+                switch (Review.Opening.Status)
+                {
+                    case OpeningStatus.Cut:
+                    case OpeningStatus.Generated:
+                    case OpeningStatus.Failed:
+                        return Review.Opening.Status.ToString();
+                    default:
+                        return None;
+                }
+            }
+        }
+
+        /// <summary>Shows what a Generate run wrote onto the opening. Call it on the window's thread.</summary>
+        public void RefreshResult()
+        {
+            OnPropertyChanged(nameof(JobId));
+            OnPropertyChanged(nameof(VoidStatus));
+            OnPropertyChanged(nameof(Note));
+        }
 
         /// <summary>Ticked when the opening will be generated. A rejected row cannot be ticked; use Approve.</summary>
         public bool IsApproved
