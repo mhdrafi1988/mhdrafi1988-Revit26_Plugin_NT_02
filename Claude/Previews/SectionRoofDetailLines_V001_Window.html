@@ -1,0 +1,368 @@
+<title>Section Roof Detail Lines</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<!-- UI preview (CLAUDE.md "UI previews"): Section Roof Detail Lines 1.0.0 (V001) — NEW TOOL.
+     Plugin 7.28.0 (was 7.27.6).
+     Shown: the new ribbon button and its tooltip, the tool window as it opens on a sheet with
+     five sections, and the "List all to log" output. Everything is in the state that shows the
+     change: roofs and walls ticked, the first run already done.
+     Mirrors: Menu/DetailLines/SectionRoofDetailLines_V001/UI/Views/SectionRoofDetailLinesWindow.xaml
+              (+ UI/ViewModels/ViewModel_SectionRoofDetailLines.cs; version from Shared/Services/ToolCatalog.cs).
+     Artifact: https://claude.ai/artifact/WKnQzAC4ZknYyYBiyX4fop (republish to this URL on every update)
+     Colours: Shared/SharedStyles.xaml tokens, one light look on purpose (mirrors the light WPF window). -->
+<style>
+/* Layout: one column; each fixed-width WPF frame scrolls inside its own box, notes sit under it. */
+:root{
+  color-scheme:light;
+  --page:#E9EDF1; --window:#F3F5F7; --card:#FFFFFF; --border:#D6DCE3; --input:#B5C2CF; --sep:#E6EAEF;
+  --navy:#1E3A5F; --navy-light:#2C4A6E; --on-dark:#EAF1F8;
+  --text:#1A2B3C; --text2:#5B7185; --text3:#8FA3B8; --bg2:#ECEFF3; --bg3:#E1E6EC;
+  --info:#1F5FBF; --info-soft:#E6EEFB; --info-border:#A9C3EE;
+  --ok:#2E7D4F; --ok-soft:#E6F4EC; --ok-border:#9FCFB2;
+  --warn:#9A5B00; --warn-soft:#FDF1E1; --warn-border:#E8B66B;
+  --err:#B23A35; --err-soft:#FBE8E7; --err-border:#EDA5A1;
+  --log-bg:#14283F; --log-text:#EAF1F8; --log-dim:#7E94AA; --log-ok:#4CC18A; --log-warn:#E8B66B;
+  --new:#2E7D4F;
+  --ui:'Segoe UI',system-ui,-apple-system,sans-serif; --mono:Consolas,'Cascadia Mono',Menlo,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--text);font-family:var(--ui);font-size:12.5px;
+  padding-block:24px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.page{max-width:1240px;margin:0 auto;display:grid;gap:20px}
+h1{font-size:20px;margin:0 0 4px;font-weight:600;text-wrap:balance}
+h2{font-size:14px;margin:0 0 8px;font-weight:600;text-wrap:balance}
+p{margin:0;line-height:1.5;max-width:82ch}
+ul{margin:4px 0 0;padding-left:18px;line-height:1.55;max-width:92ch}
+li+li{margin-top:3px}
+.muted{color:var(--text2)}
+.tag{display:inline-block;background:var(--new);color:#FFFFFF;font-size:10px;font-weight:600;letter-spacing:.04em;
+  padding:1px 6px;border-radius:3px;vertical-align:middle;margin-left:6px;text-transform:uppercase}
+.sample{display:inline-block;background:var(--warn-soft);color:var(--warn);border:1px solid var(--warn-border);
+  border-radius:3px;padding:2px 8px;font-size:11.5px}
+.frame{overflow-x:auto;padding-bottom:4px}
+.note{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px 14px}
+
+/* Ribbon + tooltip */
+.ribbon{width:430px;background:var(--card);border:1px solid var(--border);border-radius:6px;padding:8px 10px}
+.rpanel{display:flex;gap:10px;align-items:flex-start}
+.rstack{display:grid;gap:3px}
+.rsmall{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text);white-space:nowrap}
+.rbig{display:grid;justify-items:center;gap:3px;width:84px;font-size:11px;text-align:center;line-height:1.2}
+.glyph{width:15px;height:15px;border:1px solid var(--navy);border-radius:2px;background:var(--info-soft);flex:0 0 auto}
+.glyph.big{width:30px;height:30px}
+.rlabel{color:var(--text2);font-size:10px;text-transform:uppercase;letter-spacing:.06em;margin-top:6px;text-align:center}
+.rnew{outline:2px solid var(--new);outline-offset:3px;border-radius:3px}
+.tip{width:470px;background:var(--card);border:1px solid var(--input);box-shadow:0 4px 12px rgba(16,32,48,.18);
+  padding:8px 10px;font-size:12px;line-height:1.45}
+.tip b{display:block;margin-bottom:3px}
+
+/* Window chrome */
+.win{width:1200px;background:var(--window);border:1px solid var(--input);box-shadow:0 6px 20px rgba(16,32,48,.18)}
+.tbar{background:var(--card);border-bottom:1px solid var(--border);padding:7px 10px;display:flex;justify-content:space-between}
+.tbar span{color:var(--text3);letter-spacing:6px}
+.hdr{background:var(--navy);color:var(--on-dark);padding:10px 12px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.hdr b{font-size:15px;font-weight:600;display:block}
+.hdr .s{font-size:11px;opacity:.85;max-width:84ch}
+.badge{background:var(--navy-light);border-radius:10px;padding:3px 8px;font-size:11px;font-weight:600;white-space:nowrap}
+.wbody{padding:10px 12px;display:grid;gap:10px}
+.cards{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.mc{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:6px 10px;text-align:center}
+.mc span{display:block;font-size:11px;color:var(--text2)}
+.mc b{font-size:19px;font-variant-numeric:tabular-nums;display:block}
+.mc .u{font-size:10px;color:var(--text3)}
+.cols{display:grid;grid-template-columns:330px 1fr 300px;gap:10px;align-items:start}
+.sc{background:var(--card);border:1px solid var(--border);border-radius:8px}
+.sct{font-size:13px;font-weight:600;color:var(--navy);padding:9px 12px 0;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.scb{padding:8px 12px 12px;display:grid;gap:6px}
+.lbl{font-size:11px;color:var(--text2);font-weight:600}
+.hint{font-size:11px;color:var(--text3);line-height:1.45}
+.btn{border:1px solid var(--input);background:var(--card);border-radius:4px;padding:2px 8px;font-size:11px;color:var(--text);white-space:nowrap}
+.btn.p{background:var(--navy);border-color:var(--navy);color:#FFFFFF;padding:5px 14px;font-size:12px;font-weight:600}
+.btn.s{padding:5px 14px;font-size:12px}
+.row{display:flex;gap:6px;align-items:center}
+.inp{border:1px solid var(--input);background:var(--card);border-radius:4px;padding:4px 7px;font-size:11.5px;color:var(--text3);flex:1}
+.combo{border:1px solid var(--input);background:var(--card);border-radius:4px;padding:4px 7px;font-size:11.5px;
+  display:flex;justify-content:space-between;align-items:center}
+.combo i{font-style:normal;color:var(--text3)}
+.mm{border:1px solid var(--input);background:var(--card);border-radius:4px;padding:3px 6px;font-size:11.5px;width:58px;text-align:right;
+  font-variant-numeric:tabular-nums}
+.cb{display:flex;gap:6px;align-items:flex-start;font-size:12px;line-height:1.35}
+.box{width:12px;height:12px;border:1px solid var(--input);border-radius:2px;background:var(--card);flex:0 0 auto;margin-top:2px;
+  display:grid;place-items:center;font-size:9px;color:var(--navy);line-height:1}
+.box.on{background:var(--navy);border-color:var(--navy);color:#FFFFFF}
+.box.mix{background:var(--card)}
+.box.mix::after{content:"";width:6px;height:2px;background:var(--navy)}
+.box.off{color:transparent}
+
+/* Lists */
+.list{border:1px solid var(--sep);border-radius:4px;overflow:hidden}
+.li{padding:6px 8px;border-bottom:1px solid var(--sep);display:flex;gap:8px;align-items:flex-start}
+.li:last-child{border-bottom:0}
+.li.dim{opacity:.62}
+.li .b{font-size:12.5px;font-weight:600}
+.li .m{font-size:11px;color:var(--text2);line-height:1.4}
+.li .st{font-size:11px;font-weight:600;line-height:1.4}
+.st.ok{color:var(--ok)} .st.note{color:var(--warn)} .st.bad{color:var(--err)}
+.grow{flex:1;min-width:0}
+.pill{border-radius:8px;padding:1px 7px;font-size:10.5px;white-space:nowrap;background:var(--info-soft);color:var(--info)}
+.chip{border-radius:8px;padding:1px 7px;font-size:10px;white-space:nowrap}
+.chip.roof{background:var(--ok-soft);color:var(--ok)}
+.chip.wall{background:var(--info-soft);color:var(--info)}
+.chip.listed{background:var(--bg2);color:var(--text2)}
+
+/* Tree */
+.tree{border:1px solid var(--sep);border-radius:4px;padding:5px 8px;display:grid;gap:2px}
+.tr{display:flex;gap:6px;align-items:center;font-size:12px;white-space:nowrap}
+.tr.src{font-size:13px;font-weight:600;color:var(--navy);margin-top:3px}
+.tr.cat{font-size:12.5px;font-weight:600;padding-left:16px}
+.tr.typ{padding-left:34px}
+.tr .m{font-size:11px;color:var(--text3)}
+.tr .mc2{font-size:11px;color:var(--text2)}
+
+/* Banner + log */
+.banner{background:var(--info-soft);border:1px solid var(--info-border);border-radius:6px;padding:8px 10px;font-size:11.5px;color:var(--text2);line-height:1.45}
+.log{background:var(--log-bg);border-radius:8px;padding:10px 12px;color:var(--log-text)}
+.logh{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-size:11.5px;font-weight:600}
+.ghost{border:1px solid rgba(234,241,248,.3);border-radius:4px;padding:2px 8px;font-size:11px;color:var(--log-text);margin-left:6px}
+.lines{font-family:var(--mono);font-size:11px;line-height:1.65;display:grid}
+.lines div{white-space:pre-wrap}
+.t{color:var(--log-dim)} .lv{display:inline-block;width:62px}
+.i{color:var(--info-border)} .ok{color:var(--log-ok)} .wn{color:var(--log-warn)} .dbg{color:var(--log-dim)}
+.strip{background:var(--card);border-top:1px solid var(--border);padding:7px 12px;display:flex;justify-content:space-between;
+  align-items:center;font-size:11.5px;color:var(--text2)}
+.foot{background:var(--bg2);border-top:1px solid var(--border);padding:10px 12px;display:flex;gap:8px;justify-content:flex-end}
+@media (max-width:760px){.cols{grid-template-columns:1fr}.cards{grid-template-columns:repeat(2,1fr)}}
+</style>
+
+<div class="page">
+
+  <div>
+    <h1>Section Roof Detail Lines <span class="tag">new tool</span></h1>
+    <p class="muted">Tool 1.0.0 · plugin 7.28.0 · <b>Rafi_Pro_Docs › Detail Lines › Section Lines</b>.
+      Static mock-up of the window. <span class="sample">Every figure, view name and type name below is sample data — not a real project.</span></p>
+  </div>
+
+  <!-- ── Ribbon button + tooltip ─────────────────────────────── -->
+  <div class="note">
+    <h2>Ribbon <span class="tag">new button</span></h2>
+    <p class="muted">The three stacked dropdowns and the Line Manager dropdown are unchanged. <b>Section Lines</b> is added beside them.</p>
+    <div class="frame" style="margin-top:10px">
+      <div class="ribbon">
+        <div class="rpanel">
+          <div class="rstack">
+            <div class="rsmall"><i class="glyph"></i>From Links ▾</div>
+            <div class="rsmall"><i class="glyph"></i>Closed Loop ▾</div>
+            <div class="rsmall"><i class="glyph"></i>Line Dims ▾</div>
+          </div>
+          <div class="rbig"><i class="glyph big"></i>Line Manager ▾</div>
+          <div class="rbig rnew"><i class="glyph big"></i>Section Lines</div>
+        </div>
+        <div class="rlabel">Detail Lines</div>
+      </div>
+    </div>
+    <div class="frame" style="margin-top:12px">
+      <div class="tip">
+        <b>Section Roof Detail Lines — v1.0.0 (build V001)</b>
+        Open a sheet: lists every element its sections show, from the host model and from each loaded link,
+        then traces the cut profile of the roofs you tick and draws a line on the walls beside them, in the
+        sections themselves. Up to 10 sections in one run, one Undo step.
+      </div>
+    </div>
+  </div>
+
+  <!-- ── The window ──────────────────────────────────────────── -->
+  <div>
+    <h2>Tool window <span class="tag">new</span></h2>
+    <p class="muted">As it looks after one run on a sheet with five sections. Roofs and walls are ticked when the window opens, so a first run needs no setting up.</p>
+    <div class="frame" style="margin-top:10px">
+      <div class="win">
+        <div class="tbar"><b>Section Roof Detail Lines — v1.0.0</b><span>— □ ✕</span></div>
+        <div class="hdr">
+          <div>
+            <b>Section Roof Detail Lines</b>
+            <span class="s">List what the sheet's sections show — host model and links — then draw the roofs' cut profile and a line on the walls beside them</span>
+          </div>
+          <div class="badge">v1.0.0</div>
+        </div>
+
+        <div class="wbody">
+          <!-- header cards -->
+          <div class="cards">
+            <div class="mc"><span>Sections</span><b style="color:var(--info)">5 / 5</b><span class="u">ticked, of this sheet's</span></div>
+            <div class="mc"><span>Roof Types</span><b style="color:var(--ok)">3</b><span class="u">cut profile traced</span></div>
+            <div class="mc"><span>Wall Types</span><b>4</b><span class="u">line where next to a roof</span></div>
+            <div class="mc"><span>Elements</span><b>612</b><span class="u">shown in the sections read</span></div>
+            <div class="mc"><span>Lines</span><b style="color:var(--ok)">148</b><span class="u">drawn by the last run</span></div>
+          </div>
+
+          <div class="cols">
+            <!-- LEFT: sections -->
+            <div class="sc">
+              <div class="sct">Sections <span class="btn">Refresh</span></div>
+              <div class="scb">
+                <div class="lbl">Sheet <span style="color:var(--text)">A-501 — Roof Details</span></div>
+                <div class="hint">Every section on this sheet is ticked (5). One run covers at most 10.</div>
+                <div class="row" style="justify-content:flex-end"><span class="btn">Tick all</span><span class="btn">Untick all</span></div>
+                <div class="list">
+                  <div class="li">
+                    <i class="box on">✓</i>
+                    <div class="grow">
+                      <div class="row" style="justify-content:space-between"><span class="b">Parapet Upstand — East</span><span class="pill">1</span></div>
+                      <div class="m">1:10 · 2 roof(s), 3 wall(s), 141 element(s) shown</div>
+                      <div class="st ok">Last run: 38 line(s) drawn.</div>
+                    </div>
+                  </div>
+                  <div class="li">
+                    <i class="box on">✓</i>
+                    <div class="grow">
+                      <div class="row" style="justify-content:space-between"><span class="b">Parapet Upstand — West</span><span class="pill">2</span></div>
+                      <div class="m">1:10 · 2 roof(s), 2 wall(s), 118 element(s) shown</div>
+                      <div class="st ok">Last run: 31 line(s) drawn.</div>
+                    </div>
+                  </div>
+                  <div class="li">
+                    <i class="box on">✓</i>
+                    <div class="grow">
+                      <div class="row" style="justify-content:space-between"><span class="b">Gutter At Expansion Joint</span><span class="pill">3</span></div>
+                      <div class="m">1:5 · 3 roof(s), 4 wall(s), 166 element(s) shown</div>
+                      <div class="st ok">Last run: 64 line(s) drawn.</div>
+                    </div>
+                  </div>
+                  <div class="li">
+                    <i class="box on">✓</i>
+                    <div class="grow">
+                      <div class="row" style="justify-content:space-between"><span class="b">Rooflight Kerb</span><span class="pill">4</span></div>
+                      <div class="m">1:5 · 1 roof(s), 0 wall(s), 92 element(s) shown</div>
+                      <div class="st ok">Last run: 15 line(s) drawn.</div>
+                    </div>
+                  </div>
+                  <div class="li dim">
+                    <i class="box off" style="border-color:var(--text3)">✓</i>
+                    <div class="grow">
+                      <div class="row" style="justify-content:space-between"><span class="b">Plant Plinth Edge</span><span class="pill">5</span></div>
+                      <div class="m">1:10 · 1 roof(s), 2 wall(s), 95 element(s) shown</div>
+                      <div class="st bad">Cannot draw here — the view is owned by A. Sample.</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="hint">The number on the right is the detail number on the sheet. A section owned by someone else, or changed in central, cannot be ticked.</div>
+              </div>
+            </div>
+
+            <!-- MIDDLE: elements -->
+            <div class="sc">
+              <div class="sct">Elements In These Sections <span class="btn">List all to log</span></div>
+              <div class="scb">
+                <div class="row">
+                  <span class="inp">Filter by category, family or type…</span>
+                  <span class="btn">Tick roofs &amp; walls</span><span class="btn">Untick all</span>
+                </div>
+                <div class="cb"><i class="box on">✓</i><span>Show every category, not only roofs and walls</span></div>
+                <div class="tree">
+                  <div class="tr src"><i class="box mix"></i>Host model <span class="mc2">268 element(s) in the sections read</span></div>
+                  <div class="tr cat"><i class="box on">✓</i>Roofs <span class="mc2">6 shown</span> <span class="chip roof">cut profile</span></div>
+                  <div class="tr typ"><i class="box on">✓</i>Roofs : Warm Roof 420mm <span class="m">4 in 4 sections</span></div>
+                  <div class="tr typ"><i class="box on">✓</i>Roofs : Inverted Roof 520mm <span class="m">2 in 2 sections</span></div>
+                  <div class="tr cat"><i class="box on">✓</i>Walls <span class="mc2">9 shown</span> <span class="chip wall">wall line</span></div>
+                  <div class="tr typ"><i class="box on">✓</i>Basic Wall : Parapet 215 Blockwork <span class="m">5 in 3 sections</span></div>
+                  <div class="tr typ"><i class="box on">✓</i>Basic Wall : Upstand 140 Concrete <span class="m">4 in 3 sections</span></div>
+                  <div class="tr cat"><i class="box off" style="border-color:var(--text3)">✓</i>Structural Framing <span class="mc2">18 shown — listed only</span> <span class="chip listed">listed</span></div>
+                  <div class="tr cat"><i class="box off" style="border-color:var(--text3)">✓</i>Generic Models <span class="mc2">11 shown — listed only</span> <span class="chip listed">listed</span></div>
+                  <div class="tr src"><i class="box mix"></i>ARC-Sample-Shell.rvt <span class="mc2">241 element(s) in the sections read</span></div>
+                  <div class="tr cat"><i class="box on">✓</i>Roofs <span class="mc2">3 shown</span> <span class="chip roof">cut profile</span></div>
+                  <div class="tr typ"><i class="box on">✓</i>Roofs : Shell Roof 300mm <span class="m">3 in 2 sections</span></div>
+                  <div class="tr cat"><i class="box mix"></i>Walls <span class="mc2">14 shown</span> <span class="chip wall">wall line</span></div>
+                  <div class="tr typ"><i class="box on">✓</i>Basic Wall : Shell Parapet 200 <span class="m">8 in 4 sections</span></div>
+                  <div class="tr typ"><i class="box on">✓</i>Basic Wall : Core Wall 250 <span class="m">4 in 2 sections</span></div>
+                  <div class="tr typ"><i class="box off" style="border-color:var(--text3)">✓</i>Basic Wall : Partition 100 <span class="m">2 in 1 section</span></div>
+                  <div class="tr cat"><i class="box off" style="border-color:var(--text3)">✓</i>Curtain Panels <span class="mc2">22 shown — listed only</span> <span class="chip listed">listed</span></div>
+                  <div class="tr src"><i class="box off" style="border-color:var(--text3)">✓</i>MEP-Sample-Services.rvt <span class="mc2">103 element(s) in the sections read</span></div>
+                  <div class="tr cat"><i class="box off" style="border-color:var(--text3)">✓</i>Ducts <span class="mc2">31 shown — listed only</span> <span class="chip listed">listed</span></div>
+                  <div class="tr cat"><i class="box off" style="border-color:var(--text3)">✓</i>Pipes <span class="mc2">44 shown — listed only</span> <span class="chip listed">listed</span></div>
+                </div>
+                <div class="hint">The host model is read with Revit's own view visibility, so the crop, the far clip, visibility/graphics and anything hidden by hand all count. A link is read by geometry against the same crop box instead, which Revit gives no visibility query for — so a link set to &quot;By linked view&quot; may list a little more than the section draws. Untick what you do not want.</div>
+              </div>
+            </div>
+
+            <!-- RIGHT: lines to draw -->
+            <div class="sc">
+              <div class="sct">Lines To Draw</div>
+              <div class="scb">
+                <div class="cb"><i class="box on">✓</i><span>Roofs — trace the cut profile</span></div>
+                <div class="hint" style="padding-left:18px">One detail line per edge of the cut, in the section's own plane.</div>
+                <div class="lbl">Roof line style</div>
+                <div class="combo"><span>Roof Build-up</span><i>▾</i></div>
+                <div class="cb"><i class="box on">✓</i><span>Walls — line over the visible height</span></div>
+                <div class="hint" style="padding-left:18px">Only walls whose cut profile comes within the tolerance below of a ticked roof's.</div>
+                <div class="lbl">Wall line style</div>
+                <div class="combo"><span>Waterproofing</span><i>▾</i></div>
+                <div class="row" style="justify-content:space-between">
+                  <span class="lbl">Adjacency tolerance</span>
+                  <span class="row"><span class="mm">50</span><span class="hint">mm</span></span>
+                </div>
+                <div class="cb"><i class="box off" style="border-color:var(--input)">✓</i><span>Line on both faces of the wall</span></div>
+                <div class="cb"><i class="box on">✓</i><span>Leave out lines the view already has</span></div>
+                <div class="banner">Detail lines belong to the view they are drawn in, so the lines go into the sections themselves, not onto the sheet. The whole run is one Undo step.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- log -->
+          <div class="log">
+            <div class="logh"><span>Activity Log</span><span><i class="ghost">Copy All</i><i class="ghost">Copy Selected</i><i class="ghost">Clear</i></span></div>
+            <div class="lines">
+              <div><span class="t">09:41:02</span> <span class="lv i">Info</span>Read 5 section(s) and 612 element row(s).</div>
+              <div><span class="t">09:41:02</span> <span class="lv i">Info</span>Link 'MEP-Sample-Services.rvt': nothing of it reaches section 'Rooflight Kerb'.</div>
+              <div><span class="t">09:41:36</span> <span class="lv i">Info</span>Drawing in 4 section(s) from 3 roof type(s) and 4 wall type(s); adjacency tolerance 50 mm.</div>
+              <div><span class="t">09:41:38</span> <span class="lv ok">Success</span>'Parapet Upstand — East': 38 line(s) from 2 roof(s) and 3 wall(s) cut here.</div>
+              <div><span class="t">09:41:39</span> <span class="lv ok">Success</span>'Parapet Upstand — West': 31 line(s) from 2 roof(s) and 2 wall(s) cut here; 4 already in the view.</div>
+              <div><span class="t">09:41:41</span> <span class="lv i">Info</span>'Gutter At Expansion Joint': Basic Wall 'Core Wall 250' (ARC-Sample-Shell.rvt, id 884210): nearest roof edge is 612 mm away — further than the 50 mm adjacency tolerance, so no line.</div>
+              <div><span class="t">09:41:41</span> <span class="lv ok">Success</span>'Gutter At Expansion Joint': 64 line(s) from 3 roof(s) and 4 wall(s) cut here.</div>
+              <div><span class="t">09:41:42</span> <span class="lv wn">Warning</span>'Rooflight Kerb': the crop box is switched off. The run uses the crop box as its extent, so the view may show more than the lines cover.</div>
+              <div><span class="t">09:41:43</span> <span class="lv ok">Success</span>'Rooflight Kerb': 15 line(s) from 1 roof(s) and 0 wall(s) cut here.</div>
+              <div><span class="t">09:41:43</span> <span class="lv ok">Success</span>Done — 148 detail line(s) in 4 section(s), from 8 roof cut(s) and 9 wall(s); 4 were already in the views; 6 element(s) had nothing to trace. One Ctrl+Z undoes the whole run.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="strip"><span>Done — 148 detail line(s) in 4 section(s).</span><span class="muted">Esc or Cancel rolls the whole run back</span></div>
+        <div class="foot"><span class="btn p">Draw Detail Lines</span><span class="btn s">Close</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── List all to log ─────────────────────────────────────── -->
+  <div>
+    <h2>List all to log <span class="tag">new</span></h2>
+    <p class="muted">Writes one line per element the sections show, ready for <b>Copy All</b>. This is the "list every element visible in the section" output, host model and links together.</p>
+    <div class="frame" style="margin-top:10px">
+      <div class="log" style="width:1200px">
+        <div class="lines">
+          <div><span class="t">09:44:10</span> <span class="lv i">Info</span>Elements visible in the sections read — 612 row(s):</div>
+          <div><span class="t">09:44:10</span> <span class="lv dbg">Debug</span>Gutter At Expansion Joint | ARC-Sample-Shell.rvt | Roofs | Roofs : Shell Roof 300mm | id 881004 | roof — cut profile traced when ticked</div>
+          <div><span class="t">09:44:10</span> <span class="lv dbg">Debug</span>Gutter At Expansion Joint | ARC-Sample-Shell.rvt | Walls | Basic Wall : Shell Parapet 200 | id 884102 | wall — line drawn when ticked and next to a roof</div>
+          <div><span class="t">09:44:10</span> <span class="lv dbg">Debug</span>Gutter At Expansion Joint | Host model | Generic Models | Expansion Joint Cover : 150mm | id 512880 | listed only</div>
+          <div><span class="t">09:44:10</span> <span class="lv dbg">Debug</span>Gutter At Expansion Joint | Host model | Roofs | Roofs : Warm Roof 420mm | id 509311 | roof — cut profile traced when ticked</div>
+          <div><span class="t">09:44:10</span> <span class="lv dbg">Debug</span>Gutter At Expansion Joint | MEP-Sample-Services.rvt | Pipes | Pipe Types : Rainwater | id 731508 | listed only</div>
+          <div><span class="t">09:44:10</span> <span class="lv dbg">Debug</span>Parapet Upstand — East | Host model | Walls | Basic Wall : Parapet 215 Blockwork | id 509870 | wall — line drawn when ticked and next to a roof</div>
+          <div><span class="t">09:44:10</span> <span class="lv dbg">Debug</span>… 606 more rows …</div>
+          <div><span class="t">09:44:10</span> <span class="lv i">Info</span>End of list. Copy All puts it on the clipboard.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── What changed ────────────────────────────────────────── -->
+  <div class="note">
+    <h2>What is new in this release</h2>
+    <ul>
+      <li><b>The tool itself</b> — nothing in the suite listed what a section shows, and nothing drew in a section. <span class="tag">new</span></li>
+      <li><b>Host model and links together.</b> The host model is read with Revit's own view-bound collector, so the crop, far clip, visibility/graphics, view filters and hand-hidden elements all count. A link has no such query, so its elements are tested geometrically against the same crop box — generous on purpose, so a roof the user can see is never dropped in silence.</li>
+      <li><b>Roof line = the whole cut profile.</b> The section is cut on the view's own plane, and the face that leaves coplanar with it gives the edge loops — outer loop and any opening the section passes through — already in the plane a detail curve needs.</li>
+      <li><b>Wall line = full visible height.</b> One vertical line per face of the wall's cut profile, over the wall's own height in the section, held inside the crop, and only where the wall comes within the adjacency tolerance of a ticked roof.</li>
+      <li><b>Run scope.</b> Every section on the active sheet, capped at 10. A section open on its own is offered by itself.</li>
+      <li><b>One Undo.</b> Every section's lines are created in one transaction inside one transaction group, assimilated. A cancel rolls the whole run back.</li>
+    </ul>
+  </div>
+
+  <p class="muted" style="font-size:11.5px">Mirrors <span style="font-family:var(--mono)">Menu/DetailLines/SectionRoofDetailLines_V001/UI/Views/SectionRoofDetailLinesWindow.xaml</span>. Labels, button text and the window title come from the XAML and the view model; the version comes from <span style="font-family:var(--mono)">Shared/Services/ToolCatalog.cs</span>.</p>
+</div>
