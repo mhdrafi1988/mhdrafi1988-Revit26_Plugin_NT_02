@@ -169,8 +169,10 @@ Where a tool has several versions, its button is a dropdown listing the newest v
   and move the ticked ones onto one sheet (either sheet, another sheet or a new one) with the packing layout.
   Legends are copied to the same spot.
 - **Wet Area Waterproofing**: find wet rooms (toilets, baths, kitchens…) in the model and its links, repair their
-  outlines and add a waterproofing roof on top of the slab under each one; room grid with level buttons, column
-  filters and multi-column sort; Excel report of every run. (Plans, detail sections, sheets and the print set follow.)
+  outlines and add a waterproofing roof on top of the slab under each one; then a cropped plan per room with up to
+  6 cuts (doors, drains, corners, fixtures), each placed as a reference section to a drafting view or as a callout
+  detail view. Room grid with level buttons, column filters and multi-column sort; Excel report of every run.
+  (Sheets and the print set follow.)
 
 ### DWG and families
 - **DWG To DL(P), DWG To Lines**: convert DWGs to detail lines and hatches.

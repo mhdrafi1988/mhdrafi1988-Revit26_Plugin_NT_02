@@ -1,4 +1,4 @@
-using Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Models;
+﻿using Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Models;
 
 namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Grid
 {
@@ -38,8 +38,19 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Grid
         /// <summary>Slab ElementId; 0 when none was found.</summary>
         public long SlabId { get; set; }
 
-        /// <summary>Slab top elevation in host coordinates, mm; null when no slab was found.</summary>
+        /// <summary>
+        /// Slab top as a Revit internal Z in host coordinates, mm; null when no slab was found. This is the
+        /// value the roof's height is worked out from, so it shares its base with element geometry. Add
+        /// <see cref="ProjectBaseOffsetMm"/> to show it to the user.
+        /// </summary>
         public double? SlabTopMm { get; set; }
+
+        /// <summary>
+        /// Millimetres to add to an internal elevation on this row to get the elevation Revit's UI shows
+        /// (the Project Base Point's elevation). Display only — never add it to a value used in geometry.
+        /// 0 when the Project Base Point sits at elevation 0, which leaves every displayed figure unchanged.
+        /// </summary>
+        public double ProjectBaseOffsetMm { get; set; }
 
         /// <summary>Room state.</summary>
         public RoomStatus Status { get; set; }

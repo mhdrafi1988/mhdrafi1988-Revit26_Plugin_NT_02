@@ -9,7 +9,7 @@ Part C: grouping, sheets, print set.
 
 | Item | Value |
 |---|---|
-| Tool name | Wet Area Waterproofing, v1.1.1 (plugin 7.16.1) |
+| Tool name | Wet Area Waterproofing, v1.2.4 (plugin 7.27.6) |
 | Folder | `Menu/Sheet/WetAreaWaterproofing_V001/` |
 | Namespace | `Revit26_Plugin_Revised.WetAreaWaterproofing.V001` |
 | Command | `…V001.Commands.WetAreaWaterproofingCommand` (via `ToolGuard.RunCommand`) |
@@ -31,7 +31,7 @@ Part C: grouping, sheets, print set.
 | `Core/Run` | `RunPlanner` (what a run does per room), `RunTag` (Comments text), `RoomStatusRules` |
 | `Core/Sections` | `SectionTargets` (the table), `ItemClassifier` / `RoomItemMatcher` (which door, drain or fixture belongs to which room), `SectionPlanner` (which cuts, where, max 6), `ViewNames` |
 | `Core/Report` | `RunReport`, `ReportWriter` — the Excel workbook |
-| `Infrastructure` | Revit: `RoomCollector`, `BoundaryReader`, `SlabIndex`, `RoofCreator`, `RunRemover`, `TargetCollector`, `ViewCreator`, `ElementTag`, the session and its ExternalEvent handler |
+| `Infrastructure` | Revit: `RoomCollector`, `BoundaryReader`, `SlabIndex`, `RoofCreator`, `RunRemover`, `TargetCollector`, `ViewCreator`, `ElementTag`, `Elevations`, the session and its ExternalEvent handler |
 | `UI` | `WetAreaWaterproofingWindow`, `ViewModel_WetAreaWaterproofing` (+ `.Grid`, `.Run`) |
 
 `Core` has no Revit references and is covered by the unit tests. Lengths in `Core` are millimetres.
@@ -57,6 +57,12 @@ and friends); new columns are added at the end only. `Group` and `Scale` are fil
 
 - Curved boundaries are faceted (the repair chain works on straight pieces).
 - A slab is looked for within 500 mm above or below the room's level.
+- Only roof types a footprint roof can be made from are offered: sloped glazing types are left out.
+- Every elevation used in geometry is a Revit internal Z (`Elevations.InternalZFt`, i.e. `Level.Elevation`),
+  never `ProjectElevation`: one base for level heights, slab tops, the search bands and the points handed back
+  to Revit. The **Slab top** shown in the grid and written to the report is the only exception — it adds
+  `RoomRow.ProjectBaseOffsetMm` (`Elevations.ProjectBaseOffsetFt`) so it reads as Revit's Properties panel does.
+  That offset is display-only; never add it to a value that meets element geometry.
 - Reference sections cannot be named one by one; they show the drafting view's detail number.
 - *Remove a run* leaves drafting views in place.
 - Needs testing in Revit on: a rotated link, a workshared model, rooms with columns inside.

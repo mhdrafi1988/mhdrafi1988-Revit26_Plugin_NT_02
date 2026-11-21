@@ -1,4 +1,4 @@
-using Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Geometry;
+﻿using Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Geometry;
 using Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Grid;
 using Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Models;
 using Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Run;
@@ -92,7 +92,7 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Report
         public string Matched { get; set; }
         /// <summary>Slab ElementId; 0 = none.</summary>
         public long SlabId { get; set; }
-        /// <summary>Slab top, mm.</summary>
+        /// <summary>Slab top, mm, as a project elevation — the figure Revit's UI shows for the slab.</summary>
         public double? SlabTopMm { get; set; }
         /// <summary>Roof ElementId; 0 = none.</summary>
         public long RoofId { get; set; }
@@ -243,7 +243,7 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Report
                 var item = new ReportRoom
                 {
                     RoomId = row.RoomId, Source = row.Source, Level = row.Level, Number = row.Number, Name = row.Name,
-                    RoomAreaM2 = row.AreaM2, Matched = row.Matched, SlabId = row.SlabId, SlabTopMm = row.SlabTopMm,
+                    RoomAreaM2 = row.AreaM2, Matched = row.Matched, SlabId = row.SlabId, SlabTopMm = row.SlabTopMm + row.ProjectBaseOffsetMm,
                     BoundaryResult = Boundary(c.Outline), Phase = row.Phase, Workset = row.Workset
                 };
 

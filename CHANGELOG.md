@@ -9,6 +9,84 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [7.27.6] — 2026-11-21
+
+### Changed
+- **Wet Area Waterproofing 1.2.4** — the ribbon button's **tooltip** now says what the tool does. It still described
+  the plan's cuts as "up to 6 reference sections … pointing to drafting views", which has been incomplete since
+  1.2.0 added the per-target callout option. It now reads "up to 6 cuts (doors, drains, corners, fixtures) — each a
+  reference section to a drafting view or a callout detail view".
+  - The button, its internal name (`Btn_WetAreaWaterproofing_V001`), its panel (**Rafi_Pro_Floors › Waterproofing**)
+    and its icons are unchanged. The tooltip's first line comes from `ToolCatalog`, so it already tracked the version.
+  - The tool's entry in `README.md` is brought in line with the same wording.
+
+**User notes**
+- Hover text only. No tool behaviour, label or layout changed.
+
+## [7.27.5] — 2026-11-21
+
+### Changed
+- **Wet Area Waterproofing 1.2.3** — the **Slab top** figure is shown as a **project elevation**, the same
+  elevation Revit's Properties panel gives for that slab. It was a Revit internal elevation, which differs by
+  the Project Base Point's elevation. In a model whose Project Base Point sits at 100 000 mm, a slab the grid
+  called `Floor · +3.150` now reads `Floor · +103.150`, and the report's **Slab top** column writes `103150.0`
+  in place of `3150.0`.
+  - The figure the roof is built from has not moved. `Elevations.ProjectBaseOffsetFt` is read once per document
+    and carried as `RoomRow.ProjectBaseOffsetMm`; only `RoomStatusRules` and `RunReport` add it, when they
+    format the number. The slab search band, the item band and the roof's **Offset from Level** keep reading
+    internal Z, because a difference between two elevations is the same in either base.
+  - The report keeps the **Slab top** column's name and its position in the Rooms sheet.
+
+**User notes**
+- A model whose Project Base Point sits at elevation 0 shows exactly what it showed before: there the two bases
+  are equal.
+- Otherwise the grid's **Slab** column and the report's **Slab top** column now read higher (or lower) by the
+  Project Base Point's elevation. Nothing in the model changes, and a run started before this update put its
+  roofs at the same height as one started after it.
+- A report kept from an earlier run holds internal elevations in that column. Compare **Slab top** figures only
+  between reports from the same plugin version.
+
+## [7.27.4] — 2026-11-21
+
+### Fixed
+- **Wet Area Waterproofing 1.2.2** — **elevations are all read from one base now.** Level heights came from
+  `Level.ProjectElevation`, which is measured from the Project Base Point, while slab tops, element bounding
+  boxes and the points handed back to Revit are in Revit's internal coordinates. The two differ by the Project
+  Base Point's elevation, so in a model whose Project Base Point is not at elevation 0 the tool:
+  - searched for the slab under a room in a 500 mm band around the wrong height, so it often reported
+    **"No slab found under the room"** and fell back to the room's level;
+  - set the roof's **Offset from Level** from a slab top and a level height measured from different bases, so a
+    roof that did find its slab sat off by the Project Base Point's elevation;
+  - matched doors, drains and fixtures to a room in a band around the wrong height, so section targets went
+    missing;
+  - placed reference sections and callouts at the wrong Z on the plan.
+  - Every level height now comes from `Elevations.InternalZFt` (`Level.Elevation`), the one place the tool reads
+    a level from. A model whose Project Base Point sits at elevation 0 is unaffected — there the two were equal.
+
+**User notes**
+- If your Project Base Point is not at elevation 0, roofs, plans and sections from earlier runs are at the wrong
+  height, and rooms may have been reported as having no slab when they do. Re-run those rooms: the run replaces
+  the roof it made for each one.
+- The **Slab top** figure in the grid and the Excel report is unchanged — it was, and stays, a Revit internal
+  elevation, so it can differ from the elevation Revit's Properties panel shows for the same slab.
+
+## [7.27.3] — 2026-11-21
+
+### Fixed
+- **Wet Area Waterproofing 1.2.1** — two causes of **"The roof could not be created"**.
+  - The **Roof type** list offered every roof type in the project, sloped glazing (curtain) types included.
+    A footprint roof cannot be made from one, so Revit refused every room of the run. The list now shows
+    only roof types a footprint roof can be made from (those with a compound structure); the run picks from
+    the same set. A project with no such type now says so instead of failing room by room.
+  - A room outline whose last point sat on its first one could end with a closing line shorter than Revit's
+    short-curve tolerance, which Revit refuses. Trailing points on the first point are now all dropped, and
+    an outline left with fewer than three is reported as too small, as before.
+
+**User notes**
+- If your saved roof type was a sloped glazing type, it is no longer in the list: press **Refresh** and pick
+  a basic roof type. Runs that worked before are unaffected — the roofs they made used a basic roof type.
+- Roofs already in the model are not touched.
+
 ## [7.27.2] — 2026-11-20
 
 ### Changed
