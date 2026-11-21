@@ -1,4 +1,4 @@
-using Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Geometry;
+﻿using Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Geometry;
 using Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Grid;
 using Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Models;
 using System;
@@ -25,8 +25,10 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Run
                 : string.IsNullOrEmpty(c.ExistingRunId) ? " · already has a roof; a run replaces it"
                 : $" · already has a roof (run {c.ExistingRunId}); a run replaces it";
 
+            // Shown as a project elevation, so it reads as Revit's Properties panel does for the same slab.
             row.SlabText = row.SlabTopMm.HasValue
-                ? "Floor · " + (row.SlabTopMm.Value / 1000).ToString("+0.000;-0.000", CultureInfo.InvariantCulture)
+                ? "Floor · " + ((row.SlabTopMm.Value + row.ProjectBaseOffsetMm) / 1000)
+                    .ToString("+0.000;-0.000", CultureInfo.InvariantCulture)
                 : "No slab";
 
             if (!string.IsNullOrEmpty(row.Owner))

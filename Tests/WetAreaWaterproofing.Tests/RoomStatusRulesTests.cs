@@ -1,4 +1,4 @@
-using Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Geometry;
+﻿using Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Geometry;
 using Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Grid;
 using Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Models;
 using Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Run;
@@ -110,5 +110,26 @@ namespace WetAreaWaterproofing.Tests
         [Fact]
         public void NegativeSlabElevationKeepsItsSign()
             => Assert.Equal("Floor · -0.150", Candidate(x => x.Row.SlabTopMm = -150).Row.SlabText);
+
+        [Fact]
+        public void SlabTopIsShownAsAProjectElevation()
+            => Assert.Equal("Floor · +103.150", Candidate(x => x.Row.ProjectBaseOffsetMm = 100000).Row.SlabText);
+
+        [Fact]
+        public void SlabTopIsUnchangedWhenTheProjectBasePointIsAtZero()
+            => Assert.Equal("Floor · +3.150", Candidate().Row.SlabText);
+
+        [Fact]
+        public void ANegativeProjectBaseOffsetIsSubtracted()
+            => Assert.Equal("Floor · -46.850", Candidate(x => x.Row.ProjectBaseOffsetMm = -50000).Row.SlabText);
+
+        [Fact]
+        public void TheProjectBaseOffsetDoesNotReachTheHeightTheRoofIsBuiltFrom()
+        {
+            RoomCandidate shifted = Candidate(x => x.Row.ProjectBaseOffsetMm = 100000);
+            // The display shift must never follow the slab top into the arithmetic: the roof's offset from
+            // its level is a difference, and a difference is the same in both bases.
+            Assert.Equal(3150, shifted.Row.SlabTopMm);
+        }
     }
 }

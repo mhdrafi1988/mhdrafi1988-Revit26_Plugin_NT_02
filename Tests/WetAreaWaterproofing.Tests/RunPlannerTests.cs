@@ -1,4 +1,4 @@
-using Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Geometry;
+﻿using Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Geometry;
 using Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Grid;
 using Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Models;
 using Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Run;
@@ -102,6 +102,15 @@ namespace WetAreaWaterproofing.Tests
             // Room level at 3000 in host coordinates, but the nearest host level is at 2800.
             var plan = RunPlanner.Plan(new[] { Candidate("101", c => c.HostLevelElevationMm = 2800) }, Defaults, RunId);
             Assert.Equal(350, plan.Jobs[0].BaseOffsetFromLevelMm, 6);
+        }
+
+        [Fact]
+        public void TheProjectBaseOffsetDoesNotMoveTheRoof()
+        {
+            // The offset is for display only. Slab top 3150 and host level 3000 are both internal Z, so the
+            // roof sits 150 mm above its level whatever the Project Base Point reads.
+            var plan = RunPlanner.Plan(new[] { Candidate("101", c => c.Row.ProjectBaseOffsetMm = 100000) }, Defaults, RunId);
+            Assert.Equal(150, plan.Jobs[0].BaseOffsetFromLevelMm, 6);
         }
 
         [Fact]

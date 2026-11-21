@@ -1,4 +1,4 @@
-using Autodesk.Revit.DB;
+﻿using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using Revit26_Plugin_Revised.Shared.Services;
 using Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Models;
@@ -83,11 +83,11 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
             WorksetId worksetId = null;
             if (doRoofs)
             {
-                roofType = new FilteredElementCollector(_doc).OfClass(typeof(RoofType)).Cast<RoofType>()
+                roofType = RoofCreator.FootPrintTypes(_doc)
                     .OrderBy(t => t.Name == s.RoofTypeName ? 0 : 1).ThenBy(t => t.Name).FirstOrDefault();
-                if (roofType == null) return new RunOutcome { Error = "The project has no roof type. Load or create one first." };
+                if (roofType == null) return new RunOutcome { Error = "The project has no roof type a footprint roof can be made from. Sloped glazing types cannot be used: load or create a basic roof type first." };
                 if (!string.IsNullOrEmpty(s.RoofTypeName) && roofType.Name != s.RoofTypeName)
-                    return new RunOutcome { Error = $"Roof type \"{s.RoofTypeName}\" is not in the project any more. Pick another." };
+                    return new RunOutcome { Error = $"Roof type \"{s.RoofTypeName}\" is not in the project any more, or no footprint roof can be made from it. Press Refresh and pick another." };
 
                 if (_doc.IsWorkshared && !string.IsNullOrEmpty(s.WorksetName))
                 {
