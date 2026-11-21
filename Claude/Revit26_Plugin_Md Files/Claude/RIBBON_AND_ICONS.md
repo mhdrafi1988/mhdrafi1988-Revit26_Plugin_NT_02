@@ -83,7 +83,16 @@ Floor panels built by `FloorToolsRibbon.Build`; Waterproofing panel built by `Sh
 | Rafi_Pro_Docs | Tagging | Tag To Text, Align Spot Elevations, Align to Detail Line, Distribute Spot Elev. (large *buttons*) · 3 small *split buttons* (last used item runs, kept across restarts): Quick Align Vertical ▾ (tags / ends / bends) · Quick Align Horizontal ▾ (tags / ends / bends) · Quick Align to Tag ▾ (ends / bends / bends horizontal / bends vertical) · 2 small *split buttons* (same memory): Quick Distribute Vertical ▾ (tags / ends / bends) · Quick Distribute Horizontal ▾ (tags / ends / bends) | `TaggingRibbon` |
 | Rafi_Pro_Docs | Detail Lines | From Links · Closed Loop · Line Dims · Line Manager (large) · Section Lines (large) | `DetailLInesRibbon.Build` |
 
-The latest change was plugin 7.26.3, which reorganised five tabs into four: **Rafi_Pro_MOds** and **Rafi_Pro_MOds2**
+The latest change was plugin 7.29.1, which gave **Section Lines** (Section Roof Detail Lines V001) its own icons,
+`Resources/Icons/DetailLiner/SectionRoofDetailLines_16/32.png`: a roof slab cut in section meeting a wall that
+carries on up past it, with an amber line running along the roof and turning up the wall face — what the tool
+draws. It had borrowed `CreateDetailLines_16.png` and `Addlines_32.png` since it was added in 7.28.0, so on the
+Detail Lines panel it was indistinguishable from Line Manager. The icons follow the panel's own style (a
+full-bleed `#2E6E91` tile with a white glyph and a warm accent), not the monochrome brief at the top of
+`Claude/LOGO PROMPT FOLDER/Icon_Prompts.md`, which describes an earlier direction that the shipped icons do not
+follow: 81 of the 120 `_32.png` icons are full-bleed tiles, including all five on this panel. Before it, plugin
+7.28.0 added **Section Lines** to the **Detail Lines** panel as a large button of its own, after the Line Manager
+dropdown. Before it, plugin 7.26.3 reorganised five tabs into four: **Rafi_Pro_MOds** and **Rafi_Pro_MOds2**
 merged into **Rafi_Pro_Roof** (all roof panels); **Rafi_Pro_Floors** gained the **Waterproofing** panel (moved from
 Docs, built by `SheetToolsRibbon.BuildWaterproofingPanel`); a new **Rafi_Pro_Model** tab took Coordination, Manage,
 Worksets, Memory, DWG Tools and Family Tools; and **Rafi_Pro_Docs** (the only surviving Docs tab) now holds Views,

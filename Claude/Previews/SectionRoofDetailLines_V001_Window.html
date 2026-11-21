@@ -1,7 +1,8 @@
 <title>Section Roof Detail Lines</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<!-- UI preview (CLAUDE.md "UI previews"): Section Roof Detail Lines 1.1.0 (V001). Tool was 1.0.0.
-     Plugin 7.29.0 (was 7.28.0).
+<!-- UI preview (CLAUDE.md "UI previews"): Section Roof Detail Lines 1.1.1 (V001). Tool was 1.1.0.
+     Plugin 7.29.1 (was 7.29.0).
+     1.1.1 is the button's own icons; the window itself is unchanged since 1.1.0.
      Shown: the ribbon button and its tooltip, the tool window, and the "List all to log" output.
      1.1.0's change is in the Lines To Draw card: "Sides to draw" (Top / Bottom / Left / Right) under
      the roof option, and "Wall face to draw on" chips in place of the old "Line on both faces" box.
@@ -49,7 +50,7 @@ li+li{margin-top:3px}
 .rsmall{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text);white-space:nowrap}
 .rbig{display:grid;justify-items:center;gap:3px;width:84px;font-size:11px;text-align:center;line-height:1.2}
 .glyph{width:15px;height:15px;border:1px solid var(--navy);border-radius:2px;background:var(--info-soft);flex:0 0 auto}
-.glyph.big{width:30px;height:30px}
+.glyph.big{width:32px;height:32px;border:0;border-radius:0;background:none;image-rendering:pixelated}
 .rlabel{color:var(--text2);font-size:10px;text-transform:uppercase;letter-spacing:.06em;margin-top:6px;text-align:center}
 .rnew{outline:2px solid var(--new);outline-offset:3px;border-radius:3px}
 .tip{width:470px;background:var(--card);border:1px solid var(--input);box-shadow:0 4px 12px rgba(16,32,48,.18);
@@ -141,15 +142,15 @@ li+li{margin-top:3px}
 <div class="page">
 
   <div>
-    <h1>Section Roof Detail Lines <span class="tag">1.1.0</span></h1>
-    <p class="muted">Tool 1.1.0 · plugin 7.29.0 · <b>Rafi_Pro_Docs › Detail Lines › Section Lines</b>.
+    <h1>Section Roof Detail Lines <span class="tag">1.1.1</span></h1>
+    <p class="muted">Tool 1.1.1 · plugin 7.29.1 · <b>Rafi_Pro_Docs › Detail Lines › Section Lines</b>.
       Static mock-up of the window. <span class="sample">Every figure, view name and type name below is sample data — not a real project.</span></p>
   </div>
 
   <!-- ── Ribbon button + tooltip ─────────────────────────────── -->
   <div class="note">
-    <h2>Ribbon</h2>
-    <p class="muted">Unchanged in 1.1.0 — the <b>Section Lines</b> button, its internal name and its icons are the same. Only the tooltip's version line moves.</p>
+    <h2>Ribbon <span class="tag">new icon</span></h2>
+    <p class="muted"><b>Section Lines</b> has its own icons in 1.1.1. It had borrowed Line Manager's, so the two buttons were hard to tell apart. The button's position, label and internal name are unchanged.</p>
     <div class="frame" style="margin-top:10px">
       <div class="ribbon">
         <div class="rpanel">
@@ -159,18 +160,33 @@ li+li{margin-top:3px}
             <div class="rsmall"><i class="glyph"></i>Line Dims ▾</div>
           </div>
           <div class="rbig"><i class="glyph big"></i>Line Manager ▾</div>
-          <div class="rbig rnew"><i class="glyph big"></i>Section Lines</div>
+          <div class="rbig rnew"><img class="glyph big" alt="Section Lines icon: a roof slab cut in section meeting a parapet wall, with an amber line along the roof turning up the wall face" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAZ0lEQVR42mPUy5v4n2EAARPDAINRBwy4A1hoYejFiXlYxfXzJ9EuBI5ZzmY4Zjl7NA2MOoCyXEBOIhpeIWB1PHVgHYCrABnNBaMOoFsixFZbUbM2HI2CUQeMOmDUAdgA42jfcMQ7AAANpxKlk0g6rQAAAABJRU5ErkJggg==">Section Lines</div>
         </div>
         <div class="rlabel">Detail Lines</div>
       </div>
     </div>
     <div class="frame" style="margin-top:12px">
       <div class="tip">
-        <b>Section Roof Detail Lines — v1.1.0 (build V001)</b>
+        <b>Section Roof Detail Lines — v1.1.1 (build V001)</b>
         Open a sheet: lists every element its sections show, from the host model and from each loaded link,
         then traces the cut profile of the roofs you tick and draws a line on the walls beside them, in the
         sections themselves. Up to 10 sections in one run, one Undo step.
       </div>
+    </div>
+    <div style="margin-top:14px;display:flex;gap:18px;align-items:flex-end;flex-wrap:wrap">
+      <div style="display:grid;gap:4px;justify-items:center">
+        <img style="width:32px;height:32px;image-rendering:pixelated" alt="The 32 px icon at its true size" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAZ0lEQVR42mPUy5v4n2EAARPDAINRBwy4A1hoYejFiXlYxfXzJ9EuBI5ZzmY4Zjl7NA2MOoCyXEBOIhpeIWB1PHVgHYCrABnNBaMOoFsixFZbUbM2HI2CUQeMOmDUAdgA42jfcMQ7AAANpxKlk0g6rQAAAABJRU5ErkJggg==">
+        <span class="hint">32 px</span>
+      </div>
+      <div style="display:grid;gap:4px;justify-items:center">
+        <img style="width:16px;height:16px;image-rendering:pixelated" alt="The 16 px icon at its true size" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAASUlEQVR42mPUy5v4n4ECwMRAIWAhVuHFiXlwtn7+JOJdcMxyNh28QMgWggZYHU+lzADkAKJ7NFInEJHjlZh0MLi8QLEBjAOeGwG9dRDr9Ay/uQAAAABJRU5ErkJggg==">
+        <span class="hint">16 px</span>
+      </div>
+      <div style="display:grid;gap:4px;justify-items:center">
+        <img style="width:128px;height:128px;image-rendering:pixelated" alt="The 32 px icon enlarged four times, showing each pixel" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAZ0lEQVR42mPUy5v4n2EAARPDAINRBwy4A1hoYejFiXlYxfXzJ9EuBI5ZzmY4Zjl7NA2MOoCyXEBOIhpeIWB1PHVgHYCrABnNBaMOoFsixFZbUbM2HI2CUQeMOmDUAdgA42jfcMQ7AAANpxKlk0g6rQAAAABJRU5ErkJggg==">
+        <span class="hint">32 px &times;4</span>
+      </div>
+      <p class="muted" style="font-size:11.5px;max-width:44ch">White is the model the section cuts — a roof slab meeting a wall that carries on up past it. Amber is the line the tool draws, along the roof and turning up the wall face. Each size is drawn as whole pixels at that size, not downscaled from one master, so the 16 px version stays crisp.</p>
     </div>
   </div>
 
@@ -180,13 +196,13 @@ li+li{margin-top:3px}
     <p class="muted">As it looks after one run on a sheet with five sections, with the roof's <b>Bottom</b> side alone chosen. Roofs and walls are ticked when the window opens, and all four sides are ticked by default, so a first run still draws the whole profile.</p>
     <div class="frame" style="margin-top:10px">
       <div class="win">
-        <div class="tbar"><b>Section Roof Detail Lines — v1.1.0</b><span>— □ ✕</span></div>
+        <div class="tbar"><b>Section Roof Detail Lines — v1.1.1</b><span>— □ ✕</span></div>
         <div class="hdr">
           <div>
             <b>Section Roof Detail Lines</b>
             <span class="s">List what the sheet's sections show — host model and links — then draw the roofs' cut profile and a line on the walls beside them</span>
           </div>
-          <div class="badge">v1.1.0</div>
+          <div class="badge">v1.1.1</div>
         </div>
 
         <div class="wbody">
@@ -376,7 +392,11 @@ li+li{margin-top:3px}
 
   <!-- ── What changed ────────────────────────────────────────── -->
   <div class="note">
-    <h2>What is new in 1.1.0</h2>
+    <h2>What is new in 1.1.1</h2>
+    <ul>
+      <li><b>The button has its own icons.</b> It had borrowed Line Manager's 16 px icon since 7.28.0, so the two were hard to tell apart on the panel. Appearance only — position, label, internal name, tooltip text and behaviour are all unchanged. <span class="tag">new</span></li>
+    </ul>
+    <h2 style="margin-top:14px">From 1.1.0</h2>
     <ul>
       <li><b>Sides to draw</b> — Top, Bottom, Left, Right, all four ticked by default, so the tool draws exactly what 1.0.0 drew until you change it. Unticking the last one puts it back. To get just a line under each roof, leave <b>Bottom</b>. <span class="tag">new</span></li>
       <li><b>Wall face to draw on</b> — Nearer the roof (the default, as in 1.0.0), Both faces, Left, Right. Replaces the <b>Line on both faces</b> tick box; a 1.0.0 settings file with it ticked opens on Both faces. <span class="tag">new</span></li>

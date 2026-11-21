@@ -9,6 +9,26 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [7.29.1] — 2026-11-21
+
+### Changed
+- **Section Roof Detail Lines 1.1.1** — the **Section Lines** button has its own icons,
+  `Resources/Icons/DetailLiner/SectionRoofDetailLines_16.png` and `_32.png`: a roof slab cut in section meeting a
+  wall that carries on up past it, with an amber line running along the roof and turning up the wall face — what the
+  tool draws.
+  - It had borrowed Line Manager's 16 px icon and an unused 32 px one since it was added in 7.28.0, so on the Detail
+    Lines panel it was hard to tell the two buttons apart.
+  - The icons follow the style of the panel they sit on — a full-bleed `#2E6E91` tile, white glyph, warm accent —
+    which is what 81 of the suite's 120 `_32.png` icons use, rather than the monochrome brief at the top of
+    `Claude/LOGO PROMPT FOLDER/Icon_Prompts.md`, which describes a direction the shipped set never adopted. That is
+    noted in both that file and `RIBBON_AND_ICONS.md`.
+  - Each size is drawn as whole pixels at that size rather than downscaled from one master, so the 16 px version
+    stays crisp instead of blurring.
+
+**User notes**
+- Appearance only. The button's position, its label, its internal name (`Btn_SectionRoofDetailLines_V001`), its
+  tooltip text and everything the tool does are unchanged — only the picture on the button is new.
+
 ## [7.29.0] — 2026-11-21
 
 ### Added

@@ -17,6 +17,23 @@ Several tool families already have an unused, never-wired icon sitting in `Resou
 
 ---
 
+## Detail Lines (`DetailLInesRibbon.cs`)
+
+**Btn_SectionRoofDetailLines_V001** → `DetailLiner/SectionRoofDetailLines_16.png` + `_32.png` — *made 2026-11-21
+(plugin 7.29.1), drawn directly rather than generated.* Subject: a roof slab cut in section meeting a wall that
+carries on up past it (a parapet), with a line running along the roof and turning up the wall face.
+
+Note on style: this pair does **not** follow the shared monochrome brief above. That brief describes a
+dark-stroke-on-transparent direction the shipped set never adopted — 81 of the 120 `_32.png` icons are full-bleed
+`#2E6E91` tiles with a white glyph, including all five on the Detail Lines panel, and 30 of those carry a warm
+accent. These icons match that: `#2E6E91` tile, white for the model in section, `#F4A72C` for the line the tool
+draws. Drawn as whole pixels at each size rather than downscaled from one master, so the strokes stay crisp at
+16 px. The script that produced them is in the 7.29.1 commit message; re-running it is the way to change them.
+
+Before adding a prompt here for a Detail Lines button, check which style that panel is actually using.
+
+---
+
 ## Dimensions (`DimensionsRibbon.cs` — DimMenu pulldown)
 
 1. **Btn_DtlLine_07** → `DtlLineDim_V007_32.png` — a detail line with a dimension string automatically snapping to both endpoints, arrows pointing outward.
