@@ -9,6 +9,28 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [7.28.0] — 2026-11-21
+
+### Added
+- **Sheet Auto Rearrange 31.0.0 (V031)** — new **Rearrange V031** button, at the top of the *Rearrange* dropdown
+  (Sheet Create panel, slide-out). Same as V030, plus a **Titles** tab for the view titles:
+  - **Pack each view with its title**: a view takes up its box plus its title, so a title never overlaps the
+    view below it or runs out of the usable area.
+  - **Same title position for every view**: each title's left edge goes on its view's left edge, its top a set
+    gap below the view (default 3 mm).
+  - **Title line as wide as the view**: sets each title's extension line to its view's width.
+  - **Line up titles in each row**: views in a row are bottom-aligned and get the same title band, so their
+    titles share one line. Needs the same title position; it sets *Align rows* to Bottom.
+  - The live preview draws each view's title under its box.
+
+**User notes**
+- All title options are off by default, so V031 lays out a sheet like V030 until you tick one.
+- Only a title's position and line length change. Its text (Title on Sheet, viewport type) is never edited.
+  A title that cannot be changed (for example an element owned by another user) is left as it is and reported
+  in the log.
+- V030, V029 and V028 stay in the dropdown unchanged. They share the settings file; opening V030 after V031 and
+  closing it resets the title options to off.
+
 ## [7.27.2] — 2026-11-20
 
 ### Changed
