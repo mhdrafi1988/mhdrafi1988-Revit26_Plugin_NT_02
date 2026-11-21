@@ -9,7 +9,7 @@ Part C: grouping, sheets, print set.
 
 | Item | Value |
 |---|---|
-| Tool name | Wet Area Waterproofing, v1.1.1 (plugin 7.16.1) |
+| Tool name | Wet Area Waterproofing, v1.2.1 (plugin 7.27.3) |
 | Folder | `Menu/Sheet/WetAreaWaterproofing_V001/` |
 | Namespace | `Revit26_Plugin_Revised.WetAreaWaterproofing.V001` |
 | Command | `…V001.Commands.WetAreaWaterproofingCommand` (via `ToolGuard.RunCommand`) |
@@ -57,6 +57,7 @@ and friends); new columns are added at the end only. `Group` and `Scale` are fil
 
 - Curved boundaries are faceted (the repair chain works on straight pieces).
 - A slab is looked for within 500 mm above or below the room's level.
+- Only roof types a footprint roof can be made from are offered: sloped glazing types are left out.
 - Reference sections cannot be named one by one; they show the drafting view's detail number.
 - *Remove a run* leaves drafting views in place.
 - Needs testing in Revit on: a rotated link, a workshared model, rooms with columns inside.

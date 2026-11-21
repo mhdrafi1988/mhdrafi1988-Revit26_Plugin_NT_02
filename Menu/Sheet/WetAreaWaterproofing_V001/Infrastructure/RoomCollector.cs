@@ -1,4 +1,4 @@
-using Autodesk.Revit.DB;
+﻿using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Architecture;
 using Revit26_Plugin_Revised.Shared.Services;
 using Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Geometry;
@@ -103,8 +103,8 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
             return new ModelSnapshot
             {
                 Rooms = rooms,
-                RoofTypes = new FilteredElementCollector(doc).OfClass(typeof(RoofType)).Cast<RoofType>()
-                    .Select(t => t.Name).Distinct().OrderBy(n => n).ToList(),
+                // Only types a footprint roof can be made from: sloped glazing would be refused by Revit.
+                RoofTypes = RoofCreator.FootPrintTypeNames(doc),
                 Worksets = worksets,
                 ActiveWorkset = activeWorkset,
                 Links = linkNames,

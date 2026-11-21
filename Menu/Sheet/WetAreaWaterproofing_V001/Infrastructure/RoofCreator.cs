@@ -1,4 +1,4 @@
-using Autodesk.Revit.DB;
+﻿using Autodesk.Revit.DB;
 using Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Geometry;
 using Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Core.Run;
 using System;
@@ -32,6 +32,37 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
     /// <summary>Creates one waterproofing roof from a planned job.</summary>
     public static class RoofCreator
     {
+        /// <summary>
+        /// True when a footprint roof can be made from <paramref name="roofType"/>. Only roof types with a
+        /// compound structure qualify: sloped glazing (curtain) roof types have none, and
+        /// <c>NewFootPrintRoof</c> refuses them. In-place roofs have no <see cref="RoofType"/> at all, so
+        /// collecting that class already leaves them out.
+        /// </summary>
+        /// <param name="roofType">Roof type to test; null returns false.</param>
+        public static bool IsFootPrintType(RoofType roofType)
+        {
+            if (roofType == null) return false;
+            try
+            {
+                return roofType.GetCompoundStructure() != null;
+            }
+            catch (Autodesk.Revit.Exceptions.ApplicationException)
+            {
+                return false; // a type Revit will not describe is not one to build a roof from
+            }
+        }
+
+        /// <summary>The project's roof types a footprint roof can be made from.</summary>
+        /// <param name="doc">Host document.</param>
+        public static IReadOnlyList<RoofType> FootPrintTypes(Document doc)
+            => new FilteredElementCollector(doc).OfClass(typeof(RoofType)).Cast<RoofType>()
+                .Where(IsFootPrintType).ToList();
+
+        /// <summary>Names of <see cref="FootPrintTypes"/>, sorted, for the roof-type list in the window.</summary>
+        /// <param name="doc">Host document.</param>
+        public static IReadOnlyList<string> FootPrintTypeNames(Document doc)
+            => FootPrintTypes(doc).Select(t => t.Name).Distinct().OrderBy(n => n, StringComparer.CurrentCulture).ToList();
+
         /// <summary>
         /// Creates the roof for <paramref name="job"/> in its own transaction, after deleting the
         /// roofs it replaces. Returns the new roof's id and area. Throws with a readable message
@@ -101,7 +132,9 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
                 var q = new XYZ(p.X / BoundaryReader.FtToMm, p.Y / BoundaryReader.FtToMm, z);
                 if (xyz.Count == 0 || xyz[^1].DistanceTo(q) > shortest * 1.01) xyz.Add(q);
             }
-            while (xyz.Count > 3 && xyz[^1].DistanceTo(xyz[0]) <= shortest * 1.01) xyz.RemoveAt(xyz.Count - 1);
+            // Drop every trailing point that sits on the first one, so the closing line is never too short
+            // for Revit. Stopping at three points would leave a degenerate closing line on a three-point loop.
+            while (xyz.Count > 1 && xyz[^1].DistanceTo(xyz[0]) <= shortest * 1.01) xyz.RemoveAt(xyz.Count - 1);
             if (xyz.Count < 3) throw new InvalidOperationException("The outline is too small to make a roof.");
             for (int i = 0; i < xyz.Count; i++)
                 footprint.Append(Line.CreateBound(xyz[i], xyz[(i + 1) % xyz.Count]));

@@ -9,6 +9,23 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [7.27.3] — 2026-11-21
+
+### Fixed
+- **Wet Area Waterproofing 1.2.1** — two causes of **"The roof could not be created"**.
+  - The **Roof type** list offered every roof type in the project, sloped glazing (curtain) types included.
+    A footprint roof cannot be made from one, so Revit refused every room of the run. The list now shows
+    only roof types a footprint roof can be made from (those with a compound structure); the run picks from
+    the same set. A project with no such type now says so instead of failing room by room.
+  - A room outline whose last point sat on its first one could end with a closing line shorter than Revit's
+    short-curve tolerance, which Revit refuses. Trailing points on the first point are now all dropped, and
+    an outline left with fewer than three is reported as too small, as before.
+
+**User notes**
+- If your saved roof type was a sloped glazing type, it is no longer in the list: press **Refresh** and pick
+  a basic roof type. Runs that worked before are unaffected — the roofs they made used a basic roof type.
+- Roofs already in the model are not touched.
+
 ## [7.27.2] — 2026-11-20
 
 ### Changed
