@@ -55,6 +55,7 @@ namespace Revit26_Plugin_Revised.SectionRoofDetailLines.V001.Core.Run
             SectionRoofLinesSettings settings = request.Settings.Normalize();
             double toleranceFeet = settings.AdjacencyToleranceMm / Feet;
             double shortCurve = doc.Application.ShortCurveTolerance;
+            HashSet<ProfileSide> roofSides = settings.RoofSides();
 
             GraphicsStyle roofStyle = SectionDetailLineWriter.FindStyle(doc, settings.RoofLineStyleName);
             GraphicsStyle wallStyle = SectionDetailLineWriter.FindStyle(doc, settings.WallLineStyleName);
@@ -76,7 +77,7 @@ namespace Revit26_Plugin_Revised.SectionRoofDetailLines.V001.Core.Run
                     {
                         ToolCancellation.CheckCurrent();
                         RunOneView(doc, viewKey, request, settings, links,
-                            roofStyle, wallStyle, toleranceFeet, shortCurve, report);
+                            roofStyle, wallStyle, roofSides, toleranceFeet, shortCurve, report);
                     }
 
                     ToolCancellation.CheckCurrent(); // last chance before the commit
@@ -112,7 +113,7 @@ namespace Revit26_Plugin_Revised.SectionRoofDetailLines.V001.Core.Run
         private void RunOneView(
             Document doc, long viewKey, RunRequest request, SectionRoofLinesSettings settings,
             Dictionary<long, LinkSource> links, GraphicsStyle roofStyle, GraphicsStyle wallStyle,
-            double toleranceFeet, double shortCurve, RunReport report)
+            HashSet<ProfileSide> roofSides, double toleranceFeet, double shortCurve, RunReport report)
         {
             if (doc.GetElement(new ElementId(viewKey)) is not ViewSection view)
             {
@@ -156,7 +157,8 @@ namespace Revit26_Plugin_Revised.SectionRoofDetailLines.V001.Core.Run
 
             if (settings.DrawRoofProfile && roofs.Count > 0)
             {
-                List<Curve> curves = _builder.BuildRoofCurves(frame, roofs, shortCurve);
+                List<Curve> curves = _builder.BuildRoofCurves(frame, roofs, roofSides, shortCurve,
+                    message => report.Details.Add(new LogEntry(LogLevel.Info, $"'{view.Name}': {message}")));
                 WriteResult write = _writer.Write(doc, view, curves, roofStyle, settings.SkipExistingLines,
                     message => report.Details.Add(new LogEntry(LogLevel.Warning, $"'{view.Name}': {message}")));
                 created += write.Created;
@@ -168,7 +170,7 @@ namespace Revit26_Plugin_Revised.SectionRoofDetailLines.V001.Core.Run
             if (settings.DrawWallLines && walls.Count > 0)
             {
                 List<Curve> curves = _builder.BuildWallCurves(
-                    frame, walls, roofsForAdjacency, toleranceFeet, settings.WallLineOnBothFaces, shortCurve,
+                    frame, walls, roofsForAdjacency, toleranceFeet, settings.WallFace, shortCurve,
                     message => report.Details.Add(new LogEntry(LogLevel.Info, $"'{view.Name}': {message}")),
                     out int wallsDrawn);
 
@@ -248,9 +250,9 @@ namespace Revit26_Plugin_Revised.SectionRoofDetailLines.V001.Core.Run
                     continue;
                 }
 
-                List<Curve> curves = _cuts.GetCutCurves(solids, frame.CutPlane,
+                List<CutEdge> edges = _cuts.GetCutEdges(solids, frame.CutPlane, frame,
                     message => report.Details.Add(new LogEntry(LogLevel.Warning, $"{label}: {message}")));
-                if (curves.Count == 0)
+                if (edges.Count == 0)
                 {
                     // Visible in the view, but behind the cut plane rather than on it — the
                     // section shows it without cutting it, so there is no profile to trace.
@@ -259,14 +261,14 @@ namespace Revit26_Plugin_Revised.SectionRoofDetailLines.V001.Core.Run
                 }
 
                 var points = new List<XYZ>();
-                foreach (Curve curve in curves)
-                    points.AddRange(curve.Tessellate());
+                foreach (CutEdge edge in edges)
+                    points.AddRange(edge.Curve.Tessellate());
 
                 profiles.Add(new CutProfile
                 {
                     ElementId = row.Key.ElementId,
                     Label = label,
-                    Curves = curves,
+                    Edges = edges,
                     Points = points
                 });
             }

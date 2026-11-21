@@ -1,6 +1,6 @@
 # Section Roof Detail Lines (V001)
 
-Tool version **1.0.0** · namespace `Revit26_Plugin_Revised.SectionRoofDetailLines.V001` ·
+Tool version **1.1.0** · namespace `Revit26_Plugin_Revised.SectionRoofDetailLines.V001` ·
 ribbon **Rafi_Pro_Docs › Detail Lines › Section Lines**
 
 Lists what a sheet's sections show — host model and every loaded Revit link — then traces the cut
@@ -37,13 +37,32 @@ An element the plane misses produces no such face, so an element the section *sh
 
 ## What is drawn
 
-- **Roof** — the whole cut profile. Straight edges are trimmed to the crop; an arc is kept whole,
-  since Revit does not draw the part outside the crop anyway.
-- **Wall** — one vertical line per face of the wall's cut profile, at that face's own position
-  across the view, over the wall's own height in the section held inside the crop. Only for a wall
-  whose cut profile comes within the adjacency tolerance (default 50 mm) of a ticked roof's.
-  Off by default, **Line on both faces** draws the far face too; otherwise only the face nearer the
-  roof gets a line.
+- **Roof** — the edges of the cut profile on the sides you pick: **Top**, **Bottom**, **Left**,
+  **Right**, all four by default, which is the whole profile. Straight edges are trimmed to the
+  crop; an arc is kept whole, since Revit does not draw the part outside the crop anyway.
+- **Wall** — one vertical line per chosen face of the wall's cut profile, at that face's own
+  position across the view, over the wall's own height in the section held inside the crop. Only
+  for a wall whose cut profile comes within the adjacency tolerance (default 50 mm) of a ticked
+  roof's. **Wall face to draw on** picks which: **Nearer the roof** (the default, and what 1.0.0
+  did), **Both faces**, **Left** or **Right**.
+
+### How a side is decided
+
+Not by where the edge sits in the profile — that breaks on a sloped or stepped roof — but by where
+the material is. For each edge, a 0.3 mm step either way perpendicular to it is projected onto the
+cut face (`Face.Project` then `Face.IsInside`); whichever probe lands on the face is the solid side,
+so the other way is *out*. That outward direction, resolved against the view's up and right
+(`cos 45°` splits top/bottom from left/right), gives the side.
+
+Two consequences worth knowing:
+
+- The underside of a roof reads as **Bottom** whether the roof is flat, sloped or stepped.
+- The head of an opening the section passes through also reads as **Bottom**, because that surface
+  is what you see standing under it. Its sill reads as **Top**.
+
+Where both probes agree — at a corner, or on an edge shorter than the probe — the fallback compares
+the edge with the middle of the cut face, which is right for the simple profiles that is the only
+place it happens.
 
 ## Scope of a run
 

@@ -57,9 +57,13 @@ namespace Revit26_Plugin_Revised.SectionRoofDetailLines.V001.UI.ViewModels
             _documentTitle = uiApp.ActiveUIDocument?.Document?.Title ?? string.Empty;
 
             _drawRoofProfile = _settings.DrawRoofProfile;
+            _roofTop = _settings.RoofTop;
+            _roofBottom = _settings.RoofBottom;
+            _roofLeft = _settings.RoofLeft;
+            _roofRight = _settings.RoofRight;
+            _wallFace = _settings.WallFace;
             _drawWallLines = _settings.DrawWallLines;
             _adjacencyToleranceMm = _settings.AdjacencyToleranceMm;
-            _wallLineOnBothFaces = _settings.WallLineOnBothFaces;
             _skipExistingLines = _settings.SkipExistingLines;
             _showAllCategories = _settings.ShowAllCategories;
 
@@ -103,6 +107,23 @@ namespace Revit26_Plugin_Revised.SectionRoofDetailLines.V001.UI.ViewModels
         [ObservableProperty]
         private bool _drawRoofProfile = true;
 
+        /// <summary>Draw the roof edges that face up — its top surface.</summary>
+        [ObservableProperty]
+        private bool _roofTop = true;
+
+        /// <summary>Draw the roof edges that face down — the underside, and the soffit over any
+        /// opening the section passes through.</summary>
+        [ObservableProperty]
+        private bool _roofBottom = true;
+
+        /// <summary>Draw the roof edges that face left across the view.</summary>
+        [ObservableProperty]
+        private bool _roofLeft = true;
+
+        /// <summary>Draw the roof edges that face right across the view.</summary>
+        [ObservableProperty]
+        private bool _roofRight = true;
+
         /// <summary>Draw a vertical line on ticked walls that stand next to a ticked roof.</summary>
         [ObservableProperty]
         private bool _drawWallLines = true;
@@ -111,9 +132,25 @@ namespace Revit26_Plugin_Revised.SectionRoofDetailLines.V001.UI.ViewModels
         [ObservableProperty]
         private double _adjacencyToleranceMm = 50.0;
 
-        /// <summary>Draw the wall line on both faces, not only the face nearer the roof.</summary>
+        /// <summary>Which face of an adjacent wall gets a line.</summary>
         [ObservableProperty]
-        private bool _wallLineOnBothFaces;
+        private WallFaceChoice _wallFace = WallFaceChoice.NearerRoof;
+
+        /// <summary>The sides of a roof's profile currently ticked, for the hint under them.</summary>
+        public string RoofSidesNote
+        {
+            get
+            {
+                var sides = new List<string>();
+                if (RoofTop) sides.Add("top");
+                if (RoofBottom) sides.Add("bottom");
+                if (RoofLeft) sides.Add("left");
+                if (RoofRight) sides.Add("right");
+                if (sides.Count == 4) return "The whole cut profile.";
+                if (sides.Count == 0) return "No side chosen — the whole profile is drawn instead.";
+                return "Only the " + string.Join(", ", sides) + " edge(s) of each roof's cut.";
+            }
+        }
 
         /// <summary>Leave out a line the view already has, so a second run does not duplicate it.</summary>
         [ObservableProperty]
@@ -238,6 +275,33 @@ namespace Revit26_Plugin_Revised.SectionRoofDetailLines.V001.UI.ViewModels
         partial void OnShowAllCategoriesChanged(bool value) => ApplyFilters();
 
         partial void OnDrawRoofProfileChanged(bool value) => GuardAtLeastOnePart(roofChanged: true);
+
+        partial void OnRoofTopChanged(bool value) => GuardAtLeastOneSide(nameof(RoofTop));
+
+        partial void OnRoofBottomChanged(bool value) => GuardAtLeastOneSide(nameof(RoofBottom));
+
+        partial void OnRoofLeftChanged(bool value) => GuardAtLeastOneSide(nameof(RoofLeft));
+
+        partial void OnRoofRightChanged(bool value) => GuardAtLeastOneSide(nameof(RoofRight));
+
+        // Unticking the last side would make the roof part draw nothing and say nothing, so the
+        // side just unticked comes back on — the same rule Normalize() applies to a settings file.
+        private void GuardAtLeastOneSide(string justChanged)
+        {
+            if (RoofTop || RoofBottom || RoofLeft || RoofRight)
+            {
+                OnPropertyChanged(nameof(RoofSidesNote));
+                return;
+            }
+
+            switch (justChanged)
+            {
+                case nameof(RoofTop): RoofTop = true; break;
+                case nameof(RoofBottom): RoofBottom = true; break;
+                case nameof(RoofLeft): RoofLeft = true; break;
+                default: RoofRight = true; break;
+            }
+        }
 
         partial void OnDrawWallLinesChanged(bool value) => GuardAtLeastOnePart(roofChanged: false);
 
@@ -559,7 +623,11 @@ namespace Revit26_Plugin_Revised.SectionRoofDetailLines.V001.UI.ViewModels
             _settings.DrawRoofProfile = DrawRoofProfile;
             _settings.DrawWallLines = DrawWallLines;
             _settings.AdjacencyToleranceMm = AdjacencyToleranceMm;
-            _settings.WallLineOnBothFaces = WallLineOnBothFaces;
+            _settings.RoofTop = RoofTop;
+            _settings.RoofBottom = RoofBottom;
+            _settings.RoofLeft = RoofLeft;
+            _settings.RoofRight = RoofRight;
+            _settings.WallFace = WallFace;
             _settings.SkipExistingLines = SkipExistingLines;
             _settings.ShowAllCategories = ShowAllCategories;
             SettingsService<SectionRoofLinesSettings>.Save(

@@ -9,6 +9,37 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [7.29.0] — 2026-11-21
+
+### Added
+- **Section Roof Detail Lines 1.1.0** — you now pick **which sides** get a line, rather than always getting the
+  whole cut profile.
+  - **Roofs — sides to draw**: four tick boxes, **Top**, **Bottom**, **Left** and **Right**, under the roof option.
+    All four are ticked, which is the whole profile, so the tool draws exactly what 1.0.0 drew until you change it.
+    Unticking the last one puts it back, because a roof part with no side chosen would draw nothing and say nothing.
+    A line under the boxes reads back the choice ("Only the bottom edge(s) of each roof's cut"), and the run writes
+    it to the log along with how many edges each side left out.
+  - **Wall face to draw on**: four chips, **Nearer the roof** (the default, and what 1.0.0 did), **Both faces**,
+    **Left** and **Right**. This replaces the **Line on both faces** tick box, which said the same thing in fewer
+    words; a settings file from 1.0.0 with that box ticked opens on **Both faces**.
+  - **A side is read from where the material is**, not from where the edge sits in the profile. For each edge a
+    0.3 mm step either way is projected onto the cut face; whichever probe lands on the face is the solid side, so
+    the other way is out, and that direction resolved against the view's up and right gives the side. So **Bottom**
+    is the underside on a flat, sloped or stepped roof alike — where "the lowest edge" would not be — and the head
+    of an opening the section passes through also reads as Bottom, since that is the surface you see from under it.
+
+### Changed
+- **Settings schema** for this tool goes to version 2: the four roof sides and the wall-face choice are added, and
+  a version-1 file is migrated on load (its **both faces** flag is carried into the new choice) rather than
+  rejected. An out-of-range or missing value still comes back as the old behaviour.
+
+**User notes**
+- Nothing about an existing run changes until you change a side: the defaults draw the whole roof profile and the
+  wall face nearer the roof, exactly as 1.1.0's predecessor did.
+- To get just a line under each roof — the common case — untick Top, Left and Right and leave **Bottom**.
+- **Left** and **Right** are left and right *on screen in that section*, so a section looking the other way puts
+  them the other way round. **Nearer the roof** is the choice that does not depend on which way the section faces.
+
 ## [7.28.0] — 2026-11-21
 
 ### Added
