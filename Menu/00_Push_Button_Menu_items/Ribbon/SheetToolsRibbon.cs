@@ -1,4 +1,4 @@
-using Autodesk.Revit.UI;
+﻿using Autodesk.Revit.UI;
 using Revit26_Plugin_Revised.Resources.Icons;
 using Revit26_Plugin_Revised.Shared.Services;
 using System.Collections.Generic;
@@ -163,8 +163,8 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                 LargeImage = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SheetTools.WetAreaWaterproofing_32.png"),
                 ToolTip = ToolCatalog.WetAreaWaterproofing.Tip(
                     "Finds wet rooms (toilets, baths, kitchens…) in the model and its links, adds a waterproofing roof on top of the " +
-                    "slab under each one, and creates a cropped plan per room with up to 6 reference sections (doors, drains, corners, " +
-                    "fixtures) pointing to drafting views. Excel report; one Undo step.")
+                    "slab under each one, and creates a cropped plan per room with up to 6 cuts (doors, drains, corners, fixtures) — " +
+                    "each a reference section to a drafting view or a callout detail view. Excel report; one Undo step.")
             };
 
             // Waterproofing panel (plugin 7.11.0): Wet Area Waterproofing on its own, as a full-size button.

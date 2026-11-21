@@ -9,7 +9,7 @@ Part C: grouping, sheets, print set.
 
 | Item | Value |
 |---|---|
-| Tool name | Wet Area Waterproofing, v1.2.3 (plugin 7.27.5) |
+| Tool name | Wet Area Waterproofing, v1.2.4 (plugin 7.27.6) |
 | Folder | `Menu/Sheet/WetAreaWaterproofing_V001/` |
 | Namespace | `Revit26_Plugin_Revised.WetAreaWaterproofing.V001` |
 | Command | `…V001.Commands.WetAreaWaterproofingCommand` (via `ToolGuard.RunCommand`) |

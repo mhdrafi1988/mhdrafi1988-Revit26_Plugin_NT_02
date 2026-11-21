@@ -1,7 +1,7 @@
 <title>Wet Area Waterproofing</title>
 <!--
-  Tool: Wet Area Waterproofing — v1.2.3 (build V001), Parts A and B of three
-  Plugin: 7.27.5
+  Tool: Wet Area Waterproofing — v1.2.4 (build V001), Parts A and B of three
+  Plugin: 7.27.6
   Mirrors: Menu/Sheet/WetAreaWaterproofing_V001/UI/Views/WetAreaWaterproofingWindow.xaml
   Artifact: https://claude.ai/artifact/BvqGfYjfbaqbNtwtj24eVz
 -->
@@ -94,8 +94,9 @@ tr.grp td{background:#F3F5F7;font-weight:600;color:var(--head)}
 
 <div class="wrap">
 <header>
-  <h1>Wet Area Waterproofing <span class="new">v1.2.3</span></h1>
+  <h1>Wet Area Waterproofing <span class="new">v1.2.4</span></h1>
   <p class="note">Parts A and B are built. Part B adds a plan per room and up to 6 sections per room — each target can now be a <b>Reference Section</b> (points to a drafting view) or a <b>Callout</b> (creates a cropped detail view). Sheets and the print set are Part C. Every room, level, link and file name below is <b>sample data</b>.</p>
+  <p class="note"><span class="new">CHANGED in 1.2.4</span> The ribbon button's <b>tooltip</b> now mentions the callout option that 1.2.0 added — it still said the plan's cuts were "reference sections … pointing to drafting views". Hover text only; the button, its panel and its icons are unchanged.</p>
   <p class="note"><span class="new">CHANGED in 1.2.3</span> The <b>Slab top</b> figure is shown as a <b>project elevation</b> — the same number Revit’s Properties panel gives for that slab — instead of a Revit internal elevation. The sample model below has its Project Base Point at 100&thinsp;000&nbsp;mm, so the column reads <code>Floor · +103.150</code> where it used to read <code>Floor · +3.150</code>. The height the roof is built from has not moved.</p>
   <p class="note"><span class="new">FIXED in 1.2.2</span> <b>Elevations used in geometry all come from one base.</b> Level heights were read from the Project Base Point while slab tops and element geometry are in Revit’s internal coordinates. In a model whose Project Base Point is not at elevation 0 that made the tool miss the slab under a room, set the roof’s <b>Offset from Level</b> wrong, lose section targets, and place sections at the wrong Z.</p>
   <p class="note"><span class="new">FIXED in 1.2.1</span> Two causes of <b>“The roof could not be created”</b>: the <b>Roof type</b> list now offers only roof types a footprint roof can be made from (sloped glazing is left out), and an outline whose last point sat on its first one no longer ends with a closing line below Revit’s short-curve tolerance.</p>
@@ -119,7 +120,7 @@ tr.grp td{background:#F3F5F7;font-weight:600;color:var(--head)}
   <h2>Ribbon button</h2>
   <div class="ribbon">
     <div class="rbtn"><div class="ico"></div>Wet Area<br>Waterproofing</div>
-    <div class="tip"><b>Wet Area Waterproofing — v1.2.3 (build V001)</b><br>Finds wet rooms (toilets, baths, kitchens…) in the model and its links, adds a waterproofing roof on top of the slab under each one, and creates a cropped plan per room with up to 6 sections — each a reference section or a callout. Excel report; one Undo step.</div>
+    <div class="tip"><b>Wet Area Waterproofing — v1.2.4 (build V001)</b><br>Finds wet rooms (toilets, baths, kitchens…) in the model and its links, adds a waterproofing roof on top of the slab under each one, and creates a cropped plan per room with up to 6 cuts (doors, drains, corners, fixtures) — each a reference section to a drafting view or a callout detail view. Excel report; one Undo step. <span class="new">CHANGED</span></div>
   </div>
   <p class="note">On its own new <b>Waterproofing</b> panel, after Sheet Edit, as a large button.</p>
 </section>
@@ -127,7 +128,7 @@ tr.grp td{background:#F3F5F7;font-weight:600;color:var(--head)}
 <section>
   <h2>Tool window</h2>
   <div class="scroll"><div class="win">
-    <div class="tb">Wet Area Waterproofing — v1.2.3 <i>✕</i></div>
+    <div class="tb">Wet Area Waterproofing — v1.2.4 <i>✕</i></div>
     <div class="sub">Find wet rooms, add a waterproofing roof on each slab, and create a plan with detail references per room</div>
     <div class="body">
       <div class="card">

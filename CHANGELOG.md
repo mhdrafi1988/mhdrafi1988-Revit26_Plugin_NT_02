@@ -9,6 +9,20 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [7.27.6] — 2026-11-21
+
+### Changed
+- **Wet Area Waterproofing 1.2.4** — the ribbon button's **tooltip** now says what the tool does. It still described
+  the plan's cuts as "up to 6 reference sections … pointing to drafting views", which has been incomplete since
+  1.2.0 added the per-target callout option. It now reads "up to 6 cuts (doors, drains, corners, fixtures) — each a
+  reference section to a drafting view or a callout detail view".
+  - The button, its internal name (`Btn_WetAreaWaterproofing_V001`), its panel (**Rafi_Pro_Floors › Waterproofing**)
+    and its icons are unchanged. The tooltip's first line comes from `ToolCatalog`, so it already tracked the version.
+  - The tool's entry in `README.md` is brought in line with the same wording.
+
+**User notes**
+- Hover text only. No tool behaviour, label or layout changed.
+
 ## [7.27.5] — 2026-11-21
 
 ### Changed
