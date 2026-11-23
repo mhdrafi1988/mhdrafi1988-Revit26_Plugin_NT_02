@@ -33,24 +33,36 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
     public static class RoofCreator
     {
         /// <summary>
-        /// True when a footprint roof can be made from <paramref name="roofType"/>. Only roof types with a
-        /// compound structure qualify: sloped glazing (curtain) roof types have none, and
-        /// <c>NewFootPrintRoof</c> refuses them. In-place roofs have no <see cref="RoofType"/> at all, so
-        /// collecting that class already leaves them out.
+        /// Why a footprint roof cannot be made from <paramref name="roofType"/>, in words for the user,
+        /// or null when one can. Only roof types with layers qualify: sloped glazing (curtain) roof types
+        /// have none, and <c>NewFootPrintRoof</c> then throws <c>ArgumentNullException</c> with no
+        /// parameter name, whose message is the bare "Value cannot be null." In-place roofs have no
+        /// <see cref="RoofType"/> at all, so collecting that class already leaves them out.
         /// </summary>
-        /// <param name="roofType">Roof type to test; null returns false.</param>
-        public static bool IsFootPrintType(RoofType roofType)
+        /// <param name="roofType">Roof type to test; null gives a message.</param>
+        public static string WhyNotUsable(RoofType roofType)
         {
-            if (roofType == null) return false;
+            if (roofType == null || !roofType.IsValidObject)
+                return "The roof type is no longer in the project. Press Refresh and pick another.";
+
+            CompoundStructure structure;
             try
             {
-                return roofType.GetCompoundStructure() != null;
+                structure = roofType.GetCompoundStructure();
             }
             catch (Autodesk.Revit.Exceptions.ApplicationException)
             {
-                return false; // a type Revit will not describe is not one to build a roof from
+                structure = null; // a type Revit will not describe is not one to build a roof from
             }
+            return structure == null || structure.LayerCount == 0
+                ? $"Roof type \"{roofType.Name}\" has no layers, so Revit cannot make a footprint roof from it "
+                  + "(sloped glazing types are like this). Pick a basic roof type."
+                : null;
         }
+
+        /// <summary>True when a footprint roof can be made from <paramref name="roofType"/>.</summary>
+        /// <param name="roofType">Roof type to test; null returns false.</param>
+        public static bool IsFootPrintType(RoofType roofType) => WhyNotUsable(roofType) == null;
 
         /// <summary>The project's roof types a footprint roof can be made from.</summary>
         /// <param name="doc">Host document.</param>
@@ -65,16 +77,28 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
 
         /// <summary>
         /// Creates the roof for <paramref name="job"/> in its own transaction, after deleting the
-        /// roofs it replaces. Returns the new roof's id and area. Throws with a readable message
-        /// when Revit refuses; the transaction is rolled back so nothing partial is left.
+        /// roofs it replaces. Returns the new roof's id, its area and how many of the room's holes
+        /// Revit would not cut. Throws with a readable message when Revit refuses — one that names the
+        /// exception and the values Revit was given — and the transaction is rolled back, so nothing
+        /// partial is left.
         /// </summary>
         /// <param name="doc">Host document.</param>
         /// <param name="job">What to create.</param>
         /// <param name="roofType">Roof type to use.</param>
         /// <param name="worksetId">Workset for the roof; null = leave it on the active workset.</param>
-        public static (long RoofId, double AreaM2) Create(Document doc, RoofJob job, RoofType roofType, WorksetId worksetId)
+        public static (long RoofId, double AreaM2, int HolesSkipped) Create(Document doc, RoofJob job, RoofType roofType, WorksetId worksetId)
         {
-            if (doc.GetElement(new ElementId(job.HostLevelId)) is not Level level)
+            if (doc == null || !doc.IsValidObject)
+                throw new InvalidOperationException("The document was closed. Close this window and start the tool again.");
+            if (job == null) throw new ArgumentNullException(nameof(job));
+            if (job.Outer == null || job.Outer.Count < 3)
+                throw new InvalidOperationException("The room has no closed outline to make a roof from.");
+
+            // Checked here as well as before the run: the type may have been deleted or changed since.
+            string refused = WhyNotUsable(roofType);
+            if (refused != null) throw new InvalidOperationException(refused);
+
+            if (doc.GetElement(new ElementId(job.HostLevelId)) is not Level level || !level.IsValidObject)
                 throw new InvalidOperationException("The level for the roof no longer exists.");
 
             using var tx = new Transaction(doc, "WP roof " + job.Number);
@@ -84,9 +108,12 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
             options.SetClearAfterRollback(true);
             tx.SetFailureHandlingOptions(options);
             tx.Start();
+
+            List<XYZ> outer = null;
+            var holes = new List<List<XYZ>>();
             try
             {
-                foreach (long oldId in job.ReplaceRoofIds)
+                foreach (long oldId in job.ReplaceRoofIds ?? Array.Empty<long>())
                 {
                     var id = new ElementId(oldId);
                     if (doc.GetElement(id) != null) doc.Delete(id);
@@ -94,11 +121,17 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
 
                 double z = Elevations.InternalZFt(level);
                 double shortest = doc.Application.ShortCurveTolerance;
-                var footprint = new CurveArray();
-                AddLoop(footprint, job.Outer, z, shortest);
-                foreach (IReadOnlyList<Pt> hole in job.Inner) AddLoop(footprint, hole, z, shortest);
+                int holesSkipped = 0;
+                outer = Loop(job.Outer, z, shortest);
+                foreach (IReadOnlyList<Pt> hole in job.Inner ?? Array.Empty<IReadOnlyList<Pt>>())
+                {
+                    try { holes.Add(Loop(hole, z, shortest)); }
+                    catch (InvalidOperationException) { holesSkipped++; } // too small for Revit: the roof covers it
+                }
 
-                FootPrintRoof roof = doc.Create.NewFootPrintRoof(footprint, level, roofType, out _);
+                FootPrintRoof roof = NewRoof(doc, outer, holes, level, roofType, out int dropped);
+                holesSkipped += dropped;
+
                 roof.get_Parameter(BuiltInParameter.ROOF_LEVEL_OFFSET_PARAM)?.Set(job.BaseOffsetFromLevelMm / BoundaryReader.FtToMm);
                 // Always written: re-runs and "Remove a run" find the roof by this tag.
                 roof.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS)?.Set(job.CommentsTag);
@@ -114,20 +147,104 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
 
                 if (tx.Commit() != TransactionStatus.Committed)
                     throw new InvalidOperationException(failures.Error ?? "Revit did not accept the roof.");
-                return (roofId, areaM2);
+                return (roofId, areaM2, holesSkipped);
             }
-            catch
+            catch (Exception ex)
             {
                 if (tx.HasStarted() && !tx.HasEnded()) tx.RollBack();
-                throw;
+                throw Explained(ex, level, roofType, outer, holes);
             }
         }
 
-        /// <summary>Adds a closed outline as lines at height <paramref name="z"/>, leaving out points too close to make a valid line.</summary>
-        private static void AddLoop(CurveArray footprint, IReadOnlyList<Pt> points, double z, double shortest)
+        /// <summary>
+        /// One call to <c>NewFootPrintRoof</c> with the outer loop and the holes, and a second with the
+        /// outer loop alone when Revit refuses that footprint: the method takes one flat
+        /// <see cref="CurveArray"/> and has no documented support for inner loops, and a roof that covers
+        /// a hole is worth more than no roof at all. The first attempt runs in a
+        /// <see cref="SubTransaction"/>, so a refusal leaves nothing behind.
+        /// </summary>
+        /// <param name="holesSkipped">How many holes were dropped to get the roof made.</param>
+        private static FootPrintRoof NewRoof(Document doc, List<XYZ> outer, List<List<XYZ>> holes,
+            Level level, RoofType roofType, out int holesSkipped)
+        {
+            holesSkipped = 0;
+            if (holes.Count > 0)
+            {
+                using var sub = new SubTransaction(doc);
+                sub.Start();
+                try
+                {
+                    FootPrintRoof withHoles = Make(doc, Footprint(outer, holes), level, roofType);
+                    sub.Commit();
+                    return withHoles;
+                }
+                catch (Exception ex) when (ex is not OperationCanceledException
+                                           and not Autodesk.Revit.Exceptions.OperationCanceledException)
+                {
+                    sub.RollBack();
+                    holesSkipped = holes.Count;
+                }
+            }
+            return Make(doc, Footprint(outer, new List<List<XYZ>>()), level, roofType);
+        }
+
+        /// <summary>
+        /// The only place <c>NewFootPrintRoof</c> is called. The mapping array is handed to Revit
+        /// ready-made, the way the Revit SDK's own sample and this add-in's proven roof services do,
+        /// never as an empty <c>out _</c> slot.
+        /// </summary>
+        private static FootPrintRoof Make(Document doc, CurveArray footprint, Level level, RoofType roofType)
+        {
+            ModelCurveArray mapping = new ModelCurveArray();
+            FootPrintRoof roof = doc.Create.NewFootPrintRoof(footprint, level, roofType, out mapping);
+            return roof ?? throw new InvalidOperationException("Revit made no roof from the outline.");
+        }
+
+        /// <summary>One flat <see cref="CurveArray"/>: the outer loop, then one closed loop per hole.</summary>
+        private static CurveArray Footprint(List<XYZ> outer, List<List<XYZ>> holes)
+        {
+            var footprint = new CurveArray();
+            Append(footprint, outer);
+            foreach (List<XYZ> hole in holes) Append(footprint, hole);
+            return footprint;
+        }
+
+        /// <summary>Appends one closed loop of points as bound lines.</summary>
+        private static void Append(CurveArray footprint, List<XYZ> loop)
+        {
+            for (int i = 0; i < loop.Count; i++)
+                footprint.Append(Line.CreateBound(loop[i], loop[(i + 1) % loop.Count]));
+        }
+
+        /// <summary>
+        /// The exception to report for a roof Revit would not make. Our own messages are already clear
+        /// and are passed on as they are; anything else — Revit's bare "Value cannot be null." above all —
+        /// gets the exception's type and the values Revit was given added to it, so the report row and the
+        /// log say which of them to look at.
+        /// </summary>
+        private static Exception Explained(Exception ex, Level level, RoofType roofType,
+            List<XYZ> outer, List<List<XYZ>> holes)
+        {
+            if (ex is OperationCanceledException or Autodesk.Revit.Exceptions.OperationCanceledException) return ex;
+            if (ex is InvalidOperationException && ex.InnerException == null) return ex;
+
+            int layers = 0;
+            try { layers = roofType?.GetCompoundStructure()?.LayerCount ?? 0; }
+            catch (Autodesk.Revit.Exceptions.ApplicationException) { /* diagnostics only */ }
+
+            return new InvalidOperationException(
+                $"{ex.Message} [{ex.GetType().Name}; roof type \"{roofType?.Name}\", {layers} layer(s); "
+                + $"level \"{level?.Name}\"; {outer?.Count ?? 0} outline point(s), {holes?.Count ?? 0} hole(s)]", ex);
+        }
+
+        /// <summary>
+        /// The points of one closed outline at height <paramref name="z"/>, leaving out points too close
+        /// together to make a valid line.
+        /// </summary>
+        private static List<XYZ> Loop(IReadOnlyList<Pt> points, double z, double shortest)
         {
             var xyz = new List<XYZ>();
-            foreach (Pt p in points)
+            foreach (Pt p in points ?? Array.Empty<Pt>())
             {
                 var q = new XYZ(p.X / BoundaryReader.FtToMm, p.Y / BoundaryReader.FtToMm, z);
                 if (xyz.Count == 0 || xyz[^1].DistanceTo(q) > shortest * 1.01) xyz.Add(q);
@@ -136,8 +253,7 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
             // for Revit. Stopping at three points would leave a degenerate closing line on a three-point loop.
             while (xyz.Count > 1 && xyz[^1].DistanceTo(xyz[0]) <= shortest * 1.01) xyz.RemoveAt(xyz.Count - 1);
             if (xyz.Count < 3) throw new InvalidOperationException("The outline is too small to make a roof.");
-            for (int i = 0; i < xyz.Count; i++)
-                footprint.Append(Line.CreateBound(xyz[i], xyz[(i + 1) % xyz.Count]));
+            return xyz;
         }
     }
 

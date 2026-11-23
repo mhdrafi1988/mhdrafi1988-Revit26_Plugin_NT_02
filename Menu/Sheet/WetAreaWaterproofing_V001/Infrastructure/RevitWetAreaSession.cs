@@ -135,13 +135,19 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
                         {
                             try
                             {
-                                (long roofId, double areaM2) = RoofCreator.Create(_doc, job, roofType, worksetId);
+                                (long roofId, double areaM2, int holesSkipped) = RoofCreator.Create(_doc, job, roofType, worksetId);
                                 created[job.RoomKey] = new CreatedRoof(roofId, areaM2, job.ReplaceRoofIds.Count > 0);
+                                if (holesSkipped > 0)
+                                    issues.Add(new Issue("Warning", "Roof", job.RoomKey, job.Number,
+                                        $"Revit would not cut {holesSkipped} hole(s) in the roof: the roof covers them.",
+                                        "Cut the openings by hand where they matter."));
                             }
                             catch (OperationCanceledException) { throw; }
                             catch (Exception ex)
                             {
                                 // One room failing must not lose the others; its transaction is already rolled back.
+                                // The full exception goes to the log as well: the row below holds one line of it.
+                                ToolGuard.Log(typeof(RoofCreator), ex, $"Roof for room {job.Number} {job.Name}");
                                 issues.Add(new Issue("Error", "Roof", job.RoomKey, job.Number,
                                     $"The roof could not be created: {ex.Message}", "Check the room's outline and the roof type."));
                             }
@@ -157,6 +163,7 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Infrastructure
                             catch (OperationCanceledException) { throw; }
                             catch (Exception ex)
                             {
+                                ToolGuard.Log(typeof(ViewCreator), ex, $"Views for room {job.Number} {job.Name}");
                                 issues.Add(new Issue("Error", "Views", job.RoomKey, job.Number,
                                     $"The plan or its sections could not be created: {ex.Message}", "Check the plan type, the view template and the drafting view names."));
                             }
