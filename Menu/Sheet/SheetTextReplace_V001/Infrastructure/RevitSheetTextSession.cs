@@ -19,38 +19,39 @@ namespace Revit26_Plugin_Revised.SheetTextReplace.V001.Infrastructure
         private readonly ExternalEvent _externalEvent;
 
         /// <summary>
-        /// Reads the model's sheets and, when <paramref name="activeSheet"/> is given, its notes; then
-        /// prepares the ExternalEvent.
+        /// Reads the model's sheets and text-capable views and, when <paramref name="initialScope"/> is
+        /// given (the active sheet, or the active view the user chose to work on alone), its notes;
+        /// then prepares the ExternalEvent.
         /// </summary>
-        public RevitSheetTextSession(Document doc, ViewSheet activeSheet)
+        public RevitSheetTextSession(Document doc, ScopeItem initialScope)
         {
             _doc = doc ?? throw new ArgumentNullException(nameof(doc));
-            Sheets = SheetTextReader.ReadSheets(doc);
-            if (activeSheet != null)
-                Initial = SheetTextReader.Read(doc, activeSheet);
+            Scopes = SheetTextReader.ReadScopes(doc);
+            if (initialScope != null)
+                Initial = ReadScope(initialScope, out _);
             _externalEvent = ExternalEvent.Create(_handler);
         }
 
         /// <inheritdoc/>
-        public IReadOnlyList<SheetItem> Sheets { get; }
+        public IReadOnlyList<ScopeItem> Scopes { get; }
 
         /// <inheritdoc/>
-        public SheetContent Initial { get; }
+        public ScopeContent Initial { get; }
 
         /// <inheritdoc/>
-        public bool Load(long sheetId, Action<LoadResult> done) => Raise(_ =>
+        public bool Load(ScopeItem scope, Action<LoadResult> done) => Raise(_ =>
         {
             LoadResult result = null;
             try
             {
-                var sheet = GetSheet(sheetId, out string error);
-                result = sheet == null
+                var content = ReadScope(scope, out string error);
+                result = content == null
                     ? new LoadResult { Error = error }
-                    : new LoadResult { Content = SheetTextReader.Read(_doc, sheet) };
+                    : new LoadResult { Content = content };
             }
             finally
             {
-                done(result ?? new LoadResult { Error = "Unexpected error while reading the sheet — see the error dialog." });
+                done(result ?? new LoadResult { Error = "Unexpected error while reading the sheet or view — see the error dialog." });
             }
         });
 
@@ -60,8 +61,9 @@ namespace Revit26_Plugin_Revised.SheetTextReplace.V001.Infrastructure
             ApplyResult result = null;
             try
             {
-                var sheet = GetSheet(request.SheetId, out string error);
-                if (sheet == null)
+                // Check the sheet or view is still there before touching anything.
+                var target = Resolve(request.Scope, out string error);
+                if (target == null)
                 {
                     result = new ApplyResult { Success = false, Error = error + " Nothing was changed." };
                     return;
@@ -77,7 +79,8 @@ namespace Revit26_Plugin_Revised.SheetTextReplace.V001.Infrastructure
                     Failed = applied.Failed,
                     FormattingReset = applied.FormattingReset,
                     ElapsedMs = applied.ElapsedMs,
-                    Content = SheetTextReader.Read(_doc, sheet) // re-read: the window shows what is in the model now
+                    // Re-read: the window shows what is in the model now.
+                    Content = ReadTarget(target)
                 };
             }
             finally
@@ -123,16 +126,49 @@ namespace Revit26_Plugin_Revised.SheetTextReplace.V001.Infrastructure
             return false;
         }
 
-        private ViewSheet GetSheet(long sheetId, out string error)
+        /// <summary>
+        /// The sheet or view <paramref name="scope"/> points at, or null with <paramref name="error"/>
+        /// set when it can no longer be used. Cheap: it only looks the element up.
+        /// </summary>
+        private View Resolve(ScopeItem scope, out string error)
         {
             error = null;
+            if (scope == null)
+            {
+                error = "No sheet or view is picked.";
+                return null;
+            }
             if (!_doc.IsValidObject)
+            {
                 error = "The document was closed. Close this window.";
-            else if (_doc.GetElement(new ElementId(sheetId)) is not ViewSheet sheet)
-                error = "The sheet no longer exists. Pick another sheet.";
-            else
-                return sheet;
+                return null;
+            }
+
+            var element = _doc.GetElement(new ElementId(scope.Id));
+            if (scope.IsView)
+            {
+                if (element is View view && view is not ViewSheet) return view;
+                error = "The view no longer exists. Pick another sheet or view.";
+                return null;
+            }
+
+            if (element is ViewSheet sheet) return sheet;
+            error = "The sheet no longer exists. Pick another sheet or view.";
             return null;
+        }
+
+        /// <summary>Reads the notes of a resolved sheet (with its views) or single view.</summary>
+        private ScopeContent ReadTarget(View target)
+            => target is ViewSheet sheet ? SheetTextReader.Read(_doc, sheet) : SheetTextReader.ReadView(_doc, target);
+
+        /// <summary>
+        /// Reads <paramref name="scope"/> — a sheet with its views, or one view on its own. Returns
+        /// null and sets <paramref name="error"/> when it can no longer be read.
+        /// </summary>
+        private ScopeContent ReadScope(ScopeItem scope, out string error)
+        {
+            var target = Resolve(scope, out error);
+            return target == null ? null : ReadTarget(target);
         }
 
         /// <summary>Releases the ExternalEvent.</summary>

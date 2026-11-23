@@ -164,7 +164,7 @@ Where a tool has several versions, its button is a dropdown listing the newest v
   Sheet Auto Rearrange V029 adds Align & Distribute: views line up on shared row / column lines and spread
   across the usable area. V030 is the same engine in a redesigned window: large live preview, quick layouts
   and settings in three tabs.
-- **Sheet Text Replace**: find and replace text notes in views on a sheet.
+- **Sheet Text Replace**: find and replace text notes on a sheet (in the views you tick) or in a single view; started from a view, it asks whether to work on that view alone.
 - **Sheet Views Combine** (Combine Sheets): list the views of two sheets in one grid, grouped by sheet and view type,
   and move the ticked ones onto one sheet (either sheet, another sheet or a new one) with the packing layout.
   Legends are copied to the same spot.

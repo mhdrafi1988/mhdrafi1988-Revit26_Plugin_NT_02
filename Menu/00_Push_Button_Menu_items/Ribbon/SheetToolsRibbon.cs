@@ -78,13 +78,17 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                     "layout, then move them in one Undo step. Legends are copied to the same spot.")
             };
 
-            // Sheet Text Replace: finds and replaces text in the text notes on a sheet, in the views
-            // the user ticks (and in notes placed on the sheet itself).
+            // Sheet Text Replace: finds and replaces text in the text notes of a sheet, in the views
+            // the user ticks (and in notes placed on the sheet itself), or of a single view. Started
+            // from a plain view, it asks whether to work on that view alone.
             var sheetTextReplaceV001 = new PushButtonData("Btn_SheetTextReplace.V001", "Text Replace", assemblyPath, "Revit26_Plugin_Revised.SheetTextReplace.V001.Commands.SheetTextReplaceCommand")
             {
                 Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SheetTools.SheetTextReplace_16.png"),
                 LargeImage = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SheetTools.SheetTextReplace_32.png"),
-                ToolTip = ToolCatalog.SheetTextReplace.Tip("Find and replace text notes in selected views on a sheet.")
+                ToolTip = ToolCatalog.SheetTextReplace.Tip(
+                    "Find and replace text notes on a sheet — in the views you tick and in notes placed on the sheet " +
+                    "itself — or in a single view. Started from a view that is not a sheet, it asks whether to work on " +
+                    "that view alone; you can also pick any sheet or view in the window.")
             };
 
             // Sheet Align & Distribute: tidies the open sheet in place. Unlike Rearrange (which

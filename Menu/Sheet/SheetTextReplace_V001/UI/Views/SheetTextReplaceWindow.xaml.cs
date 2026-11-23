@@ -13,8 +13,8 @@ using System.Windows.Threading;
 namespace Revit26_Plugin_Revised.SheetTextReplace.V001.UI.Views
 {
     /// <summary>
-    /// Sheet Text Replace window. Opens the sheet and views pop-ups, picks a sheet from the search
-    /// list and shows a note in Revit on double-click; everything else is bound.
+    /// Sheet Text Replace window. Opens the scope and views pop-ups, picks a sheet or a single view
+    /// from the search list and shows a note in Revit on double-click; everything else is bound.
     /// </summary>
     public partial class SheetTextReplaceWindow : Window
     {
@@ -37,61 +37,61 @@ namespace Revit26_Plugin_Revised.SheetTextReplace.V001.UI.Views
         private void OnPreviewKeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key != Key.Escape) return;
-            if (SheetPopup.IsOpen) SheetPopup.IsOpen = false;
+            if (ScopePopup.IsOpen) ScopePopup.IsOpen = false;
             else if (ViewsPopup.IsOpen) ViewsPopup.IsOpen = false;
             else if (RecentPopup.IsOpen) RecentPopup.IsOpen = false;
             else Close();
             e.Handled = true;
         }
 
-        // ── Sheet picker ────────────────────────────────────────────────────
+        // ── Scope picker (sheet or single view) ─────────────────────────────
 
-        private void SheetButton_Click(object sender, RoutedEventArgs e) => SheetPopup.IsOpen = true;
+        private void ScopeButton_Click(object sender, RoutedEventArgs e) => ScopePopup.IsOpen = true;
 
-        private void SheetPopup_Opened(object sender, EventArgs e)
+        private void ScopePopup_Opened(object sender, EventArgs e)
         {
-            _viewModel.SheetSearchText = string.Empty;
-            SheetList.SelectedItem = _viewModel.CurrentSheet;
-            if (SheetList.SelectedItem != null) SheetList.ScrollIntoView(SheetList.SelectedItem);
-            Dispatcher.BeginInvoke(DispatcherPriority.Input, new Action(() => SheetSearchBox.Focus()));
+            _viewModel.ScopeSearchText = string.Empty;
+            ScopeList.SelectedItem = _viewModel.CurrentScope;
+            if (ScopeList.SelectedItem != null) ScopeList.ScrollIntoView(ScopeList.SelectedItem);
+            Dispatcher.BeginInvoke(DispatcherPriority.Input, new Action(() => ScopeSearchBox.Focus()));
         }
 
         /// <summary>Enter picks the first match; Down moves into the list.</summary>
-        private void SheetSearchBox_PreviewKeyDown(object sender, KeyEventArgs e)
+        private void ScopeSearchBox_PreviewKeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
             {
-                Pick(_viewModel.SheetsView.Cast<SheetItem>().FirstOrDefault());
+                Pick(_viewModel.ScopesView.Cast<ScopeItem>().FirstOrDefault());
                 e.Handled = true;
             }
-            else if (e.Key == Key.Down && SheetList.Items.Count > 0)
+            else if (e.Key == Key.Down && ScopeList.Items.Count > 0)
             {
-                SheetList.SelectedIndex = 0;
-                (SheetList.ItemContainerGenerator.ContainerFromIndex(0) as ListBoxItem)?.Focus();
+                ScopeList.SelectedIndex = 0;
+                (ScopeList.ItemContainerGenerator.ContainerFromIndex(0) as ListBoxItem)?.Focus();
                 e.Handled = true;
             }
         }
 
-        private void SheetList_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        private void ScopeList_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
-            if (FindAncestor<ListBoxItem>(e.OriginalSource as DependencyObject)?.DataContext is SheetItem sheet)
-                Pick(sheet);
+            if (FindAncestor<ListBoxItem>(e.OriginalSource as DependencyObject)?.DataContext is ScopeItem scope)
+                Pick(scope);
         }
 
-        private void SheetList_KeyDown(object sender, KeyEventArgs e)
+        private void ScopeList_KeyDown(object sender, KeyEventArgs e)
         {
-            if (e.Key == Key.Enter && SheetList.SelectedItem is SheetItem sheet)
+            if (e.Key == Key.Enter && ScopeList.SelectedItem is ScopeItem scope)
             {
-                Pick(sheet);
+                Pick(scope);
                 e.Handled = true;
             }
         }
 
-        private void Pick(SheetItem sheet)
+        private void Pick(ScopeItem scope)
         {
-            if (sheet == null) return;
-            SheetPopup.IsOpen = false;
-            _viewModel.PickSheet(sheet);
+            if (scope == null) return;
+            ScopePopup.IsOpen = false;
+            _viewModel.PickScope(scope);
         }
 
         // ── Views pop-up ────────────────────────────────────────────────────

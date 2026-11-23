@@ -9,6 +9,32 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [7.30.0] — 2026-11-23
+
+### Added
+- **Sheet Text Replace v1.4.0** (V001) — **it now works in a single view as well as on a sheet.** Until now the tool
+  needed a sheet: the active sheet, or one picked from the sheet list. A view that is not on a sheet, or a view whose
+  notes you want to change without touching the rest of the sheet, could not be reached.
+  - **Started from a plan, section, elevation, detail, drafting view or legend**, the tool asks *"Work on the active
+    view alone?"* before the window opens — **Yes** loads that one view, **No** opens the window with nothing picked
+    so you can choose a sheet or another view, **Cancel** closes the tool. Started on a sheet there is no question:
+    the sheet is loaded exactly as before. In a view that cannot hold text notes (a schedule, a 3D view) the window
+    opens with nothing picked, also without a question.
+  - **The picker lists sheets and views.** Sheets come first, ordered by number, then every view that can hold text
+    notes, ordered by name and marked `View ·`. Its label is now **Sheet or view**, the card is **Scope & Views**, and
+    the search box matches a sheet number, a sheet name or a view name. The scope can be changed at any time without
+    reopening the tool.
+  - In a single-view scope the **Views** list holds that one view, ticked. Its notes stay ticked even when the view is
+    placed on sheets — the sheets are reported in the log instead (*"a change here shows on those sheets too"*),
+    because the view was picked on purpose. On a sheet, views shown on **other** sheets still start unticked, as before.
+  - A model with no sheets can now be used. Only a model with neither sheets nor text-capable views is refused.
+  - Everything else is unchanged: the same preview and Found text area, Recent searches, one undoable transaction, and
+    the same skip reasons (owned by another user, in a group, read-only model, changed since preview).
+  - UI preview: https://claude.ai/artifact/LxxGnNzqsiadFD8vc2Htrc
+
+User note: nothing you already do changes. The tool behaves exactly as before when you press the button on a sheet.
+Pressed in a view, it now asks one Yes / No question first instead of opening with nothing picked.
+
 ## [7.29.2] — 2026-11-23
 
 ### Fixed
