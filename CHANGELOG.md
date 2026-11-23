@@ -9,6 +9,42 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [7.29.2] — 2026-11-23
+
+### Fixed
+- **Wet Area Waterproofing 1.2.5** — **"The roof could not be created: Value cannot be null."** Every room of a
+  run failed with that one line, and the line said nothing about which value. It is Revit's own
+  `ArgumentNullException` thrown with no parameter name from `NewFootPrintRoof`, which this add-in has met before
+  (see `FloorsAndRoofFromLinkedRooms_V013/RoofCreationService.cs`). Four changes, in the order the roof is built:
+  - **The roof type is checked again for each roof**, not only once before the run, and the check now asks for
+    layers rather than just a compound structure. A type with none — a sloped glazing type, or one changed or
+    deleted while the window was open — is reported as *"Roof type "X" has no layers, so Revit cannot make a
+    footprint roof from it … Pick a basic roof type"* instead of being handed to Revit, which answers that case
+    with the bare "Value cannot be null.".
+  - **The model-curve mapping is handed to Revit ready-made** (`new ModelCurveArray()`), not as an empty
+    `out _` slot. This is what the Revit SDK's own sample and this add-in's proven roof services do, and an
+    empty slot is reported to make `NewFootPrintRoof` throw the same nameless `ArgumentNullException`.
+  - **A room with holes is retried without them.** `NewFootPrintRoof` takes one flat `CurveArray` and has no
+    documented support for inner loops, so a column or shaft inside a wet room could lose the whole roof. The
+    attempt with the holes now runs in a sub-transaction; if Revit refuses it, the roof is made from the outer
+    outline alone and the room gets a warning, *"Revit would not cut N hole(s) in the roof: the roof covers them"*.
+  - **Anything Revit still refuses is explained.** The report row and the window now read, for example,
+    `Value cannot be null. [ArgumentNullException; roof type "Generic - 400mm", 3 layer(s); level "L01";
+    14 outline point(s), 1 hole(s)]`, and the full exception with its stack is written to
+    `%AppData%\Revit26_Plugin_Revised\Logs\errors-<date>.log` — per-room failures never reached the log before.
+    Failures of the plan-and-sections step are logged the same way.
+  - `ToolGuard.Log(Type, Exception, note)` is new for this: it writes to the error log without the dialog
+    `ToolGuard.Report` shows, for a failure the tool already reports in its own window.
+
+**User notes**
+- A room whose roof failed is reported, the run carries on with the other rooms, and nothing partial is left in
+  the model, as before.
+- If the error comes back, the message now names the exception, the roof type and its layer count, the level and
+  the size of the outline — send that line, or the log file, on.
+- A wet room with a column or a shaft in it now gets a roof that covers the opening, where it got no roof at all
+  before. Cut the opening by hand where it matters; the run's warning says which rooms.
+- No setting, label, button or report column changed.
+
 ## [7.29.1] — 2026-11-21
 
 ### Changed

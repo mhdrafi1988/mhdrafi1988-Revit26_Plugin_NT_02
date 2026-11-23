@@ -1,7 +1,7 @@
 <title>Wet Area Waterproofing</title>
 <!--
-  Tool: Wet Area Waterproofing — v1.2.4 (build V001), Parts A and B of three
-  Plugin: 7.27.6
+  Tool: Wet Area Waterproofing — v1.2.5 (build V001), Parts A and B of three
+  Plugin: 7.29.2
   Mirrors: Menu/Sheet/WetAreaWaterproofing_V001/UI/Views/WetAreaWaterproofingWindow.xaml
   Artifact: https://claude.ai/artifact/BvqGfYjfbaqbNtwtj24eVz
 -->
@@ -94,8 +94,9 @@ tr.grp td{background:#F3F5F7;font-weight:600;color:var(--head)}
 
 <div class="wrap">
 <header>
-  <h1>Wet Area Waterproofing <span class="new">v1.2.4</span></h1>
+  <h1>Wet Area Waterproofing <span class="new">v1.2.5</span></h1>
   <p class="note">Parts A and B are built. Part B adds a plan per room and up to 6 sections per room — each target can now be a <b>Reference Section</b> (points to a drafting view) or a <b>Callout</b> (creates a cropped detail view). Sheets and the print set are Part C. Every room, level, link and file name below is <b>sample data</b>.</p>
+  <p class="note"><span class="new">FIXED in 1.2.5</span> <b>“The roof could not be created: Value cannot be null.”</b> — the one line every room of a run came back with, and it named no value. It is Revit’s own nameless <code>ArgumentNullException</code> from <code>NewFootPrintRoof</code>. The roof type is now re-checked for layers before each roof (a sloped glazing type is named and refused in words), the model-curve mapping is handed to Revit ready-made instead of as an empty slot, a room with holes is retried without them rather than losing its roof, and anything Revit still refuses is reported with the exception type, the roof type and its layers, the level and the size of the outline — with the full stack in <code>%AppData%\Revit26_Plugin_Revised\Logs</code>.</p>
   <p class="note"><span class="new">CHANGED in 1.2.4</span> The ribbon button's <b>tooltip</b> now mentions the callout option that 1.2.0 added — it still said the plan's cuts were "reference sections … pointing to drafting views". Hover text only; the button, its panel and its icons are unchanged.</p>
   <p class="note"><span class="new">CHANGED in 1.2.3</span> The <b>Slab top</b> figure is shown as a <b>project elevation</b> — the same number Revit’s Properties panel gives for that slab — instead of a Revit internal elevation. The sample model below has its Project Base Point at 100&thinsp;000&nbsp;mm, so the column reads <code>Floor · +103.150</code> where it used to read <code>Floor · +3.150</code>. The height the roof is built from has not moved.</p>
   <p class="note"><span class="new">FIXED in 1.2.2</span> <b>Elevations used in geometry all come from one base.</b> Level heights were read from the Project Base Point while slab tops and element geometry are in Revit’s internal coordinates. In a model whose Project Base Point is not at elevation 0 that made the tool miss the slab under a room, set the roof’s <b>Offset from Level</b> wrong, lose section targets, and place sections at the wrong Z.</p>
@@ -120,7 +121,7 @@ tr.grp td{background:#F3F5F7;font-weight:600;color:var(--head)}
   <h2>Ribbon button</h2>
   <div class="ribbon">
     <div class="rbtn"><div class="ico"></div>Wet Area<br>Waterproofing</div>
-    <div class="tip"><b>Wet Area Waterproofing — v1.2.4 (build V001)</b><br>Finds wet rooms (toilets, baths, kitchens…) in the model and its links, adds a waterproofing roof on top of the slab under each one, and creates a cropped plan per room with up to 6 cuts (doors, drains, corners, fixtures) — each a reference section to a drafting view or a callout detail view. Excel report; one Undo step. <span class="new">CHANGED</span></div>
+    <div class="tip"><b>Wet Area Waterproofing — v1.2.5 (build V001)</b><br>Finds wet rooms (toilets, baths, kitchens…) in the model and its links, adds a waterproofing roof on top of the slab under each one, and creates a cropped plan per room with up to 6 cuts (doors, drains, corners, fixtures) — each a reference section to a drafting view or a callout detail view. Excel report; one Undo step.</div>
   </div>
   <p class="note">On its own new <b>Waterproofing</b> panel, after Sheet Edit, as a large button.</p>
 </section>
@@ -128,7 +129,7 @@ tr.grp td{background:#F3F5F7;font-weight:600;color:var(--head)}
 <section>
   <h2>Tool window</h2>
   <div class="scroll"><div class="win">
-    <div class="tb">Wet Area Waterproofing — v1.2.4 <i>✕</i></div>
+    <div class="tb">Wet Area Waterproofing — v1.2.5 <i>✕</i></div>
     <div class="sub">Find wet rooms, add a waterproofing roof on each slab, and create a plan with detail references per room</div>
     <div class="body">
       <div class="card">
@@ -177,6 +178,7 @@ tr.grp td{background:#F3F5F7;font-weight:600;color:var(--head)}
           <p class="hint">A room that already has a roof from an earlier run gets it replaced (same room, new outline).</p>
           <p class="hint"><b>1.2.2:</b> the roof's <b>Offset from Level</b> is measured from the slab top and the level in the same coordinate base. In a model whose Project Base Point is not at elevation 0, re-run the rooms of earlier runs to put their roofs at the right height.</p>
           <p class="hint"><b>1.2.3:</b> the <b>Slab top</b> figure in the room grid and the report is a project elevation, as Revit shows it. This is a label, not a height: the roof is still built from the slab top itself.</p>
+          <p class="hint"><b>1.2.5:</b> the picked type is checked again for each roof — one with no layers is named and refused in words instead of coming back as Revit’s bare “Value cannot be null.” A room with a column or a shaft in it now gets a roof that covers the opening, with a warning, where Revit refuses to cut it. <span class="new">FIXED</span></p>
         </div>
         <div class="card">
           <h3>Boundary repair</h3>
@@ -258,6 +260,8 @@ tr.grp td{background:#F3F5F7;font-weight:600;color:var(--head)}
       <div style="color:var(--warn)">Room 201: Outline repaired (Snap): gap 3 mm snapped.</div>
       <div style="color:var(--warn)">Room 202: No slab found under the room: roof placed at level L02 + 0 mm. <span class="new">FIXED 1.2.2</span></div>
       <div style="color:var(--warn)">Room 202: no floor drain found; section skipped.</div>
+      <div style="color:var(--warn)">Room 203: Revit would not cut 1 hole(s) in the roof: the roof covers them. <span class="new">NEW 1.2.5</span></div>
+      <div style="color:var(--err)">Room 204: The roof could not be created: Roof type &quot;Sloped Glazing&quot; has no layers, so Revit cannot make a footprint roof from it (sloped glazing types are like this). Pick a basic roof type. <span class="new">CHANGED 1.2.5</span></div>
       <div style="color:var(--warn)">Room 205: Roof area differs from the room area by +3.4% (limit ± 2%).</div>
       <div class="row" style="justify-content:flex-end"><button class="btn">Open report</button><button class="btn pri">OK</button></div>
     </div>
@@ -281,7 +285,7 @@ tr.grp td{background:#F3F5F7;font-weight:600;color:var(--head)}
     <tr><td>Rooms</td><td>ticked room, and wet room not ticked</td><td style="white-space:normal">Room ElementId, Source, Level, Number, Name, Room area, Matched keyword, Slab ElementId, Slab top <span class="new">CHANGED: project elevation</span>, Roof ElementId, Roof area, Area difference %, Boundary result, Status, Reason, Phase, Workset, Group, Scale, Run ID, Plan view Id, Plan view, Sections <span class="new">NEW</span></td></tr>
     <tr><td>Boundary repair</td><td>repair attempt</td><td style="white-space:normal">Room, Method, Method name, Result (Passed / Failed), Detail, X, Y, Room area, Outline area</td></tr>
     <tr><td>Sections</td><td>section or callout</td><td style="white-space:normal">Section marker Id, Section, Target, Room, Cut ElementId, Cut category, Cut family : type, Cut model, Plan view, Drafting view, Head and Tail of the cut line, Is Callout, Callout View Id, Callout View <span class="new">NEW cols</span></td></tr>
-    <tr><td>Issues</td><td>warning or error</td><td style="white-space:normal">Severity, Step, Room number, Message, Suggested fix, Room key</td></tr>
+    <tr><td>Issues</td><td>warning or error</td><td style="white-space:normal">Severity, Step, Room number, Message, Suggested fix, Room key — a roof Revit refuses now reads <code>Value cannot be null. [ArgumentNullException; roof type &quot;Generic - 400mm&quot;, 3 layer(s); level &quot;L01&quot;; 14 outline point(s), 1 hole(s)]</code> <span class="new">CHANGED 1.2.5</span></td></tr>
   </table></div>
   <p class="note">Header filters, frozen top row, status coloured green / yellow / red. Group and Scale are filled from Part C on.</p>
 </section>
