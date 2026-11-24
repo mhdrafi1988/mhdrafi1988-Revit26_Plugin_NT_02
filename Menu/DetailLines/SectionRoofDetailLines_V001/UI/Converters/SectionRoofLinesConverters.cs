@@ -100,6 +100,25 @@ namespace Revit26_Plugin_Revised.SectionRoofDetailLines.V001.UI.Converters
     }
 
     /// <summary>
+    /// Two-way enum to radio button: checked when the value's name equals ConverterParameter, and
+    /// checking the button sets the value. Unchecking does nothing, because another button in the
+    /// group is being checked at the same moment.
+    /// </summary>
+    public sealed class EnumMatchConverter : IValueConverter
+    {
+        /// <inheritdoc/>
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+            => value != null && parameter != null
+               && string.Equals(value.ToString(), parameter.ToString(), StringComparison.Ordinal);
+
+        /// <inheritdoc/>
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+            => value is true && parameter != null && targetType.IsEnum
+                ? Enum.Parse(targetType, parameter.ToString())
+                : Binding.DoNothing;
+    }
+
+    /// <summary>
     /// A line-style name to what the picker shows: an empty name reads as the view's own default
     /// style rather than as a blank row.
     /// </summary>

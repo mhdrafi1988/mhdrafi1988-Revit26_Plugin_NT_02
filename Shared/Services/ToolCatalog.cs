@@ -55,7 +55,7 @@ namespace Revit26_Plugin_Revised.Shared.Services
         public static readonly ToolInfo DetailLineClosedLoop = Add("Detail Line Closed Loop", "3.1.0", "V003", "Revit26_Plugin_Revised.DetailLineClosedLoop.V003");
         public static readonly ToolInfo DetailLineManager = Add("Detail Line Manager", "1.1.1", "V001", "Revit26_Plugin_Revised.DetailLineManager.V001");
         public static readonly ToolInfo DetailLineManagerV002 = Add("Detail Line Manager", "2.1.0", "V002", "Revit26_Plugin_Revised.DetailLineManager.V002");
-        public static readonly ToolInfo SectionRoofDetailLines = Add("Section Roof Detail Lines", "1.0.0", "V001", "Revit26_Plugin_Revised.SectionRoofDetailLines.V001");
+        public static readonly ToolInfo SectionRoofDetailLines = Add("Section Roof Detail Lines", "1.1.1", "V001", "Revit26_Plugin_Revised.SectionRoofDetailLines.V001");
         public static readonly ToolInfo DtlLineDim = Add("Auto Dim Detail Line", "10.2.0", "V010", "Revit26_Plugin_Revised.DtlLineDim.V010");
         public static readonly ToolInfo FloorsAndRoofFromLinkedRooms = Add("Floors And Roof From Linked Rooms", "13.2.0", "V013", "Revit26_Plugin_Revised.FloorsAndRoofFromLinkedRooms.V013");
         public static readonly ToolInfo FloorsAndRoofFromLinkedRoomsViaPlanView = Add("Floors And Roof From Linked Rooms (Via Plan View)", "6.2.0", "V006", "Revit26_Plugin_Revised.FloorsAndRoofFromLinkedRoomsViaPlanView.V006");
@@ -136,7 +136,7 @@ namespace Revit26_Plugin_Revised.Shared.Services
         public static readonly ToolInfo SectionsToSheet = Add("Sections To Sheet", "1.1.0", "V001", "Revit26_Plugin_Revised.SectionsToSheet.V001");
         public static readonly ToolInfo SheetTextReplace = Add("Sheet Text Replace", "1.3.0", "V001", "Revit26_Plugin_Revised.SheetTextReplace.V001");
         public static readonly ToolInfo SheetViewsCombine = Add("Sheet Views Combine", "1.0.0", "V001", "Revit26_Plugin_Revised.SheetViewsCombine.V001");
-        public static readonly ToolInfo WetAreaWaterproofing = Add("Wet Area Waterproofing", "1.2.4", "V001", "Revit26_Plugin_Revised.WetAreaWaterproofing.V001");
+        public static readonly ToolInfo WetAreaWaterproofing = Add("Wet Area Waterproofing", "1.2.5", "V001", "Revit26_Plugin_Revised.WetAreaWaterproofing.V001");
         public static readonly ToolInfo RoofEdgeAroundSections = Add("Roof Edge Around Sections", "7.3.0", "V007", "Revit26_Plugin_Revised.RoofEdgeAroundSections.V007");
         public static readonly ToolInfo RoofEdgeElementSections = Add("Roof Edge Element Sections", "4.2.0", "V004", "Revit26_Plugin_Revised.RoofEdgeElementSections.V004");
         public static readonly ToolInfo RoofNameBuilder = Add("Roof Name Builder", "2.2.0", "V002", "Revit26_Plugin_Revised.RoofNameBuilder.V002");

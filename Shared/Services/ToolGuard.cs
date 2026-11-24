@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -153,6 +153,17 @@ namespace Revit26_Plugin_Revised.Shared.Services
                 // Showing the dialog is best effort; the log already holds the details.
             }
         }
+
+        /// <summary>
+        /// Writes <paramref name="ex"/> to the error log without showing anything, for a failure the tool
+        /// already reports in its own window — one room of a run that goes on, for instance. Returns the
+        /// log file's path, or null when it could not be written. Never throws.
+        /// </summary>
+        /// <param name="source">A type of the tool the failure belongs to; it names the tool in the log.</param>
+        /// <param name="ex">Exception to write, with its stack trace.</param>
+        /// <param name="note">One extra line to write with it, or null.</param>
+        public static string Log(Type source, Exception ex, string note = null)
+            => WriteLog(ToolCatalog.Find(source)?.Title ?? "SloperPro", source, ex, note);
 
         /// <summary>
         /// Other copies of this add-in loaded in Revit, as "Name version — path". Empty when this is the

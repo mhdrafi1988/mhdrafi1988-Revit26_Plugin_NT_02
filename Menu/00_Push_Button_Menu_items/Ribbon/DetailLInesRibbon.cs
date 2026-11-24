@@ -85,8 +85,8 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             // section rather than a plan, so it does not belong in any of the stacked dropdowns.
             var sectionLines = new PushButtonData("Btn_SectionRoofDetailLines_V001", "Section Lines", assemblyPath, "Revit26_Plugin_Revised.SectionRoofDetailLines.V001.Commands.SectionRoofDetailLinesCommand")
             {
-                Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.DetailLiner.CreateDetailLines_16.png"),
-                LargeImage = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.DetailLiner.Addlines_32.png"),
+                Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.DetailLiner.SectionRoofDetailLines_16.png"),
+                LargeImage = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.DetailLiner.SectionRoofDetailLines_32.png"),
                 ToolTip = ToolCatalog.SectionRoofDetailLines.Tip(
                     "Open a sheet: lists every element its sections show, from the host model and from each loaded link, "
                     + "then traces the cut profile of the roofs you tick and draws a line on the walls beside them, in the sections themselves. "

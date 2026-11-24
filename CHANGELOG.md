@@ -9,6 +9,93 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [7.29.2] — 2026-11-23
+
+### Fixed
+- **Wet Area Waterproofing 1.2.5** — **"The roof could not be created: Value cannot be null."** Every room of a
+  run failed with that one line, and the line said nothing about which value. It is Revit's own
+  `ArgumentNullException` thrown with no parameter name from `NewFootPrintRoof`, which this add-in has met before
+  (see `FloorsAndRoofFromLinkedRooms_V013/RoofCreationService.cs`). Four changes, in the order the roof is built:
+  - **The roof type is checked again for each roof**, not only once before the run, and the check now asks for
+    layers rather than just a compound structure. A type with none — a sloped glazing type, or one changed or
+    deleted while the window was open — is reported as *"Roof type "X" has no layers, so Revit cannot make a
+    footprint roof from it … Pick a basic roof type"* instead of being handed to Revit, which answers that case
+    with the bare "Value cannot be null.".
+  - **The model-curve mapping is handed to Revit ready-made** (`new ModelCurveArray()`), not as an empty
+    `out _` slot. This is what the Revit SDK's own sample and this add-in's proven roof services do, and an
+    empty slot is reported to make `NewFootPrintRoof` throw the same nameless `ArgumentNullException`.
+  - **A room with holes is retried without them.** `NewFootPrintRoof` takes one flat `CurveArray` and has no
+    documented support for inner loops, so a column or shaft inside a wet room could lose the whole roof. The
+    attempt with the holes now runs in a sub-transaction; if Revit refuses it, the roof is made from the outer
+    outline alone and the room gets a warning, *"Revit would not cut N hole(s) in the roof: the roof covers them"*.
+  - **Anything Revit still refuses is explained.** The report row and the window now read, for example,
+    `Value cannot be null. [ArgumentNullException; roof type "Generic - 400mm", 3 layer(s); level "L01";
+    14 outline point(s), 1 hole(s)]`, and the full exception with its stack is written to
+    `%AppData%\Revit26_Plugin_Revised\Logs\errors-<date>.log` — per-room failures never reached the log before.
+    Failures of the plan-and-sections step are logged the same way.
+  - `ToolGuard.Log(Type, Exception, note)` is new for this: it writes to the error log without the dialog
+    `ToolGuard.Report` shows, for a failure the tool already reports in its own window.
+
+**User notes**
+- A room whose roof failed is reported, the run carries on with the other rooms, and nothing partial is left in
+  the model, as before.
+- If the error comes back, the message now names the exception, the roof type and its layer count, the level and
+  the size of the outline — send that line, or the log file, on.
+- A wet room with a column or a shaft in it now gets a roof that covers the opening, where it got no roof at all
+  before. Cut the opening by hand where it matters; the run's warning says which rooms.
+- No setting, label, button or report column changed.
+
+## [7.29.1] — 2026-11-21
+
+### Changed
+- **Section Roof Detail Lines 1.1.1** — the **Section Lines** button has its own icons,
+  `Resources/Icons/DetailLiner/SectionRoofDetailLines_16.png` and `_32.png`: a roof slab cut in section meeting a
+  wall that carries on up past it, with an amber line running along the roof and turning up the wall face — what the
+  tool draws.
+  - It had borrowed Line Manager's 16 px icon and an unused 32 px one since it was added in 7.28.0, so on the Detail
+    Lines panel it was hard to tell the two buttons apart.
+  - The icons follow the style of the panel they sit on — a full-bleed `#2E6E91` tile, white glyph, warm accent —
+    which is what 81 of the suite's 120 `_32.png` icons use, rather than the monochrome brief at the top of
+    `Claude/LOGO PROMPT FOLDER/Icon_Prompts.md`, which describes a direction the shipped set never adopted. That is
+    noted in both that file and `RIBBON_AND_ICONS.md`.
+  - Each size is drawn as whole pixels at that size rather than downscaled from one master, so the 16 px version
+    stays crisp instead of blurring.
+
+**User notes**
+- Appearance only. The button's position, its label, its internal name (`Btn_SectionRoofDetailLines_V001`), its
+  tooltip text and everything the tool does are unchanged — only the picture on the button is new.
+
+## [7.29.0] — 2026-11-21
+
+### Added
+- **Section Roof Detail Lines 1.1.0** — you now pick **which sides** get a line, rather than always getting the
+  whole cut profile.
+  - **Roofs — sides to draw**: four tick boxes, **Top**, **Bottom**, **Left** and **Right**, under the roof option.
+    All four are ticked, which is the whole profile, so the tool draws exactly what 1.0.0 drew until you change it.
+    Unticking the last one puts it back, because a roof part with no side chosen would draw nothing and say nothing.
+    A line under the boxes reads back the choice ("Only the bottom edge(s) of each roof's cut"), and the run writes
+    it to the log along with how many edges each side left out.
+  - **Wall face to draw on**: four chips, **Nearer the roof** (the default, and what 1.0.0 did), **Both faces**,
+    **Left** and **Right**. This replaces the **Line on both faces** tick box, which said the same thing in fewer
+    words; a settings file from 1.0.0 with that box ticked opens on **Both faces**.
+  - **A side is read from where the material is**, not from where the edge sits in the profile. For each edge a
+    0.3 mm step either way is projected onto the cut face; whichever probe lands on the face is the solid side, so
+    the other way is out, and that direction resolved against the view's up and right gives the side. So **Bottom**
+    is the underside on a flat, sloped or stepped roof alike — where "the lowest edge" would not be — and the head
+    of an opening the section passes through also reads as Bottom, since that is the surface you see from under it.
+
+### Changed
+- **Settings schema** for this tool goes to version 2: the four roof sides and the wall-face choice are added, and
+  a version-1 file is migrated on load (its **both faces** flag is carried into the new choice) rather than
+  rejected. An out-of-range or missing value still comes back as the old behaviour.
+
+**User notes**
+- Nothing about an existing run changes until you change a side: the defaults draw the whole roof profile and the
+  wall face nearer the roof, exactly as 1.1.0's predecessor did.
+- To get just a line under each roof — the common case — untick Top, Left and Right and leave **Bottom**.
+- **Left** and **Right** are left and right *on screen in that section*, so a section looking the other way puts
+  them the other way round. **Nearer the roof** is the choice that does not depend on which way the section faces.
+
 ## [7.28.0] — 2026-11-21
 
 ### Added

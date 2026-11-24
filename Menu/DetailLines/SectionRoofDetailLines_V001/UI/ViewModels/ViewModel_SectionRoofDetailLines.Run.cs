@@ -60,6 +60,10 @@ namespace Revit26_Plugin_Revised.SectionRoofDetailLines.V001.UI.ViewModels
                 $"Drawing in {sections.Count} section(s) from {roofTypes.Count} roof type(s)"
                 + (DrawWallLines ? $" and {wallTypes.Count} wall type(s)" : string.Empty)
                 + $"; adjacency tolerance {AdjacencyToleranceMm:F0} mm.");
+            if (DrawRoofProfile)
+                AddLog(LogLevel.Info, "Roof edges: " + RoofSidesNote);
+            if (DrawWallLines)
+                AddLog(LogLevel.Info, "Wall face: " + WallFaceText(WallFace) + ".");
 
             Queue($"Drawing lines in {sections.Count} section(s)…", app =>
             {
@@ -70,6 +74,15 @@ namespace Revit26_Plugin_Revised.SectionRoofDetailLines.V001.UI.ViewModels
                 ReadReport(report, request);
             });
         }
+
+        /// <summary>How a wall-face choice reads in the log.</summary>
+        private static string WallFaceText(WallFaceChoice choice) => choice switch
+        {
+            WallFaceChoice.BothFaces => "every face of the wall's cut",
+            WallFaceChoice.LeftOnly => "the leftmost face across the view",
+            WallFaceChoice.RightOnly => "the rightmost face across the view",
+            _ => "the face nearer the roof"
+        };
 
         /// <summary>True when there is a section ticked and a roof type ticked to draw from.</summary>
         private bool CanCreate()
@@ -90,9 +103,13 @@ namespace Revit26_Plugin_Revised.SectionRoofDetailLines.V001.UI.ViewModels
             RoofLineStyleName = RoofLineStyleName ?? string.Empty,
             WallLineStyleName = WallLineStyleName ?? string.Empty,
             DrawRoofProfile = DrawRoofProfile,
+            RoofTop = RoofTop,
+            RoofBottom = RoofBottom,
+            RoofLeft = RoofLeft,
+            RoofRight = RoofRight,
             DrawWallLines = DrawWallLines,
             AdjacencyToleranceMm = AdjacencyToleranceMm,
-            WallLineOnBothFaces = WallLineOnBothFaces,
+            WallFace = WallFace,
             SkipExistingLines = SkipExistingLines,
             ShowAllCategories = ShowAllCategories
         }.Normalize();

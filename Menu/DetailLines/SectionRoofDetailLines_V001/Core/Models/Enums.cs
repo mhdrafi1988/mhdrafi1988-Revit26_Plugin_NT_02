@@ -28,6 +28,46 @@ namespace Revit26_Plugin_Revised.SectionRoofDetailLines.V001.Core.Models
         Wall
     }
 
+    /// <summary>
+    /// Which side of a cut profile an edge is on, read from the side the material lies on rather
+    /// than from where the edge sits in the profile — so the underside of a roof is the bottom
+    /// whether the roof is flat, sloped or stepped, and the head of an opening the section passes
+    /// through is a bottom edge too, because that is the face you see from below.
+    /// </summary>
+    public enum ProfileSide
+    {
+        /// <summary>The edge faces up: the top surface of the element.</summary>
+        Top,
+
+        /// <summary>The edge faces down: the underside, or the soffit over an opening.</summary>
+        Bottom,
+
+        /// <summary>The edge faces left across the view.</summary>
+        Left,
+
+        /// <summary>The edge faces right across the view.</summary>
+        Right
+    }
+
+    /// <summary>
+    /// Which face of an adjacent wall gets a line. <see cref="NearerRoof"/> is the behaviour the
+    /// tool shipped with in 1.0.0 and stays the default.
+    /// </summary>
+    public enum WallFaceChoice
+    {
+        /// <summary>Only the face nearer the ticked roof's cut profile.</summary>
+        NearerRoof,
+
+        /// <summary>Every face of the wall's cut profile.</summary>
+        BothFaces,
+
+        /// <summary>Only the leftmost face across the view.</summary>
+        LeftOnly,
+
+        /// <summary>Only the rightmost face across the view.</summary>
+        RightOnly
+    }
+
     /// <summary>How the sections to run over were chosen, for the status line.</summary>
     public enum SectionSourceKind
     {

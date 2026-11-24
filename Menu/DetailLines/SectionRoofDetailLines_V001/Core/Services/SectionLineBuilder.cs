@@ -1,4 +1,5 @@
 using Autodesk.Revit.DB;
+using Revit26_Plugin_Revised.SectionRoofDetailLines.V001.Core.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,8 +15,12 @@ namespace Revit26_Plugin_Revised.SectionRoofDetailLines.V001.Core.Services
         /// <summary>A label for the log: category, type and id.</summary>
         public string Label { get; set; } = string.Empty;
 
-        /// <summary>The profile's curves, in model coordinates, in the view's plane.</summary>
-        public List<Curve> Curves { get; set; } = new();
+        /// <summary>The profile's edges, in model coordinates, in the view's plane, each with the
+        /// side of the element it faces.</summary>
+        public List<CutEdge> Edges { get; set; } = new();
+
+        /// <summary>The profile's curves, whichever side they face.</summary>
+        public IEnumerable<Curve> Curves => Edges.Select(e => e.Curve);
 
         /// <summary>The curves' points, tessellated once, for the distance tests.</summary>
         public List<XYZ> Points { get; set; } = new();
@@ -45,31 +50,63 @@ namespace Revit26_Plugin_Revised.SectionRoofDetailLines.V001.Core.Services
         /// <paramref name="profiles"/> as the curves to draw for roofs: the whole cut profile,
         /// with the straight parts trimmed to the view's crop so nothing runs off the view.
         /// </summary>
-        public List<Curve> BuildRoofCurves(SectionFrame frame, IEnumerable<CutProfile> profiles, double shortCurveFeet)
+        public List<Curve> BuildRoofCurves(
+            SectionFrame frame, IEnumerable<CutProfile> profiles,
+            ISet<ProfileSide> sides, double shortCurveFeet, Action<string> onSkipped)
         {
             var curves = new List<Curve>();
             if (frame == null || profiles == null) return curves;
 
+            var left = new Dictionary<ProfileSide, int>();
+
             foreach (CutProfile profile in profiles)
-                foreach (Curve curve in profile.Curves)
+            {
+                var dropped = 0;
+                foreach (CutEdge edge in profile.Edges)
                 {
+                    if (sides != null && !sides.Contains(edge.Side))
+                    {
+                        dropped++;
+                        left[edge.Side] = left.TryGetValue(edge.Side, out int n) ? n + 1 : 1;
+                        continue;
+                    }
+
                     // Straight curves are trimmed to the crop; an arc or spline is kept whole,
                     // because trimming one exactly is not worth the approximation — Revit simply
                     // does not draw the part of it outside the crop.
-                    Curve kept = curve is Line ? frame.ClipToBox(curve, 0.0) : curve;
+                    Curve kept = edge.Curve is Line ? frame.ClipToBox(edge.Curve, 0.0) : edge.Curve;
                     if (kept != null && kept.Length > shortCurveFeet) curves.Add(kept);
                 }
 
+                if (dropped > 0 && dropped == profile.Edges.Count)
+                    onSkipped?.Invoke($"{profile.Label}: every edge of its cut profile is on a side you left out, so no line.");
+            }
+
+            if (left.Count > 0)
+                onSkipped?.Invoke("Sides left out: "
+                    + string.Join(", ", left.OrderBy(kv => kv.Key).Select(kv => $"{kv.Value} {SideWord(kv.Key)}"))
+                    + ".");
+
             return curves;
         }
+
+        /// <summary>How a side reads in the log.</summary>
+        public static string SideWord(ProfileSide side) => side switch
+        {
+            ProfileSide.Top => "top edge(s)",
+            ProfileSide.Bottom => "bottom edge(s)",
+            ProfileSide.Left => "left edge(s)",
+            _ => "right edge(s)"
+        };
 
         /// <summary>
         /// One vertical line per wall face that stands next to a roof: the face's own position
         /// across the view, run over the wall's whole visible height in the section.
         /// <para>
         /// A wall counts as adjacent when its cut profile comes within
-        /// <paramref name="toleranceFeet"/> of a roof's. With
-        /// <paramref name="bothFaces"/> false, only the face nearer the roof gets a line.
+        /// <paramref name="toleranceFeet"/> of a roof's. <paramref name="faceChoice"/> then says
+        /// which of its faces get a line: the one nearer the roof, all of them, or the leftmost or
+        /// rightmost across the view.
         /// </para>
         /// </summary>
         public List<Curve> BuildWallCurves(
@@ -77,7 +114,7 @@ namespace Revit26_Plugin_Revised.SectionRoofDetailLines.V001.Core.Services
             IEnumerable<CutProfile> wallProfiles,
             IReadOnlyCollection<CutProfile> roofProfiles,
             double toleranceFeet,
-            bool bothFaces,
+            WallFaceChoice faceChoice,
             double shortCurveFeet,
             Action<string> onSkipped,
             out int wallsDrawn)
@@ -107,7 +144,7 @@ namespace Revit26_Plugin_Revised.SectionRoofDetailLines.V001.Core.Services
                     continue;
                 }
 
-                List<Curve> lines = BuildWallFaceLines(frame, wall, roofPoints, bothFaces, shortCurveFeet);
+                List<Curve> lines = BuildWallFaceLines(frame, wall, roofPoints, faceChoice, shortCurveFeet);
                 if (lines.Count == 0)
                 {
                     onSkipped?.Invoke(
@@ -124,7 +161,7 @@ namespace Revit26_Plugin_Revised.SectionRoofDetailLines.V001.Core.Services
         }
 
         private List<Curve> BuildWallFaceLines(
-            SectionFrame frame, CutProfile wall, List<XYZ> roofPoints, bool bothFaces, double shortCurveFeet)
+            SectionFrame frame, CutProfile wall, List<XYZ> roofPoints, WallFaceChoice faceChoice, double shortCurveFeet)
         {
             XYZ up = frame.Up.Normalize();
 
@@ -165,9 +202,13 @@ namespace Revit26_Plugin_Revised.SectionRoofDetailLines.V001.Core.Services
 
             if (faces.Count == 0) return new List<Curve>();
 
-            IEnumerable<WallFace> chosen = bothFaces
-                ? faces
-                : new[] { faces.OrderBy(f => f.Distance).First() };
+            IEnumerable<WallFace> chosen = faceChoice switch
+            {
+                WallFaceChoice.BothFaces => faces,
+                WallFaceChoice.LeftOnly => new[] { faces.OrderBy(f => f.Across).First() },
+                WallFaceChoice.RightOnly => new[] { faces.OrderByDescending(f => f.Across).First() },
+                _ => new[] { faces.OrderBy(f => f.Distance).First() }
+            };
 
             var lines = new List<Curve>();
             foreach (WallFace face in chosen)

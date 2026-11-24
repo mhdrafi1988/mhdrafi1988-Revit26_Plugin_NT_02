@@ -1,10 +1,12 @@
 <title>Section Roof Detail Lines</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<!-- UI preview (CLAUDE.md "UI previews"): Section Roof Detail Lines 1.0.0 (V001) — NEW TOOL.
-     Plugin 7.28.0 (was 7.27.6).
-     Shown: the new ribbon button and its tooltip, the tool window as it opens on a sheet with
-     five sections, and the "List all to log" output. Everything is in the state that shows the
-     change: roofs and walls ticked, the first run already done.
+<!-- UI preview (CLAUDE.md "UI previews"): Section Roof Detail Lines 1.1.1 (V001). Tool was 1.1.0.
+     Plugin 7.29.1 (was 7.29.0).
+     1.1.1 is the button's own icons; the window itself is unchanged since 1.1.0.
+     Shown: the ribbon button and its tooltip, the tool window, and the "List all to log" output.
+     1.1.0's change is in the Lines To Draw card: "Sides to draw" (Top / Bottom / Left / Right) under
+     the roof option, and "Wall face to draw on" chips in place of the old "Line on both faces" box.
+     The window is shown in the state that shows it: Bottom only, wall face Nearer the roof.
      Mirrors: Menu/DetailLines/SectionRoofDetailLines_V001/UI/Views/SectionRoofDetailLinesWindow.xaml
               (+ UI/ViewModels/ViewModel_SectionRoofDetailLines.cs; version from Shared/Services/ToolCatalog.cs).
      Artifact: https://claude.ai/artifact/WKnQzAC4ZknYyYBiyX4fop (republish to this URL on every update)
@@ -48,7 +50,7 @@ li+li{margin-top:3px}
 .rsmall{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text);white-space:nowrap}
 .rbig{display:grid;justify-items:center;gap:3px;width:84px;font-size:11px;text-align:center;line-height:1.2}
 .glyph{width:15px;height:15px;border:1px solid var(--navy);border-radius:2px;background:var(--info-soft);flex:0 0 auto}
-.glyph.big{width:30px;height:30px}
+.glyph.big{width:32px;height:32px;border:0;border-radius:0;background:none;image-rendering:pixelated}
 .rlabel{color:var(--text2);font-size:10px;text-transform:uppercase;letter-spacing:.06em;margin-top:6px;text-align:center}
 .rnew{outline:2px solid var(--new);outline-offset:3px;border-radius:3px}
 .tip{width:470px;background:var(--card);border:1px solid var(--input);box-shadow:0 4px 12px rgba(16,32,48,.18);
@@ -93,6 +95,10 @@ li+li{margin-top:3px}
 .box.mix::after{content:"";width:6px;height:2px;background:var(--navy)}
 .box.off{color:transparent}
 
+/* Chip picker (ChipToggle radio buttons) */
+.chipsel{border:1px solid var(--input);background:var(--card);border-radius:11px;padding:2px 10px;font-size:11px;color:var(--text2);white-space:nowrap}
+.chipsel.on{background:var(--navy);border-color:var(--navy);color:#FFFFFF;font-weight:600}
+
 /* Lists */
 .list{border:1px solid var(--sep);border-radius:4px;overflow:hidden}
 .li{padding:6px 8px;border-bottom:1px solid var(--sep);display:flex;gap:8px;align-items:flex-start}
@@ -136,15 +142,15 @@ li+li{margin-top:3px}
 <div class="page">
 
   <div>
-    <h1>Section Roof Detail Lines <span class="tag">new tool</span></h1>
-    <p class="muted">Tool 1.0.0 · plugin 7.28.0 · <b>Rafi_Pro_Docs › Detail Lines › Section Lines</b>.
+    <h1>Section Roof Detail Lines <span class="tag">1.1.1</span></h1>
+    <p class="muted">Tool 1.1.1 · plugin 7.29.1 · <b>Rafi_Pro_Docs › Detail Lines › Section Lines</b>.
       Static mock-up of the window. <span class="sample">Every figure, view name and type name below is sample data — not a real project.</span></p>
   </div>
 
   <!-- ── Ribbon button + tooltip ─────────────────────────────── -->
   <div class="note">
-    <h2>Ribbon <span class="tag">new button</span></h2>
-    <p class="muted">The three stacked dropdowns and the Line Manager dropdown are unchanged. <b>Section Lines</b> is added beside them.</p>
+    <h2>Ribbon <span class="tag">new icon</span></h2>
+    <p class="muted"><b>Section Lines</b> has its own icons in 1.1.1. It had borrowed Line Manager's, so the two buttons were hard to tell apart. The button's position, label and internal name are unchanged.</p>
     <div class="frame" style="margin-top:10px">
       <div class="ribbon">
         <div class="rpanel">
@@ -154,34 +160,49 @@ li+li{margin-top:3px}
             <div class="rsmall"><i class="glyph"></i>Line Dims ▾</div>
           </div>
           <div class="rbig"><i class="glyph big"></i>Line Manager ▾</div>
-          <div class="rbig rnew"><i class="glyph big"></i>Section Lines</div>
+          <div class="rbig rnew"><img class="glyph big" alt="Section Lines icon: a roof slab cut in section meeting a parapet wall, with an amber line along the roof turning up the wall face" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAZ0lEQVR42mPUy5v4n2EAARPDAINRBwy4A1hoYejFiXlYxfXzJ9EuBI5ZzmY4Zjl7NA2MOoCyXEBOIhpeIWB1PHVgHYCrABnNBaMOoFsixFZbUbM2HI2CUQeMOmDUAdgA42jfcMQ7AAANpxKlk0g6rQAAAABJRU5ErkJggg==">Section Lines</div>
         </div>
         <div class="rlabel">Detail Lines</div>
       </div>
     </div>
     <div class="frame" style="margin-top:12px">
       <div class="tip">
-        <b>Section Roof Detail Lines — v1.0.0 (build V001)</b>
+        <b>Section Roof Detail Lines — v1.1.1 (build V001)</b>
         Open a sheet: lists every element its sections show, from the host model and from each loaded link,
         then traces the cut profile of the roofs you tick and draws a line on the walls beside them, in the
         sections themselves. Up to 10 sections in one run, one Undo step.
       </div>
     </div>
+    <div style="margin-top:14px;display:flex;gap:18px;align-items:flex-end;flex-wrap:wrap">
+      <div style="display:grid;gap:4px;justify-items:center">
+        <img style="width:32px;height:32px;image-rendering:pixelated" alt="The 32 px icon at its true size" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAZ0lEQVR42mPUy5v4n2EAARPDAINRBwy4A1hoYejFiXlYxfXzJ9EuBI5ZzmY4Zjl7NA2MOoCyXEBOIhpeIWB1PHVgHYCrABnNBaMOoFsixFZbUbM2HI2CUQeMOmDUAdgA42jfcMQ7AAANpxKlk0g6rQAAAABJRU5ErkJggg==">
+        <span class="hint">32 px</span>
+      </div>
+      <div style="display:grid;gap:4px;justify-items:center">
+        <img style="width:16px;height:16px;image-rendering:pixelated" alt="The 16 px icon at its true size" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAASUlEQVR42mPUy5v4n4ECwMRAIWAhVuHFiXlwtn7+JOJdcMxyNh28QMgWggZYHU+lzADkAKJ7NFInEJHjlZh0MLi8QLEBjAOeGwG9dRDr9Ay/uQAAAABJRU5ErkJggg==">
+        <span class="hint">16 px</span>
+      </div>
+      <div style="display:grid;gap:4px;justify-items:center">
+        <img style="width:128px;height:128px;image-rendering:pixelated" alt="The 32 px icon enlarged four times, showing each pixel" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAZ0lEQVR42mPUy5v4n2EAARPDAINRBwy4A1hoYejFiXlYxfXzJ9EuBI5ZzmY4Zjl7NA2MOoCyXEBOIhpeIWB1PHVgHYCrABnNBaMOoFsixFZbUbM2HI2CUQeMOmDUAdgA42jfcMQ7AAANpxKlk0g6rQAAAABJRU5ErkJggg==">
+        <span class="hint">32 px &times;4</span>
+      </div>
+      <p class="muted" style="font-size:11.5px;max-width:44ch">White is the model the section cuts — a roof slab meeting a wall that carries on up past it. Amber is the line the tool draws, along the roof and turning up the wall face. Each size is drawn as whole pixels at that size, not downscaled from one master, so the 16 px version stays crisp.</p>
+    </div>
   </div>
 
   <!-- ── The window ──────────────────────────────────────────── -->
   <div>
-    <h2>Tool window <span class="tag">new</span></h2>
-    <p class="muted">As it looks after one run on a sheet with five sections. Roofs and walls are ticked when the window opens, so a first run needs no setting up.</p>
+    <h2>Tool window</h2>
+    <p class="muted">As it looks after one run on a sheet with five sections, with the roof's <b>Bottom</b> side alone chosen. Roofs and walls are ticked when the window opens, and all four sides are ticked by default, so a first run still draws the whole profile.</p>
     <div class="frame" style="margin-top:10px">
       <div class="win">
-        <div class="tbar"><b>Section Roof Detail Lines — v1.0.0</b><span>— □ ✕</span></div>
+        <div class="tbar"><b>Section Roof Detail Lines — v1.1.1</b><span>— □ ✕</span></div>
         <div class="hdr">
           <div>
             <b>Section Roof Detail Lines</b>
             <span class="s">List what the sheet's sections show — host model and links — then draw the roofs' cut profile and a line on the walls beside them</span>
           </div>
-          <div class="badge">v1.0.0</div>
+          <div class="badge">v1.1.1</div>
         </div>
 
         <div class="wbody">
@@ -288,7 +309,17 @@ li+li{margin-top:3px}
               <div class="sct">Lines To Draw</div>
               <div class="scb">
                 <div class="cb"><i class="box on">✓</i><span>Roofs — trace the cut profile</span></div>
-                <div class="hint" style="padding-left:18px">One detail line per edge of the cut, in the section's own plane.</div>
+                <div style="padding-left:18px;display:grid;gap:3px">
+                  <div class="lbl">Sides to draw <span class="tag">new</span></div>
+                  <div class="row" style="flex-wrap:wrap;gap:10px">
+                    <span class="cb"><i class="box off" style="border-color:var(--input)">✓</i>Top</span>
+                    <span class="cb"><i class="box on">✓</i>Bottom</span>
+                    <span class="cb"><i class="box off" style="border-color:var(--input)">✓</i>Left</span>
+                    <span class="cb"><i class="box off" style="border-color:var(--input)">✓</i>Right</span>
+                  </div>
+                  <div class="hint">Only the bottom edge(s) of each roof's cut.</div>
+                  <div class="hint">A side is read from where the roof's material lies, not from where the edge sits — so Bottom is the underside on a flat, sloped or stepped roof alike.</div>
+                </div>
                 <div class="lbl">Roof line style</div>
                 <div class="combo"><span>Roof Build-up</span><i>▾</i></div>
                 <div class="cb"><i class="box on">✓</i><span>Walls — line over the visible height</span></div>
@@ -299,7 +330,12 @@ li+li{margin-top:3px}
                   <span class="lbl">Adjacency tolerance</span>
                   <span class="row"><span class="mm">50</span><span class="hint">mm</span></span>
                 </div>
-                <div class="cb"><i class="box off" style="border-color:var(--input)">✓</i><span>Line on both faces of the wall</span></div>
+                <div class="lbl">Wall face to draw on <span class="tag">new</span></div>
+                <div class="row" style="flex-wrap:wrap;gap:5px">
+                  <span class="chipsel on">Nearer the roof</span><span class="chipsel">Both faces</span>
+                  <span class="chipsel">Left</span><span class="chipsel">Right</span>
+                </div>
+                <div class="hint">Replaces the old <b>Line on both faces</b> tick box. A 1.0.0 settings file with that box ticked opens on <b>Both faces</b>.</div>
                 <div class="cb"><i class="box on">✓</i><span>Leave out lines the view already has</span></div>
                 <div class="banner">Detail lines belong to the view they are drawn in, so the lines go into the sections themselves, not onto the sheet. The whole run is one Undo step.</div>
               </div>
@@ -313,7 +349,10 @@ li+li{margin-top:3px}
               <div><span class="t">09:41:02</span> <span class="lv i">Info</span>Read 5 section(s) and 612 element row(s).</div>
               <div><span class="t">09:41:02</span> <span class="lv i">Info</span>Link 'MEP-Sample-Services.rvt': nothing of it reaches section 'Rooflight Kerb'.</div>
               <div><span class="t">09:41:36</span> <span class="lv i">Info</span>Drawing in 4 section(s) from 3 roof type(s) and 4 wall type(s); adjacency tolerance 50 mm.</div>
-              <div><span class="t">09:41:38</span> <span class="lv ok">Success</span>'Parapet Upstand — East': 38 line(s) from 2 roof(s) and 3 wall(s) cut here.</div>
+              <div><span class="t">09:41:36</span> <span class="lv i">Info</span>Roof edges: Only the bottom edge(s) of each roof's cut.</div>
+              <div><span class="t">09:41:36</span> <span class="lv i">Info</span>Wall face: the face nearer the roof.</div>
+              <div><span class="t">09:41:38</span> <span class="lv i">Info</span>'Parapet Upstand — East': Sides left out: 9 top edge(s), 4 left edge(s), 4 right edge(s).</div>
+              <div><span class="t">09:41:38</span> <span class="lv ok">Success</span>'Parapet Upstand — East': 12 line(s) from 2 roof(s) and 3 wall(s) cut here.</div>
               <div><span class="t">09:41:39</span> <span class="lv ok">Success</span>'Parapet Upstand — West': 31 line(s) from 2 roof(s) and 2 wall(s) cut here; 4 already in the view.</div>
               <div><span class="t">09:41:41</span> <span class="lv i">Info</span>'Gutter At Expansion Joint': Basic Wall 'Core Wall 250' (ARC-Sample-Shell.rvt, id 884210): nearest roof edge is 612 mm away — further than the 50 mm adjacency tolerance, so no line.</div>
               <div><span class="t">09:41:41</span> <span class="lv ok">Success</span>'Gutter At Expansion Joint': 64 line(s) from 3 roof(s) and 4 wall(s) cut here.</div>
@@ -332,7 +371,7 @@ li+li{margin-top:3px}
 
   <!-- ── List all to log ─────────────────────────────────────── -->
   <div>
-    <h2>List all to log <span class="tag">new</span></h2>
+    <h2>List all to log</h2>
     <p class="muted">Writes one line per element the sections show, ready for <b>Copy All</b>. This is the "list every element visible in the section" output, host model and links together.</p>
     <div class="frame" style="margin-top:10px">
       <div class="log" style="width:1200px">
@@ -353,12 +392,23 @@ li+li{margin-top:3px}
 
   <!-- ── What changed ────────────────────────────────────────── -->
   <div class="note">
-    <h2>What is new in this release</h2>
+    <h2>What is new in 1.1.1</h2>
     <ul>
-      <li><b>The tool itself</b> — nothing in the suite listed what a section shows, and nothing drew in a section. <span class="tag">new</span></li>
+      <li><b>The button has its own icons.</b> It had borrowed Line Manager's 16 px icon since 7.28.0, so the two were hard to tell apart on the panel. Appearance only — position, label, internal name, tooltip text and behaviour are all unchanged. <span class="tag">new</span></li>
+    </ul>
+    <h2 style="margin-top:14px">From 1.1.0</h2>
+    <ul>
+      <li><b>Sides to draw</b> — Top, Bottom, Left, Right, all four ticked by default, so the tool draws exactly what 1.0.0 drew until you change it. Unticking the last one puts it back. To get just a line under each roof, leave <b>Bottom</b>. <span class="tag">new</span></li>
+      <li><b>Wall face to draw on</b> — Nearer the roof (the default, as in 1.0.0), Both faces, Left, Right. Replaces the <b>Line on both faces</b> tick box; a 1.0.0 settings file with it ticked opens on Both faces. <span class="tag">new</span></li>
+      <li><b>A side is where the material is.</b> Each edge is probed 0.3 mm either way against the cut face: the probe that lands on the face is the solid side, so the other way is out, and that direction gives the side. Bottom is therefore the underside on a flat, sloped or stepped roof alike, and the head of an opening the section passes through reads as Bottom too — that is the surface you see from under it. <span class="tag">new</span></li>
+      <li><b>Left and Right are on screen in that section</b>, so a section looking the other way puts them the other way round. Nearer the roof is the wall choice that does not depend on which way the section faces.</li>
+    </ul>
+    <h2 style="margin-top:14px">From 1.0.0</h2>
+    <ul>
+      <li><b>The tool itself</b> — nothing in the suite listed what a section shows, and nothing drew in a section.</li>
       <li><b>Host model and links together.</b> The host model is read with Revit's own view-bound collector, so the crop, far clip, visibility/graphics, view filters and hand-hidden elements all count. A link has no such query, so its elements are tested geometrically against the same crop box — generous on purpose, so a roof the user can see is never dropped in silence.</li>
-      <li><b>Roof line = the whole cut profile.</b> The section is cut on the view's own plane, and the face that leaves coplanar with it gives the edge loops — outer loop and any opening the section passes through — already in the plane a detail curve needs.</li>
-      <li><b>Wall line = full visible height.</b> One vertical line per face of the wall's cut profile, over the wall's own height in the section, held inside the crop, and only where the wall comes within the adjacency tolerance of a ticked roof.</li>
+      <li><b>Roof line = the cut profile.</b> The section is cut on the view's own plane, and the face that leaves coplanar with it gives the edge loops — outer loop and any opening the section passes through — already in the plane a detail curve needs.</li>
+      <li><b>Wall line = full visible height.</b> One vertical line per chosen face of the wall's cut profile, over the wall's own height in the section, held inside the crop, and only where the wall comes within the adjacency tolerance of a ticked roof.</li>
       <li><b>Run scope.</b> Every section on the active sheet, capped at 10. A section open on its own is offered by itself.</li>
       <li><b>One Undo.</b> Every section's lines are created in one transaction inside one transaction group, assimilated. A cancel rolls the whole run back.</li>
     </ul>

@@ -185,7 +185,8 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 - **Detail Line Manager**: find, clean up and join detail lines, and rename line styles.
 - **Section Roof Detail Lines**: open a sheet, and the tool lists every element its sections show — host model and
   each loaded link — then traces the cut profile of the roofs you tick and draws a line over the visible height of
-  the walls beside them, in the sections themselves. Up to 10 sections in one run, one Undo step.
+  the walls beside them, in the sections themselves. Pick which sides of a roof's cut to draw (top, bottom, left,
+  right) and which face of a wall (nearer the roof, both, left or right). Up to 10 sections in one run, one Undo step.
 
 ### Manage, worksets and memory
 - **Annotation Overlap Detection**: find overlapping text notes, tags, room tags and dimensions, then move them
