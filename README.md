@@ -40,7 +40,7 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 | Rafi_Pro_Floors | Floor Lines | Crease By Openings · Crease By Points · Floor Creaser |
 | Rafi_Pro_Floors | Floor Edit | Floor Types · Name Builder · Floor Tag · Comparison · Elevation Sync · Floor EPS |
 | Rafi_Pro_Floors | Floor Views | Floor Around Edges · Floor Edge Element · Floor Focus |
-| Rafi_Pro_Floors | Waterproofing | Wet Area Waterproofing |
+| Rafi_Pro_Floors | Waterproofing | Wet Area Waterproofing (V002, V001) |
 
 **Rafi_Pro_Model** (Model management)
 

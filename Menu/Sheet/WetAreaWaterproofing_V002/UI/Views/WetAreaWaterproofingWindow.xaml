@@ -1,0 +1,800 @@
+<!--
+=======================================================
+File: WetAreaWaterproofingWindow.xaml  (Wet Area Waterproofing V002, Parts A and B)
+V002: "Points to" is a search box (name, title on sheet, sheet number, sheet name, bubble number), and
+      "Assign drafting views…" opens a picker panel (targets on the left, searchable view table on the right).
+ToolWindowShell layout:
+  BODY    left:  1 · Rooms — sources, keywords, level buttons, search, group, grid, tick helpers
+          right: 2 · Waterproofing roof, Boundary repair, 3 · Plans, 4 · Section targets, Excel report
+          below: activity log
+  FOOTER  attention bar · run steps · Remove a run… · Run for N rooms · Close
+Overlay cards: result of a run, "Remove a run", "Assign drafting views". Column filters open in a pop-up.
+=======================================================
+-->
+<Window x:Class="Revit26_Plugin_Revised.WetAreaWaterproofing.V002.UI.Views.WetAreaWaterproofingWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:svc="clr-namespace:Revit26_Plugin_Revised.Shared.Services"
+        xmlns:converters="clr-namespace:Revit26_Plugin_Revised.Shared.Models"
+        xmlns:shell="clr-namespace:Revit26_Plugin_Revised.Shared.Controls"
+        xmlns:wp="clr-namespace:Revit26_Plugin_Revised.WetAreaWaterproofing.V002.UI.Controls"
+        x:Name="Root"
+        Title="Wet Area Waterproofing"
+        Height="880" Width="1440"
+        MinHeight="640" MinWidth="1180"
+        WindowStartupLocation="CenterOwner">
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Revit26_Plugin_Revised;component/Shared/SharedStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+
+            <converters:LogLevelToColorConverter x:Key="LogLevelToColorConverter"/>
+            <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+            <converters:InverseBoolConverter x:Key="InvertBool"/>
+
+            <Style x:Key="MmBox" TargetType="TextBox" BasedOn="{StaticResource BoxedTextInput}">
+                <Setter Property="Width" Value="64"/>
+                <Setter Property="MaxLength" Value="8"/>
+                <Setter Property="HorizontalContentAlignment" Value="Right"/>
+            </Style>
+
+            <Style x:Key="RowLabel" TargetType="TextBlock" BasedOn="{StaticResource FieldLabel}">
+                <Setter Property="Width" Value="128"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+            </Style>
+
+            <Style x:Key="SettingRow" TargetType="DockPanel">
+                <Setter Property="Margin" Value="0,0,0,6"/>
+                <Setter Property="LastChildFill" Value="True"/>
+            </Style>
+
+            <!-- Column header: name, then the filter button. The column's SortMemberPath names the column. -->
+            <DataTemplate x:Key="FilterHeader">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="{Binding}" VerticalAlignment="Center"/>
+                    <Button Content="⏷" Click="FilterButton_Click" ToolTip="Filter this column"
+                            Margin="5,0,0,0" Padding="2,0" FontSize="9" Cursor="Hand"
+                            Background="Transparent" BorderThickness="0" Foreground="{StaticResource BrushTextSecondary}"/>
+                </StackPanel>
+            </DataTemplate>
+
+            <!-- Status chip: colour by kind (ok / info / warn / error). -->
+            <Style x:Key="StatusChip" TargetType="Border">
+                <Setter Property="CornerRadius" Value="3"/>
+                <Setter Property="Padding" Value="6,1"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="HorizontalAlignment" Value="Left"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+                <Setter Property="Background" Value="{StaticResource BrushTileSuccessBackground}"/>
+                <Setter Property="BorderBrush" Value="{StaticResource BrushTileSuccessBorder}"/>
+                <Setter Property="TextElement.Foreground" Value="{StaticResource BrushTileSuccessText}"/>
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding StatusKind}" Value="info">
+                        <Setter Property="Background" Value="{StaticResource BrushTileInfoBackground}"/>
+                        <Setter Property="BorderBrush" Value="{StaticResource BrushTileInfoBorder}"/>
+                        <Setter Property="TextElement.Foreground" Value="{StaticResource BrushTileInfoText}"/>
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding StatusKind}" Value="warn">
+                        <Setter Property="Background" Value="{StaticResource BrushTileWarningBackground}"/>
+                        <Setter Property="BorderBrush" Value="{StaticResource BrushTileWarningBorder}"/>
+                        <Setter Property="TextElement.Foreground" Value="{StaticResource BrushTileWarningText}"/>
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding StatusKind}" Value="error">
+                        <Setter Property="Background" Value="{StaticResource BrushTileDangerBackground}"/>
+                        <Setter Property="BorderBrush" Value="{StaticResource BrushTileDangerBorder}"/>
+                        <Setter Property="TextElement.Foreground" Value="{StaticResource BrushTileDangerText}"/>
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+
+            <!-- Level button: navy when the level is shown. -->
+            <Style x:Key="LevelButton" TargetType="Button">
+                <Setter Property="Height" Value="24"/>
+                <Setter Property="Padding" Value="9,0"/>
+                <Setter Property="Margin" Value="0,0,5,5"/>
+                <Setter Property="FontSize" Value="11.5"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="Background" Value="{StaticResource BrushInputBackground}"/>
+                <Setter Property="Foreground" Value="{StaticResource BrushTextSecondary}"/>
+                <Setter Property="BorderBrush" Value="{StaticResource BrushSeparator}"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="3" Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding IsOn}" Value="True">
+                        <Setter Property="Background" Value="{StaticResource BrushNavyPrimary}"/>
+                        <Setter Property="BorderBrush" Value="{StaticResource BrushNavyPrimary}"/>
+                        <Setter Property="Foreground" Value="{StaticResource BrushTextOnDark}"/>
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <Grid>
+        <shell:ToolWindowShell Title="Wet Area Waterproofing"
+                               Subtitle="Find wet rooms, add a waterproofing roof on each slab, and create a plan with detail references per room"
+                               Version="{Binding Source={x:Static svc:ToolCatalog.WetAreaWaterproofingV002}, Path=Version, StringFormat=v{0}}"
+                               IsRunning="{Binding IsBusy}"
+                               IsIndeterminate="True"
+                               SummaryText="{Binding StatusText}">
+
+            <shell:ToolWindowShell.BodyContent>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="10"/>
+                        <ColumnDefinition Width="450"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- ═══ 1 · ROOMS ═══════════════════════════════════════ -->
+                    <Border Grid.Column="0" Style="{StaticResource SectionCard}" Padding="12,10">
+                        <DockPanel>
+                            <TextBlock DockPanel.Dock="Top" Text="1 · ROOMS" Style="{StaticResource SectionTitle}" Margin="0,0,0,8"/>
+
+                            <DockPanel DockPanel.Dock="Top" Style="{StaticResource SettingRow}">
+                                <TextBlock Text="Source" Style="{StaticResource RowLabel}" Width="96"/>
+                                <Button DockPanel.Dock="Right" Content="Refresh" Style="{StaticResource SmallSecondaryButton}"
+                                        Command="{Binding RefreshCommand}" ToolTip="Read the model again with these sources and repair settings"/>
+                                <TextBlock DockPanel.Dock="Right" Text="Press Refresh to apply" Margin="0,0,8,0" VerticalAlignment="Center"
+                                           Foreground="{StaticResource BrushWarning}" FontSize="11"
+                                           Visibility="{Binding NeedsRefresh, Converter={StaticResource BoolToVis}}"/>
+                                <StackPanel Orientation="Horizontal">
+                                    <CheckBox Content="Host model" IsChecked="{Binding IncludeHost}" VerticalAlignment="Center" Margin="0,0,14,0"/>
+                                    <CheckBox Content="Links:" IsChecked="{Binding IncludeLinks}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                    <ItemsControl ItemsSource="{Binding LinkItems}" IsEnabled="{Binding IncludeLinks}" VerticalAlignment="Center">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <CheckBox Content="{Binding Text}" IsChecked="{Binding IsChecked}" Margin="0,0,10,0"
+                                                          Click="LinkCheckBox_Click"/>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </DockPanel>
+
+                            <DockPanel DockPanel.Dock="Top" Style="{StaticResource SettingRow}">
+                                <TextBlock Text="Wet keywords" Style="{StaticResource RowLabel}" Width="96"/>
+                                <Button DockPanel.Dock="Right" Content="Apply" Style="{StaticResource SmallSecondaryButton}" Margin="6,0,0,0"
+                                        Command="{Binding ApplyKeywordsCommand}" ToolTip="Mark the wet rooms again with these keywords and tick them"/>
+                                <TextBox Text="{Binding KeywordsText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BoxedTextInput}"
+                                         ToolTip="Comma-separated. A room is wet when a word of its name starts with a keyword."/>
+                            </DockPanel>
+
+                            <DockPanel DockPanel.Dock="Top" Style="{StaticResource SettingRow}">
+                                <TextBlock Text="Show" Style="{StaticResource RowLabel}" Width="96"/>
+                                <StackPanel Orientation="Horizontal">
+                                    <RadioButton Content="Wet rooms only" IsChecked="{Binding WetOnly}" Margin="0,0,14,0" VerticalAlignment="Center"/>
+                                    <RadioButton Content="All rooms" x:Name="AllRoomsRadio" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </DockPanel>
+
+                            <DockPanel DockPanel.Dock="Top" Margin="0,0,0,2">
+                                <TextBlock Text="Levels" Style="{StaticResource RowLabel}" Width="96" VerticalAlignment="Top" Margin="0,4,0,0"/>
+                                <ItemsControl ItemsSource="{Binding LevelButtons}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Button Content="{Binding Label}" Style="{StaticResource LevelButton}" Click="LevelButton_Click"
+                                                    ToolTip="Click: show or hide this level. Ctrl+click: show only this level."/>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </DockPanel>
+
+                            <DockPanel DockPanel.Dock="Top" Style="{StaticResource SettingRow}">
+                                <Button DockPanel.Dock="Right" Content="Clear filters" Style="{StaticResource SmallSecondaryButton}" Margin="6,0,0,0"
+                                        Command="{Binding ClearFiltersCommand}"/>
+                                <Button DockPanel.Dock="Right" Content="Columns ▾" Style="{StaticResource SmallSecondaryButton}" Margin="6,0,0,0"
+                                        Click="ColumnsButton_Click"/>
+                                <ComboBox DockPanel.Dock="Right" Width="96" Style="{StaticResource StandardComboBox}"
+                                          ItemsSource="{Binding GroupChoices}" SelectedItem="{Binding GroupBy}"/>
+                                <TextBlock DockPanel.Dock="Right" Text="Group by" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="10,0,6,0"/>
+                                <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged, Delay=250}" Style="{StaticResource BoxedTextInput}"
+                                         ToolTip="Search every column"/>
+                            </DockPanel>
+
+                            <DockPanel DockPanel.Dock="Bottom" Margin="0,8,0,0">
+                                <Button Content="Tick visible" Style="{StaticResource SmallSecondaryButton}" Command="{Binding TickVisibleCommand}" Margin="0,0,6,0"/>
+                                <Button Content="Untick visible" Style="{StaticResource SmallSecondaryButton}" Command="{Binding UntickVisibleCommand}" Margin="0,0,6,0"/>
+                                <Button Content="Invert" Style="{StaticResource SmallSecondaryButton}" Command="{Binding InvertVisibleCommand}"/>
+                                <TextBlock Text="{Binding StatusText}" Style="{StaticResource HintText}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                            </DockPanel>
+
+                            <TextBlock DockPanel.Dock="Bottom" Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="0,6,0,0"
+                                       Text="Click a header to sort, Shift+click to add a second sort. ⏷ opens the column's filter. Hover a status to see why. Doors, Drains, Fixtures and Sections are what the current targets find for the room."/>
+
+                            <DataGrid x:Name="RoomsGrid"
+                                      ItemsSource="{Binding RowsView}"
+                                      Style="{StaticResource StandardDataGrid}"
+                                      AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False"
+                                      CanUserReorderColumns="True" CanUserResizeColumns="True" CanUserSortColumns="True"
+                                      SelectionMode="Extended" SelectionUnit="FullRow"
+                                      EnableRowVirtualization="True" VirtualizingPanel.IsVirtualizingWhenGrouping="True"
+                                      VirtualizingPanel.ScrollUnit="Pixel"
+                                      Sorting="RoomsGrid_Sorting">
+                                <DataGrid.GroupStyle>
+                                    <GroupStyle>
+                                        <GroupStyle.ContainerStyle>
+                                            <Style TargetType="GroupItem">
+                                                <Setter Property="Template">
+                                                    <Setter.Value>
+                                                        <ControlTemplate TargetType="GroupItem">
+                                                            <Expander IsExpanded="True" Background="{StaticResource BrushSystemTertiaryBackground}">
+                                                                <Expander.Header>
+                                                                    <StackPanel Orientation="Horizontal">
+                                                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" Foreground="{StaticResource BrushNavyPrimary}"/>
+                                                                        <TextBlock Text="{Binding ItemCount, StringFormat=' · {0} room(s)'}" Foreground="{StaticResource BrushTextSecondary}"/>
+                                                                    </StackPanel>
+                                                                </Expander.Header>
+                                                                <ItemsPresenter/>
+                                                            </Expander>
+                                                        </ControlTemplate>
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </Style>
+                                        </GroupStyle.ContainerStyle>
+                                    </GroupStyle>
+                                </DataGrid.GroupStyle>
+                                <DataGrid.Columns>
+                                    <DataGridTemplateColumn Header="" Width="34" CanUserSort="False" CanUserReorder="False" CanUserResize="False">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <CheckBox IsChecked="{Binding IsTicked, UpdateSourceTrigger=PropertyChanged}"
+                                                          HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                    <DataGridTextColumn Header="Source" SortMemberPath="Source" Binding="{Binding Source}" Width="120" IsReadOnly="True"
+                                                        HeaderTemplate="{StaticResource FilterHeader}"/>
+                                    <DataGridTextColumn Header="Level" SortMemberPath="Level" Binding="{Binding Level}" Width="80" IsReadOnly="True"
+                                                        HeaderTemplate="{StaticResource FilterHeader}"/>
+                                    <DataGridTextColumn Header="No." SortMemberPath="Number" Binding="{Binding Number}" Width="70" IsReadOnly="True"
+                                                        HeaderTemplate="{StaticResource FilterHeader}"/>
+                                    <DataGridTextColumn Header="Name" SortMemberPath="Name" Binding="{Binding Name}" Width="*" MinWidth="120" IsReadOnly="True"
+                                                        HeaderTemplate="{StaticResource FilterHeader}"/>
+                                    <DataGridTextColumn Header="Area m²" SortMemberPath="Area" Binding="{Binding AreaM2, StringFormat=0.00}" Width="80" IsReadOnly="True"
+                                                        HeaderTemplate="{StaticResource FilterHeader}"/>
+                                    <DataGridTextColumn Header="Matched" SortMemberPath="Matched" Binding="{Binding Matched}" Width="84" IsReadOnly="True"
+                                                        HeaderTemplate="{StaticResource FilterHeader}"/>
+                                    <DataGridTextColumn Header="Slab top" SortMemberPath="Slab" Binding="{Binding SlabText}" Width="112" IsReadOnly="True"
+                                                        HeaderTemplate="{StaticResource FilterHeader}"/>
+                                    <DataGridTextColumn Header="Doors" SortMemberPath="Doors" Binding="{Binding Doors}" Width="62" IsReadOnly="True"
+                                                        HeaderTemplate="{StaticResource FilterHeader}"/>
+                                    <DataGridTextColumn Header="Drains" SortMemberPath="Drains" Binding="{Binding Drains}" Width="64" IsReadOnly="True"
+                                                        HeaderTemplate="{StaticResource FilterHeader}"/>
+                                    <DataGridTextColumn Header="Fixtures" SortMemberPath="Fixtures" Binding="{Binding Fixtures}" Width="72" IsReadOnly="True"
+                                                        HeaderTemplate="{StaticResource FilterHeader}"/>
+                                    <DataGridTextColumn Header="Sections" SortMemberPath="Sections" Binding="{Binding Sections}" Width="74" IsReadOnly="True"
+                                                        HeaderTemplate="{StaticResource FilterHeader}"/>
+                                    <DataGridTextColumn Header="Plan" SortMemberPath="Plan" Binding="{Binding Plan}" Width="56" IsReadOnly="True"
+                                                        HeaderTemplate="{StaticResource FilterHeader}"/>
+                                    <DataGridTemplateColumn Header="Status" SortMemberPath="Status" Width="150" CanUserSort="True"
+                                                            HeaderTemplate="{StaticResource FilterHeader}">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Border Style="{StaticResource StatusChip}" ToolTip="{Binding StatusDetail}">
+                                                    <TextBlock Text="{Binding StatusText}" FontSize="11.5" TextTrimming="CharacterEllipsis"/>
+                                                </Border>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </DockPanel>
+                    </Border>
+
+                    <!-- ═══ RIGHT: SETTINGS ═════════════════════════════════ -->
+                    <ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto">
+                        <StackPanel>
+                            <Border Style="{StaticResource SectionCard}" Padding="12,10" Margin="0,0,0,10">
+                                <StackPanel>
+                                    <TextBlock Text="2 · WATERPROOFING ROOF" Style="{StaticResource SectionTitle}" Margin="0,0,0,8"/>
+                                    <DockPanel Style="{StaticResource SettingRow}">
+                                        <TextBlock Text="Roof type" Style="{StaticResource RowLabel}"/>
+                                        <ComboBox ItemsSource="{Binding RoofTypes}" SelectedItem="{Binding SelectedRoofType}" Style="{StaticResource StandardComboBox}"/>
+                                    </DockPanel>
+                                    <DockPanel Style="{StaticResource SettingRow}" IsEnabled="{Binding IsWorkshared}"
+                                               ToolTip="Workset for the new roofs. Greyed out when the model is not workshared.">
+                                        <TextBlock Text="Workset" Style="{StaticResource RowLabel}"/>
+                                        <ComboBox ItemsSource="{Binding Worksets}" SelectedItem="{Binding SelectedWorkset}" Style="{StaticResource StandardComboBox}"/>
+                                    </DockPanel>
+                                    <DockPanel Style="{StaticResource SettingRow}">
+                                        <TextBlock Text="Offset above slab" Style="{StaticResource RowLabel}"/>
+                                        <TextBlock DockPanel.Dock="Right" Text="mm" Style="{StaticResource UnitLabel}" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                                        <TextBox Text="{Binding OffsetText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MmBox}" HorizontalAlignment="Left"/>
+                                    </DockPanel>
+                                    <DockPanel Style="{StaticResource SettingRow}">
+                                        <TextBlock Text="No slab found" Style="{StaticResource RowLabel}"/>
+                                        <TextBlock Text="Use room level + offset" Style="{StaticResource FieldValue}" VerticalAlignment="Center"/>
+                                    </DockPanel>
+                                    <CheckBox Content="Add room No. + name to the roof's Comments" IsChecked="{Binding WriteComments}" Margin="0,2,0,4"
+                                              ToolTip="The run ID and room key are always written to Comments: re-runs and 'Remove a run' need them."/>
+                                    <TextBlock Style="{StaticResource HintText}" TextWrapping="Wrap"
+                                               Text="A room that already has a roof from an earlier run gets it replaced (same room, new outline)."/>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Style="{StaticResource SectionCard}" Padding="12,10" Margin="0,0,0,10">
+                                <StackPanel>
+                                    <TextBlock Text="BOUNDARY REPAIR" Style="{StaticResource SectionTitle}" Margin="0,0,0,8"/>
+                                    <DockPanel Style="{StaticResource SettingRow}">
+                                        <TextBlock Text="Snap gaps up to" Style="{StaticResource RowLabel}"/>
+                                        <TextBlock DockPanel.Dock="Right" Text="mm" Style="{StaticResource UnitLabel}" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                                        <TextBox Text="{Binding SnapText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MmBox}" HorizontalAlignment="Left"/>
+                                    </DockPanel>
+                                    <DockPanel Style="{StaticResource SettingRow}">
+                                        <TextBlock Text="Bridge gaps up to" Style="{StaticResource RowLabel}"/>
+                                        <TextBlock DockPanel.Dock="Right" Text="mm" Style="{StaticResource UnitLabel}" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                                        <TextBox Text="{Binding BridgeText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MmBox}" HorizontalAlignment="Left"/>
+                                    </DockPanel>
+                                    <DockPanel Style="{StaticResource SettingRow}">
+                                        <TextBlock Text="Area check ±" Style="{StaticResource RowLabel}"/>
+                                        <TextBlock DockPanel.Dock="Right" Text="% of room area" Style="{StaticResource UnitLabel}" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                                        <TextBox Text="{Binding AreaToleranceText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MmBox}" HorizontalAlignment="Left"/>
+                                    </DockPanel>
+                                    <CheckBox Content="Allow approximate outline (last resort)" IsChecked="{Binding AllowApproximate}" Margin="0,2,0,4"
+                                              ToolTip="When no repair closes the outline, use a hull around the boundary. Off by default: it can cover the wrong area."/>
+                                    <TextBlock Style="{StaticResource HintText}" TextWrapping="Wrap"
+                                               Text="Tried in order: other boundary location → clean → merge → snap → bridge → remove overlaps → room 3D shape → skip hole → approximate. An outline outside the area check still gets a roof, with a warning. Curved walls are drawn as short straight edges."/>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Style="{StaticResource SectionCard}" Padding="12,10" Margin="0,0,0,10">
+                                <StackPanel>
+                                    <TextBlock Text="3 · PLANS" Style="{StaticResource SectionTitle}" Margin="0,0,0,8"/>
+                                    <DockPanel Style="{StaticResource SettingRow}">
+                                        <TextBlock Text="Plan type" Style="{StaticResource RowLabel}"/>
+                                        <ComboBox ItemsSource="{Binding PlanTypes}" SelectedItem="{Binding SelectedPlanType}" Style="{StaticResource StandardComboBox}"/>
+                                    </DockPanel>
+                                    <DockPanel Style="{StaticResource SettingRow}">
+                                        <TextBlock Text="View template" Style="{StaticResource RowLabel}"/>
+                                        <ComboBox ItemsSource="{Binding PlanTemplates}" SelectedItem="{Binding SelectedPlanTemplate}" Style="{StaticResource StandardComboBox}"/>
+                                    </DockPanel>
+                                    <DockPanel Style="{StaticResource SettingRow}">
+                                        <TextBlock Text="Scale 1:" Style="{StaticResource RowLabel}"/>
+                                        <TextBlock DockPanel.Dock="Right" Text="mm" Style="{StaticResource UnitLabel}" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                                        <TextBox DockPanel.Dock="Right" Text="{Binding CropMarginText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MmBox}"/>
+                                        <TextBlock DockPanel.Dock="Right" Text="Crop margin" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="14,0,6,0"/>
+                                        <TextBox Text="{Binding PlanScaleText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MmBox}" HorizontalAlignment="Left"
+                                                 ToolTip="Used unless the view template sets the scale"/>
+                                    </DockPanel>
+                                    <DockPanel Style="{StaticResource SettingRow}">
+                                        <TextBlock Text="Plan name" Style="{StaticResource RowLabel}"/>
+                                        <TextBox Text="{Binding PlanNamePattern, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BoxedTextInput}"
+                                                 ToolTip="{}{Level}, {Number} and {Name} are filled in. A name already in use gets (2), (3)…"/>
+                                    </DockPanel>
+                                    <TextBlock Style="{StaticResource HintText}" TextWrapping="Wrap"
+                                               Text="One plan per room, cropped to the room plus the margin. A room that already has a plan from an earlier run keeps it (your annotations stay); its crop is refreshed."/>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Style="{StaticResource SectionCard}" Padding="12,10" Margin="0,0,0,10">
+                                <StackPanel>
+                                    <TextBlock Text="4 · SECTION TARGETS" Style="{StaticResource SectionTitle}" Margin="0,0,0,4"/>
+                                    <TextBlock Text="{Binding SectionsSummary}" Style="{StaticResource HintText}" Margin="0,0,0,8"/>
+
+                                    <ItemsControl ItemsSource="{Binding Targets}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border BorderBrush="{StaticResource BrushSeparatorThin}" BorderThickness="0,0,0,1" Padding="0,4">
+                                                    <StackPanel>
+                                                        <DockPanel>
+                                                            <Button DockPanel.Dock="Right" Content="▼" Width="22" Padding="0" Style="{StaticResource SmallSecondaryButton}" ToolTip="Move down"
+                                                                    Command="{Binding DataContext.TargetDownCommand, ElementName=Root}" CommandParameter="{Binding}"/>
+                                                            <Button DockPanel.Dock="Right" Content="▲" Width="22" Padding="0" Margin="0,0,3,0" Style="{StaticResource SmallSecondaryButton}" ToolTip="Move up: higher rows win when a room would get more than six sections"
+                                                                    Command="{Binding DataContext.TargetUpCommand, ElementName=Root}" CommandParameter="{Binding}"/>
+                                                            <CheckBox Content="{Binding Label}" IsChecked="{Binding On}" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                                                        </DockPanel>
+                                                        <DockPanel Margin="20,4,0,0" IsEnabled="{Binding On}">
+                                                            <ComboBox DockPanel.Dock="Left" Width="100" Style="{StaticResource StandardComboBox}"
+                                                                      ItemsSource="{Binding Modes}" SelectedItem="{Binding SelectedMode}"
+                                                                      ToolTip="Reference Section points to a drafting view; Callout creates a cropped detail view"/>
+                                                            <ComboBox DockPanel.Dock="Left" Width="150" Style="{StaticResource StandardComboBox}" Margin="6,0,0,0"
+                                                                      ItemsSource="{Binding Choices}" SelectedItem="{Binding PerItem}"
+                                                                      IsEnabled="{Binding CanHaveMany}" ToolTip="One section at the match nearest the room centre, or one for every match"/>
+                                                            <TextBlock DockPanel.Dock="Right" Text="mm" Style="{StaticResource UnitLabel}" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                                                            <TextBox DockPanel.Dock="Right" Text="{Binding LengthText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MmBox}"
+                                                                     ToolTip="Length of the cut line. For the full-room cuts: how far the line runs past the room on each side."/>
+                                                            <TextBlock Text="{Binding LengthLabel}" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,6,0"/>
+                                                        </DockPanel>
+                                                        <DockPanel Margin="20,4,0,0" IsEnabled="{Binding On}"
+                                                                   Visibility="{Binding DataContext.DraftingViewPerTarget, ElementName=Root, Converter={StaticResource BoolToVis}}">
+                                                            <TextBlock Text="Points to" Style="{StaticResource FieldLabel}" VerticalAlignment="Top" Margin="0,5,0,0" Width="62"/>
+                                                            <wp:DraftingViewSearchBox Items="{Binding DataContext.DraftingViewItems, ElementName=Root}"
+                                                                                      Text="{Binding DraftingViewName, Mode=TwoWay}"
+                                                                                      IsEnabled="{Binding IsCallout, Converter={StaticResource InvertBool}}"/>
+                                                        </DockPanel>
+                                                    </StackPanel>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+
+                                    <TextBlock Text="Drafting view" Style="{StaticResource FieldLabel}" Margin="0,10,0,4"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                        <RadioButton Content="One view for all targets" IsChecked="{Binding OneDraftingViewForAll}" Margin="0,0,14,0"/>
+                                        <RadioButton Content="One view per target" IsChecked="{Binding DraftingViewPerTarget}"/>
+                                    </StackPanel>
+                                    <DockPanel Style="{StaticResource SettingRow}" Visibility="{Binding OneDraftingViewForAll, Converter={StaticResource BoolToVis}}">
+                                        <TextBlock Text="Points to" Style="{StaticResource FieldLabel}" VerticalAlignment="Top" Margin="0,5,0,0" Width="62"/>
+                                        <wp:DraftingViewSearchBox Items="{Binding DraftingViewItems}" Text="{Binding SharedDraftingViewName, Mode=TwoWay}"/>
+                                    </DockPanel>
+                                    <DockPanel Margin="0,0,0,8">
+                                        <Button DockPanel.Dock="Right" Content="Assign drafting views…" Style="{StaticResource SmallSecondaryButton}" Margin="8,0,0,0"
+                                                VerticalAlignment="Top" Command="{Binding OpenAssignCommand}"
+                                                ToolTip="Open the picker: every target on the left, every drafting view with its sheet and bubble on the right"/>
+                                        <TextBlock Style="{StaticResource HintText}" TextWrapping="Wrap"
+                                                   Text="Type a view name, title, sheet number, sheet name or bubble number (A-501/3 = sheet A-501, bubble 3) and pick from the list. A name that does not exist is created at the run."/>
+                                    </DockPanel>
+
+                                    <TextBlock Text="Callout settings" Style="{StaticResource FieldLabel}" Margin="0,10,0,4"/>
+                                    <TextBlock Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="0,0,0,6"
+                                               Text="Targets set to &quot;Callout&quot; create a cropped detail view instead of pointing to a drafting view."/>
+                                    <DockPanel Style="{StaticResource SettingRow}">
+                                        <TextBlock Text="Detail view type" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Width="110"/>
+                                        <ComboBox ItemsSource="{Binding DetailViewTypes}" SelectedItem="{Binding SelectedCalloutViewType}"
+                                                  ToolTip="The view family type for the callout detail view"/>
+                                    </DockPanel>
+                                    <DockPanel Style="{StaticResource SettingRow}">
+                                        <TextBlock Text="Scale  1 :" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Width="110"/>
+                                        <TextBox Text="{Binding CalloutScaleText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MmBox}"
+                                                 HorizontalAlignment="Left" Width="60" ToolTip="Scale of the callout detail view"/>
+                                    </DockPanel>
+                                    <DockPanel Style="{StaticResource SettingRow}">
+                                        <TextBlock DockPanel.Dock="Right" Text="mm" Style="{StaticResource UnitLabel}" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                                        <TextBlock Text="Crop margin" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Width="110"/>
+                                        <TextBox Text="{Binding CalloutMarginText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MmBox}"
+                                                 HorizontalAlignment="Left" Width="60" ToolTip="Extra space around the cut line in the callout crop"/>
+                                    </DockPanel>
+
+                                    <Expander Header="Search targets in" IsExpanded="False" Margin="0,0,0,6">
+                                        <ItemsControl ItemsSource="{Binding Sources}" Margin="0,4,0,0">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Expander Header="{Binding Header}" IsExpanded="True" Margin="6,0,0,2">
+                                                        <ItemsControl ItemsSource="{Binding Categories}" Margin="22,2,0,2">
+                                                            <ItemsControl.ItemTemplate>
+                                                                <DataTemplate>
+                                                                    <DockPanel Margin="0,1">
+                                                                        <TextBlock DockPanel.Dock="Right" Text="{Binding Count}" Foreground="{StaticResource BrushTextSecondary}"/>
+                                                                        <CheckBox Content="{Binding Category}" IsChecked="{Binding IsOn}"/>
+                                                                    </DockPanel>
+                                                                </DataTemplate>
+                                                            </ItemsControl.ItemTemplate>
+                                                        </ItemsControl>
+                                                    </Expander>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </Expander>
+
+                                    <Expander Header="Fixture keywords" IsExpanded="False">
+                                        <StackPanel Margin="0,6,0,0">
+                                            <DockPanel Style="{StaticResource SettingRow}">
+                                                <TextBlock Text="Floor drain" Style="{StaticResource RowLabel}" Width="92"/>
+                                                <TextBox Text="{Binding DrainKeywordsText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BoxedTextInput}"/>
+                                            </DockPanel>
+                                            <DockPanel Style="{StaticResource SettingRow}">
+                                                <TextBlock Text="WC / closet" Style="{StaticResource RowLabel}" Width="92"/>
+                                                <TextBox Text="{Binding WcKeywordsText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BoxedTextInput}"/>
+                                            </DockPanel>
+                                            <DockPanel Style="{StaticResource SettingRow}">
+                                                <TextBlock Text="Shower / bath" Style="{StaticResource RowLabel}" Width="92"/>
+                                                <TextBox Text="{Binding ShowerKeywordsText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BoxedTextInput}"/>
+                                            </DockPanel>
+                                            <TextBlock Style="{StaticResource HintText}" TextWrapping="Wrap"
+                                                       Text="Matched against each fixture's family and type name. Every door counts as a door. Press Refresh after a change."/>
+                                        </StackPanel>
+                                    </Expander>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Style="{StaticResource SectionCard}" Padding="12,10">
+                                <StackPanel>
+                                    <TextBlock Text="EXCEL REPORT" Style="{StaticResource SectionTitle}" Margin="0,0,0,8"/>
+                                    <CheckBox Content="Save Excel report after run" IsChecked="{Binding AutoSaveReport}" Margin="0,0,0,6"/>
+                                    <DockPanel Style="{StaticResource SettingRow}">
+                                        <Button DockPanel.Dock="Right" Content="…" Style="{StaticResource SmallSecondaryButton}" Margin="6,0,0,0" Width="28"
+                                                Click="BrowseFolder_Click" ToolTip="Pick the report folder"/>
+                                        <TextBox Text="{Binding ReportFolder, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BoxedTextInput}"
+                                                 ToolTip="{Binding ReportFolder}"/>
+                                    </DockPanel>
+                                    <WrapPanel>
+                                        <Button Content="Export now" Style="{StaticResource SmallSecondaryButton}" Command="{Binding ExportNowCommand}" Margin="0,0,6,0"
+                                                ToolTip="Save the last run's report again"/>
+                                        <Button Content="Open report" Style="{StaticResource SmallSecondaryButton}" Command="{Binding OpenReportCommand}" Margin="0,0,6,0"/>
+                                        <Button Content="Open folder" Style="{StaticResource SmallSecondaryButton}" Command="{Binding OpenReportFolderCommand}"/>
+                                    </WrapPanel>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- ═══ ACTIVITY LOG ════════════════════════════════════ -->
+                    <Border Grid.Row="1" Grid.ColumnSpan="3" Margin="0,10,0,0" Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="10,8">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <Grid Margin="0,0,0,6">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="Activity Log" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource BrushLogText}" VerticalAlignment="Center"/>
+                                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                    <Button Content="Copy All" Style="{StaticResource DarkGhostButton}" Command="{Binding CopyAllLogCommand}"/>
+                                    <Button Content="Copy Selected" Style="{StaticResource DarkGhostButton}" Margin="6,0,0,0" Click="CopySelectedLogs_Click"/>
+                                </StackPanel>
+                            </Grid>
+                            <ListBox Grid.Row="1" x:Name="LogListBox"
+                                     ItemsSource="{Binding LogEntries}"
+                                     SelectionMode="Extended"
+                                     Background="Transparent" BorderThickness="0"
+                                     MinHeight="80" Padding="0"
+                                     shell:ShellBehaviors.MaxHeightRatio="0.18"
+                                     shell:ShellBehaviors.ForwardMouseWheel="True"
+                                     ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="{Binding Time, StringFormat='{}{0:HH:mm:ss}'}"
+                                                       Foreground="{StaticResource BrushLogTextDim}"
+                                                       FontFamily="Consolas" FontSize="11" Margin="0,0,8,0"/>
+                                            <TextBlock Text="{Binding Level}"
+                                                       Foreground="{Binding Level, Converter={StaticResource LogLevelToColorConverter}}"
+                                                       FontFamily="Consolas" FontSize="11" FontWeight="SemiBold"
+                                                       Width="58" Margin="0,0,8,0"/>
+                                            <TextBlock Text="{Binding Message}"
+                                                       Foreground="{StaticResource BrushLogText}"
+                                                       FontFamily="Consolas" FontSize="11" TextWrapping="Wrap"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </shell:ToolWindowShell.BodyContent>
+
+            <!-- ═══ FOOTER ═══════════════════════════════════════════════════ -->
+            <shell:ToolWindowShell.FooterContent>
+                <DockPanel LastChildFill="True">
+                    <Button DockPanel.Dock="Right" Content="Close" Style="{StaticResource SecondaryButton}" Click="CloseButton_Click"/>
+                    <Button DockPanel.Dock="Right" Content="{Binding RunButtonText}" Style="{StaticResource PrimaryButton}" Margin="0,0,8,0"
+                            Command="{Binding RunCommand}" ToolTip="Run the ticked steps for the ticked rooms. One Undo step."/>
+                    <Button DockPanel.Dock="Right" Content="Remove a run…" Style="{StaticResource SecondaryButton}" Margin="0,0,8,0"
+                            Command="{Binding RemoveRunCommand}" ToolTip="Delete the roofs, plans and section markers an earlier run created"/>
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,14,0">
+                        <TextBlock Text="Run steps:" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <CheckBox Content="Roofs" IsChecked="{Binding CreateRoofs}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <CheckBox Content="Plans" IsChecked="{Binding CreatePlans}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <CheckBox Content="Reference sections" IsChecked="{Binding CreateSections}" VerticalAlignment="Center"
+                                  ToolTip="Sections sit on the room's plan: a plan is created when the room has none"/>
+                    </StackPanel>
+                    <Border Background="{StaticResource BrushBannerWarningBackground}" BorderBrush="{StaticResource BrushBannerWarningBorder}"
+                            BorderThickness="1" CornerRadius="4" Padding="8,4" Margin="0,0,10,0" VerticalAlignment="Center"
+                            Visibility="{Binding HasAttention, Converter={StaticResource BoolToVis}}">
+                        <DockPanel>
+                            <Button DockPanel.Dock="Right" Content="Show these rooms" Style="{StaticResource SmallSecondaryButton}" Margin="8,0,0,0"
+                                    Command="{Binding ShowAttentionCommand}"/>
+                            <TextBlock Text="{Binding AttentionText}" Foreground="{StaticResource BrushBannerWarningText}"
+                                       TextTrimming="CharacterEllipsis" VerticalAlignment="Center" ToolTip="{Binding AttentionText}"/>
+                        </DockPanel>
+                    </Border>
+                </DockPanel>
+            </shell:ToolWindowShell.FooterContent>
+        </shell:ToolWindowShell>
+
+        <!-- ═══ COLUMN FILTER POP-UP ════════════════════════════════════════════ -->
+        <Popup x:Name="FilterPopup" StaysOpen="False" Placement="Bottom" AllowsTransparency="True" Closed="FilterPopup_Closed">
+            <Border Background="{StaticResource BrushCardBackground}" BorderBrush="{StaticResource BrushSeparator}" BorderThickness="1"
+                    CornerRadius="5" Padding="10" Width="230" DataContext="{Binding ActiveFilter}">
+                <StackPanel>
+                    <TextBlock Text="{Binding Title}" FontWeight="SemiBold" Margin="0,0,0,6"/>
+
+                    <StackPanel Visibility="{Binding IsTicks, Converter={StaticResource BoolToVis}}">
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                            <Button Content="All" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,6,0"
+                                    Command="{Binding DataContext.FilterSelectAllCommand, ElementName=Root}" CommandParameter="1"/>
+                            <Button Content="None" Style="{StaticResource SmallSecondaryButton}"
+                                    Command="{Binding DataContext.FilterSelectAllCommand, ElementName=Root}" CommandParameter="0"/>
+                        </StackPanel>
+                        <ScrollViewer MaxHeight="220" VerticalScrollBarVisibility="Auto">
+                            <ItemsControl ItemsSource="{Binding Items}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <CheckBox Content="{Binding Text}" IsChecked="{Binding IsChecked}" Margin="0,2"/>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </StackPanel>
+
+                    <StackPanel Visibility="{Binding IsContains, Converter={StaticResource BoolToVis}}">
+                        <TextBlock Text="Contains" Style="{StaticResource FieldLabel}" Margin="0,0,0,3"/>
+                        <TextBox Text="{Binding ContainsText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BoxedTextInput}"/>
+                    </StackPanel>
+
+                    <StackPanel Visibility="{Binding IsRange, Converter={StaticResource BoolToVis}}" Orientation="Horizontal">
+                        <TextBlock Text="From" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                        <TextBox Text="{Binding MinText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MmBox}"/>
+                        <TextBlock Text="to" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="8,0,6,0"/>
+                        <TextBox Text="{Binding MaxText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MmBox}"/>
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+                        <Button Content="Clear" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,6,0"
+                                Command="{Binding DataContext.ClearFilterCommand, ElementName=Root}"/>
+                        <Button Content="OK" Style="{StaticResource SmallSecondaryButton}" IsDefault="True"
+                                Command="{Binding DataContext.ApplyFilterCommand, ElementName=Root}"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Popup>
+
+        <!-- ═══ RESULT CARD ═════════════════════════════════════════════════════ -->
+        <Grid Background="#66000000" Visibility="{Binding ResultVisible, Converter={StaticResource BoolToVis}}">
+            <Border Style="{StaticResource ContentCard}" Width="560" MaxHeight="520" Padding="18,14"
+                    HorizontalAlignment="Center" VerticalAlignment="Center">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Text="{Binding ResultTitle}" FontSize="15" FontWeight="SemiBold" Margin="0,0,0,10"/>
+                    <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+                        <Button Content="Open report" Style="{StaticResource SecondaryButton}" Margin="0,0,8,0" Command="{Binding OpenReportCommand}"/>
+                        <Button Content="OK" Style="{StaticResource PrimaryButton}" Command="{Binding CloseResultCommand}"/>
+                    </StackPanel>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding ResultLines}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Text}" TextWrapping="Wrap" Margin="0,2">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Foreground" Value="{StaticResource BrushSuccess}"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Kind}" Value="warn">
+                                                        <Setter Property="Foreground" Value="{StaticResource BrushWarning}"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Kind}" Value="error">
+                                                        <Setter Property="Foreground" Value="{StaticResource BrushDanger}"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </DockPanel>
+            </Border>
+        </Grid>
+
+        <!-- ═══ REMOVE A RUN CARD ═══════════════════════════════════════════════ -->
+        <Grid Background="#66000000" Visibility="{Binding RemoveVisible, Converter={StaticResource BoolToVis}}">
+            <Border Style="{StaticResource ContentCard}" Width="460" MaxHeight="460" Padding="18,14"
+                    HorizontalAlignment="Center" VerticalAlignment="Center">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Text="Remove a run" FontSize="15" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                    <TextBlock DockPanel.Dock="Top" Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="0,0,0,8"
+                               Text="Deletes the roofs, plans and section markers the picked run created. Drafting views are kept (they may hold your details). Elements another user owns are left. One Undo step."/>
+                    <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+                        <Button Content="Cancel" Style="{StaticResource SecondaryButton}" Margin="0,0,8,0" Command="{Binding CancelRemoveRunCommand}"/>
+                        <Button Content="Remove" Style="{StaticResource DangerButton}" Command="{Binding ConfirmRemoveRunCommand}"/>
+                    </StackPanel>
+                    <ListBox ItemsSource="{Binding Runs}" SelectedItem="{Binding SelectedRun}" MinHeight="80">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{Binding RunId}" FontFamily="Consolas" Margin="0,0,10,0"/>
+                                    <TextBlock Text="{Binding Count, StringFormat='{}{0} element(s)'}" Foreground="{StaticResource BrushTextSecondary}"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+            </Border>
+        </Grid>
+
+        <!-- ═══ ASSIGN DRAFTING VIEWS CARD (V002) ═══════════════════════════════════ -->
+        <Grid Background="#66000000" Visibility="{Binding AssignVisible, Converter={StaticResource BoolToVis}}">
+            <Border Style="{StaticResource ContentCard}" Width="1040" Height="600" Padding="18,14"
+                    HorizontalAlignment="Center" VerticalAlignment="Center">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Text="Assign drafting views" FontSize="15" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                    <TextBlock DockPanel.Dock="Top" Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="0,0,0,10"
+                               Text="Pick a target on the left, then double-click a drafting view (or press Assign). The next target is picked for you. Search by view name, title on sheet, sheet number, sheet name or bubble number; A-501/3 = sheet A-501, bubble 3."/>
+                    <DockPanel DockPanel.Dock="Bottom" Margin="0,12,0,0">
+                        <Button DockPanel.Dock="Right" Content="Done" Style="{StaticResource PrimaryButton}" Command="{Binding CloseAssignCommand}"/>
+                        <TextBlock Text="{Binding PickerSummary}" Style="{StaticResource HintText}" VerticalAlignment="Center"/>
+                    </DockPanel>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="320"/>
+                            <ColumnDefinition Width="14"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Left: what is assigned -->
+                        <DockPanel>
+                            <TextBlock DockPanel.Dock="Top" Text="TARGETS" Style="{StaticResource SectionTitle}" Margin="0,0,0,6"/>
+                            <ListBox ItemsSource="{Binding AssignSlots}" SelectedItem="{Binding SelectedSlot}"
+                                     ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                <ListBox.ItemContainerStyle>
+                                    <Style TargetType="ListBoxItem">
+                                        <Setter Property="Padding" Value="6,4"/>
+                                        <Setter Property="IsEnabled" Value="{Binding CanAssign}"/>
+                                    </Style>
+                                </ListBox.ItemContainerStyle>
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                                            <TextBlock Text="{Binding ViewName}" TextTrimming="CharacterEllipsis"/>
+                                            <TextBlock Text="{Binding Status}" FontSize="10.5" Foreground="{StaticResource BrushTextSecondary}" TextTrimming="CharacterEllipsis"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </DockPanel>
+
+                        <!-- Right: search and pick -->
+                        <DockPanel Grid.Column="2">
+                            <TextBlock DockPanel.Dock="Top" Text="DRAFTING VIEWS" Style="{StaticResource SectionTitle}" Margin="0,0,0,6"/>
+                            <DockPanel DockPanel.Dock="Top" Margin="0,0,0,6">
+                                <Button DockPanel.Dock="Right" Content="Use as new name" Style="{StaticResource SmallSecondaryButton}" Margin="6,0,0,0"
+                                        Command="{Binding AssignNewNameCommand}" ToolTip="Point the target to the typed text: a view with that name is created at the run"/>
+                                <Button DockPanel.Dock="Right" Content="Assign" Style="{StaticResource SmallSecondaryButton}" Margin="6,0,0,0"
+                                        Command="{Binding AssignPickedCommand}"/>
+                                <TextBox x:Name="PickerSearchBox" Text="{Binding PickerQuery, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BoxedTextInput}"
+                                         PreviewKeyDown="PickerSearchBox_PreviewKeyDown"
+                                         ToolTip="Words are combined. s: sheet, d: bubble, n: view name, t: title on sheet (e.g. d:3 s:A-5)"/>
+                            </DockPanel>
+                            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,6">
+                                <RadioButton Content="All" GroupName="PickerScope" Style="{StaticResource ChipToggle}" IsChecked="True"
+                                             Command="{Binding SetPickerScopeCommand}" CommandParameter="All"/>
+                                <RadioButton Content="On a sheet" GroupName="PickerScope" Style="{StaticResource ChipToggle}"
+                                             Command="{Binding SetPickerScopeCommand}" CommandParameter="On a sheet"/>
+                                <RadioButton Content="Not on a sheet" GroupName="PickerScope" Style="{StaticResource ChipToggle}"
+                                             Command="{Binding SetPickerScopeCommand}" CommandParameter="Not on a sheet"/>
+                            </StackPanel>
+                            <DataGrid x:Name="PickerGrid" ItemsSource="{Binding PickerResults}" SelectedItem="{Binding SelectedPickerView}"
+                                      Style="{StaticResource StandardDataGrid}" AutoGenerateColumns="False" IsReadOnly="True"
+                                      SelectionMode="Single" HeadersVisibility="Column" CanUserAddRows="False"
+                                      MouseDoubleClick="PickerGrid_MouseDoubleClick">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Sheet" Binding="{Binding SheetNumber}" Width="80"/>
+                                    <DataGridTextColumn Header="Bubble" Binding="{Binding DetailNumber}" Width="60"/>
+                                    <DataGridTextColumn Header="Sheet name" Binding="{Binding SheetName}" Width="150"/>
+                                    <DataGridTextColumn Header="View name" Binding="{Binding Name}" Width="*"/>
+                                    <DataGridTextColumn Header="Title on sheet" Binding="{Binding TitleOnSheet}" Width="150"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </DockPanel>
+                    </Grid>
+                </DockPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</Window>
