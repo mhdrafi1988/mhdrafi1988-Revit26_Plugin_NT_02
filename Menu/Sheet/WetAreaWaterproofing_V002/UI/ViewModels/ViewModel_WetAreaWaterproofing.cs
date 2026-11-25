@@ -57,6 +57,7 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V002.UI.ViewModels
             _autoSaveReport = _settings.AutoSaveReport;
             _reportFolder = _settings.ReportFolder;
             InitViews();
+            InitSteps();
             _loading = false;
 
             ApplySnapshot(session.Initial, firstLoad: true);
@@ -217,6 +218,7 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V002.UI.ViewModels
             }
             State.Levels.RemoveWhere(l => _all.All(c => (c.Row.Level ?? GridQuery.NoValue) != l));
             RebuildRows();
+            if (CurrentStep == 2) UpdateOutlineProblems(); // step 2's list follows a Refresh
         }
 
         /// <summary>Ticks every wet room a run can do that has no roof from an earlier run (whatever its status).</summary>

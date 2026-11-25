@@ -2,6 +2,7 @@
 using Revit26_Plugin_Revised.WetAreaWaterproofing.V002.Core.Geometry;
 using Revit26_Plugin_Revised.WetAreaWaterproofing.V002.Core.Models;
 using Revit26_Plugin_Revised.WetAreaWaterproofing.V002.Core.Report;
+using Revit26_Plugin_Revised.WetAreaWaterproofing.V002.Core.Review;
 using Revit26_Plugin_Revised.WetAreaWaterproofing.V002.Core.Run;
 using Revit26_Plugin_Revised.WetAreaWaterproofing.V002.Core.Sections;
 using System;
@@ -203,6 +204,34 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V002.Infrastructure
                 }
             }
             return placed.Where(s => s != null).ToList();
+        }
+
+        /// <summary>
+        /// What earlier runs left, per room key, read only (for the Review step): the tagged markers that a run
+        /// replaces, and the tagged callout / section views with how many elements are drawn in each. Must match
+        /// what <see cref="RemoveEarlier"/> does.
+        /// </summary>
+        public static Dictionary<string, EarlierViews> ReadEarlier(Document doc)
+        {
+            var markers = new Dictionary<string, int>();
+            var views = new Dictionary<string, List<(string, int)>>();
+            foreach (Element e in ElementTag.Tagged(doc))
+            {
+                if (!ElementTag.TryGet(e, out _, out string key, out string kind) || kind != ElementTag.Section || string.IsNullOrEmpty(key)) continue;
+                if (e is View view)
+                {
+                    int drawn = new FilteredElementCollector(doc).WherePasses(new ElementOwnerViewFilter(view.Id))
+                        .WhereElementIsNotElementType().GetElementCount();
+                    if (!views.TryGetValue(key, out var list)) views[key] = list = new List<(string, int)>();
+                    list.Add((view.Name, drawn));
+                }
+                else markers[key] = markers.TryGetValue(key, out int n) ? n + 1 : 1;
+            }
+            var result = new Dictionary<string, EarlierViews>();
+            foreach (string key in markers.Keys.Union(views.Keys))
+                result[key] = new EarlierViews(markers.TryGetValue(key, out int m) ? m : 0,
+                    views.TryGetValue(key, out var v) ? v : new List<(string, int)>());
+            return result;
         }
 
         /// <summary>

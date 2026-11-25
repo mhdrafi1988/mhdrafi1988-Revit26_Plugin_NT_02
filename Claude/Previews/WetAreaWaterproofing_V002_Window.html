@@ -1,7 +1,7 @@
 <title>Wet Area Waterproofing V002</title>
 <!--
-  Tool: Wet Area Waterproofing — v2.1.0 (build V002), next to V001 v1.2.5 in one ribbon pulldown
-  Plugin: 7.31.0
+  Tool: Wet Area Waterproofing — v2.2.0 (build V002), next to V001 v1.2.5 in one ribbon pulldown
+  Plugin: 7.34.0
   Mirrors: Menu/Sheet/WetAreaWaterproofing_V002/UI/Views/WetAreaWaterproofingWindow.xaml
            Menu/Sheet/WetAreaWaterproofing_V002/UI/Controls/DraftingViewSearchBox.xaml
            Menu/00_Push_Button_Menu_items/Ribbon/SheetToolsRibbon.cs (BuildWaterproofingPanel)
@@ -122,14 +122,144 @@ mark{background:#FFF1B8;color:inherit;border-radius:2px;padding:0 1px}
 pre.mermaid{margin:0;background:transparent;font-family:var(--font)}
 .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
 .legend i{display:inline-block;width:12px;height:12px;border-radius:2px;vertical-align:-1px;margin-right:5px;border:1px solid var(--line)}
+
+/* ── 2.2.0 step layout (prefixed sx-) ── */
+.sx-body{padding:10px;display:grid;gap:6px}
+.sx-stage{background:var(--card);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.sx-sh{display:grid;grid-template-columns:26px 1fr auto;gap:10px;align-items:center;padding:8px 14px}
+.sx-num{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:11.5px;font-weight:700;color:#EAF1F8;background:#C3CFDB}
+.sx-stage.done .sx-num{background:var(--ok)}
+.sx-stage.skip .sx-num{background:#8FA3B8}
+.sx-stage.active{border-color:var(--head);box-shadow:0 0 0 1px var(--head)}
+.sx-stage.active .sx-num{background:var(--head)}
+.sx-st{font-size:13.5px;font-weight:600}
+.sx-ss{font-size:11.5px;color:var(--winMuted)}
+.sx-stage.done .sx-ss{color:var(--ok)}
+.sx-sb{border-top:1px solid var(--sep);padding:10px 14px 12px;display:grid;gap:8px}
+.sx-cnt{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.sx-tile{border:1px solid var(--line);border-radius:5px;background:#fff;padding:6px 9px}
+.sx-tile span{display:block;font-size:11px;color:var(--winMuted)}
+.sx-tile b{font-variant-numeric:tabular-nums}
+.sx-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.sx-grid{border-collapse:collapse;width:100%;font-size:12px;font-variant-numeric:tabular-nums}
+.sx-grid th{background:var(--hdr);text-align:left;font-weight:600;padding:4px 6px;border-bottom:1px solid var(--line);font-size:11.5px;white-space:nowrap}
+.sx-grid td{padding:3px 6px;border-bottom:1px solid var(--sep);white-space:nowrap}
+.sx-grid tr.grp td{background:#F7F9FB;font-weight:600;color:var(--head)}
+.sx-grid tr.off td{color:#9AA8B8}
+.sx-pill{border-radius:3px;padding:0 6px;font-size:11px;border:1px solid;white-space:nowrap}
+.sx-new{background:var(--okSoft);color:var(--ok);border-color:var(--okBd)}
+.sx-rep{background:var(--infoSoft);color:var(--info);border-color:var(--infoBd)}
+.sx-keep{background:var(--warnSoft);color:var(--warn);border-color:var(--warnBd)}
+.sx-skip{background:#F3F5F7;color:var(--winMuted);border-color:var(--line)}
+.sx-err{background:#FBE8E7;color:#B23A35;border-color:#EDA5A1}
+.sx-foot{border-top:1px solid var(--line);background:var(--card);padding:8px 12px;display:flex;gap:8px;align-items:center}
+.sx-foot .g{flex:1;color:var(--winMuted)}
 </style>
 
 <div class="wrap">
 <header style="display:grid;gap:8px">
-  <h1>Wet Area Waterproofing <span class="ver">v2.1.0 · V002</span></h1>
+  <h1>Wet Area Waterproofing <span class="ver">v2.2.0 · V002</span></h1>
   <p class="note">V002 is V001 (v1.2.5) with a new way to assign drafting views in <b>4 · Section targets</b>: you can now type and search instead of scrolling a long list. Rooms, roofs, plans, sections and the Excel report work as before. Both versions sit in one ribbon pulldown and share settings, tags and reports. Every view, sheet and room name on this page is <b>sample data</b>.</p>
+  <p class="note"><span class="new">NEW in 2.2.0</span> The window is <b>six steps</b> with a <b>Review</b> table: see every roof, plan and section, untick any single one, then <b>Create</b>. Nothing is created before that.</p>
   <p class="note"><span class="new">NEW in 2.1.0</span> The <b>Mode</b> list has two more choices, <b>Section</b> (makes a section view) and <b>Ref. Callout</b> (points to a drafting view), with a new <b>Section settings</b> block. <span class="new">FIXED in 2.1.0</span> A second run no longer adds a second callout for the same room; a callout or section view you have drawn in is kept.</p>
 </header>
+
+
+<section>
+  <h2>Six steps and a Review <span class="new">NEW in 2.2.0</span></h2>
+  <p class="note">One step is open at a time; finished steps fold into one green line with <b>Change</b>. Step 2 (<b>Check outlines</b>) is skipped when every ticked room's outline closed. Step 4 has <b>Run without review</b> for repeat runs. The settings below in "Layout 1", "Layout 2" and "Mode list" are now inside step 4.</p>
+  <div class="diagram">
+<pre class="mermaid">
+flowchart TD
+  S0["Ribbon: Wet Area Waterproofing V002"] --> S1
+  subgraph ST1 ["Step 1 · Find rooms"]
+    S1["Host and links, wet keywords, level buttons, tick rooms"]
+  end
+  S1 -- Next --> S2
+  subgraph ST2 ["Step 2 · Check outlines"]
+    S2["Repair each ticked room: snap, bridge, merge, 3D shape, approximate"] --> S2b{"Any room failed or approximate?"}
+    S2b -- yes --> S2c["Show only those rooms: fix in Revit, change repair settings, or untick"]:::warn
+    S2c --> S2
+  end
+  S2b -- no --> S3
+  subgraph ST3 ["Step 3 · Roof"]
+    S3["Roof type, workset, slab search, or untick Roofs"]
+  end
+  S3 -- Next --> S4
+  subgraph ST4 ["Step 4 · Plans and sections"]
+    S4["Plan type, template, scale, name"] --> S4b["Section targets: on/off, mode, length, order"]
+    S4b --> S4c["Drafting views: search box or Assign panel"]
+  end
+  S4c -- "Next: build the plan, nothing is created yet" --> S5
+  subgraph ST5 ["Step 5 · Review"]
+    S5["Table of every roof, plan and section per room"]:::new --> S5b["Each row says: New, Replaces run X, Kept (you drew in it), or Skipped (no drain found)"]:::new
+    S5b --> S5c["Untick any single row; filter by New, Replaces, Kept, Problems"]:::new
+  end
+  S5c -- "Back to any step" --> S1
+  S5c -- "Create N items" --> S6
+  subgraph ST6 ["Step 6 · Run and report"]
+    S6["Create in one TransactionGroup, only the ticked rows"]:::model --> S6b["Result: counts, problems, Excel report"]
+    S6b --> S6c["Open report · Show problem rooms · Start again"]
+  end
+  classDef new fill:#E6F4EC,stroke:#2E7D4F,color:#1A2B3C
+  classDef model fill:#E6EEFB,stroke:#1F5FBF,color:#1A2B3C
+  classDef warn fill:#FDF1E1,stroke:#9A5B00,color:#1A2B3C
+</pre>
+  </div>
+  <div class="scroll">
+    <div class="win" style="width:1080px">
+      <div class="tb"><span>Wet Area Waterproofing</span><i>v2.2.0</i></div>
+      <div class="sx-body">
+        <div class="sx-stage done"><div class="sx-sh"><div class="sx-num"><span>✓</span></div><div><div class="sx-st">Find rooms</div><div class="sx-ss">4 rooms ticked · Host + Tower A - ARCH · L01, L02</div></div><span class="btn sm">Change</span></div></div>
+        <div class="sx-stage done"><div class="sx-sh"><div class="sx-num"><span>✓</span></div><div><div class="sx-st">Check outlines</div><div class="sx-ss">4 closed · 1 repaired (snap 12 mm) · 0 approximate</div></div><span class="btn sm">Change</span></div></div>
+        <div class="sx-stage done"><div class="sx-sh"><div class="sx-num"><span>✓</span></div><div><div class="sx-st">Roof</div><div class="sx-ss">WP Membrane 3 mm · workset Waterproofing · slab top</div></div><span class="btn sm">Change</span></div></div>
+        <div class="sx-stage done"><div class="sx-sh"><div class="sx-num"><span>✓</span></div><div><div class="sx-st">Plans and sections</div><div class="sx-ss">Plans 1:50 · 5 targets on · drafting views: one per target</div></div><span class="btn sm">Change</span></div></div>
+        <div class="sx-stage active">
+          <div class="sx-sh"><div class="sx-num"><span>5</span></div><div><div class="sx-st">Review</div><div class="sx-ss">Nothing has been created yet. Untick what you do not want.</div></div><span></span></div>
+          <div class="sx-sb">
+            <div class="sx-cnt">
+              <div class="sx-tile"><b>4</b><span>Roofs: 3 new, 1 replaces</span></div>
+              <div class="sx-tile"><b>4</b><span>Plans: 3 new, 1 kept and updated</span></div>
+              <div class="sx-tile"><b>13</b><span>Sections ticked of 15</span></div>
+              <div class="sx-tile"><b>1</b><span>Kept view (you drew in it)</span></div>
+              <div class="sx-tile"><b>2</b><span>Skipped: nothing to cut</span></div>
+            </div>
+            <div class="sx-row">
+              <span class="chip" style="background:#2D6CDF;color:#fff;border-color:#2D6CDF">All <b>23</b></span><span class="chip">New <b>17</b></span><span class="chip">Replaces <b>3</b></span><span class="chip">Kept <b>1</b></span><span class="chip">Problems <b>2</b></span>
+              <span class="in" style="flex:none" style="margin-left:auto;width:220px;color:var(--winMuted)">Search room, target, view…</span>
+              <span class="btn sm">Tick all</span><span class="btn sm">Untick all</span>
+            </div>
+            <div class="">
+              <table class="sx-grid">
+                <thead><tr><th>☑</th><th>What</th><th>Target</th><th>Cuts through</th><th>Mode</th><th>Points to / makes</th><th>What happens</th></tr></thead>
+                <tbody>
+                  <tr class="grp"><td colspan="7">L01 · 101 Toilet · Host</td></tr>
+                  <tr><td>☑</td><td class="what">Roof</td><td>—</td><td>Slab +103.150</td><td>—</td><td>WP Membrane 3 mm</td><td><span class="sx-pill sx-rep">Replaces run 20261124-1015</span></td></tr>
+                  <tr><td>☑</td><td class="what">Plan</td><td>—</td><td>—</td><td>—</td><td>WP Plan - L01 - 101 Toilet</td><td><span class="sx-pill sx-rep">Kept, crop updated</span></td></tr>
+                  <tr><td>☑</td><td class="what">Section</td><td>Floor drain</td><td>FD : 100 mm</td><td>Ref. Section</td><td>WP Detail - Floor Drain · A-501 / 3</td><td><span class="sx-pill sx-rep">Replaces marker</span></td></tr>
+                  <tr><td>☑</td><td class="what">Section</td><td>Door / threshold</td><td>Single Flush : 900 x 2100</td><td>Ref. Section</td><td>WP Detail - Door Threshold · A-502 / 13</td><td><span class="sx-pill sx-rep">Replaces marker</span></td></tr>
+                  <tr><td>☑</td><td class="what">Section</td><td>WC / closet</td><td>WC Wall Hung : Std</td><td>Callout</td><td>WP Callout - WC / closet</td><td><span class="sx-pill sx-keep">Old callout kept: 4 items drawn in it</span></td></tr>
+                  <tr class="grp"><td colspan="7">L01 · 102 Accessible WC · Host</td></tr>
+                  <tr><td>☑</td><td class="what">Roof</td><td>—</td><td>Slab +103.150</td><td>—</td><td>WP Membrane 3 mm</td><td><span class="sx-pill sx-new">New</span></td></tr>
+                  <tr><td>☑</td><td class="what">Section</td><td>Door / threshold</td><td>Single Flush : 1000 x 2100</td><td>Ref. Section</td><td>WP Detail - Door Threshold · A-502 / 13</td><td><span class="sx-pill sx-new">New</span></td></tr>
+                  <tr class="off"><td>☐</td><td class="what">Section</td><td>Door / threshold 2</td><td>Double Swing : 1600 x 2100</td><td>Ref. Section</td><td>WP Detail - Door Threshold</td><td><span class="sx-pill sx-skip">Unticked by you</span></td></tr>
+                  <tr class="off"><td>—</td><td class="what">Section</td><td>Floor drain</td><td>—</td><td>Ref. Section</td><td>—</td><td><span class="sx-pill sx-err">No floor drain found in the room</span></td></tr>
+                  <tr class="grp"><td colspan="7">L02 · 201 Bathroom · Tower A - ARCH</td></tr>
+                  <tr><td>☑</td><td class="what">Section</td><td>Shower / bath</td><td>Shower Tray : 900</td><td>Section</td><td>WP Section - Shower / bath (new view, 1:20)</td><td><span class="sx-pill sx-new">New</span></td></tr>
+                  <tr><td>☑</td><td class="what">Section</td><td>Floor drain</td><td>Linear Drain : 800</td><td>Ref. Callout</td><td>WP Detail - Floor Drain · A-501 / 3</td><td><span class="sx-pill sx-new">New</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="hint">Unticking a roof row keeps the room’s old roof as it is. Unticking a plan row also leaves out that room’s sections, since they sit on its plan. Your unticks are kept when you go back and return, unless the row changes.</div>
+          </div>
+        </div>
+        <div class="sx-stage"><div class="sx-sh"><div class="sx-num"><span>6</span></div><div><div class="sx-st">Run and report</div><div class="sx-ss">Create, then the result and the Excel report</div></div><span></span></div></div>
+      </div>
+      <div class="sx-foot"><span class="g">21 items ticked · one Undo step</span><span class="btn">Back</span><span class="btn pri">Create 21 items</span></div>
+    </div>
+  </div>
+
+</section>
 
 <section>
   <h2>Mode list <span class="new">NEW in 2.1.0</span></h2>
@@ -146,7 +276,7 @@ pre.mermaid{margin:0;background:transparent;font-family:var(--font)}
   </div>
   <div class="scroll">
     <div class="win" style="width:470px">
-      <div class="tb"><span>Wet Area Waterproofing</span><i>v2.1.0</i></div>
+      <div class="tb"><span>Wet Area Waterproofing</span><i>v2.2.0</i></div>
       <div style="padding:10px;display:grid;gap:10px">
         <div class="card">
           <h3>4 · Section targets</h3>
@@ -203,7 +333,7 @@ pre.mermaid{margin:0;background:transparent;font-family:var(--font)}
   <p class="note">The editable list is now a search box. Typing <code>A-501</code> drops down the matches; ↑/↓ move, Enter or a click picks, Esc closes, and ⏷ lists every view. The grey line under each box says where the view is, or that it will be created.</p>
   <div class="scroll">
     <div class="win" style="width:470px">
-      <div class="tb"><span>Wet Area Waterproofing</span><i>v2.1.0</i></div>
+      <div class="tb"><span>Wet Area Waterproofing</span><i>v2.2.0</i></div>
       <div style="padding:10px">
         <div class="card">
           <h3>4 · Section targets</h3>
@@ -259,7 +389,7 @@ pre.mermaid{margin:0;background:transparent;font-family:var(--font)}
   <p class="note">This is the alternate layout. It assigns every target from one screen: targets on the left, all drafting views in a table on the right. Pick a target, then double-click a view or press Enter. The next target is selected for you, so four targets take four double-clicks. <b>Use as new name</b> points the target to the typed text. Both layouts edit the same values, so you can switch between them freely.</p>
   <div class="scroll">
     <div class="win" style="width:1060px">
-      <div class="tb"><span>Wet Area Waterproofing</span><i>v2.1.0</i></div>
+      <div class="tb"><span>Wet Area Waterproofing</span><i>v2.2.0</i></div>
       <div class="overlay">
         <div class="dlg">
           <h4>Assign drafting views</h4>
@@ -309,14 +439,14 @@ pre.mermaid{margin:0;background:transparent;font-family:var(--font)}
       <div class="rt">Waterproofing</div>
     </div>
     <div class="tip">
-      <b>Wet Area Waterproofing — v2.1.0 (build V002)</b>
-      <span>V001 plus drafting-view search: type a view name, title on sheet, sheet number, sheet name or bubble number (A-501/3 = sheet A-501, bubble 3) in "Points to" and pick from the list, or open "Assign drafting views…" to assign every target from one searchable table. Each target can be a Ref. Section, Callout, Section or Ref. Callout.</span>
+      <b>Wet Area Waterproofing — v2.2.0 (build V002)</b>
+      <span>Six steps with a Review table of every roof, plan and section before anything is created. Drafting-view search: type a view name, title on sheet, sheet number, sheet name or bubble number (A-501/3 = sheet A-501, bubble 3) in "Points to" and pick from the list, or open "Assign drafting views…" to assign every target from one searchable table. Each target can be a Ref. Section, Callout, Section or Ref. Callout.</span>
     </div>
   </div>
 </section>
 
 <section>
-  <h2>Flowchart · the whole tool</h2>
+  <h2>Flowchart · what a run does per room</h2>
   <p class="note">From the ribbon click to the report. The two drafting-view steps added in V002 are the green boxes.</p>
   <div class="legend"><span><i style="background:#E6F4EC;border-color:#9FCFB2"></i>New in V002</span><span><i style="background:#E6EEFB;border-color:#A9C3EE"></i>Revit model change (one Undo step)</span><span><i style="background:#FDF1E1;border-color:#E8B66B"></i>Stop with a message</span></div>
   <div class="diagram">
