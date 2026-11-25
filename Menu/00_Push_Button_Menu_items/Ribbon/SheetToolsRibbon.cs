@@ -172,7 +172,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                 Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SheetTools.WetAreaWaterproofing_16.png"),
                 LargeImage = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SheetTools.WetAreaWaterproofing_32.png"),
                 ToolTip = ToolCatalog.WetAreaWaterproofingV002.Tip(
-                    "V001 plus drafting-view search: type a view name, title on sheet, sheet number, sheet name or bubble number " +
+                    "Six steps with a Review table of every roof, plan and section before anything is created. Drafting-view search: type a view name, title on sheet, sheet number, sheet name or bubble number " +
                     "(A-501/3 = sheet A-501, bubble 3) in \"Points to\" and pick from the list, or open \"Assign drafting views…\" " +
                     "to assign every target from one searchable table. Each target can be a Ref. Section, Callout, Section or Ref. Callout.")
             };

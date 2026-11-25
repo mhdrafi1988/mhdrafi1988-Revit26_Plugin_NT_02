@@ -54,8 +54,17 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V002.Infrastructure
         /// <summary>Reads the model again. <paramref name="done"/> gets the snapshot, or null and an error text.</summary>
         void Refresh(WetAreaSettings settings, Action<ModelSnapshot, string> done);
 
-        /// <summary>Creates roofs for the rooms with these keys.</summary>
-        void Run(IReadOnlyCollection<string> roomKeys, WetAreaSettings settings, Action<RunOutcome> done);
+        /// <summary>
+        /// Creates roofs, plans and sections for the rooms with these keys. Items whose Review key is in
+        /// <paramref name="excluded"/> are left out (see <see cref="Core.Review.ReviewKeys"/>); null or empty = everything.
+        /// </summary>
+        void Run(IReadOnlyCollection<string> roomKeys, WetAreaSettings settings, ISet<string> excluded, Action<RunOutcome> done);
+
+        /// <summary>
+        /// Plans a run without changing the model, for the Review step. <paramref name="done"/> gets the rows,
+        /// or null and an error text.
+        /// </summary>
+        void Preview(IReadOnlyCollection<string> roomKeys, WetAreaSettings settings, Action<IReadOnlyList<Core.Review.ReviewItem>, string> done);
 
         /// <summary>Lists earlier runs that still have elements in the model.</summary>
         void ListRuns(Action<IReadOnlyList<RunInfo>, string> done);

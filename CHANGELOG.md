@@ -9,6 +9,48 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [7.34.0] — 2026-11-25
+
+### Changed
+- **Wet Area Waterproofing 2.2.0 (V002)** — the window is now **six steps**, one open at a time; finished steps fold
+  into one line with **Change** to reopen them:
+  1. **Find rooms** — sources, wet keywords, levels, the rooms grid and its ticks.
+  2. **Check outlines** — the ticked rooms whose outline did not close (or is only approximate), with the boundary
+     repair settings and Refresh. **Skipped automatically** when every ticked room's outline closed.
+  3. **Roof** — roof type, workset, offset, and **Create roofs** (was the "Roofs" run step in the footer).
+  4. **Plans and sections** — plans, section targets, drafting views, section and callout settings, with **Create
+     plans** and **Create sections** (were the "Plans" and "Reference sections" run steps).
+  5. **Review** — new, below.
+  6. **Run and report** — the result (was a pop-up card) and the Excel report settings and buttons.
+  The footer shows **Back**, **Next**, **Run without review** (step 4) and **Create N items** (step 5).
+
+### Added
+- **Review step.** Before anything is created, a table lists, per room, the roof, the plan and every section the
+  run would make, with what happens to each: *New*, *Replaces roof from run X*, *Kept, crop updated*, *Old view
+  kept (you drew in it)*, or *Skipped: no floor drain found*. Untick any single row, for example one door, and the
+  run leaves it out; unticking a plan also leaves out that room's sections. Filter chips (All, New, Replaces, Kept,
+  Problems), a search box, and Tick all / Untick all. Nothing changes in the model until **Create**.
+- **Run without review** in step 4 runs straight away, as the old **Run** button did.
+
+**User note:** settings, tags and the report format are unchanged. Unticks in the Review are kept while the window
+is open (going back and returning keeps them), not saved for the next session. An unticked section is not replaced by
+the next one in the table order, so a room may get fewer than six. The "Save Excel report after run" option is now in
+step 6.
+
+## [7.33.0] — 2026-11-25
+
+### Added
+- **Auto Slope By Drain 7.4.0 (V007, single roof)** — the same **Default** list as Multi-Roof V013, above the
+  detected-drains grid:
+  - **Smallest per shape** (new, the default): in each shape group (Circle, Rectangle, Other) the openings of the
+    smallest size are checked (both sides within ±1 mm; 100 x 200 and 200 x 100 match). Everything else starts unchecked.
+  - **All circles**: the 7.3.0 rule (every circle checked, other shapes unchecked).
+  Changing the list re-checks the drains and logs what was checked. Saved in `settings.json` (`DefaultDrainSelection`).
+
+**User note:** the default selection changes. Up to 7.3.0 every circle was checked; now only the smallest openings of each
+shape are, rectangles included. Pick **All circles** once to get the old behaviour back: it is remembered. Existing settings
+files load unchanged. Changing the list replaces any ticks you set by hand.
+
 ## [7.32.0] — 2026-11-25
 
 ### Added

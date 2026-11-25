@@ -3,6 +3,7 @@ using Autodesk.Revit.UI;
 using Revit26_Plugin_Revised.Shared.Services;
 using Revit26_Plugin_Revised.WetAreaWaterproofing.V002.Core.Models;
 using Revit26_Plugin_Revised.WetAreaWaterproofing.V002.Core.Report;
+using Revit26_Plugin_Revised.WetAreaWaterproofing.V002.Core.Review;
 using Revit26_Plugin_Revised.WetAreaWaterproofing.V002.Core.Run;
 using Revit26_Plugin_Revised.WetAreaWaterproofing.V002.Core.Sections;
 using System;
@@ -60,13 +61,29 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V002.Infrastructure
             }, ex => done(0, 0, ex.Message));
 
         /// <inheritdoc/>
-        public void Run(IReadOnlyCollection<string> roomKeys, WetAreaSettings settings, Action<RunOutcome> done)
+        public void Run(IReadOnlyCollection<string> roomKeys, WetAreaSettings settings, ISet<string> excluded, Action<RunOutcome> done)
             => Raise(
                 () => done(new RunOutcome { Cancelled = true }),
-                app => done(RunCore(app, roomKeys, settings)),
+                app => done(RunCore(app, roomKeys, settings, excluded ?? new HashSet<string>())),
                 ex => done(new RunOutcome { Error = ex.Message }));
 
-        private RunOutcome RunCore(UIApplication app, IReadOnlyCollection<string> roomKeys, WetAreaSettings s)
+        /// <inheritdoc/>
+        public void Preview(IReadOnlyCollection<string> roomKeys, WetAreaSettings settings, Action<IReadOnlyList<ReviewItem>, string> done)
+            => Raise(() => done(null, "Cancelled."), _ =>
+            {
+                if (!DocumentUsable(out string problem)) { done(null, problem); return; }
+                var keys = new HashSet<string>(roomKeys ?? Array.Empty<string>());
+                ModelSnapshot snapshot = RoomCollector.Read(_doc, settings, keys);
+                // Grid order, so the table reads like the rooms list.
+                var ticked = snapshot.Rooms.Where(r => keys.Contains(r.Row.RoomKey)).ToList();
+                PlannedRun plan = RunPlanner.Plan(ticked, settings, "preview");
+                Dictionary<string, EarlierViews> earlier = ViewCreator.ReadEarlier(_doc);
+                IReadOnlyList<ReviewItem> rows = ReviewBuilder.Build(ticked, plan, settings,
+                    k => earlier.TryGetValue(k, out EarlierViews e) ? e : EarlierViews.None, snapshot.DraftingViews);
+                done(rows, null);
+            }, ex => done(null, ex.Message));
+
+        private RunOutcome RunCore(UIApplication app, IReadOnlyCollection<string> roomKeys, WetAreaSettings s, ISet<string> excluded)
         {
             if (!DocumentUsable(out string problem)) return new RunOutcome { Error = problem };
             if (_doc.IsReadOnly) return new RunOutcome { Error = "The document is read-only." };
@@ -133,7 +150,7 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V002.Infrastructure
                         ToolCancellation.CheckCurrent();
                         ToolCancellation.ReportCurrent(i, plan.Jobs.Count, $"Room {i + 1} of {plan.Jobs.Count} — {job.Number} {job.Name}");
 
-                        if (doRoofs)
+                        if (doRoofs && !excluded.Contains(ReviewKeys.Roof(job.RoomKey)))
                         {
                             try
                             {
@@ -155,11 +172,11 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V002.Infrastructure
                             }
                         }
 
-                        if (doViews)
+                        if (doViews && !excluded.Contains(ReviewKeys.Plan(job.RoomKey)))
                         {
                             try
                             {
-                                CreatedViews made = CreateViews(viewCreator, byKey[job.RoomKey], job, s, issues);
+                                CreatedViews made = CreateViews(viewCreator, byKey[job.RoomKey], job, s, issues, excluded);
                                 if (made != null) views[job.RoomKey] = made;
                             }
                             catch (OperationCanceledException) { throw; }
@@ -247,7 +264,7 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V002.Infrastructure
         /// Plan and sections for one room, in one transaction. Returns null when there was nothing to
         /// do for the room (sections only, and none could be planned, with no plan to reuse).
         /// </summary>
-        private CreatedViews CreateViews(ViewCreator creator, RoomCandidate room, RoofJob job, WetAreaSettings s, List<Issue> issues)
+        private CreatedViews CreateViews(ViewCreator creator, RoomCandidate room, RoofJob job, WetAreaSettings s, List<Issue> issues, ISet<string> excluded)
         {
             IReadOnlyList<PlannedSection> planned = Array.Empty<PlannedSection>();
             if (s.CreateSections)
@@ -255,7 +272,8 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V002.Infrastructure
                 SectionPlan sectionPlan = SectionPlanner.Plan(
                     new RoomSectionInput(job.Number, job.Outer, room.Inside, room.Items),
                     s.Targets, s.OneDraftingViewForAll, s.SharedDraftingViewName);
-                planned = sectionPlan.Sections;
+                // Rows unticked in the Review are left out; nothing moves up to take their place.
+                planned = sectionPlan.Sections.Where(p => !excluded.Contains(ReviewKeys.Section(job.RoomKey, p))).ToList();
                 foreach (string skipped in sectionPlan.Skipped)
                     issues.Add(new Issue("Warning", "Sections", job.RoomKey, job.Number, skipped, string.Empty));
             }

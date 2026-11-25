@@ -282,6 +282,7 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V002.UI.ViewModels
                 + (filters == 0 ? string.Empty : filters == 1 ? " · 1 filter active" : $" · {filters} filters active");
             RunButtonText = tickedRooms.Count == 1 ? "Run for 1 room" : $"Run for {tickedRooms.Count} rooms";
             RunCommand.NotifyCanExecuteChanged();
+            NextCommand.NotifyCanExecuteChanged();
 
             var attention = tickedRooms.Where(c => c.Row.Status is RoomStatus.Repaired or RoomStatus.AreaWarning
                 or RoomStatus.Approximate or RoomStatus.NoSlab).ToList();
