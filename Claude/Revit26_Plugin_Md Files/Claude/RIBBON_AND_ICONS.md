@@ -57,7 +57,7 @@ Floor panels built by `FloorToolsRibbon.Build`; Waterproofing panel built by `Sh
 | Rafi_Pro_Floors | Floor Lines | Crease By Openings *button* · Crease By Points *button* · Floor Creaser *button* — each V001 | `FloorToolsRibbon.BuildLinesPanel` |
 | Rafi_Pro_Floors | Floor Edit | Floor Types *button* · Name Builder *button* · Floor Tag *button* · Comparison *button* · Elevation Sync *button* · Floor EPS *button* — each V001 | `FloorToolsRibbon.BuildEditPanel` |
 | Rafi_Pro_Floors | Floor Views | Floor Around Edges *button* · Floor Edge Element *button* · Floor Focus *button* — each V001 | `FloorToolsRibbon.BuildViewsPanel` |
-| Rafi_Pro_Floors | Waterproofing | Wet Area Waterproofing *button* (large) | `SheetToolsRibbon.BuildWaterproofingPanel` |
+| Rafi_Pro_Floors | Waterproofing | Wet Area Waterproofing (large *pulldown*: V002, V001) | `SheetToolsRibbon.BuildWaterproofingPanel` |
 
 ### Model (`Rafi_Pro_Model`)
 
@@ -83,7 +83,10 @@ Floor panels built by `FloorToolsRibbon.Build`; Waterproofing panel built by `Sh
 | Rafi_Pro_Docs | Tagging | Tag To Text, Align Spot Elevations, Align to Detail Line, Distribute Spot Elev. (large *buttons*) · 3 small *split buttons* (last used item runs, kept across restarts): Quick Align Vertical ▾ (tags / ends / bends) · Quick Align Horizontal ▾ (tags / ends / bends) · Quick Align to Tag ▾ (ends / bends / bends horizontal / bends vertical) · 2 small *split buttons* (same memory): Quick Distribute Vertical ▾ (tags / ends / bends) · Quick Distribute Horizontal ▾ (tags / ends / bends) | `TaggingRibbon` |
 | Rafi_Pro_Docs | Detail Lines | From Links · Closed Loop · Line Dims · Line Manager (large) · Section Lines (large) | `DetailLInesRibbon.Build` |
 
-The latest change was plugin 7.29.1, which gave **Section Lines** (Section Roof Detail Lines V001) its own icons,
+The latest change was plugin 7.30.0, which turned the large **Wet Area Waterproofing** button on the
+**Waterproofing** panel into a large pulldown (`Pulldown_WetAreaWaterproofing`) holding **Wet Area Waterproofing V002**
+(`Btn_WetAreaWaterproofing_V002`, first, its icon on the button) and V001 (`Btn_WetAreaWaterproofing_V001`, unchanged).
+Both use `Resources/Icons/SheetTools/WetAreaWaterproofing_16/32.png`. Before it, plugin 7.29.1 gave **Section Lines** (Section Roof Detail Lines V001) its own icons,
 `Resources/Icons/DetailLiner/SectionRoofDetailLines_16/32.png`: a roof slab cut in section meeting a wall that
 carries on up past it, with an amber line running along the roof and turning up the wall face — what the tool
 draws. It had borrowed `CreateDetailLines_16.png` and `Addlines_32.png` since it was added in 7.28.0, so on the

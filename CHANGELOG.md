@@ -9,6 +9,34 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [7.30.0] — 2026-11-25
+
+### Added
+- **Wet Area Waterproofing 2.0.0 (V002)** — a new version next to V001 (1.2.5, unchanged). Same rooms, roofs,
+  plans, sections and report; what changes is how drafting views are assigned in **4 · Section targets**:
+  - **"Points to" is now a search box.** Type part of a drafting view's **name**, its **Title on Sheet**, the
+    **sheet number**, the **sheet name** or the **bubble (detail) number**, and a list of matches drops down:
+    each shows `sheet / bubble`, the view name, the title and the sheet name. ↑/↓ move, Enter or a click picks,
+    Esc closes (a second Esc undoes the typing); ⏷ lists every drafting view. Words are combined, so
+    `A-501 drain` finds the drain detail on sheet A-501. **`A-501/3`** means *sheet A-501, bubble 3*; typed and
+    left as is, it is turned into that view's name, so it never becomes the name of a new view by mistake.
+    Prefixes narrow a word to one field: `s:` sheet, `d:` bubble, `n:` view name, `t:` title on sheet.
+    Under each box a line says where the view is (`A-501 / 3 · Wet area details`), *Not on a sheet*, or
+    *New view: created at the run*. The box is greyed out for targets set to Callout (they make their own view).
+  - **"Assign drafting views…"** opens a picker panel: every target on the left with what it points to, and a
+    table of every drafting view on the right (**Sheet · Bubble · Sheet name · View name · Title on sheet**) with
+    a search box and *All / On a sheet / Not on a sheet* chips. Pick a target, double-click a view (or Enter /
+    **Assign**) and the next target is picked for you; **Use as new name** points the target to the typed text.
+- **Ribbon:** the **Waterproofing** panel's large button is now a large pulldown, **Wet Area Waterproofing**:
+  V002 first (its icon on the button), then V001.
+- Unit tests `Tests/WetAreaWaterproofingV002.Tests` (V001's tests on V002's code, plus the search).
+
+**User note:** nothing changes for V001. V002 reads and writes the same `settings.json` as V001 (the format is
+unchanged: drafting views are still saved by name), uses the same Extensible Storage tag, so either version finds
+and replaces the other's roofs, plans and markers, and writes the same Excel report. Bubble and sheet are read
+when the window opens or on **Refresh**: a view placed on a sheet while the window is open shows up after Refresh.
+A drafting view on no sheet can only be found by its name or title.
+
 ## [7.29.2] — 2026-11-23
 
 ### Fixed
