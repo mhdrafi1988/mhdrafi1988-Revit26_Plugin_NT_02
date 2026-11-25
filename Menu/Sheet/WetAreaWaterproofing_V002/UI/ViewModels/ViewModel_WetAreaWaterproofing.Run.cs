@@ -35,6 +35,9 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V002.UI.ViewModels
         {
             RunCommand.NotifyCanExecuteChanged();
             RefreshCommand.NotifyCanExecuteChanged();
+            NextCommand.NotifyCanExecuteChanged();
+            BackCommand.NotifyCanExecuteChanged();
+            CreateCommand.NotifyCanExecuteChanged();
         }
 
         partial void OnLastReportPathChanged(string value)
@@ -47,7 +50,7 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V002.UI.ViewModels
 
         private bool CanRun() => !IsBusy && _ticked.Count > 0 && (CreateRoofs || CreatePlans || CreateSections);
 
-        /// <summary>Creates the roofs for the ticked rooms.</summary>
+        /// <summary>Creates everything for the ticked rooms without the Review step ("Run without review").</summary>
         [RelayCommand(CanExecute = nameof(CanRun))]
         private void Run()
         {
@@ -63,7 +66,7 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V002.UI.ViewModels
             var keys = _ticked.ToList();
             IsBusy = true;
             AddLog(LogLevel.Info, $"Run started for {keys.Count} room(s).");
-            _session.Run(keys, _settings, OnRunDone);
+            _session.Run(keys, _settings, null, OnRunDone);
         }
 
         private void OnRunDone(RunOutcome outcome)
@@ -80,7 +83,7 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V002.UI.ViewModels
                 AddLog(LogLevel.Error, outcome.Error);
                 ResultTitle = "Wet Area Waterproofing — not run";
                 ResultLines.Add(new ResultLine("error", outcome.Error));
-                ResultVisible = true;
+                ShowResult();
                 return;
             }
 
@@ -118,7 +121,7 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V002.UI.ViewModels
             AddLog(anything ? LogLevel.Success : LogLevel.Warning,
                 $"Run {outcome.RunId}: roofs {outcome.Created} created, {outcome.Replaced} replaced; plans {outcome.PlansCreated} created, "
                 + $"{outcome.PlansReused} kept; {outcome.SectionsPlaced} section(s); {outcome.Skipped} room(s) skipped. One Undo step.");
-            ResultVisible = true;
+            ShowResult();
         }
 
         /// <summary>Closes the result card.</summary>

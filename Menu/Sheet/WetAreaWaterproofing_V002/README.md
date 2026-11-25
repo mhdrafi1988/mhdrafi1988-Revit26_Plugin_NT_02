@@ -13,7 +13,7 @@ Part C: grouping, sheets, print set.
 
 | Item | Value |
 |---|---|
-| Tool name | Wet Area Waterproofing, v2.1.0 (plugin 7.31.0) |
+| Tool name | Wet Area Waterproofing, v2.2.0 (plugin 7.34.0) |
 | Folder | `Menu/Sheet/WetAreaWaterproofing_V002/` |
 | Namespace | `Revit26_Plugin_Revised.WetAreaWaterproofing.V002` |
 | Command | `…V002.Commands.WetAreaWaterproofingCommand` (via `ToolGuard.RunCommand`) |
@@ -34,9 +34,10 @@ Part C: grouping, sheets, print set.
 | `Core/Grid` | `GridQuery`, `GridState` — filters, sort, level buttons |
 | `Core/Run` | `RunPlanner` (what a run does per room), `RunTag` (Comments text), `RoomStatusRules` |
 | `Core/Sections` | `DraftingViewSearch` / `DraftingViewInfo` (the "Points to" search), `SectionTargets` (the table), `ItemClassifier` / `RoomItemMatcher` (which door, drain or fixture belongs to which room), `SectionPlanner` (which cuts, where, max 6), `ViewNames` |
+| `Core/Review` | `ReviewBuilder`, `ReviewItem`, `ReviewKeys` — the Review table and the keys a run leaves out |
 | `Core/Report` | `RunReport`, `ReportWriter` — the Excel workbook |
 | `Infrastructure` | Revit: `RoomCollector`, `BoundaryReader`, `SlabIndex`, `RoofCreator`, `RunRemover`, `TargetCollector`, `ViewCreator`, `ElementTag`, `Elevations`, the session and its ExternalEvent handler |
-| `UI` | `WetAreaWaterproofingWindow`, `ViewModel_WetAreaWaterproofing` (+ `.Grid`, `.Run`, `.Views`, `.Assign`), `Controls/DraftingViewSearchBox` |
+| `UI` | `WetAreaWaterproofingWindow`, `ViewModel_WetAreaWaterproofing` (+ `.Grid`, `.Run`, `.Views`, `.Assign`, `.Steps`), `Controls/DraftingViewSearchBox`, `Converters/StepConverters` |
 
 `Core` has no Revit references and is covered by the unit tests. Lengths in `Core` are millimetres.
 
@@ -55,6 +56,20 @@ sheet name or bubble; `A-501/3` = sheet A-501, bubble 3; prefixes `s:` `d:` `n:`
 exact bubble / sheet, then names starting with the text, then by sheet and bubble (natural order).
 A typed `A-501/3` that names one placed view is replaced by that view's name; any other text is kept and, if no
 view has that name, a new drafting view is created at the run (V001 behaviour). Views are still saved by name.
+
+## Steps and Review (2.2.0)
+
+The window is six steps (`ViewModel_WetAreaWaterproofing.Steps.cs`, `CurrentStep` 1–6, `StepState1..6` =
+active / done / locked / skipped / pending): Find rooms · Check outlines (skipped when no ticked room is Failed,
+NotEnclosed or Approximate) · Roof · Plans and sections · Review · Run and report.
+
+**Review** calls `IWetAreaSession.Preview`, which reads the ticked rooms again and runs the same planning as a run
+(`RunPlanner.Plan`, `SectionPlanner.Plan`) without a transaction; `Core/Review/ReviewBuilder` turns that into rows and
+`ViewCreator.ReadEarlier` adds what earlier runs left (markers, and callout / section views with their drawn-element
+counts). Each row has a key from `ReviewKeys` (roof, plan, or section = room + target kind + element cut + label).
+**Create** passes the unticked keys to `IWetAreaSession.Run(..., excluded, ...)`: an excluded roof is not made (the
+old one stays), an excluded plan skips the room's views, an excluded section is dropped from the planned list.
+**Run without review** passes no exclusions.
 
 ## Section modes (2.1.0)
 
