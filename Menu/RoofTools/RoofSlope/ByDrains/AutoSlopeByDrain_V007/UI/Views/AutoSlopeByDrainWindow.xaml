@@ -1,4 +1,4 @@
-<Window x:Class="Revit26_Plugin_Revised.AutoSlopeByDrain.V007.UI.Views.AutoSlopeByDrainWindow"
+﻿<Window x:Class="Revit26_Plugin_Revised.AutoSlopeByDrain.V007.UI.Views.AutoSlopeByDrainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -478,6 +478,15 @@
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="Detected Drains" Style="{StaticResource SectionTitle}" Margin="0" VerticalAlignment="Center" FontSize="11"/>
                             <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
+                                <TextBlock Text="Default" FontSize="11" VerticalAlignment="Center" Margin="0,0,4,0"
+                                           ToolTip="Which drains are checked when the window opens. Changing it re-checks every drain."/>
+                                <ComboBox ItemsSource="{Binding DefaultSelectionOptions}"
+                                          SelectedValue="{Binding DefaultSelection}"
+                                          SelectedValuePath="Value" DisplayMemberPath="Label"
+                                          ToolTip="Smallest per shape: in each shape group (circle, rectangle, other) the openings of the smallest size (±1 mm) are checked.&#x0a;All circles: every circle is checked, other shapes are not."
+                                          Width="140"
+                                          Style="{StaticResource StandardComboBox}"
+                                          Margin="0,0,10,0"/>
                                 <ComboBox ItemsSource="{Binding SizeFilters}"
                                           SelectedItem="{Binding SelectedSizeFilter}"
                                           Width="118"

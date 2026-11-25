@@ -1,0 +1,133 @@
+<title>Auto Slope By Drain V007</title>
+<!-- UI preview (CLAUDE.md "UI previews"): Auto Slope By Drain V007 (7.4.0, single roof), plugin 7.33.0.
+     Mirrors: Menu/RoofTools/RoofSlope/ByDrains/AutoSlopeByDrain_V007/UI/Views/AutoSlopeByDrainWindow.xaml
+              ("Detected Drains" header with the new Default list, drain grid),
+              UI/ViewModels/AutoSlopeDrainViewModel.cs (DefaultSelectionOptions, smallest-per-shape rule, log line).
+     Artifact: https://claude.ai/artifact/JWXWawmF2NjXuDk3Xucw4H -->
+<style>
+:root{
+  --page:#E9EDF1; --window:#F3F5F7; --card:#FFFFFF; --border:#D6DCE3; --input:#B5C2CF;
+  --navy:#1E3A5F; --on-dark:#FFFFFF; --text:#1A2B3C; --text2:#5B7185; --text3:#8FA3B8; --bg2:#ECEFF3;
+  --blue:#1F5FBF; --blue-soft:#E6EEFB; --ok:#2E7D4F; --ok-soft:#E6F4EC;
+  --new:#1E7B4B; --new-soft:#E3F4EA; --log:#14283F; --log-text:#D6E2EE; --shadow:rgba(16,32,48,.18);
+  --ui:'Segoe UI',system-ui,-apple-system,sans-serif; --mono:Consolas,ui-monospace,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --page:#121C27; --window:#1B2735; --card:#223244; --border:#34475B; --input:#4A6076;
+  --navy:#2C4A6E; --on-dark:#EAF1F8; --text:#E4ECF4; --text2:#9DB1C4; --text3:#7E94AA; --bg2:#2A3C50;
+  --blue:#7FB0FF; --blue-soft:#1E3350; --ok:#5FD3B4; --ok-soft:#173A2B;
+  --new:#5FD39A; --new-soft:#173A2B; --log:#0E1822; --log-text:#C9D7E4; --shadow:rgba(0,0,0,.5); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --page:#121C27; --window:#1B2735; --card:#223244; --border:#34475B; --input:#4A6076;
+  --navy:#2C4A6E; --on-dark:#EAF1F8; --text:#E4ECF4; --text2:#9DB1C4; --text3:#7E94AA; --bg2:#2A3C50;
+  --blue:#7FB0FF; --blue-soft:#1E3350; --ok:#5FD3B4; --ok-soft:#173A2B;
+  --new:#5FD39A; --new-soft:#173A2B; --log:#0E1822; --log-text:#C9D7E4; --shadow:rgba(0,0,0,.5); color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--text);font-family:var(--ui);font-size:12.5px;padding:20px 16px}
+.page{max-width:900px;margin:0 auto;display:grid;gap:20px}
+.page>*{min-width:0}
+h1{font-size:20px;margin:0 0 6px;font-weight:600}
+h2{font-size:14px;margin:0 0 6px;font-weight:600}
+p{margin:0 0 8px;line-height:1.5;max-width:75ch;color:var(--text2)}
+ul{margin:0;padding-left:18px;line-height:1.6;max-width:75ch}
+.tag{display:inline-block;background:var(--new-soft);color:var(--new);border:1px solid var(--new);border-radius:9px;padding:0 7px;font-size:10px;font-weight:700;margin-left:6px;vertical-align:1px;white-space:nowrap}
+.note{font-size:11.5px;color:var(--text3)}
+.frame{overflow-x:auto;padding-bottom:4px}
+.win{width:780px;background:var(--window);border:1px solid var(--border);border-radius:6px;box-shadow:0 6px 20px var(--shadow);overflow:hidden}
+.tb{background:var(--navy);color:var(--on-dark);padding:8px 12px;font-weight:600;display:flex;justify-content:space-between}
+.tb span{opacity:.75;font-weight:400}
+.body{padding:10px}
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--border)}
+.tabh{padding:6px 10px;font-size:11px;border:1px solid var(--border);border-bottom:none;border-radius:4px 4px 0 0;background:var(--bg2);display:flex;gap:6px;align-items:center}
+.tabh.on{background:var(--card);font-weight:600}
+.pill{font-size:10px;padding:0 6px;border-radius:8px;background:var(--blue-soft);color:var(--blue)}
+.card{background:var(--card);border:1px solid var(--border);border-top:none;padding:8px}
+.hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;gap:8px}
+.hdr b{font-size:13px}
+.tools{display:flex;align-items:center;gap:4px;font-size:11.5px}
+.combo{height:26px;border:1px solid var(--input);border-radius:3px;background:var(--card);padding:3px 6px;display:inline-flex;justify-content:space-between;align-items:center;color:var(--text)}
+.combo::after{content:"▾";color:var(--text2);margin-left:8px}
+.combo.new{outline:2px solid var(--new);outline-offset:1px}
+.btn{height:24px;padding:2px 8px;border:1px solid var(--input);border-radius:3px;background:var(--bg2);font-size:11px;display:inline-flex;align-items:center}
+.drop{position:absolute;top:28px;left:0;width:170px;background:var(--card);border:1px solid var(--input);box-shadow:0 4px 12px var(--shadow);z-index:2}
+.drop div{padding:4px 8px}
+.drop .sel{background:var(--blue-soft);color:var(--blue)}
+table{border-collapse:collapse;width:100%;font-size:11.5px}
+th{text-align:left;font-weight:600;color:var(--text2);background:var(--bg2);padding:4px 6px;border-bottom:1px solid var(--border)}
+td{padding:4px 6px;border-bottom:1px solid var(--border)}
+td.n{font-family:var(--mono);text-align:right}
+tr.grp td{background:var(--bg2);font-weight:600}
+.chk{display:inline-block;width:13px;height:13px;border:1px solid var(--input);border-radius:2px;vertical-align:-2px;background:var(--card)}
+.chk.on{background:var(--blue);border-color:var(--blue);position:relative}
+.chk.on::after{content:"✓";color:#fff;font-size:10px;position:absolute;left:2px;top:-2px}
+tr.on td{background:var(--ok-soft)}
+.sn{margin-top:6px;font-size:11.5px;color:var(--text2)}
+.log{margin-top:10px;background:var(--log);color:var(--log-text);font-family:var(--mono);font-size:11px;padding:8px;border-radius:4px;line-height:1.6}
+</style>
+
+<div class="page">
+  <header>
+    <h1>Auto Slope By Drain — v7.4.0</h1>
+    <p>New <b>Default</b> list above the detected-drains grid, the same as Multi-Roof V013. <b>Smallest per shape</b> (the new
+      default) checks, in each shape group, the openings of the smallest size (both sides within ±1 mm). <b>All circles</b> keeps
+      the 7.3.0 rule. The choice is saved; changing it re-checks every drain.</p>
+    <p class="note">Sample data only — sizes and coordinates are made up.</p>
+  </header>
+
+  <section>
+    <h2>Drain grid when the window opens <span class="tag">NEW · Default list</span></h2>
+    <div class="frame"><div class="win">
+      <div class="tb">Auto Slope By Drain — v7.4.0 <span>Auto Slope By Drain</span></div>
+      <div class="body">
+        <div class="card" style="border-top:1px solid var(--border)">
+          <div class="hdr">
+            <b>Detected Drains</b>
+            <div class="tools">
+              <span>Default</span>
+              <span class="combo new" style="width:140px">Smallest per shape</span><span class="tag" style="margin:0 6px 0 2px">NEW</span>
+              <span class="combo" style="width:118px">All</span>
+              <span class="btn">Select All</span><span class="btn">Select None</span><span class="btn">Invert</span>
+            </div>
+          </div>
+          <table>
+            <tr><th style="width:28px">✓</th><th style="width:68px">Shape</th><th>Size</th><th style="width:45px">W</th><th style="width:45px">H</th><th style="width:55px">X</th><th style="width:55px">Y</th></tr>
+            <tr class="grp"><td colspan="7">▾ Circle (4)</td></tr>
+            <tr class="on"><td><span class="chk on"></span></td><td>Circle</td><td>75 x 75 mm</td><td class="n">75</td><td class="n">75</td><td class="n">14</td><td class="n">10</td></tr>
+            <tr class="on"><td><span class="chk on"></span></td><td>Circle</td><td>76 x 76 mm</td><td class="n">76</td><td class="n">76</td><td class="n">42</td><td class="n">10</td></tr>
+            <tr><td><span class="chk"></span></td><td>Circle</td><td>100 x 100 mm</td><td class="n">100</td><td class="n">100</td><td class="n">28</td><td class="n">31</td></tr>
+            <tr><td><span class="chk"></span></td><td>Circle</td><td>150 x 150 mm</td><td class="n">150</td><td class="n">150</td><td class="n">66</td><td class="n">6</td></tr>
+            <tr class="grp"><td colspan="7">▾ Rectangle (3)</td></tr>
+            <tr class="on"><td><span class="chk on"></span></td><td>Rectangle</td><td>100 x 200 mm</td><td class="n">100</td><td class="n">200</td><td class="n">7</td><td class="n">47</td></tr>
+            <tr class="on"><td><span class="chk on"></span></td><td>Rectangle</td><td>200 x 100 mm</td><td class="n">200</td><td class="n">100</td><td class="n">60</td><td class="n">47</td></tr>
+            <tr><td><span class="chk"></span></td><td>Rectangle</td><td>600 x 600 mm</td><td class="n">600</td><td class="n">600</td><td class="n">33</td><td class="n">20</td></tr>
+          </table>
+          <div class="sn">Drains selected: 4 · Detected: 7</div>
+        </div>
+        <div class="log">
+          Detected 7 drain opening(s).<br>
+          Default selection (smallest per shape): 2 of 4 circle(s) at ⌀ 75 mm · 2 of 3 rectangle(s) at 100 x 200 mm. <span class="tag">NEW</span>
+        </div>
+      </div>
+    </div></div>
+  </section>
+
+  <section>
+    <h2>The Default list, open <span class="tag">NEW</span></h2>
+    <div class="frame"><div class="win" style="width:420px">
+      <div class="body">
+        <div class="tools" style="position:relative;padding-bottom:70px">
+          <span>Default</span>
+          <span style="position:relative;display:inline-block">
+            <span class="combo new" style="width:170px">Smallest per shape</span>
+            <div class="drop"><div class="sel">Smallest per shape</div><div>All circles</div></div>
+          </span>
+        </div>
+      </div>
+    </div></div>
+    <ul>
+      <li>Circle 75 mm and 76 mm both count as the smallest (within ±1 mm).</li>
+      <li>100 x 200 and 200 x 100 count as the same size (orientation is ignored).</li>
+      <li>Changing the list replaces ticks set by hand.</li>
+    </ul>
+  </section>
+</div>
