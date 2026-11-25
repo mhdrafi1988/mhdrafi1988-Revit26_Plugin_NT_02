@@ -92,3 +92,56 @@ namespace WetAreaWaterproofingV002.Tests
             => Assert.True(NaturalComparer.Instance.Compare("A-2", "A-10") < 0);
     }
 }
+
+namespace WetAreaWaterproofingV002.Tests
+{
+    using Revit26_Plugin_Revised.WetAreaWaterproofing.V002.Core.Geometry;
+    using Revit26_Plugin_Revised.WetAreaWaterproofing.V002.Core.Models;
+    using Revit26_Plugin_Revised.WetAreaWaterproofing.V002.Core.Sections;
+    using System.Collections.Generic;
+    using System.Linq;
+    using Xunit;
+
+    public class SectionModeTests
+    {
+        [Fact]
+        public void Mode_list_keeps_the_old_values_and_appends_the_new_ones()
+        {
+            Assert.Equal(new[] { "Ref. Section", "Callout", "Section", "Ref. Callout" }, SectionModes.Labels);
+            Assert.Equal(0, (int)SectionMode.ReferenceSection);
+            Assert.Equal(1, (int)SectionMode.Callout);
+            Assert.Equal(SectionMode.ReferenceCallout, SectionModes.FromLabel("Ref. Callout"));
+            Assert.Equal(SectionMode.ReferenceSection, SectionModes.FromLabel("unknown"));
+        }
+
+        [Theory]
+        [InlineData(SectionMode.ReferenceSection, "WP Detail - Floor Drain")]
+        [InlineData(SectionMode.ReferenceCallout, "WP Detail - Floor Drain")]
+        [InlineData(SectionMode.Section, "")]
+        [InlineData(SectionMode.Callout, "")]
+        public void Only_the_reference_modes_point_to_a_drafting_view(SectionMode mode, string expected)
+        {
+            var square = new List<Pt> { new(0, 0), new(3000, 0), new(3000, 3000), new(0, 3000) };
+            var drain = new FoundItem(SectionTargetKind.Drain, new Pt(1500, 1500), 0, 7, "Host", "Plumbing Fixtures", "FD : 100");
+            var room = new RoomSectionInput("101", square, new Pt(1500, 1500), new[] { drain });
+            var targets = new List<SectionTargetSetting>
+            {
+                new() { Kind = SectionTargetKind.Drain, On = true, LengthMm = 1200, DraftingViewName = "WP Detail - Floor Drain", Mode = mode }
+            };
+            SectionPlan plan = SectionPlanner.Plan(room, targets, false, string.Empty);
+            Assert.Single(plan.Sections);
+            Assert.Equal(expected, plan.Sections[0].DraftingViewName);
+            Assert.Equal(mode, plan.Sections[0].Mode);
+        }
+
+        [Fact]
+        public void Old_settings_without_section_fields_get_the_defaults()
+        {
+            var s = new WetAreaSettings { SectionScale = 0, SectionDepthMm = -1, SectionTopMm = 0, SectionBottomMm = -5 }.Normalize();
+            Assert.Equal(20, s.SectionScale);
+            Assert.Equal(500, s.SectionDepthMm);
+            Assert.Equal(300, s.SectionBottomMm);
+            Assert.Equal(1500, s.SectionTopMm);
+        }
+    }
+}

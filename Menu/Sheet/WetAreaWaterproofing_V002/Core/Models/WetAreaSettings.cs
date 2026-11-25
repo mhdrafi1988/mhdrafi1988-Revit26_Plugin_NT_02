@@ -140,6 +140,23 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V002.Core.Models
         /// <summary>Margin around the cut line that defines the callout's crop box, mm.</summary>
         public double CalloutMarginMm { get; set; } = 300;
 
+        // ── Section mode (added in tool 2.1.0; missing in older files = these defaults) ──
+
+        /// <summary>Section view family type used for "Section" targets; empty = the first section type in the project.</summary>
+        public string SectionViewTypeName { get; set; } = string.Empty;
+
+        /// <summary>Scale of the section views the tool creates, 1:n.</summary>
+        public int SectionScale { get; set; } = 20;
+
+        /// <summary>How far a section view looks past its cut line (far clip), mm.</summary>
+        public double SectionDepthMm { get; set; } = 500;
+
+        /// <summary>How far below the room's level a section view's crop starts, mm.</summary>
+        public double SectionBottomMm { get; set; } = 300;
+
+        /// <summary>How far above the room's level a section view's crop ends, mm.</summary>
+        public double SectionTopMm { get; set; } = 1500;
+
         /// <summary>Fixture names that mark a floor drain.</summary>
         public List<string> DrainKeywords { get; set; } = new() { "drain", "fd", "floor drain" };
 
@@ -186,6 +203,11 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V002.Core.Models
             CalloutViewTypeName ??= string.Empty;
             if (CalloutScale < 1 || CalloutScale > 5000) CalloutScale = 20;
             if (!(CalloutMarginMm >= 0) || CalloutMarginMm > 10000) CalloutMarginMm = 300;
+            SectionViewTypeName ??= string.Empty;
+            if (SectionScale < 1 || SectionScale > 5000) SectionScale = 20;
+            if (!(SectionDepthMm >= 1) || SectionDepthMm > 20000) SectionDepthMm = 500;
+            if (!(SectionBottomMm >= 0) || SectionBottomMm > 10000) SectionBottomMm = 300;
+            if (!(SectionTopMm >= 1) || SectionTopMm > 20000) SectionTopMm = 1500;
             if (string.IsNullOrWhiteSpace(PlanNamePattern)) PlanNamePattern = DefaultPlanNamePattern;
             if (string.IsNullOrWhiteSpace(SharedDraftingViewName)) SharedDraftingViewName = DefaultSharedDraftingViewName;
             PlanViewTypeName ??= string.Empty;

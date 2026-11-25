@@ -406,9 +406,9 @@ Overlay cards: result of a run, "Remove a run", "Assign drafting views". Column 
                                                             <CheckBox Content="{Binding Label}" IsChecked="{Binding On}" VerticalAlignment="Center" FontWeight="SemiBold"/>
                                                         </DockPanel>
                                                         <DockPanel Margin="20,4,0,0" IsEnabled="{Binding On}">
-                                                            <ComboBox DockPanel.Dock="Left" Width="100" Style="{StaticResource StandardComboBox}"
+                                                            <ComboBox DockPanel.Dock="Left" Width="104" Style="{StaticResource StandardComboBox}"
                                                                       ItemsSource="{Binding Modes}" SelectedItem="{Binding SelectedMode}"
-                                                                      ToolTip="Reference Section points to a drafting view; Callout creates a cropped detail view"/>
+                                                                      ToolTip="Ref. Section and Ref. Callout point to a drafting view; Callout creates a cropped detail view; Section creates a section view"/>
                                                             <ComboBox DockPanel.Dock="Left" Width="150" Style="{StaticResource StandardComboBox}" Margin="6,0,0,0"
                                                                       ItemsSource="{Binding Choices}" SelectedItem="{Binding PerItem}"
                                                                       IsEnabled="{Binding CanHaveMany}" ToolTip="One section at the match nearest the room centre, or one for every match"/>
@@ -422,7 +422,8 @@ Overlay cards: result of a run, "Remove a run", "Assign drafting views". Column 
                                                             <TextBlock Text="Points to" Style="{StaticResource FieldLabel}" VerticalAlignment="Top" Margin="0,5,0,0" Width="62"/>
                                                             <wp:DraftingViewSearchBox Items="{Binding DataContext.DraftingViewItems, ElementName=Root}"
                                                                                       Text="{Binding DraftingViewName, Mode=TwoWay}"
-                                                                                      IsEnabled="{Binding IsCallout, Converter={StaticResource InvertBool}}"/>
+                                                                                      IsEnabled="{Binding UsesDraftingView}"
+                                                                                      ToolTip="{Binding NoDraftingNote}"/>
                                                         </DockPanel>
                                                     </StackPanel>
                                                 </Border>
@@ -447,9 +448,38 @@ Overlay cards: result of a run, "Remove a run", "Assign drafting views". Column 
                                                    Text="Type a view name, title, sheet number, sheet name or bubble number (A-501/3 = sheet A-501, bubble 3) and pick from the list. A name that does not exist is created at the run."/>
                                     </DockPanel>
 
+                                    <TextBlock Text="Section settings" Style="{StaticResource FieldLabel}" Margin="0,10,0,4"/>
+                                    <TextBlock Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="0,0,0,6"
+                                               Text="Targets set to &quot;Section&quot; create a section view along the cut line, as wide as the row's Length."/>
+                                    <DockPanel Style="{StaticResource SettingRow}">
+                                        <TextBlock Text="Section view type" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Width="110"/>
+                                        <ComboBox ItemsSource="{Binding SectionViewTypes}" SelectedItem="{Binding SelectedSectionViewType}"
+                                                  ToolTip="The view family type for the new section views"/>
+                                    </DockPanel>
+                                    <DockPanel Style="{StaticResource SettingRow}">
+                                        <TextBlock Text="Scale  1 :" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Width="110"/>
+                                        <TextBox Text="{Binding SectionScaleText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MmBox}"
+                                                 HorizontalAlignment="Left" Width="60" ToolTip="Scale of the section views (a view template may override it)"/>
+                                    </DockPanel>
+                                    <DockPanel Style="{StaticResource SettingRow}">
+                                        <TextBlock DockPanel.Dock="Right" Text="mm" Style="{StaticResource UnitLabel}" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                                        <TextBlock Text="Depth (far clip)" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Width="110"/>
+                                        <TextBox Text="{Binding SectionDepthText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MmBox}"
+                                                 HorizontalAlignment="Left" Width="60" ToolTip="How far the section looks past its cut line"/>
+                                    </DockPanel>
+                                    <DockPanel Style="{StaticResource SettingRow}">
+                                        <TextBlock DockPanel.Dock="Right" Text="mm" Style="{StaticResource UnitLabel}" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                                        <TextBox DockPanel.Dock="Right" Text="{Binding SectionTopText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MmBox}"
+                                                 Width="60" ToolTip="Top of the section's crop, above the room's level"/>
+                                        <TextBlock DockPanel.Dock="Right" Text="above" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="10,0,6,0"/>
+                                        <TextBlock Text="Crop: below level" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Width="110"/>
+                                        <TextBox Text="{Binding SectionBottomText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MmBox}"
+                                                 HorizontalAlignment="Left" Width="60" ToolTip="Bottom of the section's crop, below the room's level"/>
+                                    </DockPanel>
+
                                     <TextBlock Text="Callout settings" Style="{StaticResource FieldLabel}" Margin="0,10,0,4"/>
                                     <TextBlock Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="0,0,0,6"
-                                               Text="Targets set to &quot;Callout&quot; create a cropped detail view instead of pointing to a drafting view."/>
+                                               Text="Targets set to &quot;Callout&quot; create a cropped detail view instead of pointing to a drafting view. The crop margin also sizes &quot;Ref. Callout&quot; boxes."/>
                                     <DockPanel Style="{StaticResource SettingRow}">
                                         <TextBlock Text="Detail view type" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Width="110"/>
                                         <ComboBox ItemsSource="{Binding DetailViewTypes}" SelectedItem="{Binding SelectedCalloutViewType}"
