@@ -9,6 +9,30 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [7.31.0] — 2026-11-25
+
+### Added
+- **Wet Area Waterproofing 2.1.0 (V002)** — two more choices in each section target's **Mode** list:
+  - **Section** creates a real section view along the cut line. It is as wide as the row's **Length**; a new
+    **Section settings** block sets the section view type, scale (default 1:20), depth / far clip (500 mm) and
+    the crop from 300 mm below the room's level to 1500 mm above it.
+  - **Ref. Callout** places a reference callout that points to the row's drafting view, like Ref. Section does
+    (same "Points to" search and picker panel). Its box is the cut line plus the callout crop margin.
+- Excel report, **Sections** sheet: three columns appended at the end, **Mode**, **View made Id**, **View made**.
+  The result card also counts the callout and section views a run created.
+
+### Fixed
+- **Wet Area Waterproofing 2.1.0** — **a second run added a second callout** for the same room. The cleanup
+  before placing only looked at section markers, while a callout's tag is on its detail view. A run now removes
+  the room's tagged markers and the callout / section views an earlier run made, then places them again. A view
+  that holds elements drawn in it (dimensions, text, detail lines…) is kept and the room gets a warning, so your
+  annotations are never deleted.
+
+**User note:** Ref. Section and Callout work as before, and existing settings load unchanged (the new section
+fields take their defaults). V001 opening the shared settings file ignores the new fields and, if it saves,
+drops them back to the defaults. "Points to" is greyed out for Callout and Section rows (they make their own view).
+The plugin version in the `.csproj` is set to 7.31.0: it had gone back to 7.26.5 on `main`.
+
 ## [7.30.0] — 2026-11-25
 
 ### Added

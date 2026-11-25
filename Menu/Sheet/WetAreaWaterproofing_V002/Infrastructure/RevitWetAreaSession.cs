@@ -103,7 +103,9 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V002.Infrastructure
             {
                 viewCreator = new ViewCreator(_doc, s, runId);
                 bool needsCallouts = s.CreateSections && s.Targets.Any(t => t.On && t.Mode == SectionMode.Callout);
-                string notReady = viewCreator.CheckReady(s.CreateSections, needsCallouts);
+                bool needsSectionViews = s.CreateSections && s.Targets.Any(t => t.On && t.Mode == SectionMode.Section);
+                bool needsDrafting = s.CreateSections && s.Targets.Any(t => t.On && SectionModes.UsesDraftingView(t.Mode));
+                string notReady = viewCreator.CheckReady(needsDrafting, needsCallouts, needsSectionViews);
                 if (notReady != null) return new RunOutcome { Error = notReady };
             }
 
@@ -232,6 +234,7 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V002.Infrastructure
                 SectionsPlaced = views.Values.Sum(v => v.Sections.Count),
                 DraftingCreated = viewCreator?.DraftingCreated ?? 0,
                 CalloutsCreated = viewCreator?.CalloutsCreated ?? 0,
+                SectionViewsCreated = viewCreator?.SectionViewsCreated ?? 0,
                 Issues = issues,
                 ReportPath = reportPath,
                 ReportError = reportError,

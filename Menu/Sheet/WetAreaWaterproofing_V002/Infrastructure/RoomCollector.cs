@@ -36,6 +36,8 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V002.Infrastructure
         public IReadOnlyList<DraftingViewInfo> DraftingViews { get; init; } = Array.Empty<DraftingViewInfo>();
         /// <summary>Detail view family type names (for callout sections).</summary>
         public IReadOnlyList<string> DetailViewTypes { get; init; } = Array.Empty<string>();
+        /// <summary>Section view family type names (for "Section" targets).</summary>
+        public IReadOnlyList<string> SectionViewTypes { get; init; } = Array.Empty<string>();
         /// <summary>Model title.</summary>
         public string ModelTitle { get; init; } = string.Empty;
         /// <summary>Things worth telling the user about the read (rooms left out, links not loaded).</summary>
@@ -114,6 +116,8 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V002.Infrastructure
                 PlanTemplates = new FilteredElementCollector(doc).OfClass(typeof(ViewPlan)).Cast<ViewPlan>()
                     .Where(v => v.IsTemplate && v.ViewType == ViewType.FloorPlan).Select(v => v.Name).Distinct().OrderBy(n => n).ToList(),
                 DraftingViews = ReadDraftingViews(doc, notes),
+                SectionViewTypes = new FilteredElementCollector(doc).OfClass(typeof(ViewFamilyType)).Cast<ViewFamilyType>()
+                    .Where(t => t.ViewFamily == ViewFamily.Section).Select(t => t.Name).Distinct().OrderBy(n => n).ToList(),
                 DetailViewTypes = new FilteredElementCollector(doc).OfClass(typeof(ViewFamilyType)).Cast<ViewFamilyType>()
                     .Where(t => t.ViewFamily == ViewFamily.Detail).Select(t => t.Name).Distinct().OrderBy(n => n).ToList(),
                 ModelTitle = doc.Title ?? string.Empty,

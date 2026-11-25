@@ -99,7 +99,9 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V002.UI.ViewModels
             if (outcome.Replaced > 0) ResultLines.Add(new ResultLine("ok", $"{outcome.Replaced} roof(s) from an earlier run replaced"));
             if (outcome.PlansCreated > 0) ResultLines.Add(new ResultLine("ok", $"{outcome.PlansCreated} plan(s) created"));
             if (outcome.PlansReused > 0) ResultLines.Add(new ResultLine("ok", $"{outcome.PlansReused} plan(s) from an earlier run kept and updated"));
-            if (outcome.SectionsPlaced > 0) ResultLines.Add(new ResultLine("ok", $"{outcome.SectionsPlaced} reference section(s) placed"));
+            if (outcome.SectionsPlaced > 0) ResultLines.Add(new ResultLine("ok", $"{outcome.SectionsPlaced} section marker(s) placed"));
+            if (outcome.CalloutsCreated > 0) ResultLines.Add(new ResultLine("ok", $"{outcome.CalloutsCreated} callout detail view(s) created"));
+            if (outcome.SectionViewsCreated > 0) ResultLines.Add(new ResultLine("ok", $"{outcome.SectionViewsCreated} section view(s) created"));
             if (outcome.DraftingCreated > 0) ResultLines.Add(new ResultLine("ok", $"{outcome.DraftingCreated} drafting view(s) created"));
             bool anything = outcome.Created + outcome.Replaced + outcome.PlansCreated + outcome.PlansReused + outcome.SectionsPlaced > 0;
             if (!anything) ResultLines.Add(new ResultLine("error", "Nothing was created. The model was not changed."));

@@ -13,7 +13,7 @@ Part C: grouping, sheets, print set.
 
 | Item | Value |
 |---|---|
-| Tool name | Wet Area Waterproofing, v2.0.0 (plugin 7.30.0) |
+| Tool name | Wet Area Waterproofing, v2.1.0 (plugin 7.31.0) |
 | Folder | `Menu/Sheet/WetAreaWaterproofing_V002/` |
 | Namespace | `Revit26_Plugin_Revised.WetAreaWaterproofing.V002` |
 | Command | `…V002.Commands.WetAreaWaterproofingCommand` (via `ToolGuard.RunCommand`) |
@@ -55,6 +55,19 @@ sheet name or bubble; `A-501/3` = sheet A-501, bubble 3; prefixes `s:` `d:` `n:`
 exact bubble / sheet, then names starting with the text, then by sheet and bubble (natural order).
 A typed `A-501/3` that names one placed view is replaced by that view's name; any other text is kept and, if no
 view has that name, a new drafting view is created at the run (V001 behaviour). Views are still saved by name.
+
+## Section modes (2.1.0)
+
+| Mode | Places on the room plan | Points to / makes |
+|---|---|---|
+| Ref. Section | Reference section marker (`CreateReferenceSection`) | The row's drafting view |
+| Callout | Callout (`CreateCallout`), axis-aligned box = cut line + callout margin | A new detail view, `WP Callout - <target>` |
+| Section | Section marker of a new view (`CreateSection`) | A new section view, `WP Section - <target>`: width = Length, crop from *below level* to *above level*, far clip = depth |
+| Ref. Callout | Reference callout (`CreateReferenceCallout`), same box as Callout | The row's drafting view |
+
+`SectionMode` values are stored in settings: append only (0 Ref. Section, 1 Callout, 2 Section, 3 Ref. Callout).
+Before placing, `ViewCreator.RemoveEarlier` deletes the room's tagged markers and tagged callout / section views
+(kind `Section`, same room key); a view that owns drawn elements is kept with a warning.
 
 ## How elements are tracked
 

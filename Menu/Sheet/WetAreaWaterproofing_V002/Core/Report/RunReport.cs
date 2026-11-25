@@ -16,14 +16,14 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V002.Core.Report
     /// <param name="Replaced">True when it replaced a roof from an earlier run.</param>
     public sealed record CreatedRoof(long RoofId, double AreaM2, bool Replaced);
 
-    /// <summary>A section the run placed (reference section or callout).</summary>
+    /// <summary>A section the run placed. Its mode (reference section, callout, section, reference callout) is <c>Plan.Mode</c>.</summary>
     /// <param name="Plan">What was planned: target, cut line, element cut.</param>
     /// <param name="MarkerId">ElementId of the section marker.</param>
-    /// <param name="DraftingViewId">ElementId of the drafting view it points to (0 for callouts).</param>
-    /// <param name="DraftingViewName">That view's name as it is in the model (empty for callouts).</param>
-    /// <param name="IsCallout">True when this is a callout, not a reference section.</param>
-    /// <param name="CalloutViewId">ElementId of the callout detail view (0 for reference sections).</param>
-    /// <param name="CalloutViewName">The callout view's name (empty for reference sections).</param>
+    /// <param name="DraftingViewId">ElementId of the drafting view it points to (0 for callouts and sections).</param>
+    /// <param name="DraftingViewName">That view's name as it is in the model (empty for callouts and sections).</param>
+    /// <param name="IsCallout">True when this is a callout (it made a detail view).</param>
+    /// <param name="CalloutViewId">ElementId of the view the marker made: the callout's detail view or the section view (0 for reference modes).</param>
+    /// <param name="CalloutViewName">That view's name (empty for reference modes).</param>
     public sealed record CreatedSection(PlannedSection Plan, long MarkerId, long DraftingViewId, string DraftingViewName,
         bool IsCallout = false, long CalloutViewId = 0, string CalloutViewName = "");
 
@@ -196,6 +196,8 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V002.Core.Report
         public long CalloutViewId { get; set; }
         /// <summary>Name of the callout detail view.</summary>
         public string CalloutView { get; set; }
+        /// <summary>Mode list text: Ref. Section, Callout, Section or Ref. Callout (tool 2.1.0).</summary>
+        public string Mode { get; set; }
     }
 
     /// <summary>Everything one run writes to Excel.</summary>
@@ -289,7 +291,8 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V002.Core.Report
                             PlanViewId = made.PlanId, PlanView = made.PlanName,
                             DraftingViewId = section.DraftingViewId, DraftingView = section.DraftingViewName,
                             HeadX = section.Plan.Head.X, HeadY = section.Plan.Head.Y, TailX = section.Plan.Tail.X, TailY = section.Plan.Tail.Y,
-                            IsCallout = section.IsCallout, CalloutViewId = section.CalloutViewId, CalloutView = section.CalloutViewName
+                            IsCallout = section.IsCallout, CalloutViewId = section.CalloutViewId, CalloutView = section.CalloutViewName,
+                            Mode = SectionModes.Label(section.Plan.Mode)
                         });
                 }
                 report.Rooms.Add(item);

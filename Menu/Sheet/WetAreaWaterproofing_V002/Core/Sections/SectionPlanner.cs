@@ -63,8 +63,7 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V002.Core.Sections
                 }
                 if (!target.AllMatches) cuts = cuts.Take(1).ToList();
 
-                bool isCallout = target.Mode == SectionMode.Callout;
-                string view = isCallout ? string.Empty
+                string view = !SectionModes.UsesDraftingView(target.Mode) ? string.Empty
                     : oneDraftingViewForAll || string.IsNullOrWhiteSpace(target.DraftingViewName)
                         ? (string.IsNullOrWhiteSpace(sharedDraftingViewName) ? SectionTargets.DefaultDraftingName(target.Kind) : sharedDraftingViewName)
                         : target.DraftingViewName;

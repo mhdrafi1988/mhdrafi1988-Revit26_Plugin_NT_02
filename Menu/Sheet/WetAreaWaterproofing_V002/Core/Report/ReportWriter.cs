@@ -37,7 +37,9 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V002.Core.Report
         {
             "Section marker Id", "Section", "Target", "Room ElementId", "Room number", "Room name",
             "Cut ElementId", "Cut category", "Cut family : type", "Cut model",
-            "Plan view Id", "Plan view", "Drafting view Id", "Drafting view", "Head X mm", "Head Y mm", "Tail X mm", "Tail Y mm"
+            "Plan view Id", "Plan view", "Drafting view Id", "Drafting view", "Head X mm", "Head Y mm", "Tail X mm", "Tail Y mm",
+            // Appended in tool 2.1.0 (columns are only ever added at the end).
+            "Mode", "View made Id", "View made"
         };
 
         /// <summary>Issues sheet columns, in order.</summary>
@@ -213,7 +215,10 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V002.Core.Report
                 SetNumber(sections.Cell(row, col++), x.HeadX, 1);
                 SetNumber(sections.Cell(row, col++), x.HeadY, 1);
                 SetNumber(sections.Cell(row, col++), x.TailX, 1);
-                SetNumber(sections.Cell(row, col), x.TailY, 1);
+                SetNumber(sections.Cell(row, col++), x.TailY, 1);
+                sections.Cell(row, col++).Value = x.Mode ?? string.Empty;
+                SetId(sections.Cell(row, col++), x.CalloutViewId);
+                sections.Cell(row, col).Value = x.CalloutView ?? string.Empty;
             }
             FinishSheet(sections, SectionColumns.Count);
 

@@ -152,8 +152,8 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V002.UI.ViewModels
             {
                 foreach (TargetRowViewModel row in Targets)
                 {
-                    string note = !row.On ? "Off: no section is placed" : row.IsCallout ? "Callout: makes its own detail view" : string.Empty;
-                    AssignSlots.Add(new AssignSlotViewModel(row.Label, note, row.On && !row.IsCallout,
+                    string note = !row.On ? "Off: no section is placed" : row.NoDraftingNote;
+                    AssignSlots.Add(new AssignSlotViewModel(row.Label, note, row.On && row.UsesDraftingView,
                         () => row.DraftingViewName, v => row.DraftingViewName = v, () => DraftingViewItems));
                 }
             }

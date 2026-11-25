@@ -174,7 +174,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                 ToolTip = ToolCatalog.WetAreaWaterproofingV002.Tip(
                     "V001 plus drafting-view search: type a view name, title on sheet, sheet number, sheet name or bubble number " +
                     "(A-501/3 = sheet A-501, bubble 3) in \"Points to\" and pick from the list, or open \"Assign drafting views…\" " +
-                    "to assign every target from one searchable table.")
+                    "to assign every target from one searchable table. Each target can be a Ref. Section, Callout, Section or Ref. Callout.")
             };
 
             // Waterproofing panel (plugin 7.11.0): Wet Area Waterproofing, as a full-size button.
