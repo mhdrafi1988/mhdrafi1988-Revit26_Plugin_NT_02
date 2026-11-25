@@ -1,7 +1,7 @@
 <title>Wet Area Waterproofing V002</title>
 <!--
-  Tool: Wet Area Waterproofing — v2.0.0 (build V002), next to V001 v1.2.5 in one ribbon pulldown
-  Plugin: 7.30.0
+  Tool: Wet Area Waterproofing — v2.1.0 (build V002), next to V001 v1.2.5 in one ribbon pulldown
+  Plugin: 7.31.0
   Mirrors: Menu/Sheet/WetAreaWaterproofing_V002/UI/Views/WetAreaWaterproofingWindow.xaml
            Menu/Sheet/WetAreaWaterproofing_V002/UI/Controls/DraftingViewSearchBox.xaml
            Menu/00_Push_Button_Menu_items/Ribbon/SheetToolsRibbon.cs (BuildWaterproofingPanel)
@@ -126,9 +126,57 @@ pre.mermaid{margin:0;background:transparent;font-family:var(--font)}
 
 <div class="wrap">
 <header style="display:grid;gap:8px">
-  <h1>Wet Area Waterproofing <span class="ver">v2.0.0 · V002</span></h1>
+  <h1>Wet Area Waterproofing <span class="ver">v2.1.0 · V002</span></h1>
   <p class="note">V002 is V001 (v1.2.5) with a new way to assign drafting views in <b>4 · Section targets</b>: you can now type and search instead of scrolling a long list. Rooms, roofs, plans, sections and the Excel report work as before. Both versions sit in one ribbon pulldown and share settings, tags and reports. Every view, sheet and room name on this page is <b>sample data</b>.</p>
+  <p class="note"><span class="new">NEW in 2.1.0</span> The <b>Mode</b> list has two more choices, <b>Section</b> (makes a section view) and <b>Ref. Callout</b> (points to a drafting view), with a new <b>Section settings</b> block. <span class="new">FIXED in 2.1.0</span> A second run no longer adds a second callout for the same room; a callout or section view you have drawn in is kept.</p>
 </header>
+
+<section>
+  <h2>Mode list <span class="new">NEW in 2.1.0</span></h2>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>Mode</th><th>Places on the room plan</th><th>Points to / makes</th><th>Size</th></tr></thead>
+      <tbody>
+        <tr><td>Ref. Section</td><td>Reference section marker</td><td>The row’s drafting view (“Points to”)</td><td>Line = row’s Length</td></tr>
+        <tr><td>Callout</td><td>Callout</td><td>A new detail view, <code>WP Callout - Floor drain</code></td><td>Cut line + callout crop margin</td></tr>
+        <tr><td>Section <span class="new">NEW</span></td><td>Section marker</td><td>A new section view, <code>WP Section - Floor drain</code></td><td>Width = Length · crop 300 below to 1500 above level · depth 500 · 1:20</td></tr>
+        <tr><td>Ref. Callout <span class="new">NEW</span></td><td>Reference callout</td><td>The row’s drafting view (“Points to”)</td><td>Cut line + callout crop margin</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="scroll">
+    <div class="win" style="width:470px">
+      <div class="tb"><span>Wet Area Waterproofing</span><i>v2.1.0</i></div>
+      <div style="padding:10px;display:grid;gap:10px">
+        <div class="card">
+          <h3>4 · Section targets</h3>
+          <div class="trow">
+            <div class="row"><b class="chk">Floor drain</b></div>
+            <div class="row ind" style="align-items:flex-start">
+              <div class="boxwrap" style="flex:none;width:104px">
+                <div class="in focus"><span>Section</span><span class="dd">▾</span></div>
+                <div class="drop" style="min-width:150px" role="listbox" aria-label="Mode choices">
+                  <div class="opt" style="grid-template-columns:1fr"><b style="font-weight:400">Ref. Section</b></div>
+                  <div class="opt" style="grid-template-columns:1fr"><b style="font-weight:400">Callout</b></div>
+                  <div class="opt hi" style="grid-template-columns:1fr"><b>Section <span class="new">NEW</span></b></div>
+                  <div class="opt" style="grid-template-columns:1fr"><b style="font-weight:400">Ref. Callout <span class="new">NEW</span></b></div>
+                </div>
+              </div>
+              <span class="in sel" style="flex:none;width:150px">One (nearest centre)</span><span class="hint" style="margin-left:auto">Length</span><span class="in" style="flex:none;width:58px;justify-content:flex-end">1200</span><span class="hint">mm</span>
+            </div>
+            <div class="row ind dis" style="margin-top:96px"><span class="pt">Points to</span><div class="boxwrap"><div class="in"><span>WP Detail - Floor Drain</span><span class="dd">⏷</span></div><div class="status">Section: makes its own section view</div></div></div>
+          </div>
+          <div class="hint" style="margin-top:6px">Section settings <span class="new">NEW</span></div>
+          <div class="hint">Targets set to "Section" create a section view along the cut line, as wide as the row's Length.</div>
+          <div class="row"><span class="hint" style="width:110px">Section view type</span><span class="in sel">Building Section</span></div>
+          <div class="row"><span class="hint" style="width:110px">Scale  1 :</span><span class="in" style="flex:none;width:60px;justify-content:flex-end">20</span></div>
+          <div class="row"><span class="hint" style="width:110px">Depth (far clip)</span><span class="in" style="flex:none;width:60px;justify-content:flex-end">500</span><span class="hint">mm</span></div>
+          <div class="row"><span class="hint" style="width:110px">Crop: below level</span><span class="in" style="flex:none;width:60px;justify-content:flex-end">300</span><span class="hint" style="margin-left:10px">above</span><span class="in" style="flex:none;width:60px;justify-content:flex-end">1500</span><span class="hint">mm</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
 <section>
   <h2>What you can type in “Points to”</h2>
@@ -155,7 +203,7 @@ pre.mermaid{margin:0;background:transparent;font-family:var(--font)}
   <p class="note">The editable list is now a search box. Typing <code>A-501</code> drops down the matches; ↑/↓ move, Enter or a click picks, Esc closes, and ⏷ lists every view. The grey line under each box says where the view is, or that it will be created.</p>
   <div class="scroll">
     <div class="win" style="width:470px">
-      <div class="tb"><span>Wet Area Waterproofing</span><i>v2.0.0</i></div>
+      <div class="tb"><span>Wet Area Waterproofing</span><i>v2.1.0</i></div>
       <div style="padding:10px">
         <div class="card">
           <h3>4 · Section targets</h3>
@@ -211,7 +259,7 @@ pre.mermaid{margin:0;background:transparent;font-family:var(--font)}
   <p class="note">This is the alternate layout. It assigns every target from one screen: targets on the left, all drafting views in a table on the right. Pick a target, then double-click a view or press Enter. The next target is selected for you, so four targets take four double-clicks. <b>Use as new name</b> points the target to the typed text. Both layouts edit the same values, so you can switch between them freely.</p>
   <div class="scroll">
     <div class="win" style="width:1060px">
-      <div class="tb"><span>Wet Area Waterproofing</span><i>v2.0.0</i></div>
+      <div class="tb"><span>Wet Area Waterproofing</span><i>v2.1.0</i></div>
       <div class="overlay">
         <div class="dlg">
           <h4>Assign drafting views</h4>
@@ -261,8 +309,8 @@ pre.mermaid{margin:0;background:transparent;font-family:var(--font)}
       <div class="rt">Waterproofing</div>
     </div>
     <div class="tip">
-      <b>Wet Area Waterproofing — v2.0.0 (build V002)</b>
-      <span>V001 plus drafting-view search: type a view name, title on sheet, sheet number, sheet name or bubble number (A-501/3 = sheet A-501, bubble 3) in "Points to" and pick from the list, or open "Assign drafting views…" to assign every target from one searchable table.</span>
+      <b>Wet Area Waterproofing — v2.1.0 (build V002)</b>
+      <span>V001 plus drafting-view search: type a view name, title on sheet, sheet number, sheet name or bubble number (A-501/3 = sheet A-501, bubble 3) in "Points to" and pick from the list, or open "Assign drafting views…" to assign every target from one searchable table. Each target can be a Ref. Section, Callout, Section or Ref. Callout.</span>
     </div>
   </div>
 </section>
@@ -286,12 +334,17 @@ flowchart TD
   H --> I["Assign drafting views: search box in each row, or the picker panel"]:::new
   I --> J{"Run for N rooms"}
   J --> K["Per room, in one TransactionGroup"]
-  K --> K1["Roof on top of the slab within 500 mm, else level + offset; an earlier run's roof is replaced"]:::model
+  K --> K0["Remove this room's earlier markers, callout and section views; keep views you drew in"]:::new
+  K0 --> K1["Roof on top of the slab within 500 mm, else level + offset; an earlier run's roof is replaced"]:::model
   K1 --> K2["Plan cropped to the room plus margin; an existing plan keeps its annotations"]:::model
   K2 --> K3["Up to 6 cuts: doors, drains, corners, WC, shower, full room"]:::model
   K3 --> K4{"Target mode"}
   K4 -- "Ref. Section" --> K5["Reference section to the drafting view; the view is created if the name is new"]:::model
   K4 -- Callout --> K6["Cropped callout detail view"]:::model
+  K4 -- Section --> K7["New section view: width = Length, crop below / above level, depth"]:::new
+  K4 -- "Ref. Callout" --> K8["Reference callout to the drafting view"]:::new
+  K7 --> L
+  K8 --> L
   K5 --> L["Tag: Comments on roofs, Extensible Storage on views"]
   K6 --> L
   L --> M{"Room failed?"}
@@ -341,7 +394,7 @@ mindmap
       WC and shower
       Full room H and V
       Max 6 per room, top rows win
-      Ref. Section or Callout
+      Ref. Section, Callout, Section or Ref. Callout
     Drafting views
       One for all or one per target
       Search: name and title
