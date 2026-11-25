@@ -50,6 +50,28 @@ using System.Windows.Data;
 
 namespace Revit26_Plugin_Revised.AutoSlopeByDrain.V007.UI.ViewModels
 {
+    /// <summary>NEW (7.4.0). Which drains are checked when the window opens (and when the option changes).</summary>
+    public enum DefaultDrainSelection
+    {
+        /// <summary>In each shape group (Circle, Rectangle, Other), the openings of the smallest size (±1 mm) are checked.</summary>
+        SmallestPerShape,
+        /// <summary>Every circle is checked; other shapes start unchecked (7.3.0 behaviour).</summary>
+        AllCircles
+    }
+
+    /// <summary>NEW (7.4.0). One entry of the "Default" list: the rule and its label.</summary>
+    public sealed class DefaultSelectionOption
+    {
+        /// <summary>Creates an option.</summary>
+        public DefaultSelectionOption(DefaultDrainSelection value, string label) { Value = value; Label = label; }
+
+        /// <summary>The selection rule.</summary>
+        public DefaultDrainSelection Value { get; }
+
+        /// <summary>Text shown in the list.</summary>
+        public string Label { get; }
+    }
+
     public partial class AutoSlopeDrainViewModel : ObservableObject
     {
         // Must be public (not private) â€” [ObservableProperty] generates a public
@@ -272,6 +294,7 @@ namespace Revit26_Plugin_Revised.AutoSlopeByDrain.V007.UI.ViewModels
             InsertCurveIntersectionPoints = settings.InsertCurveIntersectionPoints;
             VerifyElevationsAfterCommit = settings.VerifyElevationsAfterCommit;
             SelectedSizeFilter = string.IsNullOrEmpty(settings.SelectedSizeFilter) ? "All" : settings.SelectedSizeFilter;
+            DefaultSelection = ParseDefaultSelection(settings.DefaultDrainSelection);
 
             ApplyMarkerSettings(DrainMarkerGroup, settings.DrainMarkerGroup);
             ApplyMarkerSettings(HighestPointMarkerGroup, settings.HighestPointMarkerGroup);
@@ -288,7 +311,8 @@ namespace Revit26_Plugin_Revised.AutoSlopeByDrain.V007.UI.ViewModels
             AddLog(new LogEntry(LogLevel.Info, $"Detected {roofData.DetectedDrains.Count} drain opening(s)."));
             AddLog(new LogEntry(LogLevel.Info, $"Default export folder: {ExportFolderPath}"));
 
-            UpdateSelectedCount();
+            _initializing = false;
+            ApplyDefaultSelection(DefaultSelection);
 
             AutoSlopeDrainEventManager.Init();
         }
@@ -432,6 +456,72 @@ namespace Revit26_Plugin_Revised.AutoSlopeByDrain.V007.UI.ViewModels
             if (!(groupName is string name)) return;
             foreach (var d in FilteredDrainsView.Cast<DrainItem>().Where(d => d.ShapeGroup == name))
                 d.IsSelected = false;
+            FilteredDrainsView.Refresh();
+            UpdateSelectedCount();
+            RunAutoSlopeCommand.NotifyCanExecuteChanged();
+        }
+
+        // ── Default drain selection (NEW 7.4.0) ──────────────────────────────
+
+        /// <summary>Two openings count as the same size when both sides differ by at most this (mm).</summary>
+        private const double SameSizeToleranceMm = 1.0;
+
+        private bool _initializing = true;
+
+        /// <summary>Choices for the "Default" list above the drain grid.</summary>
+        public IReadOnlyList<DefaultSelectionOption> DefaultSelectionOptions { get; } = new[]
+        {
+            new DefaultSelectionOption(DefaultDrainSelection.SmallestPerShape, "Smallest per shape"),
+            new DefaultSelectionOption(DefaultDrainSelection.AllCircles, "All circles")
+        };
+
+        /// <summary>Rule that checks the drains when the window opens. Changing it re-checks every drain.</summary>
+        [ObservableProperty] private DefaultDrainSelection defaultSelection = DefaultDrainSelection.SmallestPerShape;
+
+        partial void OnDefaultSelectionChanged(DefaultDrainSelection value)
+        {
+            if (_initializing || IsRunning) return;
+            ApplyDefaultSelection(value);
+        }
+
+        private static DefaultDrainSelection ParseDefaultSelection(string saved) =>
+            Enum.TryParse(saved, true, out DefaultDrainSelection mode) && Enum.IsDefined(typeof(DefaultDrainSelection), mode)
+                ? mode
+                : DefaultDrainSelection.SmallestPerShape;
+
+        /// <summary>Re-checks every drain by <paramref name="mode"/> (manual ticks are replaced) and logs what was checked.</summary>
+        private void ApplyDefaultSelection(DefaultDrainSelection mode)
+        {
+            string summary;
+            if (mode == DefaultDrainSelection.AllCircles)
+            {
+                foreach (var d in AllDrains) d.IsSelected = d.ShapeGroup == "Circle";
+                summary = $"Default selection (all circles): {AllDrains.Count(d => d.IsSelected)} of {AllDrains.Count} drain(s) checked.";
+            }
+            else
+            {
+                var parts = new List<string>();
+                foreach (var group in AllDrains.GroupBy(d => d.ShapeGroup).OrderBy(g => g.First().ShapeGroupOrder))
+                {
+                    DrainItem smallest = group.OrderBy(d => d.SizeSortKey).First();
+                    double sMin = Math.Min(smallest.Width, smallest.Height);
+                    double sMax = Math.Max(smallest.Width, smallest.Height);
+                    int kept = 0;
+                    foreach (var d in group)
+                    {
+                        // 100 x 200 and 200 x 100 count as the same size.
+                        bool keep = Math.Abs(Math.Min(d.Width, d.Height) - sMin) <= SameSizeToleranceMm
+                                 && Math.Abs(Math.Max(d.Width, d.Height) - sMax) <= SameSizeToleranceMm;
+                        d.IsSelected = keep;
+                        if (keep) kept++;
+                    }
+                    string size = group.Key == "Circle" ? $"⌀ {smallest.Width:F0} mm" : smallest.SizeCategory;
+                    parts.Add($"{kept} of {group.Count()} {group.Key.ToLowerInvariant()}(s) at {size}");
+                }
+                summary = parts.Count == 0 ? null : "Default selection (smallest per shape): " + string.Join(" · ", parts) + ".";
+            }
+
+            if (summary != null) AddLog(new LogEntry(LogLevel.Info, summary));
             FilteredDrainsView.Refresh();
             UpdateSelectedCount();
             RunAutoSlopeCommand.NotifyCanExecuteChanged();
@@ -603,6 +693,7 @@ namespace Revit26_Plugin_Revised.AutoSlopeByDrain.V007.UI.ViewModels
                             VerifyElevationsAfterCommit = VerifyElevationsAfterCommit,
                             ExportFolderPath = ExportFolderPath,
                             SelectedSizeFilter = SelectedSizeFilter,
+                            DefaultDrainSelection = DefaultSelection.ToString(),
                             DrainMarkerGroup = ToMarkerSettings(DrainMarkerGroup),
                             HighestPointMarkerGroup = ToMarkerSettings(HighestPointMarkerGroup)
                         }, msg => AddLog(new LogEntry(LogLevel.Warning, msg)));
@@ -678,6 +769,7 @@ namespace Revit26_Plugin_Revised.AutoSlopeByDrain.V007.UI.ViewModels
                 VerifyElevationsAfterCommit = VerifyElevationsAfterCommit,
                 ExportFolderPath = ExportFolderPath,
                 SelectedSizeFilter = SelectedSizeFilter,
+                DefaultDrainSelection = DefaultSelection.ToString(),
                 DrainMarkerGroup = ToMarkerSettings(DrainMarkerGroup),
                 HighestPointMarkerGroup = ToMarkerSettings(HighestPointMarkerGroup)
             });
