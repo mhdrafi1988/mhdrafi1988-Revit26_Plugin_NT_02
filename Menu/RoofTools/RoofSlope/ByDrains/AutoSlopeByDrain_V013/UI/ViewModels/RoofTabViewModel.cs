@@ -41,8 +41,33 @@ namespace Revit26_Plugin_Revised.MultiRoofSlopeByDrain.V013.UI.ViewModels
         Failed
     }
 
+    /// <summary>NEW (13.3.0). Which drains are checked when the window opens (and when the option changes).</summary>
+    public enum DefaultDrainSelection
+    {
+        /// <summary>In each shape group (Circle, Rectangle, Other), the openings of the smallest size (±1 mm) are checked.</summary>
+        SmallestPerShape,
+        /// <summary>Circles with a diameter of 90–110 mm are checked; everything else starts unchecked (13.2.0 behaviour).</summary>
+        CircleDiameterRange
+    }
+
+    /// <summary>NEW (13.3.0). One entry of the "Default selection" list: the rule and its label.</summary>
+    public sealed class DefaultSelectionOption
+    {
+        /// <summary>Creates an option.</summary>
+        public DefaultSelectionOption(DefaultDrainSelection value, string label) { Value = value; Label = label; }
+
+        /// <summary>The selection rule.</summary>
+        public DefaultDrainSelection Value { get; }
+
+        /// <summary>Text shown in the list.</summary>
+        public string Label { get; }
+    }
+
     public partial class RoofTabViewModel : ObservableObject
     {
+        /// <summary>Two openings count as the same size when both sides differ by at most this (mm).</summary>
+        private const double SameSizeToleranceMm = 1.0;
+
         private const int ResultRowCount = 10;
         private readonly DrainDetectionService _detection = new DrainDetectionService();
 
@@ -95,8 +120,8 @@ namespace Revit26_Plugin_Revised.MultiRoofSlopeByDrain.V013.UI.ViewModels
             : $"{SelectedDrainsCount} of {TotalDetectedCount} drains checked · Roof Id {RoofIdValue}"
               + (HiddenSelectedCount > 0 ? $" · {HiddenSelectedCount} checked drain(s) hidden by the size filter will still run" : string.Empty);
 
-        /// <summary>One-line default-selection summary, or null when the roof has no circle drains.</summary>
-        public string DefaultSelectionSummary { get; }
+        /// <summary>One-line default-selection summary, or null when the rule checked nothing to report.</summary>
+        public string DefaultSelectionSummary { get; private set; }
 
         // ── Status (tab pill) ──────────────────────────────────────────────
         [ObservableProperty]
@@ -147,7 +172,8 @@ namespace Revit26_Plugin_Revised.MultiRoofSlopeByDrain.V013.UI.ViewModels
             _ => "Run AutoSlope to see this roof's results."
         };
 
-        public RoofTabViewModel(RoofData roofData, int tabNumber)
+        /// <summary>Builds the tab for one roof and checks its drains by <paramref name="defaultSelection"/>.</summary>
+        public RoofTabViewModel(RoofData roofData, int tabNumber, DefaultDrainSelection defaultSelection = DefaultDrainSelection.SmallestPerShape)
         {
             RoofData = roofData;
             TabNumber = tabNumber;
@@ -171,16 +197,63 @@ namespace Revit26_Plugin_Revised.MultiRoofSlopeByDrain.V013.UI.ViewModels
             FilteredDrainsView.SortDescriptions.Add(new SortDescription(nameof(DrainItem.SizeSortKey), ListSortDirection.Ascending));
 
             // After FilteredDrainsView exists: setting IsSelected raises UpdateSelectedCount.
-            DefaultSelectionSummary = ApplyDefaultCircleSelection();
             TotalDetectedCount = roofData.DetectedDrains.Count;
-            UpdateSelectedCount();
+            ApplyDefaultSelection(defaultSelection);
         }
 
-        /// <summary>Selects circles with a diameter of 90–110 mm; other circles start unchecked.</summary>
+        /// <summary>
+        /// Re-checks every drain on this roof by <paramref name="mode"/> (manual ticks are replaced)
+        /// and returns the one-line summary, also kept in <see cref="DefaultSelectionSummary"/>.
+        /// </summary>
+        public string ApplyDefaultSelection(DefaultDrainSelection mode)
+        {
+            DefaultSelectionSummary = mode == DefaultDrainSelection.CircleDiameterRange
+                ? ApplyDefaultCircleSelection()
+                : ApplySmallestPerShapeSelection();
+            FilteredDrainsView.Refresh();
+            UpdateSelectedCount();
+            return DefaultSelectionSummary;
+        }
+
+        /// <summary>
+        /// NEW (13.3.0). In each shape group, checks the openings whose size matches the smallest
+        /// one in that group within ±1 mm (a 100 x 200 and a 200 x 100 opening are the same size).
+        /// Everything else is unchecked.
+        /// </summary>
+        private string ApplySmallestPerShapeSelection()
+        {
+            if (AllDrains.Count == 0) return null;
+
+            var parts = new List<string>();
+            foreach (var group in AllDrains.GroupBy(d => d.ShapeGroup).OrderBy(g => g.First().ShapeGroupOrder))
+            {
+                DrainItem smallest = group.OrderBy(d => d.SizeSortKey).First();
+                double sMin = System.Math.Min(smallest.Width, smallest.Height);
+                double sMax = System.Math.Max(smallest.Width, smallest.Height);
+
+                int kept = 0;
+                foreach (var d in group)
+                {
+                    bool keep = System.Math.Abs(System.Math.Min(d.Width, d.Height) - sMin) <= SameSizeToleranceMm
+                             && System.Math.Abs(System.Math.Max(d.Width, d.Height) - sMax) <= SameSizeToleranceMm;
+                    d.IsSelected = keep;
+                    if (keep) kept++;
+                }
+
+                string size = group.Key == "Circle" ? $"⌀ {smallest.Width:F0} mm" : smallest.SizeCategory;
+                parts.Add($"{kept} of {group.Count()} {group.Key.ToLowerInvariant()}(s) at {size}");
+            }
+            return "Default selection (smallest per shape): " + string.Join(" · ", parts) + ".";
+        }
+
+        /// <summary>Selects circles with a diameter of 90–110 mm; other openings start unchecked (13.2.0 rule).</summary>
         private string ApplyDefaultCircleSelection()
         {
             const double minMm = 90.0;
             const double maxMm = 110.0;
+
+            // Non-circles always start unchecked under this rule.
+            foreach (var other in AllDrains.Where(d => d.ShapeGroup != "Circle")) other.IsSelected = false;
 
             var circles = AllDrains.Where(d => d.ShapeGroup == "Circle" && d.Diameter.HasValue).ToList();
             if (circles.Count == 0) return null;
