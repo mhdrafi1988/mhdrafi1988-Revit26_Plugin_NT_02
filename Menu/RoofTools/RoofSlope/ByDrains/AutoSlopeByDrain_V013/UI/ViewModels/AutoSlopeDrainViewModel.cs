@@ -98,11 +98,14 @@ namespace Revit26_Plugin_Revised.MultiRoofSlopeByDrain.V013.UI.ViewModels
             foreach (LogEntry entry in diagnostics ?? Enumerable.Empty<LogEntry>())
                 AddLog(entry.Level, entry.Message);
 
+            AutoSlopeDrainSettings saved = DrainSettingsStore.Load(msg => AddLog(LogLevel.Warning, msg));
+            DefaultSelection = ParseDefaultSelection(saved.DefaultDrainSelection);
+
             int tabNumber = 1;
             var defaultSelectionLogs = new List<string>();
             foreach (var roofData in roofDataList)
             {
-                var tab = new RoofTabViewModel(roofData, tabNumber++);
+                var tab = new RoofTabViewModel(roofData, tabNumber++, DefaultSelection);
                 tab.SelectionChanged += OnAnyDrainSelectionChanged;
                 RoofTabs.Add(tab);
                 if (!string.IsNullOrEmpty(tab.DefaultSelectionSummary))
@@ -116,7 +119,7 @@ namespace Revit26_Plugin_Revised.MultiRoofSlopeByDrain.V013.UI.ViewModels
             foreach (var g in MarkerGroups) g.PropertyChanged += OnMarkerGroupChanged;
 
             LoadLineStyleOptions();
-            LoadSettings();
+            LoadSettings(saved);
 
             AddLog(LogLevel.Info, RoofTabs.Count == 1
                 ? $"Detected {TotalDetectedCount} drain opening(s)."
@@ -923,11 +926,39 @@ namespace Revit26_Plugin_Revised.MultiRoofSlopeByDrain.V013.UI.ViewModels
                 : $"Active view is not a plan ({name}) · circle markers will be skipped";
         }
 
+        // ══ Default drain selection (NEW 13.3.0) ═════════════════════════════
+
+        /// <summary>Choices for the "Default selection" list above the drain grid.</summary>
+        public IReadOnlyList<DefaultSelectionOption> DefaultSelectionOptions { get; } = new[]
+        {
+            new DefaultSelectionOption(DefaultDrainSelection.SmallestPerShape, "Smallest per shape"),
+            new DefaultSelectionOption(DefaultDrainSelection.CircleDiameterRange, "Circles ⌀ 90–110 mm")
+        };
+
+        /// <summary>Rule that checks the drains when the window opens. Changing it re-checks every roof.</summary>
+        [ObservableProperty] private DefaultDrainSelection defaultSelection = DefaultDrainSelection.SmallestPerShape;
+
+        partial void OnDefaultSelectionChanged(DefaultDrainSelection value)
+        {
+            if (_loading || State == DrainRunState.Running) return;
+            foreach (var tab in RoofTabs)
+            {
+                string summary = tab.ApplyDefaultSelection(value);
+                if (!string.IsNullOrEmpty(summary))
+                    AddLog(LogLevel.Info, RoofTabs.Count == 1 ? summary : $"[Roof {tab.TabNumber}] {summary}");
+            }
+            Revalidate();
+        }
+
+        private static DefaultDrainSelection ParseDefaultSelection(string saved) =>
+            System.Enum.TryParse(saved, true, out DefaultDrainSelection mode) && System.Enum.IsDefined(typeof(DefaultDrainSelection), mode)
+                ? mode
+                : DefaultDrainSelection.SmallestPerShape;
+
         // ══ Settings ═════════════════════════════════════════════════════════
 
-        private void LoadSettings()
+        private void LoadSettings(AutoSlopeDrainSettings s)
         {
-            AutoSlopeDrainSettings s = DrainSettingsStore.Load(msg => AddLog(LogLevel.Warning, msg));
 
             SlopeText = Format(s.SlopePercent);
             MaxPathText = Format(s.ThresholdMeters);
@@ -1002,6 +1033,7 @@ namespace Revit26_Plugin_Revised.MultiRoofSlopeByDrain.V013.UI.ViewModels
                 SelectedSizeFilter = SelectedRoofTab?.SelectedSizeFilter ?? "All",
                 WriteCombinedSummary = WriteCombinedSummary,
                 AskToOpenAfterExport = AskToOpenAfterExport,
+                DefaultDrainSelection = DefaultSelection.ToString(),
                 DrainMarkerGroup = ToSettings(DrainMarkerGroup),
                 HighestPointMarkerGroup = ToSettings(HighestPointMarkerGroup),
                 AllowedOffsetMarkerGroup = ToSettings(AllowedOffsetMarkerGroup),

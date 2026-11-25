@@ -9,6 +9,22 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [7.32.0] — 2026-11-25
+
+### Added
+- **Auto Slope By Drain (Multi-Roof) 13.3.0 (V013)** — a **Default** list above the detected-drains grid picks which
+  drains are checked when the window opens:
+  - **Smallest per shape** (new, the default): in each shape group (Circle, Rectangle, Other) the openings of the
+    smallest size are checked; openings count as the same size when both sides are within ±1 mm (a 100 x 200 and a
+    200 x 100 opening match). Everything else starts unchecked.
+  - **Circles ⌀ 90–110 mm**: the 13.2.0 rule.
+  Changing the list re-checks the drains on every roof and logs what was checked. The choice is saved in
+  `settings.v013.json` (`DefaultDrainSelection`).
+
+**User note:** the default selection changes. Up to 13.2.0 only circles of ⌀ 90–110 mm were checked; now the smallest
+openings of each shape are checked, rectangles included. To get the old behaviour, pick **Circles ⌀ 90–110 mm** once:
+it is remembered. Existing settings files load unchanged. Changing the list replaces any ticks you set by hand.
+
 ## [7.31.0] — 2026-11-25
 
 ### Added

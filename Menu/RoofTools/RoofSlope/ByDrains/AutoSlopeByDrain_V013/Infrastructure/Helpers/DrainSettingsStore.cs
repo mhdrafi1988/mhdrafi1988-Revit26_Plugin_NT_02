@@ -1,4 +1,4 @@
-// =======================================================
+﻿// =======================================================
 // File: DrainSettingsStore.cs
 // Namespace: Revit26_Plugin_Revised.MultiRoofSlopeByDrain.V013.Infrastructure.Helpers
 // Changes vs V012 (SettingsService.cs):
@@ -39,6 +39,12 @@ namespace Revit26_Plugin_Revised.MultiRoofSlopeByDrain.V013.Infrastructure.Helpe
         public string SelectedSizeFilter { get; set; } = "All";
         public bool WriteCombinedSummary { get; set; } = true;
         public bool AskToOpenAfterExport { get; set; } = true;
+
+        /// <summary>
+        /// NEW (13.3.0). Default drain selection rule: "SmallestPerShape" or "CircleDiameterRange".
+        /// Files saved by 13.2.0 have no value and get "SmallestPerShape"; unknown values fall back to it.
+        /// </summary>
+        public string DefaultDrainSelection { get; set; } = "SmallestPerShape";
 
         public CircleMarkerGroupSettings DrainMarkerGroup { get; set; } = new CircleMarkerGroupSettings { ColorName = AppConstants.DefaultDrainColor };
         public CircleMarkerGroupSettings HighestPointMarkerGroup { get; set; } = new CircleMarkerGroupSettings { ColorName = AppConstants.DefaultHighestColor };
