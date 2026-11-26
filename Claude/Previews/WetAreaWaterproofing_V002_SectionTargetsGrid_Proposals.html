@@ -1,0 +1,417 @@
+<title>Section Targets Grid Proposals</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<!--
+  Proposal page (not yet a tool change): Wet Area Waterproofing V002 (tool 2.2.0), plugin 7.34.0.
+  Step 4 "Plans and sections": move SECTION TARGETS to the right as the main area and turn it into an advanced data grid.
+  Mirrors: Menu/Sheet/WetAreaWaterproofing_V002/UI/Views/WetAreaWaterproofingWindow.xaml (Step 4, lines ~588-834)
+  Labels from SectionTargets.Label / SectionModes.Labels / TargetRowViewModel.PerItemChoices.
+  Artifact: https://claude.ai/artifact/XBp9JVbdKYxsz4vR93Nq5w
+-->
+<style>
+/* Layout: intro, "today" mock, then five window mock-ups of Step 4, each in its own horizontal scroll box.
+   Window colours follow Shared/SharedStyles.xaml; the page around them follows the viewer's theme. */
+:root{
+  --page:#F3F5F7; --ink:#1A2B3C; --muted:#5B7185; --line:#D6DCE3; --panel:#FFFFFF;
+  --win:#F3F5F7; --card:#FFFFFF; --head:#1E3A5F; --input:#B5C2CF; --sep:#E6EAEF; --hdr:#ECEFF3;
+  --blue:#2D6CDF; --blueSoft:#E6EEFB; --ok:#2E7D4F; --okSoft:#E6F4EC; --okBd:#9FCFB2;
+  --warn:#9A5B00; --warnSoft:#FDF1E1; --warnBd:#E8B66B; --err:#B3261E; --errSoft:#FBE9E7;
+  --winInk:#1A2B3C; --winMuted:#5B7185; --winBd:#9AA8B8; --white:#FFFFFF; --off:#9AA8B8;
+  --font:"Segoe UI",system-ui,-apple-system,sans-serif; --mono:Consolas,"SFMono-Regular",Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--page:#111821;--ink:#E4EAF1;--muted:#9AA8B8;--line:#2A3644;--panel:#18222E;color-scheme:dark}}
+:root[data-theme="dark"]{--page:#111821;--ink:#E4EAF1;--muted:#9AA8B8;--line:#2A3644;--panel:#18222E;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--page);color:var(--ink);font:14px/1.45 var(--font);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+.wrap{max-width:1180px;margin:0 auto;display:grid;gap:30px}
+h1{font-size:22px;margin:0;text-wrap:balance}
+h2{font-size:17px;margin:0;text-wrap:balance}
+p{margin:0}
+.note{color:var(--muted);font-size:13px;max-width:78ch}
+section{display:grid;gap:10px;min-width:0}
+nav.jump{display:flex;flex-wrap:wrap;gap:6px}
+nav.jump a{font-size:12.5px;color:var(--ink);text-decoration:none;border:1px solid var(--line);background:var(--panel);border-radius:14px;padding:3px 11px}
+nav.jump a:hover,nav.jump a:focus-visible{border-color:var(--blue);outline:none}
+.tag{display:inline-block;background:var(--okSoft);color:var(--ok);border:1px solid var(--okBd);border-radius:3px;font-size:10px;font-weight:700;letter-spacing:.05em;padding:0 5px;margin-left:5px;vertical-align:1px;text-transform:uppercase}
+.pros{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;font-size:13px}
+.pros div{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:8px 12px}
+.pros b{display:block;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
+.pros ul{margin:0;padding-left:18px}
+.hd{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.num{font:700 12px var(--font);color:var(--white);background:var(--head);border-radius:10px;padding:1px 8px}
+
+/* window mock */
+.scroll{overflow-x:auto;padding-bottom:6px}
+.win{background:var(--win);color:var(--winInk);border:1px solid var(--winBd);border-radius:6px;box-shadow:0 6px 24px rgba(20,40,63,.18);overflow:hidden;font-size:12.5px;min-width:1120px;color-scheme:light}
+.tb{background:var(--head);color:var(--white);padding:8px 12px;display:flex;justify-content:space-between;align-items:center;font-weight:600}
+.tb i{font-style:normal;opacity:.75;font-weight:400}
+.body{padding:10px;display:grid;gap:6px}
+.step{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:7px 14px;display:flex;align-items:center;gap:10px}
+.step.active{border-color:var(--head);display:block;padding:0}
+.step .dot{width:22px;height:22px;border-radius:11px;background:var(--ok);color:var(--white);display:grid;place-items:center;font-size:11px;font-weight:700;flex:none}
+.step.active .dot{background:var(--head)}
+.step .st{font-weight:600}
+.step .ss{font-size:11.5px;color:var(--ok)}
+.shead{display:flex;align-items:center;gap:10px;padding:8px 14px}
+.shead .ss{color:var(--winMuted)}
+.sbody{padding:0 14px 12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:5px;padding:10px 12px;display:grid;gap:7px;align-content:start}
+.card h3{margin:0;font-size:11.5px;color:var(--head);text-transform:uppercase;letter-spacing:.06em}
+.row{display:flex;align-items:center;gap:6px;min-width:0}
+.row label{width:96px;color:var(--winMuted);flex:none}
+.sel,.inp{border:1px solid var(--input);background:var(--white);border-radius:3px;padding:2px 6px;min-height:22px;display:inline-flex;align-items:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sel{justify-content:space-between}
+.sel::after{content:"▾";color:var(--winMuted);margin-left:6px}
+.sel.dis{color:var(--off);background:var(--hdr)}
+.inp.mm{width:56px;justify-content:flex-end}
+.u{color:var(--winMuted);font-size:11px}
+.hint{color:var(--winMuted);font-size:11.5px}
+.btn{border:1px solid var(--input);background:var(--white);border-radius:4px;padding:2px 10px;color:var(--winInk);white-space:nowrap;font-size:12px;display:inline-flex;align-items:center;gap:4px}
+.btn.pri{background:var(--head);border-color:var(--head);color:var(--white);font-weight:600}
+.btn.sm{padding:0 7px;font-size:11px}
+.cb{width:13px;height:13px;border:1px solid var(--input);border-radius:2px;display:inline-grid;place-items:center;font-size:10px;background:var(--white);flex:none;vertical-align:-2px}
+.cb.on{background:var(--blue);border-color:var(--blue);color:var(--white)}
+.cb.on::after{content:"✓"}
+.cb.mix{background:var(--blue);border-color:var(--blue)}
+.cb.mix::after{content:"";width:7px;height:2px;background:var(--white)}
+.exp{color:var(--head);font-weight:600;font-size:12px}
+.exp::before{content:"▸ ";color:var(--winMuted)}
+.exp.open::before{content:"▾ "}
+.chip{border:1px solid var(--input);border-radius:10px;padding:0 8px;font-size:11px;background:var(--white);white-space:nowrap}
+.chip.on{background:var(--head);border-color:var(--head);color:var(--white)}
+.search{border:1px solid var(--input);background:var(--white);border-radius:3px;padding:2px 8px;color:var(--off);min-width:200px}
+.search::before{content:"⌕ ";color:var(--winMuted)}
+.foot{display:flex;justify-content:flex-end;gap:6px;padding:8px 10px;border-top:1px solid var(--line);background:var(--card)}
+.foot .grow{flex:1;color:var(--winMuted);align-self:center;font-size:11.5px}
+.radio{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.radio::before{content:"";width:11px;height:11px;border:1px solid var(--input);border-radius:50%;background:var(--white)}
+.radio.on::before{background:radial-gradient(var(--blue) 0 3px,var(--white) 3.5px)}
+
+/* data grid */
+.dg{border:1px solid var(--line);border-radius:4px;overflow:hidden;background:var(--card);display:grid;align-content:start}
+.dgbar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:6px 8px;border-bottom:1px solid var(--line);background:var(--card)}
+.dgbar .sp{flex:1}
+.bulk{display:flex;align-items:center;gap:6px;padding:5px 8px;background:var(--blueSoft);border-bottom:1px solid var(--line);font-size:12px}
+.grid{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums;font-size:12px}
+.grid th{background:var(--hdr);text-align:left;font-weight:600;padding:4px 6px;border-bottom:1px solid var(--line);border-right:1px solid var(--sep);font-size:11.5px;white-space:nowrap;position:relative}
+.grid th.s::after{content:" ▲";color:var(--blue);font-size:9px}
+.grid th .f{color:var(--winMuted);font-size:10px;margin-left:4px}
+.grid th .f.act{color:var(--blue)}
+.grid th.band{text-align:center;background:var(--sep);color:var(--head);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;padding:2px 6px}
+.grid td{padding:3px 6px;border-bottom:1px solid var(--sep);white-space:nowrap;vertical-align:middle}
+.grid td .sel,.grid td .inp{min-height:20px;font-size:11.5px}
+.grid tr.off td{color:var(--off)}
+.grid tr.off td .sel,.grid tr.off td .inp{color:var(--off);background:var(--hdr)}
+.grid tr.cur td{background:var(--blueSoft)}
+.grid tr.grp td{background:var(--hdr);font-weight:600;color:var(--head);font-size:11.5px;padding:3px 8px}
+.grid td.r{text-align:right}
+.grid td.m{color:var(--winMuted)}
+.drag{color:var(--off);cursor:grab;letter-spacing:-2px}
+.prio{display:inline-grid;place-items:center;width:18px;height:18px;border-radius:9px;background:var(--hdr);color:var(--head);font-size:10.5px;font-weight:700}
+.st{display:inline-block;border-radius:9px;padding:0 7px;font-size:10.5px;font-weight:600;border:1px solid}
+.st.ok{color:var(--ok);background:var(--okSoft);border-color:var(--okBd)}
+.st.warn{color:var(--warn);background:var(--warnSoft);border-color:var(--warnBd)}
+.st.info{color:var(--blue);background:var(--blueSoft);border-color:#A9C3EE}
+.st.mute{color:var(--winMuted);background:var(--hdr);border-color:var(--line)}
+.dv{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--input);background:var(--white);border-radius:3px;padding:1px 6px;min-width:220px;max-width:280px}
+.dv .n{overflow:hidden;text-overflow:ellipsis;flex:1}
+.dv .b{font-family:var(--mono);font-size:10.5px;color:var(--blue);background:var(--blueSoft);border-radius:2px;padding:0 4px}
+.dv .b.new{color:var(--warn);background:var(--warnSoft)}
+.dv.na{color:var(--off);background:var(--hdr);border-style:dashed}
+.bar{display:inline-block;height:6px;border-radius:3px;background:var(--sep);width:60px;vertical-align:middle;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--ok)}
+.bar i.w{background:var(--warnBd)}
+.gfoot{display:flex;gap:14px;padding:5px 8px;font-size:11.5px;color:var(--winMuted);border-top:1px solid var(--line);background:var(--card)}
+.gfoot b{color:var(--winInk)}
+/* layouts */
+.L1{display:grid;grid-template-columns:290px 1fr;gap:12px}
+.L2{display:grid;grid-template-columns:200px 1fr;gap:12px}
+.vt{display:grid;gap:2px;align-content:start;background:var(--card);border:1px solid var(--line);border-radius:5px;padding:4px}
+.vt div{padding:6px 10px;border-radius:3px;display:flex;justify-content:space-between;gap:6px}
+.vt div.on{background:var(--head);color:var(--white);font-weight:600}
+.vt div .u{font-size:10.5px}
+.vt div.on .u{color:var(--white);opacity:.8}
+.L3{display:grid;grid-template-columns:270px 1fr;gap:12px}
+.detail{display:grid;grid-template-columns:1.1fr 1fr 1fr;gap:12px;border:1px solid var(--line);border-top:2px solid var(--blue);border-radius:4px;padding:10px 12px;background:var(--card)}
+.detail h4{margin:0 0 4px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--head)}
+.L5{display:grid;grid-template-columns:1fr 330px;gap:12px}
+.mtx td.c{text-align:center;font-size:11.5px}
+.mtx td.c.z{color:var(--off)}
+.mtx td.c.cap{background:var(--warnSoft);color:var(--warn);font-weight:700}
+.mtx th.v{writing-mode:vertical-rl;transform:rotate(180deg);height:92px;text-align:left;font-weight:600;padding:6px 3px}
+.pop{position:absolute;z-index:2;top:26px;left:0;background:var(--card);border:1px solid var(--winBd);border-radius:4px;box-shadow:0 6px 18px rgba(20,40,63,.2);padding:8px;display:grid;gap:4px;font-weight:400;min-width:170px}
+.rel{position:relative}
+.legend{display:flex;gap:10px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+</style>
+
+<div class="wrap">
+<header style="display:grid;gap:8px">
+  <h1>Section targets as a data grid <span class="tag">proposal</span></h1>
+  <p class="note">Wet Area Waterproofing V002 · tool 2.2.0 · step 4 <b>Plans and sections</b>. Today the right column is one long card: eight stacked target rows (each 2–3 lines), then drafting view, section settings, callout settings and two expanders. Each proposal below moves the targets table to the <b>right</b>, as the main area of step 4, and turns it into a grid with sorting, column filters, bulk edit, row priority and a live "what gets made" count. The settings move to the left. All rooms, views and sheet numbers are <b>sample data</b>.</p>
+  <nav class="jump" aria-label="Proposals">
+    <a href="#today">Today</a><a href="#p1">1 · Settings rail + grid</a><a href="#p2">2 · Side tabs + grid</a><a href="#p3">3 · Master–detail</a><a href="#p4">4 · Grouped bands</a><a href="#p5">5 · Grid + room matrix</a>
+  </nav>
+  <div class="legend"><span><span class="tag">new</span> new or moved</span><span>Grid features shared by all: click a header to sort, <b>⏷</b> opens a column filter, drag <b class="drag">⋮⋮</b> to set priority (top wins at the six-per-room cap), tick rows to bulk edit.</span></div>
+</header>
+
+<section id="today">
+  <div class="hd"><h2>Today (2.2.0)</h2></div>
+  <p class="note">Plans on the left, section targets stacked on the right; the targets list, drafting views and settings scroll together, so you lose sight of the targets while editing settings.</p>
+  <div class="scroll"><div class="win" style="min-width:900px">
+    <div class="tb"><span>Wet Area Waterproofing <i>· 2.2.0 (V002)</i></span><span>✕</span></div>
+    <div class="body">
+      <div class="step active"><div class="shead"><div class="dot">4</div><div><div class="st">Plans and sections</div><div class="ss hint">Plan settings, section targets and drafting views</div></div></div>
+      <div class="sbody" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="card"><h3>Plans</h3><div class="row"><span class="cb on"></span><b>Create plans</b></div><div class="row"><label>Plan type</label><span class="sel" style="flex:1">Floor Plan</span></div><div class="row"><label>View template</label><span class="sel" style="flex:1">WP - Room Plan 1:50</span></div></div>
+        <div class="card"><h3>Section targets</h3><div class="row"><span class="cb on"></span><b>Create sections</b></div>
+          <div id="todayRows"></div>
+          <div class="hint">… then Drafting view, Section settings, Callout settings, Search targets in, Fixture keywords (all in the same card)</div></div>
+      </div></div>
+    </div>
+  </div></div>
+</section>
+
+<!-- ═════ P1 ═════ -->
+<section id="p1">
+  <div class="hd"><span class="num">1</span><h2>Settings rail + full-height grid</h2></div>
+  <p class="note">A narrow fixed rail on the left holds Plans and the per-mode settings as collapsible groups. The grid fills the rest of step 4 on the right. Drafting-view choice ("one for all" / "one per target") sits in the grid toolbar because it changes the grid's <i>Points to</i> column.</p>
+  <div class="scroll"><div class="win">
+    <div class="tb"><span>Wet Area Waterproofing <i>· 2.2.0 (V002)</i></span><span>✕</span></div>
+    <div class="body">
+      <div class="step"><div class="dot">✓</div><div><div class="st">Find rooms</div><div class="ss">24 rooms ticked on 3 levels</div></div></div>
+      <div class="step"><div class="dot">✓</div><div><div class="st">Roof</div><div class="ss">Roof type WP-Membrane 3 mm · workset Waterproofing</div></div></div>
+      <div class="step active"><div class="shead"><div class="dot">4</div><div style="flex:1"><div class="st">Plans and sections</div><div class="ss hint">Plan settings, section targets and drafting views</div></div></div>
+      <div class="sbody L1">
+        <div style="display:grid;gap:8px;align-content:start">
+          <div class="card"><h3>Plans</h3>
+            <div class="row"><span class="cb on"></span><b>Create plans</b></div>
+            <div class="row"><label>Plan type</label><span class="sel" style="flex:1">Floor Plan</span></div>
+            <div class="row"><label>View template</label><span class="sel" style="flex:1">WP - Room Plan 1:50</span></div>
+            <div class="row"><label>Scale 1:</label><span class="inp mm">50</span><span class="u" style="margin-left:8px">Crop</span><span class="inp mm">300</span><span class="u">mm</span></div>
+            <div class="row"><label>Plan name</label><span class="inp" style="flex:1">WP - {Level} - {Number} {Name}</span></div>
+          </div>
+          <div class="card"><h3>Sections <span class="tag">moved</span></h3>
+            <div class="exp open">Section settings</div>
+            <div class="row"><label>View type</label><span class="sel" style="flex:1">Building Section</span></div>
+            <div class="row"><label>Scale 1:</label><span class="inp mm">20</span><span class="u" style="margin-left:8px">Depth</span><span class="inp mm">600</span><span class="u">mm</span></div>
+            <div class="row"><label>Crop below</label><span class="inp mm">300</span><span class="u" style="margin-left:4px">above</span><span class="inp mm">1200</span><span class="u">mm</span></div>
+            <div class="exp">Callout settings</div>
+            <div class="exp">Search targets in <span class="u">· 3 sources</span></div>
+            <div class="exp">Fixture keywords</div>
+          </div>
+        </div>
+        <div class="dg">
+          <div class="dgbar">
+            <span class="cb on"></span><b>Create sections</b>
+            <span class="u" style="margin-left:10px">Drafting view</span><span class="radio">One for all</span><span class="radio on">One per target</span>
+            <span class="sp"></span>
+            <span class="search">Filter targets…</span>
+            <span class="chip on">All 8</span><span class="chip">On 5</span><span class="chip">Needs view 1</span>
+            <span class="btn sm">Columns ▾</span><span class="btn sm">Reset to defaults</span>
+          </div>
+          <div class="bulk"><span class="cb mix"></span><b>2 ticked</b><span class="tag">new</span><span class="u">Set for ticked:</span><span class="sel">Mode</span><span class="sel">Per item</span><span class="inp mm">Length</span><span class="btn sm">Assign drafting view…</span><span class="btn sm">Turn off</span></div>
+          <table class="grid" id="g1"></table>
+          <div class="gfoot"><span><b>5</b> of 8 targets on</span><span><b>112</b> sections · <b>24</b> callouts in 24 rooms</span><span style="color:var(--warn)">3 rooms hit the six-section cap: lower rows dropped there</span></div>
+        </div>
+      </div></div>
+    </div>
+    <div class="foot"><span class="grow">Step 4 of 6</span><span class="btn">Back</span><span class="btn">Run without review</span><span class="btn pri">Next</span></div>
+  </div></div>
+  <div class="pros"><div><b>Good</b><ul><li>Grid always visible; settings never push it down.</li><li>Least change to the step model and view model.</li></ul></div><div><b>Watch</b><ul><li>Rail is narrow: long template names truncate (tooltip shows full).</li></ul></div></div>
+</section>
+
+<!-- ═════ P2 ═════ -->
+<section id="p2">
+  <div class="hd"><span class="num">2</span><h2>Side tabs on the left, grid on the right</h2></div>
+  <p class="note">The left side becomes a short vertical tab list (Plans, Sections, Callouts, Search in, Keywords). Only one settings page shows at a time under the tabs; the grid on the right stays the same size whichever tab is open.</p>
+  <div class="scroll"><div class="win">
+    <div class="tb"><span>Wet Area Waterproofing <i>· 2.2.0 (V002)</i></span><span>✕</span></div>
+    <div class="body">
+      <div class="step active"><div class="shead"><div class="dot">4</div><div style="flex:1"><div class="st">Plans and sections</div><div class="ss hint">Plan settings, section targets and drafting views</div></div></div>
+      <div class="sbody L2">
+        <div style="display:grid;gap:8px;align-content:start">
+          <div class="vt"><div>Plans <span class="u">1:50</span></div><div class="on">Sections <span class="u">1:20</span></div><div>Callouts <span class="u">1:10</span></div><div>Search in <span class="u">3</span></div><div>Keywords <span class="u">9</span></div></div>
+          <div class="card"><h3>Section settings</h3>
+            <div style="display:grid;gap:3px"><span class="u">View type</span><span class="sel">Building Section</span></div>
+            <div class="row"><span class="u" style="width:60px">Scale 1:</span><span class="inp mm">20</span></div>
+            <div class="row"><span class="u" style="width:60px">Depth</span><span class="inp mm">600</span><span class="u">mm</span></div>
+            <div class="row"><span class="u" style="width:60px">Below</span><span class="inp mm">300</span><span class="u">mm</span></div>
+            <div class="row"><span class="u" style="width:60px">Above</span><span class="inp mm">1200</span><span class="u">mm</span></div>
+          </div>
+        </div>
+        <div class="dg">
+          <div class="dgbar"><span class="cb on"></span><b>Create sections</b><span class="sp"></span><span class="search">Filter targets…</span><span class="u">Group by</span><span class="sel">Mode</span><span class="btn sm">Columns ▾</span></div>
+          <table class="grid" id="g2"></table>
+          <div class="gfoot"><span><b>5</b> of 8 on</span><span><b>112</b> sections · <b>24</b> callouts</span><span>Drafting view: <span class="radio">One for all</span> <span class="radio on">One per target</span></span></div>
+        </div>
+      </div></div>
+    </div>
+    <div class="foot"><span class="grow">Step 4 of 6</span><span class="btn">Back</span><span class="btn">Run without review</span><span class="btn pri">Next</span></div>
+  </div></div>
+  <div class="pros"><div><b>Good</b><ul><li>Very calm screen; grid gets ~80% of the width.</li><li>Group by Mode shows at a glance which rows need a drafting view.</li></ul></div><div><b>Watch</b><ul><li>Plan settings are one click away instead of always visible.</li></ul></div></div>
+</section>
+
+<!-- ═════ P3 ═════ -->
+<section id="p3">
+  <div class="hd"><span class="num">3</span><h2>Master–detail: compact grid with a details pane</h2></div>
+  <p class="note">The grid on the right keeps one short line per target (on, priority, target, mode, length, points to, count). Selecting a row opens a details pane under the grid with everything else for that row: per item, drafting-view search with sheet and bubble, and the rooms where it matched or did not.</p>
+  <div class="scroll"><div class="win">
+    <div class="tb"><span>Wet Area Waterproofing <i>· 2.2.0 (V002)</i></span><span>✕</span></div>
+    <div class="body">
+      <div class="step active"><div class="shead"><div class="dot">4</div><div style="flex:1"><div class="st">Plans and sections</div><div class="ss hint">Plan settings, section targets and drafting views</div></div></div>
+      <div class="sbody L3">
+        <div style="display:grid;gap:8px;align-content:start">
+          <div class="card"><h3>Plans</h3><div class="row"><span class="cb on"></span><b>Create plans</b></div><div class="row"><label>Plan type</label><span class="sel" style="flex:1">Floor Plan</span></div><div class="row"><label>View template</label><span class="sel" style="flex:1">WP - Room Plan 1:50</span></div><div class="row"><label>Scale 1:</label><span class="inp mm">50</span></div></div>
+          <div class="card"><div class="exp">Section settings <span class="u">· 1:20, depth 600</span></div><div class="exp">Callout settings <span class="u">· 1:10, margin 300</span></div><div class="exp">Search targets in</div><div class="exp">Fixture keywords</div></div>
+        </div>
+        <div style="display:grid;gap:8px;align-content:start">
+          <div class="dg">
+            <div class="dgbar"><span class="cb on"></span><b>Create sections</b><span class="sp"></span><span class="search">Filter targets…</span><span class="chip on">All</span><span class="chip">On</span><span class="chip">Problems 1</span></div>
+            <table class="grid" id="g3"></table>
+          </div>
+          <div class="detail">
+            <div><h4>Floor drain <span class="tag">new</span></h4>
+              <div class="row"><label>Mode</label><span class="sel" style="flex:1">Ref. Callout</span></div>
+              <div class="row"><label>Per item</label><span class="sel" style="flex:1">All matches</span></div>
+              <div class="row"><label>Length</label><span class="inp mm">1200</span><span class="u">mm</span></div></div>
+            <div><h4>Points to</h4>
+              <div class="dv" style="max-width:none"><span class="n">WP Detail - Floor Drain</span><span class="b">A-501/3</span></div>
+              <div class="hint" style="margin-top:4px">Sheet A-501 · Waterproofing Details 1 · bubble 3</div>
+              <div style="margin-top:6px"><span class="btn sm">Assign drafting views…</span></div></div>
+            <div><h4>Found in rooms</h4>
+              <div class="row"><span class="bar"><i style="width:92%"></i></span><span><b>22</b> of 24 rooms · 26 drains</span></div>
+              <div class="hint" style="margin-top:4px">No drain: <b>L02 · 2.14 Bath</b>, <b>L03 · 3.07 Laundry</b></div>
+              <div class="hint">Cap reached in L01 · 1.03 Ensuite: 1 drain dropped</div></div>
+          </div>
+        </div>
+      </div></div>
+    </div>
+    <div class="foot"><span class="grow">Step 4 of 6</span><span class="btn">Back</span><span class="btn">Run without review</span><span class="btn pri">Next</span></div>
+  </div></div>
+  <div class="pros"><div><b>Good</b><ul><li>Grid fits all 8 rows without scrolling.</li><li>Explains <i>why</i> a target yields fewer sections (missing fixtures, cap).</li></ul></div><div><b>Watch</b><ul><li>Needs a per-target room match count before the run (a dry run of the finder).</li></ul></div></div>
+</section>
+
+<!-- ═════ P4 ═════ -->
+<section id="p4">
+  <div class="hd"><span class="num">4</span><h2>Grouped column bands + grouped rows</h2></div>
+  <p class="note">One wide grid on the right with column bands <b>Target · Cut · View · Output</b>, and rows grouped by what they cut (full room, fixtures, walls). Per-row view type and scale can override the step's defaults (blank = use default). Plans and defaults stay on the left in one card.</p>
+  <div class="scroll"><div class="win" style="min-width:1180px">
+    <div class="tb"><span>Wet Area Waterproofing <i>· 2.2.0 (V002)</i></span><span>✕</span></div>
+    <div class="body">
+      <div class="step active"><div class="shead"><div class="dot">4</div><div style="flex:1"><div class="st">Plans and sections</div><div class="ss hint">Plan settings, section targets and drafting views</div></div></div>
+      <div class="sbody" style="display:grid;grid-template-columns:250px 1fr;gap:12px">
+        <div class="card" style="align-content:start"><h3>Plans</h3><div class="row"><span class="cb on"></span><b>Create plans</b></div><div class="row"><label>Plan type</label><span class="sel" style="flex:1">Floor Plan</span></div><div class="row"><label>Scale 1:</label><span class="inp mm">50</span></div>
+          <h3 style="margin-top:8px">Defaults</h3>
+          <div class="row"><label>Section type</label><span class="sel" style="flex:1">Building Section</span></div>
+          <div class="row"><label>Section 1:</label><span class="inp mm">20</span></div>
+          <div class="row"><label>Callout type</label><span class="sel" style="flex:1">Detail</span></div>
+          <div class="row"><label>Callout 1:</label><span class="inp mm">10</span></div>
+          <div class="exp">More (depth, crop, search, keywords)</div></div>
+        <div class="dg">
+          <div class="dgbar"><span class="cb on"></span><b>Create sections</b><span class="sp"></span><span class="search">Filter targets…</span><span class="u">Group by</span><span class="sel">Cuts</span><span class="btn sm">Expand all</span><span class="btn sm">Columns ▾</span><span class="btn sm">Copy to Excel</span></div>
+          <table class="grid" id="g4"></table>
+          <div class="gfoot"><span><b>5</b> of 8 on</span><span><b>112</b> sections · <b>24</b> callouts</span><span>Italic = default from the left</span></div>
+        </div>
+      </div></div>
+    </div>
+    <div class="foot"><span class="grow">Step 4 of 6</span><span class="btn">Back</span><span class="btn">Run without review</span><span class="btn pri">Next</span></div>
+  </div></div>
+  <div class="pros"><div><b>Good</b><ul><li>Most powerful: per-target view type and scale.</li><li>Bands make a wide grid easy to scan.</li></ul></div><div><b>Watch</b><ul><li>Per-row overrides are a new feature (settings field, MINOR bump).</li><li>Widest layout; needs ≥ 1180 px.</li></ul></div></div>
+</section>
+
+<!-- ═════ P5 ═════ -->
+<section id="p5">
+  <div class="hd"><span class="num">5</span><h2>Grid + rooms matrix on the right</h2></div>
+  <p class="note">The editable targets grid takes the main area; on the right sits a read-only matrix (rooms × targets) that shows how many sections each room will get and where the six-section cap drops rows. Settings fold into one bar above the grid.</p>
+  <div class="scroll"><div class="win">
+    <div class="tb"><span>Wet Area Waterproofing <i>· 2.2.0 (V002)</i></span><span>✕</span></div>
+    <div class="body">
+      <div class="step active"><div class="shead"><div class="dot">4</div><div style="flex:1"><div class="st">Plans and sections</div><div class="ss hint">Plan settings, section targets and drafting views</div></div></div>
+      <div class="sbody" style="display:grid;gap:8px">
+        <div class="card" style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;padding:6px 12px">
+          <span class="row"><span class="cb on"></span><b>Plans</b> <span class="u">Floor Plan · 1:50 · crop 300</span></span>
+          <span class="row"><b>Sections</b> <span class="u">Building Section · 1:20 · depth 600</span></span>
+          <span class="row"><b>Callouts</b> <span class="u">Detail · 1:10 · margin 300</span></span>
+          <span style="flex:1"></span><span class="btn sm">Edit settings…</span>
+        </div>
+        <div class="L5">
+          <div class="dg">
+            <div class="dgbar"><span class="cb on"></span><b>Create sections</b><span class="sp"></span><span class="search">Filter targets…</span><span class="chip on">All</span><span class="chip">On</span><span class="btn sm">Columns ▾</span></div>
+            <table class="grid" id="g5"></table>
+            <div class="gfoot"><span><b>112</b> sections · <b>24</b> callouts in 24 rooms</span></div>
+          </div>
+          <div class="dg"><div class="dgbar"><b>Per room</b><span class="tag">new</span><span class="sp"></span><span class="sel">Level 01</span></div>
+            <table class="grid mtx" id="g5m"></table>
+            <div class="gfoot"><span style="color:var(--warn)">■ cap reached (6)</span><span>– off or not found</span></div>
+          </div>
+        </div>
+      </div></div>
+    </div>
+    <div class="foot"><span class="grow">Step 4 of 6</span><span class="btn">Back</span><span class="btn">Run without review</span><span class="btn pri">Next</span></div>
+  </div></div>
+  <div class="pros"><div><b>Good</b><ul><li>Shows the result of priority order before the run.</li><li>Settings take one line.</li></ul></div><div><b>Watch</b><ul><li>Matrix needs the per-room match pass (same as 3).</li><li>Settings move to a dialog.</li></ul></div></div>
+</section>
+
+<p class="note">Pick a number (or mix, for example "1 with the details pane from 3"). I will then change the XAML and view model, bump the tool to 2.3.0, and update the V002 preview.</p>
+</div>
+
+<script>
+// Sample data: SectionTargets defaults + realistic counts. Not a real project.
+const T=[
+ {k:"Full room – horizontal",on:1,mode:"Ref. Section",per:"—",len:300,ll:"Past room",dv:"WP Detail - Typical Wet Area",b:"A-501/1",rooms:24,of:24,n:24,st:["ok","24 rooms"],grp:"Full room"},
+ {k:"Full room – vertical",on:1,mode:"Ref. Section",per:"—",len:300,ll:"Past room",dv:"WP Detail - Typical Wet Area",b:"A-501/1",rooms:24,of:24,n:24,st:["ok","24 rooms"],grp:"Full room"},
+ {k:"Door / threshold",on:1,mode:"Callout",per:"One (nearest centre)",len:1500,ll:"Length",dv:null,rooms:24,of:24,n:24,st:["info","creates view"],grp:"Fixtures"},
+ {k:"Floor drain",on:1,mode:"Ref. Callout",per:"All matches",len:1200,ll:"Length",dv:"WP Detail - Floor Drain",b:"A-501/3",rooms:22,of:24,n:26,st:["warn","2 rooms: none"],grp:"Fixtures"},
+ {k:"Shower / bath",on:1,mode:"Section",per:"One (nearest centre)",len:1200,ll:"Length",dv:null,rooms:14,of:24,n:14,st:["info","creates view"],grp:"Fixtures"},
+ {k:"WC / closet",on:0,mode:"Ref. Section",per:"One (nearest centre)",len:1200,ll:"Length",dv:"WP Detail - WC Base",b:"A-502/2",rooms:19,of:24,n:0,st:["mute","off"],grp:"Fixtures"},
+ {k:"Wall corner",on:0,mode:"Ref. Section",per:"—",len:1000,ll:"Length",dv:"WP Detail - Wall Corner",b:"new",rooms:24,of:24,n:0,st:["mute","off"],grp:"Walls"},
+ {k:"Wall–floor",on:0,mode:"Ref. Section",per:"—",len:1000,ll:"Length",dv:"WP Detail - Wall Upturn",b:"A-502/4",rooms:24,of:24,n:0,st:["mute","off"],grp:"Walls"}
+];
+const cb=o=>`<span class="cb${o?" on":""}"></span>`;
+const sel=(v,dis)=>`<span class="sel${dis?" dis":""}" style="width:100%">${v}</span>`;
+const dv=t=>t.dv?`<span class="dv"><span class="n">${t.dv}</span><span class="b${t.b==="new"?" new":""}">${t.b==="new"?"new at run":t.b}</span></span>`:`<span class="dv na"><span class="n">— not used by ${t.mode}</span></span>`;
+const st=t=>`<span class="st ${t.st[0]}">${t.st[1]}</span>`;
+const bar=t=>`<span class="bar"><i class="${t.rooms<t.of?"w":""}" style="width:${Math.round(t.rooms/t.of*100)}%"></i></span> ${t.rooms}/${t.of}`;
+const cls=(t,i,cur)=>`${t.on?"":"off"}${cur===i?" cur":""}`;
+const H=(n,f,s)=>`<th${s?' class="s"':""}>${n}${f?` <span class="f${f===2?" act":""}">⏷</span>`:""}</th>`;
+const tick=(i,ticked)=>cb(ticked.includes(i));
+
+// today
+document.getElementById("todayRows").innerHTML=T.slice(0,3).map(t=>`<div style="border-bottom:1px solid var(--sep);padding:4px 0;display:grid;gap:3px"><div class="row">${cb(t.on)}<b style="flex:1">${t.k}</b><span class="btn sm">▲</span><span class="btn sm">▼</span></div><div class="row" style="padding-left:20px"><span class="sel" style="width:104px">${t.mode}</span><span class="sel${t.per==="—"?" dis":""}" style="width:150px">${t.per==="—"?"One (nearest centre)":t.per}</span><span style="flex:1"></span><span class="u">${t.ll}</span><span class="inp mm">${t.len}</span><span class="u">mm</span></div><div class="row" style="padding-left:20px"><span class="u" style="width:62px">Points to</span><span class="inp" style="flex:1">${t.dv||""}</span></div></div>`).join("")+`<div class="hint">… 5 more targets like these</div>`;
+
+// P1: full grid with bulk tick + filter popup
+(function(){const ticked=[2,3];
+ let h=`<thead><tr><th>${cb(0)}</th><th></th>${H("#",0,1)}<th>On</th>${H("Target",1)}<th class="rel">Mode <span class="f act">⏷</span><div class="pop"><span class="u">Show modes</span><span>${cb(1)} Ref. Section</span><span>${cb(1)} Callout</span><span>${cb(1)} Section</span><span>${cb(1)} Ref. Callout</span></div></th>${H("Per item",1)}${H("Length mm",0)}${H("Points to (drafting view · sheet/bubble)",1)}${H("Rooms found",0)}${H("Will make",0)}${H("Status",1)}</tr></thead><tbody>`;
+ T.forEach((t,i)=>{h+=`<tr class="${cls(t,i,3)}"><td>${tick(i,ticked)}</td><td class="drag">⋮⋮</td><td><span class="prio">${i+1}</span></td><td>${cb(t.on)}</td><td><b>${t.k}</b></td><td style="width:108px">${sel(t.mode)}</td><td style="width:150px">${sel(t.per==="—"?"n/a":t.per,t.per==="—")}</td><td class="r"><span class="inp mm">${t.len}</span>${t.ll==="Past room"?' <span class="u">past</span>':""}</td><td>${dv(t)}</td><td>${bar(t)}</td><td class="r">${t.n||"–"}</td><td>${st(t)}</td></tr>`});
+ document.getElementById("g1").innerHTML=h+"</tbody>";})();
+
+// P2: grouped by mode
+(function(){const groups={};T.forEach((t,i)=>(groups[t.mode]=groups[t.mode]||[]).push([t,i]));
+ let h=`<thead><tr><th></th>${H("#",0,1)}<th>On</th>${H("Target",1)}${H("Per item",1)}${H("Length mm")}${H("Points to",1)}${H("Will make")}${H("Status",1)}</tr></thead><tbody>`;
+ ["Ref. Section","Ref. Callout","Callout","Section"].forEach(m=>{const g=groups[m]||[];h+=`<tr class="grp"><td colspan="9">▾ ${m} · ${g.length} target${g.length>1?"s":""}${m.startsWith("Ref")?" · points to a drafting view":" · creates its own view"}</td></tr>`;
+  g.forEach(([t,i])=>{h+=`<tr class="${cls(t,i,-1)}"><td class="drag">⋮⋮</td><td><span class="prio">${i+1}</span></td><td>${cb(t.on)}</td><td><b>${t.k}</b></td><td style="width:150px">${sel(t.per==="—"?"n/a":t.per,t.per==="—")}</td><td class="r"><span class="inp mm">${t.len}</span></td><td>${dv(t)}</td><td class="r">${t.n||"–"}</td><td>${st(t)}</td></tr>`})});
+ document.getElementById("g2").innerHTML=h+"</tbody>";})();
+
+// P3: compact
+(function(){let h=`<thead><tr><th></th>${H("#",0,1)}<th>On</th>${H("Target",1)}${H("Mode",1)}${H("Length")}${H("Points to",1)}${H("Rooms")}${H("Will make")}</tr></thead><tbody>`;
+ T.forEach((t,i)=>{h+=`<tr class="${cls(t,i,3)}"><td class="drag">⋮⋮</td><td><span class="prio">${i+1}</span></td><td>${cb(t.on)}</td><td><b>${t.k}</b>${t.st[0]==="warn"?' <span class="st warn">!</span>':""}</td><td>${t.mode}</td><td class="r">${t.len}</td><td class="m">${t.dv?t.dv+" · "+(t.b==="new"?"new":t.b):"—"}</td><td>${bar(t)}</td><td class="r">${t.n||"–"}</td></tr>`});
+ document.getElementById("g3").innerHTML=h+"</tbody>";})();
+
+// P4: bands + row groups + overrides
+(function(){const ov={"Door / threshold":["Detail","1:5"],"Shower / bath":["Building Section","1:10"]};
+ let h=`<thead><tr><th class="band" colspan="4">Target</th><th class="band" colspan="3">Cut</th><th class="band" colspan="3">View <span class="tag">new</span></th><th class="band" colspan="2">Output</th></tr><tr><th></th>${H("#",0,1)}<th>On</th>${H("Target",1)}${H("Mode",1)}${H("Per item",1)}${H("Length")}${H("View type")}${H("Scale")}${H("Points to",1)}${H("Rooms")}${H("Will make")}</tr></thead><tbody>`;
+ let g="";T.forEach((t,i)=>{if(t.grp!==g){g=t.grp;const c=T.filter(x=>x.grp===g);h+=`<tr class="grp"><td colspan="12">▾ ${g} · ${c.filter(x=>x.on).length} of ${c.length} on · ${c.reduce((a,x)=>a+x.n,0)} views</td></tr>`}
+  const o=ov[t.k];const ref=t.mode.startsWith("Ref");
+  h+=`<tr class="${cls(t,i,-1)}"><td class="drag">⋮⋮</td><td><span class="prio">${i+1}</span></td><td>${cb(t.on)}</td><td><b>${t.k}</b></td><td style="width:104px">${sel(t.mode)}</td><td style="width:140px">${sel(t.per==="—"?"n/a":t.per,t.per==="—")}</td><td class="r"><span class="inp mm">${t.len}</span></td><td style="width:130px">${ref?'<span class="m">—</span>':(o?sel(o[0]):`<span class="sel" style="width:100%"><i class="m">Default</i></span>`)}</td><td>${ref?'<span class="m">—</span>':(o?`<span class="inp mm">${o[1]}</span>`:`<span class="inp mm"><i class="m">1:${t.mode==="Callout"?10:20}</i></span>`)}</td><td>${dv(t)}</td><td>${bar(t)}</td><td class="r">${t.n||"–"}</td></tr>`});
+ document.getElementById("g4").innerHTML=h+"</tbody>";})();
+
+// P5: grid + matrix
+(function(){let h=`<thead><tr><th></th>${H("#",0,1)}<th>On</th>${H("Target",1)}${H("Mode",1)}${H("Per item",1)}${H("Length")}${H("Points to",1)}${H("Will make")}</tr></thead><tbody>`;
+ T.forEach((t,i)=>{h+=`<tr class="${cls(t,i,-1)}"><td class="drag">⋮⋮</td><td><span class="prio">${i+1}</span></td><td>${cb(t.on)}</td><td><b>${t.k}</b></td><td style="width:100px">${sel(t.mode)}</td><td style="width:140px">${sel(t.per==="—"?"n/a":t.per,t.per==="—")}</td><td class="r"><span class="inp mm">${t.len}</span></td><td>${dv(t)}</td><td class="r">${t.n||"–"}</td></tr>`});
+ document.getElementById("g5").innerHTML=h+"</tbody>";
+ const rooms=[["1.01 Bath",[1,1,1,1,1]],["1.03 Ensuite",[1,1,1,"6*",1]],["1.04 WC",[1,1,1,1,0]],["1.06 Laundry",[1,1,1,1,0]],["1.08 Bath",[1,1,1,2,1]],["1.11 Shower",[1,1,1,2,1]]];
+ const ks=T.filter(t=>t.on).map(t=>t.k.replace("Full room – ","Full ").replace(" / threshold","").replace(" / bath",""));
+ let m=`<thead><tr><th>Room</th>${ks.map(k=>`<th class="v">${k}</th>`).join("")}<th class="v">Total</th></tr></thead><tbody>`;
+ rooms.forEach(([r,v])=>{let tot=0;m+=`<tr><td>${r}</td>${v.map(x=>{const cap=String(x).includes("*");const n=parseInt(x);tot+=cap?2:n;return `<td class="c${n?"":" z"}${cap?" cap":""}">${cap?"2→1":(n||"–")}</td>`}).join("")}<td class="c${tot>=6?" cap":""}"><b>${Math.min(tot,6)}</b></td></tr>`});
+ document.getElementById("g5m").innerHTML=m+"</tbody>";})();
+</script>
