@@ -85,6 +85,14 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V002.Core.Sections
             return new SectionPlan(sections, skipped);
         }
 
+        /// <summary>
+        /// How many cuts <paramref name="target"/> could make in <paramref name="room"/> (tool 2.3.0), whether the
+        /// target is on or not: 1 for the full-room and wall-floor cuts, one per corner, one per matching door,
+        /// drain or fixture. 0 when the room has no usable outline.
+        /// </summary>
+        public static int CountMatches(RoomSectionInput room, SectionTargetSetting target)
+            => room?.Outer == null || room.Outer.Count < 3 || target == null ? 0 : Cuts(room, target).Count;
+
         private sealed record Cut(Pt Head, Pt Tail, FoundItem Item);
 
         /// <summary>Every cut the target could make in the room, nearest the room's inside point first.</summary>

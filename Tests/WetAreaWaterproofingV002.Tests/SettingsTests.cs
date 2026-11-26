@@ -1,5 +1,6 @@
 using Revit26_Plugin_Revised.WetAreaWaterproofing.V002.Core.Models;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using Xunit;
 
@@ -39,6 +40,19 @@ namespace WetAreaWaterproofingV002.Tests
             Assert.Equal(9, s.Keywords.Count);
             Assert.NotNull(s.IncludedLinks);
             Assert.EndsWith("Reports", s.ReportFolder);
+        }
+
+        [Fact]
+        public void TargetHiddenColumnsSurviveASaveAndOldFilesShowEveryColumn()
+        {
+            var s = new WetAreaSettings().Normalize();
+            s.Grid.TargetHiddenColumns = new List<string> { "Will make", " ", "Will make", "Status" };
+            string json = System.Text.Json.JsonSerializer.Serialize(s.Normalize());
+            var back = System.Text.Json.JsonSerializer.Deserialize<WetAreaSettings>(json).Normalize();
+            Assert.Equal(new[] { "Will make", "Status" }, back.Grid.TargetHiddenColumns);
+
+            var old = System.Text.Json.JsonSerializer.Deserialize<WetAreaSettings>("{\"Version\":1,\"Grid\":{\"GroupBy\":\"Level\"}}").Normalize();
+            Assert.Empty(old.Grid.TargetHiddenColumns);
         }
 
         [Fact]

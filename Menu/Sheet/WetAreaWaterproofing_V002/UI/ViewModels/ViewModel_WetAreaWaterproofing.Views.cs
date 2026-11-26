@@ -53,6 +53,8 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V002.UI.ViewModels
         public bool IsCallout => Mode == SectionMode.Callout;
         /// <summary>Whether this row points to a drafting view (Ref. Section or Ref. Callout).</summary>
         public bool UsesDraftingView => SectionModes.UsesDraftingView(Mode);
+        /// <summary>True for Callout and Section: the row makes its own view (tool 2.3.0, details pane).</summary>
+        public bool IsCalloutOrSection => !UsesDraftingView;
         /// <summary>Why "Points to" is greyed out for this row, or empty.</summary>
         public string NoDraftingNote => Mode switch
         {
@@ -67,7 +69,124 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V002.UI.ViewModels
         [ObservableProperty] private string _draftingViewName;
         [ObservableProperty] private string _selectedMode;
 
-        partial void OnOnChanged(bool value) => _changed?.Invoke();
+        // ── Grid (tool 2.3.0) ──────────────────────────────────────────────────────────────────
+
+        /// <summary>Called when the row's tick for "Set for ticked" changes. Set by the window's view model.</summary>
+        public Action<TargetRowViewModel> TickChanged { get; set; }
+
+        /// <summary>1-based place in the table: higher rows win when a room would get more than six sections.</summary>
+        [ObservableProperty] private int _priority;
+        /// <summary>Ticked for "Set for ticked" (not saved).</summary>
+        [ObservableProperty] private bool _isTicked;
+        /// <summary>Rooms where the target finds something.</summary>
+        [ObservableProperty] private int _roomsWith;
+        /// <summary>Ticked rooms that can be run.</summary>
+        [ObservableProperty] private int _roomsTotal;
+        /// <summary>Every match in those rooms.</summary>
+        [ObservableProperty] private int _matches;
+        /// <summary>Sections the run would place for this target.</summary>
+        [ObservableProperty] private int _makes;
+        /// <summary>"No match: L02 · 2.14 Bath, …", or empty.</summary>
+        [ObservableProperty] private string _roomsWithoutText = string.Empty;
+        /// <summary>One line per room where the six-section limit dropped a section, or empty.</summary>
+        [ObservableProperty] private string _droppedText = string.Empty;
+        /// <summary>Rooms without a match.</summary>
+        [ObservableProperty] private int _roomsWithoutCount;
+        /// <summary>Rooms where the limit dropped a section.</summary>
+        [ObservableProperty] private int _droppedCount;
+        /// <summary>The drafting view the row points to at the run (its own, or the shared one).</summary>
+        [ObservableProperty] private string _pointsToName = string.Empty;
+        /// <summary>"A-501 / 3", "new at run", or empty.</summary>
+        [ObservableProperty] private string _pointsToReference = string.Empty;
+        /// <summary>"A-501 / 3 · Waterproofing details", "Not on a sheet" or "New view: created at the run".</summary>
+        [ObservableProperty] private string _pointsToDetail = string.Empty;
+        /// <summary>True when the drafting view is not in the project yet.</summary>
+        [ObservableProperty] private bool _pointsToIsNew;
+
+        /// <summary>"22 / 24": rooms with a match of the ticked rooms.</summary>
+        public string CoverageText => RoomsTotal == 0 ? "–" : $"{RoomsWith} / {RoomsTotal}";
+        /// <summary>Rooms with a match, 0–100, for the bar.</summary>
+        public double CoveragePercent => RoomsTotal == 0 ? 0 : 100.0 * RoomsWith / RoomsTotal;
+        /// <summary>True when some ticked room has no match.</summary>
+        public bool HasRoomsWithout => RoomsWithoutCount > 0;
+        /// <summary>"12" or "–" when the row makes nothing.</summary>
+        public string MakesText => On && Makes > 0 ? Makes.ToString(CultureInfo.CurrentCulture) : "–";
+        /// <summary>"priority 4 of 8".</summary>
+        public string PriorityText { get; private set; } = string.Empty;
+        /// <summary>Status chip colour: ok, info, warn or off.</summary>
+        public string StatusKind => Status().Kind;
+        /// <summary>Status chip text.</summary>
+        public string StatusText => Status().Text;
+        /// <summary>True when the status chip is a warning (for the "Problems" filter).</summary>
+        public bool HasProblem => On && StatusKind == "warn";
+        /// <summary>"Points to" text for the grid: the view name, or why there is none.</summary>
+        public string PointsToText => !UsesDraftingView ? NoDraftingNote : PointsToName;
+        /// <summary>Text for the details pane's "Found in rooms" line.</summary>
+        public string CoverageSummary => RoomsTotal == 0 ? "No ticked room can be run."
+            : $"{RoomsWith} of {RoomsTotal} rooms · {Matches} match(es)" + (On ? $" · makes {Makes}" : " · off");
+
+        private (string Kind, string Text) Status()
+        {
+            if (!On) return ("off", "Off");
+            if (RoomsTotal == 0) return ("info", "No rooms");
+            if (DroppedCount > 0) return ("warn", DroppedCount == 1 ? "1 room at limit" : $"{DroppedCount} rooms at limit");
+            if (RoomsWithoutCount > 0 && SectionTargets.NeedsItem(Kind))
+                return ("warn", RoomsWithoutCount == 1 ? "1 room: none" : $"{RoomsWithoutCount} rooms: none");
+            if (UsesDraftingView && PointsToIsNew) return ("info", "View made at run");
+            if (!UsesDraftingView) return ("info", "Makes own view");
+            return ("ok", Makes == 1 ? "1 section" : $"{Makes} sections");
+        }
+
+        /// <summary>Sets the counts from <paramref name="row"/>; null clears them.</summary>
+        public void SetCoverage(TargetCoverageRow row)
+        {
+            RoomsWith = row?.RoomsWith ?? 0;
+            RoomsTotal = row?.RoomsTotal ?? 0;
+            Matches = row?.Matches ?? 0;
+            Makes = row?.Makes ?? 0;
+            RoomsWithoutCount = row?.RoomsWithout.Count ?? 0;
+            DroppedCount = row?.DroppedRooms.Count ?? 0;
+            RoomsWithoutText = row == null || row.RoomsWithout.Count == 0 ? string.Empty
+                : "No match: " + string.Join(", ", row.RoomsWithout.Take(6)) + (row.RoomsWithout.Count > 6 ? $" and {row.RoomsWithout.Count - 6} more" : string.Empty);
+            DroppedText = row == null || row.Dropped.Count == 0 ? string.Empty
+                : "Six-section limit: " + string.Join(" · ", row.Dropped.Take(4)) + (row.Dropped.Count > 4 ? " …" : string.Empty);
+            NotifyDerived();
+        }
+
+        /// <summary>Sets the drafting view the row points to at the run, and where it sits.</summary>
+        public void SetPointsTo(string name, IReadOnlyList<DraftingViewInfo> views)
+        {
+            PointsToName = name ?? string.Empty;
+            DraftingViewInfo v = DraftingViewSearch.FindByName(views, PointsToName);
+            PointsToIsNew = v == null && !string.IsNullOrWhiteSpace(PointsToName);
+            PointsToReference = !UsesDraftingView ? string.Empty : v == null ? (PointsToIsNew ? "new at run" : string.Empty) : v.Reference;
+            PointsToDetail = DraftingViewSearch.Describe(views, PointsToName);
+            NotifyDerived();
+        }
+
+        /// <summary>Sets the priority text after a move.</summary>
+        public void SetPriority(int priority, int count)
+        {
+            Priority = priority;
+            PriorityText = $"priority {priority} of {count}";
+            OnPropertyChanged(nameof(PriorityText));
+        }
+
+        private void NotifyDerived()
+        {
+            OnPropertyChanged(nameof(CoverageText));
+            OnPropertyChanged(nameof(CoveragePercent));
+            OnPropertyChanged(nameof(HasRoomsWithout));
+            OnPropertyChanged(nameof(MakesText));
+            OnPropertyChanged(nameof(StatusKind));
+            OnPropertyChanged(nameof(StatusText));
+            OnPropertyChanged(nameof(HasProblem));
+            OnPropertyChanged(nameof(PointsToText));
+            OnPropertyChanged(nameof(CoverageSummary));
+        }
+
+        partial void OnIsTickedChanged(bool value) => TickChanged?.Invoke(this);
+        partial void OnOnChanged(bool value) { NotifyDerived(); _changed?.Invoke(); }
         partial void OnPerItemChanged(string value) => _changed?.Invoke();
         partial void OnLengthTextChanged(string value) => _changed?.Invoke();
         partial void OnDraftingViewNameChanged(string value) => _changed?.Invoke();
@@ -76,7 +195,9 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V002.UI.ViewModels
             OnPropertyChanged(nameof(Mode));
             OnPropertyChanged(nameof(IsCallout));
             OnPropertyChanged(nameof(UsesDraftingView));
+            OnPropertyChanged(nameof(IsCalloutOrSection));
             OnPropertyChanged(nameof(NoDraftingNote));
+            NotifyDerived();
             _changed?.Invoke();
         }
 
@@ -195,8 +316,9 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V002.UI.ViewModels
 
         partial void OnCreateRoofsChanged(bool value) => RunCommand.NotifyCanExecuteChanged();
         partial void OnCreatePlansChanged(bool value) => RunCommand.NotifyCanExecuteChanged();
-        partial void OnCreateSectionsChanged(bool value) => RunCommand.NotifyCanExecuteChanged();
-        partial void OnOneDraftingViewForAllChanged(bool value) => DraftingViewPerTarget = !value;
+        partial void OnCreateSectionsChanged(bool value) { RunCommand.NotifyCanExecuteChanged(); UpdateTargetCoverage(); }
+        partial void OnOneDraftingViewForAllChanged(bool value) { DraftingViewPerTarget = !value; UpdatePointsTo(); }
+        partial void OnSharedDraftingViewNameChanged(string value) => UpdatePointsTo();
         partial void OnDraftingViewPerTargetChanged(bool value) => OneDraftingViewForAll = !value;
         partial void OnDrainKeywordsTextChanged(string value) => MarkNeedsRefresh();
         partial void OnWcKeywordsTextChanged(string value) => MarkNeedsRefresh();
@@ -224,7 +346,8 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V002.UI.ViewModels
             _wcKeywordsText = string.Join(", ", _settings.WcKeywords);
             _showerKeywordsText = string.Join(", ", _settings.ShowerKeywords);
             foreach (SectionTargetSetting target in _settings.Targets)
-                Targets.Add(new TargetRowViewModel(target, OnTargetsChanged));
+                Targets.Add(new TargetRowViewModel(target, OnTargetsChanged) { TickChanged = OnTargetTickChanged });
+            InitTargetGrid();
             UpdateSectionsSummary();
         }
 
@@ -249,6 +372,7 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V002.UI.ViewModels
                 if (!DraftingViews.Contains(name)) DraftingViews.Add(name);
             Replace(DraftingViewItems, snapshot.DraftingViews);
             UpdatePicker();
+            UpdatePointsTo();
 
             Replace(SectionViewTypes, snapshot.SectionViewTypes);
             string wantedSectionType = SelectedSectionViewType ?? _settings.SectionViewTypeName;
@@ -266,6 +390,7 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V002.UI.ViewModels
         private void OnTargetsChanged()
         {
             UpdateSectionsSummary();
+            UpdateTargetGrid();
             MarkNeedsRefresh();
         }
 
@@ -276,20 +401,13 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V002.UI.ViewModels
                 : $"{on} target(s) on · at most {SectionTargets.MaxPerRoom} sections per room · rows higher up win";
         }
 
-        /// <summary>Moves a target one row up (higher rows win when a room would get more than six).</summary>
-        [RelayCommand]
-        private void TargetUp(TargetRowViewModel row) => MoveTarget(row, -1);
-
-        /// <summary>Moves a target one row down.</summary>
-        [RelayCommand]
-        private void TargetDown(TargetRowViewModel row) => MoveTarget(row, +1);
-
         private void MoveTarget(TargetRowViewModel row, int step)
         {
             int index = row == null ? -1 : Targets.IndexOf(row);
             int target = index + step;
             if (index < 0 || target < 0 || target >= Targets.Count) return;
             Targets.Move(index, target);
+            SelectedTarget = row;
             OnTargetsChanged();
         }
 

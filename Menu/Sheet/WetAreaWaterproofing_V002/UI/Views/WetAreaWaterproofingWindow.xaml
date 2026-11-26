@@ -3,6 +3,9 @@
 File: WetAreaWaterproofingWindow.xaml  (Wet Area Waterproofing V002, Parts A and B)
 V002: "Points to" is a search box (name, title on sheet, sheet number, sheet name, bubble number), and
       "Assign drafting views…" opens a picker panel (targets on the left, searchable view table on the right).
+Tool 2.3.0: step 4 is a settings column on the left (Plans; Sections with Section / Callout settings, Search targets in,
+      Fixture keywords) and, on the right, the section targets DataGrid (filter chips, search, Set for ticked, drag
+      to reorder, counts per target) with the selected target's details pane under it.
 ToolWindowShell layout (tool 2.2.0: six steps, one open at a time):
   STEPS   1 Find rooms · 2 Check outlines (skipped when every ticked outline closes) · 3 Roof ·
           4 Plans and sections · 5 Review (table of every roof, plan and section; untick rows) · 6 Run and report
@@ -131,6 +134,17 @@ Overlay cards: result of a run, "Remove a run", "Assign drafting views". Column 
                         <Setter Property="Background" Value="{StaticResource BrushTileDangerBackground}"/>
                         <Setter Property="BorderBrush" Value="{StaticResource BrushTileDangerBorder}"/>
                         <Setter Property="TextElement.Foreground" Value="{StaticResource BrushTileDangerText}"/>
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+
+            <!-- Section target status (tool 2.3.0): StatusChip colours, grey when the target is off. -->
+            <Style x:Key="TargetStatusChip" TargetType="Border" BasedOn="{StaticResource StatusChip}">
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding StatusKind}" Value="off">
+                        <Setter Property="Background" Value="{StaticResource BrushPillMutedBackground}"/>
+                        <Setter Property="BorderBrush" Value="{StaticResource BrushSeparator}"/>
+                        <Setter Property="TextElement.Foreground" Value="{StaticResource BrushPillMutedText}"/>
                     </DataTrigger>
                 </Style.Triggers>
             </Style>
@@ -635,16 +649,16 @@ Overlay cards: result of a run, "Remove a run", "Assign drafting views". Column 
                                     Visibility="{Binding StepState4, Converter={StaticResource StateIs}, ConverterParameter=done}"/>
                             </Grid>
                             <Grid Margin="14,0,14,12" Visibility="{Binding StepState4, Converter={StaticResource StateIs}, ConverterParameter=active}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="330"/>
+                                    <ColumnDefinition Width="12"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <!-- Left rail (tool 2.3.0): plans, then the section and callout settings. -->
                                 <ScrollViewer VerticalScrollBarVisibility="Auto">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="12"/>
-                                            <ColumnDefinition Width="*"/>
-                                        </Grid.ColumnDefinitions>
-                                        <StackPanel>
-                                            <Border Style="{StaticResource SectionCard}" Padding="12,10" Margin="0,0,0,10">
-                                                <StackPanel>
+                                    <StackPanel>
+                                        <Border Style="{StaticResource SectionCard}" Padding="12,10" Margin="0,0,0,10">
+                                            <StackPanel>
                                                     <TextBlock Text="PLANS" Style="{StaticResource SectionTitle}" Margin="0,0,0,8"/>
                                                     <CheckBox Content="Create plans" IsChecked="{Binding CreatePlans}" FontWeight="SemiBold" Margin="0,0,0,8"
                                                               ToolTip="Sections sit on the room's plan: a plan is still made for a room that gets sections"/>
@@ -671,72 +685,14 @@ Overlay cards: result of a run, "Remove a run", "Assign drafting views". Column 
                                                     </DockPanel>
                                                     <TextBlock Style="{StaticResource HintText}" TextWrapping="Wrap"
                                                                Text="One plan per room, cropped to the room plus the margin. A room that already has a plan from an earlier run keeps it (your annotations stay); its crop is refreshed."/>
-                                                </StackPanel>
-                                            </Border>
-                                        </StackPanel>
-                                        <StackPanel Grid.Column="2">
-                                            <Border Style="{StaticResource SectionCard}" Padding="12,10" Margin="0,0,0,10">
-                                                <StackPanel>
-                                                    <TextBlock Text="SECTION TARGETS" Style="{StaticResource SectionTitle}" Margin="0,0,0,4"/>
-                                                    <CheckBox Content="Create sections" IsChecked="{Binding CreateSections}" FontWeight="SemiBold" Margin="0,0,0,6"/>
-                                                    <TextBlock Text="{Binding SectionsSummary}" Style="{StaticResource HintText}" Margin="0,0,0,8"/>
-
-                                                    <ItemsControl ItemsSource="{Binding Targets}">
-                                                        <ItemsControl.ItemTemplate>
-                                                            <DataTemplate>
-                                                                <Border BorderBrush="{StaticResource BrushSeparatorThin}" BorderThickness="0,0,0,1" Padding="0,4">
-                                                                    <StackPanel>
-                                                                        <DockPanel>
-                                                                            <Button DockPanel.Dock="Right" Content="▼" Width="22" Padding="0" Style="{StaticResource SmallSecondaryButton}" ToolTip="Move down"
-                                                                                    Command="{Binding DataContext.TargetDownCommand, ElementName=Root}" CommandParameter="{Binding}"/>
-                                                                            <Button DockPanel.Dock="Right" Content="▲" Width="22" Padding="0" Margin="0,0,3,0" Style="{StaticResource SmallSecondaryButton}" ToolTip="Move up: higher rows win when a room would get more than six sections"
-                                                                                    Command="{Binding DataContext.TargetUpCommand, ElementName=Root}" CommandParameter="{Binding}"/>
-                                                                            <CheckBox Content="{Binding Label}" IsChecked="{Binding On}" VerticalAlignment="Center" FontWeight="SemiBold"/>
-                                                                        </DockPanel>
-                                                                        <DockPanel Margin="20,4,0,0" IsEnabled="{Binding On}">
-                                                                            <ComboBox DockPanel.Dock="Left" Width="104" Style="{StaticResource StandardComboBox}"
-                                                                                      ItemsSource="{Binding Modes}" SelectedItem="{Binding SelectedMode}"
-                                                                                      ToolTip="Ref. Section and Ref. Callout point to a drafting view; Callout creates a cropped detail view; Section creates a section view"/>
-                                                                            <ComboBox DockPanel.Dock="Left" Width="150" Style="{StaticResource StandardComboBox}" Margin="6,0,0,0"
-                                                                                      ItemsSource="{Binding Choices}" SelectedItem="{Binding PerItem}"
-                                                                                      IsEnabled="{Binding CanHaveMany}" ToolTip="One section at the match nearest the room centre, or one for every match"/>
-                                                                            <TextBlock DockPanel.Dock="Right" Text="mm" Style="{StaticResource UnitLabel}" VerticalAlignment="Center" Margin="6,0,0,0"/>
-                                                                            <TextBox DockPanel.Dock="Right" Text="{Binding LengthText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MmBox}"
-                                                                                     ToolTip="Length of the cut line. For the full-room cuts: how far the line runs past the room on each side."/>
-                                                                            <TextBlock Text="{Binding LengthLabel}" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,6,0"/>
-                                                                        </DockPanel>
-                                                                        <DockPanel Margin="20,4,0,0" IsEnabled="{Binding On}"
-                                                                                   Visibility="{Binding DataContext.DraftingViewPerTarget, ElementName=Root, Converter={StaticResource BoolToVis}}">
-                                                                            <TextBlock Text="Points to" Style="{StaticResource FieldLabel}" VerticalAlignment="Top" Margin="0,5,0,0" Width="62"/>
-                                                                            <wp:DraftingViewSearchBox Items="{Binding DataContext.DraftingViewItems, ElementName=Root}"
-                                                                                                      Text="{Binding DraftingViewName, Mode=TwoWay}"
-                                                                                                      IsEnabled="{Binding UsesDraftingView}"
-                                                                                                      ToolTip="{Binding NoDraftingNote}"/>
-                                                                        </DockPanel>
-                                                                    </StackPanel>
-                                                                </Border>
-                                                            </DataTemplate>
-                                                        </ItemsControl.ItemTemplate>
-                                                    </ItemsControl>
-
-                                                    <TextBlock Text="Drafting view" Style="{StaticResource FieldLabel}" Margin="0,10,0,4"/>
-                                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
-                                                        <RadioButton Content="One view for all targets" IsChecked="{Binding OneDraftingViewForAll}" Margin="0,0,14,0"/>
-                                                        <RadioButton Content="One view per target" IsChecked="{Binding DraftingViewPerTarget}"/>
-                                                    </StackPanel>
-                                                    <DockPanel Style="{StaticResource SettingRow}" Visibility="{Binding OneDraftingViewForAll, Converter={StaticResource BoolToVis}}">
-                                                        <TextBlock Text="Points to" Style="{StaticResource FieldLabel}" VerticalAlignment="Top" Margin="0,5,0,0" Width="62"/>
-                                                        <wp:DraftingViewSearchBox Items="{Binding DraftingViewItems}" Text="{Binding SharedDraftingViewName, Mode=TwoWay}"/>
-                                                    </DockPanel>
-                                                    <DockPanel Margin="0,0,0,8">
-                                                        <Button DockPanel.Dock="Right" Content="Assign drafting views…" Style="{StaticResource SmallSecondaryButton}" Margin="8,0,0,0"
-                                                                VerticalAlignment="Top" Command="{Binding OpenAssignCommand}"
-                                                                ToolTip="Open the picker: every target on the left, every drafting view with its sheet and bubble on the right"/>
-                                                        <TextBlock Style="{StaticResource HintText}" TextWrapping="Wrap"
-                                                                   Text="Type a view name, title, sheet number, sheet name or bubble number (A-501/3 = sheet A-501, bubble 3) and pick from the list. A name that does not exist is created at the run."/>
-                                                    </DockPanel>
-
-                                                    <TextBlock Text="Section settings" Style="{StaticResource FieldLabel}" Margin="0,10,0,4"/>
+                                            </StackPanel>
+                                        </Border>
+                                        <Border Style="{StaticResource SectionCard}" Padding="12,10" Margin="0,0,0,10">
+                                            <StackPanel>
+                                                <TextBlock Text="SECTIONS" Style="{StaticResource SectionTitle}" Margin="0,0,0,6"/>
+                                                <TextBlock Text="{Binding SectionsSummary}" Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="0,0,0,6"/>
+                                                <Expander Header="Section settings" IsExpanded="True" Margin="0,0,0,6">
+                                                    <StackPanel Margin="0,4,0,0">
                                                     <TextBlock Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="0,0,0,6"
                                                                Text="Targets set to &quot;Section&quot; create a section view along the cut line, as wide as the row's Length."/>
                                                     <DockPanel Style="{StaticResource SettingRow}">
@@ -764,8 +720,10 @@ Overlay cards: result of a run, "Remove a run", "Assign drafting views". Column 
                                                         <TextBox Text="{Binding SectionBottomText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MmBox}"
                                                                  HorizontalAlignment="Left" Width="60" ToolTip="Bottom of the section's crop, below the room's level"/>
                                                     </DockPanel>
-
-                                                    <TextBlock Text="Callout settings" Style="{StaticResource FieldLabel}" Margin="0,10,0,4"/>
+                                                    </StackPanel>
+                                                </Expander>
+                                                <Expander Header="Callout settings" IsExpanded="False" Margin="0,0,0,6">
+                                                    <StackPanel Margin="0,4,0,0">
                                                     <TextBlock Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="0,0,0,6"
                                                                Text="Targets set to &quot;Callout&quot; create a cropped detail view instead of pointing to a drafting view. The crop margin also sizes &quot;Ref. Callout&quot; boxes."/>
                                                     <DockPanel Style="{StaticResource SettingRow}">
@@ -784,7 +742,8 @@ Overlay cards: result of a run, "Remove a run", "Assign drafting views". Column 
                                                         <TextBox Text="{Binding CalloutMarginText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MmBox}"
                                                                  HorizontalAlignment="Left" Width="60" ToolTip="Extra space around the cut line in the callout crop"/>
                                                     </DockPanel>
-
+                                                    </StackPanel>
+                                                </Expander>
                                                     <Expander Header="Search targets in" IsExpanded="False" Margin="0,0,0,6">
                                                         <ItemsControl ItemsSource="{Binding Sources}" Margin="0,4,0,0">
                                                             <ItemsControl.ItemTemplate>
@@ -805,7 +764,6 @@ Overlay cards: result of a run, "Remove a run", "Assign drafting views". Column 
                                                             </ItemsControl.ItemTemplate>
                                                         </ItemsControl>
                                                     </Expander>
-
                                                     <Expander Header="Fixture keywords" IsExpanded="False">
                                                         <StackPanel Margin="0,6,0,0">
                                                             <DockPanel Style="{StaticResource SettingRow}">
@@ -824,11 +782,305 @@ Overlay cards: result of a run, "Remove a run", "Assign drafting views". Column 
                                                                        Text="Matched against each fixture's family and type name. Every door counts as a door. Press Refresh after a change."/>
                                                         </StackPanel>
                                                     </Expander>
+                                            </StackPanel>
+                                        </Border>
+                                    </StackPanel>
+                                </ScrollViewer>
+
+                                <!-- Right (tool 2.3.0): the section targets grid on top, the selected target's details under it. -->
+                                <Grid Grid.Column="2">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="*" MinHeight="200"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <Border Style="{StaticResource SectionCard}" Padding="0">
+                                        <DockPanel>
+                                            <!-- Toolbar -->
+                                            <DockPanel DockPanel.Dock="Top" Margin="10,8,10,6">
+                                                <Button DockPanel.Dock="Right" Content="Reset to defaults" Style="{StaticResource SmallSecondaryButton}" Margin="6,0,0,0"
+                                                        Click="ResetTargets_Click" ToolTip="Put the targets back to the tool's defaults: order, on/off, lengths and drafting view names"/>
+                                                <Button DockPanel.Dock="Right" Content="Columns ▾" Style="{StaticResource SmallSecondaryButton}" Margin="6,0,0,0"
+                                                        Click="TargetColumnsButton_Click" ToolTip="Show or hide columns"/>
+                                                <TextBox DockPanel.Dock="Right" Width="170" Margin="10,0,0,0" Text="{Binding TargetSearch, UpdateSourceTrigger=PropertyChanged}"
+                                                         Style="{StaticResource BoxedTextInput}" ToolTip="Search target, mode, drafting view, sheet / bubble or status"/>
+                                                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Margin="10,0,0,0">
+                                                    <RadioButton Content="{Binding TargetChipAllText}" GroupName="TargetFilter" Style="{StaticResource ChipToggle}" IsChecked="True"
+                                                                 Command="{Binding SetTargetFilterCommand}" CommandParameter="All"/>
+                                                    <RadioButton Content="{Binding TargetChipOnText}" GroupName="TargetFilter" Style="{StaticResource ChipToggle}"
+                                                                 Command="{Binding SetTargetFilterCommand}" CommandParameter="On"/>
+                                                    <RadioButton Content="{Binding TargetChipProblemsText}" GroupName="TargetFilter" Style="{StaticResource ChipToggle}"
+                                                                 Command="{Binding SetTargetFilterCommand}" CommandParameter="Problems"
+                                                                 ToolTip="Targets that are on and miss rooms or lose sections to the six-per-room limit"/>
+                                                </StackPanel>
+                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                    <CheckBox Content="Create sections" IsChecked="{Binding CreateSections}" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="Drafting view" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="18,0,8,0"/>
+                                                    <RadioButton Content="One for all" IsChecked="{Binding OneDraftingViewForAll}" VerticalAlignment="Center" Margin="0,0,10,0"
+                                                                 ToolTip="Every Ref. Section and Ref. Callout points to the same drafting view"/>
+                                                    <RadioButton Content="One per target" IsChecked="{Binding DraftingViewPerTarget}" VerticalAlignment="Center"
+                                                                 ToolTip="Each target points to its own drafting view (set it in the details below)"/>
+                                                </StackPanel>
+                                            </DockPanel>
+
+                                            <!-- Set for ticked -->
+                                            <Border DockPanel.Dock="Top" Background="{StaticResource BrushTileInfoBackground}" BorderBrush="{StaticResource BrushSeparator}" BorderThickness="0,1"
+                                                    Padding="10,5" Visibility="{Binding HasTickedTargets, Converter={StaticResource BoolToVis}}">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="{Binding TargetsTickedText}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                                    <TextBlock Text="Set for ticked:" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                                    <Button Content="Mode ▾" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,4,0" Click="BulkMode_Click"/>
+                                                    <Button Content="Per item ▾" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,10,0" Click="BulkPerItem_Click"
+                                                            ToolTip="Only for targets that can have several matches"/>
+                                                    <TextBlock Text="Length" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                                                    <TextBox Text="{Binding BulkLengthText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MmBox}" Width="56"/>
+                                                    <Button Content="Set" Style="{StaticResource SmallSecondaryButton}" Margin="4,0,10,0" Command="{Binding BulkSetLengthCommand}"/>
+                                                    <Button Content="Turn on" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,4,0" Command="{Binding BulkSetOnCommand}" CommandParameter="1"/>
+                                                    <Button Content="Turn off" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,4,0" Command="{Binding BulkSetOnCommand}" CommandParameter="0"/>
+                                                    <Button Content="Assign drafting views…" Style="{StaticResource SmallSecondaryButton}" Margin="6,0,4,0" Command="{Binding OpenAssignCommand}"/>
+                                                    <Button Content="Untick all" Style="{StaticResource SmallSecondaryButton}" Margin="6,0,0,0" Command="{Binding ClearTargetTicksCommand}"/>
                                                 </StackPanel>
                                             </Border>
-                                        </StackPanel>
-                                    </Grid>
-                                </ScrollViewer>
+
+                                            <!-- Footer -->
+                                            <DockPanel DockPanel.Dock="Bottom" Margin="10,5">
+                                                <TextBlock DockPanel.Dock="Right" Text="{Binding TargetsLimitText}" Foreground="{StaticResource BrushTileWarningText}" FontSize="11.5" Margin="12,0,0,0"/>
+                                                <TextBlock Text="{Binding TargetsFooterText}" Foreground="{StaticResource BrushTextSecondary}" FontSize="11.5" TextTrimming="CharacterEllipsis"/>
+                                            </DockPanel>
+
+                                            <DataGrid x:Name="TargetsGrid" ItemsSource="{Binding TargetsView}" SelectedItem="{Binding SelectedTarget, Mode=TwoWay}"
+                                                      Style="{StaticResource StandardDataGrid}" AutoGenerateColumns="False" IsReadOnly="True"
+                                                      CanUserAddRows="False" CanUserDeleteRows="False" CanUserReorderColumns="False" CanUserSortColumns="True"
+                                                      HeadersVisibility="Column" SelectionMode="Single" SelectionUnit="FullRow" BorderThickness="0,1,0,1"
+                                                      AllowDrop="True" Drop="TargetsGrid_Drop" DragOver="TargetsGrid_DragOver">
+                                                <DataGrid.RowStyle>
+                                                    <Style TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding On}" Value="False">
+                                                                <Setter Property="Foreground" Value="{StaticResource BrushTextTertiary}"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </DataGrid.RowStyle>
+                                                <DataGrid.Columns>
+                                                    <DataGridTemplateColumn Width="30" CanUserResize="False">
+                                                        <DataGridTemplateColumn.Header>
+                                                            <CheckBox IsThreeState="True" IsChecked="{Binding DataContext.AllTargetsTicked, ElementName=Root}"
+                                                                      ToolTip="Tick every target the filter shows, for &quot;Set for ticked&quot;"/>
+                                                        </DataGridTemplateColumn.Header>
+                                                        <DataGridTemplateColumn.CellTemplate>
+                                                            <DataTemplate>
+                                                                <CheckBox IsChecked="{Binding IsTicked, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                                          ToolTip="Tick to change several targets at once"/>
+                                                            </DataTemplate>
+                                                        </DataGridTemplateColumn.CellTemplate>
+                                                    </DataGridTemplateColumn>
+                                                    <DataGridTemplateColumn Width="22" CanUserResize="False">
+                                                        <DataGridTemplateColumn.CellTemplate>
+                                                            <DataTemplate>
+                                                                <TextBlock Text="⋮⋮" Foreground="{StaticResource BrushTextTertiary}" Cursor="SizeAll" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                                           Background="Transparent" PreviewMouseLeftButtonDown="TargetDragHandle_MouseDown"
+                                                                           ToolTip="Drag up or down to change the priority: higher rows win when a room would get more than six sections"/>
+                                                            </DataTemplate>
+                                                        </DataGridTemplateColumn.CellTemplate>
+                                                    </DataGridTemplateColumn>
+                                                    <DataGridTemplateColumn Header="#" Width="36" SortMemberPath="Priority">
+                                                        <DataGridTemplateColumn.CellTemplate>
+                                                            <DataTemplate>
+                                                                <Border Width="20" Height="20" CornerRadius="10" Background="{StaticResource BrushSurfaceHeader}" HorizontalAlignment="Center">
+                                                                    <TextBlock Text="{Binding Priority}" FontSize="10.5" FontWeight="Bold" Foreground="{StaticResource BrushNavyPrimary}"
+                                                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                </Border>
+                                                            </DataTemplate>
+                                                        </DataGridTemplateColumn.CellTemplate>
+                                                    </DataGridTemplateColumn>
+                                                    <DataGridTemplateColumn Header="On" Width="38" SortMemberPath="On">
+                                                        <DataGridTemplateColumn.CellTemplate>
+                                                            <DataTemplate>
+                                                                <CheckBox IsChecked="{Binding On, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                            </DataTemplate>
+                                                        </DataGridTemplateColumn.CellTemplate>
+                                                    </DataGridTemplateColumn>
+                                                    <DataGridTemplateColumn Header="Target" Width="150" SortMemberPath="Label">
+                                                        <DataGridTemplateColumn.CellTemplate>
+                                                            <DataTemplate>
+                                                                <TextBlock Text="{Binding Label}" FontWeight="SemiBold" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                                            </DataTemplate>
+                                                        </DataGridTemplateColumn.CellTemplate>
+                                                    </DataGridTemplateColumn>
+                                                    <DataGridTemplateColumn Header="Mode" Width="112" SortMemberPath="SelectedMode">
+                                                        <DataGridTemplateColumn.CellTemplate>
+                                                            <DataTemplate>
+                                                                <ComboBox ItemsSource="{Binding Modes}" SelectedItem="{Binding SelectedMode, UpdateSourceTrigger=PropertyChanged}"
+                                                                          Style="{StaticResource StandardComboBox}" Margin="0,1"
+                                                                          ToolTip="Ref. Section and Ref. Callout point to a drafting view; Callout creates a cropped detail view; Section creates a section view"/>
+                                                            </DataTemplate>
+                                                        </DataGridTemplateColumn.CellTemplate>
+                                                    </DataGridTemplateColumn>
+                                                    <DataGridTemplateColumn Header="Per item" Width="150" SortMemberPath="PerItem">
+                                                        <DataGridTemplateColumn.CellTemplate>
+                                                            <DataTemplate>
+                                                                <ComboBox ItemsSource="{Binding Choices}" SelectedItem="{Binding PerItem, UpdateSourceTrigger=PropertyChanged}"
+                                                                          IsEnabled="{Binding CanHaveMany}" Style="{StaticResource StandardComboBox}" Margin="0,1"
+                                                                          ToolTip="One section at the match nearest the room centre, or one for every match"/>
+                                                            </DataTemplate>
+                                                        </DataGridTemplateColumn.CellTemplate>
+                                                    </DataGridTemplateColumn>
+                                                    <DataGridTemplateColumn Header="Length mm" Width="78">
+                                                        <DataGridTemplateColumn.CellTemplate>
+                                                            <DataTemplate>
+                                                                <TextBox Text="{Binding LengthText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MmBox}" Width="60" Margin="0,1"
+                                                                         ToolTip="Length of the cut line. For the full-room cuts: how far the line runs past the room on each side."/>
+                                                            </DataTemplate>
+                                                        </DataGridTemplateColumn.CellTemplate>
+                                                    </DataGridTemplateColumn>
+                                                    <DataGridTemplateColumn Header="Points to (drafting view · sheet / bubble)" Width="*" MinWidth="200" SortMemberPath="PointsToName">
+                                                        <DataGridTemplateColumn.CellTemplate>
+                                                            <DataTemplate>
+                                                                <DockPanel VerticalAlignment="Center" ToolTip="{Binding PointsToDetail}">
+                                                                    <Border DockPanel.Dock="Right" CornerRadius="2" Padding="4,0" Margin="6,0,0,0" Background="{StaticResource BrushTileInfoBackground}">
+                                                                        <Border.Style>
+                                                                            <Style TargetType="Border">
+                                                                                <Style.Triggers>
+                                                                                    <DataTrigger Binding="{Binding PointsToReference}" Value=""><Setter Property="Visibility" Value="Collapsed"/></DataTrigger>
+                                                                                    <DataTrigger Binding="{Binding PointsToIsNew}" Value="True"><Setter Property="Background" Value="{StaticResource BrushTileWarningBackground}"/></DataTrigger>
+                                                                                </Style.Triggers>
+                                                                            </Style>
+                                                                        </Border.Style>
+                                                                        <TextBlock Text="{Binding PointsToReference}" FontFamily="Consolas" FontSize="10.5" Foreground="{StaticResource BrushTileInfoText}"/>
+                                                                    </Border>
+                                                                    <TextBlock Text="{Binding PointsToText}" TextTrimming="CharacterEllipsis">
+                                                                        <TextBlock.Style>
+                                                                            <Style TargetType="TextBlock">
+                                                                                <Style.Triggers>
+                                                                                    <DataTrigger Binding="{Binding UsesDraftingView}" Value="False">
+                                                                                        <Setter Property="Foreground" Value="{StaticResource BrushTextTertiary}"/>
+                                                                                        <Setter Property="FontStyle" Value="Italic"/>
+                                                                                    </DataTrigger>
+                                                                                </Style.Triggers>
+                                                                            </Style>
+                                                                        </TextBlock.Style>
+                                                                    </TextBlock>
+                                                                </DockPanel>
+                                                            </DataTemplate>
+                                                        </DataGridTemplateColumn.CellTemplate>
+                                                    </DataGridTemplateColumn>
+                                                    <DataGridTemplateColumn Header="Rooms found" Width="104" SortMemberPath="RoomsWith">
+                                                        <DataGridTemplateColumn.CellTemplate>
+                                                            <DataTemplate>
+                                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center"
+                                                                            ToolTip="Ticked rooms where the target finds a door, drain, fixture, corner or wall">
+                                                                    <ProgressBar Width="44" Height="6" Minimum="0" Maximum="100" Value="{Binding CoveragePercent, Mode=OneWay}" VerticalAlignment="Center"/>
+                                                                    <TextBlock Text="{Binding CoverageText}" Margin="6,0,0,0"/>
+                                                                </StackPanel>
+                                                            </DataTemplate>
+                                                        </DataGridTemplateColumn.CellTemplate>
+                                                    </DataGridTemplateColumn>
+                                                    <DataGridTemplateColumn Header="Will make" Width="72" SortMemberPath="Makes">
+                                                        <DataGridTemplateColumn.CellTemplate>
+                                                            <DataTemplate>
+                                                                <TextBlock Text="{Binding MakesText}" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                                            </DataTemplate>
+                                                        </DataGridTemplateColumn.CellTemplate>
+                                                    </DataGridTemplateColumn>
+                                                    <DataGridTemplateColumn Header="Status" Width="130" SortMemberPath="StatusText">
+                                                        <DataGridTemplateColumn.CellTemplate>
+                                                            <DataTemplate>
+                                                                <Border Style="{StaticResource TargetStatusChip}">
+                                                                    <TextBlock Text="{Binding StatusText}" FontSize="11"/>
+                                                                </Border>
+                                                            </DataTemplate>
+                                                        </DataGridTemplateColumn.CellTemplate>
+                                                    </DataGridTemplateColumn>
+                                                </DataGrid.Columns>
+                                            </DataGrid>
+                                        </DockPanel>
+                                    </Border>
+
+                                    <!-- Details of the selected target -->
+                                    <Border Grid.Row="1" Margin="0,8,0,0" Padding="12,10" Background="{StaticResource BrushCardBackground}" CornerRadius="5"
+                                            BorderBrush="{StaticResource BrushNavyPrimary}" BorderThickness="1,2,1,1" DataContext="{Binding SelectedTarget}">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding}" Value="{x:Null}"><Setter Property="Visibility" Value="Collapsed"/></DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="1.1*"/>
+                                                <ColumnDefinition Width="16"/>
+                                                <ColumnDefinition Width="1.2*"/>
+                                                <ColumnDefinition Width="16"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <StackPanel>
+                                                <DockPanel Margin="0,0,0,6">
+                                                    <Button DockPanel.Dock="Right" Content="▼" Width="24" Padding="0" Style="{StaticResource SmallSecondaryButton}" ToolTip="Move down"
+                                                            Command="{Binding DataContext.MoveTargetDownCommand, ElementName=Root}"/>
+                                                    <Button DockPanel.Dock="Right" Content="▲" Width="24" Padding="0" Margin="0,0,3,0" Style="{StaticResource SmallSecondaryButton}"
+                                                            ToolTip="Move up: higher rows win when a room would get more than six sections"
+                                                            Command="{Binding DataContext.MoveTargetUpCommand, ElementName=Root}"/>
+                                                    <TextBlock Text="{Binding Label}" Style="{StaticResource SectionTitle}" VerticalAlignment="Center"/>
+                                                </DockPanel>
+                                                <DockPanel Style="{StaticResource SettingRow}">
+                                                    <TextBlock Text="On" Style="{StaticResource FieldLabel}" Width="72" VerticalAlignment="Center"/>
+                                                    <CheckBox IsChecked="{Binding On}" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="{Binding PriorityText}" Style="{StaticResource HintText}" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                                                </DockPanel>
+                                                <DockPanel Style="{StaticResource SettingRow}">
+                                                    <TextBlock Text="Mode" Style="{StaticResource FieldLabel}" Width="72" VerticalAlignment="Center"/>
+                                                    <ComboBox ItemsSource="{Binding Modes}" SelectedItem="{Binding SelectedMode}" Style="{StaticResource StandardComboBox}"/>
+                                                </DockPanel>
+                                                <DockPanel Style="{StaticResource SettingRow}">
+                                                    <TextBlock Text="Per item" Style="{StaticResource FieldLabel}" Width="72" VerticalAlignment="Center"/>
+                                                    <ComboBox ItemsSource="{Binding Choices}" SelectedItem="{Binding PerItem}" IsEnabled="{Binding CanHaveMany}" Style="{StaticResource StandardComboBox}"/>
+                                                </DockPanel>
+                                                <DockPanel Style="{StaticResource SettingRow}">
+                                                    <TextBlock Text="{Binding LengthLabel}" Style="{StaticResource FieldLabel}" Width="72" VerticalAlignment="Center"/>
+                                                    <TextBox Text="{Binding LengthText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MmBox}" HorizontalAlignment="Left"/>
+                                                    <TextBlock Text="mm" Style="{StaticResource UnitLabel}" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                                                </DockPanel>
+                                            </StackPanel>
+
+                                            <StackPanel Grid.Column="2">
+                                                <TextBlock Text="POINTS TO" Style="{StaticResource SectionTitle}" Margin="0,0,0,6"/>
+                                                <StackPanel Visibility="{Binding UsesDraftingView, Converter={StaticResource BoolToVis}}">
+                                                    <StackPanel Visibility="{Binding DataContext.DraftingViewPerTarget, ElementName=Root, Converter={StaticResource BoolToVis}}">
+                                                        <wp:DraftingViewSearchBox Items="{Binding DataContext.DraftingViewItems, ElementName=Root}"
+                                                                                  Text="{Binding DraftingViewName, Mode=TwoWay}"/>
+                                                    </StackPanel>
+                                                    <StackPanel Visibility="{Binding DataContext.OneDraftingViewForAll, ElementName=Root, Converter={StaticResource BoolToVis}}">
+                                                        <wp:DraftingViewSearchBox Items="{Binding DataContext.DraftingViewItems, ElementName=Root}"
+                                                                                  Text="{Binding DataContext.SharedDraftingViewName, ElementName=Root, Mode=TwoWay}"/>
+                                                        <TextBlock Text="One view for all targets: this name is shared by every Ref. Section and Ref. Callout." Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                                                    </StackPanel>
+                                                    <TextBlock Text="{Binding PointsToDetail}" Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                                                    <TextBlock Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="0,2,0,0"
+                                                               Text="Type a view name, title, sheet number, sheet name or bubble (A-501/3). A name that does not exist is created at the run."/>
+                                                </StackPanel>
+                                                <TextBlock Text="{Binding NoDraftingNote}" Style="{StaticResource HintText}" TextWrapping="Wrap"
+                                                           Visibility="{Binding IsCalloutOrSection, Converter={StaticResource BoolToVis}}"/>
+                                                <Button Content="Assign drafting views…" Style="{StaticResource SmallSecondaryButton}" HorizontalAlignment="Left" Margin="0,8,0,0"
+                                                        Command="{Binding DataContext.AssignSelectedTargetCommand, ElementName=Root}"
+                                                        ToolTip="Open the picker: every target on the left, every drafting view with its sheet and bubble on the right"/>
+                                            </StackPanel>
+
+                                            <StackPanel Grid.Column="4">
+                                                <TextBlock Text="FOUND IN ROOMS" Style="{StaticResource SectionTitle}" Margin="0,0,0,6"/>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <ProgressBar Width="70" Height="6" Minimum="0" Maximum="100" Value="{Binding CoveragePercent, Mode=OneWay}" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="{Binding CoverageSummary}" FontWeight="SemiBold" Margin="8,0,0,0" TextWrapping="Wrap"/>
+                                                </StackPanel>
+                                                <TextBlock Text="{Binding RoomsWithoutText}" Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="0,6,0,0"/>
+                                                <TextBlock Text="{Binding DroppedText}" Foreground="{StaticResource BrushTileWarningText}" FontSize="11.5" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                                                <TextBlock Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="0,6,0,0"
+                                                           Text="Counted from the rooms ticked in step 1, as last read from the model. The Review lists every section exactly."/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </Grid>
                             </Grid>
                         </DockPanel>
                     </Border>
