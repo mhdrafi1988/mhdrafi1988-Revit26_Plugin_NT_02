@@ -18,6 +18,7 @@ ToolWindowShell layout:
         xmlns:converters="clr-namespace:Revit26_Plugin_Revised.Shared.Models"
         xmlns:local="clr-namespace:Revit26_Plugin_Revised.SectionRoofDetailLines.V001.UI.Converters"
         xmlns:shell="clr-namespace:Revit26_Plugin_Revised.Shared.Controls"
+        xmlns:behaviors="clr-namespace:Revit26_Plugin_Revised.SectionRoofDetailLines.V001.UI.Behaviors"
         Title="Section Roof Detail Lines"
         Height="900" Width="1380"
         MinHeight="660" MinWidth="1120"
@@ -47,16 +48,13 @@ ToolWindowShell layout:
                 <Setter Property="HorizontalContentAlignment" Value="Right"/>
             </Style>
 
-            <!-- One line-style picker: shows an empty name as the view's own default. -->
+            <!-- One line-style picker: type to narrow the list, then pick (FilterComboBehavior). -->
             <Style x:Key="StylePicker" TargetType="ComboBox" BasedOn="{StaticResource StandardComboBox}">
                 <Setter Property="Margin" Value="0,2,0,8"/>
-                <Setter Property="ItemTemplate">
-                    <Setter.Value>
-                        <DataTemplate>
-                            <TextBlock Text="{Binding Converter={StaticResource StyleName}}" TextTrimming="CharacterEllipsis"/>
-                        </DataTemplate>
-                    </Setter.Value>
-                </Setter>
+                <Setter Property="DisplayMemberPath" Value="Label"/>
+                <Setter Property="MaxDropDownHeight" Value="320"/>
+                <Setter Property="behaviors:FilterComboBehavior.IsFilterable" Value="True"/>
+                <Setter Property="ToolTip" Value="Type part of a line style name to narrow the list, then pick one. Typed text that matches no style is not kept."/>
             </Style>
         </ResourceDictionary>
     </Window.Resources>
@@ -154,11 +152,29 @@ ToolWindowShell layout:
 
                             <DockPanel Margin="0,0,0,6">
                                 <Button DockPanel.Dock="Right" Content="Untick all" Margin="6,0,0,0"
-                                        Style="{StaticResource SmallSecondaryButton}" Command="{Binding UntickAllSectionsCommand}"/>
+                                        Style="{StaticResource SmallSecondaryButton}" Command="{Binding UntickAllSectionsCommand}"
+                                        ToolTip="Untick every section the search shows. Sections the search hides keep their tick."/>
                                 <Button DockPanel.Dock="Right" Content="Tick all" Margin="6,0,0,0"
                                         Style="{StaticResource SmallSecondaryButton}" Command="{Binding TickAllSectionsCommand}"
-                                        ToolTip="Tick every section that can be drawn in."/>
-                                <Border/>
+                                        ToolTip="Tick every section the search shows that can be drawn in."/>
+                                <Grid>
+                                    <TextBox Style="{StaticResource StyledTextInput}" MaxLength="60"
+                                             Text="{Binding SectionSearchText, UpdateSourceTrigger=PropertyChanged, Delay=200}"
+                                             ToolTip="Shows the sections whose name or detail number contains this text. A ticked section that is hidden is still drawn."/>
+                                    <TextBlock Text="Search name or detail no.…" IsHitTestVisible="False" Margin="8,0,0,0"
+                                               VerticalAlignment="Center" FontSize="12" Foreground="{StaticResource BrushTextTertiary}">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding SectionSearchText}" Value="">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </Grid>
                             </DockPanel>
 
                             <ListBox ItemsSource="{Binding Sections}" MinHeight="220"
@@ -171,6 +187,7 @@ ToolWindowShell layout:
                                     <Style TargetType="ListBoxItem">
                                         <Setter Property="Padding" Value="0"/>
                                         <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                        <Setter Property="Visibility" Value="{Binding IsVisible, Converter={StaticResource BoolToVis}}"/>
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding IsTicked}" Value="False">
                                                 <Setter Property="Opacity" Value="0.65"/>
@@ -212,6 +229,10 @@ ToolWindowShell layout:
                                     </DataTemplate>
                                 </ListBox.ItemTemplate>
                             </ListBox>
+                            <TextBlock Style="{StaticResource HintText}" Margin="0,4,0,0" TextWrapping="Wrap"
+                                       Foreground="{StaticResource BrushTextSecondary}"
+                                       Text="No section matches the search. Clear it to see them all."
+                                       Visibility="{Binding NoSectionMatches, Converter={StaticResource BoolToVis}}"/>
                             <TextBlock Style="{StaticResource HintText}" Margin="0,4,0,0"
                                        Text="The number on the right is the detail number on the sheet. A section owned by someone else, or changed in central, cannot be ticked."/>
                         </StackPanel>
@@ -353,8 +374,8 @@ ToolWindowShell layout:
 
                             <TextBlock Text="Roof line style" Style="{StaticResource FieldLabel}"/>
                             <ComboBox Style="{StaticResource StylePicker}"
-                                      ItemsSource="{Binding LineStyleNames}"
-                                      SelectedItem="{Binding RoofLineStyleName}"/>
+                                      ItemsSource="{Binding RoofLineStyleView}"
+                                      SelectedItem="{Binding RoofLineStylePick}"/>
 
                             <CheckBox Content="Walls — line over the visible height" Margin="0,4,0,2"
                                       IsChecked="{Binding DrawWallLines}"
@@ -364,8 +385,8 @@ ToolWindowShell layout:
 
                             <TextBlock Text="Wall line style" Style="{StaticResource FieldLabel}"/>
                             <ComboBox Style="{StaticResource StylePicker}"
-                                      ItemsSource="{Binding LineStyleNames}"
-                                      SelectedItem="{Binding WallLineStyleName}"/>
+                                      ItemsSource="{Binding WallLineStyleView}"
+                                      SelectedItem="{Binding WallLineStylePick}"/>
 
                             <DockPanel Margin="0,0,0,8">
                                 <TextBlock DockPanel.Dock="Left" Text="Adjacency tolerance" Style="{StaticResource FieldLabel}"

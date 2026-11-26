@@ -9,6 +9,21 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [7.35.0] — 2026-11-26
+
+### Added
+- **Section Roof Detail Lines 1.2.0 (V001)** — search and select in every list and picker:
+  - **Sections** list: a search box (section name or detail number). **Tick all** / **Untick all** now act on the
+    sections the search shows.
+  - **Roof line style** and **Wall line style**: type in the picker to narrow the list to the styles containing the
+    text, then pick one. "default" finds the view's default style.
+  - The element tree's search is unchanged.
+
+**User note:** with no search typed, everything works as before. With a search typed, Tick all / Untick all leave
+the hidden sections as they were, and a hidden ticked section is still drawn. Typing in a line-style picker never
+changes the choice by itself: text that matches no style is dropped when the picker closes. Settings are unchanged.
+The plugin version in the `.csproj` was 7.32.0, behind the last two CHANGELOG entries; it is now 7.35.0.
+
 ## [7.34.0] — 2026-11-25
 
 ### Changed
