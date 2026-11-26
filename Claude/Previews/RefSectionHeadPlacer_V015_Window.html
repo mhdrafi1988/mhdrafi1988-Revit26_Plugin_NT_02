@@ -1,0 +1,166 @@
+<title>Reference Section Head Placer</title>
+<!-- UI preview (CLAUDE.md "UI previews"): Reference Section Head Placer 15.3.0 (V015). Tool was 15.2.0.
+     Plugin 7.35.1.
+     15.3.0 is a speed fix with no new controls: the window opens and rescans faster (one roof search
+     per plan view instead of three; linked doors / walls / plumbing pre-filtered by roof boxes), and
+     the Boundary buffer box rescans once typing pauses (400 ms) instead of on every keystroke.
+     Shown: the tool window right after opening, Boundary buffer just edited, with the scan log.
+     Mirrors: Menu/ViewTools/Place/RefSectionHeadPlacer_V015/RefSectionHeadPlacerWindow.xaml
+              (+ RefSectionHeadPlacerViewModel.cs; version from Shared/Services/ToolCatalog.cs).
+     Artifact: https://claude.ai/artifact/9oDBSca5vM3chVetyoHajC (republish to this URL on every update)
+     Colours: Shared/SharedStyles.xaml tokens, one light look on purpose (mirrors the light WPF window). -->
+<style>
+:root{
+  color-scheme:light;
+  --page:#E9EDF1; --window:#F3F5F7; --card:#FFFFFF; --border:#D6DCE3; --input:#B5C2CF; --sep:#E6EAEF;
+  --navy:#1E3A5F; --navy-light:#2C4A6E; --on-dark:#EAF1F8;
+  --text:#1A2B3C; --text2:#5B7185; --text3:#8FA3B8; --bg2:#ECEFF3;
+  --info:#1F5FBF; --info-soft:#E6EEFB;
+  --ok:#2E7D4F; --warn:#9A5B00; --warn-soft:#FDF1E1; --warn-border:#E8B66B;
+  --log-bg:#14283F; --log-text:#EAF1F8; --log-dim:#7E94AA; --log-warn:#E8B66B;
+  --new:#2E7D4F;
+  --ui:'Segoe UI',system-ui,-apple-system,sans-serif; --mono:Consolas,'Cascadia Mono',Menlo,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--text);font-family:var(--ui);font-size:12.5px;padding:24px 16px}
+.page{max-width:1240px;margin:0 auto;display:grid;gap:20px;grid-template-columns:minmax(0,1fr)}
+h1{font-size:20px;margin:0 0 4px;font-weight:600}
+h2{font-size:14px;margin:0 0 8px;font-weight:600}
+p{margin:0;line-height:1.5;max-width:82ch}
+ul{margin:4px 0 0;padding-left:18px;line-height:1.55;max-width:92ch}
+.muted{color:var(--text2)}
+.tag{display:inline-block;background:var(--new);color:#FFFFFF;font-size:10px;font-weight:600;letter-spacing:.04em;
+  padding:1px 6px;border-radius:3px;vertical-align:middle;margin-left:6px;text-transform:uppercase}
+.sample{display:inline-block;background:var(--warn-soft);color:var(--warn);border:1px solid var(--warn-border);
+  border-radius:3px;padding:2px 8px;font-size:11.5px}
+.frame{overflow-x:auto;padding-bottom:4px}
+.note{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px 14px}
+.win{width:1180px;background:var(--window);border:1px solid var(--input);box-shadow:0 6px 20px rgba(16,32,48,.18)}
+.tbar{background:var(--card);border-bottom:1px solid var(--border);padding:7px 10px;display:flex;justify-content:space-between}
+.tbar span{color:var(--text3);letter-spacing:6px}
+.hdr{background:var(--navy);color:var(--on-dark);padding:10px 12px;display:flex;justify-content:space-between;align-items:center}
+.hdr b{font-size:15px;font-weight:600}
+.badge{background:var(--navy-light);border-radius:10px;padding:3px 8px;font-size:11px;font-weight:600}
+.wbody{padding:10px 12px;display:grid;gap:10px}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.mc{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:6px 10px;text-align:center}
+.mc span{display:block;font-size:11px;color:var(--text2)}
+.mc b{font-size:19px;font-variant-numeric:tabular-nums;display:block}
+.cols{display:grid;grid-template-columns:44fr 1px 56fr;gap:10px;align-items:start}
+.vsep{background:var(--border);align-self:stretch}
+.stack{display:grid;gap:8px}
+.cap{font-size:10.5px;color:var(--text3);font-weight:600;letter-spacing:.08em}
+.sc{background:var(--card);border:1px solid var(--border);border-radius:8px}
+.sct{font-size:13px;font-weight:600;color:var(--navy);padding:9px 12px 0;display:flex;justify-content:space-between;gap:8px}
+.sct i{font-style:normal;font-weight:400;font-size:11px;color:var(--text2)}
+.scb{padding:8px 12px 12px;display:grid;gap:6px}
+.row{display:flex;gap:6px;align-items:center}
+.lab{width:90px;font-size:12px}
+.combo,.inp,.tgl{border:1px solid var(--input);background:var(--card);border-radius:4px;padding:4px 7px;font-size:11.5px}
+.combo{width:190px;display:flex;justify-content:space-between}
+.combo i{font-style:normal;color:var(--text3)}
+.inp{flex:1;color:var(--text3)}
+.mm{width:64px;text-align:right;font-variant-numeric:tabular-nums}
+.newbox{outline:2px solid var(--new);outline-offset:2px}
+.tgl{width:110px}
+.btn{border:1px solid var(--input);background:var(--card);border-radius:4px;padding:2px 8px;font-size:11px;white-space:nowrap}
+.btn.p{background:var(--navy);border-color:var(--navy);color:#FFFFFF;padding:5px 18px;font-size:12px;font-weight:600}
+.btn.s{padding:5px 14px;font-size:12px}
+table{width:100%;border-collapse:collapse;font-size:11.5px}
+th{text-align:left;font-weight:600;color:var(--text2);background:var(--bg2);padding:4px 6px;border-bottom:1px solid var(--border)}
+td{padding:4px 6px;border-bottom:1px solid var(--sep)}
+td.n{text-align:right;font-variant-numeric:tabular-nums}
+.box{display:inline-grid;place-items:center;width:12px;height:12px;border-radius:2px;background:var(--navy);color:#FFFFFF;font-size:9px}
+.dv{color:var(--text3)}
+.log{background:var(--log-bg);border-radius:8px;padding:10px 12px;color:var(--log-text)}
+.logh{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-size:11.5px;font-weight:600}
+.ghost{border:1px solid rgba(234,241,248,.3);border-radius:4px;padding:2px 8px;font-size:11px;margin-left:6px;font-weight:400}
+.ll{font-family:var(--mono);font-size:11px;line-height:1.6;white-space:nowrap}
+.ll .t{color:var(--log-dim)} .ll .w{color:var(--log-warn)}
+.foot{display:flex;justify-content:flex-end;gap:8px}
+</style>
+
+<div class="page">
+  <div>
+    <h1>Reference Section Head Placer 15.3.0</h1>
+    <p class="muted">Speed fix only: the window looks the same. <span class="sample">Sample data, not a real project</span></p>
+  </div>
+
+  <div class="note">
+    <h2>What changed <span class="tag">New</span></h2>
+    <ul>
+      <li>Opens and rescans faster: each selected plan view is searched for roofs once per scan, not three times.</li>
+      <li>Linked doors, walls and plumbing far from every roof are skipped before they are checked one by one. The rule for which items are included is unchanged.</li>
+      <li><b>Boundary buffer</b>: Grids 2 and 3 now update once you pause typing (about 0.4 s), not after every keystroke. Clicking <b>Run</b> straight after an edit still uses the new value.</li>
+    </ul>
+  </div>
+
+  <div class="frame">
+    <div class="win">
+      <div class="tbar"><span style="letter-spacing:0;color:var(--text)">Reference Section Head Placer</span><span>— ☐ ✕</span></div>
+      <div class="hdr"><b>Reference Section Head Placer</b><span class="badge">v15.3.0 <span class="tag">New</span></span></div>
+      <div class="wbody">
+        <div class="cards">
+          <div class="mc"><span>Elements</span><b>148</b></div>
+          <div class="mc"><span>Mapped</span><b style="color:var(--info)">3</b></div>
+          <div class="mc"><span>Placed</span><b style="color:var(--ok)">0</b></div>
+          <div class="mc"><span>Skipped</span><b style="color:var(--warn)">0</b></div>
+        </div>
+        <div class="cols">
+          <div class="stack">
+            <div class="cap">SETUP</div>
+            <div class="sc"><div class="scb">
+              <div class="row"><span class="lab">Section type</span><span class="combo">Building Section<i>▾</i></span></div>
+              <div class="row"><span class="lab">Tail length</span><span class="combo mm" style="width:64px">2000</span><span class="muted">mm</span></div>
+            </div></div>
+            <div class="sc"><div class="sct">Linked Files<i>2 of 2 selected</i></div><div class="scb">
+              <div class="row"><span class="btn">All</span><span class="btn">None</span></div>
+              <table><tr><th style="width:34px"></th><th>File</th></tr>
+                <tr><td><span class="box">✓</span></td><td>Sample_Arch_Link.rvt</td></tr>
+                <tr><td><span class="box">✓</span></td><td>Sample_MEP_Link.rvt</td></tr></table>
+            </div></div>
+            <div class="sc"><div class="scb">
+              <div class="row"><span class="lab">Roof type</span><span class="tgl">All types ▾</span></div>
+              <div class="row"><span class="lab">Boundary buffer</span><span class="combo mm newbox" style="width:64px">150</span><span class="muted">mm</span><span class="tag">Rescans when typing pauses</span></div>
+            </div></div>
+            <div class="sc"><div class="sct">1 · Plan Views<i>12 of 12 selected</i></div><div class="scb">
+              <div class="row"><span class="inp">Filter views…</span><span class="tgl" style="width:94px">All types ▾</span><span class="btn">Select all</span><span class="btn">Clear</span></div>
+              <table><tr><th style="width:34px"></th><th>View Name</th><th>Type</th><th>Level</th></tr>
+                <tr><td><span class="box">✓</span></td><td>Roof Plan – Block A</td><td>FloorPlan</td><td>Roof</td></tr>
+                <tr><td><span class="box">✓</span></td><td>Roof Plan – Block B</td><td>FloorPlan</td><td>Roof</td></tr>
+                <tr><td><span class="box">✓</span></td><td>Level 05 – Terrace</td><td>FloorPlan</td><td>L05</td></tr>
+                <tr><td colspan="4" class="dv">… 9 more</td></tr></table>
+            </div></div>
+          </div>
+          <div class="vsep"></div>
+          <div class="stack">
+            <div class="cap">ELEMENT DATA</div>
+            <div class="sc"><div class="sct">2 · Element Categories &amp; Types<i>roofs + linked items within 150mm</i></div><div class="scb">
+              <table><tr><th style="width:34px"></th><th>Source</th><th>Category</th><th>Type</th><th>Count</th></tr>
+                <tr><td><span class="box">✓</span></td><td>Host</td><td>Roofs</td><td>Flat Roof – 200 Slab</td><td class="n">6</td></tr>
+                <tr><td><span class="box">✓</span></td><td>Sample_Arch_Link.rvt</td><td>Doors</td><td>Single Flush 900</td><td class="n">14</td></tr>
+                <tr><td><span class="box">✓</span></td><td>Sample_Arch_Link.rvt</td><td>Walls</td><td>Parapet 200</td><td class="n">96</td></tr>
+                <tr><td><span class="box">✓</span></td><td>Sample_MEP_Link.rvt</td><td>Plumbing Fixtures</td><td>Floor Drain 100mm</td><td class="n">32</td></tr></table>
+            </div></div>
+            <div class="sc"><div class="sct">3 · Map Type → Drafting View</div><div class="scb">
+              <table><tr><th>File · Category · Type</th><th style="width:150px">Drafting View</th></tr>
+                <tr><td>Host · Roofs · Flat Roof – 200 Slab</td><td>DT-01 Roof Edge</td></tr>
+                <tr><td>Sample_Arch_Link.rvt · Doors · Single Flush 900</td><td>DT-04 Door Threshold</td></tr>
+                <tr><td>Sample_Arch_Link.rvt · Walls · Parapet 200</td><td>DT-02 Parapet</td></tr>
+                <tr><td>Sample_MEP_Link.rvt · Plumbing Fixtures · Floor Drain 100mm</td><td class="dv">(not mapped)</td></tr></table>
+            </div></div>
+          </div>
+        </div>
+        <div class="log">
+          <div class="logh">Activity Log<span><span class="ghost">Copy All</span><span class="ghost">Copy Selected</span><span class="ghost">Export .txt</span><span class="ghost">Clear</span></span></div>
+          <div class="ll"><span class="t">10:42:07</span> Ready. All plan views and links selected by default — scanning now.</div>
+          <div class="ll"><span class="t">10:42:08</span> Scan · 12 view(s), 2 link(s) selected · 6 roof(s) found, 1 distinct type(s), 1 ticked · buffer 100mm.</div>
+          <div class="ll"><span class="t">10:42:31</span> Scan · 12 view(s), 2 link(s) selected · 6 roof(s) found, 1 distinct type(s), 1 ticked · buffer 150mm. <span class="tag">One scan after typing "150"</span></div>
+          <div class="ll"><span class="t">10:42:31</span> Link 'Sample_Arch_Link.rvt' · 14 Doors, 96 Walls.</div>
+          <div class="ll"><span class="t">10:42:31</span> Link 'Sample_MEP_Link.rvt' · 32 Plumbing Fixtures.</div>
+        </div>
+        <div class="foot"><span class="btn p">Run</span><span class="btn s">Close</span></div>
+      </div>
+    </div>
+  </div>
+</div>

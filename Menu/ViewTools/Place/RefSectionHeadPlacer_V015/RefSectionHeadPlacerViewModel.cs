@@ -77,9 +77,30 @@ namespace Revit26_Plugin_Revised.RefSectionHeadPlacer.V015.UI.ViewModels
         /// <summary>Grid 2 header meta text â€” reflects the live buffer value.</summary>
         public string ElementScopeSummary => $"roofs + linked items within {BoundaryBufferMm:F0}mm";
 
+        /// <summary>V015 15.3.0 PERF: a buffer edit rescans once typing pauses for this long,
+        /// not on every keystroke.</summary>
+        private static readonly TimeSpan BufferDebounceDelay = TimeSpan.FromMilliseconds(400);
+        private DispatcherTimer _bufferDebounce;
+
         partial void OnBoundaryBufferMmTextChanged(string value)
         {
             OnPropertyChanged(nameof(ElementScopeSummary));
+            if (_bufferDebounce == null)
+            {
+                _bufferDebounce = new DispatcherTimer(DispatcherPriority.Background, _uiDispatcher)
+                {
+                    Interval = BufferDebounceDelay
+                };
+                _bufferDebounce.Tick += OnBufferDebounceTick;
+            }
+            _bufferDebounce.Stop();
+            _bufferDebounce.Start(); // restart the wait on each keystroke
+        }
+
+        private void OnBufferDebounceTick(object sender, EventArgs e)
+        {
+            _bufferDebounce.Stop();
+            if (_disposed) return;
             RefreshElementTypes();
         }
 
@@ -393,13 +414,12 @@ namespace Revit26_Plugin_Revised.RefSectionHeadPlacer.V015.UI.ViewModels
         /// <summary>Rebuilds the Roof Type popover from roofs found in currently selected
         /// plan views. Prior ticked/unticked state is preserved by matching on type name;
         /// new type names default to ticked (no filtering) like the Plan Type filter.</summary>
-        private void RefreshRoofTypeOptions()
+        private void RefreshRoofTypeOptions(IReadOnlyCollection<Element> roofsInViews)
         {
             var previousChecked = _allRoofTypeOptions.ToDictionary(o => o.RawTypeName, o => o.IsChecked);
             foreach (var opt in _allRoofTypeOptions) opt.PropertyChanged -= OnRoofTypeOptionChanged;
 
-            var selectedViews = _allPlanViews.Where(v => v.IsSelected).ToList();
-            var names = _collectorService.GetRoofTypeNames(selectedViews);
+            var names = _collectorService.GetRoofTypeNames(roofsInViews);
 
             _allRoofTypeOptions = names
                 .Select(n => new RoofTypeOption(n, !previousChecked.TryGetValue(n, out var wasChecked) || wasChecked))
@@ -453,12 +473,16 @@ namespace Revit26_Plugin_Revised.RefSectionHeadPlacer.V015.UI.ViewModels
         /// "nothing placed" report can be traced back to its actual cause.</summary>
         public void RefreshElementTypes()
         {
-            RefreshRoofTypeOptions();
+            _bufferDebounce?.Stop(); // a pending buffer rescan is covered by this one
 
             foreach (var row in _allElementTypeRows) row.PropertyChanged -= OnElementTypeRowChanged;
 
             var selectedViews = _allPlanViews.Where(v => v.IsSelected).ToList();
             var selectedLinks = Links.Where(l => l.IsSelected).ToList();
+
+            // V015 15.3.0 PERF: one view-scoped roof search per scan (was three).
+            var roofsInViews = _collectorService.CollectRoofsInViews(selectedViews);
+            RefreshRoofTypeOptions(roofsInViews);
 
             if (selectedViews.Count == 0)
             {
@@ -470,7 +494,7 @@ namespace Revit26_Plugin_Revised.RefSectionHeadPlacer.V015.UI.ViewModels
                 return;
             }
 
-            var rawRoofCount = _collectorService.CountRoofsInViews(selectedViews);
+            var rawRoofCount = roofsInViews.Count;
             var allowedRoofTypeNames = new HashSet<string>(
                 _allRoofTypeOptions.Where(t => t.IsChecked).Select(t => t.RawTypeName));
 
@@ -497,7 +521,7 @@ namespace Revit26_Plugin_Revised.RefSectionHeadPlacer.V015.UI.ViewModels
                 r => (r.SourceLabel, r.Bic, r.TypeName), r => r.IsSelected);
 
             _allElementTypeRows = _collectorService.CollectElementTypes(
-                selectedViews, selectedLinks, allowedRoofTypeNames, BoundaryBufferMm);
+                roofsInViews, selectedLinks, allowedRoofTypeNames, BoundaryBufferMm);
 
             foreach (var row in _allElementTypeRows)
             {
@@ -669,6 +693,11 @@ namespace Revit26_Plugin_Revised.RefSectionHeadPlacer.V015.UI.ViewModels
         [RelayCommand(CanExecute = nameof(CanRun))]
         private void Run()
         {
+            // A buffer edit still waiting for its debounced rescan: apply it now so Run
+            // never uses Grid 2 rows from the previous buffer value.
+            if (_bufferDebounce?.IsEnabled == true)
+                RefreshElementTypes();
+
             var selectedTypes = _allElementTypeRows.Where(t => t.IsSelected).ToList();
             if (selectedTypes.Count == 0) { Log(LogLevel.Warning, "No elements selected â€” nothing to run."); return; }
 
@@ -765,6 +794,12 @@ namespace Revit26_Plugin_Revised.RefSectionHeadPlacer.V015.UI.ViewModels
             foreach (var row in _allCategoryMappingRows) row.PropertyChanged -= OnMappingRowChanged;
             foreach (var opt in _allPlanTypeOptions) opt.PropertyChanged -= OnPlanTypeOptionChanged;
             foreach (var opt in _allRoofTypeOptions) opt.PropertyChanged -= OnRoofTypeOptionChanged;
+
+            if (_bufferDebounce != null)
+            {
+                _bufferDebounce.Stop();
+                _bufferDebounce.Tick -= OnBufferDebounceTick;
+            }
 
             _externalEvent?.Dispose();
         }
