@@ -13,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Windows.Data;
 
 namespace Revit26_Plugin_Revised.SectionRoofDetailLines.V001.UI.ViewModels
 {
@@ -55,6 +56,8 @@ namespace Revit26_Plugin_Revised.SectionRoofDetailLines.V001.UI.ViewModels
             _settings = (settings ?? new SectionRoofLinesSettings()).Normalize();
             _event = ExternalEvent.Create(_handler);
             _documentTitle = uiApp.ActiveUIDocument?.Document?.Title ?? string.Empty;
+            RoofLineStyleView = new ListCollectionView(LineStyleOptions);
+            WallLineStyleView = new ListCollectionView(LineStyleOptions);
 
             _drawRoofProfile = _settings.DrawRoofProfile;
             _roofTop = _settings.RoofTop;
@@ -76,8 +79,42 @@ namespace Revit26_Plugin_Revised.SectionRoofDetailLines.V001.UI.ViewModels
         /// <summary>The host model and each link, holding the categories and types they show.</summary>
         public ObservableCollection<SourceNode> Sources { get; } = new();
 
-        /// <summary>The project's detail line styles, for the two pickers.</summary>
-        public ObservableCollection<string> LineStyleNames { get; } = new();
+        /// <summary>The project's detail line styles, for the two pickers; the first is the view's default.</summary>
+        public ObservableCollection<LineStyleOption> LineStyleOptions { get; } = new();
+
+        /// <summary>
+        /// The roof picker's own view of <see cref="LineStyleOptions"/>. Each picker has its own,
+        /// because typing in one filters its list and must not filter the other's.
+        /// </summary>
+        public ListCollectionView RoofLineStyleView { get; }
+
+        /// <summary>The wall picker's own view of <see cref="LineStyleOptions"/>.</summary>
+        public ListCollectionView WallLineStyleView { get; }
+
+        /// <summary>
+        /// The roof picker's choice. A <c>null</c> from the picker — WPF sends one while the chosen
+        /// style is filtered out of the list — is ignored, so typing never loses the choice.
+        /// </summary>
+        public LineStyleOption RoofLineStylePick
+        {
+            get => FindOption(RoofLineStyleName);
+            set { if (value != null) RoofLineStyleName = value.Name; }
+        }
+
+        /// <summary>The wall picker's choice; ignores <c>null</c> as <see cref="RoofLineStylePick"/> does.</summary>
+        public LineStyleOption WallLineStylePick
+        {
+            get => FindOption(WallLineStyleName);
+            set { if (value != null) WallLineStyleName = value.Name; }
+        }
+
+        /// <summary>Filters the section list by section name or detail number.</summary>
+        [ObservableProperty]
+        private string _sectionSearchText = string.Empty;
+
+        /// <summary>True when a section search is typed and no section matches it.</summary>
+        [ObservableProperty]
+        private bool _noSectionMatches;
 
         /// <summary>Sheet number and name the sections came from, or a note that there is no sheet.</summary>
         [ObservableProperty]
@@ -201,24 +238,25 @@ namespace Revit26_Plugin_Revised.SectionRoofDetailLines.V001.UI.ViewModels
             });
         }
 
-        /// <summary>Ticks every section that can be drawn in.</summary>
+        /// <summary>Ticks every section that can be drawn in and that the section search shows.</summary>
         [RelayCommand]
         private void TickAllSections()
         {
             Batched(() =>
             {
                 foreach (SectionRowViewModel row in Sections)
-                    if (row.CanDraw) row.IsTicked = true;
+                    if (row.CanDraw && row.IsVisible) row.IsTicked = true;
             });
         }
 
-        /// <summary>Unticks every section.</summary>
+        /// <summary>Unticks every section that the section search shows; hidden ones keep their tick.</summary>
         [RelayCommand]
         private void UntickAllSections()
         {
             Batched(() =>
             {
-                foreach (SectionRowViewModel row in Sections) row.IsTicked = false;
+                foreach (SectionRowViewModel row in Sections)
+                    if (row.IsVisible) row.IsTicked = false;
             });
         }
 
@@ -271,6 +309,12 @@ namespace Revit26_Plugin_Revised.SectionRoofDetailLines.V001.UI.ViewModels
         // ── Reacting to the pickers ───────────────────────────────────────────
 
         partial void OnSearchTextChanged(string value) => ApplyFilters();
+
+        partial void OnSectionSearchTextChanged(string value) => ApplySectionFilter();
+
+        partial void OnRoofLineStyleNameChanged(string value) => OnPropertyChanged(nameof(RoofLineStylePick));
+
+        partial void OnWallLineStyleNameChanged(string value) => OnPropertyChanged(nameof(WallLineStylePick));
 
         partial void OnShowAllCategoriesChanged(bool value) => ApplyFilters();
 
@@ -340,14 +384,16 @@ namespace Revit26_Plugin_Revised.SectionRoofDetailLines.V001.UI.ViewModels
                 _cardsHeld = false;
             }
 
-            LineStyleNames.Clear();
-            LineStyleNames.Add(string.Empty); // the view's default style
-            foreach (string name in snapshot.LineStyleNames) LineStyleNames.Add(name);
+            ApplySectionFilter();
 
-            RoofLineStyleName = LineStyleNames.Contains(_settings.RoofLineStyleName)
-                ? _settings.RoofLineStyleName : string.Empty;
-            WallLineStyleName = LineStyleNames.Contains(_settings.WallLineStyleName)
-                ? _settings.WallLineStyleName : string.Empty;
+            LineStyleOptions.Clear();
+            LineStyleOptions.Add(new LineStyleOption(string.Empty)); // the view's default style
+            foreach (string name in snapshot.LineStyleNames) LineStyleOptions.Add(new LineStyleOption(name));
+
+            RoofLineStyleName = HasOption(_settings.RoofLineStyleName) ? _settings.RoofLineStyleName : string.Empty;
+            WallLineStyleName = HasOption(_settings.WallLineStyleName) ? _settings.WallLineStyleName : string.Empty;
+            OnPropertyChanged(nameof(RoofLineStylePick));
+            OnPropertyChanged(nameof(WallLineStylePick));
 
             BuildTree(snapshot);
 
@@ -502,6 +548,24 @@ namespace Revit26_Plugin_Revised.SectionRoofDetailLines.V001.UI.ViewModels
                 foreach (CategoryNode category in source.Categories) category.RefreshFromChildren();
                 source.RefreshCounts();
             }
+        }
+
+        private bool HasOption(string name) => LineStyleOptions.Any(o => o.Name == (name ?? string.Empty));
+
+        private LineStyleOption FindOption(string name)
+            => LineStyleOptions.FirstOrDefault(o => o.Name == (name ?? string.Empty)) ?? LineStyleOptions.FirstOrDefault();
+
+        /// <summary>Shows the sections whose name or detail number contains the section search.</summary>
+        private void ApplySectionFilter()
+        {
+            string needle = (SectionSearchText ?? string.Empty).Trim();
+            foreach (SectionRowViewModel row in Sections)
+            {
+                row.IsVisible = needle.Length == 0
+                    || (row.Name ?? string.Empty).IndexOf(needle, StringComparison.OrdinalIgnoreCase) >= 0
+                    || (row.Target.DetailNumber ?? string.Empty).IndexOf(needle, StringComparison.OrdinalIgnoreCase) >= 0;
+            }
+            NoSectionMatches = needle.Length > 0 && Sections.Count > 0 && !Sections.Any(r => r.IsVisible);
         }
 
         private void ApplyFilters()

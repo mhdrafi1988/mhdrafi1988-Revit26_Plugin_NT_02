@@ -1,6 +1,6 @@
 # Section Roof Detail Lines (V001)
 
-Tool version **1.1.0** · namespace `Revit26_Plugin_Revised.SectionRoofDetailLines.V001` ·
+Tool version **1.2.0** · namespace `Revit26_Plugin_Revised.SectionRoofDetailLines.V001` ·
 ribbon **Rafi_Pro_Docs › Detail Lines › Section Lines**
 
 Lists what a sheet's sections show — host model and every loaded Revit link — then traces the cut
@@ -70,6 +70,20 @@ Every section on the active sheet is ticked, capped at **10** (`SectionRoofLines
 A section open on its own, not yet on a sheet, is offered by itself. A section owned by another user,
 or changed in central since the last reload, cannot be ticked and says why.
 
+## Search and select
+
+Every list and picker you choose from can be searched:
+
+| Where | How it searches | What selecting does |
+| --- | --- | --- |
+| **Sections** (left) | Search box above the list: section name or detail number, anywhere in the text, any case | **Tick all** / **Untick all** act on the sections the search shows; hidden ones keep their tick and are still drawn |
+| **Elements In These Sections** (middle) | Search box: source, category or type name | **Tick roofs & walls** ticks the roof and wall types the search shows |
+| **Roof line style**, **Wall line style** (right) | Type in the picker: the drop-down narrows to the styles containing the text; "default" finds the view's default | Pick from the narrowed list. Text that matches no style is not kept: the picker goes back to the current choice when it closes |
+
+The pickers are `ComboBox`es with `UI/Behaviors/FilterComboBehavior`. Each has its own
+`ListCollectionView` over the one style list, so filtering one does not filter the other, and binds
+`SelectedItem` to a property that ignores the `null` WPF sends while the choice is filtered out.
+
 ## Safety
 
 - One `Transaction` inside one `TransactionGroup`, assimilated: a single Ctrl+Z undoes the whole run.
@@ -95,7 +109,8 @@ Core/Services SectionFrame          the view's plane and visible box
               ModelReader           one snapshot for the window
 Core/Run/     SectionLineRunner     the transaction, per-section orchestration, the report
 Infrastructure SectionRoofLinesHandler  the one ExternalEvent
-UI/           ViewModel_SectionRoofDetailLines (+ .Run), tree nodes, row, converters, window
+UI/           ViewModel_SectionRoofDetailLines (+ .Run), tree nodes, row, LineStyleOption,
+              converters, Behaviors/FilterComboBehavior (type-to-filter pickers), window
 ```
 
 ## Settings
