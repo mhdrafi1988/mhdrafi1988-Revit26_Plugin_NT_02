@@ -12,7 +12,7 @@ namespace Revit26_Plugin_Revised
     {
         private const string RoofTabName   = "Rafi_Pro_Roof";
         private const string FloorsTabName = "Rafi_Pro_Floors";
-        private const string ModelTabName  = "Rafi_Pro_Model";
+        private const string ModelTabName  = "Rafi_Pro_MDL";
         private const string DocsTabName   = "Rafi_Pro_Docs";
 
         public Result OnStartup(UIControlledApplication application)
