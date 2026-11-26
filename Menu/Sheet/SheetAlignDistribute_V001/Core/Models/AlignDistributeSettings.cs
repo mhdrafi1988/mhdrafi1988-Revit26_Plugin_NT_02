@@ -80,8 +80,11 @@ namespace Revit26_Plugin_Revised.SheetAlignDistribute.V001.Core.Models
         /// <summary>How far apart two views' alignment edges may be and still count as one column (mm).</summary>
         public double ColumnToleranceMm { get; set; } = 25;
 
-        /// <summary>What a view's footprint is measured as.</summary>
-        public FootprintMode Footprint { get; set; } = FootprintMode.BoxAndTitle;
+        /// <summary>
+        /// What a view's footprint is measured as. Box only (title ignored) by default since 1.2.0
+        /// (owner request, 2026-11-26); a saved settings file keeps the choice it holds.
+        /// </summary>
+        public FootprintMode Footprint { get; set; } = FootprintMode.BoxOnly;
 
         /// <summary>Include schedules placed on the sheet. Off by default (Rafi, 2026-11-17).</summary>
         public bool IncludeSchedules { get; set; }

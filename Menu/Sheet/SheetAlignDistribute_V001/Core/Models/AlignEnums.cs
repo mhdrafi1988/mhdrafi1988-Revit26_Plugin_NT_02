@@ -67,10 +67,10 @@ namespace Revit26_Plugin_Revised.SheetAlignDistribute.V001.Core.Models
     /// <summary>What a view's footprint is measured as.</summary>
     public enum FootprintMode
     {
-        /// <summary>The viewport box united with its title (label) outline. The default — this is what lines titles up.</summary>
+        /// <summary>The viewport box united with its title (label) outline. This is what lines titles up.</summary>
         BoxAndTitle,
 
-        /// <summary>The viewport box alone.</summary>
+        /// <summary>The viewport box alone, the title ignored. The default since 1.2.0.</summary>
         BoxOnly
     }
 

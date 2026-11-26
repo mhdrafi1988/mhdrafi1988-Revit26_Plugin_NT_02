@@ -9,6 +9,17 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [7.36.0] — 2026-11-26
+
+### Changed
+- **Sheet Align and Distribute 1.2.0 (V001)** — **Count the view title in the footprint** is now **off** by default:
+  views are aligned on their viewport box alone, and the view title is ignored. Turn the toggle on (Current grid
+  section) to align on box + title as before. **Reset to defaults** now turns it off.
+
+**User note:** if you have used the tool before, your saved settings keep the choice they hold (usually on) until
+you change the toggle or press Reset to defaults. Turning the title off also means overlap and margin checks no
+longer see the title, so a long title can end up over a neighbouring view.
+
 ## [7.35.0] — 2026-11-26
 
 ### Added
