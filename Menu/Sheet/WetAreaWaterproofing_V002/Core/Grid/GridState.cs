@@ -60,6 +60,12 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V002.Core.Grid
         public Dictionary<string, double> ColumnWidths { get; set; } = new();
 
         /// <summary>
+        /// Section targets grid (tool 2.3.0): headers of the columns the user has hidden. Missing in older
+        /// settings files, which then show every column.
+        /// </summary>
+        public List<string> TargetHiddenColumns { get; set; } = new();
+
+        /// <summary>
         /// A click on a level button. A plain click shows or hides that level; with
         /// <paramref name="solo"/> (Ctrl+click) only that level stays. The grid never ends up with
         /// no level: showing all levels, or hiding the last one, goes back to "all".
@@ -103,6 +109,8 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V002.Core.Grid
             HiddenColumns ??= new List<string>();
             ColumnOrder ??= new List<string>();
             ColumnWidths ??= new Dictionary<string, double>();
+            TargetHiddenColumns = (TargetHiddenColumns ?? new List<string>())
+                .Where(c => !string.IsNullOrWhiteSpace(c)).Distinct().ToList();
             Search ??= string.Empty;
             if (string.IsNullOrWhiteSpace(GroupBy)) GroupBy = "Level";
             return this;

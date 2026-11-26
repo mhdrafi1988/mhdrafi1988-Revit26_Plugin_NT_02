@@ -18,7 +18,7 @@ Each release lists every tool whose version changed, under the plugin version.
   - **Right:** the **section targets grid**, one line per target: tick · drag handle · **#** (priority) · **On** ·
     **Target** · **Mode** · **Per item** · **Length mm** · **Points to** (drafting view with its sheet / bubble) ·
     **Rooms found** · **Will make** · **Status**. Click a header to sort; **All / On / Problems** chips and a search
-    box filter the rows; **Columns ▾** hides columns; **Reset to defaults** puts the targets back.
+    box filter the rows; **Columns ▾** hides columns (remembered next time); **Reset to defaults** puts the targets back.
   - Drag a row by its handle (or use ▲ ▼ in the details) to change the priority. Higher rows still win when a room
     would get more than six sections.
   - Tick rows to **Set for ticked**: mode, per item, length, turn on / off, or open Assign drafting views.
@@ -30,10 +30,11 @@ Each release lists every tool whose version changed, under the plugin version.
 - Section target counts before the run (Rooms found, Will make, Status, footer totals), worked out from the rooms
   ticked in step 1 with the same planning as the run.
 
-**User note:** what the run makes is unchanged, and settings files are unchanged (the target order, on/off, mode,
-length and drafting views are saved as before). The counts use the rooms as last read from the model: press Refresh
-after changing the model. The Review (step 5) still lists every section exactly. Hidden grid columns are not
-remembered between sessions.
+**User note:** what the run makes is unchanged, and settings files still load as before (the target order, on/off,
+mode, length and drafting views are saved as before). The counts use the rooms as last read from the model: press Refresh
+after changing the model. The Review (step 5) still lists every section exactly. Columns hidden with Columns ▾ are
+remembered in the settings file (new optional field `Grid.TargetHiddenColumns`; older files show every column).
+V001 shares the settings file: saving from V001 forgets that list, so the columns show again.
 
 ## [7.35.0] — 2026-11-26
 

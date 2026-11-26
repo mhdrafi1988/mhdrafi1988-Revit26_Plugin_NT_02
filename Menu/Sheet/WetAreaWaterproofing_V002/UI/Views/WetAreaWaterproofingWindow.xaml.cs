@@ -42,6 +42,7 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V002.UI.Views
             Loaded += (_, _) =>
             {
                 ApplyColumnLayout();
+                ApplyTargetColumns();
                 UpdateHeaders();
             };
             Closing += OnClosing;
@@ -72,6 +73,7 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V002.UI.Views
                 }
             }
             SaveColumnLayout();
+            SaveTargetColumns();
             _viewModel.SaveSettings();
         }
 
@@ -248,7 +250,7 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V002.UI.Views
         private void TargetColumnsButton_Click(object sender, RoutedEventArgs e)
         {
             var menu = new ContextMenu { PlacementTarget = (UIElement)sender, Placement = PlacementMode.Bottom };
-            foreach (DataGridColumn column in TargetsGrid.Columns.Where(c => c.Header is string h && h != "Target"))
+            foreach (DataGridColumn column in HideableTargetColumns())
             {
                 var item = new MenuItem
                 {
@@ -260,6 +262,22 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V002.UI.Views
             }
             menu.IsOpen = true;
         }
+
+        /// <summary>The targets grid's columns that can be hidden, by header (the tick, handle and Target columns always show).</summary>
+        private IEnumerable<DataGridColumn> HideableTargetColumns()
+            => TargetsGrid.Columns.Where(c => c.Header is string h && h != "Target");
+
+        /// <summary>Hides the targets grid columns the user hid last time.</summary>
+        private void ApplyTargetColumns()
+        {
+            var hidden = new HashSet<string>(_viewModel.Settings.Grid.TargetHiddenColumns);
+            foreach (DataGridColumn column in HideableTargetColumns())
+                column.Visibility = hidden.Contains((string)column.Header) ? Visibility.Collapsed : Visibility.Visible;
+        }
+
+        private void SaveTargetColumns()
+            => _viewModel.Settings.Grid.TargetHiddenColumns = HideableTargetColumns()
+                .Where(c => c.Visibility != Visibility.Visible).Select(c => (string)c.Header).ToList();
 
         private void ResetTargets_Click(object sender, RoutedEventArgs e)
         {
