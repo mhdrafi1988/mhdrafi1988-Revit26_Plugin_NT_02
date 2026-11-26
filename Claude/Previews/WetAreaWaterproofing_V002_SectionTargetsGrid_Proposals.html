@@ -5,6 +5,7 @@
   Step 4 "Plans and sections": move SECTION TARGETS to the right as the main area and turn it into an advanced data grid.
   Mirrors: Menu/Sheet/WetAreaWaterproofing_V002/UI/Views/WetAreaWaterproofingWindow.xaml (Step 4, lines ~588-834)
   Labels from SectionTargets.Label / SectionModes.Labels / TargetRowViewModel.PerItemChoices.
+  Chosen: proposal 1 + details pane from 3 (section #pick, tool 2.3.0 planned).
   Artifact: https://claude.ai/artifact/XBp9JVbdKYxsz4vR93Nq5w
 -->
 <style>
@@ -103,6 +104,9 @@ nav.jump a:hover,nav.jump a:focus-visible{border-color:var(--blue);outline:none}
 .grid tr.off td{color:var(--off)}
 .grid tr.off td .sel,.grid tr.off td .inp{color:var(--off);background:var(--hdr)}
 .grid tr.cur td{background:var(--blueSoft)}
+.grid tr[data-i]:hover td{background:var(--hdr)}
+.grid tr[data-i].cur:hover td{background:var(--blueSoft)}
+.grid tr[data-i]:focus-visible{outline:2px solid var(--blue);outline-offset:-2px}
 .grid tr.grp td{background:var(--hdr);font-weight:600;color:var(--head);font-size:11.5px;padding:3px 8px}
 .grid td.r{text-align:right}
 .grid td.m{color:var(--winMuted)}
@@ -141,6 +145,8 @@ nav.jump a:hover,nav.jump a:focus-visible{border-color:var(--blue);outline:none}
 .mtx th.v{writing-mode:vertical-rl;transform:rotate(180deg);height:92px;text-align:left;font-weight:600;padding:6px 3px}
 .pop{position:absolute;z-index:2;top:26px;left:0;background:var(--card);border:1px solid var(--winBd);border-radius:4px;box-shadow:0 6px 18px rgba(20,40,63,.2);padding:8px;display:grid;gap:4px;font-weight:400;min-width:170px}
 .rel{position:relative}
+.step .st{border:0;padding:0;background:none;border-radius:0;font-size:12.5px;display:block}
+.dg{overflow-x:auto}
 .legend{display:flex;gap:10px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
 </style>
 
@@ -149,10 +155,62 @@ nav.jump a:hover,nav.jump a:focus-visible{border-color:var(--blue);outline:none}
   <h1>Section targets as a data grid <span class="tag">proposal</span></h1>
   <p class="note">Wet Area Waterproofing V002 · tool 2.2.0 · step 4 <b>Plans and sections</b>. Today the right column is one long card: eight stacked target rows (each 2–3 lines), then drafting view, section settings, callout settings and two expanders. Each proposal below moves the targets table to the <b>right</b>, as the main area of step 4, and turns it into a grid with sorting, column filters, bulk edit, row priority and a live "what gets made" count. The settings move to the left. All rooms, views and sheet numbers are <b>sample data</b>.</p>
   <nav class="jump" aria-label="Proposals">
-    <a href="#today">Today</a><a href="#p1">1 · Settings rail + grid</a><a href="#p2">2 · Side tabs + grid</a><a href="#p3">3 · Master–detail</a><a href="#p4">4 · Grouped bands</a><a href="#p5">5 · Grid + room matrix</a>
+    <a href="#pick"><b>✓ Chosen: 1 + 3</b></a><a href="#today">Today</a><a href="#p1">1 · Settings rail + grid</a><a href="#p2">2 · Side tabs + grid</a><a href="#p3">3 · Master–detail</a><a href="#p4">4 · Grouped bands</a><a href="#p5">5 · Grid + room matrix</a>
   </nav>
   <div class="legend"><span><span class="tag">new</span> new or moved</span><span>Grid features shared by all: click a header to sort, <b>⏷</b> opens a column filter, drag <b class="drag">⋮⋮</b> to set priority (top wins at the six-per-room cap), tick rows to bulk edit.</span></div>
 </header>
+
+<!-- ═════ CHOSEN: 1 + details pane from 3 ═════ -->
+<section id="pick">
+  <div class="hd"><span class="num" style="background:var(--ok)">✓</span><h2>Chosen: 1 with the details pane from 3</h2><span class="tag">chosen</span></div>
+  <p class="note">The settings rail from proposal 1 stays on the left. On the right, the grid sits on top and the details pane for the selected row sits under it. <b>Click a row</b> in the mock to see its details. Tick boxes on the left edge are for changing several rows at once; clicking a row (not its tick) selects it for the details pane.</p>
+  <div class="scroll"><div class="win" style="min-width:1340px">
+    <div class="tb"><span>Wet Area Waterproofing <i>· 2.3.0 (V002)</i> <span class="tag" style="vertical-align:0">new</span></span><span>✕</span></div>
+    <div class="body">
+      <div class="step"><div class="dot">✓</div><div><div class="st">Find rooms</div><div class="ss">24 rooms ticked on 3 levels</div></div></div>
+      <div class="step"><div class="dot">✓</div><div><div class="st">Roof</div><div class="ss">Roof type WP-Membrane 3 mm · workset Waterproofing</div></div></div>
+      <div class="step active"><div class="shead"><div class="dot">4</div><div style="flex:1"><div class="st">Plans and sections</div><div class="ss hint">Plan settings, section targets and drafting views</div></div></div>
+      <div class="sbody L1">
+        <div style="display:grid;gap:8px;align-content:start">
+          <div class="card"><h3>Plans</h3>
+            <div class="row"><span class="cb on"></span><b>Create plans</b></div>
+            <div class="row"><label>Plan type</label><span class="sel" style="flex:1">Floor Plan</span></div>
+            <div class="row"><label>View template</label><span class="sel" style="flex:1">WP - Room Plan 1:50</span></div>
+            <div class="row"><label>Scale 1:</label><span class="inp mm">50</span><span class="u" style="margin-left:8px">Crop</span><span class="inp mm">300</span><span class="u">mm</span></div>
+            <div class="row"><label>Plan name</label><span class="inp" style="flex:1">WP - {Level} - {Number} {Name}</span></div>
+          </div>
+          <div class="card"><h3>Sections <span class="tag">moved</span></h3>
+            <div class="exp open">Section settings</div>
+            <div class="row"><label>View type</label><span class="sel" style="flex:1">Building Section</span></div>
+            <div class="row"><label>Scale 1:</label><span class="inp mm">20</span><span class="u" style="margin-left:8px">Depth</span><span class="inp mm">600</span><span class="u">mm</span></div>
+            <div class="row"><label>Crop below</label><span class="inp mm">300</span><span class="u" style="margin-left:4px">above</span><span class="inp mm">1200</span><span class="u">mm</span></div>
+            <div class="exp">Callout settings <span class="u">· Detail, 1:10, margin 300</span></div>
+            <div class="exp">Search targets in <span class="u">· 3 sources</span></div>
+            <div class="exp">Fixture keywords</div>
+          </div>
+        </div>
+        <div style="display:grid;gap:8px;align-content:start;min-width:0">
+          <div class="dg">
+            <div class="dgbar">
+              <span class="cb on"></span><b>Create sections</b>
+              <span class="u" style="margin-left:10px">Drafting view</span><span class="radio">One for all</span><span class="radio on">One per target</span>
+              <span class="sp"></span>
+              <span class="search">Filter targets…</span>
+              <span class="chip on">All 8</span><span class="chip">On 5</span><span class="chip">Problems 1</span>
+              <span class="btn sm">Columns ▾</span><span class="btn sm">Reset to defaults</span>
+            </div>
+            <div class="bulk"><span class="cb mix"></span><b>2 ticked</b><span class="tag">new</span><span class="u">Set for ticked:</span><span class="sel">Mode</span><span class="sel">Per item</span><span class="inp mm">Length</span><span class="btn sm">Assign drafting view…</span><span class="btn sm">Turn off</span></div>
+            <table class="grid" id="g0"></table>
+            <div class="gfoot"><span><b>5</b> of 8 targets on</span><span><b>112</b> sections · <b>24</b> callouts in 24 rooms</span><span style="color:var(--warn)">3 rooms hit the six-section cap: lower rows dropped there</span></div>
+          </div>
+          <div class="detail" id="d0" aria-live="polite"></div>
+        </div>
+      </div></div>
+    </div>
+    <div class="foot"><span class="grow">Step 4 of 6</span><span class="btn">Back</span><span class="btn">Run without review</span><span class="btn pri">Next</span></div>
+  </div></div>
+  <div class="pros"><div><b>Grid columns</b><ul><li>Tick · drag · # · On · Target · Mode · Per item · Length · Points to · Rooms found · Will make · Status</li><li>Sort, filter (⏷) and Columns ▾ to hide any column.</li></ul></div><div><b>Details pane</b><ul><li>Cut settings, drafting-view search with sheet/bubble, Assign drafting views…</li><li>Rooms with no match and rows dropped by the six-section cap.</li></ul></div><div><b>Needs in code</b><ul><li>A match count per target and room before the run (dry run of the finder, refreshed with Refresh).</li><li>Tool 2.2.0 → 2.3.0; settings file unchanged.</li></ul></div></div>
+</section>
 
 <section id="today">
   <div class="hd"><h2>Today (2.2.0)</h2></div>
@@ -352,7 +410,7 @@ nav.jump a:hover,nav.jump a:focus-visible{border-color:var(--blue);outline:none}
   <div class="pros"><div><b>Good</b><ul><li>Shows the result of priority order before the run.</li><li>Settings take one line.</li></ul></div><div><b>Watch</b><ul><li>Matrix needs the per-room match pass (same as 3).</li><li>Settings move to a dialog.</li></ul></div></div>
 </section>
 
-<p class="note">Pick a number (or mix, for example "1 with the details pane from 3"). I will then change the XAML and view model, bump the tool to 2.3.0, and update the V002 preview.</p>
+<p class="note">Chosen: proposal 1 with the details pane from 3 (top of this page). Next: XAML and view model change, tool 2.3.0, V002 preview update.</p>
 </div>
 
 <script>
@@ -378,6 +436,42 @@ const tick=(i,ticked)=>cb(ticked.includes(i));
 
 // today
 document.getElementById("todayRows").innerHTML=T.slice(0,3).map(t=>`<div style="border-bottom:1px solid var(--sep);padding:4px 0;display:grid;gap:3px"><div class="row">${cb(t.on)}<b style="flex:1">${t.k}</b><span class="btn sm">▲</span><span class="btn sm">▼</span></div><div class="row" style="padding-left:20px"><span class="sel" style="width:104px">${t.mode}</span><span class="sel${t.per==="—"?" dis":""}" style="width:150px">${t.per==="—"?"One (nearest centre)":t.per}</span><span style="flex:1"></span><span class="u">${t.ll}</span><span class="inp mm">${t.len}</span><span class="u">mm</span></div><div class="row" style="padding-left:20px"><span class="u" style="width:62px">Points to</span><span class="inp" style="flex:1">${t.dv||""}</span></div></div>`).join("")+`<div class="hint">… 5 more targets like these</div>`;
+
+// CHOSEN: P1 grid + P3 details pane, click a row to select
+const MISS={
+ "Full room – horizontal":{miss:[],cap:[]},"Full room – vertical":{miss:[],cap:[]},
+ "Door / threshold":{miss:[],cap:["L01 · 1.03 Ensuite: 1 door dropped"]},
+ "Floor drain":{miss:["L02 · 2.14 Bath","L03 · 3.07 Laundry"],cap:["L01 · 1.03 Ensuite: 1 drain dropped"]},
+ "Shower / bath":{miss:["10 rooms without a shower or bath (WC, Laundry)"],cap:["L02 · 2.03 Ensuite: dropped (cap)","L03 · 3.01 Bath: dropped (cap)"]},
+ "WC / closet":{miss:["5 rooms without a WC"],cap:[]},"Wall corner":{miss:[],cap:[]},"Wall–floor":{miss:[],cap:[]}};
+const SHEET={"A-501":"Waterproofing Details 1","A-502":"Waterproofing Details 2"};
+let cur0=3;
+function draw0(){const ticked=[2,3];
+ let h=`<thead><tr><th>${cb(0)}</th><th></th>${H("#",0,1)}<th>On</th>${H("Target",1)}${H("Mode",1)}${H("Per item",1)}${H("Length mm",0)}${H("Points to (drafting view · sheet/bubble)",1)}${H("Rooms found",0)}${H("Will make",0)}${H("Status",1)}</tr></thead><tbody>`;
+ T.forEach((t,i)=>{h+=`<tr class="${cls(t,i,cur0)}" data-i="${i}" tabindex="0" style="cursor:pointer"><td>${tick(i,ticked)}</td><td class="drag">⋮⋮</td><td><span class="prio">${i+1}</span></td><td>${cb(t.on)}</td><td><b>${t.k}</b></td><td style="width:108px">${sel(t.mode)}</td><td style="width:150px">${sel(t.per==="—"?"n/a":t.per,t.per==="—")}</td><td class="r"><span class="inp mm">${t.len}</span>${t.ll==="Past room"?' <span class="u">past</span>':""}</td><td>${dv(t)}</td><td>${bar(t)}</td><td class="r">${t.n||"–"}</td><td>${st(t)}</td></tr>`});
+ document.getElementById("g0").innerHTML=h+"</tbody>";
+ const t=T[cur0],m=MISS[t.k],ref=t.mode.startsWith("Ref");
+ const sh=t.b&&t.b!=="new"?t.b.split("/"):null;
+ document.getElementById("d0").innerHTML=
+ `<div><h4>${t.k} <span class="tag">new</span></h4>
+   <div class="row"><label>On</label>${cb(t.on)}<span class="u">priority ${cur0+1} of 8</span></div>
+   <div class="row"><label>Mode</label><span class="sel" style="flex:1">${t.mode}</span></div>
+   <div class="row"><label>Per item</label><span class="sel${t.per==="—"?" dis":""}" style="flex:1">${t.per==="—"?"n/a for this target":t.per}</span></div>
+   <div class="row"><label>${t.ll}</label><span class="inp mm">${t.len}</span><span class="u">mm</span></div></div>
+  <div><h4>Points to</h4>${ref?
+   `<span class="search" style="display:block;color:var(--winInk)">${t.dv}</span>
+    <div class="hint" style="margin-top:4px">${sh?`Sheet ${sh[0]} · ${SHEET[sh[0]]} · bubble ${sh[1]}`:`<span style="color:var(--warn)">Not in the model yet: created at the run</span>`}</div>
+    <div class="hint">Search by name, title, sheet number, sheet name or A-501/3.</div>
+    <div style="margin-top:6px"><span class="btn sm">Assign drafting views…</span></div>`
+   :`<div class="hint">${t.mode} creates its own ${t.mode==="Callout"?"detail view (Callout settings)":"section view (Section settings)"}; no drafting view needed.</div>`}</div>
+  <div><h4>Found in rooms</h4>
+   <div class="row"><span class="bar"><i class="${t.rooms<t.of?"w":""}" style="width:${Math.round(t.rooms/t.of*100)}%"></i></span><span><b>${t.rooms}</b> of ${t.of} rooms${t.on?` · makes <b>${t.n}</b>`:" · off"}</span></div>
+   ${m.miss.length?`<div class="hint" style="margin-top:4px">No match: ${m.miss.map(x=>`<b>${x}</b>`).join(", ")}</div>`:`<div class="hint" style="margin-top:4px">Every ticked room has a match.</div>`}
+   ${m.cap.map(x=>`<div class="hint" style="color:var(--warn)">${x}</div>`).join("")}</div>`;
+}
+draw0();
+document.getElementById("g0").addEventListener("click",e=>{const r=e.target.closest("tr[data-i]");if(r){cur0=+r.dataset.i;draw0();}});
+document.getElementById("g0").addEventListener("keydown",e=>{const r=e.target.closest("tr[data-i]");if(r&&(e.key==="Enter"||e.key===" ")){e.preventDefault();cur0=+r.dataset.i;draw0();document.querySelector(`#g0 tr[data-i="${cur0}"]`).focus();}});
 
 // P1: full grid with bulk tick + filter popup
 (function(){const ticked=[2,3];
