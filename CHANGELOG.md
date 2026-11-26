@@ -9,6 +9,19 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [7.36.1] — 2026-11-26
+
+### Fixed
+- **Reference Section Head Placer 15.3.0 (V015)** — the window took a long time to open, and to update after a change:
+  - Each selected plan view is now searched for roofs once per scan (was three times: for the roof-type list, the
+    roof count and Grid 2).
+  - Linked doors, walls, plumbing fixtures and plumbing equipment far from every qualifying roof are skipped by a
+    bounding-box filter in Revit before each one is checked.
+  - **Boundary buffer**: Grids 2 and 3 update once typing pauses (about 0.4 s) instead of after every keystroke.
+
+**User note:** results are unchanged; the same items are listed and placed. Clicking **Run** straight after editing
+the boundary buffer applies the new value first. Settings are unchanged.
+
 ## [7.36.0] — 2026-11-26
 
 ### Changed
