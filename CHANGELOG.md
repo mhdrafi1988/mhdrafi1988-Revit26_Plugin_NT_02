@@ -9,6 +9,32 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [7.36.0] — 2026-11-26
+
+### Changed
+- **Wet Area Waterproofing 2.3.0 (V002)** — step 4 **Plans and sections** has a new layout:
+  - **Left:** a settings column with **Plans**, then **Sections** (Section settings open; Callout settings, Search
+    targets in and Fixture keywords folded).
+  - **Right:** the **section targets grid**, one line per target: tick · drag handle · **#** (priority) · **On** ·
+    **Target** · **Mode** · **Per item** · **Length mm** · **Points to** (drafting view with its sheet / bubble) ·
+    **Rooms found** · **Will make** · **Status**. Click a header to sort; **All / On / Problems** chips and a search
+    box filter the rows; **Columns ▾** hides columns; **Reset to defaults** puts the targets back.
+  - Drag a row by its handle (or use ▲ ▼ in the details) to change the priority. Higher rows still win when a room
+    would get more than six sections.
+  - Tick rows to **Set for ticked**: mode, per item, length, turn on / off, or open Assign drafting views.
+  - **Details pane** under the grid for the selected target: on, mode, per item, length, its drafting view search
+    (with sheet and bubble), **Assign drafting views…**, and **Found in rooms**: how many ticked rooms have a match,
+    which rooms have none, and where the six-section limit drops a section.
+
+### Added
+- Section target counts before the run (Rooms found, Will make, Status, footer totals), worked out from the rooms
+  ticked in step 1 with the same planning as the run.
+
+**User note:** what the run makes is unchanged, and settings files are unchanged (the target order, on/off, mode,
+length and drafting views are saved as before). The counts use the rooms as last read from the model: press Refresh
+after changing the model. The Review (step 5) still lists every section exactly. Hidden grid columns are not
+remembered between sessions.
+
 ## [7.35.0] — 2026-11-26
 
 ### Added

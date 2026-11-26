@@ -1,7 +1,7 @@
 <title>Wet Area Waterproofing V002</title>
 <!--
-  Tool: Wet Area Waterproofing — v2.2.0 (build V002), next to V001 v1.2.5 in one ribbon pulldown
-  Plugin: 7.34.0
+  Tool: Wet Area Waterproofing — v2.3.0 (build V002), next to V001 v1.2.5 in one ribbon pulldown
+  Plugin: 7.36.0
   Mirrors: Menu/Sheet/WetAreaWaterproofing_V002/UI/Views/WetAreaWaterproofingWindow.xaml
            Menu/Sheet/WetAreaWaterproofing_V002/UI/Controls/DraftingViewSearchBox.xaml
            Menu/00_Push_Button_Menu_items/Ribbon/SheetToolsRibbon.cs (BuildWaterproofingPanel)
@@ -10,7 +10,7 @@
 -->
 <meta name="claude:viewport-fit-sides" content="cover">
 <style>
-/* Layout: header, what can be searched, two window mock-ups (inline search, picker panel), ribbon, flowchart, mind map.
+/* Layout: header, 2.3.0 step 4 grid, what can be searched, two window mock-ups (inline search, picker panel), ribbon, flowchart, mind map.
    Window colours = Shared/SharedStyles.xaml; the page around them follows the viewer's theme. */
 :root{
   --page:#F3F5F7; --ink:#1A2B3C; --muted:#5B7185; --line:#D6DCE3; --panel:#FFFFFF;
@@ -154,16 +154,143 @@ pre.mermaid{margin:0;background:transparent;font-family:var(--font)}
 .sx-err{background:#FBE8E7;color:#B23A35;border-color:#EDA5A1}
 .sx-foot{border-top:1px solid var(--line);background:var(--card);padding:8px 12px;display:flex;gap:8px;align-items:center}
 .sx-foot .g{flex:1;color:var(--winMuted)}
+/* ── 2.3.0 step 4: settings column + section targets grid + details (scoped .g23) ── */
+.g23{--off:#9AA8B8;--white:#FFFFFF;--winBd:#9AA8B8;--err:#B3261E}
+.g23 .win{min-width:1320px;color-scheme:light}
+.g23 .body{padding:10px;display:grid;gap:6px}
+.g23 .step{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:7px 14px;display:flex;align-items:center;gap:10px}
+.g23 .step.active{border-color:var(--head);display:block;padding:0}
+.g23 .dot{width:22px;height:22px;border-radius:11px;background:var(--ok);color:var(--white);display:grid;place-items:center;font-size:11px;font-weight:700;flex:none}
+.g23 .step.active .dot{background:var(--head)}
+.g23 .stt{font-weight:600}
+.g23 .ss{font-size:11.5px;color:var(--ok)}
+.g23 .shead{display:flex;align-items:center;gap:10px;padding:8px 14px}
+.g23 .shead .ss{color:var(--winMuted)}
+.g23 .sbody{padding:0 14px 12px;display:grid;grid-template-columns:330px 1fr;gap:12px}
+.g23 .row label{width:96px;color:var(--winMuted);flex:none}
+.g23 .s,.g23 .i{border:1px solid var(--input);background:var(--white);border-radius:3px;padding:2px 6px;min-height:22px;display:inline-flex;align-items:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12px}
+.g23 .s{justify-content:space-between}
+.g23 .s::after{content:"▾";color:var(--winMuted);margin-left:6px}
+.g23 .s.dis{color:var(--off);background:var(--hdr)}
+.g23 .i.mm{width:56px;justify-content:flex-end}
+.g23 .u{color:var(--winMuted);font-size:11px}
+.g23 .cb{width:13px;height:13px;border:1px solid var(--input);border-radius:2px;display:inline-grid;place-items:center;font-size:10px;background:var(--white);flex:none;vertical-align:-2px}
+.g23 .cb.on{background:var(--blue);border-color:var(--blue);color:var(--white)}
+.g23 .cb.on::after{content:"✓"}
+.g23 .cb.mix{background:var(--blue);border-color:var(--blue)}
+.g23 .cb.mix::after{content:"";width:7px;height:2px;background:var(--white)}
+.g23 .exp{color:var(--head);font-weight:600;font-size:12px}
+.g23 .exp::before{content:"▸ ";color:var(--winMuted)}
+.g23 .exp.open::before{content:"▾ "}
+.g23 .chip{border:1px solid var(--input);border-radius:10px;padding:0 8px;font-size:11px;background:var(--white);white-space:nowrap}
+.g23 .chip.on{background:var(--head);border-color:var(--head);color:var(--white)}
+.g23 .search{border:1px solid var(--input);background:var(--white);border-radius:3px;padding:2px 8px;color:var(--off);min-width:170px}
+.g23 .radio{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.g23 .radio::before{content:"";width:11px;height:11px;border:1px solid var(--input);border-radius:50%;background:var(--white)}
+.g23 .radio.on::before{background:radial-gradient(var(--blue) 0 3px,var(--white) 3.5px)}
+.g23 .dg{border:1px solid var(--line);border-radius:4px;background:var(--card);display:grid;align-content:start;overflow-x:auto}
+.g23 .bar1{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:6px 10px;border-bottom:1px solid var(--line)}
+.g23 .bar1 .sp{flex:1}
+.g23 .bulk{display:flex;align-items:center;gap:6px;padding:5px 10px;background:var(--blueSoft);border-bottom:1px solid var(--line);font-size:12px}
+.g23 table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums;font-size:12px}
+.g23 th{background:var(--hdr);text-align:left;font-weight:600;padding:4px 6px;border-bottom:1px solid var(--line);border-right:1px solid var(--sep);font-size:11.5px;white-space:nowrap}
+.g23 th.srt::after{content:" ▲";color:var(--blue);font-size:9px}
+.g23 td{padding:3px 6px;border-bottom:1px solid var(--sep);white-space:nowrap;vertical-align:middle}
+.g23 tr.off td{color:var(--off)}
+.g23 tr.cur td{background:var(--blueSoft)}
+.g23 td.r{text-align:right}
+.g23 .drag{color:var(--off);letter-spacing:-2px}
+.g23 .prio{display:inline-grid;place-items:center;width:18px;height:18px;border-radius:9px;background:var(--hdr);color:var(--head);font-size:10.5px;font-weight:700}
+.g23 .st{display:inline-block;border-radius:3px;padding:0 6px;font-size:10.5px;font-weight:600;border:1px solid}
+.g23 .st.ok{color:var(--ok);background:var(--okSoft);border-color:var(--okBd)}
+.g23 .st.warn{color:var(--warn);background:var(--warnSoft);border-color:var(--warnBd)}
+.g23 .st.info{color:var(--info);background:var(--infoSoft);border-color:var(--infoBd)}
+.g23 .st.off{color:var(--winMuted);background:var(--hdr);border-color:var(--line)}
+.g23 .ref{font-family:var(--mono);font-size:10.5px;color:var(--info);background:var(--infoSoft);border-radius:2px;padding:0 4px;margin-left:6px}
+.g23 .ref.new{color:var(--warn);background:var(--warnSoft)}
+.g23 .own{color:var(--off);font-style:italic}
+.g23 .pb{display:inline-block;height:6px;border-radius:3px;background:var(--sep);width:44px;vertical-align:middle;overflow:hidden}
+.g23 .pb i{display:block;height:100%;background:var(--ok)}
+.g23 .gfoot{display:flex;gap:14px;justify-content:space-between;padding:5px 10px;font-size:11.5px;color:var(--winMuted);border-top:1px solid var(--line)}
+.g23 .detail{display:grid;grid-template-columns:1.1fr 1.2fr 1fr;gap:16px;border:1px solid var(--line);border-top:2px solid var(--head);border-radius:5px;padding:10px 12px;background:var(--card);margin-top:8px}
+.g23 .detail h4{margin:0 0 6px;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--head)}
+.g23 .detail .row{margin-bottom:5px}
+.g23 .detail label{width:72px}
+.g23 .warnt{color:var(--warn);font-size:11.5px}
 </style>
 
 <div class="wrap">
 <header style="display:grid;gap:8px">
-  <h1>Wet Area Waterproofing <span class="ver">v2.2.0 · V002</span></h1>
+  <h1>Wet Area Waterproofing <span class="ver">v2.3.0 · V002</span></h1>
   <p class="note">V002 is V001 (v1.2.5) with a new way to assign drafting views in <b>4 · Section targets</b>: you can now type and search instead of scrolling a long list. Rooms, roofs, plans, sections and the Excel report work as before. Both versions sit in one ribbon pulldown and share settings, tags and reports. Every view, sheet and room name on this page is <b>sample data</b>.</p>
+  <p class="note"><span class="new">NEW in 2.3.0</span> Step 4's <b>section targets</b> are a grid on the right, with the settings in a column on the left and a details pane for the selected target: sort, filter, drag to reorder, change several at once, and see how many rooms each target finds and how many sections it makes.</p>
   <p class="note"><span class="new">NEW in 2.2.0</span> The window is <b>six steps</b> with a <b>Review</b> table: see every roof, plan and section, untick any single one, then <b>Create</b>. Nothing is created before that.</p>
   <p class="note"><span class="new">NEW in 2.1.0</span> The <b>Mode</b> list has two more choices, <b>Section</b> (makes a section view) and <b>Ref. Callout</b> (points to a drafting view), with a new <b>Section settings</b> block. <span class="new">FIXED in 2.1.0</span> A second run no longer adds a second callout for the same room; a callout or section view you have drawn in is kept.</p>
 </header>
 
+
+
+<section class="g23">
+  <h2>Step 4 · Section targets grid <span class="new">NEW in 2.3.0</span></h2>
+  <p class="note">Step 4 now has the settings on the left (<b>Plans</b>, then <b>Sections</b> with Section settings, Callout settings, Search targets in and Fixture keywords) and the <b>section targets grid</b> on the right. Click a header to sort, filter with <b>All / On / Problems</b> or the search box, hide columns with <b>Columns ▾</b>. Drag a row by <b>⋮⋮</b> to change its priority. Tick rows to <b>Set for ticked</b>. The selected row's details sit under the grid. <b>Rooms found</b>, <b>Will make</b> and <b>Status</b> are counted from the rooms ticked in step 1. What the run makes, and the settings file, are unchanged. Sample data.</p>
+  <div class="scroll"><div class="win">
+    <div class="tb"><span>Wet Area Waterproofing</span><i>v2.3.0 <span class="new">NEW</span></i></div>
+    <div class="body">
+      <div class="step"><div class="dot">✓</div><div><div class="stt">Find rooms</div><div class="ss">24 room(s) ticked · 1 model(s) · L01, L02, L03</div></div></div>
+      <div class="step"><div class="dot">✓</div><div><div class="stt">Roof</div><div class="ss">WP-Membrane 3 mm · workset Waterproofing</div></div></div>
+      <div class="step active"><div class="shead"><div class="dot">4</div><div style="flex:1"><div class="stt">Plans and sections</div><div class="ss">Plan settings, section targets and drafting views</div></div></div>
+      <div class="sbody">
+        <div style="display:grid;gap:10px;align-content:start">
+          <div class="card"><h3>Plans</h3>
+            <div class="row"><span class="cb on"></span><b>Create plans</b></div>
+            <div class="row"><label>Plan type</label><span class="s" style="flex:1">Floor Plan</span></div>
+            <div class="row"><label>View template</label><span class="s" style="flex:1">WP - Room Plan</span></div>
+            <div class="row"><label>Scale 1:</label><span class="i mm">50</span><span class="u" style="margin-left:8px">Crop margin</span><span class="i mm">500</span><span class="u">mm</span></div>
+            <div class="row"><label>Plan name</label><span class="i" style="flex:1">WP - {Level} - {Number} {Name}</span></div>
+          </div>
+          <div class="card"><h3>Sections <span class="new">MOVED</span></h3>
+            <div class="hint">5 target(s) on · at most 6 sections per room · rows higher up win</div>
+            <div class="exp open">Section settings</div>
+            <div class="row"><label>Section view type</label><span class="s" style="flex:1">Building Section</span></div>
+            <div class="row"><label>Scale 1 :</label><span class="i mm">20</span></div>
+            <div class="row"><label>Depth (far clip)</label><span class="i mm">600</span><span class="u">mm</span></div>
+            <div class="row"><label>Crop: below level</label><span class="i mm">300</span><span class="u">above</span><span class="i mm">1200</span><span class="u">mm</span></div>
+            <div class="exp">Callout settings</div>
+            <div class="exp">Search targets in</div>
+            <div class="exp">Fixture keywords</div>
+          </div>
+        </div>
+        <div style="min-width:0">
+          <div class="dg">
+            <div class="bar1"><span class="cb on"></span><b>Create sections</b><span class="u" style="margin-left:12px">Drafting view</span><span class="radio">One for all</span><span class="radio on">One per target</span><span class="sp"></span><span class="chip on">All 8</span><span class="chip">On 5</span><span class="chip">Problems 2</span><span class="search">Search…</span><span class="btn">Columns ▾</span><span class="btn">Reset to defaults</span></div>
+            <div class="bulk"><b>2 ticked</b><span class="u">Set for ticked:</span><span class="btn">Mode ▾</span><span class="btn">Per item ▾</span><span class="u">Length</span><span class="i mm"></span><span class="btn">Set</span><span class="btn">Turn on</span><span class="btn">Turn off</span><span class="btn">Assign drafting views…</span><span class="btn">Untick all</span></div>
+            <table><thead><tr><th><span class="cb mix"></span></th><th></th><th class="srt">#</th><th>On</th><th>Target</th><th>Mode</th><th>Per item</th><th>Length mm</th><th>Points to (drafting view · sheet / bubble)</th><th>Rooms found</th><th>Will make</th><th>Status</th></tr></thead>
+            <tbody><tr class=""><td><span class="cb"></span></td><td class="drag">⋮⋮</td><td><span class="prio">1</span></td><td><span class="cb on"></span></td><td><b>Full room – horizontal</b></td><td><span class="s" style="width:100px">Ref. Section</span></td><td><span class="s dis" style="width:140px">One (nearest centre)</span></td><td><span class="i mm">300</span></td><td>WP Detail - Typical Wet Area<span class="ref">A-501 / 1</span></td><td><span class="pb"><i style="width:100%"></i></span> 24 / 24</td><td class="r">24</td><td><span class="st ok">24 sections</span></td></tr><tr class=""><td><span class="cb"></span></td><td class="drag">⋮⋮</td><td><span class="prio">2</span></td><td><span class="cb on"></span></td><td><b>Full room – vertical</b></td><td><span class="s" style="width:100px">Ref. Section</span></td><td><span class="s dis" style="width:140px">One (nearest centre)</span></td><td><span class="i mm">300</span></td><td>WP Detail - Typical Wet Area<span class="ref">A-501 / 1</span></td><td><span class="pb"><i style="width:100%"></i></span> 24 / 24</td><td class="r">24</td><td><span class="st ok">24 sections</span></td></tr><tr class=""><td><span class="cb on"></span></td><td class="drag">⋮⋮</td><td><span class="prio">3</span></td><td><span class="cb on"></span></td><td><b>Door / threshold</b></td><td><span class="s" style="width:100px">Callout</span></td><td><span class="s" style="width:140px">One (nearest centre)</span></td><td><span class="i mm">1500</span></td><td><span class="own">Callout: makes its own detail view</span></td><td><span class="pb"><i style="width:100%"></i></span> 24 / 24</td><td class="r">24</td><td><span class="st info">Makes own view</span></td></tr><tr class="cur"><td><span class="cb on"></span></td><td class="drag">⋮⋮</td><td><span class="prio">4</span></td><td><span class="cb on"></span></td><td><b>Floor drain</b></td><td><span class="s" style="width:100px">Ref. Callout</span></td><td><span class="s" style="width:140px">All matches</span></td><td><span class="i mm">1200</span></td><td>WP Detail - Floor Drain<span class="ref">A-501 / 3</span></td><td><span class="pb"><i style="width:92%"></i></span> 22 / 24</td><td class="r">25</td><td><span class="st warn">1 room at limit</span></td></tr><tr class=""><td><span class="cb"></span></td><td class="drag">⋮⋮</td><td><span class="prio">5</span></td><td><span class="cb on"></span></td><td><b>Shower / bath</b></td><td><span class="s" style="width:100px">Section</span></td><td><span class="s" style="width:140px">One (nearest centre)</span></td><td><span class="i mm">1200</span></td><td><span class="own">Section: makes its own section view</span></td><td><span class="pb"><i style="width:58%"></i></span> 14 / 24</td><td class="r">14</td><td><span class="st warn">10 rooms: none</span></td></tr><tr class="off"><td><span class="cb"></span></td><td class="drag">⋮⋮</td><td><span class="prio">6</span></td><td><span class="cb"></span></td><td><b>WC / closet</b></td><td><span class="s" style="width:100px">Ref. Section</span></td><td><span class="s" style="width:140px">One (nearest centre)</span></td><td><span class="i mm">1200</span></td><td>WP Detail - WC Base<span class="ref">A-502 / 2</span></td><td><span class="pb"><i style="width:79%"></i></span> 19 / 24</td><td class="r">–</td><td><span class="st off">Off</span></td></tr><tr class="off"><td><span class="cb"></span></td><td class="drag">⋮⋮</td><td><span class="prio">7</span></td><td><span class="cb"></span></td><td><b>Wall corner</b></td><td><span class="s" style="width:100px">Ref. Section</span></td><td><span class="s" style="width:140px">One (nearest centre)</span></td><td><span class="i mm">1000</span></td><td>WP Detail - Wall Corner<span class="ref new">new at run</span></td><td><span class="pb"><i style="width:100%"></i></span> 24 / 24</td><td class="r">–</td><td><span class="st off">Off</span></td></tr><tr class="off"><td><span class="cb"></span></td><td class="drag">⋮⋮</td><td><span class="prio">8</span></td><td><span class="cb"></span></td><td><b>Wall–floor</b></td><td><span class="s" style="width:100px">Ref. Section</span></td><td><span class="s dis" style="width:140px">One (nearest centre)</span></td><td><span class="i mm">1000</span></td><td>WP Detail - Wall Upturn<span class="ref">A-502 / 4</span></td><td><span class="pb"><i style="width:100%"></i></span> 24 / 24</td><td class="r">–</td><td><span class="st off">Off</span></td></tr></tbody></table>
+            <div class="gfoot"><span>5 of 8 targets on · 111 section(s) in 24 room(s)</span><span class="warnt">1 room(s) hit the 6-section limit: lower rows are dropped there</span></div>
+          </div>
+          <div class="detail">
+            <div><div class="row" style="justify-content:space-between"><h4 style="margin:0">Floor drain</h4><span><span class="btn sm">▲</span> <span class="btn sm">▼</span></span></div>
+              <div class="row"><label>On</label><span class="cb on"></span><span class="hint">priority 4 of 8</span></div>
+              <div class="row"><label>Mode</label><span class="s" style="flex:1">Ref. Callout</span></div>
+              <div class="row"><label>Per item</label><span class="s" style="flex:1">All matches</span></div>
+              <div class="row"><label>Length</label><span class="i mm">1200</span><span class="u">mm</span></div></div>
+            <div><h4>Points to</h4>
+              <span class="i" style="width:100%">WP Detail - Floor Drain</span>
+              <div class="hint" style="margin-top:4px">A-501 / 3 · Waterproofing Details</div>
+              <div class="hint">Type a view name, title, sheet number, sheet name or bubble (A-501/3). A name that does not exist is created at the run.</div>
+              <div style="margin-top:8px"><span class="btn">Assign drafting views…</span></div></div>
+            <div><h4>Found in rooms</h4>
+              <div class="row"><span class="pb" style="width:70px"><i style="width:92%"></i></span><b>22 of 24 rooms · 26 match(es) · makes 25</b></div>
+              <div class="hint">No match: L02 · 2.14 Bath, L03 · 3.07 Laundry</div>
+              <div class="warnt">Six-section limit: L01 · 1.03 Ensuite: 1 dropped</div>
+              <div class="hint" style="margin-top:6px">Counted from the rooms ticked in step 1, as last read from the model. The Review lists every section exactly.</div></div>
+          </div>
+        </div>
+      </div></div>
+    </div>
+    <div class="sx-foot"><span class="g">Step 4 of 6</span><span class="btn">Back</span><span class="btn">Run without review</span><span class="btn pri">Next: Review</span></div>
+  </div></div>
+</section>
 
 <section>
   <h2>Six steps and a Review <span class="new">NEW in 2.2.0</span></h2>
@@ -208,7 +335,7 @@ flowchart TD
   </div>
   <div class="scroll">
     <div class="win" style="width:1080px">
-      <div class="tb"><span>Wet Area Waterproofing</span><i>v2.2.0</i></div>
+      <div class="tb"><span>Wet Area Waterproofing</span><i>v2.3.0</i></div>
       <div class="sx-body">
         <div class="sx-stage done"><div class="sx-sh"><div class="sx-num"><span>✓</span></div><div><div class="sx-st">Find rooms</div><div class="sx-ss">4 rooms ticked · Host + Tower A - ARCH · L01, L02</div></div><span class="btn sm">Change</span></div></div>
         <div class="sx-stage done"><div class="sx-sh"><div class="sx-num"><span>✓</span></div><div><div class="sx-st">Check outlines</div><div class="sx-ss">4 closed · 1 repaired (snap 12 mm) · 0 approximate</div></div><span class="btn sm">Change</span></div></div>
@@ -276,7 +403,7 @@ flowchart TD
   </div>
   <div class="scroll">
     <div class="win" style="width:470px">
-      <div class="tb"><span>Wet Area Waterproofing</span><i>v2.2.0</i></div>
+      <div class="tb"><span>Wet Area Waterproofing</span><i>v2.3.0</i></div>
       <div style="padding:10px;display:grid;gap:10px">
         <div class="card">
           <h3>4 · Section targets</h3>
@@ -329,11 +456,11 @@ flowchart TD
 </section>
 
 <section>
-  <h2>Layout 1 · Search in each “Points to” box <span class="new">NEW</span></h2>
-  <p class="note">The editable list is now a search box. Typing <code>A-501</code> drops down the matches; ↑/↓ move, Enter or a click picks, Esc closes, and ⏷ lists every view. The grey line under each box says where the view is, or that it will be created.</p>
+  <h2>Layout 1 · Search in each “Points to” box</h2>
+  <p class="note">In 2.3.0 this box sits in the details pane under the targets grid (shown above); it works the same. The editable list is now a search box. Typing <code>A-501</code> drops down the matches; ↑/↓ move, Enter or a click picks, Esc closes, and ⏷ lists every view. The grey line under each box says where the view is, or that it will be created.</p>
   <div class="scroll">
     <div class="win" style="width:470px">
-      <div class="tb"><span>Wet Area Waterproofing</span><i>v2.2.0</i></div>
+      <div class="tb"><span>Wet Area Waterproofing</span><i>v2.3.0</i></div>
       <div style="padding:10px">
         <div class="card">
           <h3>4 · Section targets</h3>
@@ -389,7 +516,7 @@ flowchart TD
   <p class="note">This is the alternate layout. It assigns every target from one screen: targets on the left, all drafting views in a table on the right. Pick a target, then double-click a view or press Enter. The next target is selected for you, so four targets take four double-clicks. <b>Use as new name</b> points the target to the typed text. Both layouts edit the same values, so you can switch between them freely.</p>
   <div class="scroll">
     <div class="win" style="width:1060px">
-      <div class="tb"><span>Wet Area Waterproofing</span><i>v2.2.0</i></div>
+      <div class="tb"><span>Wet Area Waterproofing</span><i>v2.3.0</i></div>
       <div class="overlay">
         <div class="dlg">
           <h4>Assign drafting views</h4>
@@ -439,7 +566,7 @@ flowchart TD
       <div class="rt">Waterproofing</div>
     </div>
     <div class="tip">
-      <b>Wet Area Waterproofing — v2.2.0 (build V002)</b>
+      <b>Wet Area Waterproofing — v2.3.0 (build V002)</b>
       <span>Six steps with a Review table of every roof, plan and section before anything is created. Drafting-view search: type a view name, title on sheet, sheet number, sheet name or bubble number (A-501/3 = sheet A-501, bubble 3) in "Points to" and pick from the list, or open "Assign drafting views…" to assign every target from one searchable table. Each target can be a Ref. Section, Callout, Section or Ref. Callout.</span>
     </div>
   </div>

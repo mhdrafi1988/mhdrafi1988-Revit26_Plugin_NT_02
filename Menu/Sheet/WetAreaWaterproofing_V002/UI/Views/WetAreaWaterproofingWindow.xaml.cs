@@ -15,7 +15,8 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V002.UI.Views
 {
     /// <summary>
     /// Wet Area Waterproofing window. The code-behind only does what binding cannot: header sort
-    /// and filter clicks, the column chooser, remembering the column layout, and the folder picker.
+    /// and filter clicks, the column choosers, remembering the column layout, the folder picker, and (tool 2.3.0)
+    /// the section targets grid's drag-and-drop reorder and its "Set for ticked" menus.
     /// </summary>
     public partial class WetAreaWaterproofingWindow : Window
     {
@@ -190,6 +191,84 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V002.UI.Views
             => LogClipboardService.CopySelected(LogListBox.SelectedItems);
 
         private void CloseButton_Click(object sender, RoutedEventArgs e) => Close();
+
+        // ── Section targets grid (tool 2.3.0) ───────────────────────────────────────────────────
+
+        private const string TargetDragFormat = "WetAreaWaterproofing.V002.TargetRow";
+
+        /// <summary>Starts dragging a target by its handle; dropping it on another row moves it there.</summary>
+        private void TargetDragHandle_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if ((sender as FrameworkElement)?.DataContext is not TargetRowViewModel row) return;
+            _viewModel.SelectedTarget = row;
+            DragDrop.DoDragDrop((DependencyObject)sender, new DataObject(TargetDragFormat, row), DragDropEffects.Move);
+            e.Handled = true;
+        }
+
+        private void TargetsGrid_DragOver(object sender, DragEventArgs e)
+        {
+            e.Effects = e.Data.GetDataPresent(TargetDragFormat) ? DragDropEffects.Move : DragDropEffects.None;
+            e.Handled = true;
+        }
+
+        private void TargetsGrid_Drop(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetData(TargetDragFormat) is not TargetRowViewModel row) return;
+            DependencyObject current = e.OriginalSource as DependencyObject;
+            while (current != null && current is not DataGridRow) current = VisualTreeHelper.GetParent(current);
+            int index = current is DataGridRow { Item: TargetRowViewModel over }
+                ? _viewModel.Targets.IndexOf(over)
+                : _viewModel.Targets.Count - 1; // below the last row
+            // The grid shows priority order again, so the drop lands where it looks like it does.
+            TargetsGrid.Items.SortDescriptions.Clear();
+            foreach (DataGridColumn column in TargetsGrid.Columns) column.SortDirection = null;
+            _viewModel.MoveTargetTo(row, index);
+            e.Handled = true;
+        }
+
+        private void BulkMode_Click(object sender, RoutedEventArgs e)
+            => ShowMenu((UIElement)sender, TargetRowViewModel.ModeChoices, _viewModel.BulkSetMode);
+
+        private void BulkPerItem_Click(object sender, RoutedEventArgs e)
+            => ShowMenu((UIElement)sender, TargetRowViewModel.PerItemChoices, _viewModel.BulkSetPerItem);
+
+        private static void ShowMenu(UIElement target, IEnumerable<string> choices, Action<string> pick)
+        {
+            var menu = new ContextMenu { PlacementTarget = target, Placement = PlacementMode.Bottom };
+            foreach (string choice in choices)
+            {
+                var item = new MenuItem { Header = choice };
+                item.Click += (_, _) => pick(choice);
+                menu.Items.Add(item);
+            }
+            menu.IsOpen = true;
+        }
+
+        /// <summary>Column chooser for the targets grid (the tick, handle and target columns always show).</summary>
+        private void TargetColumnsButton_Click(object sender, RoutedEventArgs e)
+        {
+            var menu = new ContextMenu { PlacementTarget = (UIElement)sender, Placement = PlacementMode.Bottom };
+            foreach (DataGridColumn column in TargetsGrid.Columns.Where(c => c.Header is string h && h != "Target"))
+            {
+                var item = new MenuItem
+                {
+                    Header = column.Header, IsCheckable = true, StaysOpenOnClick = true,
+                    IsChecked = column.Visibility == Visibility.Visible
+                };
+                item.Click += (_, _) => column.Visibility = item.IsChecked ? Visibility.Visible : Visibility.Collapsed;
+                menu.Items.Add(item);
+            }
+            menu.IsOpen = true;
+        }
+
+        private void ResetTargets_Click(object sender, RoutedEventArgs e)
+        {
+            if (MessageBox.Show(this,
+                    "Put the section targets back to the defaults?\n\nOrder, on/off, mode, length and drafting view names are reset. Other settings stay.",
+                    ToolCatalog.WetAreaWaterproofingV002.Name, MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
+            TargetsGrid.Items.SortDescriptions.Clear();
+            _viewModel.ResetTargets();
+        }
 
         /// <summary>Picker search box: ↑/↓ move through the views, Enter assigns the highlighted one, Esc closes the panel.</summary>
         private void PickerSearchBox_PreviewKeyDown(object sender, KeyEventArgs e)

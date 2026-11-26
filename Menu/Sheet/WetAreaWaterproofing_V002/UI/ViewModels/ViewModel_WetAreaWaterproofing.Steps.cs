@@ -113,6 +113,7 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V002.UI.ViewModels
         partial void OnCurrentStepChanged(int value)
         {
             UpdateStepStates();
+            if (value == 4) UpdateTargetGrid(); // the counts follow the rooms ticked in step 1
             NextButtonText = value < 4 ? "Next: " + StepTitles[NextAfter(value) - 1] : "Next: Review";
             NextCommand.NotifyCanExecuteChanged();
             BackCommand.NotifyCanExecuteChanged();

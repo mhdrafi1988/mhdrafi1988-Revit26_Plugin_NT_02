@@ -17,8 +17,9 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V002.Core.Sections
     /// <param name="Makes">Sections the run would place for this target (0 when it is off).</param>
     /// <param name="RoomsWithout">Labels of the rooms without a match.</param>
     /// <param name="Dropped">"L01 · 1.03 Ensuite: 1 dropped" for each room where the six-per-room limit left matches out.</param>
+    /// <param name="DroppedRooms">Labels of those rooms.</param>
     public sealed record TargetCoverageRow(SectionTargetKind Kind, int RoomsWith, int RoomsTotal, int Matches, int Makes,
-        IReadOnlyList<string> RoomsWithout, IReadOnlyList<string> Dropped)
+        IReadOnlyList<string> RoomsWithout, IReadOnlyList<string> Dropped, IReadOnlyList<string> DroppedRooms)
     {
         /// <summary>True when some room has no match or lost a section to the limit.</summary>
         public bool HasProblem => RoomsWithout.Count > 0 || Dropped.Count > 0;
@@ -50,6 +51,7 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V002.Core.Sections
                 int roomsWith = 0, matches = 0, makes = 0;
                 var without = new List<string>();
                 var dropped = new List<string>();
+                var droppedRooms = new List<string>();
                 foreach (CoverageRoom room in usable)
                 {
                     int found = SectionPlanner.CountMatches(room.Input, target);
@@ -60,9 +62,11 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V002.Core.Sections
                     int placed = made[room].TryGetValue(target.Kind, out int n) ? n : 0;
                     makes += placed;
                     int wanted = target.AllMatches ? found : Math.Min(found, 1);
-                    if (placed < wanted) dropped.Add($"{room.Label}: {wanted - placed} dropped");
+                    if (placed >= wanted) continue;
+                    dropped.Add($"{room.Label}: {wanted - placed} dropped");
+                    droppedRooms.Add(room.Label);
                 }
-                result.Add(new TargetCoverageRow(target.Kind, roomsWith, usable.Count, matches, makes, without, dropped));
+                result.Add(new TargetCoverageRow(target.Kind, roomsWith, usable.Count, matches, makes, without, dropped, droppedRooms));
             }
             return result;
         }
