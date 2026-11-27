@@ -1,0 +1,591 @@
+<title>Base and Nearest Level</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<!-- UI preview (CLAUDE.md "UI previews"): Base and Nearest Level V001, tool 1.0.0 (proposed), plugin 7.39.0 (proposed).
+     STATUS: design preview, shown before implementation for approval. No code exists yet; every window below is a
+     mock-up of the agreed design, not a screenshot of a running tool.
+     New tool. Roofs, Floors and Walls only — no other category is ever listed.
+     Reads each element's own level/offset pair, works out the project level nearest to the element's real base
+     elevation, and writes four parameters: base level name (Text), base offset (Length), nearest level name (Text),
+     nearest offset (Length). A second, opt-in action re-hosts ticked elements onto their nearest level without
+     moving them.
+     Shows: 1 the Coordination ribbon button + tooltip, 2 the main window after "Read Levels" with the pre-checks run,
+            3 the New Parameter dialog for the fourth slot, 4 the "Re-host to nearest level?" dialog,
+            5 the footer while running and after a run, 6 the three design points still open.
+     Mirrors (planned): Menu/Coordination/Parameters/BaseAndNearestLevel_V001/UI/Views/BaseAndNearestLevelWindow.xaml,
+              .../UI/Views/NewParameterDialog.xaml, .../UI/Views/RehostConfirmDialog.xaml
+              (+ ViewModel_BaseAndNearestLevel), Shared/Controls/ToolWindowShellTemplate.xaml,
+              Menu/00_Push_Button_Menu_items/Ribbon/CoordinationRibbon.cs
+     Artifact: https://claude.ai/artifact/Pur91tnv2MVVUvr6iKvypL (republish to this URL on every update)
+     Colours: Shared/SharedStyles.xaml tokens, one light look on purpose (mirrors the light WPF window). -->
+<style>
+/* Layout: stacked fixed-width WPF windows, each in its own horizontal scroll box. */
+:root{
+  --surface-window:#F3F5F7; --card:#FFFFFF; --border:#D6DCE3; --border-input:#B5C2CF;
+  --action:#1E3A5F; --navy-dark:#14283F; --navy-light:#2C4A6E; --text:#1A2B3C; --text2:#5B7185; --text3:#8FA3B8;
+  --text-disabled:#C3CFDB; --bg2:#ECEFF3; --bg3:#E1E6EC; --sep-thin:#E6EAEF; --on-dark:#EAF1F8;
+  --ok:#2E7D4F; --ok-soft:#E6F4EC; --ok-border:#9FCFB2;
+  --warn:#9A5B00; --warn-soft:#FDF1E1; --warn-border:#E8B66B;
+  --err:#B23A35; --err-soft:#FBE8E7; --err-border:#EDA5A1;
+  --info:#1F5FBF; --info-soft:#E6EEFB; --info-border:#A9C3EE;
+  --log-bg:#14283F; --log-text:#EAF1F8; --log-dim:#7E94AA; --log-ok:#4CC18A; --log-warn:#F0AE5C; --log-err:#F0837D; --log-hi:#7FB0FF;
+  --page:#E9EDF1; --new:#2E7D4F; --new-text:#FFFFFF;
+  --font:'Segoe UI',system-ui,-apple-system,sans-serif; --mono:Consolas,'Cascadia Mono',monospace;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--text);font-family:var(--font);font-size:12.5px;
+  padding-block:16px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1{font-size:18px;margin:0 0 4px}
+h2{font-size:13px;margin:24px 0 8px;color:var(--action);text-transform:uppercase;letter-spacing:.06em}
+.note{color:var(--text2);max-width:70ch;line-height:1.45;margin:0 0 8px}
+.scroll{overflow-x:auto;padding-bottom:4px}
+input[type=checkbox]{accent-color:var(--action);width:14px;height:14px;margin:0 6px 0 0;vertical-align:-2px}
+
+.new{display:inline-block;background:var(--new);color:var(--new-text);font-size:9.5px;font-weight:700;letter-spacing:.05em;border-radius:3px;padding:1px 5px;margin-left:6px;vertical-align:1px}
+.asm{display:inline-block;background:var(--warn-soft);border:1px solid var(--warn-border);color:var(--warn);font-size:9.5px;font-weight:700;letter-spacing:.04em;border-radius:3px;padding:0 5px;margin-left:6px;vertical-align:1px;white-space:nowrap}
+.open{display:inline-block;background:var(--info-soft);border:1px solid var(--info-border);color:var(--info);font-size:9.5px;font-weight:700;letter-spacing:.04em;border-radius:3px;padding:0 5px;margin-left:6px;vertical-align:1px;white-space:nowrap}
+.banner{background:var(--warn-soft);border:1px solid var(--warn-border);border-radius:4px;padding:10px 12px;max-width:70ch;line-height:1.5;margin:0 0 16px}
+.banner b{color:var(--warn)}
+
+/* Window chrome */
+.win{background:var(--surface-window);border:1px solid var(--border-input);display:flex;flex-direction:column}
+.titlebar{height:32px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;background:var(--card);border-bottom:1px solid var(--border);font-size:12px}
+.titlebar span:last-child{color:var(--text2);letter-spacing:14px}
+.header{background:var(--action);color:var(--new-text);padding:12px 16px;display:flex;align-items:center}
+.header .t{font-size:18px;font-weight:600}.header .s{font-size:11.5px;color:#C9D6E3;margin-top:2px}
+.header .v{margin-left:auto;background:var(--navy-light);border-radius:10px;padding:3px 8px;font-size:11px;font-weight:600;color:var(--on-dark)}
+.pad{padding:8px 12px 0}
+.card{background:var(--card);border:1px solid var(--border);border-radius:4px}
+.section{font-size:11.5px;font-weight:600;color:var(--action)}
+.hint{font-size:10.5px;color:var(--text3);line-height:1.35}
+.lbl{font-size:11.5px;color:var(--text2);margin-right:8px}
+.row{display:flex;align-items:center;gap:6px}
+.wrap{flex-wrap:wrap}
+.sp{flex:1}
+
+/* Metrics */
+.metrics{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;padding:8px}
+.tile{border:1px solid var(--border);border-radius:4px;padding:8px 12px;background:var(--card);cursor:pointer}
+.tile.act{outline:2px solid var(--action);outline-offset:-1px}
+.tile .n{font-size:20px;font-weight:600;font-variant-numeric:tabular-nums}
+.tile .k{font-size:11px;color:var(--text2)}
+.tile.info{background:var(--info-soft);border-color:var(--info-border)}.tile.info .n{color:#1F4E9A}
+.tile.ok{background:var(--ok-soft);border-color:var(--ok-border)}.tile.ok .n{color:#1F5E3A}
+.tile.warn{background:var(--warn-soft);border-color:var(--warn-border)}.tile.warn .n{color:var(--warn)}
+.tile.err{background:var(--err-soft);border-color:var(--err-border)}.tile.err .n{color:#8E2A26}
+
+/* Controls */
+.combo,.text{height:26px;border:1px solid var(--border-input);border-radius:2px;background:var(--card);display:inline-flex;align-items:center;padding:0 6px;font-size:12.5px}
+.combo{justify-content:space-between}.combo:after{content:"▾";color:var(--text2);font-size:10px;margin-left:8px}
+.text .ph{color:var(--text3)}
+.chipbtn{height:24px;padding:0 10px;border:1px solid var(--border-input);border-radius:12px;font-size:11px;display:inline-flex;align-items:center;background:var(--card)}
+.chipbtn.on{background:var(--action);border-color:var(--action);color:var(--new-text)}
+.sbtn{height:26px;padding:0 10px;font-size:11.5px;border:1px solid var(--border-input);border-radius:4px;background:var(--card);color:var(--text);display:inline-flex;align-items:center;white-space:nowrap}
+.sbtn.pri{background:var(--action);border-color:var(--action);color:var(--new-text);font-weight:600}
+.pill{background:var(--bg2);border-radius:10px;padding:3px 8px;font-size:11px;font-weight:600;color:var(--action);white-space:nowrap}
+.cnt{font-size:10.5px;color:var(--text3);margin-left:4px}
+
+/* Status chips */
+.chip{display:inline-block;border-radius:10px;padding:1px 8px;font-size:10.5px;font-weight:600;border:1px solid;white-space:nowrap}
+.chip.ok{background:var(--ok-soft);color:var(--ok);border-color:var(--ok-border)}
+.chip.warn{background:var(--warn-soft);color:var(--warn);border-color:var(--warn-border)}
+.chip.err{background:var(--err-soft);color:var(--err);border-color:var(--err-border)}
+.chip.info{background:var(--info-soft);color:var(--info);border-color:var(--info-border)}
+.chip.mute{background:var(--bg2);color:var(--text2);border-color:var(--border)}
+
+/* Cards row */
+.cards3{display:grid;grid-template-columns:460px 330px 1fr;gap:8px;padding:0 12px;margin-top:8px}
+.tbody{padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.form{display:grid;grid-template-columns:132px 1fr;align-items:center;row-gap:8px;column-gap:8px}
+.form .l{font-size:11.5px;color:var(--text2)}
+.slot{display:grid;grid-template-columns:132px 1fr auto;align-items:center;row-gap:6px;column-gap:8px}
+.slot .l{font-size:11.5px;color:var(--text2)}
+.slotnum{display:inline-flex;width:16px;height:16px;border-radius:50%;background:var(--action);color:var(--new-text);font-size:9.5px;font-weight:700;align-items:center;justify-content:center;margin-right:6px;vertical-align:1px}
+.dd{border:1px solid var(--border-input);border-top:none;background:var(--card);box-shadow:0 4px 10px rgba(20,40,63,.12);font-size:12px}
+.dd div{padding:4px 8px;display:flex;justify-content:space-between}
+.dd div.sel{background:var(--info-soft)}
+.dd .meta{color:var(--text3);font-size:10.5px}
+.dd .newrow{color:var(--action);font-weight:600;border-top:1px solid var(--sep-thin)}
+
+/* Tables */
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{background:var(--bg2);color:var(--text2);font-weight:600;text-align:left;padding:6px;border-bottom:1px solid var(--border);font-size:11.5px;white-space:nowrap}
+th .ar{color:var(--action);margin-left:4px}
+td{padding:4px 6px;border-bottom:1px solid var(--sep-thin);height:28px;vertical-align:middle;white-space:nowrap}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+td.mono{font-family:var(--mono);font-size:11.5px}
+.checks td{height:auto;padding:6px;line-height:1.35;white-space:normal}
+.checks td:first-child{white-space:nowrap;font-weight:600;width:190px}
+.summary{display:flex;align-items:center;gap:8px;padding:8px 12px;border-top:1px solid var(--border);background:var(--bg2);border-radius:0 0 4px 4px;font-weight:600;flex-wrap:wrap}
+.summary .ok{color:var(--ok)}.summary .warn{color:var(--warn)}.summary .err{color:var(--err)}
+
+/* Grid */
+.grid-card{margin:8px 12px 0;padding:8px 12px}
+.ghead{display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:wrap}
+tr.grp td{background:var(--bg3);font-weight:600;color:var(--action);height:26px}
+tr.grp .tw{display:inline-block;width:14px;color:var(--text2)}
+tr.dim td{color:var(--text3)}
+.cv{color:var(--text3)}
+.nv{font-weight:600}
+.nv.same{color:var(--text3);font-weight:400}
+.nv.chg{color:var(--ok)}
+.flag{display:inline-block;width:14px;text-align:center;color:var(--warn);font-weight:700;cursor:help}
+
+/* Log */
+.log{background:var(--log-bg);border-radius:4px;padding:8px 12px;margin:8px 12px;font-family:var(--mono);font-size:11.5px;color:var(--log-text)}
+.loghead{display:flex;align-items:center;font-family:var(--font)}
+.loghead b{font-size:11.5px}.loghead .dim{color:var(--log-dim);font-size:10.5px;margin-left:8px}
+.ghost{height:24px;padding:0 10px;border:1px solid var(--log-dim);border-radius:4px;color:var(--log-text);display:inline-flex;align-items:center;font-size:11px;margin-left:8px}
+.logline{margin-top:4px;padding:1px 4px;border-radius:2px;white-space:pre-wrap}
+.logline .tm{color:var(--log-dim);margin-right:8px}.logline .lv{display:inline-block;width:64px;font-weight:600}
+.logline .ok{color:var(--log-ok)}.logline .wn{color:var(--log-warn)}.logline .er{color:var(--log-err)}.logline .hi{color:var(--log-hi)}
+
+/* Footer */
+.footer{border-top:1px solid var(--border);padding:8px 12px;background:var(--surface-window)}
+.status{display:grid;grid-template-columns:1fr 220px auto;align-items:center;gap:12px;margin-bottom:6px}
+.bar{height:6px;background:var(--bg3);border-radius:3px;overflow:hidden}.bar i{display:block;height:100%;background:var(--action)}
+.btn{height:30px;padding:0 12px;border-radius:4px;font-size:12.5px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--action);color:var(--action);background:var(--card);white-space:nowrap}
+.btn.run{background:var(--action);color:var(--new-text);min-width:150px;font-weight:600}
+.btn.off{background:var(--bg3);border-color:var(--border);color:var(--text-disabled)}
+.btnrow{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+
+/* Ribbon */
+.ribbon{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap}
+.rpanel{background:var(--card);border:1px solid var(--border);width:300px}
+.rbody{display:flex;gap:6px;padding:8px;justify-content:center}
+.rbtn{width:74px;text-align:center;font-size:11px;padding:4px 2px;border-radius:3px}
+.rbtn.hl{background:var(--info-soft);outline:1px solid var(--info-border)}
+.ico{width:32px;height:32px;margin:0 auto 4px;border-radius:4px;background:var(--action);color:var(--on-dark);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:10px}
+.ico.g{background:var(--bg3);color:var(--text3)}
+.rtitle{background:var(--bg2);text-align:center;font-size:11px;color:var(--text2);padding:2px}
+.tip{background:var(--card);border:1px solid var(--border-input);box-shadow:0 4px 12px rgba(20,40,63,.15);padding:8px 10px;width:360px;font-size:12px;line-height:1.45}
+.tip b{display:block;margin-bottom:2px}
+
+/* Expander */
+.exp{display:flex;align-items:center;gap:6px;cursor:pointer}
+.chev{display:inline-flex;width:16px;height:16px;border:1px solid var(--border-input);border-radius:50%;align-items:center;justify-content:center;font-size:9px;color:var(--text2);background:var(--card)}
+
+/* Dialogs */
+.dlg{width:600px}
+.cats{border:1px solid var(--border-input);border-radius:2px;padding:4px 8px;display:grid;grid-template-columns:1fr 1fr;row-gap:2px;background:var(--card)}
+.dlgbody{padding:12px;display:flex;flex-direction:column;gap:10px}
+.calc{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:10px 12px;font-family:var(--mono);font-size:11.5px;line-height:1.7}
+.calc b{color:var(--action)}
+.lists{display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:1200px}
+ul.q{margin:0;padding-left:18px;line-height:1.6;max-width:70ch}
+ul.q li{margin-bottom:6px}
+</style>
+
+<h1>Base and Nearest Level — v1.0.0 <span class="new">DESIGN PREVIEW</span></h1>
+<p class="note">Static mock-up of the proposed tool, for approval before any code is written. Roofs, Floors and Walls
+only. All numbers, level names, element ids and family names below are <b>sample data</b> — not a real project.</p>
+
+<div class="banner"><b>Not built yet.</b> This page shows the design we agreed: four parameters written from the
+element's own level/offset pair plus the nearest project level, and a separate opt-in re-host action. Three points are
+still open — they are listed in section 6 and marked <span class="open">OPEN</span> where they appear.</div>
+
+<h2>1 · Ribbon — Coordination panel</h2>
+<p class="note">A second button beside the existing tools. <b>Base Level to Parameter</b> is untouched at v1.4.1.</p>
+<div class="scroll">
+  <div class="ribbon">
+    <div class="rpanel">
+      <div class="rbody">
+        <div class="rbtn"><div class="ico g">VOID</div>Void<br>Openings</div>
+        <div class="rbtn"><div class="ico g">BL→P</div>Base Level to<br>Parameter</div>
+        <div class="rbtn hl"><div class="ico">B&amp;N</div>Base &amp; Nearest<br>Level</div>
+      </div>
+      <div class="rtitle">Coordination</div>
+    </div>
+    <div class="tip">
+      <b>Base and Nearest Level — v1.0.0 (build V001)</b>
+      Roofs, floors and walls only. Reads each element's base level and offset, finds the project level nearest to its
+      real base elevation, and writes four parameters: base level name, base offset, nearest level name, nearest
+      offset. Offsets are Length parameters, so schedules sort and total them. A separate action can re-host ticked
+      elements onto their nearest level without moving them.
+    </div>
+  </div>
+</div>
+
+<h2>2 · Main window — after “Read Levels”</h2>
+<p class="note">Window title: <span class="pill">Base and Nearest Level — v1.0.0</span>. Sample model: a four-storey
+block with 5 building-storey levels (GF 0, Level 01 3500, Level 02 7000, Level 03 10500, Roof 14000) and 2 non-storey
+levels (T.O.S. 01 3350, Parapet 15200) excluded by the level filter.</p>
+<div class="scroll">
+<div class="win" style="width:1320px">
+  <div class="titlebar"><span>Base and Nearest Level — v1.0.0</span><span>—□✕</span></div>
+  <div class="header">
+    <div>
+      <div class="t">Base and Nearest Level</div>
+      <div class="s">Roofs · Floors · Walls — base level and nearest level into four parameters</div>
+    </div>
+    <div class="v">v1.0.0</div>
+  </div>
+
+  <!-- Metrics -->
+  <div class="metrics">
+    <div class="tile act"><div class="k">LISTED</div><div class="n">12</div></div>
+    <div class="tile info"><div class="k">CHECKED</div><div class="n">12</div></div>
+    <div class="tile ok"><div class="k">READY</div><div class="n">9</div></div>
+    <div class="tile"><div class="k">UP TO DATE</div><div class="n">2</div></div>
+    <div class="tile"><div class="k">HAS VALUE</div><div class="n">3</div></div>
+    <div class="tile warn"><div class="k">WARNINGS</div><div class="n">1</div></div>
+    <div class="tile err"><div class="k">BLOCKED</div><div class="n">0</div></div>
+  </div>
+
+  <!-- Source + categories -->
+  <div class="pad">
+    <div class="card" style="padding:10px 12px;display:flex;flex-direction:column;gap:8px">
+      <div class="row wrap">
+        <div class="sbtn">Load Selection</div>
+        <div class="sbtn">Load Active View</div>
+        <div class="sbtn">Load All Model Elements</div>
+        <div class="sbtn pri">Read Levels</div>
+      </div>
+      <div class="row wrap">
+        <span class="lbl">Categories</span>
+        <label><input type="checkbox" checked>Roofs<span class="cnt">3</span></label>
+        <label style="margin-left:10px"><input type="checkbox" checked>Floors<span class="cnt">4</span></label>
+        <label style="margin-left:10px"><input type="checkbox" checked>Walls<span class="cnt">5</span></label>
+        <span class="hint" style="margin-left:12px">Only these three categories are ever listed. Host model only —
+          linked elements are not listed.</span>
+      </div>
+      <div class="row"><span class="lbl">Source</span><span class="pill">Active view · Level 02 Plan</span></div>
+    </div>
+  </div>
+
+  <!-- Three cards: targets, nearest rule, pre-checks -->
+  <div class="cards3">
+
+    <!-- Target parameters -->
+    <div class="card">
+      <div class="tbody">
+        <div class="row"><span class="section">Target parameters</span><span class="new">NEW</span>
+          <span class="hint" style="margin-left:8px">4 slots</span></div>
+        <div class="slot">
+          <div class="l"><span class="slotnum">1</span>Base level name</div>
+          <div class="combo">Base Level Name</div>
+          <span class="chip ok">Text</span>
+
+          <div class="l"><span class="slotnum">2</span>Base offset</div>
+          <div class="combo">Base Level Offset</div>
+          <span class="chip ok">Length</span>
+
+          <div class="l"><span class="slotnum">3</span>Nearest level name</div>
+          <div class="combo">Nearest Level Name</div>
+          <span class="chip ok">Text</span>
+
+          <div class="l"><span class="slotnum">4</span>Nearest offset</div>
+          <div class="combo" style="border-color:var(--warn-border);background:var(--warn-soft)">Nearest Level Offset</div>
+          <span class="chip warn">Create</span>
+        </div>
+        <div class="hint">Slot 4 is not in the model yet. <b>New Parameter…</b> creates it as a shared instance
+          <b>Length</b> parameter under <b>Data</b>, bound to Roofs, Floors and Walls (section 3).</div>
+        <div class="row"><div class="sbtn">New Parameter…</div><div class="sbtn">Re-check</div></div>
+        <div style="border-top:1px solid var(--sep-thin);padding-top:8px">
+          <div class="lbl" style="display:block;margin-bottom:4px">Existing values</div>
+          <label style="display:block;margin:2px 0"><input type="radio" checked> Skip — keep what is already there</label>
+          <label style="display:block;margin:2px 0"><input type="radio"> Rewrite — replace different values</label>
+          <div class="hint" style="margin-top:4px">Default for every row; change single rows in the grid's
+            <b>If value exists</b> column. Run asks before it rewrites anything.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Nearest level rule -->
+    <div class="card">
+      <div class="tbody">
+        <div class="row"><span class="section">Nearest level</span><span class="new">NEW</span></div>
+        <div>
+          <div class="lbl" style="display:block;margin-bottom:4px">Rule</div>
+          <label style="display:block;margin:2px 0"><input type="radio" checked> Closest in either direction</label>
+          <label style="display:block;margin:2px 0"><input type="radio"> Closest at or below</label>
+          <label style="display:block;margin:2px 0"><input type="radio"> Closest at or above</label>
+          <div class="hint" style="margin-top:4px">Ties go to the lower level.</div>
+        </div>
+        <div style="border-top:1px solid var(--sep-thin);padding-top:8px">
+          <div class="lbl" style="display:block;margin-bottom:4px">Candidate levels</div>
+          <label style="display:block;margin:2px 0"><input type="checkbox" checked> Building-storey levels only</label>
+          <div class="hint">5 of 7 levels used. Excluded: <b>T.O.S. 01</b>, <b>Parapet</b>.</div>
+        </div>
+        <div class="form" style="border-top:1px solid var(--sep-thin);padding-top:8px">
+          <div class="l">Ignore under</div>
+          <div class="row"><div class="text" style="width:64px">1</div><span class="hint">mm</span></div>
+        </div>
+        <div class="calc" style="font-size:11px">
+          Z = base.Elevation + offset<br>
+          nearest = min |level.Elevation − Z|<br>
+          nearestOffset = Z − nearest.Elevation
+        </div>
+      </div>
+    </div>
+
+    <!-- Pre-checks -->
+    <div class="card" style="display:flex;flex-direction:column">
+      <div class="tbody" style="padding-bottom:0">
+        <div class="row"><span class="section">Pre-checks</span>
+          <div class="sbtn" style="height:22px;font-size:11px">Re-check</div>
+          <span class="chip warn" style="margin-left:auto">2 warnings</span></div>
+      </div>
+      <div style="padding:8px 12px 0">
+        <table class="checks">
+          <tr><td>a · Document</td><td><span class="chip ok">Pass</span> Host project, editable.</td></tr>
+          <tr><td>b · Category binding</td><td><span class="chip ok">Pass</span> Roofs, Floors, Walls bound on slots 1–3.</td></tr>
+          <tr><td>c · Target parameters</td><td><span class="chip warn">Warning</span> 3 found. <b>Nearest Level
+            Offset</b> will be created as a shared Length parameter.</td></tr>
+          <tr><td>d · Levels</td><td><span class="chip ok">Pass</span> 5 building-storey levels. 2 non-storey levels
+            excluded by the filter.</td></tr>
+          <tr><td>e · Elements</td><td><span class="chip warn">Warning</span> 1 of 12 has no base level
+            (<b>415410</b>) and will be skipped.</td></tr>
+          <tr><td>f · Worksharing</td><td><span class="chip ok">Pass</span> All 12 editable. None owned by another user.</td></tr>
+        </table>
+      </div>
+      <div class="summary" style="margin-top:8px"><span class="ok">Can run</span><span>·</span>
+        <span class="warn">2 warnings</span><span>·</span><span>9 of 12 elements will be written</span></div>
+    </div>
+  </div>
+
+  <!-- Element grid -->
+  <div class="card grid-card">
+    <div class="ghead">
+      <span class="section">Elements</span>
+      <span class="chipbtn on">All</span>
+      <span class="chipbtn">Changed only</span>
+      <span class="chipbtn">Warnings only</span>
+      <span class="sp"></span>
+      <span class="lbl">If value exists</span>
+      <div class="sbtn" style="height:22px;font-size:11px">Skip</div>
+      <div class="sbtn" style="height:22px;font-size:11px">Rewrite</div>
+      <div class="sbtn" style="height:22px;font-size:11px">Reset</div>
+      <div class="sbtn" style="height:22px;font-size:11px">Select in Revit</div>
+      <div class="sbtn" style="height:22px;font-size:11px">Zoom to</div>
+    </div>
+    <table>
+      <tr>
+        <th style="width:26px"><input type="checkbox" checked></th>
+        <th style="width:60px">Id</th>
+        <th>Family &amp; Type</th>
+        <th>Base level</th>
+        <th class="num">Base offset</th>
+        <th class="num">Elevation Z</th>
+        <th>Nearest level</th>
+        <th class="num">Nearest offset</th>
+        <th>Status</th>
+        <th>If value exists</th>
+      </tr>
+
+      <tr class="grp"><td colspan="10"><span class="tw">▾</span>Floors · 4</td></tr>
+      <tr><td><input type="checkbox" checked></td><td class="mono">412883</td><td>Floor: 200mm Slab</td>
+        <td>GF</td><td class="num">+3400</td><td class="num">3400</td>
+        <td class="nv chg">Level 01</td><td class="num nv chg">−100</td>
+        <td><span class="chip ok">Ready</span></td><td class="cv">Default</td></tr>
+      <tr><td><input type="checkbox" checked></td><td class="mono">412901</td><td>Floor: 150mm Topping</td>
+        <td>Level 01</td><td class="num">+50</td><td class="num">3550</td>
+        <td class="nv same">Level 01</td><td class="num nv same">+50</td>
+        <td><span class="chip mute">Up to date</span></td><td class="cv">Default</td></tr>
+      <tr><td><input type="checkbox" checked></td><td class="mono">413044</td><td>Floor: 250mm Slab</td>
+        <td>GF</td><td class="num">+6950</td><td class="num">6950</td>
+        <td class="nv chg">Level 02</td><td class="num nv chg">−50</td>
+        <td><span class="chip ok">Ready</span></td><td class="cv">Rewrite</td></tr>
+      <tr><td><input type="checkbox" checked></td><td class="mono">413120</td>
+        <td>Floor: 200mm Slab <span class="flag" title="Shape-edited — see section 6">◆</span></td>
+        <td>Level 01</td><td class="num">+3460</td><td class="num">6960</td>
+        <td class="nv chg">Level 02</td><td class="num nv chg">−40</td>
+        <td><span class="chip ok">Ready</span></td><td class="cv">Default</td></tr>
+
+      <tr class="grp"><td colspan="10"><span class="tw">▾</span>Roofs · 3</td></tr>
+      <tr><td><input type="checkbox" checked></td><td class="mono">414002</td><td>Basic Roof: Warm Roof 300</td>
+        <td>Level 02</td><td class="num">+7100</td><td class="num">14100</td>
+        <td class="nv chg">Roof</td><td class="num nv chg">+100</td>
+        <td><span class="chip ok">Ready</span></td><td class="cv">Default</td></tr>
+      <tr><td><input type="checkbox" checked></td><td class="mono">414055</td><td>Basic Roof: Warm Roof 300</td>
+        <td>Roof</td><td class="num">+0</td><td class="num">14000</td>
+        <td class="nv same">Roof</td><td class="num nv same">+0</td>
+        <td><span class="chip mute">Up to date</span></td><td class="cv">Default</td></tr>
+      <tr><td><input type="checkbox" checked></td><td class="mono">414130</td>
+        <td>Extrusion Roof: Canopy <span class="flag" title="Reference Level is read-only — cannot be re-hosted">◆</span></td>
+        <td>Level 02</td><td class="num">+6900</td><td class="num">13900</td>
+        <td class="nv chg">Roof</td><td class="num nv chg">−100</td>
+        <td><span class="chip ok">Ready</span></td><td class="cv">Default</td></tr>
+
+      <tr class="grp"><td colspan="10"><span class="tw">▾</span>Walls · 5</td></tr>
+      <tr><td><input type="checkbox" checked></td><td class="mono">415220</td><td>Basic Wall: Blockwork 200</td>
+        <td>GF</td><td class="num">+3450</td><td class="num">3450</td>
+        <td class="nv chg">Level 01</td><td class="num nv chg">−50</td>
+        <td><span class="chip ok">Ready</span></td><td class="cv">Default</td></tr>
+      <tr><td><input type="checkbox" checked></td><td class="mono">415266</td><td>Basic Wall: Blockwork 200</td>
+        <td>Level 01</td><td class="num">+0</td><td class="num">3500</td>
+        <td class="nv same">Level 01</td><td class="num nv same">+0</td>
+        <td><span class="chip ok">Ready</span></td><td class="cv">Rewrite</td></tr>
+      <tr><td><input type="checkbox" checked></td><td class="mono">415301</td><td>Basic Wall: Curtain Wall</td>
+        <td>GF</td><td class="num">+10400</td><td class="num">10400</td>
+        <td class="nv chg">Level 03</td><td class="num nv chg">−100</td>
+        <td><span class="chip ok">Ready</span></td><td class="cv">Rewrite</td></tr>
+      <tr><td><input type="checkbox" checked></td><td class="mono">415388</td>
+        <td>Basic Wall: Partition 100 <span class="flag" title="In a group — cannot be re-hosted">◆</span></td>
+        <td>GF</td><td class="num">+3480</td><td class="num">3480</td>
+        <td class="nv chg">Level 01</td><td class="num nv chg">−20</td>
+        <td><span class="chip ok">Ready</span></td><td class="cv">Default</td></tr>
+      <tr class="dim"><td><input type="checkbox" checked></td><td class="mono">415410</td><td>Basic Wall: Blockwork 200</td>
+        <td>—</td><td class="num">—</td><td class="num">—</td><td>—</td><td class="num">—</td>
+        <td><span class="chip warn">No base level</span></td><td class="cv">—</td></tr>
+    </table>
+    <div class="hint" style="margin-top:6px">
+      <b>◆</b> marks an element the re-host action will skip — hover for the reason. It does not affect writing the
+      four parameters, which covers every ready row.
+    </div>
+  </div>
+
+  <!-- Log -->
+  <div class="log">
+    <div class="loghead"><b>▾ Activity Log</b><span class="dim">· 8 lines</span>
+      <span class="sp" style="flex:1"></span><span class="ghost">Copy</span><span class="ghost">Export</span></div>
+    <div class="logline"><span class="tm">10:42:03</span><span class="lv hi">INFO</span>Active view “Level 02 Plan” — 12 elements in Roofs, Floors, Walls.</div>
+    <div class="logline"><span class="tm">10:42:03</span><span class="lv hi">INFO</span>Candidate levels: GF, Level 01, Level 02, Level 03, Roof. Excluded 2 non-storey levels.</div>
+    <div class="logline"><span class="tm">10:42:04</span><span class="lv ok">READ</span>11 of 12 elements have a base level.</div>
+    <div class="logline"><span class="tm">10:42:04</span><span class="lv wn">WARN</span>415410 Basic Wall: Blockwork 200 — Base Constraint is empty. Skipped.</div>
+    <div class="logline"><span class="tm">10:42:04</span><span class="lv hi">INFO</span>8 elements sit nearer a level other than their base level.</div>
+    <div class="logline"><span class="tm">10:42:05</span><span class="lv wn">WARN</span>Nearest Level Offset not found. New Parameter… will create it.</div>
+    <div class="logline"><span class="tm">10:42:05</span><span class="lv wn">WARN</span>3 elements cannot be re-hosted: 413120 shape-edited, 414130 read-only Reference Level, 415388 in a group.</div>
+    <div class="logline"><span class="tm">10:42:05</span><span class="lv ok">PASS</span>Pre-checks finished — can run, 2 warnings.</div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <div class="status">
+      <div>Ready — 9 of 12 elements will be written to 4 parameters.</div>
+      <div class="bar"><i style="width:0%"></i></div>
+      <div class="hint">0 / 9</div>
+    </div>
+    <div class="btnrow">
+      <div class="btn">Clear</div>
+      <div class="btn run">Write Parameters</div>
+      <div class="btn">Re-host to Nearest Level…<span class="new">NEW</span></div>
+      <div class="btn">Close</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<h2>3 · New Parameter dialog — slot 4</h2>
+<p class="note">Same dialog as the existing tool, with one addition: the <b>Type</b> row, because this tool creates
+Length parameters as well as Text. The type is fixed by the slot — slots 1 and 3 are always Text, 2 and 4 always
+Length — so the row is shown but disabled.</p>
+<div class="scroll">
+<div class="win dlg">
+  <div class="titlebar"><span>New Parameter</span><span>✕</span></div>
+  <div class="dlgbody">
+    <div class="form">
+      <div class="l">For slot</div><div><span class="slotnum">4</span>Nearest offset</div>
+      <div class="l">Name</div><div class="text" style="width:100%">Nearest Level Offset</div>
+      <div class="l">Type</div>
+      <div class="row"><div class="combo" style="width:160px;background:var(--bg2);color:var(--text2)">Length</div>
+        <span class="new">NEW</span><span class="hint">Fixed by the slot</span></div>
+      <div class="l">Shared file</div><div class="text" style="width:100%"><span class="ph">C:\…\SharedParameters.txt</span></div>
+      <div class="l">Group in file</div><div class="combo" style="width:160px">Data</div>
+      <div class="l">Instance / Type</div>
+      <div class="row"><label><input type="radio" checked>Instance</label>
+        <label style="margin-left:10px"><input type="radio">Type</label></div>
+    </div>
+    <div>
+      <div class="lbl" style="display:block;margin-bottom:4px">Categories</div>
+      <div class="cats">
+        <label><input type="checkbox" checked>Roofs</label>
+        <label><input type="checkbox" checked>Floors</label>
+        <label><input type="checkbox" checked>Walls</label>
+        <label class="hint" style="color:var(--text3)">No other category offered</label>
+      </div>
+      <div class="hint" style="margin-top:4px">Fixed to the tool's three categories, so the parameter matches what
+        the tool writes.</div>
+    </div>
+    <div class="row" style="justify-content:flex-end;gap:8px"><div class="btn">Cancel</div>
+      <div class="btn run" style="min-width:110px">Create</div></div>
+  </div>
+</div>
+</div>
+
+<h2>4 · Re-host to nearest level — confirmation</h2>
+<p class="note">The opt-in model change, behind its own dialog. Nothing moves: the level parameter is set first, then
+the offset, so the element's elevation is unchanged. A wall's bottom stays put, and its top stays put whether Top
+Constraint is a level or Unconnected.</p>
+<div class="scroll">
+<div class="win dlg" style="width:640px">
+  <div class="titlebar"><span>Re-host to nearest level?</span><span>✕</span></div>
+  <div class="dlgbody">
+    <div class="row"><span class="chip warn">Changes the model</span>
+      <span class="hint">One transaction inside a transaction group — any failure rolls everything back.</span></div>
+
+    <div class="calc">
+      <b>5 elements</b> will be re-hosted onto their nearest level.<br>
+      412883 &nbsp;GF +3400 &nbsp;→&nbsp; <b>Level 01 −100</b> &nbsp;&nbsp;Z stays 3400<br>
+      413044 &nbsp;GF +6950 &nbsp;→&nbsp; <b>Level 02 −50</b> &nbsp;&nbsp;&nbsp;Z stays 6950<br>
+      414002 &nbsp;Level 02 +7100 → <b>Roof +100</b> &nbsp;&nbsp;&nbsp;Z stays 14100<br>
+      415220 &nbsp;GF +3450 &nbsp;→&nbsp; <b>Level 01 −50</b> &nbsp;&nbsp;&nbsp;Z stays 3450<br>
+      415301 &nbsp;GF +10400 → <b>Level 03 −100</b> &nbsp;Z stays 10400
+    </div>
+
+    <div>
+      <div class="lbl" style="display:block;margin-bottom:4px">3 elements will be skipped</div>
+      <table>
+        <tr><th style="width:70px">Id</th><th>Reason</th></tr>
+        <tr><td class="mono">413120</td><td><span class="chip warn">Shape-edited</span> Changing Level can reset point
+          edits. <span class="open">OPEN</span></td></tr>
+        <tr><td class="mono">414130</td><td><span class="chip warn">Read-only</span> Extrusion roof — Reference Level
+          cannot be changed.</td></tr>
+        <tr><td class="mono">415388</td><td><span class="chip warn">In a group</span> Would change every instance of
+          the group.</td></tr>
+      </table>
+      <label style="display:block;margin-top:8px"><input type="checkbox"> Include shape-edited floors and roofs
+        <span class="hint">(off by default)</span></label>
+    </div>
+
+    <div class="hint">After re-hosting, the four parameters are re-read and refreshed in the same transaction group,
+      so nothing is left stale.</div>
+
+    <div class="row" style="justify-content:flex-end;gap:8px"><div class="btn">Cancel</div>
+      <div class="btn run" style="min-width:150px">Re-host 5 elements</div></div>
+  </div>
+</div>
+</div>
+
+<h2>5 · Footer — running, and after a run</h2>
+<div class="scroll">
+  <div class="lists" style="min-width:900px">
+    <div class="win" style="width:auto">
+      <div class="footer">
+        <div class="status">
+          <div>Writing parameters — 415220 Basic Wall: Blockwork 200…</div>
+          <div class="bar"><i style="width:67%"></i></div>
+          <div class="hint">6 / 9</div>
+        </div>
+        <div class="btnrow"><div class="btn off">Clear</div><div class="btn" style="min-width:150px">Cancel</div>
+          <div class="btn off">Re-host to Nearest Level…</div><div class="btn off">Close</div></div>
+      </div>
+    </div>
+    <div class="win" style="width:auto">
+      <div class="footer">
+        <div class="status">
+          <div><span class="chip ok">Done</span> 9 written · 2 up to date · 1 skipped · 0 failed · 36 parameter values set.</div>
+          <div class="bar"><i style="width:100%"></i></div>
+          <div class="hint">9 / 9</div>
+        </div>
+        <div class="btnrow"><div class="btn">Clear</div><div class="btn run">Write Parameters</div>
+          <div class="btn">Re-host to Nearest Level…</div><div class="btn">Close</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h2>6 · Still open</h2>
+<p class="note">Three decisions left before this gets built. Everything else above is settled.</p>
+<ul class="q">
+  <li><b>Shape-edited floors and roofs on re-host</b> <span class="open">OPEN</span> — shown above as
+    <i>skipped, with an “include” tick</i>, because changing a floor's or roof's Level can reset its point edits.
+    The alternatives are to re-host them like anything else, or to exclude them with no override.
+    Writing the four parameters always covers them either way.</li>
+  <li><b>Scope of 1.0.0</b> <span class="open">OPEN</span> — this page shows both actions in one release. The
+    alternative is parameters in 1.0.0 with no model change anywhere in the tool, then re-host in 1.1.0.</li>
+  <li><b>Go-ahead</b> <span class="open">OPEN</span> — nothing is written until you confirm.</li>
+</ul>
+<p class="note" style="margin-top:12px">Settled: nearest level defaults to <b>closest in either direction</b> with all
+three rules selectable; offsets are <b>Length</b> parameters; this is a <b>new tool</b> beside Base Level to
+Parameter; re-host is a <b>separate opt-in action</b>.</p>
