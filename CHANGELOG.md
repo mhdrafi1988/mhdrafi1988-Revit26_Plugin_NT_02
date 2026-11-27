@@ -9,6 +9,24 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [7.37.0] — 2026-11-27
+
+### Added
+- **EPS Stepped Insulation Layout 1.0.0 (V001)** — new tool that fills a footprint roof area with stepped
+  EPS insulation panels (flat roof elements in a 1200×1200 mm grid):
+  - User selects a footprint roof with shape editing applied (sloped to drain).
+  - Inputs slope as 1:X ratio or percentage.
+  - Selects roof types for 100 mm base layer and 35 mm stepping layers (tool validates thickness).
+  - Grid aligned to longest edge (user picks from edge list).
+  - Drain detection from shape editing vertices (lowest elevation points).
+  - Each cell gets a 100 mm base panel plus N × 35 mm layers based on distance from nearest drain.
+  - Perimeter cells trimmed to roof boundary (counted as cut pieces).
+  - Each panel gets a serial number (EPS_XXXX_B for base, EPS_XXXX_SNN for steps) in Comments and Mark.
+  - Summary: panel counts per layer, full/cut cells, total area (m²), total volume (m³).
+
+**User note:** the tool creates individual flat roof elements. For large roofs with many cells, placement
+may take a few minutes. The roof must have shape editing enabled with sloped vertices before running.
+
 ## [7.36.1] — 2026-11-26
 
 ### Fixed
