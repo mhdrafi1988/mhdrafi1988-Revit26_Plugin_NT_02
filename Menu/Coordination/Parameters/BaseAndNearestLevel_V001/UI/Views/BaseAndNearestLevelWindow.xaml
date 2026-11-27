@@ -131,13 +131,44 @@ Preview: Claude/Previews/BaseAndNearestLevel_V001_Window.html
                                     Command="{Binding ReadLevelsCommand}"/>
                         </StackPanel>
 
-                        <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
-                            <TextBlock Text="Categories" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                            <CheckBox Content="Roofs" IsChecked="{Binding IncludeRoofs}" Margin="0,0,12,0" VerticalAlignment="Center"/>
-                            <CheckBox Content="Floors" IsChecked="{Binding IncludeFloors}" Margin="0,0,12,0" VerticalAlignment="Center"/>
-                            <CheckBox Content="Walls" IsChecked="{Binding IncludeWalls}" Margin="0,0,12,0" VerticalAlignment="Center"/>
-                            <TextBlock Style="{StaticResource HintText}" VerticalAlignment="Center"
-                                       Text="Only these three categories are ever listed. Host model only — linked elements are not listed."/>
+                        <!-- Categories (1.1.0): every level-based category the load found, with per-tier counts. -->
+                        <StackPanel Margin="0,0,0,6">
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                <TextBlock Text="Categories" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                <Button Content="Roofs, Floors, Walls" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,4,0"
+                                        Command="{Binding PresetDefaultCommand}" ToolTip="The default: the same three categories as version 1.0.0."/>
+                                <Button Content="All level-based" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,4,0"
+                                        Command="{Binding PresetAllCommand}"/>
+                                <Button Content="Structure" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,4,0"
+                                        Command="{Binding PresetStructureCommand}"/>
+                                <Button Content="MEP" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,4,0"
+                                        Command="{Binding PresetMepCommand}"/>
+                                <Button Content="None" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,12,0"
+                                        Command="{Binding PresetNoneCommand}"/>
+                                <TextBox Style="{StaticResource StyledTextInput}" Width="150" VerticalAlignment="Center"
+                                         Text="{Binding CategorySearch, UpdateSourceTrigger=PropertyChanged}"
+                                         ToolTip="Filter the category list by name."/>
+                                <TextBlock Text="{Binding CategorySummary}" Style="{StaticResource HintText}"
+                                           VerticalAlignment="Center" Margin="10,0,0,0"/>
+                            </StackPanel>
+                            <DataGrid Style="{StaticResource StandardDataGrid}" ItemsSource="{Binding CategoriesView}"
+                                      MaxHeight="150" HeadersVisibility="Column" AutoGenerateColumns="False">
+                                <DataGrid.Columns>
+                                    <DataGridCheckBoxColumn Header="" Width="30"
+                                                            Binding="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}"/>
+                                    <DataGridTextColumn Header="Category" Binding="{Binding Name}" Width="*" IsReadOnly="True"/>
+                                    <DataGridTemplateColumn Header="Elements" Width="150" SortMemberPath="Total">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding CountText}" ToolTip="{Binding CountTip}"
+                                                           FontFamily="Consolas" FontSize="11.5"/>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                            <TextBlock Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="0,4,0,0"
+                                       Text="T1 = level + an offset from it: all four parameters, and can be re-hosted. T2 = offset measured from the host. T3 = level only. T2 and T3 get their level names with no offsets and are never re-hosted. Host model only — linked elements are not listed."/>
                         </StackPanel>
 
                         <StackPanel Orientation="Horizontal">
@@ -384,6 +415,7 @@ Preview: Claude/Previews/BaseAndNearestLevel_V001_Window.html
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellTemplate>
                                 </DataGridTemplateColumn>
+                                <DataGridTextColumn Header="Tier" Binding="{Binding TierLabel}" Width="54" IsReadOnly="True"/>
                                 <DataGridTextColumn Header="Base level" Binding="{Binding BaseLevel}" Width="110" IsReadOnly="True"/>
                                 <DataGridTextColumn Header="Base offset" Binding="{Binding BaseOffset}" Width="80" IsReadOnly="True"/>
                                 <DataGridTextColumn Header="Elevation Z" Binding="{Binding Elevation}" Width="85" IsReadOnly="True"/>

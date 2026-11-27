@@ -46,6 +46,11 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.UI.ViewModels
             foreach (TargetSlot slot in TargetSlots.All)
                 Slots.Add(new SlotViewModel(slot, OnSlotNameChanged, OpenNewParameterDialog));
 
+            CategoriesView = CollectionViewSource.GetDefaultView(CategoryOptions);
+            CategoriesView.Filter = o => o is CategoryOptionViewModel c &&
+                (string.IsNullOrWhiteSpace(CategorySearch) ||
+                 c.Name.IndexOf(CategorySearch.Trim(), StringComparison.CurrentCultureIgnoreCase) >= 0);
+
             RowsView = CollectionViewSource.GetDefaultView(Rows);
             RowsView.GroupDescriptions.Add(new PropertyGroupDescription(nameof(ElementRowViewModel.Category)));
             RowsView.SortDescriptions.Add(new SortDescription(nameof(ElementRowViewModel.Category), ListSortDirection.Ascending));
@@ -85,6 +90,15 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.UI.ViewModels
         /// <summary>Pre-check lines a–g.</summary>
         public ObservableCollection<CheckRow> Checks { get; } = new();
 
+        /// <summary>
+        /// Categories found in the loaded elements, with per-tier counts (1.1.0). Roofs, Floors and Walls
+        /// start ticked, so the window opens on the same elements as 1.0.0.
+        /// </summary>
+        public ObservableCollection<CategoryOptionViewModel> CategoryOptions { get; } = new();
+
+        /// <summary><see cref="CategoryOptions"/> filtered by <see cref="CategorySearch"/>.</summary>
+        public ICollectionView CategoriesView { get; }
+
         /// <summary>Opens the New Parameter dialog; set by the window. True when the user pressed Create.</summary>
         public Func<NewParameterViewModel, bool> ShowNewParameterDialog { get; set; }
 
@@ -119,14 +133,8 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.UI.ViewModels
         [ObservableProperty] private int _changedCount;
         [ObservableProperty] private int _rehostableCount;
 
-        /// <summary>Roofs are listed.</summary>
-        [ObservableProperty] private bool _includeRoofs = true;
-
-        /// <summary>Floors are listed.</summary>
-        [ObservableProperty] private bool _includeFloors = true;
-
-        /// <summary>Walls are listed.</summary>
-        [ObservableProperty] private bool _includeWalls = true;
+        /// <summary>Search text for the Categories grid (matches anywhere in the name).</summary>
+        [ObservableProperty] private string _categorySearch = string.Empty;
 
         /// <summary>Only levels whose "Building Story" parameter is ticked are candidates.</summary>
         [ObservableProperty] private bool _buildingStoreysOnly = true;
@@ -232,9 +240,7 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.UI.ViewModels
         partial void OnChecksBlockedChanged(bool value) => NotifyActions();
         partial void OnReadyCountChanged(int value) => NotifyActions();
         partial void OnRehostableCountChanged(int value) => NotifyActions();
-        partial void OnIncludeRoofsChanged(bool value) => RowsView.Refresh();
-        partial void OnIncludeFloorsChanged(bool value) => RowsView.Refresh();
-        partial void OnIncludeWallsChanged(bool value) => RowsView.Refresh();
+        partial void OnCategorySearchChanged(string value) => CategoriesView?.Refresh();
 
         /// <inheritdoc/>
         protected override void OnPropertyChanged(PropertyChangedEventArgs e)
@@ -296,13 +302,30 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.UI.ViewModels
             };
         }
 
-        private bool CategoryAllowed(string category) => category switch
+        /// <summary>True when the Categories grid has this category ticked. Unknown categories are allowed.</summary>
+        private bool CategoryAllowed(string category)
         {
-            "Roofs" => IncludeRoofs,
-            "Floors" => IncludeFloors,
-            "Walls" => IncludeWalls,
-            _ => true
-        };
+            CategoryOptionViewModel option = CategoryOptions.FirstOrDefault(c =>
+                string.Equals(c.Name, category, StringComparison.CurrentCultureIgnoreCase));
+            return option?.IsSelected ?? true;
+        }
+
+        /// <summary>The ticked category names, which is what the four parameters are bound to.</summary>
+        private List<string> SelectedCategoryNames() =>
+            CategoryOptions.Where(c => c.IsSelected && c.Total > 0).Select(c => c.Name).ToList();
+
+        /// <summary>"3 of 18 categories · 12 elements", under the grid.</summary>
+        public string CategorySummary
+        {
+            get
+            {
+                int selected = CategoryOptions.Count(c => c.IsSelected);
+                int elements = CategoryOptions.Where(c => c.IsSelected).Sum(c => c.Total);
+                return CategoryOptions.Count == 0
+                    ? "Load elements to see the categories in this model."
+                    : $"{selected} of {CategoryOptions.Count} categories · {elements} element(s)";
+            }
+        }
 
         // ── start-up and shutdown ─────────────────────────────────────────────
 
@@ -327,6 +350,7 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.UI.ViewModels
             _recheckTimer.Stop();
             _settings ??= new BaseAndNearestLevelSettings();
             _settings.SlotNames = Slots.Select(s => s.Name ?? string.Empty).ToArray();
+            _settings.SelectedCategories = CategoryOptions.Where(c => c.IsSelected).Select(c => c.Name).ToArray();
             _settings.NearestRule = Rule.ToString();
             _settings.BuildingStoreysOnly = BuildingStoreysOnly;
             _settings.ToleranceMm = ToleranceMm;
@@ -334,7 +358,7 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.UI.ViewModels
             _settings.NearestExpanded = NearestExpanded;
             _settings.ChecksExpanded = ChecksExpanded;
             _settings.LogExpanded = LogExpanded;
-            _settings.Version = 1;
+            _settings.Version = 2;
             SettingsService<BaseAndNearestLevelSettings>.Save(ToolCatalog.BaseAndNearestLevel.Name, _settings);
         }
 
@@ -380,6 +404,7 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.UI.ViewModels
         private RunRequest BuildRequest() => new()
         {
             ElementIds = Rows.Where(r => r.IsChecked && CategoryAllowed(r.Category)).Select(r => r.Id).ToList(),
+            Categories = SelectedCategoryNames(),
             SlotNames = Slots.Select(s => (s.Name ?? string.Empty).Trim()).ToArray(),
             Pending = Slots.Select(s => s.Pending).ToArray(),
             Rule = Rule,
@@ -390,10 +415,12 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.UI.ViewModels
             RehostShapeEdited = RehostShapeEdited
         };
 
-        private void FillRows(IEnumerable<ElementListItem> items)
+        private void FillRows(ListResult list)
         {
+            FillCategories(list);
+
             Rows.Clear();
-            foreach (ElementListItem item in items)
+            foreach (ElementListItem item in list.Items)
                 Rows.Add(new ElementRowViewModel(item.Id, item.Category, item.FamilyAndType, OnRowTicked, OnRowChoiceChanged));
             _levelsRead = false;
             Checks.Clear();
@@ -404,6 +431,54 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.UI.ViewModels
             UpdateMetrics();
             RowsView.Refresh();
             NotifyActions();
+        }
+
+        /// <summary>
+        /// Refills the Categories grid from a load, keeping whatever was ticked before. A category that was
+        /// not in the previous load starts ticked only when it is one of the defaults.
+        /// </summary>
+        private void FillCategories(ListResult list)
+        {
+            var previouslySelected = new HashSet<string>(
+                CategoryOptions.Where(c => c.IsSelected).Select(c => c.Name), StringComparer.CurrentCultureIgnoreCase);
+            bool firstLoad = CategoryOptions.Count == 0;
+
+            foreach (CategoryOptionViewModel old in CategoryOptions) old.SelectionChanged -= OnCategoryToggled;
+            CategoryOptions.Clear();
+
+            // First load of the session: use what was remembered, else the 1.0.0 default.
+            string[] remembered = _settings?.SelectedCategories ?? Array.Empty<string>();
+            var defaults = new HashSet<string>(
+                firstLoad && remembered.Length > 0 ? remembered : ElementListService.DefaultCategoryNames,
+                StringComparer.CurrentCultureIgnoreCase);
+            foreach (CategoryCount count in list.Categories)
+            {
+                bool selected = firstLoad
+                    ? defaults.Contains(count.Name)
+                    : previouslySelected.Contains(count.Name) ||
+                      (!previouslySelected.Any() && defaults.Contains(count.Name));
+                var option = new CategoryOptionViewModel(count, selected);
+                option.SelectionChanged += OnCategoryToggled;
+                CategoryOptions.Add(option);
+            }
+            CategoriesView?.Refresh();
+            OnPropertyChanged(nameof(CategorySummary));
+        }
+
+        private void OnCategoryToggled(object sender, EventArgs e)
+        {
+            OnPropertyChanged(nameof(CategorySummary));
+            UpdateMetrics();
+            RowsView.Refresh();
+            ScheduleRecheck();
+        }
+
+        /// <summary>Ticks exactly the categories of one preset; unknown names in the preset are ignored.</summary>
+        internal void ApplyPreset(IEnumerable<string> names)
+        {
+            var wanted = new HashSet<string>(names ?? Enumerable.Empty<string>(), StringComparer.CurrentCultureIgnoreCase);
+            foreach (CategoryOptionViewModel option in CategoryOptions)
+                option.IsSelected = wanted.Count == 0 || wanted.Contains(option.Name);
         }
 
         private void OnRowTicked(ElementRowViewModel row)

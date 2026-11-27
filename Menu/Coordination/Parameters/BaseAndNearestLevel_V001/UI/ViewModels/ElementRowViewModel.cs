@@ -67,6 +67,15 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.UI.ViewModels
         /// <summary>True when the re-host action would skip this element, so the grid shows its marker.</summary>
         public bool HasFlag => !string.IsNullOrEmpty(FlagTip);
 
+        /// <summary>"T1", "T2", "T3" or "—", for the grid's Tier column (1.1.0).</summary>
+        public string TierLabel => Facts == null ? "—" : Facts.Tier switch
+        {
+            Core.LevelTier.LevelAndOffset => "T1",
+            Core.LevelTier.HostOffset => "T2",
+            Core.LevelTier.ScheduleOnly => "T3",
+            _ => "—"
+        };
+
         /// <summary>Which parameter pair the base placement came from, for the row tooltip.</summary>
         public string SourceTip => Facts == null || !Facts.HasBase ? string.Empty : Facts.Source;
 
@@ -96,6 +105,7 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.UI.ViewModels
             IsChanged = false;
             HasExistingValue = false;
             FlagTip = string.Empty;
+            OnPropertyChanged(nameof(TierLabel));
         }
 
         /// <summary>Fills the row from <paramref name="facts"/> and <paramref name="verdict"/>.</summary>
@@ -109,10 +119,12 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.UI.ViewModels
             }
 
             BaseLevel = facts.HasBase ? facts.BaseLevelName : "—";
-            BaseOffset = facts.HasBase ? ValueText.Offset(facts.BaseOffsetMm) : "—";
-            Elevation = facts.HasBase ? ValueText.Offset(facts.ElevationMm).TrimStart('+') : "—";
             NearestLevel = facts.NearestFound ? facts.NearestLevelName : "—";
-            NearestOffset = facts.NearestFound ? ValueText.Offset(facts.NearestOffsetMm) : "—";
+            // Tier 2 and 3 have no offset measured from the level, so the three numeric columns read "n/a"
+            // rather than showing a number the tool cannot justify.
+            BaseOffset = facts.HasBase && facts.OffsetKnown ? ValueText.Offset(facts.BaseOffsetMm) : facts.HasBase ? "n/a" : "—";
+            Elevation = facts.HasBase && facts.OffsetKnown ? ValueText.Offset(facts.ElevationMm).TrimStart('+') : facts.HasBase ? "n/a" : "—";
+            NearestOffset = facts.NearestFound && facts.OffsetKnown ? ValueText.Offset(facts.NearestOffsetMm) : facts.NearestFound ? "n/a" : "—";
             IsChanged = facts.IsChanged;
             HasExistingValue = facts.AnyDifferent;
             State = verdict.State;
@@ -123,6 +135,7 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.UI.ViewModels
                 ? string.Empty
                 : "Re-host will skip this element: " + BaseAndNearestRules.RehostSkipText(block);
             OnPropertyChanged(nameof(SourceTip));
+            OnPropertyChanged(nameof(TierLabel));
         }
 
         /// <summary>Shows the outcome of a run on this row.</summary>

@@ -9,6 +9,38 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [7.40.0] — 2026-11-27
+
+### Changed
+- **Base and Nearest Level 1.1.0** — widened from a fixed Roofs / Floors / Walls list to **any level-based
+  model element**, read in three tiers:
+  - **Tier 1** — a level plus an offset measured *from that level*, so `Z = level elevation + offset` holds.
+    All four parameters are written and the element can be re-hosted. Covers walls, floors, ceilings, roofs,
+    structural columns and framing, MEP curves (ducts, pipes, conduit, cable tray), stairs, and families
+    placed on a level.
+  - **Tier 2** — the level is readable but "Offset from Host" is measured from the host face, not the level
+    (doors, windows, face-hosted families). The two level **names** are written; the two offset slots are
+    left **empty**, not zero. Never re-hosted.
+  - **Tier 3** — a read-only Schedule Level with no offset. Same handling as Tier 2.
+  - The element's own `LevelId` is now consulted first, with the parameter table as the fallback.
+- **Categories** — the three fixed checkboxes became a searchable grid of whatever the load found, with
+  per-category, per-tier counts and presets: *Roofs, Floors, Walls*, *All level-based*, *Structure*, *MEP*,
+  *None*. The ticked set is remembered between sessions (settings version 2).
+- **Parameter binding** — the four parameters are bound to the **ticked categories only**, not to every
+  level-based category, so they do not appear on every element in the model. The New Parameter dialog shows
+  that list instead of a fixed three.
+- **Grid** — a new **Tier** column; Tier 2 and Tier 3 rows read `n/a` in the three numeric columns rather
+  than showing a number the tool cannot justify.
+- **Pre-checks** — check `e` gained a tier breakdown; check `g` states that only Tier 1 elements are
+  eligible for re-host.
+- **Re-host** — Tier 2 and Tier 3 are hard skips with no override tick, since the tool cannot work out
+  where those elements would sit. Shape-edited, grouped, read-only and checked-out elements are skipped as
+  before.
+
+**User note:** the default scope is **unchanged** — the window still opens on Roofs, Floors and Walls, so the
+same button does the same thing as 1.0.0. Widening is one click on a preset. Parameters written by 1.0.0 are
+untouched, and extending a binding to more categories does not affect values already stored.
+
 ## [7.39.0] — 2026-11-27
 
 ### Added
