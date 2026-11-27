@@ -5,8 +5,10 @@ using System.Linq;
 using Autodesk.Revit.UI;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Win32;
 using Revit26_Plugin_Revised.EpsSteppedInsulationLayout.V001.Core;
 using Revit26_Plugin_Revised.EpsSteppedInsulationLayout.V001.Events;
+using Revit26_Plugin_Revised.EpsSteppedInsulationLayout.V001.Infrastructure;
 using Revit26_Plugin_Revised.EpsSteppedInsulationLayout.V001.Revit;
 using Revit26_Plugin_Revised.Shared.Services;
 
@@ -108,6 +110,20 @@ namespace Revit26_Plugin_Revised.EpsSteppedInsulationLayout.V001.ViewModels
 
         partial void OnSelectedEdgeIndexChanged(int value) => Recalculate();
 
+        // --- Grid offset ---
+
+        [ObservableProperty]
+        private string _gridOffsetText = "0";
+
+        partial void OnGridOffsetTextChanged(string value) => Recalculate();
+
+        // --- Minimum cut size ---
+
+        [ObservableProperty]
+        private string _minCutSizeText = "100";
+
+        partial void OnMinCutSizeTextChanged(string value) => Recalculate();
+
         // --- Roof types ---
 
         public IReadOnlyList<RoofTypeOption> AllRoofTypes { get; }
@@ -125,6 +141,7 @@ namespace Revit26_Plugin_Revised.EpsSteppedInsulationLayout.V001.ViewModels
         [ObservableProperty] private int _totalCells;
         [ObservableProperty] private int _fullCells;
         [ObservableProperty] private int _trimmedCells;
+        [ObservableProperty] private int _skippedCells;
         [ObservableProperty] private int _maxLayers;
         [ObservableProperty] private int _totalPanels;
         [ObservableProperty] private string _totalAreaText = "—";
@@ -182,6 +199,34 @@ namespace Revit26_Plugin_Revised.EpsSteppedInsulationLayout.V001.ViewModels
             _refreshEvent.Raise();
         }
 
+        [RelayCommand(CanExecute = nameof(CanExport))]
+        private void Export()
+        {
+            if (_currentLayout == null || !_currentLayout.IsValid) return;
+
+            var dlg = new SaveFileDialog
+            {
+                Title = "Export Panel Schedule",
+                Filter = "CSV files (*.csv)|*.csv",
+                DefaultExt = ".csv",
+                FileName = $"EPS_Schedule_{RoofName ?? "Roof"}.csv"
+            };
+
+            if (dlg.ShowDialog() != true) return;
+
+            try
+            {
+                CsvExportService.Export(dlg.FileName, _currentLayout, BuildSettings());
+                StatusText = $"Exported to {System.IO.Path.GetFileName(dlg.FileName)}";
+            }
+            catch (Exception ex)
+            {
+                StatusText = $"Export failed: {ex.Message}";
+            }
+        }
+
+        private bool CanExport() => _currentLayout != null && _currentLayout.IsValid;
+
         // --- Recalculate ---
 
         private void Recalculate()
@@ -227,6 +272,7 @@ namespace Revit26_Plugin_Revised.EpsSteppedInsulationLayout.V001.ViewModels
             TotalCells = _currentLayout.TotalCells;
             FullCells = _currentLayout.FullCells;
             TrimmedCells = _currentLayout.TrimmedCells;
+            SkippedCells = _currentLayout.SkippedCells;
             MaxLayers = _currentLayout.MaxStepLayers;
             TotalPanels = _currentLayout.TotalPanels;
             TotalAreaText = $"{_currentLayout.TotalAreaM2:N2} m²";
@@ -242,6 +288,7 @@ namespace Revit26_Plugin_Revised.EpsSteppedInsulationLayout.V001.ViewModels
             LayerBreakdown = string.Join("\n", lines);
 
             RunCommand.NotifyCanExecuteChanged();
+            ExportCommand.NotifyCanExecuteChanged();
         }
 
         private bool ParseSlope(out double slopePercent)
@@ -274,10 +321,15 @@ namespace Revit26_Plugin_Revised.EpsSteppedInsulationLayout.V001.ViewModels
         private InsulationSettings BuildSettings()
         {
             ParseSlope(out double slope);
+            double.TryParse(GridOffsetText, out double offsetMm);
+            double.TryParse(MinCutSizeText, out double minCut);
+
             return new InsulationSettings
             {
                 SlopePercent = slope,
-                AlignEdgeIndex = SelectedEdgeIndex
+                AlignEdgeIndex = SelectedEdgeIndex,
+                GridOffsetM = offsetMm / 1000.0,
+                MinCutSizeMm = minCut >= 0 ? minCut : 100.0
             };
         }
 

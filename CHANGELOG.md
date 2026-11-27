@@ -9,6 +9,23 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [7.38.0] — 2026-11-27
+
+### Added
+- **EPS Stepped Insulation Layout 1.1.0** — enhancements:
+  - **Grid offset:** shift the grid origin along the alignment edge (mm) to centre the layout or
+    minimise cut pieces at the perimeter.
+  - **Minimum cut size:** trimmed cells whose smallest dimension falls below a threshold (default
+    100 mm) are skipped as impractical to install. Skipped count shown in the summary.
+  - **CSV export:** Export the full panel schedule (serial, layer, row, column, position, height,
+    area) to a CSV file for procurement.
+  - **EPS_Serial shared parameter:** a dedicated shared parameter bound to the Roofs category replaces
+    the previous use of Comments/Mark (those are still set for backward compatibility). The parameter
+    file is created automatically under `%AppData%\Revit26_Plugin_Revised\EpsSteppedInsulationLayout\`.
+
+**User note:** existing panels placed by v1.0.0 keep their Comments/Mark serials. The new EPS_Serial
+parameter is added only to panels placed from this version onward.
+
 ## [7.37.0] — 2026-11-27
 
 ### Added

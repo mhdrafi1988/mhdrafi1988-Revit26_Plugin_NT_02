@@ -27,6 +27,15 @@ namespace Revit26_Plugin_Revised.EpsSteppedInsulationLayout.V001.Revit
             double baseMm = request.Settings.BaseThicknessMm;
             double stepMm = request.Settings.StepThicknessMm;
 
+            // Ensure shared parameter exists before placement
+            Definition epsSerialDef = null;
+            using (var tSetup = new Transaction(doc, "EPS Setup Parameter"))
+            {
+                tSetup.Start();
+                epsSerialDef = EpsParameterService.EnsureParameter(doc);
+                tSetup.Commit();
+            }
+
             int created = 0;
             int failed = 0;
 
@@ -41,7 +50,7 @@ namespace Revit26_Plugin_Revised.EpsSteppedInsulationLayout.V001.Revit
 
                     // Base layer (100 mm) — sits on top of the selected roof
                     double baseBottomFeet = request.Context.LevelElevationFeet + roofBaseOffsetFeet;
-                    if (TryCreatePanel(doc, cell, level, baseType, baseBottomFeet, cell.Serial + "_B", out _))
+                    if (TryCreatePanel(doc, cell, level, baseType, baseBottomFeet, cell.Serial + "_B", epsSerialDef, out _))
                         created++;
                     else
                         failed++;
@@ -53,7 +62,7 @@ namespace Revit26_Plugin_Revised.EpsSteppedInsulationLayout.V001.Revit
                         double layerBottomFeet = baseBottomFeet + MmToFeet(layerBottomMm);
 
                         string serial = $"{cell.Serial}_S{s:D2}";
-                        if (TryCreatePanel(doc, cell, level, stepType, layerBottomFeet, serial, out _))
+                        if (TryCreatePanel(doc, cell, level, stepType, layerBottomFeet, serial, epsSerialDef, out _))
                             created++;
                         else
                             failed++;
@@ -81,6 +90,7 @@ namespace Revit26_Plugin_Revised.EpsSteppedInsulationLayout.V001.Revit
             RoofType roofType,
             double elevationFeet,
             string serial,
+            Definition epsSerialDef,
             out FootPrintRoof roof)
         {
             roof = null;
@@ -124,6 +134,9 @@ namespace Revit26_Plugin_Revised.EpsSteppedInsulationLayout.V001.Revit
                     Parameter markParam = roof.get_Parameter(BuiltInParameter.ALL_MODEL_MARK);
                     if (markParam != null && !markParam.IsReadOnly)
                         markParam.Set(serial);
+
+                    // Set dedicated EPS_Serial shared parameter
+                    EpsParameterService.SetSerial(roof, epsSerialDef, serial);
 
                     t.Commit();
                     return true;

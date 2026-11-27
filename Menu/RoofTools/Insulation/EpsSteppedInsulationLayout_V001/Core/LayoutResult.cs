@@ -11,6 +11,9 @@ namespace Revit26_Plugin_Revised.EpsSteppedInsulationLayout.V001.Core
         public int FullCells { get; set; }
         public int TrimmedCells { get; set; }
 
+        /// <summary>Cells skipped because they were below the minimum cut size.</summary>
+        public int SkippedCells { get; set; }
+
         /// <summary>Maximum stepping-layer count across all cells.</summary>
         public int MaxStepLayers { get; set; }
 

@@ -1,7 +1,7 @@
 <title>EPS Stepped Insulation</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<!-- UI preview (CLAUDE.md "UI previews"), plugin 7.37.0.
-     Tool: EPS Stepped Insulation Layout v1.0.0 (V001).
+<!-- UI preview (CLAUDE.md "UI previews"), plugin 7.38.0.
+     Tool: EPS Stepped Insulation Layout v1.1.0 (V001).
      XAML: Menu/RoofTools/Insulation/EpsSteppedInsulationLayout_V001/Views/EpsSteppedInsulationWindow.xaml
      ViewModel: ViewModel_EpsSteppedInsulation.cs
      Artifact: https://claude.ai/artifact/9mrkgjkWJUaiRG9LarMp5C
@@ -219,6 +219,19 @@ body {
 }
 .type-label { color: var(--label-fg); font-size: 12px; white-space: nowrap; }
 
+.inline-fields {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+.inline-fields .field-label {
+  color: var(--label-fg);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
 .warning-box {
   background: var(--warning-bg);
   border-radius: 4px;
@@ -251,6 +264,7 @@ body {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
+  flex-wrap: wrap;
 }
 .btn {
   padding: 5px 16px;
@@ -292,14 +306,28 @@ body {
   font-style: italic;
   margin-top: 4px;
 }
+
+.csv-preview {
+  font-family: 'Cascadia Code', 'Consolas', monospace;
+  font-size: 11px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 8px 10px;
+  margin-top: 8px;
+  overflow-x: auto;
+  white-space: pre;
+  color: var(--text-fg);
+  line-height: 1.5;
+}
 </style>
 
-<!-- ====== State 1: Main window (settings filled, preview calculated) ====== -->
+<!-- ====== State 1: Main window (v1.1.0 — all features) ====== -->
 <div class="frame">
-  <div class="frame-label">Main Window — Settings &amp; Summary <span class="new-tag">New Tool</span></div>
+  <div class="frame-label">Main Window — v1.1.0 Enhancements</div>
   <div class="window">
     <div class="title-bar">
-      <span>EPS Stepped Insulation Layout — v1.0.0</span>
+      <span>EPS Stepped Insulation Layout — v1.1.0</span>
       <span class="close">&#x2715;</span>
     </div>
     <div class="window-body">
@@ -311,7 +339,7 @@ body {
         <div class="info-row"><span class="info-label">Drains:</span><span class="info-value">3</span></div>
       </div>
 
-      <div class="section-title">Slope <span class="new-tag">Toggle</span></div>
+      <div class="section-title">Slope</div>
       <div class="card">
         <div class="radio-row">
           <span class="radio checked"></span>
@@ -326,12 +354,20 @@ body {
         </div>
       </div>
 
-      <div class="section-title">Grid Alignment <span class="new-tag">New</span></div>
+      <div class="section-title">Grid Alignment</div>
       <div class="card">
         <div class="combo" style="position:relative">Edge 3 — 24.60 m (longest)<span class="combo-arrow">&#x25BC;</span></div>
+        <div class="inline-fields">
+          <span class="field-label">Offset (mm):</span>
+          <span class="input-mock" style="width:62px">300</span>
+          <span class="new-tag">New</span>
+          <span class="field-label" style="margin-left:4px">Min cut (mm):</span>
+          <span class="input-mock" style="width:62px">100</span>
+          <span class="new-tag">New</span>
+        </div>
       </div>
 
-      <div class="section-title">Roof Types <span class="new-tag">New</span></div>
+      <div class="section-title">Roof Types</div>
       <div class="card">
         <div class="type-row">
           <span class="type-label">Base (100 mm):</span>
@@ -341,35 +377,36 @@ body {
         </div>
       </div>
 
-      <div class="section-title">Summary <span class="new-tag">New</span></div>
+      <div class="section-title">Summary</div>
       <div class="card">
         <div class="summary-grid">
           <span class="summary-label">Grid cells:</span>
-          <span class="summary-value">342 (318 full, 24 cut)</span>
+          <span class="summary-value">342 (318 full, 22 cut, 2 skipped) <span class="new-tag">New</span></span>
           <span class="summary-label">Max layers:</span>
           <span class="summary-value">7</span>
           <span class="summary-label">Total panels:</span>
-          <span class="summary-value bold">1,284</span>
+          <span class="summary-value bold">1,276</span>
           <span class="summary-label">Total area:</span>
-          <span class="summary-value">492.48 m&#178;</span>
+          <span class="summary-value">489.60 m&#178;</span>
           <span class="summary-label">Total volume:</span>
-          <span class="summary-value">78.634 m&#179;</span>
+          <span class="summary-value">78.012 m&#179;</span>
         </div>
         <div class="layer-block">
           <strong>Layers:</strong><br>
-          Base (100 mm): 342 panels<br>
-          Step 1 (35 mm): 310 panels<br>
-          Step 2 (35 mm): 268 panels<br>
-          Step 3 (35 mm): 198 panels<br>
+          Base (100 mm): 340 panels<br>
+          Step 1 (35 mm): 308 panels<br>
+          Step 2 (35 mm): 265 panels<br>
+          Step 3 (35 mm): 196 panels<br>
           Step 4 (35 mm): 102 panels<br>
           Step 5 (35 mm): 44 panels<br>
           Step 6 (35 mm): 14 panels<br>
-          Step 7 (35 mm): 6 panels
+          Step 7 (35 mm): 7 panels
         </div>
       </div>
 
       <div class="status">Ready</div>
       <div class="btn-row">
+        <span class="btn btn-secondary">Export CSV <span class="new-tag">New</span></span>
         <span class="btn btn-secondary">Refresh</span>
         <span class="btn btn-primary">Run</span>
       </div>
@@ -378,41 +415,73 @@ body {
   <div class="note">Sample data — not from a real project.</div>
 </div>
 
-<!-- ====== State 2: Validation warning ====== -->
+<!-- ====== State 2: CSV Export preview ====== -->
 <div class="frame">
-  <div class="frame-label">Validation Warning</div>
+  <div class="frame-label">CSV Export Output <span class="new-tag">New</span></div>
   <div class="window">
     <div class="title-bar">
-      <span>EPS Stepped Insulation Layout — v1.0.0</span>
+      <span>EPS Stepped Insulation Layout — v1.1.0</span>
       <span class="close">&#x2715;</span>
     </div>
     <div class="window-body">
-      <div class="section-title">Roof Types</div>
+      <div class="section-title">Exported File — EPS_Schedule_EPS Flat Roof 150mm.csv</div>
+      <div class="csv-preview">Serial,Layer,Row,Column,CentreX_m,CentreY_m,DrainDist_m,Height_mm,Trimmed,Area_m2
+EPS_0001_B,Base (100 mm),1,1,0.600,0.600,8.420,100,No,1.4400
+EPS_0001_S01,Step 1 (35 mm),1,1,0.600,0.600,8.420,135,No,1.4400
+EPS_0001_S02,Step 2 (35 mm),1,1,0.600,0.600,8.420,170,No,1.4400
+EPS_0002_B,Base (100 mm),2,1,1.800,0.600,7.260,100,No,1.4400
+EPS_0002_S01,Step 1 (35 mm),2,1,1.800,0.600,7.260,135,No,1.4400
+<span style="color:var(--label-fg)">... (1,276 rows total)</span></div>
+      <div class="status success" style="margin-top:10px">Exported to EPS_Schedule_EPS Flat Roof 150mm.csv</div>
+    </div>
+  </div>
+  <div class="note">Sample data — not from a real project.</div>
+</div>
+
+<!-- ====== State 3: EPS_Serial shared parameter ====== -->
+<div class="frame">
+  <div class="frame-label">Shared Parameter — EPS_Serial <span class="new-tag">New</span></div>
+  <div class="window">
+    <div class="title-bar">
+      <span>Revit Properties Panel — After Placement</span>
+      <span class="close">&#x2715;</span>
+    </div>
+    <div class="window-body">
+      <div class="section-title">Instance Parameters — Roof [Id 601234]</div>
       <div class="card">
-        <div class="type-row">
-          <span class="type-label">Base (100 mm):</span>
-          <div class="combo" style="position:relative">Concrete Slab 200mm  (200 mm)<span class="combo-arrow">&#x25BC;</span></div>
-          <span class="type-label">Step (35 mm):</span>
-          <div class="combo" style="position:relative">EPS 35mm Stepping  (35 mm)<span class="combo-arrow">&#x25BC;</span></div>
+        <div class="summary-grid">
+          <span class="summary-label">Comments:</span>
+          <span class="summary-value">EPS_0042_B</span>
+          <span class="summary-label">Mark:</span>
+          <span class="summary-value">EPS_0042_B</span>
+          <span class="summary-label" style="font-weight:600">EPS_Serial:</span>
+          <span class="summary-value" style="font-weight:600">EPS_0042_B <span class="new-tag">New</span></span>
         </div>
       </div>
-      <div class="warning-box">
-        Base type thickness is 200 mm — expected 100 mm.
-      </div>
-      <div class="btn-row">
-        <span class="btn btn-secondary">Refresh</span>
-        <span class="btn btn-primary" style="opacity:0.5">Run</span>
+      <div class="section-title" style="margin-top:8px">Parameter Details</div>
+      <div class="card">
+        <div class="summary-grid">
+          <span class="summary-label">Group:</span>
+          <span class="summary-value">EPS Insulation</span>
+          <span class="summary-label">Category:</span>
+          <span class="summary-value">Roofs</span>
+          <span class="summary-label">Type:</span>
+          <span class="summary-value">Instance, Text</span>
+          <span class="summary-label">File:</span>
+          <span class="summary-value" style="font-size:11px">%AppData%\Revit26_Plugin_Revised\<br>EpsSteppedInsulationLayout\EPS_SharedParams.txt</span>
+        </div>
       </div>
     </div>
   </div>
+  <div class="note">The EPS_Serial parameter is created automatically on first Run.</div>
 </div>
 
-<!-- ====== State 3: Completion ====== -->
+<!-- ====== State 4: Completion ====== -->
 <div class="frame">
   <div class="frame-label">After Placement</div>
   <div class="window">
     <div class="title-bar">
-      <span>EPS Stepped Insulation Layout — v1.0.0</span>
+      <span>EPS Stepped Insulation Layout — v1.1.0</span>
       <span class="close">&#x2715;</span>
     </div>
     <div class="window-body">
@@ -420,17 +489,18 @@ body {
       <div class="card">
         <div class="summary-grid">
           <span class="summary-label">Grid cells:</span>
-          <span class="summary-value">342 (318 full, 24 cut)</span>
+          <span class="summary-value">340 (318 full, 22 cut, 2 skipped)</span>
           <span class="summary-label">Total panels:</span>
-          <span class="summary-value bold">1,284</span>
+          <span class="summary-value bold">1,276</span>
           <span class="summary-label">Total area:</span>
-          <span class="summary-value">492.48 m&#178;</span>
+          <span class="summary-value">489.60 m&#178;</span>
           <span class="summary-label">Total volume:</span>
-          <span class="summary-value">78.634 m&#179;</span>
+          <span class="summary-value">78.012 m&#179;</span>
         </div>
       </div>
-      <div class="status success">Done — 1,284 panels created.</div>
+      <div class="status success">Done — 1,276 panels created.</div>
       <div class="btn-row">
+        <span class="btn btn-secondary">Export CSV</span>
         <span class="btn btn-secondary">Refresh</span>
         <span class="btn btn-primary">Run</span>
       </div>
