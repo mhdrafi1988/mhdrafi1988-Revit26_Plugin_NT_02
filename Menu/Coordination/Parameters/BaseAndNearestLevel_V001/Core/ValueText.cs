@@ -23,12 +23,14 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.Core
         public static string For(ElementFacts facts, TargetSlot slot)
         {
             if (facts == null) return string.Empty;
+            // Tier 2 and Tier 3 get the level names but no offsets: their offset is not measured from the
+            // level, so any number here would be wrong. An empty slot says "not applicable", not "zero".
             return slot switch
             {
                 TargetSlot.BaseLevelName => facts.HasBase ? facts.BaseLevelName : string.Empty,
-                TargetSlot.BaseOffset => facts.HasBase ? Offset(facts.BaseOffsetMm) : string.Empty,
+                TargetSlot.BaseOffset => facts.HasBase && facts.OffsetKnown ? Offset(facts.BaseOffsetMm) : string.Empty,
                 TargetSlot.NearestLevelName => facts.NearestFound ? facts.NearestLevelName : string.Empty,
-                TargetSlot.NearestOffset => facts.NearestFound ? Offset(facts.NearestOffsetMm) : string.Empty,
+                TargetSlot.NearestOffset => facts.NearestFound && facts.OffsetKnown ? Offset(facts.NearestOffsetMm) : string.Empty,
                 _ => string.Empty
             };
         }

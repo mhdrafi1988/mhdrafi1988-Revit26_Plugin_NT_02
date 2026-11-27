@@ -99,14 +99,23 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.Infrastructure
 
                 // Read the pair again: the element is the authority, not the facts gathered earlier.
                 BasePlacement placement = LevelPairReader.Read(doc, element);
-                if (!placement.Found || placement.ReadOnly)
+                if (!placement.Found || !placement.OffsetKnown)
+                {
+                    run.Rows.Add(new RunRowResult
+                    {
+                        Id = e.Id,
+                        State = RowState.Skipped,
+                        Text = "Skipped · its offset is not measured from its level"
+                    });
+                    continue;
+                }
+                if (placement.ReadOnly)
                 {
                     run.Rows.Add(new RunRowResult { Id = e.Id, State = RowState.Skipped, Text = "Skipped · its level parameter is read-only" });
                     continue;
                 }
 
-                Parameter levelParam = element.get_Parameter(placement.Pair.Level);
-                Parameter offsetParam = element.get_Parameter(placement.Pair.Offset);
+                LevelPairReader.ParametersOf(element, placement, out Parameter levelParam, out Parameter offsetParam);
                 if (levelParam == null || offsetParam == null)
                 {
                     run.Rows.Add(new RunRowResult { Id = e.Id, State = RowState.Skipped, Text = "Skipped · level or offset parameter not found" });
@@ -172,6 +181,7 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.Infrastructure
             {
                 ToolCancellation.CheckCurrent();
                 if (!e.HasBase || !e.NearestFound || !string.IsNullOrEmpty(e.OwnedBy)) continue;
+                if (e.CategoryUnsupported) continue;
                 RunRowResult row = TargetParameterService.AssignAll(doc, e, targets);
                 if (row.State == RowState.Assigned) refreshed++;
                 run.ValuesWritten += row.Written;

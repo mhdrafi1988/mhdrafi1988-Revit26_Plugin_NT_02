@@ -44,8 +44,8 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.Core
             if (e.OutOfDate)
                 return new RowVerdict(RowState.Warning, "Skipped · changed in the central model; synchronise first");
             if (!e.HasBase)
-                return new RowVerdict(RowState.Warning, "Skipped · no base level on this element");
-            if (!e.NearestFound)
+                return new RowVerdict(RowState.Warning, "Skipped · no level on this element");
+            if (e.OffsetKnown && !e.NearestFound)
                 return new RowVerdict(RowState.Warning, "Skipped · no candidate level matches the rule");
 
             string[] readOnly = TargetSlots.All
@@ -55,21 +55,34 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.Core
             if (readOnly.Length > 0)
                 return new RowVerdict(RowState.Warning, "Skipped · read-only on this element: " + string.Join(", ", readOnly));
 
-            bool allMatch = TargetSlots.All.All(s =>
+            // Tier 2 and 3 write the two level names only, so only those slots decide "up to date".
+            bool allMatch = WrittenSlots(e).All(s =>
                 ValueText.Matches(e.CurrentValues[(int)s], e.NewValues[(int)s], TargetSlots.IsText(s)));
             if (allMatch) return new RowVerdict(RowState.UpToDate, "Up to date");
 
             if (e.AnyDifferent && EffectiveChoice(rowChoice, overwriteDefault) == ExistingChoice.Skip)
                 return new RowVerdict(RowState.Warning, "Skipped · already has a different value (Skip)");
 
-            return new RowVerdict(RowState.Ready, e.AnyDifferent ? "Ready · will rewrite" : "Ready");
+            string suffix = e.OffsetKnown ? string.Empty : " · level names only";
+            return new RowVerdict(RowState.Ready, (e.AnyDifferent ? "Ready · will rewrite" : "Ready") + suffix);
         }
+
+        /// <summary>
+        /// The slots this element's tier actually writes: all four for Tier 1, the two level names for
+        /// Tier 2 and Tier 3.
+        /// </summary>
+        public static IEnumerable<TargetSlot> WrittenSlots(ElementFacts e) =>
+            e != null && e.OffsetKnown
+                ? TargetSlots.All
+                : new[] { TargetSlot.BaseLevelName, TargetSlot.NearestLevelName };
 
         /// <summary>Why <paramref name="e"/> cannot be re-hosted, given the shape-edit option.</summary>
         public static RehostSkip RehostBlockFor(ElementFacts e, bool includeShapeEdited)
         {
             if (e == null) return RehostSkip.NoBaseLevel;
-            if (!e.HasBase || !e.NearestFound) return RehostSkip.NoBaseLevel;
+            if (!e.HasBase) return RehostSkip.NoBaseLevel;
+            if (!e.OffsetKnown) return RehostSkip.NotLevelOffset;
+            if (!e.NearestFound) return RehostSkip.NoBaseLevel;
             if (!e.IsChanged) return RehostSkip.NoChange;
             if (!string.IsNullOrEmpty(e.OwnedBy)) return RehostSkip.OwnedByOther;
             if (e.LevelParamReadOnly) return RehostSkip.ReadOnlyLevel;
@@ -87,6 +100,7 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.Core
             RehostSkip.InGroup => "In a group — would change every instance of the group",
             RehostSkip.OwnedByOther => "Checked out by another user",
             RehostSkip.NoBaseLevel => "No base level to change",
+            RehostSkip.NotLevelOffset => "Its offset is not measured from its level, so it cannot be re-hosted",
             _ => string.Empty
         };
 
@@ -214,7 +228,9 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.Core
             if (unsupported.Count > 0)
                 return new CheckRow("c · Category binding", CheckResult.Warning,
                     "Does not take bound parameters, will be skipped: " + string.Join(", ", unsupported) + ".");
-            return new CheckRow("c · Category binding", CheckResult.Pass, "Roofs, Floors and Walls are covered by all four parameters.");
+            int count = facts.Elements.Select(e => e.Category).Distinct(StringComparer.CurrentCultureIgnoreCase).Count();
+            return new CheckRow("c · Category binding", CheckResult.Pass,
+                $"{count} categor{(count == 1 ? "y" : "ies")} in play, covered by all four parameters.");
         }
 
         private static CheckRow LevelCheck(DocumentFacts doc, RunRequest request)
@@ -244,18 +260,30 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.Core
             int ready = facts.Elements.Count(e =>
                 EvaluateRow(e, request.Overwrite, request.ChoiceFor(e.Id)).State == RowState.Ready);
             int noBase = facts.Elements.Count(e => !e.HasBase);
+            int tier1 = facts.Elements.Count(e => e.Tier == LevelTier.LevelAndOffset);
+            int tier2 = facts.Elements.Count(e => e.Tier == LevelTier.HostOffset);
+            int tier3 = facts.Elements.Count(e => e.Tier == LevelTier.ScheduleOnly);
+
+            var tiers = new List<string> { $"{tier1} Tier 1" };
+            if (tier2 > 0) tiers.Add($"{tier2} Tier 2");
+            if (tier3 > 0) tiers.Add($"{tier3} Tier 3");
+            string breakdown = " " + string.Join(", ", tiers) + ".";
+            if (tier2 + tier3 > 0)
+                breakdown += $" {tier2 + tier3} get their level names only, with no offsets, and cannot be re-hosted.";
+
             var parts = new List<string>();
-            if (noBase > 0) parts.Add($"{noBase} with no base level");
+            if (noBase > 0) parts.Add($"{noBase} with no level");
             if (facts.Missing.Count > 0) parts.Add($"{facts.Missing.Count} no longer in the model");
 
             if (ready == 0)
                 return new CheckRow("e · Elements", CheckResult.Blocked,
                     $"None of the {listed} ticked elements is ready to write" +
-                    (parts.Count > 0 ? " (" + string.Join(", ", parts) + ")" : string.Empty) + ".");
-            return parts.Count > 0
+                    (parts.Count > 0 ? " (" + string.Join(", ", parts) + ")" : string.Empty) + "." + breakdown);
+            return parts.Count > 0 || tier2 + tier3 > 0
                 ? new CheckRow("e · Elements", CheckResult.Warning,
-                    $"{ready} of {listed} will be written. Skipped: {string.Join(", ", parts)}.")
-                : new CheckRow("e · Elements", CheckResult.Pass, $"{ready} of {listed} will be written.");
+                    $"{ready} of {listed} will be written." + breakdown +
+                    (parts.Count > 0 ? $" Skipped: {string.Join(", ", parts)}." : string.Empty))
+                : new CheckRow("e · Elements", CheckResult.Pass, $"{ready} of {listed} will be written." + breakdown);
         }
 
         private static CheckRow WorksharingCheck(FactsResult facts, DocumentFacts doc)
@@ -276,8 +304,14 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.Core
         {
             var changed = facts.Elements.Where(e => e.IsChanged).ToList();
             if (changed.Count == 0)
+            {
+                int ineligible = facts.Elements.Count(e => e.HasBase && !e.OffsetKnown);
+                string tail = ineligible > 0
+                    ? $" {ineligible} element(s) are Tier 2 or 3 and are never re-hosted."
+                    : string.Empty;
                 return new CheckRow("g · Re-host", CheckResult.Pass,
-                    "Every element's nearest level is already its base level, so there is nothing to re-host.");
+                    "Every eligible element's nearest level is already its base level, so there is nothing to re-host." + tail);
+            }
 
             var blocked = changed
                 .Select(e => RehostBlockFor(e, request.RehostShapeEdited))

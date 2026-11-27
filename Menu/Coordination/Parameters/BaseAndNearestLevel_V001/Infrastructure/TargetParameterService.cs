@@ -195,8 +195,8 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.Infrastructure
                 {
                     int i = (int)slot;
                     targets[i] = facts.Slots[i].IsNew
-                        ? BindNew(doc, newDefinitions[i], facts.Slots[i], run)
-                        : ExtendBinding(doc, facts.Slots[i], run);
+                        ? BindNew(doc, newDefinitions[i], facts.Slots[i], request, run)
+                        : ExtendBinding(doc, facts.Slots[i], request, run);
                 }
 
                 int done = 0;
@@ -238,7 +238,7 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.Infrastructure
             if (element == null)
                 return new RunRowResult { Id = e.Id, State = RowState.Skipped, Text = "Skipped · element no longer exists" };
 
-            foreach (TargetSlot slot in TargetSlots.All)
+            foreach (TargetSlot slot in BaseAndNearestRules.WrittenSlots(e))
             {
                 int i = (int)slot;
                 Parameter p = targets[i] == null ? null : element.get_Parameter(targets[i]);
@@ -280,6 +280,7 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.Infrastructure
                     return row;
                 }
             }
+            if (!e.OffsetKnown) row.Text = "Assigned · level names only (" + LevelTiers.Label(e.Tier) + ")";
             return row;
         }
 
@@ -315,20 +316,34 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.Infrastructure
 
             BasePlacement placement = LevelPairReader.Read(doc, e);
             f.HasBase = placement.Found;
+            f.Tier = placement.Tier;
             if (placement.Found)
             {
                 f.BaseLevelId = placement.LevelId;
                 f.BaseLevelName = placement.LevelName;
-                f.BaseOffsetMm = placement.OffsetMm;
-                f.ElevationMm = placement.ElevationMm;
                 f.Source = placement.Source;
                 f.LevelParamReadOnly = placement.ReadOnly;
 
-                NearestMatch nearest = NearestLevelCalculator.Find(candidates, f.ElevationMm, request.Rule, request.ToleranceMm);
-                f.NearestFound = nearest.Found;
-                f.NearestLevelId = nearest.LevelId;
-                f.NearestLevelName = nearest.LevelName;
-                f.NearestOffsetMm = nearest.OffsetMm;
+                if (placement.OffsetKnown)
+                {
+                    f.BaseOffsetMm = placement.OffsetMm;
+                    f.ElevationMm = placement.ElevationMm;
+
+                    NearestMatch nearest = NearestLevelCalculator.Find(candidates, f.ElevationMm, request.Rule, request.ToleranceMm);
+                    f.NearestFound = nearest.Found;
+                    f.NearestLevelId = nearest.LevelId;
+                    f.NearestLevelName = nearest.LevelName;
+                    f.NearestOffsetMm = nearest.OffsetMm;
+                }
+                else
+                {
+                    // Tier 2 and 3: the level is known but its offset is not measured from it, so the
+                    // nearest level is the level's own nearest neighbour by elevation and no offset is set.
+                    NearestMatch nearest = NearestLevelCalculator.Find(candidates, placement.LevelElevationMm, request.Rule, request.ToleranceMm);
+                    f.NearestFound = nearest.Found;
+                    f.NearestLevelId = nearest.LevelId;
+                    f.NearestLevelName = nearest.LevelName;
+                }
             }
 
             foreach (TargetSlot slot in TargetSlots.All)
@@ -344,7 +359,7 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.Infrastructure
                 f.SlotReadOnly[i] = p.IsReadOnly;
             }
             f.HasAnyValue = f.CurrentValues.Any(v => !string.IsNullOrWhiteSpace(v));
-            f.AnyDifferent = TargetSlots.All.Any(s =>
+            f.AnyDifferent = BaseAndNearestRules.WrittenSlots(f).Any(s =>
                 !string.IsNullOrWhiteSpace(f.CurrentValues[(int)s]) &&
                 !ValueText.Matches(f.CurrentValues[(int)s], f.NewValues[(int)s], TargetSlots.IsText(s)));
 
@@ -418,9 +433,9 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.Infrastructure
             return created;
         }
 
-        private static InternalDefinition BindNew(Document doc, ExternalDefinition definition, SlotFacts slot, RunResult run)
+        private static InternalDefinition BindNew(Document doc, ExternalDefinition definition, SlotFacts slot, RunRequest request, RunResult run)
         {
-            CategorySet categories = ToolCategories(doc, run);
+            CategorySet categories = RequestCategories(doc, request, run);
             if (categories.IsEmpty)
                 throw new InvalidOperationException($"“{definition.Name}” has no category to bind to. Nothing was changed in the project.");
 
@@ -431,16 +446,16 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.Infrastructure
             InternalDefinition target = FindBindings(doc, definition.Name).Select(m => m.Def).OfType<InternalDefinition>().FirstOrDefault()
                 ?? throw new InvalidOperationException($"“{definition.Name}” was bound but cannot be found in the project.");
             target.SetAllowVaryBetweenGroups(doc, true);
-            run.Log.Add((LogLevel.Success, $"Created “{definition.Name}”: shared, instance, {TargetSlots.TypeName(slot.Slot)}, Properties group Data, values can vary by group; bound to Roofs, Floors and Walls."));
+            run.Log.Add((LogLevel.Success, $"Created “{definition.Name}”: shared, instance, {TargetSlots.TypeName(slot.Slot)}, Properties group Data, values can vary by group; bound to {categories.Size} categor{(categories.Size == 1 ? "y" : "ies")}."));
             return target;
         }
 
-        private static InternalDefinition ExtendBinding(Document doc, SlotFacts slot, RunResult run)
+        private static InternalDefinition ExtendBinding(Document doc, SlotFacts slot, RunRequest request, RunResult run)
         {
             (Definition def, ElementBinding binding) = FindBindings(doc, slot.Name).Single();
             if (slot.MissingCategories.Count > 0)
             {
-                foreach (Category c in ToolCategories(doc, run).Cast<Category>())
+                foreach (Category c in RequestCategories(doc, request, run).Cast<Category>())
                     if (!binding.Categories.Contains(c)) binding.Categories.Insert(c);
                 if (!doc.ParameterBindings.ReInsert(def, binding, def.GetGroupTypeId()))
                     throw new InvalidOperationException($"Revit rejected the new categories for “{def.Name}”.");
@@ -450,14 +465,17 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.Infrastructure
                 ?? throw new InvalidOperationException($"“{def.Name}” is not an internal definition.");
         }
 
-        /// <summary>Roofs, Floors and Walls — the only categories this tool ever binds to.</summary>
-        private static CategorySet ToolCategories(Document doc, RunResult run)
+        /// <summary>
+        /// The categories the four parameters are bound to: the ones the run actually covers, so the
+        /// parameters do not appear on every element in the model (1.1.0).
+        /// </summary>
+        private static CategorySet RequestCategories(Document doc, RunRequest request, RunResult run)
         {
+            var wanted = new HashSet<string>(request?.Categories ?? new List<string>(), StringComparer.OrdinalIgnoreCase);
             var set = new CategorySet();
-            foreach (BuiltInCategory bic in ElementListService.Categories)
+            foreach (Category c in doc.Settings.Categories)
             {
-                Category c = Category.GetCategory(doc, bic);
-                if (c == null) continue;
+                if (c == null || !wanted.Contains(c.Name)) continue;
                 if (c.AllowsBoundParameters) set.Insert(c);
                 else run?.Log.Add((LogLevel.Warning, $"{c.Name} does not allow bound parameters; left out of the binding."));
             }

@@ -30,13 +30,14 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.UI.ViewModels
                 Log(LogLevel.Warning, "Nothing is selected in Revit. Select roofs, floors or walls, then press Load Selection.");
                 return;
             }
-            List<ElementListItem> items = ElementListService.FromIds(doc, ids, out int ignored);
-            FillRows(items);
-            SourceText = $"Revit selection · {items.Count} element(s)";
+            ListResult list = ElementListService.FromIds(doc, ids, out int ignored);
+            FillRows(list);
+            SourceText = $"Revit selection · {list.Items.Count} element(s)";
             Subtitle = $"{DocumentTitle} · Revit selection";
             Log(LogLevel.Info, ignored == 0
-                ? $"Listed {items.Count} roof(s), floor(s) and wall(s) from the Revit selection."
-                : $"Listed {items.Count} from the Revit selection. {ignored} selected element(s) are not a roof, floor or wall and were left out.");
+                ? $"Listed {list.Items.Count} level-based element(s) from the Revit selection, in {list.Categories.Count} categor{(list.Categories.Count == 1 ? "y" : "ies")}."
+                : $"Listed {list.Items.Count} level-based element(s) from the Revit selection. {ignored} selected element(s) have no level and were left out.");
+            LogTiers(list);
         });
 
         [RelayCommand]
@@ -54,28 +55,30 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.UI.ViewModels
         [RelayCommand]
         private void LoadAll() => RunJob(doc =>
         {
-            List<ElementListItem> items = ElementListService.List(doc, null);
-            FillRows(items);
-            SourceText = $"Whole host model · {items.Count} element(s)";
+            ListResult list = ElementListService.List(doc, null);
+            FillRows(list);
+            SourceText = $"Whole host model · {list.Items.Count} element(s)";
             Subtitle = $"{DocumentTitle} · whole model";
-            Log(LogLevel.Info, $"Listed {items.Count} roof(s), floor(s) and wall(s) of the host model.");
+            Log(LogLevel.Info, $"Listed {list.Items.Count} level-based element(s) of the host model, in {list.Categories.Count} categor{(list.Categories.Count == 1 ? "y" : "ies")}.");
+            LogTiers(list);
         });
 
         private void ListFromView(Document doc, View view)
         {
             if (!ElementListService.CanListFrom(view))
             {
-                FillRows(new List<ElementListItem>());
+                FillRows(new ListResult());
                 SourceText = "No view to list from";
                 Subtitle = DocumentTitle;
                 Log(LogLevel.Warning, "The active view cannot list model elements. Use Load All Model Elements, or open a plan, section, elevation or 3D view.");
                 return;
             }
-            List<ElementListItem> items = ElementListService.List(doc, view);
-            FillRows(items);
-            SourceText = $"Active view · {view.Name} · {items.Count} element(s)";
+            ListResult list = ElementListService.List(doc, view);
+            FillRows(list);
+            SourceText = $"Active view · {view.Name} · {list.Items.Count} element(s)";
             Subtitle = $"{DocumentTitle} · {view.Name}";
-            Log(LogLevel.Info, $"Listed {items.Count} roof(s), floor(s) and wall(s) of “{view.Name}”.");
+            Log(LogLevel.Info, $"Listed {list.Items.Count} level-based element(s) of “{view.Name}”, in {list.Categories.Count} categor{(list.Categories.Count == 1 ? "y" : "ies")}.");
+            LogTiers(list);
         }
 
         // ── read and check ────────────────────────────────────────────────────
@@ -241,6 +244,62 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.UI.ViewModels
             UpdateMetrics();
         }
 
+        // Says once, per load, how the list splits across the three tiers.
+        private void LogTiers(ListResult list)
+        {
+            int tier1 = list.Categories.Sum(c => c.Tier1);
+            int tier2 = list.Categories.Sum(c => c.Tier2);
+            int tier3 = list.Categories.Sum(c => c.Tier3);
+            if (tier2 + tier3 == 0)
+            {
+                if (tier1 > 0) Log(LogLevel.Info, $"All {tier1} have a level and an offset from it, so all four parameters are written.");
+                return;
+            }
+            Log(LogLevel.Info,
+                $"{tier1} have a level and an offset from it (all four parameters, re-hostable); " +
+                $"{tier2} measure their offset from the host; {tier3} report a level only. " +
+                "The last two get their level names with no offsets, and are never re-hosted.");
+        }
+
+        // ── category presets ──────────────────────────────────────────────────
+
+        /// <summary>Ticks the 1.0.0 default: Roofs, Floors and Walls.</summary>
+        [RelayCommand]
+        private void PresetDefault() => Preset(ElementListService.DefaultCategoryNames, "Roofs, Floors and Walls");
+
+        /// <summary>Ticks every category the load found.</summary>
+        [RelayCommand]
+        private void PresetAll()
+        {
+            foreach (CategoryOptionViewModel option in CategoryOptions) option.IsSelected = true;
+            Log(LogLevel.Info, $"All {CategoryOptions.Count} level-based categories ticked.");
+        }
+
+        /// <summary>Ticks the structural categories.</summary>
+        [RelayCommand]
+        private void PresetStructure() => Preset(ElementListService.StructurePresetNames, "Structure");
+
+        /// <summary>Ticks the MEP categories.</summary>
+        [RelayCommand]
+        private void PresetMep() => Preset(ElementListService.MepPresetNames, "MEP");
+
+        /// <summary>Unticks every category.</summary>
+        [RelayCommand]
+        private void PresetNone()
+        {
+            foreach (CategoryOptionViewModel option in CategoryOptions) option.IsSelected = false;
+            Log(LogLevel.Info, "All categories unticked.");
+        }
+
+        private void Preset(string[] names, string label)
+        {
+            ApplyPreset(names);
+            int ticked = CategoryOptions.Count(c => c.IsSelected);
+            Log(LogLevel.Info, ticked == 0
+                ? $"The {label} preset matched no category in this model."
+                : $"{label} preset: {ticked} categor{(ticked == 1 ? "y" : "ies")} ticked.");
+        }
+
         // ── grid helpers ──────────────────────────────────────────────────────
 
         [RelayCommand]
@@ -375,7 +434,7 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.UI.ViewModels
                 : _revitSharedParamFile;
 
             var dialogViewModel = new NewParameterViewModel(slot.Slot, suggested, file,
-                _settings?.FileGroup ?? "Data", _allParameters.Select(p => p.Name));
+                _settings?.FileGroup ?? "Data", _allParameters.Select(p => p.Name), SelectedCategoryNames());
 
             if (!ShowNewParameterDialog(dialogViewModel)) return;
 

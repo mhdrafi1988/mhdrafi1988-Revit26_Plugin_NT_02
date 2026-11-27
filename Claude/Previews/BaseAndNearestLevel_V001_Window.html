@@ -1,20 +1,30 @@
 <title>Base and Nearest Level</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<!-- UI preview (CLAUDE.md "UI previews"): Base and Nearest Level V001, tool 1.0.0, plugin 7.39.0.
-     New tool. Roofs, Floors and Walls only - no other category is ever listed.
-     Reads each element's own level/offset pair (walls: Base Constraint + Base Offset; floors: Level + Height
-     Offset From Level; footprint roofs: Base Level + Base Offset From Level; extrusion roofs: Reference Level
-     + Offset), works out Z = level elevation + offset, finds the project level nearest Z, and writes four
-     parameters: base level name (Text), base offset (Length), nearest level name (Text), nearest offset
-     (Length). A second, opt-in action re-hosts ticked elements onto their nearest level without moving them;
-     it skips shape-edited floors and roofs, grouped elements, read-only reference levels and elements owned by
-     other users, and runs in one transaction group assimilated into a single undo step.
+<!-- UI preview (CLAUDE.md "UI previews"): Base and Nearest Level V001, tool 1.1.0, plugin 7.40.0.
+     New in 1.1.0: widened from a fixed Roofs / Floors / Walls array to ANY level-based model element, in
+     three tiers. Tier 1 = a level plus an offset measured from that level, so Z = level + offset holds:
+     walls, floors, ceilings, roofs, structural columns and framing, MEP curves, stairs, families placed on
+     a level. All four parameters are written and the element can be re-hosted. Tier 2 = the level is
+     readable but "Offset from Host" is measured from the host face, not the level (doors, windows,
+     face-hosted families). Tier 3 = a read-only Schedule Level with no offset. Tier 2 and 3 get their two
+     level NAMES written and their two offset slots left EMPTY, and are never re-hosted.
+     The three checkboxes became a searchable Categories grid with per-tier counts and presets
+     (Roofs, Floors, Walls - the default, so the window opens on the same elements as 1.0.0 - All
+     level-based, Structure, MEP, None). The four parameters bind to the ticked categories only, not to
+     every level-based category. The element grid gained a Tier column; pre-check e gained a tier
+     breakdown. The ticked categories are remembered between sessions (settings version 2).
+     1.0.0: the tool as first shipped - four parameters for roofs, floors and walls, and the opt-in re-host.
+     Reads each element's level/offset pair, works out Z = level elevation + offset, finds the project level
+     nearest Z, and writes base level name (Text), base offset (Length), nearest level name (Text),
+     nearest offset (Length). The opt-in re-host sets the level first and the offset second, so nothing
+     moves; it runs in one transaction group assimilated into a single undo step.
      Shows: 1 the Coordination ribbon button + tooltip, 2 the main window after "Read Levels" with the
-            pre-checks a-g run, 3 the New Parameter dialog for slot 4, 4 the "Re-host to nearest level?"
-            dialog, 5 the footer while running and after each action, 6 what was settled for 1.0.0.
+            Categories grid and the pre-checks a-g run, 3 the New Parameter dialog for slot 4,
+            4 the "Re-host to nearest level?" dialog, 5 the footer while running and after each action,
+            6 what was settled for 1.1.0.
      Mirrors: Menu/Coordination/Parameters/BaseAndNearestLevel_V001/UI/Views/BaseAndNearestLevelWindow.xaml,
               .../UI/Views/NewParameterDialog.xaml, .../UI/Views/RehostConfirmDialog.xaml
-              (+ ViewModel_BaseAndNearestLevel, SlotViewModel, RehostConfirmation),
+              (+ ViewModel_BaseAndNearestLevel, SlotViewModel, CategoryOptionViewModel, RehostConfirmation),
               Shared/Controls/ToolWindowShellTemplate.xaml,
               Menu/00_Push_Button_Menu_items/Ribbon/CoordinationRibbon.cs
      Artifact: https://claude.ai/artifact/Pur91tnv2MVVUvr6iKvypL (republish to this URL on every update)
@@ -94,6 +104,13 @@ input[type=checkbox]{accent-color:var(--action);width:14px;height:14px;margin:0 
 
 /* Cards row */
 .cards2{display:grid;grid-template-columns:1.9fr 1fr;gap:8px;padding:0 12px;margin-top:8px}
+.tiers{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:8px;margin:0 0 16px;max-width:1100px}
+.tierbox{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:10px 12px}
+.tierbox .th{font-weight:600;font-size:11.5px;margin-bottom:4px}
+.tierbox p{margin:0;font-size:11.5px;color:var(--text2);line-height:1.45}
+.catgridbox{border:1px solid var(--border);border-radius:4px;max-height:150px;overflow:auto}
+td.ct,th.ct{font-family:var(--mono);font-size:11px}
+td.tier,th.tier{text-align:center;font-family:var(--mono);font-size:11px}
 .tbody{padding:10px 12px;display:flex;flex-direction:column;gap:8px}
 .form{display:grid;grid-template-columns:132px 1fr;align-items:center;row-gap:8px;column-gap:8px}
 .form .l{font-size:11.5px;color:var(--text2)}
@@ -175,13 +192,34 @@ ul.q{margin:0;padding-left:18px;line-height:1.6;max-width:70ch}
 ul.q li{margin-bottom:6px}
 </style>
 
-<h1>Base and Nearest Level — v1.0.0</h1>
-<p class="note">Static mock-up of the shipped tool, in the state that shows the change. Roofs, Floors and
-Walls only. All numbers, level names, element ids and family names below are <b>sample data</b> — not a real
-project.</p>
+<h1>Base and Nearest Level — v1.1.0</h1>
+<p class="note">Static mock-up of the shipped tool, in the state that shows the change. <b>New in 1.1.0:</b>
+any level-based model element, in three tiers, with a searchable Categories grid. All numbers, level names,
+element ids and family names below are <b>sample data</b> — not a real project.</p>
+
+<div class="tiers">
+  <div class="tierbox">
+    <div class="th"><span class="chip ok">T1</span> level + offset from it</div>
+    <p>Walls, floors, ceilings, roofs, structural columns and framing, MEP curves, stairs, families placed
+      on a level. <b>Z = level elevation + offset</b> holds, so all four parameters are written and the
+      element can be re-hosted.</p>
+  </div>
+  <div class="tierbox">
+    <div class="th"><span class="chip warn">T2</span> offset from the host</div>
+    <p>Doors, windows, face-hosted families. "Offset from Host" is measured from the host face, not the
+      level, so the two level <b>names</b> are written and the two offset slots are left <b>empty</b>.
+      Never re-hosted.</p>
+  </div>
+  <div class="tierbox">
+    <div class="th"><span class="chip mute">T3</span> level only</div>
+    <p>A read-only Schedule Level with no offset to measure. Same as Tier 2: level names written, offsets
+      left empty, never re-hosted.</p>
+  </div>
+</div>
 
 <h2>1 · Ribbon — Coordination panel</h2>
-<p class="note">A third button beside the existing tools. <b>Base Level to Parameter</b> is untouched at v1.4.1.</p>
+<p class="note">Same button as 1.0.0 — the widening is inside the tool, so the ribbon is unchanged.
+<b>Base Level to Parameter</b> is still untouched at v1.4.1.</p>
 <div class="scroll">
   <div class="ribbon">
     <div class="rpanel">
@@ -193,8 +231,8 @@ project.</p>
       <div class="rtitle">Coordination</div>
     </div>
     <div class="tip">
-      <b>Base and Nearest Level — v1.0.0 (build V001)</b>
-      Roofs, floors and walls only. Reads each element's base level and offset, finds the project level nearest
+      <b>Base and Nearest Level — v1.1.0 (build V001)</b>
+      Any level-based model element. Reads each element's base level and offset, finds the project level nearest
       its real base elevation, and writes four parameters: base level name, base offset, nearest level name,
       nearest offset. Offsets are Length parameters, so schedules sort and total them. A separate action
       re-hosts elements onto their nearest level without moving them.
@@ -203,18 +241,18 @@ project.</p>
 </div>
 
 <h2>2 · Main window — after “Read Levels”</h2>
-<p class="note">Window title: <span class="pill">Base and Nearest Level — v1.0.0</span>. Sample model: a
+<p class="note">Window title: <span class="pill">Base and Nearest Level — v1.1.0</span>. Sample model: a
 four-storey block with 5 building-storey levels (GF 0, Level 01 3500, Level 02 7000, Level 03 10500, Roof 14000)
 and 2 non-storey levels (T.O.S. 01 3350, Parapet 15200) left out by the level filter.</p>
 <div class="scroll">
 <div class="win" style="width:1340px">
-  <div class="titlebar"><span>Base and Nearest Level — v1.0.0</span><span>—□✕</span></div>
+  <div class="titlebar"><span>Base and Nearest Level — v1.1.0</span><span>—□✕</span></div>
   <div class="header">
     <div>
       <div class="t">Base and Nearest Level</div>
       <div class="s">Sample Project · Level 02 Plan</div>
     </div>
-    <div class="v">v1.0.0</div>
+    <div class="v">v1.1.0</div>
   </div>
 
   <div class="metrics">
@@ -235,13 +273,37 @@ and 2 non-storey levels (T.O.S. 01 3350, Parapet 15200) left out by the level fi
         <div class="sbtn">Load All Model Elements</div>
         <div class="sbtn pri">Read Levels</div>
       </div>
-      <div class="row wrap">
-        <span class="lbl">Categories</span>
-        <label><input type="checkbox" checked>Roofs</label>
-        <label style="margin-left:12px"><input type="checkbox" checked>Floors</label>
-        <label style="margin-left:12px"><input type="checkbox" checked>Walls</label>
-        <span class="hint" style="margin-left:12px">Only these three categories are ever listed. Host model
-          only — linked elements are not listed.</span>
+      <div>
+        <div class="row wrap" style="margin-bottom:4px">
+          <span class="lbl">Categories</span>
+          <span class="sbtn" style="height:22px">Roofs, Floors, Walls</span>
+          <span class="sbtn" style="height:22px">All level-based</span>
+          <span class="sbtn" style="height:22px">Structure</span>
+          <span class="sbtn" style="height:22px">MEP</span>
+          <span class="sbtn" style="height:22px;margin-right:12px">None</span>
+          <span class="text" style="width:150px"><span class="ph">Filter categories</span></span>
+          <span class="hint" style="margin-left:10px">3 of 9 categories · 12 element(s)</span>
+          <span class="new">NEW</span>
+        </div>
+        <div class="catgridbox">
+          <table>
+            <tr><th style="width:26px"></th><th>Category</th><th class="ct" style="width:150px">Elements</th></tr>
+            <tr><td><input type="checkbox" checked></td><td>Floors</td><td class="ct">4</td></tr>
+            <tr><td><input type="checkbox" checked></td><td>Roofs</td><td class="ct">3</td></tr>
+            <tr><td><input type="checkbox" checked></td><td>Walls</td><td class="ct">5</td></tr>
+            <tr class="dim"><td><input type="checkbox"></td><td>Ceilings</td><td class="ct">6</td></tr>
+            <tr class="dim"><td><input type="checkbox"></td><td>Doors</td><td class="ct" title="0 Tier 1; 14 whose offset is from the host">14 · 14 T2</td></tr>
+            <tr class="dim"><td><input type="checkbox"></td><td>Ducts</td><td class="ct">22</td></tr>
+            <tr class="dim"><td><input type="checkbox"></td><td>Generic Models</td><td class="ct" title="3 with a level and an offset; 2 with a level only">5 · 3 T1, 2 T3</td></tr>
+            <tr class="dim"><td><input type="checkbox"></td><td>Structural Columns</td><td class="ct">18</td></tr>
+            <tr class="dim"><td><input type="checkbox"></td><td>Windows</td><td class="ct" title="0 Tier 1; 9 whose offset is from the host">9 · 9 T2</td></tr>
+          </table>
+        </div>
+        <div class="hint" style="margin-top:4px">
+          T1 = level + an offset from it: all four parameters, and can be re-hosted. T2 = offset measured
+          from the host. T3 = level only. T2 and T3 get their level names with no offsets and are never
+          re-hosted. Host model only — linked elements are not listed.
+        </div>
       </div>
       <div class="row wrap">
         <span class="lbl">Source</span>
@@ -344,13 +406,14 @@ and 2 non-storey levels (T.O.S. 01 3350, Parapet 15200) left out by the level fi
           Level 02, Level 03, Roof. 2 level(s) excluded by the filter: T.O.S. 01, Parapet.
           Rule: Closest in either direction.</td></tr>
         <tr><td>e · Elements</td><td><span class="chip warn">Warning</span> 9 of 12 will be written.
-          Skipped: 1 with no base level.</td></tr>
+          11 Tier 1. Skipped: 1 with no level.</td></tr>
         <tr><td>f · Worksharing</td><td><span class="chip ok">Pass</span> All 12 editable. None owned by
           another user.</td></tr>
         <tr><td>g · Re-host</td><td><span class="chip warn">Warning</span> 8 element(s) sit nearer another
           level. Re-host would change 5 and skip: 1 shape-edited — changing level can reset its point edits,
           1 its level parameter is read-only, 1 in a group — would change every instance of the group.
-          Re-host is a separate action and changes nothing until you run it.</td></tr>
+          Only Tier 1 elements are eligible. Re-host is a separate action and changes nothing until you
+          run it.</td></tr>
       </table>
     </div>
   </div>
@@ -376,6 +439,7 @@ and 2 non-storey levels (T.O.S. 01 3350, Parapet 15200) left out by the level fi
         <th style="width:60px">Id</th>
         <th>Family &amp; Type</th>
         <th style="width:24px"></th>
+        <th class="tier" style="width:44px">Tier<span class="new">NEW</span></th>
         <th>Base level</th>
         <th class="num">Base offset</th>
         <th class="num">Elevation Z</th>
@@ -385,59 +449,59 @@ and 2 non-storey levels (T.O.S. 01 3350, Parapet 15200) left out by the level fi
         <th>If value exists</th>
       </tr>
 
-      <tr class="grp"><td colspan="11"><span class="tw">▾</span>Floors · 4</td></tr>
-      <tr><td><input type="checkbox" checked></td><td class="mono">412883</td><td>Floor: 200mm Slab</td><td></td>
+      <tr class="grp"><td colspan="12"><span class="tw">▾</span>Floors · 4</td></tr>
+      <tr><td><input type="checkbox" checked></td><td class="mono">412883</td><td>Floor: 200mm Slab</td><td></td><td class="tier">T1</td>
         <td>GF</td><td class="num">+3400</td><td class="num">3400</td>
         <td class="nv chg">Level 01</td><td class="num nv chg">-100</td>
         <td><span class="chip ok">Ready</span></td><td class="cv">Default</td></tr>
-      <tr><td><input type="checkbox" checked></td><td class="mono">412901</td><td>Floor: 150mm Topping</td><td></td>
+      <tr><td><input type="checkbox" checked></td><td class="mono">412901</td><td>Floor: 150mm Topping</td><td></td><td class="tier">T1</td>
         <td>Level 01</td><td class="num">+50</td><td class="num">3550</td>
         <td class="nv same">Level 01</td><td class="num nv same">+50</td>
         <td><span class="chip mute">Up to date</span></td><td class="cv">Default</td></tr>
-      <tr><td><input type="checkbox" checked></td><td class="mono">413044</td><td>Floor: 250mm Slab</td><td></td>
+      <tr><td><input type="checkbox" checked></td><td class="mono">413044</td><td>Floor: 250mm Slab</td><td></td><td class="tier">T1</td>
         <td>GF</td><td class="num">+6950</td><td class="num">6950</td>
         <td class="nv chg">Level 02</td><td class="num nv chg">-50</td>
         <td><span class="chip ok">Ready · will rewrite</span></td><td class="cv">Rewrite</td></tr>
       <tr><td><input type="checkbox" checked></td><td class="mono">413120</td><td>Floor: 200mm Slab</td>
-        <td><span class="flag" title="Re-host will skip this element: Shape-edited — changing Level can reset its point edits">◆</span></td>
+        <td><span class="flag" title="Re-host will skip this element: Shape-edited — changing Level can reset its point edits">◆</span></td><td class="tier">T1</td>
         <td>Level 01</td><td class="num">+3460</td><td class="num">6960</td>
         <td class="nv chg">Level 02</td><td class="num nv chg">-40</td>
         <td><span class="chip ok">Ready</span></td><td class="cv">Default</td></tr>
 
-      <tr class="grp"><td colspan="11"><span class="tw">▾</span>Roofs · 3</td></tr>
-      <tr><td><input type="checkbox" checked></td><td class="mono">414002</td><td>Basic Roof: Warm Roof 300</td><td></td>
+      <tr class="grp"><td colspan="12"><span class="tw">▾</span>Roofs · 3</td></tr>
+      <tr><td><input type="checkbox" checked></td><td class="mono">414002</td><td>Basic Roof: Warm Roof 300</td><td></td><td class="tier">T1</td>
         <td>Level 02</td><td class="num">+7100</td><td class="num">14100</td>
         <td class="nv chg">Roof</td><td class="num nv chg">+100</td>
         <td><span class="chip ok">Ready</span></td><td class="cv">Default</td></tr>
-      <tr><td><input type="checkbox" checked></td><td class="mono">414055</td><td>Basic Roof: Warm Roof 300</td><td></td>
+      <tr><td><input type="checkbox" checked></td><td class="mono">414055</td><td>Basic Roof: Warm Roof 300</td><td></td><td class="tier">T1</td>
         <td>Roof</td><td class="num">+0</td><td class="num">14000</td>
         <td class="nv same">Roof</td><td class="num nv same">0</td>
         <td><span class="chip mute">Up to date</span></td><td class="cv">Default</td></tr>
       <tr><td><input type="checkbox" checked></td><td class="mono">414130</td><td>Extrusion Roof: Canopy</td>
-        <td><span class="flag" title="Re-host will skip this element: Its level parameter is read-only">◆</span></td>
+        <td><span class="flag" title="Re-host will skip this element: Its level parameter is read-only">◆</span></td><td class="tier">T1</td>
         <td>Level 02</td><td class="num">+6900</td><td class="num">13900</td>
         <td class="nv chg">Roof</td><td class="num nv chg">-100</td>
         <td><span class="chip ok">Ready</span></td><td class="cv">Default</td></tr>
 
-      <tr class="grp"><td colspan="11"><span class="tw">▾</span>Walls · 5</td></tr>
-      <tr><td><input type="checkbox" checked></td><td class="mono">415220</td><td>Basic Wall: Blockwork 200</td><td></td>
+      <tr class="grp"><td colspan="12"><span class="tw">▾</span>Walls · 5</td></tr>
+      <tr><td><input type="checkbox" checked></td><td class="mono">415220</td><td>Basic Wall: Blockwork 200</td><td></td><td class="tier">T1</td>
         <td>GF</td><td class="num">+3450</td><td class="num">3450</td>
         <td class="nv chg">Level 01</td><td class="num nv chg">-50</td>
         <td><span class="chip ok">Ready</span></td><td class="cv">Default</td></tr>
-      <tr><td><input type="checkbox" checked></td><td class="mono">415266</td><td>Basic Wall: Blockwork 200</td><td></td>
+      <tr><td><input type="checkbox" checked></td><td class="mono">415266</td><td>Basic Wall: Blockwork 200</td><td></td><td class="tier">T1</td>
         <td>Level 01</td><td class="num">+0</td><td class="num">3500</td>
         <td class="nv same">Level 01</td><td class="num nv same">0</td>
         <td><span class="chip ok">Ready · will rewrite</span></td><td class="cv">Rewrite</td></tr>
-      <tr><td><input type="checkbox" checked></td><td class="mono">415301</td><td>Basic Wall: Curtain Wall</td><td></td>
+      <tr><td><input type="checkbox" checked></td><td class="mono">415301</td><td>Basic Wall: Curtain Wall</td><td></td><td class="tier">T1</td>
         <td>GF</td><td class="num">+10400</td><td class="num">10400</td>
         <td class="nv chg">Level 03</td><td class="num nv chg">-100</td>
         <td><span class="chip ok">Ready · will rewrite</span></td><td class="cv">Rewrite</td></tr>
       <tr><td><input type="checkbox" checked></td><td class="mono">415388</td><td>Basic Wall: Partition 100</td>
-        <td><span class="flag" title="Re-host will skip this element: In a group — would change every instance of the group">◆</span></td>
+        <td><span class="flag" title="Re-host will skip this element: In a group — would change every instance of the group">◆</span></td><td class="tier">T1</td>
         <td>GF</td><td class="num">+3480</td><td class="num">3480</td>
         <td class="nv chg">Level 01</td><td class="num nv chg">-20</td>
         <td><span class="chip ok">Ready</span></td><td class="cv">Default</td></tr>
-      <tr class="dim"><td><input type="checkbox" checked></td><td class="mono">415410</td><td>Basic Wall: Blockwork 200</td><td></td>
+      <tr class="dim"><td><input type="checkbox" checked></td><td class="mono">415410</td><td>Basic Wall: Blockwork 200</td><td></td><td class="tier">—</td>
         <td>—</td><td class="num">—</td><td class="num">—</td><td>—</td><td class="num">—</td>
         <td><span class="chip warn">Skipped · no base level on this element</span></td><td class="cv">—</td></tr>
     </table>
@@ -479,10 +543,105 @@ and 2 non-storey levels (T.O.S. 01 3350, Parapet 15200) left out by the level fi
 </div>
 </div>
 
-<h2>3 · New Parameter dialog — slot 4</h2>
+<h2>3 · The same window with “All level-based” ticked <span class="new">NEW IN 1.1.0</span></h2>
+<p class="note">Section 2 shows the default — Roofs, Floors and Walls, as in 1.0.0. Pressing
+<b>All level-based</b> ticks every category the load found. Tier 2 and Tier 3 elements then appear, with
+their level names filled in and their offset columns reading <b>n/a</b>: the tool will write their two
+level names and leave the two offset slots empty, because their offset is not measured from their level.</p>
+<div class="scroll">
+<div class="win" style="width:1340px">
+  <div class="titlebar"><span>Base and Nearest Level — v1.1.0</span><span>—□✕</span></div>
+
+  <div class="metrics">
+    <div class="tile act"><div class="k">LISTED</div><div class="n">89</div></div>
+    <div class="tile info"><div class="k">CHECKED</div><div class="n">89</div></div>
+    <div class="tile ok"><div class="k">READY</div><div class="n">71</div></div>
+    <div class="tile"><div class="k">UP TO DATE</div><div class="n">12</div></div>
+    <div class="tile"><div class="k">HAS VALUE</div><div class="n">5</div></div>
+    <div class="tile warn"><div class="k">WARNINGS</div><div class="n">6</div></div>
+    <div class="tile err"><div class="k">BLOCKED</div><div class="n">0</div></div>
+  </div>
+
+  <div class="pad">
+    <div class="card" style="padding:10px 12px">
+      <div class="row wrap" style="margin-bottom:4px">
+        <span class="lbl">Categories</span>
+        <span class="sbtn" style="height:22px">Roofs, Floors, Walls</span>
+        <span class="sbtn pri" style="height:22px">All level-based</span>
+        <span class="sbtn" style="height:22px">Structure</span>
+        <span class="sbtn" style="height:22px">MEP</span>
+        <span class="sbtn" style="height:22px;margin-right:12px">None</span>
+        <span class="hint">9 of 9 categories · 89 element(s)</span>
+      </div>
+      <div class="hint">Pre-check e now reads: <b>71 of 89 will be written. 66 Tier 1, 23 Tier 2.
+        23 get their level names only, with no offsets, and cannot be re-hosted.</b></div>
+    </div>
+  </div>
+
+  <div class="card grid-card">
+    <table>
+      <tr>
+        <th style="width:26px"><input type="checkbox" checked></th>
+        <th style="width:60px">Id</th>
+        <th>Family &amp; Type</th>
+        <th style="width:24px"></th>
+        <th class="tier" style="width:44px">Tier</th>
+        <th>Base level</th>
+        <th class="num">Base offset</th>
+        <th class="num">Elevation Z</th>
+        <th>Nearest level</th>
+        <th class="num">Nearest offset</th>
+        <th>Status</th>
+      </tr>
+
+      <tr class="grp"><td colspan="11"><span class="tw">▾</span>Ceilings · 6</td></tr>
+      <tr><td><input type="checkbox" checked></td><td class="mono">421004</td><td>Compound Ceiling: 600×600 Grid</td><td></td>
+        <td class="tier">T1</td><td>Level 01</td><td class="num">+2700</td><td class="num">6200</td>
+        <td class="nv chg">Level 02</td><td class="num nv chg">-800</td>
+        <td><span class="chip ok">Ready</span></td></tr>
+
+      <tr class="grp"><td colspan="11"><span class="tw">▾</span>Doors · 14</td></tr>
+      <tr><td><input type="checkbox" checked></td><td class="mono">431220</td><td>Single-Flush: 900 × 2100mm</td>
+        <td><span class="flag" title="Re-host will skip this element: Its offset is not measured from its level, so it cannot be re-hosted">◆</span></td>
+        <td class="tier">T2</td><td>Level 01</td><td class="num cv">n/a</td><td class="num cv">n/a</td>
+        <td class="nv same">Level 01</td><td class="num cv">n/a</td>
+        <td><span class="chip ok">Ready · level names only</span></td></tr>
+      <tr><td><input type="checkbox" checked></td><td class="mono">431288</td><td>Double-Flush: 1800 × 2100mm</td>
+        <td><span class="flag" title="Re-host will skip this element: Its offset is not measured from its level, so it cannot be re-hosted">◆</span></td>
+        <td class="tier">T2</td><td>Level 02</td><td class="num cv">n/a</td><td class="num cv">n/a</td>
+        <td class="nv same">Level 02</td><td class="num cv">n/a</td>
+        <td><span class="chip mute">Up to date</span></td></tr>
+
+      <tr class="grp"><td colspan="11"><span class="tw">▾</span>Generic Models · 5</td></tr>
+      <tr><td><input type="checkbox" checked></td><td class="mono">441010</td><td>Roof Hatch: 900 × 900mm</td><td></td>
+        <td class="tier">T1</td><td>Roof</td><td class="num">+150</td><td class="num">14150</td>
+        <td class="nv same">Roof</td><td class="num nv same">+150</td>
+        <td><span class="chip ok">Ready</span></td></tr>
+      <tr><td><input type="checkbox" checked></td><td class="mono">441077</td><td>Wall Louvre: 600 × 600mm</td>
+        <td><span class="flag" title="Re-host will skip this element: Its offset is not measured from its level, so it cannot be re-hosted">◆</span></td>
+        <td class="tier">T3</td><td>Level 02</td><td class="num cv">n/a</td><td class="num cv">n/a</td>
+        <td class="nv same">Level 02</td><td class="num cv">n/a</td>
+        <td><span class="chip ok">Ready · level names only</span></td></tr>
+
+      <tr class="grp"><td colspan="11"><span class="tw">▾</span>Structural Columns · 18</td></tr>
+      <tr><td><input type="checkbox" checked></td><td class="mono">451002</td><td>UC-Universal Column: 305×305×97UC</td><td></td>
+        <td class="tier">T1</td><td>GF</td><td class="num">+3490</td><td class="num">3490</td>
+        <td class="nv chg">Level 01</td><td class="num nv chg">-10</td>
+        <td><span class="chip ok">Ready</span></td></tr>
+    </table>
+    <div class="hint" style="margin-top:6px">
+      <b>n/a</b> is not zero: it says the offset is not measured from the level, so the tool leaves that
+      parameter empty rather than writing a number it cannot justify. <b>◆</b> on a Tier 2 or Tier 3 row is
+      a hard skip for Re-host, with no override tick.
+    </div>
+  </div>
+</div>
+</div>
+
+<h2>4 · New Parameter dialog — slot 4</h2>
 <p class="note">Opened by the <b>New…</b> button on a slot. Nothing is created here: the parameter is added to
 the shared parameter file and bound to the project when <b>Write Parameters</b> runs. The data type is fixed by
-the slot, and the binding is always the tool's three categories, so both are shown but not editable.</p>
+the slot, and the binding follows the categories ticked in the window, so both are shown but not editable.</p>
 <div class="scroll">
 <div class="win dlg">
   <div class="titlebar"><span>New Parameter — Base and Nearest Level</span><span>✕</span></div>
@@ -500,11 +659,12 @@ the slot, and the binding is always the tool's three categories, so both are sho
       <div class="l">Group in file</div><div class="combo" style="width:200px">Data</div>
       <div class="l" style="align-self:start">Categories</div>
       <div>
-        <span class="pill" style="margin-right:6px">Roofs</span>
         <span class="pill" style="margin-right:6px">Floors</span>
+        <span class="pill" style="margin-right:6px">Roofs</span>
         <span class="pill">Walls</span>
-        <div class="hint" style="margin-top:4px">Fixed to the tool's three categories, so the parameter matches
-          what the tool writes.</div>
+        <div class="hint" style="margin-top:4px">3 categories, as ticked in the window.<span class="new">NEW</span></div>
+        <div class="hint" style="margin-top:2px">Taken from the categories ticked in the window, so the
+          parameter matches what the tool writes — not every level-based category in the model.</div>
       </div>
     </div>
     <div style="background:var(--ok-soft);border:1px solid var(--ok-border);border-radius:4px;padding:10px 8px;color:var(--ok);font-size:11.5px">
@@ -517,7 +677,7 @@ the slot, and the binding is always the tool's three categories, so both are sho
 </div>
 </div>
 
-<h2>4 · Re-host to nearest level — confirmation</h2>
+<h2>5 · Re-host to nearest level — confirmation</h2>
 <p class="note">The opt-in model change, behind its own dialog. Nothing moves: the level parameter is set first
 and the offset second, so each element keeps its elevation. A wall's bottom stays put, and its top stays put
 whether Top Constraint is a level or Unconnected. Ticking <b>Include shape-edited</b> rebuilds both lists and the
@@ -565,7 +725,7 @@ button's count at once.</p>
 </div>
 </div>
 
-<h2>5 · Footer — running, and after each action</h2>
+<h2>6 · Footer — running, and after each action</h2>
 <div class="scroll">
   <div class="lists" style="min-width:960px">
     <div class="win" style="width:auto">
@@ -606,14 +766,27 @@ button's count at once.</p>
   </div>
 </div>
 
-<h2>6 · As built</h2>
+<h2>7 · As built</h2>
+<p class="note"><b>1.1.0</b></p>
 <ul class="q">
-  <li><b>Nearest level</b> defaults to <i>closest in either direction</i>, with all three rules selectable.
-    Ties go to the lower level.</li>
-  <li><b>Offsets are Length parameters</b>, written from millimetres into Revit's internal units, so they
-    follow the project's unit display and total correctly in a schedule.</li>
-  <li><b>A new tool.</b> Base Level to Parameter stays at 1.4.1 and keeps writing its single combined text value.</li>
-  <li><b>Re-host is a separate opt-in action</b>, in this same 1.0.0 release, behind its own confirmation dialog.</li>
-  <li><b>Shape-edited floors and roofs are skipped on re-host</b>, with a tick in the dialog to include them.
-    Writing the four parameters always covers them.</li>
+  <li><b>Any level-based model element</b>, read in three tiers. Tier 1 (level + an offset measured from it)
+    gets all four parameters and can be re-hosted. Tier 2 (offset from the host) and Tier 3 (level only) get
+    their two level names, with the two offset slots left empty, and are never re-hosted.</li>
+  <li><b>The default scope is unchanged:</b> the window opens on Roofs, Floors and Walls, so the same button
+    does the same thing as 1.0.0. Widening is one click — hence a MINOR bump, not a MAJOR one.</li>
+  <li><b>Categories are discovered, not hard-coded.</b> The grid lists whatever the load found, with per-tier
+    counts, a search box and presets. The ticked set is remembered between sessions.</li>
+  <li><b>The four parameters bind to the ticked categories only</b>, not to every level-based category, so
+    they do not appear on the whole model.</li>
+  <li><b>Re-host is Tier 1 only.</b> Tier 2 and Tier 3 are hard skips with no override tick. Shape-edited,
+    grouped, read-only and checked-out elements are skipped as before.</li>
+</ul>
+<p class="note" style="margin-top:12px"><b>1.0.0</b></p>
+<ul class="q">
+  <li>Nearest level defaults to <i>closest in either direction</i>, with all three rules selectable. Ties go
+    to the lower level.</li>
+  <li>Offsets are <b>Length</b> parameters, so they follow the project's unit display and total correctly in
+    a schedule.</li>
+  <li>A new tool. Base Level to Parameter stays at 1.4.1 and keeps writing its single combined text value.</li>
+  <li>Re-host is a separate opt-in action behind its own confirmation dialog, in one undo step.</li>
 </ul>

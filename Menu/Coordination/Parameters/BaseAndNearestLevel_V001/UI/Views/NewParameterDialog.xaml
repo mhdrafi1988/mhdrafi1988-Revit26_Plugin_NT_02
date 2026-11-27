@@ -79,7 +79,7 @@ Preview: Claude/Previews/BaseAndNearestLevel_V001_Window.html (section 3)
 
             <TextBlock Grid.Row="5" Grid.Column="0" Text="Categories" Style="{StaticResource FieldLabel}" VerticalAlignment="Top"/>
             <StackPanel Grid.Row="5" Grid.Column="1">
-                <ItemsControl ItemsSource="{Binding Categories}">
+                <ItemsControl ItemsSource="{Binding Categories}" MaxHeight="90">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate>
                     </ItemsControl.ItemsPanel>
@@ -93,7 +93,9 @@ Preview: Claude/Previews/BaseAndNearestLevel_V001_Window.html (section 3)
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
                 <TextBlock Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="0,4,0,0"
-                           Text="Fixed to the tool's three categories, so the parameter matches what the tool writes."/>
+                           Text="{Binding CategorySummary}"/>
+                <TextBlock Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="0,2,0,0"
+                           Text="Taken from the categories ticked in the window, so the parameter matches what the tool writes."/>
             </StackPanel>
         </Grid>
 

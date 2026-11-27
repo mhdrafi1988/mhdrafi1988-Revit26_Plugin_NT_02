@@ -3,6 +3,61 @@ using System.Collections.Generic;
 
 namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.Core
 {
+    /// <summary>
+    /// How far an element's level reading can be trusted, which decides whether an offset is written and
+    /// whether the element may be re-hosted.
+    /// </summary>
+    public enum LevelTier
+    {
+        /// <summary>No level at all.</summary>
+        None = 0,
+
+        /// <summary>
+        /// Tier 1: the offset is measured from the level, so <c>Z = level elevation + offset</c> holds.
+        /// All four parameters are written and the element can be re-hosted.
+        /// </summary>
+        LevelAndOffset,
+
+        /// <summary>
+        /// Tier 2: the level is readable but the offset is measured from the host face ("Offset from Host"),
+        /// not from the level. The two level names are written, the two offsets are left empty, and the
+        /// element is never re-hosted.
+        /// </summary>
+        HostOffset,
+
+        /// <summary>
+        /// Tier 3: a read-only Schedule Level with no offset to measure. The two level names are written,
+        /// the two offsets are left empty, and the element is never re-hosted.
+        /// </summary>
+        ScheduleOnly
+    }
+
+    /// <summary>What each <see cref="LevelTier"/> means in the window and the log.</summary>
+    public static class LevelTiers
+    {
+        /// <summary>"Tier 1 · level + offset" and so on.</summary>
+        public static string Label(LevelTier tier) => tier switch
+        {
+            LevelTier.LevelAndOffset => "Tier 1 · level + offset",
+            LevelTier.HostOffset => "Tier 2 · offset from host",
+            LevelTier.ScheduleOnly => "Tier 3 · level only",
+            _ => "No level"
+        };
+
+        /// <summary>Why a tier's offsets are left empty, or an empty string for Tier 1.</summary>
+        public static string Why(LevelTier tier) => tier switch
+        {
+            LevelTier.HostOffset =>
+                "Its offset is measured from the host face, not from the level, so no elevation can be worked out.",
+            LevelTier.ScheduleOnly =>
+                "It reports a level but has no offset from that level, so no elevation can be worked out.",
+            _ => string.Empty
+        };
+
+        /// <summary>True when all four parameters can be written for this tier.</summary>
+        public static bool WritesOffsets(LevelTier tier) => tier == LevelTier.LevelAndOffset;
+    }
+
     /// <summary>How the nearest level is picked from the candidate levels.</summary>
     public enum NearestRule
     {
@@ -88,7 +143,13 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.Core
         /// <summary>Owned by another user in a workshared model.</summary>
         OwnedByOther,
         /// <summary>It has no base level to change.</summary>
-        NoBaseLevel
+        NoBaseLevel,
+
+        /// <summary>
+        /// Its offset is not measured from its level (Tier 2 or 3), so the tool cannot work out where it
+        /// would sit. Not overridable.
+        /// </summary>
+        NotLevelOffset
     }
 
     /// <summary>Which data type a slot needs, and how it reads in the UI.</summary>
@@ -177,8 +238,17 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.Core
         /// <summary>"Family: Type".</summary>
         public string FamilyAndType { get; set; } = string.Empty;
 
-        /// <summary>True when the element's level/offset pair was found.</summary>
+        /// <summary>True when a level was found, whatever the tier.</summary>
         public bool HasBase { get; set; }
+
+        /// <summary>How far the reading can be trusted; see <see cref="LevelTier"/>.</summary>
+        public LevelTier Tier { get; set; } = LevelTier.None;
+
+        /// <summary>
+        /// True when the offset is measured from the level, so the elevation and the nearest offset are
+        /// real numbers. False for Tier 2 and Tier 3, whose offset slots are left empty.
+        /// </summary>
+        public bool OffsetKnown => Tier == LevelTier.LevelAndOffset;
 
         /// <summary>Base level name.</summary>
         public string BaseLevelName { get; set; } = string.Empty;
@@ -208,7 +278,7 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.Core
         public double NearestOffsetMm { get; set; }
 
         /// <summary>True when the nearest level is not the base level.</summary>
-        public bool IsChanged => NearestFound && HasBase && NearestLevelId != BaseLevelId;
+        public bool IsChanged => NearestFound && HasBase && OffsetKnown && NearestLevelId != BaseLevelId;
 
         /// <summary>The element is in a group.</summary>
         public bool InGroup { get; set; }
@@ -392,6 +462,12 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.Core
     {
         /// <summary>Ticked element ids.</summary>
         public List<long> ElementIds { get; set; } = new();
+
+        /// <summary>
+        /// Names of the categories in play, which is what the four parameters are bound to. Only the
+        /// categories that have ticked elements, so the parameters do not appear on the whole model.
+        /// </summary>
+        public List<string> Categories { get; set; } = new();
 
         /// <summary>Parameter name chosen for each slot, indexed by <see cref="TargetSlot"/>.</summary>
         public string[] SlotNames { get; set; } = { string.Empty, string.Empty, string.Empty, string.Empty };

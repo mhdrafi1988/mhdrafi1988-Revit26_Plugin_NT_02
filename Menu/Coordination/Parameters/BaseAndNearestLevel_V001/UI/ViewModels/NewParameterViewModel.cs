@@ -22,9 +22,12 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.UI.ViewModels
 
         /// <summary>Creates the dialog's view model for <paramref name="slot"/>.</summary>
         public NewParameterViewModel(TargetSlot slot, string suggestedName, string filePath, string fileGroup,
-            IEnumerable<string> existingProjectNames)
+            IEnumerable<string> existingProjectNames, IEnumerable<string> categories)
         {
             Slot = slot;
+            Categories = (categories ?? Enumerable.Empty<string>())
+                .Distinct(StringComparer.CurrentCultureIgnoreCase)
+                .OrderBy(c => c, StringComparer.CurrentCultureIgnoreCase).ToList();
             _existingProjectNames = new HashSet<string>(existingProjectNames ?? Enumerable.Empty<string>(),
                 StringComparer.OrdinalIgnoreCase);
             _name = suggestedName ?? string.Empty;
@@ -43,8 +46,16 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.UI.ViewModels
         /// <summary>"Text" or "Length"; fixed by the slot, so the dialog shows it disabled.</summary>
         public string TypeName => TargetSlots.TypeName(Slot);
 
-        /// <summary>The categories the new parameter is bound to. Fixed.</summary>
-        public IReadOnlyList<string> Categories { get; } = new[] { "Roofs", "Floors", "Walls" };
+        /// <summary>
+        /// The categories the new parameter is bound to: the ones ticked in the window, so the parameter
+        /// matches what the tool writes (1.1.0). Set from the constructor, not editable here.
+        /// </summary>
+        public IReadOnlyList<string> Categories { get; }
+
+        /// <summary>"3 categories" or "no category ticked", under the pill list.</summary>
+        public string CategorySummary => Categories.Count == 0
+            ? "No category is ticked in the window, so there is nothing to bind to."
+            : $"{Categories.Count} categor{(Categories.Count == 1 ? "y" : "ies")}, as ticked in the window.";
 
         /// <summary>Groups offered for the shared parameter file.</summary>
         public ObservableCollection<string> FileGroups { get; } = new();
@@ -155,7 +166,7 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.UI.ViewModels
                 }
                 if (matches.Count == 1)
                 {
-                    Pass($"“{name}” is already in the file as {TypeName}; its GUID will be reused and the parameter bound to Roofs, Floors and Walls.",
+                    Pass($"“{name}” is already in the file as {TypeName}; its GUID will be reused and the parameter bound to {Categories.Count} categor{(Categories.Count == 1 ? "y" : "ies")}.",
                         CheckResult.Warning);
                     return;
                 }
@@ -166,7 +177,12 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.UI.ViewModels
                 return;
             }
 
-            Pass($"“{name}” will be added to the file as a {TypeName} parameter, then bound to Roofs, Floors and Walls as a shared instance parameter.",
+            if (Categories.Count == 0)
+            {
+                Fail("No category is ticked in the window, so the parameter would have nothing to bind to. Tick at least one category first.");
+                return;
+            }
+            Pass($"“{name}” will be added to the file as a {TypeName} parameter, then bound as a shared instance parameter to {CategorySummary.TrimEnd('.')}.",
                 CheckResult.Pass);
         }
 

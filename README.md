@@ -215,7 +215,7 @@ Where a tool has several versions, its button is a dropdown listing the newest v
   target parameter first (name, data type, binding, shared parameter file, categories, ownership), and can create
   the parameter as a shared instance Text parameter. One transaction; Ctrl+Z undoes it. The value can be the level
   name only or level name + offset in one of several patterns (or a custom one); elements already up to date are not rewritten.
-- **Base and Nearest Level**: for **roofs, floors and walls only**. Reads each element's own level and offset,
+- **Base and Nearest Level**: for **any level-based model element**. Reads each element's own level and offset,
   works out its real base elevation (level elevation + offset), finds the project level nearest that elevation,
   and writes four parameters: base level name and nearest level name as Text, base offset and nearest offset as
   **Length**, so schedules sort and total them. The nearest level can be the closest in either direction (default),
@@ -225,6 +225,12 @@ Where a tool has several versions, its button is a dropdown listing the newest v
   A separate, opt-in **Re-host to Nearest Level** action sets each element's level and offset together, so the
   element keeps its elevation and nothing moves; it skips shape-edited floors and roofs, grouped elements,
   read-only reference levels and elements owned by other users, and one Ctrl+Z undoes the whole thing.
+  Elements are read in three tiers. Tier 1 has a level and an offset measured from it (walls, floors,
+  ceilings, roofs, structural columns and framing, MEP curves, stairs, families on a level): all four
+  parameters are written and it can be re-hosted. Tier 2 measures its offset from the host rather than the
+  level (doors, windows, face-hosted families) and Tier 3 has a read-only Schedule Level only; both get
+  their two level names with the offset slots left empty, and are never re-hosted. The Categories grid lists
+  whatever the model holds with per-tier counts and presets, and opens on Roofs, Floors and Walls.
 
 ## Installation
 

@@ -8,7 +8,7 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.UI.ViewModels
     public class BaseAndNearestLevelSettings
     {
         /// <summary>Settings format version.</summary>
-        public int Version { get; set; } = 1;
+        public int Version { get; set; } = 2;
 
         /// <summary>Shared parameter file last used for a new parameter.</summary>
         public string SharedParamFilePath { get; set; } = string.Empty;
@@ -27,6 +27,12 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.UI.ViewModels
 
         /// <summary>Differences below this many millimetres count as zero.</summary>
         public double ToleranceMm { get; set; } = 1.0;
+
+        /// <summary>
+        /// Category names ticked when the window last closed (settings version 2). Empty or missing in an
+        /// older file → the 1.0.0 default of Roofs, Floors and Walls.
+        /// </summary>
+        public string[] SelectedCategories { get; set; } = System.Array.Empty<string>();
 
         /// <summary>The "Target parameters" card is open.</summary>
         public bool TargetExpanded { get; set; } = true;
