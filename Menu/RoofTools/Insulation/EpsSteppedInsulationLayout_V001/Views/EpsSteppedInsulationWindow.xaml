@@ -1,0 +1,165 @@
+<Window x:Class="Revit26_Plugin_Revised.EpsSteppedInsulationLayout.V001.Views.EpsSteppedInsulationWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:conv="clr-namespace:Revit26_Plugin_Revised.EpsSteppedInsulationLayout.V001.Views"
+        Title="{Binding ToolTitle}"
+        Width="480" MinWidth="420"
+        SizeToContent="Height"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        Background="{DynamicResource PanelBg}">
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Revit26_Plugin_Revised;component/Shared/SharedStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+
+            <BooleanToVisibilityConverter x:Key="BoolVis"/>
+            <conv:InverseBoolConverter x:Key="InvertBool"/>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <StackPanel Margin="16">
+
+        <!-- Roof info -->
+        <TextBlock Text="Selected Roof" FontWeight="SemiBold" FontSize="13"
+                   Foreground="{DynamicResource HeaderFg}" Margin="0,0,0,4"/>
+        <Border Background="{DynamicResource CardBg}" CornerRadius="4" Padding="10" Margin="0,0,0,12">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                <TextBlock Text="Roof:" Grid.Row="0" Grid.Column="0" Margin="0,0,8,2" Foreground="{DynamicResource LabelFg}"/>
+                <TextBlock Text="{Binding RoofName}" Grid.Row="0" Grid.Column="1" Foreground="{DynamicResource TextFg}"/>
+                <TextBlock Text="Level:" Grid.Row="1" Grid.Column="0" Margin="0,0,8,2" Foreground="{DynamicResource LabelFg}"/>
+                <TextBlock Text="{Binding LevelName}" Grid.Row="1" Grid.Column="1" Foreground="{DynamicResource TextFg}"/>
+                <TextBlock Text="Drains:" Grid.Row="2" Grid.Column="0" Margin="0,0,8,0" Foreground="{DynamicResource LabelFg}"/>
+                <TextBlock Text="{Binding DrainCount}" Grid.Row="2" Grid.Column="1" Foreground="{DynamicResource TextFg}"/>
+            </Grid>
+        </Border>
+
+        <!-- Slope input -->
+        <TextBlock Text="Slope" FontWeight="SemiBold" FontSize="13"
+                   Foreground="{DynamicResource HeaderFg}" Margin="0,0,0,4"/>
+        <Border Background="{DynamicResource CardBg}" CornerRadius="4" Padding="10" Margin="0,0,0,12">
+            <StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                    <RadioButton Content="Ratio 1 :" IsChecked="{Binding UseSlopeRatio}"
+                                 VerticalContentAlignment="Center" Margin="0,0,8,0"
+                                 Foreground="{DynamicResource TextFg}"/>
+                    <TextBox Text="{Binding SlopeRatioText, UpdateSourceTrigger=PropertyChanged}"
+                             Width="70" VerticalContentAlignment="Center"
+                             IsEnabled="{Binding UseSlopeRatio}"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <RadioButton Content="Percentage:" IsChecked="{Binding UseSlopeRatio, Converter={StaticResource InvertBool}}"
+                                 VerticalContentAlignment="Center" Margin="0,0,8,0"
+                                 Foreground="{DynamicResource TextFg}"
+                                 Tag="pct"/>
+                    <TextBox Text="{Binding SlopePercentText, UpdateSourceTrigger=PropertyChanged}"
+                             Width="70" VerticalContentAlignment="Center"
+                             IsEnabled="{Binding UseSlopeRatio, Converter={StaticResource InvertBool}}"/>
+                    <TextBlock Text=" %" VerticalAlignment="Center" Foreground="{DynamicResource LabelFg}"/>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <!-- Grid alignment -->
+        <TextBlock Text="Grid Alignment" FontWeight="SemiBold" FontSize="13"
+                   Foreground="{DynamicResource HeaderFg}" Margin="0,0,0,4"/>
+        <Border Background="{DynamicResource CardBg}" CornerRadius="4" Padding="10" Margin="0,0,0,12">
+            <ComboBox ItemsSource="{Binding EdgeOptions}"
+                      SelectedValue="{Binding SelectedEdgeIndex}"
+                      SelectedValuePath="Index"
+                      DisplayMemberPath="DisplayName"/>
+        </Border>
+
+        <!-- Roof types -->
+        <TextBlock Text="Roof Types" FontWeight="SemiBold" FontSize="13"
+                   Foreground="{DynamicResource HeaderFg}" Margin="0,0,0,4"/>
+        <Border Background="{DynamicResource CardBg}" CornerRadius="4" Padding="10" Margin="0,0,0,12">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                <TextBlock Text="Base (100 mm):" Grid.Row="0" Grid.Column="0" Margin="0,0,8,6"
+                           VerticalAlignment="Center" Foreground="{DynamicResource LabelFg}"/>
+                <ComboBox Grid.Row="0" Grid.Column="1" Margin="0,0,0,6"
+                          ItemsSource="{Binding AllRoofTypes}"
+                          SelectedItem="{Binding SelectedBaseType}"
+                          DisplayMemberPath="DisplayName"/>
+                <TextBlock Text="Step (35 mm):" Grid.Row="1" Grid.Column="0" Margin="0,0,8,0"
+                           VerticalAlignment="Center" Foreground="{DynamicResource LabelFg}"/>
+                <ComboBox Grid.Row="1" Grid.Column="1"
+                          ItemsSource="{Binding AllRoofTypes}"
+                          SelectedItem="{Binding SelectedStepType}"
+                          DisplayMemberPath="DisplayName"/>
+            </Grid>
+        </Border>
+
+        <!-- Validation error -->
+        <Border Background="#FFF3CD" CornerRadius="4" Padding="8" Margin="0,0,0,8"
+                Visibility="{Binding HasValidationError, Converter={StaticResource BoolVis}}">
+            <TextBlock Text="{Binding ValidationMessage}" Foreground="#856404" TextWrapping="Wrap"/>
+        </Border>
+
+        <!-- Summary -->
+        <TextBlock Text="Summary" FontWeight="SemiBold" FontSize="13"
+                   Foreground="{DynamicResource HeaderFg}" Margin="0,0,0,4"/>
+        <Border Background="{DynamicResource CardBg}" CornerRadius="4" Padding="10" Margin="0,0,0,12">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                <TextBlock Text="Grid cells:" Grid.Row="0" Grid.Column="0" Margin="0,0,8,2" Foreground="{DynamicResource LabelFg}"/>
+                <TextBlock Grid.Row="0" Grid.Column="1" Foreground="{DynamicResource TextFg}">
+                    <Run Text="{Binding TotalCells, Mode=OneWay}"/> (<Run Text="{Binding FullCells, Mode=OneWay}"/> full, <Run Text="{Binding TrimmedCells, Mode=OneWay}"/> cut)
+                </TextBlock>
+                <TextBlock Text="Max layers:" Grid.Row="1" Grid.Column="0" Margin="0,0,8,2" Foreground="{DynamicResource LabelFg}"/>
+                <TextBlock Text="{Binding MaxLayers}" Grid.Row="1" Grid.Column="1" Foreground="{DynamicResource TextFg}"/>
+                <TextBlock Text="Total panels:" Grid.Row="2" Grid.Column="0" Margin="0,0,8,2" Foreground="{DynamicResource LabelFg}"/>
+                <TextBlock Text="{Binding TotalPanels}" Grid.Row="2" Grid.Column="1" FontWeight="SemiBold" Foreground="{DynamicResource TextFg}"/>
+                <TextBlock Text="Total area:" Grid.Row="3" Grid.Column="0" Margin="0,0,8,2" Foreground="{DynamicResource LabelFg}"/>
+                <TextBlock Text="{Binding TotalAreaText}" Grid.Row="3" Grid.Column="1" Foreground="{DynamicResource TextFg}"/>
+                <TextBlock Text="Total volume:" Grid.Row="4" Grid.Column="0" Margin="0,0,8,2" Foreground="{DynamicResource LabelFg}"/>
+                <TextBlock Text="{Binding TotalVolumeText}" Grid.Row="4" Grid.Column="1" Foreground="{DynamicResource TextFg}"/>
+                <TextBlock Text="Layers:" Grid.Row="5" Grid.Column="0" Margin="0,0,8,2" VerticalAlignment="Top" Foreground="{DynamicResource LabelFg}"/>
+                <TextBlock Text="{Binding LayerBreakdown}" Grid.Row="5" Grid.Column="1" TextWrapping="Wrap" Foreground="{DynamicResource TextFg}"/>
+            </Grid>
+        </Border>
+
+        <!-- Status bar -->
+        <TextBlock Text="{Binding StatusText}" Foreground="{DynamicResource LabelFg}" Margin="0,0,0,8"/>
+
+        <!-- Buttons -->
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="Refresh" Command="{Binding RefreshCommand}" Margin="0,0,8,0"
+                    Padding="12,6" Style="{DynamicResource SecondaryButton}"/>
+            <Button Content="Run" Command="{Binding RunCommand}"
+                    Padding="20,6" Style="{DynamicResource PrimaryButton}"/>
+        </StackPanel>
+
+    </StackPanel>
+</Window>
