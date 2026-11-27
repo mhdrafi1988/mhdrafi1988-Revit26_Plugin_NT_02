@@ -168,7 +168,7 @@ Preview: Claude/Previews/BaseAndNearestLevel_V001_Window.html
                                 </DataGrid.Columns>
                             </DataGrid>
                             <TextBlock Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="0,4,0,0"
-                                       Text="T1 = level + an offset from it: all four parameters, and can be re-hosted. T2 = offset measured from the host. T3 = level only. T2 and T3 get their level names with no offsets and are never re-hosted. Host model only — linked elements are not listed."/>
+                                       Text="T1 = level + a writable offset from it: all four parameters, and can be re-hosted. T2 = offset from the level but a read-only level, such as a door or window: all four parameters, never re-hosted. T3 = offset measured from the host. T4 = level only. T3 and T4 get their level names with no offsets. Host model only — linked elements are not listed."/>
                         </StackPanel>
 
                         <StackPanel Orientation="Horizontal">
@@ -415,7 +415,14 @@ Preview: Claude/Previews/BaseAndNearestLevel_V001_Window.html
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellTemplate>
                                 </DataGridTemplateColumn>
-                                <DataGridTextColumn Header="Tier" Binding="{Binding TierLabel}" Width="54" IsReadOnly="True"/>
+                                <DataGridTemplateColumn Header="Tier" Width="54" SortMemberPath="TierLabel">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding TierLabel}" ToolTip="{Binding TierTip}"
+                                                       FontFamily="Consolas" FontSize="11.5"/>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
                                 <DataGridTextColumn Header="Base level" Binding="{Binding BaseLevel}" Width="110" IsReadOnly="True"/>
                                 <DataGridTextColumn Header="Base offset" Binding="{Binding BaseOffset}" Width="80" IsReadOnly="True"/>
                                 <DataGridTextColumn Header="Elevation Z" Binding="{Binding Elevation}" Width="85" IsReadOnly="True"/>
@@ -451,7 +458,7 @@ Preview: Claude/Previews/BaseAndNearestLevel_V001_Window.html
                         </DataGrid>
 
                         <TextBlock Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="0,6,0,0"
-                                   Text="◆ marks an element that Re-host will skip — hover for the reason. It does not affect writing the four parameters, which covers every ready row."/>
+                                   Text="◆ marks an element that Re-host will skip — hover for the reason. It does not affect writing the parameters. Hover the Tier column for what a tier means and how the family is placed."/>
                     </StackPanel>
                 </Border>
 

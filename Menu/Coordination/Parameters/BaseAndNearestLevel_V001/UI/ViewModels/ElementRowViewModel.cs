@@ -68,13 +68,21 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.UI.ViewModels
         public bool HasFlag => !string.IsNullOrEmpty(FlagTip);
 
         /// <summary>"T1", "T2", "T3" or "—", for the grid's Tier column (1.1.0).</summary>
-        public string TierLabel => Facts == null ? "—" : Facts.Tier switch
+        public string TierLabel => Facts == null ? "—" : LevelTiers.ShortLabel(Facts.Tier);
+
+        /// <summary>What the tier means, and the family's placement type when there is one, for the tooltip.</summary>
+        public string TierTip
         {
-            Core.LevelTier.LevelAndOffset => "T1",
-            Core.LevelTier.HostOffset => "T2",
-            Core.LevelTier.ScheduleOnly => "T3",
-            _ => "—"
-        };
+            get
+            {
+                if (Facts == null) return string.Empty;
+                string why = LevelTiers.Why(Facts.Tier);
+                string tip = LevelTiers.Label(Facts.Tier) + (why.Length > 0 ? ". " + why : ".");
+                if (!string.IsNullOrEmpty(Facts.Placement)) tip += $" Placement: {Facts.Placement}.";
+                if (Facts.IsInPlace) tip += " Modelled in place.";
+                return tip;
+            }
+        }
 
         /// <summary>Which parameter pair the base placement came from, for the row tooltip.</summary>
         public string SourceTip => Facts == null || !Facts.HasBase ? string.Empty : Facts.Source;
@@ -106,6 +114,7 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.UI.ViewModels
             HasExistingValue = false;
             FlagTip = string.Empty;
             OnPropertyChanged(nameof(TierLabel));
+            OnPropertyChanged(nameof(TierTip));
         }
 
         /// <summary>Fills the row from <paramref name="facts"/> and <paramref name="verdict"/>.</summary>
@@ -136,6 +145,7 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.UI.ViewModels
                 : "Re-host will skip this element: " + BaseAndNearestRules.RehostSkipText(block);
             OnPropertyChanged(nameof(SourceTip));
             OnPropertyChanged(nameof(TierLabel));
+            OnPropertyChanged(nameof(TierTip));
         }
 
         /// <summary>Shows the outcome of a run on this row.</summary>

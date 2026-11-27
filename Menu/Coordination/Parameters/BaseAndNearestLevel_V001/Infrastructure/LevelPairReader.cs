@@ -4,15 +4,28 @@ using Revit26_Plugin_Revised.BaseAndNearestLevel.V001.Core;
 
 namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.Infrastructure
 {
+    /// <summary>What a pair's offset is measured from, before read-only state decides the tier.</summary>
+    public enum OffsetBasis
+    {
+        /// <summary>There is no offset to measure.</summary>
+        None = 0,
+
+        /// <summary>The offset is measured from the level, so <c>Z = level elevation + offset</c> holds.</summary>
+        FromLevel,
+
+        /// <summary>The offset is measured from the host face, so it says nothing about the elevation.</summary>
+        FromHost
+    }
+
     /// <summary>The level/offset parameter pair one kind of element uses, and what its offset is measured from.</summary>
     public readonly struct LevelPair
     {
         /// <summary>Creates a pair. <paramref name="offsets"/> are tried in order; the first that exists wins.</summary>
-        public LevelPair(BuiltInParameter level, BuiltInParameter[] offsets, LevelTier tier, string source)
+        public LevelPair(BuiltInParameter level, BuiltInParameter[] offsets, OffsetBasis basis, string source)
         {
             Level = level;
             Offsets = offsets;
-            Tier = tier;
+            Basis = basis;
             Source = source;
         }
 
@@ -22,8 +35,8 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.Infrastructure
         /// <summary>Candidate offset parameters, in order of preference. Empty for a level with no offset.</summary>
         public BuiltInParameter[] Offsets { get; }
 
-        /// <summary>Whether the offset is measured from that level, from the host, or missing.</summary>
-        public LevelTier Tier { get; }
+        /// <summary>What the offset is measured from.</summary>
+        public OffsetBasis Basis { get; }
 
         /// <summary>Human-readable pair name, for example "Base Constraint + Base Offset".</summary>
         public string Source { get; }
@@ -57,7 +70,7 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.Infrastructure
         /// True when <c>level elevation + offset</c> is the element's real base elevation, so the
         /// nearest-level arithmetic holds.
         /// </summary>
-        public bool OffsetKnown => Tier == LevelTier.LevelAndOffset;
+        public bool OffsetKnown => LevelTiers.WritesOffsets(Tier);
 
         /// <summary>The element's base elevation in millimetres; only meaningful when <see cref="OffsetKnown"/>.</summary>
         public double ElevationMm => LevelElevationMm + OffsetMm;
@@ -95,48 +108,147 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.Infrastructure
     {
         // Order matters. A family instance offers both "Elevation from Level" (tier 1) and "Offset from
         // Host" (tier 2), so the tier-1 pair must be tried first.
+        // The general table, for everything that is not a family instance. Order matters.
         private static readonly LevelPair[] Pairs =
         {
             new(BuiltInParameter.WALL_BASE_CONSTRAINT, new[] { BuiltInParameter.WALL_BASE_OFFSET },
-                LevelTier.LevelAndOffset, "Base Constraint + Base Offset"),
+                OffsetBasis.FromLevel, "Base Constraint + Base Offset"),
 
             new(BuiltInParameter.ROOF_BASE_LEVEL_PARAM, new[] { BuiltInParameter.ROOF_LEVEL_OFFSET_PARAM },
-                LevelTier.LevelAndOffset, "Base Level + Base Offset From Level"),
+                OffsetBasis.FromLevel, "Base Level + Base Offset From Level"),
 
             new(BuiltInParameter.ROOF_CONSTRAINT_LEVEL_PARAM, new[] { BuiltInParameter.ROOF_CONSTRAINT_OFFSET_PARAM },
-                LevelTier.LevelAndOffset, "Reference Level + Offset"),
+                OffsetBasis.FromLevel, "Reference Level + Offset"),
 
             new(BuiltInParameter.FAMILY_BASE_LEVEL_PARAM, new[] { BuiltInParameter.FAMILY_BASE_LEVEL_OFFSET_PARAM },
-                LevelTier.LevelAndOffset, "Base Level + Base Offset"),
+                OffsetBasis.FromLevel, "Base Level + Base Offset"),
 
             new(BuiltInParameter.RBS_START_LEVEL_PARAM, new[] { BuiltInParameter.RBS_OFFSET_PARAM },
-                LevelTier.LevelAndOffset, "Reference Level + Offset"),
+                OffsetBasis.FromLevel, "Reference Level + Offset"),
 
             new(BuiltInParameter.STAIRS_BASE_LEVEL_PARAM, new[] { BuiltInParameter.STAIRS_BASE_OFFSET },
-                LevelTier.LevelAndOffset, "Base Level + Base Offset"),
+                OffsetBasis.FromLevel, "Base Level + Base Offset"),
 
             // Floors and ceilings share LEVEL_PARAM; their offset parameters differ.
             new(BuiltInParameter.LEVEL_PARAM,
                 new[] { BuiltInParameter.FLOOR_HEIGHTABOVELEVEL_PARAM, BuiltInParameter.CEILING_HEIGHTABOVELEVEL_PARAM },
-                LevelTier.LevelAndOffset, "Level + Height Offset From Level"),
+                OffsetBasis.FromLevel, "Level + Height Offset From Level"),
 
             new(BuiltInParameter.INSTANCE_REFERENCE_LEVEL_PARAM, new[] { BuiltInParameter.INSTANCE_ELEVATION_PARAM },
-                LevelTier.LevelAndOffset, "Reference Level + Elevation from Level"),
+                OffsetBasis.FromLevel, "Reference Level + Elevation from Level"),
 
             new(BuiltInParameter.FAMILY_LEVEL_PARAM, new[] { BuiltInParameter.INSTANCE_ELEVATION_PARAM },
-                LevelTier.LevelAndOffset, "Level + Elevation from Level"),
+                OffsetBasis.FromLevel, "Level + Elevation from Level"),
 
-            // Tier 2: "Offset from Host" is measured from the host face, not from the level.
+            // "Offset from Host" is measured from the host face, not from the level.
             new(BuiltInParameter.FAMILY_LEVEL_PARAM, new[] { BuiltInParameter.INSTANCE_FREE_HOST_OFFSET_PARAM },
-                LevelTier.HostOffset, "Level + Offset from Host"),
+                OffsetBasis.FromHost, "Level + Offset from Host"),
 
-            // Tier 3: a level and nothing to measure from it.
+            // A level and nothing to measure from it.
             new(BuiltInParameter.SCHEDULE_LEVEL_PARAM, new BuiltInParameter[0],
-                LevelTier.ScheduleOnly, "Schedule Level"),
+                OffsetBasis.None, "Schedule Level"),
 
             new(BuiltInParameter.INSTANCE_SCHEDULE_ONLY_LEVEL_PARAM, new BuiltInParameter[0],
-                LevelTier.ScheduleOnly, "Schedule Level"),
+                OffsetBasis.None, "Schedule Level"),
         };
+
+        // ── family placement tables (1.2.0) ───────────────────────────────────
+        // A family instance is classified by how it is placed, which the family itself states, rather than
+        // by guessing from whichever parameters happen to exist.
+
+        // Placed on one level: its Elevation from Level is measured from that level.
+        private static readonly LevelPair[] OneLevel =
+        {
+            new(BuiltInParameter.FAMILY_LEVEL_PARAM, new[] { BuiltInParameter.INSTANCE_ELEVATION_PARAM },
+                OffsetBasis.FromLevel, "Level + Elevation from Level"),
+            new(BuiltInParameter.INSTANCE_REFERENCE_LEVEL_PARAM, new[] { BuiltInParameter.INSTANCE_ELEVATION_PARAM },
+                OffsetBasis.FromLevel, "Reference Level + Elevation from Level"),
+            new(BuiltInParameter.FAMILY_LEVEL_PARAM, new[] { BuiltInParameter.INSTANCE_FREE_HOST_OFFSET_PARAM },
+                OffsetBasis.FromHost, "Level + Offset from Host"),
+        };
+
+        // Placed between two levels, as a structural column is: its base pair is the one that matters here.
+        private static readonly LevelPair[] TwoLevels =
+        {
+            new(BuiltInParameter.FAMILY_BASE_LEVEL_PARAM, new[] { BuiltInParameter.FAMILY_BASE_LEVEL_OFFSET_PARAM },
+                OffsetBasis.FromLevel, "Base Level + Base Offset"),
+            new(BuiltInParameter.FAMILY_LEVEL_PARAM, new[] { BuiltInParameter.INSTANCE_ELEVATION_PARAM },
+                OffsetBasis.FromLevel, "Level + Elevation from Level"),
+        };
+
+        // Hosted on a level and in a host, as a door or window is. Sill Height IS measured from the level,
+        // so these get real offsets — but their Level follows the host and is read-only, which puts them in
+        // Tier 2 rather than Tier 1.
+        private static readonly LevelPair[] OneLevelHosted =
+        {
+            new(BuiltInParameter.FAMILY_LEVEL_PARAM, new[] { BuiltInParameter.INSTANCE_SILL_HEIGHT_PARAM },
+                OffsetBasis.FromLevel, "Level + Sill Height"),
+            new(BuiltInParameter.INSTANCE_REFERENCE_LEVEL_PARAM, new[] { BuiltInParameter.INSTANCE_SILL_HEIGHT_PARAM },
+                OffsetBasis.FromLevel, "Reference Level + Sill Height"),
+            new(BuiltInParameter.FAMILY_LEVEL_PARAM, new[] { BuiltInParameter.INSTANCE_ELEVATION_PARAM },
+                OffsetBasis.FromLevel, "Level + Elevation from Level"),
+            new(BuiltInParameter.FAMILY_LEVEL_PARAM, new[] { BuiltInParameter.INSTANCE_FREE_HOST_OFFSET_PARAM },
+                OffsetBasis.FromHost, "Level + Offset from Host"),
+            new(BuiltInParameter.INSTANCE_SCHEDULE_ONLY_LEVEL_PARAM, new BuiltInParameter[0],
+                OffsetBasis.None, "Schedule Level"),
+        };
+
+        // Placed on a work plane: its level is informational only.
+        private static readonly LevelPair[] WorkPlane =
+        {
+            new(BuiltInParameter.SCHEDULE_LEVEL_PARAM, new BuiltInParameter[0],
+                OffsetBasis.None, "Schedule Level"),
+            new(BuiltInParameter.INSTANCE_SCHEDULE_ONLY_LEVEL_PARAM, new BuiltInParameter[0],
+                OffsetBasis.None, "Schedule Level"),
+            new(BuiltInParameter.FAMILY_LEVEL_PARAM, new BuiltInParameter[0],
+                OffsetBasis.None, "Level (work-plane-based, no offset from it)"),
+        };
+
+        /// <summary>
+        /// The pairs to try for <paramref name="e"/>, in order. A family instance is classified by its
+        /// family's <see cref="FamilyPlacementType"/>; anything else uses the general table (1.2.0).
+        /// </summary>
+        private static LevelPair[] PairsFor(Element e)
+        {
+            FamilyPlacementType? placement = PlacementOf(e);
+            if (placement == null) return Pairs;
+
+            return placement switch
+            {
+                FamilyPlacementType.OneLevelBased => OneLevel,
+                FamilyPlacementType.TwoLevelsBased => TwoLevels,
+                FamilyPlacementType.OneLevelBasedHosted => OneLevelHosted,
+                FamilyPlacementType.WorkPlaneBased => WorkPlane,
+                FamilyPlacementType.CurveBased or FamilyPlacementType.CurveDrivenStructural => OneLevel,
+                _ => Pairs
+            };
+        }
+
+        /// <summary>How <paramref name="e"/>'s family is placed, or null when it is not a family instance.</summary>
+        public static FamilyPlacementType? PlacementOf(Element e)
+        {
+            try
+            {
+                return (e as FamilyInstance)?.Symbol?.Family?.FamilyPlacementType;
+            }
+            catch (Autodesk.Revit.Exceptions.ApplicationException)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>True when <paramref name="e"/> belongs to a family modelled in place.</summary>
+        public static bool IsInPlace(Element e)
+        {
+            try
+            {
+                return (e as FamilyInstance)?.Symbol?.Family?.IsInPlace == true;
+            }
+            catch (Autodesk.Revit.Exceptions.ApplicationException)
+            {
+                return false;
+            }
+        }
 
         /// <summary>
         /// Reads where <paramref name="e"/> sits. <see cref="BasePlacement.Found"/> is false when it has no
@@ -146,7 +258,7 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.Infrastructure
         {
             if (doc == null || e == null) return BasePlacement.None;
 
-            foreach (LevelPair pair in Pairs)
+            foreach (LevelPair pair in PairsFor(e))
             {
                 Parameter levelParam = e.get_Parameter(pair.Level);
                 if (levelParam == null || levelParam.StorageType != StorageType.ElementId) continue;
@@ -172,12 +284,14 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.Infrastructure
             return BasePlacement.None;
         }
 
+        // The tier is derived here, not stored in the table: it is the pair's basis combined with whether
+        // the two parameters can actually be written on this element. That is what separates a door
+        // (offset from its level, but a read-only level) from a wall (both writable).
         private static BasePlacement Build(Level level, Parameter levelParam, Element e, LevelPair pair)
         {
             var placement = new BasePlacement
             {
                 Found = true,
-                Tier = pair.Tier,
                 LevelId = level.Id.Value,
                 LevelName = level.Name,
                 LevelElevationMm = UnitsMm.FromFeet(level.Elevation),
@@ -185,8 +299,9 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.Infrastructure
                 Pair = pair
             };
 
-            if (pair.Tier == LevelTier.ScheduleOnly)
+            if (pair.Basis == OffsetBasis.None)
             {
+                placement.Tier = LevelTier.ScheduleOnly;
                 placement.ReadOnly = true;
                 return placement;
             }
@@ -202,8 +317,18 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.Infrastructure
                 return placement;
             }
 
-            placement.OffsetMm = UnitsMm.FromFeet(offsetParam.AsDouble());
             placement.ReadOnly = levelParam.IsReadOnly || offsetParam.IsReadOnly;
+
+            if (pair.Basis == OffsetBasis.FromHost)
+            {
+                placement.Tier = LevelTier.HostOffset;
+                return placement;
+            }
+
+            // Measured from the level, so the arithmetic holds either way; only re-host depends on whether
+            // the pair can be written.
+            placement.OffsetMm = UnitsMm.FromFeet(offsetParam.AsDouble());
+            placement.Tier = placement.ReadOnly ? LevelTier.LevelAndOffsetLocked : LevelTier.LevelAndOffset;
             return placement;
         }
 
@@ -215,7 +340,7 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.Infrastructure
         {
             level = null;
             offset = null;
-            if (e == null || placement == null || !placement.OffsetKnown) return;
+            if (e == null || placement == null || !placement.OffsetKnown || placement.ReadOnly) return;
             level = e.get_Parameter(placement.Pair.Level);
             offset = FirstOffset(e, placement.Pair.Offsets);
         }

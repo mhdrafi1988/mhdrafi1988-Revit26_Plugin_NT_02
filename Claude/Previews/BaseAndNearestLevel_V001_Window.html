@@ -1,27 +1,31 @@
 <title>Base and Nearest Level</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<!-- UI preview (CLAUDE.md "UI previews"): Base and Nearest Level V001, tool 1.1.0, plugin 7.40.0.
-     New in 1.1.0: widened from a fixed Roofs / Floors / Walls array to ANY level-based model element, in
-     three tiers. Tier 1 = a level plus an offset measured from that level, so Z = level + offset holds:
-     walls, floors, ceilings, roofs, structural columns and framing, MEP curves, stairs, families placed on
-     a level. All four parameters are written and the element can be re-hosted. Tier 2 = the level is
-     readable but "Offset from Host" is measured from the host face, not the level (doors, windows,
-     face-hosted families). Tier 3 = a read-only Schedule Level with no offset. Tier 2 and 3 get their two
-     level NAMES written and their two offset slots left EMPTY, and are never re-hosted.
-     The three checkboxes became a searchable Categories grid with per-tier counts and presets
-     (Roofs, Floors, Walls - the default, so the window opens on the same elements as 1.0.0 - All
-     level-based, Structure, MEP, None). The four parameters bind to the ticked categories only, not to
-     every level-based category. The element grid gained a Tier column; pre-check e gained a tier
-     breakdown. The ticked categories are remembered between sessions (settings version 2).
-     1.0.0: the tool as first shipped - four parameters for roofs, floors and walls, and the opt-in re-host.
-     Reads each element's level/offset pair, works out Z = level elevation + offset, finds the project level
-     nearest Z, and writes base level name (Text), base offset (Length), nearest level name (Text),
-     nearest offset (Length). The opt-in re-host sets the level first and the offset second, so nothing
-     moves; it runs in one transaction group assimilated into a single undo step.
+<!-- UI preview (CLAUDE.md "UI previews"): Base and Nearest Level V001, tool 1.2.0, plugin 7.41.0.
+     New in 1.2.0: families are classified by their FamilySymbol.Family.FamilyPlacementType rather than by
+     guessing from whichever parameters exist, and a hosted family's Sill Height is recognised as an offset
+     measured FROM ITS LEVEL. A door or window therefore now gets all four parameters with real offsets,
+     where 1.1.0 left its two offset slots empty.
+     That forced the tier to split in two: "can the elevation be worked out" and "can the element be
+     re-hosted" used to be one flag, and a door breaks it - its Sill Height is level-relative, but its Level
+     follows the host wall and cannot be written. So there are now FOUR tiers, and the numbering CHANGED
+     from 1.1.0:
+       T1 level + a WRITABLE offset from it -> all four parameters, re-hostable.
+       T2 offset from the level but a READ-ONLY level (doors, windows) -> all four parameters, NEVER
+          re-hosted. New in 1.2.0; what 1.1.0 called T2 is now T3.
+       T3 offset measured from the host face -> level names only.
+       T4 read-only Schedule Level, no offset -> level names only.
+     The tier is derived from the pair's offset basis combined with whether the two parameters can actually
+     be written, so T2 falls out of a read-only check rather than a special case for windows.
+     In-place families are flagged and skipped by re-host.
+     1.1.0: widened from a fixed Roofs / Floors / Walls array to any level-based model element; the three
+     checkboxes became a searchable Categories grid with per-tier counts and presets; the four parameters
+     bind to the ticked categories only; the grid gained a Tier column.
+     1.0.0: the tool as first shipped - four parameters for roofs, floors and walls, and the opt-in re-host
+     that sets the level first and the offset second so nothing moves, in one undo step.
      Shows: 1 the Coordination ribbon button + tooltip, 2 the main window after "Read Levels" with the
-            Categories grid and the pre-checks a-g run, 3 the New Parameter dialog for slot 4,
-            4 the "Re-host to nearest level?" dialog, 5 the footer while running and after each action,
-            6 what was settled for 1.1.0.
+            Categories grid and the pre-checks a-g run, 3 the widened state with the four tiers, including
+            a door reading a real Sill Height offset, 4 the New Parameter dialog for slot 4,
+            5 the "Re-host to nearest level?" dialog, 6 the footer, 7 what was settled for each version.
      Mirrors: Menu/Coordination/Parameters/BaseAndNearestLevel_V001/UI/Views/BaseAndNearestLevelWindow.xaml,
               .../UI/Views/NewParameterDialog.xaml, .../UI/Views/RehostConfirmDialog.xaml
               (+ ViewModel_BaseAndNearestLevel, SlotViewModel, CategoryOptionViewModel, RehostConfirmation),
@@ -192,29 +196,37 @@ ul.q{margin:0;padding-left:18px;line-height:1.6;max-width:70ch}
 ul.q li{margin-bottom:6px}
 </style>
 
-<h1>Base and Nearest Level — v1.1.0</h1>
-<p class="note">Static mock-up of the shipped tool, in the state that shows the change. <b>New in 1.1.0:</b>
-any level-based model element, in three tiers, with a searchable Categories grid. All numbers, level names,
-element ids and family names below are <b>sample data</b> — not a real project.</p>
+<h1>Base and Nearest Level — v1.2.0</h1>
+<p class="note">Static mock-up of the shipped tool, in the state that shows the change. <b>New in 1.2.0:</b>
+families are classified by their placement type, and a hosted family's <b>Sill Height</b> is recognised as
+an offset measured from its level — so a door or window now gets all four parameters, where 1.1.0 left its
+offsets empty. That split the tier in two, so there are now <b>four</b> tiers and the numbering has changed.
+All numbers, level names, element ids and family names below are <b>sample data</b> — not a real project.</p>
 
 <div class="tiers">
   <div class="tierbox">
-    <div class="th"><span class="chip ok">T1</span> level + offset from it</div>
+    <div class="th"><span class="chip ok">T1</span> level + writable offset</div>
     <p>Walls, floors, ceilings, roofs, structural columns and framing, MEP curves, stairs, families placed
-      on a level. <b>Z = level elevation + offset</b> holds, so all four parameters are written and the
-      element can be re-hosted.</p>
+      on a level. <b>Z = level elevation + offset</b> holds and both parameters can be written, so all four
+      parameters are written and the element <b>can be re-hosted</b>.</p>
+  </div>
+  <div class="tierbox" style="border-color:var(--info-border)">
+    <div class="th"><span class="chip info">T2</span> level + read-only offset <span class="new">NEW</span></div>
+    <p><b>Doors and windows.</b> Sill Height <i>is</i> measured from the level, so all four parameters get
+      real values — but the Level follows the host wall and cannot be written, so the element is
+      <b>never re-hosted</b>. 1.1.0 left these offsets empty.</p>
   </div>
   <div class="tierbox">
-    <div class="th"><span class="chip warn">T2</span> offset from the host</div>
-    <p>Doors, windows, face-hosted families. "Offset from Host" is measured from the host face, not the
-      level, so the two level <b>names</b> are written and the two offset slots are left <b>empty</b>.
-      Never re-hosted.</p>
+    <div class="th"><span class="chip warn">T3</span> offset from the host</div>
+    <p>Face-hosted families with no Sill Height. "Offset from Host" is measured from the host face, so the
+      two level <b>names</b> are written and the two offset slots are left <b>empty</b>. Never re-hosted.</p>
   </div>
   <div class="tierbox">
-    <div class="th"><span class="chip mute">T3</span> level only</div>
-    <p>A read-only Schedule Level with no offset to measure. Same as Tier 2: level names written, offsets
-      left empty, never re-hosted.</p>
+    <div class="th"><span class="chip mute">T4</span> level only</div>
+    <p>Work-plane-based families and anything carrying a read-only Schedule Level with no offset. Level
+      names written, offsets left empty, never re-hosted.</p>
   </div>
+</div>
 </div>
 
 <h2>1 · Ribbon — Coordination panel</h2>
@@ -231,7 +243,7 @@ element ids and family names below are <b>sample data</b> — not a real project
       <div class="rtitle">Coordination</div>
     </div>
     <div class="tip">
-      <b>Base and Nearest Level — v1.1.0 (build V001)</b>
+      <b>Base and Nearest Level — v1.2.0 (build V001)</b>
       Any level-based model element. Reads each element's base level and offset, finds the project level nearest
       its real base elevation, and writes four parameters: base level name, base offset, nearest level name,
       nearest offset. Offsets are Length parameters, so schedules sort and total them. A separate action
@@ -241,18 +253,18 @@ element ids and family names below are <b>sample data</b> — not a real project
 </div>
 
 <h2>2 · Main window — after “Read Levels”</h2>
-<p class="note">Window title: <span class="pill">Base and Nearest Level — v1.1.0</span>. Sample model: a
+<p class="note">Window title: <span class="pill">Base and Nearest Level — v1.2.0</span>. Sample model: a
 four-storey block with 5 building-storey levels (GF 0, Level 01 3500, Level 02 7000, Level 03 10500, Roof 14000)
 and 2 non-storey levels (T.O.S. 01 3350, Parapet 15200) left out by the level filter.</p>
 <div class="scroll">
 <div class="win" style="width:1340px">
-  <div class="titlebar"><span>Base and Nearest Level — v1.1.0</span><span>—□✕</span></div>
+  <div class="titlebar"><span>Base and Nearest Level — v1.2.0</span><span>—□✕</span></div>
   <div class="header">
     <div>
       <div class="t">Base and Nearest Level</div>
       <div class="s">Sample Project · Level 02 Plan</div>
     </div>
-    <div class="v">v1.1.0</div>
+    <div class="v">v1.2.0</div>
   </div>
 
   <div class="metrics">
@@ -292,11 +304,11 @@ and 2 non-storey levels (T.O.S. 01 3350, Parapet 15200) left out by the level fi
             <tr><td><input type="checkbox" checked></td><td>Roofs</td><td class="ct">3</td></tr>
             <tr><td><input type="checkbox" checked></td><td>Walls</td><td class="ct">5</td></tr>
             <tr class="dim"><td><input type="checkbox"></td><td>Ceilings</td><td class="ct">6</td></tr>
-            <tr class="dim"><td><input type="checkbox"></td><td>Doors</td><td class="ct" title="0 Tier 1; 14 whose offset is from the host">14 · 14 T2</td></tr>
+            <tr class="dim"><td><input type="checkbox"></td><td>Doors</td><td class="ct" title="14 with an offset from their level (Sill Height) but a read-only level: all four parameters, never re-hosted">14 · 14 T2</td></tr>
             <tr class="dim"><td><input type="checkbox"></td><td>Ducts</td><td class="ct">22</td></tr>
-            <tr class="dim"><td><input type="checkbox"></td><td>Generic Models</td><td class="ct" title="3 with a level and an offset; 2 with a level only">5 · 3 T1, 2 T3</td></tr>
+            <tr class="dim"><td><input type="checkbox"></td><td>Generic Models</td><td class="ct" title="3 with a level and a writable offset; 2 work-plane-based with a level only">5 · 3 T1, 2 T4</td></tr>
             <tr class="dim"><td><input type="checkbox"></td><td>Structural Columns</td><td class="ct">18</td></tr>
-            <tr class="dim"><td><input type="checkbox"></td><td>Windows</td><td class="ct" title="0 Tier 1; 9 whose offset is from the host">9 · 9 T2</td></tr>
+            <tr class="dim"><td><input type="checkbox"></td><td>Windows</td><td class="ct" title="9 with an offset from their level (Sill Height) but a read-only level: all four parameters, never re-hosted">9 · 9 T2</td></tr>
           </table>
         </div>
         <div class="hint" style="margin-top:4px">
@@ -543,14 +555,15 @@ and 2 non-storey levels (T.O.S. 01 3350, Parapet 15200) left out by the level fi
 </div>
 </div>
 
-<h2>3 · The same window with “All level-based” ticked <span class="new">NEW IN 1.1.0</span></h2>
+<h2>3 · The same window with “All level-based” ticked</h2>
 <p class="note">Section 2 shows the default — Roofs, Floors and Walls, as in 1.0.0. Pressing
-<b>All level-based</b> ticks every category the load found. Tier 2 and Tier 3 elements then appear, with
-their level names filled in and their offset columns reading <b>n/a</b>: the tool will write their two
-level names and leave the two offset slots empty, because their offset is not measured from their level.</p>
+<b>All level-based</b> ticks every category the load found. <b>New in 1.2.0:</b> doors and windows come back
+as <b>T2</b> with <b>real offsets</b> read from their Sill Height, which is measured from their level —
+1.1.0 left those two slots empty. They still cannot be re-hosted, because their Level follows the host wall.
+Only T3 and T4 rows read <b>n/a</b>.</p>
 <div class="scroll">
 <div class="win" style="width:1340px">
-  <div class="titlebar"><span>Base and Nearest Level — v1.1.0</span><span>—□✕</span></div>
+  <div class="titlebar"><span>Base and Nearest Level — v1.2.0</span><span>—□✕</span></div>
 
   <div class="metrics">
     <div class="tile act"><div class="k">LISTED</div><div class="n">89</div></div>
@@ -602,15 +615,17 @@ level names and leave the two offset slots empty, because their offset is not me
 
       <tr class="grp"><td colspan="11"><span class="tw">▾</span>Doors · 14</td></tr>
       <tr><td><input type="checkbox" checked></td><td class="mono">431220</td><td>Single-Flush: 900 × 2100mm</td>
-        <td><span class="flag" title="Re-host will skip this element: Its offset is not measured from its level, so it cannot be re-hosted">◆</span></td>
-        <td class="tier">T2</td><td>Level 01</td><td class="num cv">n/a</td><td class="num cv">n/a</td>
-        <td class="nv same">Level 01</td><td class="num cv">n/a</td>
-        <td><span class="chip ok">Ready · level names only</span></td></tr>
-      <tr><td><input type="checkbox" checked></td><td class="mono">431288</td><td>Double-Flush: 1800 × 2100mm</td>
-        <td><span class="flag" title="Re-host will skip this element: Its offset is not measured from its level, so it cannot be re-hosted">◆</span></td>
-        <td class="tier">T2</td><td>Level 02</td><td class="num cv">n/a</td><td class="num cv">n/a</td>
-        <td class="nv same">Level 02</td><td class="num cv">n/a</td>
-        <td><span class="chip mute">Up to date</span></td></tr>
+        <td><span class="flag" title="Re-host will skip this element: Its offset is measured from the level, so all four parameters are written, but its level is read-only — the host owns it — so it cannot be re-hosted">◆</span></td>
+        <td class="tier" title="Tier 2 · level + offset, read-only. Placement: OneLevelBasedHosted. Source: Level + Sill Height">T2</td>
+        <td>Level 01</td><td class="num">+900</td><td class="num">4400</td>
+        <td class="nv same">Level 01</td><td class="num nv same">+900</td>
+        <td><span class="chip ok">Ready · read-only level<span class="new">NEW</span></span></td></tr>
+      <tr><td><input type="checkbox" checked></td><td class="mono">431288</td><td>Window: Fixed 1200 × 1500mm</td>
+        <td><span class="flag" title="Re-host will skip this element: Its offset is measured from the level, so all four parameters are written, but its level is read-only — the host owns it — so it cannot be re-hosted">◆</span></td>
+        <td class="tier" title="Tier 2 · level + offset, read-only. Placement: OneLevelBasedHosted. Source: Level + Sill Height">T2</td>
+        <td>Level 02</td><td class="num">+2100</td><td class="num">9100</td>
+        <td class="nv chg">Level 03</td><td class="num nv chg">-1400</td>
+        <td><span class="chip ok">Ready · read-only level</span></td></tr>
 
       <tr class="grp"><td colspan="11"><span class="tw">▾</span>Generic Models · 5</td></tr>
       <tr><td><input type="checkbox" checked></td><td class="mono">441010</td><td>Roof Hatch: 900 × 900mm</td><td></td>
@@ -619,7 +634,7 @@ level names and leave the two offset slots empty, because their offset is not me
         <td><span class="chip ok">Ready</span></td></tr>
       <tr><td><input type="checkbox" checked></td><td class="mono">441077</td><td>Wall Louvre: 600 × 600mm</td>
         <td><span class="flag" title="Re-host will skip this element: Its offset is not measured from its level, so it cannot be re-hosted">◆</span></td>
-        <td class="tier">T3</td><td>Level 02</td><td class="num cv">n/a</td><td class="num cv">n/a</td>
+        <td class="tier" title="Tier 3 · offset from host. Its offset is measured from the host face, not from the level.">T3</td><td>Level 02</td><td class="num cv">n/a</td><td class="num cv">n/a</td>
         <td class="nv same">Level 02</td><td class="num cv">n/a</td>
         <td><span class="chip ok">Ready · level names only</span></td></tr>
 
@@ -631,8 +646,10 @@ level names and leave the two offset slots empty, because their offset is not me
     </table>
     <div class="hint" style="margin-top:6px">
       <b>n/a</b> is not zero: it says the offset is not measured from the level, so the tool leaves that
-      parameter empty rather than writing a number it cannot justify. <b>◆</b> on a Tier 2 or Tier 3 row is
-      a hard skip for Re-host, with no override tick.
+      parameter empty rather than writing a number it cannot justify — T3 and T4 only. A <b>T2</b> row has
+      real offsets; what it cannot do is move. <b>◆</b> on a T2, T3 or T4 row is a hard skip for Re-host,
+      with no override tick. Hover the Tier column for the tier, the family's placement type and which
+      parameter pair was read.
     </div>
   </div>
 </div>
@@ -767,19 +784,29 @@ button's count at once.</p>
 </div>
 
 <h2>7 · As built</h2>
-<p class="note"><b>1.1.0</b></p>
+<p class="note"><b>1.2.0</b></p>
 <ul class="q">
-  <li><b>Any level-based model element</b>, read in three tiers. Tier 1 (level + an offset measured from it)
-    gets all four parameters and can be re-hosted. Tier 2 (offset from the host) and Tier 3 (level only) get
-    their two level names, with the two offset slots left empty, and are never re-hosted.</li>
+  <li><b>Families are classified by their placement type</b>
+    (<code>FamilySymbol.Family.FamilyPlacementType</code>) rather than by guessing from whichever parameters
+    happen to exist. One-level, two-level, one-level-hosted and work-plane-based each get their own pair list.</li>
+  <li><b>Sill Height counts as an offset from the level</b>, because it is one. A door or window now gets all
+    four parameters with real values, where 1.1.0 left its two offset slots empty.</li>
+  <li><b>The tier split in two.</b> "Can the elevation be worked out" and "can the element be re-hosted" used
+    to be one flag; a door breaks that, so there are now four tiers. The tier is derived from the pair's
+    offset basis combined with whether the two parameters can actually be written, so T2 falls out of a
+    read-only check rather than a special case for windows.</li>
+  <li><b>The numbering changed.</b> What 1.1.0 called T2 and T3 are now T3 and T4; T2 is the new
+    read-only-level tier.</li>
+  <li><b>In-place families</b> are flagged and skipped by re-host.</li>
+</ul>
+<p class="note" style="margin-top:12px"><b>1.1.0</b></p>
+<ul class="q">
+  <li>Widened from a fixed Roofs / Floors / Walls list to <b>any level-based model element</b>.</li>
+  <li>The three checkboxes became a searchable <b>Categories grid</b> built from whatever the load found,
+    with per-tier counts and presets. The ticked set is remembered between sessions.</li>
+  <li>The four parameters <b>bind to the ticked categories only</b>, not to every level-based category.</li>
   <li><b>The default scope is unchanged:</b> the window opens on Roofs, Floors and Walls, so the same button
-    does the same thing as 1.0.0. Widening is one click — hence a MINOR bump, not a MAJOR one.</li>
-  <li><b>Categories are discovered, not hard-coded.</b> The grid lists whatever the load found, with per-tier
-    counts, a search box and presets. The ticked set is remembered between sessions.</li>
-  <li><b>The four parameters bind to the ticked categories only</b>, not to every level-based category, so
-    they do not appear on the whole model.</li>
-  <li><b>Re-host is Tier 1 only.</b> Tier 2 and Tier 3 are hard skips with no override tick. Shape-edited,
-    grouped, read-only and checked-out elements are skipped as before.</li>
+    does the same thing as 1.0.0.</li>
 </ul>
 <p class="note" style="margin-top:12px"><b>1.0.0</b></p>
 <ul class="q">

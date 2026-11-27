@@ -225,12 +225,15 @@ Where a tool has several versions, its button is a dropdown listing the newest v
   A separate, opt-in **Re-host to Nearest Level** action sets each element's level and offset together, so the
   element keeps its elevation and nothing moves; it skips shape-edited floors and roofs, grouped elements,
   read-only reference levels and elements owned by other users, and one Ctrl+Z undoes the whole thing.
-  Elements are read in three tiers. Tier 1 has a level and an offset measured from it (walls, floors,
-  ceilings, roofs, structural columns and framing, MEP curves, stairs, families on a level): all four
-  parameters are written and it can be re-hosted. Tier 2 measures its offset from the host rather than the
-  level (doors, windows, face-hosted families) and Tier 3 has a read-only Schedule Level only; both get
-  their two level names with the offset slots left empty, and are never re-hosted. The Categories grid lists
-  whatever the model holds with per-tier counts and presets, and opens on Roofs, Floors and Walls.
+  Elements are read in four tiers. T1 has a level and a writable offset measured from it (walls, floors,
+  ceilings, roofs, structural columns and framing, MEP curves, stairs, families placed on a level): all four
+  parameters are written and it can be re-hosted. T2 also has an offset measured from its level, but a
+  read-only level — a door or window, whose Sill Height is level-relative while its Level follows the host
+  wall: all four parameters are written, and it is never re-hosted. T3 measures its offset from the host
+  face and T4 has a read-only Schedule Level only; both get their two level names with the offset slots left
+  empty. Families are classified by their placement type rather than by guessing from which parameters
+  exist, and in-place families are flagged. The Categories grid lists whatever the model holds with
+  per-tier counts and presets, and opens on Roofs, Floors and Walls.
 
 ## Installation
 

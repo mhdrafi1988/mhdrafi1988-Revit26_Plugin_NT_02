@@ -63,7 +63,9 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.Core
             if (e.AnyDifferent && EffectiveChoice(rowChoice, overwriteDefault) == ExistingChoice.Skip)
                 return new RowVerdict(RowState.Warning, "Skipped · already has a different value (Skip)");
 
-            string suffix = e.OffsetKnown ? string.Empty : " · level names only";
+            string suffix = e.OffsetKnown
+                ? e.TierAllowsRehost ? string.Empty : " · read-only level"
+                : " · level names only";
             return new RowVerdict(RowState.Ready, (e.AnyDifferent ? "Ready · will rewrite" : "Ready") + suffix);
         }
 
@@ -82,9 +84,12 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.Core
             if (e == null) return RehostSkip.NoBaseLevel;
             if (!e.HasBase) return RehostSkip.NoBaseLevel;
             if (!e.OffsetKnown) return RehostSkip.NotLevelOffset;
+            // Tier 2 reads its offset from the level but cannot be written: the host owns the level.
+            if (!e.TierAllowsRehost) return RehostSkip.ReadOnlyLevel;
             if (!e.NearestFound) return RehostSkip.NoBaseLevel;
             if (!e.IsChanged) return RehostSkip.NoChange;
             if (!string.IsNullOrEmpty(e.OwnedBy)) return RehostSkip.OwnedByOther;
+            if (e.IsInPlace) return RehostSkip.InPlaceFamily;
             if (e.LevelParamReadOnly) return RehostSkip.ReadOnlyLevel;
             if (e.InGroup) return RehostSkip.InGroup;
             if (e.ShapeEdited && !includeShapeEdited) return RehostSkip.ShapeEdited;
@@ -101,6 +106,7 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.Core
             RehostSkip.OwnedByOther => "Checked out by another user",
             RehostSkip.NoBaseLevel => "No base level to change",
             RehostSkip.NotLevelOffset => "Its offset is not measured from its level, so it cannot be re-hosted",
+            RehostSkip.InPlaceFamily => "An in-place family — changing its level is not something this tool does",
             _ => string.Empty
         };
 
@@ -261,15 +267,19 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.Core
                 EvaluateRow(e, request.Overwrite, request.ChoiceFor(e.Id)).State == RowState.Ready);
             int noBase = facts.Elements.Count(e => !e.HasBase);
             int tier1 = facts.Elements.Count(e => e.Tier == LevelTier.LevelAndOffset);
-            int tier2 = facts.Elements.Count(e => e.Tier == LevelTier.HostOffset);
-            int tier3 = facts.Elements.Count(e => e.Tier == LevelTier.ScheduleOnly);
+            int tier2 = facts.Elements.Count(e => e.Tier == LevelTier.LevelAndOffsetLocked);
+            int tier3 = facts.Elements.Count(e => e.Tier == LevelTier.HostOffset);
+            int tier4 = facts.Elements.Count(e => e.Tier == LevelTier.ScheduleOnly);
 
             var tiers = new List<string> { $"{tier1} Tier 1" };
             if (tier2 > 0) tiers.Add($"{tier2} Tier 2");
             if (tier3 > 0) tiers.Add($"{tier3} Tier 3");
+            if (tier4 > 0) tiers.Add($"{tier4} Tier 4");
             string breakdown = " " + string.Join(", ", tiers) + ".";
-            if (tier2 + tier3 > 0)
-                breakdown += $" {tier2 + tier3} get their level names only, with no offsets, and cannot be re-hosted.";
+            if (tier2 > 0)
+                breakdown += $" {tier2} get all four parameters but cannot be re-hosted, because their level is read-only.";
+            if (tier3 + tier4 > 0)
+                breakdown += $" {tier3 + tier4} get their level names only, with no offsets, and cannot be re-hosted.";
 
             var parts = new List<string>();
             if (noBase > 0) parts.Add($"{noBase} with no level");
@@ -305,9 +315,9 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.Core
             var changed = facts.Elements.Where(e => e.IsChanged).ToList();
             if (changed.Count == 0)
             {
-                int ineligible = facts.Elements.Count(e => e.HasBase && !e.OffsetKnown);
+                int ineligible = facts.Elements.Count(e => e.HasBase && !e.TierAllowsRehost);
                 string tail = ineligible > 0
-                    ? $" {ineligible} element(s) are Tier 2 or 3 and are never re-hosted."
+                    ? $" {ineligible} element(s) are Tier 2, 3 or 4 and are never re-hosted."
                     : string.Empty;
                 return new CheckRow("g · Re-host", CheckResult.Pass,
                     "Every eligible element's nearest level is already its base level, so there is nothing to re-host." + tail);

@@ -18,6 +18,7 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.UI.ViewModels
             Tier1 = count?.Tier1 ?? 0;
             Tier2 = count?.Tier2 ?? 0;
             Tier3 = count?.Tier3 ?? 0;
+            Tier4 = count?.Tier4 ?? 0;
             _isSelected = isSelected;
         }
 
@@ -33,11 +34,14 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.UI.ViewModels
         /// <summary>Of those, how many are Tier 1 (level + offset, re-hostable).</summary>
         public int Tier1 { get; }
 
-        /// <summary>Of those, how many are Tier 2 (offset from host).</summary>
+        /// <summary>Of those, how many are Tier 2 (level + offset, read-only level).</summary>
         public int Tier2 { get; }
 
-        /// <summary>Of those, how many are Tier 3 (level only).</summary>
+        /// <summary>Of those, how many are Tier 3 (offset from host).</summary>
         public int Tier3 { get; }
+
+        /// <summary>Of those, how many are Tier 4 (level only).</summary>
+        public int Tier4 { get; }
 
         /// <summary>True when every element of this category is Tier 1, so all four parameters are written.</summary>
         public bool AllTier1 => Total > 0 && Tier1 == Total;
@@ -53,6 +57,7 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.UI.ViewModels
                 if (Tier1 > 0) parts.Add($"{Tier1} T1");
                 if (Tier2 > 0) parts.Add($"{Tier2} T2");
                 if (Tier3 > 0) parts.Add($"{Tier3} T3");
+                if (Tier4 > 0) parts.Add($"{Tier4} T4");
                 return $"{Total} · {string.Join(", ", parts)}";
             }
         }
@@ -60,9 +65,11 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.UI.ViewModels
         /// <summary>Tooltip explaining the tier split.</summary>
         public string CountTip => AllTier1
             ? $"{Total} element(s), all with a level and an offset from it. All four parameters are written and they can be re-hosted."
-            : $"{Tier1} with a level and an offset from it (all four parameters, re-hostable); " +
-              $"{Tier2} whose offset is from the host; {Tier3} with a level only. " +
-              "The last two get their level names with no offsets, and are never re-hosted.";
+            : $"{Tier1} with a level and a writable offset from it (all four parameters, re-hostable); " +
+              $"{Tier2} with an offset from the level but a read-only level, such as a door or window " +
+              "(all four parameters, never re-hosted); " +
+              $"{Tier3} whose offset is from the host; {Tier4} with a level only. " +
+              "The last two get their level names with no offsets.";
 
         /// <summary>True when the run covers this category.</summary>
         [ObservableProperty] private bool _isSelected;

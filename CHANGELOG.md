@@ -9,6 +9,41 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [7.41.0] — 2026-11-27
+
+### Changed
+- **Base and Nearest Level 1.2.0** — level-based **families** are now read properly:
+  - **Classified by placement, not by guesswork.** The reader asks
+    `FamilySymbol.Family.FamilyPlacementType` and picks the parameter pairs that placement implies —
+    `OneLevelBased`, `TwoLevelsBased`, `OneLevelBasedHosted`, `WorkPlaneBased`, `CurveBased` each have
+    their own list. 1.1.0 inferred placement from whichever parameters happened to exist, which is why
+    doors and windows landed in the wrong tier.
+  - **Sill Height is recognised as an offset from the level**, because that is what it is. A door or
+    window now gets **all four parameters with real values**; 1.1.0 left its two offset slots empty.
+  - **In-place families** are flagged and skipped by re-host.
+- **The tier split in two, and the numbering changed.** "Can the elevation be worked out" and "can the
+  element be re-hosted" were one flag in 1.1.0, and a door breaks that: its Sill Height is measured from
+  its level, but its Level follows the host wall and cannot be written. There are now four tiers:
+
+  | Tier | What it is | Offsets | Re-host |
+  |---|---|---|---|
+  | T1 | level + a **writable** offset from it | written | **yes** |
+  | T2 | level + a **read-only** offset from it (doors, windows) | **written** | no |
+  | T3 | offset measured from the host face | empty | no |
+  | T4 | read-only Schedule Level, no offset | empty | no |
+
+  T2 is new. What 1.1.0 called T2 and T3 are now **T3 and T4**. The tier is derived from the pair's offset
+  basis combined with whether the two parameters can actually be written, so T2 falls out of a read-only
+  check rather than a special case for windows.
+- The grid's Tier column gained a tooltip giving the tier, the family's placement type and which parameter
+  pair was read. Pre-check `e` reports all four tiers; check `g` counts only what is actually eligible.
+
+**User note:** doors and windows change from "two level names, no offsets" to "all four parameters with
+real offsets". That is the point of this release, but it means a run over a model that already holds
+values from 1.1.0 will show those elements as having a different value, and writing will fill their offset
+parameters for the first time. Re-host behaviour does not change: they were never re-hosted and still are
+not. The default category scope is unchanged — the window still opens on Roofs, Floors and Walls.
+
 ## [7.40.0] — 2026-11-27
 
 ### Changed

@@ -149,7 +149,7 @@ namespace Revit26_Plugin_Revised.Shared.Services
         public static readonly ToolInfo RoofSlopeBuilderV002 = Add("Roof Slope Builder", "2.0.0", "V002", "Revit26_Plugin_Revised.RoofSlopeBuilder.V002");
         public static readonly ToolInfo VoidOpenings = Add("Void Openings", "0.4.0", "V001", "Revit26_Plugin_Revised.VoidOpenings.V001");
         public static readonly ToolInfo BaseLevelToParameter = Add("Base Level to Parameter", "1.4.1", "V001", "Revit26_Plugin_Revised.BaseLevelToParameter.V001");
-        public static readonly ToolInfo BaseAndNearestLevel = Add("Base and Nearest Level", "1.1.0", "V001", "Revit26_Plugin_Revised.BaseAndNearestLevel.V001");
+        public static readonly ToolInfo BaseAndNearestLevel = Add("Base and Nearest Level", "1.2.0", "V001", "Revit26_Plugin_Revised.BaseAndNearestLevel.V001");
         public static readonly ToolInfo MergeRoofs = Add("Merge Roofs", "1.1.0", "V001", "Revit26_Plugin_Revised.MergeRoofs.V001");
         public static readonly ToolInfo SplitRoof = Add("Split Roof", "1.0.0", "V001", "Revit26_Plugin_Revised.SplitRoof.V001");
         public static readonly ToolInfo LinkVersionChecker = Add("Link Version Checker", "3.0.1", "V003", "Revit26_Plugin_Revised.LinkVersionChecker_V003");

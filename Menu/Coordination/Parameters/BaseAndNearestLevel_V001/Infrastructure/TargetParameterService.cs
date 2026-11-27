@@ -311,7 +311,9 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.Infrastructure
                     : e.Name ?? string.Empty,
                 InGroup = e.GroupId != ElementId.InvalidElementId,
                 CategoryUnsupported = !e.Category.AllowsBoundParameters,
-                ShapeEdited = LevelPairReader.IsShapeEdited(e)
+                ShapeEdited = LevelPairReader.IsShapeEdited(e),
+                IsInPlace = LevelPairReader.IsInPlace(e),
+                Placement = LevelPairReader.PlacementOf(e)?.ToString() ?? string.Empty
             };
 
             BasePlacement placement = LevelPairReader.Read(doc, e);

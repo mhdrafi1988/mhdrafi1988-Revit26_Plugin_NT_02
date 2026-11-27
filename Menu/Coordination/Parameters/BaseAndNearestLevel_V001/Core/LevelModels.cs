@@ -13,20 +13,28 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.Core
         None = 0,
 
         /// <summary>
-        /// Tier 1: the offset is measured from the level, so <c>Z = level elevation + offset</c> holds.
-        /// All four parameters are written and the element can be re-hosted.
+        /// Tier 1: the offset is measured from the level, so <c>Z = level elevation + offset</c> holds, and
+        /// both parameters can be written. All four parameters are written and the element can be re-hosted.
         /// </summary>
         LevelAndOffset,
 
         /// <summary>
-        /// Tier 2: the level is readable but the offset is measured from the host face ("Offset from Host"),
+        /// Tier 2 (1.2.0): the offset is measured from the level, so all four parameters are written, but
+        /// the level or its offset is read-only, so the element can never be re-hosted. A door or window is
+        /// the usual case — its Sill Height is measured from the level, while its Level follows the host
+        /// wall and cannot be set.
+        /// </summary>
+        LevelAndOffsetLocked,
+
+        /// <summary>
+        /// Tier 3: the level is readable but the offset is measured from the host face ("Offset from Host"),
         /// not from the level. The two level names are written, the two offsets are left empty, and the
         /// element is never re-hosted.
         /// </summary>
         HostOffset,
 
         /// <summary>
-        /// Tier 3: a read-only Schedule Level with no offset to measure. The two level names are written,
+        /// Tier 4: a read-only Schedule Level with no offset to measure. The two level names are written,
         /// the two offsets are left empty, and the element is never re-hosted.
         /// </summary>
         ScheduleOnly
@@ -39,14 +47,27 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.Core
         public static string Label(LevelTier tier) => tier switch
         {
             LevelTier.LevelAndOffset => "Tier 1 · level + offset",
-            LevelTier.HostOffset => "Tier 2 · offset from host",
-            LevelTier.ScheduleOnly => "Tier 3 · level only",
+            LevelTier.LevelAndOffsetLocked => "Tier 2 · level + offset, read-only",
+            LevelTier.HostOffset => "Tier 3 · offset from host",
+            LevelTier.ScheduleOnly => "Tier 4 · level only",
             _ => "No level"
         };
 
-        /// <summary>Why a tier's offsets are left empty, or an empty string for Tier 1.</summary>
+        /// <summary>Short label for the grid's Tier column: "T1" to "T4", or a dash.</summary>
+        public static string ShortLabel(LevelTier tier) => tier switch
+        {
+            LevelTier.LevelAndOffset => "T1",
+            LevelTier.LevelAndOffsetLocked => "T2",
+            LevelTier.HostOffset => "T3",
+            LevelTier.ScheduleOnly => "T4",
+            _ => "—"
+        };
+
+        /// <summary>Why a tier's offsets are left empty, or why it cannot be re-hosted. Empty for Tier 1.</summary>
         public static string Why(LevelTier tier) => tier switch
         {
+            LevelTier.LevelAndOffsetLocked =>
+                "Its offset is measured from the level, so all four parameters are written, but its level is read-only — the host owns it — so it cannot be re-hosted.",
             LevelTier.HostOffset =>
                 "Its offset is measured from the host face, not from the level, so no elevation can be worked out.",
             LevelTier.ScheduleOnly =>
@@ -54,8 +75,15 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.Core
             _ => string.Empty
         };
 
-        /// <summary>True when all four parameters can be written for this tier.</summary>
-        public static bool WritesOffsets(LevelTier tier) => tier == LevelTier.LevelAndOffset;
+        /// <summary>
+        /// True when the offset is measured from the level, so all four parameters are written:
+        /// Tier 1 and Tier 2.
+        /// </summary>
+        public static bool WritesOffsets(LevelTier tier) =>
+            tier is LevelTier.LevelAndOffset or LevelTier.LevelAndOffsetLocked;
+
+        /// <summary>True only for Tier 1: the one tier whose elements can be re-hosted.</summary>
+        public static bool CanRehost(LevelTier tier) => tier == LevelTier.LevelAndOffset;
     }
 
     /// <summary>How the nearest level is picked from the candidate levels.</summary>
@@ -146,10 +174,13 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.Core
         NoBaseLevel,
 
         /// <summary>
-        /// Its offset is not measured from its level (Tier 2 or 3), so the tool cannot work out where it
+        /// Its offset is not measured from its level (Tier 3 or 4), so the tool cannot work out where it
         /// would sit. Not overridable.
         /// </summary>
-        NotLevelOffset
+        NotLevelOffset,
+
+        /// <summary>An in-place family. Changing its level is not something this tool does.</summary>
+        InPlaceFamily
     }
 
     /// <summary>Which data type a slot needs, and how it reads in the UI.</summary>
@@ -246,9 +277,21 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.Core
 
         /// <summary>
         /// True when the offset is measured from the level, so the elevation and the nearest offset are
-        /// real numbers. False for Tier 2 and Tier 3, whose offset slots are left empty.
+        /// real numbers: Tier 1 and Tier 2. False for Tier 3 and Tier 4, whose offset slots are left empty.
         /// </summary>
-        public bool OffsetKnown => Tier == LevelTier.LevelAndOffset;
+        public bool OffsetKnown => LevelTiers.WritesOffsets(Tier);
+
+        /// <summary>
+        /// True when this element's tier allows a re-host at all: Tier 1 only. Separate from
+        /// <see cref="OffsetKnown"/>, because a door's offset is computable while its level is not writable.
+        /// </summary>
+        public bool TierAllowsRehost => LevelTiers.CanRehost(Tier);
+
+        /// <summary>The family is modelled in place, so changing its level is not something the tool does.</summary>
+        public bool IsInPlace { get; set; }
+
+        /// <summary>How the family is placed, when the element is a family instance; empty otherwise.</summary>
+        public string Placement { get; set; } = string.Empty;
 
         /// <summary>Base level name.</summary>
         public string BaseLevelName { get; set; } = string.Empty;

@@ -34,11 +34,14 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.Infrastructure
         /// <summary>Of those, how many are Tier 1 (level + offset, re-hostable).</summary>
         public int Tier1 { get; set; }
 
-        /// <summary>Of those, how many are Tier 2 (offset from host).</summary>
+        /// <summary>Of those, how many are Tier 2 (level + offset, read-only level, so no re-host).</summary>
         public int Tier2 { get; set; }
 
-        /// <summary>Of those, how many are Tier 3 (level only).</summary>
+        /// <summary>Of those, how many are Tier 3 (offset from host).</summary>
         public int Tier3 { get; set; }
+
+        /// <summary>Of those, how many are Tier 4 (level only).</summary>
+        public int Tier4 { get; set; }
     }
 
     /// <summary>What one load produced: the elements and the categories they fall in.</summary>
@@ -175,8 +178,9 @@ namespace Revit26_Plugin_Revised.BaseAndNearestLevel.V001.Infrastructure
                     Name = group.Key,
                     Total = group.Count(),
                     Tier1 = group.Count(i => i.Tier == LevelTier.LevelAndOffset),
-                    Tier2 = group.Count(i => i.Tier == LevelTier.HostOffset),
-                    Tier3 = group.Count(i => i.Tier == LevelTier.ScheduleOnly)
+                    Tier2 = group.Count(i => i.Tier == LevelTier.LevelAndOffsetLocked),
+                    Tier3 = group.Count(i => i.Tier == LevelTier.HostOffset),
+                    Tier4 = group.Count(i => i.Tier == LevelTier.ScheduleOnly)
                 });
             }
 
