@@ -3,7 +3,7 @@
 File: SheetTextReplaceWindow.xaml  (Sheet Text Replace V001)
 ToolWindowShell layout:
   HEADER  summary cards with a phase label (BEFORE / AFTER APPLY)
-  BODY    left: sheet picker + Views popover (grouped by view type)
+  BODY    left: scope picker (a sheet, or a single view) + Views popover (grouped by view type)
           right: Find / Replace / Prefix / Suffix + options
           below: preview grid, then the activity log
           below the grid: Found text (whole text of the picked note, Copy buttons)
@@ -170,7 +170,7 @@ ToolWindowShell layout:
     </Window.Resources>
 
     <shell:ToolWindowShell Title="Sheet Text Replace"
-                           Subtitle="Find and replace text notes in selected views on a sheet"
+                           Subtitle="Find and replace text notes on a sheet, or in a single view"
                            Version="{Binding Source={x:Static svc:ToolCatalog.SheetTextReplace}, Path=Version, StringFormat=v{0}}"
                            IsRunning="{Binding IsRunning}"
                            IsIndeterminate="True"
@@ -346,47 +346,47 @@ ToolWindowShell layout:
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
 
-                    <!-- Sheet & views -->
+                    <!-- Scope (sheet or single view) & views -->
                     <Border Grid.Column="0" Style="{StaticResource SectionCard}">
                         <StackPanel>
                             <DockPanel>
                                 <Button DockPanel.Dock="Right" Content="&#x27F3; Refresh" Margin="0,8,12,0" Style="{StaticResource SmallSecondaryButton}"
                                         Command="{Binding RefreshCommand}"
-                                        ToolTip="Read the sheet again (after changes made in Revit)."/>
-                                <TextBlock Text="Sheet &amp; Views" Style="{StaticResource SectionTitle}"/>
+                                        ToolTip="Read the sheet or view again (after changes made in Revit)."/>
+                                <TextBlock Text="Scope &amp; Views" Style="{StaticResource SectionTitle}"/>
                             </DockPanel>
 
                             <StackPanel Margin="12,0,12,12">
-                                <TextBlock Text="Sheet" Style="{StaticResource FieldLabel}"/>
-                                <Button x:Name="SheetButton" Click="SheetButton_Click" HorizontalContentAlignment="Stretch"
+                                <TextBlock Text="Sheet or view" Style="{StaticResource FieldLabel}"/>
+                                <Button x:Name="ScopeButton" Click="ScopeButton_Click" HorizontalContentAlignment="Stretch"
                                         Style="{StaticResource SmallSecondaryButton}" Height="28"
-                                        ToolTip="Pick the sheet. Type to search by number or name.">
+                                        ToolTip="Pick a sheet (its views are listed below), or a single view to work on alone. Type to search.">
                                     <DockPanel>
                                         <TextBlock DockPanel.Dock="Right" Text="&#x25BE;" Margin="8,0,0,0"/>
-                                        <TextBlock Text="{Binding CurrentSheetLabel}" FontSize="12.5" TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Text="{Binding CurrentScopeLabel}" FontSize="12.5" TextTrimming="CharacterEllipsis"/>
                                     </DockPanel>
                                 </Button>
-                                <Popup x:Name="SheetPopup" PlacementTarget="{Binding ElementName=SheetButton}" Placement="Bottom"
-                                       StaysOpen="False" Opened="SheetPopup_Opened">
-                                    <Border Style="{StaticResource PopupCard}" Width="{Binding ActualWidth, ElementName=SheetButton}" MinWidth="320">
+                                <Popup x:Name="ScopePopup" PlacementTarget="{Binding ElementName=ScopeButton}" Placement="Bottom"
+                                       StaysOpen="False" Opened="ScopePopup_Opened">
+                                    <Border Style="{StaticResource PopupCard}" Width="{Binding ActualWidth, ElementName=ScopeButton}" MinWidth="320">
                                         <StackPanel>
-                                            <TextBox x:Name="SheetSearchBox" Style="{StaticResource StyledTextInput}" Margin="0,0,0,6"
-                                                     Text="{Binding SheetSearchText, UpdateSourceTrigger=PropertyChanged}"
-                                                     PreviewKeyDown="SheetSearchBox_PreviewKeyDown"
-                                                     ToolTip="Type part of the sheet number or name. Enter picks the first match."/>
-                                            <ListBox x:Name="SheetList" ItemsSource="{Binding SheetsView}" DisplayMemberPath="Label"
+                                            <TextBox x:Name="ScopeSearchBox" Style="{StaticResource StyledTextInput}" Margin="0,0,0,6"
+                                                     Text="{Binding ScopeSearchText, UpdateSourceTrigger=PropertyChanged}"
+                                                     PreviewKeyDown="ScopeSearchBox_PreviewKeyDown"
+                                                     ToolTip="Type part of a sheet number, a sheet name or a view name. Enter picks the first match."/>
+                                            <ListBox x:Name="ScopeList" ItemsSource="{Binding ScopesView}" DisplayMemberPath="Label"
                                                      MaxHeight="280" BorderThickness="0"
-                                                     PreviewMouseLeftButtonUp="SheetList_PreviewMouseLeftButtonUp"
-                                                     KeyDown="SheetList_KeyDown"/>
+                                                     PreviewMouseLeftButtonUp="ScopeList_PreviewMouseLeftButtonUp"
+                                                     KeyDown="ScopeList_KeyDown"/>
                                         </StackPanel>
                                     </Border>
                                 </Popup>
-                                <TextBlock Text="{Binding SheetHint}" Style="{StaticResource HintText}"/>
+                                <TextBlock Text="{Binding ScopeHint}" Style="{StaticResource HintText}"/>
 
-                                <TextBlock Text="Views on this sheet" Style="{StaticResource FieldLabel}" Margin="0,10,0,2"/>
+                                <TextBlock Text="{Binding ViewsLabel}" Style="{StaticResource FieldLabel}" Margin="0,10,0,2"/>
                                 <Button x:Name="ViewsButton" Content="{Binding ViewsButtonText}" HorizontalAlignment="Left"
                                         Style="{StaticResource SmallSecondaryButton}" Height="28" Click="ViewsButton_Click"
-                                        IsEnabled="{Binding HasSheet}"
+                                        IsEnabled="{Binding HasScope}"
                                         ToolTip="Choose the views whose text notes are searched, grouped by view type."/>
                                 <Popup x:Name="ViewsPopup" PlacementTarget="{Binding ElementName=ViewsButton}" Placement="Bottom" StaysOpen="False">
                                     <Border Style="{StaticResource PopupCard}" Width="540">

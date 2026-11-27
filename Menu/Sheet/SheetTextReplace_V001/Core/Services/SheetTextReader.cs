@@ -7,25 +7,105 @@ using System.Linq;
 namespace Revit26_Plugin_Revised.SheetTextReplace.V001.Core.Services
 {
     /// <summary>
-    /// Reads the sheets of a model and the text notes on one sheet: notes placed directly on the
-    /// sheet and notes shown in each view placed on it. Runs inside Revit's API context.
+    /// Reads the scopes of a model (its sheets and the views that can hold text notes) and the text
+    /// notes of one scope: for a sheet, the notes placed directly on it and the notes shown in each
+    /// view placed on it; for a single view, the notes shown in that view. Runs inside Revit's API
+    /// context.
     /// </summary>
     public static class SheetTextReader
     {
-        /// <summary>All real sheets (no placeholders), ordered by sheet number.</summary>
-        public static List<SheetItem> ReadSheets(Document doc)
+        /// <summary>View types that can hold text notes, so are offered as a single-view scope.</summary>
+        private static readonly HashSet<ViewType> TextCapableTypes = new()
         {
-            return new FilteredElementCollector(doc)
+            ViewType.FloorPlan, ViewType.CeilingPlan, ViewType.EngineeringPlan, ViewType.AreaPlan,
+            ViewType.Section, ViewType.Elevation, ViewType.Detail, ViewType.DraftingView, ViewType.Legend
+        };
+
+        /// <summary>
+        /// True when <paramref name="view"/> is a view the tool can work on its own — a real, non-sheet
+        /// view of a type that can hold text notes.
+        /// </summary>
+        public static bool CanHoldTextNotes(View view)
+        {
+            if (view == null || !view.IsValidObject) return false;
+            if (view is ViewSheet || view.IsTemplate) return false;
+            return TextCapableTypes.Contains(view.ViewType);
+        }
+
+        /// <summary>
+        /// Everything the scope picker lists: all real sheets (no placeholders) ordered by sheet
+        /// number, then every view that can hold text notes, ordered by name.
+        /// </summary>
+        public static List<ScopeItem> ReadScopes(Document doc)
+        {
+            if (doc == null) throw new ArgumentNullException(nameof(doc));
+
+            var sheets = new FilteredElementCollector(doc)
                 .OfClass(typeof(ViewSheet))
                 .Cast<ViewSheet>()
                 .Where(s => !s.IsPlaceholder && !s.IsTemplate)
-                .Select(s => new SheetItem(s.Id.Value, s.SheetNumber ?? string.Empty, s.Name ?? string.Empty))
+                .Select(s => ScopeItem.ForSheet(s.Id.Value, s.SheetNumber ?? string.Empty, s.Name ?? string.Empty))
                 .OrderBy(s => s.Number, StringComparer.OrdinalIgnoreCase)
                 .ToList();
+
+            var views = new FilteredElementCollector(doc)
+                .OfClass(typeof(View))
+                .Cast<View>()
+                .Where(CanHoldTextNotes)
+                .Select(ScopeOf)
+                .OrderBy(v => v.Name, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            sheets.AddRange(views);
+            return sheets;
+        }
+
+        /// <summary>The picker entry for a single view.</summary>
+        public static ScopeItem ScopeOf(View view)
+            => ScopeItem.ForView(view.Id.Value, view.Name ?? string.Empty, ViewTypeLabel(view.ViewType));
+
+        /// <summary>Reads the text notes of <paramref name="view"/> alone, without its sheet.</summary>
+        public static ScopeContent ReadView(Document doc, View view)
+        {
+            if (doc == null) throw new ArgumentNullException(nameof(doc));
+            if (view == null) throw new ArgumentNullException(nameof(view));
+
+            List<TextNote> notes;
+            try
+            {
+                notes = new FilteredElementCollector(doc, view.Id)
+                    .OfClass(typeof(TextNote))
+                    .Cast<TextNote>()
+                    .ToList();
+            }
+            catch (Autodesk.Revit.Exceptions.ArgumentException)
+            {
+                notes = new List<TextNote>(); // a view type that cannot be searched (rare)
+            }
+
+            // Every sheet this view is placed on: a change here shows on all of them.
+            OtherSheetsByView(doc).TryGetValue(view.Id.Value, out var sheetsOfView);
+
+            var info = new ViewInfo
+            {
+                Key = view.Id.Value,
+                Name = view.Name ?? string.Empty,
+                TypeLabel = ViewTypeLabel(view.ViewType),
+                ScaleText = ScaleText(view),
+                Owner = OwnerOf(doc, view.Id),
+                AlsoOnSheets = (sheetsOfView ?? new List<(long, string)>())
+                    .Select(s => s.Item2)
+                    .Distinct()
+                    .OrderBy(n => n, StringComparer.OrdinalIgnoreCase)
+                    .ToList(),
+                Notes = ReadNotes(doc, notes, view, new HashSet<long>())
+            };
+
+            return new ScopeContent { Scope = ScopeOf(view), Views = new List<ViewInfo> { info } };
         }
 
         /// <summary>Reads the views and text notes of <paramref name="sheet"/>.</summary>
-        public static SheetContent Read(Document doc, ViewSheet sheet)
+        public static ScopeContent Read(Document doc, ViewSheet sheet)
         {
             if (doc == null) throw new ArgumentNullException(nameof(doc));
             if (sheet == null) throw new ArgumentNullException(nameof(sheet));
@@ -90,9 +170,9 @@ namespace Revit26_Plugin_Revised.SheetTextReplace.V001.Core.Services
                 });
             }
 
-            return new SheetContent
+            return new ScopeContent
             {
-                Sheet = new SheetItem(sheet.Id.Value, sheet.SheetNumber ?? string.Empty, sheet.Name ?? string.Empty),
+                Scope = ScopeItem.ForSheet(sheet.Id.Value, sheet.SheetNumber ?? string.Empty, sheet.Name ?? string.Empty),
                 Views = views
             };
         }

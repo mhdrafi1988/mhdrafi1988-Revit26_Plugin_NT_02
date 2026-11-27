@@ -2,11 +2,52 @@ using System.Collections.Generic;
 
 namespace Revit26_Plugin_Revised.SheetTextReplace.V001.Core.Models
 {
-    /// <summary>A sheet in the sheet picker.</summary>
-    public sealed record SheetItem(long Id, string Number, string Name)
+    /// <summary>What the tool works on: a whole sheet, or one view on its own.</summary>
+    public enum ScopeKind
     {
-        /// <summary>"A-201 – Building Sections".</summary>
-        public string Label => string.IsNullOrWhiteSpace(Name) ? Number : $"{Number} – {Name}";
+        /// <summary>A sheet: the notes placed on it and the notes in every view placed on it.</summary>
+        Sheet,
+
+        /// <summary>A single view, whether or not it is placed on a sheet.</summary>
+        View
+    }
+
+    /// <summary>A sheet or a single view in the scope picker.</summary>
+    public sealed record ScopeItem
+    {
+        /// <summary>Sheet or single view.</summary>
+        public ScopeKind Kind { get; init; }
+
+        /// <summary>Element id of the sheet or the view.</summary>
+        public long Id { get; init; }
+
+        /// <summary>Sheet number; empty for a view.</summary>
+        public string Number { get; init; } = string.Empty;
+
+        /// <summary>Sheet name or view name.</summary>
+        public string Name { get; init; } = string.Empty;
+
+        /// <summary>View type ("Floor Plan", "Section"…); empty for a sheet.</summary>
+        public string TypeLabel { get; init; } = string.Empty;
+
+        /// <summary>True for a single view.</summary>
+        public bool IsView => Kind == ScopeKind.View;
+
+        /// <summary>A sheet: "A-201 – Building Sections". A view: "View · Level 1 Plan (Floor Plan)".</summary>
+        public string Label => IsView
+            ? (string.IsNullOrWhiteSpace(TypeLabel) ? $"View · {Name}" : $"View · {Name} ({TypeLabel})")
+            : string.IsNullOrWhiteSpace(Name) ? Number : $"{Number} – {Name}";
+
+        /// <summary>The same label without the "View · " prefix, for messages.</summary>
+        public string ShortLabel => IsView ? Name : Label;
+
+        /// <summary>A sheet entry.</summary>
+        public static ScopeItem ForSheet(long id, string number, string name)
+            => new() { Kind = ScopeKind.Sheet, Id = id, Number = number ?? string.Empty, Name = name ?? string.Empty };
+
+        /// <summary>A single-view entry.</summary>
+        public static ScopeItem ForView(long id, string name, string typeLabel)
+            => new() { Kind = ScopeKind.View, Id = id, Name = name ?? string.Empty, TypeLabel = typeLabel ?? string.Empty };
 
         /// <inheritdoc/>
         public override string ToString() => Label;
@@ -32,8 +73,8 @@ namespace Revit26_Plugin_Revised.SheetTextReplace.V001.Core.Models
     }
 
     /// <summary>
-    /// A view placed on the sheet, or the sheet itself (for notes placed directly on it), with the
-    /// text notes shown in it.
+    /// A view in the scope — a view placed on the sheet, the sheet itself (for notes placed directly
+    /// on it), or the single view the tool was pointed at — with the text notes shown in it.
     /// </summary>
     public sealed class ViewInfo
     {
@@ -59,8 +100,9 @@ namespace Revit26_Plugin_Revised.SheetTextReplace.V001.Core.Models
         public string Owner { get; init; }
 
         /// <summary>
-        /// Numbers of the other sheets that show this view (legends can be on many sheets; a change
-        /// shows on all of them). Empty for most views.
+        /// Numbers of the sheets that show this view besides the one in the scope (legends can be on
+        /// many sheets; a change shows on all of them). In a single-view scope these are every sheet
+        /// the view is placed on. Empty for most views.
         /// </summary>
         public IReadOnlyList<string> AlsoOnSheets { get; init; } = new List<string>();
 
@@ -68,13 +110,16 @@ namespace Revit26_Plugin_Revised.SheetTextReplace.V001.Core.Models
         public IReadOnlyList<NoteInfo> Notes { get; init; } = new List<NoteInfo>();
     }
 
-    /// <summary>Everything the window shows for one sheet.</summary>
-    public sealed class SheetContent
+    /// <summary>Everything the window shows for one scope (a sheet, or a single view).</summary>
+    public sealed class ScopeContent
     {
-        /// <summary>The sheet.</summary>
-        public SheetItem Sheet { get; init; }
+        /// <summary>The sheet or the view that was read.</summary>
+        public ScopeItem Scope { get; init; }
 
-        /// <summary>The sheet itself (first, when it has notes) and its views.</summary>
+        /// <summary>
+        /// For a sheet: the sheet itself (first, when it has notes) and its views. For a single view:
+        /// that one view.
+        /// </summary>
         public IReadOnlyList<ViewInfo> Views { get; init; } = new List<ViewInfo>();
     }
 
@@ -103,8 +148,8 @@ namespace Revit26_Plugin_Revised.SheetTextReplace.V001.Core.Models
     /// <summary>What the window asks Revit to change.</summary>
     public sealed class ApplyRequest
     {
-        /// <summary>The sheet the notes are on.</summary>
-        public long SheetId { get; init; }
+        /// <summary>The scope the notes were read from (a sheet, or a single view).</summary>
+        public ScopeItem Scope { get; init; }
 
         /// <summary>The ticked notes to change.</summary>
         public IReadOnlyList<NoteChange> Changes { get; init; } = new List<NoteChange>();
@@ -134,7 +179,7 @@ namespace Revit26_Plugin_Revised.SheetTextReplace.V001.Core.Models
         /// <summary>How long the change took inside Revit, in milliseconds.</summary>
         public long ElapsedMs { get; init; }
 
-        /// <summary>The sheet as it is after the Apply (re-read), or null when it could not be read.</summary>
-        public SheetContent Content { get; init; }
+        /// <summary>The scope as it is after the Apply (re-read), or null when it could not be read.</summary>
+        public ScopeContent Content { get; init; }
     }
 }

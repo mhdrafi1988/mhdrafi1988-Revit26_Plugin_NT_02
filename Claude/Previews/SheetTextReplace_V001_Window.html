@@ -1,12 +1,17 @@
 <title>Sheet Text Replace</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<!-- UI preview (CLAUDE.md "UI previews"): Sheet Text Replace 1.3.0 (V001). Plugin 7.25.0.
-     Change shown (1.3.0): Find / Replace / Prefix / Suffix and options are saved and restored (settings.json), plus the Recent ▾ list.
+<!-- UI preview (CLAUDE.md "UI previews"): Sheet Text Replace 1.4.0 (V001). Plugin 7.30.0.
+     Change shown (1.4.0): the tool works on a single view as well as on a sheet. Started from a view that is not a
+     sheet it asks "Work on the active view alone?" (Yes / No / Cancel); the picker lists every sheet and every view
+     that can hold text notes, so the scope can be changed without reopening the tool.
+     Earlier (1.3.0): Find / Replace / Prefix / Suffix and options are saved and restored (settings.json), plus the Recent ▾ list.
      Earlier (1.2.0): "Found text" area under the preview grid (whole note text + Copy text / Copy new text / Copy all found)
      and "Copy full text" on the row right-click menu.
      Mirrors: Menu/Sheet/SheetTextReplace_V001/UI/Views/SheetTextReplaceWindow.xaml
-              (labels from it and UI/ViewModels/SheetTextReplaceViewModel.cs; version from Shared/Services/ToolCatalog.cs).
-     Artifact: https://claude.ai/artifact/YG54xny7e4NPvNbwUr7Uf4 (republish to this URL on every update)
+              (labels from it, Commands/SheetTextReplaceCommand.cs for the dialog and
+              UI/ViewModels/SheetTextReplaceViewModel.cs for the hints; version from Shared/Services/ToolCatalog.cs).
+     Artifact: https://claude.ai/artifact/LxxGnNzqsiadFD8vc2Htrc (republish to this URL on every update)
+     (the 1.3.0 link, https://claude.ai/artifact/YG54xny7e4NPvNbwUr7Uf4, could no longer be opened, so 1.4.0 got a new one)
      Colours: Shared/SharedStyles.xaml tokens, one light look on purpose (mirrors the light WPF window). -->
 <style>
 /* Layout: one column; the fixed-width WPF window scrolls inside its own frame, notes sit under it. */
@@ -69,7 +74,7 @@ table.g{width:calc(100% - 24px);margin:0 12px 8px;border-collapse:collapse;font-
 .add{color:var(--ok);background:var(--ok-soft)}
 .vt{font-size:11px;color:var(--text3)}
 .sb{display:inline-block;border-radius:8px;padding:1px 7px;border:1px solid var(--ok-border);background:var(--ok-soft);color:var(--ok);font-size:11px;font-weight:600}
-.found{margin:0 12px 12px;padding:8px;border:2px solid var(--new);border-radius:6px;background:var(--bg2);display:grid;gap:6px;position:relative}
+.found{margin:0 12px 12px;padding:8px;border:1px solid var(--border);border-radius:6px;background:var(--bg2);display:grid;gap:6px;position:relative}
 .found .hd{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
 .found .t{font-size:12px;font-weight:600}
 .found .c{font-size:10.5px;color:var(--text3)}
@@ -87,50 +92,82 @@ table.g{width:calc(100% - 24px);margin:0 12px 8px;border-collapse:collapse;font-
 .pbtn{background:var(--navy);color:#FFFFFF;padding:7px 18px;border-radius:4px}
 .obtn{border:1px solid var(--navy);color:var(--navy);padding:6px 16px;border-radius:4px;margin-right:8px}
 .sec .st{position:relative}
-.recent{margin:0 12px 8px auto;width:360px;background:var(--card);border:2px solid var(--new);border-radius:8px;padding:6px;box-shadow:0 4px 12px rgba(16,32,48,.2);display:grid;gap:2px}
+.recent{margin:0 12px 8px auto;width:360px;background:var(--card);border:1px solid var(--input);border-radius:8px;padding:6px;box-shadow:0 4px 12px rgba(16,32,48,.2);display:grid;gap:2px}
 .rh{display:flex;justify-content:space-between;align-items:center;font-size:11.5px;font-weight:600;color:var(--text2);margin-bottom:4px}
 .ri{font-family:var(--mono);font-size:12px;padding:3px 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ri.sel{background:var(--info-soft)}
 .hint{font-size:10.5px;color:var(--text3);line-height:1.4}
 ul{margin:0;padding-left:18px;line-height:1.6;max-width:80ch}
+/* Revit TaskDialog mock (Yes / No / Cancel). */
+.dlg{width:520px;max-width:100%;background:var(--card);border:1px solid var(--input);box-shadow:0 6px 20px rgba(16,32,48,.18)}
+.dlg .dt{background:var(--bg2);border-bottom:1px solid var(--border);padding:7px 12px;font-size:12px;font-weight:600}
+.dlg .db{padding:14px 16px;display:grid;gap:8px}
+.dlg .mi{font-size:15px;font-weight:600;color:var(--navy)}
+.dlg .mc2{font-size:12.5px;line-height:1.55;white-space:pre-line}
+.dlg .dbtns{border-top:1px solid var(--border);background:var(--bg2);padding:9px 12px;display:flex;justify-content:flex-end;gap:8px}
+/* Scope picker pop-up, open. */
+.pick{width:420px;max-width:100%;background:var(--card);border:2px solid var(--new);border-radius:8px;padding:8px;
+  box-shadow:0 4px 12px rgba(16,32,48,.2);display:grid;gap:2px}
+.pick .pi{font-size:12px;padding:3px 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pick .pi.sel{background:var(--info-soft)}
+.pick .ph{font-size:10.5px;font-weight:600;color:var(--text3);letter-spacing:.04em;padding:4px 6px 2px}
 </style>
 
 <div class="page">
   <header>
-    <h1>Sheet Text Replace <span class="muted" style="font-weight:400;font-size:14px">v1.3.0 · plugin 7.25.0</span></h1>
-    <p class="muted">Your last search (Find, Replace with, Prefix, Suffix and options) is now kept, even after Revit closes, and the last 10 can be picked again from <b>Recent</b>. <span class="sample">Sample data: sheets, views and notes are made up.</span></p>
+    <h1>Sheet Text Replace <span class="muted" style="font-weight:400;font-size:14px">v1.4.0 · plugin 7.30.0</span></h1>
+    <p class="muted">The tool now works <b>in a single view as well as on a sheet</b>. Press the button in a plan, section, detail, drafting view or legend and it asks whether to work on that view alone; the picker in the window lists every sheet <em>and</em> every view that can hold text notes, so the scope can be changed without reopening. Working on a sheet is unchanged. <span class="sample">Sample data: sheets, views and notes are made up.</span></p>
   </header>
 
   <section>
-    <h2>Tool window <span class="tag">NEW: search kept + Recent</span></h2>
+    <h2>Started from a view that is not a sheet <span class="tag">NEW</span></h2>
+    <p class="muted" style="margin-bottom:8px">Revit dialog, before the window opens. <b>Yes</b> works on that view alone, <b>No</b> opens the window with nothing picked so you can choose a sheet or another view, <b>Cancel</b> closes the tool. On a sheet there is no question: the sheet is loaded as before, and in a view that cannot hold text notes (a schedule, a 3D view) the window simply opens with nothing picked.</p>
+    <div class="frame">
+      <div class="dlg">
+        <div class="dt">Sheet Text Replace</div>
+        <div class="db">
+          <div class="mi">Work on the active view alone?</div>
+          <div class="mc2">The active view is "Parapet Detail 3" (Detail), not a sheet.
+
+Yes — find and replace in this view only, whether or not it is on a sheet.
+No — open the tool and pick a sheet (or another view) yourself.</div>
+        </div>
+        <div class="dbtns"><span class="pbtn">Yes</span><span class="obtn" style="margin-right:0">No</span><span class="obtn" style="margin-right:0">Cancel</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Tool window, on one view <span class="tag">NEW: single-view scope</span></h2>
     <div class="frame">
       <div class="win">
         <div class="tbar">Sheet Text Replace</div>
-        <div class="hdr"><div><b>Sheet Text Replace</b><span class="s">Find and replace text notes in selected views on a sheet</span></div><span class="badge">v1.3.0</span></div>
+        <div class="hdr"><div><b>Sheet Text Replace</b><span class="s">Find and replace text notes on a sheet, or in a single view</span></div><span class="badge">v1.4.0</span></div>
         <div class="body">
           <div class="lbl">SUMMARY <span class="phase">BEFORE APPLY</span></div>
           <div class="cards">
-            <div class="mc"><span>Views checked</span><b>4/5</b></div>
-            <div class="mc"><span>Text notes scanned</span><b>23</b></div>
-            <div class="mc"><span>Matches found</span><b style="color:var(--info)">3</b></div>
-            <div class="mc"><span>Will change</span><b style="color:var(--ok)">3</b></div>
+            <div class="mc"><span>Views checked</span><b>1/1</b></div>
+            <div class="mc"><span>Text notes scanned</span><b>6</b></div>
+            <div class="mc"><span>Matches found</span><b style="color:var(--info)">2</b></div>
+            <div class="mc"><span>Will change</span><b style="color:var(--ok)">2</b></div>
             <div class="mc"><span>Excluded by you</span><b>0</b></div>
             <div class="mc"><span>Will skip</span><b style="color:var(--warn)">0</b></div>
           </div>
 
           <div class="two">
             <div class="sec">
-              <div class="st" style="justify-content:space-between">Sheet &amp; Views <span class="sbtn">⟳ Refresh</span></div>
+              <div class="st" style="justify-content:space-between">Scope &amp; Views <span class="tag" style="margin-left:0">NEW</span> <span class="sbtn">⟳ Refresh</span></div>
               <div class="fld">
-                <span class="fl">Sheet</span>
-                <div class="in" style="font-family:var(--ui);justify-content:space-between">A-201 - Roof Plan Details <span>▾</span></div>
-                <span class="fl" style="margin-top:6px">Views on this sheet</span>
-                <div><span class="sbtn">Views… (4/5) ▾</span></div>
-                <div class="chips"><span class="chip">Sheet 1/1</span><span class="chip">Floor Plan 1/1</span><span class="chip">Detail 2/2</span></div>
+                <span class="fl">Sheet or view <span class="tag">NEW</span></span>
+                <div class="in" style="font-family:var(--ui);justify-content:space-between">View · Parapet Detail 3 (Detail) <span>▾</span></div>
+                <div class="hint">The active view, on its own: its notes are searched whether or not it is on a sheet. <span class="tag">NEW</span></div>
+                <span class="fl" style="margin-top:6px">This view <span class="tag">NEW</span></span>
+                <div><span class="sbtn">Views… (1/1) ▾</span></div>
+                <div class="chips"><span class="chip">Detail 1/1</span></div>
               </div>
             </div>
             <div class="sec">
-              <div class="st" style="justify-content:space-between">Find &amp; Replace <span class="sbtn on">Recent (3) ▾ <span class="tag">NEW</span></span></div>
+              <div class="st" style="justify-content:space-between">Find &amp; Replace <span class="sbtn on">Recent (3) ▾</span></div>
               <div class="recent">
                 <div class="rh"><span>Recent searches (newest first)</span><span class="sbtn">Clear list</span></div>
                 <div class="ri sel">MEMBRANE  →  MEMBRANE TYPE 2</div>
@@ -143,27 +180,26 @@ ul{margin:0;padding-left:18px;line-height:1.6;max-width:80ch}
                 <div class="row2"><span class="fl">Prefix</span><span class="fl">Suffix</span></div>
                 <div class="row2"><div class="in"></div><div class="in"></div></div>
                 <div class="muted" style="font-size:12px">☐ Match case &nbsp; ☐ Whole word &nbsp; ☐ Regex &nbsp; ☑ Trim spaces</div>
-                <div class="hint">Find, Replace with, Prefix, Suffix and the options are kept for next time, even after Revit is closed. Recent lists the last 10. <span class="tag">NEW</span></div>
+                <div class="hint">Find, Replace with, Prefix, Suffix and the options are kept for next time, even after Revit is closed. Recent lists the last 10.</div>
               </div>
             </div>
           </div>
 
           <div class="sec">
-            <div class="st">Preview <small>3 matching note(s) · only ticked rows are applied · double-click a row to show it in Revit</small></div>
+            <div class="st">Preview <small>2 matching note(s) · only ticked rows are applied · double-click a row to show it in Revit</small></div>
             <table class="g">
               <thead><tr><th style="width:30px">☑</th><th>View</th><th>Current text</th><th>New text</th><th style="width:110px">Status</th></tr></thead>
               <tbody>
-                <tr><td>☑</td><td>Roof Plan - Level 4 <span class="vt">Floor Plan</span></td><td class="mono">ROOF <span class="rm">MEMBRANE</span> ON INSULATION…</td><td class="mono">ROOF <span class="add">MEMBRANE TYPE 2</span> ON INSULATION…</td><td><span class="sb">Will change</span></td></tr>
                 <tr class="sel"><td>☑</td><td>Parapet Detail 3 <span class="vt">Detail</span></td><td class="mono">1. <span class="rm">MEMBRANE</span> TURNED UP 150 MIN…</td><td class="mono">1. <span class="add">MEMBRANE TYPE 2</span> TURNED UP 150 MIN…</td><td><span class="sb">Will change</span></td></tr>
-                <tr><td>☑</td><td>Gutter Detail 1 <span class="vt">Detail</span></td><td class="mono">LAP <span class="rm">MEMBRANE</span> INTO GUTTER</td><td class="mono">LAP <span class="add">MEMBRANE TYPE 2</span> INTO GUTTER</td><td><span class="sb">Will change</span></td></tr>
+                <tr><td>☑</td><td>Parapet Detail 3 <span class="vt">Detail</span></td><td class="mono">LAP <span class="rm">MEMBRANE</span> INTO GUTTER</td><td class="mono">LAP <span class="add">MEMBRANE TYPE 2</span> INTO GUTTER</td><td><span class="sb">Will change</span></td></tr>
               </tbody>
             </table>
 
             <div class="found">
-              <div class="ctx" title="Right-click menu on a preview row"><div>Copy full text <span class="tag">NEW</span></div></div>
+              <div class="ctx" title="Right-click menu on a preview row"><div>Copy full text</div></div>
               <div class="hd">
-                <div><div class="t">Found text <span class="tag">NEW</span></div><div class="c">Parapet Detail 3 · 4 lines · 131 characters</div></div>
-                <div class="btns"><span class="sbtn on">Copy text</span><span class="sbtn on">Copy new text</span><span class="sbtn on">Copy all found</span></div>
+                <div><div class="t">Found text</div><div class="c">Parapet Detail 3 · 4 lines · 131 characters</div></div>
+                <div class="btns"><span class="sbtn">Copy text</span><span class="sbtn">Copy new text</span><span class="sbtn">Copy all found</span></div>
               </div>
 <div class="box">1. <span class="hl">MEMBRANE</span> TURNED UP 150 MIN ABOVE FINISHED ROOF LEVEL
 2. METAL CAPPING FIXED AT 450 CTRS
@@ -174,23 +210,55 @@ ul{margin:0;padding-left:18px;line-height:1.6;max-width:80ch}
 
           <div class="log">
             <div class="h">Activity Log</div>
-            <div class="n"><span class="d">10:42:04</span> Info     Last search restored: MEMBRANE  →  MEMBRANE TYPE 2</div>
-            <div><span class="d">10:42:05</span> Info     Sheet A-201 - Roof Plan Details: 4 view(s) in 2 type(s) plus notes placed on the sheet itself, 23 text note(s).</div>
+            <div><span class="d">10:42:03</span> Info     Sheet Text Replace opened. 48 sheet(s) and 312 view(s) that can hold text notes.</div>
+            <div><span class="d">10:42:04</span> Info     Last search restored: MEMBRANE  →  MEMBRANE TYPE 2</div>
+            <div class="n"><span class="d">10:42:05</span> Info     View Parapet Detail 3 (Detail, 1 : 10) on its own: 6 text note(s).</div>
+            <div class="n"><span class="d">10:42:05</span> Warning  Parapet Detail 3 is on A-201: a change here shows on those sheets too.</div>
             <div><span class="d">10:42:31</span> Info     Copied the whole text of the note in Parapet Detail 3 (131 characters).</div>
           </div>
         </div>
-        <div class="foot"><span class="muted">3 changes will be made in one undoable transaction</span><span><span class="obtn">Close</span><span class="pbtn">Apply</span></span></div>
+        <div class="foot"><span class="muted">2 changes will be made in one undoable transaction</span><span><span class="obtn">Close</span><span class="pbtn">Apply</span></span></div>
       </div>
     </div>
   </section>
 
   <section>
-    <h2>What changed in 1.3.0</h2>
+    <h2>The picker: sheets, then views <span class="tag">NEW</span></h2>
+    <p class="muted" style="margin-bottom:8px">The <b>Sheet or view</b> button opens this list. Sheets come first, ordered by number, then every view that can hold text notes, ordered by name and marked <b>View ·</b>. The search box matches a sheet number, a sheet name or a view name; Enter picks the first match.</p>
+    <div class="frame">
+      <div class="pick">
+        <div class="in" style="font-family:var(--mono);margin-bottom:4px">parapet</div>
+        <div class="ph">SHEETS</div>
+        <div class="pi">A-201 – Roof Plan Details</div>
+        <div class="pi">A-204 – Parapet Details</div>
+        <div class="ph">VIEWS</div>
+        <div class="pi sel">View · Parapet Detail 3 (Detail)</div>
+        <div class="pi">View · Parapet Detail 4 (Detail)</div>
+        <div class="pi">View · Parapet Setting Out (Drafting)</div>
+      </div>
+    </div>
+    <p class="hint" style="margin-top:6px">The group captions are drawn here to show the order; the real list is one searchable list with the "View ·" prefix.</p>
+  </section>
+
+  <section>
+    <h2>What changed in 1.4.0</h2>
+    <ul>
+      <li><b>A single view is now a scope of its own.</b> The notes shown in that one view are searched and replaced, whether or not the view is placed on a sheet.</li>
+      <li><b>Started from a plan, section, elevation, detail, drafting view or legend</b>, the tool asks <i>"Work on the active view alone?"</i> — <b>Yes</b> loads that view, <b>No</b> opens the window with nothing picked, <b>Cancel</b> closes it. Started on a sheet, nothing changes: the sheet is loaded as before, with no question.</li>
+      <li><b>The picker lists sheets and views</b>, so the scope can be changed at any time without reopening the tool. Its label is now <b>Sheet or view</b>, and the card is <b>Scope &amp; Views</b>.</li>
+      <li>In a single-view scope the <b>Views</b> list holds that one view, ticked, and its notes stay ticked even when the view is on sheets — the sheets it is on are reported in the log instead (<i>"a change here shows on those sheets too"</i>), because you picked that view on purpose. On a sheet, views shown on <em>other</em> sheets still start unticked.</li>
+      <li>A model with no sheets can now be used: only a model with neither sheets nor text-capable views is refused.</li>
+      <li>Everything else is unchanged — the same preview, Found text, Recent searches, one undoable transaction and the same skip reasons (owned by another user, in a group, read-only, changed since preview).</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Earlier, in 1.3.0</h2>
     <ul>
       <li><b>Search kept for next time</b>: Find, Replace with, Prefix, Suffix and the four options are saved when the window closes and after Apply, and filled in again when the tool opens, even after Revit is restarted.</li>
       <li><b>Recent ▾</b> on the Find &amp; Replace card lists the last 10 searches. Click one to reuse it; <b>Clear list</b> forgets them.</li>
       <li>Saved in %AppData%\Revit26_Plugin_Revised\SheetTextReplace\settings.json.</li>
-      <li><b>Fixed:</b> a second request sent before Revit ran the first (for example a quick double-click while a sheet was loading) no longer replaces the first one and leaves the window busy; it is refused with a message in the log. <span class="tag">FIX</span></li>
+      <li><b>Fixed:</b> a second request sent before Revit ran the first (for example a quick double-click while a sheet was loading) no longer replaces the first one and leaves the window busy; it is refused with a message in the log.</li>
     </ul>
   </section>
   <section>

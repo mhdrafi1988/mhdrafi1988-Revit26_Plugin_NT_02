@@ -17,9 +17,10 @@ using System.Windows.Data;
 namespace Revit26_Plugin_Revised.SheetTextReplace.V001.UI.ViewModels
 {
     /// <summary>
-    /// Window state for Sheet Text Replace. Keeps the latest <see cref="SheetContent"/> and rebuilds
-    /// the preview in memory on every change to the inputs, options or ticked views (the summary then
-    /// goes back to BEFORE). All Revit access goes through <see cref="ISheetTextSession"/>.
+    /// Window state for Sheet Text Replace. Keeps the latest <see cref="ScopeContent"/> — a sheet with
+    /// its views, or a single view — and rebuilds the preview in memory on every change to the inputs,
+    /// options or ticked views (the summary then goes back to BEFORE). All Revit access goes through
+    /// <see cref="ISheetTextSession"/>.
     /// </summary>
     public partial class SheetTextReplaceViewModel : ToolViewModelBase, IDisposable
     {
@@ -33,10 +34,10 @@ namespace Revit26_Plugin_Revised.SheetTextReplace.V001.UI.ViewModels
         };
 
         private readonly ISheetTextSession _session;
-        private readonly ListCollectionView _sheetsView;
+        private readonly ListCollectionView _scopesView;
         private readonly HashSet<long> _excluded = new();
         private readonly List<ViewRowViewModel> _viewRows = new();
-        private SheetContent _content;
+        private ScopeContent _content;
         private bool _suspend;
         private bool _bulkRows;
         private int _viewBatch;
@@ -46,75 +47,87 @@ namespace Revit26_Plugin_Revised.SheetTextReplace.V001.UI.ViewModels
         /// <summary>Folder under %AppData%\Revit26_Plugin_Revised that holds settings.json.</summary>
         public const string SettingsFolder = "SheetTextReplace";
 
-        /// <summary>Creates the view model; preselects the session's initial sheet when there is one.</summary>
+        /// <summary>Creates the view model; preselects the session's initial sheet or view when there is one.</summary>
         public SheetTextReplaceViewModel(ISheetTextSession session)
         {
             _session = session ?? throw new ArgumentNullException(nameof(session));
-            foreach (var sheet in session.Sheets)
-                Sheets.Add(sheet);
-            _sheetsView = new ListCollectionView(Sheets) { Filter = FilterSheet };
+            foreach (var scope in session.Scopes)
+                Scopes.Add(scope);
+            _scopesView = new ListCollectionView(Scopes) { Filter = FilterScope };
 
-            AddLog(LogLevel.Info, $"{ToolCatalog.SheetTextReplace.Title} opened. {Sheets.Count} sheet(s) in the model.");
+            int sheetCount = Scopes.Count(s => !s.IsView);
+            AddLog(LogLevel.Info, $"{ToolCatalog.SheetTextReplace.Title} opened. {sheetCount} sheet(s) and " +
+                $"{Scopes.Count - sheetCount} view(s) that can hold text notes.");
             LoadSettings();
             if (session.Initial != null)
             {
-                SheetHint = "Preselected: the active view is this sheet.";
+                ScopeHint = session.Initial.Scope.IsView
+                    ? "The active view, on its own: its notes are searched whether or not it is on a sheet."
+                    : "Preselected: the active view is this sheet.";
                 SetContent(session.Initial, resetChecks: true, recompute: true);
-                LogSheetLoaded(session.Initial);
+                LogScopeLoaded(session.Initial);
             }
             else
             {
-                SheetHint = "The active view is not a sheet: pick one.";
+                ScopeHint = "Pick a sheet, or a single view.";
                 Recompute();
             }
         }
 
-        // ── Sheet picker ─────────────────────────────────────────────────────
+        // ── Scope picker (sheet or single view) ──────────────────────────────
 
-        /// <summary>All sheets of the model.</summary>
-        public ObservableCollection<SheetItem> Sheets { get; } = new();
+        /// <summary>The model's sheets, then the views that can hold text notes.</summary>
+        public ObservableCollection<ScopeItem> Scopes { get; } = new();
 
-        /// <summary>Sheets filtered by <see cref="SheetSearchText"/>.</summary>
-        public ICollectionView SheetsView => _sheetsView;
+        /// <summary>Scopes filtered by <see cref="ScopeSearchText"/>.</summary>
+        public ICollectionView ScopesView => _scopesView;
 
-        /// <summary>Search box of the sheet picker (number or name, anywhere in the label).</summary>
-        [ObservableProperty] private string sheetSearchText = string.Empty;
+        /// <summary>Search box of the scope picker (sheet number, sheet name or view name).</summary>
+        [ObservableProperty] private string scopeSearchText = string.Empty;
 
-        /// <summary>Line under the sheet picker.</summary>
-        [ObservableProperty] private string sheetHint = string.Empty;
+        /// <summary>Line under the scope picker.</summary>
+        [ObservableProperty] private string scopeHint = string.Empty;
 
-        /// <summary>The sheet shown, or null before one is picked.</summary>
-        public SheetItem CurrentSheet => _content?.Sheet;
+        /// <summary>The sheet or view shown, or null before one is picked.</summary>
+        public ScopeItem CurrentScope => _content?.Scope;
 
-        /// <summary>Text on the sheet picker button.</summary>
-        public string CurrentSheetLabel => CurrentSheet?.Label ?? "Pick a sheet…";
+        /// <summary>Text on the scope picker button.</summary>
+        public string CurrentScopeLabel => CurrentScope?.Label ?? "Pick a sheet or a view…";
 
-        /// <summary>True once a sheet is loaded.</summary>
-        public bool HasSheet => _content != null;
+        /// <summary>True once a sheet or a view is loaded.</summary>
+        public bool HasScope => _content != null;
 
-        partial void OnSheetSearchTextChanged(string value) => _sheetsView.Refresh();
+        /// <summary>True when the scope is a single view, not a sheet.</summary>
+        public bool IsSingleView => CurrentScope?.IsView == true;
 
-        private bool FilterSheet(object item)
-            => string.IsNullOrWhiteSpace(SheetSearchText)
-               || (item is SheetItem s && s.Label.Contains(SheetSearchText.Trim(), StringComparison.OrdinalIgnoreCase));
+        /// <summary>Label above the Views button: the sheet's views, or the one view.</summary>
+        public string ViewsLabel => IsSingleView ? "This view" : "Views on this sheet";
 
-        /// <summary>Loads <paramref name="sheet"/> (picked in the sheet list).</summary>
+        partial void OnScopeSearchTextChanged(string value) => _scopesView.Refresh();
+
+        private bool FilterScope(object item)
+            => string.IsNullOrWhiteSpace(ScopeSearchText)
+               || (item is ScopeItem s && s.Label.Contains(ScopeSearchText.Trim(), StringComparison.OrdinalIgnoreCase));
+
+        /// <summary>Loads <paramref name="scope"/> (picked in the scope list).</summary>
         [RelayCommand]
-        public void PickSheet(SheetItem sheet)
+        public void PickScope(ScopeItem scope)
         {
-            if (sheet == null || IsRunning || sheet.Id == CurrentSheet?.Id) return;
-            SetBusy(true, $"Reading {sheet.Label}…");
-            bool accepted = _session.Load(sheet.Id, result =>
+            if (scope == null || IsRunning || scope == CurrentScope) return;
+            SetBusy(true, $"Reading {scope.ShortLabel}…");
+            bool accepted = _session.Load(scope, result =>
             {
                 SetBusy(false, string.Empty);
                 if (result.Content == null)
                 {
-                    AddLog(LogLevel.Error, result.Error ?? "The sheet could not be read.");
+                    AddLog(LogLevel.Error, result.Error ?? "The sheet or view could not be read.");
                     return;
                 }
-                SheetHint = "Picked by you.";
+                ScopeHint = scope.IsView
+                    ? "One view, picked by you: its notes are searched whether or not it is on a sheet."
+                    : "Picked by you.";
                 SetContent(result.Content, resetChecks: true, recompute: true);
-                LogSheetLoaded(result.Content);
+                LogScopeLoaded(result.Content);
             });
             if (!accepted)
             {
@@ -123,18 +136,18 @@ namespace Revit26_Plugin_Revised.SheetTextReplace.V001.UI.ViewModels
             }
         }
 
-        /// <summary>Re-reads the sheet from the model (after changes made in Revit).</summary>
+        /// <summary>Re-reads the sheet or view from the model (after changes made in Revit).</summary>
         [RelayCommand(CanExecute = nameof(CanRefresh))]
         private void Refresh()
         {
-            var sheet = CurrentSheet;
-            SetBusy(true, "Re-reading the sheet…");
-            bool accepted = _session.Load(sheet.Id, result =>
+            var scope = CurrentScope;
+            SetBusy(true, scope.IsView ? "Re-reading the view…" : "Re-reading the sheet…");
+            bool accepted = _session.Load(scope, result =>
             {
                 SetBusy(false, string.Empty);
                 if (result.Content == null)
                 {
-                    AddLog(LogLevel.Error, result.Error ?? "The sheet could not be read.");
+                    AddLog(LogLevel.Error, result.Error ?? "The sheet or view could not be read.");
                     return;
                 }
 
@@ -149,7 +162,7 @@ namespace Revit26_Plugin_Revised.SheetTextReplace.V001.UI.ViewModels
                     ? "Nothing changed since the last read."
                     : $"Since the last read: {changed} note(s) changed, {added} added, {removed} removed. The preview shows the current text.";
                 AddLog(changed + added + removed == 0 ? LogLevel.Info : LogLevel.Warning,
-                    $"Re-read {result.Content.Sheet.Label}: {result.Content.Views.Count} view(s), {after.Count} text note(s). {what}");
+                    $"Re-read {result.Content.Scope.Label}: {result.Content.Views.Count} view(s), {after.Count} text note(s). {what}");
             });
             if (!accepted)
             {
@@ -158,11 +171,11 @@ namespace Revit26_Plugin_Revised.SheetTextReplace.V001.UI.ViewModels
             }
         }
 
-        private bool CanRefresh() => HasSheet && !IsRunning;
+        private bool CanRefresh() => HasScope && !IsRunning;
 
         // ── Views popover ───────────────────────────────────────────────────
 
-        /// <summary>The sheet's views grouped by view type.</summary>
+        /// <summary>The sheet's views grouped by view type, or the single view on its own.</summary>
         public ObservableCollection<ViewTypeGroupViewModel> Groups { get; } = new();
 
         /// <summary>"Views… (3/5) ▾".</summary>
@@ -618,14 +631,16 @@ namespace Revit26_Plugin_Revised.SheetTextReplace.V001.UI.ViewModels
             var blocked = Rows.Where(r => !r.CanApply).ToList();
             var request = new ApplyRequest
             {
-                SheetId = _content.Sheet.Id,
+                Scope = _content.Scope,
                 Changes = included.Select(r => r.ToChange()).ToList()
             };
-            string sheetLabel = _content.Sheet.Label;
+            string scopeLabel = _content.Scope.IsView
+                ? $"view {_content.Scope.Name}"
+                : _content.Scope.Label;
 
             SetBusy(true, $"Applying {included.Count} change(s)…");
-            AddLog(LogLevel.Info, $"Applying {included.Count} change(s) on {sheetLabel}…");
-            bool accepted = _session.Apply(request, result => OnApplied(result, included, blocked, sheetLabel));
+            AddLog(LogLevel.Info, $"Applying {included.Count} change(s) on {scopeLabel}…");
+            bool accepted = _session.Apply(request, result => OnApplied(result, included, blocked, scopeLabel));
             if (!accepted)
             {
                 SetBusy(false, string.Empty);
@@ -637,7 +652,7 @@ namespace Revit26_Plugin_Revised.SheetTextReplace.V001.UI.ViewModels
             => !IsRunning && !IsAfterPhase && _content != null && !string.IsNullOrEmpty(Find)
                && !HasRegexError && WillChangeCount > 0;
 
-        private void OnApplied(ApplyResult result, List<PreviewRowViewModel> included, List<PreviewRowViewModel> blocked, string sheetLabel)
+        private void OnApplied(ApplyResult result, List<PreviewRowViewModel> included, List<PreviewRowViewModel> blocked, string scopeLabel)
         {
             SetBusy(false, string.Empty);
             if (!result.Success)
@@ -698,8 +713,8 @@ namespace Revit26_Plugin_Revised.SheetTextReplace.V001.UI.ViewModels
             ViewsAffected = changedRows.Select(r => r.View.Key).Distinct().Count();
             ElapsedMs = result.ElapsedMs;
             AfterHeadline = ChangedCount > 0
-                ? $"{ChangedCount} note{(ChangedCount == 1 ? "" : "s")} changed on {sheetLabel} in one transaction. Undo with Ctrl+Z in Revit."
-                : $"Nothing was changed on {sheetLabel}.";
+                ? $"{ChangedCount} note{(ChangedCount == 1 ? "" : "s")} changed on {scopeLabel} in one transaction. Undo with Ctrl+Z in Revit."
+                : $"Nothing was changed on {scopeLabel}.";
             AddLog(ChangedCount > 0 ? LogLevel.Success : LogLevel.Warning,
                 $"{ChangedCount} note(s) changed in {ViewsAffected} view(s), {SkippedCount} skipped, {FailedCount} failed ({ElapsedMs} ms). One undo step: \"{TextReplaceApplier.TransactionName}\".");
 
@@ -718,7 +733,7 @@ namespace Revit26_Plugin_Revised.SheetTextReplace.V001.UI.ViewModels
 
         // ── Rebuilding ──────────────────────────────────────────────────────
 
-        private void SetContent(SheetContent content, bool resetChecks, bool recompute)
+        private void SetContent(ScopeContent content, bool resetChecks, bool recompute)
         {
             var previousChecks = _viewRows.ToDictionary(v => v.Key, v => v.IsChecked);
             var previousNotes = new HashSet<long>(AllNotes(_content).Select(n => n.Id));
@@ -729,10 +744,13 @@ namespace Revit26_Plugin_Revised.SheetTextReplace.V001.UI.ViewModels
                 _content = content;
                 if (resetChecks) _excluded.Clear();
 
-                // Notes of views shown on other sheets (legends) start unticked.
-                foreach (var view in content.Views.Where(v => v.AlsoOnSheets.Count > 0))
-                    foreach (var note in view.Notes.Where(n => resetChecks || !previousNotes.Contains(n.Id)))
-                        _excluded.Add(note.Id);
+                // On a sheet, notes of views shown on other sheets (legends) start unticked. In a
+                // single-view scope the user picked that view on purpose, so its notes stay ticked and
+                // the sheets it is on are only reported in the log.
+                if (!content.Scope.IsView)
+                    foreach (var view in content.Views.Where(v => v.AlsoOnSheets.Count > 0))
+                        foreach (var note in view.Notes.Where(n => resetChecks || !previousNotes.Contains(n.Id)))
+                            _excluded.Add(note.Id);
 
                 _viewRows.Clear();
                 Groups.Clear();
@@ -754,9 +772,11 @@ namespace Revit26_Plugin_Revised.SheetTextReplace.V001.UI.ViewModels
                 _suspend = false;
             }
 
-            OnPropertyChanged(nameof(CurrentSheet));
-            OnPropertyChanged(nameof(CurrentSheetLabel));
-            OnPropertyChanged(nameof(HasSheet));
+            OnPropertyChanged(nameof(CurrentScope));
+            OnPropertyChanged(nameof(CurrentScopeLabel));
+            OnPropertyChanged(nameof(HasScope));
+            OnPropertyChanged(nameof(IsSingleView));
+            OnPropertyChanged(nameof(ViewsLabel));
             OnPropertyChanged(nameof(ViewsButtonText));
             RefreshCommand.NotifyCanExecuteChanged();
             if (recompute) Recompute();
@@ -827,10 +847,10 @@ namespace Revit26_Plugin_Revised.SheetTextReplace.V001.UI.ViewModels
             HasRows = Rows.Count > 0;
 
             string message =
-                _content == null ? "Pick a sheet to see a preview." :
+                _content == null ? "Pick a sheet or a view to see a preview." :
                 string.IsNullOrEmpty(Find) ? "Type something in Find to see a preview." :
                 HasRegexError ? "Fix the regular expression to see a preview." :
-                tickedViews == 0 ? "Tick at least one view (Views… button)." :
+                tickedViews == 0 ? (IsSingleView ? "Tick the view (Views… button)." : "Tick at least one view (Views… button).") :
                 Rows.Count == 0 ? "No text notes match in the ticked views." :
                 will == 0 ? "Nothing will change: every match is unticked or skipped." :
                 string.Empty;
@@ -859,22 +879,34 @@ namespace Revit26_Plugin_Revised.SheetTextReplace.V001.UI.ViewModels
             ResultLines.Clear();
         }
 
-        private void LogSheetLoaded(SheetContent content)
+        private void LogScopeLoaded(ScopeContent content)
         {
             int notes = AllNotes(content).Count();
-            int viewports = content.Views.Count(v => !v.IsSheetItself);
-            int types = content.Views.Where(v => !v.IsSheetItself).Select(v => v.TypeLabel).Distinct().Count();
-            string onSheet = content.Views.Any(v => v.IsSheetItself) ? " plus notes placed on the sheet itself" : string.Empty;
-            AddLog(LogLevel.Info, $"Sheet {content.Sheet.Label}: {viewports} view(s) in {types} type(s){onSheet}, {notes} text note(s).");
+            if (content.Scope.IsView)
+            {
+                var only = content.Views[0];
+                AddLog(LogLevel.Info, $"View {only.Name} ({only.TypeLabel}, {only.ScaleText}) on its own: {notes} text note(s).");
+                if (notes == 0)
+                    AddLog(LogLevel.Info, "This view has no text notes. Pick another view or a sheet.");
+            }
+            else
+            {
+                int viewports = content.Views.Count(v => !v.IsSheetItself);
+                int types = content.Views.Where(v => !v.IsSheetItself).Select(v => v.TypeLabel).Distinct().Count();
+                string onSheet = content.Views.Any(v => v.IsSheetItself) ? " plus notes placed on the sheet itself" : string.Empty;
+                AddLog(LogLevel.Info, $"Sheet {content.Scope.Label}: {viewports} view(s) in {types} type(s){onSheet}, {notes} text note(s).");
 
-            var empty = content.Views.Where(v => v.Notes.Count == 0).Select(v => v.Name).ToList();
-            if (empty.Count > 0)
-                AddLog(LogLevel.Info, $"No text notes in: {string.Join(", ", empty.Take(5))}{(empty.Count > 5 ? $" and {empty.Count - 5} more" : "")}.");
+                var empty = content.Views.Where(v => v.Notes.Count == 0).Select(v => v.Name).ToList();
+                if (empty.Count > 0)
+                    AddLog(LogLevel.Info, $"No text notes in: {string.Join(", ", empty.Take(5))}{(empty.Count > 5 ? $" and {empty.Count - 5} more" : "")}.");
+            }
 
             foreach (var view in content.Views.Where(v => v.Owner != null))
                 AddLog(LogLevel.Warning, $"{view.Name} is owned by {view.Owner}: its notes will be skipped.");
             foreach (var view in content.Views.Where(v => v.AlsoOnSheets.Count > 0))
-                AddLog(LogLevel.Warning, $"{view.Name} is also on {string.Join(", ", view.AlsoOnSheets)}: its notes start unticked.");
+                AddLog(LogLevel.Warning, content.Scope.IsView
+                    ? $"{view.Name} is on {string.Join(", ", view.AlsoOnSheets)}: a change here shows on those sheets too."
+                    : $"{view.Name} is also on {string.Join(", ", view.AlsoOnSheets)}: its notes start unticked.");
 
             int reload = AllNotes(content).Count(n => n.BlockReason == "Reload latest first");
             if (reload > 0)
@@ -889,7 +921,7 @@ namespace Revit26_Plugin_Revised.SheetTextReplace.V001.UI.ViewModels
             RefreshCommand.NotifyCanExecuteChanged();
         }
 
-        private static IEnumerable<NoteInfo> AllNotes(SheetContent content)
+        private static IEnumerable<NoteInfo> AllNotes(ScopeContent content)
             => content?.Views.SelectMany(v => v.Notes) ?? Enumerable.Empty<NoteInfo>();
 
         private static int Rank(string type)
