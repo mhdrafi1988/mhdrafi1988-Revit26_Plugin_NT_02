@@ -100,14 +100,14 @@ tr.total td{font-weight:700;border-top:2px solid var(--action);background:var(--
 </style>
 
 <h1>EPS Tapered Insulation Layout <span class="tagnew">NEW — DESIGN</span></h1>
-<p class="note">Tool window mock-up for the EPS Tapered Insulation Layout tool. The user selects a footprint roof with shape editing (sloped to drain), and the tool fills the area with 1200×1200 mm EPS panels (100 mm base + stacked 35 mm layers) to match the required slope. All values below are sample data, not a real project.</p>
+<p class="note">Tool window mock-up for the EPS Tapered Insulation Layout tool. The user selects a footprint roof with shape editing (sloped to drain), and the tool fills the area with 1200×1200 mm stepped EPS roof panels (100 mm base + stacked 35 mm layers) to approximate the slope. All values below are sample data, not a real project.</p>
 
 <h2>1 · Main window: roof selected, settings configured <span class="tagnew">NEW</span></h2>
 <div class="frame">
 <div class="win">
   <div class="titlebar"><span>EPS Tapered Insulation Layout — v1.0.0</span><span class="wc">—□✕</span></div>
   <div class="header">
-    <div><div class="t">EPS Tapered Insulation Layout</div><div class="s">Fill a sloped roof with tapered EPS insulation panels</div></div>
+    <div><div class="t">EPS Tapered Insulation Layout</div><div class="s">Fill a sloped roof with stepped EPS insulation panels (roof elements)</div></div>
     <div class="badges"><span class="hb state">Ready</span><span class="hb">v1.0.0</span></div>
   </div>
   <div class="body">
@@ -151,14 +151,14 @@ tr.total td{font-weight:700;border-top:2px solid var(--action);background:var(--
       </div>
       <div class="row" style="margin-top:8px">
         <div class="field">
-          <div class="lbl">Base Layer Floor Type (100 mm) <span class="tagnew">required</span></div>
+          <div class="lbl">Base Layer Roof Type (100 mm) <span class="tagnew">required</span></div>
           <div class="combo">EPS 100mm Insulation Board</div>
         </div>
       </div>
       <div class="hint">Selected type thickness: 100 mm ✓</div>
       <div class="row" style="margin-top:8px">
         <div class="field">
-          <div class="lbl">Additional Layer Floor Type (35 mm) <span class="tagnew">required</span></div>
+          <div class="lbl">Additional Layer Roof Type (35 mm) <span class="tagnew">required</span></div>
           <div class="combo">EPS 35mm Insulation Board</div>
         </div>
       </div>
@@ -205,12 +205,12 @@ tr.total td{font-weight:700;border-top:2px solid var(--action);background:var(--
 </div>
 </div>
 
-<h2>2 · Validation: wrong floor type thickness <span class="tagnew">NEW</span></h2>
+<h2>2 · Validation: wrong roof type thickness <span class="tagnew">NEW</span></h2>
 <div class="frame">
 <div class="win" style="width:620px">
   <div class="titlebar"><span>EPS Tapered Insulation Layout — v1.0.0</span><span class="wc">—□✕</span></div>
   <div class="header">
-    <div><div class="t">EPS Tapered Insulation Layout</div><div class="s">Fill a sloped roof with tapered EPS insulation panels</div></div>
+    <div><div class="t">EPS Tapered Insulation Layout</div><div class="s">Fill a sloped roof with stepped EPS insulation panels (roof elements)</div></div>
     <div class="badges"><span class="hb" style="background:var(--warn)">Validation Error</span><span class="hb">v1.0.0</span></div>
   </div>
   <div class="body">
@@ -228,14 +228,14 @@ tr.total td{font-weight:700;border-top:2px solid var(--action);background:var(--
       </div>
       <div class="row" style="margin-top:8px">
         <div class="field">
-          <div class="lbl">Base Layer Floor Type (100 mm)</div>
+          <div class="lbl">Base Layer Roof Type (100 mm)</div>
           <div class="combo">Concrete Slab - 150mm</div>
         </div>
       </div>
-      <div class="warn-banner" style="margin-top:4px">⚠ Selected type thickness is 150 mm — expected 100 mm. Please select a 100 mm floor type.</div>
+      <div class="warn-banner" style="margin-top:4px">⚠ Selected type thickness is 150 mm — expected 100 mm. Please select a 100 mm roof type.</div>
       <div class="row" style="margin-top:8px">
         <div class="field">
-          <div class="lbl">Additional Layer Floor Type (35 mm)</div>
+          <div class="lbl">Additional Layer Roof Type (35 mm)</div>
           <div class="combo">EPS 35mm Insulation Board</div>
         </div>
       </div>
@@ -261,9 +261,9 @@ tr.total td{font-weight:700;border-top:2px solid var(--action);background:var(--
     <table>
       <tr><th>Metric</th><th style="text-align:right">Value</th></tr>
       <tr><td>Total panels placed</td><td class="n">1,105</td></tr>
-      <tr><td>Base layer (100 mm)</td><td class="n">358 panels</td></tr>
-      <tr><td>Additional layers (35 mm)</td><td class="n">747 panels</td></tr>
-      <tr><td>Cut (perimeter) panels</td><td class="n">151 panels</td></tr>
+      <tr><td>Base layer (100 mm)</td><td class="n">358 roof panels</td></tr>
+      <tr><td>Additional layers (35 mm)</td><td class="n">747 roof panels</td></tr>
+      <tr><td>Cut (perimeter) panels</td><td class="n">151 roof panels</td></tr>
       <tr><td>Max layers at highest point</td><td class="n">5</td></tr>
       <tr><td>Total area</td><td class="n">1,484.1 m²</td></tr>
       <tr><td>Total volume</td><td class="n">83.55 m³</td></tr>
