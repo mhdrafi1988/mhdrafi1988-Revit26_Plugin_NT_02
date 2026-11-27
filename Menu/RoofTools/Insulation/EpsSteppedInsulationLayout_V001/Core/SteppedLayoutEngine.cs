@@ -56,12 +56,19 @@ namespace Revit26_Plugin_Revised.EpsSteppedInsulationLayout.V001.Core
             }
 
             double slopeMmPerM = settings.SlopePercent * 10.0; // mm rise per metre run
+            double minCutM = settings.MinCutSizeMm / 1000.0;
+
+            // Apply grid offset along U axis
+            double offsetU = settings.GridOffsetM % boardM;
+            double gridUStart = uMin + offsetU;
+            if (gridUStart > uMin + boardM) gridUStart -= boardM;
 
             var cells = new List<InsulationCell>();
+            int skipped = 0;
             int serial = 1;
 
             int col = 0;
-            for (double cu = uMin; cu < uMax - 1e-6; cu += boardM)
+            for (double cu = gridUStart; cu < uMax - 1e-6; cu += boardM)
             {
                 col++;
                 int row = 0;
@@ -86,6 +93,17 @@ namespace Revit26_Plugin_Revised.EpsSteppedInsulationLayout.V001.Core
 
                     // Trim check: is any corner outside?
                     bool trimmed = corners.Any(c => !PointInPolygon(c, outlineMetres));
+
+                    // Min cut size filter: skip trimmed cells whose smallest dimension is below threshold
+                    if (trimmed && minCutM > 0)
+                    {
+                        var clipped = ClipToOutline(corners, outlineMetres);
+                        if (clipped.Count < 3 || MinDimension(clipped) < minCutM)
+                        {
+                            skipped++;
+                            continue;
+                        }
+                    }
 
                     // Distance from centre to nearest drain
                     double minDist = double.MaxValue;
@@ -151,6 +169,7 @@ namespace Revit26_Plugin_Revised.EpsSteppedInsulationLayout.V001.Core
                 TotalCells = cells.Count,
                 FullCells = cells.Count(c => !c.IsTrimmed),
                 TrimmedCells = cells.Count(c => c.IsTrimmed),
+                SkippedCells = skipped,
                 MaxStepLayers = maxSteps,
                 PanelsPerLayer = panelsPerLayer,
                 TotalPanels = totalPanels,
@@ -253,6 +272,31 @@ namespace Revit26_Plugin_Revised.EpsSteppedInsulationLayout.V001.Core
             }
 
             return subject;
+        }
+
+        /// <summary>Approximate smallest dimension of a convex polygon (min edge-to-opposite-vertex distance).</summary>
+        private static double MinDimension(IReadOnlyList<Vec2> poly)
+        {
+            double min = double.MaxValue;
+            int n = poly.Count;
+            for (int i = 0; i < n; i++)
+            {
+                Vec2 a = poly[i];
+                Vec2 b = poly[(i + 1) % n];
+                Vec2 edge = b - a;
+                double edgeLen = Math.Sqrt(edge.X * edge.X + edge.Y * edge.Y);
+                if (edgeLen < 1e-12) continue;
+                Vec2 normal = new Vec2(-edge.Y / edgeLen, edge.X / edgeLen);
+
+                double maxDist = 0;
+                for (int j = 0; j < n; j++)
+                {
+                    double d = Math.Abs(normal.Dot(poly[j] - a));
+                    if (d > maxDist) maxDist = d;
+                }
+                if (maxDist < min) min = maxDist;
+            }
+            return min;
         }
 
         private static Vec2 Intersect(Vec2 a, Vec2 b, Vec2 c, Vec2 d)

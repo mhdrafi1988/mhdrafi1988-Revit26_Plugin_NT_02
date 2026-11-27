@@ -75,10 +75,28 @@
         <TextBlock Text="Grid Alignment" FontWeight="SemiBold" FontSize="13"
                    Foreground="{DynamicResource HeaderFg}" Margin="0,0,0,4"/>
         <Border Background="{DynamicResource CardBg}" CornerRadius="4" Padding="10" Margin="0,0,0,12">
-            <ComboBox ItemsSource="{Binding EdgeOptions}"
-                      SelectedValue="{Binding SelectedEdgeIndex}"
-                      SelectedValuePath="Index"
-                      DisplayMemberPath="DisplayName"/>
+            <StackPanel>
+                <ComboBox ItemsSource="{Binding EdgeOptions}"
+                          SelectedValue="{Binding SelectedEdgeIndex}"
+                          SelectedValuePath="Index"
+                          DisplayMemberPath="DisplayName" Margin="0,0,0,8"/>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Offset (mm):" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,8,0"
+                               Foreground="{DynamicResource LabelFg}"/>
+                    <TextBox Text="{Binding GridOffsetText, UpdateSourceTrigger=PropertyChanged}"
+                             Grid.Column="1" Width="70" VerticalContentAlignment="Center"/>
+                    <TextBlock Text="Min cut (mm):" Grid.Column="2" VerticalAlignment="Center" Margin="12,0,8,0"
+                               Foreground="{DynamicResource LabelFg}"/>
+                    <TextBox Text="{Binding MinCutSizeText, UpdateSourceTrigger=PropertyChanged}"
+                             Grid.Column="3" Width="70" VerticalContentAlignment="Center"/>
+                </Grid>
+            </StackPanel>
         </Border>
 
         <!-- Roof types -->
@@ -132,10 +150,11 @@
                     <RowDefinition/>
                     <RowDefinition/>
                     <RowDefinition/>
+                    <RowDefinition/>
                 </Grid.RowDefinitions>
                 <TextBlock Text="Grid cells:" Grid.Row="0" Grid.Column="0" Margin="0,0,8,2" Foreground="{DynamicResource LabelFg}"/>
                 <TextBlock Grid.Row="0" Grid.Column="1" Foreground="{DynamicResource TextFg}">
-                    <Run Text="{Binding TotalCells, Mode=OneWay}"/> (<Run Text="{Binding FullCells, Mode=OneWay}"/> full, <Run Text="{Binding TrimmedCells, Mode=OneWay}"/> cut)
+                    <Run Text="{Binding TotalCells, Mode=OneWay}"/> (<Run Text="{Binding FullCells, Mode=OneWay}"/> full, <Run Text="{Binding TrimmedCells, Mode=OneWay}"/> cut, <Run Text="{Binding SkippedCells, Mode=OneWay}"/> skipped)
                 </TextBlock>
                 <TextBlock Text="Max layers:" Grid.Row="1" Grid.Column="0" Margin="0,0,8,2" Foreground="{DynamicResource LabelFg}"/>
                 <TextBlock Text="{Binding MaxLayers}" Grid.Row="1" Grid.Column="1" Foreground="{DynamicResource TextFg}"/>
@@ -155,6 +174,8 @@
 
         <!-- Buttons -->
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="Export CSV" Command="{Binding ExportCommand}" Margin="0,0,8,0"
+                    Padding="12,6" Style="{DynamicResource SecondaryButton}"/>
             <Button Content="Refresh" Command="{Binding RefreshCommand}" Margin="0,0,8,0"
                     Padding="12,6" Style="{DynamicResource SecondaryButton}"/>
             <Button Content="Run" Command="{Binding RunCommand}"

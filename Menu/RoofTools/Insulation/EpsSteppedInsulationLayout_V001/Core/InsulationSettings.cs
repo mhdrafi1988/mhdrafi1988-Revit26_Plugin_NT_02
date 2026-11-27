@@ -17,5 +17,11 @@ namespace Revit26_Plugin_Revised.EpsSteppedInsulationLayout.V001.Core
 
         /// <summary>Index of the outline edge the grid U-axis aligns to.</summary>
         public int AlignEdgeIndex { get; set; }
+
+        /// <summary>Grid origin offset along the alignment edge (metres). Shifts the entire grid.</summary>
+        public double GridOffsetM { get; set; }
+
+        /// <summary>Minimum trimmed cell dimension in mm. Cells smaller than this are skipped.</summary>
+        public double MinCutSizeMm { get; set; } = 100.0;
     }
 }
