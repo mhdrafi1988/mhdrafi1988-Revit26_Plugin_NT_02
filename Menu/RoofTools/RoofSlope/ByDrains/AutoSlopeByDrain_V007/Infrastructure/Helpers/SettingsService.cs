@@ -1,4 +1,4 @@
-// File: SettingsService.cs
+﻿// File: SettingsService.cs
 // Location: Infrastructure/Helpers/
 // NEW (V005). Neither AutoSlopeByPoint V018 nor AutoSlopeByDrain V004 had
 // settings persistence, despite it being a stated project convention —
@@ -31,6 +31,12 @@ namespace Revit26_Plugin_Revised.AutoSlopeByDrain.V007.Infrastructure.Helpers
         public bool VerifyElevationsAfterCommit { get; set; } = false;
         public string ExportFolderPath { get; set; } = string.Empty;
         public string SelectedSizeFilter { get; set; } = "All";
+
+        /// <summary>
+        /// NEW (7.4.0). Default drain selection rule: "SmallestPerShape" or "AllCircles".
+        /// Files saved by 7.3.0 have no value and get "SmallestPerShape"; unknown values fall back to it.
+        /// </summary>
+        public string DefaultDrainSelection { get; set; } = "SmallestPerShape";
 
         // ── Circle Markers (ported from AutoSlopeByPoint) ────────────────
         public CircleMarkerGroupSettings DrainMarkerGroup { get; set; } = new CircleMarkerGroupSettings { ColorName = "Blue" };

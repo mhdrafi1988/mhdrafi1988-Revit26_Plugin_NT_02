@@ -34,6 +34,10 @@ namespace Revit26_Plugin_Revised.SectionRoofDetailLines.V001.UI.ViewModels
             _isTicked = target.CanDraw;
         }
 
+        /// <summary>False while the section search hides this row. A hidden ticked row is still drawn.</summary>
+        [ObservableProperty]
+        private bool _isVisible = true;
+
         /// <summary>The section as read from the model.</summary>
         public SectionTarget Target { get; }
 

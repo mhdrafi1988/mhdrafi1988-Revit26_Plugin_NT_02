@@ -1,0 +1,514 @@
+<!--
+=======================================================
+File: BaseAndNearestLevelWindow.xaml  (Base and Nearest Level V001)
+ToolWindowShell layout:
+  HEADER  metric tiles (Listed / Checked / Ready / Up to Date / Has Value / Warnings / Blocked)
+  BODY    source toolbar with the Roofs / Floors / Walls ticks, the four target parameter slots,
+          the nearest-level rule, pre-checks a-g, the element grid grouped by category,
+          activity log (collapsed by default)
+  FOOTER  run summary, Write Parameters, Re-host to Nearest Level, Close
+Preview: Claude/Previews/BaseAndNearestLevel_V001_Window.html
+=======================================================
+-->
+<Window x:Class="Revit26_Plugin_Revised.BaseAndNearestLevel.V001.UI.Views.BaseAndNearestLevelWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:svc="clr-namespace:Revit26_Plugin_Revised.Shared.Services"
+        xmlns:converters="clr-namespace:Revit26_Plugin_Revised.Shared.Models"
+        xmlns:shell="clr-namespace:Revit26_Plugin_Revised.Shared.Controls"
+        xmlns:local="clr-namespace:Revit26_Plugin_Revised.BaseAndNearestLevel.V001.UI.Views"
+        Title="{Binding Source={x:Static svc:ToolCatalog.BaseAndNearestLevel}, Path=Title}"
+        Height="920" Width="1340" MinHeight="660" MinWidth="1000"
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource BrushSurfaceWindow}"
+        Closing="Window_Closing">
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/Revit26_Plugin_Revised;component/Shared/SharedStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+            <converters:LogLevelToColorConverter x:Key="LogLevelToColorConverter"/>
+            <converters:InverseBoolConverter x:Key="InverseBool"/>
+            <local:StatusBrushConverter x:Key="StatusBrush"/>
+            <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <shell:ToolWindowShell Title="Base and Nearest Level"
+                           Subtitle="{Binding Subtitle}"
+                           Version="{Binding Source={x:Static svc:ToolCatalog.BaseAndNearestLevel}, Path=Version, StringFormat=v{0}}"
+                           IsRunning="{Binding IsRunning}"
+                           Progress="{Binding Progress}"
+                           SummaryText="{Binding SummaryText}">
+
+        <!-- HEADER: metrics -->
+        <shell:ToolWindowShell.HeaderContent>
+            <UniformGrid Columns="7">
+                <Border Style="{StaticResource MetricTile}" Margin="0,0,3,0" Cursor="Hand"
+                        ToolTip="Click a tile to show only those rows; click it again to show all.">
+                    <Border.InputBindings>
+                        <MouseBinding MouseAction="LeftClick" Command="{Binding SetTileFilterCommand}" CommandParameter=""/>
+                    </Border.InputBindings>
+                    <StackPanel>
+                        <TextBlock Text="LISTED" Style="{StaticResource MetricTileLabel}"/>
+                        <TextBlock Text="{Binding ListedCount}" Style="{StaticResource MetricTileNumber}"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource MetricTileInfo}" Margin="3,0" Cursor="Hand">
+                    <Border.InputBindings>
+                        <MouseBinding MouseAction="LeftClick" Command="{Binding SetTileFilterCommand}" CommandParameter="Checked"/>
+                    </Border.InputBindings>
+                    <StackPanel>
+                        <TextBlock Text="CHECKED" Style="{StaticResource MetricTileLabelInfo}"/>
+                        <TextBlock Text="{Binding CheckedCount}" Style="{StaticResource MetricTileNumberInfo}"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource MetricTileSuccess}" Margin="3,0" Cursor="Hand">
+                    <Border.InputBindings>
+                        <MouseBinding MouseAction="LeftClick" Command="{Binding SetTileFilterCommand}" CommandParameter="Ready"/>
+                    </Border.InputBindings>
+                    <StackPanel>
+                        <TextBlock Text="READY" Style="{StaticResource MetricTileLabelSuccess}"/>
+                        <TextBlock Text="{Binding ReadyCount}" Style="{StaticResource MetricTileNumberSuccess}"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource MetricTile}" Margin="3,0" Cursor="Hand">
+                    <Border.InputBindings>
+                        <MouseBinding MouseAction="LeftClick" Command="{Binding SetTileFilterCommand}" CommandParameter="UpToDate"/>
+                    </Border.InputBindings>
+                    <StackPanel>
+                        <TextBlock Text="UP TO DATE" Style="{StaticResource MetricTileLabel}"/>
+                        <TextBlock Text="{Binding UpToDateCount}" Style="{StaticResource MetricTileNumber}"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource MetricTile}" Margin="3,0" Cursor="Hand"
+                        ToolTip="Elements whose target parameters already hold a different value.">
+                    <Border.InputBindings>
+                        <MouseBinding MouseAction="LeftClick" Command="{Binding SetTileFilterCommand}" CommandParameter="HasValue"/>
+                    </Border.InputBindings>
+                    <StackPanel>
+                        <TextBlock Text="HAS VALUE" Style="{StaticResource MetricTileLabel}"/>
+                        <TextBlock Text="{Binding HasValueCount}" Style="{StaticResource MetricTileNumber}"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource MetricTileWarning}" Margin="3,0" Cursor="Hand">
+                    <Border.InputBindings>
+                        <MouseBinding MouseAction="LeftClick" Command="{Binding SetTileFilterCommand}" CommandParameter="Warning"/>
+                    </Border.InputBindings>
+                    <StackPanel>
+                        <TextBlock Text="WARNINGS" Style="{StaticResource MetricTileLabelWarning}"/>
+                        <TextBlock Text="{Binding WarningCount}" Style="{StaticResource MetricTileNumberWarning}"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource MetricTileDanger}" Margin="3,0,0,0" Cursor="Hand">
+                    <Border.InputBindings>
+                        <MouseBinding MouseAction="LeftClick" Command="{Binding SetTileFilterCommand}" CommandParameter="Blocked"/>
+                    </Border.InputBindings>
+                    <StackPanel>
+                        <TextBlock Text="BLOCKED" Style="{StaticResource MetricTileLabelDanger}"/>
+                        <TextBlock Text="{Binding BlockedCount}" Style="{StaticResource MetricTileNumberDanger}"/>
+                    </StackPanel>
+                </Border>
+            </UniformGrid>
+        </shell:ToolWindowShell.HeaderContent>
+
+        <!-- BODY -->
+        <shell:ToolWindowShell.BodyContent>
+            <StackPanel Margin="0,0,0,8">
+
+                <!-- Source + categories -->
+                <Border Style="{StaticResource SectionCard}" Margin="0,0,0,8">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                            <Button Content="Load Selection" Style="{StaticResource OutlineButton}" Margin="0,0,6,0"
+                                    Command="{Binding LoadSelectionCommand}" IsEnabled="{Binding IsRunning, Converter={StaticResource InverseBool}}"/>
+                            <Button Content="Load Active View" Style="{StaticResource OutlineButton}" Margin="0,0,6,0"
+                                    Command="{Binding LoadActiveViewCommand}" IsEnabled="{Binding IsRunning, Converter={StaticResource InverseBool}}"/>
+                            <Button Content="Load All Model Elements" Style="{StaticResource OutlineButton}" Margin="0,0,6,0"
+                                    Command="{Binding LoadAllCommand}" IsEnabled="{Binding IsRunning, Converter={StaticResource InverseBool}}"/>
+                            <Button Content="Read Levels" Style="{StaticResource PrimaryButton}"
+                                    Command="{Binding ReadLevelsCommand}"/>
+                        </StackPanel>
+
+                        <!-- Categories (1.1.0): every level-based category the load found, with per-tier counts. -->
+                        <StackPanel Margin="0,0,0,6">
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                <TextBlock Text="Categories" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                <Button Content="Roofs, Floors, Walls" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,4,0"
+                                        Command="{Binding PresetDefaultCommand}" ToolTip="The default: the same three categories as version 1.0.0."/>
+                                <Button Content="All level-based" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,4,0"
+                                        Command="{Binding PresetAllCommand}"/>
+                                <Button Content="Structure" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,4,0"
+                                        Command="{Binding PresetStructureCommand}"/>
+                                <Button Content="MEP" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,4,0"
+                                        Command="{Binding PresetMepCommand}"/>
+                                <Button Content="None" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,12,0"
+                                        Command="{Binding PresetNoneCommand}"/>
+                                <TextBox Style="{StaticResource StyledTextInput}" Width="150" VerticalAlignment="Center"
+                                         Text="{Binding CategorySearch, UpdateSourceTrigger=PropertyChanged}"
+                                         ToolTip="Filter the category list by name."/>
+                                <TextBlock Text="{Binding CategorySummary}" Style="{StaticResource HintText}"
+                                           VerticalAlignment="Center" Margin="10,0,0,0"/>
+                            </StackPanel>
+                            <DataGrid Style="{StaticResource StandardDataGrid}" ItemsSource="{Binding CategoriesView}"
+                                      MaxHeight="150" HeadersVisibility="Column" AutoGenerateColumns="False">
+                                <DataGrid.Columns>
+                                    <DataGridCheckBoxColumn Header="" Width="30"
+                                                            Binding="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}"/>
+                                    <DataGridTextColumn Header="Category" Binding="{Binding Name}" Width="*" IsReadOnly="True"/>
+                                    <DataGridTemplateColumn Header="Elements" Width="150" SortMemberPath="Total">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding CountText}" ToolTip="{Binding CountTip}"
+                                                           FontFamily="Consolas" FontSize="11.5"/>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                            <TextBlock Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="0,4,0,0"
+                                       Text="T1 = level + an offset from it: all four parameters, and can be re-hosted. T2 = offset measured from the host. T3 = level only. T2 and T3 get their level names with no offsets and are never re-hosted. Host model only — linked elements are not listed."/>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="Source" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                            <Border Style="{StaticResource BadgePill}">
+                                <TextBlock Text="{Binding SourceText}" FontSize="11" FontWeight="SemiBold"
+                                           Foreground="{StaticResource BrushNavyPrimary}"/>
+                            </Border>
+                            <TextBlock Text="{Binding LevelSummary}" Style="{StaticResource HintText}"
+                                       VerticalAlignment="Center" Margin="10,0,0,0"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Target parameters + nearest level -->
+                <Grid Margin="0,0,0,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="2*"/>
+                        <ColumnDefinition Width="8"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Four slots -->
+                    <Border Grid.Column="0" Style="{StaticResource SectionCard}">
+                        <StackPanel>
+                            <Expander IsExpanded="{Binding TargetExpanded}">
+                                <Expander.Header>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="Target parameters" Style="{StaticResource SectionTitle}" VerticalAlignment="Center"/>
+                                        <TextBlock Text="4 slots · names are Text, offsets are Length" Style="{StaticResource HintText}"
+                                                   VerticalAlignment="Center" Margin="10,0,0,0"/>
+                                    </StackPanel>
+                                </Expander.Header>
+                                <StackPanel Margin="0,8,0,0">
+                                    <ItemsControl ItemsSource="{Binding Slots}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Grid Margin="0,0,0,8">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="150"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <Grid.RowDefinitions>
+                                                        <RowDefinition Height="Auto"/>
+                                                        <RowDefinition Height="Auto"/>
+                                                    </Grid.RowDefinitions>
+
+                                                    <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                                        <Border Width="18" Height="18" CornerRadius="9" Margin="0,0,6,0"
+                                                                Background="{StaticResource BrushNavyPrimary}">
+                                                            <TextBlock Text="{Binding Number}" FontSize="10" FontWeight="Bold"
+                                                                       Foreground="{StaticResource BrushTextOnDark}"
+                                                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        </Border>
+                                                        <TextBlock Text="{Binding Label}" Style="{StaticResource FieldLabel}" VerticalAlignment="Center"/>
+                                                    </StackPanel>
+
+                                                    <ComboBox Grid.Row="0" Grid.Column="1" Style="{StaticResource StandardComboBox}"
+                                                              IsEditable="True" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
+                                                              ItemsSource="{Binding Options}" DisplayMemberPath="Name"/>
+
+                                                    <StackPanel Grid.Row="0" Grid.Column="2" Orientation="Horizontal" Margin="6,0,0,0">
+                                                        <Border Style="{StaticResource BadgePill}" Padding="6,1"
+                                                                Background="{Binding State, Converter={StaticResource StatusBrush}, ConverterParameter=Background}"
+                                                                BorderBrush="{Binding State, Converter={StaticResource StatusBrush}, ConverterParameter=Border}"
+                                                                BorderThickness="1">
+                                                            <TextBlock Text="{Binding TypeName}" FontSize="10.5" FontWeight="SemiBold"
+                                                                       Foreground="{Binding State, Converter={StaticResource StatusBrush}}"/>
+                                                        </Border>
+                                                        <Button Content="New…" Style="{StaticResource SmallSecondaryButton}" Margin="6,0,0,0"
+                                                                Command="{Binding NewParameterCommand}"
+                                                                ToolTip="Define a new shared instance parameter for this slot. It is created when you write."/>
+                                                    </StackPanel>
+
+                                                    <TextBlock Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Text="{Binding Kind}"
+                                                               Style="{StaticResource HintText}" Margin="0,2,0,0" TextWrapping="Wrap"/>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+
+                                    <Border Style="{StaticResource SeparatorLine}" Margin="0,4,0,8"/>
+                                    <TextBlock Text="Existing values" Style="{StaticResource FieldLabel}" Margin="0,0,0,2"/>
+                                    <RadioButton Content="Skip — keep what is already there" IsChecked="{Binding SkipExisting}" Margin="0,2"/>
+                                    <RadioButton Content="Rewrite — replace different values" IsChecked="{Binding RewriteExisting}" Margin="0,2"/>
+                                    <TextBlock Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="0,4,0,0"
+                                               Text="The default for every row; change single rows in the grid's “If value exists” column. Writing asks before it replaces anything."/>
+                                </StackPanel>
+                            </Expander>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Nearest level rule -->
+                    <Border Grid.Column="2" Style="{StaticResource SectionCard}">
+                        <Expander IsExpanded="{Binding NearestExpanded}">
+                            <Expander.Header>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="Nearest level" Style="{StaticResource SectionTitle}" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{Binding RuleLabel}" Style="{StaticResource HintText}"
+                                               VerticalAlignment="Center" Margin="10,0,0,0"/>
+                                </StackPanel>
+                            </Expander.Header>
+                            <StackPanel Margin="0,8,0,0">
+                                <TextBlock Text="Rule" Style="{StaticResource FieldLabel}" Margin="0,0,0,2"/>
+                                <RadioButton Content="Closest in either direction" IsChecked="{Binding RuleEitherWay}" Margin="0,2"/>
+                                <RadioButton Content="Closest at or below" IsChecked="{Binding RuleAtOrBelow}" Margin="0,2"/>
+                                <RadioButton Content="Closest at or above" IsChecked="{Binding RuleAtOrAbove}" Margin="0,2"/>
+                                <TextBlock Text="Ties go to the lower level." Style="{StaticResource HintText}" Margin="0,2,0,0"/>
+
+                                <Border Style="{StaticResource SeparatorLine}" Margin="0,8"/>
+                                <TextBlock Text="Candidate levels" Style="{StaticResource FieldLabel}" Margin="0,0,0,2"/>
+                                <CheckBox Content="Building-storey levels only" IsChecked="{Binding BuildingStoreysOnly}" Margin="0,2"/>
+                                <TextBlock Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="0,2,0,0"
+                                           Text="Leaves out reference and T.O.S. levels. Ignored when no level is marked as a building storey."/>
+
+                                <Border Style="{StaticResource SeparatorLine}" Margin="0,8"/>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="Ignore under" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                    <TextBox Style="{StaticResource StyledTextInput}" Width="64" VerticalAlignment="Center"
+                                             Text="{Binding ToleranceMm, UpdateSourceTrigger=LostFocus, StringFormat={}{0:0.##}}"/>
+                                    <TextBlock Text="mm" Style="{StaticResource HintText}" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                                </StackPanel>
+
+                                <Border Background="{StaticResource BrushSystemSecondaryBackground}" CornerRadius="4" Padding="8,6" Margin="0,8,0,0">
+                                    <StackPanel>
+                                        <TextBlock Text="Z = base level elevation + base offset" FontFamily="Consolas" FontSize="11"/>
+                                        <TextBlock Text="nearest = min |level elevation − Z|" FontFamily="Consolas" FontSize="11"/>
+                                        <TextBlock Text="nearest offset = Z − nearest elevation" FontFamily="Consolas" FontSize="11"/>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </Expander>
+                    </Border>
+                </Grid>
+
+                <!-- Pre-checks -->
+                <Border Style="{StaticResource SectionCard}" Margin="0,0,0,8">
+                    <Expander IsExpanded="{Binding ChecksExpanded}">
+                        <Expander.Header>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="Pre-checks" Style="{StaticResource SectionTitle}" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding ChecksSummary}" FontWeight="SemiBold" FontSize="11.5"
+                                           VerticalAlignment="Center" Margin="10,0,0,0"/>
+                            </StackPanel>
+                        </Expander.Header>
+                        <StackPanel Margin="0,8,0,0">
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                <Button Content="Re-check" Style="{StaticResource SmallSecondaryButton}" Command="{Binding RecheckCommand}"
+                                        IsEnabled="{Binding IsRunning, Converter={StaticResource InverseBool}}"/>
+                                <TextBlock Style="{StaticResource HintText}" VerticalAlignment="Center" Margin="8,0,0,0"
+                                           Text="Run before any change; refreshed when the parameters, the rule or the ticked rows change."/>
+                            </StackPanel>
+                            <ItemsControl ItemsSource="{Binding Checks}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Margin="0,2">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="170"/>
+                                                <ColumnDefinition Width="86"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="{Binding Title}" FontWeight="SemiBold" FontSize="11.5"
+                                                       VerticalAlignment="Top" TextWrapping="Wrap"/>
+                                            <Border Grid.Column="1" Style="{StaticResource BadgePill}" HorizontalAlignment="Left" Padding="6,1"
+                                                    Background="{Binding Result, Converter={StaticResource StatusBrush}, ConverterParameter=Background}"
+                                                    BorderBrush="{Binding Result, Converter={StaticResource StatusBrush}, ConverterParameter=Border}"
+                                                    BorderThickness="1" VerticalAlignment="Top">
+                                                <TextBlock Text="{Binding Result}" FontSize="10.5" FontWeight="SemiBold"
+                                                           Foreground="{Binding Result, Converter={StaticResource StatusBrush}}"/>
+                                            </Border>
+                                            <TextBlock Grid.Column="2" Text="{Binding Detail}" TextWrapping="Wrap" FontSize="11.5"
+                                                       Margin="6,0,0,0" VerticalAlignment="Top"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Expander>
+                </Border>
+
+                <!-- Element grid -->
+                <Border Style="{StaticResource SectionCard}" Margin="0,0,0,8">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                            <TextBlock Text="Elements" Style="{StaticResource SectionTitle}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <TextBox Style="{StaticResource StyledTextInput}" Width="180" VerticalAlignment="Center"
+                                     Text="{Binding FilterText, UpdateSourceTrigger=PropertyChanged}"
+                                     ToolTip="Filter by id, family, type or level name."/>
+                            <Button Content="Changed only" Style="{StaticResource SmallSecondaryButton}" Margin="6,0,0,0"
+                                    Command="{Binding SetTileFilterCommand}" CommandParameter="Changed"/>
+                            <Button Content="Tick all" Style="{StaticResource SmallSecondaryButton}" Margin="12,0,4,0" Command="{Binding TickAllCommand}"/>
+                            <Button Content="Untick all" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,12,0" Command="{Binding UntickAllCommand}"/>
+                            <TextBlock Text="If value exists" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                            <Button Content="Skip" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,4,0"
+                                    Command="{Binding SetChoiceCommand}" CommandParameter="Skip"/>
+                            <Button Content="Rewrite" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,4,0"
+                                    Command="{Binding SetChoiceCommand}" CommandParameter="Rewrite"/>
+                            <Button Content="Reset" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,12,0"
+                                    Command="{Binding SetChoiceCommand}" CommandParameter="Default"/>
+                            <Button Content="Select in Revit" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,4,0" Command="{Binding SelectInRevitCommand}"/>
+                            <Button Content="Zoom to" Style="{StaticResource SmallSecondaryButton}" Command="{Binding ZoomToCommand}"/>
+                        </StackPanel>
+
+                        <DataGrid x:Name="ElementsGrid" Style="{StaticResource StandardDataGrid}"
+                                  ItemsSource="{Binding RowsView}" MaxHeight="420"
+                                  SelectionMode="Extended" SelectionChanged="ElementsGrid_SelectionChanged">
+                            <DataGrid.GroupStyle>
+                                <GroupStyle>
+                                    <GroupStyle.ContainerStyle>
+                                        <Style TargetType="GroupItem">
+                                            <Setter Property="Template">
+                                                <Setter.Value>
+                                                    <ControlTemplate TargetType="GroupItem">
+                                                        <Expander IsExpanded="True" Background="{StaticResource BrushSystemTertiaryBackground}">
+                                                            <Expander.Header>
+                                                                <StackPanel Orientation="Horizontal">
+                                                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold"
+                                                                               Foreground="{StaticResource BrushNavyPrimary}"/>
+                                                                    <TextBlock Text="{Binding ItemCount, StringFormat= · {0}}" FontWeight="SemiBold"
+                                                                               Foreground="{StaticResource BrushTextSecondary}"/>
+                                                                </StackPanel>
+                                                            </Expander.Header>
+                                                            <ItemsPresenter/>
+                                                        </Expander>
+                                                    </ControlTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </Style>
+                                    </GroupStyle.ContainerStyle>
+                                </GroupStyle>
+                            </DataGrid.GroupStyle>
+                            <DataGrid.Columns>
+                                <DataGridCheckBoxColumn Header="" Binding="{Binding IsChecked, UpdateSourceTrigger=PropertyChanged}" Width="30"/>
+                                <DataGridTextColumn Header="Id" Binding="{Binding Id}" Width="70" IsReadOnly="True"/>
+                                <DataGridTextColumn Header="Family &amp; Type" Binding="{Binding FamilyAndType}" Width="*" IsReadOnly="True"/>
+                                <DataGridTemplateColumn Header="" Width="24" SortMemberPath="HasFlag">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="◆" FontWeight="Bold" HorizontalAlignment="Center"
+                                                       Foreground="{StaticResource BrushStatusWarn}"
+                                                       Visibility="{Binding HasFlag, Converter={StaticResource BoolToVis}}"
+                                                       ToolTip="{Binding FlagTip}"/>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTextColumn Header="Tier" Binding="{Binding TierLabel}" Width="54" IsReadOnly="True"/>
+                                <DataGridTextColumn Header="Base level" Binding="{Binding BaseLevel}" Width="110" IsReadOnly="True"/>
+                                <DataGridTextColumn Header="Base offset" Binding="{Binding BaseOffset}" Width="80" IsReadOnly="True"/>
+                                <DataGridTextColumn Header="Elevation Z" Binding="{Binding Elevation}" Width="85" IsReadOnly="True"/>
+                                <DataGridTextColumn Header="Nearest level" Binding="{Binding NearestLevel}" Width="110" IsReadOnly="True"/>
+                                <DataGridTextColumn Header="Nearest offset" Binding="{Binding NearestOffset}" Width="90" IsReadOnly="True"/>
+                                <DataGridTemplateColumn Header="Status" Width="200" SortMemberPath="State">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Border Style="{StaticResource BadgePill}" HorizontalAlignment="Left" Padding="6,1"
+                                                    Background="{Binding State, Converter={StaticResource StatusBrush}, ConverterParameter=Background}"
+                                                    BorderBrush="{Binding State, Converter={StaticResource StatusBrush}, ConverterParameter=Border}"
+                                                    BorderThickness="1" ToolTip="{Binding SourceTip}">
+                                                <TextBlock Text="{Binding Status}" FontSize="10.5" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
+                                                           Foreground="{Binding State, Converter={StaticResource StatusBrush}}"/>
+                                            </Border>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridComboBoxColumn Header="If value exists" Width="110"
+                                                        SelectedItemBinding="{Binding Choice, UpdateSourceTrigger=PropertyChanged}">
+                                    <DataGridComboBoxColumn.ElementStyle>
+                                        <Style TargetType="ComboBox">
+                                            <Setter Property="ItemsSource" Value="{Binding Choices}"/>
+                                        </Style>
+                                    </DataGridComboBoxColumn.ElementStyle>
+                                    <DataGridComboBoxColumn.EditingElementStyle>
+                                        <Style TargetType="ComboBox">
+                                            <Setter Property="ItemsSource" Value="{Binding Choices}"/>
+                                        </Style>
+                                    </DataGridComboBoxColumn.EditingElementStyle>
+                                </DataGridComboBoxColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+
+                        <TextBlock Style="{StaticResource HintText}" TextWrapping="Wrap" Margin="0,6,0,0"
+                                   Text="◆ marks an element that Re-host will skip — hover for the reason. It does not affect writing the four parameters, which covers every ready row."/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Activity log -->
+                <Border Style="{StaticResource LogBackground}">
+                    <StackPanel>
+                        <Expander IsExpanded="{Binding LogExpanded}" Style="{StaticResource LogHeaderToggle}">
+                            <Expander.Header>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="Activity Log" FontWeight="SemiBold" FontSize="11.5"
+                                               Foreground="{StaticResource BrushLogText}"/>
+                                    <TextBlock Text="{Binding LogEntries.Count, StringFormat= · {0} lines}" FontSize="10.5"
+                                               Foreground="{StaticResource BrushLogTextDim}" Margin="6,0,0,0"/>
+                                </StackPanel>
+                            </Expander.Header>
+                            <StackPanel Margin="0,6,0,0">
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                    <Button Content="Copy all" Style="{StaticResource DarkGhostButton}" Margin="0,0,4,0" Command="{Binding CopyAllLogCommand}"/>
+                                    <Button Content="Copy selected" Style="{StaticResource DarkGhostButton}" Margin="0,0,4,0" Command="{Binding CopySelectedLogCommand}"/>
+                                    <Button Content="Clear" Style="{StaticResource DarkGhostButton}" Command="{Binding ClearLogCommand}"/>
+                                </StackPanel>
+                                <ListBox x:Name="LogListBox" ItemsSource="{Binding LogEntries}" MaxHeight="200"
+                                         Background="Transparent" BorderThickness="0" SelectionMode="Extended"
+                                         SelectionChanged="LogListBox_SelectionChanged">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding}" FontFamily="Consolas" FontSize="11.5" TextWrapping="Wrap"
+                                                       Foreground="{Binding Level, Converter={StaticResource LogLevelToColorConverter}}"/>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                            </StackPanel>
+                        </Expander>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </shell:ToolWindowShell.BodyContent>
+
+        <!-- FOOTER -->
+        <shell:ToolWindowShell.FooterContent>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="{Binding RunSummary}" VerticalAlignment="Center"
+                           FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,0,12,0"/>
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Button Content="Clear" Style="{StaticResource SecondaryButton}" Margin="0,0,6,0" Command="{Binding ClearCommand}"/>
+                    <Button Content="Write Parameters" Style="{StaticResource RunButton}" MinWidth="150" Margin="0,0,6,0"
+                            Command="{Binding WriteParametersCommand}"/>
+                    <Button Content="Re-host to Nearest Level…" Style="{StaticResource SecondaryButton}" Margin="0,0,6,0"
+                            Command="{Binding RehostCommand}"
+                            ToolTip="Changes the model: sets each element's level to its nearest level and its offset to the nearest offset, so nothing moves."/>
+                    <Button Content="Close" Style="{StaticResource SecondaryButton}" Click="CloseButton_Click"/>
+                </StackPanel>
+            </Grid>
+        </shell:ToolWindowShell.FooterContent>
+    </shell:ToolWindowShell>
+</Window>

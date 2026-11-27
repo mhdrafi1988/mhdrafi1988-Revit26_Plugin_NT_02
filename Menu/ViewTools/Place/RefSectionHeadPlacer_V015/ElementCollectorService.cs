@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Autodesk.Revit.DB;
@@ -14,6 +15,7 @@ namespace Revit26_Plugin_Revised.RefSectionHeadPlacer.V015.Core.Services
     ///   • Roof type names (host)   -> "Roof type" filter popover (row 3)
     ///   • Element types            -> Grid 2:
     ///         Roofs = HOST document, scoped to selected plan views AND ticked Roof Types
+    ///           (collected once per scan by CollectRoofsInViews — V015 15.3.0)
     ///         Doors / Walls / Plumbing Fixtures / Plumbing Equipment = EACH selected
     ///           linked file, scoped to a user-entered buffer (mm) around a qualifying
     ///           host roof's bounding box. Grouped PER LINK — two links both having
@@ -22,8 +24,6 @@ namespace Revit26_Plugin_Revised.RefSectionHeadPlacer.V015.Core.Services
     /// </summary>
     public class ElementCollectorService
     {
-        private static readonly BuiltInCategory[] HostCategories = { BuiltInCategory.OST_Roofs };
-
         private static readonly BuiltInCategory[] LinkCategories =
         {
             BuiltInCategory.OST_Doors,
@@ -74,66 +74,50 @@ namespace Revit26_Plugin_Revised.RefSectionHeadPlacer.V015.Core.Services
                 .ToList();
         }
 
-        /// <summary>Distinct roof type names among roofs found in the selected plan views —
-        /// populates the Roof Type filter popover. Host-only; independent of links.</summary>
-        public List<string> GetRoofTypeNames(IEnumerable<PlanViewRow> selectedViews)
+        /// <summary>
+        /// V015 (15.3.0) PERF: collects the distinct host roofs visible in the selected plan
+        /// views ONCE per scan. Before 15.3.0 the same view-scoped search ran three times per
+        /// view (type names, raw count, Grid 2 rows); view-scoped collectors are slow because
+        /// Revit evaluates visibility, so that tripled the scan time on models with many views.
+        /// Feed the result to <see cref="GetRoofTypeNames"/> and <see cref="CollectElementTypes"/>.
+        /// </summary>
+        public List<Element> CollectRoofsInViews(IEnumerable<PlanViewRow> selectedViews)
         {
             var byId = new Dictionary<ElementId, Element>();
             foreach (var viewRow in selectedViews)
                 foreach (var e in Collect(_hostDoc, viewRow.RevitView.Id, BuiltInCategory.OST_Roofs))
                     byId[e.Id] = e;
-
-            return byId.Values.Select(GetTypeName).Distinct().OrderBy(n => n).ToList();
+            return byId.Values.ToList();
         }
 
-        /// <summary>Raw count of distinct roof elements in the selected plan views, BEFORE the
-        /// Roof Type filter is applied. Diagnostic-only — lets the ViewModel log whether zero
-        /// roofs is a "no roofs in this view" problem vs. a "filtered out" problem.</summary>
-        public int CountRoofsInViews(IEnumerable<PlanViewRow> selectedViews)
-        {
-            var byId = new Dictionary<ElementId, Element>();
-            foreach (var viewRow in selectedViews)
-                foreach (var e in Collect(_hostDoc, viewRow.RevitView.Id, BuiltInCategory.OST_Roofs))
-                    byId[e.Id] = e;
-            return byId.Count;
-        }
+        /// <summary>Distinct roof type names among the given roofs (from
+        /// <see cref="CollectRoofsInViews"/>) — populates the Roof Type filter popover.</summary>
+        public List<string> GetRoofTypeNames(IEnumerable<Element> roofsInViews) =>
+            roofsInViews.Select(GetTypeName).Distinct().OrderBy(n => n).ToList();
 
         /// <summary>
-        /// Builds Grid 2. Host roofs are scoped to the selected plan views AND to the
-        /// ticked Roof Types (allowedRoofTypeNames) — unticked roof types are excluded
-        /// from both the Roofs rows and the boundary-buffer anchor set. For EACH checked
-        /// link, doors/plumbing/walls/plumbing equipment within bufferMm of a qualifying
-        /// roof's bounding box are collected into that link's OWN rows (never merged).
+        /// Builds Grid 2. Host roofs (already scoped to the selected plan views by
+        /// <see cref="CollectRoofsInViews"/>) are narrowed to the ticked Roof Types
+        /// (allowedRoofTypeNames) — unticked roof types are excluded from both the Roofs rows
+        /// and the boundary-buffer anchor set. For EACH checked link, doors/plumbing/walls/
+        /// plumbing equipment within bufferMm of a qualifying roof's bounding box are collected
+        /// into that link's OWN rows (never merged).
         /// </summary>
         public List<ElementTypeRow> CollectElementTypes(
-            IEnumerable<PlanViewRow> selectedViews,
+            IReadOnlyCollection<Element> roofsInViews,
             IEnumerable<LinkRow> selectedLinks,
             IReadOnlyCollection<string> allowedRoofTypeNames,
             double bufferMm)
         {
             var rows = new List<ElementTypeRow>();
-            var identity = Transform.Identity;
             var bufferFeet = UnitUtils.ConvertToInternalUnits(bufferMm, UnitTypeId.Millimeters);
 
-            // ── Host categories (roofs), scoped by selected views + ticked roof types ──
-            var hostRoofElements = new List<Element>();
-
-            foreach (var bic in HostCategories)
-            {
-                // De-dupe elements that appear in more than one selected view.
-                var byId = new Dictionary<ElementId, Element>();
-                foreach (var viewRow in selectedViews)
-                    foreach (var e in Collect(_hostDoc, viewRow.RevitView.Id, bic))
-                        byId[e.Id] = e;
-
-                var elems = byId.Values.ToList();
-                if (bic == BuiltInCategory.OST_Roofs)
-                {
-                    elems = elems.Where(e => allowedRoofTypeNames.Contains(GetTypeName(e))).ToList();
-                    hostRoofElements.AddRange(elems);
-                }
-                rows.AddRange(GroupToRows(elems, bic, HostSourceLabel, _hostDoc, identity, false));
-            }
+            // ── Host roofs, narrowed by ticked roof types ──
+            var hostRoofElements = roofsInViews
+                .Where(e => allowedRoofTypeNames.Contains(GetTypeName(e)))
+                .ToList();
+            rows.AddRange(GroupToRows(hostRoofElements, BuiltInCategory.OST_Roofs, HostSourceLabel,
+                _hostDoc, Transform.Identity, false));
 
             if (hostRoofElements.Count == 0)
                 return SortRows(rows);
@@ -147,6 +131,9 @@ namespace Revit26_Plugin_Revised.RefSectionHeadPlacer.V015.Core.Services
                     Max: b.Max + new XYZ(bufferFeet, bufferFeet, bufferFeet)))
                 .ToList();
 
+            if (expandedBoxes.Count == 0)
+                return SortRows(rows);
+
             // ── Each selected link independently — never merged across links ──
             foreach (var linkRow in selectedLinks)
             {
@@ -154,10 +141,15 @@ namespace Revit26_Plugin_Revised.RefSectionHeadPlacer.V015.Core.Services
 
                 var linkDoc = linkRow.LinkDocument;
                 var toHost = linkRow.Instance.GetTotalTransform();
+                var prefilter = BuildLinkPrefilter(expandedBoxes, toHost.Inverse);
 
                 foreach (var bic in LinkCategories)
                 {
+                    // Revit's bounding-box quick filter discards far-away elements before
+                    // they are loaded; the exact representative-point test below still
+                    // decides membership, so results match the pre-15.3.0 rule.
                     var inScope = Collect(linkDoc, null, bic)
+                        .WherePasses(prefilter)
                         .Where(e =>
                         {
                             var p = GetRepresentativePointInHost(e, toHost);
@@ -170,6 +162,42 @@ namespace Revit26_Plugin_Revised.RefSectionHeadPlacer.V015.Core.Services
             }
 
             return SortRows(rows);
+        }
+
+        /// <summary>
+        /// Margin added around each roof box in the link prefilter. An element passes the
+        /// exact test when its location point (or curve midpoint) is in a roof box, and that
+        /// point normally lies inside the element's own bounding box; the margin covers families
+        /// whose insertion point sits a little outside their geometry, so the quick filter never
+        /// drops an element the exact test would keep.
+        /// </summary>
+        private const double PrefilterMarginFeet = 3.0; // ≈ 914 mm
+
+        /// <summary>
+        /// One <see cref="BoundingBoxIntersectsFilter"/> per expanded roof box, moved into the
+        /// link's coordinates (all 8 corners transformed, then re-boxed, so rotated links stay
+        /// covered), OR-ed together.
+        /// </summary>
+        private static ElementFilter BuildLinkPrefilter(
+            IReadOnlyList<(XYZ Min, XYZ Max)> hostBoxes, Transform hostToLink)
+        {
+            var filters = new List<ElementFilter>(hostBoxes.Count);
+            foreach (var (min, max) in hostBoxes)
+            {
+                double x0 = double.MaxValue, y0 = double.MaxValue, z0 = double.MaxValue;
+                double x1 = double.MinValue, y1 = double.MinValue, z1 = double.MinValue;
+                foreach (var x in new[] { min.X, max.X })
+                    foreach (var y in new[] { min.Y, max.Y })
+                        foreach (var z in new[] { min.Z, max.Z })
+                        {
+                            var p = hostToLink.OfPoint(new XYZ(x, y, z));
+                            x0 = Math.Min(x0, p.X); y0 = Math.Min(y0, p.Y); z0 = Math.Min(z0, p.Z);
+                            x1 = Math.Max(x1, p.X); y1 = Math.Max(y1, p.Y); z1 = Math.Max(z1, p.Z);
+                        }
+                var outline = new Outline(new XYZ(x0, y0, z0), new XYZ(x1, y1, z1));
+                filters.Add(new BoundingBoxIntersectsFilter(outline, PrefilterMarginFeet));
+            }
+            return filters.Count == 1 ? filters[0] : new LogicalOrFilter(filters);
         }
 
         // ── helpers ───────────────────────────────────────────────────

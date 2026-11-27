@@ -171,10 +171,24 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                     "each a reference section to a drafting view or a callout detail view. Excel report; one Undo step.")
             };
 
-            // Waterproofing panel (plugin 7.11.0): Wet Area Waterproofing on its own, as a full-size button.
-            // Its later parts (plans, detail sections, sheets, print set) open from the same window.
+            var wetAreaWaterproofingV002 = new PushButtonData("Btn_WetAreaWaterproofing_V002", "Wet Area Waterproofing V002", assemblyPath, "Revit26_Plugin_Revised.WetAreaWaterproofing.V002.Commands.WetAreaWaterproofingCommand")
+            {
+                Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SheetTools.WetAreaWaterproofing_16.png"),
+                LargeImage = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SheetTools.WetAreaWaterproofing_32.png"),
+                ToolTip = ToolCatalog.WetAreaWaterproofingV002.Tip(
+                    "Six steps with a Review table of every roof, plan and section before anything is created. Drafting-view search: type a view name, title on sheet, sheet number, sheet name or bubble number " +
+                    "(A-501/3 = sheet A-501, bubble 3) in \"Points to\" and pick from the list, or open \"Assign drafting views…\" " +
+                    "to assign every target from one searchable table. Each target can be a Ref. Section, Callout, Section or Ref. Callout.")
+            };
+
+            // Waterproofing panel (plugin 7.11.0): Wet Area Waterproofing, as a full-size button.
+            // Plugin 7.30.0: a large pulldown holding V002 (highest version first, its icon on the button) and V001.
             RibbonPanel waterproofingPanel = app.CreateRibbonPanel(tabName, "Waterproofing");
-            RibbonLayoutHelper.AddStackedButtons(waterproofingPanel, new List<RibbonItemData> { wetAreaWaterproofingV001 });
+            PulldownButtonData wetAreaPulldown = RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_WetAreaWaterproofing", "Wet Area\nWaterproofing", wetAreaWaterproofingV002);
+            wetAreaPulldown.LargeImage = wetAreaWaterproofingV002.LargeImage;
+            var wetAreaItem = waterproofingPanel.AddItem(wetAreaPulldown);
+            RibbonLayoutHelper.WirePulldownButton(new List<RibbonItem> { wetAreaItem }, "Pulldown_WetAreaWaterproofing",
+                wetAreaWaterproofingV002, wetAreaWaterproofingV001);
         }
     }
 }

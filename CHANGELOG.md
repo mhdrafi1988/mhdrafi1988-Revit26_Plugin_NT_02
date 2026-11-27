@@ -9,7 +9,7 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
-## [7.30.0] — 2026-11-23
+## [7.41.0] — 2026-11-27
 
 ### Added
 - **Sheet Text Replace v1.4.0** (V001) — **it now works in a single view as well as on a sheet.** Until now the tool
@@ -34,6 +34,256 @@ Each release lists every tool whose version changed, under the plugin version.
 
 User note: nothing you already do changes. The tool behaves exactly as before when you press the button on a sheet.
 Pressed in a view, it now asks one Yes / No question first instead of opening with nothing picked.
+
+## [7.40.0] — 2026-11-27
+
+### Changed
+- **Base and Nearest Level 1.1.0** — widened from a fixed Roofs / Floors / Walls list to **any level-based
+  model element**, read in three tiers:
+  - **Tier 1** — a level plus an offset measured *from that level*, so `Z = level elevation + offset` holds.
+    All four parameters are written and the element can be re-hosted. Covers walls, floors, ceilings, roofs,
+    structural columns and framing, MEP curves (ducts, pipes, conduit, cable tray), stairs, and families
+    placed on a level.
+  - **Tier 2** — the level is readable but "Offset from Host" is measured from the host face, not the level
+    (doors, windows, face-hosted families). The two level **names** are written; the two offset slots are
+    left **empty**, not zero. Never re-hosted.
+  - **Tier 3** — a read-only Schedule Level with no offset. Same handling as Tier 2.
+  - The element's own `LevelId` is now consulted first, with the parameter table as the fallback.
+- **Categories** — the three fixed checkboxes became a searchable grid of whatever the load found, with
+  per-category, per-tier counts and presets: *Roofs, Floors, Walls*, *All level-based*, *Structure*, *MEP*,
+  *None*. The ticked set is remembered between sessions (settings version 2).
+- **Parameter binding** — the four parameters are bound to the **ticked categories only**, not to every
+  level-based category, so they do not appear on every element in the model. The New Parameter dialog shows
+  that list instead of a fixed three.
+- **Grid** — a new **Tier** column; Tier 2 and Tier 3 rows read `n/a` in the three numeric columns rather
+  than showing a number the tool cannot justify.
+- **Pre-checks** — check `e` gained a tier breakdown; check `g` states that only Tier 1 elements are
+  eligible for re-host.
+- **Re-host** — Tier 2 and Tier 3 are hard skips with no override tick, since the tool cannot work out
+  where those elements would sit. Shape-edited, grouped, read-only and checked-out elements are skipped as
+  before.
+
+**User note:** the default scope is **unchanged** — the window still opens on Roofs, Floors and Walls, so the
+same button does the same thing as 1.0.0. Widening is one click on a preset. Parameters written by 1.0.0 are
+untouched, and extending a binding to more categories does not affect values already stored.
+
+## [7.39.0] — 2026-11-27
+
+### Added
+- **Base and Nearest Level 1.0.0 (V001)** — new Coordination tool for **roofs, floors and walls only**.
+  It reads each element's own level/offset pair (walls: Base Constraint + Base Offset; floors:
+  Level + Height Offset From Level; footprint roofs: Base Level + Base Offset From Level; extrusion
+  roofs: Reference Level + Offset), works out the element's real base elevation
+  `Z = level elevation + offset`, finds the project level nearest that elevation, and writes both
+  pairs to four parameters:
+  - **1 Base level name** and **3 Nearest level name** — Text
+  - **2 Base offset** and **4 Nearest offset** — **Length**, so schedules sort and total them
+  - Each slot is picked from the project's instance parameters of the right type, or created as a
+    shared instance parameter bound to Roofs, Floors and Walls (New Parameter… per slot).
+  - **Nearest-level rule:** closest in either direction (default), closest at or below, or closest
+    at or above. Ties go to the lower level. Candidate levels default to building-storey levels only
+    (reference and T.O.S. levels left out); a tolerance in mm treats near-zero differences as zero.
+  - **Pre-checks a–g** before anything is written: document, target parameters, category binding,
+    levels, elements, worksharing, re-host readiness. A blocked check stops the run.
+  - **Re-host to Nearest Level** — a separate, opt-in action behind its own confirmation dialog. It
+    sets each element's level parameter first and its offset second, so the element's elevation does
+    not change and nothing moves. It skips shape-edited floors and roofs (changing Level can reset
+    their point edits; a tick in the dialog includes them), grouped elements, elements whose level
+    parameter is read-only such as extrusion roofs, and elements checked out by another user.
+    Everything runs in one transaction group assimilated into a single undo step, and the four
+    parameters are refreshed in that same step so they never describe the old placement.
+  - Existing values can be skipped or rewritten, with a per-row override in the grid; writing asks
+    before it replaces anything.
+  - Host model only; linked elements are never listed.
+
+**User note:** nothing is written or moved until you press **Write Parameters** or
+**Re-host to Nearest Level…**. Re-host changes the model; Write Parameters does not touch geometry.
+Existing tools are unchanged — **Base Level to Parameter** stays at 1.4.1 and keeps writing its
+single combined text value.
+
+## [7.38.0] — 2026-11-27
+
+### Added
+- **EPS Stepped Insulation Layout 1.1.0** — enhancements:
+  - **Grid offset:** shift the grid origin along the alignment edge (mm) to centre the layout or
+    minimise cut pieces at the perimeter.
+  - **Minimum cut size:** trimmed cells whose smallest dimension falls below a threshold (default
+    100 mm) are skipped as impractical to install. Skipped count shown in the summary.
+  - **CSV export:** Export the full panel schedule (serial, layer, row, column, position, height,
+    area) to a CSV file for procurement.
+  - **EPS_Serial shared parameter:** a dedicated shared parameter bound to the Roofs category replaces
+    the previous use of Comments/Mark (those are still set for backward compatibility). The parameter
+    file is created automatically under `%AppData%\Revit26_Plugin_Revised\EpsSteppedInsulationLayout\`.
+
+**User note:** existing panels placed by v1.0.0 keep their Comments/Mark serials. The new EPS_Serial
+parameter is added only to panels placed from this version onward.
+
+## [7.37.0] — 2026-11-27
+
+### Added
+- **EPS Stepped Insulation Layout 1.0.0 (V001)** — new tool that fills a footprint roof area with stepped
+  EPS insulation panels (flat roof elements in a 1200×1200 mm grid):
+  - User selects a footprint roof with shape editing applied (sloped to drain).
+  - Inputs slope as 1:X ratio or percentage.
+  - Selects roof types for 100 mm base layer and 35 mm stepping layers (tool validates thickness).
+  - Grid aligned to longest edge (user picks from edge list).
+  - Drain detection from shape editing vertices (lowest elevation points).
+  - Each cell gets a 100 mm base panel plus N × 35 mm layers based on distance from nearest drain.
+  - Perimeter cells trimmed to roof boundary (counted as cut pieces).
+  - Each panel gets a serial number (EPS_XXXX_B for base, EPS_XXXX_SNN for steps) in Comments and Mark.
+  - Summary: panel counts per layer, full/cut cells, total area (m²), total volume (m³).
+
+**User note:** the tool creates individual flat roof elements. For large roofs with many cells, placement
+may take a few minutes. The roof must have shape editing enabled with sloped vertices before running.
+
+## [7.36.1] — 2026-11-26
+
+### Fixed
+- **Reference Section Head Placer 15.3.0 (V015)** — the window took a long time to open, and to update after a change:
+  - Each selected plan view is now searched for roofs once per scan (was three times: for the roof-type list, the
+    roof count and Grid 2).
+  - Linked doors, walls, plumbing fixtures and plumbing equipment far from every qualifying roof are skipped by a
+    bounding-box filter in Revit before each one is checked.
+  - **Boundary buffer**: Grids 2 and 3 update once typing pauses (about 0.4 s) instead of after every keystroke.
+
+**User note:** results are unchanged; the same items are listed and placed. Clicking **Run** straight after editing
+the boundary buffer applies the new value first. Settings are unchanged.
+
+## [7.36.0] — 2026-11-26
+
+### Changed
+- **Sheet Align and Distribute 1.2.0 (V001)** — **Count the view title in the footprint** is now **off** by default:
+  views are aligned on their viewport box alone, and the view title is ignored. Turn the toggle on (Current grid
+  section) to align on box + title as before. **Reset to defaults** now turns it off.
+
+**User note:** if you have used the tool before, your saved settings keep the choice they hold (usually on) until
+you change the toggle or press Reset to defaults. Turning the title off also means overlap and margin checks no
+longer see the title, so a long title can end up over a neighbouring view.
+
+## [7.35.0] — 2026-11-26
+
+### Added
+- **Section Roof Detail Lines 1.2.0 (V001)** — search and select in every list and picker:
+  - **Sections** list: a search box (section name or detail number). **Tick all** / **Untick all** now act on the
+    sections the search shows.
+  - **Roof line style** and **Wall line style**: type in the picker to narrow the list to the styles containing the
+    text, then pick one. "default" finds the view's default style.
+  - The element tree's search is unchanged.
+
+**User note:** with no search typed, everything works as before. With a search typed, Tick all / Untick all leave
+the hidden sections as they were, and a hidden ticked section is still drawn. Typing in a line-style picker never
+changes the choice by itself: text that matches no style is dropped when the picker closes. Settings are unchanged.
+The plugin version in the `.csproj` was 7.32.0, behind the last two CHANGELOG entries; it is now 7.35.0.
+
+## [7.34.0] — 2026-11-25
+
+### Changed
+- **Wet Area Waterproofing 2.2.0 (V002)** — the window is now **six steps**, one open at a time; finished steps fold
+  into one line with **Change** to reopen them:
+  1. **Find rooms** — sources, wet keywords, levels, the rooms grid and its ticks.
+  2. **Check outlines** — the ticked rooms whose outline did not close (or is only approximate), with the boundary
+     repair settings and Refresh. **Skipped automatically** when every ticked room's outline closed.
+  3. **Roof** — roof type, workset, offset, and **Create roofs** (was the "Roofs" run step in the footer).
+  4. **Plans and sections** — plans, section targets, drafting views, section and callout settings, with **Create
+     plans** and **Create sections** (were the "Plans" and "Reference sections" run steps).
+  5. **Review** — new, below.
+  6. **Run and report** — the result (was a pop-up card) and the Excel report settings and buttons.
+  The footer shows **Back**, **Next**, **Run without review** (step 4) and **Create N items** (step 5).
+
+### Added
+- **Review step.** Before anything is created, a table lists, per room, the roof, the plan and every section the
+  run would make, with what happens to each: *New*, *Replaces roof from run X*, *Kept, crop updated*, *Old view
+  kept (you drew in it)*, or *Skipped: no floor drain found*. Untick any single row, for example one door, and the
+  run leaves it out; unticking a plan also leaves out that room's sections. Filter chips (All, New, Replaces, Kept,
+  Problems), a search box, and Tick all / Untick all. Nothing changes in the model until **Create**.
+- **Run without review** in step 4 runs straight away, as the old **Run** button did.
+
+**User note:** settings, tags and the report format are unchanged. Unticks in the Review are kept while the window
+is open (going back and returning keeps them), not saved for the next session. An unticked section is not replaced by
+the next one in the table order, so a room may get fewer than six. The "Save Excel report after run" option is now in
+step 6.
+
+## [7.33.0] — 2026-11-25
+
+### Added
+- **Auto Slope By Drain 7.4.0 (V007, single roof)** — the same **Default** list as Multi-Roof V013, above the
+  detected-drains grid:
+  - **Smallest per shape** (new, the default): in each shape group (Circle, Rectangle, Other) the openings of the
+    smallest size are checked (both sides within ±1 mm; 100 x 200 and 200 x 100 match). Everything else starts unchecked.
+  - **All circles**: the 7.3.0 rule (every circle checked, other shapes unchecked).
+  Changing the list re-checks the drains and logs what was checked. Saved in `settings.json` (`DefaultDrainSelection`).
+
+**User note:** the default selection changes. Up to 7.3.0 every circle was checked; now only the smallest openings of each
+shape are, rectangles included. Pick **All circles** once to get the old behaviour back: it is remembered. Existing settings
+files load unchanged. Changing the list replaces any ticks you set by hand.
+
+## [7.32.0] — 2026-11-25
+
+### Added
+- **Auto Slope By Drain (Multi-Roof) 13.3.0 (V013)** — a **Default** list above the detected-drains grid picks which
+  drains are checked when the window opens:
+  - **Smallest per shape** (new, the default): in each shape group (Circle, Rectangle, Other) the openings of the
+    smallest size are checked; openings count as the same size when both sides are within ±1 mm (a 100 x 200 and a
+    200 x 100 opening match). Everything else starts unchecked.
+  - **Circles ⌀ 90–110 mm**: the 13.2.0 rule.
+  Changing the list re-checks the drains on every roof and logs what was checked. The choice is saved in
+  `settings.v013.json` (`DefaultDrainSelection`).
+
+**User note:** the default selection changes. Up to 13.2.0 only circles of ⌀ 90–110 mm were checked; now the smallest
+openings of each shape are checked, rectangles included. To get the old behaviour, pick **Circles ⌀ 90–110 mm** once:
+it is remembered. Existing settings files load unchanged. Changing the list replaces any ticks you set by hand.
+
+## [7.31.0] — 2026-11-25
+
+### Added
+- **Wet Area Waterproofing 2.1.0 (V002)** — two more choices in each section target's **Mode** list:
+  - **Section** creates a real section view along the cut line. It is as wide as the row's **Length**; a new
+    **Section settings** block sets the section view type, scale (default 1:20), depth / far clip (500 mm) and
+    the crop from 300 mm below the room's level to 1500 mm above it.
+  - **Ref. Callout** places a reference callout that points to the row's drafting view, like Ref. Section does
+    (same "Points to" search and picker panel). Its box is the cut line plus the callout crop margin.
+- Excel report, **Sections** sheet: three columns appended at the end, **Mode**, **View made Id**, **View made**.
+  The result card also counts the callout and section views a run created.
+
+### Fixed
+- **Wet Area Waterproofing 2.1.0** — **a second run added a second callout** for the same room. The cleanup
+  before placing only looked at section markers, while a callout's tag is on its detail view. A run now removes
+  the room's tagged markers and the callout / section views an earlier run made, then places them again. A view
+  that holds elements drawn in it (dimensions, text, detail lines…) is kept and the room gets a warning, so your
+  annotations are never deleted.
+
+**User note:** Ref. Section and Callout work as before, and existing settings load unchanged (the new section
+fields take their defaults). V001 opening the shared settings file ignores the new fields and, if it saves,
+drops them back to the defaults. "Points to" is greyed out for Callout and Section rows (they make their own view).
+The plugin version in the `.csproj` is set to 7.31.0: it had gone back to 7.26.5 on `main`.
+
+## [7.30.0] — 2026-11-25
+
+### Added
+- **Wet Area Waterproofing 2.0.0 (V002)** — a new version next to V001 (1.2.5, unchanged). Same rooms, roofs,
+  plans, sections and report; what changes is how drafting views are assigned in **4 · Section targets**:
+  - **"Points to" is now a search box.** Type part of a drafting view's **name**, its **Title on Sheet**, the
+    **sheet number**, the **sheet name** or the **bubble (detail) number**, and a list of matches drops down:
+    each shows `sheet / bubble`, the view name, the title and the sheet name. ↑/↓ move, Enter or a click picks,
+    Esc closes (a second Esc undoes the typing); ⏷ lists every drafting view. Words are combined, so
+    `A-501 drain` finds the drain detail on sheet A-501. **`A-501/3`** means *sheet A-501, bubble 3*; typed and
+    left as is, it is turned into that view's name, so it never becomes the name of a new view by mistake.
+    Prefixes narrow a word to one field: `s:` sheet, `d:` bubble, `n:` view name, `t:` title on sheet.
+    Under each box a line says where the view is (`A-501 / 3 · Wet area details`), *Not on a sheet*, or
+    *New view: created at the run*. The box is greyed out for targets set to Callout (they make their own view).
+  - **"Assign drafting views…"** opens a picker panel: every target on the left with what it points to, and a
+    table of every drafting view on the right (**Sheet · Bubble · Sheet name · View name · Title on sheet**) with
+    a search box and *All / On a sheet / Not on a sheet* chips. Pick a target, double-click a view (or Enter /
+    **Assign**) and the next target is picked for you; **Use as new name** points the target to the typed text.
+- **Ribbon:** the **Waterproofing** panel's large button is now a large pulldown, **Wet Area Waterproofing**:
+  V002 first (its icon on the button), then V001.
+- Unit tests `Tests/WetAreaWaterproofingV002.Tests` (V001's tests on V002's code, plus the search).
+
+**User note:** nothing changes for V001. V002 reads and writes the same `settings.json` as V001 (the format is
+unchanged: drafting views are still saved by name), uses the same Extensible Storage tag, so either version finds
+and replaces the other's roofs, plans and markers, and writes the same Excel report. Bubble and sheet are read
+when the window opens or on **Refresh**: a view placed on a sheet while the window is open shows up after Refresh.
+A drafting view on no sheet can only be found by its name or title.
 
 ## [7.29.2] — 2026-11-23
 

@@ -1,15 +1,16 @@
 <title>Section Roof Detail Lines</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<!-- UI preview (CLAUDE.md "UI previews"): Section Roof Detail Lines 1.1.1 (V001). Tool was 1.1.0.
-     Plugin 7.29.1 (was 7.29.0).
-     1.1.1 is the button's own icons; the window itself is unchanged since 1.1.0.
-     Shown: the ribbon button and its tooltip, the tool window, and the "List all to log" output.
-     1.1.0's change is in the Lines To Draw card: "Sides to draw" (Top / Bottom / Left / Right) under
-     the roof option, and "Wall face to draw on" chips in place of the old "Line on both faces" box.
-     The window is shown in the state that shows it: Bottom only, wall face Nearer the roof.
+<!-- UI preview (CLAUDE.md "UI previews"): Section Roof Detail Lines 1.2.0 (V001). Tool was 1.1.1.
+     Plugin 7.35.0.
+     1.2.0 adds search and select: a search box on the Sections list (Tick all / Untick all act on
+     the rows it shows) and type-to-filter Roof / Wall line style pickers.
+     Shown: the ribbon button and its tooltip, the tool window in the state that shows the change
+     (sections searched for "parapet", wall line style picker open with "water" typed), and the
+     "List all to log" output.
      Mirrors: Menu/DetailLines/SectionRoofDetailLines_V001/UI/Views/SectionRoofDetailLinesWindow.xaml
               (+ UI/ViewModels/ViewModel_SectionRoofDetailLines.cs; version from Shared/Services/ToolCatalog.cs).
-     Artifact: https://claude.ai/artifact/WKnQzAC4ZknYyYBiyX4fop (republish to this URL on every update)
+     Artifact: https://claude.ai/artifact/1CWPV8Dxjs7JvqEf2PM8gj (republish to this URL on every update;
+               the earlier link WKnQzAC4ZknYyYBiyX4fop could no longer be opened)
      Colours: Shared/SharedStyles.xaml tokens, one light look on purpose (mirrors the light WPF window). -->
 <style>
 /* Layout: one column; each fixed-width WPF frame scrolls inside its own box, notes sit under it. */
@@ -29,7 +30,7 @@
 *{box-sizing:border-box}
 body{margin:0;background:var(--page);color:var(--text);font-family:var(--ui);font-size:12.5px;
   padding-block:24px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-.page{max-width:1240px;margin:0 auto;display:grid;gap:20px}
+.page{max-width:1240px;margin:0 auto;display:grid;gap:20px;grid-template-columns:minmax(0,1fr)}
 h1{font-size:20px;margin:0 0 4px;font-weight:600;text-wrap:balance}
 h2{font-size:14px;margin:0 0 8px;font-weight:600;text-wrap:balance}
 p{margin:0;line-height:1.5;max-width:82ch}
@@ -85,6 +86,14 @@ li+li{margin-top:3px}
 .combo{border:1px solid var(--input);background:var(--card);border-radius:4px;padding:4px 7px;font-size:11.5px;
   display:flex;justify-content:space-between;align-items:center}
 .combo i{font-style:normal;color:var(--text3)}
+.combo.edit{border-color:var(--info);box-shadow:0 0 0 1px var(--info)}
+.combo .caret{border-left:1px solid var(--text);margin-left:1px;height:13px}
+.drop{border:1px solid var(--input);background:var(--card);border-radius:0 0 4px 4px;margin-top:-5px;box-shadow:0 4px 10px rgba(16,32,48,.16)}
+.drop div{padding:4px 8px;font-size:11.5px}
+.drop .hl{background:var(--info-soft)}
+.drop mark{background:none;color:var(--info);font-weight:600}
+.inp.typed{color:var(--text)}
+.newline{outline:2px solid var(--new);outline-offset:2px;border-radius:4px}
 .mm{border:1px solid var(--input);background:var(--card);border-radius:4px;padding:3px 6px;font-size:11.5px;width:58px;text-align:right;
   font-variant-numeric:tabular-nums}
 .cb{display:flex;gap:6px;align-items:flex-start;font-size:12px;line-height:1.35}
@@ -142,15 +151,15 @@ li+li{margin-top:3px}
 <div class="page">
 
   <div>
-    <h1>Section Roof Detail Lines <span class="tag">1.1.1</span></h1>
-    <p class="muted">Tool 1.1.1 · plugin 7.29.1 · <b>Rafi_Pro_Docs › Detail Lines › Section Lines</b>.
+    <h1>Section Roof Detail Lines <span class="tag">1.2.0</span></h1>
+    <p class="muted">Tool 1.2.0 · plugin 7.35.0 · <b>Rafi_Pro_Docs › Detail Lines › Section Lines</b>.
       Static mock-up of the window. <span class="sample">Every figure, view name and type name below is sample data — not a real project.</span></p>
   </div>
 
   <!-- ── Ribbon button + tooltip ─────────────────────────────── -->
   <div class="note">
-    <h2>Ribbon <span class="tag">new icon</span></h2>
-    <p class="muted"><b>Section Lines</b> has its own icons in 1.1.1. It had borrowed Line Manager's, so the two buttons were hard to tell apart. The button's position, label and internal name are unchanged.</p>
+    <h2>Ribbon</h2>
+    <p class="muted">Unchanged in 1.2.0 apart from the version in the tooltip. The button's position, label, icons and internal name are as in 1.1.1.</p>
     <div class="frame" style="margin-top:10px">
       <div class="ribbon">
         <div class="rpanel">
@@ -160,14 +169,14 @@ li+li{margin-top:3px}
             <div class="rsmall"><i class="glyph"></i>Line Dims ▾</div>
           </div>
           <div class="rbig"><i class="glyph big"></i>Line Manager ▾</div>
-          <div class="rbig rnew"><img class="glyph big" alt="Section Lines icon: a roof slab cut in section meeting a parapet wall, with an amber line along the roof turning up the wall face" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAZ0lEQVR42mPUy5v4n2EAARPDAINRBwy4A1hoYejFiXlYxfXzJ9EuBI5ZzmY4Zjl7NA2MOoCyXEBOIhpeIWB1PHVgHYCrABnNBaMOoFsixFZbUbM2HI2CUQeMOmDUAdgA42jfcMQ7AAANpxKlk0g6rQAAAABJRU5ErkJggg==">Section Lines</div>
+          <div class="rbig"><img class="glyph big" alt="Section Lines icon: a roof slab cut in section meeting a parapet wall, with an amber line along the roof turning up the wall face" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAZ0lEQVR42mPUy5v4n2EAARPDAINRBwy4A1hoYejFiXlYxfXzJ9EuBI5ZzmY4Zjl7NA2MOoCyXEBOIhpeIWB1PHVgHYCrABnNBaMOoFsixFZbUbM2HI2CUQeMOmDUAdgA42jfcMQ7AAANpxKlk0g6rQAAAABJRU5ErkJggg==">Section Lines</div>
         </div>
         <div class="rlabel">Detail Lines</div>
       </div>
     </div>
     <div class="frame" style="margin-top:12px">
       <div class="tip">
-        <b>Section Roof Detail Lines — v1.1.1 (build V001)</b>
+        <b>Section Roof Detail Lines — v1.2.0 (build V001)</b>
         Open a sheet: lists every element its sections show, from the host model and from each loaded link,
         then traces the cut profile of the roofs you tick and draws a line on the walls beside them, in the
         sections themselves. Up to 10 sections in one run, one Undo step.
@@ -193,22 +202,22 @@ li+li{margin-top:3px}
   <!-- ── The window ──────────────────────────────────────────── -->
   <div>
     <h2>Tool window</h2>
-    <p class="muted">As it looks after one run on a sheet with five sections, with the roof's <b>Bottom</b> side alone chosen. Roofs and walls are ticked when the window opens, and all four sides are ticked by default, so a first run still draws the whole profile.</p>
+    <p class="muted">After one run on a sheet with five sections. The Sections list is searched for <b>parapet</b>, so two of the five rows show; <b>Tick all</b> / <b>Untick all</b> now act on those two only. The <b>Wall line style</b> picker is open with <b>water</b> typed, so its list is narrowed to the styles that contain it. <span class="tag">new</span> marks what 1.2.0 adds.</p>
     <div class="frame" style="margin-top:10px">
       <div class="win">
-        <div class="tbar"><b>Section Roof Detail Lines — v1.1.1</b><span>— □ ✕</span></div>
+        <div class="tbar"><b>Section Roof Detail Lines — v1.2.0</b><span>— □ ✕</span></div>
         <div class="hdr">
           <div>
             <b>Section Roof Detail Lines</b>
             <span class="s">List what the sheet's sections show — host model and links — then draw the roofs' cut profile and a line on the walls beside them</span>
           </div>
-          <div class="badge">v1.1.1</div>
+          <div class="badge">v1.2.0</div>
         </div>
 
         <div class="wbody">
           <!-- header cards -->
           <div class="cards">
-            <div class="mc"><span>Sections</span><b style="color:var(--info)">5 / 5</b><span class="u">ticked, of this sheet's</span></div>
+            <div class="mc"><span>Sections</span><b style="color:var(--info)">4 / 5</b><span class="u">ticked, of this sheet's</span></div>
             <div class="mc"><span>Roof Types</span><b style="color:var(--ok)">3</b><span class="u">cut profile traced</span></div>
             <div class="mc"><span>Wall Types</span><b>4</b><span class="u">line where next to a roof</span></div>
             <div class="mc"><span>Elements</span><b>612</b><span class="u">shown in the sections read</span></div>
@@ -222,7 +231,8 @@ li+li{margin-top:3px}
               <div class="scb">
                 <div class="lbl">Sheet <span style="color:var(--text)">A-501 — Roof Details</span></div>
                 <div class="hint">Every section on this sheet is ticked (5). One run covers at most 10.</div>
-                <div class="row" style="justify-content:flex-end"><span class="btn">Tick all</span><span class="btn">Untick all</span></div>
+                <div class="row newline"><span class="inp typed">parapet</span><span class="btn">Tick all</span><span class="btn">Untick all</span></div>
+                <div class="lbl" style="font-weight:400">Search box <span class="tag">new</span> <span class="hint">— section name or detail number. Tick all / Untick all act on the rows shown.</span></div>
                 <div class="list">
                   <div class="li">
                     <i class="box on">✓</i>
@@ -240,31 +250,9 @@ li+li{margin-top:3px}
                       <div class="st ok">Last run: 31 line(s) drawn.</div>
                     </div>
                   </div>
-                  <div class="li">
-                    <i class="box on">✓</i>
-                    <div class="grow">
-                      <div class="row" style="justify-content:space-between"><span class="b">Gutter At Expansion Joint</span><span class="pill">3</span></div>
-                      <div class="m">1:5 · 3 roof(s), 4 wall(s), 166 element(s) shown</div>
-                      <div class="st ok">Last run: 64 line(s) drawn.</div>
-                    </div>
-                  </div>
-                  <div class="li">
-                    <i class="box on">✓</i>
-                    <div class="grow">
-                      <div class="row" style="justify-content:space-between"><span class="b">Rooflight Kerb</span><span class="pill">4</span></div>
-                      <div class="m">1:5 · 1 roof(s), 0 wall(s), 92 element(s) shown</div>
-                      <div class="st ok">Last run: 15 line(s) drawn.</div>
-                    </div>
-                  </div>
-                  <div class="li dim">
-                    <i class="box off" style="border-color:var(--text3)">✓</i>
-                    <div class="grow">
-                      <div class="row" style="justify-content:space-between"><span class="b">Plant Plinth Edge</span><span class="pill">5</span></div>
-                      <div class="m">1:10 · 1 roof(s), 2 wall(s), 95 element(s) shown</div>
-                      <div class="st bad">Cannot draw here — the view is owned by A. Sample.</div>
-                    </div>
-                  </div>
+                  <!-- Gutter At Expansion Joint, Rooflight Kerb and Plant Plinth Edge are hidden by the search; still ticked, still drawn. -->
                 </div>
+                <div class="hint">3 more section(s) hidden by the search keep their tick and are still drawn.</div>
                 <div class="hint">The number on the right is the detail number on the sheet. A section owned by someone else, or changed in central, cannot be ticked.</div>
               </div>
             </div>
@@ -310,7 +298,7 @@ li+li{margin-top:3px}
               <div class="scb">
                 <div class="cb"><i class="box on">✓</i><span>Roofs — trace the cut profile</span></div>
                 <div style="padding-left:18px;display:grid;gap:3px">
-                  <div class="lbl">Sides to draw <span class="tag">new</span></div>
+                  <div class="lbl">Sides to draw</div>
                   <div class="row" style="flex-wrap:wrap;gap:10px">
                     <span class="cb"><i class="box off" style="border-color:var(--input)">✓</i>Top</span>
                     <span class="cb"><i class="box on">✓</i>Bottom</span>
@@ -320,22 +308,29 @@ li+li{margin-top:3px}
                   <div class="hint">Only the bottom edge(s) of each roof's cut.</div>
                   <div class="hint">A side is read from where the roof's material lies, not from where the edge sits — so Bottom is the underside on a flat, sloped or stepped roof alike.</div>
                 </div>
-                <div class="lbl">Roof line style</div>
+                <div class="lbl">Roof line style <span class="tag">searchable</span></div>
                 <div class="combo"><span>Roof Build-up</span><i>▾</i></div>
                 <div class="cb"><i class="box on">✓</i><span>Walls — line over the visible height</span></div>
                 <div class="hint" style="padding-left:18px">Only walls whose cut profile comes within the tolerance below of a ticked roof's.</div>
-                <div class="lbl">Wall line style</div>
-                <div class="combo"><span>Waterproofing</span><i>▾</i></div>
+                <div class="lbl">Wall line style <span class="tag">searchable</span></div>
+                <div class="newline" style="display:grid;gap:0">
+                  <div class="combo edit"><span style="display:flex;align-items:center">water<span class="caret"></span></span><i>▾</i></div>
+                  <div class="drop">
+                    <div class="hl"><mark>Water</mark>proofing</div>
+                    <div><mark>Water</mark>proofing - Dashed</div>
+                    <div>Below Ground <mark>Water</mark>proof</div>
+                  </div>
+                </div>
+                <div class="hint">Type part of a name to narrow the list, then pick. "default" finds <i>(the view's default line style)</i>. Text that matches no style is dropped when the picker closes.</div>
                 <div class="row" style="justify-content:space-between">
                   <span class="lbl">Adjacency tolerance</span>
                   <span class="row"><span class="mm">50</span><span class="hint">mm</span></span>
                 </div>
-                <div class="lbl">Wall face to draw on <span class="tag">new</span></div>
+                <div class="lbl">Wall face to draw on</div>
                 <div class="row" style="flex-wrap:wrap;gap:5px">
                   <span class="chipsel on">Nearer the roof</span><span class="chipsel">Both faces</span>
                   <span class="chipsel">Left</span><span class="chipsel">Right</span>
                 </div>
-                <div class="hint">Replaces the old <b>Line on both faces</b> tick box. A 1.0.0 settings file with that box ticked opens on <b>Both faces</b>.</div>
                 <div class="cb"><i class="box on">✓</i><span>Leave out lines the view already has</span></div>
                 <div class="banner">Detail lines belong to the view they are drawn in, so the lines go into the sections themselves, not onto the sheet. The whole run is one Undo step.</div>
               </div>
@@ -392,15 +387,21 @@ li+li{margin-top:3px}
 
   <!-- ── What changed ────────────────────────────────────────── -->
   <div class="note">
-    <h2>What is new in 1.1.1</h2>
+    <h2>What is new in 1.2.0</h2>
     <ul>
-      <li><b>The button has its own icons.</b> It had borrowed Line Manager's 16 px icon since 7.28.0, so the two were hard to tell apart on the panel. Appearance only — position, label, internal name, tooltip text and behaviour are all unchanged. <span class="tag">new</span></li>
+      <li><b>Search the Sections list</b> by section name or detail number. <b>Tick all</b> and <b>Untick all</b> act on the sections the search shows; hidden ones keep their tick and are still drawn. With no search typed, they work as before. <span class="tag">new</span></li>
+      <li><b>Type to search the line style pickers.</b> Typing in <b>Roof line style</b> or <b>Wall line style</b> narrows the drop-down to the styles containing the text, anywhere in the name and in any case; pick from the narrowed list. Each picker filters only its own list. Typing never changes the choice by itself. <span class="tag">new</span></li>
+      <li>The element tree's search (category, family or type) is unchanged. Settings are unchanged.</li>
+    </ul>
+    <h2 style="margin-top:14px">From 1.1.1</h2>
+    <ul>
+      <li><b>The button has its own icons.</b> It had borrowed Line Manager's 16 px icon since 7.28.0, so the two were hard to tell apart on the panel.</li>
     </ul>
     <h2 style="margin-top:14px">From 1.1.0</h2>
     <ul>
-      <li><b>Sides to draw</b> — Top, Bottom, Left, Right, all four ticked by default, so the tool draws exactly what 1.0.0 drew until you change it. Unticking the last one puts it back. To get just a line under each roof, leave <b>Bottom</b>. <span class="tag">new</span></li>
-      <li><b>Wall face to draw on</b> — Nearer the roof (the default, as in 1.0.0), Both faces, Left, Right. Replaces the <b>Line on both faces</b> tick box; a 1.0.0 settings file with it ticked opens on Both faces. <span class="tag">new</span></li>
-      <li><b>A side is where the material is.</b> Each edge is probed 0.3 mm either way against the cut face: the probe that lands on the face is the solid side, so the other way is out, and that direction gives the side. Bottom is therefore the underside on a flat, sloped or stepped roof alike, and the head of an opening the section passes through reads as Bottom too — that is the surface you see from under it. <span class="tag">new</span></li>
+      <li><b>Sides to draw</b> — Top, Bottom, Left, Right, all four ticked by default, so the tool draws exactly what 1.0.0 drew until you change it. Unticking the last one puts it back. To get just a line under each roof, leave <b>Bottom</b>.</li>
+      <li><b>Wall face to draw on</b> — Nearer the roof (the default, as in 1.0.0), Both faces, Left, Right. Replaces the <b>Line on both faces</b> tick box; a 1.0.0 settings file with it ticked opens on Both faces.</li>
+      <li><b>A side is where the material is.</b> Each edge is probed 0.3 mm either way against the cut face: the probe that lands on the face is the solid side, so the other way is out, and that direction gives the side. Bottom is therefore the underside on a flat, sloped or stepped roof alike, and the head of an opening the section passes through reads as Bottom too — that is the surface you see from under it.</li>
       <li><b>Left and Right are on screen in that section</b>, so a section looking the other way puts them the other way round. Nearer the roof is the wall choice that does not depend on which way the section faces.</li>
     </ul>
     <h2 style="margin-top:14px">From 1.0.0</h2>
@@ -414,5 +415,5 @@ li+li{margin-top:3px}
     </ul>
   </div>
 
-  <p class="muted" style="font-size:11.5px">Mirrors <span style="font-family:var(--mono)">Menu/DetailLines/SectionRoofDetailLines_V001/UI/Views/SectionRoofDetailLinesWindow.xaml</span>. Labels, button text and the window title come from the XAML and the view model; the version comes from <span style="font-family:var(--mono)">Shared/Services/ToolCatalog.cs</span>.</p>
+  <p class="muted" style="font-size:11.5px">Mirrors <span style="font-family:var(--mono);overflow-wrap:anywhere">Menu/DetailLines/SectionRoofDetailLines_V001/UI/Views/SectionRoofDetailLinesWindow.xaml</span>. Labels, button text and the window title come from the XAML and the view model; the version comes from <span style="font-family:var(--mono)">Shared/Services/ToolCatalog.cs</span>.</p>
 </div>

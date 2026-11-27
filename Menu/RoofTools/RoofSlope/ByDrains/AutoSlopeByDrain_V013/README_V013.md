@@ -43,6 +43,7 @@ No new NuGet packages (CommunityToolkit.Mvvm and EPPlus, as V012).
 | Failed or cancelled roof | Steps already committed stayed (inserted arc points, parameters, or the slope itself when a later step threw). | One TransactionGroup per roof inside the run's group: a roof that does not succeed is rolled back completely. Roofs that finished before a cancel stay applied, as agreed for V010. |
 | Selected drain matching no shape point | Silently ignored. A roof whose drains matched nothing "succeeded" with no change and still wrote parameters. | Warning names each such drain; a roof with no matched drain point fails and rolls back. |
 | Drain point matching | Only the shape points nearest each tessellated loop point (5 mm). | Every shape point within 5 mm of the opening edge, so points along a circle between tessellation points count too. |
+| Default drain selection (13.3.0) | Only circles of ⌀ 90–110 mm checked. | **Default** list above the grid: *Smallest per shape* (default; smallest size ±1 mm in each shape group) or *Circles ⌀ 90–110 mm*. Saved in settings. |
 | Drains selected count | Counted only drains visible under the size filter; Run used every checked drain. | Counts every checked drain and says how many are hidden by the filter. |
 | Skipped count | Included the drain points themselves. | Drain points are not counted as skipped. (`AutoSlope_VerticesSkipped` changes meaning accordingly.) |
 | Version in Excel and on the roof | Hard-coded "009". | From ToolCatalog. |

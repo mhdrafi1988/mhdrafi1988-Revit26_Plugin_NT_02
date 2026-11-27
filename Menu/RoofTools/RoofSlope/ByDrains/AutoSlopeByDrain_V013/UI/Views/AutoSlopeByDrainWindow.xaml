@@ -1,4 +1,4 @@
-<!--
+﻿<!--
 =======================================================
 File: AutoSlopeByDrainWindow.xaml  (V013, ToolWindowShell — CLAUDE.md v1.1)
 Layout follows AutoSlopeByPoint V032, adapted to several roofs:
@@ -787,6 +787,13 @@ Changes vs V012: window 1280×820 (min 1100×640; V012's minimum height of
                                         <TextBlock Text="Detected drains" Style="{StaticResource SectionTitle}" Margin="0" VerticalAlignment="Center"/>
                                         <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right"
                                                     IsEnabled="{Binding DataContext.IsInputEnabled, RelativeSource={RelativeSource AncestorType=Window}}">
+                                            <TextBlock Text="Default" FontSize="11.5" VerticalAlignment="Center" Margin="0,0,4,0"
+                                                       ToolTip="Which drains are checked when the window opens. Changing it re-checks the drains on every roof."/>
+                                            <ComboBox ItemsSource="{Binding DataContext.DefaultSelectionOptions, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                      SelectedValue="{Binding DataContext.DefaultSelection, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                      SelectedValuePath="Value" DisplayMemberPath="Label"
+                                                      ToolTip="Smallest per shape: in each shape group (circle, rectangle, other) the openings of the smallest size (±1 mm) are checked.&#x0a;Circles ⌀ 90–110 mm: only circles with that diameter are checked."
+                                                      Width="150" Height="26" Padding="3,2" Margin="0,0,10,0" FontSize="11.5"/>
                                             <ComboBox ItemsSource="{Binding SizeFilters}" SelectedItem="{Binding SelectedSizeFilter}"
                                                       Width="120" Height="26" Padding="3,2" Margin="0,0,6,0" FontSize="11.5"/>
                                             <Button Content="Select all" Command="{Binding SelectAllCommand}" Style="{StaticResource SmallSecondaryButton}" Margin="0,0,3,0"/>

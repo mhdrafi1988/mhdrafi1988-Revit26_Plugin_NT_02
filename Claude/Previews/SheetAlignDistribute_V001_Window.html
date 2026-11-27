@@ -1,6 +1,8 @@
 <title>Sheet Align &amp; Distribute</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<!-- UI preview (CLAUDE.md "UI previews"): Sheet Align & Distribute 1.1.2 (V001). Plugin 7.27.2.
+<!-- UI preview (CLAUDE.md "UI previews"): Sheet Align & Distribute 1.2.0 (V001). Plugin 7.36.0.
+     Rev 9 (built as 1.2.0, 2026-11-26): owner asked for the view title to be ignored by default.
+     "Count the view title in the footprint" now starts OFF (box only); saved settings keep their choice.
      Rev 8 (built as 1.1.2, 2026-11-20): owner asked for the 4 suggestion buttons to be small and sit on top of the
      sheet preview. Shown as a strip of chips (rank, name, moves · largest move, orange overflow count; full
      detail in the tooltip). The big cards in section 3 are removed.
@@ -238,7 +240,8 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg2);border:1px sol
 <div class="page">
 
 <header>
-  <h1>Sheet Align &amp; Distribute <span class="tag">1.1.2 &middot; SMALL SUGGESTION CHIPS</span></h1>
+  <h1>Sheet Align &amp; Distribute <span class="tag">1.2.0 &middot; TITLE IGNORED BY DEFAULT</span></h1>
+  <p style="margin-bottom:6px"><b>1.2.0:</b> "Count the view title in the footprint" is now <b>off</b> by default &mdash; views align on their box alone. Saved settings keep their choice. <span class="tag">CHANGED</span></p>
   <p style="margin-bottom:6px"><b>1.1.1:</b> Apply now really moves the views; it no longer refuses because a re&#8209;read differed from the preview. Nothing else on screen changed.</p>
   <p class="muted">Tool <b>1.0.0 &rarr; 1.1.0</b> (V001) &middot; plugin <b>7.26.5 &rarr; 7.27.0</b> &middot; ribbon: <b>Documents &rsaquo; Sheet Edit</b> (unchanged).
   Built 2026&#8209;11&#8209;20; 93 unit tests on the layout maths and the suggestion ranking.</p>
@@ -299,7 +302,7 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg2);border:1px sol
   </div>
   <div class="frame">
     <div class="tip">
-      <b>Sheet Align &amp; Distribute &mdash; v1.1.2 <span class="vn">(build V001)</span></b>
+      <b>Sheet Align &amp; Distribute &mdash; v1.2.0 <span class="vn">(build V001)</span></b>
       Lines up the views already on the open sheet without re-ordering them: detects the rows and columns they are in,
       snaps each to one shared edge and evens out the gaps. Margins and gaps are read off the sheet as it is, so the
       layout keeps its own look. Each view can carry its own extra clearance.
@@ -327,7 +330,7 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg2);border:1px sol
   <h2>Tool window</h2>
   <div class="frame">
   <div class="win">
-    <div class="tbar">Sheet Align &amp; Distribute &mdash; v1.1.2</div>
+    <div class="tbar">Sheet Align &amp; Distribute &mdash; v1.2.0</div>
 
     <div class="hdr">
       <div>
@@ -426,16 +429,16 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg2);border:1px sol
               <div class="bar"><span class="sbtn">Re&#8209;detect grid</span></div>
             </div>
             <div class="grp">
-              <div class="gl">Why the title counts</div>
-              <div class="hint">A viewport's footprint is its box united with its title (label) outline. That is what makes
-              the titles line up, and what stops a long title sitting over the view next to it. Turn it off to measure the
-              view box alone.</div>
+              <div class="gl">View title <span class="tag">CHANGED</span></div>
+              <div class="hint">By default a viewport's footprint is its <b>box alone</b> &mdash; the title is ignored. Turn on
+              "Count the view title in the footprint" to unite the box with its title (label) outline: that lines the titles
+              up and stops a long title sitting over the view next to it.</div>
               <div class="hint" style="margin-top:6px">A tall view that genuinely spans two bands of the sheet joins them
               into one row, and the plan says so rather than splitting it quietly.</div>
             </div>
             <div class="grp">
               <div class="gl">What is collected <span class="pill off">this sheet only</span></div>
-              <div class="ck"><span class="cb on"></span> Count the view title in the footprint</div>
+              <div class="ck"><span class="cb"></span> Count the view title in the footprint <span class="tag">OFF BY DEFAULT</span></div>
               <div class="ck"><span class="cb"></span> Include schedules on the sheet <span class="muted">(1)</span><span class="tag">OFF BY DEFAULT</span></div>
               <div class="hint">Plans, sections, details, drafting views and legends are all viewports and are always
               included &mdash; 8 of them here. Views owned by another user, or changed in central since the last Reload
@@ -787,7 +790,7 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg2);border:1px sol
   <p class="muted" style="margin-bottom:8px">When views overflow, Apply asks first <span class="tag">NEW</span></p>
   <div class="frame" style="margin-bottom:14px">
     <div class="dlg">
-      <div class="dh">Sheet Align &amp; Distribute &mdash; v1.1.2</div>
+      <div class="dh">Sheet Align &amp; Distribute &mdash; v1.2.0</div>
       <div class="db">
         <p>1 view overflows:<br>&bull; A3 TWP DETAIL @ PIPE PENETRATION &mdash; needs 44.1&nbsp;mm, over the 25&nbsp;mm limit</p>
         <p><b>Yes</b> &mdash; Place anyway: move all 6 views, these included.<br>
@@ -800,7 +803,7 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg2);border:1px sol
   <p class="muted" style="margin-bottom:8px">Then the result (after <b>No</b>; after <b>Yes</b> it adds "1 overflowing view was placed anyway, as you chose.")</p>
   <div class="frame">
     <div class="dlg">
-      <div class="dh">Sheet Align &amp; Distribute &mdash; v1.1.2</div>
+      <div class="dh">Sheet Align &amp; Distribute &mdash; v1.2.0</div>
       <div class="db">
         <p><b>5 views aligned on WP&#8209;204.</b></p>
         <p>2 views were already in place. 1 view (A3 TWP DETAIL @ PIPE PENETRATION) needed 44.1&nbsp;mm,
