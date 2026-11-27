@@ -9,6 +9,40 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [7.39.0] — 2026-11-27
+
+### Added
+- **Base and Nearest Level 1.0.0 (V001)** — new Coordination tool for **roofs, floors and walls only**.
+  It reads each element's own level/offset pair (walls: Base Constraint + Base Offset; floors:
+  Level + Height Offset From Level; footprint roofs: Base Level + Base Offset From Level; extrusion
+  roofs: Reference Level + Offset), works out the element's real base elevation
+  `Z = level elevation + offset`, finds the project level nearest that elevation, and writes both
+  pairs to four parameters:
+  - **1 Base level name** and **3 Nearest level name** — Text
+  - **2 Base offset** and **4 Nearest offset** — **Length**, so schedules sort and total them
+  - Each slot is picked from the project's instance parameters of the right type, or created as a
+    shared instance parameter bound to Roofs, Floors and Walls (New Parameter… per slot).
+  - **Nearest-level rule:** closest in either direction (default), closest at or below, or closest
+    at or above. Ties go to the lower level. Candidate levels default to building-storey levels only
+    (reference and T.O.S. levels left out); a tolerance in mm treats near-zero differences as zero.
+  - **Pre-checks a–g** before anything is written: document, target parameters, category binding,
+    levels, elements, worksharing, re-host readiness. A blocked check stops the run.
+  - **Re-host to Nearest Level** — a separate, opt-in action behind its own confirmation dialog. It
+    sets each element's level parameter first and its offset second, so the element's elevation does
+    not change and nothing moves. It skips shape-edited floors and roofs (changing Level can reset
+    their point edits; a tick in the dialog includes them), grouped elements, elements whose level
+    parameter is read-only such as extrusion roofs, and elements checked out by another user.
+    Everything runs in one transaction group assimilated into a single undo step, and the four
+    parameters are refreshed in that same step so they never describe the old placement.
+  - Existing values can be skipped or rewritten, with a per-row override in the grid; writing asks
+    before it replaces anything.
+  - Host model only; linked elements are never listed.
+
+**User note:** nothing is written or moved until you press **Write Parameters** or
+**Re-host to Nearest Level…**. Re-host changes the model; Write Parameters does not touch geometry.
+Existing tools are unchanged — **Base Level to Parameter** stays at 1.4.1 and keeps writing its
+single combined text value.
+
 ## [7.38.0] — 2026-11-27
 
 ### Added

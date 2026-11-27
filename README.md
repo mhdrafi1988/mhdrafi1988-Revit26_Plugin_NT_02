@@ -46,7 +46,7 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 
 | Tab | Panel | Tools |
 |---|---|---|
-| Rafi_Pro_Model | Coordination | Void Openings · Base Level to Parameter |
+| Rafi_Pro_Model | Coordination | Void Openings · Base Level to Parameter · Base and Nearest Level |
 | Rafi_Pro_Model | Manage | Overlaps (V007, V006) · Overlap Report · ParaManager · Shared Params · Schedule I/O · Link Check ▸ slide-out: Del. Line Styles · Bulk Rename · Bulk Delete · Tracker ID |
 | Rafi_Pro_Model | Worksets | WS Browser · WS Creator · WS Renamer ▸ slide-out: WS Renamer XL · Delete Workset |
 | Rafi_Pro_Model | Memory | WS Memory · Link Memory |
@@ -215,6 +215,16 @@ Where a tool has several versions, its button is a dropdown listing the newest v
   target parameter first (name, data type, binding, shared parameter file, categories, ownership), and can create
   the parameter as a shared instance Text parameter. One transaction; Ctrl+Z undoes it. The value can be the level
   name only or level name + offset in one of several patterns (or a custom one); elements already up to date are not rewritten.
+- **Base and Nearest Level**: for **roofs, floors and walls only**. Reads each element's own level and offset,
+  works out its real base elevation (level elevation + offset), finds the project level nearest that elevation,
+  and writes four parameters: base level name and nearest level name as Text, base offset and nearest offset as
+  **Length**, so schedules sort and total them. The nearest level can be the closest in either direction (default),
+  the closest at or below, or the closest at or above; candidates default to building-storey levels only, and a
+  tolerance in mm treats near-zero differences as zero. Each parameter is picked from the project or created as a
+  shared instance parameter bound to the three categories. Pre-checks a–g run before anything is written.
+  A separate, opt-in **Re-host to Nearest Level** action sets each element's level and offset together, so the
+  element keeps its elevation and nothing moves; it skips shape-edited floors and roofs, grouped elements,
+  read-only reference levels and elements owned by other users, and one Ctrl+Z undoes the whole thing.
 
 ## Installation
 

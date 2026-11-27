@@ -9,7 +9,7 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
     {
         private const string Icons = "Revit26_Plugin_Revised.Resources.Icons.Coordination.";
 
-        /// <summary>Creates the Coordination panel on <paramref name="tabName"/> with the Void Openings and Base Level to Parameter buttons.</summary>
+        /// <summary>Creates the Coordination panel on <paramref name="tabName"/> with the Void Openings, Base Level to Parameter and Base and Nearest Level buttons.</summary>
         public static void Build(UIControlledApplication app, string tabName, string assemblyPath)
         {
             RibbonPanel panel = app.CreateRibbonPanel(tabName, "Coordination");
@@ -39,6 +39,19 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                     "Values already there can be skipped, rewritten, or cleared so only the new values remain.")
             };
             panel.AddItem(baseLevelToParameter);
+
+            var baseAndNearestLevel = new PushButtonData("Btn_BaseAndNearestLevel_V001", "Base and\nNearest Level", assemblyPath,
+                "Revit26_Plugin_Revised.BaseAndNearestLevel.V001.Commands.BaseAndNearestLevelCommand")
+            {
+                Image = ImageUtils.Load(Icons + "BaseAndNearestLevel_16.png"),
+                LargeImage = ImageUtils.Load(Icons + "BaseAndNearestLevel_32.png"),
+                ToolTip = ToolCatalog.BaseAndNearestLevel.Tip(
+                    "Roofs, floors and walls only. Reads each element's base level and offset, finds the project level " +
+                    "nearest its real base elevation, and writes four parameters: base level name, base offset, nearest " +
+                    "level name, nearest offset. Offsets are Length parameters, so schedules sort and total them. " +
+                    "A separate action re-hosts elements onto their nearest level without moving them.")
+            };
+            panel.AddItem(baseAndNearestLevel);
         }
     }
 }
