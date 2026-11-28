@@ -9,6 +9,15 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [7.41.2] — 2026-11-28
+
+### Fixed
+- **Base and Nearest Level 1.1.1** — the window no longer fails to open with *"Set property
+  'System.Windows.FrameworkElement.Style' threw an exception … '#FF14283F' is not a valid value for property
+  'Style'"*. The Activity Log border used the `LogBackground` colour as its `Style`; it now uses the
+  `BrushLogBg` brush like every other tool's log.
+  *User note:* no behaviour change — the tool simply opens again.
+
 ## [7.41.1] — 2026-11-27
 
 ### Changed
