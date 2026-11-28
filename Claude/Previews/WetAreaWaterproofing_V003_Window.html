@@ -1,13 +1,14 @@
 <title>Wet Area Waterproofing V003</title>
 <!--
-  Tool: Wet Area Waterproofing — v3.0.0 (build V003) — DRAFT for owner approval, not built yet
-  Plugin: 8.0.0 (proposed)
-  Mirrors: (planned) Menu/Sheet/WetAreaWaterproofing_V003/UI/Views/WetAreaWaterproofingWindow.xaml — step 3 "Mapping"
+  Tool: Wet Area Waterproofing — v3.0.0 (build V003), above V002 v2.2.0 in one ribbon pulldown (V001 off the ribbon)
+  Plugin: 8.0.0
+  Mirrors: Menu/Sheet/WetAreaWaterproofing_V003/UI/Views/WetAreaWaterproofingWindow.xaml (step bar, step 3 "Mapping")
+           Menu/00_Push_Button_Menu_items/Ribbon/SheetToolsRibbon.cs (BuildWaterproofingPanel)
   Artifact: https://claude.ai/artifact/RwFVgmW2JSXZLCEcxsNCZs
 -->
 <meta name="claude:viewport-fit-sides" content="cover">
 <style>
-/* Layout: page header, then one window mock-up (step rail + category loader + mapping table), then notes.
+/* Layout: page header, ribbon pulldown, then the window mock-up (step bar + category loader + mapping table), then notes.
    Window colours = Shared/SharedStyles.xaml; the page around it follows the viewer's theme. */
 :root{
   --page:#F3F5F7; --ink:#1A2B3C; --muted:#5B7185; --line:#D6DCE3; --panel:#FFFFFF;
@@ -22,7 +23,7 @@
 *{box-sizing:border-box}
 body{background:var(--page);color:var(--ink);font:14px/1.45 var(--font);
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
-.wrap{max-width:1120px;margin:0 auto;display:grid;gap:22px}
+.wrap{max-width:1280px;margin:0 auto;display:grid;gap:22px}
 h1{font-size:22px;margin:0;text-wrap:balance}
 h2{font-size:16px;margin:0 0 4px}
 p{margin:0}
@@ -32,7 +33,7 @@ p{margin:0}
 code{font-family:var(--mono);font-size:12.5px}
 .scroll{overflow-x:auto;padding-bottom:8px}
 /* window */
-.win{width:1080px;background:var(--win);color:var(--winInk);border:1px solid var(--winFaint);border-radius:6px;box-shadow:0 6px 24px rgba(20,40,63,.18);overflow:hidden;font-size:12.5px}
+.win{width:1240px;background:var(--win);color:var(--winInk);border:1px solid var(--winFaint);border-radius:6px;box-shadow:0 6px 24px rgba(20,40,63,.18);overflow:hidden;font-size:12.5px}
 .tb{background:var(--head);color:var(--white);padding:8px 12px;display:flex;justify-content:space-between;align-items:center;font-weight:600}
 .tb i{font-style:normal;opacity:.75;font-weight:400}
 .rail{display:flex;background:var(--headDark);color:var(--onDark)}
@@ -93,6 +94,25 @@ code{font-family:var(--mono);font-size:12.5px}
 .kw{font-family:var(--mono);font-size:11px;color:var(--winMuted)}
 .foot{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-top:1px solid var(--line);background:var(--card)}
 .pill{display:inline-block;border-radius:10px;padding:0 7px;font-size:10.5px;font-weight:600}
+.chips2{display:inline-flex;gap:3px}
+.chip2{border:1px solid var(--input);border-radius:10px;padding:1px 7px;font-size:10.5px;color:var(--winMuted);background:var(--white);white-space:nowrap}
+.chip2.on{background:var(--head);border-color:var(--head);color:var(--white);font-weight:600}
+.exp{border-top:1px solid var(--sep);padding-top:6px;color:var(--winInk);font-size:12px}
+.exp::before{content:"▸ ";color:var(--winMuted)}
+.cell{display:grid;gap:4px;align-content:start}
+.mini{display:flex;gap:4px;align-items:center;font-size:11px;color:var(--winMuted)}
+.mini .in{flex:none;width:54px;min-height:20px;justify-content:flex-end}
+.act{display:flex;gap:2px}.act .btn{padding:0 5px;font-size:10px}
+.grid td{vertical-align:top}
+.rib{display:inline-grid;gap:0;background:var(--panel);border:1px solid var(--line);border-radius:4px;overflow:hidden;font-size:12.5px;min-width:260px}
+.rib .ttl{background:var(--line);color:var(--ink);text-align:center;font-size:11px;padding:2px 0}
+.rib .big{display:grid;justify-items:center;padding:8px 14px 4px;gap:2px;color:var(--ink)}
+.ico{width:32px;height:32px;border-radius:4px;background:linear-gradient(135deg,#2E6E91,#1E3A5F);position:relative}
+.ico::after{content:"";position:absolute;left:6px;right:6px;bottom:6px;height:6px;background:#5BB3E6;border-radius:2px}
+.dd{border-top:1px solid var(--line);display:grid}
+.dd div{padding:5px 10px;display:flex;gap:8px;align-items:center;color:var(--ink)}
+.dd .i16{width:16px;height:16px;border-radius:3px;background:linear-gradient(135deg,#2E6E91,#1E3A5F);flex:none}
+.tip{max-width:420px;background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:8px 10px;font-size:12.5px;color:var(--ink)}
 .pill.w{background:var(--warnSoft);color:var(--warn);border:1px solid var(--warnBd)}
 /* notes */
 .tbl{overflow-x:auto;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
@@ -105,35 +125,52 @@ ol.q{margin:0;padding-left:20px;display:grid;gap:4px;max-width:80ch}
 
 <div class="wrap">
   <header style="display:grid;gap:6px">
-    <h1>Wet Area Waterproofing V003 <span class="draft">DRAFT · for approval</span></h1>
-    <p class="note">Step 3, <b>Mapping</b>. You pick which categories to load, and from which models. Nothing else is read from the model until you press <b>Load types</b>. Sample data: the model, link and type names on this page are invented.</p>
+    <h1>Wet Area Waterproofing V003 <span class="new">NEW</span></h1>
+    <p class="note">Version 3.0.0 (plugin 8.0.0). The window now has four steps under a step bar. This page shows step 3, <b>Mapping</b>: you pick which categories to load and from which models, then map category → type → cut → what is placed. Nothing else is read from the model until you press <b>Load types</b>. Sample data: the model, link and type names on this page are invented.</p>
   </header>
+
+  <section style="display:grid;gap:10px">
+    <h2>Ribbon <span class="new">CHANGED</span></h2>
+    <div style="display:flex;flex-wrap:wrap;gap:14px;align-items:flex-start">
+      <div class="rib">
+        <div class="big"><span class="ico"></span><span>Wet Area</span><span>Waterproofing ▾</span></div>
+        <div class="dd">
+          <div><span class="i16"></span>Wet Area Waterproofing V003 <span class="new">NEW</span></div>
+          <div><span class="i16"></span>Wet Area Waterproofing V002</div>
+        </div>
+        <div class="ttl">Waterproofing</div>
+      </div>
+      <div class="tip"><b>Wet Area Waterproofing V003</b> <span class="new">NEW</span><br>
+        Four steps: Find rooms, Roof, Mapping, Review &amp; run. In Mapping you choose which categories to load (Doors, Walls, Plumbing Fixtures, Pipe Accessories or any other you search for) from the host and the links you tick, then map category → type → where to cut → Section, Callout, Ref. Section or Ref. Callout, and the view it points to. Your choices are remembered.<br><span style="color:var(--muted)">Version 3.0.0</span></div>
+    </div>
+    <p class="note">The pulldown lists the highest version first; V003's icon is on the button. V001 is off the ribbon (its code is kept).</p>
+  </section>
 
   <div class="scroll">
     <div class="win">
       <div class="tb"><span>Wet Area Waterproofing <i>v3.0.0</i></span><span>✕</span></div>
+      <div style="padding:8px 12px;background:var(--card);border-bottom:1px solid var(--line)"><b>Wet Area Waterproofing</b> <span class="hint">· Find wet rooms, add a waterproofing roof on each slab, and map categories to the sections, callouts and references on each room's plan</span></div>
       <div class="rail">
-        <div class="done"><b>✓</b>Find rooms</div>
-        <div class="done"><b>✓</b>Roof</div>
-        <div class="act"><b>3</b>Mapping <span class="new">NEW</span></div>
-        <div><b>4</b>Review &amp; run</div>
+        <div class="done"><b>✓</b><span>Find rooms<br><small style="opacity:.75">14 room(s) · 2 model(s) · L01, L02</small></span></div>
+        <div class="done"><b>✓</b><span>Roof<br><small style="opacity:.75">WP Membrane 3mm</small></span></div>
+        <div class="act"><b>3</b><span>Mapping <span class="new">NEW</span><br><small style="opacity:.75">What gets a cut</small></span></div>
+        <div><b>4</b><span>Review &amp; run<br><small style="opacity:.75">Check, then create</small></span></div>
       </div>
 
       <div class="body">
         <!-- LEFT: category loader -->
         <div class="card">
-          <h3>Categories to load <span class="new">NEW</span></h3>
+          <h3>CATEGORIES TO LOAD <span class="new">NEW</span></h3>
 
-          <div class="lbl">1 · Look in</div>
+          <div class="lbl" style="text-transform:none">1 · Look in</div>
           <div class="src">
-            <label><span class="cb on"></span>Host model<small>Tower_A_Arch</small></label>
-            <label><span class="cb on"></span>Link: Tower_A_Plumbing.rvt<small>MEP</small></label>
-            <label><span class="cb on"></span>Link: Tower_A_Interiors.rvt<small>INT</small></label>
-            <label><span class="cb"></span>Link: Tower_A_Structure.rvt<small>STR</small></label>
-            <div class="row" style="justify-content:flex-end;gap:10px"><button class="btn lk">All</button><button class="btn lk">Host only</button></div>
+            <label><span class="cb on"></span>Host model</label>
+            <label><span class="cb on"></span>Tower_A_Plumbing.rvt</label>
+            <label><span class="cb on"></span>Tower_A_Interiors.rvt</label>
+            <label><span class="cb"></span>Tower_A_Structure.rvt</label>
           </div>
 
-          <div class="lbl">2 · Categories</div>
+          <div class="lbl" style="text-transform:none">2 · Categories</div>
           <div class="chips">
             <span class="chip">Doors<x>✕</x></span>
             <span class="chip">Walls<x>✕</x></span>
@@ -143,83 +180,90 @@ ol.q{margin:0;padding-left:20px;display:grid;gap:4px;max-width:80ch}
           <div class="pop">
             <div class="in focus"><span>flo<span style="border-left:1px solid var(--winInk);margin-left:1px"></span></span><span class="ph">+ Add category</span></div>
             <div class="menu">
-              <div class="grp">Matches “flo”</div>
               <div class="hl"><span>Floors</span><small>in 3 models</small></div>
               <div><span>Plumbing Fixtures</span><small>added</small></div>
             </div>
           </div>
           <div style="height:58px"></div>
-          <p class="hint">Type to find a category and pick it. The full category list is never shown. Your categories are remembered for next time.</p>
+          <p class="hint">Type to find a category and pick it. Only categories with elements in the ticked models are offered; the full list is never shown.</p>
 
-          <div class="row"><button class="btn blue" style="flex:1">Load types · 4 categories · 3 models</button></div>
+          <div class="row"><button class="btn pri" style="flex:1">Load types · 4 categories · 3 models</button></div>
           <div class="res">✓ Loaded 38 types (412 elements) in 1.2 s</div>
-          <div class="mem">💾 Saved in <code>settings_v003.json</code>: models, categories and mapping rows</div>
+          <div class="mem">Saved in settings_v003.json: models, categories and mapping rows</div>
+
+          <h3 style="margin-top:6px">VIEWS</h3>
+          <label class="row"><span class="cb on"></span><b>Create a plan per room</b></label>
+          <label class="row"><span class="cb on"></span><b>Place the mapped cuts</b></label>
+          <div class="exp">Plan settings</div>
+          <div class="exp">Section views (Place as: Section)</div>
+          <div class="exp">Callouts (Place as: Callout, Ref. callout)</div>
+          <div><button class="btn">Assign drafting views…</button></div>
         </div>
 
         <!-- RIGHT: mapping -->
         <div class="card">
-          <h3>Mapping <span style="display:flex;gap:6px"><button class="btn">Reset to defaults</button><button class="btn">+ Add row</button></span></h3>
-          <p class="hint">Each row says which element gets a cut, where the cut goes, and what is placed. A room gets at most 6 cuts. The rows below are the suggested defaults.</p>
+          <h3><span>MAPPING <span class="new">NEW</span></span> <span style="display:flex;gap:6px"><button class="btn">Reset to defaults</button><button class="btn">+ Add row</button></span></h3>
+          <p class="hint">6 row(s) on · at most 6 cuts per room · rows higher up win</p>
           <div class="grid">
             <table>
-              <tr><th>On</th><th>Category</th><th>Type</th><th class="cnt">Found</th><th>Cut at</th><th>Place as <span class="new">NEW</span></th><th>Points to / creates</th><th></th></tr>
-              <tr><td><span class="tog on"></span></td>
-                <td class="cat">Doors<small>Host · INT</small></td>
-                <td><div class="in sel">Any type</div></td><td class="cnt">46</td>
-                <td><div class="in sel">Threshold</div></td>
-                <td><span class="seg"><span>Section</span><span>Callout</span><span class="on">Ref. section</span><span>Ref. callout</span></span></td>
-                <td><div class="in sel">WP Detail - Door Threshold</div></td><td>⋯</td></tr>
-              <tr><td><span class="tog on"></span></td>
-                <td class="cat">Walls<small>Host · INT</small></td>
-                <td><div class="in sel">Any type</div></td><td class="cnt">212</td>
-                <td><div class="in sel">Longest wall, middle</div></td>
-                <td><span class="seg"><span>Section</span><span>Callout</span><span class="on">Ref. section</span><span>Ref. callout</span></span></td>
-                <td><div class="in sel">WP Detail - Wall Upturn</div></td><td>⋯</td></tr>
-              <tr class="off"><td><span class="tog"></span></td>
-                <td class="cat">Walls<small>Host · INT</small></td>
-                <td><div class="in sel">Any type</div></td><td class="cnt">212</td>
-                <td><div class="in sel">Room corners</div></td>
-                <td><span class="seg"><span>Section</span><span>Callout</span><span>Ref. section</span><span class="on">Ref. callout</span></span></td>
-                <td><div class="in sel">WP Detail - Wall Corner</div></td><td>⋯</td></tr>
-              <tr><td><span class="tog on"></span></td>
-                <td class="cat">Plumbing Fixtures<small>MEP</small></td>
-                <td><div class="in sel">Keywords: <span class="kw">WC, Toilet, Water Closet</span></div></td><td class="cnt">31</td>
-                <td><div class="in sel">Through element</div></td>
-                <td><span class="seg"><span>Section</span><span>Callout</span><span class="on">Ref. section</span><span>Ref. callout</span></span></td>
-                <td><div class="in sel">WP Detail - WC Base</div></td><td>⋯</td></tr>
-              <tr><td><span class="tog on"></span></td>
-                <td class="cat">Plumbing Fixtures<small>MEP</small></td>
-                <td><div class="in sel">Keywords: <span class="kw">Shower, Bath, Tub</span></div></td><td class="cnt">18</td>
-                <td><div class="in sel">Through element</div></td>
-                <td><span class="seg"><span>Section</span><span>Callout</span><span class="on">Ref. section</span><span>Ref. callout</span></span></td>
-                <td><div class="in sel">WP Detail - Shower</div></td><td>⋯</td></tr>
-              <tr class="off"><td><span class="tog"></span></td>
-                <td class="cat">Plumbing Fixtures<small>MEP</small></td>
-                <td><div class="in sel">Keywords: <span class="kw">Basin, Sink, Lavatory</span></div></td><td class="cnt">27</td>
-                <td><div class="in sel">At element</div></td>
-                <td><span class="seg"><span>Section</span><span class="on">Callout</span><span>Ref. section</span><span>Ref. callout</span></span></td>
-                <td><div class="in sel">New: WP Callout - Basin</div></td><td>⋯</td></tr>
-              <tr><td><span class="tog on"></span></td>
-                <td class="cat">Pipe Accessories<small>MEP</small></td>
-                <td><div class="in sel">Keywords: <span class="kw">Drain, FD, Gully, Floor Waste</span></div></td><td class="cnt">22</td>
-                <td><div class="in sel">Through element</div></td>
-                <td><span class="seg"><span>Section</span><span>Callout</span><span>Ref. section</span><span class="on">Ref. callout</span></span></td>
-                <td><div class="in sel">WP Detail - Floor Drain</div></td><td>⋯</td></tr>
-              <tr><td><span class="tog on"></span></td>
-                <td class="cat">Room<small>always</small></td>
-                <td><span class="hint">—</span></td><td class="cnt">—</td>
-                <td><div class="in sel">Full room, H + V</div></td>
-                <td><span class="seg"><span class="on">Section</span><span>Callout</span><span>Ref. section</span><span>Ref. callout</span></span></td>
-                <td><div class="in sel">New: WP Section - &lt;Room&gt;</div></td><td>⋯</td></tr>
+              <tr><th>On</th><th>Name · category</th><th>Type</th><th class="cnt">Found</th><th>Cut at</th><th>Place as · points to / creates <span class="new">NEW</span></th><th></th></tr>
+              <tr><td><span class="cb on"></span></td>
+                <td><div class="cell"><div class="in"><b>Door threshold</b></div><div class="in sel">Doors</div><span class="hint" style="font-size:10.5px">Host · Tower_A_Interiors.rvt</span></div></td>
+                <td><div class="cell"><div class="in sel">Any type</div></div></td><td class="cnt">46</td>
+                <td><div class="cell"><div class="in sel">Threshold</div><span class="mini">Length <span class="in">1500</span> mm</span><span class="mini"><span class="cb"></span>Every match</span></div></td>
+                <td><div class="cell"><span class="chips2"><span class="chip2">Section</span><span class="chip2">Callout</span><span class="chip2 on">Ref. section</span><span class="chip2">Ref. callout</span></span><div class="in sel">WP Detail - Door Threshold</div></div></td>
+                <td><span class="act"><button class="btn">▲</button><button class="btn">▼</button><button class="btn">✕</button></span></td></tr>
+              <tr><td><span class="cb on"></span></td>
+                <td><div class="cell"><div class="in"><b>Wall upturn</b></div><div class="in sel">Walls</div><span class="hint" style="font-size:10.5px">Host · Tower_A_Interiors.rvt</span></div></td>
+                <td><div class="cell"><div class="in sel">Picked types</div><div class="in sel">2 types</div></div></td><td class="cnt">64</td>
+                <td><div class="cell"><div class="in sel">Longest wall, middle</div><span class="mini">Length <span class="in">1000</span> mm</span></div></td>
+                <td><div class="cell"><span class="chips2"><span class="chip2">Section</span><span class="chip2">Callout</span><span class="chip2 on">Ref. section</span><span class="chip2">Ref. callout</span></span><div class="in sel">WP Detail - Wall Upturn</div></div></td>
+                <td><span class="act"><button class="btn">▲</button><button class="btn">▼</button><button class="btn">✕</button></span></td></tr>
+              <tr class="off"><td><span class="cb"></span></td>
+                <td><div class="cell"><div class="in"><b>Wall corner</b></div><div class="in sel">Walls</div><span class="hint" style="font-size:10.5px">Host · Tower_A_Interiors.rvt</span></div></td>
+                <td><div class="cell"><div class="in sel">Any type</div></div></td><td class="cnt">212</td>
+                <td><div class="cell"><div class="in sel">Room corners</div><span class="mini">Length <span class="in">1000</span> mm</span><span class="mini"><span class="cb"></span>Every match</span></div></td>
+                <td><div class="cell"><span class="chips2"><span class="chip2">Section</span><span class="chip2">Callout</span><span class="chip2">Ref. section</span><span class="chip2 on">Ref. callout</span></span><div class="in sel">WP Detail - Wall Corner</div></div></td>
+                <td><span class="act"><button class="btn">▲</button><button class="btn">▼</button><button class="btn">✕</button></span></td></tr>
+              <tr><td><span class="cb on"></span></td>
+                <td><div class="cell"><div class="in"><b>WC</b></div><div class="in sel">Plumbing Fixtures</div><span class="hint" style="font-size:10.5px">Tower_A_Plumbing.rvt</span></div></td>
+                <td><div class="cell"><div class="in sel">Keywords</div><div class="in kw">wc, toilet, water closet, closet</div></div></td><td class="cnt">31</td>
+                <td><div class="cell"><div class="in sel">Through element</div><span class="mini">Length <span class="in">1200</span> mm</span><span class="mini"><span class="cb"></span>Every match</span></div></td>
+                <td><div class="cell"><span class="chips2"><span class="chip2">Section</span><span class="chip2">Callout</span><span class="chip2 on">Ref. section</span><span class="chip2">Ref. callout</span></span><div class="in sel">WP Detail - WC Base</div></div></td>
+                <td><span class="act"><button class="btn">▲</button><button class="btn">▼</button><button class="btn">✕</button></span></td></tr>
+              <tr><td><span class="cb on"></span></td>
+                <td><div class="cell"><div class="in"><b>Shower / bath</b></div><div class="in sel">Plumbing Fixtures</div><span class="hint" style="font-size:10.5px">Tower_A_Plumbing.rvt</span></div></td>
+                <td><div class="cell"><div class="in sel">Keywords</div><div class="in kw">shower, bath, tub</div></div></td><td class="cnt">18</td>
+                <td><div class="cell"><div class="in sel">Through element</div><span class="mini">Length <span class="in">1200</span> mm</span><span class="mini"><span class="cb on"></span>Every match</span></div></td>
+                <td><div class="cell"><span class="chips2"><span class="chip2">Section</span><span class="chip2">Callout</span><span class="chip2 on">Ref. section</span><span class="chip2">Ref. callout</span></span><div class="in sel">WP Detail - Shower</div></div></td>
+                <td><span class="act"><button class="btn">▲</button><button class="btn">▼</button><button class="btn">✕</button></span></td></tr>
+              <tr class="off"><td><span class="cb"></span></td>
+                <td><div class="cell"><div class="in"><b>Basin</b></div><div class="in sel">Plumbing Fixtures</div><span class="hint" style="font-size:10.5px">Tower_A_Plumbing.rvt</span></div></td>
+                <td><div class="cell"><div class="in sel">Keywords</div><div class="in kw">basin, sink, lavatory</div></div></td><td class="cnt">27</td>
+                <td><div class="cell"><div class="in sel">Through element</div><span class="mini">Length <span class="in">1200</span> mm</span><span class="mini"><span class="cb"></span>Every match</span></div></td>
+                <td><div class="cell"><span class="chips2"><span class="chip2">Section</span><span class="chip2 on">Callout</span><span class="chip2">Ref. section</span><span class="chip2">Ref. callout</span></span><span class="hint">New: WP Callout - &lt;room&gt; Basin</span></div></td>
+                <td><span class="act"><button class="btn">▲</button><button class="btn">▼</button><button class="btn">✕</button></span></td></tr>
+              <tr><td><span class="cb on"></span></td>
+                <td><div class="cell"><div class="in"><b>Floor drain</b></div><div class="in sel">Pipe Accessories</div><span class="hint" style="font-size:10.5px">Tower_A_Plumbing.rvt</span></div></td>
+                <td><div class="cell"><div class="in sel">Keywords</div><div class="in kw">drain, fd, gully, floor waste</div></div></td><td class="cnt">22</td>
+                <td><div class="cell"><div class="in sel">Through element</div><span class="mini">Length <span class="in">1200</span> mm</span><span class="mini"><span class="cb on"></span>Every match</span></div></td>
+                <td><div class="cell"><span class="chips2"><span class="chip2">Section</span><span class="chip2">Callout</span><span class="chip2">Ref. section</span><span class="chip2 on">Ref. callout</span></span><div class="in sel">WP Detail - Floor Drain</div></div></td>
+                <td><span class="act"><button class="btn">▲</button><button class="btn">▼</button><button class="btn">✕</button></span></td></tr>
+              <tr><td><span class="cb on"></span></td>
+                <td><div class="cell"><div class="in"><b>Full room</b></div><div class="in sel">Room</div><span class="hint" style="font-size:10.5px">always</span></div></td>
+                <td><div class="cell"><span class="hint">—</span></div></td><td class="cnt">–</td>
+                <td><div class="cell"><div class="in sel">Full room, H + V</div><span class="mini">Past room <span class="in">300</span> mm</span></div></td>
+                <td><div class="cell"><span class="chips2"><span class="chip2 on">Section</span><span class="chip2">Callout</span><span class="chip2">Ref. section</span><span class="chip2">Ref. callout</span></span><span class="hint">New: WP Section - &lt;room&gt; Full room</span></div></td>
+                <td><span class="act"><button class="btn">▲</button><button class="btn">▼</button><button class="btn">✕</button></span></td></tr>
             </table>
           </div>
-          <div class="hint">Type list (opened on a row): <b>Any type</b> · <b>Keywords…</b> · then the loaded types, e.g. <code>Floor Drain : FD-100</code>, <code>Floor Drain : FD-150 Square</code>. You can tick more than one.</div>
+          <div class="hint">Type: <b>Any type</b>, <b>Keywords</b> (matched against "Family : Type") or <b>Picked types</b>, which opens a tick list of the loaded types, e.g. <code>Basic Wall : Tiled 100</code>, <code>Basic Wall : Wet Block 200</code>. A wall row with picked types cuts only the room edges along such walls.</div>
         </div>
       </div>
 
       <div class="foot">
-        <span class="hint">14 wet rooms ticked · <span class="pill w">2 rooms would get more than 6 cuts; the extra cuts are left out</span></span>
-        <span class="row"><button class="btn">◀ Back</button><button class="btn pri">Next: Review ▶</button></span>
+        <span class="hint">Activity log not shown</span>
+        <span class="row"><button class="btn">Remove a run…</button><button class="btn">Back</button><button class="btn">Run without review</button><button class="btn pri">Next: Review</button><button class="btn">Close</button></span>
       </div>
     </div>
   </div>
@@ -228,7 +272,7 @@ ol.q{margin:0;padding-left:20px;display:grid;gap:4px;max-width:80ch}
     <h2>How the category loader works</h2>
     <div class="tbl"><table>
       <tr><th>Part</th><th>Behaviour</th></tr>
-      <tr><td>Look in</td><td>Tick the host and any loaded links. Unloaded links are shown greyed out.</td></tr>
+      <tr><td>Look in</td><td>Tick the host and any loaded links. Links that are not loaded are not listed.</td></tr>
       <tr><td>Categories</td><td>Starts with Doors, Walls, Plumbing Fixtures and Pipe Accessories. <b>+ Add category</b> searches as you type and lists only categories that have elements in the ticked models. The model's full category list is never shown.</td></tr>
       <tr><td>Load types</td><td>Reads only the chosen categories from the ticked models, then fills each row's Type list and the Found counts.</td></tr>
       <tr><td>Memory</td><td>Models (by link name), categories, mapping rows and placement modes are saved to <code>%AppData%\Revit26_Plugin_Revised\WetAreaWaterproofing\settings_v003.json</code>, which has a <code>Version</code> field. On its first run, V003 copies your V002 settings into it.</td></tr>
@@ -236,11 +280,14 @@ ol.q{margin:0;padding-left:20px;display:grid;gap:4px;max-width:80ch}
   </section>
 
   <section style="display:grid;gap:8px">
-    <h2>Still to confirm</h2>
-    <ol class="q">
-      <li>Are the default mapping rows right?</li>
-      <li>Ribbon pulldown: V003 and V002 only, or V001 as well?</li>
-      <li>Are the 4 steps (Find rooms · Roof · Mapping · Review &amp; run) OK?</li>
-    </ol>
+    <h2>The other steps</h2>
+    <div class="tbl"><table>
+      <tr><th>Step</th><th>What changed in 3.0.0</th></tr>
+      <tr><td>1 · Find rooms</td><td>The room grid as in V002. The rooms that need attention and the boundary repair settings now sit beside it; V002's separate "Check outlines" step is gone.</td></tr>
+      <tr><td>2 · Roof</td><td>Unchanged: roof type, workset, offset above slab, Comments.</td></tr>
+      <tr><td>3 · Mapping</td><td>New, shown above. Plan, section-view and callout settings moved into its <b>Views</b> card.</td></tr>
+      <tr><td>4 · Review &amp; run</td><td>The Review table (its columns now read <b>Mapping row</b> and <b>Place as</b>). After the run the result and the Excel report card take its place.</td></tr>
+    </table></div>
+    <p class="note">First run: V003 reads V002's settings and turns its section targets into mapping rows. V002's drains could be in Plumbing Fixtures too; the default drain row reads Pipe Accessories only, so add a row if your drains are plumbing fixtures.</p>
   </section>
 </div>

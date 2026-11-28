@@ -9,6 +9,45 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [8.0.0] — 2026-11-28
+
+### Added
+- **Wet Area Waterproofing 3.0.0 (V003)** — a new version next to V002, redesigned around four steps shown one at a
+  time under a step bar: **Find rooms · Roof · Mapping · Review & run**. A passed step is clicked to change it.
+  - **Mapping step.** Choose which elements get a cut, where the cut goes and what is placed:
+    *Category → Type → Cut at → Place as → Points to.* Place as is set per row: **Section**, **Callout**,
+    **Ref. section** or **Ref. callout**. Type is *Any type*, *Keywords* or *Picked types* (a tick list of the
+    loaded "Family : Type" names). Rows can be added, removed, renamed and reordered; rows higher up win when a
+    room would get more than six cuts.
+  - **Categories to load.** Tick the host and the links to look in, and pick the categories to read. Defaults:
+    Doors, Walls, Plumbing Fixtures, Pipe Accessories. **+ Add category** searches as you type and offers only
+    categories that have elements in the ticked models; the full category list is never shown. **Load types**
+    reads only those categories and fills each row's type list and *Found* count.
+  - **Default mapping:** Door threshold (Ref. section), Wall upturn at the longest wall (Ref. section), Wall corner
+    (Ref. callout, off), WC (Ref. section), Shower / bath (Ref. section), Basin (Callout, off), Floor drain in Pipe
+    Accessories (Ref. callout), Full room H + V (Section).
+  - **Walls:** a wall row with picked wall types cuts only the room edges that run along a wall of those types.
+  - **Memory:** models, categories and mapping rows are saved in
+    `%AppData%\Revit26_Plugin_Revised\WetAreaWaterproofing\settings_v003.json` (format version 2).
+  - Outline problems and the boundary-repair settings now sit beside the room list in step 1 (V002's separate
+    "Check outlines" step is gone). Plan, section-view and callout settings are in the Mapping step's **Views** card.
+  - Excel report: the Sections sheet's *Target* column shows the mapping row's name; the Settings list gets two
+    rows at the end, *Mapping categories* and *Mapping models*. No column was renamed or moved.
+
+### Changed
+- **Ribbon:** the **Wet Area Waterproofing** pulldown holds **V003** (first, its icon on the button) and **V002**.
+
+### Removed
+- **Wet Area Waterproofing V001** is off the ribbon (button `Btn_WetAreaWaterproofing_V001`). Its code stays in
+  `Menu/Sheet/WetAreaWaterproofing_V001`. This is why the plugin version goes to 8.0.0.
+
+*User note:* the first time V003 opens it reads V002's `settings.json` and turns its section targets into mapping
+rows (on/off, mode, length, "all matches", drafting view, and the drain / WC / shower keywords). When V002 used
+"one drafting view for all", that view is copied into every row. V002 keeps its own settings file and is unchanged.
+V002 found floor drains in **Plumbing Fixtures** too; V003's default drain row reads **Pipe Accessories** only, so
+add a row (category Plumbing Fixtures, keywords "drain") if your drains are modelled as plumbing fixtures. A shower
+drain called "Shower Drain …" in Plumbing Fixtures now matches the Shower / bath row.
+
 ## [7.41.2] — 2026-11-28
 
 ### Fixed

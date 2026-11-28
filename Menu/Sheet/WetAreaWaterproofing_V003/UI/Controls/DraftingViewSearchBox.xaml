@@ -1,0 +1,81 @@
+<!--
+  DraftingViewSearchBox (Wet Area Waterproofing V002): the "Points to" box. Type part of a view name,
+  Title on Sheet, sheet number, sheet name or bubble number; a list of matches drops down. ↑/↓ move,
+  Enter or a click picks, Esc closes. The line under the box says where the view is, or that it is new.
+-->
+<UserControl x:Class="Revit26_Plugin_Revised.WetAreaWaterproofing.V003.UI.Controls.DraftingViewSearchBox"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Name="Self">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Revit26_Plugin_Revised;component/Shared/SharedStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <StackPanel>
+        <Grid>
+            <TextBox x:Name="Box" Style="{StaticResource BoxedTextInput}" Padding="4,0,22,0"
+                     TextChanged="Box_TextChanged" PreviewKeyDown="Box_PreviewKeyDown"
+                     LostKeyboardFocus="Box_LostKeyboardFocus" GotKeyboardFocus="Box_GotKeyboardFocus"
+                     ToolTip="Type a view name, title, sheet number, sheet name or bubble number (A-501/3 = sheet A-501, bubble 3). A name that does not exist is created at the run."/>
+            <Button x:Name="DropButton" Content="⏷" HorizontalAlignment="Right" Width="20" Margin="0,1,2,1"
+                    Background="Transparent" BorderThickness="0" Cursor="Hand" FontSize="10" Focusable="False"
+                    Foreground="{StaticResource BrushTextSecondary}" Click="DropButton_Click" ToolTip="Show every drafting view"/>
+        </Grid>
+        <TextBlock x:Name="StatusLine" FontSize="10.5" Margin="2,2,0,0" TextTrimming="CharacterEllipsis"
+                   Foreground="{StaticResource BrushTextSecondary}"/>
+
+        <Popup x:Name="Drop" PlacementTarget="{Binding ElementName=Box}" Placement="Bottom" StaysOpen="False"
+               AllowsTransparency="True" Width="{Binding ActualWidth, ElementName=Box}" MinWidth="320">
+            <Border Background="{StaticResource BrushCardBackground}" BorderBrush="{StaticResource BrushSeparator}"
+                    BorderThickness="1" CornerRadius="4" Padding="2">
+                <DockPanel>
+                    <TextBlock x:Name="CountLine" DockPanel.Dock="Bottom" FontSize="10.5" Margin="6,3,6,2"
+                               Foreground="{StaticResource BrushTextSecondary}"/>
+                    <ListBox x:Name="List" MaxHeight="260" BorderThickness="0" Background="Transparent"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled" Focusable="False"
+                             PreviewMouseLeftButtonUp="List_PreviewMouseLeftButtonUp">
+                        <ListBox.ItemContainerStyle>
+                            <Style TargetType="ListBoxItem">
+                                <Setter Property="Focusable" Value="False"/>
+                                <Setter Property="Cursor" Value="Hand"/>
+                            </Style>
+                        </ListBox.ItemContainerStyle>
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="2,2">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="82"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Border CornerRadius="3" Padding="4,1" HorizontalAlignment="Left" VerticalAlignment="Top"
+                                            Background="{StaticResource BrushInputBackground}" BorderBrush="{StaticResource BrushSeparator}" BorderThickness="1">
+                                        <TextBlock FontFamily="Consolas" FontSize="11">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Text" Value="{Binding Reference}"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsOnSheet}" Value="False">
+                                                            <Setter Property="Text" Value="no sheet"/>
+                                                            <Setter Property="Foreground" Value="{StaticResource BrushTextSecondary}"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                    </Border>
+                                    <StackPanel Grid.Column="1" Margin="6,0,0,0">
+                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Text="{Binding Detail}" FontSize="10.5" Foreground="{StaticResource BrushTextSecondary}" TextTrimming="CharacterEllipsis"/>
+                                    </StackPanel>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+            </Border>
+        </Popup>
+    </StackPanel>
+</UserControl>

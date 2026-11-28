@@ -162,16 +162,6 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
         /// <summary>Creates the Waterproofing panel on <paramref name="tabName"/>.</summary>
         public static void BuildWaterproofingPanel(UIControlledApplication app, string tabName, string assemblyPath)
         {
-            var wetAreaWaterproofingV001 = new PushButtonData("Btn_WetAreaWaterproofing_V001", "Wet Area Waterproofing", assemblyPath, "Revit26_Plugin_Revised.WetAreaWaterproofing.V001.Commands.WetAreaWaterproofingCommand")
-            {
-                Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SheetTools.WetAreaWaterproofing_16.png"),
-                LargeImage = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SheetTools.WetAreaWaterproofing_32.png"),
-                ToolTip = ToolCatalog.WetAreaWaterproofing.Tip(
-                    "Finds wet rooms (toilets, baths, kitchens…) in the model and its links, adds a waterproofing roof on top of the " +
-                    "slab under each one, and creates a cropped plan per room with up to 6 cuts (doors, drains, corners, fixtures) — " +
-                    "each a reference section to a drafting view or a callout detail view. Excel report; one Undo step.")
-            };
-
             var wetAreaWaterproofingV002 = new PushButtonData("Btn_WetAreaWaterproofing_V002", "Wet Area Waterproofing V002", assemblyPath, "Revit26_Plugin_Revised.WetAreaWaterproofing.V002.Commands.WetAreaWaterproofingCommand")
             {
                 Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SheetTools.WetAreaWaterproofing_16.png"),
@@ -182,14 +172,26 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
                     "to assign every target from one searchable table. Each target can be a Ref. Section, Callout, Section or Ref. Callout.")
             };
 
+            var wetAreaWaterproofingV003 = new PushButtonData("Btn_WetAreaWaterproofing_V003", "Wet Area Waterproofing V003", assemblyPath, "Revit26_Plugin_Revised.WetAreaWaterproofing.V003.Commands.WetAreaWaterproofingCommand")
+            {
+                Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SheetTools.WetAreaWaterproofing_16.png"),
+                LargeImage = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SheetTools.WetAreaWaterproofing_32.png"),
+                ToolTip = ToolCatalog.WetAreaWaterproofingV003.Tip(
+                    "Four steps: Find rooms, Roof, Mapping, Review & run. In Mapping you choose which categories to load (Doors, Walls, " +
+                    "Plumbing Fixtures, Pipe Accessories or any other you search for) from the host and the links you tick, then map " +
+                    "category → type → where to cut → Section, Callout, Ref. Section or Ref. Callout, and the view it points to. " +
+                    "Your choices are remembered.")
+            };
+
             // Waterproofing panel (plugin 7.11.0): Wet Area Waterproofing, as a full-size button.
             // Plugin 7.30.0: a large pulldown holding V002 (highest version first, its icon on the button) and V001.
+            // Plugin 8.0.0: the pulldown holds V003 and V002 (highest first); V001 is off the ribbon (its code is kept).
             RibbonPanel waterproofingPanel = app.CreateRibbonPanel(tabName, "Waterproofing");
-            PulldownButtonData wetAreaPulldown = RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_WetAreaWaterproofing", "Wet Area\nWaterproofing", wetAreaWaterproofingV002);
-            wetAreaPulldown.LargeImage = wetAreaWaterproofingV002.LargeImage;
+            PulldownButtonData wetAreaPulldown = RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_WetAreaWaterproofing", "Wet Area\nWaterproofing", wetAreaWaterproofingV003);
+            wetAreaPulldown.LargeImage = wetAreaWaterproofingV003.LargeImage;
             var wetAreaItem = waterproofingPanel.AddItem(wetAreaPulldown);
             RibbonLayoutHelper.WirePulldownButton(new List<RibbonItem> { wetAreaItem }, "Pulldown_WetAreaWaterproofing",
-                wetAreaWaterproofingV002, wetAreaWaterproofingV001);
+                wetAreaWaterproofingV003, wetAreaWaterproofingV002);
         }
     }
 }
