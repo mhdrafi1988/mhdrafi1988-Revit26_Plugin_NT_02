@@ -35,7 +35,8 @@ A step bar shows the four steps; a passed step is clicked to change it (`ViewMod
 ## Mapping (3.0.0)
 
 `Core/Mapping/MappingRule.cs`: a `MappingRule` is one row — `Id`, `On`, `Name`, `Category` (a Revit category name,
-or `Room` for full-room cuts), `Match` (`Any` / `Keywords` / `Types`), `Keywords`, `TypeNames`, `Cut`
+or `Room` for full-room cuts), `AlsoCategories` (more categories the row reads, "Also in…"; the drain row reads
+Plumbing Fixtures too), `Match` (`Any` / `Keywords` / `Types`), `Keywords`, `TypeNames`, `Cut`
 (`ThroughElement`, `LongestWall`, `RoomCorners`, `FullRoomH/V/HV`), `Mode` (`SectionMode`), `AllMatches`, `LengthMm`,
 `DraftingViewName`. Enum values are stored: append only.
 

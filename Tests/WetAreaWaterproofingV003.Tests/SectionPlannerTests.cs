@@ -71,6 +71,7 @@ namespace WetAreaWaterproofingV003.Tests
         [InlineData("Doors", "Single Flush 900x2100", "door")]
         [InlineData("Pipe Accessories", "FD-01 : Standard", "drain")]
         [InlineData("Pipe Accessories", "Floor Drain 100mm", "drain")]
+        [InlineData("Plumbing Fixtures", "Floor Drain 100mm", "drain")]   // drain row also reads Plumbing Fixtures
         [InlineData("Plumbing Fixtures", "Water Closet - Wall Hung", "wc")]
         [InlineData("Plumbing Fixtures", "WC Floor Mounted", "wc")]
         [InlineData("Plumbing Fixtures", "Shower Tray 900", "shower")]

@@ -67,7 +67,7 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V003.Infrastructure
             var sources = new List<TargetSource>();
             var rules = (s.Mappings ?? new List<MappingRule>()).Where(r => r.Category != MappingRules.RoomCategory).ToList();
             var categories = (s.MappingCategories ?? new List<string>())
-                .Where(c => rules.Any(r => string.Equals(r.Category, c, StringComparison.OrdinalIgnoreCase))).ToList();
+                .Where(c => rules.Any(r => MappingRules.AllCategories(r).Any(rc => string.Equals(rc, c, StringComparison.OrdinalIgnoreCase)))).ToList();
 
             foreach ((Document doc, Transform toHost, string model) in Sources(host, links, s))
                 foreach (string name in categories)

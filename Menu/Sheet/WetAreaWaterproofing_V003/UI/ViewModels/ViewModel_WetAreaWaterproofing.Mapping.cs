@@ -36,14 +36,18 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V003.UI.ViewModels
     {
         private readonly Action _changed;
         private readonly Func<IEnumerable<LoadedType>> _types;
+        private readonly Func<IEnumerable<string>> _categories;
+        private readonly List<string> _also;
         private bool _loading;
 
         /// <summary>Choices of the Type box, in <see cref="TypeMatch"/> order.</summary>
         public static IReadOnlyList<string> MatchChoices { get; } = new[] { "Any type", "Keywords", "Picked types" };
 
         /// <summary>Wraps a saved row. <paramref name="types"/> gives the types "Load types" found.</summary>
-        public MappingRowViewModel(MappingRule rule, Func<IEnumerable<LoadedType>> types, Action changed)
+        public MappingRowViewModel(MappingRule rule, Func<IEnumerable<LoadedType>> types, Func<IEnumerable<string>> categories, Action changed)
         {
+            _categories = categories;
+            _also = (rule.AlsoCategories ?? new List<string>()).ToList();
             _loading = true;
             Id = rule.Id;
             _on = rule.On;
@@ -60,6 +64,7 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V003.UI.ViewModels
             _changed = changed;
             UpdateCutChoices(rule.Cut);
             _loading = false;
+            RefreshAlso();
             RefreshTypes();
         }
 
@@ -73,6 +78,12 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V003.UI.ViewModels
         public ObservableCollection<FilterItemViewModel> TypeChoices { get; } = new();
         /// <summary>Choices of the Type box.</summary>
         public IReadOnlyList<string> Matches => MatchChoices;
+        /// <summary>"Also in": the other loaded categories, ticked when the row reads them too.</summary>
+        public ObservableCollection<FilterItemViewModel> AlsoChoices { get; } = new();
+        /// <summary>Text of the "Also in" button.</summary>
+        public string AlsoSummary => _also.Count == 0 ? "+ also in…" : "+ " + string.Join(", ", _also);
+        /// <summary>Categories this row reads: its category, then the "Also in" ones.</summary>
+        public IReadOnlyList<string> AllCategories => new[] { Category }.Concat(_also).ToList();
 
         [ObservableProperty] private bool _on;
         [ObservableProperty] private string _name;
@@ -86,6 +97,7 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V003.UI.ViewModels
         [ObservableProperty] private string _draftingViewName;
         [ObservableProperty] private string _foundText = "–";
         [ObservableProperty] private bool _isTypePopupOpen;
+        [ObservableProperty] private bool _isAlsoPopupOpen;
 
         /// <summary>True for the Room row (full-room cuts): no type, no element.</summary>
         public bool IsRoom => Category == MappingRules.RoomCategory;
@@ -113,7 +125,7 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V003.UI.ViewModels
         public string PickedSummary => _pickedTypes.Count == 0 ? "Pick types…" : _pickedTypes.Count == 1 ? _pickedTypes[0] : $"{_pickedTypes.Count} types";
         /// <summary>Category, and the models it is read from, under the category box.</summary>
         public string CategoryHint => IsRoom ? "always" : string.Join(" · ", (_types() ?? Enumerable.Empty<LoadedType>())
-            .Where(t => t.Category == Category).Select(t => t.Model == RoomCollector.HostKey ? "Host" : t.Model).Distinct().Take(3));
+            .Where(t => AllCategories.Contains(t.Category)).Select(t => t.Model == RoomCollector.HostKey ? "Host" : t.Model).Distinct().Take(3));
 
         /// <summary>Mode radio buttons.</summary>
         public bool IsSection { get => Mode == SectionMode.Section; set { if (value) ModeIndex = (int)SectionMode.Section; } }
@@ -136,6 +148,9 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V003.UI.ViewModels
             UpdateCutChoices(null);
             LengthText = MappingRules.DefaultLengthMm(Cut, value).ToString("0.#", CultureInfo.CurrentCulture);
             _pickedTypes.Clear();
+            if (IsRoom) _also.Clear();
+            _also.RemoveAll(c => c == value);
+            RefreshAlso();
             foreach (string p in new[] { nameof(IsRoom), nameof(HasTypes), nameof(IsKeywords), nameof(IsPicked), nameof(PickedSummary), nameof(LengthLabel) })
                 OnPropertyChanged(p);
             RefreshTypes();
@@ -175,11 +190,39 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V003.UI.ViewModels
             CutChoice = wanted != null && CutChoices.Contains(wanted) ? wanted : CutChoices.FirstOrDefault();
         }
 
+        /// <summary>Rebuilds the "Also in" list from the loaded categories (a saved one not loaded now stays).</summary>
+        public void RefreshAlso()
+        {
+            AlsoChoices.Clear();
+            if (!IsRoom)
+            {
+                var names = (_categories?.Invoke() ?? Enumerable.Empty<string>()).Concat(_also)
+                    .Where(c => c != Category && c != MappingRules.RoomCategory).Distinct().ToList();
+                foreach (string n in names)
+                {
+                    var item = new FilterItemViewModel(n, _also.Contains(n));
+                    item.PropertyChanged += (_, e) =>
+                    {
+                        if (e.PropertyName != nameof(FilterItemViewModel.IsChecked)) return;
+                        if (item.IsChecked) { if (!_also.Contains(item.Text)) _also.Add(item.Text); }
+                        else _also.Remove(item.Text);
+                        OnPropertyChanged(nameof(AlsoSummary));
+                        OnPropertyChanged(nameof(AllCategories));
+                        RefreshTypes();
+                        Changed();
+                    };
+                    AlsoChoices.Add(item);
+                }
+            }
+            OnPropertyChanged(nameof(AlsoSummary));
+            OnPropertyChanged(nameof(AllCategories));
+        }
+
         /// <summary>Rebuilds the type list and the Found count from the last "Load types".</summary>
         public void RefreshTypes()
         {
             TypeChoices.Clear();
-            var names = (_types() ?? Enumerable.Empty<LoadedType>()).Where(t => t.Category == Category)
+            var names = (_types() ?? Enumerable.Empty<LoadedType>()).Where(t => AllCategories.Contains(t.Category))
                 .Select(t => t.TypeName).Distinct().OrderBy(n => n).ToList();
             foreach (string missing in _pickedTypes.Where(p => !names.Contains(p)).ToList()) names.Add(missing); // a saved pick not loaded now stays
             foreach (string n in names)
@@ -221,7 +264,8 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V003.UI.ViewModels
             }
             return new MappingRule
             {
-                Id = Id, On = On, Name = (Name ?? string.Empty).Trim(), Category = Category, Match = IsRoom ? TypeMatch.Any : Match,
+                Id = Id, On = On, Name = (Name ?? string.Empty).Trim(), Category = Category,
+                AlsoCategories = IsRoom ? new List<string>() : _also.ToList(), Match = IsRoom ? TypeMatch.Any : Match,
                 Keywords = (KeywordsText ?? string.Empty).Split(',', ';').Select(k => k.Trim().ToLowerInvariant()).Where(k => k.Length > 0).ToList(),
                 TypeNames = _pickedTypes.ToList(), Cut = Cut, Mode = Mode, AllMatches = CanHaveMany && AllMatches,
                 LengthMm = length, DraftingViewName = (DraftingViewName ?? string.Empty).Trim()
@@ -264,7 +308,7 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V003.UI.ViewModels
             foreach (string c in _settings.MappingCategories) LoadedCategories.Add(c);
             UpdateRowCategories();
             foreach (MappingRule rule in _settings.Mappings)
-                MappingRows.Add(new MappingRowViewModel(rule, () => _loadedTypes, OnMappingChanged));
+                MappingRows.Add(new MappingRowViewModel(rule, () => _loadedTypes, () => LoadedCategories, OnMappingChanged));
             UpdateMappingSummary();
             UpdateLoadButton();
         }
@@ -318,7 +362,7 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V003.UI.ViewModels
         private void UpdateMappingSummary()
         {
             int on = MappingRows.Count(r => r.On);
-            var notLoaded = MappingRows.Where(r => r.On && !r.IsRoom && !LoadedCategories.Contains(r.Category))
+            var notLoaded = MappingRows.Where(r => r.On && !r.IsRoom && !r.AllCategories.Any(LoadedCategories.Contains))
                 .Select(r => r.Category).Distinct().ToList();
             MappingSummary = (on == 0 ? "No row is on: no section will be placed." : $"{on} row(s) on · at most 6 cuts per room · rows higher up win")
                 + (notLoaded.Count > 0 ? $" · not loaded, so skipped: {string.Join(", ", notLoaded)}" : string.Empty);
@@ -380,6 +424,7 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V003.UI.ViewModels
         private void AfterCategoriesChanged()
         {
             UpdateRowCategories();
+            foreach (MappingRowViewModel row in MappingRows) row.RefreshAlso();
             TypesStale = true;
             UpdateLoadButton();
             UpdateMappingSummary();
@@ -422,7 +467,7 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V003.UI.ViewModels
             string category = LoadedCategories.FirstOrDefault() ?? MappingRules.RoomCategory;
             var rule = new MappingRule { Name = "New row", Category = category, Cut = MappingRules.CutsFor(category)[0] };
             rule.LengthMm = MappingRules.DefaultLengthMm(rule.Cut, category);
-            MappingRows.Add(new MappingRowViewModel(rule, () => _loadedTypes, OnMappingChanged));
+            MappingRows.Add(new MappingRowViewModel(rule, () => _loadedTypes, () => LoadedCategories, OnMappingChanged));
             OnMappingChanged();
         }
 
@@ -456,7 +501,7 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V003.UI.ViewModels
         {
             MappingRows.Clear();
             foreach (MappingRule rule in MappingRules.Defaults())
-                MappingRows.Add(new MappingRowViewModel(rule, () => _loadedTypes, OnMappingChanged));
+                MappingRows.Add(new MappingRowViewModel(rule, () => _loadedTypes, () => LoadedCategories, OnMappingChanged));
             foreach (string c in MappingRules.DefaultCategories)
                 if (!LoadedCategories.Contains(c)) LoadedCategories.Add(c);
             AfterCategoriesChanged();

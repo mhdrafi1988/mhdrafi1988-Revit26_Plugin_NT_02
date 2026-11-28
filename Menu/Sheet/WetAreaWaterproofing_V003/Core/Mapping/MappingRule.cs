@@ -46,6 +46,8 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V003.Core.Mapping
         public string Name { get; set; } = string.Empty;
         /// <summary>Revit category name (e.g. "Doors"), or <see cref="MappingRules.RoomCategory"/>.</summary>
         public string Category { get; set; } = string.Empty;
+        /// <summary>More categories the row also reads (tool 3.0.0), e.g. drains modelled as Plumbing Fixtures.</summary>
+        public List<string> AlsoCategories { get; set; } = new();
         /// <summary>How the types are picked.</summary>
         public TypeMatch Match { get; set; } = TypeMatch.Any;
         /// <summary>Keywords for <see cref="TypeMatch.Keywords"/> (lower case).</summary>
@@ -121,12 +123,16 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V003.Core.Mapping
         };
 
         private static MappingRule Rule(string id, bool on, string name, string category, TypeMatch match, string[] keywords,
-            MappingCut cut, SectionMode mode, string view, bool allMatches = false) => new()
+            MappingCut cut, SectionMode mode, string view, bool allMatches = false, string[] also = null) => new()
         {
-            Id = id, On = on, Name = name, Category = category, Match = match,
+            Id = id, On = on, Name = name, Category = category, AlsoCategories = (also ?? Array.Empty<string>()).ToList(), Match = match,
             Keywords = (keywords ?? Array.Empty<string>()).ToList(), Cut = cut, Mode = mode, AllMatches = allMatches,
             LengthMm = DefaultLengthMm(cut, category), DraftingViewName = view ?? string.Empty
         };
+
+        /// <summary>Every category the row reads: <see cref="MappingRule.Category"/>, then <see cref="MappingRule.AlsoCategories"/>.</summary>
+        public static IEnumerable<string> AllCategories(MappingRule rule)
+            => rule == null ? Enumerable.Empty<string>() : new[] { rule.Category }.Concat(rule.AlsoCategories ?? new List<string>());
 
         /// <summary>The default table (approved for 3.0.0): doors, walls, WC, shower, basin, drain and the full-room cut.</summary>
         public static List<MappingRule> Defaults() => new()
@@ -137,7 +143,7 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V003.Core.Mapping
             Rule("wc", true, "WC", PlumbingFixtures, TypeMatch.Keywords, new[] { "wc", "toilet", "water closet", "closet" }, MappingCut.ThroughElement, SectionMode.ReferenceSection, "WP Detail - WC Base"),
             Rule("shower", true, "Shower / bath", PlumbingFixtures, TypeMatch.Keywords, new[] { "shower", "bath", "tub" }, MappingCut.ThroughElement, SectionMode.ReferenceSection, "WP Detail - Shower"),
             Rule("basin", false, "Basin", PlumbingFixtures, TypeMatch.Keywords, new[] { "basin", "sink", "lavatory" }, MappingCut.ThroughElement, SectionMode.Callout, string.Empty),
-            Rule("drain", true, "Floor drain", PipeAccessories, TypeMatch.Keywords, new[] { "drain", "fd", "gully", "floor waste" }, MappingCut.ThroughElement, SectionMode.ReferenceCallout, "WP Detail - Floor Drain"),
+            Rule("drain", true, "Floor drain", PipeAccessories, TypeMatch.Keywords, new[] { "drain", "fd", "gully", "floor waste" }, MappingCut.ThroughElement, SectionMode.ReferenceCallout, "WP Detail - Floor Drain", also: new[] { PlumbingFixtures }),
             Rule("room", true, "Full room", RoomCategory, TypeMatch.Any, null, MappingCut.FullRoomHV, SectionMode.Section, string.Empty)
         };
 
@@ -209,6 +215,10 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V003.Core.Mapping
                 if (!Enum.IsDefined(typeof(TypeMatch), r.Match)) r.Match = TypeMatch.Any;
                 if (!Enum.IsDefined(typeof(SectionMode), r.Mode)) r.Mode = SectionMode.ReferenceSection;
                 r.Name = string.IsNullOrWhiteSpace(r.Name) ? r.Category : r.Name.Trim();
+                r.AlsoCategories = r.Category == RoomCategory ? new List<string>()
+                    : (r.AlsoCategories ?? new List<string>()).Select(c => (c ?? string.Empty).Trim())
+                        .Where(c => c.Length > 0 && c != RoomCategory && !string.Equals(c, r.Category, StringComparison.OrdinalIgnoreCase))
+                        .Distinct(StringComparer.OrdinalIgnoreCase).ToList();
                 r.Keywords = (r.Keywords ?? new List<string>()).Select(k => (k ?? string.Empty).Trim().ToLowerInvariant())
                     .Where(k => k.Length > 0).Distinct().ToList();
                 r.TypeNames = (r.TypeNames ?? new List<string>()).Where(t => !string.IsNullOrWhiteSpace(t)).Distinct().ToList();
@@ -222,7 +232,8 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V003.Core.Mapping
         /// <summary>True when an element of <paramref name="category"/> called <paramref name="typeName"/> ("Family : Type") belongs to the row.</summary>
         public static bool Matches(MappingRule rule, string category, string typeName)
         {
-            if (rule == null || rule.Category == RoomCategory || !string.Equals(rule.Category, category, StringComparison.OrdinalIgnoreCase)) return false;
+            if (rule == null || rule.Category == RoomCategory
+                || !AllCategories(rule).Any(c => string.Equals(c, category, StringComparison.OrdinalIgnoreCase))) return false;
             return rule.Match switch
             {
                 TypeMatch.Keywords => rule.Keywords.Count > 0 && KeywordMatcher.Match(typeName ?? string.Empty, rule.Keywords) != null,
@@ -247,7 +258,7 @@ namespace Revit26_Plugin_Revised.WetAreaWaterproofing.V003.Core.Mapping
                 if (r == null) continue;
                 bool needsElements = r.Category != RoomCategory && (r.Cut == MappingCut.ThroughElement || r.Match != TypeMatch.Any);
                 bool loaded = loadedCategories == null || r.Category == RoomCategory
-                    || loadedCategories.Any(c => string.Equals(c, r.Category, StringComparison.OrdinalIgnoreCase));
+                    || AllCategories(r).Any(rc => loadedCategories.Any(c => string.Equals(c, rc, StringComparison.OrdinalIgnoreCase)));
                 SectionTargetSetting T(SectionTargetKind kind, string label) => new()
                 {
                     Kind = kind, On = r.On && (loaded || !needsElements), AllMatches = r.AllMatches, LengthMm = r.LengthMm,

@@ -137,6 +137,23 @@ namespace WetAreaWaterproofingV003.Tests
         }
 
         [Fact]
+        public void AlsoCategoriesAreMatchedLoadedAndCleaned()
+        {
+            var s = new WetAreaSettings().Normalize();
+            MappingRule drain = s.Mappings.Single(m => m.Id == "drain");
+            Assert.Equal(new[] { "Plumbing Fixtures" }, drain.AlsoCategories);
+            Assert.True(MappingRules.Matches(drain, "Plumbing Fixtures", "Floor Drain : 100"));
+            Assert.True(MappingRules.Matches(drain, "Pipe Accessories", "FD : 100"));
+
+            s.MappingCategories = new() { "Plumbing Fixtures" };   // Pipe Accessories not loaded: still on via the other category
+            s.Normalize();
+            Assert.True(s.Targets.Single(t => t.RuleId == "drain").On);
+
+            var r = MappingRules.Normalize(new() { new MappingRule { Category = "Doors", AlsoCategories = new() { "doors", "Room", " Windows ", "Windows" } } });
+            Assert.Equal(new[] { "Windows" }, r[0].AlsoCategories);
+        }
+
+        [Fact]
         public void FullRoomHVRowGivesTwoTargets()
         {
             var t = MappingRules.ToTargets(new[] { new MappingRule { Id = "r", Name = "Full room", Category = MappingRules.RoomCategory, Cut = MappingCut.FullRoomHV } });

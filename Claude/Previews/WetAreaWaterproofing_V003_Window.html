@@ -208,7 +208,7 @@ ol.q{margin:0;padding-left:20px;display:grid;gap:4px;max-width:80ch}
             <table>
               <tr><th>On</th><th>Name · category</th><th>Type</th><th class="cnt">Found</th><th>Cut at</th><th>Place as · points to / creates <span class="new">NEW</span></th><th></th></tr>
               <tr><td><span class="cb on"></span></td>
-                <td><div class="cell"><div class="in"><b>Door threshold</b></div><div class="in sel">Doors</div><span class="hint" style="font-size:10.5px">Host · Tower_A_Interiors.rvt</span></div></td>
+                <td><div class="cell"><div class="in"><b>Door threshold</b></div><div class="in sel">Doors</div><span style="font-size:11px;color:var(--blue)">+ also in…</span><span class="hint" style="font-size:10.5px">Host · Tower_A_Interiors.rvt</span></div></td>
                 <td><div class="cell"><div class="in sel">Any type</div></div></td><td class="cnt">46</td>
                 <td><div class="cell"><div class="in sel">Threshold</div><span class="mini">Length <span class="in">1500</span> mm</span><span class="mini"><span class="cb"></span>Every match</span></div></td>
                 <td><div class="cell"><span class="chips2"><span class="chip2">Section</span><span class="chip2">Callout</span><span class="chip2 on">Ref. section</span><span class="chip2">Ref. callout</span></span><div class="in sel">WP Detail - Door Threshold</div></div></td>
@@ -244,7 +244,7 @@ ol.q{margin:0;padding-left:20px;display:grid;gap:4px;max-width:80ch}
                 <td><div class="cell"><span class="chips2"><span class="chip2">Section</span><span class="chip2 on">Callout</span><span class="chip2">Ref. section</span><span class="chip2">Ref. callout</span></span><span class="hint">New: WP Callout - &lt;room&gt; Basin</span></div></td>
                 <td><span class="act"><button class="btn">▲</button><button class="btn">▼</button><button class="btn">✕</button></span></td></tr>
               <tr><td><span class="cb on"></span></td>
-                <td><div class="cell"><div class="in"><b>Floor drain</b></div><div class="in sel">Pipe Accessories</div><span class="hint" style="font-size:10.5px">Tower_A_Plumbing.rvt</span></div></td>
+                <td><div class="cell"><div class="in"><b>Floor drain</b></div><div class="in sel">Pipe Accessories</div><span style="font-size:11px;color:var(--blue)">+ Plumbing Fixtures</span> <span class="new" style="justify-self:start;margin-left:0">NEW</span><span class="hint" style="font-size:10.5px">Tower_A_Plumbing.rvt</span></div></td>
                 <td><div class="cell"><div class="in sel">Keywords</div><div class="in kw">drain, fd, gully, floor waste</div></div></td><td class="cnt">22</td>
                 <td><div class="cell"><div class="in sel">Through element</div><span class="mini">Length <span class="in">1200</span> mm</span><span class="mini"><span class="cb on"></span>Every match</span></div></td>
                 <td><div class="cell"><span class="chips2"><span class="chip2">Section</span><span class="chip2">Callout</span><span class="chip2">Ref. section</span><span class="chip2 on">Ref. callout</span></span><div class="in sel">WP Detail - Floor Drain</div></div></td>
@@ -257,7 +257,7 @@ ol.q{margin:0;padding-left:20px;display:grid;gap:4px;max-width:80ch}
                 <td><span class="act"><button class="btn">▲</button><button class="btn">▼</button><button class="btn">✕</button></span></td></tr>
             </table>
           </div>
-          <div class="hint">Type: <b>Any type</b>, <b>Keywords</b> (matched against "Family : Type") or <b>Picked types</b>, which opens a tick list of the loaded types, e.g. <code>Basic Wall : Tiled 100</code>, <code>Basic Wall : Wet Block 200</code>. A wall row with picked types cuts only the room edges along such walls.</div>
+          <div class="hint">Type: <b>Any type</b>, <b>Keywords</b> (matched against "Family : Type") or <b>Picked types</b>, which opens a tick list of the loaded types, e.g. <code>Basic Wall : Tiled 100</code>, <code>Basic Wall : Wet Block 200</code>. A wall row with picked types cuts only the room edges along such walls. <b>+ also in…</b> under a category lets a row read more categories: the drain row reads Pipe Accessories and Plumbing Fixtures.</div>
         </div>
       </div>
 
@@ -288,6 +288,6 @@ ol.q{margin:0;padding-left:20px;display:grid;gap:4px;max-width:80ch}
       <tr><td>3 · Mapping</td><td>New, shown above. Plan, section-view and callout settings moved into its <b>Views</b> card.</td></tr>
       <tr><td>4 · Review &amp; run</td><td>The Review table (its columns now read <b>Mapping row</b> and <b>Place as</b>). After the run the result and the Excel report card take its place.</td></tr>
     </table></div>
-    <p class="note">First run: V003 reads V002's settings and turns its section targets into mapping rows. V002's drains could be in Plumbing Fixtures too; the default drain row reads Pipe Accessories only, so add a row if your drains are plumbing fixtures.</p>
+    <p class="note">First run: V003 reads V002's settings and turns its section targets into mapping rows. Like V002, the drain row finds drains in Pipe Accessories and Plumbing Fixtures. An element can match several rows, so a "Shower Drain" fixture gets a drain cut and a shower cut; untick one in the Review if you want only one.</p>
   </section>
 </div>

@@ -25,7 +25,8 @@ Each release lists every tool whose version changed, under the plugin version.
     reads only those categories and fills each row's type list and *Found* count.
   - **Default mapping:** Door threshold (Ref. section), Wall upturn at the longest wall (Ref. section), Wall corner
     (Ref. callout, off), WC (Ref. section), Shower / bath (Ref. section), Basin (Callout, off), Floor drain in Pipe
-    Accessories (Ref. callout), Full room H + V (Section).
+    Accessories and Plumbing Fixtures (Ref. callout), Full room H + V (Section).
+  - **Also in…:** a row can read more than one category (under its category box), as the drain row does.
   - **Walls:** a wall row with picked wall types cuts only the room edges that run along a wall of those types.
   - **Memory:** models, categories and mapping rows are saved in
     `%AppData%\Revit26_Plugin_Revised\WetAreaWaterproofing\settings_v003.json` (format version 2).
@@ -44,9 +45,9 @@ Each release lists every tool whose version changed, under the plugin version.
 *User note:* the first time V003 opens it reads V002's `settings.json` and turns its section targets into mapping
 rows (on/off, mode, length, "all matches", drafting view, and the drain / WC / shower keywords). When V002 used
 "one drafting view for all", that view is copied into every row. V002 keeps its own settings file and is unchanged.
-V002 found floor drains in **Plumbing Fixtures** too; V003's default drain row reads **Pipe Accessories** only, so
-add a row (category Plumbing Fixtures, keywords "drain") if your drains are modelled as plumbing fixtures. A shower
-drain called "Shower Drain …" in Plumbing Fixtures now matches the Shower / bath row.
+Like V002, the drain row finds drains in **Pipe Accessories** and **Plumbing Fixtures**. Unlike V002, an element
+can match several rows: a plumbing fixture called "Shower Drain …" now gets both a drain cut and a shower cut
+(V002 gave it only the drain cut). Untick one in the Review, or change the shower row's keywords.
 
 ## [7.41.2] — 2026-11-28
 

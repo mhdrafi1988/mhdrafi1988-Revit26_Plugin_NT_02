@@ -807,6 +807,30 @@ Overlay cards: result of a run, "Remove a run", "Assign drafting views". Column 
                                                                          ToolTip="Name shown in the Review, the report and the view names"/>
                                                                 <ComboBox ItemsSource="{Binding DataContext.RowCategories, ElementName=Root}" SelectedItem="{Binding Category}"
                                                                           Style="{StaticResource StandardComboBox}" Margin="0,4,0,0" ToolTip="Category (from Categories to load), or Room for full-room cuts"/>
+                                                                <Grid Margin="0,3,0,0" Visibility="{Binding HasTypes, Converter={StaticResource BoolToVis}}">
+                                                                    <ToggleButton x:Name="AlsoToggle" IsChecked="{Binding IsAlsoPopupOpen}" HorizontalAlignment="Left"
+                                                                                  Padding="5,0" FontSize="11" Background="Transparent" BorderThickness="0" Cursor="Hand"
+                                                                                  Foreground="{StaticResource BrushAppleBlue}"
+                                                                                  ToolTip="Read more categories in this row, e.g. drains modelled as Plumbing Fixtures">
+                                                                        <TextBlock Text="{Binding AlsoSummary}" TextTrimming="CharacterEllipsis" MaxWidth="170"/>
+                                                                    </ToggleButton>
+                                                                    <Popup IsOpen="{Binding IsAlsoPopupOpen}" StaysOpen="False" Placement="Bottom" AllowsTransparency="True"
+                                                                           PlacementTarget="{Binding ElementName=AlsoToggle}">
+                                                                        <Border Background="{StaticResource BrushCardBackground}" BorderBrush="{StaticResource BrushBorderInput}" BorderThickness="1"
+                                                                                CornerRadius="4" Padding="8" MinWidth="200">
+                                                                            <StackPanel>
+                                                                                <TextBlock Text="Also read these categories" Style="{StaticResource FieldLabel}" Margin="0,0,0,4"/>
+                                                                                <ItemsControl ItemsSource="{Binding AlsoChoices}">
+                                                                                    <ItemsControl.ItemTemplate>
+                                                                                        <DataTemplate>
+                                                                                            <CheckBox Content="{Binding Text}" IsChecked="{Binding IsChecked}" Margin="0,2"/>
+                                                                                        </DataTemplate>
+                                                                                    </ItemsControl.ItemTemplate>
+                                                                                </ItemsControl>
+                                                                            </StackPanel>
+                                                                        </Border>
+                                                                    </Popup>
+                                                                </Grid>
                                                                 <TextBlock Text="{Binding CategoryHint}" Style="{StaticResource HintText}" FontSize="10.5" Margin="2,2,0,0" TextTrimming="CharacterEllipsis"/>
                                                             </StackPanel>
 
