@@ -40,7 +40,7 @@ Where a tool has several versions, its button is a dropdown listing the newest v
 | Rafi_Pro_Floors | Floor Lines | Crease By Openings · Crease By Points · Floor Creaser |
 | Rafi_Pro_Floors | Floor Edit | Floor Types · Name Builder · Floor Tag · Comparison · Elevation Sync · Floor EPS |
 | Rafi_Pro_Floors | Floor Views | Floor Around Edges · Floor Edge Element · Floor Focus |
-| Rafi_Pro_Floors | Waterproofing | Wet Area Waterproofing (V002, V001) |
+| Rafi_Pro_Floors | Waterproofing | Wet Area Waterproofing (V003, V002) |
 
 **Rafi_Pro_Model** (Model management)
 
@@ -173,6 +173,9 @@ Where a tool has several versions, its button is a dropdown listing the newest v
   6 cuts (doors, drains, corners, fixtures), each placed as a reference section to a drafting view or as a callout
   detail view. Room grid with level buttons, column filters and multi-column sort; Excel report of every run.
   (Sheets and the print set follow.)
+  **V003 (3.0.0)** redesigns it as four steps (Find rooms · Roof · Mapping · Review & run) and adds the
+  **Mapping**: pick the categories to load from the host and the links, then map category → type → cut →
+  Section, Callout, Ref. Section or Ref. Callout → the view it points to. The choices are remembered.
 
 ### DWG and families
 - **DWG To DL(P), DWG To Lines**: convert DWGs to detail lines and hatches.
