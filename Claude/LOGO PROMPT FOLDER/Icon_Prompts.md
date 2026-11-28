@@ -17,6 +17,25 @@ Several tool families already have an unused, never-wired icon sitting in `Resou
 
 ---
 
+## DWG Tools (`SetupRibbon.cs`) and Sheet Create (`SheetToolsRibbon.cs`)
+
+*Made 2026-11-27 (plugin 7.41.1), drawn directly rather than generated. Same style note as the Detail Lines entry
+below: full-bleed `#2E6E91` tile, white glyph, `#F4A72C` accent — the panel's style, not the monochrome brief above.*
+
+- **Btn_DwgManager_V002 / _V003** → `SetupTools/DwgManager_16.png` + `_32.png` — a drawing with ruled lines and a
+  tick against it: the tool lists CAD links and imports so you can review and delete them.
+- **Btn_DwgStatistics_V005** → `SetupTools/DwgStatistics_16.png` + `_32.png` — a bar chart on the drawing: it counts
+  DWG usage across the project.
+- **Btn_ExportDwgToFolder_V003 / _V004** → `SetupTools/ExportDwgToFolder_16.png` + `_32.png` — a drawing with an
+  arrow leaving it to the right: it writes the CAD links and imports out to a folder.
+- **Btn_AutomatedSectionPlacer_V002 / _V003** → `SheetTools/AutomatedSectionPlacer_16.png` + `_32.png` — a sheet with
+  two views placed on it, each with its title line: it packs the section views shown in a plan onto sheets.
+
+All four had been borrowing another tool's icon. The three DWG ones drew DWG To DL(P)'s picture and Section Placer
+drew Sheet Placer's, so in both cases neighbouring buttons on the same panel were identical bar their labels.
+
+---
+
 ## Detail Lines (`DetailLInesRibbon.cs`)
 
 **Btn_SectionRoofDetailLines_V001** → `DetailLiner/SectionRoofDetailLines_16.png` + `_32.png` — *made 2026-11-21

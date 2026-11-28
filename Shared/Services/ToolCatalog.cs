@@ -122,12 +122,12 @@ namespace Revit26_Plugin_Revised.Shared.Services
         public static readonly ToolInfo DwgToLines = Add("DWG To Lines", "7.1.0", "V007", "Revit26_Plugin_Revised.DwgToLines.V007");
         public static readonly ToolInfo DwgToDetailLines = Add("DWG To Detail Lines", "11.0.0", "V011", "Revit26_Plugin_Revised.DwgToDetailLines.V011");
         public static readonly ToolInfo DwgToDlp = Add("DWG To DL(P)", "14.1.0", "V014", "Revit26_Plugin_Revised.DwgToDetailLines.V014");
-        public static readonly ToolInfo DwgManager = Add("DWG Manager", "3.2.0", "V003", "Revit26_Plugin_Revised.DwgManager.V003");
-        public static readonly ToolInfo DwgStatistics = Add("DWG Statistics", "5.2.0", "V005", "Revit26_Plugin_Revised.DwgStatistics.V005");
-        public static readonly ToolInfo ExportDwgToFolder = Add("Export DWG to Folder", "4.3.0", "V004", "Revit26_Plugin_Revised.ExportDwgToFolder.V004");
+        public static readonly ToolInfo DwgManager = Add("DWG Manager", "3.2.1", "V003", "Revit26_Plugin_Revised.DwgManager.V003");
+        public static readonly ToolInfo DwgStatistics = Add("DWG Statistics", "5.2.1", "V005", "Revit26_Plugin_Revised.DwgStatistics.V005");
+        public static readonly ToolInfo ExportDwgToFolder = Add("Export DWG to Folder", "4.3.1", "V004", "Revit26_Plugin_Revised.ExportDwgToFolder.V004");
         public static readonly ToolInfo PlanFromScopeBox = Add("Plan From Scope Box", "6.2.0", "V006", "Revit26_Plugin_Revised.PlanFromScopeBox.V006");
         public static readonly ToolInfo SmartViewToSheetPlacer = Add("Smart View To Sheet Placer", "224.3.0", "V224", "Revit26_Plugin_Revised.SmartViewToSheetPlacer.V224");
-        public static readonly ToolInfo AutomatedSectionPlacer = Add("Automated Section Placer", "3.2.0", "V003", "Revit26_Plugin_Revised.AutomatedSectionPlacer.V003");
+        public static readonly ToolInfo AutomatedSectionPlacer = Add("Automated Section Placer", "3.2.1", "V003", "Revit26_Plugin_Revised.AutomatedSectionPlacer.V003");
         public static readonly ToolInfo SheetAutoRearrange = Add("Sheet Auto Rearrange", "28.2.2", "V028", "Revit26_Plugin_Revised.SheetAutoRearrange.V028");
         public static readonly ToolInfo SheetAutoRearrangeV029 = Add("Sheet Auto Rearrange", "29.0.2", "V029", "Revit26_Plugin_Revised.SheetAutoRearrange.V029");
         public static readonly ToolInfo SheetAutoRearrangeV030 = Add("Sheet Auto Rearrange", "30.0.1", "V030", "Revit26_Plugin_Revised.SheetAutoRearrange.V030");

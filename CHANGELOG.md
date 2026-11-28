@@ -9,6 +9,41 @@ versions follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
 Each release lists every tool whose version changed, under the plugin version.
 
+## [7.41.1] — 2026-11-27
+
+### Changed
+- **Four buttons that wore another tool's icon now have their own.** Appearance only — every button keeps its
+  position, label, internal name, tooltip text and behaviour.
+  - **DWG Manager 3.2.1**, **DWG Statistics 5.2.1** and **Export DWG to Folder 4.3.1** were all drawing
+    **DWG To DL(P)**'s picture. All four are stacked pulldowns on the **DWG Tools** panel and all render at 16 px
+    there, so the panel showed the same icon four times over and only the labels told the tools apart.
+    `Resources/Icons/SetupTools/DwgManager_16/32.png` (a drawing with a tick against it),
+    `DwgStatistics_16/32.png` (a bar chart on the drawing) and
+    `ExportDwgToFolder_16/32.png` (a drawing with an arrow leaving it).
+  - **Automated Section Placer 3.2.1** was drawing **Sheet Placer**'s picture. The two sit one above the other in
+    the **Sheet Create** stack, so they were identical bar their labels. The source even carried a
+    `// TODO: swap for a dedicated icon` against it, which this removes.
+    `Resources/Icons/SheetTools/AutomatedSectionPlacer_16/32.png` — a sheet with two views placed on it, each with
+    its title line.
+  - **DWG To DL(P)** and **Sheet Placer** keep the icons they had; they are the tools those pictures belong to.
+  - Each follows the stack it sits in: a full-bleed `#2E6E91` tile, white for the drawing or sheet, `#F4A72C` for
+    what that tool does to it. Each size is drawn as whole pixels at that size rather than shrunk from the other,
+    so 16 px stays crisp — which is the size that actually shows, since all of these are stacked buttons.
+  - **On style**, since the two categories differ. `SetupTools` is all tiles, 10 of 10, so the three DWG icons were
+    an easy fit. `SheetTools` is split: the older Sheet Create stack (Scope Box, Sheet Placer, Rearrange) uses
+    tiles, while the newer Sheet Edit and slide-out icons use navy line art on transparent. Section Placer takes
+    the tile, because the three buttons in its own stack use one and they read as a set — not because the category
+    agrees. Both styles already appear on that panel.
+  - Ribbon previews: `Claude/Previews/SetupRibbon_Panels.html` (new) —
+    https://claude.ai/artifact/Fp5BHCuCEZhd2DydgVvjgZ — and `Claude/Previews/SheetRibbon_Panels.html` —
+    https://claude.ai/artifact/51UpNatmatwf6CvZcDFXRV
+
+**User notes**
+- Nothing about any of these tools changed except the picture on its button.
+- One thing this does *not* fix: **EPS Stepped Insulation Layout 1.1.0** is in `ToolCatalog` and has a command
+  class, but no ribbon button anywhere, so there is nothing to put an icon on and no way to run it from the
+  ribbon. Where that button should go is a layout decision, not an icon one.
+
 ## [7.41.0] — 2026-11-27
 
 ### Added

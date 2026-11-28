@@ -85,12 +85,14 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             // Newest build first. "#" at the end of the label marks the version added last.
             var exportDwgV004 = new PushButtonData("Btn_ExportDwgToFolder_V004", "Export DWG V004 #", assemblyPath, "Revit26_Plugin_Revised.ExportDwgToFolder.V004.Commands.ExportDwgToFolderCommand")
             {
-                Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SetupTools.DwgToDetailLines_V011_16.png"),
+                Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SetupTools.ExportDwgToFolder_16.png"),
+                LargeImage = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SetupTools.ExportDwgToFolder_32.png"),
                 ToolTip = ToolCatalog.ExportDwgToFolder.Tip("Export embedded CAD links and imports to a folder, with layer-property and post-export review options, plus an export manifest.")
             };
             var exportDwgV003 = new PushButtonData("Btn_ExportDwgToFolder_V003", "Export DWG V003", assemblyPath, "Revit26_Plugin_Revised.ExportDwgToFolder.V003.Commands.ExportDwgToFolderCommand")
             {
-                Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SetupTools.DwgToDetailLines_V011_16.png"),
+                Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SetupTools.ExportDwgToFolder_16.png"),
+                LargeImage = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SetupTools.ExportDwgToFolder_32.png"),
                 ToolTip = RibbonLayoutHelper.VersionTip("Export DWG to Folder", "V003", "Export all embedded CAD links and imports to a folder, organised by source type and view category.")
             };
             // V001 removed in plugin 4.2.1: its source is not in the repository.
@@ -98,19 +100,22 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
 
             var dwgManagerV002 = new PushButtonData("Btn_DwgManager_V002", "DWG Manager V002", assemblyPath, "Revit26_Plugin_Revised.DwgManager.V002.Commands.DwgManagerCommand")
             {
-                Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SetupTools.DwgToDetailLines_16.png"),
+                Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SetupTools.DwgManager_16.png"),
+                LargeImage = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SetupTools.DwgManager_32.png"),
                 ToolTip = ToolCatalog.DwgManager.Tip("List every CAD link and import by link type and view, open up to 5 of their views, select instances by ID, and delete them (optionally purging types no longer placed anywhere).")
             };
             var dwgManagerV003 = new PushButtonData("Btn_DwgManager_V003", "DWG Manager V003", assemblyPath, "Revit26_Plugin_Revised.DwgManager.V003.Commands.DwgManagerCommand")
             {
-                Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SetupTools.DwgToDetailLines_16.png"),
+                Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SetupTools.DwgManager_16.png"),
+                LargeImage = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SetupTools.DwgManager_32.png"),
                 ToolTip = ToolCatalog.DwgManager.Tip("List every CAD link and import by link type and view, open up to 5 of their views, select instances by ID, and delete them (optionally purging types no longer placed anywhere).")
             };
             var dwgManagerPulldownData = RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_DwgManager", "DWG Manager", dwgManagerV003);
 
             var dwgStatisticsV005 = new PushButtonData("Btn_DwgStatistics_V005", "DWG Statistics V005", assemblyPath, "Revit26_Plugin_Revised.DwgStatistics.V005.Commands.DwgStatisticsCommand")
             {
-                Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SetupTools.DwgToDetailLines_16.png"),
+                Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SetupTools.DwgStatistics_16.png"),
+                LargeImage = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SetupTools.DwgStatistics_32.png"),
                 ToolTip = ToolCatalog.DwgStatistics.Tip("Report DWG usage statistics across the project.")
             };
             var dwgStatisticsPulldownData = RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_DwgStatistics", "DWG Statistics", dwgStatisticsV005);

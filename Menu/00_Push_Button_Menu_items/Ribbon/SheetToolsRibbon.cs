@@ -41,15 +41,16 @@ namespace Revit26_Plugin_Revised.Menu.Ribbon
             // Automated Section Placer: standalone tool (not a SmartViewToSheetPlacer
             // version) — detects section views visible on the active Plan View and
             // runs them through the same packing/placement pipeline.
-            // TODO: swap for a dedicated icon — temporarily reusing the Sheet Placer icon.
             var autoSectionPlacerV002 = new PushButtonData("Btn_AutomatedSectionPlacer_V002", "Auto Section Placer V002", assemblyPath, "Revit26_Plugin_Revised.AutomatedSectionPlacer.V002.AutomatedSectionPlacerCommand")
             {
-                Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SheetTools.SmartViewToSheetPlacer_V222_16.png"),
+                Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SheetTools.AutomatedSectionPlacer_16.png"),
+                LargeImage = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SheetTools.AutomatedSectionPlacer_32.png"),
                 ToolTip = RibbonLayoutHelper.VersionTip("Automated Section Placer", "V002", "UI Standard layout: fixed footer with the Activity Log (Copy All / Copy Selected), Export Logs and Close.")
             };
             var autoSectionPlacerV003 = new PushButtonData("Btn_AutomatedSectionPlacer_V003", "Auto Section Placer V003", assemblyPath, "Revit26_Plugin_Revised.AutomatedSectionPlacer.V003.AutomatedSectionPlacerCommand")
             {
-                Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SheetTools.SmartViewToSheetPlacer_V222_16.png"),
+                Image = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SheetTools.AutomatedSectionPlacer_16.png"),
+                LargeImage = ImageUtils.Load("Revit26_Plugin_Revised.Resources.Icons.SheetTools.AutomatedSectionPlacer_32.png"),
                 ToolTip = RibbonLayoutHelper.VersionTip("Automated Section Placer", "V003", "Places section views on sheets automatically, packed to fit.")
             };
             var autoSectionPlacerPulldownData = RibbonLayoutHelper.CreatePulldownButtonData("Pulldown_AutomatedSectionPlacer", "Section Placer", autoSectionPlacerV003);

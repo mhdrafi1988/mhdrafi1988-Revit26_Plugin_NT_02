@@ -1,6 +1,10 @@
 <title>Sheet Ribbon Icons</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<!-- UI preview (CLAUDE.md "UI previews") for the Sheet ribbon panels, plugin 7.17.0.
+<!-- UI preview (CLAUDE.md "UI previews") for the Sheet ribbon panels, plugin 7.41.1 (was 7.17.0).
+     7.41.1: Automated Section Placer 3.2.1 — Section Placer gets its own icon instead of borrowing
+             Sheet Placer's, which it had done since it was added. The two sit one above the other in
+             the Sheet Create stack and both render at 16 px, so they were identical bar their labels.
+     Earlier, plugin 7.17.0:
      Shown: the Sheet Create panel and its slide-out, Sheet Edit and Waterproofing, with the real PNG
      assets embedded, plus the three sheet-layout tools side by side so their icons can be compared.
      7.17.0: Sheet View Arrange 1.3.1 — Arrange Views gets its own icon instead of borrowing Rearrange's
@@ -68,13 +72,22 @@ img{image-rendering:pixelated;display:block}
 
 <header>
   <h1>Sheet Ribbon Icons</h1>
-  <p class="muted">Plugin <b>7.17.0</b> &middot; the <b>Documents</b> tab's Sheet panels, drawn with the real PNG assets
+  <p class="muted">Plugin <b>7.41.1</b> &middot; the <b>Documents</b> tab's Sheet panels, drawn with the real PNG assets
   from <code>Resources/Icons/SheetTools/</code>.</p>
 </header>
 
 <section class="note">
   <h2>What changed</h2>
-  <p><b>Arrange Views</b> had borrowed the Rearrange icon since plugin 2.4.0. Both sit in the same slide-out and both
+  <p><b>7.41.1 &mdash; Section Placer</b> had been drawing <b>Sheet Placer</b>'s icon since it was added. The two sit
+  one above the other in the Sheet Create stack and both render at 16&nbsp;px, so they were identical bar their labels;
+  the source even carried a <code>// TODO: swap for a dedicated icon</code> against it. It now has its own: a sheet
+  with two views placed on it, each with its title line. Sheet Placer keeps the icon it had.</p>
+  <p class="muted"><b>On style.</b> <code>SheetTools</code> is split: the older Sheet Create stack (Scope Box, Sheet
+  Placer, Rearrange) uses full&#8209;bleed <code>#2E6E91</code> tiles, while the newer Sheet Edit and slide&#8209;out
+  icons below use navy line art on transparent. Section Placer takes the tile, because that is what the three buttons
+  in its own stack use and they read as a set. The note at the foot of this page describes the line&#8209;art style,
+  which is what the 7.17.0 icons use.</p>
+  <p><b>7.17.0 &mdash; Arrange Views</b> had borrowed the Rearrange icon since plugin 2.4.0. Both sit in the same slide-out and both
   render at 16&nbsp;px there, so the two buttons were identical apart from their labels. It now has its own.
   <b>Align &amp; Distribute</b> is new in 7.17.0 and arrives with its own icon.</p>
 </section>
@@ -88,7 +101,7 @@ img{image-rendering:pixelated;display:block}
           <div class="stack">
             <span class="sb"><img class="" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAJKSURBVDhPlZPLTxNRGMWbuPCVEAWpgNCp7vwLSIzujBtjFFsSN0QTXRiNj/jAIC20kzbqysRXTLQtZTrtTGmLRZIKtkIhlEepFRMU6UxrkBEfMwth4fKYe1uDEBZ2cXImc+f73W/ud65OZJlc2GlUBZYpS6RGZBlJJ7DMct+9vQg7jWWJ1Igss0IAhAbBbthQIstAZI0IdNaBt+rht+qp97B1ZE2jgJDDQBf8HTVrZdVDsNdDsDeg734j4q4TSHhM1GOPDpD3ms7fUavGHjRCSnPIZ0Xks0JJIuSMH/0PD4Fr24Fc2gtNeYeF2Zf4uZDG4mwEgc5aTcdbqtRktwmaMoOJ3isYj1zCeOQyUqELUL9kMMy3oOvmFkgZHmM959HdVoEh7ykoH6PFDnhLtTrCNUPOiuBu7yypEt5b2zE/6UEqfBEB2x7a0Yj/DIXF3SdpB/8AzCjMhEsH10Cd/L88zeOXKuFbYQy/V35gVDwHb+s2JDzm9YBm5LNB+CzV4C27qJNWc1NeTEavI3RnPz6/j2BUOIuu1q1IuE3rAWZ8L6QQdzfRE467mjD47BiWpCEk+RZ4bmyGNM0h6T8N97VNeP38OJQPL0pTsO5WBx4fxOLcAJRPg9T/PivzccSeHAbXVgH5bYBuQrpakobxda6fZKOYg7CThIVB0LFvjYohMkCw1ePV0yN0QhO9V+mU3riOkoysAshHG4kASBJJsHztlfC1V1EP2mpWk0iiXNzt/1WqoYDl6N3yLxOpKV4mOyOHHUaN0MpRqUb+A8CchVao+nZ4AAAAAElFTkSuQmCC" width="16" height="16" alt="">Scope Box &#9662;</span>
             <span class="sb"><img class="" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAKmSURBVDhPfZPbS5NhHMd30UUHDVRstpwzIQihm6KMKCS1m5CCyssuom66CKPAw3KH921aGDI0dUiiO7TtfXfSrbnpPJQz03RzzpzHd0rZTOpdkP4B39gjFZnr4sNz8fD78v093+8jYGnJsr02l2doSXIo8T/YVBKepSWcgKHFmzYqA6x8G0aeDguVBUfdUTjqcmFX5cCiFMJKZf1FV60ILC3ZElhrj/EhTxWmvApM9SoQ6qPR334FJrkQZoUILnUBuEkDVkIsVkIMOVenLZjulYJRiuICT/NFnhvXwKU+DXfTeYwwtxD0KqCt2AuT7BAGO64jHgtjvKscY457GLXexfyoBhucD4zySFzgaSnmZ/oV0FemwFiTAWfDKawvDcHdeA76qlQMassQDbEwSNMIuop96Gu7jM8RBxhKHBd4W0v4GZ8MnQ/3QF+VAvvTfPCxEGKLPpgVh8k6q2E7GConMbDtqvPGHwGX+gz/Kcwg4K5G0FOD2WE13nc/wKy/ERF/E3o1l7AatiUXYOgc3tNUAG9rETwtRehpLoTlcR4sqjyszXmw8K4NXECfXMBMiXmTNJXYT6CrPABjTSZ0FfsRHniCH18XsTzRSYZ3FdgtxoSbnucXsLEyQtaJBk3JHeyMcdh4Ex9eN2At0oO37B14NSX/f8SdMTrqT2Dr+0fMj7aSyAY6rhEBs1IMszKbrJfoRtIYnQ0nsTShBUNl46U0DUPaMpKCUSaEUZYJQ/VB9LdfRWyue/cYI/5GTLqrSYlMMiF8L0qx+Y0jFY5OmcEFjfjCvcH6gjtRdRLjpq/lLPrbigl9mkI464+TT2RTieF8lo8x620EXt1HwPWLcvh1pQkHWwKGkkStlChulmf9JtFxlpYQGGV23PAo/W+kaXGLUpi4j/4ESVKa82qCKnoAAAAASUVORK5CYII=" width="16" height="16" alt="">Sheet Placer &#9662;</span>
-            <span class="sb"><img class="" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAKmSURBVDhPfZPbS5NhHMd30UUHDVRstpwzIQihm6KMKCS1m5CCyssuom66CKPAw3KH921aGDI0dUiiO7TtfXfSrbnpPJQz03RzzpzHd0rZTOpdkP4B39gjFZnr4sNz8fD78v093+8jYGnJsr02l2doSXIo8T/YVBKepSWcgKHFmzYqA6x8G0aeDguVBUfdUTjqcmFX5cCiFMJKZf1FV60ILC3ZElhrj/EhTxWmvApM9SoQ6qPR334FJrkQZoUILnUBuEkDVkIsVkIMOVenLZjulYJRiuICT/NFnhvXwKU+DXfTeYwwtxD0KqCt2AuT7BAGO64jHgtjvKscY457GLXexfyoBhucD4zySFzgaSnmZ/oV0FemwFiTAWfDKawvDcHdeA76qlQMassQDbEwSNMIuop96Gu7jM8RBxhKHBd4W0v4GZ8MnQ/3QF+VAvvTfPCxEGKLPpgVh8k6q2E7GConMbDtqvPGHwGX+gz/Kcwg4K5G0FOD2WE13nc/wKy/ERF/E3o1l7AatiUXYOgc3tNUAG9rETwtRehpLoTlcR4sqjyszXmw8K4NXECfXMBMiXmTNJXYT6CrPABjTSZ0FfsRHniCH18XsTzRSYZ3FdgtxoSbnucXsLEyQtaJBk3JHeyMcdh4Ex9eN2At0oO37B14NSX/f8SdMTrqT2Dr+0fMj7aSyAY6rhEBs1IMszKbrJfoRtIYnQ0nsTShBUNl46U0DUPaMpKCUSaEUZYJQ/VB9LdfRWyue/cYI/5GTLqrSYlMMiF8L0qx+Y0jFY5OmcEFjfjCvcH6gjtRdRLjpq/lLPrbigl9mkI464+TT2RTieF8lo8x620EXt1HwPWLcvh1pQkHWwKGkkStlChulmf9JtFxlpYQGGV23PAo/W+kaXGLUpi4j/4ESVKa82qCKnoAAAAASUVORK5CYII=" width="16" height="16" alt="">Section Placer &#9662;</span>
+            <span class="sb hl"><img class="" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAUElEQVR42mPUy5v4n4ECwMRAIWD8////wLqABcb4ukIXqwLuiMtY5bgjLqMagCyIzVBkOWRxir0w8Aaw4PIzOsAlR3E6oDgaBz4lMg54bgQAmxQmBPreztUAAAAASUVORK5CYII=" width="16" height="16" alt="Section Placer icon: a sheet with two views placed on it">Section Placer &#9662;<span class="tag">NEW ICON</span></span>
           </div>
           <div class="stack">
             <span class="sb"><img class="" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACjElEQVR4nHWTS0iUURTHf+d+33zfPLQxP3XGRzg9ULSyFiEUFBEUgdRC6AEVQaugTRC0EKtdq6CV0MJFm4JaRiFGm6hdtJAipKI0dXR8pc44zjePe1tMpmbd1eVw7u+c+/+fI/znyH/i5u+89jN3nOmR4cTs8JiAMqDX3vp/ZbvgtW5nLjllPK9a7Lg7LvHOC+3hoDvU3BCzzTq+CFgKRORP6ZI2jCZn8Kq2sJTJsvhz6aQ99WmUo12HaD1yne9TeUKOsOwb7l2pZUc8QC5vUAqUCBEXTlzqoefaefqfvOTpowFsHAAxI6mCuXiswuxLBORG/zxz6RJ9Lxb4OOoTjSjmlzR9V+sIu4IpSyEAarXlsCPS2eLK3uaQxD1LMEgmp+Xu5a3yrDcmTbWWLK5osZSIMUZWAfYqYCGrefgqTUvDCp9+5AFIZzUD77P8mC7yPVXYbAGgKOdyqjNMJqsZ+lbg6O4QzbEA5w5X4lg2IylN98FKdtUH8PN6g8X2qunXT1dvon8c9Wn0bEQgYIETELT5bdEGgIGvL3pZmfkCygHRbD9xi/vPPRKez864y+PXGRJ1AUKuwhizDuCUL8vj7wi3nSNY30Jq8DaF9CS1VY3c7A7Sti3C52RhswDrRcRycWIdBJv2oUI1GK1Z8TWfJ4pEIzZz6SJa63LDZm3kbPIgSnR0q6dzb3uM70QkVJwl6sWor3F5MJjl0RtN1neprwmjtSEUdI2llFAqGYl1nN1TVVv9YX9LA6bklydEFJZbwXLeIl8oV1VKqAgKH4a/0dxYx+T0AhPJZJd0HL8Ymf5ZOjA1tqiwAwZMWeJcBuzi+k9CDmKJJlKzc8arikooVjn0x49/re+m1f1H7BcgGfK1SRuwGwAAAABJRU5ErkJggg==" width="16" height="16" alt="">Sections To Sheet</span>
@@ -135,6 +148,28 @@ img{image-rendering:pixelated;display:block}
 </section>
 
 <section>
+  <h2>Sheet Placer and Section Placer, side by side</h2>
+  <p class="muted" style="margin-bottom:10px">They sit one above the other in the Sheet Create stack and both render at
+  16&nbsp;px, so until 7.41.1 the only thing telling them apart was the label.</p>
+  <div class="cmp">
+    <div class="cc">
+      <div class="row">
+        <figure><img class="" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAKmSURBVDhPfZPbS5NhHMd30UUHDVRstpwzIQihm6KMKCS1m5CCyssuom66CKPAw3KH921aGDI0dUiiO7TtfXfSrbnpPJQz03RzzpzHd0rZTOpdkP4B39gjFZnr4sNz8fD78v093+8jYGnJsr02l2doSXIo8T/YVBKepSWcgKHFmzYqA6x8G0aeDguVBUfdUTjqcmFX5cCiFMJKZf1FV60ILC3ZElhrj/EhTxWmvApM9SoQ6qPR334FJrkQZoUILnUBuEkDVkIsVkIMOVenLZjulYJRiuICT/NFnhvXwKU+DXfTeYwwtxD0KqCt2AuT7BAGO64jHgtjvKscY457GLXexfyoBhucD4zySFzgaSnmZ/oV0FemwFiTAWfDKawvDcHdeA76qlQMassQDbEwSNMIuop96Gu7jM8RBxhKHBd4W0v4GZ8MnQ/3QF+VAvvTfPCxEGKLPpgVh8k6q2E7GConMbDtqvPGHwGX+gz/Kcwg4K5G0FOD2WE13nc/wKy/ERF/E3o1l7AatiUXYOgc3tNUAG9rETwtRehpLoTlcR4sqjyszXmw8K4NXECfXMBMiXmTNJXYT6CrPABjTSZ0FfsRHniCH18XsTzRSYZ3FdgtxoSbnucXsLEyQtaJBk3JHeyMcdh4Ex9eN2At0oO37B14NSX/f8SdMTrqT2Dr+0fMj7aSyAY6rhEBs1IMszKbrJfoRtIYnQ0nsTShBUNl46U0DUPaMpKCUSaEUZYJQ/VB9LdfRWyue/cYI/5GTLqrSYlMMiF8L0qx+Y0jFY5OmcEFjfjCvcH6gjtRdRLjpq/lLPrbigl9mkI464+TT2RTieF8lo8x620EXt1HwPWLcvh1pQkHWwKGkkStlChulmf9JtFxlpYQGGV23PAo/W+kaXGLUpi4j/4ESVKa82qCKnoAAAAASUVORK5CYII=" width="16" height="16" alt="Sheet Placer icon at 16 px"><figcaption>16&nbsp;px</figcaption></figure>
+      </div>
+      <b>Sheet Placer</b>
+      <p>Places any views on sheets. Keeps the icon it had.</p>
+    </div>
+    <div class="cc new">
+      <div class="row">
+        <figure><img class="" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAcklEQVR42mPUy5v4n2EAARPDAINRB7DAGBcn5tHVYv38SaNRMMjSADL4ukKXaAO4Iy6TpAemfnCHAC7XEhNKuPTgUj+aCEcdMOoAvNmQlAKJXD2DMwTwFUDkFFqjldHQq4xGVBoYdcCAO4BxtG844h0AAHibIhH+NNx5AAAAAElFTkSuQmCC" width="32" height="32" alt="Section Placer icon at 32 px"><figcaption>32&nbsp;px</figcaption></figure>
+        <figure><img class="" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAUElEQVR42mPUy5v4n4ECwMRAIWD8////wLqABcb4ukIXqwLuiMtY5bgjLqMagCyIzVBkOWRxir0w8Aaw4PIzOsAlR3E6oDgaBz4lMg54bgQAmxQmBPreztUAAAAASUVORK5CYII=" width="16" height="16" alt="Section Placer icon at 16 px"><figcaption>16&nbsp;px</figcaption></figure>
+      </div>
+      <b>Section Placer <span class="tag">NEW ICON</span></b>
+      <p>Finds the section views shown in the active plan and packs them onto sheets. The icon shows a sheet with
+      views already placed on it, each with its title line.</p>
+    </div>
+  </div>
+
   <h2>The three sheet&#8209;layout tools, side by side</h2>
   <p class="muted" style="margin-bottom:10px">All three move views that are already on a sheet, so their icons have to say
   which one you are about to run.</p>

@@ -1,0 +1,130 @@
+<title>DWG Ribbon Icons</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<!-- UI preview (CLAUDE.md "UI previews") for the DWG Tools panel, plugin 7.41.1.
+     7.41.1: DWG Manager 3.2.1, DWG Statistics 5.2.1 and Export DWG to Folder 4.3.1 each get their own
+             icon. All three had been borrowing DWG To DL(P)'s, so four of the panel's four buttons
+             rendered the same 16 px picture and only the labels told them apart.
+     Shown: the DWG Tools panel as the four stacked pulldowns it is, with the real PNG assets embedded,
+            then the four side by side at both sizes.
+     Mirrors: Menu/00_Push_Button_Menu_items/Ribbon/SetupRibbon.cs (labels, order, panel),
+              Resources/Icons/SetupTools/*.png (the icons themselves), Shared/SharedStyles.xaml (palette).
+     Artifact: https://claude.ai/artifact/Fp5BHCuCEZhd2DydgVvjgZ (republish to this URL on every update) -->
+<style>
+/* Layout: the panel mock-up, then a comparison strip; one column. */
+:root{
+  color-scheme:light;
+  --page:#E9EDF1; --card:#FFFFFF; --border:#D6DCE3; --input:#B5C2CF; --sep:#E6EAEF;
+  --navy:#1E3A5F; --text:#1A2B3C; --text2:#5B7185; --text3:#8FA3B8; --bg2:#ECEFF3;
+  --ok:#2E7D4F; --ok-soft:#E6F4EC; --ok-border:#9FCFB2;
+  --warn:#9A5B00; --warn-soft:#FDF1E1; --warn-border:#E8B66B;
+  --ui:'Segoe UI',system-ui,-apple-system,sans-serif; --mono:Consolas,'Cascadia Mono',Menlo,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--text);font-family:var(--ui);font-size:12.5px;
+  padding-block:24px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.page{max-width:900px;margin:0 auto;display:grid;gap:20px}
+h1{font-size:21px;margin:0 0 5px;font-weight:600;text-wrap:balance}
+h2{font-size:14px;margin:0 0 8px;font-weight:600;text-wrap:balance}
+p{margin:0;line-height:1.55;max-width:78ch}
+.muted{color:var(--text2)}
+.tag{display:inline-block;background:var(--ok);color:#FFFFFF;font-size:9.5px;font-weight:600;letter-spacing:.04em;
+  padding:1px 5px;border-radius:3px;vertical-align:middle;margin-left:5px;white-space:nowrap}
+.frame{overflow-x:auto;padding-bottom:4px}
+.note{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px 14px;display:grid;gap:8px}
+code{font-family:var(--mono);font-size:11px;background:var(--bg2);border:1px solid var(--border);border-radius:3px;padding:0 4px}
+img{image-rendering:pixelated;display:block}
+.sample{display:inline-block;background:var(--warn-soft);color:var(--warn);border:1px solid var(--warn-border);
+  border-radius:3px;padding:2px 8px;font-size:11.5px}
+.ribbon{width:400px;background:var(--card);border:1px solid var(--input);display:flex;font-size:11.5px}
+.rp{padding:6px 9px 0;display:flex;flex-direction:column;min-width:0;flex:1}
+.stack{display:grid;gap:2px;align-content:start}
+.sb{display:flex;align-items:center;gap:5px;padding:2px 4px;border-radius:3px;white-space:nowrap}
+.sb.hl{outline:2px solid var(--ok);outline-offset:1px;background:var(--ok-soft)}
+.rpt{margin-top:6px;border-top:1px solid var(--sep);text-align:center;color:var(--text2);font-size:11px;padding:3px 0}
+.cmp{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+.cc{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px;display:grid;gap:6px}
+.cc.new{border-color:var(--ok-border);background:var(--ok-soft)}
+.row{display:flex;gap:14px;align-items:flex-end}
+figure{margin:0;display:grid;justify-items:center;gap:4px}
+figcaption{font-size:10.5px;color:var(--text2)}
+.cc p{font-size:11.5px;color:var(--text2)}
+</style>
+
+<div class="page">
+  <div>
+    <h1>DWG Tools &mdash; ribbon icons <span class="tag">3 new</span></h1>
+    <p class="muted">Plugin 7.41.1 &middot; <b>DWG Tools</b> panel, built by <code>SetupRibbon.Build</code>.
+    DWG Manager 3.2.1, DWG Statistics 5.2.1 and Export DWG to Folder 4.3.1.
+    <span class="sample">The icons below are the real PNG assets, embedded.</span></p>
+  </div>
+
+  <div class="note">
+    <h2>The panel</h2>
+    <p class="muted">Four stacked pulldowns. Until now the lower three all drew DWG To DL(P)'s picture, so the panel
+    showed the same icon four times and only the labels told the tools apart.</p>
+    <div class="frame" style="margin-top:4px">
+      <div class="ribbon">
+        <div class="rp">
+          <div class="stack">
+            <span class="sb"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAGXSURBVDhPlZPNSwJRFMX9o4RoNMUZ37yxhZsQcRGu1J07Ny6mVUshSM1mBhn7DsZNFJGLiJBAqI2uoq9lH+SmaNPmxH2ZNE6SDpzFe/PO791zL8/HmHWjafYrY9ZUGnhufapqvc3Pb0HT7H8Vi9mIRCwEgwY434SqWu++AY0W/yocrqFQOILj9JBI7EKWjf7EAFk2MDe3huvrF9CXzx/S+m9AMLgmbuP8ex2NmlAUE6nUDlZW2tD1Fji3ad8NYMxCJLKOcvkCun6CUKgGxkxIUhWG0UG3+yjAs7MVAWDMcgPoZy7XFCWaZgeBQBV+/yqWl0/x8fEp8hOUzpLHBaByJakiDtn2JdLpfZyd3SObbWJpqYVi8VgAf2J6ANSkZHIbpdK5yEtx2u0HcfPi4h5mZsquPnkAlKvRuEKv9yT6EA6vIx63kc8fDPszFqAodSwsbOD5+V2US6VSJEUxBo30jtUFkOU6MhkHjtMVRhrbqGFUngi0SaVPYh4LoJmPHhynIWCax/Rb5BGPSVWtO87tPtGmEXnI+wVrlUAb6ShzAgAAAABJRU5ErkJggg==" width="16" height="16" alt="DWG To DL(P) icon">DWG To DL(P) &#9662;</span>
+            <span class="sb hl"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAc0lEQVR42mPUy5v4n4ECwMRAIWBhYGBguDgxD6cC/fxJtHUB0QYcs5yN2wu4nIrutWOWsxmsjqdiNwBfOOAzhAWf4q8rdBmOWeI3BK8XsGlmYGDA7gLsXsiDGwwLRPQwICka0TWTZAA2zfRNSLgA44DnRgDsSiaF97xgFQAAAABJRU5ErkJggg==" width="16" height="16" alt="Export DWG icon: a drawing with an arrow leaving it">Export DWG &#9662;<span class="tag">NEW ICON</span></span>
+            <span class="sb hl"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAcElEQVR42mPUy5v4n4ECwMLAwMBwcWIeQYX6+ZOwijMxUAgoNoCFkDMJeY+FFMXDxAXHLGczMDAwMFgdTyXdBTDNREfj1xW6DF9X6GJohtlOdDqAGYKumaAB3BGXUfjomjHCAJ8huPICI6W5keK8AADXHilXjVL2VAAAAABJRU5ErkJggg==" width="16" height="16" alt="DWG Manager icon: a drawing with a tick">DWG Manager &#9662;<span class="tag">NEW ICON</span></span>
+            <span class="sb hl"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAUUlEQVR42mPUy5v4n4ECwMLAwMBwcWIeWZr18ycxMDFQCEgy4OsKXYavK3TJN4BiF5BsADYn09YFxNhI3zCgiwEsyBzuiMsMpPAHhxcYKc3OANStFdkRYR3KAAAAAElFTkSuQmCC" width="16" height="16" alt="DWG Statistics icon: a bar chart">DWG Statistics &#9662;<span class="tag">NEW ICON</span></span>
+          </div>
+          <div class="rpt">DWG Tools</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <h2>The four, side by side</h2>
+    <p class="muted" style="margin-bottom:10px">All four act on the same DWGs, so each icon has to say which one you
+    are about to run.</p>
+    <div class="cmp">
+      <div class="cc">
+        <div class="row">
+          <figure><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAGXSURBVDhPlZPNSwJRFMX9o4RoNMUZ37yxhZsQcRGu1J07Ny6mVUshSM1mBhn7DsZNFJGLiJBAqI2uoq9lH+SmaNPmxH2ZNE6SDpzFe/PO791zL8/HmHWjafYrY9ZUGnhufapqvc3Pb0HT7H8Vi9mIRCwEgwY434SqWu++AY0W/yocrqFQOILj9JBI7EKWjf7EAFk2MDe3huvrF9CXzx/S+m9AMLgmbuP8ex2NmlAUE6nUDlZW2tD1Fji3ad8NYMxCJLKOcvkCun6CUKgGxkxIUhWG0UG3+yjAs7MVAWDMcgPoZy7XFCWaZgeBQBV+/yqWl0/x8fEp8hOUzpLHBaByJakiDtn2JdLpfZyd3SObbWJpqYVi8VgAf2J6ANSkZHIbpdK5yEtx2u0HcfPi4h5mZsquPnkAlKvRuEKv9yT6EA6vIx63kc8fDPszFqAodSwsbOD5+V2US6VSJEUxBo30jtUFkOU6MhkHjtMVRhrbqGFUngi0SaVPYh4LoJmPHhynIWCax/Rb5BGPSVWtO87tPtGmEXnI+wVrlUAb6ShzAgAAAABJRU5ErkJggg==" width="16" height="16" alt="DWG To DL(P) icon at 16 px"><figcaption>16&nbsp;px</figcaption></figure>
+        </div>
+        <b>DWG To DL(P)</b>
+        <p>Turns a DWG into detail lines. Keeps the icon it had &mdash; it is the one the other three were borrowing.</p>
+      </div>
+      <div class="cc new">
+        <div class="row">
+          <figure><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAnElEQVR42mPUy5v4n2EAARPDAINRB7Agcy5OzCPZAP38SaNRMOoAnOCY5eyBDwFCjmAhJ3WTmluOWc5msDqeOrBpAFdIsFDLl+SGBAslBn5doctwzJIyRwxINkSODrokQnQwoCFAdBogxpfcEZfxhhR6yseWFZkGyud0dQAuy+niAHyW09wBhCwfbQ+MOoCBgYGBcbRnNOqAEe8AANEgMT4VE7QQAAAAAElFTkSuQmCC" width="32" height="32" alt="Export DWG icon at 32 px"><figcaption>32&nbsp;px</figcaption></figure>
+          <figure><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAc0lEQVR42mPUy5v4n4ECwMRAIWBhYGBguDgxD6cC/fxJtHUB0QYcs5yN2wu4nIrutWOWsxmsjqdiNwBfOOAzhAWf4q8rdBmOWeI3BK8XsGlmYGDA7gLsXsiDGwwLRPQwICka0TWTZAA2zfRNSLgA44DnRgDsSiaF97xgFQAAAABJRU5ErkJggg==" width="16" height="16" alt="Export DWG icon at 16 px"><figcaption>16&nbsp;px</figcaption></figure>
+        </div>
+        <b>Export DWG <span class="tag">NEW</span></b>
+        <p>Writes the CAD links and imports out to a folder. A drawing with an arrow leaving it.</p>
+      </div>
+      <div class="cc new">
+        <div class="row">
+          <figure><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAmElEQVR42mPUy5v4n2EAARPDAIMBdwALusDFiXkUGaifP2k0CkYdQFkiJCdBUZJwB3cIUJolR9PAaBoYTQMwcMxyNpxtdTyVviGAbDnd0wAhy2kaAtgsRw9+mjmAWMsJRgEx4OsKXTibO+IySZZTPQSQHUOM5TTPBYQsp4oDuCMuk2051UIAlyPoWhST6wjG0a7ZqAMG2gEAydwx6f6yqXQAAAAASUVORK5CYII=" width="32" height="32" alt="DWG Manager icon at 32 px"><figcaption>32&nbsp;px</figcaption></figure>
+          <figure><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAcElEQVR42mPUy5v4n4ECwMLAwMBwcWIeQYX6+ZOwijMxUAgoNoCFkDMJeY+FFMXDxAXHLGczMDAwMFgdTyXdBTDNREfj1xW6DF9X6GJohtlOdDqAGYKumaAB3BGXUfjomjHCAJ8huPICI6W5keK8AADXHilXjVL2VAAAAABJRU5ErkJggg==" width="16" height="16" alt="DWG Manager icon at 16 px"><figcaption>16&nbsp;px</figcaption></figure>
+        </div>
+        <b>DWG Manager <span class="tag">NEW</span></b>
+        <p>Lists every CAD link and import so you can review and delete them. A drawing with a tick against it.</p>
+      </div>
+      <div class="cc new">
+        <div class="row">
+          <figure><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAZElEQVR42mPUy5v4n2EAARPDAIMBdwALusDFiXk0tVA/f9JoFAzyNEAp+LpCF4XPHXF5NApGHUCbREhqYhuNglEHkJ0IqZXYRqNg1AGjDiA7G+LKdqSKj0bBoHUA42jfcMQ7AABGdRRDC0z6cwAAAABJRU5ErkJggg==" width="32" height="32" alt="DWG Statistics icon at 32 px"><figcaption>32&nbsp;px</figcaption></figure>
+          <figure><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAUUlEQVR42mPUy5v4n4ECwMLAwMBwcWIeWZr18ycxMDFQCEgy4OsKXYavK3TJN4BiF5BsADYn09YFxNhI3zCgiwEsyBzuiMsMpPAHhxcYKc3OANStFdkRYR3KAAAAAElFTkSuQmCC" width="16" height="16" alt="DWG Statistics icon at 16 px"><figcaption>16&nbsp;px</figcaption></figure>
+        </div>
+        <b>DWG Statistics <span class="tag">NEW</span></b>
+        <p>Counts DWG usage across the project. A bar chart on the drawing.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="note">
+    <h2>Style</h2>
+    <p class="muted">These follow the panel they sit on: a full&#8209;bleed <code>#2E6E91</code> tile, white for the
+    drawing, <code>#F4A72C</code> for what that tool does to it. That is what 81 of the suite's 120
+    <code>_32.png</code> icons use, and 30 of those already carry a warm accent. Each size is drawn as whole pixels at
+    that size rather than shrunk from the other, so the 16&nbsp;px version stays crisp &mdash; which is the size that
+    actually shows here, since all four are stacked buttons.</p>
+    <p class="muted">The monochrome brief at the top of <code>Claude/LOGO PROMPT FOLDER/Icon_Prompts.md</code>
+    describes an earlier direction the shipped set never adopted; that is noted there and in
+    <code>RIBBON_AND_ICONS.md</code>.</p>
+  </div>
+</div>
