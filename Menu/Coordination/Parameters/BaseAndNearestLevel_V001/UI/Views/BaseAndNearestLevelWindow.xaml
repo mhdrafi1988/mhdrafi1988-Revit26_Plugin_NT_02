@@ -456,7 +456,7 @@ Preview: Claude/Previews/BaseAndNearestLevel_V001_Window.html
                 </Border>
 
                 <!-- Activity log -->
-                <Border Style="{StaticResource LogBackground}">
+                <Border Background="{StaticResource BrushLogBg}" CornerRadius="8" Padding="10,8">
                     <StackPanel>
                         <Expander IsExpanded="{Binding LogExpanded}" Style="{StaticResource LogHeaderToggle}">
                             <Expander.Header>

@@ -1,6 +1,8 @@
 <title>Base and Nearest Level</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<!-- UI preview (CLAUDE.md "UI previews"): Base and Nearest Level V001, tool 1.1.0, plugin 7.40.0.
+<!-- UI preview (CLAUDE.md "UI previews"): Base and Nearest Level V001, tool 1.1.1, plugin 7.41.2.
+     Fixed in 1.1.1: the window failed to open ("#FF14283F is not a valid value for property Style") because
+     the Activity Log border used the LogBackground Color as a Style; it now uses BrushLogBg. No visible change.
      New in 1.1.0: widened from a fixed Roofs / Floors / Walls array to ANY level-based model element, in
      three tiers. Tier 1 = a level plus an offset measured from that level, so Z = level + offset holds:
      walls, floors, ceilings, roofs, structural columns and framing, MEP curves, stairs, families placed on
@@ -192,7 +194,7 @@ ul.q{margin:0;padding-left:18px;line-height:1.6;max-width:70ch}
 ul.q li{margin-bottom:6px}
 </style>
 
-<h1>Base and Nearest Level — v1.1.0</h1>
+<h1>Base and Nearest Level — v1.1.1</h1>
 <p class="note">Static mock-up of the shipped tool, in the state that shows the change. <b>New in 1.1.0:</b>
 any level-based model element, in three tiers, with a searchable Categories grid. All numbers, level names,
 element ids and family names below are <b>sample data</b> — not a real project.</p>
@@ -231,7 +233,7 @@ element ids and family names below are <b>sample data</b> — not a real project
       <div class="rtitle">Coordination</div>
     </div>
     <div class="tip">
-      <b>Base and Nearest Level — v1.1.0 (build V001)</b>
+      <b>Base and Nearest Level — v1.1.1 (build V001)</b>
       Any level-based model element. Reads each element's base level and offset, finds the project level nearest
       its real base elevation, and writes four parameters: base level name, base offset, nearest level name,
       nearest offset. Offsets are Length parameters, so schedules sort and total them. A separate action
@@ -241,18 +243,18 @@ element ids and family names below are <b>sample data</b> — not a real project
 </div>
 
 <h2>2 · Main window — after “Read Levels”</h2>
-<p class="note">Window title: <span class="pill">Base and Nearest Level — v1.1.0</span>. Sample model: a
+<p class="note">Window title: <span class="pill">Base and Nearest Level — v1.1.1</span>. Sample model: a
 four-storey block with 5 building-storey levels (GF 0, Level 01 3500, Level 02 7000, Level 03 10500, Roof 14000)
 and 2 non-storey levels (T.O.S. 01 3350, Parapet 15200) left out by the level filter.</p>
 <div class="scroll">
 <div class="win" style="width:1340px">
-  <div class="titlebar"><span>Base and Nearest Level — v1.1.0</span><span>—□✕</span></div>
+  <div class="titlebar"><span>Base and Nearest Level — v1.1.1</span><span>—□✕</span></div>
   <div class="header">
     <div>
       <div class="t">Base and Nearest Level</div>
       <div class="s">Sample Project · Level 02 Plan</div>
     </div>
-    <div class="v">v1.1.0</div>
+    <div class="v">v1.1.1</div>
   </div>
 
   <div class="metrics">
@@ -513,7 +515,7 @@ and 2 non-storey levels (T.O.S. 01 3350, Parapet 15200) left out by the level fi
 
   <!-- Log -->
   <div class="log">
-    <div class="loghead"><b>▾ Activity Log</b><span class="dim">· 9 lines</span>
+    <div class="loghead"><b>▾ Activity Log</b><span class="new">FIXED IN 1.1.1</span><span class="dim">· 9 lines</span>
       <span class="sp" style="flex:1"></span><span class="ghost">Copy all</span><span class="ghost">Copy selected</span><span class="ghost">Clear</span></div>
     <div class="logline"><span class="tm">10:42:03</span><span class="lv hi">INFO</span>Base and Nearest Level — v1.0.0 ready. Roofs, floors and walls of the host model only.</div>
     <div class="logline"><span class="tm">10:42:03</span><span class="lv hi">INFO</span>Listed 12 roof(s), floor(s) and wall(s) of “Level 02 Plan”.</div>
@@ -550,7 +552,7 @@ their level names filled in and their offset columns reading <b>n/a</b>: the too
 level names and leave the two offset slots empty, because their offset is not measured from their level.</p>
 <div class="scroll">
 <div class="win" style="width:1340px">
-  <div class="titlebar"><span>Base and Nearest Level — v1.1.0</span><span>—□✕</span></div>
+  <div class="titlebar"><span>Base and Nearest Level — v1.1.1</span><span>—□✕</span></div>
 
   <div class="metrics">
     <div class="tile act"><div class="k">LISTED</div><div class="n">89</div></div>
@@ -767,6 +769,7 @@ button's count at once.</p>
 </div>
 
 <h2>7 · As built</h2>
+<p class="note"><b>1.1.1</b> — fix only: the window failed to open with “Set property Style threw an exception” because the Activity Log border pointed its Style at a colour. It now opens; nothing looks different.</p>
 <p class="note"><b>1.1.0</b></p>
 <ul class="q">
   <li><b>Any level-based model element</b>, read in three tiers. Tier 1 (level + an offset measured from it)
